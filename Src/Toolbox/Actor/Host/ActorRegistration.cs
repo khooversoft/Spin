@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Toolbox.Tools;
+
+namespace Toolbox.Actor
+{
+    /// <summary>
+    /// Actor registration for lambda activator
+    /// </summary>
+    public class ActorRegistration
+    {
+        public ActorRegistration(Type interfaceType, Func<IActor> createImplementation)
+        {
+            interfaceType.VerifyNotNull(nameof(interfaceType));
+            createImplementation.VerifyNotNull(nameof(createImplementation));
+
+            InterfaceType = interfaceType;
+            CreateImplementation = createImplementation;
+        }
+
+        /// <summary>
+        /// Interface type
+        /// </summary>
+        public Type InterfaceType { get; }
+
+        /// <summary>
+        /// Create implementation by lambda
+        /// </summary>
+        public Func<IActor> CreateImplementation { get; }
+    }
+}
