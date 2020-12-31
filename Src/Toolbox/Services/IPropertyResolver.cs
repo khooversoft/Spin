@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Toolbox.Services
 {
     public interface IPropertyResolver
     {
-        string Resolve(string subject);
+        [return: NotNullIfNotNull("subject")]
+        string? Resolve(string? subject);
     }
 }

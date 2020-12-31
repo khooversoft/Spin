@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Toolbox.Tools;
 
-namespace Toolbox.Actor
+namespace Toolbox.Actor.Host
 {
     /// <summary>
     /// Actor registration for lambda activator

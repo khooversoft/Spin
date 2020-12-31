@@ -1,0 +1,34 @@
+{
+  "Environment": "local",
+
+  "Store": {
+    "Namespaces": {
+
+      "system-test": {
+        "Namespace": "system-test",
+        "PathRoot": "default-test-root/Data",
+        "Store": {
+          "AccountName": "toolboxtestadls",
+          "ContainerName": "artifactstore-test"
+        }
+      },
+
+      "customer-test": {
+        "Namespace": "customer-test",
+        "PathRoot": "customer-test-root",
+        "Store": {
+          "AccountName": "toolboxtestadls",
+          "ContainerName": "artifactstore-test"
+        }
+      },
+
+      "smart-test": {
+        "Namespace": "smart-test",
+        "Store": {
+          "AccountName": "toolboxtestadls",
+          "ContainerName": "artifactstore-test"
+        }
+      }
+    }
+  }
+}

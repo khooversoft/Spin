@@ -1,0 +1,36 @@
+{
+  "Environment": "dev",
+  "SecretId": "ArtifactStore-dev",
+
+  "Store": {
+    "Namespaces": {
+
+      "dev-customer": {
+        "Namespace": "dev-customer",
+        "PathRoot": "V1.0",
+        "Store": {
+          "AccountName": "devartifactstorage",
+          "ContainerName": "dev-customer"
+        }
+      },
+
+      "smart-contract": {
+        "Namespace": "dev-smart-contract",
+        "PathRoot": "v1.0",
+        "Store": {
+          "AccountName": "devartifactstorage",
+          "ContainerName": "dev-smart-contract"
+        }
+      },
+
+      "dev-directory": {
+        "Namespace": "dev-directory",
+        "PathRoot": "v1.0",
+        "Store": {
+          "AccountName": "devartifactstorage",
+          "ContainerName": "dev-directory"
+        }
+      }
+    }
+  }
+}

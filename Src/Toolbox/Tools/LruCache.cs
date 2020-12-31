@@ -16,6 +16,7 @@ namespace Toolbox.Actor.Tools
     /// <typeparam name="TKey">key type</typeparam>
     /// <typeparam name="T">type to store</typeparam>
     public class LruCache<TKey, T> : IEnumerable<CacheItem<TKey, T>>
+        where TKey : notnull
     {
         private readonly Dictionary<TKey, LinkedListNode<CacheItem<TKey, T>>> _cacheMap;
         private LinkedList<CacheItem<TKey, T>> _lruList = new LinkedList<CacheItem<TKey, T>>();
@@ -99,7 +100,7 @@ namespace Toolbox.Actor.Tools
         {
             lock (_lock)
             {
-                if (_cacheMap.TryGetValue(key, out LinkedListNode<CacheItem<TKey, T>> node))
+                if (_cacheMap.TryGetValue(key, out LinkedListNode<CacheItem<TKey, T>>? node))
                 {
                     _lruList.Remove(node);
                 }
@@ -137,7 +138,7 @@ namespace Toolbox.Actor.Tools
             value = default!;
             lock (_lock)
             {
-                if (_cacheMap.TryGetValue(key, out LinkedListNode<CacheItem<TKey, T>> node))
+                if (_cacheMap.TryGetValue(key, out LinkedListNode<CacheItem<TKey, T>>? node))
                 {
                     value = node.Value.Value;
 
@@ -165,7 +166,7 @@ namespace Toolbox.Actor.Tools
         {
             lock (_lock)
             {
-                if (!_cacheMap.TryGetValue(key, out LinkedListNode<CacheItem<TKey, T>> node))
+                if (!_cacheMap.TryGetValue(key, out LinkedListNode<CacheItem<TKey, T>>? node))
                 {
                     value = default!;
                     return false;
@@ -188,9 +189,7 @@ namespace Toolbox.Actor.Tools
         {
             lock (_lock)
             {
-                LinkedListNode<CacheItem<TKey, T>> node;
-
-                if (_cacheMap.TryGetValue(key, out node)) return node.Value;
+                if (_cacheMap.TryGetValue(key, out LinkedListNode<CacheItem<TKey, T>>? node)) return node.Value;
             }
 
             return null;
@@ -220,7 +219,9 @@ namespace Toolbox.Actor.Tools
         private void RemoveFirst()
         {
             // Remove from LRUPriority
-            LinkedListNode<CacheItem<TKey, T>> node = _lruList.First;
+            LinkedListNode<CacheItem<TKey, T>>? node = _lruList.First;
+            if (node == null) return;
+
             _lruList.RemoveFirst();
 
             // Remove from cache

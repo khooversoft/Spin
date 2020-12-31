@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Toolbox.Extensions;
 
 namespace Toolbox.Tools
 {
@@ -31,7 +32,7 @@ namespace Toolbox.Tools
             if (test) return;
             message = message ?? throw new ArgumentException(nameof(message));
 
-            throw (Exception)Activator.CreateInstance(typeof(T), message);
+            throw (Exception)Activator.CreateInstance(typeof(T), message)!;
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace Toolbox.Tools
             if (test(subject)) return subject;
 
             getMessage.VerifyNotNull(nameof(getMessage));
-            throw (Exception)Activator.CreateInstance(typeof(T), getMessage(subject));
+            throw (Exception)Activator.CreateInstance(typeof(T), getMessage(subject))!;
         }
 
         /// <summary>
@@ -108,7 +109,7 @@ namespace Toolbox.Tools
         [return: NotNull]
         public static string VerifyNotEmpty([NotNull] this string? subject, string name)
         {
-            if (string.IsNullOrWhiteSpace(subject)) throw new ArgumentNullException(name);
+            if (subject.IsEmpty()) throw new ArgumentNullException(name);
             return subject;
         }
     }

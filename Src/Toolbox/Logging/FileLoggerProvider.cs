@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Logging
@@ -11,11 +12,12 @@ namespace Toolbox.Logging
     public class FileLoggerProvider : ILoggerProvider
     {
         private readonly string _baseFileName;
-        private readonly string _loggingFolder;
+        private readonly Deferred<ActionBlock<string>> _deferred;
         private readonly int _limit;
         private readonly string _loggingFileName;
-        private readonly ActionBlock<string> _output;
-        private StreamWriter _logFile;
+        private readonly string _loggingFolder;
+        private StreamWriter _logFile = null!;
+        private ActionBlock<string> _output = null!;
 
         public FileLoggerProvider(string loggingFolder, string baseLogFileName, int limit = 10)
         {
@@ -27,8 +29,30 @@ namespace Toolbox.Logging
             _baseFileName = baseLogFileName;
             _limit = limit;
 
-            Directory.CreateDirectory(loggingFolder);
-            _loggingFileName = Path.Combine(_loggingFolder, $"{_baseFileName}_{DateTime.Now.ToString("o").Replace('.', '_').Replace(':', '_')}.log");
+            _loggingFileName = Path.Combine(_loggingFolder, $"{_baseFileName}_{GetTimestampInFormat()}.log");
+
+            _deferred = new Deferred<ActionBlock<string>>(Initialize);
+        }
+
+        public ILogger CreateLogger(string categoryName) => new TargetBlockLogger(categoryName, _deferred.Value);
+
+        public void Dispose()
+        {
+            StreamWriter streamWriter = Interlocked.Exchange(ref _logFile, null!);
+            if (streamWriter != null)
+            {
+                _output.Complete();
+                _output.Completion.Wait();
+
+                streamWriter.Dispose();
+            }
+        }
+
+        private static string GetTimestampInFormat() => DateTime.Now.ToString("o").Replace('.', '_').Replace(':', '_');
+
+        private ActionBlock<string> Initialize()
+        {
+            Directory.CreateDirectory(_loggingFolder);
 
             Directory.GetFiles(_loggingFolder, $"{_baseFileName}*.log")
                 .OrderByDescending(x => x)
@@ -51,21 +75,8 @@ namespace Toolbox.Logging
                         break;
                 }
             });
-        }
 
-        public ILogger CreateLogger(string categoryName) => new FileLogger(_output, categoryName);
-
-        public void Dispose()
-        {
-            StreamWriter streamWriter = Interlocked.Exchange(ref _logFile, null!);
-            if (streamWriter != null)
-            {
-                _output.Complete();
-                _output.Completion.Wait();
-
-                streamWriter.Dispose();
-            }
+            return _output;
         }
     }
 }
-

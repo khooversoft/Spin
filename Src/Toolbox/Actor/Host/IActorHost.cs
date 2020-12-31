@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Toolbox.Actor
+namespace Toolbox.Actor.Host
 {
     public interface IActorHost : IDisposable
     {

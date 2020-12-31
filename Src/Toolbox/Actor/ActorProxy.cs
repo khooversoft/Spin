@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading;
+using Toolbox.Actor.Host;
 using Toolbox.Tools;
 
 namespace Toolbox.Actor
@@ -47,8 +48,10 @@ namespace Toolbox.Actor
         /// <param name="targetMethod">method info</param>
         /// <param name="args">args</param>
         /// <returns>return value</returns>
-        protected override object Invoke(MethodInfo targetMethod, object[] args)
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
+            targetMethod.VerifyNotNull(nameof(targetMethod));
+
             try
             {
                 _lockSemaphore.Wait(_actorHost?.ActorCallTimeout ?? TimeSpan.FromMinutes(5));

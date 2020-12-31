@@ -1,8 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Toolbox.Tools;
+using System.Threading.Tasks.Dataflow;
+using Toolbox.Extensions;
 
 namespace Toolbox.Logging
 {
@@ -14,42 +17,12 @@ namespace Toolbox.Logging
             return builder;
         }
 
-        public static ILoggingBuilder AddMemoryLogger(this ILoggingBuilder builder, BoundedQueue<string> queue)
+        public static ILoggingBuilder AddLogger(this ILoggingBuilder builder, ITargetBlock<string> queue)
         {
-            builder.AddProvider(new MemoryLoggerProvider(queue));
-            builder.AddFilter<MemoryLoggerProvider>(x => true);
+            builder.AddProvider(new TargetBlockLoggerProvider(queue));
+            builder.AddFilter<TargetBlockLoggerProvider>(x => true);
 
             return builder;
         }
-
-        public static async Task LogTrace(this HttpRequestMessage subject, ILogger logger)
-        {
-            const string label = "httpRequest";
-            logger.LogTrace($"{label}: Uri={subject.RequestUri}, Method={subject.Method.Method}");
-
-            if (subject.Content != null)
-            {
-                logger.Log(LogLevel.Trace, $"{label}: Content: {await subject.Content.ReadAsStringAsync()}");
-            }
-
-            subject.Headers.DumpHeaders(label, logger);
-        }
-
-        public static async Task LogTrace(this HttpResponseMessage subject, ILogger logger)
-        {
-            const string label = "httpResponse";
-
-            await subject.RequestMessage.LogTrace(logger);
-
-            if (subject.Content != null)
-            {
-                logger.Log(LogLevel.Trace, $"{label}: Content: {await subject.Content.ReadAsStringAsync()}");
-            }
-
-            subject.Headers.DumpHeaders(label, logger);
-        }
-
-        public static void DumpHeaders(this IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, string label, ILogger logger) => headers
-            .ForEach(x => logger.LogTrace($"{label}: Header {x.Key} = Value: {string.Join(", ", x.Value)}"));
     }
 }

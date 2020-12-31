@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using Toolbox.Tools;
 
-namespace Toolbox.Actor
+namespace Toolbox.Actor.Host
 {
     /// <summary>
     /// Actor instance registration information

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Actor
@@ -7,7 +7,7 @@ namespace Toolbox.Actor
     /// <summary>
     /// Actor key, a GUID is created from the string vector
     /// </summary>
-    public class ActorKey
+    public record ActorKey
     {
         /// <summary>
         /// Construct actor key from vector
@@ -33,22 +33,8 @@ namespace Toolbox.Actor
         /// </summary>
         public string Value { get; }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is ActorKey key &&
-                   Key.Equals(key.Key);
-        }
-
-        public override int GetHashCode() => HashCode.Combine(Key);
-
-        public override string ToString() => $"Key={Key}, Vector key={Value}";
-
-        public static bool operator ==(ActorKey? left, ActorKey? right) => EqualityComparer<ActorKey>.Default.Equals(left!, right!);
-
-        public static bool operator !=(ActorKey? left, ActorKey? right) => !(left == right);
-
         /// <summary>
-        /// Implicit convert actor key to string
+        /// Explicit convert actor key to string
         /// </summary>
         /// <param name="actorKey"></param>
         public static explicit operator string(ActorKey actorKey)
@@ -58,6 +44,6 @@ namespace Toolbox.Actor
             return actorKey.Value;
         }
 
-        public static explicit operator ActorKey(string value) => new ActorKey(value.VerifyNotEmpty(nameof(value)));
+        public static explicit operator ActorKey(string value) => new ActorKey(value);
     }
 }

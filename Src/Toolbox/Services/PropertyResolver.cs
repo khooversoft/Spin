@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Services
@@ -17,9 +19,10 @@ namespace Toolbox.Services
             _property = new Dictionary<string, string>(properties, StringComparer.OrdinalIgnoreCase);
         }
 
-        public string Resolve(string subject)
+        [return: NotNullIfNotNull("subject")]
+        public string? Resolve(string? subject)
         {
-            if (string.IsNullOrEmpty(subject)) return subject;
+            if (subject.IsEmpty()) return subject;
 
             return _property
                 .Aggregate(subject, (acc, x) => acc.Replace($"{{{x.Key}}}", x.Value));

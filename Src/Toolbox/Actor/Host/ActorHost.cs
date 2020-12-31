@@ -1,11 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Actor
+namespace Toolbox.Actor.Host
 {
     public class ActorHost : IActorHost, IDisposable
     {
@@ -65,11 +69,14 @@ namespace Toolbox.Actor
             {
                 if (_actorCollection.TryGetValue(actoryType, actorKey, out ActorInstance actorInstance))
                 {
+                    _logger.LogInformation($"{nameof(GetActor)}: found instance, actorKey={actorKey}, actorInstance.ActorKey={actorInstance.ActorKey}");
                     return (T)actorInstance.GetInstance<T>();
                 }
 
                 // Create actor object
                 IActorBase actorBase = _registry.Create<T>(actorKey, this);
+                (actorKey == actorBase.ActorKey).VerifyAssert(x => x, $"{nameof(GetActor)}: CREATED-Error  Actor key !=, actorKey={actorKey}, actorBase.ActorKey={actorBase.ActorKey}");
+                _logger.LogTrace($"{nameof(GetActor)}: CREATED actorBase.ActorKey={actorBase.ActorKey}");
 
                 // Create proxy
                 T actorInterface = ActorProxy<T>.Create(actorBase, this);

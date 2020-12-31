@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Services
