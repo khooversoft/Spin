@@ -3,23 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Toolbox\Toolbox.csproj", "{BBB411DD-C61D-4240-AC6B-C854C2E2F7B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Tools\Toolbox\Toolbox.csproj", "{BBB411DD-C61D-4240-AC6B-C854C2E2F7B1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Azure", "Toolbox.Azure\Toolbox.Azure.csproj", "{09272BDD-7E4B-4FDA-AF52-C24BF2DF4922}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Azure", "Tools\Toolbox.Azure\Toolbox.Azure.csproj", "{09272BDD-7E4B-4FDA-AF52-C24BF2DF4922}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Test", "Test\Toolbox.Test\Toolbox.Test.csproj", "{5C3611BF-5BAD-4F81-92A0-4AA59BADA7C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Test", "Tools\Toolbox.Test\Toolbox.Test.csproj", "{5C3611BF-5BAD-4F81-92A0-4AA59BADA7C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToolBox.Azure.Test", "Test\ToolBox.Azure.Test\ToolBox.Azure.Test.csproj", "{CDA25FC6-920B-4445-8708-02E37B87408A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToolBox.Azure.Test", "Tools\ToolBox.Azure.Test\ToolBox.Azure.Test.csproj", "{CDA25FC6-920B-4445-8708-02E37B87408A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Directory", "Directory\Directory.csproj", "{4C4E5EFB-2CA4-427F-8175-F7CD0E104ADE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore", "ArtifactStore\ArtifactStore.csproj", "{C303A1BC-20AE-4810-AAB2-F72A16F4A689}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore", "Artifact\ArtifactStore\ArtifactStore.csproj", "{C303A1BC-20AE-4810-AAB2-F72A16F4A689}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.sdk", "ArtifactStore.sdk\ArtifactStore.sdk.csproj", "{2D522367-2138-4390-84B1-58E46F2E197F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.sdk", "Artifact\ArtifactStore.sdk\ArtifactStore.sdk.csproj", "{2D522367-2138-4390-84B1-58E46F2E197F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.Test", "ArtifactStore.Test\ArtifactStore.Test.csproj", "{B54E3A84-F19D-4D9B-A699-AE1D76423609}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.Test", "Artifact\ArtifactStore.Test\ArtifactStore.Test.csproj", "{B54E3A84-F19D-4D9B-A699-AE1D76423609}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.sdk.Test", "ArtifactStore.sdk.Test\ArtifactStore.sdk.Test.csproj", "{DB173CE0-BED8-4631-B81A-43BBF62BCFE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.sdk.Test", "Artifact\ArtifactStore.sdk.Test\ArtifactStore.sdk.Test.csproj", "{DB173CE0-BED8-4631-B81A-43BBF62BCFE8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{363371EF-FAAC-42B7-999F-54CAA56F6910}"
 EndProject
@@ -27,7 +27,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Artifact", "Artifact", "{A3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Message", "Message", "{087E0453-1199-4214-82F0-A062D4157582}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageNet.sdk", "MessageNet.sdk\MessageNet.sdk.csproj", "{6CBD99A1-69E4-4B36-AC75-89300F254493}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageNet.sdk", "Message\MessageNet.sdk\MessageNet.sdk.csproj", "{6CBD99A1-69E4-4B36-AC75-89300F254493}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageNet.Test", "Message\MessageNet.Test\MessageNet.Test.csproj", "{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,10 @@ Global
 		{6CBD99A1-69E4-4B36-AC75-89300F254493}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CBD99A1-69E4-4B36-AC75-89300F254493}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CBD99A1-69E4-4B36-AC75-89300F254493}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +95,7 @@ Global
 		{B54E3A84-F19D-4D9B-A699-AE1D76423609} = {A39E309B-44C6-4E99-8A41-380EDBC0A276}
 		{DB173CE0-BED8-4631-B81A-43BBF62BCFE8} = {A39E309B-44C6-4E99-8A41-380EDBC0A276}
 		{6CBD99A1-69E4-4B36-AC75-89300F254493} = {087E0453-1199-4214-82F0-A062D4157582}
+		{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C} = {087E0453-1199-4214-82F0-A062D4157582}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}
