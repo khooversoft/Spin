@@ -15,15 +15,19 @@ namespace Toolbox.Azure.Queue
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly ILogger<QueueReceiver<T>> _logger;
         private MessageReceiver? _messageReceiver;
-        private readonly Func<T, Task> _receiver;
+        private readonly QueueReceiverOption<T> _queueReceiver;
 
-        public QueueReceiver(QueueOption queueOption, Func<T, Task> receiver, ILogger<QueueReceiver<T>> logger)
+        public QueueReceiver(QueueReceiverOption<T> queueReceiver, ILogger<QueueReceiver<T>> logger)
         {
-            queueOption.VerifyNotNull(nameof(queueOption));
-            receiver.VerifyNotNull(nameof(receiver));
-            @
-            _messageReceiver = new MessageReceiver(queueOption.ToConnectionString(), queueOption.QueueName, ReceiveMode.PeekLock);
-            _receiver = receiver;
+            queueReceiver.VerifyNotNull(nameof(queueReceiver));
+
+            _queueReceiver = queueReceiver;
+
+            _messageReceiver = new MessageReceiver(
+                _queueReceiver.QueueOption.ToConnectionString(),
+                _queueReceiver.QueueOption.QueueName,
+                _queueReceiver.AutoComplete ? ReceiveMode.ReceiveAndDelete : ReceiveMode.PeekLock);
+
             _logger = logger;
         }
 
@@ -38,11 +42,11 @@ namespace Toolbox.Azure.Queue
             {
                 // Maximum number of Concurrent calls to the callback `ProcessMessagesAsync`, set to 1 for simplicity.
                 // Set it according to how many messages the application wants to process in parallel.
-                MaxConcurrentCalls = 1,
+                MaxConcurrentCalls = _queueReceiver.MaxConcurrentCalls,
 
                 // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
                 // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
-                AutoComplete = false
+                AutoComplete = _queueReceiver.AutoComplete,
             };
 
             _logger.LogTrace($"{nameof(Start)}: Register message handler");
@@ -104,12 +108,14 @@ namespace Toolbox.Azure.Queue
                 // Process the message
                 try
                 {
+                    _logger.LogTrace($"Starting processing message {message.SystemProperties.LockToken}");
+
                     string json = Encoding.UTF8.GetString(message.Body);
                     T? value = Json.Default.Deserialize<T>(json);
 
                     if (value == null) throw new ArgumentException($"Failed to parse message, json={json}");
 
-                    await _receiver!(value);
+                    await _queueReceiver.Receiver(value);
                 }
                 catch (Exception ex)
                 {
@@ -118,7 +124,12 @@ namespace Toolbox.Azure.Queue
 
                 // Complete the message so that it is not received again.
                 // This can be done only if the queueClient is created in ReceiveMode.PeekLock mode (which is default).
-                await _messageReceiver!.CompleteAsync(message.SystemProperties.LockToken);
+                if (!_queueReceiver.AutoComplete)
+                {
+                    await _messageReceiver!.CompleteAsync(message.SystemProperties.LockToken);
+                }
+
+                _logger.LogTrace($"Completed message {message.SystemProperties.LockToken}");
 
                 // Note: Use the cancellationToken passed as necessary to determine if the queueClient has already been closed.
                 // If queueClient has already been Closed, you may chose to not call CompleteAsync() or AbandonAsync() etc. calls

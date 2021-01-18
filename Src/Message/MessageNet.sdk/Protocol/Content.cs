@@ -10,8 +10,6 @@ namespace MessageNet.sdk.Protocol
 
         public string ContentType { get; init; } = null!;
 
-        public byte[]? Data { get; init; }
-
-        public string DataToString() => Encoding.UTF8.GetString(Data ?? Array.Empty<byte>());
+        public string? Data { get; init; }
     }
 }

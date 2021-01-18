@@ -19,7 +19,7 @@ namespace Toolbox.Azure.Queue
             _loggerFactory = loggerFactory;
         }
 
-        public IQueueReceiver Create<T>(QueueOption queueOption, Func<T, Task> receiver) where T : class =>
-            new QueueReceiver<T>(queueOption, receiver, _loggerFactory.CreateLogger<QueueReceiver<T>>());
+        public IQueueReceiver Create<T>(QueueReceiverOption<T> queueReceiver) where T : class =>
+            new QueueReceiver<T>(queueReceiver, _loggerFactory.CreateLogger<QueueReceiver<T>>());
     }
 }

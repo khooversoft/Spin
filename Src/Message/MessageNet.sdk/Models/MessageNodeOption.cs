@@ -8,5 +8,9 @@ namespace MessageNet.sdk.Models
         public string EndpointId { get; init; } = null!;
 
         public QueueOption BusQueue { get; init; } = null!;
+
+        public bool AutoComplete { get; init; } = false;
+
+        public int MaxConcurrentCalls { get; init; } = 10;
     }
 }

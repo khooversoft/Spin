@@ -40,7 +40,7 @@ namespace Toolbox.Azure.Queue
         {
             Message message = payload.ToMessage(Guid.NewGuid().ToString());
 
-            _logger.LogTrace($"Sending message: contentType={message.ContentType}, data.Length {message.Body?.Length}");
+            _logger.LogTrace($"Calling message: contentType={message.ContentType}, data.Length {message.Body?.Length}");
 
             await _messageSender!.SendAsync(message);
 

@@ -4,93 +4,66 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Azure.Queue;
-using Toolbox.Services;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace MessageNet.sdk.Host
 {
-    public class MessageHost : MessageHost<MessagePacket>
+    public class MessageHost : IAsyncDisposable
     {
-        public MessageHost(
-            Func<MessagePacket, Guid?> getId,
-            IQueueReceiverFactory queueReceiverFactory,
-            IAwaiterCollection<MessagePacket> awaiterCollection,
-            ILogger<MessageHost<MessagePacket>> logger
-            )
-            : base(getId, queueReceiverFactory, awaiterCollection, logger)
+        private ConcurrentDictionary<string, MessageNodeOption> _registered = new ConcurrentDictionary<string, MessageNodeOption>(StringComparer.OrdinalIgnoreCase);
+        private ConcurrentDictionary<string, QueueClient<MessagePacket>> _clients = new ConcurrentDictionary<string, QueueClient<MessagePacket>>(StringComparer.OrdinalIgnoreCase);
+
+        private MessageReceiverCollection<MessagePacket> _messageReceiverCollection;
+        private readonly ILoggerFactory _loggerFactory;
+
+        public MessageHost(ILoggerFactory loggerFactory)
         {
-        }
-    }
+            loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
-    public class MessageHost<T> : IAsyncDisposable where T : class
-    {
-        private readonly IAwaiterCollection<T> _awaiterCollection;
-        private readonly ILogger<MessageHost<T>> _logger;
-        private readonly Func<T, Guid?> _getId;
-        private readonly IQueueReceiverFactory _queueReceiverFactory;
-        private readonly ConcurrentDictionary<string, IQueueReceiver> _queueReceivers = new ConcurrentDictionary<string, IQueueReceiver>(StringComparer.OrdinalIgnoreCase);
+            _loggerFactory = loggerFactory;
 
-        public MessageHost(Func<T, Guid?> getId, IQueueReceiverFactory queueReceiverFactory, IAwaiterCollection<T> awaiterCollection, ILogger<MessageHost<T>> logger)
-        {
-            getId.VerifyNotNull(nameof(getId));
-            awaiterCollection.VerifyNotNull(nameof(awaiterCollection));
-            logger.VerifyNotNull(nameof(logger));
-
-            _getId = getId;
-            _queueReceiverFactory = queueReceiverFactory;
-            _awaiterCollection = awaiterCollection;
-            _logger = logger;
+            _messageReceiverCollection = new MessageReceiverCollectionBuilder()
+                .SetLoggerFactory(loggerFactory)
+                .Build();
         }
 
-        public async ValueTask DisposeAsync() => await StopAll();
-
-        public async Task Start(MessageNodeOption messageNodeOption, Func<T, Task> receiver)
+        public MessageHost Register(params MessageNodeOption[] messageNodeOptions)
         {
-            messageNodeOption.VerifyNotNull(nameof(messageNodeOption));
-            receiver.VerifyNotNull(nameof(receiver));
+            messageNodeOptions
+                .ForEach(x => _registered.TryAdd(x.EndpointId, x).VerifyAssert(x => x == true, x => $"Endpoint already registered"));
 
-            Func<T, Task> interceptReceiver = async message =>
-            {
-                switch (_getId(message))
-                {
-                    case Guid id:
-                        await receiver(message);
-
-                        _awaiterCollection.SetResult(id, message);
-                        break;
-                }
-            };
-
-            IQueueReceiver? queueReceiver = _queueReceiverFactory.Create<T>(messageNodeOption.BusQueue, interceptReceiver);
-
-            _queueReceivers.TryAdd((string)messageNodeOption.EndpointId, queueReceiver)
-                .VerifyAssert(x => x == true, $"Endpoint {messageNodeOption} already registered");
-
-            _logger.LogInformation($"{nameof(Start)}: Starting queue receiver {messageNodeOption.EndpointId}, ");
-            await queueReceiver.Start();
+            return this;
         }
 
-        public async Task<bool> Stop(EndpointId endpointId)
+        public QueueClient<MessagePacket> GetClient(string endpointId)
         {
-            if (!_queueReceivers.TryRemove((string)endpointId, out IQueueReceiver? receiver)) return false;
+            _registered.TryGetValue(endpointId, out MessageNodeOption? messageNodeOption)
+                .VerifyAssert(x => x == true, x => $"Endpoint {x} is not registered");
 
-            await receiver.Stop();
-            return true;
+            return _clients.GetOrAdd(endpointId, key => new MessageClientBuilder()
+                .SetLoggerFactory(_loggerFactory)
+                .SetQueueOption(messageNodeOption!.BusQueue)
+                .Build()
+                );
         }
 
-        public async Task StopAll()
+        public async Task StartReceiver(string endpointId, Func<MessagePacket, Task> receiver)
         {
-            var queue = new Queue<string>(_queueReceivers.Keys);
+            _registered.TryGetValue(endpointId, out MessageNodeOption? messageNodeOption)
+                .VerifyAssert(x => x == true, x => $"Endpoint {x} is not registered");
 
-            while (queue.TryDequeue(out string? key))
-            {
-                if (!_queueReceivers.TryRemove(key, out IQueueReceiver? queueReceiver)) continue;
-
-                _logger.LogInformation($"{nameof(Stop)}: Stopping queue receiver {key}, ");
-                await queueReceiver.Stop();
-            }
+            await _messageReceiverCollection.Start(messageNodeOption!, receiver);
         }
+
+        public async Task StopReceiver(string endpointId) => await _messageReceiverCollection.Stop((EndpointId)endpointId);
+
+        public async Task Stop() => await _messageReceiverCollection.StopAll();
+
+        public async ValueTask DisposeAsync() => await Stop();
     }
 }

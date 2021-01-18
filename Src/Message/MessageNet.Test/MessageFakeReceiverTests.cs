@@ -17,7 +17,7 @@ using System.Linq;
 
 namespace MessageNet.Test
 {
-    public class MessageHostFakeReceiverTests
+    public class MessageFakeReceiverTests
     {
         [Fact]
         public async Task GivenFakeReceiver_WhenSingleMessageSent_ShouldReceivelMessage()
@@ -29,11 +29,11 @@ namespace MessageNet.Test
 
             IQueueReceiverFactory queueReceiverFactory = new FakeReceiverFactory(x => receivers.Enqueue((FakeReceiver<FakeMessage>)x));
 
-            MessageHost<FakeMessage> messageHost = new MessageHost<FakeMessage>(getId, queueReceiverFactory, awaiterCollection, new NullLogger<MessageHost<FakeMessage>>());
+            MessageReceiverCollection<FakeMessage> messageReceiverCollection = new MessageReceiverCollection<FakeMessage>(getId, queueReceiverFactory, awaiterCollection, new NullLogger<MessageReceiverCollection<FakeMessage>>());
 
             MessageNodeOption option = GetMessageNodeOption();
 
-            await messageHost.Start(option, x =>
+            await messageReceiverCollection.Start(option, x =>
             {
                 fakeMessages.Enqueue(x);
                 return Task.CompletedTask;
@@ -64,7 +64,7 @@ namespace MessageNet.Test
             fakeMessages.TryDequeue(out FakeMessage? receivedMessage2).Should().BeTrue();
             (message == receivedMessage2).Should().BeTrue();
 
-            (await messageHost.Stop((EndpointId)option.EndpointId)).Should().BeTrue();
+            (await messageReceiverCollection.Stop((EndpointId)option.EndpointId)).Should().BeTrue();
         }
 
         [Fact]
@@ -79,11 +79,11 @@ namespace MessageNet.Test
 
             IQueueReceiverFactory queueReceiverFactory = new FakeReceiverFactory(x => receivers.Enqueue((FakeReceiver<FakeMessage>)x));
 
-            MessageHost<FakeMessage> messageHost = new MessageHost<FakeMessage>(getId, queueReceiverFactory, awaiterCollection, new NullLogger<MessageHost<FakeMessage>>());
+            MessageReceiverCollection<FakeMessage> messageReceiverCollection = new MessageReceiverCollection<FakeMessage>(getId, queueReceiverFactory, awaiterCollection, new NullLogger<MessageReceiverCollection<FakeMessage>>());
 
             MessageNodeOption option = GetMessageNodeOption();
 
-            await messageHost.Start(option, x =>
+            await messageReceiverCollection.Start(option, x =>
             {
                 fakeMessages.Enqueue(x);
                 return Task.CompletedTask;
@@ -125,7 +125,7 @@ namespace MessageNet.Test
                 .All(x => x.message.FakeMessage.Message == x.result.Message)
                 .Should().BeTrue();
 
-            (await messageHost.Stop((EndpointId)option.EndpointId)).Should().BeTrue();
+            (await messageReceiverCollection.Stop((EndpointId)option.EndpointId)).Should().BeTrue();
         }
 
         private class FakeReceiver<T> : IQueueReceiver where T : class
@@ -164,9 +164,9 @@ namespace MessageNet.Test
                 _onCreate = onCreate;
             }
 
-            public IQueueReceiver Create<T>(QueueOption queueOption, Func<T, Task> receiver) where T : class
+            public IQueueReceiver Create<T>(QueueReceiverOption<T> queueReceiver) where T : class
             {
-                return new FakeReceiver<T>(receiver)
+                return new FakeReceiver<T>(queueReceiver.Receiver)
                     .Action(x => _onCreate(x));
             }
         }

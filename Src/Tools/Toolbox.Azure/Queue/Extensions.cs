@@ -81,6 +81,14 @@ namespace Toolbox.Azure.Queue
                 .VerifyAssert(x => x.Length > 0, "data is empty");
         }
 
+        public static void Verify<T>(this QueueReceiverOption<T> subject) where T : class
+        {
+            subject.VerifyNotNull(nameof(subject));
+
+            subject.QueueOption.Verify();
+            subject.Receiver.VerifyNotNull(nameof(subject.Receiver));
+        }
+
         public static Message ToMessage(this MessagePayload subject)
         {
             subject.Verify();

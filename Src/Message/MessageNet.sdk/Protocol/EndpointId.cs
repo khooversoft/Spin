@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -10,32 +11,27 @@ namespace MessageNet.sdk.Protocol
     /// </summary>
     public record EndpointId
     {
-        private const string _defaultEndpoint = "main";
+        private string _id = string.Empty!;
 
-        public EndpointId(string id)
-        {
-            id.VerifyNotEmpty(id);
+        public EndpointId() { }
 
-            Id = id.ToLower();
-            VerifyId(Id);
-
-            Id = Id.Split('/')
-                .Take(3)
-                .Func(x => string.Join('/', x));
-        }
+        public EndpointId(string id) => Id = id;
 
         public EndpointId(string nameSpace, string node, string? endpoint)
             : this(ToId(nameSpace, node, endpoint))
         {
         }
 
-        public string Id { get; }
+        public string Id { get => _id; init => _id = ToId(value); }
 
+        [JsonIgnore]
         public string Namespace => Id.Split('/')[0];
 
-        public string Node => Id.Split('/').Skip(1).Func(x => string.Join('/', x));
+        [JsonIgnore]
+        public string Node => Id.Split('/').Skip(1).FirstOrDefault() ?? string.Empty;
 
-        public string? Endpoint => Id.Split('/').Skip(2).Func(x => string.Join('/', x));
+        [JsonIgnore]
+        public string? Endpoint => Id.Split('/').Skip(2).FirstOrDefault() ?? string.Empty;
 
         public override string ToString() => Id;
 
@@ -61,9 +57,21 @@ namespace MessageNet.sdk.Protocol
         {
             nameSpace,
             node,
-            endPoint.ToNullIfEmpty() ?? _defaultEndpoint,
         }
         .Where(x => !x.IsEmpty())
-        .Func(x => string.Join('/', x));
+        .Func(x => string.Join('/', x))
+        .ToLower();
+
+        private static string ToId(string id)
+        {
+            id.VerifyNotEmpty(id);
+
+            id = id.ToLower();
+            VerifyId(id);
+
+            return id.Split('/')
+                .Take(3)
+                .Func(x => string.Join('/', x));
+        }
     }
 }
