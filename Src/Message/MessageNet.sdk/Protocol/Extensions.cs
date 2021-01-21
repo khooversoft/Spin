@@ -28,7 +28,7 @@ namespace MessageNet.sdk.Protocol
             {
                 OriginateMessageId = message.MessageId,
                 ToEndpoint = message.FromEndpoint,
-                FromEndpoint = message.FromEndpoint,
+                FromEndpoint = message.ToEndpoint,
                 Contents = content != null ? new[] { content } : Array.Empty<Content>(),
                 Headers = (headers ?? Array.Empty<Header>()).ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase)
             };
@@ -82,13 +82,14 @@ namespace MessageNet.sdk.Protocol
                 .ForEach(x => x.Verify());
         }
 
-        public static MessagePacket WithMessage(this MessagePacket packet, Message message)
+        public static MessagePacket WithMessage(this MessagePacket subject, Message message)
         {
-            packet.VerifyNotNull(nameof(packet));
+            subject.VerifyNotNull(nameof(subject));
+            message.VerifyNotNull(nameof(message));
 
-            return packet with
+            return new MessagePacket
             {
-                Messages = (packet.Messages ?? Array.Empty<Message>())
+                Messages = subject.Messages
                     .Prepend(message)
                     .ToArray(),
             };

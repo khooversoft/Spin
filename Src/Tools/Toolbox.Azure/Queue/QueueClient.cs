@@ -79,7 +79,7 @@ namespace Toolbox.Azure.Queue
             if (messageId == null) return Task.FromResult<T>(default!);
 
             var tcs = new TaskCompletionSource<T>();
-            _awaiterService.Add((Guid)messageId, tcs, timeout);
+            _awaiterService.Register((Guid)messageId, tcs, timeout);
 
             return tcs.Task;
         }

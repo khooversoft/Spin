@@ -23,7 +23,7 @@ namespace Toolbox.Services
             _defaultTimeout = defaultTimeout;
         }
 
-        public void Add(Guid id, TaskCompletionSource<T> tcs, TimeSpan? timeout = null)
+        public void Register(Guid id, TaskCompletionSource<T> tcs, TimeSpan? timeout = null)
         {
             tcs.VerifyNotNull(nameof(tcs));
 

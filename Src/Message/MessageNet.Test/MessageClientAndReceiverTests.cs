@@ -49,7 +49,7 @@ namespace MessageNet.Test
 
             var tcs = new TaskCompletionSource();
 
-            await messageHost.Start(nodeOption, x =>
+            messageHost.Start(nodeOption, x =>
             {
                 receivedMessages.Enqueue(x);
 
@@ -109,7 +109,7 @@ namespace MessageNet.Test
 
             var tcs = new TaskCompletionSource();
 
-            await messageHost.Start(nodeOption, x =>
+            messageHost.Start(nodeOption, x =>
             {
                 receivedMessages.Enqueue(x);
 

@@ -9,14 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Azure.Queue;
 using Toolbox.Extensions;
+using Toolbox.Services;
 using Toolbox.Tools;
 
 namespace MessageNet.sdk.Host
 {
-    public class MessageHost : IAsyncDisposable
+    public class MessageHost : IMessageHost, IAsyncDisposable
     {
         private ConcurrentDictionary<string, MessageNodeOption> _registered = new ConcurrentDictionary<string, MessageNodeOption>(StringComparer.OrdinalIgnoreCase);
         private ConcurrentDictionary<string, QueueClient<MessagePacket>> _clients = new ConcurrentDictionary<string, QueueClient<MessagePacket>>(StringComparer.OrdinalIgnoreCase);
+        private readonly AwaiterCollection<MessagePacket> _awaiterCollection = new AwaiterCollection<MessagePacket>();
 
         private MessageReceiverCollection<MessagePacket> _messageReceiverCollection;
         private readonly ILoggerFactory _loggerFactory;
@@ -28,6 +30,7 @@ namespace MessageNet.sdk.Host
             _loggerFactory = loggerFactory;
 
             _messageReceiverCollection = new MessageReceiverCollectionBuilder()
+                .SetAwaiterCollection(_awaiterCollection)
                 .SetLoggerFactory(loggerFactory)
                 .Build();
         }
@@ -52,12 +55,34 @@ namespace MessageNet.sdk.Host
                 );
         }
 
-        public async Task StartReceiver(string endpointId, Func<MessagePacket, Task> receiver)
+        public void StartReceiver(string endpointId, Func<MessagePacket, Task> receiver)
         {
             _registered.TryGetValue(endpointId, out MessageNodeOption? messageNodeOption)
                 .VerifyAssert(x => x == true, x => $"Endpoint {x} is not registered");
 
-            await _messageReceiverCollection.Start(messageNodeOption!, receiver);
+            _messageReceiverCollection.Start(messageNodeOption!, receiver);
+        }
+
+        public async Task Send(MessagePacket messagePacket)
+        {
+            messagePacket.VerifyNotNull(nameof(messagePacket));
+            string toEndpointId = (string)(messagePacket.GetMessage()?.ToEndpoint).VerifyNotNull($"{nameof(Message.ToEndpoint)} is required");
+
+            await GetClient(toEndpointId).Send(messagePacket);
+        }
+
+        public async Task<MessagePacket> Call(MessagePacket messagePacket)
+        {
+            messagePacket.VerifyNotNull(nameof(messagePacket));
+            Message message = messagePacket.GetMessage().VerifyNotNull("Message is required");
+            string toEndpointId = ((string)message.ToEndpoint).VerifyNotEmpty($"{nameof(Message.ToEndpoint)} is required");
+
+            await GetClient(toEndpointId).Send(messagePacket);
+
+            var tcs = new TaskCompletionSource<MessagePacket>();
+            _awaiterCollection.Register(message.MessageId, tcs);
+
+            return await tcs.Task;
         }
 
         public async Task StopReceiver(string endpointId) => await _messageReceiverCollection.Stop((EndpointId)endpointId);

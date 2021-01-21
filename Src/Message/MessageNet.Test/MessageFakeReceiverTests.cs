@@ -33,7 +33,7 @@ namespace MessageNet.Test
 
             MessageNodeOption option = GetMessageNodeOption();
 
-            await messageReceiverCollection.Start(option, x =>
+            messageReceiverCollection.Start(option, x =>
             {
                 fakeMessages.Enqueue(x);
                 return Task.CompletedTask;
@@ -45,7 +45,7 @@ namespace MessageNet.Test
             };
 
             var tcs = new TaskCompletionSource<FakeMessage>();
-            awaiterCollection.Add(message.Id, tcs);
+            awaiterCollection.Register(message.Id, tcs);
 
             receivers.Count.Should().Be(1);
             receivers.TryDequeue(out FakeReceiver<FakeMessage>? fakeReceiver).Should().BeTrue();
@@ -83,7 +83,7 @@ namespace MessageNet.Test
 
             MessageNodeOption option = GetMessageNodeOption();
 
-            await messageReceiverCollection.Start(option, x =>
+            messageReceiverCollection.Start(option, x =>
             {
                 fakeMessages.Enqueue(x);
                 return Task.CompletedTask;
@@ -95,7 +95,7 @@ namespace MessageNet.Test
                 .ToArray();
 
             messages
-                .ForEach(x => awaiterCollection.Add(x.FakeMessage.Id, x.Tcs));
+                .ForEach(x => awaiterCollection.Register(x.FakeMessage.Id, x.Tcs));
 
             receivers.Count.Should().Be(1);
             receivers.TryDequeue(out FakeReceiver<FakeMessage>? fakeReceiver).Should().BeTrue();
@@ -140,10 +140,9 @@ namespace MessageNet.Test
                 _receiver = receiver;
             }
 
-            public Task Start()
+            public void Start()
             {
                 Interlocked.CompareExchange(ref _state, _started, _stopped).Should().Be(_stopped);
-                return Task.CompletedTask;
             }
 
             public Task Stop()

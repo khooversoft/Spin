@@ -22,7 +22,7 @@ namespace Toolbox.Test.Services
             Guid id = Guid.NewGuid();
             var tcs = new TaskCompletionSource<bool>();
 
-            awaiter.Add(id, tcs);
+            awaiter.Register(id, tcs);
 
             CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
 
@@ -55,7 +55,7 @@ namespace Toolbox.Test.Services
             IReadOnlyList<(Guid Id, TaskCompletionSource<int> Tcs, CancellationTokenSource TokenSource, int Index)> list = details
                 .Select(x => (Id: x.Id, Tcs: new TaskCompletionSource<int>(), TokenSource: new CancellationTokenSource(x.DelayMs), Index: x.Index))
                 .ToArray()
-                .Action(x => x.ForEach(y => awaiter.Add(y.Id, y.Tcs)));
+                .Action(x => x.ForEach(y => awaiter.Register(y.Id, y.Tcs)));
 
             list.ForEach(x => Task.Run(async () =>
             {

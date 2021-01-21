@@ -46,21 +46,23 @@ namespace MessageNet.sdk.Host
 
         public async ValueTask DisposeAsync() => await StopAll();
 
-        public async Task Start(MessageNodeOption messageNodeOption, Func<T, Task> receiver)
+        public void Start(MessageNodeOption messageNodeOption, Func<T, Task> receiver)
         {
             messageNodeOption.VerifyNotNull(nameof(messageNodeOption));
             receiver.VerifyNotNull(nameof(receiver));
 
-
             Func<T, Task> interceptReceiver = async message =>
             {
-                await receiver(message);
-
-                switch (_getId(message))
+                bool wasAwaiter = _getId(message) switch
                 {
-                    case Guid id:
-                        _awaiterCollection.SetResult(id, message);
-                        break;
+                    Guid id => _awaiterCollection.SetResult(id, message),
+
+                    _ => false,
+                };
+
+                if (!wasAwaiter)
+                {
+                    await receiver(message);
                 }
             };
 
@@ -79,7 +81,7 @@ namespace MessageNet.sdk.Host
                 .VerifyAssert(x => x == true, $"Endpoint {messageNodeOption} already registered");
 
             _logger.LogInformation($"{nameof(Start)}: Starting queue receiver {messageNodeOption.EndpointId}, ");
-            await queueReceiver.Start();
+            queueReceiver.Start();
         }
 
         public async Task<bool> Stop(EndpointId endpointId)

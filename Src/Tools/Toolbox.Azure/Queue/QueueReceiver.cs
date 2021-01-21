@@ -33,7 +33,7 @@ namespace Toolbox.Azure.Queue
 
         public async ValueTask DisposeAsync() => await Stop();
 
-        public Task Start()
+        public void Start()
         {
             _messageReceiver.VerifyNotNull("MessageProcessor is not running");
 
@@ -51,8 +51,6 @@ namespace Toolbox.Azure.Queue
 
             _logger.LogTrace($"{nameof(Start)}: Register message handler");
             _messageReceiver.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
