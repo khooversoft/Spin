@@ -40,6 +40,12 @@ namespace MessageNet.sdk.Protocol
 
         public static Guid? GetOriginateMessageId(this MessagePacket packet) => packet.GetMessage()?.OriginateMessageId;
 
+        public static bool IsValid(this EndpointId endpointId)
+        {
+            if (endpointId == null) return false;
+            return !endpointId.ToString().IsEmpty();
+        }
+
         public static void Verify(this Content subject)
         {
             subject.VerifyNotNull(nameof(subject));

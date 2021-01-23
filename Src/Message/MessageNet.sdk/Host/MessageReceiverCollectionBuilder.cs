@@ -45,7 +45,7 @@ namespace MessageNet.sdk.Host
             GetId.VerifyNotNull($"{nameof(GetId)} is required");
             LoggerFactory.VerifyNotNull($"{nameof(LoggerFactory)} is required");
 
-            AwaiterCollection ??= new AwaiterCollection<T>();
+            AwaiterCollection ??= new AwaiterCollection<T>(LoggerFactory.CreateLogger<AwaiterCollection<T>>());
             QueueReceiverFactory ??= new QueueReceiverFactory(LoggerFactory);
 
             return new MessageReceiverCollection<T>(GetId, QueueReceiverFactory, AwaiterCollection, LoggerFactory.CreateLogger<MessageReceiverCollection<T>>());

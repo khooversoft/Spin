@@ -29,7 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Message", "Message", "{087E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageNet.sdk", "Message\MessageNet.sdk\MessageNet.sdk.csproj", "{6CBD99A1-69E4-4B36-AC75-89300F254493}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageNet.Test", "Message\MessageNet.Test\MessageNet.Test.csproj", "{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageNet.sdk.Test", "Message\MessageNet.sdk.Test\MessageNet.sdk.Test.csproj", "{8BE4D610-E0EC-4CC4-8A3E-09A505DB868C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageNet", "Message\MessageNet\MessageNet.csproj", "{98605890-E0FC-49B5-8DAD-43498451719E}"
 EndProject

@@ -9,7 +9,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Xunit;
 
-namespace MessageNet.Test
+namespace MessageNet.sdk.Test
 {
     public class EndpointTests
     {

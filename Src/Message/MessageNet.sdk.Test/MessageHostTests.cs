@@ -1,19 +1,18 @@
 ﻿using FluentAssertions;
 using MessageNet.sdk.Host;
 using MessageNet.sdk.Protocol;
-using MessageNet.Test.Application;
+using MessageNet.sdk.Test.Application;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Tools;
 using Xunit;
 
-namespace MessageNet.Test
+namespace MessageNet.sdk.Test
 {
+    [Collection("Real-Queue")]
     public class MessageHostTests
     {
         [Fact]

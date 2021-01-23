@@ -5,7 +5,7 @@ namespace Toolbox.Services
 {
     public interface IAwaiterCollection<T>
     {
-        void Register(Guid id, TaskCompletionSource<T> tcs, TimeSpan? timeout = null);
+        bool Register(Guid id, TaskCompletionSource<T> tcs, TimeSpan? timeout = null);
 
         void SetException(Guid id, Exception exception);
 

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using MessageNet.sdk.Host;
 using MessageNet.sdk.Protocol;
-using MessageNet.Test.Application;
+using MessageNet.sdk.Test.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,8 +13,9 @@ using System.Threading.Tasks.Dataflow;
 using Toolbox.Tools;
 using Xunit;
 
-namespace MessageNet.Test
+namespace MessageNet.sdk.Test
 {
+    [Collection("Real-Queue")]
     public class MessageHostServiceTests
     {
         [Fact]
@@ -24,7 +25,7 @@ namespace MessageNet.Test
                 .Build()
                 .VerifyNotNull("Option failed");
 
-            IServiceProvider service = new ServiceCollection()
+            await using ServiceProvider service = new ServiceCollection()
                 .AddLogging(x => x.AddDebug().AddFilter(x => true))
                 .AddSingleton<IMessageHost, MessageHost>()
                 .AddTransient<FeClient>()
@@ -126,7 +127,7 @@ namespace MessageNet.Test
         }
     }
 
-    internal abstract class ClientBase<T> where T : class
+    internal abstract class ClientBase<T> : IDisposable where T : class
     {
         protected readonly IMessageHost _messageHost;
         private readonly ILogger _logger;
@@ -167,6 +168,12 @@ namespace MessageNet.Test
             };
 
             return await _messageHost.Call(packet);
+        }
+
+        public void Dispose()
+        {
+            string rootClass = this.GetType().FullName!;
+            Console.WriteLine($"Disposing {rootClass}");
         }
     }
 }

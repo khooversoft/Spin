@@ -1,3 +1,6 @@
+using MessageNet.Application;
+using MessageNet.sdk.Host;
+using MessageNet.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,6 +35,8 @@ namespace MessageNet
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MessageNet", Version = "v1" });
             });
+
+            services.AddMessageNet();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,9 +45,9 @@ namespace MessageNet
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MessageNet v1"));
             }
+
+            app.AddMessageNet();
 
             app.UseHttpsRedirection();
 
@@ -54,6 +59,9 @@ namespace MessageNet
             {
                 endpoints.MapControllers();
             });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MessageNet v1"));
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Toolbox.Azure.Queue
             LoggerFactory.VerifyNotNull($"{nameof(LoggerFactory)} is required");
             QueueOption.VerifyNotNull($"{nameof(QueueOption)} is required");
 
-            AwaiterCollection ??= new AwaiterCollection<T>();
+            AwaiterCollection ??= new AwaiterCollection<T>(LoggerFactory.CreateLogger<AwaiterCollection<T>>());
 
             return new QueueClient<T>(GetId, QueueOption, AwaiterCollection, LoggerFactory.CreateLogger<QueueClient<T>>());
         }

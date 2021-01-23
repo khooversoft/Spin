@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Toolbox.Test.Services
         [Fact]
         public void SingleAsync_WhenSignaled_ShouldComplete()
         {
-            var awaiter = new AwaiterCollection<bool>();
+            var awaiter = new AwaiterCollection<bool>(new NullLogger<AwaiterCollection<bool>>());
 
             Guid id = Guid.NewGuid();
             var tcs = new TaskCompletionSource<bool>();
@@ -46,7 +47,7 @@ namespace Toolbox.Test.Services
         {
             const int max = 100;
             var random = new Random();
-            var awaiter = new AwaiterCollection<int>();
+            var awaiter = new AwaiterCollection<int>(new NullLogger<AwaiterCollection<int>>());
 
             IReadOnlyList<(Guid Id, int Index, int DelayMs)> details = Enumerable.Range(0, max)
                 .Select((x, i) => (Id: Guid.NewGuid(), Index: i, DelayMs: random.Next(50, 300)))
@@ -61,7 +62,7 @@ namespace Toolbox.Test.Services
             {
                 var xSave = x;
 
-                while(!xSave.TokenSource.IsCancellationRequested)
+                while (!xSave.TokenSource.IsCancellationRequested)
                 {
                     await Task.Delay(TimeSpan.FromMilliseconds(10));
                 }

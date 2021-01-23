@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Azure.Queue;
 
-namespace MessageNet.Test.Application
+namespace MessageNet.sdk.Test.Application
 {
     public record TestOption
     {

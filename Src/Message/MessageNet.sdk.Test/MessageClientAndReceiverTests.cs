@@ -2,7 +2,7 @@
 using MessageNet.sdk.Host;
 using MessageNet.sdk.Models;
 using MessageNet.sdk.Protocol;
-using MessageNet.Test.Application;
+using MessageNet.sdk.Test.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -17,8 +17,9 @@ using Toolbox.Services;
 using Toolbox.Tools;
 using Xunit;
 
-namespace MessageNet.Test
+namespace MessageNet.sdk.Test
 {
+    [Collection("Real-Queue")]
     public class MessageClientAndReceiverTests
     {
         [Fact]

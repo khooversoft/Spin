@@ -9,6 +9,15 @@ namespace MessageNet.sdk.Models
 {
     public static class Extensions
     {
+        public static bool IsValid(this RegisterSync subject)
+        {
+            if (subject == null) return false;
+            if (!subject.EndpointId.IsValid()) return false;
+            if (subject.CallbackUri.IsEmpty()) return false;
+
+            return true;
+        }
+
         public static void Verify(this MessageHostOption subject)
         {
             subject.VerifyNotNull(nameof(subject));

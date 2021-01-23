@@ -124,6 +124,7 @@ namespace Toolbox.Azure.Queue
                 // This can be done only if the queueClient is created in ReceiveMode.PeekLock mode (which is default).
                 if (!_queueReceiver.AutoComplete)
                 {
+                    _logger.LogTrace($"Releasing lock on queued message {message.SystemProperties.LockToken}");
                     await _messageReceiver!.CompleteAsync(message.SystemProperties.LockToken);
                 }
 

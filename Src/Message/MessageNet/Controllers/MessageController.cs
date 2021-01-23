@@ -10,6 +10,8 @@ using Toolbox.Tools;
 
 namespace MessageNet.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class MessageController : Controller
     {
         private readonly IMessageHost _messageHost;

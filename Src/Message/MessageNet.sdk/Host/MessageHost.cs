@@ -18,7 +18,7 @@ namespace MessageNet.sdk.Host
     {
         private ConcurrentDictionary<string, MessageNodeOption> _registered = new ConcurrentDictionary<string, MessageNodeOption>(StringComparer.OrdinalIgnoreCase);
         private ConcurrentDictionary<string, QueueClient<MessagePacket>> _clients = new ConcurrentDictionary<string, QueueClient<MessagePacket>>(StringComparer.OrdinalIgnoreCase);
-        private readonly AwaiterCollection<MessagePacket> _awaiterCollection = new AwaiterCollection<MessagePacket>();
+        private readonly AwaiterCollection<MessagePacket> _awaiterCollection;
 
         private MessageReceiverCollection<MessagePacket> _messageReceiverCollection;
         private readonly ILoggerFactory _loggerFactory;
@@ -28,6 +28,8 @@ namespace MessageNet.sdk.Host
             loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
             _loggerFactory = loggerFactory;
+
+            _awaiterCollection = new AwaiterCollection<MessagePacket>(_loggerFactory.CreateLogger<AwaiterCollection<MessagePacket>>());
 
             _messageReceiverCollection = new MessageReceiverCollectionBuilder()
                 .SetAwaiterCollection(_awaiterCollection)

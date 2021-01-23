@@ -10,7 +10,7 @@ using Toolbox.Application;
 using Toolbox.Azure.Queue;
 using Toolbox.Tools;
 
-namespace MessageNet.Test.Application
+namespace MessageNet.sdk.Test.Application
 {
     public class TestOptionBuilder : OptionBuilder<TestOption>
     {
@@ -45,6 +45,6 @@ namespace MessageNet.Test.Application
         }
 
         private Stream GetResourceStream(RunEnvironment runEnvironment) =>
-            runEnvironment.GetResourceStream(typeof(TestOptionBuilder), "MessageNet.Test.Application.Configs");
+            runEnvironment.GetResourceStream(typeof(TestOptionBuilder), "MessageNet.sdk.Test.Application.Configs");
     }
 }

@@ -1,21 +1,19 @@
-using System;
-using Xunit;
-using Toolbox.Azure.Queue;
-using System.Threading.Tasks;
-using Toolbox.Tools;
-using System.Threading;
 using FluentAssertions;
 using MessageNet.sdk.Host;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Collections.Concurrent;
 using MessageNet.sdk.Models;
 using MessageNet.sdk.Protocol;
-using Toolbox.Services;
-using Toolbox.Extensions;
+using Microsoft.Extensions.Logging.Abstractions;
+using System;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Toolbox.Azure.Queue;
+using Toolbox.Extensions;
+using Toolbox.Services;
+using Xunit;
 
-namespace MessageNet.Test
+namespace MessageNet.sdk.Test
 {
     public class MessageFakeReceiverTests
     {
@@ -24,8 +22,7 @@ namespace MessageNet.Test
         {
             Func<FakeMessage, Guid?> getId = x => x.Id;
             ConcurrentQueue<FakeReceiver<FakeMessage>> receivers = new ConcurrentQueue<FakeReceiver<FakeMessage>>();
-            ConcurrentQueue<FakeMessage> fakeMessages = new ConcurrentQueue<FakeMessage>();
-            IAwaiterCollection<FakeMessage> awaiterCollection = new AwaiterCollection<FakeMessage>();
+            IAwaiterCollection<FakeMessage> awaiterCollection = new AwaiterCollection<FakeMessage>(new NullLogger<AwaiterCollection<FakeMessage>>());
 
             IQueueReceiverFactory queueReceiverFactory = new FakeReceiverFactory(x => receivers.Enqueue((FakeReceiver<FakeMessage>)x));
 
@@ -35,8 +32,7 @@ namespace MessageNet.Test
 
             messageReceiverCollection.Start(option, x =>
             {
-                fakeMessages.Enqueue(x);
-                return Task.CompletedTask;
+                throw new InvalidOperationException("Receiver should not be called");
             });
 
             var message = new FakeMessage
@@ -61,9 +57,6 @@ namespace MessageNet.Test
             FakeMessage receivedMessage = tcs.Task.Result;
             (message == receivedMessage).Should().BeTrue();
 
-            fakeMessages.TryDequeue(out FakeMessage? receivedMessage2).Should().BeTrue();
-            (message == receivedMessage2).Should().BeTrue();
-
             (await messageReceiverCollection.Stop((EndpointId)option.EndpointId)).Should().BeTrue();
         }
 
@@ -74,8 +67,7 @@ namespace MessageNet.Test
             Random rnd = new Random();
             Func<FakeMessage, Guid?> getId = x => x.Id;
             ConcurrentQueue<FakeReceiver<FakeMessage>> receivers = new ConcurrentQueue<FakeReceiver<FakeMessage>>();
-            ConcurrentQueue<FakeMessage> fakeMessages = new ConcurrentQueue<FakeMessage>();
-            IAwaiterCollection<FakeMessage> awaiterCollection = new AwaiterCollection<FakeMessage>();
+            IAwaiterCollection<FakeMessage> awaiterCollection = new AwaiterCollection<FakeMessage>(new NullLogger<AwaiterCollection<FakeMessage>>());
 
             IQueueReceiverFactory queueReceiverFactory = new FakeReceiverFactory(x => receivers.Enqueue((FakeReceiver<FakeMessage>)x));
 
@@ -85,8 +77,7 @@ namespace MessageNet.Test
 
             messageReceiverCollection.Start(option, x =>
             {
-                fakeMessages.Enqueue(x);
-                return Task.CompletedTask;
+                throw new InvalidOperationException("Receiver should not be called");
             });
 
             var messages = Enumerable.Range(0, max)
@@ -108,8 +99,6 @@ namespace MessageNet.Test
                 }));
 
             Task.WaitAll(messages.Select(x => x.Tcs.Task).ToArray(), TimeSpan.FromSeconds(50)).Should().BeTrue();
-
-            fakeMessages.Count.Should().Be(max);
 
             var results = messages
                 .Select(x => x.Tcs.Task.Result)

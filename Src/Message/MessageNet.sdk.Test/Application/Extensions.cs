@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Tools;
 
-namespace MessageNet.Test.Application
+namespace MessageNet.sdk.Test.Application
 {
     public static class Extensions
     {

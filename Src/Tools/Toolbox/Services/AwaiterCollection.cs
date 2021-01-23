@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,25 +14,38 @@ namespace Toolbox.Services
     {
         private readonly ConcurrentDictionary<Guid, Registration> _completion = new ConcurrentDictionary<Guid, Registration>();
         private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(5);
+        private readonly ILogger<AwaiterCollection<T>> _logger;
 
-        public AwaiterCollection()
+        public AwaiterCollection(ILogger<AwaiterCollection<T>> logger)
         {
+            _logger = logger;
         }
 
-        public AwaiterCollection(TimeSpan defaultTimeout)
+        public AwaiterCollection(TimeSpan defaultTimeout, ILogger<AwaiterCollection<T>> logger)
         {
             _defaultTimeout = defaultTimeout;
+            _logger = logger;
         }
 
-        public void Register(Guid id, TaskCompletionSource<T> tcs, TimeSpan? timeout = null)
+        public bool Register(Guid id, TaskCompletionSource<T> tcs, TimeSpan? timeout = null)
         {
             tcs.VerifyNotNull(nameof(tcs));
 
-            timeout ??= _defaultTimeout;
-            var cancellationTokenSource = new CancellationTokenSource((TimeSpan)timeout);
-            cancellationTokenSource.Token.Register(() => SetException(id, new TimeoutException($"MessageNet: response was not received within timeout: {timeout}")));
+            bool added = false;
 
-            _completion[id] = new Registration(tcs, cancellationTokenSource);
+            _ = _completion.GetOrAdd(id, x =>
+            {
+                added = true;
+                _logger.LogInformation($"{nameof(Register)}: id={id}");
+
+                timeout ??= _defaultTimeout;
+                var cancellationTokenSource = new CancellationTokenSource((TimeSpan)timeout);
+                cancellationTokenSource.Token.Register(() => SetException(id, new TimeoutException($"MessageNet: response was not received within timeout: {timeout}")));
+
+                return new Registration(tcs, cancellationTokenSource);
+            });
+
+            return added;
         }
 
         /// <summary>
@@ -44,6 +58,8 @@ namespace Toolbox.Services
         {
             if (_completion.TryRemove(id, out Registration? registration))
             {
+                _logger.LogInformation($"{nameof(SetResult)}: id={id}");
+
                 try { registration.Tcs.SetResult(subject); }
                 finally { registration.Dispose(); }
 
@@ -62,6 +78,8 @@ namespace Toolbox.Services
         {
             if (_completion.TryRemove(id, out Registration? registration))
             {
+                _logger.LogInformation($"{nameof(SetException)}: id={id}, ex={exception}");
+
                 try { registration.Tcs.SetException(exception); }
                 finally { registration.Dispose(); }
             }

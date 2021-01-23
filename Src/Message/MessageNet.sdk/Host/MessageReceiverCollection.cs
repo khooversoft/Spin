@@ -53,6 +53,8 @@ namespace MessageNet.sdk.Host
 
             Func<T, Task> interceptReceiver = async message =>
             {
+                _logger.LogTrace($"{nameof(Start)}: Received message");
+
                 bool wasAwaiter = _getId(message) switch
                 {
                     Guid id => _awaiterCollection.SetResult(id, message),
@@ -60,9 +62,16 @@ namespace MessageNet.sdk.Host
                     _ => false,
                 };
 
-                if (!wasAwaiter)
+                switch (wasAwaiter)
                 {
-                    await receiver(message);
+                    case true:
+                        _logger.LogTrace($"{nameof(Start)}: Called awaiter with message");
+                        break;
+
+                    default:
+                        _logger.LogTrace($"{nameof(Start)}: No awaiter, sending to receiver");
+                        await receiver(message);
+                        break;
                 }
             };
 
