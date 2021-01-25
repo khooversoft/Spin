@@ -1,5 +1,4 @@
-﻿using ArtifactStore.sdk.Extensions;
-using ArtifactStore.sdk.Model;
+﻿using ArtifactStore.sdk.Model;
 using FluentAssertions;
 using System;
 using System.Collections.Generic;

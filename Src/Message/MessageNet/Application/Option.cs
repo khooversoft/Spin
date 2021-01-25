@@ -9,6 +9,8 @@ namespace MessageNet.Application
     {
         public RunEnvironment RunEnvironment { get; init; }
 
+        public string ApiKey { get; init; } = null!;
+
         public IReadOnlyList<MessageNodeOption> Nodes { get; init; } = null!;
 
         public BusNamespaceOption BusNamespace { get; set; } = null!;

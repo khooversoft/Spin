@@ -6,9 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Spin.Common.Middleware;
 using System;
 using Toolbox.Application;
-using Toolbox.Middleware;
+using Toolbox.Logging;
 
 namespace ArtifactStore
 {
@@ -44,6 +45,11 @@ namespace ArtifactStore
                     .AllowAnyHeader()
                     .SetPreflightMaxAge(TimeSpan.FromHours(1));
             }));
+
+            services.AddLogging(config =>
+            {
+                config.AddLoggerBuffer();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

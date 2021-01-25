@@ -66,9 +66,7 @@ namespace MessageNet.sdk.Protocol
             subject.FromEndpoint.VerifyNotNull(nameof(subject.FromEndpoint));
             subject.ToEndpoint.VerifyNotNull(nameof(subject.ToEndpoint));
 
-            subject.Headers
-                .VerifyNotNull(nameof(subject.Headers))
-                .ForEach(x => x.Value.Verify());
+            subject.Headers?.ForEach(x => x.Value.Verify());
 
             subject.Contents
                 .VerifyNotNull(nameof(subject.Contents))

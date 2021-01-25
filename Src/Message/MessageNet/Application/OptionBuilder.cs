@@ -11,15 +11,15 @@ namespace MessageNet.Application
 {
     public class OptionBuilder : OptionBuilder<Option>
     {
-        public OptionBuilder() =>
-            SetFinalize(FinalizeOption)
-            .SetConfigStream(GetResourceStream)
-            .SetArgs("Environment=dev");
+        public OptionBuilder()
+        {
+            SetFinalize(FinalizeOption);
+            SetConfigStream(GetResourceStream);
+            SetArgs("Environment=dev");
+        }
 
         private Option FinalizeOption(Option option, RunEnvironment runEnvironment)
         {
-            option.Verify();
-
             option = option with
             {
                 RunEnvironment = runEnvironment,
@@ -38,10 +38,11 @@ namespace MessageNet.Application
                     }).ToArray(),
             };
 
+            option.Verify();
+
             return option;
         }
 
-        private Stream GetResourceStream(RunEnvironment runEnvironment) =>
-            runEnvironment.GetResourceStream(typeof(OptionBuilder), "MessageNet.Test.Application.Configs");
+        protected virtual Stream GetResourceStream(RunEnvironment runEnvironment) => runEnvironment.GetResourceStream(typeof(OptionBuilder), "MessageNet.Configs");
     }
 }

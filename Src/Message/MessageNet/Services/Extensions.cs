@@ -1,4 +1,5 @@
 ﻿using MessageNet.Application;
+using MessageNet.sdk.Endpoint;
 using MessageNet.sdk.Host;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,8 +19,9 @@ namespace MessageNet.Services
         public static void AddMessageNet(this IServiceCollection services)
         {
             services.AddSingleton<IMessageHost, MessageHost>();
+            services.AddSingleton<MessageEndpointCollection>();
 
-            services.AddHttpClient<MessageEndpointCollection>();
+            services.AddHttpClient<ICallbackFactory, CallbackFactory>();
         }
     }
 }

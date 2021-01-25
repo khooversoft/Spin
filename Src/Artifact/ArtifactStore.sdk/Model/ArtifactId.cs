@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -23,19 +21,19 @@ namespace ArtifactStore.sdk.Model
 
         public string Id { get; }
 
-        public string ToBase64() => Convert.ToBase64String(Encoding.UTF8.GetBytes(Id));
-
         public string Namespace => Id.Split('/')[0];
 
         public string Path => Id.Split('/').Skip(1).Func(x => string.Join('/', x));
 
-        public override string ToString() => Id;
+        public static explicit operator ArtifactId(string id) => new ArtifactId(id);
 
         public static explicit operator string(ArtifactId articleId) => articleId.ToString();
 
-        public static explicit operator ArtifactId(string id) => new ArtifactId(id);
-
         public static ArtifactId FromBase64(string base64) => new ArtifactId(Encoding.UTF8.GetString(Convert.FromBase64String(base64)));
+
+        public string ToBase64() => Convert.ToBase64String(Encoding.UTF8.GetBytes(Id));
+
+        public override string ToString() => Id;
 
         private void VerifyId()
         {

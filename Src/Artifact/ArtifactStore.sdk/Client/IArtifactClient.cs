@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Toolbox.Model;
 using Toolbox.Tools;
 
-namespace nBlog.sdk.Client
+namespace ArtifactStore.sdk.Client
 {
     public interface IArtifactClient
     {

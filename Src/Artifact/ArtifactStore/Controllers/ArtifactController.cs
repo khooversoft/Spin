@@ -1,5 +1,4 @@
 ﻿using ArtifactStore.sdk.Actors;
-using ArtifactStore.sdk.Extensions;
 using ArtifactStore.sdk.Model;
 using Microsoft.AspNetCore.Mvc;
 using System;

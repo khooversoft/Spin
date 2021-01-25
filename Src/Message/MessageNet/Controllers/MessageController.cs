@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace MessageNet.Controllers
@@ -24,7 +25,7 @@ namespace MessageNet.Controllers
         }
 
         [HttpPost("send")]
-        public async Task<ActionResult> SendMessage([FromBody] MessagePacket messagePacket)
+        public async Task<ActionResult> Send([FromBody] MessagePacket messagePacket)
         {
             messagePacket
                 .VerifyNotNull(nameof(messagePacket))
@@ -35,7 +36,7 @@ namespace MessageNet.Controllers
         }
 
         [HttpPost("call")]
-        public async Task<ActionResult<MessagePacket>> CallMessage([FromBody] MessagePacket messagePacket)
+        public async Task<ActionResult<MessagePacket>> Call([FromBody] MessagePacket messagePacket)
         {
             messagePacket
                 .VerifyNotNull(nameof(messagePacket))

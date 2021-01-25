@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Tools;
 
-namespace Toolbox.Middleware
+namespace Spin.Common.Middleware
 {
     public class ApiKeyMiddleware
     {

@@ -1,5 +1,6 @@
-﻿using ArtifactStore.Application;
-using ArtifactStore.sdk.Client;
+﻿using MessageNet.Application;
+using MessageNet.sdk.Client;
+using MessageNet.sdk.Endpoint;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,11 +8,15 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Client;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Toolbox.Tools;
 
-namespace ArtifactStore.Test.Application
+namespace MessageNet.Test.Application
 {
     internal class TestWebsiteHost
     {
@@ -25,13 +30,17 @@ namespace ArtifactStore.Test.Application
 
         public T Resolve<T>() where T : class => _host?.Services.GetService<T>() ?? throw new InvalidOperationException($"Cannot find service {typeof(T).Name}");
 
-        public IArtifactClient ArtifactClient => new ArtifactClient(Client, Resolve<ILoggerFactory>().CreateLogger<ArtifactClient>());
-
         public PingClient GetPingClient() => new PingClient(Client, Resolve<ILoggerFactory>().CreateLogger<PingClient>());
+
+        public RegisterClient GetRegisterClient() => new RegisterClient(Client, Resolve<ILoggerFactory>().CreateLogger<RegisterClient>());
+        
+        public MessageClient GetMessageClient() => new MessageClient(Client, Resolve<ILoggerFactory>().CreateLogger<MessageClient>());
 
         public TestWebsiteHost StartApiServer()
         {
-            Option option = GetOption();
+            Option option = new TestOptionBuilder()
+                .Build()
+                .VerifyNotNull("Build option failed");
 
             var host = new HostBuilder()
                 .ConfigureWebHostDefaults(webBuilder =>
@@ -48,7 +57,10 @@ namespace ArtifactStore.Test.Application
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddSingleton(option);
-                    services.AddSingleton(option.Store);
+
+                    var factory = new TestCallbackReceiver();
+                    services.AddSingleton<ICallbackFactory>(factory);
+                    services.AddSingleton<TestCallbackReceiver>(factory);
                 });
 
             _host = host.Start();
@@ -77,20 +89,6 @@ namespace ArtifactStore.Test.Application
                     host.Dispose();
                 }
             }
-        }
-
-        private Option GetOption()
-        {
-            string[] args = new string[]
-            {
-                "Environment=local",
-                "SecretId=ArtifactStore",
-            };
-
-            return new OptionBuilder()
-                .SetArgs(args)
-                .Build()
-                .VerifyNotNull("Help is not supported");
         }
     }
 }

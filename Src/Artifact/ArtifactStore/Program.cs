@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Toolbox.Application;
 using Toolbox.Logging;
 using Toolbox.Tools;
@@ -39,11 +38,6 @@ namespace ArtifactStore
                     config.AddConsole();
                     config.AddDebug();
                     config.AddFilter(x => true);
-
-                    LoggerBuffer loggingBuffer = new LoggerBuffer();
-                    config.Services.AddSingleton<LoggerBuffer>(loggingBuffer);
-
-                    config.AddProvider(new TargetBlockLoggerProvider(loggingBuffer.TargetBlock));
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

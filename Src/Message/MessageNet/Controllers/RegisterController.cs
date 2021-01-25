@@ -1,7 +1,7 @@
-﻿using MessageNet.sdk.Host;
+﻿using MessageNet.sdk.Endpoint;
+using MessageNet.sdk.Host;
 using MessageNet.sdk.Models;
 using MessageNet.sdk.Protocol;
-using MessageNet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -26,7 +26,7 @@ namespace MessageNet.Controllers
             _logger = logger;
         }
 
-        [HttpPost("register")]
+        [HttpPost()]
         public IActionResult Register([FromBody] RegisterSync registerSync)
         {
             _logger.LogTrace($"{nameof(Register)}: Registering endpointId={registerSync.EndpointId}, callbackUri={registerSync.CallbackUri}");
@@ -41,20 +41,20 @@ namespace MessageNet.Controllers
             };
         }
 
-        [HttpPost("unregister/{endpointId}")]
-        public async Task<IActionResult> Unregisgter(string endpointId)
+        [HttpDelete("{endpointId}")]
+        public async Task<IActionResult> Remove(string endpointId)
         {
             if (endpointId.IsEmpty()) return BadRequest("Missing endpointId");
 
             EndpointId ep;
-            try { ep = new EndpointId(endpointId); }
+            try { ep = EndpointId.FromBase64(endpointId); }
             catch (Exception ex)
             {
                 _logger.LogError($"Invalid endpoint id", ex);
                 return BadRequest();
             }
 
-            return await _messageEndpointCollection.Unregister(ep) switch
+            return await _messageEndpointCollection.Remove(ep) switch
             {
                 true => Ok(),
 

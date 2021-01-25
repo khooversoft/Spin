@@ -42,11 +42,6 @@ namespace MessageNet
                     config.AddConsole();
                     config.AddDebug();
                     config.AddFilter(x => true);
-
-                    LoggerBuffer loggingBuffer = new LoggerBuffer();
-                    config.Services.AddSingleton<LoggerBuffer>(loggingBuffer);
-
-                    config.AddProvider(new TargetBlockLoggerProvider(loggingBuffer.TargetBlock));
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

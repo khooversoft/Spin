@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Toolbox.Application
+namespace ArtifactStore.Application
 {
     public static class Constants
     {

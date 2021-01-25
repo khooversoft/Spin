@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using Toolbox.Extensions;
 
 namespace Toolbox.Logging
 {
-    public static class LoggerExtensions
+    public static class Extensions
     {
         public static ILoggingBuilder AddFileLogger(this ILoggingBuilder builder, string loggingFolder, string baseLogFileName, int limit = 10)
         {
@@ -17,9 +18,12 @@ namespace Toolbox.Logging
             return builder;
         }
 
-        public static ILoggingBuilder AddLogger(this ILoggingBuilder builder, ITargetBlock<string> queue)
+        public static ILoggingBuilder AddLoggerBuffer(this ILoggingBuilder builder)
         {
-            builder.AddProvider(new TargetBlockLoggerProvider(queue));
+            LoggerBuffer loggingBuffer = new LoggerBuffer();
+            builder.Services.AddSingleton<LoggerBuffer>(loggingBuffer);
+
+            builder.AddProvider(new TargetBlockLoggerProvider(loggingBuffer.TargetBlock));
             builder.AddFilter<TargetBlockLoggerProvider>(x => true);
 
             return builder;

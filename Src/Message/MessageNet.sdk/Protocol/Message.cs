@@ -13,7 +13,7 @@ namespace MessageNet.sdk.Protocol
 
         public EndpointId ToEndpoint { get; init; } = null!;
 
-        public IReadOnlyDictionary<string, Header> Headers { get; init; } = null!;
+        public IReadOnlyDictionary<string, Header>? Headers { get; init; }
 
         public IReadOnlyList<Content> Contents { get; init; } = null!;
     }

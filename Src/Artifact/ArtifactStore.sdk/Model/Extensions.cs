@@ -1,11 +1,10 @@
-﻿using ArtifactStore.sdk.Model;
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using Toolbox.Tools;
 
-namespace ArtifactStore.sdk.Extensions
+namespace ArtifactStore.sdk.Model
 {
-    public static class ArtifactPayloadExtensions
+    public static class Extensions
     {
         public static void Verify(this ArtifactPayload subject)
         {
