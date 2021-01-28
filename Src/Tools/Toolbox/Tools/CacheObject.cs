@@ -73,9 +73,9 @@ namespace Toolbox.Tools
         /// </summary>
         /// <param name="value">value to set</param>
         /// <returns>this</returns>
-        public CacheObject<T> Set(T value)
+        public CacheObject<T> Set(T? value)
         {
-            _valueStore = Enabled ? new ValueStore(value, DateTime.Now + LifeTime) : (ValueStore?)null;
+            _valueStore = Enabled && value != null ? new ValueStore(value, DateTime.Now + LifeTime) : (ValueStore?)null;
             return this;
         }
 

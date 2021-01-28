@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Toolbox.Extensions;
-using Toolbox.Actor.Host;
-using Toolbox.Actor.Test.Application;
-using Xunit;
 using Toolbox.Actor;
+using Toolbox.Actor.Host;
+using Toolbox.Extensions;
+using Xunit;
 
 namespace Toolbox.Test.Actor
 {

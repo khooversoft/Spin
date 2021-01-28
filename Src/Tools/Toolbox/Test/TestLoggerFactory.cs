@@ -1,15 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace Toolbox.Actor.Test.Application
+namespace Toolbox.Test
 {
     public class TestLoggerFactory : ILoggerFactory
     {
         private readonly ILoggerFactory _loggerFactory;
 
-        public TestLoggerFactory()
-        {
-            _loggerFactory = LoggerFactory.Create(builder => builder.AddDebug());
-        }
+        public TestLoggerFactory() => _loggerFactory = LoggerFactory.Create(builder => builder.AddDebug());
 
         public void AddProvider(ILoggerProvider provider) => _loggerFactory.AddProvider(provider);
 

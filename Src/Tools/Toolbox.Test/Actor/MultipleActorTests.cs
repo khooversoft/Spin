@@ -5,12 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Actor;
 using Toolbox.Actor.Host;
-using Toolbox.Actor.Test.Application;
+using Toolbox.Extensions;
 using Xunit;
 using Xunit.Abstractions;
-using Toolbox.Extensions;
-using Toolbox.Actor;
 
 namespace Toolbox.Test.Actor
 {
@@ -44,7 +43,7 @@ namespace Toolbox.Test.Actor
                     cache.GetActorHost().Should().Be(actorHost);
                     cache.Test(key);
 
-                    ActorKey key2 = new ActorKey($"cache/test/{max-x}");
+                    ActorKey key2 = new ActorKey($"cache/test/{max - x}");
                     ICache2 cache2 = actorHost.GetActor<ICache2>(key2);
                     cache2.GetActorKey().Should().Be(key2);
                     cache2.GetActorHost().Should().Be(actorHost);
@@ -65,7 +64,7 @@ namespace Toolbox.Test.Actor
                     cache.GetActorHost().Should().Be(actorHost);
                     cache.Test(key);
 
-                    ActorKey key2 = new ActorKey($"cache/test/{max-x}");
+                    ActorKey key2 = new ActorKey($"cache/test/{max - x}");
                     ICache2 cache2 = actorHost.GetActor<ICache2>(key2);
                     cache2.GetActorKey().Should().Be(key2);
                     cache2.GetActorKey().Key.Should().Be(key2.Key);
@@ -80,7 +79,7 @@ namespace Toolbox.Test.Actor
                     ActorKey key = new ActorKey($"cache/test/{x}");
                     (await actorHost.Deactivate<ICache>(key)).Should().BeTrue();
 
-                    ActorKey key2 = new ActorKey($"cache/test/{max-x}");
+                    ActorKey key2 = new ActorKey($"cache/test/{max - x}");
                     (await actorHost.Deactivate<ICache2>(key2)).Should().BeTrue();
                 })
                 .WhenAll();
@@ -212,9 +211,13 @@ namespace Toolbox.Test.Actor
         private interface ICache : IActor
         {
             Task<bool> IsCached(string key);
+
             Task Add(string key);
+
             Task Test(ActorKey key);
+
             ActorKey GetActorKey();
+
             IActorHost GetActorHost();
         }
 
@@ -225,7 +228,9 @@ namespace Toolbox.Test.Actor
             public StringCache(Action<int> increment) => Increment = increment;
 
             private Action<int> Increment { get; }
+
             public ActorKey GetActorKey() => ActorKey;
+
             public IActorHost GetActorHost() => ActorHost;
 
             protected override Task OnActivate()
@@ -258,9 +263,13 @@ namespace Toolbox.Test.Actor
         private interface ICache2 : IActor
         {
             Task<bool> IsCached(string key);
+
             Task Add(string key);
+
             Task Test(ActorKey key);
+
             ActorKey GetActorKey();
+
             IActorHost GetActorHost();
         }
 
@@ -271,7 +280,9 @@ namespace Toolbox.Test.Actor
             public StringCache2(Action<int> increment) => Increment = increment;
 
             private Action<int> Increment { get; }
+
             public ActorKey GetActorKey() => ActorKey;
+
             public IActorHost GetActorHost() => ActorHost;
 
             protected override Task OnActivate()

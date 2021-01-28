@@ -26,7 +26,7 @@ namespace Toolbox.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static string? ToString(this byte[] bytes)
+        public static string? BytesToString(this byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0) return null;
 
@@ -63,7 +63,7 @@ namespace Toolbox.Extensions
         /// <returns></returns>
         public static T? ToObject<T>(this byte[] subject)
         {
-            string? json = subject.ToString();
+            string? json = subject.BytesToString();
             if (json == null) return default;
 
             return Json.Default.Deserialize<T>(json);

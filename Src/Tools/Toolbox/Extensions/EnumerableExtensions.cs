@@ -9,6 +9,17 @@ namespace Toolbox.Extensions
     public static class EnumerableExtensions
     {
         /// <summary>
+        /// Convert a scalar value to enumerable
+        /// </summary>
+        /// <typeparam name="T">type</typeparam>
+        /// <param name="self">object to convert</param>
+        /// <returns>enumerator</returns>
+        public static IEnumerable<T> ToEnumerable<T>(this T self)
+        {
+            yield return self;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="tasks">task to join</param>

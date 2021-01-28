@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using Toolbox.Actor;
 using Toolbox.Actor.Host;
-using Toolbox.Actor.Test.Application;
 using Xunit;
 
 namespace Toolbox.Test.Actor
