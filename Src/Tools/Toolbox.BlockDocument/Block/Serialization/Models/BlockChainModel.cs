@@ -3,8 +3,8 @@ using System.Text;
 
 namespace Toolbox.BlockDocument
 {
-    public class BlockChainModel
+    public record BlockChainModel
     {
-      public IReadOnlyList<BlockChainNodeModel>? Blocks { get; set; }
+      public IReadOnlyList<BlockChainNodeModel>? Blocks { get; init; }
     }
 }

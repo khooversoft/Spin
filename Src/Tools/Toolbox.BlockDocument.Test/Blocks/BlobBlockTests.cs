@@ -42,9 +42,11 @@ namespace Toolbox.BlockDocument.Test.Blocks
             IReadOnlyList<byte> payload = "This is a test of the blob - GivenHeaderBlock_WhenCloned_ShouldValidate".ToBytes();
 
             var subject = new BlobBlock("blockName1", "xlsx", "you", payload);
-            subject.Digest.Should().NotBeNullOrEmpty();
+            subject.Digest.Should().NotBeNull();
+            subject.Digest.Should().Be(subject.GetDigest());
 
             var s1 = new BlobBlock(subject.Name, subject.ContentType, subject.Author, subject.Content);
+            s1.Digest.Should().NotBeNull();
             s1.Digest.Should().Be(s1.GetDigest());
 
             s1.Digest.Should().Be(subject.Digest);

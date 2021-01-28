@@ -1,13 +1,13 @@
 ﻿namespace Toolbox.BlockDocument
 {
-    public class TextBlockModel : IDataBlockModelType
+    public record TextBlockModel : IDataBlockModelType
     {
-        public string? Name { get; set; }
+        public string? Name { get; init; }
 
-        public string? ContentType { get; set; }
+        public string? ContentType { get; init; }
 
-        public string? Author { get; set; }
+        public string? Author { get; init; }
 
-        public string? Content { get; set; }
+        public string? Content { get; init; }
     }
 }

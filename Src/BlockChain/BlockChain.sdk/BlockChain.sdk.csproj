@@ -1,7 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox.BlockDocument\Toolbox.BlockDocument.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Toolbox.Types;
 using Xunit;
 
 namespace Toolbox.BlockDocument.Test.Blocks
@@ -8,7 +9,7 @@ namespace Toolbox.BlockDocument.Test.Blocks
         [Fact]
         public void GivenTrxrBlock_WhenInitialized_ShouldValidates()
         {
-            var subject = new TrxBlock("referenceId", "credit", 100);
+            var subject = new TrxBlock("referenceId", "credit", (MaskDecimal4)100);
             subject.Digest.Should().NotBeNullOrEmpty();
 
             subject.Digest.Should().Be(subject.GetDigest());
@@ -17,10 +18,10 @@ namespace Toolbox.BlockDocument.Test.Blocks
         [Fact]
         public void GivenTrxBlock_WhenSameInitialized_ShouldValidate()
         {
-            var subject = new TrxBlock("referenceId", "credit", 100);
+            var subject = new TrxBlock("referenceId", "credit", (MaskDecimal4)100);
             subject.Digest.Should().NotBeNullOrEmpty();
 
-            var s1 = new TrxBlock("referenceId", "credit", 100);
+            var s1 = new TrxBlock("referenceId", "credit", (MaskDecimal4)100);
             s1.Digest.Should().NotBeNullOrEmpty();
 
             subject.Digest.Should().Be(s1.Digest);
@@ -29,7 +30,7 @@ namespace Toolbox.BlockDocument.Test.Blocks
         [Fact]
         public void GivenTrxBlock_WhenCloned_ShouldValidate()
         {
-            var subject = new TrxBlock("referenceId", "credit", 100);
+            var subject = new TrxBlock("referenceId", "credit", (MaskDecimal4)100);
             subject.Digest.Should().NotBeNullOrEmpty();
             subject.Digest.Should().Be(subject.GetDigest());
 

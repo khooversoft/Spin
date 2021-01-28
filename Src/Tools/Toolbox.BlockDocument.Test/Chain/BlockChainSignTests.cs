@@ -6,6 +6,7 @@ using System.Text;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit;
 
 namespace Toolbox.BlockDocument.Test.Blocks
@@ -117,7 +118,7 @@ namespace Toolbox.BlockDocument.Test.Blocks
             {
                 new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")).WithSignature(principleSignature),
                 new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))).WithSignature(principleSignature),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", 100)).WithSignature(principleSignature),
+                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)).WithSignature(principleSignature),
             };
 
             blockChain.Blocks.Count.Should().Be(4);
@@ -160,7 +161,7 @@ namespace Toolbox.BlockDocument.Test.Blocks
             {
                 new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")).WithSignature(keyContainer.First()),
                 new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))).WithSignature(keyContainer.First()),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", 100)).WithSignature(keyContainer.First()),
+                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)).WithSignature(keyContainer.First()),
             };
 
             blockChain.Blocks.Count.Should().Be(4);

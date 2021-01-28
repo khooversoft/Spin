@@ -1,19 +1,19 @@
 ﻿namespace Toolbox.BlockDocument
 {
-    public class BlockChainNodeModel
+    public record BlockChainNodeModel
     {
-        public int Index { get; set; }
+        public int Index { get; init; }
 
-        public string? PreviousHash { get; set; }
+        public string? PreviousHash { get; init; }
 
-        public string? Hash { get; set; }
+        public string? Hash { get; init; }
 
-        public DataBlockModel<BlockBlobModel>? Blob { get; set; }
+        public DataBlockModel<BlockBlobModel>? Blob { get; init; }
 
-        public DataBlockModel<HeaderBlockModel>? Header { get; set; }
+        public DataBlockModel<HeaderBlockModel>? Header { get; init; }
 
-        public DataBlockModel<TrxBlockModel>? Trx { get; set; }
+        public DataBlockModel<TrxBlockModel>? Trx { get; init; }
 
-        public DataBlockModel<TextBlockModel>? Text { get; set; }
+        public DataBlockModel<TextBlockModel>? Text { get; init; }
     }
 }

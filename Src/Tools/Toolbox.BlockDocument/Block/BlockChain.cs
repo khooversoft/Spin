@@ -101,15 +101,9 @@ namespace Toolbox.BlockDocument
             }
         }
 
-        public IEnumerator<BlockNode> GetEnumerator()
-        {
-            return _blocks.GetEnumerator();
-        }
+        public IEnumerator<BlockNode> GetEnumerator() => _blocks.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _blocks.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => _blocks.GetEnumerator();
 
         public static BlockChain operator +(BlockChain self, IDataBlock blockData)
         {

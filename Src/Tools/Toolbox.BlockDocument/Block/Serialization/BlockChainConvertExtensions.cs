@@ -32,7 +32,7 @@ namespace Toolbox.BlockDocument
         {
             json.VerifyNotEmpty(nameof(json));
 
-            var blockChainModel = JsonConvert.DeserializeObject<BlockChainModel>(json);
+            BlockChainModel blockChainModel = JsonConvert.DeserializeObject<BlockChainModel>(json);
             blockChainModel.Blocks.VerifyNotNull(nameof(blockChainModel.Blocks));
 
             var list = new List<BlockNode>();

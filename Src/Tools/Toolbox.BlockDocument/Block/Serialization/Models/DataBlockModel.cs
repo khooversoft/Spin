@@ -4,21 +4,21 @@ using System.Text;
 
 namespace Toolbox.BlockDocument
 {
-    public class DataBlockModel<T> : IDataBlockModel
+    public record DataBlockModel<T> : IDataBlockModel
         where T : IDataBlockModelType
     {
-        public long TimeStamp { get; set; }
+        public long TimeStamp { get; init; }
 
-        public string? BlockType { get; set; }
+        public string? BlockType { get; init; }
 
-        public string? BlockId { get; set; }
+        public string? BlockId { get; init; }
 
-        public T Data { get; set; } = default!;
+        public T Data { get; init; } = default!;
 
-        public IReadOnlyDictionary<string, string>? Properties { get; set; }
+        public IReadOnlyDictionary<string, string>? Properties { get; init; }
 
-        public string? Digest { get; set; }
+        public string? Digest { get; init; }
 
-        public string? JwtSignature { get; set; }
+        public string? JwtSignature { get; init; }
     }
 }

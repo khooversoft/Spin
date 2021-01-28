@@ -2,14 +2,14 @@
 
 namespace Toolbox.BlockDocument
 {
-    public class BlockBlobModel : IDataBlockModelType
+    public record BlockBlobModel : IDataBlockModelType
     {
-        public string? Name { get; set; }
+        public string? Name { get; init; }
 
-        public string? ContentType { get; set; }
+        public string? ContentType { get; init; }
 
-        public string? Author { get; set; }
+        public string? Author { get; init; }
 
-        public IReadOnlyList<byte>? Content { get; set; }
+        public IReadOnlyList<byte>? Content { get; init; }
     }
 }

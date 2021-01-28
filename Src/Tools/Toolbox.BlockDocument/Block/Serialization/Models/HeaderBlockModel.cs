@@ -2,10 +2,10 @@
 
 namespace Toolbox.BlockDocument
 {
-    public class HeaderBlockModel : IDataBlockModelType
+    public record HeaderBlockModel : IDataBlockModelType
     {
-        public long TimeStamp { get; set; }
+        public long TimeStamp { get; init; }
 
-        public string? Description { get; set; }
+        public string? Description { get; init; }
     }
 }

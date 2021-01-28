@@ -24,9 +24,9 @@ namespace Toolbox.Types
 
         public static implicit operator long(MaskDecimal4 subject) => subject.Value;
 
-        public static implicit operator MaskDecimal4(long value) => new MaskDecimal4(value);
+        public static explicit operator MaskDecimal4(long value) => new MaskDecimal4(value);
 
-        public static implicit operator MaskDecimal4(float value) => new MaskDecimal4(value);
+        public static explicit operator MaskDecimal4(float value) => new MaskDecimal4(value);
 
         public static explicit operator MaskDecimal4(double value) => new MaskDecimal4(value);
     }

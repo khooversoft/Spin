@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using Toolbox.Types;
 using Xunit;
 
 namespace Toolbox.BlockDocument.Test
@@ -17,7 +18,7 @@ namespace Toolbox.BlockDocument.Test
             {
                 new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")),
                 new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", 100)),
+                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)),
             };
 
             blockChain.Blocks.Count.Should().Be(4);
@@ -55,7 +56,7 @@ namespace Toolbox.BlockDocument.Test
             {
                 new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")),
                 new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", 100)),
+                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)),
             };
 
             blockChain.Blocks.Count.Should().Be(4);

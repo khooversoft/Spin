@@ -1,11 +1,11 @@
 ﻿namespace Toolbox.BlockDocument
 {
-    public class TrxBlockModel : IDataBlockModelType
+    public record TrxBlockModel : IDataBlockModelType
     {
-        public string? ReferenceId { get; set; }
+        public string? ReferenceId { get; init; }
 
-        public string? TransactionType { get; set; }
+        public string? TransactionType { get; init; }
 
-        public long Value { get; set; }
+        public long Value { get; init; }
     }
 }

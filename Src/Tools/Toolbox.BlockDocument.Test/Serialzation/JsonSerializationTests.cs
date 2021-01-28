@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using Toolbox.Types;
 using Xunit;
 
 namespace Toolbox.BlockDocument.Test
@@ -39,14 +40,22 @@ namespace Toolbox.BlockDocument.Test
             var block1 = new DataBlock<TextBlock>(DateTime.Now, "blockTypeV1", "blockIdV1", new TextBlock("name", "type", "author", "dataV1"));
             blockChain.Add(block1);
             blockChain.IsValid().Should().BeTrue();
-            string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
+
+            string blockChainHash = blockChain
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             string json = blockChain.ToJson();
 
             BlockChain result = json.ToBlockChain();
             result.Blocks.Count.Should().Be(blockChain.Blocks.Count);
             blockChain.IsValid().Should().BeTrue();
-            string resultChainHash = result.ToMerkleTree().BuildTree().ToString();
+
+            string resultChainHash = result
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             blockChainHash.Should().Be(resultChainHash);
         }
@@ -62,14 +71,21 @@ namespace Toolbox.BlockDocument.Test
             };
 
             blockChain.IsValid().Should().BeTrue();
-            string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
+            string blockChainHash = blockChain
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             string json = blockChain.ToJson();
 
             BlockChain result = json.ToBlockChain();
             blockChain.IsValid().Should().BeTrue();
             result.Blocks.Count.Should().Be(blockChain.Blocks.Count);
-            string resultChainHash = result.ToMerkleTree().BuildTree().ToString();
+
+            string resultChainHash = result
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             blockChainHash.Should().Be(resultChainHash);
         }
@@ -88,13 +104,21 @@ namespace Toolbox.BlockDocument.Test
             blockChain.Add(list.ToArray());
 
             blockChain.IsValid().Should().BeTrue();
-            string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
+
+            string blockChainHash = blockChain
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             string json = blockChain.ToJson();
 
             BlockChain result = json.ToBlockChain();
             blockChain.IsValid().Should().BeTrue();
-            string resultChainHash = result.ToMerkleTree().BuildTree().ToString();
+
+            string resultChainHash = result
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             blockChainHash.Should().Be(resultChainHash);
         }
@@ -106,12 +130,16 @@ namespace Toolbox.BlockDocument.Test
             {
                 new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")),
                 new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", 100)),
+                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)),
             };
 
             blockChain.Blocks.Count.Should().Be(4);
             blockChain.IsValid().Should().BeTrue();
-            string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
+
+            string blockChainHash = blockChain
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             string json = blockChain.ToJson();
 
@@ -129,12 +157,16 @@ namespace Toolbox.BlockDocument.Test
             {
                 new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")),
                 new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", 100)),
+                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)),
             };
 
             blockChain.Blocks.Count.Should().Be(4);
             blockChain.IsValid().Should().BeTrue();
-            string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
+
+            string blockChainHash = blockChain
+                .ToMerkleTree()
+                .BuildTree()
+                .ToString();
 
             string json = blockChain.ToJson();
 
