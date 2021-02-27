@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Toolbox.Tools;
 
@@ -25,14 +24,16 @@ namespace Toolbox.BlockDocument
                 Blocks = list,
             };
 
-            return JsonConvert.SerializeObject(blockChainModel);
+            return Json.Default.Serialize(blockChainModel);
         }
 
         public static BlockChain ToBlockChain(this string json)
         {
             json.VerifyNotEmpty(nameof(json));
 
-            BlockChainModel blockChainModel = JsonConvert.DeserializeObject<BlockChainModel>(json);
+            BlockChainModel blockChainModel = Json.Default.Deserialize<BlockChainModel>(json)
+                .VerifyNotNull(nameof(json));
+
             blockChainModel.Blocks.VerifyNotNull(nameof(blockChainModel.Blocks));
 
             var list = new List<BlockNode>();

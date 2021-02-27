@@ -48,7 +48,7 @@ namespace Toolbox.BlockDocument
                          IEnumerable<KeyValuePair<string, string>>? properties = null,
                          string? digest = null,
                          string? jwtSignature = null)
-            : this(UnixDate.UtcNow, blockType, blockId, data, properties, digest, jwtSignature)
+            : this(new UnixDate(dateTimeStamp), blockType, blockId, data, properties, digest, jwtSignature)
         {
         }
 

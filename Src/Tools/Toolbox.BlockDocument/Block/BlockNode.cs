@@ -38,10 +38,7 @@ namespace Toolbox.BlockDocument
 
         public string Digest { get; }
 
-        public bool IsValid()
-        {
-            return Digest == GetDigest();
-        }
+        public bool IsValid() => Digest == GetDigest();
 
         public string GetDigest()
         {
@@ -54,17 +51,10 @@ namespace Toolbox.BlockDocument
             return hashes.ToMerkleHash();
         }
 
-        public override bool Equals(object? obj)
-        {
-            if (obj is BlockNode blockNode)
-            {
-                return Index == blockNode.Index &&
-                    PreviousHash == blockNode.PreviousHash &&
-                    Digest == blockNode.Digest;
-            }
-
-            return false;
-        }
+        public override bool Equals(object? obj) => obj is BlockNode blockNode &&
+                Index == blockNode.Index &&
+                PreviousHash == blockNode.PreviousHash &&
+                Digest == blockNode.Digest;
 
         public override int GetHashCode() => HashCode.Combine(Index, PreviousHash, Digest);
 

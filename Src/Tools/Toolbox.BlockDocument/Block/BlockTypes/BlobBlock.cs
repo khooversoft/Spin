@@ -22,7 +22,7 @@ namespace Toolbox.BlockDocument
             Name = name;
             ContentType = contentType;
             Author = author;
-            Content = new List<byte>(content);
+            Content = content.ToArray();
 
             Digest = GetDigest();
         }

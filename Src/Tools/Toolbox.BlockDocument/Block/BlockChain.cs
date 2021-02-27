@@ -96,8 +96,8 @@ namespace Toolbox.BlockDocument
             lock (_lock)
             {
                 return new MerkleTree()
-                .Append(_blocks.Select(x => new MerkleHash(x.GetDigest())).ToArray())
-                .BuildTree().ToString();
+                    .Append(_blocks.Select(x => new MerkleHash(x.GetDigest())).ToArray())
+                    .BuildTree().ToString();
             }
         }
 

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit;
 
@@ -17,10 +17,10 @@ namespace Toolbox.BlockDocument.Test
             var block1 = new DataBlock<TextBlock>(DateTime.Now, "blockTypeV1", "blockIdV1", new TextBlock("name", "type", "author", "dataV1"));
 
             DataBlockModel<TextBlockModel> dataBlockModel = block1.ConvertTo<TextBlock, TextBlockModel>();
-            string json = JsonSerializer.Serialize(dataBlockModel);
+            string json = Json.Default.Serialize(dataBlockModel);
             json.Should().NotBeNullOrWhiteSpace();
 
-            DataBlockModel<TextBlockModel>? resultModel = JsonSerializer.Deserialize<DataBlockModel<TextBlockModel>>(json);
+            DataBlockModel<TextBlockModel>? resultModel = Json.Default.Deserialize<DataBlockModel<TextBlockModel>>(json);
             resultModel.Should().NotBeNull();
 
             DataBlock<TextBlock> result = resultModel!.ConvertTo<TextBlockModel, TextBlock>();

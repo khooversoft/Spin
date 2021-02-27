@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -46,14 +45,15 @@ namespace Toolbox.Security
         {
             subject.VerifyNotNull(nameof(subject));
 
-            return JsonConvert.SerializeObject(subject);
+            return Json.Default.Serialize(subject);
         }
 
         public static RsaParameterModel ToRasParameterModel(this string json)
         {
             json.VerifyNotEmpty(nameof(json));
 
-            return JsonConvert.DeserializeObject<RsaParameterModel>(json);
+            return Json.Default.Deserialize<RsaParameterModel>(json)
+                .VerifyNotNull(json);
         }
 
         public static string ToBinaryString(this RSAParameters subject)

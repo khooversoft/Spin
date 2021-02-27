@@ -8,7 +8,7 @@ namespace Toolbox.BlockDocument
 {
     public abstract class BlockBase
     {
-        public BlockBase(IEnumerable<KeyValuePair<string, string>>? properties)
+        protected BlockBase(IEnumerable<KeyValuePair<string, string>>? properties)
         {
             Properties = properties?.ToDictionary(x => x.Key, x => x.Value) ?? new Dictionary<string, string>();
         }
