@@ -1,10 +1,6 @@
 ﻿using FluentAssertions;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
-using System.Text;
-using Toolbox.BlockDocument.Block;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Keys;
@@ -122,7 +118,6 @@ namespace Toolbox.BlockDocument.Test.Blocks
                 .Add(issuer2, new RsaPublicKey())
                 .Build();
 
-
             IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
                 .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))
                 .Add(new PrincipleSignature(issuer2, "userBusiness2@domain.com", keyService));
@@ -167,7 +162,6 @@ namespace Toolbox.BlockDocument.Test.Blocks
                 .Add(issuer, new RsaPublicKey())
                 .Add(issuer2, new RsaPublicKey())
                 .Build();
-
 
             IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
                 .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))

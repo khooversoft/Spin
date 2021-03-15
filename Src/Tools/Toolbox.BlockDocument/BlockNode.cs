@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Tools;
 
-namespace Toolbox.BlockDocument.Block
+namespace Toolbox.BlockDocument
 {
     public class BlockNode
     {

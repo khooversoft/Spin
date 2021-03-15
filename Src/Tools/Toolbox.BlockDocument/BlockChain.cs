@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Security;
 using Toolbox.Tools;
 
-namespace Toolbox.BlockDocument.Block
+namespace Toolbox.BlockDocument
 {
     /// <summary>
     /// Block chain container
@@ -57,7 +56,7 @@ namespace Toolbox.BlockDocument.Block
             {
                 foreach (var item in dataBlocks)
                 {
-                    if( _blocks.Count == 0)
+                    if (_blocks.Count == 0)
                     {
                         _blocks.Add(new BlockNode(item));
                         continue;

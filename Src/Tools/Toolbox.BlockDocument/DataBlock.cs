@@ -7,7 +7,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.BlockDocument.Block
+namespace Toolbox.BlockDocument
 {
     public class DataBlock : IEquatable<DataBlock?>
     {

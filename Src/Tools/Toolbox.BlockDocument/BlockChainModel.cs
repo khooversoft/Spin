@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace Toolbox.BlockDocument.Block
+namespace Toolbox.BlockDocument
 {
     public record BlockChainModel
     {

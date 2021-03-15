@@ -1,8 +1,5 @@
 ﻿using FluentAssertions;
-using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using Toolbox.BlockDocument.Block;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Keys;
@@ -61,7 +58,7 @@ namespace Toolbox.BlockDocument.Test.Blocks
             received.Properties.Count.Should().Be(0);
             received.Digest.Should().Be(received.GetDigest());
 
-            Dictionary<string, string>? readData = Json.Default.Deserialize<Dictionary<string,string>>(data.Data)!;
+            Dictionary<string, string>? readData = Json.Default.Deserialize<Dictionary<string, string>>(data.Data)!;
 
             readData["name"].Should().Be(dataPayload.Name);
             readData["type"].Should().Be(dataPayload.Type);

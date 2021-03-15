@@ -2,15 +2,12 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
-using Toolbox.BlockDocument.Block;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Keys;
 using Toolbox.Security.Services;
 using Toolbox.Tools;
 using Toolbox.Tools.Zip;
-using Toolbox.Types;
 using Xunit;
 
 namespace Toolbox.BlockDocument.Test
@@ -48,7 +45,7 @@ namespace Toolbox.BlockDocument.Test
 
             string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
 
-            string json = blockChain.ToJson();            
+            string json = blockChain.ToJson();
 
             using var writeBuffer = new MemoryStream();
             var writer = new ZipWriter(new ZipArchive(writeBuffer, ZipArchiveMode.Create, leaveOpen: true));

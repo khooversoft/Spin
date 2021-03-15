@@ -5,10 +5,52 @@ using Toolbox.Security;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.BlockDocument.Block
+namespace Toolbox.BlockDocument
 {
     public static class Extensions
     {
+        public static void Add<T>(this BlockChain blockChain, T value, IPrincipleSignature principleSignature)
+        {
+            blockChain.VerifyNotNull(nameof(blockChain));
+            value.VerifyNotNull(nameof(value));
+            principleSignature.VerifyNotNull(nameof(principleSignature));
+
+            blockChain += new DataBlockBuilder()
+                .SetTimeStamp(UnixDate.UtcNow)
+                .SetBlockType(value.GetType().Name)
+                .SetBlockId(blockChain.Blocks.Count.ToString())
+                .SetData(value.ToJson())
+                .SetPrincipleSignature(principleSignature)
+                .Build();
+        }
+
+        public static BlockChain ConvertTo(this BlockChainModel blockChainModel)
+        {
+            blockChainModel.VerifyNotNull(nameof(blockChainModel));
+
+            return new BlockChain(blockChainModel.Blocks);
+        }
+
+        public static string GetDigest(this DataBlock dataBlock)
+        {
+            dataBlock.VerifyNotNull(nameof(dataBlock));
+
+            var hashes = new string[]
+            {
+                $"{dataBlock.TimeStamp}-{dataBlock.BlockType}-{dataBlock.BlockId}-".ToBytes().ToSHA256Hash(),
+                dataBlock.Properties.Aggregate("", (a, x) => a + $",{x.Key}={x.Value}").ToBytes().ToSHA256Hash(),
+                dataBlock.Data.ToBytes().ToSHA256Hash(),
+            };
+
+            return hashes.ToMerkleHash();
+        }
+
+        public static MerkleTree ToMerkleTree(this BlockChain blockChain)
+        {
+            return new MerkleTree()
+                .Append(blockChain.Blocks.Select(x => x.Digest).ToArray());
+        }
+
         public static void Validate(this DataBlock subject, PrincipleSignature principleSignature)
         {
             subject.VerifyNotNull(nameof(subject));
@@ -36,35 +78,16 @@ namespace Toolbox.BlockDocument.Block
             blockChain.IsValid()
                 .VerifyAssert<bool, SecurityException>(x => x == true, _ => "Block chain has linkage is invalid");
 
-            foreach (var node in blockChain.Blocks)
+            foreach (BlockNode node in blockChain.Blocks)
             {
-                // Skip header
-                if (node.Index == 0) continue;
-
-                string? issuer = JwtTokenParser.GetIssuerFromJwtToken(node.BlockData.JwtSignature!)!
+                string issuer = JwtTokenParser.GetIssuerFromJwtToken(node.BlockData.JwtSignature!)!
                     .VerifyAssert<string, SecurityException>(x => x != null, _ => "Issuer is not found in JWT Signature");
 
-                IPrincipleSignature principleSignature = keyContainer.Get(issuer!)
-                    .VerifyNotNull("Signature for issuer {issuer} is not in container");
+                IPrincipleSignature principleSignature = keyContainer.Get(issuer).VerifyNotNull($"No principle signature found for {issuer}");
 
                 node.BlockData.Validate(principleSignature);
             }
         }
-
-        public static string GetDigest(this DataBlock dataBlock)
-        {
-            dataBlock.VerifyNotNull(nameof(dataBlock));
-
-            var hashes = new string[]
-            {
-                $"{dataBlock.TimeStamp}-{dataBlock.BlockType}-{dataBlock.BlockId}-".ToBytes().ToSHA256Hash(),
-                dataBlock.Properties.Aggregate("", (a, x) => a + $",{x.Key}={x.Value}").ToBytes().ToSHA256Hash(),
-                dataBlock.Data.ToBytes().ToSHA256Hash(),
-            };
-
-            return hashes.ToMerkleHash();
-        }
-
         public static void Validate(this DataBlock dataBlock)
         {
             dataBlock.VerifyNotNull(nameof(dataBlock));
@@ -77,28 +100,6 @@ namespace Toolbox.BlockDocument.Block
 
             dataBlock.Validate();
             principleSignature.ValidateSignature(dataBlock.JwtSignature);
-        }
-
-        public static void Add<T>(this BlockChain blockChain, T value, IPrincipleSignature principleSignature)
-        {
-            blockChain.VerifyNotNull(nameof(blockChain));
-            value.VerifyNotNull(nameof(value));
-            principleSignature.VerifyNotNull(nameof(principleSignature));
-
-            blockChain += new DataBlockBuilder()
-                .SetTimeStamp(UnixDate.UtcNow)
-                .SetBlockType(value.GetType().Name)
-                .SetBlockId(blockChain.Blocks.Count.ToString())
-                .SetData(value.ToJson())
-                .SetPrincipleSignature(principleSignature)
-                .Build();
-        }
-
-        public static BlockChain ConvertTo(this BlockChainModel blockChainModel)
-        {
-            blockChainModel.VerifyNotNull(nameof(blockChainModel));
-
-            return new BlockChain(blockChainModel.Blocks);
         }
     }
 }

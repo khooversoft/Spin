@@ -5,7 +5,7 @@ using Toolbox.Security;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.BlockDocument.Block
+namespace Toolbox.BlockDocument
 {
     public class DataBlockBuilder
     {
