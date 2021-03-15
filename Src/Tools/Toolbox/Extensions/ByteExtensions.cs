@@ -68,5 +68,18 @@ namespace Toolbox.Extensions
 
             return Json.Default.Deserialize<T>(json);
         }
+
+        /// <summary>
+        /// Covert json string to object
+        /// </summary>
+        /// <typeparam name="T">deserialize to type</typeparam>
+        /// <param name="json">json string</param>
+        /// <returns>object</returns>
+        public static T? ToObject<T>(this string json)
+        {
+            if (json.IsEmpty()) return default;
+
+            return Json.Default.Deserialize<T>(json);
+        }
     }
 }

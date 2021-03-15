@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using Toolbox.Extensions;
+using Toolbox.Security.Services;
 using Toolbox.Tools;
 
 namespace Toolbox.Security
@@ -21,44 +22,19 @@ namespace Toolbox.Security
     /// </summary>
     public class JwtTokenParser
     {
-        private readonly ILogger _logger = null!;
+        private readonly IKeyService _keyService;
 
-        public JwtTokenParser(IEnumerable<KeyValuePair<string, X509Certificate2>> certificates, IEnumerable<string> validIssuers, IEnumerable<string> validAudiences, ILogger<JwtTokenParser> logger)
+        public JwtTokenParser(IKeyService keyService, IEnumerable<string> validIssuers, IEnumerable<string> validAudiences)
         {
-            certificates.VerifyNotNull(nameof(certificates));
+            keyService.VerifyNotNull(nameof(keyService));
             validIssuers.VerifyNotNull(nameof(validIssuers));
             validAudiences.VerifyNotNull(nameof(validAudiences));
 
-            Certificates = certificates.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
             ValidIssuers = new List<string>(validIssuers);
             ValidAudiences = new List<string>(validAudiences);
-            _logger = logger;
+
+            _keyService = keyService;
         }
-
-        public JwtTokenParser(IEnumerable<RsaPublicPrivateKey> rsaPublicPrivateKeys, IEnumerable<string> validIssuers, IEnumerable<string> validAudiences, ILogger<JwtTokenParser> logger)
-        {
-            validIssuers.VerifyNotNull(nameof(validIssuers));
-            validAudiences.VerifyNotNull(nameof(validAudiences));
-
-            RsaPublicPrivateKey = rsaPublicPrivateKeys.ToDictionary(x => x.Kid.ToString(), x => x, StringComparer.OrdinalIgnoreCase); ;
-            ValidIssuers = new List<string>(validIssuers);
-            ValidAudiences = new List<string>(validAudiences);
-            _logger = logger;
-        }
-
-        /// <summary>
-        /// List of X509 certificates that can be used to verify signature.  The field "KID" in the header specified
-        /// which certificate thumbprint was used to create the signature.
-        ///
-        /// If JWT token does not specify a KID field, then the token is parsed and returned.  Not signature validation
-        /// is performed.
-        /// </summary>
-        public IReadOnlyDictionary<string, X509Certificate2>? Certificates { get; } = null;
-
-        /// <summary>
-        /// RsaPublicPrivateKey
-        /// </summary>
-        public IReadOnlyDictionary<string, RsaPublicPrivateKey>? RsaPublicPrivateKey { get; set; } = null;
 
         /// <summary>
         /// List valid JWT issuers (can be empty list).  If specified, will be used to verify JWT.
@@ -76,52 +52,34 @@ namespace Toolbox.Security
         /// <param name="context">context</param>
         /// <param name="token">JWT token</param>
         /// <returns>token details or null</returns>
-        public JwtTokenDetails? Parse(string token)
+        public JwtTokenDetails Parse(string token)
         {
             token.VerifyNotEmpty(nameof(token));
 
-            try
+            var tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken jwtToken = tokenHandler.ReadJwtToken(token);
+
+            if ((jwtToken?.Header.Kid).IsEmpty()) return new JwtTokenDetails(jwtToken!);
+
+            SecurityKey privateKey = _keyService.GetSecurityKey(jwtToken!.Header.Kid)
+                .VerifyNotNull($"{jwtToken!.Header.Kid} found in KeyService");
+
+            var validation = new TokenValidationParameters
             {
-                SecurityKey privateKey;
-                var tokenHandler = new JwtSecurityTokenHandler();
-                JwtSecurityToken jwtToken = tokenHandler.ReadJwtToken(token);
+                RequireExpirationTime = true,
+                ValidateLifetime = true,
 
-                if ((jwtToken?.Header.Kid).IsEmpty()) return new JwtTokenDetails(jwtToken!);
+                ValidateIssuer = ValidIssuers.Count > 0,
+                ValidIssuers = ValidIssuers.Count > 0 ? ValidIssuers : null,
+                ValidateAudience = ValidAudiences.Count > 0,
+                ValidAudiences = ValidAudiences.Count > 0 ? ValidAudiences : null,
 
-                if (RsaPublicPrivateKey == null)
-                {
-                    if (!Certificates!.TryGetValue(jwtToken!.Header.Kid, out X509Certificate2? certificate)) return null;
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = privateKey,
+            };
 
-                    privateKey = new X509SecurityKey(certificate);
-                }
-                else
-                {
-                    if (!RsaPublicPrivateKey!.TryGetValue(jwtToken!.Header.Kid, out RsaPublicPrivateKey? publicPrivateKey)) return null;
-                    privateKey = new RsaSecurityKey(publicPrivateKey.GetPublicKey());
-                }
-
-                var validation = new TokenValidationParameters
-                {
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true,
-
-                    ValidateIssuer = ValidIssuers.Count > 0,
-                    ValidIssuers = ValidIssuers.Count > 0 ? ValidIssuers : null,
-                    ValidateAudience = ValidAudiences.Count > 0,
-                    ValidAudiences = ValidAudiences.Count > 0 ? ValidAudiences : null,
-
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = privateKey,
-                };
-
-                ClaimsPrincipal claimsPrincipal = tokenHandler.ValidateToken(token, validation, out SecurityToken securityToken);
-                return new JwtTokenDetails(jwtToken, securityToken, claimsPrincipal);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Parse JWT token failure");
-                return null;
-            }
+            ClaimsPrincipal claimsPrincipal = tokenHandler.ValidateToken(token, validation, out SecurityToken securityToken);
+            return new JwtTokenDetails(jwtToken, securityToken, claimsPrincipal);
         }
 
         /// <summary>

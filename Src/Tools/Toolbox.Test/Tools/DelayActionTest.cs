@@ -31,7 +31,7 @@ namespace Toolbox.Test.Tools
             Thread.Sleep(TimeSpan.FromMilliseconds(200));
             testFlag.Should().BeFalse();
 
-            Thread.Sleep(TimeSpan.FromMilliseconds(200));
+            Thread.Sleep(TimeSpan.FromMilliseconds(500));
             testFlag.Should().BeTrue();
 
             testFlag = false;

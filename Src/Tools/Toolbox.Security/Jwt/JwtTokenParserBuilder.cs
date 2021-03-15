@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using Toolbox.Extensions;
+using Toolbox.Security.Services;
 using Toolbox.Tools;
 
 namespace Toolbox.Security
@@ -12,47 +14,23 @@ namespace Toolbox.Security
     /// </summary>
     public class JwtTokenParserBuilder
     {
-        public JwtTokenParserBuilder()
-        {
-        }
-
-        public IDictionary<string, X509Certificate2> Certificates { get; } = new Dictionary<string, X509Certificate2>(StringComparer.OrdinalIgnoreCase);
-
-        public IList<string> ValidIssuers { get; set; } = new List<string>();
+        public IKeyService? KeyService { get; set; }
 
         public IList<string> ValidAudiences { get; } = new List<string>();
 
-        public JwtTokenParserBuilder Clear()
+        public IList<string> ValidIssuers { get; set; } = new List<string>();
+
+        public JwtTokenParserBuilder AddValidAudience(params string[] validAudience) => this.Action(x => validAudience.ForEach(y => ValidAudiences.Add(y)));
+
+        public JwtTokenParserBuilder AddValidIssuer(params string[] validIssuer) => this.Action(x => validIssuer.ForEach(y => ValidIssuers.Add(y)));
+
+        public JwtTokenParserBuilder SetKeyService(IKeyService keyService) => this.Action(x => x.KeyService = keyService);
+
+        public JwtTokenParser Build()
         {
-            ValidIssuers.Clear();
-            Certificates.Clear();
-            ValidAudiences.Clear();
+            KeyService.VerifyNotNull($"{nameof(KeyService)} is required");
 
-            return this;
+            return new JwtTokenParser(KeyService, ValidIssuers, ValidAudiences);
         }
-
-        public JwtTokenParserBuilder AddValidIssuer(params string[] validIssuer)
-        {
-            validIssuer.ForEach(x => ValidIssuers.Add(x));
-            return this;
-        }
-
-        public JwtTokenParserBuilder AddCertificate(params X509Certificate2[] certificate)
-        {
-            certificate.VerifyNotNull(nameof(certificate));
-
-            certificate.ForEach(x => Certificates.Add(x.Thumbprint, x));
-            return this;
-        }
-
-        public JwtTokenParserBuilder AddValidAudience(params string[] validAudience)
-        {
-            validAudience.VerifyNotNull(nameof(validAudience));
-
-            validAudience.ForEach(x => ValidAudiences.Add(x));
-            return this;
-        }
-
-        public JwtTokenParser Build() => new JwtTokenParser(Certificates, ValidIssuers, ValidAudiences, new NullLogger<JwtTokenParser>());
     }
 }

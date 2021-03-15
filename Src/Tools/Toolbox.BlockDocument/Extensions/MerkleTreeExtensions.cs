@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Toolbox.BlockDocument.Block;
 using Toolbox.Security;
 
 namespace Toolbox.BlockDocument
@@ -8,7 +9,7 @@ namespace Toolbox.BlockDocument
         public static MerkleTree ToMerkleTree(this BlockChain blockChain)
         {
             return new MerkleTree()
-                .Append(blockChain.Select(x => x.Digest).ToArray());
+                .Append(blockChain.Blocks.Select(x => x.Digest).ToArray());
         }
     }
 }

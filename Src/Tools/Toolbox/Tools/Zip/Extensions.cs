@@ -6,9 +6,9 @@ using System.Threading;
 using Toolbox.Extensions;
 using Toolbox.Models;
 
-namespace Toolbox.Tools
+namespace Toolbox.Tools.Zip
 {
-    public static class ZipFileExtensions
+    public static class Extensions
     {
         public static void ExtractToFolder(this ZipArchive zipArchive, string toFolder, CancellationToken token, Action<FileActionProgress>? monitor)
         {

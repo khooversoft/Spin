@@ -1,30 +1,28 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using Toolbox.Extensions;
+using Toolbox.Security.Services;
 using Toolbox.Tools;
 
 namespace Toolbox.Security
 {
     public class PrincipleSignature : IPrincipleSignature
     {
-        public PrincipleSignature(string issuer, string audience, TimeSpan validFor, RsaPublicPrivateKey publicPrivateKey)
+        private readonly IKeyService _keyService;
+
+        public PrincipleSignature(string issuer, string audience, IKeyService keyService)
         {
             issuer.VerifyNotEmpty(nameof(issuer));
-            publicPrivateKey.VerifyNotNull(nameof(publicPrivateKey));
+            keyService.VerifyNotNull(nameof(keyService));
 
             Issuer = issuer;
             Audience = audience;
-            ValidFor = validFor;
-            PublicPrivateKey = publicPrivateKey;
+            _keyService = keyService;
         }
 
         public string Issuer { get; }
 
         public string Audience { get; }
-
-        public TimeSpan ValidFor { get; }
-
-        public RsaPublicPrivateKey PublicPrivateKey { get; }
 
         public string Sign(string payloadDigest)
         {
@@ -32,14 +30,20 @@ namespace Toolbox.Security
                 .SetDigest(payloadDigest)
                 .SetIssuer(Issuer)
                 .SetAudience(Audience)
-                .SetExpires(DateTime.UtcNow.Add(ValidFor))
-                .SetPrivateKey(PublicPrivateKey)
+                .SetKeyService(_keyService)
+                .SetKeyId(Issuer)
+                .SetExpires(DateTime.Now.AddYears(10))
+                .SetIssuedAt(DateTime.Now)
                 .Build();
         }
 
-        public JwtTokenDetails? ValidateSignature(string jwt)
+        public JwtTokenDetails ValidateSignature(string jwt)
         {
-            return new JwtTokenParser(PublicPrivateKey.ToEnumerable(), Issuer.ToEnumerable(), Audience.ToEnumerable(), new NullLogger<JwtTokenParser>())
+            return new JwtTokenParserBuilder()
+                .SetKeyService(_keyService)
+                .AddValidIssuer(Issuer)
+                .AddValidAudience(Audience)
+                .Build()
                 .Parse(jwt);
         }
     }

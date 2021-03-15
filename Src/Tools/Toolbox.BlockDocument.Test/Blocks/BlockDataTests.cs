@@ -1,7 +1,14 @@
 ﻿using FluentAssertions;
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.Dynamic;
+using Toolbox.BlockDocument.Block;
 using Toolbox.Extensions;
+using Toolbox.Security;
+using Toolbox.Security.Keys;
+using Toolbox.Security.Services;
+using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit;
 
 namespace Toolbox.BlockDocument.Test.Blocks
@@ -9,118 +16,105 @@ namespace Toolbox.BlockDocument.Test.Blocks
     public class BlockDataTests
     {
         [Fact]
-        public void GivenBlockData_WhenValuesSet_VerifyNoChange()
+        public void GivenBlockData_WhenValuesSet_VerifyNoChangeAndSignature()
         {
-            var now = DateTimeOffset.Now;
-            var data = new DataBlock<TextBlock>(now, "blockType", "blockId", new TextBlock("name", "type", "author", "data"));
+            const string issuer = "user@domain.com";
+            var now = UnixDate.UtcNow;
 
-            data.TimeStamp.TimeStamp.Should().Be(now.ToUnixTimeSeconds());
+            IKeyService keyService = new KeyServiceBuilder()
+                .Add(issuer, new RsaPublicKey())
+                .Build();
 
-            data.BlockType.Should().Be("blockType");
-            data.BlockId.Should().Be("blockId");
-            data.Data.Name.Should().Be(data.Data.Name);
-            data.Data.ContentType.Should().Be(data.Data.ContentType);
-            data.Data.Author.Should().Be(data.Data.Author);
-            data.Data.Content.Should().Be(data.Data.Content);
-            data.Digest.Should().Be(data.GetDigest());
-        }
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
 
-        [Fact]
-        public void GivenBlockData_WhenBlobSet_VerifyNoChange()
-        {
-            var now = DateTimeOffset.Now;
-            var content = "Help is what is now".ToBytes();
-            var data = new DataBlock<BlobBlock>(now, "blockType", "blockId", new BlobBlock("name", "type", "author", content));
+            var dataPayload = new
+            {
+                Name = "Name",
+                Type = "Type",
+                Author = "Author",
+                Data = "Data"
+            };
 
-            data.TimeStamp.TimeStamp.Should().Be(now.ToUnixTimeSeconds());
-            data.BlockType.Should().Be("blockType");
-            data.BlockId.Should().Be("blockId");
-            data.Data.Name.Should().Be(data.Data.Name);
-            data.Data.ContentType.Should().Be(data.Data.ContentType);
-            data.Data.Author.Should().Be(data.Data.Author);
-            Enumerable.SequenceEqual(content, data.Data.Content).Should().BeTrue();
-            data.Digest.Should().Be(data.GetDigest());
+            string payloadJson = dataPayload.ToJson();
+
+            DataBlock data = new DataBlockBuilder()
+                .SetTimeStamp(now)
+                .SetBlockType("blockType")
+                .SetBlockId("blockId")
+                .SetData(payloadJson)
+                .SetPrincipleSignature(principleSignature)
+                .Build();
+
+            data.Validate(principleSignature);
+
+            string json = data.ToJson();
+
+            DataBlock received = Json.Default.Deserialize<DataBlock>(json).VerifyNotNull("Json is null");
+
+            data.TimeStamp.Should().Be(now);
+
+            received.BlockType.Should().Be("blockType");
+            received.BlockId.Should().Be("blockId");
+            received.Data.Should().Be(payloadJson);
+            received.JwtSignature.Should().Be(data.JwtSignature);
+            received.Properties.Should().NotBeNull();
+            received.Properties.Count.Should().Be(0);
+            received.Digest.Should().Be(received.GetDigest());
+
+            Dictionary<string, string>? readData = Json.Default.Deserialize<Dictionary<string,string>>(data.Data)!;
+
+            readData["name"].Should().Be(dataPayload.Name);
+            readData["type"].Should().Be(dataPayload.Type);
+            readData["author"].Should().Be(dataPayload.Author);
+            readData["data"].Should().Be(dataPayload.Data);
         }
 
         [Fact]
         public void GivenBlockData_WhenTestForEqual_ShouldPass()
         {
-            var now = DateTimeOffset.Now;
-            var data = new DataBlock<TextBlock>(now, "blockType", "blockId", new TextBlock("name", "type", "author", "data"));
+            const string issuer = "user@domain.com";
+            var now = UnixDate.UtcNow;
 
-            var v2 = data;
-            (data == v2).Should().BeTrue();
-            (data != v2).Should().BeFalse();
+            IKeyService keyService = new KeyServiceBuilder()
+                .Add(issuer, new RsaPublicKey())
+                .Build();
 
-            data.TimeStamp.Should().Be(v2.TimeStamp);
-            data.BlockType.Should().Be(v2.BlockType);
-            data.BlockId.Should().Be(v2.BlockId);
-            data.Data.Should().Be(v2.Data);
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
 
-            var v3 = new DataBlock<TextBlock>(data);
-            (data == v3).Should().BeTrue();
-            (data != v3).Should().BeFalse();
+            var dataPayload = new
+            {
+                Name = "Name",
+                Type = "Type",
+                Author = "Author",
+                Data = "Data"
+            };
 
-            data.TimeStamp.Should().Be(v3.TimeStamp);
-            data.BlockType.Should().Be(v3.BlockType);
-            data.BlockId.Should().Be(v3.BlockId);
-            data.Data.Should().Be(v3.Data);
-        }
+            string payloadJson = dataPayload.ToJson();
 
-        [Fact]
-        public void GivenBlockNode_WhenValueSet_VerifyNoChange()
-        {
-            var now = DateTimeOffset.Now;
-            var data = new BlockNode(new DataBlock<TextBlock>(now, "blockType", "blockId", new TextBlock("name", "type", "author", "datav2")), 1, "previousHash");
-            data.IsValid().Should().BeTrue();
+            DataBlock data1 = new DataBlockBuilder()
+                .SetTimeStamp(now)
+                .SetBlockType("blockType")
+                .SetBlockId("blockId")
+                .SetData(payloadJson)
+                .SetPrincipleSignature(principleSignature)
+                .Build();
 
-            data.Index.Should().Be(1);
-            data.PreviousHash.Should().Be("previousHash");
-            data.BlockData.As<DataBlock<TextBlock>>().TimeStamp.TimeStamp.Should().Be(now.ToUnixTimeSeconds());
-            data.BlockData.As<DataBlock<TextBlock>>().BlockType.Should().Be("blockType");
-            data.BlockData.As<DataBlock<TextBlock>>().BlockId.Should().Be("blockId");
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Name.Should().Be("name");
-            data.BlockData.As<DataBlock<TextBlock>>().Data.ContentType.Should().Be("type");
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Author.Should().Be("author");
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Content.Should().Be("datav2");
-        }
+            DataBlock data2 = new DataBlockBuilder()
+                .SetTimeStamp(now)
+                .SetBlockType("blockType")
+                .SetBlockId("blockId")
+                .SetData(payloadJson)
+                .SetPrincipleSignature(principleSignature)
+                .Build();
 
-        [Fact]
-        public void GivenBlockNode_WhenTestForEqual_VerifyNoChange()
-        {
-            var now = DateTimeOffset.Now;
-            var data = new BlockNode(new DataBlock<TextBlock>(now, "blockType", "blockId", new TextBlock("name", "type", "author", "datav2")), 1, "previousHash");
-            data.IsValid().Should().BeTrue();
+            data1.TimeStamp.Should().Be(data2.TimeStamp);
+            data1.BlockType.Should().Be(data2.BlockType);
+            data1.BlockId.Should().Be(data2.BlockId);
+            data1.Data.Should().Be(data2.Data);
+            data1.JwtSignature.Should().Be(data2.JwtSignature);
+            data1.Digest.Should().Be(data2.Digest);
 
-            var v2 = data;
-            v2.IsValid().Should().BeTrue();
-            (data == v2).Should().BeTrue();
-            (data != v2).Should().BeFalse();
-
-            data.Index.Should().Be(v2.Index);
-            data.PreviousHash.Should().Be(v2.PreviousHash);
-            data.BlockData.As<DataBlock<TextBlock>>().TimeStamp.TimeStamp.Should().Be(now.ToUnixTimeSeconds());
-            data.BlockData.As<DataBlock<TextBlock>>().BlockType.Should().Be(v2.BlockData.As<DataBlock<TextBlock>>().BlockType);
-            data.BlockData.As<DataBlock<TextBlock>>().BlockId.Should().Be(v2.BlockData.As<DataBlock<TextBlock>>().BlockId);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Name.Should().Be(v2.BlockData.As<DataBlock<TextBlock>>().Data.Name);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.ContentType.Should().Be(v2.BlockData.As<DataBlock<TextBlock>>().Data.ContentType);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Author.Should().Be(v2.BlockData.As<DataBlock<TextBlock>>().Data.Author);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Content.Should().Be(v2.BlockData.As<DataBlock<TextBlock>>().Data.Content);
-
-            var v3 = new BlockNode(data);
-            v3.IsValid().Should().BeTrue();
-            (data == v3).Should().BeTrue();
-            (data != v3).Should().BeFalse();
-
-            data.Index.Should().Be(v3.Index);
-            data.PreviousHash.Should().Be(v3.PreviousHash);
-            data.BlockData.As<DataBlock<TextBlock>>().TimeStamp.TimeStamp.Should().Be(now.ToUnixTimeSeconds());
-            data.BlockData.As<DataBlock<TextBlock>>().BlockType.Should().Be(v3.BlockData.As<DataBlock<TextBlock>>().BlockType);
-            data.BlockData.As<DataBlock<TextBlock>>().BlockId.Should().Be(v3.BlockData.As<DataBlock<TextBlock>>().BlockId);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Name.Should().Be(v3.BlockData.As<DataBlock<TextBlock>>().Data.Name);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.ContentType.Should().Be(v3.BlockData.As<DataBlock<TextBlock>>().Data.ContentType);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Author.Should().Be(v3.BlockData.As<DataBlock<TextBlock>>().Data.Author);
-            data.BlockData.As<DataBlock<TextBlock>>().Data.Content.Should().Be(v3.BlockData.As<DataBlock<TextBlock>>().Data.Content);
+            (data1 == data2).Should().BeTrue();
         }
     }
 }

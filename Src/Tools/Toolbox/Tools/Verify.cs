@@ -81,7 +81,7 @@ namespace Toolbox.Tools
             if (test(subject)) return subject;
 
             getMessage.VerifyNotNull(nameof(getMessage));
-            throw (Exception)Activator.CreateInstance(typeof(T), getMessage(subject))!;
+            throw (Exception)Activator.CreateInstance(typeof(TException), getMessage(subject))!;
         }
 
         /// <summary>

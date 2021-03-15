@@ -5,7 +5,7 @@ using System.Threading;
 using Toolbox.Model;
 using Toolbox.Models;
 
-namespace Toolbox.Tools
+namespace Toolbox.Tools.Zip
 {
     public class ZipFile
     {
@@ -44,7 +44,7 @@ namespace Toolbox.Tools
             using var zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, false);
 
             int fileCount = 0;
-            foreach (var file in files)
+            foreach (CopyTo file in files)
             {
                 if (token.IsCancellationRequested) return;
 

@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+﻿//using System.Collections.Generic;
 
-namespace Toolbox.Security
-{
-    public interface ICertificateManager
-    {
-        void Clear();
+//namespace Toolbox.Security
+//{
+//    public interface ICertificateManager
+//    {
+//        void Clear();
 
-        void Set(LocalCertificate certificate);
+//        void Set(LocalCertificate certificate);
 
-        LocalCertificate? Get(string thumbprint);
+//        LocalCertificate? Get(string thumbprint);
 
-        IEnumerator<LocalCertificate> LocalCertificateItems();
-    }
-}
+//        IEnumerator<LocalCertificate> LocalCertificateItems();
+//    }
+//}

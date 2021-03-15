@@ -9,7 +9,7 @@ namespace Toolbox.Types
     /// <summary>
     /// Unix date is number of seconds from 1970-01-01T00:00:00Z
     /// </summary>
-    public struct UnixDate
+    public struct UnixDate : IEquatable<UnixDate>
     {
         public UnixDate(long timeStamp) => TimeStamp = timeStamp;
 
@@ -26,5 +26,15 @@ namespace Toolbox.Types
         public static implicit operator DateTimeOffset(UnixDate unixDate) => DateTimeOffset.FromUnixTimeSeconds(unixDate.TimeStamp);
 
         public static implicit operator long(UnixDate unix) => unix.TimeStamp;
+
+        public static bool operator ==(UnixDate left, UnixDate right) => left.Equals(right);
+
+        public static bool operator !=(UnixDate left, UnixDate right) => !(left == right);
+
+        public override bool Equals(object? obj) => obj is UnixDate date && Equals(date);
+
+        public bool Equals(UnixDate other) => TimeStamp == other.TimeStamp;
+
+        public override int GetHashCode() => HashCode.Combine(TimeStamp);
     }
 }

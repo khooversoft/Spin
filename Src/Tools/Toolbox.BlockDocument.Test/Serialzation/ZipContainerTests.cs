@@ -1,7 +1,15 @@
 ﻿using FluentAssertions;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using Toolbox.BlockDocument.Block;
+using Toolbox.Extensions;
+using Toolbox.Security;
+using Toolbox.Security.Keys;
+using Toolbox.Security.Services;
+using Toolbox.Tools;
+using Toolbox.Tools.Zip;
 using Toolbox.Types;
 using Xunit;
 
@@ -12,76 +20,70 @@ namespace Toolbox.BlockDocument.Test
         [Fact]
         public void GivenBlockChain_WhenContainerIsMemory_ShouldRoundTrip()
         {
-            const string _zipPath = "$block";
+            const string issuer = "user@domain.com";
+            const string issuer2 = "user2@domain.com";
+            const string zipPath = "$block";
+            var date = DateTime.UtcNow;
 
-            var blockChain = new BlockChain()
-            {
-                new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")),
-                new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)),
-            };
+            IKeyService keyService = new KeyServiceBuilder()
+                .Add(issuer, new RsaPublicKey())
+                .Add(issuer2, new RsaPublicKey())
+                .Build();
 
-            blockChain.Blocks.Count.Should().Be(4);
-            blockChain.IsValid().Should().BeTrue();
+            IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
+                .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))
+                .Add(new PrincipleSignature(issuer2, "userBusiness2@domain.com", keyService));
+
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleSignature(signatureCollection[issuer])
+                .Build();
+
+            var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
+            var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
+
+            blockChain.Add(payload, signatureCollection[issuer]);
+            blockChain.Add(payload2, signatureCollection[issuer2]);
+
+            blockChain.Validate(signatureCollection);
+
             string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
 
-            string json = blockChain.ToJson();
+            string json = blockChain.ToJson();            
 
-            var buffer = new byte[1000];
-            using var memoryBuffer = new MemoryStream(buffer);
-            var writer = new ZipContainerWriter(new ZipArchive(memoryBuffer, ZipArchiveMode.Create, leaveOpen: true));
-            writer.Write(_zipPath, json);
+            using var writeBuffer = new MemoryStream();
+            var writer = new ZipWriter(new ZipArchive(writeBuffer, ZipArchiveMode.Create, leaveOpen: true));
+            writer.Write(zipPath, json);
             writer.Close();
 
-            memoryBuffer.Length.Should().BeGreaterThan(0);
-            memoryBuffer.Seek(0, SeekOrigin.Begin);
+            writeBuffer.Length.Should().BeGreaterThan(0);
+            writeBuffer.Seek(0, SeekOrigin.Begin);
 
-            var reader = new ZipContainerReader(new ZipArchive(memoryBuffer, ZipArchiveMode.Read, leaveOpen: true));
-            string readJson = reader.Read(_zipPath);
+            var reader = new ZipReader(new ZipArchive(writeBuffer, ZipArchiveMode.Read, leaveOpen: true));
+            string readJson = reader.Read(zipPath);
             reader.Close();
 
-            BlockChain result = readJson.ToBlockChain();
-            blockChain.IsValid().Should().BeTrue();
+            BlockChain result = readJson.ToObject<BlockChainModel>()
+                .VerifyNotNull("Cannot deserialize")
+                .ConvertTo();
+
+            result.Validate(signatureCollection);
             string resultChainHash = result.ToMerkleTree().BuildTree().ToString();
 
             blockChainHash.Should().Be(resultChainHash);
         }
 
-        [Fact]
-        public void GivenBlockChain_WhenContainerIsFile_ShouldRoundTrip()
+        private record Payload
         {
-            const string _zipPath = "$block";
+            public string? Name { get; set; }
+            public int Value { get; set; }
+            public float Price { get; set; }
+        }
 
-            var blockChain = new BlockChain()
-            {
-                new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")),
-                new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)),
-            };
-
-            blockChain.Blocks.Count.Should().Be(4);
-            blockChain.IsValid().Should().BeTrue();
-            string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
-
-            string json = blockChain.ToJson();
-
-            string tempFile = Path.GetTempFileName();
-            var writer = new ZipContainerWriter(tempFile).OpenFile();
-            writer.Write(_zipPath, json);
-            writer.Close();
-
-            var reader = new ZipContainerReader(tempFile).OpenFile();
-            reader.Exist(_zipPath).Should().BeTrue();
-
-            string readJson = reader.Read(_zipPath);
-            reader.Close();
-            File.Delete(tempFile);
-
-            BlockChain result = readJson.ToBlockChain();
-            blockChain.IsValid().Should().BeTrue();
-            string resultChainHash = result.ToMerkleTree().BuildTree().ToString();
-
-            blockChainHash.Should().Be(resultChainHash);
+        private record Payload2
+        {
+            public string? Last { get; set; }
+            public DateTime Current { get; set; }
+            public string? Author { get; set; }
         }
     }
 }

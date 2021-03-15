@@ -1,10 +1,14 @@
 ﻿using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
+using Toolbox.BlockDocument.Block;
 using Toolbox.Extensions;
 using Toolbox.Security;
+using Toolbox.Security.Keys;
+using Toolbox.Security.Services;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit;
@@ -31,152 +35,202 @@ namespace Toolbox.BlockDocument.Test.Blocks
         }
 
         [Fact]
+        public void GivenEmptyBlockChain_ShouldVerify()
+        {
+            const string issuer = "user@domain.com";
+            var now = UnixDate.UtcNow;
+
+            IKeyService keyService = new KeyServiceBuilder()
+                .Add(issuer, new RsaPublicKey())
+                .Build();
+
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
+
+            IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
+                .Add(principleSignature);
+
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleSignature(principleSignature)
+                .Build();
+
+            blockChain.Validate(signatureCollection);
+        }
+
+        [Fact]
         public void GivenBlockChain_AppendSingleNode_ShouldVerify()
         {
-            var now = DateTime.Now;
-            var principleSignature = new PrincipleSignature("bobTheIssuer", "bobCustomer", TimeSpan.FromMinutes(1), new RsaPublicPrivateKey());
-            var blockChain = new BlockChain();
+            const string issuer = "user@domain.com";
+            var now = UnixDate.UtcNow;
 
-            var block1 = new DataBlock<TextBlock>(now, "blockTypeV1", "blockIdV1", new TextBlock("name", "type", "author", "dataV1"));
-            block1.Validate();
-            string block1Digest = block1.Digest;
+            IKeyService keyService = new KeyServiceBuilder()
+                .Add(issuer, new RsaPublicKey())
+                .Build();
 
-            block1 = block1.WithSignature(principleSignature);
-            blockChain.Add(block1);
-            block1.Validate();
-            block1Digest.Should().Be(block1.Digest);
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
 
-            block1.Validate(principleSignature);
-
-            blockChain.IsValid().Should().BeTrue();
-
-            IPrincipleSignatureContainer keyContainer = new PrincipleSignatureContainer()
+            var dataPayload = new
             {
-                principleSignature,
+                Name = "Name",
+                Type = "Type",
+                Author = "Author",
+                Data = "Data"
             };
 
-            blockChain.Validate(keyContainer);
+            string payloadJson = dataPayload.ToJson();
+
+            DataBlock data = new DataBlockBuilder()
+                .SetTimeStamp(now)
+                .SetBlockType("blockType")
+                .SetBlockId("blockId")
+                .SetData(payloadJson)
+                .SetPrincipleSignature(principleSignature)
+                .Build();
+
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleSignature(principleSignature)
+                .Build()
+                .Add(data);
+
+            IPrincipleSignatureCollection sigContainer = new PrincipleSignatureCollection()
+                .Add(principleSignature);
+
+            blockChain.Validate(sigContainer);
+
+            // Get payload of data block
+            blockChain.Blocks.Count.Should().Be(2);
+
+            DataBlock receiveBlock = blockChain.Blocks[1].BlockData;
+            TestBlockNode(receiveBlock, "blockType", "blockId");
+
+            Dictionary<string, string> receivedPayload = receiveBlock.Data.ToObject<Dictionary<string, string>>().VerifyNotNull("payload failed");
+            (receivedPayload["name"] == "Name").Should().BeTrue();
+            (receivedPayload["type"] == "Type").Should().BeTrue();
+            (receivedPayload["author"] == "Author").Should().BeTrue();
+            (receivedPayload["data"] == "Data").Should().BeTrue();
         }
 
         [Fact]
-        public void GivenBlockChain_AppendTwoNode_ShouldVerify()
+        public void GivenBlockChain_TwoTypes_ShouldVerify()
         {
-            var now = DateTime.Now;
-            var principleSignature = new PrincipleSignature("issuer", "audience", TimeSpan.FromMinutes(1), new RsaPublicPrivateKey());
-            var blockChain = new BlockChain();
+            const string issuer = "user@domain.com";
+            const string issuer2 = "user2@domain.com";
+            var now = UnixDate.UtcNow;
+            var date = DateTime.UtcNow;
 
-            var block1 = new DataBlock<TextBlock>(now, "blockTypeV1", "blockIdV1", new TextBlock("name", "type", "author", "dataV1"));
-            block1 = block1.WithSignature(principleSignature);
-            blockChain.Add(block1);
-            block1.Validate(principleSignature);
+            IKeyService keyService = new KeyServiceBuilder()
+                .Add(issuer, new RsaPublicKey())
+                .Add(issuer2, new RsaPublicKey())
+                .Build();
 
-            var block2 = new DataBlock<TextBlock>(now, "blockTypeV2", "blockIdV2", new TextBlock("name", "type", "author", "dataV2"));
-            block2 = block2.WithSignature(principleSignature);
-            blockChain.Add(block2);
-            block2.Validate(principleSignature);
 
-            blockChain.IsValid().Should().BeTrue();
+            IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
+                .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))
+                .Add(new PrincipleSignature(issuer2, "userBusiness2@domain.com", keyService));
 
-            IPrincipleSignatureContainer keyContainer = new PrincipleSignatureContainer()
-            {
-                principleSignature,
-            };
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleSignature(signatureCollection[issuer])
+                .Build();
 
-            blockChain.Validate(keyContainer);
+            var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
+            var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
+
+            blockChain.Add(payload, signatureCollection[issuer]);
+            blockChain.Add(payload2, signatureCollection[issuer2]);
+
+            blockChain.Validate(signatureCollection);
+
+            // Get payload of data block
+            blockChain.Blocks.Count.Should().Be(3);
+
+            DataBlock receiveBlock = blockChain.Blocks[1].BlockData;
+            TestBlockNode(receiveBlock, "Payload", "1");
+
+            Payload p1 = receiveBlock.Data.ToObject<Payload>().VerifyNotNull("payload failed");
+            (payload == p1).Should().BeTrue();
+
+            DataBlock receiveBlock2 = blockChain.Blocks[2].BlockData;
+            TestBlockNode(receiveBlock2, "Payload2", "2");
+
+            Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().VerifyNotNull("payload2 failed");
+            (payload2 == p2).Should().BeTrue();
         }
 
         [Fact]
-        public void GivenBlockChain_AppendManyNode_ShouldVerify()
+        public void GivenBlockChain_ShouldSerializeAndDeserialize()
         {
-            var now = DateTime.Now;
-            const int max = 10;
-            var principleSignature = new PrincipleSignature("issuer", "audience", TimeSpan.FromMinutes(1), new RsaPublicPrivateKey());
-            var blockChain = new BlockChain();
+            const string issuer = "user@domain.com";
+            const string issuer2 = "user2@domain.com";
+            var now = UnixDate.UtcNow;
+            var date = DateTime.UtcNow;
 
-            List<DataBlock<TextBlock>> list = Enumerable.Range(0, max)
-                .Select(x => new DataBlock<TextBlock>(now, $"blockTypeV{x}", $"blockIdV{x}", new TextBlock("name", "type", "author", $"dataV{x}")).WithSignature(principleSignature))
-                .ToList();
+            IKeyService keyService = new KeyServiceBuilder()
+                .Add(issuer, new RsaPublicKey())
+                .Add(issuer2, new RsaPublicKey())
+                .Build();
 
-            blockChain.Add(list.ToArray());
 
-            blockChain.IsValid().Should().BeTrue();
+            IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
+                .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))
+                .Add(new PrincipleSignature(issuer2, "userBusiness2@domain.com", keyService));
 
-            IPrincipleSignatureContainer keyContainer = new PrincipleSignatureContainer()
-            {
-                principleSignature,
-            };
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleSignature(signatureCollection[issuer])
+                .Build();
 
-            blockChain.Validate(keyContainer);
+            var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
+            var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
+
+            blockChain.Add(payload, signatureCollection[issuer]);
+            blockChain.Add(payload2, signatureCollection[issuer2]);
+
+            blockChain.Validate(signatureCollection);
+
+            string blockChainJson = blockChain.ToJson();
+
+            // Receive test
+            BlockChain receivedChain = blockChainJson.ToObject<BlockChainModel>()
+                .VerifyNotNull("Cannot deserialize")
+                .ConvertTo();
+
+            receivedChain.Should().NotBeNull();
+            receivedChain.Validate(signatureCollection);
+
+            receivedChain.Blocks.Count.Should().Be(3);
+
+            DataBlock receiveBlock = receivedChain.Blocks[1].BlockData;
+            TestBlockNode(receiveBlock, "Payload", "1");
+
+            Payload p1 = receiveBlock.Data.ToObject<Payload>().VerifyNotNull("payload failed");
+            (payload == p1).Should().BeTrue();
+
+            DataBlock receiveBlock2 = receivedChain.Blocks[2].BlockData;
+            TestBlockNode(receiveBlock2, "Payload2", "2");
+
+            Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().VerifyNotNull("payload2 failed");
+            (payload2 == p2).Should().BeTrue();
         }
 
-        [Fact]
-        public void GivenSetBlockType_WhenChainCreated_ValuesShouldBeVerified()
+        private void TestBlockNode(DataBlock dataBlock, string blockType, string blockId)
         {
-            var principleSignature = new PrincipleSignature("issuer", "audience", TimeSpan.FromMinutes(1), new RsaPublicPrivateKey());
-
-            var blockChain = new BlockChain()
-            {
-                new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")).WithSignature(principleSignature),
-                new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))).WithSignature(principleSignature),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)).WithSignature(principleSignature),
-            };
-
-            blockChain.Blocks.Count.Should().Be(4);
-            blockChain.IsValid().Should().BeTrue();
-
-            IPrincipleSignatureContainer keyContainer = new PrincipleSignatureContainer()
-            {
-                principleSignature,
-            };
-
-            blockChain.Validate(keyContainer);
-
-            blockChain.Blocks
-                .Select((x, i) => (x, i))
-                .All(x => x.x.Index == x.i)
-                .Should().BeTrue();
-
-            blockChain.Blocks[0].BlockData.As<DataBlock<HeaderBlock>>().BlockType.Should().Be("genesis");
-            blockChain.Blocks[0].BlockData.As<DataBlock<HeaderBlock>>().BlockId.Should().Be("0");
-
-            blockChain.Blocks[1].BlockData.As<DataBlock<HeaderBlock>>().BlockType.Should().Be("header");
-            blockChain.Blocks[1].BlockData.As<DataBlock<HeaderBlock>>().BlockId.Should().Be("header_1");
-
-            blockChain.Blocks[2].BlockData.As<DataBlock<BlobBlock>>().BlockType.Should().Be("contract");
-            blockChain.Blocks[2].BlockData.As<DataBlock<BlobBlock>>().BlockId.Should().Be("contract_1");
-
-            blockChain.Blocks[3].BlockData.As<DataBlock<TrxBlock>>().BlockType.Should().Be("ContractLedger");
-            blockChain.Blocks[3].BlockData.As<DataBlock<TrxBlock>>().BlockId.Should().Be("Pmt");
+            dataBlock.BlockType.Should().Be(blockType);
+            dataBlock.BlockId.Should().Be(blockId);
+            dataBlock.Properties.Should().NotBeNull();
+            dataBlock.Properties.Count.Should().Be(0);
+            dataBlock.Data.Should().NotBeNullOrEmpty();
         }
 
-        [Fact]
-        public void GivenSetBlockType_WhenChainCreated_ShouldSerialize()
+        private record Payload
         {
-            IPrincipleSignatureContainer keyContainer = new PrincipleSignatureContainer()
-            {
-                new PrincipleSignature("issuer", "audience", TimeSpan.FromMinutes(1), new RsaPublicPrivateKey()),
-            };
+            public string? Name { get; set; }
+            public int Value { get; set; }
+            public float Price { get; set; }
+        }
 
-            var blockChain = new BlockChain()
-            {
-                new DataBlock<HeaderBlock>("header", "header_1", new HeaderBlock("Master Contract")).WithSignature(keyContainer.First()),
-                new DataBlock<BlobBlock>("contract", "contract_1", new BlobBlock("contract.docx", "docx", "me", Encoding.UTF8.GetBytes("this is a contract between two people"))).WithSignature(keyContainer.First()),
-                new DataBlock<TrxBlock>("ContractLedger", "Pmt", new TrxBlock("1", "cr", (MaskDecimal4)100)).WithSignature(keyContainer.First()),
-            };
-
-            blockChain.Blocks.Count.Should().Be(4);
-            blockChain.IsValid().Should().BeTrue();
-            blockChain.Validate(keyContainer);
-            string blockChainDigest = blockChain.GetDigest();
-            blockChainDigest.Should().NotBeNullOrEmpty();
-
-            string json = blockChain.ToJson();
-
-            var cloneBlockChain = json.ToBlockChain();
-            string cloneBlockChainDigest = cloneBlockChain.GetDigest();
-            cloneBlockChainDigest.Should().NotBeNullOrEmpty();
-
-            blockChainDigest.Should().Be(cloneBlockChainDigest);
+        private record Payload2
+        {
+            public string? Last { get; set; }
+            public DateTime Current { get; set; }
+            public string? Author { get; set; }
         }
     }
 }

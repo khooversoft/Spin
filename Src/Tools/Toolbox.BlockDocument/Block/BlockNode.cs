@@ -3,11 +3,13 @@ using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Tools;
 
-namespace Toolbox.BlockDocument
+namespace Toolbox.BlockDocument.Block
 {
     public class BlockNode
     {
-        public BlockNode(IDataBlock blockData)
+        public BlockNode() { }
+
+        public BlockNode(DataBlock blockData)
         {
             blockData.VerifyNotNull(nameof(blockData));
 
@@ -15,7 +17,7 @@ namespace Toolbox.BlockDocument
             Digest = GetDigest();
         }
 
-        public BlockNode(IDataBlock blockData, int index, string? previousHash)
+        public BlockNode(DataBlock blockData, int index, string? previousHash)
         {
             blockData.VerifyNotNull(nameof(blockData));
 
@@ -30,13 +32,13 @@ namespace Toolbox.BlockDocument
         {
         }
 
-        public IDataBlock BlockData { get; }
+        public DataBlock BlockData { get; init; } = null!;
 
-        public int Index { get; }
+        public int Index { get; init; }
 
-        public string? PreviousHash { get; }
+        public string? PreviousHash { get; init; }
 
-        public string Digest { get; }
+        public string Digest { get; init; } = null!;
 
         public bool IsValid() => Digest == GetDigest();
 
@@ -45,7 +47,7 @@ namespace Toolbox.BlockDocument
             var hashes = new string[]
             {
                 $"{Index}-{PreviousHash ?? ""}".ToBytes().ToSHA256Hash(),
-                BlockData.GetDigest(),
+                BlockData.ToBytes().ToSHA256Hash(),
             };
 
             return hashes.ToMerkleHash();

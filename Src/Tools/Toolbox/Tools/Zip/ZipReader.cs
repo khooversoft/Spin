@@ -6,20 +6,20 @@ using System.Text;
 using System.Threading;
 using Toolbox.Tools;
 
-namespace Toolbox.BlockDocument
+namespace Toolbox.Tools.Zip
 {
-    public class ZipContainerReader : IDisposable
+    public class ZipReader : IDisposable
     {
         private ZipArchive? _zipArchive;
 
-        public ZipContainerReader(ZipArchive zipArchive)
+        public ZipReader(ZipArchive zipArchive)
         {
             zipArchive.VerifyNotNull(nameof(zipArchive));
 
             _zipArchive = zipArchive;
         }
 
-        public ZipContainerReader(string filePath)
+        public ZipReader(string filePath)
         {
             filePath.VerifyNotEmpty(nameof(filePath));
 
@@ -28,7 +28,7 @@ namespace Toolbox.BlockDocument
 
         public string? FilePath { get; }
 
-        public ZipContainerReader OpenFile()
+        public ZipReader OpenFile()
         {
             _zipArchive.VerifyAssert(x => x == null, "Zip archive already opened");
             File.Exists(FilePath).VerifyAssert(x => x == true, $"{FilePath} does not exist");
@@ -58,7 +58,7 @@ namespace Toolbox.BlockDocument
 
         public string Read(string zipPath)
         {
-            var memoryStream = new MemoryStream();
+            using var memoryStream = new MemoryStream();
 
             Read(zipPath, memoryStream);
             memoryStream.Seek(0, SeekOrigin.Begin);
@@ -66,7 +66,7 @@ namespace Toolbox.BlockDocument
             return Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
         }
 
-        public ZipContainerReader Read(string zipPath, Stream targetStream)
+        public ZipReader Read(string zipPath, Stream targetStream)
         {
             zipPath.VerifyNotEmpty(nameof(zipPath));
             targetStream.VerifyNotNull(nameof(targetStream));

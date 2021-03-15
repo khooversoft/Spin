@@ -4,12 +4,12 @@ using System.Linq;
 using Toolbox.Security;
 using Toolbox.Tools;
 
-namespace Toolbox.BlockDocument
+namespace Toolbox.BlockDocument.Block
 {
     /// <summary>
     /// Block chain container
     /// </summary>
-    public class BlockChain : IEnumerable<BlockNode>
+    public class BlockChain
     {
         private readonly List<BlockNode> _blocks;
         private readonly object _lock = new object();
@@ -17,10 +17,7 @@ namespace Toolbox.BlockDocument
 
         public BlockChain()
         {
-            _blocks = new List<BlockNode>
-            {
-                new BlockNode(new DataBlock<HeaderBlock>("genesis", "0", new HeaderBlock("genesis"))),
-            };
+            _blocks = new List<BlockNode>();
         }
 
         public BlockChain(IEnumerable<BlockNode> blockNodes)
@@ -54,13 +51,17 @@ namespace Toolbox.BlockDocument
         /// Add data blocks
         /// </summary>
         /// <param name="dataBlocks"></param>
-        public BlockChain Add(params IDataBlock[] dataBlocks)
+        public BlockChain Add(params DataBlock[] dataBlocks)
         {
             lock (_lock)
             {
                 foreach (var item in dataBlocks)
                 {
-                    item.VerifyAssert(x => x.GetType() != typeof(BlockNode), "BlockNode is an invalid data block");
+                    if( _blocks.Count == 0)
+                    {
+                        _blocks.Add(new BlockNode(item));
+                        continue;
+                    }
 
                     BlockNode latestBlock = Blocks[_blocks.Count - 1];
 
@@ -97,15 +98,12 @@ namespace Toolbox.BlockDocument
             {
                 return new MerkleTree()
                     .Append(_blocks.Select(x => new MerkleHash(x.GetDigest())).ToArray())
-                    .BuildTree().ToString();
+                    .BuildTree()
+                    .ToString();
             }
         }
 
-        public IEnumerator<BlockNode> GetEnumerator() => _blocks.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => _blocks.GetEnumerator();
-
-        public static BlockChain operator +(BlockChain self, IDataBlock blockData)
+        public static BlockChain operator +(BlockChain self, DataBlock blockData)
         {
             self.Add(blockData);
             return self;

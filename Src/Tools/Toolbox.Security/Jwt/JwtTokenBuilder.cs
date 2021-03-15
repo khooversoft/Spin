@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using Toolbox.Extensions;
+using Toolbox.Security.Services;
 using Toolbox.Tools;
 
 namespace Toolbox.Security
@@ -19,9 +20,9 @@ namespace Toolbox.Security
         {
         }
 
-        public X509Certificate2? Certificate { get; set; }
+        public IKeyService? KeyService { get; set; }
 
-        public RsaPublicPrivateKey? PublicPrivateKey { get; set; }
+        public string? KeyId { get; set; }
 
         public string? Issuer { get; set; }
 
@@ -36,18 +37,6 @@ namespace Toolbox.Security
         public DateTime? IssuedAt { get; set; }
 
         public string? WebKey { get; set; }
-
-        public JwtTokenBuilder SetCertificate(X509Certificate2 certificate)
-        {
-            Certificate = certificate;
-            return this;
-        }
-
-        public JwtTokenBuilder SetPrivateKey(RsaPublicPrivateKey rsaPublicPrivateKey)
-        {
-            PublicPrivateKey = rsaPublicPrivateKey;
-            return this;
-        }
 
         public JwtTokenBuilder AddSubject(string subject)
         {
@@ -65,35 +54,19 @@ namespace Toolbox.Security
             return this;
         }
 
-        public JwtTokenBuilder SetIssuer(string issuer)
-        {
-            Issuer = issuer;
-            return this;
-        }
+        public JwtTokenBuilder SetKeyService(IKeyService keyService) => this.Action(x => x.KeyService = keyService);
 
-        public JwtTokenBuilder SetAudience(string audience)
-        {
-            Audience = audience;
-            return this;
-        }
+        public JwtTokenBuilder SetKeyId(string keyId) => this.Action(x => x.KeyId = keyId);
 
-        public JwtTokenBuilder SetNotBefore(DateTime? notBefore)
-        {
-            NotBefore = notBefore;
-            return this;
-        }
+        public JwtTokenBuilder SetIssuer(string issuer) => this.Action(x => x.Issuer = issuer);
 
-        public JwtTokenBuilder SetExpires(DateTime? expires)
-        {
-            Expires = expires;
-            return this;
-        }
+        public JwtTokenBuilder SetAudience(string audience) => this.Action(x => x.Audience = audience);
 
-        public JwtTokenBuilder SetIssuedAt(DateTime? issuedAt)
-        {
-            IssuedAt = issuedAt;
-            return this;
-        }
+        public JwtTokenBuilder SetNotBefore(DateTime? notBefore) => this.Action(x => x.NotBefore = notBefore);
+
+        public JwtTokenBuilder SetExpires(DateTime? expires) => this.Action(x => x.Expires = expires);
+
+        public JwtTokenBuilder SetIssuedAt(DateTime? issuedAt) => this.Action(x => x.IssuedAt = issuedAt);
 
         public JwtTokenBuilder SetClaim(Claim claim)
         {
@@ -103,33 +76,18 @@ namespace Toolbox.Security
             return this;
         }
 
-        public JwtTokenBuilder SetWebKey(string webKey)
-        {
-            WebKey = webKey;
-            return this;
-        }
+        public JwtTokenBuilder SetWebKey(string webKey) => this.Action(x => x.WebKey = webKey);
 
         public string Build()
         {
-            SigningCredentials signingCredentials;
-            string? kid = null;
+            KeyService.VerifyNotNull($"{nameof(KeyService)} is required");
+            KeyId.VerifyNotEmpty($"{nameof(KeyId)} is required");
 
-            if (PublicPrivateKey == null)
-            {
-                Certificate.VerifyNotNull(nameof(Certificate));
-                var securityKey = new X509SecurityKey(Certificate);
-                signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha512);
-            }
-            else
-            {
-                kid = PublicPrivateKey.Kid.ToString();
-                var privateSecurityKey = new RsaSecurityKey(PublicPrivateKey.GetPrivateKey());
-
-                signingCredentials = new SigningCredentials(privateSecurityKey, SecurityAlgorithms.RsaSha512);
-            }
+            SigningCredentials signingCredentials = KeyService.GetSigningCredentials(KeyId)
+                .VerifyNotNull($"{KeyId} found in KeyService");
 
             var header = new JwtHeader(signingCredentials);
-            header["kid"] = kid ?? header["kid"];
+            header["kid"] = KeyId;
 
             var addClaims = new List<Claim>();
             if (!WebKey.IsEmpty())

@@ -5,20 +5,20 @@ using System.Text;
 using System.Threading;
 using Toolbox.Tools;
 
-namespace Toolbox.BlockDocument
+namespace Toolbox.Tools.Zip
 {
-    public class ZipContainerWriter : IDisposable
+    public class ZipWriter : IDisposable
     {
         private ZipArchive? _zipArchive;
 
-        public ZipContainerWriter(ZipArchive zipArchive)
+        public ZipWriter(ZipArchive zipArchive)
         {
             zipArchive.VerifyNotNull(nameof(zipArchive));
 
             _zipArchive = zipArchive;
         }
 
-        public ZipContainerWriter(string filePath)
+        public ZipWriter(string filePath)
         {
             filePath.VerifyNotEmpty(nameof(filePath));
 
@@ -27,7 +27,7 @@ namespace Toolbox.BlockDocument
 
         public string? FilePath { get; }
 
-        public ZipContainerWriter OpenFile()
+        public ZipWriter OpenFile()
         {
             _zipArchive.VerifyAssert(x => x == null, "Zip archive already opened");
 
@@ -48,7 +48,7 @@ namespace Toolbox.BlockDocument
             archive?.Dispose();
         }
 
-        public ZipContainerWriter Write(string zipPath, string data)
+        public ZipWriter Write(string zipPath, string data)
         {
             data.VerifyNotEmpty(nameof(data));
 
@@ -56,7 +56,7 @@ namespace Toolbox.BlockDocument
             return Write(zipPath, memoryStream);
         }
 
-        public ZipContainerWriter Write(string zipPath, Stream sourceStream)
+        public ZipWriter Write(string zipPath, Stream sourceStream)
         {
             zipPath.VerifyNotEmpty(nameof(zipPath));
             sourceStream.VerifyNotNull(nameof(sourceStream));
