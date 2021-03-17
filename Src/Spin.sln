@@ -49,6 +49,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Security.Test", "To
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.BlockDocument.Test", "Tools\Toolbox.BlockDocument.Test\Toolbox.BlockDocument.Test.csproj", "{DD686616-2849-4560-B599-CB28CC0FF26B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{B39986F7-6F57-4BDD-83BD-DDBE5391B1E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.sdk", "Identity\Identity.sdk\Identity.sdk.csproj", "{EC1711B4-42E5-46B2-AA74-CFD87A6112DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -131,6 +135,10 @@ Global
 		{DD686616-2849-4560-B599-CB28CC0FF26B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD686616-2849-4560-B599-CB28CC0FF26B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD686616-2849-4560-B599-CB28CC0FF26B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC1711B4-42E5-46B2-AA74-CFD87A6112DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC1711B4-42E5-46B2-AA74-CFD87A6112DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC1711B4-42E5-46B2-AA74-CFD87A6112DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC1711B4-42E5-46B2-AA74-CFD87A6112DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -154,6 +162,7 @@ Global
 		{64E1903F-C23B-4E81-8A37-0844A4A62717} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
 		{8D279FBC-C08A-4EDA-A7B9-9B81B73BD53C} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
 		{DD686616-2849-4560-B599-CB28CC0FF26B} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
+		{EC1711B4-42E5-46B2-AA74-CFD87A6112DD} = {B39986F7-6F57-4BDD-83BD-DDBE5391B1E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

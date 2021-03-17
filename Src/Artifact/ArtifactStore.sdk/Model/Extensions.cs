@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Text;
 using Toolbox.Tools;
 
 namespace ArtifactStore.sdk.Model
@@ -54,6 +55,26 @@ namespace ArtifactStore.sdk.Model
 
             payload.Verify();
             return payload;
+        }
+
+        public static ArtifactPayload ToArtifactPayload<T>(this T subject, ArtifactId artifactId) where T : class
+        {
+            subject.VerifyNotNull(nameof(subject));
+            artifactId.VerifyNotNull(nameof(artifactId));
+
+            string json = Json.Default.Serialize(subject);
+            return Encoding.UTF8.GetBytes(json).ToArtifactPayload(artifactId);
+        }
+
+        public static T DeserializeFromArtifactPayload<T>(this ArtifactPayload artifactPayload) where T : class
+        {
+            artifactPayload.VerifyNotNull(nameof(artifactPayload));
+
+            byte[] bytes = artifactPayload.ToBytes();
+            string json = Encoding.UTF8.GetString(bytes);
+
+            return Json.Default.Deserialize<T>(json)
+                .VerifyNotNull($"Failed to deserialize {typeof(T).Name}");
         }
     }
 }
