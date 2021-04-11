@@ -16,6 +16,5 @@ namespace Identity.sdk.Actors
         Task<Tenant?> Get(CancellationToken token);
 
         Task Set(Tenant tenant, CancellationToken token);
-
     }
 }

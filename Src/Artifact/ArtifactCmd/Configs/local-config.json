@@ -1,0 +1,7 @@
+{
+  "SecretId": "ArtifactCmd",
+
+  "ArtifactUrl": "http://localhost:5010",
+
+  "Namespace": "local-identity"
+}

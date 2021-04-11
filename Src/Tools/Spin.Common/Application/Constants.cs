@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ArtifactStore.Application
+namespace Spin.Common.Application
 {
     public static class Constants
     {
-        public const string ApiKeyName = "store-apiKey";
+        public const string ApiKeyName = "x-api-key";
     }
 }

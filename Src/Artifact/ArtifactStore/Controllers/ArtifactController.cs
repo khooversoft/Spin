@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
 using Toolbox.Model;
 
 namespace ArtifactStore.Controllers
@@ -48,6 +49,8 @@ namespace ArtifactStore.Controllers
         [HttpPost("list")]
         public async Task<IActionResult> List([FromBody] QueryParameter queryParameter)
         {
+            if (queryParameter.Namespace.IsEmpty()) return BadRequest();
+
             IReadOnlyList<string> list = await _acticleStoreService.List(queryParameter);
 
             var result = new BatchSet<string>

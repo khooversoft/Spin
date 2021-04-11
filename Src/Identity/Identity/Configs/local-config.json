@@ -1,0 +1,8 @@
+{
+  "Environment": "local",
+  "SecretId": "Identity-dev",
+
+  "ArtifactStore": {
+    "Url": "http://localhost:5010"
+  }
+}

@@ -1,4 +1,5 @@
 ﻿using ArtifactStore.sdk.Model;
+using Identity.sdk.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,26 +11,24 @@ namespace Identity.sdk.Models
 {
     public record User
     {
-        public string TenantId { get; set; } = null!;
+        public IdentityId TenantId { get; set; } = null!;
 
-        public string SubscriptionId { get; set; } = null!;
+        public IdentityId SubscriptionId { get; set; } = null!;
 
-        public string UserId { get; set; } = null!;
-
-        public string DomainId { get; set; } = null!;
+        public UserId UserId { get; set; } = null!;
 
         public string Name { get; set; } = null!;
 
         public IReadOnlyList<Signature>? PublicKeySignatures { get; set; }
 
 
-        public static ArtifactId ToArtifactId(string tenantId, string subscriptionId, string userId)
+        public static ArtifactId ToArtifactId(IdentityId tenantId, IdentityId subscriptionId, UserId userId)
         {
-            tenantId.VerifyNotEmpty(nameof(tenantId));
-            subscriptionId.VerifyNotEmpty(nameof(subscriptionId));
-            userId.VerifyNotEmpty(nameof(userId));
+            tenantId.VerifyNotNull(nameof(tenantId));
+            subscriptionId.VerifyNotNull(nameof(subscriptionId));
+            userId.VerifyNotNull(nameof(userId));
 
-            return new ArtifactId($"subscription/{tenantId}/{subscriptionId}/{userId}");
+            return new ArtifactId($"user/{tenantId}/{subscriptionId}/{userId}");
         }
     }
 
@@ -38,11 +37,32 @@ namespace Identity.sdk.Models
         public static void Verify(this User user)
         {
             user.VerifyNotNull(nameof(user));
-            user.TenantId.VerifyNotEmpty(nameof(user.TenantId));
-            user.SubscriptionId.VerifyNotEmpty(nameof(user.SubscriptionId));
-            user.UserId.VerifyNotEmpty(nameof(user.UserId));
-            user.DomainId.VerifyNotEmpty(nameof(user.DomainId));
+            user.TenantId.VerifyNotNull(nameof(user.TenantId));
+            user.SubscriptionId.VerifyNotNull(nameof(user.SubscriptionId));
+            user.UserId.VerifyNotNull(nameof(user.UserId));
             user.Name.VerifyNotEmpty(nameof(user.Name));
+        }
+
+        public static ArtifactId GetArtifactId(this User user)
+        {
+            user.VerifyNotNull(nameof(user));
+            user.Verify();
+
+            return User.ToArtifactId(user.TenantId, user.SubscriptionId, user.UserId);
+        }
+
+        public static User ToUser(this ArtifactPayload artifactPayload)
+        {
+            artifactPayload.VerifyNotNull(nameof(artifactPayload));
+
+            return artifactPayload.DeserializeFromArtifactPayload<User>();
+        }
+
+        public static ArtifactPayload ToArtifactPayload(this User user)
+        {
+            user.VerifyNotNull(nameof(user));
+
+            return user.ToArtifactPayload(user.GetArtifactId());
         }
     }
 }

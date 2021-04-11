@@ -1,6 +1,7 @@
 ﻿using ArtifactStore.sdk.Model;
 using Identity.sdk.Models;
 using Identity.sdk.Services;
+using Identity.sdk.Types;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace Identity.sdk.Actors
             _cache.Clear();
 
             _logger.LogTrace($"{nameof(Delete)}: actorKey={ActorKey}");
-            bool state = await _identityStore.Delete(Tenant.ToArtifactId((string)base.ActorKey), token: token);
+            bool state = await _identityStore.Delete(Tenant.ToArtifactId((IdentityId)(string)base.ActorKey), token: token);
 
             return state;
         }
@@ -43,7 +44,7 @@ namespace Identity.sdk.Actors
             if (_cache.TryGetValue(out Tenant? value)) return value;
 
             _logger.LogTrace($"{nameof(Get)}: actorKey={ActorKey}");
-            ArtifactPayload? articlePayload = await _identityStore.Get(Tenant.ToArtifactId((string)base.ActorKey), token: token);
+            ArtifactPayload? articlePayload = await _identityStore.Get(Tenant.ToArtifactId((IdentityId)(string)base.ActorKey), token: token);
 
             if (articlePayload == null) return null;
 

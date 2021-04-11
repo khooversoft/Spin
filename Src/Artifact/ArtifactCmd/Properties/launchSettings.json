@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ArtifactCmd": {
+      "commandName": "Project",
+      "commandLineArgs": "environment=local list"
+    }
+  }
+}

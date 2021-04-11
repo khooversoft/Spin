@@ -16,7 +16,7 @@ namespace ArtifactStore.sdk.Model
             id.VerifyNotEmpty(id);
 
             Id = id.ToLower();
-            VerifyId();
+            VerifyId(Id);
         }
 
         public string Id { get; }
@@ -35,11 +35,13 @@ namespace ArtifactStore.sdk.Model
 
         public override string ToString() => Id;
 
-        private void VerifyId()
+        public static void VerifyId(string id)
         {
-            Id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '/' || y == '-'), "Valid Id must be letter, number, '.', '/', or '-'");
+            id.VerifyNotEmpty(nameof(id));
 
-            Id.Split('/')
+            id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '/' || y == '-'), "Valid Id must be letter, number, '.', '/', or '-'");
+
+            id.Split('/')
                 .VerifyAssert(x => x.Length > 1, "Missing namespace or id (ex: namespace/subject)")
                 .VerifyAssert(x => x.All(y => !y.IsEmpty()), "path part is empty")
                 .ForEach(x =>

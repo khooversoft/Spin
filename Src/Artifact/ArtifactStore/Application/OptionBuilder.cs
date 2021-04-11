@@ -14,7 +14,8 @@ namespace ArtifactStore.Application
     {
         public OptionBuilder() =>
             SetFinalize(FinalizeOption)
-            .SetConfigStream(GetResourceStream);
+            .SetConfigStream(GetResourceStream)
+            .SetConfigFiles("appsettings.json");
 
         private Option FinalizeOption(Option option, RunEnvironment runEnvironment)
         {
@@ -22,7 +23,7 @@ namespace ArtifactStore.Application
 
             option = option with
             {
-                RunEnvironment = runEnvironment,
+                Environment = runEnvironment,
 
                 Store = new DataLakeNamespaceOption
                 {
@@ -35,19 +36,7 @@ namespace ArtifactStore.Application
 
         private Stream GetResourceStream(RunEnvironment runEnvironment)
         {
-            const string baseResource = "ArtifactStore.Configs.";
-            const string configSufix = "-config.json";
-
-            string resourceId = baseResource + runEnvironment switch
-            {
-                RunEnvironment.Unknown => "unknown",
-                RunEnvironment.Local => "local",
-                RunEnvironment.Dev => "dev",
-                RunEnvironment.PreProd => "preProd",
-                RunEnvironment.Prod => "prod",
-
-                _ => throw new ArgumentException($"Unknown RunEnvironment=(int){(int)runEnvironment}"),
-            } + configSufix;
+            string resourceId = "ArtifactStore.Configs." + runEnvironment.ToResourceId();
 
             return Assembly.GetAssembly(typeof(OptionBuilder))!
                 .GetManifestResourceStream(resourceId)

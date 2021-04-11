@@ -1,6 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Toolbox.Tools;
 
 namespace Toolbox.Extensions
@@ -26,27 +30,33 @@ namespace Toolbox.Extensions
         {
             subject.VerifyNotNull(nameof(subject));
 
-            return getProperties(null, subject)
-                .ToList();
+            string json = Json.Default.Serialize(subject).VerifyNotEmpty("Serialization failed");
 
-            static string buildName(string? root, string name) => (root.ToNullIfEmpty() == null ? string.Empty : root + ":") + name;
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
 
-            // Get properties on object
-            static IEnumerable<string> getProperties(string? root, object subject) =>
-                subject.GetType().GetProperties()
-                .SelectMany(x => getProperty(root, x.Name, x.GetValue(subject)));
+            IConfiguration config = new ConfigurationBuilder()
+                .AddJsonStream(stream)
+                .Build();
 
-            // Get property on object
-            static IEnumerable<string> getProperty(string? root, string name, object? subject) => subject switch
+            var list = new List<string>();
+            dump(config, list);
+
+            return list;
+
+            static void dump(IConfiguration configuration, List<string> list)
             {
-                object v when v.GetType() == typeof(string) || !v.GetType().IsClass => new[] { $"{buildName(root, name)}={v!}" },
+                foreach (IConfigurationSection section in configuration.GetChildren())
+                {
+                    if (section.Value == null)
+                    {
+                        dump(section, list);
+                        continue;
+                    }
 
-                IEnumerable<object> v => v.SelectMany((x, i) => getProperties(buildName(root, name) + $":{i}", x)),
-
-                object v => getProperties(buildName(root, name), v),
-
-                _ => Enumerable.Empty<string>(),
-            };
+                    list.Add($"{section.Path}={section.Value}");
+                }
+            }
         }
     }
 }

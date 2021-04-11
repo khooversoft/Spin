@@ -28,8 +28,8 @@ namespace Toolbox.Application
                 RunEnvironment.PreProd => "preProd",
                 RunEnvironment.Prod => "prod",
 
-                _ => throw new InvalidOperationException(),
-            } + "-congfig.json";
+                _ => throw new ArgumentException($"Unknown RunEnvironment=(int){(int)subject}"),
+            } + "-config.json";
         }
 
         public static string ToResourceId(this RunEnvironment subject, string baseId)

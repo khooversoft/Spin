@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
 using Toolbox.Application;
+using Toolbox.Extensions;
 using Toolbox.Logging;
+using Toolbox.Services;
 using Toolbox.Tools;
 
 namespace ArtifactStore
@@ -13,20 +17,19 @@ namespace ArtifactStore
     {
         public static void Main(string[] args)
         {
-            Option? option = new OptionBuilder()
+            Option option = new OptionBuilder()
                 .SetArgs(args)
                 .Build()
                 .VerifyNotNull("Help is not supported");
 
             IHost host = CreateHostBuilder(args, option).Build();
 
-            ILogger<Program> logger = host.Services.GetRequiredService<ILogger<Program>>();
-            logger.LogConfigurations(option);
+            LogConfigurations(option, host.Services.GetRequiredService<ILogger<Program>>());
 
             host.Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args, Option option) =>
+        private static IHostBuilder CreateHostBuilder(string[] args, Option option) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
                 {
@@ -41,7 +44,20 @@ namespace ArtifactStore
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    if (!option.HostUrl.IsEmpty()) webBuilder.UseUrls(option.HostUrl);
+
                     webBuilder.UseStartup<Startup>();
                 });
+
+        private static void LogConfigurations(Option option, ILogger logger)
+        {
+            var list = new List<string>();
+            list.Add(option.ApiKey);
+            list.AddRange(option.Store.Namespaces.Values.Select(x => x.Store.AccountKey));
+
+            ISecretFilter filter = new SecretFilter(list);
+
+            logger.LogConfigurations(option, filter);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ArtifactStore.sdk.Model;
+using Identity.sdk.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,14 +11,14 @@ namespace Identity.sdk.Models
 {
     public record Tenant
     {
-        public string TenantId { get; set; } = null!;
+        public IdentityId TenantId { get; set; } = null!;
 
         public string Name { get; set; } = null!;
 
 
-        public static ArtifactId ToArtifactId(string tenantId)
+        public static ArtifactId ToArtifactId(IdentityId tenantId)
         {
-            tenantId.VerifyNotEmpty(nameof(tenantId));
+            tenantId.VerifyNotNull(nameof(tenantId));
 
             return new ArtifactId($"tenant/{tenantId}");
         }
@@ -28,10 +29,10 @@ namespace Identity.sdk.Models
         public static void Verify(this Tenant tenant)
         {
             tenant.VerifyNotNull(nameof(tenant));
-            tenant.TenantId.VerifyNotEmpty(nameof(tenant.TenantId));
+            tenant.TenantId.VerifyNotNull(nameof(tenant.TenantId));
             tenant.Name.VerifyNotEmpty(nameof(tenant.Name));
         }
-        
+
         public static ArtifactId GetArtifactId(this Tenant tenant)
         {
             tenant.VerifyNotNull(nameof(tenant));

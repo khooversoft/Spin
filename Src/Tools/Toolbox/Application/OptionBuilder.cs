@@ -12,6 +12,8 @@ namespace Toolbox.Application
 {
     public class OptionBuilder<T> where T : class, new()
     {
+        public bool EnableHelp { get; set; }
+
         public string[]? Args { get; set; }
 
         public IReadOnlyList<string>? ConfigFiles { get; set; }
@@ -22,7 +24,9 @@ namespace Toolbox.Application
 
         public string? EnvironmentVariables { get; set; }
 
-        public OptionBuilder<T> SetArgs(params string[] args) => this.Action(x => x.Args = args);
+        public OptionBuilder<T> SetEnableHelp(bool enableHelp = true) => this.Action((Action<OptionBuilder<T>>)(x => x.EnableHelp = enableHelp));
+
+        public OptionBuilder<T> SetArgs(params string[] args) => this.Action(x => x.Args = args?.ToArray());
 
         public OptionBuilder<T> SetFinalize(Func<T, RunEnvironment, T> finalize) => this.Action(x => x.Finalize = finalize);
 
@@ -34,8 +38,6 @@ namespace Toolbox.Application
 
         public T? Build()
         {
-            if (Args == null || Args.Length == 0) return null;
-
             string[] switchNames = typeof(T).GetProperties()
                 .Where(x => x.PropertyType == typeof(bool))
                 .Select(x => x.Name)
@@ -44,6 +46,12 @@ namespace Toolbox.Application
             string[] args = (Args ?? Array.Empty<string>())
                 .Select(x => switchNames.Contains(x, StringComparer.OrdinalIgnoreCase) ? x + "=true" : x)
                 .ToArray();
+
+            if (EnableHelp)
+            {
+                var helpSignals = new[] { "?", "/?", "-?", "--?", "help", "-help", "--help" };
+                args = args.Select(x => helpSignals.Any(y => y == x) ? "help=true" : x).ToArray();
+            }
 
             string? environment = null;
             string? secretId = null;
@@ -57,7 +65,7 @@ namespace Toolbox.Application
                     .Func(x => GetEnvironmentConfig(environment) switch { Stream v => x.AddJsonStream(v), _ => x })
                     .Func(x => secretId.ToNullIfEmpty() switch { string v => x.AddUserSecrets(v), _ => x })
                     .Func(x => EnvironmentVariables.ToNullIfEmpty() switch { string v => x.AddEnvironmentVariables(v), _ => x })
-                    .AddCommandLine(Args ?? Array.Empty<string>())
+                    .AddCommandLine(args)
                     .Build();
 
                 StandardOption standardOption = config.Bind<StandardOption>();

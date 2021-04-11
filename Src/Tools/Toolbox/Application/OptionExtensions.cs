@@ -7,20 +7,21 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
+using Toolbox.Services;
 using Toolbox.Tools;
 
 namespace Toolbox.Application
 {
     public static class OptionExtensions
     {
-        public static void LogConfigurations<T>(this ILogger logger, T option) where T : class
+        public static void LogConfigurations<T>(this ILogger logger, T option, ISecretFilter? secretFilter = null) where T : class
         {
             const int maxWidth = 80;
 
             string line = option.GetConfigValues()
                 .Prepend(new string('=', maxWidth))
                 .Prepend("Current configurations")
-                .Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine);
+                .Aggregate(string.Empty, (a, x) => a += (secretFilter?.FilterSecrets(x) ?? x) + Environment.NewLine);
 
             logger.LogInformation(line);
         }

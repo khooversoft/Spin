@@ -1,11 +1,13 @@
 using ArtifactStore.Application;
 using ArtifactStore.sdk;
+using ArtifactStore.sdk.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Spin.Common.Application;
 using Spin.Common.Middleware;
 using System;
 using Toolbox.Application;
@@ -55,7 +57,7 @@ namespace ArtifactStore
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Option option)
         {
-            if (env.IsDevelopment() || option.RunEnvironment.IsLocal())
+            if (env.IsDevelopment() || option.Environment.IsLocal())
             {
                 app.UseDeveloperExceptionPage();
             }
