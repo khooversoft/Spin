@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Toolbox.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Identity
@@ -45,6 +46,8 @@ namespace Identity
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    if (!option.HostUrl.IsEmpty()) webBuilder.UseUrls(option.HostUrl);
+
                     webBuilder.UseStartup<Startup>();
                 });
     }

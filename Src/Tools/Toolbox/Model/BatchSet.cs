@@ -13,5 +13,7 @@ namespace Toolbox.Model
         public int NextIndex { get; init; }
 
         public IReadOnlyList<T> Records { get; init; } = null!;
+
+        public bool IsEndSignaled { get => Records.Count == 0; }
     }
 }

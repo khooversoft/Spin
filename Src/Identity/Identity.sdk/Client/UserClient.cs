@@ -19,7 +19,7 @@ namespace Identity.sdk.Client
     public class UserClient : ClientBase<User>
     {
         public UserClient(HttpClient httpClient, ILogger logger)
-            : base(httpClient, "subscription", logger)
+            : base(httpClient, "user", logger)
         {
         }
 

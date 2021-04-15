@@ -83,6 +83,9 @@ namespace ArtifactCmd
 
                 var executeQueue = new ActionBlock<Func<Task>>(async x => await x());
 
+                if (option.Get) await executeQueue.SendAsync(() => container.GetRequiredService<GetActivity>().Get(cancellationTokenSource.Token));
+                if (option.Set) await executeQueue.SendAsync(() => container.GetRequiredService<SetActivity>().Set(cancellationTokenSource.Token));
+                if (option.Delete) await executeQueue.SendAsync(() => container.GetRequiredService<DeleteActivity>().Delete(cancellationTokenSource.Token));
                 if (option.List) await executeQueue.SendAsync(() => container.GetRequiredService<ListActivity>().List(cancellationTokenSource.Token));
 
                 executeQueue.Complete();
@@ -92,7 +95,6 @@ namespace ArtifactCmd
             Console.WriteLine();
             Console.WriteLine("Completed");
             return _ok;
-
         }
 
         private ServiceProvider BuildContainer(Option option)

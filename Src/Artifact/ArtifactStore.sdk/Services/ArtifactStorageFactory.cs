@@ -1,25 +1,40 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace ArtifactStore.sdk.Services
 {
-    public class ArtifactStorageFactory : DataLakeStoreFactory, IArtifactStorageFactory
+    public class ArtifactStorageFactory : IArtifactStorageFactory
     {
-        public ArtifactStorageFactory(DataLakeNamespaceOption dataLakeNamespaceOption, ILoggerFactory loggerFactory)
-            : base(dataLakeNamespaceOption, loggerFactory)
+        private readonly IDataLakeStoreFactory _dataLakeStoreFactory;
+        protected readonly ILoggerFactory _loggerFactory;
+
+        public ArtifactStorageFactory(IDataLakeStoreFactory dataLakeStoreFactory, ILoggerFactory loggerFactory)
         {
+            _dataLakeStoreFactory = dataLakeStoreFactory;
+            _loggerFactory = loggerFactory;
         }
 
-        public new IArtifactStorage? Create(string nameSpace)
+        public IArtifactStorage Create(string nameSpace)
         {
             nameSpace.VerifyNotEmpty(nameof(nameSpace));
 
-            if (!base.TryGetValue(nameSpace, out DataLakeNamespace? subject)) return null;
+            IDataLakeStore storage = _dataLakeStoreFactory.CreateStore(nameSpace)
+                .VerifyNotNull($"Cannot create store for Namespace {nameSpace}");
 
-            var storage = new DataLakeStore(subject.Store, _loggerFactory.CreateLogger<DataLakeStore>());
-            return new ArtifactStorage(storage, subject.PathRoot, _loggerFactory.CreateLogger<ArtifactStorage>());
+            _dataLakeStoreFactory.TryGetValue(nameSpace, out DataLakeNamespace? dataLakeNamespace)
+                .VerifyAssert(x => x == true, "Failed to get namespace properties");
+
+            return new ArtifactStorage(storage, dataLakeNamespace!.PathRoot, _loggerFactory.CreateLogger<ArtifactStorage>());
         }
+
+        public IDataLakeFileSystem? CreateFileSystem(string nameSpace) => _dataLakeStoreFactory.CreateFileSystem(nameSpace);
     }
 }

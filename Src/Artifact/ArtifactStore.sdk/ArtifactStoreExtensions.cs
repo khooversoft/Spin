@@ -3,6 +3,7 @@ using ArtifactStore.sdk.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Actor.Host;
+using Toolbox.Azure.DataLake;
 using Toolbox.Tools;
 
 namespace ArtifactStore.sdk
@@ -15,6 +16,7 @@ namespace ArtifactStore.sdk
 
             services.AddSingleton<IArtifactStorageFactory, ArtifactStorageFactory>();
             services.AddSingleton<IArtifactStoreService, ArtifactStoreService>();
+            services.AddSingleton<IDataLakeStoreFactory, DataLakeStoreFactory>();
 
             services.AddTransient<IArtifactPayloadActor, ArtifactPayloadActor>();
 

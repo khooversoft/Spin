@@ -12,14 +12,14 @@ namespace Identity.sdk.Types
         public IdentityId(string id)
         {
             Id = id;
-            Verify();
+            Verify(Id);
         }
 
         public string Id { get; }
 
         public static explicit operator IdentityId(string id) => new IdentityId(id);
 
-        public static explicit operator string(IdentityId articleId) => articleId.ToString();
+        public static explicit operator string(IdentityId identityId) => identityId.ToString();
 
         public static IdentityId FromBase64(string base64) => new IdentityId(Encoding.UTF8.GetString(Convert.FromBase64String(base64)));
 
@@ -27,13 +27,13 @@ namespace Identity.sdk.Types
 
         public override string ToString() => Id;
 
-        private void Verify()
+        public static void Verify(string id)
         {
-            Id.VerifyNotEmpty(nameof(Id));
-            Id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '-'), "Valid Id must be letter, number, '.', or '-'");
+            id.VerifyNotEmpty(nameof(id));
+            id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '-'), "Valid Id must be letter, number, '.', or '-'");
 
-            Id.VerifyAssert(x => char.IsLetter(x[0]), x => $"{x} Must start with letter");
-            Id.VerifyAssert(x => char.IsLetterOrDigit(x[^1]), x => "{x} must end with letter or number");
+            id.VerifyAssert(x => char.IsLetter(x[0]), x => $"{x} Must start with letter");
+            id.VerifyAssert(x => char.IsLetterOrDigit(x[^1]), x => "{x} must end with letter or number");
         }
     }
 }

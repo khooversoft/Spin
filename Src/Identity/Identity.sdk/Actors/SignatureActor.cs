@@ -1,12 +1,8 @@
-﻿using ArtifactStore.sdk.Model;
+﻿using ArtifactStore.sdk.Client;
+using ArtifactStore.sdk.Model;
 using Identity.sdk.Models;
-using Identity.sdk.Services;
-using Identity.sdk.Types;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Actor;
@@ -16,16 +12,16 @@ namespace Identity.sdk.Actors
 {
     public class SignatureActor : ActorBase, ISignatureActor
     {
-        private readonly IIdentityStore _identityStore;
+        private readonly IArtifactClient _artificatClient;
         private readonly ILogger<SignatureActor> _logger;
         private CacheObject<Signature> _cache = new CacheObject<Signature>(TimeSpan.FromMinutes(10));
 
-        public SignatureActor(IIdentityStore identityStore, ILogger<SignatureActor> logger)
+        public SignatureActor(IArtifactClient artifactClient, ILogger<SignatureActor> logger)
         {
-            identityStore.VerifyNotNull(nameof(identityStore));
+            artifactClient.VerifyNotNull(nameof(artifactClient));
             logger.VerifyNotNull(nameof(logger));
 
-            _identityStore = identityStore;
+            _artificatClient = artifactClient;
             _logger = logger;
         }
 
@@ -34,7 +30,7 @@ namespace Identity.sdk.Actors
             _cache.Clear();
 
             _logger.LogTrace($"{nameof(Delete)}: actorKey={ActorKey}");
-            bool state = await _identityStore.Delete(Tenant.ToArtifactId((IdentityId)(string)base.ActorKey), token: token);
+            bool state = await _artificatClient.Delete(new ArtifactId((string)base.ActorKey), token: token);
 
             return state;
         }
@@ -44,7 +40,7 @@ namespace Identity.sdk.Actors
             if (_cache.TryGetValue(out Signature? value)) return value;
 
             _logger.LogTrace($"{nameof(Get)}: actorKey={ActorKey}");
-            ArtifactPayload? articlePayload = await _identityStore.Get(Signature.ToArtifactId((IdentityId)(string)base.ActorKey), token: token);
+            ArtifactPayload? articlePayload = await _artificatClient.Get(new ArtifactId((string)base.ActorKey), token: token);
 
             if (articlePayload == null) return null;
 
@@ -60,7 +56,7 @@ namespace Identity.sdk.Actors
 
             _logger.LogTrace($"{nameof(Set)}: actorKey={ActorKey}");
 
-            await _identityStore.Set(signature.ToArtifactPayload(signature.GetArtifactId()), token);
+            await _artificatClient.Set(signature.ToArtifactPayload(signature.ToArtifactId()), token);
             _cache.Set(signature);
         }
     }

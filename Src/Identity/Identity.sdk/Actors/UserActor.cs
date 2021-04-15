@@ -1,12 +1,8 @@
-﻿using ArtifactStore.sdk.Model;
+﻿using ArtifactStore.sdk.Client;
+using ArtifactStore.sdk.Model;
 using Identity.sdk.Models;
-using Identity.sdk.Services;
-using Identity.sdk.Types;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Actor;
@@ -16,16 +12,16 @@ namespace Identity.sdk.Actors
 {
     public class UserActor : ActorBase, IUserActor
     {
-        private readonly IIdentityStore _identityStore;
+        private readonly IArtifactClient _artifactClient;
         private readonly ILogger<UserActor> _logger;
         private CacheObject<User> _cache = new CacheObject<User>(TimeSpan.FromMinutes(10));
 
-        public UserActor(IIdentityStore identityStore, ILogger<UserActor> logger)
+        public UserActor(IArtifactClient artifactClient, ILogger<UserActor> logger)
         {
-            identityStore.VerifyNotNull(nameof(identityStore));
+            artifactClient.VerifyNotNull(nameof(artifactClient));
             logger.VerifyNotNull(nameof(logger));
 
-            _identityStore = identityStore;
+            _artifactClient = artifactClient;
             _logger = logger;
         }
 
@@ -34,7 +30,7 @@ namespace Identity.sdk.Actors
             _cache.Clear();
 
             _logger.LogTrace($"{nameof(Delete)}: actorKey={ActorKey}");
-            bool state = await _identityStore.Delete(Tenant.ToArtifactId((IdentityId)(string)base.ActorKey), token: token);
+            bool state = await _artifactClient.Delete(new ArtifactId((string)base.ActorKey), token: token);
 
             return state;
         }
@@ -44,7 +40,7 @@ namespace Identity.sdk.Actors
             if (_cache.TryGetValue(out User? value)) return value;
 
             _logger.LogTrace($"{nameof(Get)}: actorKey={ActorKey}");
-            ArtifactPayload? articlePayload = await _identityStore.Get(Tenant.ToArtifactId((IdentityId)(string)base.ActorKey), token: token);
+            ArtifactPayload? articlePayload = await _artifactClient.Get(new ArtifactId((string)base.ActorKey), token: token);
 
             if (articlePayload == null) return null;
 
@@ -60,7 +56,7 @@ namespace Identity.sdk.Actors
 
             _logger.LogTrace($"{nameof(Set)}: actorKey={ActorKey}");
 
-            await _identityStore.Set(user.ToArtifactPayload(user.GetArtifactId()), token);
+            await _artifactClient.Set(user.ToArtifactPayload(user.ToArtifactId()), token);
             _cache.Set(user);
         }
     }

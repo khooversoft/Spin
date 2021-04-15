@@ -64,7 +64,7 @@ namespace ArtifactStore.sdk.Services
 
         private string RealPath(string? path) => _pathRoot + (_pathRoot.IsEmpty() ? string.Empty : "/") + (path ?? string.Empty);
 
-        public string RemovePathRoot(string path)
+        private string RemovePathRoot(string path)
         {
             string newPath = path.Substring(_pathRoot.Length);
             if (newPath.StartsWith("/")) newPath = newPath.Substring(1);

@@ -43,7 +43,7 @@ namespace Identity.sdk.Models
             user.Name.VerifyNotEmpty(nameof(user.Name));
         }
 
-        public static ArtifactId GetArtifactId(this User user)
+        public static ArtifactId ToArtifactId(this User user)
         {
             user.VerifyNotNull(nameof(user));
             user.Verify();
@@ -62,7 +62,7 @@ namespace Identity.sdk.Models
         {
             user.VerifyNotNull(nameof(user));
 
-            return user.ToArtifactPayload(user.GetArtifactId());
+            return user.ToArtifactPayload(user.ToArtifactId());
         }
     }
 }

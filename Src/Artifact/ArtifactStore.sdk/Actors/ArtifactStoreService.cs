@@ -56,12 +56,12 @@ namespace ArtifactStore.sdk.Actors
                 .VerifyNotNull(nameof(queryParameter))
                 .VerifyAssert(x => !x.Namespace.IsEmpty(), x => $"{nameof(x.Namespace)} is required");
 
-            IArtifactStorage getStorage(string nameSpace) => _artifactStorageProvider.Create(queryParameter.Namespace!)
-                .VerifyNotNull($"{queryParameter.Namespace} {nameof(queryParameter.Namespace)} not found");
-
             IArtifactStorage artifactStorage = _namespaceCache.GetOrAdd(queryParameter.Namespace!, x => getStorage(queryParameter.Namespace!));
 
             return await artifactStorage.List(queryParameter, token);
+
+            IArtifactStorage getStorage(string nameSpace) => _artifactStorageProvider.Create(queryParameter.Namespace!)
+                .VerifyNotNull($"{queryParameter.Namespace} {nameof(queryParameter.Namespace)} not found");
         }
 
         public async Task Set(ArtifactPayload record, CancellationToken token = default)

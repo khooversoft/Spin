@@ -26,7 +26,7 @@ namespace ArtifactCmd.Activities
             _logger = logger;
         }
 
-        public async Task Set(CancellationToken token)
+        public async Task Get(CancellationToken token)
         {
             _logger.LogInformation($"Reading {_option.File} from artifact id={_option.Id}...");
 

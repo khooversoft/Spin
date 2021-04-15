@@ -19,7 +19,7 @@ namespace ArtifactCmd.Application
 
             x => x.ArtifactUrl.VerifyNotEmpty($"{nameof(x.ArtifactUrl)} is required"),
 
-            x => new [] { x.List, x.Get, x.Delete, x.Set }.Count(x => x == true).VerifyAssert(x => x == 1, "Only one command can be specified"),
+            x => new [] { x.Get, x.Delete, x.Set }.Count(a => a == true).VerifyAssert(c => x.List || c == 1, "Only Get, Delete, and Set can specified"),
 
             x => {
                 if( !x.Get) return;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Toolbox.Extensions;
@@ -24,6 +25,8 @@ namespace ArtifactStore.sdk.Model
         public string Namespace => Id.Split('/')[0];
 
         public string Path => Id.Split('/').Skip(1).Func(x => string.Join('/', x));
+
+        public IReadOnlyList<string> PathItems => Id.Split('/').Skip(1).ToArray();
 
         public static explicit operator ArtifactId(string id) => new ArtifactId(id);
 

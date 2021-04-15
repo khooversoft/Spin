@@ -13,6 +13,8 @@ namespace Identity.Application
         public RunEnvironment RunEnvironment { get; init; }
 
         public ArtifactStoreOption ArtifactStore { get; init; } = null!;
+
+        public string? HostUrl { get; init; }
     }
 
     public static class OptionExtensions

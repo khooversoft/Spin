@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.13.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.8.0" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.6.0" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="5.1.1" />

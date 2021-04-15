@@ -13,33 +13,37 @@ namespace Toolbox.Azure.DataLake
 {
     public class DataLakeStoreFactory : IEnumerable<DataLakeNamespace>, IDataLakeStoreFactory
     {
-        protected readonly ILoggerFactory _loggerFactory;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ConcurrentDictionary<string, DataLakeNamespace> _namespace = new ConcurrentDictionary<string, DataLakeNamespace>(StringComparer.OrdinalIgnoreCase);
 
-        public DataLakeStoreFactory(ILoggerFactory loggerFactory)
+        public DataLakeStoreFactory(DataLakeNamespaceOption dataLakeNamespaceOption, ILoggerFactory loggerFactory)
         {
+            dataLakeNamespaceOption.VerifyNotNull(nameof(dataLakeNamespaceOption));
             loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
             _loggerFactory = loggerFactory;
-        }
-
-        public DataLakeStoreFactory(DataLakeNamespaceOption dataLakeNamespaceOption, ILoggerFactory loggerFactory)
-            : this(loggerFactory)
-        {
-            dataLakeNamespaceOption.VerifyNotNull(nameof(dataLakeNamespaceOption));
 
             Add(dataLakeNamespaceOption.Namespaces.Values.ToArray());
         }
 
         public DataLakeStoreFactory Add(params DataLakeNamespace[] dataLakeNamespaces) => this.Action(_ => dataLakeNamespaces.ForEach(x => _namespace[x.Namespace] = x));
 
-        public IDataLakeStore? Create(string nameSpace)
+        public IDataLakeStore? CreateStore(string nameSpace)
         {
             nameSpace.VerifyNotEmpty(nameof(nameSpace));
 
             if (!_namespace.TryGetValue(nameSpace, out DataLakeNamespace? subject)) return null;
 
             return new DataLakeStore(subject.Store, _loggerFactory.CreateLogger<DataLakeStore>());
+        }
+
+        public IDataLakeFileSystem? CreateFileSystem(string nameSpace)
+        {
+            nameSpace.VerifyNotEmpty(nameof(nameSpace));
+
+            if (!_namespace.TryGetValue(nameSpace, out DataLakeNamespace? subject)) return null;
+
+            return new DataLakeFileSystem(subject.Store, _loggerFactory.CreateLogger<DataLakeFileSystem>());
         }
 
         public IEnumerator<DataLakeNamespace> GetEnumerator() => _namespace.Values.GetEnumerator();

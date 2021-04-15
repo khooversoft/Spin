@@ -1,16 +1,9 @@
 ﻿using ArtifactStore.sdk.Client;
 using ArtifactStore.sdk.Model;
 using Identity.sdk.Actors;
-using Identity.sdk.Client;
 using Identity.sdk.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Spin.Common.Application;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Actor.Host;
 using Toolbox.Tools;
 
@@ -23,12 +16,15 @@ namespace Identity.sdk
             services.VerifyNotNull(nameof(services));
 
             services.AddSingleton<ISignatureActor, SignatureActor>();
-            //services.AddSingleton<ISubscriptionActor, SubscriptionActor>();
+            services.AddSingleton<ISubscriptionActor, SubscriptionActor>();
             services.AddSingleton<ITenantActor, TenantActor>();
             services.AddSingleton<IUserActor, UserActor>();
 
             services.AddSingleton<IArtifactClient, ArtifactClient>();
-            services.AddSingleton<IIdentityStore, IdentityStore>();
+            services.AddSingleton<TenantService>();
+            services.AddSingleton<SubscriptionService>();
+            services.AddSingleton<UserService>();
+            services.AddSingleton<SignatureService>();
 
             services.AddHttpClient<ArtifactClient>((service, http) =>
             {

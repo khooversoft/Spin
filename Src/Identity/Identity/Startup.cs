@@ -35,6 +35,7 @@ namespace Identity
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddIdentityService();
+
             services.AddControllers();
 
             services.AddSwaggerGen(c =>

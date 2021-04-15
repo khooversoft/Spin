@@ -31,14 +31,14 @@ namespace ArtifactCmd.Activities
             BatchSetCursor<string> batch = _artifactClient.List(new QueryParameter { Namespace = _option.Namespace });
             int index = 0;
 
-            _logger.LogInformation("Listing artifacts...");
+            _logger.LogInformation($"Listing artifacts from Namespace {_option.Namespace}...");
 
             while (true)
             {
                 BatchSet<string> batchSet = await batch.ReadNext(token);
-                if (batchSet.Records.Count == 0) break;
+                if (batchSet.IsEndSignaled) break;
 
-                batchSet.Records.ForEach(x => _logger.LogInformation($"({index++}) {x}"));
+                batchSet.Records.ForEach(x => _logger.LogInformation($"({index++}) {_option.Namespace + "/" + x}"));
             }
 
             _logger.LogInformation($"Completed, {index} listed");

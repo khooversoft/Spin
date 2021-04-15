@@ -33,7 +33,7 @@ namespace Identity.sdk.Models
             signature.Key.VerifyNotEmpty(nameof(signature.Key));
         }
 
-        public static ArtifactId GetArtifactId(this Signature signature)
+        public static ArtifactId ToArtifactId(this Signature signature)
         {
             signature.VerifyNotNull(nameof(signature));
             signature.Verify();
@@ -52,7 +52,7 @@ namespace Identity.sdk.Models
         {
             signature.VerifyNotNull(nameof(signature));
 
-            return signature.ToArtifactPayload(signature.GetArtifactId());
+            return signature.ToArtifactPayload(signature.ToArtifactId());
         }
     }
 }

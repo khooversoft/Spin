@@ -129,14 +129,21 @@ namespace Toolbox.Azure.DataLake
         {
             var list = new List<DataLakePathItem>();
 
-            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(path, recursive, cancellationToken: token))
+            try
             {
-                DataLakePathItem datalakePathItem = pathItem.ConvertTo();
+                await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(path, recursive, cancellationToken: token))
+                {
+                    DataLakePathItem datalakePathItem = pathItem.ConvertTo();
 
-                if (filter(datalakePathItem)) list.Add(datalakePathItem);
+                    if (filter(datalakePathItem)) list.Add(datalakePathItem);
+                }
+
+                return list;
             }
-
-            return list;
+            catch(RequestFailedException ex) when (ex.ErrorCode == "PathNotFound")
+            {
+                return list;
+            }
         }
 
         public async Task Upload(Stream fromStream, string toPath, bool force, CancellationToken token)

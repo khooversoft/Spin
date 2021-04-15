@@ -1,10 +1,6 @@
 ﻿using ArtifactStore.sdk.Model;
 using Identity.sdk.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Identity.sdk.Models
@@ -14,7 +10,11 @@ namespace Identity.sdk.Models
         public IdentityId TenantId { get; set; } = null!;
 
         public string Name { get; set; } = null!;
+    }
 
+    public static class TenantExtenions
+    {
+        public const string Namespace = "subscription";
 
         public static ArtifactId ToArtifactId(IdentityId tenantId)
         {
@@ -22,10 +22,7 @@ namespace Identity.sdk.Models
 
             return new ArtifactId($"tenant/{tenantId}");
         }
-    }
 
-    public static class TenantExtenions
-    {
         public static void Verify(this Tenant tenant)
         {
             tenant.VerifyNotNull(nameof(tenant));
@@ -33,12 +30,16 @@ namespace Identity.sdk.Models
             tenant.Name.VerifyNotEmpty(nameof(tenant.Name));
         }
 
-        public static ArtifactId GetArtifactId(this Tenant tenant)
+        public static bool IsValid(this Tenant tenant) => tenant != null &&
+            tenant.TenantId != null &&
+            !tenant.Name.IsEmpty();
+
+        public static ArtifactId ToArtifactId(this Tenant tenant)
         {
             tenant.VerifyNotNull(nameof(tenant));
             tenant.Verify();
 
-            return Tenant.ToArtifactId(tenant.TenantId);
+            return ToArtifactId(tenant.TenantId);
         }
 
         public static Tenant ToTenant(this ArtifactPayload artifactPayload)
@@ -52,7 +53,16 @@ namespace Identity.sdk.Models
         {
             tenant.VerifyNotNull(nameof(tenant));
 
-            return tenant.ToArtifactPayload(tenant.GetArtifactId());
+            return tenant.ToArtifactPayload(tenant.ToArtifactId());
+        }
+
+        public static IdentityId ParseId(ArtifactId subscription)
+        {
+            subscription.VerifyNotNull(nameof(subscription));
+            subscription.Namespace.VerifyAssert(x => x == Namespace, $"Namespace does not match {Namespace}");
+            subscription.PathItems.Count.VerifyAssert(x => x == 1, $"Invalid path for Subscription, {subscription.Path}");
+
+            return (IdentityId)subscription.PathItems[0];
         }
     }
 }
