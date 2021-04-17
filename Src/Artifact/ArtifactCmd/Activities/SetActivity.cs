@@ -9,33 +9,38 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Model;
+using Toolbox.Tools;
 
 namespace ArtifactCmd.Activities
 {
     internal class SetActivity
     {
-        private readonly Option _option;
         private readonly IArtifactClient _artifactClient;
         private readonly ILogger<SetActivity> _logger;
 
-        public SetActivity(Option option, IArtifactClient artifactClient, ILogger<SetActivity> logger)
+        public SetActivity(IArtifactClient artifactClient, ILogger<SetActivity> logger)
         {
-            _option = option;
             _artifactClient = artifactClient;
             _logger = logger;
         }
 
-        public async Task Set(CancellationToken token)
+        public async Task Set(string file, string id, CancellationToken token)
         {
-            _logger.LogInformation($"Writing {_option.File} to artifact id={_option.Id}...");
+            file.VerifyNotEmpty(nameof(file));
+            id.VerifyNotEmpty(nameof(id));
 
-            ArtifactId artifactId = new ArtifactId(_option.Id!);
-            byte[] bytes = await File.ReadAllBytesAsync(_option.File, token);
+            using IDisposable scope = _logger.BeginScope(new { Command = nameof(Set), File = file, Id = id });
+
+            _logger.LogInformation($"Writing {file} to artifact id={id}...");
+
+            ArtifactId artifactId = new ArtifactId(id);
+            byte[] bytes = await File.ReadAllBytesAsync(file, token);
 
             ArtifactPayload payload = bytes.ToArtifactPayload(artifactId);
             await _artifactClient.Set(payload, token);
 
-            _logger.LogInformation($"Completed writing {_option.File} to artifact id={_option.Id}.");
+            _logger.LogInformation($"Completed writing {file} to artifact id={id}.");
         }
     }
 }

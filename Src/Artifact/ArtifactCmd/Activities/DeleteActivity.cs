@@ -8,29 +8,32 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Tools;
 
 namespace ArtifactCmd.Activities
 {
     internal class DeleteActivity
     {
-        private readonly Option _option;
         private readonly IArtifactClient _artifactClient;
         private readonly ILogger<DeleteActivity> _logger;
 
-        public DeleteActivity(Option option, IArtifactClient artifactClient, ILogger<DeleteActivity> logger)
+        public DeleteActivity(IArtifactClient artifactClient, ILogger<DeleteActivity> logger)
         {
-            _option = option;
             _artifactClient = artifactClient;
             _logger = logger;
         }
 
-        public async Task Delete(CancellationToken token)
+        public async Task Delete(string id, CancellationToken token)
         {
-            _logger.LogInformation($"Deleting {_option.Id} artifact...");
+            id.VerifyNotEmpty(nameof(id));
 
-            bool removed = await _artifactClient.Delete((ArtifactId)_option.Id, token);
+            using IDisposable scope = _logger.BeginScope(new { Command = nameof(Delete), Id = id });
 
-            _logger.LogInformation($"{(removed ? "Completed" : "Failed")} deleting {_option.Id}.");
+            _logger.LogInformation($"Deleting {id} artifact...");
+
+            bool removed = await _artifactClient.Delete((ArtifactId)id, token);
+
+            _logger.LogInformation($"{(removed ? "Completed" : "Failed")} deleting {id}.");
         }
     }
 }

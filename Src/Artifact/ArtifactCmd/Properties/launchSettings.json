@@ -2,7 +2,7 @@
   "profiles": {
     "ArtifactCmd": {
       "commandName": "Project",
-      "commandLineArgs": "environment=local set File=D:\\Work\\TestZip\\testfile1.txt list id=local-identity/test.txt"
+      "commandLineArgs": "-e local"
     }
   }
 }

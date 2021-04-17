@@ -1,11 +1,13 @@
 ﻿using ArtifactStore.sdk.Model;
 using Identity.sdk.Models;
 using Identity.sdk.Services;
+using Identity.sdk.Types;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Toolbox.Model;
 
 namespace Identity.Controllers
 {
@@ -24,7 +26,9 @@ namespace Identity.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
-            Subscription? record = await _subscriptionService.Get(ArtifactId.FromBase64(id));
+            (IdentityId tenantId, IdentityId subscriptionId) = Subscription.ParseId(ArtifactId.FromBase64(id));
+
+            Subscription? record = await _subscriptionService.Get(tenantId, subscriptionId);
             if (record == null) return NotFound();
 
             return Ok(record);
@@ -35,21 +39,23 @@ namespace Identity.Controllers
         {
             if (!record.IsValid()) return BadRequest();
 
-            await _tenantService.Set(record);
+            await _subscriptionService.Set(record);
             return Ok();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            bool status = await _tenantService.Delete(IdentityId.FromBase64(id));
+            (IdentityId tenantId, IdentityId subscriptionId) = Subscription.ParseId(ArtifactId.FromBase64(id));
+
+            bool status = await _subscriptionService.Delete(tenantId, subscriptionId);
             return status ? Ok() : NotFound();
         }
 
         [HttpPost("list")]
         public async Task<IActionResult> List([FromBody] QueryParameter queryParameter)
         {
-            IReadOnlyList<string> list = await _tenantService.List(queryParameter);
+            IReadOnlyList<string> list = await _subscriptionService.List(queryParameter);
 
             var result = new BatchSet<string>
             {

@@ -10,11 +10,6 @@ namespace Identity.sdk.Models
         public IdentityId TenantId { get; set; } = null!;
 
         public string Name { get; set; } = null!;
-    }
-
-    public static class TenantExtenions
-    {
-        public const string Namespace = "subscription";
 
         public static ArtifactId ToArtifactId(IdentityId tenantId)
         {
@@ -22,7 +17,10 @@ namespace Identity.sdk.Models
 
             return new ArtifactId($"tenant/{tenantId}");
         }
+    }
 
+    public static class TenantExtenions
+    {
         public static void Verify(this Tenant tenant)
         {
             tenant.VerifyNotNull(nameof(tenant));
@@ -39,7 +37,7 @@ namespace Identity.sdk.Models
             tenant.VerifyNotNull(nameof(tenant));
             tenant.Verify();
 
-            return ToArtifactId(tenant.TenantId);
+            return Tenant.ToArtifactId(tenant.TenantId);
         }
 
         public static Tenant ToTenant(this ArtifactPayload artifactPayload)
@@ -59,7 +57,7 @@ namespace Identity.sdk.Models
         public static IdentityId ParseId(ArtifactId subscription)
         {
             subscription.VerifyNotNull(nameof(subscription));
-            subscription.Namespace.VerifyAssert(x => x == Namespace, $"Namespace does not match {Namespace}");
+            subscription.Namespace.VerifyAssert(x => x == "tenant", $"Namespace does not match 'tenant'");
             subscription.PathItems.Count.VerifyAssert(x => x == 1, $"Invalid path for Subscription, {subscription.Path}");
 
             return (IdentityId)subscription.PathItems[0];

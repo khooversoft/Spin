@@ -1,32 +1,43 @@
-﻿using ArtifactStore.sdk.Model;
-using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Configuration;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace ArtifactCmd.Application
 {
-    internal class OptionBuilder : OptionBuilder<Option>
+    internal class OptionBuilder
     {
-        public OptionBuilder() =>
-            SetFinalize(FinalizeOption)
-            .SetConfigStream(GetResourceStream);
-
-        private Option FinalizeOption(Option option, RunEnvironment runEnvironment)
+        public ConfigOption Build(string[] args)
         {
-            option.Verify();
+            var environmentOption = new Option<RunEnvironment>(new[] { "--environment", "-e" });
 
-            option = option with
+            ParseResult result = new Parser(environmentOption).Parse(args);
+            OptionResult? optionResult = result.FindResultFor(environmentOption);
+
+            return optionResult?.Tokens?[0]?.Value switch
             {
-                Environment = runEnvironment,
-            };
+                string v => Build(v.ToEnvironment()),
 
-            return option;
+                _ => Build(),
+            };
+        }
+
+        private ConfigOption Build(RunEnvironment runEnvironment = RunEnvironment.Unknown)
+        {
+            return new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", true)
+                .AddUserSecrets("ArtifactCmd")
+                .Func(x => runEnvironment != RunEnvironment.Unknown ? x.AddJsonStream(GetResourceStream(runEnvironment)) : x)
+                .Build()
+                .Bind<ConfigOption>()
+                .Verify()
+                .Func(x => x with { Environment = x.Environment ?? runEnvironment });
         }
 
         private Stream GetResourceStream(RunEnvironment runEnvironment)

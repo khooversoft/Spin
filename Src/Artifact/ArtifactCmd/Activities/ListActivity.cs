@@ -15,30 +15,32 @@ namespace ArtifactCmd.Activities
 {
     internal class ListActivity
     {
-        private readonly Option _option;
         private readonly IArtifactClient _artifactClient;
         private readonly ILogger<ListActivity> _logger;
 
-        public ListActivity(Option option, IArtifactClient artifactClient, ILogger<ListActivity> logger)
+        public ListActivity(IArtifactClient artifactClient, ILogger<ListActivity> logger)
         {
-            _option = option;
             _artifactClient = artifactClient;
             _logger = logger;
         }
 
-        public async Task List(CancellationToken token)
+        public async Task List(string nameSpace, CancellationToken token)
         {
-            BatchSetCursor<string> batch = _artifactClient.List(new QueryParameter { Namespace = _option.Namespace });
+            nameSpace.VerifyNotEmpty(nameof(nameSpace));
+
+            using IDisposable scope = _logger.BeginScope(new { Command = nameof(List), Namespace = nameSpace });
+
+            BatchSetCursor<string> batch = _artifactClient.List(new QueryParameter { Namespace = nameSpace });
             int index = 0;
 
-            _logger.LogInformation($"Listing artifacts from Namespace {_option.Namespace}...");
+            _logger.LogInformation($"Listing artifacts from Namespace {nameSpace}...");
 
             while (true)
             {
                 BatchSet<string> batchSet = await batch.ReadNext(token);
                 if (batchSet.IsEndSignaled) break;
 
-                batchSet.Records.ForEach(x => _logger.LogInformation($"({index++}) {_option.Namespace + "/" + x}"));
+                batchSet.Records.ForEach(x => _logger.LogInformation($"({index++}) {nameSpace + "/" + x}"));
             }
 
             _logger.LogInformation($"Completed, {index} listed");

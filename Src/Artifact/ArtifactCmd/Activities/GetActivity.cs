@@ -15,33 +15,36 @@ namespace ArtifactCmd.Activities
 {
     internal class GetActivity
     {
-        private readonly Option _option;
         private readonly IArtifactClient _artifactClient;
         private readonly ILogger<GetActivity> _logger;
 
-        public GetActivity(Option option, IArtifactClient artifactClient, ILogger<GetActivity> logger)
+        public GetActivity(IArtifactClient artifactClient, ILogger<GetActivity> logger)
         {
-            _option = option;
             _artifactClient = artifactClient;
             _logger = logger;
         }
 
-        public async Task Get(CancellationToken token)
+        public async Task Get(string id, string file, CancellationToken token)
         {
-            _logger.LogInformation($"Reading {_option.File} from artifact id={_option.Id}...");
+            id.VerifyNotEmpty(nameof(id));
+            file.VerifyNotEmpty(nameof(file));
 
-            ArtifactId artifactId = new ArtifactId(_option.Id!);
+            using IDisposable scope = _logger.BeginScope(new { Command = nameof(Get), Id = id });
+
+            _logger.LogInformation($"Reading artifact id={id} and saving to {file}...");
+
+            ArtifactId artifactId = new ArtifactId(id);
             ArtifactPayload? payload = await _artifactClient.Get(artifactId, token);
-            if( payload == null)
+            if (payload == null)
             {
                 _logger.LogError($"Artifact {artifactId} does not exist");
                 return;
             }
 
             byte[] bytes = payload.ToBytes();
-            File.WriteAllBytes(_option.File, bytes);
+            File.WriteAllBytes(file, bytes);
 
-            _logger.LogInformation($"Completed download {_option.File} from artifact id={_option.Id}.");
+            _logger.LogInformation($"Completed download {file} from artifact id={id}");
         }
     }
 }
