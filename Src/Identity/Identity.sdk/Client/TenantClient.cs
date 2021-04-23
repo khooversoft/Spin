@@ -23,10 +23,14 @@ namespace Identity.sdk.Client
         {
         }
 
-        public async Task<Tenant?> Get(IdentityId tenantId, CancellationToken token = default) =>
-            await Get(Tenant.ToArtifactId(tenantId), token);
-
         public async Task<bool> Delete(IdentityId tenantId, CancellationToken token = default) =>
-            await Delete(Tenant.ToArtifactId(tenantId), token);
+            await Delete((string)tenantId, token);
+
+        public async Task<Tenant?> Get(IdentityId tenantId, CancellationToken token = default) =>
+            await Get((string)tenantId, token);
+
+        public async Task Set(Tenant tenant, CancellationToken token = default) =>
+            await Set(tenant, (string)tenant.TenantId, token);
     }
 }
+

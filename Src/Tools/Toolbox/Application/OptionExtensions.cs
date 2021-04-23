@@ -18,7 +18,8 @@ namespace Toolbox.Application
         {
             const int maxWidth = 80;
 
-            string line = option.GetConfigValues()
+            string line = option.GetConfigurationValues()
+                .Select(x => $"{x.Key}={x.Value}")
                 .Prepend(new string('=', maxWidth))
                 .Prepend("Current configurations")
                 .Aggregate(string.Empty, (a, x) => a += (secretFilter?.FilterSecrets(x) ?? x) + Environment.NewLine);

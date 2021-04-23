@@ -1,4 +1,5 @@
-﻿using ArtifactStore.sdk.Model;
+﻿using ArtifactStore.sdk.Actors;
+using ArtifactStore.sdk.Model;
 using Identity.sdk.Models;
 using Identity.sdk.Services;
 using Identity.sdk.Types;
@@ -13,45 +14,44 @@ namespace Identity.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SubscriptionController : Controller
+    public class SignatureController : Controller
     {
-        private readonly SubscriptionService _subscriptionService;
+        private readonly SignatureService _signatureService;
 
-        public SubscriptionController(SubscriptionService subscriptionService)
+        public SignatureController(SignatureService signatureService)
         {
-            _subscriptionService = subscriptionService;
+            _signatureService = signatureService;
         }
 
-
-        [HttpGet("{tenantId}/{id}")]
-        public async Task<IActionResult> Get(string tenantId, string id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(string id)
         {
-            Subscription? record = await _subscriptionService.Get((IdentityId)tenantId, (IdentityId)id);
+            Signature? record = await _signatureService.Get((IdentityId)id);
             if (record == null) return NotFound();
 
             return Ok(record);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] Subscription record)
+        public async Task<IActionResult> Post([FromBody] Signature record)
         {
             if (!record.IsValid()) return BadRequest();
 
-            await _subscriptionService.Set(record);
+            await _signatureService.Set(record);
             return Ok();
         }
 
-        [HttpDelete("{tenantId}/{id}")]
-        public async Task<IActionResult> Delete(string tenantId, string id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
         {
-            bool status = await _subscriptionService.Delete((IdentityId)tenantId, (IdentityId)id);
+            bool status = await _signatureService.Delete((IdentityId)id);
             return status ? Ok() : NotFound();
         }
 
         [HttpPost("list")]
         public async Task<IActionResult> List([FromBody] QueryParameter queryParameter)
         {
-            IReadOnlyList<string> list = await _subscriptionService.List(queryParameter);
+            IReadOnlyList<string> list = await _signatureService.List(queryParameter);
 
             var result = new BatchSet<string>
             {

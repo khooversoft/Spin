@@ -1,28 +1,17 @@
-﻿using ArtifactCmd.Activities;
-using ArtifactCmd.Application;
-using ArtifactStore.sdk.Client;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Spin.Common.Application;
+using PropertyDatabaseCmd.Activities;
+using PropertyDatabaseCmd.Application;
 using System;
 using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Invocation;
-using System.Linq;
-using System.Net.Http;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
-using Toolbox.Application;
-using Toolbox.Extensions;
 
-namespace ArtifactCmd
+namespace PropertyDatabaseCmd
 {
     class Program
     {
-        private readonly string _programTitle = $"Artifact Server CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}";
+        private readonly string _programTitle = $"Property Database CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}";
 
         static async Task<int> Main(string[] args)
         {
@@ -42,20 +31,17 @@ namespace ArtifactCmd
             Console.WriteLine(_programTitle);
             Console.WriteLine();
 
-            ConfigOption option = new OptionBuilder().Build(args);
-
             try
             {
-                using (ServiceProvider container = BuildContainer(option))
+                using (ServiceProvider container = BuildContainer())
                 {
                     var rc = new RootCommand()
                 {
-                    new Option<RunEnvironment>(new[] { "--environment", "-e" }, "Specify environment to use"),
-
                     container.GetRequiredService<ListCommand>(),
                     container.GetRequiredService<GetCommand>(),
                     container.GetRequiredService<DeleteCommand>(),
                     container.GetRequiredService<SetCommand>(),
+                    container.GetRequiredService<PublishCommand>(),
                 };
 
                     return await rc.InvokeAsync(args);
@@ -68,7 +54,7 @@ namespace ArtifactCmd
             }
         }
 
-        private ServiceProvider BuildContainer(ConfigOption option)
+        private ServiceProvider BuildContainer()
         {
             var service = new ServiceCollection();
 
@@ -78,23 +64,17 @@ namespace ArtifactCmd
                 x.AddDebug();
             });
 
-            service.AddSingleton(option);
-
             service.AddSingleton<ListActivity>();
             service.AddSingleton<GetActivity>();
             service.AddSingleton<DeleteActivity>();
             service.AddSingleton<SetActivity>();
+            service.AddSingleton<PublishActivity>();
 
             service.AddSingleton<DeleteCommand>();
             service.AddSingleton<ListCommand>();
             service.AddSingleton<GetCommand>();
             service.AddSingleton<SetCommand>();
-
-            service.AddHttpClient<IArtifactClient, ArtifactClient>(http =>
-            {
-                http.BaseAddress = new Uri(option.ArtifactUrl);
-                http.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ApiKey);
-            });
+            service.AddSingleton<PublishCommand>();
 
             return service.BuildServiceProvider();
         }

@@ -33,17 +33,23 @@ namespace ArtifactCmd.Activities
             BatchSetCursor<string> batch = _artifactClient.List(new QueryParameter { Namespace = nameSpace });
             int index = 0;
 
-            _logger.LogInformation($"Listing artifacts from Namespace {nameSpace}...");
+            var list = new List<string>
+            {
+                $"Listing artifacts from Namespace {nameSpace}...",
+                "",
+            };
 
             while (true)
             {
                 BatchSet<string> batchSet = await batch.ReadNext(token);
                 if (batchSet.IsEndSignaled) break;
 
-                batchSet.Records.ForEach(x => _logger.LogInformation($"({index++}) {nameSpace + "/" + x}"));
+                batchSet.Records.ForEach(x => list.Add($"({index++}) {nameSpace + "/" + x}"));
             }
 
-            _logger.LogInformation($"Completed, {index} listed");
+            list.Add($"Completed, {index} listed");
+
+            _logger.LogInformation(list.Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine));
         }
     }
 }

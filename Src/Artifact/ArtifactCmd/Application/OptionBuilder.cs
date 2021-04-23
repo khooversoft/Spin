@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Toolbox.Application;
+using Toolbox.Configuration;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -32,11 +31,10 @@ namespace ArtifactCmd.Application
         {
             return new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true)
-                .AddUserSecrets("ArtifactCmd")
+                .AddPropertyResolver("spin-secrets")
                 .Func(x => runEnvironment != RunEnvironment.Unknown ? x.AddJsonStream(GetResourceStream(runEnvironment)) : x)
                 .Build()
                 .Bind<ConfigOption>()
-                .Verify()
                 .Func(x => x with { Environment = x.Environment ?? runEnvironment });
         }
 

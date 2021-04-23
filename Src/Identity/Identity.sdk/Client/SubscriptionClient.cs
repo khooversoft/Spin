@@ -23,10 +23,13 @@ namespace Identity.sdk.Client
         {
         }
 
-        public async Task<Subscription?> Get(IdentityId tenantId, IdentityId subscriptionId, CancellationToken token = default) =>
-            await Get(Subscription.ToArtifactId(tenantId, subscriptionId), token);
-
         public async Task<bool> Delete(IdentityId tenantId, IdentityId subscriptionId, CancellationToken token = default) =>
-            await Delete(Subscription.ToArtifactId(tenantId, subscriptionId), token);
+            await Delete($"{(string)tenantId}/{(string)subscriptionId}", token);
+
+        public async Task<Subscription?> Get(IdentityId tenantId, IdentityId subscriptionId, CancellationToken token = default) =>
+                    await Get($"{(string)tenantId}/{(string)subscriptionId}", token);
+
+        public async Task Set(Subscription subscription, CancellationToken token = default) =>
+            await Set(subscription, $"{(string)subscription.TenantId}/{(string)subscription.SubscriptionId}", token);
     }
 }

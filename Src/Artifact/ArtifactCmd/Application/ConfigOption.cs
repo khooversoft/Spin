@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Extensions;
@@ -13,20 +16,22 @@ namespace ArtifactCmd.Application
         public string ApiKey { get; init; } = null!;
 
         public string ArtifactUrl { get; init; } = null!;
-
-        public string Namespace { get; set; } = null!;
     }
 
     internal static class ConfigOptionExtensions
     {
-        public static ConfigOption Verify(this ConfigOption configOption)
+        public static bool IsValid(this ConfigOption configOption, ILogger logger)
         {
-            configOption.VerifyNotNull(nameof(configOption));
-            configOption.ApiKey.VerifyNotEmpty($"{nameof(configOption.ApiKey)} is required");
-            configOption.ArtifactUrl.VerifyNotEmpty($"{nameof(configOption.ArtifactUrl)} is required");
-            configOption.Namespace.VerifyNotEmpty($"{nameof(configOption.Namespace)} is required");
-
-            return configOption;
+            return new (bool Status, string Message)[]
+            {
+                (!configOption.ApiKey.IsEmpty(), $"{nameof(configOption.ApiKey)} is required"),
+                (!configOption.ArtifactUrl.IsEmpty(), $"{nameof(configOption.ArtifactUrl)} is required"),
+            }
+            .All(x =>
+            {
+                if (!x.Status) logger.LogError(x.Message);
+                return x.Status;
+            });
         }
     }
 }

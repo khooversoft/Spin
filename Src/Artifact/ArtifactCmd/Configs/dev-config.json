@@ -1,5 +1,4 @@
 {
-  "SecretId": "ArtifactCmd",
-
-  "ArtifactUrl": "http://localhost:5010"
+  "ArtifactUrl": "http://localhost:5010",
+  "ApiKey": "{dev.apikey}"
 }

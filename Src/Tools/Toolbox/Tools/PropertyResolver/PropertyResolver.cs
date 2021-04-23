@@ -6,7 +6,7 @@ using System.Text;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Services
+namespace Toolbox.Tools.PropertyResolver
 {
     public class PropertyResolver : IPropertyResolver
     {
@@ -26,6 +26,13 @@ namespace Toolbox.Services
 
             return _property
                 .Aggregate(subject, (acc, x) => acc.Replace($"{{{x.Key}}}", x.Value));
+        }
+
+        public bool HasProperty(string subject)
+        {
+            if (subject.IsEmpty()) return false;
+
+            return _property.Any(x => subject.IndexOf(x.Key) >= 0);
         }
     }
 }

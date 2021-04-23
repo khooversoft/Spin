@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Tools;
@@ -15,7 +13,8 @@ namespace ArtifactStore.Application
         public OptionBuilder() =>
             SetFinalize(FinalizeOption)
             .SetConfigStream(GetResourceStream)
-            .SetConfigFiles("appsettings.json");
+            .SetConfigFiles("appsettings.json")
+            .SetPropertyDatabaseId("spin-secrets");
 
         private Option FinalizeOption(Option option, RunEnvironment runEnvironment)
         {

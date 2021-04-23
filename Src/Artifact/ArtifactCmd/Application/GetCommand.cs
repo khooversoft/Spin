@@ -1,20 +1,16 @@
 ﻿using ArtifactCmd.Activities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Toolbox.Application;
 
 namespace ArtifactCmd.Application
 {
     internal class GetCommand : Command
     {
-        public GetCommand(IServiceProvider serviceProvider)
+        public GetCommand(ConfigOption configOption, IServiceProvider serviceProvider, ILogger<GetCommand> logger)
             : base("get", "Get artifact")
         {
             AddArgument(new Argument<string>("id", "ID to get"));
@@ -22,6 +18,8 @@ namespace ArtifactCmd.Application
 
             Handler = CommandHandler.Create(async (string id, string file, CancellationToken token) =>
             {
+                if (!configOption.IsValid(logger)) return 1;
+
                 await serviceProvider.GetRequiredService<GetActivity>().Get(id, file, token);
                 return 0;
             });

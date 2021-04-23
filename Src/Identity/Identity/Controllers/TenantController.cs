@@ -26,7 +26,7 @@ namespace Identity.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
-            Tenant? record = await _tenantService.Get(IdentityId.FromBase64(id));
+            Tenant? record = await _tenantService.Get((IdentityId)id);
             if (record == null) return NotFound();
 
             return Ok(record);
@@ -44,7 +44,7 @@ namespace Identity.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            bool status = await _tenantService.Delete(IdentityId.FromBase64(id));
+            bool status = await _tenantService.Delete((IdentityId)id);
             return status ? Ok() : NotFound();
         }
 

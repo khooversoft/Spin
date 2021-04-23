@@ -85,7 +85,6 @@ namespace ArtifactStore.Test.Application
             string[] args = new string[]
             {
                 "Environment=local",
-                "SecretId=ArtifactStore",
             };
 
             return new OptionBuilder()

@@ -1,42 +1,46 @@
 {
-  "SecretId": "ArtifactStore-dev",
+  "ApiKey": "{dev.apikey}",
 
   "Store": {
     "Namespaces": {
 
       "dev-identity": {
-        "Namespace": "dev-identity",
+        "Namespace": "identity",
         "PathRoot": "V1.0",
         "Store": {
           "AccountName": "devartifactstorage",
-          "ContainerName": "dev-identity"
+          "ContainerName": "dev-identity",
+          "AccountKey": "{devartifactstorage.AccountKey}"
         }
       },
 
       "dev-customer": {
-        "Namespace": "dev-customer",
+        "Namespace": "customer",
         "PathRoot": "V1.0",
         "Store": {
           "AccountName": "devartifactstorage",
-          "ContainerName": "dev-customer"
+          "ContainerName": "dev-customer",
+          "AccountKey": "{devartifactstorage.AccountKey}"
         }
       },
 
       "smart-contract": {
-        "Namespace": "dev-smart-contract",
+        "Namespace": "smart-contract",
         "PathRoot": "V1.0",
         "Store": {
           "AccountName": "devartifactstorage",
-          "ContainerName": "dev-smart-contract"
+          "ContainerName": "dev-smart-contract",
+          "AccountKey": "{devartifactstorage.AccountKey}"
         }
       },
 
       "dev-directory": {
-        "Namespace": "dev-directory",
+        "Namespace": "directory",
         "PathRoot": "v1.0",
         "Store": {
           "AccountName": "devartifactstorage",
-          "ContainerName": "dev-directory"
+          "ContainerName": "dev-directory",
+          "AccountKey": "{devartifactstorage.AccountKey}"
         }
       }
     }

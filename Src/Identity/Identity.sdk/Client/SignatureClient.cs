@@ -14,10 +14,13 @@ namespace Identity.sdk.Client
         {
         }
 
-        public async Task<Signature?> Get(IdentityId signatureId, CancellationToken token = default) =>
-            await Get(Signature.ToArtifactId(signatureId), token);
-
         public async Task<bool> Delete(IdentityId signatureId, CancellationToken token = default) =>
-            await Delete(Signature.ToArtifactId(signatureId), token);
+            await Delete((string)signatureId, token);
+
+        public async Task<Signature?> Get(IdentityId signatureId, CancellationToken token = default) =>
+                    await Get((string)signatureId, token);
+
+        public async Task Set(Signature signature, CancellationToken token = default) =>
+            await Set(signature, (string)signature.SignatureId, token);
     }
 }

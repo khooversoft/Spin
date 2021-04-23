@@ -33,6 +33,10 @@ namespace Identity.sdk.Models
             signature.Key.VerifyNotEmpty(nameof(signature.Key));
         }
 
+        public static bool IsValid(this Signature signature) =>
+            signature != null &&
+            signature.SignatureId != null;
+
         public static ArtifactId ToArtifactId(this Signature signature)
         {
             signature.VerifyNotNull(nameof(signature));

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Toolbox.Configuration;
 using Toolbox.Extensions;
 using Toolbox.Services;
 using Toolbox.Tools;
@@ -24,6 +25,8 @@ namespace Toolbox.Application
 
         public string? EnvironmentVariables { get; set; }
 
+        public string? PropertyDatabaseId { get; set; }
+
         public OptionBuilder<T> SetEnableHelp(bool enableHelp = true) => this.Action((Action<OptionBuilder<T>>)(x => x.EnableHelp = enableHelp));
 
         public OptionBuilder<T> SetArgs(params string[] args) => this.Action(x => x.Args = args?.ToArray());
@@ -34,7 +37,9 @@ namespace Toolbox.Application
 
         public OptionBuilder<T> SetConfigStream(Func<RunEnvironment, Stream> configStream) => this.Action(x => x.ConfigStream = configStream);
 
-        public OptionBuilder<T> AddEnvironmentVariables(string environmentPrefix) => this.Action(x => x.EnvironmentVariables = environmentPrefix);
+        public OptionBuilder<T> SetEnvironmentVariables(string environmentPrefix) => this.Action(x => x.EnvironmentVariables = environmentPrefix);
+
+        public OptionBuilder<T> SetPropertyDatabaseId(string databaseId) => this.Action(x => x.PropertyDatabaseId = databaseId);
 
         public T? Build()
         {
@@ -64,9 +69,11 @@ namespace Toolbox.Application
                     .Action(x => ConfigFiles?.ForEach(y => x.AddJsonFile(y)))
                     .Func(x => GetEnvironmentConfig(environment) switch { Stream v => x.AddJsonStream(v), _ => x })
                     .Func(x => secretId.ToNullIfEmpty() switch { string v => x.AddUserSecrets(v), _ => x })
+                    .Func(x => PropertyDatabaseId.ToNullIfEmpty() switch { string v => x.AddPropertyResolver(v), _ => x })
                     .Func(x => EnvironmentVariables.ToNullIfEmpty() switch { string v => x.AddEnvironmentVariables(v), _ => x })
                     .AddCommandLine(args)
-                    .Build();
+                    .Build()
+                    .ResolveProperties();
 
                 StandardOption standardOption = config.Bind<StandardOption>();
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Identity.sdk.Models
@@ -42,6 +43,15 @@ namespace Identity.sdk.Models
             user.UserId.VerifyNotNull(nameof(user.UserId));
             user.Name.VerifyNotEmpty(nameof(user.Name));
         }
+
+        public static bool IsValid(this User user) =>
+            user != null &&
+            user.TenantId != null &&
+            user.SubscriptionId != null &&
+            user.UserId != null &&
+            user.PublicKeySignatures != null &&
+            user.PublicKeySignatures.Count > 0 &&
+            !user.Name.IsEmpty();
 
         public static ArtifactId ToArtifactId(this User user)
         {

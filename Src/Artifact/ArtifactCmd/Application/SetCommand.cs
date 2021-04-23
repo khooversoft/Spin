@@ -1,20 +1,16 @@
 ﻿using ArtifactCmd.Activities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Toolbox.Application;
 
 namespace ArtifactCmd.Application
 {
     internal class SetCommand : Command
     {
-        public SetCommand(IServiceProvider serviceProvider)
+        public SetCommand(ConfigOption configOption, IServiceProvider serviceProvider, ILogger<SetCommand> logger)
             : base("set", "Write file to artifact")
         {
             AddArgument(new Argument<string>("file", "File to write to"));
@@ -22,6 +18,8 @@ namespace ArtifactCmd.Application
 
             Handler = CommandHandler.Create(async (string file, string id, CancellationToken token) =>
             {
+                if (!configOption.IsValid(logger)) return 1;
+
                 await serviceProvider.GetRequiredService<SetActivity>().Set(file, id, token);
                 return 0;
             });

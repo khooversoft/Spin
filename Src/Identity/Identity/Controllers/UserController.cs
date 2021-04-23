@@ -1,4 +1,5 @@
-﻿using ArtifactStore.sdk.Model;
+﻿using ArtifactStore.sdk.Actors;
+using ArtifactStore.sdk.Model;
 using Identity.sdk.Models;
 using Identity.sdk.Services;
 using Identity.sdk.Types;
@@ -13,45 +14,44 @@ namespace Identity.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SubscriptionController : Controller
+    public class UserController : Controller
     {
-        private readonly SubscriptionService _subscriptionService;
+        private readonly UserService _userService;
 
-        public SubscriptionController(SubscriptionService subscriptionService)
+        public UserController(UserService userService)
         {
-            _subscriptionService = subscriptionService;
+            _userService = userService;
         }
 
-
-        [HttpGet("{tenantId}/{id}")]
-        public async Task<IActionResult> Get(string tenantId, string id)
+        [HttpGet("{tenantId}/{subscriptionId}/{id}")]
+        public async Task<IActionResult> Get(string tenantId, string subscriptionId, string id)
         {
-            Subscription? record = await _subscriptionService.Get((IdentityId)tenantId, (IdentityId)id);
+            User? record = await _userService.Get((IdentityId)tenantId, (IdentityId)subscriptionId, (UserId)id);
             if (record == null) return NotFound();
 
             return Ok(record);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] Subscription record)
+        public async Task<IActionResult> Post([FromBody] User record)
         {
             if (!record.IsValid()) return BadRequest();
 
-            await _subscriptionService.Set(record);
+            await _userService.Set(record);
             return Ok();
         }
 
-        [HttpDelete("{tenantId}/{id}")]
-        public async Task<IActionResult> Delete(string tenantId, string id)
+        [HttpDelete("{tenantId}/{subscriptionId}/{id}")]
+        public async Task<IActionResult> Delete(string tenantId, string subscriptionId, string id)
         {
-            bool status = await _subscriptionService.Delete((IdentityId)tenantId, (IdentityId)id);
+            bool status = await _userService.Delete((IdentityId)tenantId, (IdentityId)subscriptionId, (UserId)id);
             return status ? Ok() : NotFound();
         }
 
         [HttpPost("list")]
         public async Task<IActionResult> List([FromBody] QueryParameter queryParameter)
         {
-            IReadOnlyList<string> list = await _subscriptionService.List(queryParameter);
+            IReadOnlyList<string> list = await _userService.List(queryParameter);
 
             var result = new BatchSet<string>
             {

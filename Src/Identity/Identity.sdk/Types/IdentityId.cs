@@ -21,10 +21,6 @@ namespace Identity.sdk.Types
 
         public static explicit operator string(IdentityId identityId) => identityId.ToString();
 
-        public static IdentityId FromBase64(string base64) => new IdentityId(Encoding.UTF8.GetString(Convert.FromBase64String(base64)));
-
-        public string ToBase64() => Convert.ToBase64String(Encoding.UTF8.GetBytes(Id));
-
         public override string ToString() => Id;
 
         public static void Verify(string id)

@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,7 +24,7 @@ namespace Toolbox.Extensions
         /// <typeparam name="T">type of class</typeparam>
         /// <param name="subject">instance of class</param>
         /// <returns>list or configuration settings "propertyName=value"</returns>
-        public static IReadOnlyList<string> GetConfigValues<T>(this T subject) where T : class
+        public static IReadOnlyList<KeyValuePair<string, string>> GetConfigurationValues<T>(this T subject) where T : class
         {
             subject.VerifyNotNull(nameof(subject));
 
@@ -39,24 +37,10 @@ namespace Toolbox.Extensions
                 .AddJsonStream(stream)
                 .Build();
 
-            var list = new List<string>();
-            dump(config, list);
-
-            return list;
-
-            static void dump(IConfiguration configuration, List<string> list)
-            {
-                foreach (IConfigurationSection section in configuration.GetChildren())
-                {
-                    if (section.Value == null)
-                    {
-                        dump(section, list);
-                        continue;
-                    }
-
-                    list.Add($"{section.Path}={section.Value}");
-                }
-            }
+            return config
+                .AsEnumerable()
+                .Where(x => x.Value != null)
+                .ToArray();
         }
     }
 }

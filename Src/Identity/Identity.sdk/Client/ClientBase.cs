@@ -1,12 +1,7 @@
-﻿using ArtifactStore.sdk.Model;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Model;
@@ -16,57 +11,30 @@ namespace Identity.sdk.Client
 {
     public abstract class ClientBase<T> where T : class
     {
+        private readonly string _basePath;
         private readonly HttpClient _httpClient;
-        private readonly string _path;
         private readonly ILogger _logger;
 
-        public ClientBase(HttpClient httpClient, string path, ILogger logger)
+        public ClientBase(HttpClient httpClient, string basePath, ILogger logger)
         {
             httpClient.VerifyNotNull(nameof(httpClient));
-            path.VerifyNotEmpty(nameof(path));
+            basePath.VerifyNotEmpty(nameof(basePath));
             logger.VerifyNotNull(nameof(logger));
 
             _httpClient = httpClient;
-            _path = path;
+            _basePath = basePath;
             _logger = logger;
         }
 
-        public async Task Set(T subject, CancellationToken token)
+        public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, $"api/{_basePath}/list", queryParameter, _logger);
+
+        protected async Task<bool> Delete(string path, CancellationToken token)
         {
-            subject.VerifyNotNull(nameof(subject));
+            path.VerifyNotEmpty(path);
+            _logger.LogTrace($"{nameof(Delete)}: path={path}");
 
-            _logger.LogTrace($"{nameof(Set)}: subject={subject}");
-
-            HttpResponseMessage message = await _httpClient.PostAsJsonAsync($"api/{_path}", subject, token);
-            message.EnsureSuccessStatusCode();
-        }
-
-        public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, $"api/{_path}/list", queryParameter, _logger);
-
-        protected async Task<T?> Get(ArtifactId artifactId, CancellationToken token)
-        {
-            artifactId.VerifyNotNull(nameof(artifactId));
-            _logger.LogTrace($"{nameof(Get)}: artifactId={artifactId}");
-
-            try
-            {
-                return await _httpClient.GetFromJsonAsync<T?>($"api/{artifactId.ToBase64()}", token);
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, $"Get: id={artifactId} failed");
-                return null;
-            }
-        }
-
-        protected async Task<bool> Delete(ArtifactId artifactId, CancellationToken token)
-        {
-            artifactId.VerifyNotNull(nameof(artifactId));
-
-            _logger.LogTrace($"{nameof(Delete)}: artifactId={artifactId}");
-
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/{artifactId.ToBase64()}", token);
-            _logger.LogTrace($"{nameof(Delete)}: response: {response.StatusCode} for artifactId={artifactId}");
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/{path}", token);
+            _logger.LogTrace($"{nameof(Delete)}: response: {response.StatusCode} for path={path}");
 
             return response.StatusCode switch
             {
@@ -75,6 +43,32 @@ namespace Identity.sdk.Client
 
                 _ => throw new HttpRequestException($"Invalid http code={response.StatusCode}"),
             };
+        }
+
+        protected async Task<T?> Get(string path, CancellationToken token)
+        {
+            path.VerifyNotEmpty(nameof(path));
+            _logger.LogTrace($"{nameof(Get)}: path={path}");
+
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<T?>($"api/{path}", token);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, $"Get: id={path} failed");
+                return null;
+            }
+        }
+
+        protected async Task Set(T subject, string path, CancellationToken token)
+        {
+            subject.VerifyNotNull(nameof(subject));
+            path.VerifyNotEmpty(nameof(path));
+
+            _logger.LogTrace($"{nameof(Set)}: path={path}");
+            HttpResponseMessage message = await _httpClient.PostAsJsonAsync($"api/{_basePath}/{path}", subject, token);
+            message.EnsureSuccessStatusCode();
         }
     }
 }

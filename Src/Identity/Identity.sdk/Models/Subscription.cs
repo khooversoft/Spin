@@ -24,18 +24,6 @@ namespace Identity.sdk.Models
 
             return new ArtifactId($"subscription/{tenantId}/{subscriptionId}");
         }
-
-        public static (IdentityId TenantId, IdentityId SubscriptionId) ParseId(ArtifactId subscription)
-        {
-            subscription.VerifyNotNull(nameof(subscription));
-            subscription.Namespace.VerifyAssert(x => x == "subscription", $"Namespace does not match 'subscription'");
-            subscription.PathItems.Count.VerifyAssert(x => x == 2, $"Invalid path for Subscription, {subscription.Path}");
-
-            IdentityId tenantId = (IdentityId)subscription.PathItems[0];
-            IdentityId subscriptionId = (IdentityId)subscription.PathItems[1];
-
-            return (tenantId, subscriptionId);
-        }
     }
 
     public static class SubscriptionExtensions
@@ -48,7 +36,8 @@ namespace Identity.sdk.Models
             subscription.Name.VerifyNotEmpty(nameof(subscription.Name));
         }
 
-        public static bool IsValid(this Subscription subscription) => subscription != null &&
+        public static bool IsValid(this Subscription subscription) =>
+            subscription != null &&
             subscription.TenantId != null &&
             subscription.SubscriptionId != null;
 
