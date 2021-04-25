@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Tools;
-using Toolbox.Tools.PropertyResolver;
+using Toolbox.Tools.Property;
 
 namespace PropertyDatabaseCmd.Activities
 {
@@ -21,19 +23,17 @@ namespace PropertyDatabaseCmd.Activities
         {
             file.VerifyNotEmpty(nameof(file));
             key.VerifyNotEmpty(nameof(key));
-            file = Path.ChangeExtension(file, PropertyResolverBuilder.Extension);
 
             using IDisposable scope = _logger.BeginScope(new { Command = nameof(Delete), File = file, Key = key });
 
-            IPropertyResolverBuilder db = new PropertyResolverBuilder()
-                .LoadFromFile(file, true);
+            PropertyFile db = PropertyFile.ReadFromFile(file, true);
 
             _logger.LogInformation($"Delete property {key} from database {file}...");
 
-            bool removed = db.Remove(key);
-            db.Build(file);
-            _logger.LogInformation($"Property {(removed ? "was removed" : "was not found")}");
+            bool removed = db.Properties.Remove(key);
+            if (removed) db.WriteToFile(file);
 
+            _logger.LogInformation($"Property {(removed ? "was removed" : "was not found")}");
             return Task.CompletedTask;
         }
     }

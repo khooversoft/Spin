@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Tools;
-using Toolbox.Tools.PropertyResolver;
 
 namespace Toolbox.Configuration
 {

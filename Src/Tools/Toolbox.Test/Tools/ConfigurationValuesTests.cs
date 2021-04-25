@@ -8,11 +8,19 @@ using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tools
 {
     public class ConfigurationValuesTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public ConfigurationValuesTests(ITestOutputHelper  testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void SingleClassPropertyDump_ShouldPass()
         {
@@ -76,9 +84,14 @@ namespace Toolbox.Test.Tools
                 ("classB:switch", "True"),
             };
 
-            var xx = result.OrderBy(x => x.Key)
+            var testResults = result.OrderBy(x => x.Key)
                 .Zip(list.OrderBy(x => x.key))
-                .All(x => x.First.Key == x.Second.key && x.First.Value == x.Second.value)
+                .Select(x => (x.First, x.Second, Test: x.First.Key == x.Second.key && x.First.Value == x.Second.value));
+
+            testResults.ForEach(x => _testOutputHelper.WriteLine($"results: First={x.First}, Second={x.Second}, Test={x.Test}"));
+
+            testResults
+                .All(x => x.Test)
                 .Should().BeTrue();
         }
 

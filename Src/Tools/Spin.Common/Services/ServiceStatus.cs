@@ -10,25 +10,29 @@ namespace Spin.Common.Services
 {
     public class ServiceStatus : IServiceStatus
     {
-        private readonly ILogger<ServiceStatus> _logger;
-        private readonly object _lock = new object();
-
-        public ServiceStatus(ILogger<ServiceStatus> logger)
-        {
-            _logger = logger;
-        }
+        private readonly object _lock = new();
 
         public ServiceStatusLevel Level { get; private set; }
 
         public string? Message { get; private set; }
 
-        public void SetStatus(ServiceStatusLevel serviceStatusLevel, string? message)
+        public ServiceStatus SetStatus(ServiceStatusLevel serviceStatusLevel, string? message = null)
         {
+            message ??= serviceStatusLevel switch
+            {
+                ServiceStatusLevel.Ready => ServiceStatusLevel.Ready.ToString(),
+                ServiceStatusLevel.Running => ServiceStatusLevel.Running.ToString(),
+
+                _ => ServiceStatusLevel.Unknown.ToString(),
+            };
+
             lock (_lock)
             {
                 Level = serviceStatusLevel;
                 Message = message;
             }
+
+            return this;
         }
     }
 }

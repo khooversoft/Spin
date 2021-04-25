@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Tools;
-using Toolbox.Tools.PropertyResolver;
+using Toolbox.Tools.Property;
 
 namespace PropertyDatabaseCmd.Activities
 {
@@ -21,16 +21,14 @@ namespace PropertyDatabaseCmd.Activities
         {
             file.VerifyNotEmpty(nameof(file));
             key.VerifyNotEmpty(nameof(key));
-            file = Path.ChangeExtension(file, PropertyResolverBuilder.Extension);
 
             using IDisposable scope = _logger.BeginScope(new { Command = nameof(Get), File = file, Key = key });
 
-            IPropertyResolverBuilder db = new PropertyResolverBuilder()
-                .LoadFromFile(file, true);
+            PropertyFile db = PropertyFile.ReadFromFile(file, true);
 
-            _logger.LogInformation($"Get property {key} from database {file}...");
+            _logger.LogInformation($"Get property {key} from database {db.File}...");
 
-            if (!db.TryGetValue(key, out string? value))
+            if (!db.Properties.TryGetValue(key, out string? value))
                 _logger.LogInformation($"Key {key} not found");
             else
                 _logger.LogInformation($"Property {key}={value}");

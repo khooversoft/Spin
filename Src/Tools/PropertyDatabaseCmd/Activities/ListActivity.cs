@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.PropertyResolver;
+using Toolbox.Tools.Property;
 
 namespace PropertyDatabaseCmd.Activities
 {
@@ -23,23 +23,18 @@ namespace PropertyDatabaseCmd.Activities
         public Task List(string file, CancellationToken token)
         {
             file.VerifyNotEmpty(nameof(file));
-            file = Path.ChangeExtension(file, PropertyResolverBuilder.Extension);
 
             using IDisposable scope = _logger.BeginScope(new { Command = nameof(List), File = file });
 
-            IPropertyResolverBuilder db = new PropertyResolverBuilder()
-                .LoadFromFile(file, true);
+            PropertyFile db = PropertyFile.ReadFromFile(file, true);
 
-            var list = new List<string>
-            {
-                $"Listing properties from database {file}...",
-                ""
-            };
+            string line = db.Properties
+                .Select((x, i) => $"({i}) {x.Key}=\"{x.Value}\"")
+                .Prepend($"Listing properties from database {db.File}...")
+                .Prepend("")
+                .Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine);
 
-            int index = 0;
-            db.List().ForEach(x => list.Add($"({index++}) {x.Key}=\"{x.Value}\""));
-
-            _logger.LogInformation(list.Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine));
+            _logger.LogInformation(line);
 
             return Task.CompletedTask;
         }

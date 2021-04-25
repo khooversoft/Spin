@@ -1,8 +1,6 @@
 ﻿using ArtifactStore.sdk.Model;
 using ArtifactStore.Test.Application;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,9 +12,9 @@ namespace ArtifactStore.Test
     public class ArtifactControllerTests
     {
         [Theory]
-        [InlineData("system-test/file1.txt")]
-        [InlineData("customer-test/customer/hash0xff3e4/file1.txt")]
-        [InlineData("smart-test/file5.txt")]
+        [InlineData("customer/file1.txt")]
+        [InlineData("smart-contract/customer/hash0xff3e4/file1.txt")]
+        [InlineData("directory/file5.txt")]
         public async Task GivenData_WhenRoundTrip_ShouldMatch(string id)
         {
             TestWebsiteHost host = TestApplication.GetHost();

@@ -7,6 +7,6 @@ namespace Spin.Common.Services
         ServiceStatusLevel Level { get; }
         string? Message { get; }
 
-        void SetStatus(ServiceStatusLevel serviceStatusLevel, string? message);
+        ServiceStatus SetStatus(ServiceStatusLevel serviceStatusLevel, string? message);
     }
 }

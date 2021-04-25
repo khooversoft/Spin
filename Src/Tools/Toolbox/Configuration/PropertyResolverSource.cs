@@ -1,12 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.PropertyResolver;
+using Toolbox.Tools.Property;
 
 namespace Toolbox.Configuration
 {
@@ -36,7 +33,7 @@ namespace Toolbox.Configuration
         public IConfigurationProvider Build(IConfigurationBuilder builder)
         {
             Resolver = !_secretId.IsEmpty()
-                ? new PropertyResolver(new PropertyResolverBuilder().LoadFromSecretId(_secretId).List())
+                ? new PropertyResolver(PropertySecret.ReadFromSecret(_secretId).Properties)
                 : new PropertyResolver(_values!);
 
             return new PropertyResolverProvider(this);

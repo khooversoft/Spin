@@ -9,6 +9,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Spin.Common.Application;
 using Spin.Common.Middleware;
+using Spin.Common.Model;
+using Spin.Common.Services;
 using System;
 using Toolbox.Application;
 using Toolbox.Logging;
@@ -30,8 +32,8 @@ namespace ArtifactStore
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-
             services.AddArtifactStore();
+            services.AddSingleton<IServiceStatus>(x => new ServiceStatus().SetStatus(ServiceStatusLevel.Ready));
 
             services.AddSwaggerGen(c =>
             {

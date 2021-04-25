@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Toolbox.Tools.PropertyResolver
+namespace Toolbox.Tools.Property
 {
     public interface IPropertyResolver
     {
