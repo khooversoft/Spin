@@ -1,13 +1,11 @@
-﻿using ArtifactStore.sdk.Actors;
-using ArtifactStore.sdk.Model;
-using Identity.sdk.Models;
-using Identity.sdk.Services;
-using Identity.sdk.Types;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ArtifactStore.sdk.Model;
+using Identity.sdk.Models;
+using Identity.sdk.Store;
+using Identity.sdk.Types;
+using Microsoft.AspNetCore.Mvc;
 using Toolbox.Model;
 
 namespace Identity.Controllers
@@ -16,17 +14,17 @@ namespace Identity.Controllers
     [ApiController]
     public class UserController : Controller
     {
-        private readonly UserService _userService;
+        private readonly UserStore _store;
 
-        public UserController(UserService userService)
+        public UserController(UserStore store)
         {
-            _userService = userService;
+            _store = store;
         }
 
         [HttpGet("{tenantId}/{subscriptionId}/{id}")]
         public async Task<IActionResult> Get(string tenantId, string subscriptionId, string id)
         {
-            User? record = await _userService.Get((IdentityId)tenantId, (IdentityId)subscriptionId, (UserId)id);
+            User? record = await _store.Get((IdentityId)tenantId, (IdentityId)subscriptionId, (UserId)id);
             if (record == null) return NotFound();
 
             return Ok(record);
@@ -37,21 +35,21 @@ namespace Identity.Controllers
         {
             if (!record.IsValid()) return BadRequest();
 
-            await _userService.Set(record);
+            await _store.Set(record);
             return Ok();
         }
 
         [HttpDelete("{tenantId}/{subscriptionId}/{id}")]
         public async Task<IActionResult> Delete(string tenantId, string subscriptionId, string id)
         {
-            bool status = await _userService.Delete((IdentityId)tenantId, (IdentityId)subscriptionId, (UserId)id);
+            bool status = await _store.Delete((IdentityId)tenantId, (IdentityId)subscriptionId, (UserId)id);
             return status ? Ok() : NotFound();
         }
 
         [HttpPost("list")]
         public async Task<IActionResult> List([FromBody] QueryParameter queryParameter)
         {
-            IReadOnlyList<string> list = await _userService.List(queryParameter);
+            IReadOnlyList<string> list = await _store.List(queryParameter);
 
             var result = new BatchSet<string>
             {

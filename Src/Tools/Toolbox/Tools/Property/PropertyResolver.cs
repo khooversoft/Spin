@@ -29,7 +29,6 @@ namespace Toolbox.Tools.Property
         public bool HasProperty(string subject)
         {
             if (subject.IsEmpty()) return false;
-
             return _property.Any(x => subject.IndexOf(x.Key) >= 0);
         }
     }

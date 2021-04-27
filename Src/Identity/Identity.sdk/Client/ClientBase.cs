@@ -28,12 +28,21 @@ namespace Identity.sdk.Client
 
         public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, $"api/{_basePath}/list", queryParameter, _logger);
 
+        public async Task Set(T subject, CancellationToken token = default)
+        {
+            subject.VerifyNotNull(nameof(subject));
+
+            _logger.LogTrace($"{nameof(Set)}: subject={subject}");
+            HttpResponseMessage message = await _httpClient.PostAsJsonAsync($"api/{_basePath}", subject, token);
+            message.EnsureSuccessStatusCode();
+        }
+
         protected async Task<bool> Delete(string path, CancellationToken token)
         {
             path.VerifyNotEmpty(path);
             _logger.LogTrace($"{nameof(Delete)}: path={path}");
 
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/{path}", token);
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/{_basePath}/{path}", token);
             _logger.LogTrace($"{nameof(Delete)}: response: {response.StatusCode} for path={path}");
 
             return response.StatusCode switch
@@ -52,23 +61,13 @@ namespace Identity.sdk.Client
 
             try
             {
-                return await _httpClient.GetFromJsonAsync<T?>($"api/{path}", token);
+                return await _httpClient.GetFromJsonAsync<T?>($"api/{_basePath}/{path}", token);
             }
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, $"Get: id={path} failed");
                 return null;
             }
-        }
-
-        protected async Task Set(T subject, string path, CancellationToken token)
-        {
-            subject.VerifyNotNull(nameof(subject));
-            path.VerifyNotEmpty(nameof(path));
-
-            _logger.LogTrace($"{nameof(Set)}: path={path}");
-            HttpResponseMessage message = await _httpClient.PostAsJsonAsync($"api/{_basePath}/{path}", subject, token);
-            message.EnsureSuccessStatusCode();
         }
     }
 }

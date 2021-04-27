@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Model;
 using ToolBox.Azure.Test.Application;
 using Xunit;
 
@@ -182,7 +183,7 @@ namespace ToolBox.Azure.Test.DataLake
                 }
             }
 
-            IReadOnlyList<DataLakePathItem> subSearchList = await dataLakeStore.Search("data", x => true, true, CancellationToken.None);
+            IReadOnlyList<DataLakePathItem> subSearchList = await dataLakeStore.Search(new QueryParameter { Filter = "data" }, x => true, true, CancellationToken.None);
             subSearchList.Should().NotBeNull();
             subSearchList.Count.Should().Be(fileLists.Where(x => x.StartsWith("data/")).Count());
 

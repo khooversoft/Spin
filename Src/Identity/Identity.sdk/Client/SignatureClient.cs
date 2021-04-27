@@ -19,8 +19,5 @@ namespace Identity.sdk.Client
 
         public async Task<Signature?> Get(IdentityId signatureId, CancellationToken token = default) =>
                     await Get((string)signatureId, token);
-
-        public async Task Set(Signature signature, CancellationToken token = default) =>
-            await Set(signature, (string)signature.SignatureId, token);
     }
 }

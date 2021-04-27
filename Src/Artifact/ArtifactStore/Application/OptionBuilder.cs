@@ -23,11 +23,7 @@ namespace ArtifactStore.Application
             option = option with
             {
                 Environment = runEnvironment,
-
-                Store = new DataLakeNamespaceOption
-                {
-                    Namespaces = option.Store.Namespaces.Values.ToDictionary(x => x.Namespace, x => x, StringComparer.OrdinalIgnoreCase),
-                }
+                Stores = option.Stores.ToList(),
             };
 
             return option;

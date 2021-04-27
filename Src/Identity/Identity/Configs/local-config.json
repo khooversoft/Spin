@@ -1,8 +1,13 @@
 {
-  "Environment": "local",
-  "SecretId": "Identity-dev",
+  "Namespaces": {
+    "Signature": "identity-signature",
+    "Subscription": "identity-subscription",
+    "Tenant": "identity-tenant",
+    "User": "identity-user"
+  },
 
   "ArtifactStore": {
-    "Url": "http://localhost:5010"
+    "Url": "http://localhost:5010",
+    "ApiKey": "{local.apikey}"
   }
 }

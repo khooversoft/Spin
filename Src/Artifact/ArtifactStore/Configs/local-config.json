@@ -1,48 +1,72 @@
 {
   "ApiKey": "{local.apikey}",
 
-  "Store": {
-    "Namespaces": {
+  "Stores": [
+    {
+      "Namespace": "identity-tenant",
+      "PathRoot": "V1.0/tenant",
+      "Store": {
+        "AccountName": "devartifactstorage",
+        "ContainerName": "local-identity",
+        "AccountKey": "{devartifactstorage.AccountKey}"
+      }
+    },
+    {
+      "Namespace": "identity-subscription",
+      "PathRoot": "V1.0/subscription",
+      "Store": {
+        "AccountName": "devartifactstorage",
+        "ContainerName": "local-identity",
+        "AccountKey": "{devartifactstorage.AccountKey}"
+      }
+    },
+    {
+      "Namespace": "identity-user",
+      "PathRoot": "V1.0/user",
+      "Store": {
+        "AccountName": "devartifactstorage",
+        "ContainerName": "local-identity",
+        "AccountKey": "{devartifactstorage.AccountKey}"
+      }
+    },
+    {
+      "Namespace": "identity-signature",
+      "PathRoot": "V1.0/signature",
+      "Store": {
+        "AccountName": "devartifactstorage",
+        "ContainerName": "local-identity",
+        "AccountKey": "{devartifactstorage.AccountKey}"
+      }
+    },
 
-      "dev-identity": {
-        "Namespace": "identity",
-        "PathRoot": "V1.0",
-        "Store": {
-          "AccountName": "devartifactstorage",
-          "ContainerName": "local-identity",
-          "AccountKey": "{devartifactstorage.AccountKey}"
-        }
-      },
+    {
+      "Namespace": "customer",
+      "PathRoot": "V1.0",
+      "Store": {
+        "AccountName": "devartifactstorage",
+        "ContainerName": "local-customer",
+        "AccountKey": "{devartifactstorage.AccountKey}"
+      }
+    },
 
-      "dev-customer": {
-        "Namespace": "customer",
-        "PathRoot": "V1.0",
-        "Store": {
-          "AccountName": "devartifactstorage",
-          "ContainerName": "local-customer",
-          "AccountKey": "{devartifactstorage.AccountKey}"
-        }
-      },
+    {
+      "Namespace": "smart-contract",
+      "PathRoot": "V1.0",
+      "Store": {
+        "AccountName": "devartifactstorage",
+        "ContainerName": "local-smart-contract",
+        "AccountKey": "{devartifactstorage.AccountKey}"
+      }
+    },
 
-      "dev-smart-contract": {
-        "Namespace": "smart-contract",
-        "PathRoot": "V1.0",
-        "Store": {
-          "AccountName": "devartifactstorage",
-          "ContainerName": "local-smart-contract",
-          "AccountKey": "{devartifactstorage.AccountKey}"
-        }
-      },
-
-      "dev-directory": {
-        "Namespace": "directory",
-        "PathRoot": "v1.0",
-        "Store": {
-          "AccountName": "devartifactstorage",
-          "ContainerName": "local-directory",
-          "AccountKey": "{devartifactstorage.AccountKey}"
-        }
+    {
+      "Namespace": "directory",
+      "PathRoot": "v1.0",
+      "Store": {
+        "AccountName": "devartifactstorage",
+        "ContainerName": "local-directory",
+        "AccountKey": "{devartifactstorage.AccountKey}"
       }
     }
-  }
+  ]
 }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Model;
 using Toolbox.Tools;
 
 namespace Toolbox.Azure.DataLake
@@ -125,22 +126,33 @@ namespace Toolbox.Azure.DataLake
             return memory.ToArray();
         }
 
-        public async Task<IReadOnlyList<DataLakePathItem>> Search(string? path, Func<DataLakePathItem, bool> filter, bool recursive, CancellationToken token)
+        public async Task<IReadOnlyList<DataLakePathItem>> Search(QueryParameter queryParameter, Func<DataLakePathItem, bool> filter, bool recursive, CancellationToken token)
         {
+            queryParameter.VerifyNotNull(nameof(queryParameter));
+            filter.VerifyNotNull(nameof(filter));
+
             var list = new List<DataLakePathItem>();
 
+            int index = -1;
             try
             {
-                await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(path, recursive, cancellationToken: token))
+                await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.Filter, recursive, cancellationToken: token))
                 {
+                    index++;
+                    if (index < queryParameter.Index) continue;
+
                     DataLakePathItem datalakePathItem = pathItem.ConvertTo();
 
-                    if (filter(datalakePathItem)) list.Add(datalakePathItem);
+                    if (filter(datalakePathItem))
+                    {
+                        list.Add(datalakePathItem);
+                        if (list.Count >= queryParameter.Count) break;
+                    }
                 }
 
                 return list;
             }
-            catch(RequestFailedException ex) when (ex.ErrorCode == "PathNotFound")
+            catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound")
             {
                 return list;
             }
@@ -156,6 +168,7 @@ namespace Toolbox.Azure.DataLake
             DataLakeFileClient file = _fileSystem.GetFileClient(toPath);
             await file.UploadAsync(fromStream, force, token);
         }
+
         public async Task Write(string path, byte[] data, bool force, CancellationToken token)
         {
             path.VerifyNotEmpty(nameof(path));

@@ -13,7 +13,8 @@ namespace Identity.Application
     {
         public OptionBuilder() =>
             SetFinalize(FinalizeOption)
-            .SetConfigStream(GetResourceStream);
+            .SetConfigStream(GetResourceStream)
+            .SetPropertyDatabaseId("spin-secrets");
 
         private Option FinalizeOption(Option option, RunEnvironment runEnvironment)
         {

@@ -68,13 +68,5 @@ namespace Toolbox.Azure.DataLake.Model
             subject.Namespace.VerifyNotEmpty((nameof(subject.Namespace)));
             subject.Store.Verify();
         }
-
-        public static void Verify(this DataLakeNamespaceOption subject)
-        {
-            subject.VerifyNotNull(nameof(subject));
-
-            subject.Namespaces.VerifyNotNull(nameof(subject.Namespaces));
-            subject.Namespaces.Values.ForEach(x => x.Verify());
-        }
     }
 }

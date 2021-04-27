@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Model;
 
 namespace Toolbox.Azure.DataLake
 {
@@ -23,7 +24,7 @@ namespace Toolbox.Azure.DataLake
 
         Task<byte[]> Read(string path, CancellationToken token);
 
-        Task<IReadOnlyList<DataLakePathItem>> Search(string? path, Func<DataLakePathItem, bool> filter, bool recursive, CancellationToken token);
+        Task<IReadOnlyList<DataLakePathItem>> Search(QueryParameter queryParameter, Func<DataLakePathItem, bool> filter, bool recursive, CancellationToken token);
 
         Task Upload(Stream fromStream, string toPath, bool force, CancellationToken token);
 

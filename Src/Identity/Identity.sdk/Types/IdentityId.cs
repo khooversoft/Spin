@@ -26,7 +26,7 @@ namespace Identity.sdk.Types
         public static void Verify(string id)
         {
             id.VerifyNotEmpty(nameof(id));
-            id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '-'), "Valid Id must be letter, number, '.', or '-'");
+            id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '-' || y == '_' ), "Valid Id must be letter, number, '.', '-', '_'");
 
             id.VerifyAssert(x => char.IsLetter(x[0]), x => $"{x} Must start with letter");
             id.VerifyAssert(x => char.IsLetterOrDigit(x[^1]), x => "{x} must end with letter or number");

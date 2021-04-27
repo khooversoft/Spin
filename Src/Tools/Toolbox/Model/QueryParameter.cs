@@ -12,9 +12,9 @@ namespace Toolbox.Model
 
         public int Count { get; init; } = 1000;
 
-        public string? Namespace { get; init; }
-
         public string? Filter { get; init; }
+
+        public string? Namespace { get; init; }
 
         public static QueryParameter Default { get; } = new QueryParameter();
     }

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Model;
 using Toolbox.Tools;
 using ToolBox.Azure.Test.Application;
 using Xunit;
@@ -101,7 +102,7 @@ namespace ToolBox.Azure.Test.DataLake
 
         private async Task ClearContainer(IDataLakeStore dataLakeStore)
         {
-            IReadOnlyList<DataLakePathItem> list = await dataLakeStore.Search(null, x => true, false, CancellationToken.None);
+            IReadOnlyList<DataLakePathItem> list = await dataLakeStore.Search(QueryParameter.Default, x => true, false, CancellationToken.None);
             list.Should().NotBeNull();
 
             foreach (var fileItem in list.Where(x => x.IsDirectory == true))

@@ -1,10 +1,9 @@
-﻿using ArtifactStore.sdk.Actors;
-using ArtifactStore.sdk.Model;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ArtifactStore.sdk.Model;
+using ArtifactStore.sdk.Services;
+using Microsoft.AspNetCore.Mvc;
 using Toolbox.Extensions;
 using Toolbox.Model;
 
@@ -14,20 +13,21 @@ namespace ArtifactStore.Controllers
     [ApiController]
     public class ArtifactController : Controller
     {
-        private readonly IArtifactStoreService _acticleStoreService;
+        private readonly IArtifactStoreFactory _acticleStoreFactory;
 
-        public ArtifactController(IArtifactStoreService acticleStoreService)
+        public ArtifactController(IArtifactStoreFactory acticleStoreFactory)
         {
-            _acticleStoreService = acticleStoreService;
+            _acticleStoreFactory = acticleStoreFactory;
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
-            ArtifactPayload? record = await _acticleStoreService.Get(ArtifactId.FromBase64(id));
-            if (record == null) return NotFound();
+            ArtifactId artifactId = ArtifactId.FromBase64(id);
 
-            return Ok(record);
+            ArtifactPayload? record = await _acticleStoreFactory.Create(artifactId).Get(artifactId);
+
+            return record == null ? NotFound() : Ok(record);
         }
 
         [HttpPost]
@@ -35,14 +35,17 @@ namespace ArtifactStore.Controllers
         {
             if (!record.IsValid()) return BadRequest();
 
-            await _acticleStoreService.Set(record);
+            await _acticleStoreFactory.Create(new ArtifactId(record.Id)).Set(record);
             return Ok();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            bool status = await _acticleStoreService.Delete(ArtifactId.FromBase64(id));
+            ArtifactId artifactId = ArtifactId.FromBase64(id);
+
+            bool status = await _acticleStoreFactory.Create(artifactId).Delete(artifactId);
+
             return status ? Ok() : NotFound();
         }
 
@@ -51,7 +54,7 @@ namespace ArtifactStore.Controllers
         {
             if (queryParameter.Namespace.IsEmpty()) return BadRequest();
 
-            IReadOnlyList<string> list = await _acticleStoreService.List(queryParameter);
+            IReadOnlyList<string> list = await _acticleStoreFactory.Create(queryParameter.Namespace).List(queryParameter);
 
             var result = new BatchSet<string>
             {

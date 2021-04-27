@@ -34,7 +34,7 @@ namespace ArtifactStore
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton(option);
-                    services.AddSingleton(option.Store);
+                    services.AddSingleton(option.Stores);
                 })
                 .ConfigureLogging(config =>
                 {
@@ -53,7 +53,7 @@ namespace ArtifactStore
         {
             var list = new List<string>();
             list.Add(option.ApiKey);
-            list.AddRange(option.Store.Namespaces.Values.Select(x => x.Store.AccountKey));
+            list.AddRange(option.Stores.Select(x => x.Store.AccountKey));
 
             ISecretFilter filter = new SecretFilter(list);
 

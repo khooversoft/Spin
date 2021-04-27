@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Logging;
 using Identity.sdk;
+using Spin.Common.Services;
+using Spin.Common.Model;
 
 namespace Identity
 {
@@ -35,8 +37,8 @@ namespace Identity
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddIdentityService();
-
             services.AddControllers();
+            services.AddSingleton<IServiceStatus>(_ => new ServiceStatus().SetStatus(ServiceStatusLevel.Ready));
 
             services.AddSwaggerGen(c =>
             {

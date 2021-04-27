@@ -17,7 +17,7 @@ namespace ArtifactStore.Test
         [InlineData("directory/file5.txt")]
         public async Task GivenData_WhenRoundTrip_ShouldMatch(string id)
         {
-            TestWebsiteHost host = TestApplication.GetHost();
+            ArtifactTestHost host = TestApplication.GetHost();
 
             const string payload = "This is a test";
             ArtifactId artifactId = new ArtifactId(id);

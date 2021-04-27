@@ -1,4 +1,5 @@
 ﻿using ArtifactStore.sdk.Model;
+using Identity.sdk.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,8 @@ namespace Identity.Application
         public ArtifactStoreOption ArtifactStore { get; init; } = null!;
 
         public string? HostUrl { get; init; }
+
+        public IdentityNamespaces Namespaces { get; init; } = null!;
     }
 
     public static class OptionExtensions
@@ -23,6 +26,7 @@ namespace Identity.Application
         {
             option.VerifyNotNull(nameof(option));
             option.ArtifactStore.Verify();
+            option.Namespaces.Verify();
         }
     }
 }

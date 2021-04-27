@@ -1,48 +1,27 @@
 ﻿using ArtifactStore.sdk.Client;
 using ArtifactStore.sdk.Model;
-using Identity.sdk.Actors;
-using Identity.sdk.Services;
+using Identity.sdk.Models;
+using Identity.sdk.Store;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Toolbox.Actor.Host;
 using Toolbox.Tools;
 
 namespace Identity.sdk
 {
     public static class IdentityExtensions
     {
-        public static IServiceCollection AddIdentityService(this IServiceCollection services, int actorCapacity = 10000)
+        public static IServiceCollection AddIdentityService(this IServiceCollection services)
         {
             services.VerifyNotNull(nameof(services));
 
-            services.AddSingleton<ISignatureActor, SignatureActor>();
-            services.AddSingleton<ISubscriptionActor, SubscriptionActor>();
-            services.AddSingleton<ITenantActor, TenantActor>();
-            services.AddSingleton<IUserActor, UserActor>();
+            services.AddSingleton(s => new SignatureStore(s.GetRequiredService<IArtifactClient>(), s.GetRequiredService<IdentityNamespaces>().Signature));
+            services.AddSingleton(s => new SubscriptionStore(s.GetRequiredService<IArtifactClient>(), s.GetRequiredService<IdentityNamespaces>().Subscription));
+            services.AddSingleton(s => new TenantStore(s.GetRequiredService<IArtifactClient>(), s.GetRequiredService<IdentityNamespaces>().Tenant));
+            services.AddSingleton(s => new UserStore(s.GetRequiredService<IArtifactClient>(), s.GetRequiredService<IdentityNamespaces>().User));
 
-            services.AddSingleton<IArtifactClient, ArtifactClient>();
-            services.AddSingleton<TenantService>();
-            services.AddSingleton<SubscriptionService>();
-            services.AddSingleton<UserService>();
-            services.AddSingleton<SignatureService>();
-
-            services.AddHttpClient<ArtifactClient>((service, http) =>
+            services.AddHttpClient<IArtifactClient, ArtifactClient>((service, http) =>
             {
                 ArtifactStoreOption option = service.GetRequiredService<ArtifactStoreOption>();
                 http.DefaultRequestHeaders.Add(option.GetApiHeader().Key, option.GetApiHeader().Value);
-            });
-
-            services.AddSingleton<IActorHost>(x =>
-            {
-                ILoggerFactory loggerFactory = x.GetRequiredService<ILoggerFactory>();
-
-                IActorHost host = new ActorHost(actorCapacity, loggerFactory);
-                host.Register<ISignatureActor>(() => x.GetRequiredService<ISignatureActor>());
-                host.Register<ISubscriptionActor>(() => x.GetRequiredService<ISubscriptionActor>());
-                host.Register<ITenantActor>(() => x.GetRequiredService<ITenantActor>());
-                host.Register<IUserActor>(() => x.GetRequiredService<IUserActor>());
-
-                return host;
             });
 
             return services;

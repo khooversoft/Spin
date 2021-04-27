@@ -14,13 +14,13 @@ using Toolbox.Tools;
 
 namespace ArtifactStore.Test.Application
 {
-    internal class TestWebsiteHost
+    public class ArtifactTestHost
     {
         protected IHost? _host;
         protected HttpClient? _client;
-        private readonly ILogger<TestWebsiteHost> _logger;
+        private readonly ILogger<ArtifactTestHost> _logger;
 
-        public TestWebsiteHost(ILogger<TestWebsiteHost> logger) => _logger = logger;
+        public ArtifactTestHost(ILogger<ArtifactTestHost> logger) => _logger = logger;
 
         public HttpClient Client => _client ?? throw new ArgumentNullException(nameof(Client));
 
@@ -30,7 +30,7 @@ namespace ArtifactStore.Test.Application
 
         public PingClient GetPingClient() => new PingClient(Client, Resolve<ILoggerFactory>().CreateLogger<PingClient>());
 
-        public TestWebsiteHost StartApiServer()
+        public ArtifactTestHost StartApiServer()
         {
             Option option = GetOption();
 
@@ -49,7 +49,7 @@ namespace ArtifactStore.Test.Application
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddSingleton(option);
-                    services.AddSingleton(option.Store);
+                    services.AddSingleton(option.Stores);
                 });
 
             _host = host.Start();

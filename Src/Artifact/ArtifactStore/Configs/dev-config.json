@@ -2,9 +2,8 @@
   "ApiKey": "{dev.apikey}",
 
   "Store": {
-    "Namespaces": {
-
-      "dev-identity": {
+    "Namespaces": [
+      {
         "Namespace": "identity",
         "PathRoot": "V1.0",
         "Store": {
@@ -14,7 +13,7 @@
         }
       },
 
-      "dev-customer": {
+      {
         "Namespace": "customer",
         "PathRoot": "V1.0",
         "Store": {
@@ -24,7 +23,7 @@
         }
       },
 
-      "smart-contract": {
+      {
         "Namespace": "smart-contract",
         "PathRoot": "V1.0",
         "Store": {
@@ -34,7 +33,7 @@
         }
       },
 
-      "dev-directory": {
+      {
         "Namespace": "directory",
         "PathRoot": "v1.0",
         "Store": {
@@ -43,6 +42,7 @@
           "AccountKey": "{devartifactstorage.AccountKey}"
         }
       }
-    }
+    ]
   }
 }
+

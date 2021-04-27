@@ -1,13 +1,9 @@
 using Identity.Application;
+using Identity.sdk.Models;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -37,6 +33,7 @@ namespace Identity
                 {
                     services.AddSingleton(option);
                     services.AddSingleton(option.ArtifactStore);
+                    services.AddSingleton(option.Namespaces);
                 })
                 .ConfigureLogging(config =>
                 {

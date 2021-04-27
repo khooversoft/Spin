@@ -16,14 +16,14 @@ namespace Toolbox.Azure.DataLake
         private readonly ILoggerFactory _loggerFactory;
         private readonly ConcurrentDictionary<string, DataLakeNamespace> _namespace = new ConcurrentDictionary<string, DataLakeNamespace>(StringComparer.OrdinalIgnoreCase);
 
-        public DataLakeStoreFactory(DataLakeNamespaceOption dataLakeNamespaceOption, ILoggerFactory loggerFactory)
+        public DataLakeStoreFactory(IReadOnlyList<DataLakeNamespace> dataLakeNamespaces, ILoggerFactory loggerFactory)
         {
-            dataLakeNamespaceOption.VerifyNotNull(nameof(dataLakeNamespaceOption));
+            dataLakeNamespaces.VerifyNotNull(nameof(dataLakeNamespaces));
             loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
             _loggerFactory = loggerFactory;
 
-            Add(dataLakeNamespaceOption.Namespaces.Values.ToArray());
+            Add(dataLakeNamespaces.ToArray());
         }
 
         public DataLakeStoreFactory Add(params DataLakeNamespace[] dataLakeNamespaces) => this.Action(_ => dataLakeNamespaces.ForEach(x => _namespace[x.Namespace] = x));
@@ -34,7 +34,7 @@ namespace Toolbox.Azure.DataLake
 
             if (!_namespace.TryGetValue(nameSpace, out DataLakeNamespace? subject)) return null;
 
-            return new DataLakeStore(subject.Store, _loggerFactory.CreateLogger<DataLakeStore>());
+            return new DataLakeNamespaceStore(subject, new DataLakeStore(subject.Store, _loggerFactory.CreateLogger<DataLakeStore>()));
         }
 
         public IDataLakeFileSystem? CreateFileSystem(string nameSpace)

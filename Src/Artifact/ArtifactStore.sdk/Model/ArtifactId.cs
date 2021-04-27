@@ -42,7 +42,7 @@ namespace ArtifactStore.sdk.Model
         {
             id.VerifyNotEmpty(nameof(id));
 
-            id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '/' || y == '-'), "Valid Id must be letter, number, '.', '/', or '-'");
+            id.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '/' || y == '-' || y == '_'), "Valid Id must be letter, number, '.', '/', or '-'");
 
             id.Split('/')
                 .VerifyAssert(x => x.Length > 1, "Missing namespace or id (ex: namespace/subject)")
