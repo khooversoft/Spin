@@ -11,8 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Configs\dev-config.json" />
-    <EmbeddedResource Include="Configs\local-config.json" />
+    <None Include="Configs\dev\dev-config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Configs\local-config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

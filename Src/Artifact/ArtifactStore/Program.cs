@@ -1,11 +1,13 @@
 using ArtifactStore.Application;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Application;
+using Toolbox.Configuration;
 using Toolbox.Extensions;
 using Toolbox.Logging;
 using Toolbox.Services;
@@ -17,6 +19,20 @@ namespace ArtifactStore
     {
         public static void Main(string[] args)
         {
+            IConfiguration config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddJsonPath("{BaseConfigPath}/{environment}-ArtifactStore.secret.json")
+                .AddJsonPath("{BaseConfigPath}/{environment}-ArtifactStore.json")
+                .AddCommandLine(args)
+                .AddPropertyResolver()
+                .Build();
+
+            string apiKey = config[nameof(Option.ApiKey)];
+
+
+            Option option1 = config
+                .Bind<Option>();
+
             Option option = new OptionBuilder()
                 .SetArgs(args)
                 .Build()

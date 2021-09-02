@@ -1,7 +1,7 @@
 ﻿{
   "SecretId": "dev-spin-secrets",
 
-  "Nodes": [
+  "Nodesx": [
     {
       "EndpointId": "main/fe",
       "BusQueue": {
@@ -27,5 +27,20 @@
     "BusNamespace": "dev-spin-bus",
     "KeyName": "SendReceive",
     "AccessKey": "<from secret>"
-  }
+  },
+
+  "Nodes": [
+    {
+      "EndpointId": "main/fe",
+      "QueueName": "fe-node"
+    },
+    {
+      "EndpointId": "main/artifact",
+      "QueueName": "artifact-node"
+    },
+    {
+      "EndpointId": "main/account",
+      "QueueName": "account-node"
+    }
+  ]
 }

@@ -23,13 +23,13 @@ namespace Toolbox.Tools.Property
             if (subject.IsEmpty()) return subject;
 
             return _property
-                .Aggregate(subject, (acc, x) => acc.Replace($"{{{x.Key}}}", x.Value));
+                .Aggregate(subject, (acc, x) => acc.Replace($"{{{x.Key}}}", x.Value, StringComparison.OrdinalIgnoreCase));
         }
 
         public bool HasProperty(string subject)
         {
             if (subject.IsEmpty()) return false;
-            return _property.Any(x => subject.IndexOf(x.Key) >= 0);
+            return _property.Any(x => subject.IndexOf(x.Key, StringComparison.OrdinalIgnoreCase) >= 0);
         }
     }
 }

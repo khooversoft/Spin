@@ -49,14 +49,14 @@ namespace ArtifactCmd
                 using (ServiceProvider container = BuildContainer(option))
                 {
                     var rc = new RootCommand()
-                {
-                    new Option<RunEnvironment>(new[] { "--environment", "-e" }, "Specify environment to use"),
+                    {
+                        new Option<RunEnvironment>(new[] { "--environment", "-e" }, "Specify environment to use"),
 
-                    container.GetRequiredService<ListCommand>(),
-                    container.GetRequiredService<GetCommand>(),
-                    container.GetRequiredService<DeleteCommand>(),
-                    container.GetRequiredService<SetCommand>(),
-                };
+                        container.GetRequiredService<ListCommand>(),
+                        container.GetRequiredService<GetCommand>(),
+                        container.GetRequiredService<DeleteCommand>(),
+                        container.GetRequiredService<SetCommand>(),
+                    };
 
                     return await rc.InvokeAsync(args);
                 }
