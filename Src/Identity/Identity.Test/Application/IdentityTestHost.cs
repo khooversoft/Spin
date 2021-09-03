@@ -2,14 +2,18 @@
 using Identity.sdk.Client;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Application;
 using Spin.Common.Client;
+using Spin.Common.Configuration;
 using System;
 using System.Net.Http;
 using System.Threading;
+using Toolbox.Configuration;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Identity.Test.Application
@@ -30,7 +34,7 @@ namespace Identity.Test.Application
 
         public PingClient GetPingClient() => new PingClient(Client, Resolve<ILoggerFactory>().CreateLogger<PingClient>());
 
-        public IdentityTestHost StartApiServer(HttpClient? artifactServer = null)
+        public IdentityTestHost StartApiServer()
         {
             Option option = GetOption();
 
@@ -51,11 +55,6 @@ namespace Identity.Test.Application
                     services.AddSingleton(option);
                     services.AddSingleton(option.ArtifactStore);
                     services.AddSingleton(option.Namespaces);
-
-                    if( artifactServer != null)
-                    {
-                        services.AddSingleton<IHttpClientFactory>(new FakeHttpFactory(artifactServer));
-                    }
                 });
 
             _host = host.Start();
@@ -90,22 +89,25 @@ namespace Identity.Test.Application
         {
             string[] args = new string[]
             {
-                "Environment=local",
+                "Environment=dev",
             };
 
-            return new OptionBuilder()
-                .SetArgs(args)
+            return new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddSpin("Identity")
+                .AddCommandLine(args)
+                .AddPropertyResolver()
                 .Build()
-                .VerifyNotNull("Help is not supported");
+                .Bind<Option>();
         }
 
-        private class FakeHttpFactory : IHttpClientFactory
-        {
-            private readonly HttpClient _httpClient;
+        //private class FakeHttpFactory : IHttpClientFactory
+        //{
+        //    private readonly HttpClient _httpClient;
 
-            public FakeHttpFactory(HttpClient httpClient) => _httpClient = httpClient;
+        //    public FakeHttpFactory(HttpClient httpClient) => _httpClient = httpClient;
 
-            public HttpClient CreateClient(string name) => _httpClient;
-        }
+        //    public HttpClient CreateClient(string name) => _httpClient;
+        //}
     }
 }

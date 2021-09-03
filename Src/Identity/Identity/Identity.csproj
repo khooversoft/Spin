@@ -7,22 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="Configs\dev-config.json" />
-    <Content Remove="Configs\local-config.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Configs\dev-config.json" />
-    <EmbeddedResource Include="Configs\local-config.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Artifact\ArtifactStore.sdk\ArtifactStore.sdk.csproj" />
-    <ProjectReference Include="..\..\Tools\Spin.Common\Spin.Common.csproj" />
+    <ProjectReference Include="..\..\Spin.Common\Spin.Common.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
     <ProjectReference Include="..\Identity.sdk\Identity.sdk.csproj" />
   </ItemGroup>

@@ -1,10 +1,13 @@
 using Identity.Application;
 using Identity.sdk.Models;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Spin.Common.Configuration;
 using Toolbox.Application;
+using Toolbox.Configuration;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -14,10 +17,18 @@ namespace Identity
     {
         public static void Main(string[] args)
         {
-            Option? option = new OptionBuilder()
-                .SetArgs(args)
+            Option option = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddSpin("Identity")
+                .AddCommandLine(args)
+                .AddPropertyResolver()
                 .Build()
-                .VerifyNotNull("Help is not supported");
+                .Bind<Option>();
+
+            //Option? option = new OptionBuilder()
+            //    .SetArgs(args)
+            //    .Build()
+            //    .VerifyNotNull("Help is not supported");
 
             IHost host = CreateHostBuilder(args, option).Build();
 

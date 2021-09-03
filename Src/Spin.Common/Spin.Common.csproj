@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+    <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 
 </Project>

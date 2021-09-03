@@ -1,4 +1,5 @@
-﻿using ArtifactStore.sdk.Client;
+﻿using System;
+using ArtifactStore.sdk.Client;
 using ArtifactStore.sdk.Model;
 using Identity.sdk.Models;
 using Identity.sdk.Store;
@@ -21,6 +22,8 @@ namespace Identity.sdk
             services.AddHttpClient<IArtifactClient, ArtifactClient>((service, http) =>
             {
                 ArtifactStoreOption option = service.GetRequiredService<ArtifactStoreOption>();
+
+                http.BaseAddress = new Uri(option.Url);
                 http.DefaultRequestHeaders.Add(option.GetApiHeader().Key, option.GetApiHeader().Value);
             });
 

@@ -1,17 +1,16 @@
+using System.Collections.Generic;
+using System.Linq;
 using ArtifactStore.Application;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
+using Spin.Common.Configuration;
 using Toolbox.Application;
 using Toolbox.Configuration;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Services;
-using Toolbox.Tools;
 
 namespace ArtifactStore
 {
@@ -19,24 +18,18 @@ namespace ArtifactStore
     {
         public static void Main(string[] args)
         {
-            IConfiguration config = new ConfigurationBuilder()
+            Option option = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddJsonPath("{BaseConfigPath}/{environment}-ArtifactStore.secret.json")
-                .AddJsonPath("{BaseConfigPath}/{environment}-ArtifactStore.json")
+                .AddSpin("ArtifactStore")
                 .AddCommandLine(args)
                 .AddPropertyResolver()
-                .Build();
-
-            string apiKey = config[nameof(Option.ApiKey)];
-
-
-            Option option1 = config
+                .Build()
                 .Bind<Option>();
 
-            Option option = new OptionBuilder()
-                .SetArgs(args)
-                .Build()
-                .VerifyNotNull("Help is not supported");
+            //Option option = new OptionBuilder()
+            //    .SetArgs(args)
+            //    .Build()
+            //    .VerifyNotNull("Help is not supported");
 
             IHost host = CreateHostBuilder(args, option).Build();
 

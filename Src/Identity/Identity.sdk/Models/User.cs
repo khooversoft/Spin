@@ -19,7 +19,7 @@ namespace Identity.sdk.Models
 
         public string Name { get; set; } = null!;
 
-        public IReadOnlyList<Signature>? PublicKeySignatures { get; set; }
+        public IReadOnlyList<string>? PublicSignaturesId { get; set; }
 
 
         public static ArtifactId ToArtifactId(IdentityId tenantId, IdentityId subscriptionId, UserId userId)

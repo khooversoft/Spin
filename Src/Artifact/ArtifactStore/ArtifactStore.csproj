@@ -12,10 +12,10 @@
 
   <ItemGroup>
     <None Include="Configs\dev\dev-config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Include="Configs\local-config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Tools\Spin.Common\Spin.Common.csproj" />
+    <ProjectReference Include="..\..\Spin.Common\Spin.Common.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
     <ProjectReference Include="..\ArtifactStore.sdk\ArtifactStore.sdk.csproj" />

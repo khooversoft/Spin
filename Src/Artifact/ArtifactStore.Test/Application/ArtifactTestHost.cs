@@ -2,19 +2,23 @@
 using ArtifactStore.sdk.Client;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Application;
 using Spin.Common.Client;
+using Spin.Common.Configuration;
 using System;
 using System.Net.Http;
 using System.Threading;
+using Toolbox.Configuration;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace ArtifactStore.Test.Application
 {
-    public class ArtifactTestHost
+    internal class ArtifactTestHost
     {
         protected IHost? _host;
         protected HttpClient? _client;
@@ -84,13 +88,21 @@ namespace ArtifactStore.Test.Application
         {
             string[] args = new string[]
             {
-                "Environment=local",
+                "Environment=dev",
             };
 
-            return new OptionBuilder()
-                .SetArgs(args)
+            return new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddSpin("ArtifactStore")
+                .AddCommandLine(args)
+                .AddPropertyResolver()
                 .Build()
-                .VerifyNotNull("Help is not supported");
+                .Bind<Option>();
+
+            //return new OptionBuilder()
+            //    .SetArgs(args)
+            //    .Build()
+            //    .VerifyNotNull("Help is not supported");
         }
     }
 }

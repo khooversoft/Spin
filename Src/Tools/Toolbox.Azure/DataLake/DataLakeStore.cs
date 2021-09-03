@@ -128,7 +128,8 @@ namespace Toolbox.Azure.DataLake
 
         public async Task<IReadOnlyList<DataLakePathItem>> Search(QueryParameter queryParameter, Func<DataLakePathItem, bool> filter, bool recursive, CancellationToken token)
         {
-            queryParameter.VerifyNotNull(nameof(queryParameter));
+            queryParameter ??= new QueryParameter();
+
             filter.VerifyNotNull(nameof(filter));
 
             var list = new List<DataLakePathItem>();

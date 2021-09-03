@@ -20,8 +20,6 @@ namespace Identity.sdk.Models
             user.TenantId != null &&
             user.SubscriptionId != null &&
             user.UserId != null &&
-            user.PublicKeySignatures != null &&
-            user.PublicKeySignatures.Count > 0 &&
             !user.Name.IsEmpty();
 
         public static ArtifactId ToArtifactId(this User user)

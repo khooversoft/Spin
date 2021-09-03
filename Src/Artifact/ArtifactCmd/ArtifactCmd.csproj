@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Tools\Spin.Common\Spin.Common.csproj" />
+    <ProjectReference Include="..\..\Spin.Common\Spin.Common.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
     <ProjectReference Include="..\ArtifactStore.sdk\ArtifactStore.sdk.csproj" />
   </ItemGroup>

@@ -7,27 +7,23 @@ namespace Identity.Test.Application
     internal static class TestApplication
     {
         private static ILoggerFactory? _loggerFactory;
-        private static ArtifactTestHost? _artificatHost;
-        private static IdentityTestHost? _identityHost;
+        private static IdentityTestHost? _host;
         private static object _lock = new object();
 
         public static IdentityTestHost GetHost()
         {
             lock (_lock)
             {
-                if (_identityHost != null) return _identityHost;
+                if (_host != null) return _host;
 
-                _artificatHost = new ArtifactTestHost(LoggerFactory.Create(x => x.AddDebug()).CreateLogger<ArtifactTestHost>());
-                _artificatHost.StartApiServer();
+                _host = new IdentityTestHost(LoggerFactory.Create(x => x.AddDebug()).CreateLogger<IdentityTestHost>());
+                _host.StartApiServer();
 
-                _identityHost = new IdentityTestHost(LoggerFactory.Create(x => x.AddDebug()).CreateLogger<IdentityTestHost>());
-                _identityHost.StartApiServer(_artificatHost.Client);
-
-                return _identityHost;
+                return _host;
             }
         }
 
-        public static void Shutdown() => Interlocked.Exchange(ref _identityHost, null)?.Shutdown();
+        public static void Shutdown() => Interlocked.Exchange(ref _host, null)?.Shutdown();
 
         public static ILoggerFactory GetLoggerFactory() => _loggerFactory ??= LoggerFactory.Create(x =>
         {
