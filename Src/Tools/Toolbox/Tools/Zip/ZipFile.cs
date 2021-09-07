@@ -36,7 +36,7 @@ namespace Toolbox.Tools.Zip
             zipArchive.ExtractToFolder(toFolder, token, monitor);
         }
 
-        public void CompressFiles(CancellationToken token, Action<FileActionProgress>? monitor = null, params CopyTo[] files)
+        public void CompressFiles(CancellationToken token, CopyTo[] files, Action<FileActionProgress>? monitor = null)
         {
             files.VerifyAssert(x => x.Length > 0, "No fileFolder(s) specified");
 

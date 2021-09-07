@@ -63,6 +63,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cmd", "Cmd", "{D929552C-5E4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PropertyDatabaseCmd", "Cmd\PropertyDatabaseCmd\PropertyDatabaseCmd.csproj", "{E5F7CAB3-6A38-439D-8493-4FF9AA2FE0FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinAdmin", "Cmd\SpinAdmin\SpinAdmin.csproj", "{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +167,10 @@ Global
 		{E5F7CAB3-6A38-439D-8493-4FF9AA2FE0FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5F7CAB3-6A38-439D-8493-4FF9AA2FE0FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5F7CAB3-6A38-439D-8493-4FF9AA2FE0FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -192,6 +198,7 @@ Global
 		{2A17524B-2A0F-47FD-ABF4-C45AEF65DF80} = {A39E309B-44C6-4E99-8A41-380EDBC0A276}
 		{D5AE8226-A971-45B3-BBAE-1C0DB6E35DA2} = {B39986F7-6F57-4BDD-83BD-DDBE5391B1E8}
 		{E5F7CAB3-6A38-439D-8493-4FF9AA2FE0FA} = {D929552C-5E4A-401F-8D47-9391BAF901B0}
+		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B} = {D929552C-5E4A-401F-8D47-9391BAF901B0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

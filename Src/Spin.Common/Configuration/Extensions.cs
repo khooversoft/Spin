@@ -13,9 +13,9 @@ namespace Spin.Common.Configuration
         public static IConfigurationBuilder AddSpin(this IConfigurationBuilder configurationBuilder, string serviceName)
         {
             return configurationBuilder
-                .AddJsonPath("{BaseConfigPath}/{environment}-SpinResource.json")
-                .AddJsonPath($"{{BaseConfigPath}}/{{environment}}-{serviceName}.json")
-                .AddJsonPath($"{{BaseConfigPath}}/{{environment}}-{serviceName}.secret.json", optional:true);
+                .AddJsonPath("{ConfigStore}/{environment}-SpinResource.json")
+                .AddJsonPath($"{{ConfigStore}}/{{environment}}-{serviceName}.json")
+                .AddJsonPath($"{{ConfigStore}}/{{environment}}-{serviceName}.secret.json", optional:true);
         }
     }
 }

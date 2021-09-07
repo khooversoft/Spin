@@ -14,5 +14,7 @@ namespace Toolbox.Models
 
         public int Total { get; }
         public int Count { get; }
+
+        public override string ToString() => $"{{ Total={Total}, Count={Count} }}";
     }
 }
