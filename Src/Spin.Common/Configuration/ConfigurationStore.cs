@@ -25,103 +25,27 @@ namespace Spin.Common.Configuration
     public class ConfigurationStore
     {
         private readonly ILogger<ConfigurationStore> _logger;
-        private const string _extension = ".environment.json";
+        internal const string _extension = ".environment.json";
+        internal const string _secretExtension = ".secret.json";
+
 
         public ConfigurationStore(ILogger<ConfigurationStore> logger)
         {
             _logger = logger.VerifyNotNull(nameof(logger));
+
+            Environment = new ConfigurationFile(logger);
+            Backup = new ConfigurationBackup(logger);
+            Secret = new ConfigurationSecret(logger);
         }
 
-        public async Task<EnviromentConfigModel?> Get(string configStorePath, string environmentName, CancellationToken token)
-        {
-            string fullPath = GetConfigurationFile(configStorePath, environmentName);
+        public ConfigurationFile Environment { get; private set; } 
 
-            if (!File.Exists(fullPath))
-            {
-                _logger.LogTrace($"{nameof(Get)}: environment configuration for {environmentName} from {configStorePath} does not exist");
-                return null;
-            }
+        public ConfigurationBackup Backup { get; private set; }
 
-            string json = await File.ReadAllTextAsync(fullPath, token);
-            _logger.LogTrace($"{nameof(Get)}: environment configuration for {environmentName} from {configStorePath}");
+        public ConfigurationSecret Secret { get; private set; }
 
-            return Json.Default.Deserialize<EnviromentConfigModel>(json);
-        }
 
-        public async Task Set(string configStorePath, string environmentName, EnviromentConfigModel model, CancellationToken token)
-        {
-            model.Verify();
-            string fullPath = GetConfigurationFile(configStorePath, environmentName);
-
-            string json = Json.Default.SerializeFormat(model);
-            await File.WriteAllTextAsync(fullPath, json, token);
-
-            _logger.LogTrace($"{nameof(Set)}: environment configuration for {environmentName} to {configStorePath}");
-        }
-
-        public Task DeleteEnvironment(string configStorePath, string environmentName, CancellationToken token)
-        {
-            string fullPath = GetConfigurationFile(configStorePath, environmentName);
-
-            if (File.Exists(fullPath)) File.Delete(fullPath);
-            _logger.LogTrace($"{nameof(DeleteEnvironment)}: environment configuration for {environmentName} to {configStorePath}");
-
-            return Task.CompletedTask;
-        }
-
-        public Task<IReadOnlyList<string>> ListEnvironments(string configStorePath, CancellationToken token)
-        {
-            VerifyConfigStorePath(configStorePath);
-
-            string[] files = Directory
-                .GetFiles(configStorePath, "*" + _extension, SearchOption.TopDirectoryOnly)
-                .Select(x => x.Replace(_extension, string.Empty))
-                .ToArray();
-
-            return Task.FromResult<IReadOnlyList<string>>(files);
-        }
-
-        public Task<string> Backup(string configStorePath, string? file, CancellationToken token)
-        {
-            VerifyConfigStorePath(configStorePath);
-
-            string backupFile = file.ToNullIfEmpty() ?? Path.Combine(configStorePath, ".backup", $"configStore.{Guid.NewGuid()}.bak.zip");
-            Directory.CreateDirectory(Path.GetDirectoryName(backupFile).VerifyNotEmpty(nameof(backupFile)));
-
-            CopyTo[] files = Directory
-                .GetFiles(configStorePath, "*" + _extension, SearchOption.TopDirectoryOnly)
-                .Select(x => new CopyTo { Source = x, Destination = Path.GetFileName(x) })
-                .ToArray();
-
-            files.VerifyAssert(x => x.Length > 0, "No files to back up");
-
-            new ZipFile(backupFile)
-                .CompressFiles(token, files, x => _logger.LogTrace($"{nameof(Backup)}: Compressing file {x}"));
-
-            _logger.LogTrace($"{nameof(Backup)}: environment configuration to {backupFile}");
-
-            return Task.FromResult(backupFile);
-        }
-
-        public Task RestoreBackup(string configStorePath, string backupFile, bool resetStore, CancellationToken token)
-        {
-            VerifyConfigStorePath(configStorePath);
-            backupFile.VerifyNotEmpty(nameof(backupFile));
-
-            if (resetStore)
-            {
-                _logger.LogTrace($"{nameof(RestoreBackup)}: reseting store at {configStorePath}");
-                Directory.Delete(configStorePath, true);
-            }
-
-            new ZipFile(backupFile)
-                .ExpandFiles(configStorePath, token, x => _logger.LogTrace($"{nameof(RestoreBackup)}: Restoring file {x}"));
-
-            _logger.LogTrace($"{nameof(RestoreBackup)}: environment configuration restored from {backupFile}");
-            return Task.CompletedTask;
-        }
-
-        private string GetConfigurationFile(string configStorePath, string environmentName)
+        static internal string GetConfigurationFile(string configStorePath, string environmentName)
         {
             VerifyConfigStorePath(configStorePath);
             VerifyEnvironmentName(environmentName);
@@ -129,11 +53,19 @@ namespace Spin.Common.Configuration
             return Path.Combine(configStorePath, environmentName + _extension);
         }
 
-        private void VerifyConfigStorePath(string configStorePath) => configStorePath
+        static internal string GetSecretFile(string configStorePath, string environmentName)
+        {
+            VerifyConfigStorePath(configStorePath);
+            VerifyEnvironmentName(environmentName);
+
+            return Path.Combine(configStorePath, environmentName + _secretExtension);
+        }
+
+        static internal void VerifyConfigStorePath(string configStorePath) => configStorePath
                 .VerifyNotEmpty(nameof(configStorePath))
                 .VerifyAssert(x => Directory.Exists(x), x => $"Folder {x} does not exist");
 
-        private void VerifyEnvironmentName(string environmentName) =>
+        static internal void VerifyEnvironmentName(string environmentName) =>
             environmentName
                 .VerifyNotEmpty(nameof(environmentName))
                 .All(x => char.IsLetterOrDigit(x) || x == '-')

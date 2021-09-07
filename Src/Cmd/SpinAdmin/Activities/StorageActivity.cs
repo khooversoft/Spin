@@ -27,10 +27,10 @@ namespace SpinAdmin.Activities
             accountName.VerifyNotEmpty(nameof(accountName));
             containerName.VerifyNotEmpty(nameof(containerName));
 
-            EnviromentConfigModel model = await _configurationStore.Get(store, environment, token) ?? new EnviromentConfigModel();
+            EnviromentConfigModel model = await _configurationStore.Environment.Get(store, environment, token) ?? new EnviromentConfigModel();
             model = model.AddWith(new StorageModel { AccountName = accountName, ContainerName = containerName });
 
-            await _configurationStore.Set(store, environment, model, token);
+            await _configurationStore.Environment.Set(store, environment, model, token);
         }
 
         public async Task Delete(string store, string environment, string accountName, string containerName, CancellationToken token)
@@ -38,10 +38,10 @@ namespace SpinAdmin.Activities
             accountName.VerifyNotEmpty(nameof(accountName));
             containerName.VerifyNotEmpty(nameof(containerName));
 
-            EnviromentConfigModel model = await _configurationStore.Get(store, environment, token) ?? new EnviromentConfigModel();
+            EnviromentConfigModel model = await _configurationStore.Environment.Get(store, environment, token) ?? new EnviromentConfigModel();
             model = model.RemoveWith(new StorageModel { AccountName = accountName, ContainerName = containerName });
 
-            await _configurationStore.Set(store, environment, model, token);
+            await _configurationStore.Environment.Set(store, environment, model, token);
         }
 
         public async Task List(string store, string environment, CancellationToken token)
@@ -49,7 +49,7 @@ namespace SpinAdmin.Activities
             store.VerifyNotEmpty(nameof(store));
             environment.VerifyNotEmpty(nameof(environment));
 
-            EnviromentConfigModel model = await _configurationStore.Get(store, environment, token) ?? new EnviromentConfigModel();
+            EnviromentConfigModel model = await _configurationStore.Environment.Get(store, environment, token) ?? new EnviromentConfigModel();
 
             var list = new[]
             {

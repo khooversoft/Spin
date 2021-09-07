@@ -23,7 +23,7 @@ namespace SpinAdmin.Activities
 
         public async Task List(string store, CancellationToken token)
         {
-            IReadOnlyList<string> results = await _configurationStore.ListEnvironments(store, token);
+            IReadOnlyList<string> results = await _configurationStore.Environment.List(store, token);
 
             _logger.LogInformation($"{nameof(List)}: Listing environments");
 
@@ -31,13 +31,13 @@ namespace SpinAdmin.Activities
                 .ForEach(x => _logger.LogInformation($"{nameof(List)}: Environment={x}"));
         }
 
-        public async Task Delete(string store, string environment, CancellationToken token) => await _configurationStore.DeleteEnvironment(store, environment, token);
+        public async Task Delete(string store, string environment, CancellationToken token) => await _configurationStore.Environment.Delete(store, environment, token);
 
         public async Task Backup(string store, string? file, CancellationToken token)
         {
             _logger.LogInformation($"{nameof(Backup)}: Backing up configuration store");
 
-            string backupFile = await _configurationStore.Backup(store, file, token);
+            string backupFile = await _configurationStore.Backup.Save(store, file, token);
             _logger.LogInformation($"{nameof(Backup)}: Configuration store has been backup to {backupFile}");
         }
 
@@ -45,7 +45,7 @@ namespace SpinAdmin.Activities
         {
             _logger.LogInformation($"{nameof(Restore)}: Restoring store");
 
-            await _configurationStore.RestoreBackup(store, backupFile, resetStore, token);
+            await _configurationStore.Backup.Restore(store, backupFile, resetStore, token);
             _logger.LogInformation($"{nameof(Restore)}: Configuration store has been backup to {backupFile}");
         }
 

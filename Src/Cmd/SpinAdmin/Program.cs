@@ -41,6 +41,7 @@ namespace SpinAdmin
                     container.GetRequiredService<ConfigurationCommand>(),
                     container.GetRequiredService<QueueCommand>(),
                     container.GetRequiredService<StorageCommand>(),
+                    container.GetRequiredService<SecretCommand>(),
                 };
 
                     return await rc.InvokeAsync(args);
@@ -68,10 +69,12 @@ namespace SpinAdmin
             service.AddSingleton<EnvironmentActivity>();
             service.AddSingleton<QueueActivity>();
             service.AddSingleton<StorageActivity>();
+            service.AddSingleton<SecretActivity>();
 
             service.AddSingleton<ConfigurationCommand>();
             service.AddSingleton<QueueCommand>();
             service.AddSingleton<StorageCommand>();
+            service.AddSingleton<SecretCommand>();
 
             return service.BuildServiceProvider();
         }
