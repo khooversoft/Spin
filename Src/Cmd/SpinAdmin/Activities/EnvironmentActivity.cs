@@ -48,12 +48,5 @@ namespace SpinAdmin.Activities
             await _configurationStore.Backup.Restore(store, backupFile, resetStore, token);
             _logger.LogInformation($"{nameof(Restore)}: Configuration store has been backup to {backupFile}");
         }
-
-        public Task Publish(string store, string environment, CancellationToken token)
-        {
-            _logger.LogInformation($"{nameof(Publish)}: Publishing configuration");
-
-            return Task.CompletedTask;
-        }
     }
 }

@@ -70,6 +70,7 @@ namespace SpinAdmin
             service.AddSingleton<QueueActivity>();
             service.AddSingleton<StorageActivity>();
             service.AddSingleton<SecretActivity>();
+            service.AddSingleton<PublishActivity>();
 
             service.AddSingleton<ConfigurationCommand>();
             service.AddSingleton<QueueCommand>();

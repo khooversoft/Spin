@@ -8,14 +8,14 @@ namespace SpinAdmin.Commands
 {
     internal class ConfigurationCommand : Command
     {
-        public ConfigurationCommand(EnvironmentActivity environmentActivity)
+        public ConfigurationCommand(EnvironmentActivity environmentActivity, PublishActivity publishActivity)
             : base("config", "Configuration management")
         {
             AddCommand(List(environmentActivity));
             AddCommand(Delete(environmentActivity));
             AddCommand(Backup(environmentActivity));
             AddCommand(Restore(environmentActivity));
-            AddCommand(Publish(environmentActivity));
+            AddCommand(Publish(publishActivity));
         }
 
         static private Command List(EnvironmentActivity environmentActivity)
@@ -85,7 +85,6 @@ namespace SpinAdmin.Commands
 
             cmd.AddRequiredArguments("--store", "--backupFile");
 
-
             cmd.Handler = CommandHandler.Create(async (string store, string backupFile, bool resetStore, CancellationToken token) =>
             {
                 await environmentActivity.Restore(store, backupFile, resetStore, token);
@@ -95,7 +94,7 @@ namespace SpinAdmin.Commands
             return cmd;
         }
 
-        static private Command Publish(EnvironmentActivity environmentActivity)
+        static private Command Publish(PublishActivity publishActivity)
         {
             var cmd = new Command("publish", "Publish an environment")
             {
@@ -107,7 +106,7 @@ namespace SpinAdmin.Commands
 
             cmd.Handler = CommandHandler.Create(async (string store, string environment, CancellationToken token) =>
             {
-                await environmentActivity.Publish(store, environment, token);
+                await publishActivity.Publish(store, environment, token);
                 return 0;
             });
 
