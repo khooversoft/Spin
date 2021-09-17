@@ -6,7 +6,7 @@ namespace Spin.Common.Configuration
 {
     public record EnviromentConfigModel
     {
-        public IReadOnlyList<StorageModel>? Storages { get; init; }
+        public IReadOnlyList<StorageModel>? Storage { get; init; }
 
         public IReadOnlyList<QueueModel>? Queue { get; init; }
     }

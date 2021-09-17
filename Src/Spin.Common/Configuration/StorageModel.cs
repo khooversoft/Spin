@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Toolbox.Tools;
 
 namespace Spin.Common.Configuration
 {
@@ -24,17 +23,5 @@ namespace Spin.Common.Configuration
         public static bool operator ==(StorageModel? left, StorageModel? right) => EqualityComparer<StorageModel>.Default.Equals(left, right);
 
         public static bool operator !=(StorageModel? left, StorageModel? right) => !(left == right);
-    }
-
-
-    public static class StorageModelExtensions
-    {
-        public static void Verify(this StorageModel storageModel)
-        {
-            storageModel.VerifyNotNull(nameof(storageModel));
-
-            storageModel.AccountName.VerifyNotEmpty($"{nameof(storageModel.AccountName)} is required");
-            storageModel.ContainerName.VerifyNotEmpty($"{nameof(storageModel.ContainerName)} is required");
-        }
     }
 }

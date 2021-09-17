@@ -25,25 +25,32 @@ namespace Spin.Common.Configuration
     public class ConfigurationStore
     {
         private readonly ILogger<ConfigurationStore> _logger;
-        internal const string _extension = ".environment.json";
-        internal const string _secretExtension = ".secret.json";
+        internal const string _extension = "-Spin.environment.json";
+        internal const string _secretExtension = "-Spin.secret.json";
 
 
         public ConfigurationStore(ILogger<ConfigurationStore> logger)
         {
             _logger = logger.VerifyNotNull(nameof(logger));
-
-            Environment = new ConfigurationFile(logger);
-            Backup = new ConfigurationBackup(logger);
-            Secret = new ConfigurationSecret(logger);
         }
 
-        public ConfigurationFile Environment { get; private set; } 
+        public ConfigurationEnvironment Environment(string configStorePath, string environmentName) => new(configStorePath, environmentName, _logger);
 
-        public ConfigurationBackup Backup { get; private set; }
+        public ConfigurationBackup Backup(string configStorePath) => new(configStorePath, _logger);
 
-        public ConfigurationSecret Secret { get; private set; }
+        public Task<IReadOnlyList<string>> List(string configStorePath, CancellationToken token)
+        {
+            configStorePath.VerifyNotEmpty(nameof(configStorePath));
 
+            ConfigurationStore.VerifyConfigStorePath(configStorePath);
+
+            string[] files = Directory
+                .GetFiles(configStorePath, "*" + ConfigurationStore._extension, SearchOption.TopDirectoryOnly)
+                .Select(x => x.Replace(ConfigurationStore._extension, string.Empty))
+                .ToArray();
+
+            return Task.FromResult<IReadOnlyList<string>>(files);
+        }
 
         static internal string GetConfigurationFile(string configStorePath, string environmentName)
         {

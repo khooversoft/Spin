@@ -20,31 +20,6 @@ namespace Toolbox.Extensions
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="tasks">task to join</param>
-        /// <returns>task</returns>
-        public static Task WhenAll(this IEnumerable<Task> tasks)
-        {
-            tasks.VerifyNotNull(nameof(tasks));
-
-            return Task.WhenAll(tasks);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T">type</typeparam>
-        /// <param name="tasks">task to join</param>
-        /// <returns>array of types</returns>
-        public static Task<T[]> WhenAll<T>(this IEnumerable<Task<T>> tasks)
-        {
-            tasks.VerifyNotNull(nameof(tasks));
-
-            return Task.WhenAll(tasks);
-        }
-
-        /// <summary>
         /// Execute 'action' on each item
         /// </summary>
         /// <typeparam name="T">type</typeparam>
@@ -96,5 +71,13 @@ namespace Toolbox.Extensions
                 await action(item);
             }
         }
+
+        /// <summary>
+        /// Covert enumerable to stack, null will return empty stack
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="subjects"></param>
+        /// <returns>Stack<typeparamref name="T"/></returns>
+        public static Stack<T> ToStack<T>(this IEnumerable<T>? subjects) => new Stack<T>(subjects ?? Array.Empty<T>());
     }
 }

@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Spin.Common\Spin.Common.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

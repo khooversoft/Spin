@@ -12,60 +12,56 @@ namespace Spin.Common.Configuration
 {
     public class ConfigurationFile
     {
+        private readonly string _configStorePath;
+        private readonly string _environmentName;
         private readonly ILogger _logger;
 
-        internal ConfigurationFile(ILogger logger)
+        internal ConfigurationFile(string configStorePath, string environmentName, ILogger logger)
         {
+            configStorePath.VerifyNotEmpty(nameof(configStorePath));
+            environmentName.VerifyNotEmpty(nameof(environmentName));
+            logger.VerifyNotNull(nameof(logger));
+
+            _configStorePath = configStorePath;
+            _environmentName = environmentName;
             _logger = logger;
         }
 
-        public async Task<EnviromentConfigModel?> Get(string configStorePath, string environmentName, CancellationToken token)
+        public async Task<EnviromentConfigModel?> Get(CancellationToken token)
         {
-            string fullPath = ConfigurationStore.GetConfigurationFile(configStorePath, environmentName);
+            string fullPath = ConfigurationStore.GetConfigurationFile(_configStorePath, _environmentName);
 
             if (!File.Exists(fullPath))
             {
-                _logger.LogTrace($"{nameof(Get)}: environment configuration for {environmentName} from {configStorePath} does not exist");
+                _logger.LogTrace($"{nameof(Get)}: environment configuration for {_environmentName} from {_configStorePath} does not exist");
                 return null;
             }
 
             string json = await File.ReadAllTextAsync(fullPath, token);
-            _logger.LogTrace($"{nameof(Get)}: environment configuration for {environmentName} from {configStorePath}");
+            _logger.LogTrace($"{nameof(Get)}: environment configuration for {_environmentName} from {_configStorePath}");
 
             return Json.Default.Deserialize<EnviromentConfigModel>(json);
         }
 
-        public async Task Set(string configStorePath, string environmentName, EnviromentConfigModel model, CancellationToken token)
+        public async Task Set(EnviromentConfigModel model, CancellationToken token)
         {
             model.Verify();
-            string fullPath = ConfigurationStore.GetConfigurationFile(configStorePath, environmentName);
+            string fullPath = ConfigurationStore.GetConfigurationFile(_configStorePath, _environmentName);
 
             string json = Json.Default.SerializeFormat(model);
             await File.WriteAllTextAsync(fullPath, json, token);
 
-            _logger.LogTrace($"{nameof(Set)}: environment configuration for {environmentName} to {configStorePath}");
+            _logger.LogTrace($"{nameof(Set)}: environment configuration for {_environmentName} to {_configStorePath}");
         }
 
-        public Task Delete(string configStorePath, string environmentName, CancellationToken token)
+        public Task Delete(CancellationToken token)
         {
-            string fullPath = ConfigurationStore.GetConfigurationFile(configStorePath, environmentName);
+            string fullPath = ConfigurationStore.GetConfigurationFile(_configStorePath, _environmentName);
 
             if (File.Exists(fullPath)) File.Delete(fullPath);
-            _logger.LogTrace($"{nameof(Delete)}: environment configuration for {environmentName} to {configStorePath}");
+            _logger.LogTrace($"{nameof(Delete)}: environment configuration for {_environmentName} to {_configStorePath}");
 
             return Task.CompletedTask;
-        }
-
-        public Task<IReadOnlyList<string>> List(string configStorePath, CancellationToken token)
-        {
-            ConfigurationStore.VerifyConfigStorePath(configStorePath);
-
-            string[] files = Directory
-                .GetFiles(configStorePath, "*" + ConfigurationStore._extension, SearchOption.TopDirectoryOnly)
-                .Select(x => x.Replace(ConfigurationStore._extension, string.Empty))
-                .ToArray();
-
-            return Task.FromResult<IReadOnlyList<string>>(files);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -7,12 +8,16 @@ namespace Spin.Common.Configuration
 {
     public static class EnviromentConfigModelExtensions
     {
+        public static IEnumerable<StorageModel> GetStorage(this EnviromentConfigModel model) => model.Storage ?? Array.Empty<StorageModel>();
+
+        public static IEnumerable<QueueModel> GetQueue(this EnviromentConfigModel model) => model.Queue?? Array.Empty<QueueModel>();
+
         public static void Verify(this EnviromentConfigModel model)
         {
             model.VerifyNotNull(nameof(model));
 
-            (model.Storages ?? Array.Empty<StorageModel>()).ForEach(x => x.Verify());
-            (model.Queue ?? Array.Empty<QueueModel>()).ForEach(x => x.Verify());
+            model.GetStorage().ForEach(x => x.Verify());
+            model.GetQueue().ForEach(x => x.Verify());
         }
 
         public static EnviromentConfigModel AddWith(this EnviromentConfigModel model, StorageModel storageModel)
@@ -22,7 +27,7 @@ namespace Spin.Common.Configuration
 
             return model with
             {
-                Storages = (model.Storages ?? Array.Empty<StorageModel>())
+                Storage = model.GetStorage()
                     .Concat(new[] { storageModel })
                     .Distinct(EqualityComparerFactory.Create<StorageModel>((y, x) => x == y))
                     .ToArray(),
@@ -36,7 +41,7 @@ namespace Spin.Common.Configuration
 
             return model with
             {
-                Storages = (model.Storages ?? Array.Empty<StorageModel>())
+                Storage = model.GetStorage()
                     .Where(x => x != queueModel)
                     .ToArray(),
             };
@@ -49,7 +54,7 @@ namespace Spin.Common.Configuration
 
             return model with
             {
-                Queue = (model.Queue ?? Array.Empty<QueueModel>())
+                Queue = model.GetQueue()
                     .Concat(new[] { queueModel })
                     .Distinct(EqualityComparerFactory.Create<QueueModel>((y, x) => x == y))
                     .ToArray(),
@@ -63,7 +68,7 @@ namespace Spin.Common.Configuration
 
             return model with
             {
-                Queue = (model.Queue ?? Array.Empty<QueueModel>())
+                Queue = model.GetQueue()
                     .Where(x => x != queueModel)
                     .ToArray(),
             };

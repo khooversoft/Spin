@@ -14,22 +14,27 @@ namespace Spin.Common.Configuration
 {
     public class ConfigurationBackup
     {
+        private readonly string _configStorePath;
         private readonly ILogger _logger;
 
-        public ConfigurationBackup(ILogger logger)
+        public ConfigurationBackup(string configStorePath, ILogger logger)
         {
+            configStorePath.VerifyNotEmpty(nameof(configStorePath));
+            logger.VerifyNotNull(nameof(logger));
+
+            _configStorePath = configStorePath;
             _logger = logger;
         }
 
-        public Task<string> Save(string configStorePath, string? file, CancellationToken token)
+        public Task<string> Save(string? file, CancellationToken token)
         {
-            ConfigurationStore.VerifyConfigStorePath(configStorePath);
+            ConfigurationStore.VerifyConfigStorePath(_configStorePath);
 
-            string backupFile = file.ToNullIfEmpty() ?? Path.Combine(configStorePath, ".backup", $"configStore.{Guid.NewGuid()}.bak.zip");
+            string backupFile = file.ToNullIfEmpty() ?? Path.Combine(_configStorePath, ".backup", $"configStore.{Guid.NewGuid()}.bak.zip");
             Directory.CreateDirectory(Path.GetDirectoryName(backupFile).VerifyNotEmpty(nameof(backupFile)));
 
             CopyTo[] files = Directory
-                .GetFiles(configStorePath, "*" + ConfigurationStore._extension, SearchOption.TopDirectoryOnly)
+                .GetFiles(_configStorePath, "*" + ConfigurationStore._extension, SearchOption.TopDirectoryOnly)
                 .Select(x => new CopyTo { Source = x, Destination = Path.GetFileName(x) })
                 .ToArray();
 
@@ -43,19 +48,19 @@ namespace Spin.Common.Configuration
             return Task.FromResult(backupFile);
         }
 
-        public Task Restore(string configStorePath, string backupFile, bool resetStore, CancellationToken token)
+        public Task Restore(string backupFile, bool resetStore, CancellationToken token)
         {
-            ConfigurationStore.VerifyConfigStorePath(configStorePath);
+            ConfigurationStore.VerifyConfigStorePath(_configStorePath);
             backupFile.VerifyNotEmpty(nameof(backupFile));
 
             if (resetStore)
             {
-                _logger.LogTrace($"{nameof(Restore)}: reseting store at {configStorePath}");
-                Directory.Delete(configStorePath, true);
+                _logger.LogTrace($"{nameof(Restore)}: reseting store at {_configStorePath}");
+                Directory.Delete(_configStorePath, true);
             }
 
             new ZipFile(backupFile)
-                .ExpandFiles(configStorePath, token, x => _logger.LogTrace($"{nameof(Restore)}: Restoring file {x}"));
+                .ExpandFiles(_configStorePath, token, x => _logger.LogTrace($"{nameof(Restore)}: Restoring file {x}"));
 
             _logger.LogTrace($"{nameof(Restore)}: environment configuration restored from {backupFile}");
             return Task.CompletedTask;

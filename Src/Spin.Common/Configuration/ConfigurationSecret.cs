@@ -11,16 +11,36 @@ namespace Spin.Common.Configuration
 {
     public class ConfigurationSecret
     {
+        private readonly string _configStorePath;
+        private readonly string _environmentName;
         private readonly ILogger _logger;
 
-        public ConfigurationSecret(ILogger logger)
+        internal ConfigurationSecret(string configStorePath, string environmentName, ILogger logger)
         {
+            configStorePath.VerifyNotEmpty(nameof(configStorePath));
+            environmentName.VerifyNotEmpty(nameof(environmentName));
+            logger.VerifyNotNull(nameof(logger));
+
+            _configStorePath = configStorePath;
+            _environmentName = environmentName;
             _logger = logger;
         }
 
-        public async Task Set(string configStorePath, string environmentName, string key, string secret, CancellationToken token)
+        public async Task<string?> Get(string key, CancellationToken token)
         {
-            string fullPath = ConfigurationStore.GetSecretFile(configStorePath, environmentName);
+            string fullPath = ConfigurationStore.GetSecretFile(_configStorePath, _environmentName);
+            key.VerifyNotEmpty(nameof(key));
+
+            SecretModel model = File.Exists(fullPath)
+                ? Json.Default.Deserialize<SecretModel>(await File.ReadAllTextAsync(fullPath, token))!
+                : new SecretModel();
+
+            return model.Get(key);
+        }
+
+        public async Task Set(string key, string secret, CancellationToken token)
+        {
+            string fullPath = ConfigurationStore.GetSecretFile(_configStorePath, _environmentName);
             key.VerifyNotEmpty(nameof(key));
             secret.VerifyNotEmpty(nameof(secret));
 
@@ -28,49 +48,38 @@ namespace Spin.Common.Configuration
                 ? Json.Default.Deserialize<SecretModel>(await File.ReadAllTextAsync(fullPath, token))!
                 : new SecretModel();
 
-            model = model with
-            {
-                Data = (((IEnumerable<KeyValuePair<string, string>>)model.Data) ?? Array.Empty<KeyValuePair<string, string>>())
-                    .Where(x => !x.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
-                    .Append(new KeyValuePair<string, string>(key, secret))
-                    .ToDictionary(x => x.Key, x => x.Value)
-            };
+            model = model.SetWith(key, secret);
 
             await File.WriteAllTextAsync(fullPath, Json.Default.SerializeFormat(model), token);
 
             _logger.LogTrace($"{nameof(Set)}: Writing secret for {key}");
         }
 
-        public async Task Delete(string configStorePath, string environmentName, string key, CancellationToken token)
+        public async Task Delete(string key, CancellationToken token)
         {
-            string fullPath = ConfigurationStore.GetSecretFile(configStorePath, environmentName);
+            string fullPath = ConfigurationStore.GetSecretFile(_configStorePath, _environmentName);
             key.VerifyNotEmpty(nameof(key));
 
-            SecretModel model = File.Exists(fullPath)
-                ? Json.Default.Deserialize<SecretModel>(await File.ReadAllTextAsync(fullPath, token))!
-                : new SecretModel();
+            File.Exists(fullPath).VerifyAssert(x => true, $"Secret file {fullPath} does not exist", _logger);
 
-            model = model with
-            {
-                Data = (((IEnumerable<KeyValuePair<string, string>>)model.Data) ?? Array.Empty<KeyValuePair<string, string>>())
-                    .Where(x => !x.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
-                    .ToDictionary(x => x.Key, x => x.Value)
-            };
+            SecretModel model = Json.Default.Deserialize<SecretModel>(await File.ReadAllTextAsync(fullPath, token))!;
+
+            model = model.DeleteWith(key);
 
             await File.WriteAllTextAsync(fullPath, Json.Default.Serialize(model), token);
 
             _logger.LogTrace($"{nameof(Delete)}: Delete secret for {key}");
         }
 
-        public async Task<IReadOnlyList<KeyValuePair<string, string>>> List(string configStorePath, string environmentName, CancellationToken token)
+        public async Task<IReadOnlyList<KeyValuePair<string, string>>> List(CancellationToken token)
         {
-            string fullPath = ConfigurationStore.GetSecretFile(configStorePath, environmentName);
+            string fullPath = ConfigurationStore.GetSecretFile(_configStorePath, _environmentName);
 
-            SecretModel model = File.Exists(fullPath)
-                ? Json.Default.Deserialize<SecretModel>(await File.ReadAllTextAsync(fullPath, token))!
-                : new SecretModel();
+            File.Exists(fullPath).VerifyAssert(x => true, $"Secret file {fullPath} does not exist", _logger);
 
-            return (((IEnumerable<KeyValuePair<string, string>>)model.Data) ?? Array.Empty<KeyValuePair<string, string>>())
+            SecretModel model = Json.Default.Deserialize<SecretModel>(await File.ReadAllTextAsync(fullPath, token))!;
+
+            return model.GetData()
                 .ToArray();
         }
     }

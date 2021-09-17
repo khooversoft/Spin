@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Toolbox.Tools;
 
 namespace Spin.Common.Configuration
 {
@@ -21,17 +20,5 @@ namespace Spin.Common.Configuration
         public static bool operator ==(QueueModel? left, QueueModel? right) => EqualityComparer<QueueModel>.Default.Equals(left, right);
 
         public static bool operator !=(QueueModel? left, QueueModel? right) => !(left == right);
-    }
-
-
-    public static class QueueModelExtensions
-    {
-        public static void Verify(this QueueModel queueModel)
-        {
-            queueModel.VerifyNotNull(nameof(queueModel));
-
-            queueModel.Namespace.VerifyNotEmpty($"{nameof(queueModel.Namespace)} is required");
-            queueModel.Name.VerifyNotEmpty($"{nameof(queueModel.Name)} is required");
-        }
     }
 }

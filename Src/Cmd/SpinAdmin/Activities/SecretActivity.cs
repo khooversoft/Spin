@@ -27,14 +27,20 @@ namespace SpinAdmin.Activities
             key.VerifyNotEmpty(nameof(key));
             secret.VerifyNotEmpty(nameof(secret));
 
-            await _configurationStore.Secret.Set(store, environment, key, secret, token);
+            await _configurationStore
+                .Environment(store, environment)
+                .Secret
+                .Set(key, secret, token);
         }
 
         public async Task Delete(string store, string environment, string key, CancellationToken token)
         {
             key.VerifyNotEmpty(nameof(key));
 
-            await _configurationStore.Secret.Delete(store, environment, key, token);
+            await _configurationStore
+                .Environment(store, environment)
+                .Secret
+                .Delete(key, token);
         }
 
         public async Task List(string store, string environment, CancellationToken token)
@@ -42,7 +48,10 @@ namespace SpinAdmin.Activities
             store.VerifyNotEmpty(nameof(store));
             environment.VerifyNotEmpty(nameof(environment));
 
-            IReadOnlyList<KeyValuePair<string, string>> secrets = await _configurationStore.Secret.List(store, environment, token);
+            IReadOnlyList<KeyValuePair<string, string>> secrets = await _configurationStore
+                .Environment(store, environment)
+                .Secret
+                .List(token);
 
             var list = new[]
             {

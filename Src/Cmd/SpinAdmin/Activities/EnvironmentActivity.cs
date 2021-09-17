@@ -23,21 +23,31 @@ namespace SpinAdmin.Activities
 
         public async Task List(string store, CancellationToken token)
         {
-            IReadOnlyList<string> results = await _configurationStore.Environment.List(store, token);
+            IReadOnlyList<string> results = await _configurationStore.List(store, token);
 
-            _logger.LogInformation($"{nameof(List)}: Listing environments");
+            var list = new[]
+            {
+                $"{nameof(List)}: Listing environments",
+                "",
+            }
+            .Concat(results.Select(y => $"Environment={y}"));
 
-            results
-                .ForEach(x => _logger.LogInformation($"{nameof(List)}: Environment={x}"));
+            _logger.LogInformation(list.Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine));
         }
 
-        public async Task Delete(string store, string environment, CancellationToken token) => await _configurationStore.Environment.Delete(store, environment, token);
+        public async Task Delete(string store, string environment, CancellationToken token) => await _configurationStore
+            .Environment(store, environment)
+            .File
+            .Delete(token);
 
         public async Task Backup(string store, string? file, CancellationToken token)
         {
             _logger.LogInformation($"{nameof(Backup)}: Backing up configuration store");
 
-            string backupFile = await _configurationStore.Backup.Save(store, file, token);
+            string backupFile = await _configurationStore
+                .Backup(store)
+                .Save(file, token);
+
             _logger.LogInformation($"{nameof(Backup)}: Configuration store has been backup to {backupFile}");
         }
 
@@ -45,7 +55,10 @@ namespace SpinAdmin.Activities
         {
             _logger.LogInformation($"{nameof(Restore)}: Restoring store");
 
-            await _configurationStore.Backup.Restore(store, backupFile, resetStore, token);
+            await _configurationStore
+                .Backup(store)
+                .Restore(backupFile, resetStore, token);
+
             _logger.LogInformation($"{nameof(Restore)}: Configuration store has been backup to {backupFile}");
         }
     }
