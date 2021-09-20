@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Spin.Common.Configuration.Model;
 using Toolbox.Tools;
 
 namespace Spin.Common.Configuration

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Configuration;
+using Spin.Common.Configuration.Model;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -22,17 +23,16 @@ namespace SpinAdmin.Activities
             _logger = logger;
         }
 
-        public async Task Set(string store, string environment, string nameSpace, string name, CancellationToken token)
+        public async Task Set(string store, string environment, QueueModel queueModel, CancellationToken token)
         {
-            nameSpace.VerifyNotEmpty(nameof(nameSpace));
-            name.VerifyNotEmpty(nameof(name));
+            queueModel.Verify();
 
-            EnviromentConfigModel model = await _configurationStore
+            EnvironmentModel model = await _configurationStore
                 .Environment(store, environment)
                 .File
-                .Get(token) ?? new EnviromentConfigModel();
+                .Get(token) ?? new EnvironmentModel();
 
-            model = model.AddWith(new QueueModel { Namespace = nameSpace, Name = name });
+            model = model.AddWith(queueModel);
 
             await _configurationStore
                 .Environment(store, environment)
@@ -40,17 +40,16 @@ namespace SpinAdmin.Activities
                 .Set(model, token);
         }
 
-        public async Task Delete(string store, string environment, string nameSpace, string name, CancellationToken token)
+        public async Task Delete(string store, string environment, string channel, CancellationToken token)
         {
-            nameSpace.VerifyNotEmpty(nameof(nameSpace));
-            name.VerifyNotEmpty(nameof(name));
+            channel.VerifyNotEmpty(nameof(channel));
 
-            EnviromentConfigModel model = await _configurationStore
+            EnvironmentModel model = await _configurationStore
                 .Environment(store, environment)
                 .File
-                .Get(token) ?? new EnviromentConfigModel();
+                .Get(token) ?? new EnvironmentModel();
 
-            model = model.RemoveWith(new QueueModel { Namespace = nameSpace, Name = name });
+            model = model.RemoveWith(channel);
 
             await _configurationStore
                 .Environment(store, environment)
@@ -63,10 +62,10 @@ namespace SpinAdmin.Activities
             store.VerifyNotEmpty(nameof(store));
             environment.VerifyNotEmpty(nameof(environment));
 
-            EnviromentConfigModel model = await _configurationStore
+            EnvironmentModel model = await _configurationStore
                 .Environment(store, environment)
                 .File
-                .Get(token) ?? new EnviromentConfigModel();
+                .Get(token) ?? new EnvironmentModel();
 
             var list = new[]
             {

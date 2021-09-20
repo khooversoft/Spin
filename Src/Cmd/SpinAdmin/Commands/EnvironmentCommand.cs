@@ -6,15 +6,14 @@ using SpinAdmin.Application;
 
 namespace SpinAdmin.Commands
 {
-    internal class ConfigurationCommand : Command
+    internal class EnvironmentCommand : Command
     {
-        public ConfigurationCommand(EnvironmentActivity environmentActivity, PublishActivity publishActivity)
-            : base("config", "Configuration management")
+        public EnvironmentCommand(EnvironmentActivity environmentActivity, PublishActivity publishActivity)
+            : base("environment", "Environment management")
         {
             AddCommand(List(environmentActivity));
+            AddCommand(Edit(environmentActivity));
             AddCommand(Delete(environmentActivity));
-            AddCommand(Backup(environmentActivity));
-            AddCommand(Restore(environmentActivity));
             AddCommand(Publish(publishActivity));
         }
 
@@ -36,6 +35,25 @@ namespace SpinAdmin.Commands
             return cmd;
         }
 
+        static private Command Edit(EnvironmentActivity environmentActivity)
+        {
+            var cmd = new Command("edit", "Edit an environment")
+            {
+                CommandHelper.StoreOption(),
+                CommandHelper.EnvironmentOption(),
+            };
+
+            cmd.AddRequiredArguments("--store", "--environment");
+
+            cmd.Handler = CommandHandler.Create(async (string store, string environment, CancellationToken token) =>
+            {
+                await environmentActivity.Edit(store, environment, token);
+                return 0;
+            });
+
+            return cmd;
+        }
+
         static private Command Delete(EnvironmentActivity environmentActivity)
         {
             var cmd = new Command("delete", "Delete an environment")
@@ -49,45 +67,6 @@ namespace SpinAdmin.Commands
             cmd.Handler = CommandHandler.Create(async (string store, string environment, CancellationToken token) =>
             {
                 await environmentActivity.Delete(store, environment, token);
-                return 0;
-            });
-
-            return cmd;
-        }
-
-        static private Command Backup(EnvironmentActivity environmentActivity)
-        {
-            var cmd = new Command("backup", "Backup configuration store")
-            {
-                CommandHelper.StoreOption(),
-                new Option<string>("--file", "Backup file to write to"),
-            };
-
-            cmd.AddRequiredArguments("--store");
-
-            cmd.Handler = CommandHandler.Create(async (string store, string file, CancellationToken token) =>
-            {
-                await environmentActivity.Backup(store, file, token);
-                return 0;
-            });
-
-            return cmd;
-        }
-
-        static private Command Restore(EnvironmentActivity environmentActivity)
-        {
-            var cmd = new Command("restore", "Restore configuration backup")
-            {
-                CommandHelper.StoreOption(),
-                new Option<string>("--backupFile", "Path to backup file to restore from"),
-                new Option<bool>("--resetStore", "Reset store (delete all before restore)"),
-            };
-
-            cmd.AddRequiredArguments("--store", "--backupFile");
-
-            cmd.Handler = CommandHandler.Create(async (string store, string backupFile, bool resetStore, CancellationToken token) =>
-            {
-                await environmentActivity.Restore(store, backupFile, resetStore, token);
                 return 0;
             });
 

@@ -16,13 +16,6 @@ namespace Toolbox.Azure.Queue
 
         public QueueOption? QueueOption { get; set; }
 
-        public QueueClientBuilder<T> SetGetId(Func<T, Guid?> subject) => this.Action(x => x.GetId = subject);
-
-        public QueueClientBuilder<T> SetAwaiterCollection(IAwaiterCollection<T> subject) => this.Action(x => x.AwaiterCollection = subject);
-
-        public QueueClientBuilder<T> SetLoggerFactory(ILoggerFactory subject) => this.Action(x => x.LoggerFactory = subject);
-
-        public QueueClientBuilder<T> SetQueueOption(QueueOption subject) => this.Action(x => x.QueueOption = subject);
 
         public QueueClient<T> Build()
         {

@@ -51,10 +51,11 @@ namespace MessageNet.sdk.Host
                 .VerifyAssert(x => x == true, x => $"Endpoint {x} is not registered");
 
             return _clients.GetOrAdd(endpointId, key => new MessageClientBuilder()
-                .SetLoggerFactory(_loggerFactory)
-                .SetQueueOption(messageNodeOption!.BusQueue)
-                .Build()
-                );
+                {
+                    LoggerFactory = _loggerFactory,
+                    QueueOption = messageNodeOption!.BusQueue
+                }.Build()
+            );
         }
 
         public void StartReceiver(string endpointId, Func<MessagePacket, Task> receiver)

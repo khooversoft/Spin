@@ -14,30 +14,8 @@ namespace SpinAdmin.Commands
         {
             storageActivity.VerifyNotNull(nameof(storageActivity));
 
-            AddCommand(Edit(storageActivity));
             AddCommand(Delete(storageActivity));
             AddCommand(List(storageActivity));
-        }
-
-        private Command Edit(StorageActivity storageActivity)
-        {
-            var cmd = new Command("set", "Set storage configuration")
-            {
-                CommandHelper.StoreOption(),
-                CommandHelper.EnvironmentOption(),
-                new Option<string>("--account-name", "Storage account name"),
-                new Option<string>("--container-name", "Storage container name"),
-            };
-
-            cmd.AddRequiredArguments("--store", "--environment", "--account-name", "--container-name");
-
-            cmd.Handler = CommandHandler.Create(async (string store, string environment, string accountName, string containerName, CancellationToken token) =>
-            {
-                await storageActivity.Set(store, environment, accountName, containerName, token);
-                return 0;
-            });
-
-            return cmd;
         }
 
         private Command Delete(StorageActivity storageActivity)
@@ -46,15 +24,14 @@ namespace SpinAdmin.Commands
             {
                 CommandHelper.StoreOption(),
                 CommandHelper.EnvironmentOption(),
-                new Option<string>("--account-name", "Storage account name"),
-                new Option<string>("--container-name", "Storage container name"),
+                new Option<string>("--channel", "Name of channel"),
             };
 
-            cmd.AddRequiredArguments("--store", "--environment", "--account-name", "--container-name");
+            cmd.AddRequiredArguments("--store", "--environment", "--channel");
 
-            cmd.Handler = CommandHandler.Create(async (string store, string environment, string accountName, string containerName, CancellationToken token) =>
+            cmd.Handler = CommandHandler.Create(async (string store, string environment, string channel, CancellationToken token) =>
             {
-                await storageActivity.Delete(store, environment, accountName, containerName, token);
+                await storageActivity.Delete(store, environment, channel, token);
                 return 0;
             });
 

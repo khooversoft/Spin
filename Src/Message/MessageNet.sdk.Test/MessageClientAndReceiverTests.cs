@@ -44,9 +44,10 @@ namespace MessageNet.sdk.Test
             MessageNodeOption nodeOption = option.Nodes.First(x => (EndpointId)x.EndpointId == queueId) with { AutoComplete = true };
 
             QueueClient<MessagePacket> queueClient = new MessageClientBuilder()
-                .SetQueueOption(nodeOption.BusQueue)
-                .SetLoggerFactory(loggerFactory)
-                .Build();
+            {
+                QueueOption = nodeOption.BusQueue,
+                LoggerFactory = loggerFactory
+            }.Build();
 
             var tcs = new TaskCompletionSource();
 
@@ -104,9 +105,10 @@ namespace MessageNet.sdk.Test
             MessageNodeOption nodeOption = option.Nodes.First(x => (EndpointId)x.EndpointId == queueId) with { AutoComplete = true };
 
             QueueClient<MessagePacket> queueClient = new MessageClientBuilder()
-                .SetQueueOption(nodeOption.BusQueue)
-                .SetLoggerFactory(loggerFactory)
-                .Build();
+            {
+                QueueOption = nodeOption.BusQueue,
+                LoggerFactory = loggerFactory
+            }.Build();
 
             var tcs = new TaskCompletionSource();
 

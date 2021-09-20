@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Toolbox.Extensions;
+using Toolbox.Model;
 using Toolbox.Tools;
 using Toolbox.Tools.Property;
 
@@ -59,17 +61,20 @@ namespace Toolbox.Configuration
             return configurationBuilder;
         }
 
-        public static IConfigurationBuilder AddJsonPath(this IConfigurationBuilder configurationBuilder, string path, bool optional = false)
+        public static IConfigurationBuilder AddJsonFile(this IConfigurationBuilder configurationBuilder, ResourceId resourceId, bool optional = false)
         {
             configurationBuilder.VerifyNotNull(nameof(configurationBuilder));
-            path.VerifyNotEmpty(nameof(path));
+            resourceId.VerifyNotNull(nameof(resourceId));
 
             IPropertyResolver resolver = configurationBuilder
                 .Build()
                 .BuildResolver();
 
-            string jsonFile = resolver.Resolve(path);
-            configurationBuilder.AddJsonFile(jsonFile, optional);
+            resourceId
+                .VerifyAssert(x => new[] { "file"/*, "resource"*/ }.Contains(x.Type), x => $"Unsupported resource type {x.Type}");
+
+            ConfigurationTools.GetJsonFiles(resourceId.ToPath(), resolver)
+                .ForEach(x => configurationBuilder.AddJsonFile(x, optional));
 
             return configurationBuilder;
         }

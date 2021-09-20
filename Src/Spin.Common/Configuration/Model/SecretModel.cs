@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Spin.Common.Configuration
+namespace Spin.Common.Configuration.Model
 {
     public record SecretModel
     {

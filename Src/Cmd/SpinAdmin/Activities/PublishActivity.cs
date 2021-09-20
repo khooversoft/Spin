@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Configuration;
+using Spin.Common.Configuration.Model;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Azure.Queue;
@@ -36,7 +37,7 @@ namespace SpinAdmin.Activities
 
             ConfigurationEnvironment configurationEnvironment = _configurationStore.Environment(store, environment);
 
-            EnviromentConfigModel? model = await configurationEnvironment.File.Get(token);
+            EnvironmentModel? model = await configurationEnvironment.File.Get(token);
             if (model == null)
             {
                 _logger.LogError($"{nameof(Publish)}: No configuration file found");
@@ -47,7 +48,7 @@ namespace SpinAdmin.Activities
             await SetQueue(configurationEnvironment, model, token);
         }
 
-        private async Task SetStorage(ConfigurationEnvironment configurationEnvironment, EnviromentConfigModel model, CancellationToken token)
+        private async Task SetStorage(ConfigurationEnvironment configurationEnvironment, EnvironmentModel model, CancellationToken token)
         {
             _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
 
@@ -74,16 +75,16 @@ namespace SpinAdmin.Activities
             }
         }
 
-        private async Task SetQueue(ConfigurationEnvironment configurationEnvironment, EnviromentConfigModel model, CancellationToken token)
+        private async Task SetQueue(ConfigurationEnvironment configurationEnvironment, EnvironmentModel model, CancellationToken token)
         {
             _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
 
             foreach (QueueModel queue in model.GetQueue())
             {
-                string? keySpec = await configurationEnvironment.Secret.Get(queue.Namespace, token);
+                string? keySpec = await configurationEnvironment.Secret.Get(queue.Channel, token);
                 if (keySpec == null)
                 {
-                    _logger.LogError($"{nameof(Publish)}: No account key found for {queue.Namespace} in secret");
+                    _logger.LogError($"{nameof(Publish)}: No account key found for {queue.Channel} in secret");
                     return;
                 }
 
@@ -98,8 +99,8 @@ namespace SpinAdmin.Activities
 
                 QueueOption option = new()
                 {
-                    Namespace = queue.Namespace,
-                    QueueName = queue.Name,
+                    Namespace = queue.ServiceBus.Namespace,
+                    QueueName = queue.ServiceBus.Name,
                     KeyName = sharedAccessKeyName!,
                     AccessKey = sharedAccessKey!,
                 };
@@ -109,12 +110,12 @@ namespace SpinAdmin.Activities
 
                 var defintion = new QueueDefinition()
                 {
-                    QueueName = queue.Name
+                    QueueName = queue.ServiceBus.Name,
                 };
 
                 await admin.CreateIfNotExist(defintion, token);
 
-                _logger.LogInformation($"{nameof(SetQueue)}: Set queue {queue.Name} on Service Bus namespace {queue.Namespace}");
+                _logger.LogInformation($"{nameof(SetQueue)}: Set {queue.Channel} on queue {queue.ServiceBus.Name} on Service Bus namespace {queue.ServiceBus.Namespace}");
             }
         }
     }

@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Spin.Common.Configuration.Model;
+using Toolbox.Configuration;
 using Toolbox.Tools;
+using Toolbox.Tools.Property;
 
 namespace Spin.Common.Configuration
 {
@@ -27,7 +27,15 @@ namespace Spin.Common.Configuration
             _logger = logger;
         }
 
-        public async Task<EnviromentConfigModel?> Get(CancellationToken token)
+        public string GetConfigurationFile() => ConfigurationStore.GetConfigurationFile(_configStorePath, _environmentName);
+
+        public IReadOnlyList<string> GetConfigurationFiles(IPropertyResolver resolver)
+        {
+            string configFile = ConfigurationStore.GetConfigurationFile(_configStorePath, _environmentName);
+            return ConfigurationTools.GetJsonFiles(configFile, resolver);
+        }
+
+        public async Task<EnvironmentModel?> Get(CancellationToken token)
         {
             string fullPath = ConfigurationStore.GetConfigurationFile(_configStorePath, _environmentName);
 
@@ -40,10 +48,10 @@ namespace Spin.Common.Configuration
             string json = await File.ReadAllTextAsync(fullPath, token);
             _logger.LogTrace($"{nameof(Get)}: environment configuration for {_environmentName} from {_configStorePath}");
 
-            return Json.Default.Deserialize<EnviromentConfigModel>(json);
+            return Json.Default.Deserialize<EnvironmentModel>(json);
         }
 
-        public async Task Set(EnviromentConfigModel model, CancellationToken token)
+        public async Task Set(EnvironmentModel model, CancellationToken token)
         {
             model.Verify();
             string fullPath = ConfigurationStore.GetConfigurationFile(_configStorePath, _environmentName);

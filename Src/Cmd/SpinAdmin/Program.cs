@@ -38,7 +38,7 @@ namespace SpinAdmin
                 {
                     var rc = new RootCommand()
                 {
-                    container.GetRequiredService<ConfigurationCommand>(),
+                    container.GetRequiredService<EnvironmentCommand>(),
                     container.GetRequiredService<QueueCommand>(),
                     container.GetRequiredService<StorageCommand>(),
                     container.GetRequiredService<SecretCommand>(),
@@ -66,13 +66,15 @@ namespace SpinAdmin
 
 
             service.AddSingleton<ConfigurationStore>();
+
+            service.AddSingleton<StoreActivity>();
             service.AddSingleton<EnvironmentActivity>();
             service.AddSingleton<QueueActivity>();
             service.AddSingleton<StorageActivity>();
             service.AddSingleton<SecretActivity>();
             service.AddSingleton<PublishActivity>();
 
-            service.AddSingleton<ConfigurationCommand>();
+            service.AddSingleton<EnvironmentCommand>();
             service.AddSingleton<QueueCommand>();
             service.AddSingleton<StorageCommand>();
             service.AddSingleton<SecretCommand>();

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Toolbox.Configuration;
+using Toolbox.Model;
 
 namespace Spin.Common.Configuration
 {
@@ -13,9 +14,7 @@ namespace Spin.Common.Configuration
         public static IConfigurationBuilder AddSpin(this IConfigurationBuilder configurationBuilder, string serviceName)
         {
             return configurationBuilder
-                .AddJsonPath("{ConfigStore}/{environment}-SpinResource.json")
-                .AddJsonPath($"{{ConfigStore}}/{{environment}}-{serviceName}.json")
-                .AddJsonPath($"{{ConfigStore}}/{{environment}}-{serviceName}.secret.json", optional:true);
+                .AddJsonFile(new ResourceId("file://{ConfigStore}/{environment}-SpinResource.json}"));
         }
     }
 }
