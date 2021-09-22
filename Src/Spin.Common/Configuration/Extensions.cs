@@ -14,7 +14,7 @@ namespace Spin.Common.Configuration
         public static IConfigurationBuilder AddSpin(this IConfigurationBuilder configurationBuilder, string serviceName)
         {
             return configurationBuilder
-                .AddJsonFile(new ResourceId("file://{ConfigStore}/{environment}-SpinResource.json}"));
+                .AddJsonFile("{ConfigStore}/{environment}-SpinResource.json}");
         }
     }
 }

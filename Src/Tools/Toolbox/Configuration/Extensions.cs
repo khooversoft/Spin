@@ -11,6 +11,12 @@ using Toolbox.Tools.Property;
 
 namespace Toolbox.Configuration
 {
+    public enum JsonFileOption
+    {
+        None = 0,
+        Enhance = 1
+    }
+
     public static class Extensions
     {
         public static IConfigurationBuilder AddPropertyResolver(this IConfigurationBuilder configurationBuilder, string secretId)
@@ -61,19 +67,22 @@ namespace Toolbox.Configuration
             return configurationBuilder;
         }
 
-        public static IConfigurationBuilder AddJsonFile(this IConfigurationBuilder configurationBuilder, ResourceId resourceId, bool optional = false)
+        public static IConfigurationBuilder AddJsonFile(this IConfigurationBuilder configurationBuilder, string file, JsonFileOption jsonFileOption,  bool optional = false)
         {
             configurationBuilder.VerifyNotNull(nameof(configurationBuilder));
-            resourceId.VerifyNotNull(nameof(resourceId));
+            file.VerifyNotEmpty(nameof(file));
+
+            if( jsonFileOption != JsonFileOption.Enhance)
+            {
+                configurationBuilder.AddJsonFile(file, optional);
+                return configurationBuilder;
+            }
 
             IPropertyResolver resolver = configurationBuilder
                 .Build()
                 .BuildResolver();
 
-            resourceId
-                .VerifyAssert(x => new[] { "file"/*, "resource"*/ }.Contains(x.Type), x => $"Unsupported resource type {x.Type}");
-
-            ConfigurationTools.GetJsonFiles(resourceId.ToPath(), resolver)
+            ConfigurationTools.GetJsonFiles(file, resolver)
                 .ForEach(x => configurationBuilder.AddJsonFile(x, optional));
 
             return configurationBuilder;

@@ -15,5 +15,7 @@ namespace Spin.Common.Configuration.Model
         public string ContainerName { get; init; } = null!;
 
         public string AccountKey { get; init; } = null!;
+
+        public string? PathRoot { get; init; }
     }
 }

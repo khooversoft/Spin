@@ -72,7 +72,7 @@ namespace SpinAdmin.Activities
                 "Listing storage configurations",
                 "",
             }
-            .Concat((model.Storage ?? Array.Empty<StorageModel>()).Select(x => x.ToString()));
+            .Concat((model.Storage ?? new List<StorageModel>()).Select(x => x.ToString()));
 
             _logger.LogInformation($"{nameof(List)}: {string.Join(Environment.NewLine, list)}");
         }

@@ -72,7 +72,7 @@ namespace SpinAdmin.Activities
                 "Listing queue configurations",
                 "",
             }
-            .Concat((model.Queue ?? Array.Empty<QueueModel>()).Select(x => x.ToString()));
+            .Concat((model.Queue ?? new List<QueueModel>()).Select(x => x.ToString()));
 
             _logger.LogInformation($"{nameof(List)}: {string.Join(Environment.NewLine, list)}");
         }

@@ -9,9 +9,9 @@ namespace Spin.Common.Configuration.Model
 {
     public static class EnviromentModelExtensions
     {
-        public static IEnumerable<StorageModel> GetStorage(this EnvironmentModel model) => model.Storage ?? Array.Empty<StorageModel>();
+        public static IEnumerable<StorageModel> GetStorage(this EnvironmentModel model) => model.Storage ?? new List<StorageModel>();
 
-        public static IEnumerable<QueueModel> GetQueue(this EnvironmentModel model) => model.Queue?? Array.Empty<QueueModel>();
+        public static IEnumerable<QueueModel> GetQueue(this EnvironmentModel model) => model.Queue ?? new List<QueueModel>();
 
         public static void Verify(this EnvironmentModel model)
         {
@@ -31,7 +31,7 @@ namespace Spin.Common.Configuration.Model
                 Storage = model.GetStorage()
                     .Concat(new[] { storageModel })
                     .Distinct(EqualityComparerFactory.Create<StorageModel>((y, x) => x?.Channel?.Equals(y?.Channel, StringComparison.OrdinalIgnoreCase) ?? false))
-                    .ToArray(),
+                    .ToList(),
             };
         }
 
@@ -44,7 +44,7 @@ namespace Spin.Common.Configuration.Model
             {
                 Storage = model.GetStorage()
                     .Where(x => x?.Channel?.Equals(queueModel?.Channel, StringComparison.OrdinalIgnoreCase) ?? false)
-                    .ToArray(),
+                    .ToList(),
             };
         }
 
@@ -58,7 +58,7 @@ namespace Spin.Common.Configuration.Model
                 Queue = model.GetQueue()
                     .Concat(new[] { queueModel })
                     .Distinct(EqualityComparerFactory.Create<QueueModel>((y, x) => x?.Channel?.Equals(y?.Channel, StringComparison.OrdinalIgnoreCase) ?? false))
-                    .ToArray(),
+                    .ToList(),
             };
         }
 
@@ -71,7 +71,7 @@ namespace Spin.Common.Configuration.Model
             {
                 Queue = model.GetQueue()
                     .Where(x => x?.Channel?.Equals(channel, StringComparison.OrdinalIgnoreCase) ?? false)
-                    .ToArray(),
+                    .ToList(),
             };
         }
     }

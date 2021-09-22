@@ -22,14 +22,27 @@ namespace Toolbox.Tools.Property
         {
             if (subject.IsEmpty()) return subject;
 
-            return _property
-                .Aggregate(subject, (acc, x) => acc.Replace($"{{{x.Key}}}", x.Value, StringComparison.OrdinalIgnoreCase));
-        }
+            var list = new List<KeyValuePair<string, string>>(_property);
+            var index = new Cursor<KeyValuePair<string, string>>(list);
+
+            while (HasProperty(subject))
+            {
+                if (!index.TryNextValue(out KeyValuePair<string, string> result))
+                {
+                    index.Reset();
+                    continue;
+                }
+
+                subject = subject.Replace($"{{{result.Key}}}", result.Value, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return subject;
+         }
 
         public bool HasProperty(string subject)
         {
             if (subject.IsEmpty()) return false;
-            return _property.Any(x => subject.IndexOf(x.Key, StringComparison.OrdinalIgnoreCase) >= 0);
+            return _property.Any(x => subject.IndexOf($"{{{x.Key}}}", StringComparison.OrdinalIgnoreCase) >= 0);
         }
     }
 }

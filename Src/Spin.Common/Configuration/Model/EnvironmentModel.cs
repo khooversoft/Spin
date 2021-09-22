@@ -8,8 +8,8 @@ namespace Spin.Common.Configuration.Model
 {
     public record EnvironmentModel
     {
-        public IReadOnlyList<StorageModel> Storage { get; init; } = Array.Empty<StorageModel>();
+        public List<StorageModel> Storage { get; init; } = new List<StorageModel>();
 
-        public IReadOnlyList<QueueModel> Queue { get; init; } = Array.Empty<QueueModel>();
+        public List<QueueModel> Queue { get; init; } = new List<QueueModel>();
     }
 }

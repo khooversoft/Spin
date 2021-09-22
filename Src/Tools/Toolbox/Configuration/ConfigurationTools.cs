@@ -35,16 +35,12 @@ namespace Toolbox.Configuration
                     .AsEnumerable()
                     .Where(x => x.Key.StartsWith("$include"))
                     .Select(x => resolver.Resolve(x.Value))
-                    .Select(x => Path.Combine(folder, GetPath(x)))
+                    .Select(x => Path.Combine(folder, x))
                     .Reverse()
                     .ForEach(x => stack.Push(x));
             }
 
             return list;
-
-            static string GetPath(string file) => new ResourceId(file)
-                .VerifyAssert(x => x.Type.Equals("file", System.StringComparison.OrdinalIgnoreCase), x => $"Include is not type {x.Type} is not 'file'")
-                .Func(x => x.ToPath());
         }
     }
 }

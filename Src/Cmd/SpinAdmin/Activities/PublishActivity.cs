@@ -4,13 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Configuration;
 using Spin.Common.Configuration.Model;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Azure.Queue;
+using Toolbox.Configuration;
 using Toolbox.Extensions;
+using Toolbox.Model;
 using Toolbox.Tools;
 
 namespace SpinAdmin.Activities
@@ -35,37 +38,44 @@ namespace SpinAdmin.Activities
         {
             _logger.LogInformation($"{nameof(Publish)}: Publishing configuration");
 
-            ConfigurationEnvironment configurationEnvironment = _configurationStore.Environment(store, environment);
+            string configurationFile = _configurationStore
+                .Environment(store, environment)
+                .File
+                .GetConfigurationFile();
 
-            EnvironmentModel? model = await configurationEnvironment.File.Get(token);
+            var dict = new Dictionary<string, string>()
+            {
+                ["environment"] = environment
+            };
+
+            EnvironmentModel model = new ConfigurationBuilder()
+                .AddInMemoryCollection(dict)
+                .AddJsonFile(configurationFile, JsonFileOption.Enhance)
+                .AddPropertyResolver()
+                .Build()
+                .Bind<EnvironmentModel>();
+
             if (model == null)
             {
                 _logger.LogError($"{nameof(Publish)}: No configuration file found");
                 return;
             }
 
-            await SetStorage(configurationEnvironment, model, token);
-            await SetQueue(configurationEnvironment, model, token);
+            await SetStorage(model, token);
+            await SetQueue(model, token);
         }
 
-        private async Task SetStorage(ConfigurationEnvironment configurationEnvironment, EnvironmentModel model, CancellationToken token)
+        private async Task SetStorage(EnvironmentModel model, CancellationToken token)
         {
             _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
 
             foreach (StorageModel storage in model.GetStorage())
             {
-                string? accountKey = await configurationEnvironment.Secret.Get(storage.AccountName, token);
-                if( accountKey == null)
-                {
-                    _logger.LogError($"{nameof(Publish)}: No account key found for {storage.AccountName} in secret");
-                    return;
-                }
-
                 DataLakeStoreOption option = new()
                 {
                     AccountName = storage.AccountName,
                     ContainerName = storage.ContainerName,
-                    AccountKey = accountKey
+                    AccountKey = storage.AccountKey,
                 };
 
                 IDataLakeFileSystem management = new DataLakeFileSystem(option, _loggerFactory.CreateLogger<DataLakeFileSystem>());
@@ -75,21 +85,15 @@ namespace SpinAdmin.Activities
             }
         }
 
-        private async Task SetQueue(ConfigurationEnvironment configurationEnvironment, EnvironmentModel model, CancellationToken token)
+        private async Task SetQueue(EnvironmentModel model, CancellationToken token)
         {
             _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
 
             foreach (QueueModel queue in model.GetQueue())
             {
-                string? keySpec = await configurationEnvironment.Secret.Get(queue.Channel, token);
-                if (keySpec == null)
-                {
-                    _logger.LogError($"{nameof(Publish)}: No account key found for {queue.Channel} in secret");
-                    return;
-                }
-
-
-                IReadOnlyDictionary<string, string> data = keySpec.ToDictionary();
+                IReadOnlyDictionary<string, string> data = queue.ServiceBus?.AuthManage
+                    .VerifyNotEmpty($"authManage is required")
+                    .ToDictionary()!;
                 
                 data.TryGetValue("SharedAccessKeyName", out string? sharedAccessKeyName)
                     .VerifyAssert(x => x == true, "SharedAccessKeyName not found in configuration", _logger);
@@ -99,7 +103,7 @@ namespace SpinAdmin.Activities
 
                 QueueOption option = new()
                 {
-                    Namespace = queue.ServiceBus.Namespace,
+                    Namespace = queue.ServiceBus!.Namespace,
                     QueueName = queue.ServiceBus.Name,
                     KeyName = sharedAccessKeyName!,
                     AccessKey = sharedAccessKey!,
