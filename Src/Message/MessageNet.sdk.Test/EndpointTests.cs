@@ -60,7 +60,7 @@ namespace MessageNet.sdk.Test
 
             id.Id.Should().Be(string.Empty);
             id.Namespace.Should().Be(string.Empty);
-            id.Node.Should().Be(string.Empty);
+            id.Channel.Should().Be(string.Empty);
             id.Endpoint.Should().Be(string.Empty);
         }
 
@@ -71,7 +71,7 @@ namespace MessageNet.sdk.Test
 
             id.Id.Should().Be("a/b");
             id.Namespace.Should().Be("a");
-            id.Node.Should().Be("b");
+            id.Channel.Should().Be("b");
             id.Endpoint.Should().Be(string.Empty);
         }
 
@@ -85,7 +85,7 @@ namespace MessageNet.sdk.Test
 
             id.Id.Should().Be("a/b");
             id.Namespace.Should().Be("a");
-            id.Node.Should().Be("b");
+            id.Channel.Should().Be("b");
             id.Endpoint.Should().Be(string.Empty);
         }
 
@@ -96,7 +96,7 @@ namespace MessageNet.sdk.Test
 
             id.Id.Should().Be("a/b/c");
             id.Namespace.Should().Be("a");
-            id.Node.Should().Be("b");
+            id.Channel.Should().Be("b");
             id.Endpoint.Should().Be("c");
         }
 

@@ -8,34 +8,37 @@ using Toolbox.Tools;
 namespace MessageNet.sdk.Protocol
 {
     /// <summary>
-    /// Endpoint ID is... {namespace}/{node}[/{endpoint}]
+    /// Endpoint ID is... {namespace}/{Channel}[/{endpoint}]
     ///
     /// </summary>
     public record EndpointId
     {
         private string _id = string.Empty!;
+        private string? _namespace;
+        private string? _channel;
+        private string? _endpoint;
 
         public EndpointId()
         {
         }
 
-        public EndpointId(string id) => Id = ToId(id);
+        public EndpointId(string id) => Id = id;
 
-        public EndpointId(string nameSpace, string node, string? endpoint)
-            : this(ToId(nameSpace, node, endpoint))
+        public EndpointId(string nameSpace, string channel, string? endpoint)
+            : this(ToId(nameSpace, channel, endpoint))
         {
         }
 
         [JsonIgnore]
-        public string? Endpoint => Id.Split('/').Skip(2).FirstOrDefault() ?? string.Empty;
+        public string? Endpoint => _endpoint ??= Id.Split('/').Skip(2).FirstOrDefault() ?? string.Empty;
 
         public string Id { get => _id; init => _id = ToId(value); }
 
         [JsonIgnore]
-        public string Namespace => Id.Split('/')[0];
+        public string Namespace => _namespace ??= Id.Split('/')[0];
 
         [JsonIgnore]
-        public string Node => Id.Split('/').Skip(1).FirstOrDefault() ?? string.Empty;
+        public string Channel => _channel ??= Id.Split('/').Skip(1).FirstOrDefault() ?? string.Empty;
 
         public static explicit operator EndpointId(string id) => new EndpointId(id);
 
@@ -73,7 +76,7 @@ namespace MessageNet.sdk.Protocol
             endpointId.VerifyAssert(x => x.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '/' || y == '-'), "Valid Id must be letter, number, '.', '/', or '-'");
 
             endpointId.Split('/')
-                .VerifyAssert(x => x.Length switch { 2 or 3 => true, _ => false }, "id format error: {namespace}/{node}[/{endpoint}]")
+                .VerifyAssert(x => x.Length switch { 2 or 3 => true, _ => false }, "id format error: {namespace}/{Channel}[/{endpoint}]")
                 .ForEach(x =>
                 {
                     x.VerifyNotEmpty("path vector is empty");
