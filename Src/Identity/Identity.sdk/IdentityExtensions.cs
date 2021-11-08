@@ -19,13 +19,13 @@ namespace Identity.sdk
             services.AddSingleton(s => new TenantStore(s.GetRequiredService<IArtifactClient>(), s.GetRequiredService<IdentityNamespaces>().Tenant));
             services.AddSingleton(s => new UserStore(s.GetRequiredService<IArtifactClient>(), s.GetRequiredService<IdentityNamespaces>().User));
 
-            services.AddHttpClient<IArtifactClient, ArtifactClient>((service, http) =>
-            {
-                ArtifactStoreOption option = service.GetRequiredService<ArtifactStoreOption>();
+            //services.AddHttpClient<IArtifactClient, ArtifactClient>((service, http) =>
+            //{
+            //    ArtifactStoreOption option = service.GetRequiredService<ArtifactStoreOption>();
 
-                http.BaseAddress = new Uri(option.Url);
-                http.DefaultRequestHeaders.Add(option.GetApiHeader().Key, option.GetApiHeader().Value);
-            });
+            //    http.BaseAddress = new Uri(option.Url);
+            //    http.DefaultRequestHeaders.Add(option.GetApiHeader().Key, option.GetApiHeader().Value);
+            //});
 
             return services;
         }

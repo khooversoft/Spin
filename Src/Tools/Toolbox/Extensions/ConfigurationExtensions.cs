@@ -18,6 +18,14 @@ namespace Toolbox.Extensions
             return option;
         }
 
+        public static IConfiguration Bind<T>(this IConfiguration configuration, out T value) where T : new()
+        {
+            configuration.VerifyNotNull(nameof(configuration));
+
+            value = configuration.Bind<T>();
+            return configuration;
+        }
+
         /// <summary>
         /// Uses function to recursive build configuration settings (.Net Core Configuration) from a class that can have sub-classes
         /// </summary>

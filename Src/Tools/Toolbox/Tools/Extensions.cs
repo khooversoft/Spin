@@ -10,7 +10,7 @@ namespace Toolbox.Tools
     {
         public static UnixDate ToUnixDate(this long value) => new UnixDate(value);
 
-        public static async Task<IReadOnlyList<T>> ToList<T>(this BatchSetCursor<T> batch, CancellationToken token)
+        public static async Task<IReadOnlyList<T>> ToList<T>(this BatchSetHttpCursor<T> batch, CancellationToken token)
         {
             batch.VerifyNotNull(nameof(batch));
 

@@ -4,9 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Spin.Common.Configuration;
-using SpinAdmin.Activities;
-using SpinAdmin.Commands;
+//using SpinAdmin.Commands;
 
 namespace SpinAdmin
 {
@@ -38,10 +36,10 @@ namespace SpinAdmin
                 {
                     var rc = new RootCommand()
                 {
-                    container.GetRequiredService<EnvironmentCommand>(),
-                    container.GetRequiredService<QueueCommand>(),
-                    container.GetRequiredService<StorageCommand>(),
-                    container.GetRequiredService<SecretCommand>(),
+                    //container.GetRequiredService<EnvironmentCommand>(),
+                    //container.GetRequiredService<QueueCommand>(),
+                    //container.GetRequiredService<StorageCommand>(),
+                    //container.GetRequiredService<SecretCommand>(),
                 };
 
                     return await rc.InvokeAsync(args);
@@ -64,20 +62,19 @@ namespace SpinAdmin
                 x.AddDebug();
             });
 
+            //service.AddSingleton<ConfigurationStore>();
 
-            service.AddSingleton<ConfigurationStore>();
+            //service.AddSingleton<StoreActivity>();
+            //service.AddSingleton<EnvironmentActivity>();
+            //service.AddSingleton<QueueActivity>();
+            //service.AddSingleton<StorageActivity>();
+            //service.AddSingleton<SecretActivity>();
+            //service.AddSingleton<PublishActivity>();
 
-            service.AddSingleton<StoreActivity>();
-            service.AddSingleton<EnvironmentActivity>();
-            service.AddSingleton<QueueActivity>();
-            service.AddSingleton<StorageActivity>();
-            service.AddSingleton<SecretActivity>();
-            service.AddSingleton<PublishActivity>();
-
-            service.AddSingleton<EnvironmentCommand>();
-            service.AddSingleton<QueueCommand>();
-            service.AddSingleton<StorageCommand>();
-            service.AddSingleton<SecretCommand>();
+            //service.AddSingleton<EnvironmentCommand>();
+            //service.AddSingleton<QueueCommand>();
+            //service.AddSingleton<StorageCommand>();
+            //service.AddSingleton<SecretCommand>();
 
             return service.BuildServiceProvider();
         }

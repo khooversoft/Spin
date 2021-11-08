@@ -1,24 +1,17 @@
 using Identity.Application;
+using Identity.sdk;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Spin.Common.Application;
 using Spin.Common.Middleware;
+using Spin.Common.Model;
+using Spin.Common.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Logging;
-using Identity.sdk;
-using Spin.Common.Services;
-using Spin.Common.Model;
 
 namespace Identity
 {

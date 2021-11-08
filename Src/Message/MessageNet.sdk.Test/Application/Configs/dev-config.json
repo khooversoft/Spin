@@ -3,19 +3,19 @@
 
   "Nodes": [
     {
-      "EndpointId": "main/fe",
+      "ServiceId": "main/fe",
       "BusQueue": {
         "QueueName": "fe-node"
       }
     },
     {
-      "EndpointId": "main/artifact",
+      "ServiceId": "main/artifact",
       "BusQueue": {
         "QueueName": "artifact-node"
       }
     },
     {
-      "EndpointId": "main/account",
+      "ServiceId": "main/account",
       "BusQueue": {
         "QueueName": "account-node"
       }

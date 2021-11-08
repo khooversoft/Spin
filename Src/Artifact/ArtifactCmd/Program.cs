@@ -1,22 +1,13 @@
 ﻿using ArtifactCmd.Activities;
 using ArtifactCmd.Application;
 using ArtifactStore.sdk.Client;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Spin.Common.Application;
 using System;
 using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Invocation;
-using System.Linq;
-using System.Net.Http;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Toolbox.Application;
-using Toolbox.Extensions;
 
 namespace ArtifactCmd
 {
@@ -90,11 +81,11 @@ namespace ArtifactCmd
             service.AddSingleton<GetCommand>();
             service.AddSingleton<SetCommand>();
 
-            service.AddHttpClient<IArtifactClient, ArtifactClient>(http =>
-            {
-                http.BaseAddress = new Uri(option.ArtifactUrl);
-                http.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ApiKey);
-            });
+            //service.AddHttpClient<IArtifactClient, ArtifactClient>(http =>
+            //{
+            //    http.BaseAddress = new Uri(option.ArtifactUrl);
+            //    http.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ApiKey);
+            //});
 
             return service.BuildServiceProvider();
         }

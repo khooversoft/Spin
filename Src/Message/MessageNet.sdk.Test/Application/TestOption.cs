@@ -15,6 +15,6 @@ namespace MessageNet.sdk.Test.Application
 
         public IReadOnlyList<MessageNodeOption> Nodes { get; init; } = null!;
 
-        public BusNamespaceOption BusNamespace { get; set; } = null!;
+        //public BusNamespaceOption BusNamespace { get; set; } = null!;
     }
 }

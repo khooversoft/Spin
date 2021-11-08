@@ -17,6 +17,6 @@ namespace Toolbox.Pattern
 
         public string? Transform { get; init; }
 
-        public ConcurrentDictionary<string, string> Values { get; init; } = null!;
+        public IReadOnlyDictionary<string, string> Values { get; init; } = null!;
     }
 }

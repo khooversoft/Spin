@@ -16,7 +16,7 @@ namespace MessageNet.sdk.Test.Application
 
             subject.Nodes.VerifyNotNull($"{nameof(subject.Nodes)} must be specified");
             subject.Nodes.VerifyAssert(x => x.Count > 0, $"{nameof(subject.Nodes)} must be specified");
-            subject.BusNamespace.Verify();
+            //subject.BusNamespace.Verify();
         }
     }
 }

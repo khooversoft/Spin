@@ -48,7 +48,7 @@ namespace Identity.sdk.Store
         public async Task<IReadOnlyList<string>> List(QueryParameter queryParameter, CancellationToken token = default)
         {
             queryParameter.VerifyNotNull(nameof(queryParameter));
-            BatchSetCursor<string> batch = _artifactClient.List(queryParameter with { Namespace = _namespace });
+            BatchSetHttpCursor<string> batch = _artifactClient.List(queryParameter with { Namespace = _namespace });
             return await batch.ToList(token);
         }
 

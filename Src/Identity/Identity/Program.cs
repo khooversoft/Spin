@@ -1,15 +1,12 @@
 using Identity.Application;
-using Identity.sdk.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Spin.Common.Configuration;
 using Toolbox.Application;
 using Toolbox.Configuration;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
 namespace Identity
 {
@@ -19,7 +16,7 @@ namespace Identity
         {
             Option option = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddSpin("Identity")
+                //.AddSpin("Identity")
                 .AddCommandLine(args)
                 .AddPropertyResolver()
                 .Build()

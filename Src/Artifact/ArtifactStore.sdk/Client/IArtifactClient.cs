@@ -10,7 +10,7 @@ namespace ArtifactStore.sdk.Client
     {
         Task<bool> Delete(ArtifactId id, CancellationToken token = default);
         Task<ArtifactPayload?> Get(ArtifactId id, CancellationToken token = default);
-        BatchSetCursor<string> List(QueryParameter queryParameter);
+        BatchSetHttpCursor<string> List(QueryParameter queryParameter);
         Task Set(ArtifactPayload articlePayload, CancellationToken token = default);
     }
 }

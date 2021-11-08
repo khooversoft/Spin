@@ -13,4 +13,15 @@ namespace MessageNet.sdk.Protocol
 
         public string? Value { get; init; }
     }
+
+
+    public static class HeaderExtensions
+    {
+        public static void Verify(this Header subject)
+        {
+            subject.VerifyNotNull(nameof(subject));
+
+            subject.Name.VerifyNotEmpty(nameof(subject.Name));
+        }
+    }
 }

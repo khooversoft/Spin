@@ -9,6 +9,6 @@ namespace MessageNet.sdk.Endpoint
 {
     public interface ICallback
     {
-        Task<(bool ok, string? message)> Send(MessagePacket messagePacket);
+        Task<(bool ok, string? message)> Send(Message message);
     }
 }

@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Test", "Tools\Toolb
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToolBox.Azure.Test", "Tools\ToolBox.Azure.Test\ToolBox.Azure.Test.csproj", "{CDA25FC6-920B-4445-8708-02E37B87408A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Directory", "Directory\Directory.csproj", "{4C4E5EFB-2CA4-427F-8175-F7CD0E104ADE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore", "Artifact\ArtifactStore\ArtifactStore.csproj", "{C303A1BC-20AE-4810-AAB2-F72A16F4A689}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.sdk", "Artifact\ArtifactStore.sdk\ArtifactStore.sdk.csproj", "{2D522367-2138-4390-84B1-58E46F2E197F}"
@@ -63,7 +61,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cmd", "Cmd", "{D929552C-5E4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PropertyDatabaseCmd", "Cmd\PropertyDatabaseCmd\PropertyDatabaseCmd.csproj", "{E5F7CAB3-6A38-439D-8493-4FF9AA2FE0FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinAdmin", "Cmd\SpinAdmin\SpinAdmin.csproj", "{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinAdmin", "Cmd\SpinAdmin\SpinAdmin.csproj", "{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Directory", "Directory", "{44978541-5977-4226-B4E8-B62710814190}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Directory.sdk", "Directory\Directory.sdk\Directory.sdk.csproj", "{BA427660-6EA6-4642-BA98-4C15272624B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -87,10 +89,6 @@ Global
 		{CDA25FC6-920B-4445-8708-02E37B87408A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDA25FC6-920B-4445-8708-02E37B87408A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDA25FC6-920B-4445-8708-02E37B87408A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4C4E5EFB-2CA4-427F-8175-F7CD0E104ADE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C4E5EFB-2CA4-427F-8175-F7CD0E104ADE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4C4E5EFB-2CA4-427F-8175-F7CD0E104ADE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4C4E5EFB-2CA4-427F-8175-F7CD0E104ADE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C303A1BC-20AE-4810-AAB2-F72A16F4A689}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C303A1BC-20AE-4810-AAB2-F72A16F4A689}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C303A1BC-20AE-4810-AAB2-F72A16F4A689}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -171,6 +169,10 @@ Global
 		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA427660-6EA6-4642-BA98-4C15272624B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA427660-6EA6-4642-BA98-4C15272624B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA427660-6EA6-4642-BA98-4C15272624B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA427660-6EA6-4642-BA98-4C15272624B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -199,6 +201,7 @@ Global
 		{D5AE8226-A971-45B3-BBAE-1C0DB6E35DA2} = {B39986F7-6F57-4BDD-83BD-DDBE5391B1E8}
 		{E5F7CAB3-6A38-439D-8493-4FF9AA2FE0FA} = {D929552C-5E4A-401F-8D47-9391BAF901B0}
 		{6A37BE21-3EBF-4D3A-AB70-0F8585157B6B} = {D929552C-5E4A-401F-8D47-9391BAF901B0}
+		{BA427660-6EA6-4642-BA98-4C15272624B7} = {44978541-5977-4226-B4E8-B62710814190}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

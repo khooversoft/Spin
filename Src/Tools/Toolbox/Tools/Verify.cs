@@ -132,9 +132,10 @@ namespace Toolbox.Tools
             ) where TException : Exception
         {
             if (test(subject)) return subject;
-
             getMessage.VerifyNotNull(nameof(getMessage));
+
             string msg = getMessage(subject) + ", " + FormatCaller(function, path, lineNumber);
+
             logger?.LogError(msg);
             throw (Exception)Activator.CreateInstance(typeof(TException), msg)!;
         }
@@ -152,6 +153,7 @@ namespace Toolbox.Tools
                 [NotNull] this T subject,
                 string name,
                 ILogger? logger = null,
+                string? message = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0
@@ -159,7 +161,8 @@ namespace Toolbox.Tools
         {
             if (subject == null || EqualityComparer<T>.Default.Equals(subject, default!))
             {
-                string msg = $"Null object: {name}, {FormatCaller(function, path, lineNumber)}";
+                string msg = message ?? "Null object";
+                msg += $", {name}, {FormatCaller(function, path, lineNumber)}";
                 logger?.LogError(msg);
                 throw new ArgumentNullException(msg);
             }
@@ -179,6 +182,7 @@ namespace Toolbox.Tools
                 [NotNull] this string? subject,
                 string name,
                 ILogger? logger = null,
+                string? message = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0
@@ -186,7 +190,8 @@ namespace Toolbox.Tools
         {
             if (subject.IsEmpty())
             {
-                string msg = $"Empty or null string: {name}, {FormatCaller(function, path, lineNumber)}";
+                string msg = message ?? "Empty or null string";
+                msg += $", {name}, {FormatCaller(function, path, lineNumber)}";
                 logger?.LogError(msg);
                 throw new ArgumentNullException(msg);
             }

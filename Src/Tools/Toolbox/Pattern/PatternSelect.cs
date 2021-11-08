@@ -31,14 +31,15 @@ namespace Toolbox.Pattern
             _transform.Add(new KeyValuePair<string, Func<PatternContext, object, object>>(name, (context, x) => select(context, (T)x)));
         }
 
-        public bool TryMatch<T>(string data, out T? result)
-            where T : class, IPatternResult
+        public (bool Matched, T? Result) TryMatch<T>(string data) where T : class, IPatternResult => (TryMatch(data, out T? result), result);
+
+        public bool TryMatch<T>(string data, out T? result) where T : class, IPatternResult
         {
             result = default;
 
             if (data.IsEmpty()) return false;
 
-            var context = new PatternContext()
+            var context = new Pa2tternContext()
             {
                 Source = data
             };

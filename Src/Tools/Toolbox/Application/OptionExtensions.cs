@@ -14,14 +14,14 @@ namespace Toolbox.Application
 {
     public static class OptionExtensions
     {
-        public static void LogConfigurations<T>(this ILogger logger, T option, ISecretFilter? secretFilter = null) where T : class
+        public static void LogConfigurations<T>(this ILogger logger, T option, ISecretFilter? secretFilter = null, string? title = null) where T : class
         {
             const int maxWidth = 80;
 
             string line = option.GetConfigurationValues()
                 .Select(x => $"{x.Key}={x.Value}")
                 .Prepend(new string('=', maxWidth))
-                .Prepend("Current configurations")
+                .Prepend(title ?? "Current configurations")
                 .Aggregate(string.Empty, (a, x) => a += (secretFilter?.FilterSecrets(x) ?? x) + Environment.NewLine);
 
             logger.LogInformation(line);

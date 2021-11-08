@@ -12,19 +12,25 @@ namespace ArtifactStore.Application
 
         public string ApiKey { get; init; } = null!;
 
-        public IReadOnlyList<DataLakeNamespace> Stores { get; init; } = null!;
-
         public string? HostUrl { get; init; }
+
+        public string ConfigStore { get; init; } = null!;
+
+        public string HostServiceId { get; init; } = null!;
     }
+
 
     public static class OptionExtensions
     {
-        public static void Verify(this Option option)
+        public static Option Verify(this Option option)
         {
             option.VerifyNotNull(nameof(option));
 
             option.ApiKey.VerifyNotEmpty($"{nameof(option.ApiKey)} is required");
-            option.Stores.ForEach(x => x.Verify());
+            option.HostServiceId.VerifyNotEmpty($"{nameof(option.HostServiceId)} is required");
+            option.ConfigStore.VerifyNotEmpty($"{nameof(option.HostServiceId)} is required");
+
+            return option;
         }
     }
 }

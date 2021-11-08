@@ -1,28 +1,25 @@
 ﻿using ArtifactStore.Application;
-using ArtifactStore.sdk.Client;
+using Directory.sdk;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Spin.Common.Application;
 using Spin.Common.Client;
-using Spin.Common.Configuration;
 using System;
 using System.Net.Http;
 using System.Threading;
-using Toolbox.Configuration;
-using Toolbox.Extensions;
-using Toolbox.Tools;
+using Toolbox.Application;
 
 namespace ArtifactStore.Test.Application
 {
     internal class ArtifactTestHost
     {
+        private const string _configStore = "d:\\SpinDisk";
         protected IHost? _host;
         protected HttpClient? _client;
         private readonly ILogger<ArtifactTestHost> _logger;
+        private IServiceProvider? _serviceProvider = null;
 
         public ArtifactTestHost(ILogger<ArtifactTestHost> logger) => _logger = logger;
 
@@ -30,9 +27,9 @@ namespace ArtifactStore.Test.Application
 
         public T Resolve<T>() where T : class => _host?.Services.GetService<T>() ?? throw new InvalidOperationException($"Cannot find service {typeof(T).Name}");
 
-        public IArtifactClient ArtifactClient => new ArtifactClient(Client, Resolve<ILoggerFactory>().CreateLogger<ArtifactClient>());
-
         public PingClient GetPingClient() => new PingClient(Client, Resolve<ILoggerFactory>().CreateLogger<PingClient>());
+
+        public IServiceProvider GetServiceProvider() => _serviceProvider ?? BuildService(_configStore, RunEnvironment.Test.ToString());
 
         public ArtifactTestHost StartApiServer()
         {
@@ -53,7 +50,6 @@ namespace ArtifactStore.Test.Application
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddSingleton(option);
-                    services.AddSingleton(option.Stores);
                 });
 
             _host = host.Start();
@@ -84,25 +80,24 @@ namespace ArtifactStore.Test.Application
             }
         }
 
-        private Option GetOption()
+        private Option GetOption() => new Option
         {
-            string[] args = new string[]
-            {
-                "Environment=dev",
-            };
+            Environment = RunEnvironment.Test,
+            ApiKey = Guid.NewGuid().ToString(),
+            HostUrl = null,
+            ConfigStore = _configStore,
+            HostServiceId = "artifact",
+        };
 
-            return new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddSpin("ArtifactStore")
-                .AddCommandLine(args)
-                .AddPropertyResolver()
-                .Build()
-                .Bind<Option>();
+        private IServiceProvider BuildService(string configStore, string environment)
+        {
+            IServiceProvider services = new ServiceCollection()
+                .AddDirectory()
+                .BuildServiceProvider();
 
-            //return new OptionBuilder()
-            //    .SetArgs(args)
-            //    .Build()
-            //    .VerifyNotNull("Help is not supported");
+            services.ConfigureDirectory(configStore, environment);
+
+            return services;
         }
     }
 }

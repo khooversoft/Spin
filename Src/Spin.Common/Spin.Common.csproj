@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Message\MessageNet.sdk\MessageNet.sdk.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

@@ -10,6 +10,6 @@ namespace MessageNet.sdk.Protocol
 
         public string ContentType { get; init; } = null!;
 
-        public string? Data { get; init; }
+        public string Data { get; init; } = null!;
     }
 }

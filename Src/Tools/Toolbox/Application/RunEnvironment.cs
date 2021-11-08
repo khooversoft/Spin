@@ -12,6 +12,7 @@ namespace Toolbox.Application
     {
         Unknown,
         Local,
+        Test,
         Dev,
         PreProd,
         Prod

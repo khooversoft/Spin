@@ -27,7 +27,7 @@ namespace MessageNet.Application
                 Nodes = option.Nodes
                     .Select(x => new MessageNodeOption
                     {
-                        EndpointId = x.EndpointId,
+                        ServiceId = x.ServiceId,
                         BusQueue = new QueueOption
                         {
                             Namespace = option.BusNamespace.BusNamespace,

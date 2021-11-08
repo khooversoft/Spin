@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Tools;
@@ -79,5 +81,40 @@ namespace Toolbox.Extensions
         /// <param name="subjects"></param>
         /// <returns>Stack<typeparamref name="T"/></returns>
         public static Stack<T> ToStack<T>(this IEnumerable<T>? subjects) => new Stack<T>(subjects ?? Array.Empty<T>());
+
+        /// <summary>
+        /// Shuffle list based on random crypto provider
+        /// </summary>
+        /// <typeparam name="T">type in list</typeparam>
+        /// <param name="self">list to shuffle</param>
+        /// <returns>shuffled list</returns>
+        public static IReadOnlyList<T> Shuffle<T>(this IEnumerable<T> self)
+        {
+            self.VerifyNotNull(nameof(self));
+
+            var list = self.ToList();
+
+            var provider = new RNGCryptoServiceProvider();
+            int n = list.Count;
+
+            while (n > 1)
+            {
+                var box = new byte[1];
+                do
+                {
+                    provider.GetBytes(box);
+                }
+                while (!(box[0] < n * (Byte.MaxValue / n)));
+
+                var k = (box[0] % n);
+                n--;
+
+                var value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+
+            return list;
+        }
     }
 }

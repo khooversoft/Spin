@@ -1,52 +1,68 @@
-﻿using ArtifactStore.sdk.Model;
-using ArtifactStore.Test.Application;
-using FluentAssertions;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Model;
-using Xunit;
+﻿//using ArtifactStore.Application;
+//using ArtifactStore.sdk.Model;
+//using ArtifactStore.Test.Application;
+//using Directory.sdk;
+//using FluentAssertions;
+//using MessageNet.sdk.Protocol;
+//using Microsoft.Extensions.DependencyInjection;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
+//using Toolbox.Model;
+//using Xunit;
 
-namespace ArtifactStore.Test
-{
-    public class ArtifactControllerTests
-    {
-        [Theory]
-        [InlineData("customer/file1.txt")]
-        [InlineData("smart-contract/customer/hash0xff3e4/file1.txt")]
-        [InlineData("directory/file5.txt")]
-        public async Task GivenData_WhenRoundTrip_ShouldMatch(string id)
-        {
-            ArtifactTestHost host = TestApplication.GetHost();
+//namespace ArtifactStore.Test
+//{
+//    public class ArtifactControllerTests
+//    {
+//        [Theory]
+//        [InlineData("customer/file1.txt")]
+//        [InlineData("smart-contract/customer/hash0xff3e4/file1.txt")]
+//        [InlineData("directory/file5.txt")]
+//        public async Task GivenData_WhenRoundTrip_ShouldMatch(string id)
+//        {
+//            ArtifactTestHost host = TestApplication.GetHost();
 
-            const string payload = "This is a test";
-            ArtifactId artifactId = new ArtifactId(id);
+//            IDirectoryNameService dns = host.GetServiceProvider().GetRequiredService<IDirectoryNameService>();
+//            Option option = host.GetServiceProvider().GetRequiredService<Option>();
 
-            byte[] bytes = Encoding.UTF8.GetBytes(payload);
+//            MessagePacket packet = new MessagePacket();
+//            MessageUrl messageUrl = (MessageUrl)"message://artifact/post";
 
-            ArtifactPayload articlePayload = bytes.ToArtifactPayload(artifactId);
+//            var message = new Message()
+//            {
+//                Url = (MessageUrl)"message://artifact/post",
+//                Header
+//            };
 
-            await host.ArtifactClient.Set(articlePayload);
+//            const string payload = "This is a test";
+//            ArtifactId artifactId = new ArtifactId(id);
 
-            ArtifactPayload? readPayload = await host.ArtifactClient.Get(artifactId);
-            readPayload.Should().NotBeNull();
+//            byte[] bytes = Encoding.UTF8.GetBytes(payload);
 
-            (articlePayload == readPayload).Should().BeTrue();
+//            ArtifactPayload articlePayload = bytes.ToArtifactPayload(artifactId);
 
-            string payloadText = Encoding.UTF8.GetString(readPayload!.ToBytes());
-            payloadText.Should().Be(payload);
+//            await host.ArtifactClient.Set(articlePayload);
 
-            var search = new QueryParameter { Namespace = artifactId.Namespace };
+//            ArtifactPayload? readPayload = await host.ArtifactClient.Get(artifactId);
+//            readPayload.Should().NotBeNull();
 
-            BatchSet<string> searchList = await host.ArtifactClient.List(search).ReadNext();
-            searchList.Should().NotBeNull();
-            searchList.Records.Any(x => x.StartsWith(artifactId.Path)).Should().BeTrue();
+//            (articlePayload == readPayload).Should().BeTrue();
 
-            (await host.ArtifactClient.Delete(artifactId)).Should().BeTrue();
+//            string payloadText = Encoding.UTF8.GetString(readPayload!.ToBytes());
+//            payloadText.Should().Be(payload);
 
-            searchList = await host.ArtifactClient.List(search).ReadNext();
-            searchList.Should().NotBeNull();
-            searchList.Records.Any(x => x.StartsWith(artifactId.Path)).Should().BeFalse();
-        }
-    }
-}
+//            var search = new QueryParameter { Namespace = artifactId.Namespace };
+
+//            BatchSet<string> searchList = await host.ArtifactClient.List(search).ReadNext();
+//            searchList.Should().NotBeNull();
+//            searchList.Records.Any(x => x.StartsWith(artifactId.Path)).Should().BeTrue();
+
+//            (await host.ArtifactClient.Delete(artifactId)).Should().BeTrue();
+
+//            searchList = await host.ArtifactClient.List(search).ReadNext();
+//            searchList.Should().NotBeNull();
+//            searchList.Records.Any(x => x.StartsWith(artifactId.Path)).Should().BeFalse();
+//        }
+//    }
+//}
