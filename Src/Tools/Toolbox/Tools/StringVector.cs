@@ -7,7 +7,7 @@ using Toolbox.Extensions;
 
 namespace Toolbox.Tools
 {
-    public class StringVector
+    public class StringVector : IEnumerable<string>
     {
         private string? _path;
         private readonly List<string> _values = new List<string>();
@@ -18,7 +18,7 @@ namespace Toolbox.Tools
 
         public StringVector(string delimiter)
         {
-            Delimiter = delimiter.ToNullIfEmpty() ?? "/";
+            Delimiter = delimiter;
         }
 
         public string Delimiter { get; } = "/";
@@ -71,5 +71,15 @@ namespace Toolbox.Tools
 
         // Support
         private string[] Split(string? subject) => (subject.ToNullIfEmpty() ?? string.Empty).Split(Delimiter);
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            foreach(var item in Values)
+            {
+                yield return item;
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30804.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Tools\Toolbox\Toolbox.csproj", "{BBB411DD-C61D-4240-AC6B-C854C2E2F7B1}"
 EndProject
@@ -65,7 +65,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinAdmin", "Cmd\SpinAdmin\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Directory", "Directory", "{44978541-5977-4226-B4E8-B62710814190}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Directory.sdk", "Directory\Directory.sdk\Directory.sdk.csproj", "{BA427660-6EA6-4642-BA98-4C15272624B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Directory.sdk", "Directory\Directory.sdk\Directory.sdk.csproj", "{BA427660-6EA6-4642-BA98-4C15272624B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

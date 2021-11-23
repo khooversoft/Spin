@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Tools;
@@ -26,12 +27,33 @@ namespace Toolbox.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static string? BytesToString(this byte[] bytes)
+        public static string? BytesToString(this IEnumerable<byte> bytes)
         {
-            if (bytes == null || bytes.Length == 0) return null;
+            if (bytes == null || bytes.Count() == 0) return null;
 
-            return Encoding.UTF8.GetString(bytes);
+            return Encoding.UTF8.GetString(bytes.ToArray());
         }
+
+        /// <summary>
+        /// Bytes to hex string
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static string ToHex(this IEnumerable<byte> bytes)
+        {
+            if (bytes == null || bytes.Count() == 0) return string.Empty;
+
+            return bytes
+                .Select(x => x.ToString("X02"))
+                .Aggregate(string.Empty, (a, x) => a += x);
+        }
+
+        /// <summary>
+        /// Calculate hash of bytes
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static byte[] ToHash(this IEnumerable<byte> bytes) => MD5.Create().ComputeHash(bytes.ToArray());
 
         /// <summary>
         /// Convert to Json
@@ -40,6 +62,14 @@ namespace Toolbox.Extensions
         /// <param name="subject">subject</param>
         /// <returns>json</returns>
         public static string ToJson<T>(this T subject) => Json.Default.Serialize(subject);
+
+        /// <summary>
+        /// Convert to Json formatted
+        /// </summary>
+        /// <typeparam name="T">type</typeparam>
+        /// <param name="subject">subject</param>
+        /// <returns>json</returns>
+        public static string ToJsonFormat<T>(this T subject) => Json.Default.SerializeFormat(subject);
 
         /// <summary>
         /// Convert object to bytes

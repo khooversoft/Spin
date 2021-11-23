@@ -94,7 +94,7 @@ namespace Toolbox.Extensions
 
             var list = self.ToList();
 
-            var provider = new RNGCryptoServiceProvider();
+            var provider = RandomNumberGenerator.Create();
             int n = list.Count;
 
             while (n > 1)

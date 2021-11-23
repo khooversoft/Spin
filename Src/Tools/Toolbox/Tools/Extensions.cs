@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Model;
@@ -24,6 +25,22 @@ namespace Toolbox.Tools
             }
 
             return list;
+        }
+
+        public static StringVector ToStringVector(this IEnumerable<string> list, string? delimiter = null)
+        {
+            var vector = delimiter == null ? new StringVector() : new StringVector(delimiter);
+            vector.AddRange(list);
+
+            return vector;
+        }
+
+        public static StringVector ToStringVector<T>(this IEnumerable<T> list, string? delimiter = null)
+        {
+            var vector = delimiter == null ? new StringVector() : new StringVector(delimiter);
+            vector.AddRange(list.Select(x => x?.ToString()));
+
+            return vector;
         }
     }
 }

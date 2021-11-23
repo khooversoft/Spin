@@ -39,7 +39,7 @@ namespace Toolbox.Pattern
 
             if (data.IsEmpty()) return false;
 
-            var context = new Pa2tternContext()
+            var context = new PatternContext()
             {
                 Source = data
             };
