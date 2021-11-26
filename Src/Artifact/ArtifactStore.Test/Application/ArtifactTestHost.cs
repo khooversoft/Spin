@@ -1,4 +1,5 @@
 ﻿using ArtifactStore.Application;
+using ArtifactStore.sdk.Client;
 using Directory.sdk;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -20,6 +21,7 @@ namespace ArtifactStore.Test.Application
         protected HttpClient? _client;
         private readonly ILogger<ArtifactTestHost> _logger;
         private IServiceProvider? _serviceProvider = null;
+        private ArtifactMessageClient? _artifactMessageClient;
 
         public ArtifactTestHost(ILogger<ArtifactTestHost> logger) => _logger = logger;
 
@@ -28,6 +30,8 @@ namespace ArtifactStore.Test.Application
         public T Resolve<T>() where T : class => _host?.Services.GetService<T>() ?? throw new InvalidOperationException($"Cannot find service {typeof(T).Name}");
 
         public PingClient GetPingClient() => new PingClient(Client, Resolve<ILoggerFactory>().CreateLogger<PingClient>());
+
+        public ArtifactMessageClient ArtifactClient => _artifactMessageClient ??= Resolve<ArtifactMessageClient>();
 
         public IServiceProvider GetServiceProvider() => _serviceProvider ?? BuildService(_configStore, RunEnvironment.Test.ToString());
 

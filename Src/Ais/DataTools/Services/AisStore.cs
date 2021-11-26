@@ -4,19 +4,21 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace DataTools.Services
 {
     internal class AisStore
     {
         private readonly ILogger<AisStore> _logger;
-        private readonly ConcurrentDictionary<string, FileWriter> _output = new ConcurrentDictionary<string, FileWriter>();
+        private readonly ConcurrentDictionary<string, FileWriter> _output = new ();
         private readonly IReadOnlyList<string> _headers = new List<string>
         {
             "Key",
             "GroupId",
             "SourceType",
             "Timestamp",
+            "Date",
             "Quality",
             "Chksum",
             "AisMessage",
@@ -32,6 +34,8 @@ namespace DataTools.Services
         }
 
         public string StoreFolder { get; private set; } = null!;
+
+        public string BatchDate { get; } = DateTime.Now.ToString("yyyyMMdd-HH-mm");
 
         public AisStore SetStoreFolder(string folder)
         {
@@ -63,56 +67,19 @@ namespace DataTools.Services
             _output.Clear();
         }
 
-        //public void Write(NmeaRecord? nmeaRecord)
-        //{
-        //    if (nmeaRecord == null)
-        //    {
-        //        _counters.Increment(Counter.WriteSkip);
-        //        return;
-        //    }
-
-        //    _counters.Increment(Counter.Write);
-        //    nmeaRecord.AisMessageType.VerifyNotEmpty("AisMessageType is required");
-
-        //    FileWriter fileWriter = _output.GetOrAdd(
-        //        nmeaRecord.AisMessageType,
-        //        x => new FileWriter(Path.Combine(StoreFolder, nmeaRecord.AisMessageType + ".tsv"), _headers, _logger)
-        //        );
-
-        //    var vector = new StringVector("\t")
-        //        .Add(Guid.NewGuid().ToString())
-        //        .Add(nmeaRecord.GroupId ?? "*")
-        //        .Add(nmeaRecord.SourceType ?? "*")
-        //        .Add(nmeaRecord.Timestamp ?? "*")
-        //        .Add(nmeaRecord.Quality ?? "*")
-        //        .Add(nmeaRecord.Chksum ?? "*")
-        //        .Add(nmeaRecord.AisMessage ?? "*")
-        //        .Add(nmeaRecord.AisMessageType ?? "*")
-        //        .Add(nmeaRecord.AisMessageJson ?? "*");
-
-        //    fileWriter.Write(vector.ToString());
-        //}
-
-        public void Write(IEnumerable<NmeaRecord?> nmeaRecords)
+        public void Write(NmeaRecord?[] nmeaRecords)
         {
-            if (nmeaRecords == null) return;
+            nmeaRecords.VerifyNotNull(nameof(nmeaRecords));
 
-            int totalRecords = nmeaRecords.Count();
-            int cleanRecords = nmeaRecords.Count(x => x == null);
-
-            if( cleanRecords > 0)
-            {
-                _counters.Add(Counter.WriteSkip, cleanRecords);
-            }
-
-            _counters.Add(Counter.Write, totalRecords - cleanRecords);
+            _counters.Add(Counter.Writing, nmeaRecords.Length);
+            _counters.Add(Counter.WriteSkip, nmeaRecords.Count(x => x == null));
 
             IEnumerable<IGrouping<string, NmeaRecord>> group = nmeaRecords
                 .Where(x => x != null)
                 .Select(x => (NmeaRecord)x!)
                 .GroupBy(x => x.AisMessageType!);
 
-            foreach (var recordType in group)
+            foreach (IGrouping<string, NmeaRecord> recordType in group)
             {
                 FileWriter fileWriter = GetFileWriter(recordType.Key!);
 
@@ -124,6 +91,7 @@ namespace DataTools.Services
                         record.GroupId ?? "*",
                         record.SourceType ?? "*",
                         record.Timestamp ?? "*",
+                        ConvertToDateTime(record.Timestamp),
                         record.Quality ?? "*",
                         record.Chksum ?? "*",
                         record.AisMessage ?? "*",
@@ -139,9 +107,16 @@ namespace DataTools.Services
 
         private void Verify() => StoreFolder.VerifyNotEmpty("SetStoreFolder must be called first");
 
+        private string ConvertToDateTime(string? unixTimestamp)
+        {
+            if (unixTimestamp == null || !long.TryParse(unixTimestamp, out long timestamp)) return DateTimeOffset.MinValue.ToString("O");
+
+            return ((DateTimeOffset)(UnixDate)timestamp).ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
         private FileWriter GetFileWriter(string recordType) => _output.GetOrAdd(
             recordType,
-            x => new FileWriter(Path.Combine(StoreFolder, recordType + ".tsv"), _headers, _logger)
+            x => new FileWriter(fileName: Path.Combine(StoreFolder, recordType + ".tsv"), batchDate: BatchDate, headers: _headers, _logger)
             );
     }
 }

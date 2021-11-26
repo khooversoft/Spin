@@ -56,7 +56,10 @@ namespace DataTools.Activities
             ActionBlock<NmeaRecord?[]> toSave = new ActionBlock<NmeaRecord?[]>(x => _store.Write(x), writeOption);
 
             toParse.LinkTo(toSaveBatch);
+            _ = toParse.Completion.ContinueWith(delegate { toSaveBatch.Complete(); });
+
             toSaveBatch.LinkTo(toSave);
+            _ = toSaveBatch.Completion.ContinueWith(delegate { toSave.Complete(); });
 
             _counters.Clear();
             _tracking.Load();
@@ -69,8 +72,6 @@ namespace DataTools.Activities
                 x.Set(Counter.ToSaveOut, toParse.OutputCount);
             };
 
-            _counters.Monitor(monitorToken.Token);
-
             // Start the process
             IReadOnlyList<string> readFiles = files
                 .SelectMany(x => _fileReader.GetFiles(x!, true))
@@ -79,14 +80,19 @@ namespace DataTools.Activities
                 .TakeWhile((x, i) => max == null || i < (int)max)
                 .ToList()!;
 
+            _counters.Monitor(monitorToken.Token);
             _counters.Set(Counter.FileQueued, readFiles.Count);
 
             foreach (var file in readFiles)
             {
                 if (monitorToken.IsCancellationRequested) break;
 
+                _tracking.Add(file);
                 await _fileReader.ReadFile(file, toParse);
             }
+
+            toParse.Complete();
+            await toSave.Completion;
 
             await _counters.Completion(monitorToken.Token);
 
@@ -95,8 +101,6 @@ namespace DataTools.Activities
 
             _store.Close();
             _tracking.Save();
-
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
         }
     }
 }

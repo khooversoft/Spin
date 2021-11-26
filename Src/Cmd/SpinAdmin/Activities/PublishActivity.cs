@@ -1,114 +1,98 @@
-﻿//using System.Collections.Generic;
-//using System.Threading;
-//using System.Threading.Tasks;
-//using MessageNet.sdk.Host.Model;
-//using Microsoft.Extensions.Configuration;
-//using Microsoft.Extensions.Logging;
-//using Toolbox.Azure.DataLake;
-//using Toolbox.Azure.DataLake.Model;
-//using Toolbox.Azure.Queue;
-//using Toolbox.Configuration;
-//using Toolbox.Extensions;
-//using Toolbox.Tools;
+﻿using Directory.sdk;
+using Directory.sdk.Model;
+using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
+using Toolbox.Azure.DataLake;
+using Toolbox.Azure.DataLake.Model;
+using Toolbox.Azure.Queue;
+using Toolbox.Tools;
 
-//namespace SpinAdmin.Activities
-//{
-//    internal class PublishActivity
-//    {
-//        private readonly ConfigurationStore _configurationStore;
-//        private readonly ILoggerFactory _loggerFactory;
-//        private readonly ILogger<PublishActivity> _logger;
+namespace SpinAdmin.Activities
+{
+    internal class PublishActivity
+    {
+        private readonly IDirectoryNameService _directoryNameService;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<PublishActivity> _logger;
 
-//        public PublishActivity(ConfigurationStore configurationStore, ILoggerFactory loggerFactory)
-//        {
-//            configurationStore.VerifyNotNull(nameof(configurationStore));
-//            loggerFactory.VerifyNotNull(nameof(loggerFactory));
+        public PublishActivity(IDirectoryNameService configurationStore, ILoggerFactory loggerFactory)
+        {
+            configurationStore.VerifyNotNull(nameof(configurationStore));
+            loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
-//            _configurationStore = configurationStore;
-//            _loggerFactory = loggerFactory;
-//            _logger = _loggerFactory.CreateLogger<PublishActivity>();
-//        }
+            _directoryNameService = configurationStore;
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<PublishActivity>();
+        }
 
-//        public async Task Publish(string store, string environment, CancellationToken token)
-//        {
-//            _logger.LogInformation($"{nameof(Publish)}: Publishing configuration");
+        public async Task Publish(string store, string environment, CancellationToken token)
+        {
+            _logger.LogInformation($"{nameof(Publish)}: Publishing configuration");
 
-//            string configurationFile = _configurationStore
-//                .Environment(store, environment)
-//                .File
-//                .GetConfigurationFile();
+            Database db = _directoryNameService
+                .Load(store, environment)
+                .SelectDefault(environment);
 
-//            var dict = new Dictionary<string, string>()
-//            {
-//                ["environment"] = environment
-//            };
+            if (db == null)
+            {
+                _logger.LogError($"{nameof(Publish)}: No configuration file found");
+                return;
+            }
 
-//            EnvironmentModel model = new ConfigurationBuilder()
-//                .AddInMemoryCollection(dict)
-//                .AddJsonFile(configurationFile, JsonFileOption.Enhance)
-//                .AddPropertyResolver()
-//                .Build()
-//                .Bind<EnvironmentModel>();
+            await SetStorage(db, token);
+            await SetQueue(db, token);
+        }
 
-//            if (model == null)
-//            {
-//                _logger.LogError($"{nameof(Publish)}: No configuration file found");
-//                return;
-//            }
+        private async Task SetStorage(Database db, CancellationToken token)
+        {
+            _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
 
-//            await SetStorage(model, token);
-//            await SetQueue(model, token);
-//        }
+            foreach (StorageRecord storage in db.Storage.Values)
+            {
+                DataLakeStoreOption option = new()
+                {
+                    AccountName = storage.AccountName,
+                    ContainerName = storage.ContainerName,
+                    AccountKey = storage.AccountKey,
+                };
 
-//        private async Task SetStorage(EnvironmentModel model, CancellationToken token)
-//        {
-//            _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
+                IDataLakeFileSystem management = new DataLakeFileSystem(option, _loggerFactory.CreateLogger<DataLakeFileSystem>());
+                await management.CreateIfNotExist(storage.ContainerName, token);
 
-//            foreach (StorageRecord storage in model.Storage)
-//            {
-//                DataLakeStoreOption option = new()
-//                {
-//                    AccountName = storage.AccountName,
-//                    ContainerName = storage.ContainerName,
-//                    AccountKey = storage.AccountKey,
-//                };
+                _logger.LogInformation($"{nameof(SetStorage)}: Set container {storage.ContainerName} on storage {storage.AccountName}");
+            }
+        }
 
-//                IDataLakeFileSystem management = new DataLakeFileSystem(option, _loggerFactory.CreateLogger<DataLakeFileSystem>());
-//                await management.CreateIfNotExist(storage.ContainerName, token);
+        private async Task SetQueue(Database db, CancellationToken token)
+        {
+            _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
 
-//                _logger.LogInformation($"{nameof(SetStorage)}: Set container {storage.ContainerName} on storage {storage.AccountName}");
-//            }
-//        }
+            foreach (QueueRecord queue in db.Queue.Values)
+            {
+                queue.AuthManage.VerifyNotEmpty($"authManage is required");
 
-//        private async Task SetQueue(EnvironmentModel model, CancellationToken token)
-//        {
-//            _logger.LogInformation($"{nameof(SetStorage)}: Publishing to storage accounts");
+                (string KeyName, string AccessKey) = QueueAuthorization.Parse(queue.AuthManage);
 
-//            foreach (QueueRecord queue in model.Queue)
-//            {
-//                queue.AuthManage.VerifyNotEmpty($"authManage is required");
+                QueueOption option = new()
+                {
+                    Namespace = queue.Namespace,
+                    QueueName = queue.QueueName,
+                    KeyName = KeyName,
+                    AccessKey = AccessKey,
+                };
 
-//                (string KeyName, string AccessKey) = QueueAuthorization.Parse(queue.AuthManage);
+                var admin = new QueueAdmin(option, _loggerFactory.CreateLogger<QueueAdmin>());
 
-//                QueueOption option = new()
-//                {
-//                    Namespace = queue.Namespace,
-//                    QueueName = queue.QueueName,
-//                    KeyName = KeyName,
-//                    AccessKey = AccessKey,
-//                };
+                var defintion = new QueueDefinition()
+                {
+                    QueueName = queue.QueueName,
+                };
 
-//                var admin = new QueueAdmin(option, _loggerFactory.CreateLogger<QueueAdmin>());
+                await admin.CreateIfNotExist(defintion, token);
 
-//                var defintion = new QueueDefinition()
-//                {
-//                    QueueName = queue.QueueName,
-//                };
-
-//                await admin.CreateIfNotExist(defintion, token);
-
-//                _logger.LogInformation($"{nameof(SetQueue)}: Set {queue.Channel} on queue {queue.QueueName} on Service Bus namespace {queue.Namespace}");
-//            }
-//        }
-//    }
-//}
+                _logger.LogInformation($"{nameof(SetQueue)}: Set {queue.Channel} on queue {queue.QueueName} on Service Bus namespace {queue.Namespace}");
+            }
+        }
+    }
+}

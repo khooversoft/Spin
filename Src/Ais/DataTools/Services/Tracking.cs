@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,12 +15,17 @@ namespace DataTools.Services
         private readonly AisStore _aisStore;
         private readonly Counters _counters;
         private readonly ILogger<Tracking> _logger;
-        private TrackingData _data = new TrackingData();
-        private readonly object _lock = new object();
+        private readonly ConcurrentDictionary<string, TrackingItem> _trackedData = new ConcurrentDictionary<string, TrackingItem>(StringComparer.OrdinalIgnoreCase);
 
-        private class TrackingData
+        private record TrackingItem
         {
-            public HashSet<string> Data { get; set; } = new HashSet<string>();
+            public string File { get; init; } = null!;
+            public string BatchDate { get; init; } = null!;
+        }
+
+        private record TrackingData
+        {
+            public IList<TrackingItem> Data { get; init; } = new List<TrackingItem>();
         }
 
         public Tracking(AisStore aisStore, Counters counters, ILogger<Tracking> logger)
@@ -31,44 +37,54 @@ namespace DataTools.Services
 
         public string? Check(string data)
         {
-            lock (_lock)
+            if (_trackedData.ContainsKey(data))
             {
-                if (Lookup(data)) return null;
-
-                _counters.Increment(Counter.Tracking);
-
-                _data.Data.Add(data)
-                    .VerifyAssert(x => x == true, "File already exists");
-
-                return data;
+                _logger.LogInformation($"Tracking.Check - already processed {data}");
+                return null;
             }
+
+            return data;
+        }
+
+        public void Add(string data)
+        {
+            _counters.Increment(Counter.Tracking);
+
+            _trackedData.TryAdd(data, new TrackingItem { File = data, BatchDate = _aisStore.BatchDate })
+                .VerifyAssert(x => x == true, "File already exists");
         }
 
         public void Load()
         {
             _logger.LogInformation($"Loading tracking history file {TrackingFileName}");
 
-            if( !File.Exists(TrackingFileName) )
+            if (!File.Exists(TrackingFileName))
             {
                 _logger.LogInformation("Tracking file does not exist, continuing with empty history list");
                 return;
             }
 
             string history = File.ReadAllText(TrackingFileName);
-            _data = history.ToObject<TrackingData>().VerifyNotNull($"Tracking file {TrackingFileName} not valid");
+            TrackingData data = history.ToObject<TrackingData>().VerifyNotNull($"Tracking file {TrackingFileName} not valid");
 
-            _logger.LogInformation($"Loading tracking file {TrackingFileName}, count={_data.Data.Count}");
+            _logger.LogInformation($"Loading tracking file {TrackingFileName}, count={data.Data.Count}");
+
+            _trackedData.Clear();
+            data.Data.ForEach(x => _trackedData[x.File] = x);
         }
 
         public void Save()
         {
-            string json = _data.ToJsonFormat();
+            TrackingData data = new TrackingData
+            {
+                Data = _trackedData.Values.ToList(),
+            };
+
+            string json = data.ToJsonFormat();
             File.WriteAllText(TrackingFileName, json);
 
             _logger.LogInformation($"Saved tracking history to file {TrackingFileName}");
         }
-
-        private bool Lookup(string data) => _data.Data.Contains(data);
 
         private string TrackingFileName => Path.Combine(_aisStore.StoreFolder, "tracking.json");
     }

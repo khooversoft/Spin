@@ -2,16 +2,18 @@
 using System.CommandLine;
 using System.Reflection;
 using System.Threading.Tasks;
+using Directory.sdk;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-//using SpinAdmin.Commands;
+using SpinAdmin.Activities;
+using SpinAdmin.Commands;
 
 namespace SpinAdmin
 {
     internal class Program
     {
         private readonly string _programTitle = $"Spin Administrator CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}";
-
+         
         private static async Task<int> Main(string[] args)
         {
             try
@@ -35,12 +37,12 @@ namespace SpinAdmin
                 using (ServiceProvider container = BuildContainer())
                 {
                     var rc = new RootCommand()
-                {
-                    //container.GetRequiredService<EnvironmentCommand>(),
-                    //container.GetRequiredService<QueueCommand>(),
-                    //container.GetRequiredService<StorageCommand>(),
-                    //container.GetRequiredService<SecretCommand>(),
-                };
+                    {
+                        container.GetRequiredService<EnvironmentCommand>(),
+                        //container.GetRequiredService<QueueCommand>(),
+                        //container.GetRequiredService<StorageCommand>(),
+                        //container.GetRequiredService<SecretCommand>(),
+                    };
 
                     return await rc.InvokeAsync(args);
                 }
@@ -62,6 +64,8 @@ namespace SpinAdmin
                 x.AddDebug();
             });
 
+            service.AddDirectory();
+
             //service.AddSingleton<ConfigurationStore>();
 
             //service.AddSingleton<StoreActivity>();
@@ -69,9 +73,9 @@ namespace SpinAdmin
             //service.AddSingleton<QueueActivity>();
             //service.AddSingleton<StorageActivity>();
             //service.AddSingleton<SecretActivity>();
-            //service.AddSingleton<PublishActivity>();
+            service.AddSingleton<PublishActivity>();
 
-            //service.AddSingleton<EnvironmentCommand>();
+            service.AddSingleton<EnvironmentCommand>();
             //service.AddSingleton<QueueCommand>();
             //service.AddSingleton<StorageCommand>();
             //service.AddSingleton<SecretCommand>();

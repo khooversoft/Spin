@@ -23,7 +23,7 @@ namespace Directory.sdk.Model
             datDict.TryGetValue("SharedAccessKey", out string? sharedAccessKey)
                 .VerifyAssert(x => x == true, "SharedAccessKey not found in configuration");
 
-            return (sharedAccessKey!, sharedAccessKey!);
+            return (sharedAccessKeyName!, sharedAccessKey!);
         }
     }
 }

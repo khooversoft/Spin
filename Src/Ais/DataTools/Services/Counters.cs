@@ -16,11 +16,14 @@ namespace DataTools.Services
         FileRead,
         FileLine,
         Tracking,
-        Parse,
+        Parser,
+        ParserOut,
+        ParserSkip,
+        ParserError,
+        Writing,
         Write,
         WriteSkip,
-        ParserSkip,
-        //MsgTypeSkipped,
+        MsgTypeSkipped,
         ParserFragment,
         ToParseIn,
         ToParseOut,
@@ -58,20 +61,59 @@ namespace DataTools.Services
         public void Clear() => Array.Clear(_counters);
 
         public override string ToString() => Enum.GetNames(typeof(Counter))
-            .Zip(_counters, (name, value) => $"{name}={value:n0}")
-            .Append($"TotalOutput={GetTotalOutput():n0}")
-            .Append($"SignalDelta={GetSignalDelta():n0}")
-            .Join(", ");
+            .Zip(_counters, (name, value) => $"{name,15}={value,15:n0}")
+            .Append($"{"TotalOutput",15}={GetTotalOutput(),15:n0}")
+            .Append($"{"SignalDelta",15}={GetSignalDelta(),15:n0}")
+            .Chunk(7)
+            .Select(x => x.Join(", "))
+            .Join(Environment.NewLine);
 
-        public string ToString(TimeSpan span) => Enum.GetNames(typeof(Counter))
-            .Zip(_counters, (name, value) => $"{name}={value:n0}")
-            .Append($"TotalOutput={GetTotalOutput():n0}")
-            .Append($"SignalDelta={GetSignalDelta():n0}")
-            .Append($"ReadTps={GetReadTps(span):n2}")
-            .Append($"ParseTps={GetParseTps(span):n2}")
-            .Append($"WriteTps={GetWriteTps(span):n2}")
-            .Append($"ParseMulti={_parseMultiAvg.ComputeAverage():n2}")
-            .Join(", ");
+        public string ToString(TimeSpan span) =>
+            new string[]
+            {
+                new string[]
+                {
+                    Fmt(Counter.FileQueued),
+                    Fmt(Counter.FileRead),
+                    Fmt(Counter.Tracking),
+                    Fmt(Counter.FileLine),
+                    Fmt("ReadTps", GetReadTps(span)),
+                    Fmt("TotalOutput", GetTotalOutput()),
+                    Fmt("SignalDelta", GetSignalDelta()),
+                }.Join(", "),
+
+                new string[]
+                {
+                    Fmt(Counter.Parser),
+                    Fmt(Counter.ParserOut),
+                    Fmt(Counter.ParserError),
+                    Fmt(Counter.ParserSkip),
+                    Fmt(Counter.MsgTypeSkipped),
+                    Fmt(Counter.ParserFragment),
+                    Fmt("ParseTps", GetParseTps(span)),
+                    Fmt("ParseMulti", _parseMultiAvg.ComputeAverage()),
+                }.Join(", "),
+
+                new string[]
+                {
+                    Fmt(Counter.Writing),
+                    Fmt(Counter.Write),
+                    Fmt(Counter.WriteSkip),
+                    Fmt("WriteTps", GetWriteTps(span)),
+                }.Join(", "),
+
+                new string[]
+                {
+                    Fmt(Counter.ToParseIn),
+                    Fmt(Counter.ToParseOut),
+                    Fmt(Counter.ToSaveIn),
+                    Fmt(Counter.ToSaveOut),
+                }.Join(", "),
+
+            }.Join(Environment.NewLine);
+
+        private string Fmt(Counter label) => $"{label,14}={Get(label),18:n0}";
+        private string Fmt(string label, double value) => $"{label,14}={value,18:n2}";
 
         internal void Monitor(CancellationToken token)
         {
@@ -89,14 +131,14 @@ namespace DataTools.Services
 
                     while (!token.IsCancellationRequested)
                     {
-                        Thread.Sleep(TimeSpan.FromSeconds(5));
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
 
                         DateTime now = DateTime.Now;
                         TimeSpan elapsed = now - clock;
                         clock = now;
 
                         Sampler?.Invoke(this);
-                        _logger.LogInformation($"[{(DateTime.Now - startTime).ToString("c")}] Monitor: {ToString(elapsed)}");
+                        _logger.LogInformation($"[{(DateTime.Now - startTime).ToString("c")}] Monitor:{Environment.NewLine}{ToString(elapsed)}");
 
                         Array.Copy(_counters, _LastCounters, _counters.Length);
                     }
@@ -113,6 +155,7 @@ namespace DataTools.Services
         public Task Completion(CancellationToken token)
         {
             var tcs = new TaskCompletionSource();
+            DateTime? _lastZero = null;
 
             _ = Task.Run(() =>
             {
@@ -120,26 +163,29 @@ namespace DataTools.Services
                 {
                     Thread.Sleep(TimeSpan.FromSeconds(1));
 
-                    int fileQueue = Get(Counter.FileQueued);
-                    int fileRead = Get(Counter.FileRead);
-                    int lineCount = Get(Counter.FileLine);
-                    int outputCount = Get(Counter.Write);
-                    int outputSkipCount = Get(Counter.WriteSkip);
+                    if (Get(Counter.Write) == 0) continue;
 
-                    if (outputCount == 0) continue;
+                    bool fileTest = Get(Counter.FileQueued) == Get(Counter.FileRead);
+                    bool lineTest = Get(Counter.FileLine) == Get(Counter.Write);
 
-                    bool fileTest = fileQueue == fileRead;
-                    bool lineTest = lineCount == (outputCount + outputSkipCount);
+                    bool zeroTest = (Get(Counter.ToParseIn) + Get(Counter.ToParseOut) + Get(Counter.ToSaveIn) + Get(Counter.ToSaveOut)) == 0;
+                    if (!zeroTest)
+                    {
+                        _lastZero = null;
+                        continue;
+                    }
 
-                    if (fileTest && lineTest)
+                    zeroTest = DateTime.Now - (_lastZero ??= DateTime.Now) > TimeSpan.FromSeconds(10);
+                    if (zeroTest) _logger.LogInformation("Existing for zero test");
+
+                    if ((fileTest && lineTest) || (fileTest && zeroTest))
                     {
                         string line = new[]
                         {
                             "Exiting Counters:Completion",
-                            $"lineCount={lineCount:n0}",
-                            $"FileQueue={fileQueue:n0}",
-                            $"FileRead={fileRead:n0}",
-                            $"(outputCount={outputCount:n0} + outputSkipCount={outputSkipCount:n0}) = {outputCount + outputSkipCount:n0}",
+                            $"fileTest={fileTest}",
+                            $"lineTest={lineTest}",
+                            $"zeroTest={zeroTest}",
                             ToString(),
                         }.Join(Environment.NewLine);
 
@@ -159,9 +205,9 @@ namespace DataTools.Services
         private int GetSignalDelta() => Get(Counter.FileLine) - (Get(Counter.Write) + Get(Counter.WriteSkip));
 
         private double GetReadTps(TimeSpan span) => (Get(Counter.FileLine) - GetLast(Counter.FileLine)) / span.TotalSeconds;
-        
-        private double GetParseTps(TimeSpan span) => (Get(Counter.Parse) - GetLast(Counter.Parse)) / span.TotalSeconds;
-        
+
+        private double GetParseTps(TimeSpan span) => (Get(Counter.Parser) - GetLast(Counter.Parser)) / span.TotalSeconds;
+
         private double GetWriteTps(TimeSpan span) => (Get(Counter.Write) - GetLast(Counter.Write)) / span.TotalSeconds;
     }
 }

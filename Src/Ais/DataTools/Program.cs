@@ -80,6 +80,7 @@ namespace DataTools
             service.AddSingleton<AisStore>();
             service.AddSingleton<Counters>();
             service.AddSingleton<Tracking>();
+            service.AddSingleton<ParserErrorLog>();
 
 
             return service.BuildServiceProvider();

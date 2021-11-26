@@ -22,33 +22,24 @@ namespace DataTools.Services
             _logger = logger;
         }
 
-        public string[] GetFiles(string file, bool recursive)
+        public IEnumerable<string> GetFiles(string file, bool recursive)
         {
             string folder = Path.GetDirectoryName(file)!;
             string search = Path.GetFileName(file);
 
             string[] files = Directory.GetFiles(folder, search, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-            if (files.Length == 0) return Array.Empty<string>();
+            if (files.Length == 0) yield break;
 
-            return files
-                .Select(x => (file: x, fileInfo: new FileInfo(x)))
-                .Where(x => x.fileInfo.Length > 0)
-                .Select(x => x.file)
-                .ToArray();
+            _logger.LogInformation("Getting file sizes...");
+
+            foreach(var item in files)
+            {
+                var fileInfo = new FileInfo(item);
+                if (fileInfo.Length == 0) continue;
+
+                yield return item;
+            }
         }
-
-        //public IReadOnlyList<string> ReadFile(string file)
-        //{
-        //    _logger.LogInformation($"Reading file {file}");
-
-        //    string[] lines = File.ReadAllLines(file);
-        //    _counters.Increment(Counter.FileRead);
-        //    _counters.Add(Counter.FileLine, lines.Length);
-
-        //    _logger.LogInformation($"File {file} read, count= {lines.Length:n0}");
-
-        //    return lines;
-        //}
 
         public async Task ReadFile(string file, ITargetBlock<string> sync)
         {

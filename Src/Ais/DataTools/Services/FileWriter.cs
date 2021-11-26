@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace DataTools.Services
@@ -14,13 +15,15 @@ namespace DataTools.Services
         private StreamWriter? _writeStream;
         private readonly string _fileName;
         private readonly IReadOnlyList<string> _headers;
+        private readonly string _batchDate;
         private int _fileCount = 0;
         private const int _maxLineCount = 10_000_000;
         private int _LineCount = 0;
 
-        public FileWriter(string fileName, IEnumerable<string> headers, ILogger logger)
+        public FileWriter(string fileName, string batchDate, IEnumerable<string> headers, ILogger logger)
         {
             _fileName = fileName.VerifyNotEmpty(nameof(fileName));
+            _batchDate = batchDate.VerifyNotEmpty(nameof(batchDate));
             _logger = logger.VerifyNotNull(nameof(logger));
 
             _headers = headers
@@ -55,12 +58,12 @@ namespace DataTools.Services
             string file = Path.GetFileNameWithoutExtension(_fileName).VerifyNotEmpty("No file name");
             string extension = Path.GetExtension(_fileName) ?? ".tsv";
 
-            string outFile = Path.Combine(folder ?? string.Empty, $"{file}_{_fileCount++}{extension}");
+            string outFile = Path.Combine(folder ?? string.Empty, $"{file}_{_batchDate}_{_fileCount++}{extension}");
             _logger.LogInformation($"Writing to file {outFile}");
 
             StreamWriter fileStream = new StreamWriter(outFile);
 
-            string header = new StringVector("\t").AddRange(_headers);
+            string header = _headers.Join("\t");
             fileStream.WriteLine(header);
 
             return fileStream;

@@ -18,13 +18,15 @@ namespace DataTools.Services
         private readonly AppOption _appOption;
         private readonly Counters _counters;
         private readonly HashSet<string> _skipMessageTypes;
+        private readonly ParserErrorLog _parserErrorLog;
         private int _multiCount = 0;
 
-        public NmeaParser(AppOption appOption, Counters counters, ILogger<NmeaParser> logger)
+        public NmeaParser(AppOption appOption, Counters counters, ParserErrorLog parserErrorLog, ILogger<NmeaParser> logger)
         {
             _logger = logger.VerifyNotNull(nameof(logger));
             _appOption = appOption.VerifyNotNull(nameof(appOption));
             _counters = counters.VerifyNotNull(nameof(counters));
+            _parserErrorLog = parserErrorLog.VerifyNotNull(nameof(parserErrorLog));
 
             _skipMessageTypes = new HashSet<string>(_appOption.IgnoreTypes, StringComparer.OrdinalIgnoreCase);
         }
@@ -32,7 +34,8 @@ namespace DataTools.Services
         public NmeaRecord? Parse(string line)
         {
             line.VerifyNotEmpty(nameof(line));
-            _counters.Increment(Counter.Parse);
+
+            _counters.Increment(Counter.Parser);
             _counters.Set(Counter.ParserFragment, _parser.Fragments.Count);
 
             Interlocked.Increment(ref _multiCount);
@@ -57,19 +60,21 @@ namespace DataTools.Services
 
                 if(_skipMessageTypes.Contains(aisMessage.MessageType.ToString()))
                 {
-                    //_counters.Increment(Counter.MsgTypeSkipped);
+                    _counters.Increment(Counter.MsgTypeSkipped);
                     return null;
                 }
 
                 string json = aisMessage.ToJson();
                 nmeaRecord = nmeaRecord with { AisMessageType = aisMessage.MessageType.ToString(), AisMessageJson = json };
 
+                _counters.Increment(Counter.ParserOut);
                 return nmeaRecord;
 
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Parse failed: {line}, msg={ex.Message}");
+                _counters.Increment(Counter.ParserError);
+                _parserErrorLog.LogParseError(line, ex);
                 return null;
             }
             finally
