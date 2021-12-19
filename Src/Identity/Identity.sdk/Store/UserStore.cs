@@ -60,7 +60,13 @@ namespace Identity.sdk.Store
             user.VerifyNotNull(nameof(user));
 
             ArtifactId id = ToArtifact(user.TenantId, user.SubscriptionId, user.UserId);
-            await _artifactClient.Set(user.ToArtifactPayload(id), token);
+
+            ArtifactPayload payload = new ArtifactPayloadBuilder()
+                .SetId(id)
+                .SetPayload(user)
+                .Build();
+
+            await _artifactClient.Set(payload, token);
         }
 
         private ArtifactId ToArtifact(IdentityId tenantId, IdentityId subscriptionId, UserId userId) => (ArtifactId)$"{_namespace}/{tenantId}/{subscriptionId}/{userId}";

@@ -58,7 +58,12 @@ namespace Toolbox.Broker
 
         public Router Add(params IRoute[] routes)
         {
-            routes.ForEach(y => _routes[y.Pattern] = y);
+            routes.ForEach(y =>
+            {
+                _routes[y.Pattern] = y;
+                _logger.LogTrace($"{Compiler.Location}: adding route {y}");
+            });
+
             _patternSelect = null;
             return this;
         }

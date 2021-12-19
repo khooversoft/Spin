@@ -32,14 +32,17 @@ namespace Identity.sdk.Models
         {
             artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
-            return artifactPayload.DeserializeFromArtifactPayload<Tenant>();
+            return artifactPayload.DeserializePayload<Tenant>();
         }
 
         public static ArtifactPayload ToArtifactPayload(this Tenant tenant)
         {
             tenant.VerifyNotNull(nameof(tenant));
 
-            return tenant.ToArtifactPayload(tenant.ToArtifactId());
+            return new ArtifactPayloadBuilder()
+                .SetId(tenant.ToArtifactId())
+                .SetPayload(tenant)
+                .Build();
         }
 
         public static IdentityId ParseId(ArtifactId subscription)

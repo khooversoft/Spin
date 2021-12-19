@@ -34,10 +34,13 @@ namespace ArtifactCmd.Activities
 
             _logger.LogInformation($"Writing {file} to artifact id={id}...");
 
-            ArtifactId artifactId = new ArtifactId(id);
             byte[] bytes = await File.ReadAllBytesAsync(file, token);
 
-            ArtifactPayload payload = bytes.ToArtifactPayload(artifactId);
+            ArtifactPayload payload = new ArtifactPayloadBuilder()
+                .SetId((ArtifactId)id)
+                .SetPayload(bytes)
+                .Build();
+
             await _artifactClient.Set(payload, token);
 
             _logger.LogInformation($"Completed writing {file} to artifact id={id}.");

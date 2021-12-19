@@ -56,7 +56,13 @@ namespace Identity.sdk.Store
             signature.VerifyNotNull(nameof(signature));
 
             ArtifactId id = ToArtifact(signature.SignatureId);
-            await _artifactClient.Set(signature.ToArtifactPayload(id), token);
+
+            ArtifactPayload payload = new ArtifactPayloadBuilder()
+                .SetId(id)
+                .SetPayload(signature)
+                .Build();
+
+            await _artifactClient.Set(payload, token);
         }
 
         private ArtifactId ToArtifact(IdentityId identityId) => (ArtifactId)$"{_namespace}/{identityId}";

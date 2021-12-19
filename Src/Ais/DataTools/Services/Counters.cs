@@ -13,6 +13,7 @@ namespace DataTools.Services
     public enum Counter
     {
         FileQueued = 0,
+        FileSkipped,
         FileRead,
         FileLine,
         Tracking,
@@ -74,6 +75,7 @@ namespace DataTools.Services
                 new string[]
                 {
                     Fmt(Counter.FileQueued),
+                    Fmt(Counter.FileSkipped),
                     Fmt(Counter.FileRead),
                     Fmt(Counter.Tracking),
                     Fmt(Counter.FileLine),
@@ -112,8 +114,15 @@ namespace DataTools.Services
 
             }.Join(Environment.NewLine);
 
-        private string Fmt(Counter label) => $"{label,14}={Get(label),18:n0}";
-        private string Fmt(string label, double value) => $"{label,14}={value,18:n2}";
+        public string FinalScore(TimeSpan span) =>
+            new string[]
+            {
+                Fmt(Counter.FileLine),
+                Fmt(Counter.Write),
+                Fmt("ReadTps", Get(Counter.FileLine) / span.TotalSeconds),
+                Fmt("ParseTps", Get(Counter.Parser) / span.TotalSeconds),
+                Fmt("WriteTps", Get(Counter.Write) / span.TotalSeconds),
+            }.Join(", ");
 
         internal void Monitor(CancellationToken token)
         {
@@ -166,7 +175,7 @@ namespace DataTools.Services
                     if (Get(Counter.Write) == 0) continue;
 
                     bool fileTest = Get(Counter.FileQueued) == Get(Counter.FileRead);
-                    bool lineTest = Get(Counter.FileLine) == Get(Counter.Write);
+                    bool lineTest = GetSignalDelta() == 0;
 
                     bool zeroTest = (Get(Counter.ToParseIn) + Get(Counter.ToParseOut) + Get(Counter.ToSaveIn) + Get(Counter.ToSaveOut)) == 0;
                     if (!zeroTest)
@@ -185,7 +194,7 @@ namespace DataTools.Services
                             "Exiting Counters:Completion",
                             $"fileTest={fileTest}",
                             $"lineTest={lineTest}",
-                            $"zeroTest={zeroTest}",
+                            $"zeroTestTimeout={zeroTest}",
                             ToString(),
                         }.Join(Environment.NewLine);
 
@@ -201,13 +210,12 @@ namespace DataTools.Services
         }
 
         private int GetTotalOutput() => Get(Counter.Write) + Get(Counter.WriteSkip);
-
         private int GetSignalDelta() => Get(Counter.FileLine) - (Get(Counter.Write) + Get(Counter.WriteSkip));
-
         private double GetReadTps(TimeSpan span) => (Get(Counter.FileLine) - GetLast(Counter.FileLine)) / span.TotalSeconds;
-
         private double GetParseTps(TimeSpan span) => (Get(Counter.Parser) - GetLast(Counter.Parser)) / span.TotalSeconds;
-
         private double GetWriteTps(TimeSpan span) => (Get(Counter.Write) - GetLast(Counter.Write)) / span.TotalSeconds;
+        private string Fmt(Counter label) => $"{label,14}={Get(label),18:n0}";
+        private string Fmt(string label, int value) => $"{label,14}={value,18:n0}";
+        private string Fmt(string label, double value) => $"{label,14}={value,18:n2}";
     }
 }

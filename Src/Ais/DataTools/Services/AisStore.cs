@@ -12,6 +12,8 @@ namespace DataTools.Services
     {
         private readonly ILogger<AisStore> _logger;
         private readonly ConcurrentDictionary<string, FileWriter> _output = new ();
+        private readonly Counters _counters;
+
         private readonly IReadOnlyList<string> _headers = new List<string>
         {
             "Key",
@@ -25,7 +27,6 @@ namespace DataTools.Services
             "AisMessageType",
             "AisMessageJson",
         };
-        private readonly Counters _counters;
 
         public AisStore(Counters counters, ILogger<AisStore> logger)
         {
@@ -107,7 +108,7 @@ namespace DataTools.Services
 
         private void Verify() => StoreFolder.VerifyNotEmpty("SetStoreFolder must be called first");
 
-        private string ConvertToDateTime(string? unixTimestamp)
+        private static string ConvertToDateTime(string? unixTimestamp)
         {
             if (unixTimestamp == null || !long.TryParse(unixTimestamp, out long timestamp)) return DateTimeOffset.MinValue.ToString("O");
 
@@ -116,7 +117,7 @@ namespace DataTools.Services
 
         private FileWriter GetFileWriter(string recordType) => _output.GetOrAdd(
             recordType,
-            x => new FileWriter(fileName: Path.Combine(StoreFolder, recordType + ".tsv"), batchDate: BatchDate, headers: _headers, _logger)
+            new FileWriter(fileName: Path.Combine(StoreFolder, recordType + ".tsv"), batchDate: BatchDate, headers: _headers, _logger)
             );
     }
 }

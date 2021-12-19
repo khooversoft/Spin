@@ -41,7 +41,7 @@ namespace ArtifactCmd.Activities
                 return;
             }
 
-            byte[] bytes = payload.ToBytes();
+            byte[] bytes = payload.PayloadToBytes();
             File.WriteAllBytes(file, bytes);
 
             _logger.LogInformation($"Completed download {file} from artifact id={id}");

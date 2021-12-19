@@ -27,22 +27,22 @@ namespace ArtifactStore.sdk.Client
             _logger = logger;
         }
 
-        public async Task<ArtifactPayload?> Get(ArtifactId id, CancellationToken token = default)
-        {
-            id.VerifyNotNull(nameof(id));
-            _logger.LogTrace($"{nameof(Get)}: Id={id}");
+        //public async Task<ArtifactPayload?> Get(ArtifactId id, CancellationToken token = default)
+        //{
+        //    id.VerifyNotNull(nameof(id));
+        //    _logger.LogTrace($"{nameof(Get)}: Id={id}");
 
-            try
-            {
-                ArtifactPayload payload = await _messageHost.Client.Get<ArtifactPayload>(_messageUrl, id);
-                return payload;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"{nameof(Get)}: Failed");
-                throw;
-            }
-        }
+        //    try
+        //    {
+        //        ArtifactPayload payload = await _messageHost.Client.Get<ArtifactPayload>(_messageUrl, id);
+        //        return payload;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, $"{nameof(Get)}: Failed");
+        //        throw;
+        //    }
+        //}
 
         public async Task Set(ArtifactPayload articlePayload, CancellationToken token = default)
         {
@@ -78,23 +78,23 @@ namespace ArtifactStore.sdk.Client
             }
         }
 
-        public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(Post, queryParameter, _logger);
+        //public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(Post, queryParameter, _logger);
 
-        private async Task<BatchSet<string>> Post(QueryParameter queryParameter)
-        {
-            queryParameter.VerifyNotNull(nameof(queryParameter));
+        //private async Task<BatchSet<string>> Post(QueryParameter queryParameter)
+        //{
+        //    queryParameter.VerifyNotNull(nameof(queryParameter));
 
-            Message message = new MessageBuilder()
-                .SetUrl(_messageUrl)
-                .SetMethod(MessageMethod.post)
-                .AddContent(queryParameter.ToContent())
-                .Build();
+        //    Message message = new MessageBuilder()
+        //        .SetUrl(_messageUrl)
+        //        .SetMethod(MessageMethod.post)
+        //        .AddContent(queryParameter.ToContent())
+        //        .Build();
 
-            return (await _messageHost.Client.Call(message))
-                .EnsureSuccessStatusCode()
-                .Verify()
-                .Contents[0]
-                .ConvertTo<BatchSet<string>>();
-        }
+        //    return (await _messageHost.Client.Call(message))
+        //        .EnsureSuccessStatusCode()
+        //        .Verify()
+        //        .Contents[0]
+        //        .ConvertTo<BatchSet<string>>();
+        //}
     }
 }

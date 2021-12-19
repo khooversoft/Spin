@@ -10,14 +10,14 @@ namespace MessageNet.sdk.Host
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
     public class MessageEndpointAttribute : Attribute
     {
-        public MessageEndpointAttribute(string endpoint)
+        public MessageEndpointAttribute(string method)
         {
-            endpoint.VerifyNotEmpty(nameof(endpoint));
+            method.VerifyNotEmpty(nameof(method));
 
-            Endpoint = endpoint;
+            Method = method;
         }
 
-        public string Endpoint { get; set; }
+        public string Method { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]

@@ -19,9 +19,12 @@ namespace ArtifactStore.sdk.Test
 
             byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
 
-            ArtifactPayload artifactPayload = payloadBytes.ToArtifactPayload(artifactId);
+            ArtifactPayload artifactPayload = new ArtifactPayloadBuilder()
+                .SetId(artifactId)
+                .SetPayload(payloadBytes)
+                .Build();
 
-            byte[] fromPayload = artifactPayload.ToBytes();
+            byte[] fromPayload = artifactPayload.PayloadToBytes();
             Enumerable.SequenceEqual(payloadBytes, fromPayload).Should().BeTrue();
         }
     }

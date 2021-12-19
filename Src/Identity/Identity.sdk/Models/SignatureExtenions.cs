@@ -28,14 +28,17 @@ namespace Identity.sdk.Models
         {
             artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
-            return artifactPayload.DeserializeFromArtifactPayload<Signature>();
+            return artifactPayload.DeserializePayload<Signature>();
         }
 
         public static ArtifactPayload ToArtifactPayload(this Signature signature)
         {
             signature.VerifyNotNull(nameof(signature));
 
-            return signature.ToArtifactPayload(signature.ToArtifactId());
+            return new ArtifactPayloadBuilder()
+                .SetId(signature.ToArtifactId())
+                .SetPayload(signature)
+                .Build();
         }
     }
 }

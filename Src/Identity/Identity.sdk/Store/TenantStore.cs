@@ -56,7 +56,13 @@ namespace Identity.sdk.Store
             tenant.VerifyNotNull(nameof(tenant));
 
             ArtifactId id = ToArtifact(tenant.TenantId);
-            await _artifactClient.Set(tenant.ToArtifactPayload(id), token);
+
+            ArtifactPayload payload = new ArtifactPayloadBuilder()
+                .SetId(id)
+                .SetPayload(tenant)
+                .Build();
+
+            await _artifactClient.Set(payload, token);
         }
 
         private ArtifactId ToArtifact(IdentityId identityId) => (ArtifactId)$"{_namespace}/{identityId}";

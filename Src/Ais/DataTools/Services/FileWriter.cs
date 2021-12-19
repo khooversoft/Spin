@@ -14,7 +14,7 @@ namespace DataTools.Services
         private readonly ILogger _logger;
         private StreamWriter? _writeStream;
         private readonly string _fileName;
-        private readonly IReadOnlyList<string> _headers;
+        private readonly string _headers;
         private readonly string _batchDate;
         private int _fileCount = 0;
         private const int _maxLineCount = 10_000_000;
@@ -28,7 +28,7 @@ namespace DataTools.Services
 
             _headers = headers
                 .VerifyNotNull(nameof(headers))
-                .ToList();
+                .Join("\t");
         }
 
         public void Write(string line)
@@ -61,10 +61,9 @@ namespace DataTools.Services
             string outFile = Path.Combine(folder ?? string.Empty, $"{file}_{_batchDate}_{_fileCount++}{extension}");
             _logger.LogInformation($"Writing to file {outFile}");
 
-            StreamWriter fileStream = new StreamWriter(outFile);
+            StreamWriter fileStream = new StreamWriter(outFile, false, Encoding.UTF8, 65536);
 
-            string header = _headers.Join("\t");
-            fileStream.WriteLine(header);
+            fileStream.WriteLine(_headers);
 
             return fileStream;
         }

@@ -1,6 +1,7 @@
 ﻿using ArtifactStore.Application;
 using ArtifactStore.sdk.Client;
 using Directory.sdk;
+using MessageNet.sdk;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ namespace ArtifactStore.Test.Application
     internal class ArtifactTestHost
     {
         private const string _configStore = "d:\\SpinDisk";
+        private const string _serviceId = "client";
         protected IHost? _host;
         protected HttpClient? _client;
         private readonly ILogger<ArtifactTestHost> _logger;
@@ -31,9 +33,11 @@ namespace ArtifactStore.Test.Application
 
         public PingClient GetPingClient() => new PingClient(Client, Resolve<ILoggerFactory>().CreateLogger<PingClient>());
 
-        public ArtifactMessageClient ArtifactClient => _artifactMessageClient ??= Resolve<ArtifactMessageClient>();
+        public ArtifactMessageClient ArtifactClient => _artifactMessageClient ??= GetServiceProvider().GetRequiredService<ArtifactMessageClient>();
 
-        public IServiceProvider GetServiceProvider() => _serviceProvider ?? BuildService(_configStore, RunEnvironment.Test.ToString());
+        public IDirectoryNameService Dns => GetServiceProvider().GetRequiredService<IDirectoryNameService>();
+
+        private IServiceProvider GetServiceProvider() => _serviceProvider ?? BuildService(_configStore, RunEnvironment.Dev.ToString());
 
         public ArtifactTestHost StartApiServer()
         {
@@ -86,7 +90,7 @@ namespace ArtifactStore.Test.Application
 
         private Option GetOption() => new Option
         {
-            Environment = RunEnvironment.Test,
+            Environment = RunEnvironment.Dev,
             ApiKey = Guid.NewGuid().ToString(),
             HostUrl = null,
             ConfigStore = _configStore,
@@ -97,9 +101,14 @@ namespace ArtifactStore.Test.Application
         {
             IServiceProvider services = new ServiceCollection()
                 .AddDirectory()
+                .AddMessageHost()
+                .AddSingleton<ArtifactMessageClient>()
+                .AddLogging()
                 .BuildServiceProvider();
 
             services.ConfigureDirectory(configStore, environment);
+            services.StartMessageHost(_serviceId);
+
 
             return services;
         }

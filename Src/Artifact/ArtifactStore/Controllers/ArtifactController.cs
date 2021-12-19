@@ -33,7 +33,8 @@ namespace ArtifactStore.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ArtifactPayload record)
         {
-            if (!record.IsValid()) return BadRequest();
+            var (valid, _) = record.IsValid();
+            if (valid == false) return BadRequest();
 
             await _acticleStoreFactory.Create(new ArtifactId(record.Id)).Set(record);
             return Ok();

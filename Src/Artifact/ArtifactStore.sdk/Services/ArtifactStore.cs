@@ -29,7 +29,12 @@ namespace ArtifactStore.sdk.Services
             byte[] fileData = await _dataLakeStore.Read(PathTools.SetExtension(id.Path, _extension), token);
             if (fileData == null || fileData.Length == 0) return null;
 
-            return fileData.ToArtifactPayload(id);
+            return new ArtifactPayloadBuilder()
+                .SetId(id)
+                .SetPayload(fileData)
+                .Build();
+
+            //return fileData.ToArtifactPayload(id);
         }
 
         public async Task<IReadOnlyList<string>> List(QueryParameter queryParameter, CancellationToken token = default) =>
@@ -42,7 +47,7 @@ namespace ArtifactStore.sdk.Services
             artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
             ArtifactId artifactId = new ArtifactId(artifactPayload.Id);
-            await _dataLakeStore.Write(PathTools.SetExtension(artifactId.Path, _extension), artifactPayload.ToBytes(), true, token);
+            await _dataLakeStore.Write(PathTools.SetExtension(artifactId.Path, _extension), artifactPayload.PayloadToBytes(), true, token);
         }
     }
 }

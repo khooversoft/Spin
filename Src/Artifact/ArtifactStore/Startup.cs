@@ -13,6 +13,7 @@ using Spin.Common.Middleware;
 using Spin.Common.Model;
 using Spin.Common.Services;
 using Toolbox.Application;
+using Toolbox.Extensions;
 using Toolbox.Logging;
 
 namespace ArtifactStore
@@ -74,7 +75,7 @@ namespace ArtifactStore
             app.UseRouting();
 
             app.UseAuthorization();
-            app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, new[] { "/api/ping" });
+            app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, "/api/ping".ToEnumerable());
 
             app.UseEndpoints(endpoints =>
             {

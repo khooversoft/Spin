@@ -1,94 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using MessageNet.sdk.Protocol;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace ArtifactStore.sdk.Model
 {
     public static class ArtifactPayloadExtensions
     {
-        public static void Verify(this ArtifactPayload subject)
+        public static void Verify(this ArtifactPayload subject) => subject.IsValid().VerifyAssert(x => x.valid == true, x => x.msg);
+
+        public static (bool valid, string msg) IsValid(this ArtifactPayload subject)
         {
-            subject.VerifyNotNull(nameof(subject));
+            if (subject == null) return (false, $"{nameof(subject)} is null");
+            if (subject.Id == null) return (false, $"{nameof(subject.Id)} is required");
+            if (!(subject.PackagePayload?.Length > 0)) return (false, $"{nameof(subject.PackagePayload)} is required");
 
-            subject.Id.VerifyNotEmpty(nameof(subject.Id));
-            subject.PackagePayload.VerifyAssert(x => x?.Length > 0, $"{nameof(subject.PackagePayload)} is required");
-            subject.Hash.VerifyNotEmpty($"{nameof(subject.Hash)} is required");
 
-            byte[] packagePayload = Convert.FromBase64String(subject.PackagePayload);
+            byte[] packagePayload = Convert.FromBase64String(subject.PackagePayload!);
             byte[] hash = MD5.Create().ComputeHash(packagePayload);
+            if(Convert.ToBase64String(hash) != subject.Hash) return (false, "Hash verification failed");
 
-            Convert.ToBase64String(hash).VerifyAssert(x => x == subject.Hash, "Hash verification failed");
+            return (true, "Verified");
         }
 
-        public static bool IsValid(this ArtifactPayload subject)
-        {
-            try
-            {
-                subject.Verify();
-                return true;
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-        }
-
-        public static byte[] ToBytes(this ArtifactPayload subject)
+        public static byte[] PayloadToBytes(this ArtifactPayload subject)
         {
             subject.Verify();
 
             return Convert.FromBase64String(subject.PackagePayload);
         }
 
-        public static ArtifactPayload ToArtifactPayload(this byte[] subject, ArtifactId articleId)
-        {
-            subject.VerifyAssert(x => x?.Length > 0, $"{nameof(subject)} is empty");
-            articleId.VerifyNotNull(nameof(articleId));
-
-            var payload = new ArtifactPayload
-            {
-                Id = (string)articleId,
-                PackagePayload = Convert.ToBase64String(subject),
-                Hash = Convert.ToBase64String(MD5.Create().ComputeHash(subject)),
-            };
-
-            payload.Verify();
-            return payload;
-        }
-
-        public static T DeserializeFromArtifactPayload<T>(this ArtifactPayload artifactPayload) where T : class
+        public static T DeserializePayload<T>(this ArtifactPayload artifactPayload) where T : class
         {
             artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
-            byte[] bytes = artifactPayload.ToBytes();
-            string json = Encoding.UTF8.GetString(bytes);
+            byte[] bytes = artifactPayload.PayloadToBytes();
+            string data = bytes.BytesToString();
 
-            return Json.Default.Deserialize<T>(json)
+            if (typeof(T) == typeof(string)) return (T)(object)data;
+
+            return Json.Default.Deserialize<T>(data)
                 .VerifyNotNull($"Failed to deserialize {typeof(T).Name}");
-        }
-
-        public static ArtifactPayload ConvertTo(this Content content)
-        {
-            content.Verify();
-
-            return Json.Default.Deserialize<ArtifactPayload>(content.Data)
-                .VerifyAssert(x => x != null, "Serialization failed")!;
-        }
-
-        public static Content ConvertTo(this ArtifactPayload artifactPayload)
-        {
-            artifactPayload.VerifyNotNull(nameof(artifactPayload));
-
-            return new Content
-            {
-                ContentType = typeof(ArtifactPayload).ToString(),
-                Data = Json.Default.Serialize(artifactPayload)
-            };
         }
     }
 }

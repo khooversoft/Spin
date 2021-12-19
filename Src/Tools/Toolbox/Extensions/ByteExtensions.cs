@@ -15,7 +15,7 @@ namespace Toolbox.Extensions
         /// </summary>
         /// <param name="subject"></param>
         /// <returns>byte array</returns>
-        public static byte[] ToBytes(this string subject)
+        public static byte[] ToBytes(this string? subject)
         {
             if (subject == null) return new byte[0];
 
@@ -27,7 +27,7 @@ namespace Toolbox.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static string? BytesToString(this IEnumerable<byte> bytes)
+        public static string BytesToString(this IEnumerable<byte> bytes)
         {
             if (bytes == null || bytes.Count() == 0) return null;
 
@@ -93,9 +93,11 @@ namespace Toolbox.Extensions
         /// <returns></returns>
         public static T? ToObject<T>(this byte[] subject)
         {
-            string? json = subject.BytesToString();
-            if (json == null) return default;
+            subject
+                .VerifyNotNull(nameof(subject))
+                .VerifyAssert(x => x.Length > 0, nameof(subject));
 
+            string json = subject.BytesToString();
             return Json.Default.Deserialize<T>(json);
         }
 

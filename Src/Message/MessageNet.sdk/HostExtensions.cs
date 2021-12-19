@@ -17,17 +17,25 @@ namespace MessageNet.sdk
 {
     public static class HostExtensions
     {
-        public static void AddMessageHost(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddMessageHost(this IServiceCollection serviceCollection)
         {
             serviceCollection.VerifyNotNull(nameof(serviceCollection));
 
             serviceCollection.AddSingleton<IMessageHost, MessageHost>();
+            return serviceCollection;
         }
 
         public static void StartMessageHost(this IApplicationBuilder builder, string serviceId)
         {
             IMessageHost host = builder.ApplicationServices.GetRequiredService<IMessageHost>();
             host.Start(serviceId);
+        }
+
+        public static void StartMessageHost(this IServiceProvider serviceProvider, string serviceId)
+        {
+            serviceProvider
+                .GetRequiredService<IMessageHost>()
+                .Start(serviceId);
         }
 
         public static IServiceCollection AddMessageControllers(this IServiceCollection serviceCollection)
@@ -83,9 +91,12 @@ namespace MessageNet.sdk
 
             foreach (var method in methods)
             {
-                string path = new StringVector()
-                    .Add(classAttribute.BasePath ?? type.Name.Func(x => x.EndsWith(controllerText) ? x[0..^(controllerText.Length)] : x))
-                    .Add(method.Attribute?.Endpoint ?? method.MethodInfo.Name);
+                // Pattern = "[{method}]{path[/path...]}"
+                string path = new[]
+                {
+                    $"[{method.Attribute?.Method ?? method.MethodInfo.Name}]",
+                    classAttribute.BasePath ?? type.Name.Func(x => x.EndsWith(controllerText) ? x[0..^(controllerText.Length)] : x)
+                }.Join();
 
                 var route = new Route<Message>(
                     path,

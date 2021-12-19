@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +41,7 @@ namespace DataTools.Activities
             _logger.LogInformation($"Parsing files, Recursive={recursive}, Max={max}, {(files.Select(x => $"File: {x}").ToStringVector(Environment.NewLine))}");
 
             using var monitorToken = CancellationTokenSource.CreateLinkedTokenSource(token);
+            Stopwatch sw = Stopwatch.StartNew();
 
             Console.CancelKeyPress += (sender, e) =>
             {
@@ -47,18 +49,19 @@ namespace DataTools.Activities
                 monitorToken.Cancel();
             };
 
-            var parseOption = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 10, BoundedCapacity = 1000 };
+            var parseOption = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 20, BoundedCapacity = 1000 };
             var batchOption = new GroupingDataflowBlockOptions { BoundedCapacity = 1000 };
             var writeOption = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 1, BoundedCapacity = 1000 };
+            var linkOption = new DataflowLinkOptions { PropagateCompletion = true };
 
             TransformBlock<string, NmeaRecord?> toParse = new TransformBlock<string, NmeaRecord?>(x => _parseNmea.Parse(x), parseOption);
             BatchBlock<NmeaRecord?> toSaveBatch = new BatchBlock<NmeaRecord?>(100, batchOption);
             ActionBlock<NmeaRecord?[]> toSave = new ActionBlock<NmeaRecord?[]>(x => _store.Write(x), writeOption);
 
-            toParse.LinkTo(toSaveBatch);
+            toParse.LinkTo(toSaveBatch, linkOption);
             _ = toParse.Completion.ContinueWith(delegate { toSaveBatch.Complete(); });
 
-            toSaveBatch.LinkTo(toSave);
+            toSaveBatch.LinkTo(toSave, linkOption);
             _ = toSaveBatch.Completion.ContinueWith(delegate { toSave.Complete(); });
 
             _counters.Clear();
@@ -101,6 +104,10 @@ namespace DataTools.Activities
 
             _store.Close();
             _tracking.Save();
+
+            // Report on performance
+            sw.Stop();
+            _logger.LogInformation($"Final: {_counters.FinalScore(sw.Elapsed)}");
         }
     }
 }

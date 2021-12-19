@@ -43,7 +43,7 @@ namespace DataTools
 
             try
             {
-                using (ServiceProvider container = BuildContainer(appOption))
+                await using (ServiceProvider container = BuildContainer(appOption))
                 {
                     var rc = new RootCommand()
                     {

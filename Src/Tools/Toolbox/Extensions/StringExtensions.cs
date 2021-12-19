@@ -63,7 +63,7 @@ namespace Toolbox.Extensions
                 .ToDictionary(x => x.Key, x => x.Value);
         }
 
-        public static string Join(this IEnumerable<string> values, string delimiter = "/") => string.Join(delimiter, values);
+        public static string Join(this IEnumerable<string?> values, string delimiter = "/") => string.Join(delimiter, values.Where(x => x != null));
 
         public static string ToHashHex(this string subject) => subject
             .VerifyNotEmpty(nameof(subject))

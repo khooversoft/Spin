@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using Toolbox.Broker;
+using Toolbox.Extensions;
 using Toolbox.Services;
 using Toolbox.Tools;
 
@@ -49,7 +50,13 @@ namespace MessageNet.sdk.Host
             // Start receiver
             Receiver.Start(serviceId, async message =>
             {
-                string path = new StringVector() + message.Url.Endpoint + message.Method;
+                // Pattern = "[{method}]{path[/path...]}"
+                string path = new string?[]
+                {
+                    "[" + message.Method + "]",
+                    message.Url.Endpoint
+                }.Join();
+
                 await Router.Send(path, message);
             });
         }

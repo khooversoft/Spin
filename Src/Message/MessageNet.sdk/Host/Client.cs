@@ -67,8 +67,6 @@ namespace MessageNet.sdk.Host
 
         public async Task<Message> Call(Message message)
         {
-            message.Verify();
-
             message = UpdateFromIdIfRequired(message);
             message = AddHeaders(message);
             message.Verify();

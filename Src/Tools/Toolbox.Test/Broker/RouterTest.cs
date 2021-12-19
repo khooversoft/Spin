@@ -24,6 +24,7 @@ namespace Toolbox.Test.Broker
                 .Send("*", 5);
 
             int receive = await sync.Task;
+            receive.Should().Be(5);
         }
 
         [Fact]

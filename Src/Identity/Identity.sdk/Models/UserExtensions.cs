@@ -34,14 +34,17 @@ namespace Identity.sdk.Models
         {
             artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
-            return artifactPayload.DeserializeFromArtifactPayload<User>();
+            return artifactPayload.DeserializePayload<User>();
         }
 
         public static ArtifactPayload ToArtifactPayload(this User user)
         {
             user.VerifyNotNull(nameof(user));
 
-            return user.ToArtifactPayload(user.ToArtifactId());
+            return new ArtifactPayloadBuilder()
+                .SetId(user.ToArtifactId())
+                .SetPayload(user)
+                .Build();
         }
     }
 }

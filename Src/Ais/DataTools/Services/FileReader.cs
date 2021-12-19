@@ -44,7 +44,7 @@ namespace DataTools.Services
         public async Task ReadFile(string file, ITargetBlock<string> sync)
         {
             _logger.LogInformation($"Reading file {file}");
-            using StreamReader stream = new StreamReader(file);
+            using StreamReader stream = new StreamReader(file, Encoding.UTF8, true, 65536);
 
             _counters.Increment(Counter.FileRead);
 

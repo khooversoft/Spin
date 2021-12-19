@@ -30,14 +30,17 @@ namespace Identity.sdk.Models
         {
             artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
-            return artifactPayload.DeserializeFromArtifactPayload<Subscription>();
+            return artifactPayload.DeserializePayload<Subscription>();
         }
 
         public static ArtifactPayload ToArtifactPayload(this Subscription signature)
         {
             signature.VerifyNotNull(nameof(signature));
 
-            return signature.ToArtifactPayload(signature.ToArtifactId());
+            return new ArtifactPayloadBuilder()
+                .SetId(signature.ToArtifactId())
+                .SetPayload(signature)
+                .Build();
         }
     }
 }

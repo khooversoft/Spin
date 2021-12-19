@@ -39,7 +39,9 @@ namespace DataTools.Services
         {
             if (_trackedData.ContainsKey(data))
             {
-                _logger.LogInformation($"Tracking.Check - already processed {data}");
+                _counters.Increment(Counter.FileSkipped);
+                _counters.Add(Counter.FileQueued, -1);
+                _logger.LogTrace($"Tracking.Check - already processed {data}");
                 return null;
             }
 

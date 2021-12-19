@@ -54,13 +54,7 @@ namespace ArtifactStore
 
         private static void LogConfigurations(Option option, ILogger logger)
         {
-            var list = new List<string>
-            {
-                option.ApiKey
-            };
-
-            ISecretFilter filter = new SecretFilter(list);
-
+            ISecretFilter filter = new SecretFilter(option.ApiKey.ToEnumerable());
             logger.LogConfigurations(option, secretFilter: filter);
         }
     }
