@@ -17,9 +17,9 @@ namespace Spin.Common.Controller
     public class PingControllerBase : ControllerBase
     {
         private readonly IServiceStatus _serviceStatus;
-        private readonly LoggerBuffer _loggerBuffer;
+        private readonly ILoggerBuffer _loggerBuffer;
 
-        public PingControllerBase(IServiceStatus serviceStatus, LoggerBuffer loggerBuffer)
+        public PingControllerBase(IServiceStatus serviceStatus, ILoggerBuffer loggerBuffer)
         {
             _serviceStatus = serviceStatus;
             _loggerBuffer = loggerBuffer;

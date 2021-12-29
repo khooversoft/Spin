@@ -26,7 +26,7 @@ namespace Identity.sdk.Client
             _logger = logger;
         }
 
-        public BatchSetHttpCursor<string> List(QueryParameter queryParameter) => new BatchSetHttpCursor<string>(_httpClient, $"api/{_basePath}/list", queryParameter, _logger);
+        public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, $"api/{_basePath}/list", queryParameter, _logger);
 
         public async Task Set(T subject, CancellationToken token = default)
         {

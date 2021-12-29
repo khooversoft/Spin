@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Directory.sdk.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,14 @@ namespace Directory.sdk
             serviceCollection.VerifyNotNull(nameof(serviceCollection));
 
             serviceCollection.AddSingleton<IDirectoryNameService, DirectoryNameService>();
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddDirectoryStorage(this IServiceCollection serviceCollection)
+        {
+            serviceCollection.VerifyNotNull(nameof(serviceCollection));
+
+            serviceCollection.AddSingleton<IDirectoryService, DirectoryService>();
             return serviceCollection;
         }
 
@@ -41,7 +50,7 @@ namespace Directory.sdk
                 .SelectDefault(environment);
         }
 
-        public static IConfigurationBuilder AddDirectoryServices(this IConfigurationBuilder configurationBuilder, string? configStore = null, string? environment = null)
+        public static IConfigurationBuilder AddHostConfigurationValues(this IConfigurationBuilder configurationBuilder, string? configStore = null, string? environment = null)
         {
             (string ConfigStore, string Environment) env = configurationBuilder.SetEnvironment(configStore, environment);
 

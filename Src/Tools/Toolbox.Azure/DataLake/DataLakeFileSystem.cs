@@ -12,12 +12,12 @@ using Toolbox.Tools;
 
 namespace Toolbox.Azure.DataLake
 {
-    public class DataLakeFileSystem : IDataLakeFileSystem
+    public class DatalakeFileSystem : IDatalakeFileSystem
     {
         private readonly DataLakeServiceClient _serviceClient;
-        private readonly ILogger<DataLakeFileSystem> _logger;
+        private readonly ILogger<DatalakeFileSystem> _logger;
 
-        public DataLakeFileSystem(DataLakeStoreOption azureStoreOption, ILogger<DataLakeFileSystem> logger)
+        public DatalakeFileSystem(DatalakeStoreOption azureStoreOption, ILogger<DatalakeFileSystem> logger)
         {
             azureStoreOption.VerifyNotNull(nameof(azureStoreOption));
             logger.VerifyNotNull(nameof(logger));
@@ -26,7 +26,7 @@ namespace Toolbox.Azure.DataLake
             _serviceClient = azureStoreOption.CreateDataLakeServiceClient();
         }
 
-        public async Task<IReadOnlyList<string>> List(CancellationToken token)
+        public async Task<IReadOnlyList<string>> List(CancellationToken token = default)
         {
             var list = new List<string>();
 
@@ -38,7 +38,7 @@ namespace Toolbox.Azure.DataLake
             return list;
         }
 
-        public async Task Create(string name, CancellationToken token)
+        public async Task Create(string name, CancellationToken token = default)
         {
             name.VerifyNotEmpty(nameof(name));
             bool created = false;
@@ -74,7 +74,7 @@ namespace Toolbox.Azure.DataLake
             if (!created) throw new InvalidOperationException($"Could not create file system {name}");
         }
 
-        public async Task Delete(string name, CancellationToken token)
+        public async Task Delete(string name, CancellationToken token = default)
         {
             name.VerifyNotEmpty(nameof(name));
 
@@ -98,7 +98,7 @@ namespace Toolbox.Azure.DataLake
             }
         }
 
-        public async Task CreateIfNotExist(string name, CancellationToken token)
+        public async Task CreateIfNotExist(string name, CancellationToken token = default)
         {
             IReadOnlyList<string> fileSystemNames = await List(token);
             if (fileSystemNames.SingleOrDefault(x => x == name) != null) return;
@@ -106,7 +106,7 @@ namespace Toolbox.Azure.DataLake
             await Create(name, token);
         }
 
-        public async Task DeleteIfExist(string name, CancellationToken token)
+        public async Task DeleteIfExist(string name, CancellationToken token = default)
         {
             IReadOnlyList<string> fileSystemNames = await List(token);
             if (fileSystemNames.SingleOrDefault(x => x == name) == null) return;

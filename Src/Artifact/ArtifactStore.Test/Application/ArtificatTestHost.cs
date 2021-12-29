@@ -15,17 +15,17 @@ using Toolbox.Application;
 
 namespace ArtifactStore.Test.Application
 {
-    internal class ArtifactTestHost
+    internal class ArtificatTestHost
     {
         private const string _configStore = "d:\\SpinDisk";
         private const string _serviceId = "client";
         protected IHost? _host;
         protected HttpClient? _client;
-        private readonly ILogger<ArtifactTestHost> _logger;
+        private readonly ILogger<ArtificatTestHost> _logger;
         private IServiceProvider? _serviceProvider = null;
         private ArtifactMessageClient? _artifactMessageClient;
 
-        public ArtifactTestHost(ILogger<ArtifactTestHost> logger) => _logger = logger;
+        public ArtificatTestHost(ILogger<ArtificatTestHost> logger) => _logger = logger;
 
         public HttpClient Client => _client ?? throw new ArgumentNullException(nameof(Client));
 
@@ -33,13 +33,15 @@ namespace ArtifactStore.Test.Application
 
         public PingClient GetPingClient() => new PingClient(Client, Resolve<ILoggerFactory>().CreateLogger<PingClient>());
 
-        public ArtifactMessageClient ArtifactClient => _artifactMessageClient ??= GetServiceProvider().GetRequiredService<ArtifactMessageClient>();
+        public ArtifactMessageClient ArtifactMessageClient => _artifactMessageClient ??= GetServiceProvider().GetRequiredService<ArtifactMessageClient>();
+
+        public IArtifactClient ArtifactClient => new ArtifactClient(Client, Resolve<ILoggerFactory>().CreateLogger<ArtifactClient>());
 
         public IDirectoryNameService Dns => GetServiceProvider().GetRequiredService<IDirectoryNameService>();
 
         private IServiceProvider GetServiceProvider() => _serviceProvider ?? BuildService(_configStore, RunEnvironment.Dev.ToString());
 
-        public ArtifactTestHost StartApiServer()
+        public ArtificatTestHost StartApiServer()
         {
             Option option = GetOption();
 

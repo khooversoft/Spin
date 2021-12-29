@@ -12,7 +12,7 @@ namespace ArtifactStore.Test
         [Fact]
         public async Task WhenPinged_ShouldReturnOk()
         {
-            ArtifactTestHost host = TestApplication.GetHost();
+            ArtificatTestHost host = TestApplication.GetHost();
 
             PingClient pingClient = host.GetPingClient();
 
@@ -24,7 +24,7 @@ namespace ArtifactStore.Test
         [Fact]
         public async Task WhenReady_ShouldReturnOk()
         {
-            ArtifactTestHost host = TestApplication.GetHost();
+            ArtificatTestHost host = TestApplication.GetHost();
 
             PingClient pingClient = host.GetPingClient();
 
@@ -36,7 +36,7 @@ namespace ArtifactStore.Test
         [Fact]
         public async Task WhenAskedForLogs_ShouldReturnData()
         {
-            ArtifactTestHost host = TestApplication.GetHost();
+            ArtificatTestHost host = TestApplication.GetHost();
 
             PingClient pingClient = host.GetPingClient();
 

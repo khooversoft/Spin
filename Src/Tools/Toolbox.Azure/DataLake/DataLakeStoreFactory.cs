@@ -11,47 +11,22 @@ using Toolbox.Tools;
 
 namespace Toolbox.Azure.DataLake
 {
-    public class DataLakeStoreFactory : IEnumerable<DataLakeNamespace>, IDataLakeStoreFactory
+    public class DatalakeStoreFactory : IDatalakeStoreFactory
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ConcurrentDictionary<string, DataLakeNamespace> _namespace = new ConcurrentDictionary<string, DataLakeNamespace>(StringComparer.OrdinalIgnoreCase);
 
-        public DataLakeStoreFactory(IReadOnlyList<DataLakeNamespace> dataLakeNamespaces, ILoggerFactory loggerFactory)
+        public DatalakeStoreFactory(ILoggerFactory loggerFactory)
         {
-            dataLakeNamespaces.VerifyNotNull(nameof(dataLakeNamespaces));
             loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
             _loggerFactory = loggerFactory;
-
-            Add(dataLakeNamespaces.ToArray());
         }
 
-        public DataLakeStoreFactory Add(params DataLakeNamespace[] dataLakeNamespaces) => this.Action(_ => dataLakeNamespaces.ForEach(x => _namespace[x.Namespace] = x));
-
-        public IDataLakeStore? CreateStore(string nameSpace)
+        public IDatalakeStore? Create(DatalakeStoreOption option)
         {
-            nameSpace.VerifyNotEmpty(nameof(nameSpace));
+            option.VerifyNotNull(nameof(option));
 
-            if (!_namespace.TryGetValue(nameSpace, out DataLakeNamespace? subject)) return null;
-
-            return new DataLakeNamespaceStore(subject, new DataLakeStore(subject.Store, _loggerFactory.CreateLogger<DataLakeStore>()));
+            return new DatalakeStore(option, _loggerFactory.CreateLogger<DatalakeStore>());
         }
-
-        public IDataLakeFileSystem? CreateFileSystem(string nameSpace)
-        {
-            nameSpace.VerifyNotEmpty(nameof(nameSpace));
-
-            if (!_namespace.TryGetValue(nameSpace, out DataLakeNamespace? subject)) return null;
-
-            return new DataLakeFileSystem(subject.Store, _loggerFactory.CreateLogger<DataLakeFileSystem>());
-        }
-
-        public IEnumerator<DataLakeNamespace> GetEnumerator() => _namespace.Values.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => _namespace.Values.GetEnumerator();
-
-        public bool Remove(string nameSpace) => _namespace.Remove(nameSpace, out DataLakeNamespace? _);
-
-        public bool TryGetValue(string nameSpace, [MaybeNullWhen(false)] out DataLakeNamespace value) => _namespace.TryGetValue(nameSpace, out value);
     }
 }

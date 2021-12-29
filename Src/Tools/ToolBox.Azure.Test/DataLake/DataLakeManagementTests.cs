@@ -13,7 +13,7 @@ namespace ToolBox.Azure.Test.DataLake
 {
     public class DataLakeManagementTests
     {
-        private readonly DataLakeStoreOption _testOption;
+        private readonly DatalakeStoreOption _testOption;
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
 
         public DataLakeManagementTests() => _testOption = new TestOptionBuilder().Build();
@@ -23,7 +23,7 @@ namespace ToolBox.Azure.Test.DataLake
         {
             var option = _testOption with { ContainerName = _testOption.ContainerName + 1 };
 
-            IDataLakeFileSystem management = new DataLakeFileSystem(option, _loggerFactory.CreateLogger<DataLakeFileSystem>());
+            IDatalakeFileSystem management = new DatalakeFileSystem(option, _loggerFactory.CreateLogger<DatalakeFileSystem>());
             await management.DeleteIfExist(option.ContainerName, CancellationToken.None);
 
             await management.Create(option.ContainerName, CancellationToken.None);
@@ -39,7 +39,7 @@ namespace ToolBox.Azure.Test.DataLake
         {
             var option = _testOption with { ContainerName = _testOption.ContainerName + 2 };
 
-            IDataLakeFileSystem management = new DataLakeFileSystem(option, _loggerFactory.CreateLogger<DataLakeFileSystem>());
+            IDatalakeFileSystem management = new DatalakeFileSystem(option, _loggerFactory.CreateLogger<DatalakeFileSystem>());
             await management.DeleteIfExist(option.ContainerName, CancellationToken.None);
 
             IReadOnlyList<string> list = await management.List(CancellationToken.None);
@@ -51,7 +51,7 @@ namespace ToolBox.Azure.Test.DataLake
         {
             var option = _testOption with { ContainerName = _testOption.ContainerName + 3 };
 
-            IDataLakeFileSystem management = new DataLakeFileSystem(option, _loggerFactory.CreateLogger<DataLakeFileSystem>());
+            IDatalakeFileSystem management = new DatalakeFileSystem(option, _loggerFactory.CreateLogger<DatalakeFileSystem>());
             await management.DeleteIfExist(option.ContainerName, CancellationToken.None);
 
             await management.CreateIfNotExist(option.ContainerName, CancellationToken.None);

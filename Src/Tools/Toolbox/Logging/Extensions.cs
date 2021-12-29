@@ -20,8 +20,8 @@ namespace Toolbox.Logging
 
         public static ILoggingBuilder AddLoggerBuffer(this ILoggingBuilder builder)
         {
-            LoggerBuffer loggingBuffer = new LoggerBuffer();
-            builder.Services.AddSingleton<LoggerBuffer>(loggingBuffer);
+            ILoggerBuffer loggingBuffer = new LoggerBuffer();
+            builder.Services.AddSingleton<ILoggerBuffer>(loggingBuffer);
 
             builder.AddProvider(new TargetBlockLoggerProvider(loggingBuffer.TargetBlock));
             builder.AddFilter<TargetBlockLoggerProvider>(x => true);

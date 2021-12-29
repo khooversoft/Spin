@@ -12,15 +12,15 @@ namespace ArtifactStore.sdk.Services
 {
     public class ArtifactStore : IArtifactStore
     {
-        private readonly IDataLakeStore _dataLakeStore;
+        private readonly IDatalakeStore _dataLakeStore;
         private const string _extension = ".json";
 
-        public ArtifactStore(IDataLakeStore dataLakeStore)
+        public ArtifactStore(IDatalakeStore dataLakeStore)
         {
             _dataLakeStore = dataLakeStore;
         }
 
-        public Task<bool> Delete(ArtifactId id, CancellationToken token = default) => _dataLakeStore.Delete(PathTools.SetExtension(id.Path, _extension), token);
+        public Task<bool> Delete(ArtifactId id, CancellationToken token = default) => _dataLakeStore.Delete(PathTools.SetExtension(id.Path, _extension), token: token);
 
         public async Task<ArtifactPayload?> Get(ArtifactId id, CancellationToken token = default)
         {
@@ -38,7 +38,7 @@ namespace ArtifactStore.sdk.Services
         }
 
         public async Task<IReadOnlyList<string>> List(QueryParameter queryParameter, CancellationToken token = default) =>
-            (await _dataLakeStore.Search(queryParameter, x => x.IsDirectory == false, true, token))
+            (await _dataLakeStore.Search(queryParameter, token))
                 .Select(x => x.Name.EndsWith(_extension) ? x.Name[0..^_extension.Length] : x.Name)
                 .ToList();
 
@@ -47,7 +47,7 @@ namespace ArtifactStore.sdk.Services
             artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
             ArtifactId artifactId = new ArtifactId(artifactPayload.Id);
-            await _dataLakeStore.Write(PathTools.SetExtension(artifactId.Path, _extension), artifactPayload.PayloadToBytes(), true, token);
+            await _dataLakeStore.Write(PathTools.SetExtension(artifactId.Path, _extension), artifactPayload.PayloadToBytes(), true, token: token);
         }
     }
 }

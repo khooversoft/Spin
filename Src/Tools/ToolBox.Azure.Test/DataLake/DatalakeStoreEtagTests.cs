@@ -13,7 +13,7 @@ namespace ToolBox.Azure.Test.DataLake
 {
     public class DatalakeStoreEtagTests
     {
-        private readonly DataLakeStoreOption _testOption;
+        private readonly DatalakeStoreOption _testOption;
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
 
         public DatalakeStoreEtagTests() => _testOption = new TestOptionBuilder().Build() with { ContainerName = "adls-etag-test" };
@@ -25,29 +25,29 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "testStringEtag.txt";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-            await dataLakeStore.Write(path, dataBytes, true, CancellationToken.None);
+            await dataLakeStore.Write(path, dataBytes, true, token: CancellationToken.None);
 
-            byte[] receive = await dataLakeStore.Read(path, CancellationToken.None);
+            byte[] receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
             Enumerable.SequenceEqual(dataBytes, receive).Should().BeTrue();
 
-            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path);
             pathProperties.Should().NotBeNull();
-            pathProperties!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties!.ETag.Should().NotBeNull();
 
-            receive = await dataLakeStore.Read(path, CancellationToken.None);
+            receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
-            DatalakePathProperties? pathProperties2ndRead = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties2ndRead = await dataLakeStore.GetPathProperties(path);
             pathProperties2ndRead.Should().NotBeNull();
-            pathProperties2ndRead!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties2ndRead!.ETag.Should().NotBeNull();
 
             pathProperties.ETag.Should().Be(pathProperties2ndRead.ETag);
 
-            await dataLakeStore.Delete(path, CancellationToken.None);
+            await dataLakeStore.Delete(path);
         }
 
         [Fact]
@@ -57,30 +57,30 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "testStringEtag.txt";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-            await dataLakeStore.Write(path, dataBytes, true, CancellationToken.None);
+            await dataLakeStore.Write(path, dataBytes, true, token: CancellationToken.None);
 
-            byte[] receive = await dataLakeStore.Read(path, CancellationToken.None);
+            byte[] receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
             Enumerable.SequenceEqual(dataBytes, receive).Should().BeTrue();
 
-            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path);
             pathProperties.Should().NotBeNull();
-            pathProperties!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties!.ETag.Should().NotBeNull();
 
-            await dataLakeStore.Write(path, dataBytes, true, CancellationToken.None);
-            receive = await dataLakeStore.Read(path, CancellationToken.None);
+            await dataLakeStore.Write(path, dataBytes, true, token: CancellationToken.None);
+            receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
-            DatalakePathProperties? pathProperties2ndRead = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties2ndRead = await dataLakeStore.GetPathProperties(path);
             pathProperties2ndRead.Should().NotBeNull();
-            pathProperties2ndRead!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties2ndRead!.ETag.Should().NotBeNull();
 
             pathProperties.ETag.Should().NotBe(pathProperties2ndRead.ETag);
 
-            await dataLakeStore.Delete(path, CancellationToken.None);
+            await dataLakeStore.Delete(path, token: CancellationToken.None);
         }
 
         [Fact]
@@ -91,39 +91,39 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "testStringEtag.txt";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-            await dataLakeStore.Write(path, dataBytes, true, CancellationToken.None);
+            await dataLakeStore.Write(path, dataBytes, true);
 
-            byte[] receive = await dataLakeStore.Read(path, CancellationToken.None);
+            byte[] receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
             Enumerable.SequenceEqual(dataBytes, receive).Should().BeTrue();
 
-            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path);
             pathProperties.Should().NotBeNull();
-            pathProperties!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties!.ETag.Should().NotBeNull();
 
             byte[] data2Bytes = Encoding.UTF8.GetBytes(data2);
-            await dataLakeStore.Write(path, data2Bytes, true, CancellationToken.None);
+            await dataLakeStore.Write(path, data2Bytes, true, token: CancellationToken.None);
 
-            receive = await dataLakeStore.Read(path, CancellationToken.None);
+            receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
-            DatalakePathProperties? pathProperties2ndRead = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties2ndRead = await dataLakeStore.GetPathProperties(path);
             pathProperties2ndRead.Should().NotBeNull();
-            pathProperties2ndRead!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties2ndRead!.ETag.Should().NotBeNull();
 
             pathProperties.ETag.Should().NotBe(pathProperties2ndRead.ETag);
 
-            await dataLakeStore.Delete(path, CancellationToken.None);
-            (await dataLakeStore.Exist(path, CancellationToken.None)).Should().BeFalse();
+            await dataLakeStore.Delete(path);
+            (await dataLakeStore.Exist(path)).Should().BeFalse();
         }
 
         private async Task InitializeFileSystem()
         {
-            IDataLakeFileSystem management = new DataLakeFileSystem(_testOption, _loggerFactory.CreateLogger<DataLakeFileSystem>());
-            await management.CreateIfNotExist(_testOption.ContainerName, CancellationToken.None);
+            IDatalakeFileSystem management = new DatalakeFileSystem(_testOption, _loggerFactory.CreateLogger<DatalakeFileSystem>());
+            await management.CreateIfNotExist(_testOption.ContainerName);
         }
     }
 }

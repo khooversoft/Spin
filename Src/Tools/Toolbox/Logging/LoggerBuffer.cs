@@ -6,7 +6,14 @@ using Toolbox.Tools;
 
 namespace Toolbox.Logging
 {
-    public class LoggerBuffer
+    public interface ILoggerBuffer
+    {
+        ITargetBlock<string> TargetBlock { get; }
+
+        IReadOnlyList<string> GetFirst(int size = 100);
+    }
+
+    public class LoggerBuffer : ILoggerBuffer
     {
         private readonly ConcurrentQueue<string> _queue = new ConcurrentQueue<string>();
         private readonly ActionBlock<string> _block;

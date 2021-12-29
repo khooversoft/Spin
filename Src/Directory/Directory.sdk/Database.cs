@@ -29,7 +29,7 @@ namespace Directory.sdk
 
         public string Environment { get; }
 
-        public void Add(StorageRecord record) => _storage[record.Channel] = record.Verify();
+        public void Add(StorageRecord record) => _storage[record.StorageId] = record.Verify();
         public void Add(QueueRecord record) => _queue[record.Channel] = record.Verify();
         public void Add(ServiceRecord record) => _service[record.ServiceId] = record.Verify();
 

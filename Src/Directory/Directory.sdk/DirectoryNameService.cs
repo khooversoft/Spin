@@ -26,6 +26,8 @@ namespace Directory.sdk
             _logger = logger;
         }
 
+        public Database Get(string domain) => _databases[domain];
+
         public Database Default { get => _default.VerifyNotNull("Default environment not set"); private set => _default = value; }
 
         public DirectoryNameService Load(string configStore, string environment, IEnumerable<KeyValuePair<string, string>>? properties = null, params string[] configFiles)
@@ -54,8 +56,8 @@ namespace Directory.sdk
             return this;
         }
 
-        public Database Select(string environment) => _databases.Get(environment, "environment");
+        public Database Select(string domain) => _databases.Get(domain, "domain");
 
-        public Database SelectDefault(string environment) => this.Func(x => Default = Select(environment));
+        public Database SelectDefault(string domain) => this.Func(x => Default = Select(domain));
     }
 }

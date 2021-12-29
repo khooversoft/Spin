@@ -21,9 +21,9 @@ namespace ArtifactStore.Test
         [InlineData("directory/file5.txt")]
         public async Task GivenData_WhenRoundTrip_ShouldMatch(string id)
         {
-            ArtifactTestHost host = TestApplication.GetHost();
+            ArtificatTestHost host = TestApplication.GetHost();
 
-            MessageUrl messageUrl = (MessageUrl)"message://artifact";
+            //MessageUrl messageUrl = (MessageUrl)"message://artifact";
 
             const string payload = "This is a test";
             ArtifactId artifactId = new ArtifactId(id);
@@ -43,7 +43,7 @@ namespace ArtifactStore.Test
             string? payloadText = readPayload!.DeserializePayload<string>();
             payloadText.Should().Be(payload);
 
-            var search = new QueryParameter { Namespace = artifactId.Namespace };
+            var search = new QueryParameter();
 
             BatchSet<string> searchList = await host.ArtifactClient.List(search).ReadNext();
             searchList.Should().NotBeNull();

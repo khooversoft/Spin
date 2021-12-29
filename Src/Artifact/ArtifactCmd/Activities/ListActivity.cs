@@ -30,7 +30,7 @@ namespace ArtifactCmd.Activities
 
             using IDisposable scope = _logger.BeginScope(new { Command = nameof(List), Namespace = nameSpace });
 
-            BatchSetHttpCursor<string> batch = _artifactClient.List(new QueryParameter { Namespace = nameSpace });
+            BatchSetCursor<string> batch = _artifactClient.List(null!);
             int index = 0;
 
             var list = new List<string>

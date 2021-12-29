@@ -3,12 +3,8 @@ using Toolbox.Azure.DataLake.Model;
 
 namespace Toolbox.Azure.DataLake
 {
-    public interface IDataLakeStoreFactory
+    public interface IDatalakeStoreFactory
     {
-        IDataLakeStore? CreateStore(string nameSpace);
-
-        IDataLakeFileSystem? CreateFileSystem(string nameSpace);
-
-        bool TryGetValue(string nameSpace, [MaybeNullWhen(false)] out DataLakeNamespace value);
+        IDatalakeStore? Create(DatalakeStoreOption option);
     }
 }

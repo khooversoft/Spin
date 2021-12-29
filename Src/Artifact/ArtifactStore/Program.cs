@@ -19,7 +19,7 @@ namespace ArtifactStore
         {
             Option option = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddDirectoryServices()
+                .AddHostConfigurationValues()
                 .AddCommandLine(args)
                 .AddPropertyResolver()
                 .Build()

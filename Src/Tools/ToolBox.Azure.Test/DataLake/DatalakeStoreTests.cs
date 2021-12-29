@@ -18,7 +18,7 @@ namespace ToolBox.Azure.Test.DataLake
 {
     public class DatalakeStoreTests
     {
-        private readonly DataLakeStoreOption _testOption;
+        private readonly DatalakeStoreOption _testOption;
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
 
         public DatalakeStoreTests() => _testOption = new TestOptionBuilder().Build() with { ContainerName = "adls-store-test" };
@@ -30,27 +30,27 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "testString.txt";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-            await dataLakeStore.Write(path, dataBytes, true, CancellationToken.None);
+            await dataLakeStore.Write(path, dataBytes, true);
 
-            byte[] receive = await dataLakeStore.Read(path, CancellationToken.None);
+            byte[] receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
             Enumerable.SequenceEqual(dataBytes, receive).Should().BeTrue();
 
-            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path);
             pathProperties.Should().NotBeNull();
-            pathProperties!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties!.ETag.Should().NotBeNull();
 
-            (await dataLakeStore.Exist(path, CancellationToken.None)).Should().BeTrue();
-            (await dataLakeStore.GetPathProperties(path, CancellationToken.None)).Should().NotBeNull();
+            (await dataLakeStore.Exist(path)).Should().BeTrue();
+            (await dataLakeStore.GetPathProperties(path)).Should().NotBeNull();
 
-            await dataLakeStore.Delete(path, CancellationToken.None);
-            (await dataLakeStore.Exist(path, CancellationToken.None)).Should().BeFalse();
+            await dataLakeStore.Delete(path);
+            (await dataLakeStore.Exist(path)).Should().BeFalse();
 
-            IReadOnlyList<DataLakePathItem> list = await dataLakeStore.Search(null!, x => true, true, CancellationToken.None);
+            IReadOnlyList<DatalakePathItem> list = await dataLakeStore.Search(null!);
             list.Should().NotBeNull();
         }
 
@@ -62,20 +62,20 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "testStringAppend1.txt";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(data1);
-            await dataLakeStore.Write(path, dataBytes, true, CancellationToken.None);
+            await dataLakeStore.Write(path, dataBytes, true);
 
             byte[] appendDataBytes = Encoding.UTF8.GetBytes(data2);
-            await dataLakeStore.Append(path, appendDataBytes, CancellationToken.None);
+            await dataLakeStore.Append(path, appendDataBytes);
 
-            byte[] receive = await dataLakeStore.Read(path, CancellationToken.None);
+            byte[] receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
             Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive).Should().BeTrue();
 
-            await dataLakeStore.Delete(path, CancellationToken.None);
+            await dataLakeStore.Delete(path);
         }
 
         [Fact]
@@ -86,20 +86,20 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "testStringAppend2.txt";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(data1);
-            await dataLakeStore.Append(path, dataBytes, CancellationToken.None);
+            await dataLakeStore.Append(path, dataBytes);
 
             byte[] appendDataBytes = Encoding.UTF8.GetBytes(data2);
-            await dataLakeStore.Append(path, appendDataBytes, CancellationToken.None);
+            await dataLakeStore.Append(path, appendDataBytes);
 
-            byte[] receive = await dataLakeStore.Read(path, CancellationToken.None);
+            byte[] receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
             Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive).Should().BeTrue();
 
-            await dataLakeStore.Delete(path, CancellationToken.None);
+            await dataLakeStore.Delete(path);
         }
 
         [Fact]
@@ -108,21 +108,21 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "base/folder/Test.json";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             string originalFilePath = TestOptionBuilder.WriteResourceToFile(Path.GetFileName(path));
             originalFilePath.Should().NotBeNullOrEmpty();
 
             using (Stream readFile = new FileStream(originalFilePath, FileMode.Open))
             {
-                await dataLakeStore.Upload(readFile, path, true, CancellationToken.None);
+                await dataLakeStore.Write(readFile, path, true);
             }
 
             string downloadFilePath = Path.Combine(Path.GetDirectoryName(originalFilePath)!, Path.GetFileName(path) + ".downloaded");
 
             using (Stream writeFile = new FileStream(downloadFilePath, FileMode.Create))
             {
-                await dataLakeStore.Download(path, writeFile, CancellationToken.None);
+                await dataLakeStore.Read(path, writeFile);
             }
 
             byte[] originalFileHash = GetFileHash(originalFilePath);
@@ -130,15 +130,15 @@ namespace ToolBox.Azure.Test.DataLake
 
             Enumerable.SequenceEqual(originalFileHash, downloadFileHash).Should().BeTrue();
 
-            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path, CancellationToken.None);
+            DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path);
             pathProperties.Should().NotBeNull();
-            pathProperties!.ETag.Should().NotBeNullOrEmpty();
+            pathProperties!.ETag.Should().NotBeNull();
 
-            (await dataLakeStore.Exist(path, CancellationToken.None)).Should().BeTrue();
-            (await dataLakeStore.GetPathProperties(path, CancellationToken.None)).Should().NotBeNull();
+            (await dataLakeStore.Exist(path)).Should().BeTrue();
+            (await dataLakeStore.GetPathProperties(path)).Should().NotBeNull();
 
-            await dataLakeStore.Delete(path, CancellationToken.None);
-            (await dataLakeStore.Exist(path, CancellationToken.None)).Should().BeFalse();
+            await dataLakeStore.Delete(path);
+            (await dataLakeStore.Exist(path)).Should().BeFalse();
         }
 
         [Trait("Category", "Unit")]
@@ -148,11 +148,11 @@ namespace ToolBox.Azure.Test.DataLake
             const string path = "Test.json";
 
             await InitializeFileSystem();
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
             await ClearContainer(dataLakeStore);
 
-            IReadOnlyList<DataLakePathItem> verifyList = await dataLakeStore.Search(null!, x => true, true, CancellationToken.None);
+            IReadOnlyList<DatalakePathItem> verifyList = await dataLakeStore.Search(null!);
             verifyList.Should().NotBeNull();
             verifyList.Count.Should().Be(0);
 
@@ -179,30 +179,30 @@ namespace ToolBox.Azure.Test.DataLake
             {
                 using (Stream readFile = new FileStream(originalFilePath, FileMode.Open))
                 {
-                    await dataLakeStore.Upload(readFile, filePath, true, CancellationToken.None);
+                    await dataLakeStore.Write(readFile, filePath, true);
                 }
             }
 
-            IReadOnlyList<DataLakePathItem> subSearchList = await dataLakeStore.Search(new QueryParameter { Filter = "data" }, x => true, true, CancellationToken.None);
+            IReadOnlyList<DatalakePathItem> subSearchList = await dataLakeStore.Search(new QueryParameter { Filter = "data" });
             subSearchList.Should().NotBeNull();
             subSearchList.Count.Should().Be(fileLists.Where(x => x.StartsWith("data/")).Count());
 
-            IReadOnlyList<DataLakePathItem> searchList = await dataLakeStore.Search(null!, x => true, true, CancellationToken.None);
+            IReadOnlyList<DatalakePathItem> searchList = await dataLakeStore.Search(null!);
             searchList.Should().NotBeNull();
             searchList.Where(x => x.IsDirectory == false).Count().Should().Be(fileLists.Length);
             searchList.Where(x => x.IsDirectory == true).Count().Should().Be(folderCount);
 
             await ClearContainer(dataLakeStore);
 
-            searchList = await dataLakeStore.Search(null!, x => true, true, CancellationToken.None);
+            searchList = await dataLakeStore.Search(null!);
             searchList.Should().NotBeNull();
             searchList.Count.Should().Be(0);
         }
 
         private async Task InitializeFileSystem()
         {
-            IDataLakeFileSystem management = new DataLakeFileSystem(_testOption, _loggerFactory.CreateLogger<DataLakeFileSystem>());
-            await management.CreateIfNotExist(_testOption.ContainerName, CancellationToken.None);
+            IDatalakeFileSystem management = new DatalakeFileSystem(_testOption, _loggerFactory.CreateLogger<DatalakeFileSystem>());
+            await management.CreateIfNotExist(_testOption.ContainerName);
         }
 
         private static byte[] GetFileHash(string file)
@@ -211,19 +211,19 @@ namespace ToolBox.Azure.Test.DataLake
             return MD5.Create().ComputeHash(read);
         }
 
-        private async Task ClearContainer(IDataLakeStore dataLakeStore)
+        private async Task ClearContainer(IDatalakeStore dataLakeStore)
         {
-            IReadOnlyList<DataLakePathItem> list = await dataLakeStore.Search(null!, x => true, false, CancellationToken.None);
+            IReadOnlyList<DatalakePathItem> list = await dataLakeStore.Search(null!);
             list.Should().NotBeNull();
 
             foreach (var fileItem in list.Where(x => x.IsDirectory == true))
             {
-                await dataLakeStore.DeleteDirectory(fileItem.Name!, CancellationToken.None);
+                await dataLakeStore.DeleteDirectory(fileItem.Name!);
             }
 
             foreach (var fileItem in list.Where(x => x.IsDirectory == false))
             {
-                await dataLakeStore.Delete(fileItem.Name!, CancellationToken.None);
+                await dataLakeStore.Delete(fileItem.Name!);
             }
         }
     }

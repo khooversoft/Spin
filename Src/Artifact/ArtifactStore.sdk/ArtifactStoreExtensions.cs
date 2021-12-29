@@ -16,31 +16,31 @@ namespace ArtifactStore.sdk
             services.VerifyNotNull(nameof(services));
 
             services.AddSingleton<IArtifactStoreFactory, ArtifactStoreFactory>();
-            services.AddSingleton<IDataLakeStoreFactory, DataLakeStoreFactory>();
+            services.AddSingleton<IDatalakeStoreFactory, DatalakeStoreFactory>();
 
-            services.AddSingleton<IReadOnlyList<DataLakeNamespace>>(service =>
-            {
-                IReadOnlyList<DataLakeNamespace> data = service
-                    .GetRequiredService<IDirectoryNameService>()
-                    .Default
-                    .Storage.Values
-                    .Select(x =>
-                        new DataLakeNamespace()
-                        {
-                            Namespace = x.Channel,
-                            PathRoot = x.PathRoot,
-                            Store = new DataLakeStoreOption()
-                            {
-                                ContainerName = x.ContainerName,
-                                AccountName = x.AccountName,
-                                AccountKey = x.AccountKey
-                            }
-                        }
-                    )
-                    .ToArray();
+            //services.AddSingleton<IReadOnlyList<DatalakeContainerOption>>(service =>
+            //{
+            //    IReadOnlyList<DatalakeContainerOption> data = service
+            //        .GetRequiredService<IDirectoryNameService>()
+            //        .Default
+            //        .Storage.Values
+            //        .Select(x =>
+            //            new DatalakeContainerOption()
+            //            {
+            //                Name = x.StorageId,
+            //                PathRoot = x.PathRoot,
+            //                Store = new DatalakeStoreOption()
+            //                {
+            //                    ContainerName = x.ContainerName,
+            //                    AccountName = x.AccountName,
+            //                    AccountKey = x.AccountKey
+            //                }
+            //            }
+            //        )
+            //        .ToArray();
 
-                return data;
-            });
+            //    return data;
+            //});
 
             return services;
         }

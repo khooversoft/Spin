@@ -50,14 +50,14 @@ namespace SpinAdmin.Activities
 
             foreach (StorageRecord storage in db.Storage.Values)
             {
-                DataLakeStoreOption option = new()
+                DatalakeStoreOption option = new()
                 {
                     AccountName = storage.AccountName,
                     ContainerName = storage.ContainerName,
                     AccountKey = storage.AccountKey,
                 };
 
-                IDataLakeFileSystem management = new DataLakeFileSystem(option, _loggerFactory.CreateLogger<DataLakeFileSystem>());
+                IDatalakeFileSystem management = new DatalakeFileSystem(option, _loggerFactory.CreateLogger<DatalakeFileSystem>());
                 await management.CreateIfNotExist(storage.ContainerName, token);
 
                 _logger.LogInformation($"{nameof(SetStorage)}: Set container {storage.ContainerName} on storage {storage.AccountName}");

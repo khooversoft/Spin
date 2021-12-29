@@ -29,7 +29,7 @@ namespace Toolbox.Extensions
         /// <returns></returns>
         public static string BytesToString(this IEnumerable<byte> bytes)
         {
-            if (bytes == null || bytes.Count() == 0) return null;
+            if (bytes == null || bytes.Count() == 0) return String.Empty;
 
             return Encoding.UTF8.GetString(bytes.ToArray());
         }

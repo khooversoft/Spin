@@ -75,6 +75,7 @@ namespace ArtifactStore
             app.UseRouting();
 
             app.UseAuthorization();
+            //app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, new[] { "/api/ping" } /*"/api/ping".ToEnumerable()*/);
             app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, "/api/ping".ToEnumerable());
 
             app.UseEndpoints(endpoints =>

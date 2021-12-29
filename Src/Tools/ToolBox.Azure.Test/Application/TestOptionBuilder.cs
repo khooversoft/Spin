@@ -15,17 +15,17 @@ namespace ToolBox.Azure.Test.Application
         {
         }
 
-        public DataLakeStoreOption Build(params string[] args)
+        public DatalakeStoreOption Build(params string[] args)
         {
 
             using Stream configStream = GetConfigStream();
 
-            DataLakeStoreOption option = new ConfigurationBuilder()
+            DatalakeStoreOption option = new ConfigurationBuilder()
                 .AddJsonStream(configStream)
                 .AddUserSecrets("Toolbox.Test")
                 .AddCommandLine(args)
                 .Build()
-                .Bind<DataLakeStoreOption>();
+                .Bind<DatalakeStoreOption>();
 
 
             return option;

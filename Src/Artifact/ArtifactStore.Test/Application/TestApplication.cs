@@ -6,16 +6,16 @@ namespace ArtifactStore.Test.Application
     internal static class TestApplication
     {
         private static ILoggerFactory? _loggerFactory;
-        private static ArtifactTestHost? _host;
+        private static ArtificatTestHost? _host;
         private static object _lock = new object();
 
-        public static ArtifactTestHost GetHost()
+        public static ArtificatTestHost GetHost()
         {
             lock (_lock)
             {
                 if (_host != null) return _host;
 
-                _host = new ArtifactTestHost(LoggerFactory.Create(x => x.AddDebug()).CreateLogger<ArtifactTestHost>());
+                _host = new ArtificatTestHost(LoggerFactory.Create(x => x.AddDebug()).CreateLogger<ArtificatTestHost>());
                 _host.StartApiServer();
 
                 return _host;

@@ -15,9 +15,9 @@ namespace Spin.Common.Middleware
         private readonly RequestDelegate _next;
         private readonly string _apiKeyName;
         private readonly string _apiKey;
-        private readonly string[] _bypassPaths;
+        private readonly IReadOnlyList<string> _bypassPaths;
 
-        public ApiKeyMiddleware(RequestDelegate next, string apiKeyName, string apiKey, string[] bypassPaths)
+        public ApiKeyMiddleware(RequestDelegate next, string apiKeyName, string apiKey, IEnumerable<string> bypassPaths)
         {
             next.VerifyNotNull(nameof(next));
             apiKeyName.VerifyNotNull(nameof(apiKeyName));
@@ -27,7 +27,7 @@ namespace Spin.Common.Middleware
             _next = next;
             _apiKeyName = apiKeyName;
             _apiKey = apiKey;
-            _bypassPaths = bypassPaths;
+            _bypassPaths = bypassPaths.ToList();
         }
 
         public async Task InvokeAsync(HttpContext context)

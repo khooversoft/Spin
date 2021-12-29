@@ -19,7 +19,7 @@ namespace ToolBox.Azure.Test.DataLake
 {
     public class DatalakePerformanceTests
     {
-        private readonly DataLakeStoreOption _testOption;
+        private readonly DatalakeStoreOption _testOption;
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
         private readonly ITestOutputHelper _output;
         private int _totalCount;
@@ -60,10 +60,10 @@ namespace ToolBox.Azure.Test.DataLake
 
         private async Task InitializeFileSystem()
         {
-            IDataLakeFileSystem management = new DataLakeFileSystem(_testOption, _loggerFactory.CreateLogger<DataLakeFileSystem>());
+            IDatalakeFileSystem management = new DatalakeFileSystem(_testOption, _loggerFactory.CreateLogger<DatalakeFileSystem>());
             await management.CreateIfNotExist(_testOption.ContainerName, CancellationToken.None);
 
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>());
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
             await ClearContainer(dataLakeStore);
         }
 
@@ -71,7 +71,7 @@ namespace ToolBox.Azure.Test.DataLake
         {
             DateTime timestamp = DateTime.Now;
 
-            IDataLakeStore dataLakeStore = new DataLakeStore(_testOption, _loggerFactory.CreateLogger<DataLakeStore>()); ;
+            IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>()); ;
 
             int count = 0;
             while (!token.IsCancellationRequested)
@@ -100,9 +100,9 @@ namespace ToolBox.Azure.Test.DataLake
             }
         }
 
-        private async Task ClearContainer(IDataLakeStore dataLakeStore)
+        private async Task ClearContainer(IDatalakeStore dataLakeStore)
         {
-            IReadOnlyList<DataLakePathItem> list = await dataLakeStore.Search(QueryParameter.Default, x => true, false, CancellationToken.None);
+            IReadOnlyList<DatalakePathItem> list = await dataLakeStore.Search(QueryParameter.Default, CancellationToken.None);
             list.Should().NotBeNull();
 
             foreach (var fileItem in list.Where(x => x.IsDirectory == true))
@@ -112,7 +112,7 @@ namespace ToolBox.Azure.Test.DataLake
 
             foreach (var fileItem in list.Where(x => x.IsDirectory == false))
             {
-                await dataLakeStore.Delete(fileItem.Name!, CancellationToken.None);
+                await dataLakeStore.Delete(fileItem.Name!, token: CancellationToken.None);
             }
         }
     }

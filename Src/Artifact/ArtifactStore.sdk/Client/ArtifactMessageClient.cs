@@ -3,14 +3,8 @@ using MessageNet.sdk.Host;
 using MessageNet.sdk.Protocol;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Extensions;
-using Toolbox.Model;
 using Toolbox.Tools;
 
 namespace ArtifactStore.sdk.Client
@@ -26,23 +20,6 @@ namespace ArtifactStore.sdk.Client
             _messageHost = messageHost;
             _logger = logger;
         }
-
-        //public async Task<ArtifactPayload?> Get(ArtifactId id, CancellationToken token = default)
-        //{
-        //    id.VerifyNotNull(nameof(id));
-        //    _logger.LogTrace($"{nameof(Get)}: Id={id}");
-
-        //    try
-        //    {
-        //        ArtifactPayload payload = await _messageHost.Client.Get<ArtifactPayload>(_messageUrl, id);
-        //        return payload;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, $"{nameof(Get)}: Failed");
-        //        throw;
-        //    }
-        //}
 
         public async Task Set(ArtifactPayload articlePayload, CancellationToken token = default)
         {
@@ -77,24 +54,5 @@ namespace ArtifactStore.sdk.Client
                 throw;
             }
         }
-
-        //public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(Post, queryParameter, _logger);
-
-        //private async Task<BatchSet<string>> Post(QueryParameter queryParameter)
-        //{
-        //    queryParameter.VerifyNotNull(nameof(queryParameter));
-
-        //    Message message = new MessageBuilder()
-        //        .SetUrl(_messageUrl)
-        //        .SetMethod(MessageMethod.post)
-        //        .AddContent(queryParameter.ToContent())
-        //        .Build();
-
-        //    return (await _messageHost.Client.Call(message))
-        //        .EnsureSuccessStatusCode()
-        //        .Verify()
-        //        .Contents[0]
-        //        .ConvertTo<BatchSet<string>>();
-        //}
     }
 }

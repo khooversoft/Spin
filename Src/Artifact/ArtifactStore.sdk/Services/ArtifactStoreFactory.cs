@@ -8,33 +8,33 @@ namespace ArtifactStore.sdk.Services
 {
     public class ArtifactStoreFactory : IArtifactStoreFactory
     {
-        private readonly IDataLakeStoreFactory _dataLakeStoreFactory;
+        private readonly IDatalakeStoreFactory _dataLakeStoreFactory;
         private readonly ConcurrentDictionary<string, IArtifactStore> _cache = new ConcurrentDictionary<string, IArtifactStore>(StringComparer.OrdinalIgnoreCase);
 
-        public ArtifactStoreFactory(IDataLakeStoreFactory dataLakeStoreFactory)
+        public ArtifactStoreFactory(IDatalakeStoreFactory dataLakeStoreFactory)
         {
             dataLakeStoreFactory.VerifyNotNull(nameof(dataLakeStoreFactory));
 
             _dataLakeStoreFactory = dataLakeStoreFactory;
         }
 
-        public IArtifactStore Create(string nameSpace)
-        {
-            nameSpace.VerifyNotEmpty(nameof(nameSpace));
+        //public IArtifactStore Create(string nameSpace)
+        //{
+        //    nameSpace.VerifyNotEmpty(nameof(nameSpace));
 
-            IArtifactStore? store;
+        //    IArtifactStore? store;
 
-            if (_cache.TryGetValue(nameSpace, out store)) return store;
+        //    if (_cache.TryGetValue(nameSpace, out store)) return store;
 
-            IDataLakeStore storage = _dataLakeStoreFactory.CreateStore(nameSpace)
-                .VerifyNotNull($"Cannot create store for Namespace {nameSpace}");
+        //    IDatalakeStore storage = _dataLakeStoreFactory.Create(nameSpace)
+        //        .VerifyNotNull($"Cannot create store for Namespace {nameSpace}");
 
-            store = new ArtifactStore(storage);
-            _cache[nameSpace] = store;
+        //    store = new ArtifactStore(storage);
+        //    _cache[nameSpace] = store;
 
-            return store;
-        }
+        //    return store;
+        //}
 
-        public IArtifactStore Create(ArtifactId artifactId) => Create(artifactId.Namespace);
+        //public IArtifactStore Create(ArtifactId artifactId) => Create(artifactId.Namespace);
     }
 }

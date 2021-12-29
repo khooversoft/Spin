@@ -19,7 +19,7 @@ namespace Directory.sdk.Model
         {
             subject.VerifyNotNull(nameof(subject));
 
-            subject.ServiceId.VerifyNotEmpty($"{nameof(subject.ServiceId)} is required");
+            subject.ServiceId.IsDirectoryIdValid().VerifyAssert(x => x.Valid, x => x.Message);
             subject.Channel.VerifyNotEmpty($"{nameof(subject.Channel)} is required");
             subject.HostUrl.VerifyNotEmpty($"{nameof(subject.HostUrl)} is required");
             subject.ApiKey.VerifyNotEmpty($"{nameof(subject.ApiKey)} is required");

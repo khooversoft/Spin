@@ -9,7 +9,7 @@ namespace Directory.sdk.Model
 {
     public record StorageRecord
     {
-        public string Channel { get; init; } = null!;
+        public string StorageId { get; init; } = null!;
 
         public string AccountName { get; init; } = null!;
 
@@ -26,13 +26,12 @@ namespace Directory.sdk.Model
         {
             subject.VerifyNotNull(nameof(subject));
 
-            subject.Channel.VerifyNotEmpty($"{nameof(subject.AccountName)} is required");
+            subject.StorageId.IsDirectoryIdValid().VerifyAssert(x => x.Valid, x => x.Message);
             subject.AccountName.VerifyNotEmpty($"{nameof(subject.AccountName)} is required");
             subject.ContainerName.VerifyNotEmpty($"{nameof(subject.ContainerName)} is required");
-            subject.AccountKey.VerifyNotEmpty($"{nameof(subject.AccountName)} is required");
+            subject.AccountKey.VerifyNotEmpty($"{nameof(subject.AccountKey)} is required");
 
             return subject;
         }
     }
-
 }

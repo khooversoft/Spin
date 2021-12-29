@@ -14,7 +14,7 @@ namespace Toolbox.Model
 
         public string? Filter { get; init; }
 
-        public string? Namespace { get; init; }
+        public bool Recursive { get; init; }
 
         public static QueryParameter Default { get; } = new QueryParameter();
     }

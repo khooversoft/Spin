@@ -26,7 +26,7 @@ namespace Directory.sdk.Model
         {
             subject.VerifyNotNull(nameof(subject));
 
-            subject.Channel.VerifyNotEmpty($"{nameof(subject.Channel)} is required");
+            subject.Channel.IsDirectoryIdValid().VerifyAssert(x => x.Valid, x => x.Message);
             subject.Namespace.VerifyNotEmpty($"{nameof(subject.Namespace)} is required");
             subject.QueueName.VerifyNotEmpty($"{nameof(subject.QueueName)} is required");
             subject.AuthSendListen.VerifyNotEmpty($"{nameof(subject.AuthSendListen)} is required");

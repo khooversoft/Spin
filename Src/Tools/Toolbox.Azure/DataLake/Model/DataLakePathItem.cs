@@ -2,7 +2,7 @@
 
 namespace Toolbox.Azure.DataLake.Model
 {
-    public record DataLakePathItem
+    public record DatalakePathItem
     {
         public string Name { get; init; } = null!;
 
