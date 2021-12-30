@@ -25,9 +25,11 @@ public class DirectoryId
 
     public string Domain => Id.Split('/')[0];
 
-    public string Path => Id.Split('/').Skip(1).Join("'/");
+    public string Service => Id.Split('/')[1];
 
-    public IReadOnlyList<string> PathItems => Id.Split('/').Skip(1).ToArray();
+    public string Path => Id.Split('/').Skip(2).Join("'/");
+
+    public IReadOnlyList<string> PathItems => Id.Split('/').Skip(2).ToArray();
 
 
     //  ///////////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +54,7 @@ public class DirectoryId
     public static void VerifyId(string id)
     {
         id.Split('/')
-            .VerifyAssert(x => x.Length > 1, "Missing domain or id (ex: domain/subject)")
+            .VerifyAssert(x => x.Length > 2, "Missing domain and/or service (ex {domain}/{service}[/{path}]")
             .VerifyAssert(x => x.All(y => !y.IsEmpty()), "path part is empty")
             .ForEach(x =>
             {
@@ -75,4 +77,17 @@ public static class DirectoryIdUtility
     public static string ToFileName(this DirectoryId directoryId) => directoryId.Id + _extension;
 
     public static string FromFileName(string filename) => filename.EndsWith(_extension) ? filename[0..^_extension.Length] : filename;
+
+    public static void VerifyDirectoryId(this string id) => id.IsDirectoryIdValid()
+        .VerifyAssert(x => x.Valid, x => x.Message);
+
+    public static (bool Valid, string Message) IsDirectoryIdValid(this string id)
+    {
+        if (id.IsEmpty()) return (false, "Id required");
+
+        return (
+            id.All(y => char.IsLetterOrDigit(y) || y == '.' || y == '-' || y == '@' || y == '/'),
+            $"{id} is not valid, Valid Id must be letter, number, '/', '.', '@', or '-'"
+            );
+    }
 }

@@ -47,7 +47,9 @@ namespace DirectoryApi
             ApplicationOption option = app.ApplicationServices.GetRequiredService<ApplicationOption>();
             app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, "/api/ping".ToEnumerable());
 
-            app.ApplicationServices.GetRequiredService<IServiceStatus>().SetStatus(ServiceStatusLevel.Running, "Running");
+            app.ApplicationServices
+                .GetRequiredService<IServiceStatus>()
+                .SetStatus(ServiceStatusLevel.Ready, "Ready and running");
 
             return app;
         }

@@ -24,11 +24,11 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            DirectoryId directoryId = new DirectoryId("test/entry1");
+            DirectoryId directoryId = new DirectoryId("test/unit-tests/entry1");
 
             var query = new QueryParameter()
             {
-                Filter = "test",
+                Filter = "test/unit-tests",
                 Recursive = false,
             };
 
@@ -69,7 +69,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            DirectoryId directoryId = new DirectoryId("test/entry1");
+            DirectoryId directoryId = new DirectoryId("test/unit-tests/entry1");
 
             var query = new QueryParameter()
             {
@@ -114,7 +114,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            DirectoryId directoryId = new DirectoryId("test/entry1");
+            DirectoryId directoryId = new DirectoryId("test/unit-tests/entry1");
 
             var query = new QueryParameter()
             {
@@ -149,7 +149,7 @@ namespace Directory.Test
                 await client.Set(updateEntry);
                 failed = false;
             }
-            catch(Azure.RequestFailedException ex)
+            catch(Azure.RequestFailedException)
             {
                 failed = true;
             }
