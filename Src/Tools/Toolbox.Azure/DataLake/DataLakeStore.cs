@@ -112,20 +112,27 @@ namespace Toolbox.Azure.DataLake
             await file.ReadToAsync(toStream, cancellationToken: token);
         }
 
-        public async Task<byte[]> Read(string path, CancellationToken token = default) => (await ReadWithTag(path, token)).Data;
+        public async Task<byte[]?> Read(string path, CancellationToken token = default) => (await ReadWithTag(path, token)).Data;
 
-        public async Task<(byte[] Data, ETag Etag)> ReadWithTag(string path, CancellationToken token = default)
+        public async Task<(byte[]? Data, ETag? Etag)> ReadWithTag(string path, CancellationToken token = default)
         {
             path = WithBasePath(path);
             _logger.LogTrace($"Reading {path}");
 
-            DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            Response<FileDownloadInfo> response = await file.ReadAsync(token);
+            try
+            {
+                DataLakeFileClient file = _fileSystem.GetFileClient(path);
+                Response<FileDownloadInfo> response = await file.ReadAsync(token);
 
-            using MemoryStream memory = new MemoryStream();
-            await response.Value.Content.CopyToAsync(memory);
+                using MemoryStream memory = new MemoryStream();
+                await response.Value.Content.CopyToAsync(memory);
 
-            return (memory.ToArray(), response.Value.Properties.ETag);
+                return (memory.ToArray(), response.Value.Properties.ETag);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
+            {
+                return (null, null);
+            }
         }
 
         public async Task<IReadOnlyList<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token = default)

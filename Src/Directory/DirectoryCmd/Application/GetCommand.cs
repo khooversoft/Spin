@@ -20,14 +20,15 @@ internal class GetCommand : Command
     private class GetFileCommand : Command
     {
         public GetFileCommand(IServiceProvider serviceProvider)
-            : base("file", "Read entry from file")
+            : base("file", "Write entries to file")
         {
             AddArgument(new Argument<string>("file", "File to write directory entries to"));
-            AddArgument(new Argument<string>("path", "Path for searching directory entries"));
+            AddOption(new Option<string?>(new string[] { "--path", "-P" }, "Path for searching directory entries, default is root"));
             AddOption(new Option<bool>(new string[] { "--recursive", "-r" }, "Recursive search"));
 
-            Handler = CommandHandler.Create(async (string file, string path, bool recursive, CancellationToken token) =>
+            Handler = CommandHandler.Create(async (string file, string? path, bool recursive, CancellationToken token) =>
             {
+                path ??= "/";
                 await serviceProvider.GetRequiredService<GetActivity>().WriteFile(file, path, recursive, token);
                 return 0;
             });

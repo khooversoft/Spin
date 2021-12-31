@@ -43,3 +43,25 @@ get dump \{directoryId}
 ~~~
 
 File is a json array of 'DirectoryEntry', each directory entry will be set.
+
+Users
+
+| Directory Id  | Object Type | Property |
+| ------------- | ----------- | -------- |
+| endUser1@default.com | user | userType=Individual |
+| endUser2@default.com | user | userType=Individual |
+| salesUser1@company1.com | user | userType=corp, company=company1 |
+| salesUser2@company1.com | user | userType=corp, company=company1 |
+| Artifact | service | hostUrl={}, apiKey={} |
+| Contract | service | hostUrl={}, apiKey={} |
+| Engine | service | hostUrl={}, apiKey={} |
+
+
+
+Service startup sequence (not Directory)
+1. Get "Directory" information from local configuration
+2. Get "DirectoryEntry" for "service" from directory
+3. Set configuration and start service
+
+Directory, gets all configuration from local configuration
+

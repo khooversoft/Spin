@@ -2,7 +2,7 @@
   "profiles": {
     "DirectoryCmd": {
       "commandName": "Project",
-      "commandLineArgs": "set  property test/unit-tests/general-settings property1=value1"
+      "commandLineArgs": "set file D:\\SpinDisk\\Environments\\dev-Spin.directory.json"
     }
   }
 }

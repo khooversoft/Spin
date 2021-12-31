@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -30,8 +31,14 @@ namespace Directory.sdk.Client
         {
             _logger.LogTrace($"Getting directoryId={directoryId}");
 
-            DirectoryEntry? entry = await _httpClient.GetFromJsonAsync<DirectoryEntry>($"api/entry/{directoryId.ToUrlEncoding()}", token);
-            return entry;
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<DirectoryEntry>($"api/entry/{directoryId.ToUrlEncoding()}", token);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
 
         public async Task Set(DirectoryEntry entry, CancellationToken token = default)

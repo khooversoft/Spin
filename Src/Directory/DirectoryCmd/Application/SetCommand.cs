@@ -22,7 +22,7 @@ internal class SetCommand : Command
         public SetFileCommand(IServiceProvider serviceProvider)
             : base("file", "Read entry from file")
         {
-            AddArgument(new Argument<string>("file", "Read directory entry from file"));
+            AddArgument(new Argument<string>("file", "Read directory entries from file"));
 
             Handler = CommandHandler.Create(async (string file, CancellationToken token) =>
             {

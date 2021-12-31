@@ -35,6 +35,7 @@ internal class SetActivity
         {
             await _directoryClient.Set(entry, token);
             count++;
+            _logger.LogInformation($"Writing {entry.DirectoryId}");
         }
 
         _logger.LogInformation($"Completed writing {count} entries from {file} to directory");
@@ -46,8 +47,7 @@ internal class SetActivity
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetProperty), DirectoryId = directoryId, Properties = properties });
 
-        DirectoryEntry entry = (await _directoryClient.Get(id))
-            .VerifyNotNull($"{directoryId} does not exist");
+        DirectoryEntry entry = (await _directoryClient.Get(id)) ?? new DirectoryEntry {  DirectoryId = (string)id };
 
         foreach(var item in properties)
         {

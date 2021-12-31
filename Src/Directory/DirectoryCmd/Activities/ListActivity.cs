@@ -44,11 +44,14 @@ internal class ListActivity
             BatchSet<DatalakePathItem> batchSet = await batch.ReadNext(token);
             if (batchSet.IsEndSignaled) break;
 
-            batchSet.Records.ForEach(x => list.Add($"({index++}) {x.Name}"));
+            batchSet.Records
+                .Where(x => !(x.IsDirectory == true))
+                .ForEach(x => list.Add($"({index++}) {x.Name}"));
         }
 
+        list.Add("");
         list.Add($"Completed, {index} listed");
 
-        _logger.LogInformation(list.Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine));
+        _logger.LogInformation(list.Join(Environment.NewLine));
     }
 }

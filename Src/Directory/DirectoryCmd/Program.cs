@@ -66,6 +66,8 @@ ServiceProvider BuildContainer(ApplicationOption option)
     {
         x.AddConsole();
         x.AddDebug();
+        x.AddFilter("System.Net.Http.HttpClient.DirectoryClient.ClientHandler", x => option.Trace || x > LogLevel.Information);
+        x.AddFilter("System.Net.Http.HttpClient.DirectoryClient.LogicalHandler", x => option.Trace || x > LogLevel.Information);
     });
 
     service.AddHttpClient<DirectoryClient>(httpClient =>

@@ -37,7 +37,8 @@ internal class DirectoryStorage
     public async Task<DirectoryEntry?> Get(DirectoryId directoryId, CancellationToken token = default)
     {
         string path = directoryId.ToFileName();
-        (byte[] Data, ETag eTag) = await _store.ReadWithTag(path, token);
+        (byte[]? Data, ETag? eTag) = await _store.ReadWithTag(path, token);
+        if (Data == null) return null;
 
         DirectoryEntry? entry = Json.Default.Deserialize<DirectoryEntry>(Data.BytesToString());
         if (entry == null) return null;

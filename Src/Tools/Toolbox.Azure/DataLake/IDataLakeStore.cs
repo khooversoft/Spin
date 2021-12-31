@@ -15,9 +15,9 @@ namespace Toolbox.Azure.DataLake
         Task DeleteDirectory(string path, CancellationToken token = default);
         Task<bool> Exist(string path, CancellationToken token = default);
         Task<DatalakePathProperties> GetPathProperties(string path, CancellationToken token = default);
-        Task<byte[]> Read(string path, CancellationToken token = default);
+        Task<byte[]?> Read(string path, CancellationToken token = default);
         Task Read(string path, Stream toStream, CancellationToken token = default);
-        Task<(byte[] Data, ETag Etag)> ReadWithTag(string path, CancellationToken token = default);
+        Task<(byte[]? Data, ETag? Etag)> ReadWithTag(string path, CancellationToken token = default);
         Task<IReadOnlyList<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token = default);
         Task<ETag> Write(Stream fromStream, string toPath, bool overwrite, ETag? eTag = null, CancellationToken token = default);
         Task<ETag> Write(string path, byte[] data, bool overwrite, ETag? eTag = null, CancellationToken token = default);

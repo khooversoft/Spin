@@ -11,6 +11,7 @@ internal class ApplicationOption
 {
     public string DirectoryUrl { get; init; } = null!;
     public string ApiKey { get; init; } = null!;
+    public bool Trace { get; init; }
 }
 
 internal static class ApplicationOptionExtensions
