@@ -2,6 +2,8 @@
 using Directory.sdk.Model;
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
+using Toolbox.Document;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace DirectoryCmd.Activities;
@@ -23,7 +25,7 @@ internal class SetActivity
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetFile), File = file });
 
-        _logger.LogInformation($"Writing {file} to directory");
+        _logger.LogInformation($"Reading {file} to directory");
 
         string json = File.ReadAllText(file);
 
@@ -43,7 +45,8 @@ internal class SetActivity
 
     public async Task SetProperty(string directoryId, string[] properties, CancellationToken token)
     {
-        DirectoryId id = new DirectoryId(directoryId);
+        var id = new DocumentId(directoryId);
+        _logger.LogInformation($"Updating property {properties.Join(", ")} on {directoryId}");
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetProperty), DirectoryId = directoryId, Properties = properties });
 
@@ -60,6 +63,7 @@ internal class SetActivity
         }
 
         await _directoryClient.Set(entry, token);
+        _logger.LogInformation($"Updated property {properties.Join(", ")} on {directoryId}");
 
         (string key, string value) GetProperty(string value)
         {

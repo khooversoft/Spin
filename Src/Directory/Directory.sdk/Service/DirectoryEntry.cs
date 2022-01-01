@@ -2,8 +2,8 @@
 using Directory.sdk.Model;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq;
+using Toolbox.Document;
 using Toolbox.Tools;
 
 namespace Directory.sdk.Service;
@@ -27,7 +27,13 @@ public static class DirectoryEntryExtensions
     public static void Verify(this DirectoryEntry subject)
     {
         subject.VerifyNotNull(nameof(subject));
-        subject.DirectoryId.VerifyDirectoryId();
+        subject.DirectoryId.VerifyDocumentId();
         subject.ClassType.VerifyNotEmpty(nameof(subject.ClassType));
+        subject.Properties.VerifyNotNull(nameof(subject.Properties));
     }
+
+    public static string? GetPropertyValue(this DirectoryEntry directoryEntry, string name) => directoryEntry
+            .Properties.Values
+            .FirstOrDefault(x => x.Name.Equals(nameof(ServiceRecord.HostUrl), StringComparison.OrdinalIgnoreCase))
+            ?.Value;
 }

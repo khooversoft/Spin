@@ -1,6 +1,6 @@
 ﻿using ArtifactCmd.Application;
-using ArtifactStore.sdk.Client;
-using ArtifactStore.sdk.Model;
+using Artifact.sdk.Client;
+using Artifact.sdk.Model;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

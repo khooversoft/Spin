@@ -1,6 +1,6 @@
 ﻿using ArtifactCmd.Activities;
 using ArtifactCmd.Application;
-using ArtifactStore.sdk.Client;
+using Artifact.sdk.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;

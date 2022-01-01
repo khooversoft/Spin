@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Model;
 
@@ -24,11 +25,11 @@ namespace DirectoryApi.Controllers
         [HttpGet("{path}")]
         public async Task<IActionResult> Get(string path, CancellationToken token)
         {
-            DirectoryId directoryId = DirectoryIdUtility.FromUrlEncoding(path);
+            DocumentId documentId = DocumentIdUtility.FromUrlEncoding(path);
 
             bool bypassCache = Request.Headers.ContainsKey(Constants.BypassCacheName);
 
-            DirectoryEntry? entry = await _directoryService.Get(directoryId, token, bypassCache: bypassCache);
+            DirectoryEntry? entry = await _directoryService.Get(documentId, token, bypassCache: bypassCache);
             if (entry == null) return NotFound();
 
             return Ok(entry);
@@ -44,8 +45,8 @@ namespace DirectoryApi.Controllers
         [HttpDelete("{path}")]
         public async Task<IActionResult> Delete(string path, CancellationToken token)
         {
-            DirectoryId directoryId = DirectoryIdUtility.FromUrlEncoding(path);
-            await _directoryService.Delete(directoryId, token);
+            DocumentId documentId = DocumentIdUtility.FromUrlEncoding(path);
+            await _directoryService.Delete(documentId, token);
 
             return Ok();
         }

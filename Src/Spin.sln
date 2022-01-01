@@ -11,13 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Test", "Tools\Toolb
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToolBox.Azure.Test", "Tools\ToolBox.Azure.Test\ToolBox.Azure.Test.csproj", "{CDA25FC6-920B-4445-8708-02E37B87408A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore", "Artifact\ArtifactStore\ArtifactStore.csproj", "{C303A1BC-20AE-4810-AAB2-F72A16F4A689}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactApi", "Artifact\ArtifactApi\ArtifactApi.csproj", "{C303A1BC-20AE-4810-AAB2-F72A16F4A689}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.sdk", "Artifact\ArtifactStore.sdk\ArtifactStore.sdk.csproj", "{2D522367-2138-4390-84B1-58E46F2E197F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Artifact.sdk", "Artifact\Artifact.sdk\Artifact.sdk.csproj", "{2D522367-2138-4390-84B1-58E46F2E197F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.Test", "Artifact\ArtifactStore.Test\ArtifactStore.Test.csproj", "{B54E3A84-F19D-4D9B-A699-AE1D76423609}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactApi.Test", "Artifact\ArtifactApi.Test\ArtifactApi.Test.csproj", "{B54E3A84-F19D-4D9B-A699-AE1D76423609}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtifactStore.sdk.Test", "Artifact\ArtifactStore.sdk.Test\ArtifactStore.sdk.Test.csproj", "{DB173CE0-BED8-4631-B81A-43BBF62BCFE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Artifact.sdk.Test", "Artifact\Artifact.sdk.Test\Artifact.sdk.Test.csproj", "{DB173CE0-BED8-4631-B81A-43BBF62BCFE8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{363371EF-FAAC-42B7-999F-54CAA56F6910}"
 EndProject
@@ -71,7 +71,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirectoryApi", "Directory\D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Directory.Test", "Directory\Directory.Test\Directory.Test.csproj", "{8209C12F-CDC0-47BE-904E-754C8162EE10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryCmd", "Directory\DirectoryCmd\DirectoryCmd.csproj", "{7696DC30-4842-4188-9B02-74BEA520446B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirectoryCmd", "Directory\DirectoryCmd\DirectoryCmd.csproj", "{7696DC30-4842-4188-9B02-74BEA520446B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Document", "Tools\Toolbox.Document\Toolbox.Document.csproj", "{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -191,6 +193,10 @@ Global
 		{7696DC30-4842-4188-9B02-74BEA520446B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7696DC30-4842-4188-9B02-74BEA520446B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7696DC30-4842-4188-9B02-74BEA520446B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -223,6 +229,7 @@ Global
 		{23B03C28-8C29-4DA9-BA5E-D594DBBD1C46} = {44978541-5977-4226-B4E8-B62710814190}
 		{8209C12F-CDC0-47BE-904E-754C8162EE10} = {44978541-5977-4226-B4E8-B62710814190}
 		{7696DC30-4842-4188-9B02-74BEA520446B} = {44978541-5977-4226-B4E8-B62710814190}
+		{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

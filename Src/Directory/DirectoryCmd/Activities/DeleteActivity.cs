@@ -2,6 +2,7 @@
 using Directory.sdk.Model;
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
+using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -18,28 +19,28 @@ internal class DeleteActivity
         _logger = logger;
     }
 
-    internal async Task DeleteEntry(string directoryId, CancellationToken token)
+    internal async Task DeleteEntry(string documentId, CancellationToken token)
     {
-        directoryId.VerifyNotEmpty(nameof(directoryId));
+        documentId.VerifyNotEmpty(nameof(documentId));
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = directoryId });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId });
 
-        var id = new DirectoryId(directoryId);
+        var id = new DocumentId(documentId);
         await _directoryClient.Delete(id, token);
 
-        _logger.LogInformation($"Deleted {directoryId} from directory");
+        _logger.LogInformation($"Deleted {documentId} from directory");
     }
 
-    internal async Task DeleteProperty(string directoryId, string[] properties, CancellationToken token)
+    internal async Task DeleteProperty(string documentId, string[] properties, CancellationToken token)
     {
-        directoryId.VerifyNotEmpty(nameof(directoryId));
+        documentId.VerifyNotEmpty(nameof(documentId));
         properties.VerifyNotNull(nameof(properties));
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = directoryId });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId });
 
-        var id = new DirectoryId(directoryId);
+        var id = new DocumentId(documentId);
         DirectoryEntry entry = (await _directoryClient.Get(id))
-            .VerifyNotNull($"{directoryId} does not exist");
+            .VerifyNotNull($"{documentId} does not exist");
 
         foreach (var key in properties)
         {
@@ -48,6 +49,6 @@ internal class DeleteActivity
 
         await _directoryClient.Set(entry, token);
 
-        _logger.LogInformation($"Removed properties {properties.Join(", ")} from {directoryId}");
+        _logger.LogInformation($"Removed properties {properties.Join(", ")} from {documentId}");
     }
 }

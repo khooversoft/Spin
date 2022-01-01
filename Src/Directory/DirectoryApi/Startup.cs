@@ -7,6 +7,7 @@ using Spin.Common.Services;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -19,6 +20,7 @@ namespace DirectoryApi
             service.VerifyNotNull(nameof(service));
 
             service.AddSingleton<IDirectoryService, DirectoryService>();
+            service.AddSingleton<IDocumentStorage, DocumentStorage>();
             service.AddSingleton<IMemoryCache, MemoryCache>();
 
             service.AddSingleton<IDatalakeStore>(service =>

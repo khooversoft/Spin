@@ -57,5 +57,5 @@ app.ConfigureDirectoryService();
 if (app.Environment.IsEnvironment("Test"))
     app.Run();
 else
-    app.Run(option.HostUrl ?? "http://localhost:5011");
+    app.Run(option.HostUrl ?? "http://localhost:5001");
 

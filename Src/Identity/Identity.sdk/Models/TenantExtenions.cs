@@ -1,57 +1,57 @@
-﻿using ArtifactStore.sdk.Model;
-using Identity.sdk.Types;
-using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿//using ArtifactStore.sdk.Model;
+//using Identity.sdk.Types;
+//using Toolbox.Extensions;
+//using Toolbox.Tools;
 
-namespace Identity.sdk.Models
-{
-    public static class TenantExtenions
-    {
-        public static Tenant Verify(this Tenant tenant)
-        {
-            tenant.VerifyNotNull(nameof(tenant));
-            tenant.TenantId.VerifyNotNull(nameof(tenant.TenantId));
-            tenant.Name.VerifyNotEmpty(nameof(tenant.Name));
+//namespace Identity.sdk.Models
+//{
+//    public static class TenantExtenions
+//    {
+//        public static Tenant Verify(this Tenant tenant)
+//        {
+//            tenant.VerifyNotNull(nameof(tenant));
+//            tenant.TenantId.VerifyNotNull(nameof(tenant.TenantId));
+//            tenant.Name.VerifyNotEmpty(nameof(tenant.Name));
 
-            return tenant;
-        }
+//            return tenant;
+//        }
 
-        public static bool IsValid(this Tenant tenant) => tenant != null &&
-            tenant.TenantId != null &&
-            !tenant.Name.IsEmpty();
+//        public static bool IsValid(this Tenant tenant) => tenant != null &&
+//            tenant.TenantId != null &&
+//            !tenant.Name.IsEmpty();
 
-        public static ArtifactId ToArtifactId(this Tenant tenant)
-        {
-            tenant.VerifyNotNull(nameof(tenant));
-            tenant.Verify();
+//        public static ArtifactId ToArtifactId(this Tenant tenant)
+//        {
+//            tenant.VerifyNotNull(nameof(tenant));
+//            tenant.Verify();
 
-            return Tenant.ToArtifactId(tenant.TenantId);
-        }
+//            return Tenant.ToArtifactId(tenant.TenantId);
+//        }
 
-        public static Tenant ToTenant(this ArtifactPayload artifactPayload)
-        {
-            artifactPayload.VerifyNotNull(nameof(artifactPayload));
+//        public static Tenant ToTenant(this ArtifactPayload artifactPayload)
+//        {
+//            artifactPayload.VerifyNotNull(nameof(artifactPayload));
 
-            return artifactPayload.DeserializePayload<Tenant>();
-        }
+//            return artifactPayload.DeserializePayload<Tenant>();
+//        }
 
-        public static ArtifactPayload ToArtifactPayload(this Tenant tenant)
-        {
-            tenant.VerifyNotNull(nameof(tenant));
+//        public static ArtifactPayload ToArtifactPayload(this Tenant tenant)
+//        {
+//            tenant.VerifyNotNull(nameof(tenant));
 
-            return new ArtifactPayloadBuilder()
-                .SetId(tenant.ToArtifactId())
-                .SetPayload(tenant)
-                .Build();
-        }
+//            return new ArtifactPayloadBuilder()
+//                .SetId(tenant.ToArtifactId())
+//                .SetPayload(tenant)
+//                .Build();
+//        }
 
-        public static IdentityId ParseId(ArtifactId subscription)
-        {
-            subscription.VerifyNotNull(nameof(subscription));
-            subscription.Namespace.VerifyAssert(x => x == "tenant", $"Namespace does not match 'tenant'");
-            subscription.PathItems.Count.VerifyAssert(x => x == 1, $"Invalid path for Subscription, {subscription.Path}");
+//        public static IdentityId ParseId(ArtifactId subscription)
+//        {
+//            subscription.VerifyNotNull(nameof(subscription));
+//            subscription.Namespace.VerifyAssert(x => x == "tenant", $"Namespace does not match 'tenant'");
+//            subscription.PathItems.Count.VerifyAssert(x => x == 1, $"Invalid path for Subscription, {subscription.Path}");
 
-            return (IdentityId)subscription.PathItems[0];
-        }
-    }
-}
+//            return (IdentityId)subscription.PathItems[0];
+//        }
+//    }
+//}

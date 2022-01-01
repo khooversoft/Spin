@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;
@@ -24,7 +25,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            DirectoryId directoryId = new DirectoryId("test/unit-tests/entry1");
+            var documentId = new DocumentId("test/unit-tests/entry1");
 
             var query = new QueryParameter()
             {
@@ -33,10 +34,10 @@ namespace Directory.Test
             };
 
             IReadOnlyList<DatalakePathItem> search = (await client.Search(query).ReadNext()).Records;
-            if (search.Any(x => x.Name == (string)directoryId)) await client.Delete(directoryId);
+            if (search.Any(x => x.Name == (string)documentId)) await client.Delete(documentId);
 
             var entry = new DirectoryEntryBuilder()
-                .SetDirectoryId(directoryId)
+                .SetDirectoryId(documentId)
                 .SetClassType("test")
                 .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
                 .Build();
@@ -44,9 +45,9 @@ namespace Directory.Test
             await client.Set(entry);
 
             search = (await client.Search(query).ReadNext()).Records;
-            search.Any(x => x.Name == (string)directoryId).Should().BeTrue();
+            search.Any(x => x.Name == (string)documentId).Should().BeTrue();
 
-            DirectoryEntry? readEntry = await client.Get(directoryId);
+            DirectoryEntry? readEntry = await client.Get(documentId);
             readEntry.Should().NotBeNull();
 
             readEntry!.DirectoryId.Should().Be(entry.DirectoryId);
@@ -59,9 +60,9 @@ namespace Directory.Test
                 (x == entry.Properties.Values.First()).Should().BeTrue();
             });
 
-            await client.Delete(directoryId);
+            await client.Delete(documentId);
             search = (await client.Search(query).ReadNext()).Records;
-            search.Any(x => x.Name == (string)directoryId).Should().BeFalse();
+            search.Any(x => x.Name == (string)documentId).Should().BeFalse();
         }
         
         [Fact]
@@ -69,7 +70,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            DirectoryId directoryId = new DirectoryId("test/unit-tests/entry1");
+            var documentId = new DocumentId("test/unit-tests/entry1");
 
             var query = new QueryParameter()
             {
@@ -77,17 +78,17 @@ namespace Directory.Test
                 Recursive = false,
             };
 
-            await client.Delete(directoryId);
+            await client.Delete(documentId);
 
             var entry = new DirectoryEntryBuilder()
-                .SetDirectoryId(directoryId)
+                .SetDirectoryId(documentId)
                 .SetClassType("test")
                 .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
                 .Build();
 
             await client.Set(entry);
 
-            DirectoryEntry? readEntry = await client.Get(directoryId);
+            DirectoryEntry? readEntry = await client.Get(documentId);
             readEntry.Should().NotBeNull();
             readEntry!.ETag.Should().NotBeNull();
             readEntry.Properties.Count.Should().Be(1);
@@ -99,13 +100,13 @@ namespace Directory.Test
 
             await client.Set(updateEntry);
 
-            readEntry = await client.Get(directoryId);
+            readEntry = await client.Get(documentId);
             readEntry.Should().NotBeNull();
             readEntry!.Properties.Count.Should().Be(2);
 
-            await client.Delete(directoryId);
+            await client.Delete(documentId);
             IReadOnlyList<DatalakePathItem> search = (await client.Search(query).ReadNext()).Records;
-            search.Any(x => x.Name == (string)directoryId).Should().BeFalse();
+            search.Any(x => x.Name == (string)documentId).Should().BeFalse();
         }
 
 
@@ -114,7 +115,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            DirectoryId directoryId = new DirectoryId("test/unit-tests/entry1");
+            var documentId = new DocumentId("test/unit-tests/entry1");
 
             var query = new QueryParameter()
             {
@@ -122,17 +123,17 @@ namespace Directory.Test
                 Recursive = false,
             };
 
-            await client.Delete(directoryId);
+            await client.Delete(documentId);
 
             var entry = new DirectoryEntryBuilder()
-                .SetDirectoryId(directoryId)
+                .SetDirectoryId(documentId)
                 .SetClassType("test")
                 .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
                 .Build();
 
             await client.Set(entry);
 
-            DirectoryEntry? readEntry = await client.Get(directoryId);
+            DirectoryEntry? readEntry = await client.Get(documentId);
             readEntry.Should().NotBeNull();
             readEntry!.ETag.Should().NotBeNull();
             readEntry.Properties.Count.Should().Be(1);
@@ -156,9 +157,9 @@ namespace Directory.Test
 
             failed.Should().BeTrue();
 
-            await client.Delete(directoryId);
+            await client.Delete(documentId);
             IReadOnlyList<DatalakePathItem> search = (await client.Search(query).ReadNext()).Records;
-            search.Any(x => x.Name == (string)directoryId).Should().BeFalse();
+            search.Any(x => x.Name == (string)documentId).Should().BeFalse();
         }
     }
 }

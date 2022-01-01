@@ -3,6 +3,7 @@ using Directory.sdk.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -14,19 +15,19 @@ public class DirectoryEntryBuilder
 
     public DirectoryEntryBuilder(DirectoryEntry directoryEntry)
     {
-        DirectoryId = (DirectoryId)directoryEntry.DirectoryId;
+        DocumentId = (DocumentId)directoryEntry.DirectoryId;
         ClassType = directoryEntry.ClassType;
         ETag = directoryEntry.ETag;
 
         directoryEntry.Properties.Values.ForEach(x => Properties.Add(x.Name, x));
     }
 
-    public DirectoryId? DirectoryId { get; set; }
+    public DocumentId? DocumentId { get; set; }
     public string? ClassType { get; set; }
     public ETag? ETag { get; set; }
     public IDictionary<string, EntryProperty> Properties { get; } = new Dictionary<string, EntryProperty>(StringComparer.OrdinalIgnoreCase);
 
-    public DirectoryEntryBuilder SetDirectoryId(DirectoryId directoryId) => this.Action(x => x.DirectoryId = directoryId);
+    public DirectoryEntryBuilder SetDirectoryId(DocumentId documentId) => this.Action(x => x.DocumentId = documentId);
     public DirectoryEntryBuilder SetClassType(string classType) => this.Action(x => x.ClassType = classType);
     public DirectoryEntryBuilder SetETag(ETag eTag) => this.Action(x => x.ETag = eTag);
 
@@ -51,12 +52,12 @@ public class DirectoryEntryBuilder
 
     public DirectoryEntry Build()
     {
-        DirectoryId.VerifyNotNull($"{nameof(DirectoryId)} is required");
+        DocumentId.VerifyNotNull($"{nameof(DocumentId)} is required");
         ClassType.VerifyNotEmpty($"{nameof(ClassType)} is required");
 
         return new DirectoryEntry
         {
-            DirectoryId = (string)DirectoryId,
+            DirectoryId = (string)DocumentId,
             ClassType = ClassType,
             ETag = ETag,
             Properties = Properties.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),

@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;
@@ -27,13 +28,13 @@ namespace Directory.sdk.Client
             _logger = logger;
         }
 
-        public async Task<DirectoryEntry?> Get(DirectoryId directoryId, CancellationToken token = default)
+        public async Task<DirectoryEntry?> Get(DocumentId documentId, CancellationToken token = default)
         {
-            _logger.LogTrace($"Getting directoryId={directoryId}");
+            _logger.LogTrace($"Getting directoryId={documentId}");
 
             try
             {
-                return await _httpClient.GetFromJsonAsync<DirectoryEntry>($"api/entry/{directoryId.ToUrlEncoding()}", token);
+                return await _httpClient.GetFromJsonAsync<DirectoryEntry>($"api/entry/{documentId.ToUrlEncoding()}", token);
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -49,11 +50,11 @@ namespace Directory.sdk.Client
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task Delete(DirectoryId directoryId, CancellationToken token = default)
+        public async Task Delete(DocumentId documentId, CancellationToken token = default)
         {
-            _logger.LogTrace($"Delete directoryId={directoryId}");
+            _logger.LogTrace($"Delete directoryId={documentId}");
 
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/entry/{directoryId.ToUrlEncoding()}", token);
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/entry/{documentId.ToUrlEncoding()}", token);
             response.EnsureSuccessStatusCode();
         }
 

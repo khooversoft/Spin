@@ -2,6 +2,7 @@
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;
@@ -44,9 +45,9 @@ internal class GetActivity
 
             foreach(var entry in batchSet.Records)
             {
-                var directoryId = new DirectoryId(entry.Name);
+                var documentId = new DocumentId(entry.Name);
 
-                DirectoryEntry? directoryEntry = await _directoryClient.Get(directoryId, token);
+                DirectoryEntry? directoryEntry = await _directoryClient.Get(documentId, token);
                 if( directoryEntry == null)
                 {
                     _logger.LogWarning($"Directory entry for {entry.Name} was not found");
@@ -65,7 +66,7 @@ internal class GetActivity
 
     internal async Task DumpProperty(string directoryId, CancellationToken token)
     {
-        var id = new DirectoryId(directoryId);
+        var id = new DocumentId(directoryId);
 
         DirectoryEntry directoryEntry = (await _directoryClient.Get(id, token))
             .VerifyNotNull($"{directoryId} not found");
