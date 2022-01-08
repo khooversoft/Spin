@@ -24,11 +24,11 @@ public class DocumentStorage : IDocumentStorage
         _memoryCache = memoryCache;
     }
 
-    public async Task Delete(DocumentId documentId, CancellationToken token = default)
+    public async Task<bool> Delete(DocumentId documentId, CancellationToken token = default)
     {
         _memoryCache?.Remove(GetKey(documentId));
 
-        await _store.Delete(documentId.ToFileName(), token: token);
+        return await _store.Delete(documentId.ToJsonFileName(), token: token);
     }
 
     public async Task<(T?, ETag? eTag)> Get<T>(DocumentId documentId, CancellationToken token = default, bool bypassCache = false)
@@ -41,14 +41,14 @@ public class DocumentStorage : IDocumentStorage
             _memoryCache.Remove(GetKey(documentId));
         }
 
-        string path = documentId.ToFileName();
+        string path = documentId.ToJsonFileName();
         (byte[]? Data, ETag? eTag) = await _store.ReadWithTag(path, token);
         if (Data == null) return (default, null);
 
         T? entry = Json.Default.Deserialize<T>(Data.BytesToString());
         if (entry == null) return (default, null);
 
-        _memoryCache?.Set(GetKey(documentId), new DocumentCache<T> { Value = entry, ETag = eTag });
+        _memoryCache?.Set(GetKey(documentId), new DocumentCache<T>(entry, eTag));
 
         return (entry, eTag);
     }
@@ -58,10 +58,10 @@ public class DocumentStorage : IDocumentStorage
         documentId.VerifyNotNull(nameof(documentId));
         value.VerifyNotNull(nameof(value));
 
-        string path = documentId.ToFileName();
+        string path = documentId.ToJsonFileName();
         ETag writeEtag = await _store.Write(path, value.ToJsonFormat().ToBytes(), true, eTag: eTag, token: token);
 
-        _memoryCache?.Set(GetKey(documentId), new DocumentCache<T> { Value = value, ETag = writeEtag });
+        _memoryCache?.Set(GetKey(documentId), new DocumentCache<T>(value, writeEtag));
 
         return writeEtag;
     }
@@ -71,18 +71,13 @@ public class DocumentStorage : IDocumentStorage
         IReadOnlyList<DatalakePathItem> list = await _store.Search(queryParameter, token);
 
         return list
-            .Select(x => x with { Name = DocumentIdUtility.FromFileName(x.Name) })
+            .Select(x => x with { Name = DocumentIdTools.RemoveExtension(x.Name) })
             .ToList();
     }
 
-    public async Task<DatalakePathProperties> GetProperty(DocumentId documentId, CancellationToken token = default) => await _store.GetPathProperties(documentId.ToFileName(), token);
+    public async Task<DatalakePathProperties> GetProperty(DocumentId documentId, CancellationToken token = default) => await _store.GetPathProperties(documentId.ToJsonFileName(), token);
 
     private string GetKey(DocumentId documentId) => documentId.ToString().ToLower();
 
-    private class DocumentCache<T>
-    {
-        public T Value { get; init; } = default!;
-
-        public ETag? ETag { get; init; }
-    }
+    private record DocumentCache<T>(T Value, ETag? ETag);
 }

@@ -34,6 +34,6 @@ public static class DirectoryEntryExtensions
 
     public static string? GetPropertyValue(this DirectoryEntry directoryEntry, string name) => directoryEntry
             .Properties.Values
-            .FirstOrDefault(x => x.Name.Equals(nameof(ServiceRecord.HostUrl), StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
             ?.Value;
 }

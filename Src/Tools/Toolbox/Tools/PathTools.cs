@@ -14,13 +14,23 @@ namespace Toolbox.Tools
 
             extension = extension.StartsWith(".") ? extension : "." + extension;
 
-            return path.Split('/')
-                .Reverse()
-                .Select((x, i) => i == 0 ? setExtensionIfRequired(x, extension) : x)
-                .Reverse()
-                .Aggregate(string.Empty, (a, x) => a += x + "/", x => x[0..^1]);
+            return path.EndsWith(extension) ? path: path + extension;
+        }
 
-            static string setExtensionIfRequired(string file, string extension) => Path.GetExtension(file).IsEmpty() ? Path.ChangeExtension(file, extension) : file;
+        public static string RemoveExtension(string path, string extension, params string[] extensions)
+        {
+            path.VerifyNotEmpty(nameof(path));
+
+            var extensionList = (extension.ToEnumerable().Concat(extensions))
+                .Select(x => x.StartsWith(".") ? x : "." + x)
+                .ToArray();
+
+            foreach(var item in extensionList)
+            {
+                if (path.EndsWith(item)) return path[0..^(extension.Length-1)];
+            }
+
+            return path;
         }
     }
 }

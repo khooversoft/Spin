@@ -1,6 +1,6 @@
-﻿using Artifact.sdk.Model;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Document;
 using Toolbox.Model;
 using Toolbox.Tools;
 
@@ -8,9 +8,9 @@ namespace Artifact.sdk.Client
 {
     public interface IArtifactClient
     {
-        Task<bool> Delete(ArtifactId id, CancellationToken token = default);
-        Task<ArtifactPayload?> Get(ArtifactId id, CancellationToken token = default);
-        BatchSetCursor<string> List(QueryParameter queryParameter);
-        Task Set(ArtifactPayload articlePayload, CancellationToken token = default);
+        Task<bool> Delete(DocumentId id, CancellationToken token = default);
+        Task<Document?> Get(DocumentId id, CancellationToken token = default);
+        BatchSetCursor<string> Search(QueryParameter queryParameter);
+        Task Set(Document document, CancellationToken token = default);
     }
 }

@@ -41,7 +41,7 @@ namespace Directory.sdk.Model
             client.VerifyNotNull(nameof(client));
             settingName.VerifyNotNull(nameof(settingName));
 
-            var documentId = (DocumentId)$"{runEnvironment}/service/{settingName}";
+            var documentId = (DocumentId)$"{runEnvironment}/setting/{settingName}";
 
             DirectoryEntry entry = (await client.Get(documentId))
                 .VerifyNotNull($"Configuration {documentId} not found");
@@ -58,7 +58,7 @@ namespace Directory.sdk.Model
                 AccountName = entry.GetPropertyValue(nameof(StorageRecord.AccountName))!,
                 ContainerName = entry.GetPropertyValue(nameof(StorageRecord.ContainerName))!,
                 AccountKey = entry.GetPropertyValue(nameof(StorageRecord.AccountKey))!,
-                BasePath = entry.GetPropertyValue(nameof(StorageRecord.AccountKey))!,
+                BasePath = entry.GetPropertyValue(nameof(StorageRecord.BasePath))!,
             }.Verify();
         }
     }

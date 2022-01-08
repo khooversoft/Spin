@@ -9,7 +9,7 @@ namespace Artifact.Controllers
     [ApiController]
     public class PingController : PingControllerBase
     {
-        public PingController(IServiceStatus serviceStatus, LoggerBuffer loggerBuffer)
+        public PingController(IServiceStatus serviceStatus, ILoggerBuffer loggerBuffer)
             : base(serviceStatus, loggerBuffer)
         {
         }

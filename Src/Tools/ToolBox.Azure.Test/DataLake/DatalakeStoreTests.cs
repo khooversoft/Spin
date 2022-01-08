@@ -35,10 +35,10 @@ namespace ToolBox.Azure.Test.DataLake
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
             await dataLakeStore.Write(path, dataBytes, true);
 
-            byte[] receive = await dataLakeStore.Read(path);
+            byte[]? receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
-            Enumerable.SequenceEqual(dataBytes, receive).Should().BeTrue();
+            Enumerable.SequenceEqual(dataBytes, receive!).Should().BeTrue();
 
             DatalakePathProperties? pathProperties = await dataLakeStore.GetPathProperties(path);
             pathProperties.Should().NotBeNull();
@@ -70,10 +70,10 @@ namespace ToolBox.Azure.Test.DataLake
             byte[] appendDataBytes = Encoding.UTF8.GetBytes(data2);
             await dataLakeStore.Append(path, appendDataBytes);
 
-            byte[] receive = await dataLakeStore.Read(path);
+            byte[]? receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
-            Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive).Should().BeTrue();
+            Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive!).Should().BeTrue();
 
             await dataLakeStore.Delete(path);
         }
@@ -94,10 +94,10 @@ namespace ToolBox.Azure.Test.DataLake
             byte[] appendDataBytes = Encoding.UTF8.GetBytes(data2);
             await dataLakeStore.Append(path, appendDataBytes);
 
-            byte[] receive = await dataLakeStore.Read(path);
+            byte[]? receive = await dataLakeStore.Read(path);
             receive.Should().NotBeNull();
 
-            Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive).Should().BeTrue();
+            Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive!).Should().BeTrue();
 
             await dataLakeStore.Delete(path);
         }

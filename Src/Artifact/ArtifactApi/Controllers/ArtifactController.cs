@@ -1,70 +1,64 @@
-﻿//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
-//using Artifact.sdk.Model;
-//using Artifact.sdk.Services;
-//using Microsoft.AspNetCore.Mvc;
-//using Toolbox.Extensions;
-//using Toolbox.Model;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Toolbox.Azure.DataLake.Model;
+using Toolbox.Document;
+using Toolbox.Model;
 
-//namespace Artifact.Controllers
-//{
-//    [Route("api/[controller]")]
-//    [ApiController]
-//    public class ArtifactController : Controller
-//    {
-//        private readonly IArtifactStoreFactory _acticleStoreFactory;
+namespace Artifact.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ArtifactController : Controller
+    {
+        private readonly IDocumentPackage _documentStore;
 
-//        public ArtifactController(IArtifactStoreFactory acticleStoreFactory)
-//        {
-//            _acticleStoreFactory = acticleStoreFactory;
-//        }
+        public ArtifactController(IDocumentPackage documentStore)
+        {
+            _documentStore = documentStore;
+        }
 
-//        [HttpGet("{id}")]
-//        public async Task<IActionResult> Get(string id)
-//        {
-//            ArtifactId artifactId = ArtifactId.FromBase64(id);
+        [HttpGet("{path}")]
+        public async Task<IActionResult> Get(string path, CancellationToken token)
+        {
+            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+            Document? document = await _documentStore.Get(documentId, token);
 
-//            ArtifactPayload? record = await _acticleStoreFactory.Create(artifactId).Get(artifactId);
+            return document == null ? NotFound() : Ok(document);
+        }
 
-//            return record == null ? NotFound() : Ok(record);
-//        }
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] Document entry, CancellationToken token)
+        {
+            await _documentStore.Set(entry, token: token);
+            return Ok();
+        }
 
-//        [HttpPost]
-//        public async Task<IActionResult> Post([FromBody] ArtifactPayload record)
-//        {
-//            var (valid, _) = record.IsValid();
-//            if (valid == false) return BadRequest();
 
-//            await _acticleStoreFactory.Create(new ArtifactId(record.Id)).Set(record);
-//            return Ok();
-//        }
+        [HttpDelete("{path}")]
+        public async Task<IActionResult> Delete(string path, CancellationToken token)
+        {
+            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+            bool status = await _documentStore.Delete(documentId, token: token);
 
-//        [HttpDelete("{id}")]
-//        public async Task<IActionResult> Delete(string id)
-//        {
-//            ArtifactId artifactId = ArtifactId.FromBase64(id);
+            return status ? Ok() : NotFound();
+        }
 
-//            bool status = await _acticleStoreFactory.Create(artifactId).Delete(artifactId);
+        [HttpPost("search")]
+        public async Task<IActionResult> List([FromBody] QueryParameter queryParameter)
+        {
+            IReadOnlyList<DatalakePathItem> list = await _documentStore.Search(queryParameter);
 
-//            return status ? Ok() : NotFound();
-//        }
+            var result = new BatchSet<string>
+            {
+                QueryParameter = queryParameter,
+                NextIndex = queryParameter.Index + queryParameter.Count,
+                Records = list.Select(x => x.Name).ToArray(),
+            };
 
-//        [HttpPost("list")]
-//        public async Task<IActionResult> List([FromBody] QueryParameter queryParameter)
-//        {
-//            if (queryParameter.Namespace.IsEmpty()) return BadRequest();
-
-//            IReadOnlyList<string> list = await _acticleStoreFactory.Create(queryParameter.Namespace).List(queryParameter);
-
-//            var result = new BatchSet<string>
-//            {
-//                QueryParameter = queryParameter,
-//                NextIndex = queryParameter.Index + queryParameter.Count,
-//                Records = list.ToArray(),
-//            };
-
-//            return Ok(result);
-//        }
-//    }
-//}
+            return Ok(result);
+        }
+    }
+}

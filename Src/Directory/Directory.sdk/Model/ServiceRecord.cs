@@ -39,7 +39,8 @@ namespace Directory.sdk.Model
             DirectoryEntry entry = (await client.Get(documentId))
                 .VerifyNotNull($"Configuration {documentId} not found");
 
-            return entry.ConvertToServiceRecord();
+            var result = entry.ConvertToServiceRecord();
+            return result;
         }
 
         public static ServiceRecord ConvertToServiceRecord(this DirectoryEntry entry)

@@ -38,7 +38,7 @@ public class DirectoryService : IDirectoryService
         return entry with { ETag = eTag };
     }
 
-    public async Task Delete(DocumentId documentId, CancellationToken token) => await _documentStorage.Delete(documentId, token);
+    public async Task<bool> Delete(DocumentId documentId, CancellationToken token) => await _documentStorage.Delete(documentId, token);
 
     public Task<IReadOnlyList<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token = default) => _documentStorage.Search(queryParameter, token);
 }

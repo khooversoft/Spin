@@ -192,7 +192,7 @@ namespace Toolbox.Azure.DataLake
             return await Upload(path, memoryBuffer, overwrite, eTag, token);
         }
 
-        private string WithBasePath(string? path) => _azureStoreOption.BasePath + (_azureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path.VerifyNotEmpty($"{nameof(path)} is required");
+        private string WithBasePath(string? path) => _azureStoreOption.BasePath + (_azureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path;
 
         private string RemoveBaseRoot(string path)
         {

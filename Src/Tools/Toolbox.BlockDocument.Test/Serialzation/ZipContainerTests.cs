@@ -48,16 +48,19 @@ namespace Toolbox.BlockDocument.Test
             string json = blockChain.ToJson();
 
             using var writeBuffer = new MemoryStream();
-            var writer = new ZipWriter(new ZipArchive(writeBuffer, ZipArchiveMode.Create, leaveOpen: true));
-            writer.Write(zipPath, json);
-            writer.Close();
+            using (var writer = new ZipArchive(writeBuffer, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                writer.Write(zipPath, json);
+            }
 
             writeBuffer.Length.Should().BeGreaterThan(0);
             writeBuffer.Seek(0, SeekOrigin.Begin);
+            string readJson;
 
-            var reader = new ZipReader(new ZipArchive(writeBuffer, ZipArchiveMode.Read, leaveOpen: true));
-            string readJson = reader.Read(zipPath);
-            reader.Close();
+            using (var reader = new ZipArchive(writeBuffer, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                readJson = reader.ReadAsString(zipPath);
+            }
 
             BlockChain result = readJson.ToObject<BlockChainModel>()
                 .VerifyNotNull("Cannot deserialize")

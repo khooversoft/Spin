@@ -25,7 +25,7 @@ namespace DirectoryApi.Controllers
         [HttpGet("{path}")]
         public async Task<IActionResult> Get(string path, CancellationToken token)
         {
-            DocumentId documentId = DocumentIdUtility.FromUrlEncoding(path);
+            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
 
             bool bypassCache = Request.Headers.ContainsKey(Constants.BypassCacheName);
 
@@ -45,10 +45,10 @@ namespace DirectoryApi.Controllers
         [HttpDelete("{path}")]
         public async Task<IActionResult> Delete(string path, CancellationToken token)
         {
-            DocumentId documentId = DocumentIdUtility.FromUrlEncoding(path);
-            await _directoryService.Delete(documentId, token);
+            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+            bool status = await _directoryService.Delete(documentId, token);
 
-            return Ok();
+            return status ? Ok() : NotFound();
         }
 
         [HttpPost("search")]

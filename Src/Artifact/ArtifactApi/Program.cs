@@ -1,3 +1,4 @@
+using Artifact;
 using Artifact.Application;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +10,7 @@ using System.Runtime.CompilerServices;
 using Toolbox.Configuration;
 using Toolbox.Extensions;
 
-[assembly: InternalsVisibleTo("Directory.Test")]
+[assembly: InternalsVisibleTo("ArtifactApi.Test")]
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,7 @@ ApplicationOption option = builder.Configuration
     .VerifyPartial();
 
 
-//await builder.Services.ConfigureArtifactService(option);
+await builder.Services.ConfigureArtifactService(option);
 builder.Services.ConfigurePingService(builder.Logging);
 
 //  ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,7 +55,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//app.ConfigureArtifactService();
+app.ConfigureArtifactService();
 
 if (app.Environment.IsEnvironment("Test"))
     app.Run();

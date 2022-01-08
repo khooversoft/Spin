@@ -1,10 +1,10 @@
-﻿using Artifact.sdk.Model;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Document;
 using Toolbox.Model;
 using Toolbox.Tools;
 
@@ -21,14 +21,14 @@ namespace Artifact.sdk.Client
             _logger = logger;
         }
 
-        public async Task<ArtifactPayload?> Get(ArtifactId id, CancellationToken token = default)
+        public async Task<Document?> Get(DocumentId id, CancellationToken token = default)
         {
             id.VerifyNotNull(nameof(id));
             _logger.LogTrace($"{nameof(Get)}: Id={id}");
 
             try
             {
-                return await _httpClient.GetFromJsonAsync<ArtifactPayload?>($"api/artifact/{id.ToBase64()}", token);
+                return await _httpClient.GetFromJsonAsync<Document?>($"api/artifact/{id.ToUrlEncoding()}", token);
             }
             catch (HttpRequestException ex)
             {
@@ -37,22 +37,22 @@ namespace Artifact.sdk.Client
             }
         }
 
-        public async Task Set(ArtifactPayload articlePayload, CancellationToken token = default)
+        public async Task Set(Document document, CancellationToken token = default)
         {
-            articlePayload.VerifyNotNull(nameof(articlePayload));
+            document.VerifyNotNull(nameof(document));
 
-            _logger.LogTrace($"{nameof(Set)}: Id={articlePayload.Id}");
+            _logger.LogTrace($"{nameof(Set)}: Id={document.DocumentId}");
 
-            HttpResponseMessage message = await _httpClient.PostAsJsonAsync("api/artifact", articlePayload, token);
+            HttpResponseMessage message = await _httpClient.PostAsJsonAsync("api/artifact", document, token);
             message.EnsureSuccessStatusCode();
         }
 
-        public async Task<bool> Delete(ArtifactId id, CancellationToken token = default)
+        public async Task<bool> Delete(DocumentId id, CancellationToken token = default)
         {
             id.VerifyNotNull(nameof(id));
             _logger.LogTrace($"{nameof(Delete)}: Id={id}");
 
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/artifact/{id.ToBase64()}", token);
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/artifact/{id.ToUrlEncoding()}", token);
 
             return response.StatusCode switch
             {
@@ -63,6 +63,6 @@ namespace Artifact.sdk.Client
             };
         }
 
-        public BatchSetCursor<string> List(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, "api/artifact/list", queryParameter, _logger);
+        public BatchSetCursor<string> Search(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, "api/artifact/search", queryParameter, _logger);
     }
 }

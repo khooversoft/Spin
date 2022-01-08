@@ -1,4 +1,5 @@
-﻿using Artifact.Test.Application;
+﻿using Artifact.sdk.Client;
+using Artifact.Test.Application;
 using FluentAssertions;
 using Spin.Common.Client;
 using System.Threading.Tasks;
@@ -12,9 +13,7 @@ namespace Artifact.Test
         [Fact]
         public async Task WhenPinged_ShouldReturnOk()
         {
-            ArtificatTestHost host = TestApplication.GetHost();
-
-            PingClient pingClient = host.GetPingClient();
+            PingClient pingClient = TestApplication.GetPingClient();
 
             (bool ok, PingResponse? response) = await pingClient.Ping();
             ok.Should().BeTrue();
@@ -24,9 +23,7 @@ namespace Artifact.Test
         [Fact]
         public async Task WhenReady_ShouldReturnOk()
         {
-            ArtificatTestHost host = TestApplication.GetHost();
-
-            PingClient pingClient = host.GetPingClient();
+            PingClient pingClient = TestApplication.GetPingClient();
 
             (bool ok, PingResponse? response) = await pingClient.Ready();
             ok.Should().BeTrue();
@@ -36,9 +33,7 @@ namespace Artifact.Test
         [Fact]
         public async Task WhenAskedForLogs_ShouldReturnData()
         {
-            ArtificatTestHost host = TestApplication.GetHost();
-
-            PingClient pingClient = host.GetPingClient();
+            PingClient pingClient = TestApplication.GetPingClient();
 
             PingLogs? logs = await pingClient.GetLogs();
             logs.Should().NotBeNull();

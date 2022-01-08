@@ -1,33 +1,43 @@
 ﻿using Microsoft.Extensions.Logging;
+using Spin.Common.Client;
+using System.Net.Http;
 using System.Threading;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Artifact.Application;
+using Toolbox.Application;
+using Artifact.sdk.Client;
 
 namespace Artifact.Test.Application
 {
     internal static class TestApplication
     {
-        private static ILoggerFactory? _loggerFactory;
-        private static ArtificatTestHost? _host;
+        private static HttpClient? _client;
+        private static WebApplicationFactory<Program> _host = null!;
         private static object _lock = new object();
 
-        public static ArtificatTestHost GetHost()
+        public static HttpClient GetClient()
         {
             lock (_lock)
             {
-                if (_host != null) return _host;
+                if (_client != null) return _client;
 
-                _host = new ArtificatTestHost(LoggerFactory.Create(x => x.AddDebug()).CreateLogger<ArtificatTestHost>());
-                _host.StartApiServer();
+                _host = new WebApplicationFactory<Program>()
+                    .WithWebHostBuilder(builder => builder.UseEnvironment("Test"));
 
-                return _host;
+                ApplicationOption option = _host.Services.GetRequiredService<ApplicationOption>();
+
+                _client = _host.CreateClient();
+                _client.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ApiKey);
+                _client.DefaultRequestHeaders.Add(Constants.BypassCacheName, "true");
+
+                return _client;
             }
         }
 
-        public static void Shutdown() => Interlocked.Exchange(ref _host, null)?.Shutdown();
+        public static PingClient GetPingClient() => new PingClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<PingClient>());
 
-        public static ILoggerFactory GetLoggerFactory() => _loggerFactory ??= LoggerFactory.Create(x =>
-        {
-            x.AddConsole();
-            x.AddDebug();
-        });
+        public static ArtifactClient GetArtifactClient() => new ArtifactClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<ArtifactClient>());
     }
 }
