@@ -1,7 +1,7 @@
 ﻿using Toolbox.Application;
 using Toolbox.Tools;
 
-namespace Artifact.Application;
+namespace ContractApi.Application;
 
 public record ApplicationOption
 {

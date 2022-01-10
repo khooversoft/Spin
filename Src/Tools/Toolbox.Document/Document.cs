@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
 
 namespace Toolbox.Document;
 
@@ -10,7 +11,7 @@ public class Document
 {
     public DocumentId DocumentId { get; init; } = null!;
 
-    public IDictionary<string, string> Properties { get; init; } = null!;
+    public IReadOnlyDictionary<string, string> Properties { get; init; } = null!;
 
     public string ObjectClass { get; init; } = null!;
 
@@ -22,12 +23,7 @@ public class Document
     {
         return obj is Document document &&
             DocumentId == document.DocumentId &&
-
-            Properties.Count == document.Properties.Count &&
-            Properties.OrderBy(x => x.Key)
-                .Zip(document.Properties.OrderBy(x => x.Key), (o, i) => (o, i))
-                .All(x => x.o.Key == x.i.Key && x.o.Value == x.i.Value) &&
-
+            Properties.IsEqual(document.Properties) &&
             ObjectClass == document.ObjectClass &&
             Enumerable.SequenceEqual(Data, document.Data) &&
             Enumerable.SequenceEqual(Hash, document.Hash);

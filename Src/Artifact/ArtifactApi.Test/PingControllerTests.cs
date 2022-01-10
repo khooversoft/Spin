@@ -1,5 +1,4 @@
-﻿using Artifact.sdk.Client;
-using Artifact.Test.Application;
+﻿using Artifact.Test.Application;
 using FluentAssertions;
 using Spin.Common.Client;
 using System.Threading.Tasks;

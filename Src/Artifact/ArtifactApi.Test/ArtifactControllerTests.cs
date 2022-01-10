@@ -1,4 +1,4 @@
-﻿using Artifact.sdk.Client;
+﻿using Artifact.sdk;
 using Artifact.Test.Application;
 using FluentAssertions;
 using System.Linq;

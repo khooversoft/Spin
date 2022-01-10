@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Artifact.Application;
 using Toolbox.Application;
-using Artifact.sdk.Client;
+using Artifact.sdk;
 
 namespace Artifact.Test.Application
 {
