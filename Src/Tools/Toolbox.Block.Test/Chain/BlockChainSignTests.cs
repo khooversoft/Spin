@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Toolbox.Extensions;
 using Toolbox.Security;
+using Toolbox.Security.Extensions;
 using Toolbox.Security.Keys;
 using Toolbox.Security.Services;
 using Toolbox.Tools;

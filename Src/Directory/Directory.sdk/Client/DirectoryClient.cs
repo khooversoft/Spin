@@ -29,6 +29,14 @@ namespace Directory.sdk.Client
             _logger = logger;
         }
 
+        public async Task Delete(DocumentId documentId, CancellationToken token = default)
+        {
+            _logger.LogTrace($"Delete directoryId={documentId}");
+
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/entry/{documentId.ToUrlEncoding()}", token);
+            response.EnsureSuccessStatusCode();
+        }
+
         public async Task<DirectoryEntry?> Get(DocumentId documentId, CancellationToken token = default)
         {
             _logger.LogTrace($"Getting directoryId={documentId}");
@@ -48,14 +56,6 @@ namespace Directory.sdk.Client
             _logger.LogTrace($"Putting entry directoryId={entry.DirectoryId}");
 
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/entry", entry, token);
-            response.EnsureSuccessStatusCode();
-        }
-
-        public async Task Delete(DocumentId documentId, CancellationToken token = default)
-        {
-            _logger.LogTrace($"Delete directoryId={documentId}");
-
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/entry/{documentId.ToUrlEncoding()}", token);
             response.EnsureSuccessStatusCode();
         }
 

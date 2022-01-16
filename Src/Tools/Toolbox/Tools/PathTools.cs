@@ -27,7 +27,7 @@ namespace Toolbox.Tools
 
             foreach(var item in extensionList)
             {
-                if (path.EndsWith(item)) return path[0..^(extension.Length-1)];
+                if (path.EndsWith(item)) return path[0..^(item.Length)];
             }
 
             return path;

@@ -32,6 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Security\Toolbox.Security.csproj" />
     <ProjectReference Include="..\Directory.sdk\Directory.sdk.csproj" />
     <ProjectReference Include="..\DirectoryApi\DirectoryApi.csproj" />
   </ItemGroup>

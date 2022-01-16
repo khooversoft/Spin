@@ -11,49 +11,68 @@ using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace DirectoryApi
+namespace DirectoryApi;
+
+public static class Startup
 {
-    public static class Startup
+    public static IServiceCollection ConfigureDirectoryService(this IServiceCollection service)
     {
-        public static IServiceCollection ConfigureDirectoryService(this IServiceCollection service)
+        service.VerifyNotNull(nameof(service));
+
+        service.AddSingleton<IMemoryCache, MemoryCache>();
+
+        service.AddSingleton<DirectoryService>(service =>
         {
-            service.VerifyNotNull(nameof(service));
+            ApplicationOption option = service.GetRequiredService<ApplicationOption>();
+            ILoggerFactory loggerFactory = service.GetRequiredService<ILoggerFactory>();
+            IMemoryCache memoryCache = service.GetRequiredService<IMemoryCache>();
 
-            service.AddSingleton<IDirectoryService, DirectoryService>();
-            service.AddSingleton<IDocumentStorage, DocumentStorage>();
-            service.AddSingleton<IMemoryCache, MemoryCache>();
-
-            service.AddSingleton<IDatalakeStore>(service =>
+            var datalakeOption = new DatalakeStoreOption
             {
-                ApplicationOption option = service.GetRequiredService<ApplicationOption>();
-                ILoggerFactory loggerFactory = service.GetRequiredService<ILoggerFactory>();
+                AccountName = option.Storage.AccountName,
+                ContainerName = option.Storage.ContainerName,
+                AccountKey = option.Storage.AccountKey,
+                BasePath = option.Storage.BasePath
+            };
 
-                var datalakeOption = new DatalakeStoreOption
-                {
-                    AccountName = option.Storage.AccountName,
-                    ContainerName = option.Storage.ContainerName,
-                    AccountKey = option.Storage.AccountKey,
-                    BasePath = option.Storage.BasePath
-                };
+            var store = new DatalakeStore(datalakeOption, loggerFactory.CreateLogger<DatalakeStore>());
+            var document = new DocumentStorage(store, memoryCache);
+            return new DirectoryService(document);
+        });
 
-                return new DatalakeStore(datalakeOption, loggerFactory.CreateLogger<DatalakeStore>());
-            });
-
-            return service;
-        }
-
-        public static IApplicationBuilder ConfigureDirectoryService(this IApplicationBuilder app)
+        service.AddSingleton<IdentityService>(service =>
         {
-            app.VerifyNotNull(nameof(app));
+            ApplicationOption option = service.GetRequiredService<ApplicationOption>();
+            ILoggerFactory loggerFactory = service.GetRequiredService<ILoggerFactory>();
+            IMemoryCache memoryCache = service.GetRequiredService<IMemoryCache>();
 
-            ApplicationOption option = app.ApplicationServices.GetRequiredService<ApplicationOption>();
-            app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, "/api/ping".ToEnumerable());
+            var datalakeOption = new DatalakeStoreOption
+            {
+                AccountName = option.IdentityStorage.AccountName,
+                ContainerName = option.IdentityStorage.ContainerName,
+                AccountKey = option.IdentityStorage.AccountKey,
+                BasePath = option.IdentityStorage.BasePath
+            };
 
-            app.ApplicationServices
-                .GetRequiredService<IServiceStatus>()
-                .SetStatus(ServiceStatusLevel.Ready, "Ready and running");
+            var store = new DatalakeStore(datalakeOption, loggerFactory.CreateLogger<DatalakeStore>());
+            var document = new DocumentStorage(store, memoryCache);
+            return new IdentityService(document);
+        });
 
-            return app;
-        }
+        return service;
+    }
+
+    public static IApplicationBuilder ConfigureDirectoryService(this IApplicationBuilder app)
+    {
+        app.VerifyNotNull(nameof(app));
+
+        ApplicationOption option = app.ApplicationServices.GetRequiredService<ApplicationOption>();
+        app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, "/api/ping".ToEnumerable());
+
+        app.ApplicationServices
+            .GetRequiredService<IServiceStatus>()
+            .SetStatus(ServiceStatusLevel.Ready, "Ready and running");
+
+        return app;
     }
 }

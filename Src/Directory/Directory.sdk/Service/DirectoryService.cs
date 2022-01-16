@@ -12,7 +12,7 @@ using Toolbox.Tools;
 
 namespace Directory.sdk.Service;
 
-public class DirectoryService : IDirectoryService
+public class DirectoryService
 {
     private readonly IDocumentStorage _documentStorage;
 
@@ -25,7 +25,7 @@ public class DirectoryService : IDirectoryService
 
     public async Task<DirectoryEntry?> Get(DocumentId documentId, CancellationToken token = default, bool bypassCache = false)
     {
-        (DirectoryEntry? directoryEntry, ETag? eTag) = await _documentStorage.Get<DirectoryEntry>(documentId, token);
+        (DirectoryEntry? directoryEntry, ETag? eTag) = await _documentStorage.Get<DirectoryEntry>(documentId, token, bypassCache);
         if (directoryEntry == null) return null;
 
         return directoryEntry with { ETag = eTag };

@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Directory.Test
 {
-    public class EntryControllerTest
+    public class EntryControllerTests
     {
         [Fact]
         public async Task GivenDirectoryEntry_WhenRoundTrip_Success()

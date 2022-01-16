@@ -39,4 +39,6 @@ internal static class TestApplication
     public static PingClient GetPingClient() => new PingClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<PingClient>());
 
     public static DirectoryClient GetDirectoryClient() => new DirectoryClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<DirectoryClient>());
+    
+    public static IdentityClient GetIdentityClient() => new IdentityClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<IdentityClient>());
 }

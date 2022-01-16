@@ -3,7 +3,7 @@ using Spin.Common.Controller;
 using Spin.Common.Services;
 using Toolbox.Logging;
 
-namespace Artifact.Controllers
+namespace DirectoryApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

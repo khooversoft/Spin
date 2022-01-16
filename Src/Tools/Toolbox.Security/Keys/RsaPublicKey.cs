@@ -14,6 +14,12 @@ namespace Toolbox.Security.Keys
             _rsa = RSA.Create();
         }
 
+        public RsaPublicKey(RSAParameters publicKey)
+        {
+            Kid = Guid.NewGuid().ToString();
+            _rsa = RSA.Create(publicKey);
+        }
+
         public RsaPublicKey(string kid, RSAParameters publicKey)
         {
             Kid = kid;

@@ -14,6 +14,8 @@ public record ApplicationOption
     public string ConfigStore { get; init; } = null!;
 
     public StorageOption Storage { get; init; } = null!;
+
+    public StorageOption IdentityStorage { get; init; } = null!;
 }
 
 public record StorageOption

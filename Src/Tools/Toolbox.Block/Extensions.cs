@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Toolbox.Extensions;
 using Toolbox.Security;
+using Toolbox.Security.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -60,8 +61,8 @@ namespace Toolbox.Block
             JwtTokenDetails? tokenDetails = principleSignature.ValidateSignature(subject.JwtSignature!);
             tokenDetails.VerifyNotNull("Signature validation failed");
 
-            string? digest = tokenDetails
-                !.Claims
+            string? digest = tokenDetails!
+                .Claims
                 .Where(x => x.Type == "blockDigest")
                 .Select(x => x.Value)
                 .FirstOrDefault();

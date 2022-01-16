@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\Artifact\Artifact.sdk\Artifact.sdk.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+    <ProjectReference Include="..\Contract.sdk\Contract.sdk.csproj" />
   </ItemGroup>
 
 </Project>

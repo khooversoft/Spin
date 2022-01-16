@@ -46,6 +46,7 @@ async Task<int> Run(string[] args)
                 container.GetRequiredService<GetCommand>(),
                 container.GetRequiredService<DeleteCommand>(),
                 container.GetRequiredService<SetCommand>(),
+                container.GetRequiredService<IdentityCommand>(),
             };
 
             return await rc.InvokeAsync(args);
@@ -76,15 +77,23 @@ ServiceProvider BuildContainer(ApplicationOption option)
         httpClient.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ApiKey);
     });
 
+    service.AddHttpClient<IdentityClient>(httpClient =>
+    {
+        httpClient.BaseAddress = new Uri(option.DirectoryUrl);
+        httpClient.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ApiKey);
+    });
+
     service.AddSingleton<ListActivity>();
     service.AddSingleton<GetActivity>();
     service.AddSingleton<DeleteActivity>();
     service.AddSingleton<SetActivity>();
+    service.AddSingleton<IdentityActivity>();
 
     service.AddSingleton<DeleteCommand>();
     service.AddSingleton<ListCommand>();
     service.AddSingleton<GetCommand>();
     service.AddSingleton<SetCommand>();
+    service.AddSingleton<IdentityCommand>();
 
     return service.BuildServiceProvider();
 }
