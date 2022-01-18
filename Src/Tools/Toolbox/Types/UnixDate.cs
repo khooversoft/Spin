@@ -19,11 +19,16 @@ public struct UnixDate : IEquatable<UnixDate>
 
     public long TimeStamp { get; }
 
+    public DateTimeOffset DateTimeOffset => DateTimeOffset.FromUnixTimeSeconds(TimeStamp);
+
+    public DateTime DateTime => DateTimeOffset.UtcDateTime;
+
+
     public static explicit operator UnixDate(long timeStamp) => new UnixDate(timeStamp);
 
     public static explicit operator UnixDate(DateTimeOffset dateTimeOffset) => new UnixDate(dateTimeOffset);
 
-    public static implicit operator DateTimeOffset(UnixDate unixDate) => DateTimeOffset.FromUnixTimeSeconds(unixDate.TimeStamp);
+    public static implicit operator DateTimeOffset(UnixDate unixDate) => DateTimeOffset.FromUnixTimeSeconds(unixDate);
 
     public static implicit operator long(UnixDate unix) => unix.TimeStamp;
 
@@ -37,6 +42,7 @@ public struct UnixDate : IEquatable<UnixDate>
 
     public override int GetHashCode() => HashCode.Combine(TimeStamp);
 }
+
 
 public static class UnixDateExtensions
 {

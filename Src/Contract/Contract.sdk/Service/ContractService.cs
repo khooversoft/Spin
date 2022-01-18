@@ -20,6 +20,14 @@ public class ContractService
         _artifactClient = artifactClient;
     }
 
+    private async Task<bool> Create(DocumentId documentId, BlkHeader blkHeader, CancellationToken token)
+    {
+        BlockChainModel? model = await Get(documentId, token);
+        if (model != null) return false;
+
+        return true;
+    }
+
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
     {
         bool status = await _artifactClient.Delete(documentId, token: token);
@@ -56,13 +64,6 @@ public class ContractService
         return batch;
     }
 
-    //private async Task<bool> Create(DocumentId documentId, BlkHeader blkHeader, CancellationToken token)
-    //{
-    //    BlockChainModel? model = await Get(documentId, token);
-    //    if (model != null) return false;
-
-
-    //}
 
     //public async Task<bool> Append(DocumentId documentId, BlkTransaction blkTransaction, CancellationToken token)
     //{

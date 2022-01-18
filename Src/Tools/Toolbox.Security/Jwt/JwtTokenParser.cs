@@ -1,13 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using System;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using Toolbox.Extensions;
-using Toolbox.Security.Services;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 
 namespace Toolbox.Security
@@ -22,18 +19,26 @@ namespace Toolbox.Security
     /// </summary>
     public class JwtTokenParser
     {
-        private readonly IKeyService _keyService;
+        private readonly IPrincipleSignature _principleSignature;
 
-        public JwtTokenParser(IKeyService keyService, IEnumerable<string> validIssuers, IEnumerable<string> validAudiences)
+        public JwtTokenParser(IPrincipleSignature principleSignature, IEnumerable<string?> validIssuers, IEnumerable<string?> validAudiences)
         {
-            keyService.VerifyNotNull(nameof(keyService));
+            principleSignature.VerifyNotNull(nameof(principleSignature));
             validIssuers.VerifyNotNull(nameof(validIssuers));
             validAudiences.VerifyNotNull(nameof(validAudiences));
 
-            ValidIssuers = new List<string>(validIssuers);
-            ValidAudiences = new List<string>(validAudiences);
+            ValidIssuers = validIssuers
+                .Append(principleSignature.Issuer)
+                .Where(x => !x.IsEmpty())
+                .Select(x => x!)
+                .ToList();
 
-            _keyService = keyService;
+            ValidAudiences = validAudiences
+                .Append(principleSignature.Audience)
+                .Where(x => !x.IsEmpty())
+                .Select(x => x!).ToList();
+
+            _principleSignature = principleSignature;
         }
 
         /// <summary>
@@ -61,8 +66,8 @@ namespace Toolbox.Security
 
             if ((jwtToken?.Header.Kid).IsEmpty()) return new JwtTokenDetails(jwtToken!);
 
-            SecurityKey privateKey = _keyService.GetSecurityKey(jwtToken!.Header.Kid)
-                .VerifyNotNull($"{jwtToken!.Header.Kid} found in KeyService");
+            SecurityKey privateKey = _principleSignature.GetSecurityKey()
+                .VerifyNotNull(nameof(_principleSignature.GetSecurityKey));
 
             var validation = new TokenValidationParameters
             {

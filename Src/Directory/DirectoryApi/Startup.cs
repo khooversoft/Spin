@@ -56,7 +56,7 @@ public static class Startup
 
             var store = new DatalakeStore(datalakeOption, loggerFactory.CreateLogger<DatalakeStore>());
             var document = new DocumentStorage(store, memoryCache);
-            return new IdentityService(document);
+            return new IdentityService(document, loggerFactory.CreateLogger<IdentityService>());
         });
 
         return service;

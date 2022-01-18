@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Extensions;
-using Toolbox.Security;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 

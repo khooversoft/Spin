@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Security
 {
@@ -22,8 +23,8 @@ namespace Toolbox.Security
             NotBefore = ConvertTo(jwtSecurityToken?.Payload?.Nbf);
             ExpiresDate = ConvertTo(jwtSecurityToken?.Payload?.Exp);
 
-            ApiKey = jwtSecurityToken!.Claims
-                .Where(x => x.Type == JwtStandardClaimNames.WebKeyName)
+            Digest = jwtSecurityToken!.Claims
+                .Where(x => x.Type == JwtStandardClaimNames.DigestName)
                 .Select(x => x.Value)
                 .FirstOrDefault();
 
@@ -73,9 +74,9 @@ namespace Toolbox.Security
         public DateTime? ExpiresDate { get; }
 
         /// <summary>
-        /// API Key (identification & authorization)
+        /// Digest claim
         /// </summary>
-        public string? ApiKey { get; }
+        public string? Digest { get; }
 
         /// <summary>
         /// Subject of JWT token
@@ -92,21 +93,6 @@ namespace Toolbox.Security
         /// </summary>
         public IReadOnlyList<Claim> Claims { get; }
 
-        /// <summary>
-        /// Convert Unix time to date time
-        /// </summary>
-        /// <param name="value">Unix time</param>
-        /// <returns></returns>
-        private DateTime? ConvertTo(int? value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-
-            Verify.Assert(value > 0, "must be greater than 0");
-
-            return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds((int)value);
-        }
+        private DateTime? ConvertTo(int? value) => value == null ? null : new UnixDate((long)value).DateTime;
     }
 }

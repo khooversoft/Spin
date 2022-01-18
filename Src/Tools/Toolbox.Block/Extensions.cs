@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Extensions;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -70,20 +72,18 @@ namespace Toolbox.Block
             (digest == subject.Digest).VerifyAssert<bool, SecurityException>(x => x == true, _ => "Block's digest does not match signature");
         }
 
-        public static void Validate(this BlockChain blockChain, IPrincipleSignatureCollection keyContainer)
+        public static void Validate(this BlockChain blockChain, Func<string, IPrincipleSignature> getPrincipleSignature)
         {
             blockChain.VerifyNotNull(nameof(blockChain));
-            keyContainer.VerifyNotNull(nameof(keyContainer));
+            getPrincipleSignature.VerifyNotNull(nameof(getPrincipleSignature));
 
             blockChain.IsValid()
                 .VerifyAssert<bool, SecurityException>(x => x == true, _ => "Block chain has linkage is invalid");
 
             foreach (BlockNode node in blockChain.Blocks)
             {
-                string issuer = JwtTokenParser.GetIssuerFromJwtToken(node.BlockData.JwtSignature!)!
-                    .VerifyAssert<string, SecurityException>(x => x != null, _ => "Issuer is not found in JWT Signature");
-
-                IPrincipleSignature principleSignature = keyContainer.Get(issuer).VerifyNotNull($"No principle signature found for {issuer}");
+                IPrincipleSignature principleSignature = getPrincipleSignature(node.BlockData.JwtSignature!)
+                    .VerifyNotNull($"No principle signature returned");
 
                 node.BlockData.Validate(principleSignature);
             }

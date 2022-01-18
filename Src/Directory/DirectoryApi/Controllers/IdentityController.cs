@@ -1,4 +1,5 @@
-﻿using Directory.sdk.Service;
+﻿using Directory.sdk.Model;
+using Directory.sdk.Service;
 using Microsoft.AspNetCore.Mvc;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
@@ -25,7 +26,7 @@ public class IdentityController : ControllerBase
     public async Task<IActionResult> Create([FromBody] IdentityEntryRequest identityEntryRequest, CancellationToken token)
     {
         bool success = await _identityService.Create(identityEntryRequest, token);
-        if( !success) return Conflict();
+        if (!success) return Conflict();
         return Ok();
     }
 
@@ -74,5 +75,23 @@ public class IdentityController : ControllerBase
         };
 
         return Ok(result);
+    }
+
+    [HttpPost("sign")]
+    public async Task<IActionResult> Sign([FromBody] SignRequest signRequest, CancellationToken token)
+    {
+        string? jwt = await _identityService.Sign(signRequest, token);
+        if (jwt == null) return BadRequest();
+
+        return Ok(jwt);
+    }
+
+    [HttpPost("validate")]
+    public async Task<IActionResult> Validate([FromBody] ValidateRequest validateRequest, CancellationToken token)
+    {
+        bool result = await _identityService.Validate(validateRequest, token);
+        if (result == false) return BadRequest();
+
+        return Ok(true);
     }
 }

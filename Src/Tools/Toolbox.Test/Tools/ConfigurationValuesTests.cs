@@ -24,14 +24,14 @@ namespace Toolbox.Test.Tools
         [Fact]
         public void SingleClassPropertyDump_ShouldPass()
         {
-            var now = DateTime.Now;
+            var now = DateTime.Now.Date;
 
             var c = new ClassB
             {
                 Name = "Name1",
                 Value = 99,
                 Date = now,
-                Float = 99.33f,
+                Float = 99.2f,
                 Switch = true
             };
 
@@ -41,15 +41,17 @@ namespace Toolbox.Test.Tools
             {
                 ("name", "Name1"),
                 ("value", "99"),
-                ("date", now.ToString("o")),
-                ("float", "99.33"),
+                ("date", now.ToString("o").Replace("00.0000000", "00")),
+                ("float", "99.2"),
                 ("switch", "True"),
             };
 
-            var xx = result.OrderBy(x => x.Key)
+            result.OrderBy(x => x.Key)
                 .Zip(list.OrderBy(x => x.key))
-                .All(x => x.First.Key == x.Second.key && x.First.Value == x.Second.value)
-                .Should().BeTrue();
+                .Select(x => (x: x, pass: x.First.Key == x.Second.key && x.First.Value == x.Second.value))
+                .Where(x => x.pass == false)
+                .Func(x => x.Count() == 0 ? null : x)
+                .Should().BeNull();
         }
 
         [Fact]

@@ -1,9 +1,8 @@
 ﻿using FluentAssertions;
 using System.Collections.Generic;
 using Toolbox.Extensions;
-using Toolbox.Security;
 using Toolbox.Security.Keys;
-using Toolbox.Security.Services;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit;
@@ -18,11 +17,7 @@ namespace Toolbox.Block.Test.Blocks
             const string issuer = "user@domain.com";
             var now = UnixDate.UtcNow;
 
-            IKeyService keyService = new KeyServiceBuilder()
-                .Add(issuer, new RsaPublicKey())
-                .Build();
-
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "test.com");
 
             var dataPayload = new
             {
@@ -72,11 +67,7 @@ namespace Toolbox.Block.Test.Blocks
             const string issuer = "user@domain.com";
             var now = UnixDate.UtcNow;
 
-            IKeyService keyService = new KeyServiceBuilder()
-                .Add(issuer, new RsaPublicKey())
-                .Build();
-
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
 
             var dataPayload = new
             {

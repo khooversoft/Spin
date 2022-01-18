@@ -1,12 +1,10 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using Toolbox.Extensions;
-using Toolbox.Security.Services;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 
 namespace Toolbox.Security
@@ -20,13 +18,7 @@ namespace Toolbox.Security
         {
         }
 
-        public IKeyService? KeyService { get; set; }
-
-        public string? KeyId { get; set; }
-
-        public string? Issuer { get; set; }
-
-        public string? Audience { get; set; }
+        public IPrincipleSignature? PrincipleSignature { get; set; }
 
         public IList<Claim> Claims { get; } = new List<Claim>();
 
@@ -36,39 +28,10 @@ namespace Toolbox.Security
 
         public DateTime? IssuedAt { get; set; }
 
-        public string? WebKey { get; set; }
+        public string? Digest { get; set; }
 
-        public JwtTokenBuilder AddSubject(string subject)
-        {
-            subject.VerifyNotNull(nameof(subject));
 
-            Claims.Add(new Claim(JwtStandardClaimNames.SubjectName, subject));
-            return this;
-        }
-
-        public JwtTokenBuilder SetDigest(string payloadDigest)
-        {
-            payloadDigest.VerifyNotNull(nameof(payloadDigest));
-
-            Claims.Add(new Claim(JwtStandardClaimNames.DigestName, payloadDigest));
-            return this;
-        }
-
-        public JwtTokenBuilder SetKeyService(IKeyService keyService) => this.Action(x => x.KeyService = keyService);
-
-        public JwtTokenBuilder SetKeyId(string keyId) => this.Action(x => x.KeyId = keyId);
-
-        public JwtTokenBuilder SetIssuer(string issuer) => this.Action(x => x.Issuer = issuer);
-
-        public JwtTokenBuilder SetAudience(string audience) => this.Action(x => x.Audience = audience);
-
-        public JwtTokenBuilder SetNotBefore(DateTime? notBefore) => this.Action(x => x.NotBefore = notBefore);
-
-        public JwtTokenBuilder SetExpires(DateTime? expires) => this.Action(x => x.Expires = expires);
-
-        public JwtTokenBuilder SetIssuedAt(DateTime? issuedAt) => this.Action(x => x.IssuedAt = issuedAt);
-
-        public JwtTokenBuilder SetClaim(Claim claim)
+        public JwtTokenBuilder AddClaim(Claim claim)
         {
             claim.VerifyNotNull(nameof(claim));
 
@@ -76,26 +39,31 @@ namespace Toolbox.Security
             return this;
         }
 
-        public JwtTokenBuilder SetWebKey(string webKey) => this.Action(x => x.WebKey = webKey);
+
+        public JwtTokenBuilder SetPrincipleSignature(IPrincipleSignature orincipleSignature) => this.Action(x => x.PrincipleSignature = orincipleSignature);
+
+        public JwtTokenBuilder SetNotBefore(DateTime? notBefore) => this.Action(x => x.NotBefore = notBefore);
+
+        public JwtTokenBuilder SetExpires(DateTime? expires) => this.Action(x => x.Expires = expires);
+
+        public JwtTokenBuilder SetIssuedAt(DateTime? issuedAt) => this.Action(x => x.IssuedAt = issuedAt);
+
+        public JwtTokenBuilder SetDigest(string? digest) => this.Action(x => x.Digest = digest);
 
         public string Build()
         {
-            KeyService.VerifyNotNull($"{nameof(KeyService)} is required");
-            KeyId.VerifyNotEmpty($"{nameof(KeyId)} is required");
+            PrincipleSignature.VerifyNotNull($"{nameof(PrincipleSignature)} is required");
 
-            SigningCredentials signingCredentials = KeyService.GetSigningCredentials(KeyId)
-                .VerifyNotNull($"{KeyId} found in KeyService");
+            var header = new JwtHeader(PrincipleSignature.GetSigningCredentials());
+            if (!PrincipleSignature.Kid.IsEmpty()) header["kid"] = PrincipleSignature.Kid;
 
-            var header = new JwtHeader(signingCredentials);
-            header["kid"] = KeyId;
-
-            var addClaims = new List<Claim>();
-            if (!WebKey.IsEmpty())
+            var addClaims = new[]
             {
-                addClaims.Add(new Claim(JwtStandardClaimNames.WebKeyName, WebKey));
-            };
+                PrincipleSignature.Subject.IsEmpty() ? null : new Claim(JwtStandardClaimNames.SubjectName, PrincipleSignature.Subject),
+                Digest.IsEmpty() ? null : new Claim(JwtStandardClaimNames.DigestName, Digest),
+            }.Where(x => x != null);
 
-            var payload = new JwtPayload(Issuer, Audience, Claims.Concat(addClaims), NotBefore, Expires, IssuedAt);
+            var payload = new JwtPayload(PrincipleSignature.Issuer, PrincipleSignature.Audience, Claims.Concat(addClaims), NotBefore, Expires, IssuedAt);
 
             var jwtToken = new JwtSecurityToken(header, payload);
             var tokenHandler = new JwtSecurityTokenHandler();

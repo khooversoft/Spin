@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
-using Toolbox.Security;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 
 namespace Toolbox.Block

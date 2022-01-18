@@ -4,8 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using Toolbox.Extensions;
 using Toolbox.Security;
-using Toolbox.Security.Keys;
-using Toolbox.Security.Services;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Tools.Zip;
 using Xunit;
@@ -22,26 +21,32 @@ public class ZipContainerTests
         const string zipPath = "$block";
         var date = DateTime.UtcNow;
 
-        IKeyService keyService = new KeyServiceBuilder()
-            .Add(issuer, new RsaPublicKey())
-            .Add(issuer2, new RsaPublicKey())
-            .Build();
-
-        IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
-            .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))
-            .Add(new PrincipleSignature(issuer2, "userBusiness2@domain.com", keyService));
+        var issuerSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
+        var issuerSignature2 = new PrincipleSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
         BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleSignature(signatureCollection[issuer])
+            .SetPrincipleSignature(issuerSignature)
             .Build();
 
         var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
         var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-        blockChain.Add(payload, signatureCollection[issuer]);
-        blockChain.Add(payload2, signatureCollection[issuer2]);
+        blockChain.Add(payload, issuerSignature);
+        blockChain.Add(payload2, issuerSignature2);
 
-        blockChain.Validate(signatureCollection);
+        var getSignature = (string x) =>
+        {
+            string kid = JwtTokenParser.GetKidFromJwtToken(x).VerifyNotEmpty(nameof(kid));
+
+            return kid switch
+            {
+                issuer => issuerSignature,
+                issuer2 => issuerSignature2,
+                _ => throw new ArgumentException("Invalid kid"),
+            };
+        };
+
+        blockChain.Validate(getSignature);
 
         string blockChainHash = blockChain.ToMerkleTree().BuildTree().ToString();
 
@@ -66,7 +71,7 @@ public class ZipContainerTests
             .VerifyNotNull("Cannot deserialize")
             .ConvertTo();
 
-        result.Validate(signatureCollection);
+        result.Validate(getSignature);
         string resultChainHash = result.ToMerkleTree().BuildTree().ToString();
 
         blockChainHash.Should().Be(resultChainHash);

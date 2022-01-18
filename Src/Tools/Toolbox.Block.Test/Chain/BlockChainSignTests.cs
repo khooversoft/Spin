@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Extensions;
-using Toolbox.Security.Keys;
-using Toolbox.Security.Services;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit;
@@ -15,42 +14,18 @@ namespace Toolbox.Block.Test.Blocks
     public class BlockChainSignTests
     {
         [Fact]
-        public void GivenString_WhenHashed_Match()
-        {
-            string v1 = "Hello";
-            string v2 = "Hello";
-
-            string h1 = v1.ToBytes().ToSHA256Hash();
-            string h2 = v2.ToBytes().ToSHA256Hash();
-
-            (h1 == h2).VerifyAssert(x => x == true, "Hashes do not match");
-
-            string v3 = "hello1";
-            string h3 = v3.ToBytes().ToSHA256Hash();
-
-            (h1 != h3).VerifyAssert(x => x == true, "Hashes match, when different");
-        }
-
-        [Fact]
         public void GivenEmptyBlockChain_ShouldVerify()
         {
             const string issuer = "user@domain.com";
             var now = UnixDate.UtcNow;
 
-            IKeyService keyService = new KeyServiceBuilder()
-                .Add(issuer, new RsaPublicKey())
-                .Build();
-
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
-
-            IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
-                .Add(principleSignature);
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
 
             BlockChain blockChain = new BlockChainBuilder()
                 .SetPrincipleSignature(principleSignature)
                 .Build();
 
-            blockChain.Validate(signatureCollection);
+            blockChain.Validate(x => principleSignature);
         }
 
         [Fact]
@@ -59,11 +34,7 @@ namespace Toolbox.Block.Test.Blocks
             const string issuer = "user@domain.com";
             var now = UnixDate.UtcNow;
 
-            IKeyService keyService = new KeyServiceBuilder()
-                .Add(issuer, new RsaPublicKey())
-                .Build();
-
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, "userBusiness@domain.com", keyService);
+            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
 
             var dataPayload = new
             {
@@ -88,10 +59,7 @@ namespace Toolbox.Block.Test.Blocks
                 .Build()
                 .Add(data);
 
-            IPrincipleSignatureCollection sigContainer = new PrincipleSignatureCollection()
-                .Add(principleSignature);
-
-            blockChain.Validate(sigContainer);
+            blockChain.Validate(x => principleSignature);
 
             // Get payload of data block
             blockChain.Blocks.Count.Should().Be(2);
@@ -114,26 +82,30 @@ namespace Toolbox.Block.Test.Blocks
             var now = UnixDate.UtcNow;
             var date = DateTime.UtcNow;
 
-            IKeyService keyService = new KeyServiceBuilder()
-                .Add(issuer, new RsaPublicKey())
-                .Add(issuer2, new RsaPublicKey())
-                .Build();
-
-            IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
-                .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))
-                .Add(new PrincipleSignature(issuer2, "userBusiness2@domain.com", keyService));
+            var issuerSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
+            var issuerSignature2 = new PrincipleSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
             BlockChain blockChain = new BlockChainBuilder()
-                .SetPrincipleSignature(signatureCollection[issuer])
+                .SetPrincipleSignature(issuerSignature)
                 .Build();
 
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            blockChain.Add(payload, signatureCollection[issuer]);
-            blockChain.Add(payload2, signatureCollection[issuer2]);
+            blockChain.Add(payload, issuerSignature);
+            blockChain.Add(payload2, issuerSignature2);
 
-            blockChain.Validate(signatureCollection);
+            blockChain.Validate(x =>
+            {
+                string kid = JwtTokenParser.GetKidFromJwtToken(x).VerifyNotEmpty(nameof(kid));
+
+                return kid switch
+                {
+                    issuer => issuerSignature,
+                    issuer2 => issuerSignature2,
+                    _ => throw new ArgumentException("Invalid kid"),
+                };
+            });
 
             // Get payload of data block
             blockChain.Blocks.Count.Should().Be(3);
@@ -159,26 +131,32 @@ namespace Toolbox.Block.Test.Blocks
             var now = UnixDate.UtcNow;
             var date = DateTime.UtcNow;
 
-            IKeyService keyService = new KeyServiceBuilder()
-                .Add(issuer, new RsaPublicKey())
-                .Add(issuer2, new RsaPublicKey())
-                .Build();
-
-            IPrincipleSignatureCollection signatureCollection = new PrincipleSignatureCollection()
-                .Add(new PrincipleSignature(issuer, "userBusiness@domain.com", keyService))
-                .Add(new PrincipleSignature(issuer2, "userBusiness2@domain.com", keyService));
+            var issuerSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
+            var issuerSignature2 = new PrincipleSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
             BlockChain blockChain = new BlockChainBuilder()
-                .SetPrincipleSignature(signatureCollection[issuer])
+                .SetPrincipleSignature(issuerSignature)
                 .Build();
 
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            blockChain.Add(payload, signatureCollection[issuer]);
-            blockChain.Add(payload2, signatureCollection[issuer2]);
+            blockChain.Add(payload, issuerSignature);
+            blockChain.Add(payload2, issuerSignature2);
 
-            blockChain.Validate(signatureCollection);
+            var getSignature = (string x) =>
+            {
+                string kid = JwtTokenParser.GetKidFromJwtToken(x).VerifyNotEmpty(nameof(kid));
+
+                return kid switch
+                {
+                    issuer => issuerSignature,
+                    issuer2 => issuerSignature2,
+                    _ => throw new ArgumentException("Invalid kid"),
+                };
+            };
+
+            blockChain.Validate(getSignature);
 
             string blockChainJson = blockChain.ToJson();
 
@@ -188,7 +166,7 @@ namespace Toolbox.Block.Test.Blocks
                 .ConvertTo();
 
             receivedChain.Should().NotBeNull();
-            receivedChain.Validate(signatureCollection);
+            receivedChain.Validate(getSignature);
 
             receivedChain.Blocks.Count.Should().Be(3);
 

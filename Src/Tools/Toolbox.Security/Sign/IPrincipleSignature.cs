@@ -1,13 +1,23 @@
-﻿using System;
+﻿using Microsoft.IdentityModel.Tokens;
+using System;
 
-namespace Toolbox.Security
+namespace Toolbox.Security.Sign;
+
+public interface IPrincipleSignature
 {
-    public interface IPrincipleSignature
-    {
-        string Issuer { get; }
+    public string Kid { get; }
 
-        string Sign(string payloadDigest);
+    public string Issuer { get; }
 
-        JwtTokenDetails? ValidateSignature(string jwt);
-    }
+    public string? Audience { get; }
+
+    public string? Subject { get; }
+
+    string Sign(string payloadDigest);
+
+    JwtTokenDetails? ValidateSignature(string jwt);
+
+    public SigningCredentials GetSigningCredentials();
+
+    public SecurityKey GetSecurityKey();
 }

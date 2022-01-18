@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Directory.sdk.Model;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;

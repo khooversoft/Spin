@@ -18,7 +18,7 @@ namespace Toolbox.Test.Tools
         [InlineData("single/second.json", "single/second.json")]
         [InlineData("single/second/third", "single/second/third.json")]
         [InlineData("single/second/third.json", "single/second/third.json")]
-        [InlineData("single.txt", "single.txt")]
+        [InlineData("single.txt", "single.txt.json")]
         public void PathSetExtension_ShouldPass(string source, string matchTo)
         {
             string result = PathTools.SetExtension(source, ".json");

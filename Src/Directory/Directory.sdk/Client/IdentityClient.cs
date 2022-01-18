@@ -1,4 +1,5 @@
-﻿using Directory.sdk.Service;
+﻿using Directory.sdk.Model;
+using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -71,5 +72,25 @@ namespace Directory.sdk.Client
         }
 
         public BatchSetCursor<DatalakePathItem> Search(QueryParameter query) => new BatchSetCursor<DatalakePathItem>(_httpClient, "api/identity/search", query, _logger);
+
+        public async Task<string> Sign(SignRequest signRequest, CancellationToken token = default)
+        {
+            _logger.LogTrace($"Signing request for directoryId={signRequest.DirectoryId}");
+
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/identity/sign", signRequest, token);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token = default)
+        {
+            _logger.LogTrace($"Signing request for directoryId={validateRequest.DirectoryId}");
+
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/identity/validate", validateRequest, token);
+            response.EnsureSuccessStatusCode();
+
+            return true;
+        }
     }
 }

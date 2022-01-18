@@ -39,7 +39,7 @@ public static class IdentityEntryRequestExtensions
         {
             DirectoryId = subject.DirectoryId,
             ClassType = "identity",
-            Issuer = subject.Issuer,
+            Subject = subject.Issuer,
             PublicKey = rsa.ExportRSAPublicKey(),
             PrivateKey = rsa.ExportRSAPrivateKey(),
         };

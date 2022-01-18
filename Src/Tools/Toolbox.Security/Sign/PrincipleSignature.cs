@@ -1,50 +1,21 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
-using System;
-using Toolbox.Extensions;
-using Toolbox.Security.Services;
-using Toolbox.Tools;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
-namespace Toolbox.Security
+namespace Toolbox.Security.Sign;
+
+public class PrincipleSignature : PrincipleSignatureBase
 {
-    public class PrincipleSignature : IPrincipleSignature
+    private RSA _rsa;
+
+    public PrincipleSignature(string kid, string issuer, string? audience, string? subject = null, RSAParameters? rasParameters = null)
+        : base(kid, issuer, audience, subject)
     {
-        private readonly IKeyService _keyService;
-
-        public PrincipleSignature(string issuer, string audience, IKeyService keyService)
-        {
-            issuer.VerifyNotEmpty(nameof(issuer));
-            keyService.VerifyNotNull(nameof(keyService));
-
-            Issuer = issuer;
-            Audience = audience;
-            _keyService = keyService;
-        }
-
-        public string Issuer { get; }
-
-        public string Audience { get; }
-
-        public string Sign(string payloadDigest)
-        {
-            return new JwtTokenBuilder()
-                .SetDigest(payloadDigest)
-                .SetIssuer(Issuer)
-                .SetAudience(Audience)
-                .SetKeyService(_keyService)
-                .SetKeyId(Issuer)
-                .SetExpires(DateTime.Now.AddYears(10))
-                .SetIssuedAt(DateTime.Now)
-                .Build();
-        }
-
-        public JwtTokenDetails ValidateSignature(string jwt)
-        {
-            return new JwtTokenParserBuilder()
-                .SetKeyService(_keyService)
-                .AddValidIssuer(Issuer)
-                .AddValidAudience(Audience)
-                .Build()
-                .Parse(jwt);
-        }
+        _rsa = rasParameters == null ? RSA.Create() : RSA.Create((RSAParameters)rasParameters!);
     }
+
+    public RSAParameters RSAParameters => _rsa.ExportParameters(true);
+
+    public override SigningCredentials GetSigningCredentials() => new SigningCredentials(new RsaSecurityKey(RSAParameters), SecurityAlgorithms.RsaSha512);
+
+    public override SecurityKey GetSecurityKey() => new RsaSecurityKey(RSAParameters);
 }
