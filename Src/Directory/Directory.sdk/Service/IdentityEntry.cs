@@ -50,11 +50,15 @@ public static class IdentityEntryExtensions
     {
         identityEntry.VerifyNotNull(nameof(identityEntry));
         identityEntry.PublicKey.VerifyNotNull(nameof(identityEntry.PublicKey));
-        identityEntry.PrivateKey.VerifyNotNull(nameof(identityEntry.PrivateKey));
 
         RSA rsa = RSA.Create();
         rsa.ImportRSAPublicKey(identityEntry.PublicKey, out int publicReadSize);
-        rsa.ImportRSAPrivateKey(identityEntry.PrivateKey, out int privateReadSize);
-        return rsa.ExportParameters(true);
+
+        if (identityEntry.PrivateKey != null)
+        {
+            rsa.ImportRSAPrivateKey(identityEntry.PrivateKey, out int privateReadSize);
+        }
+
+        return rsa.ExportParameters(identityEntry.PrivateKey != null);
     }
 }

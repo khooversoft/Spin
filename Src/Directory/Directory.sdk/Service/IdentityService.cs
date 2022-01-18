@@ -55,7 +55,7 @@ public class IdentityService
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token) => await _documentStorage.Delete(documentId, token);
 
-    public async Task<IdentityEntry?> Get(DocumentId documentId, CancellationToken token = default, bool bypassCache = false)
+    public async Task<IdentityEntry?> Get(DocumentId documentId, CancellationToken token = default, bool bypassCache = false, bool includePrivateKey = false)
     {
         (IdentityEntry? directoryEntry, ETag? eTag) = await _documentStorage.Get<IdentityEntry>(documentId, token, bypassCache);
         if (directoryEntry == null)
@@ -63,6 +63,8 @@ public class IdentityService
             _logger.LogTrace($"Cannot find entry for directoryId={documentId}");
             return null;
         }
+
+        directoryEntry = includePrivateKey ? directoryEntry : directoryEntry with { PrivateKey = null };
 
         return directoryEntry with { ETag = eTag };
     }
@@ -80,7 +82,7 @@ public class IdentityService
     {
         _logger.LogTrace($"Sign for directoryId={signRequest.DirectoryId}");
 
-        IdentityEntry? identityEntry = await Get((DocumentId)signRequest.DirectoryId, token);
+        IdentityEntry? identityEntry = await Get((DocumentId)signRequest.DirectoryId, token, includePrivateKey: true);
         if (identityEntry == null) return null;
 
         IPrincipleSignature principleSignature = new PrincipleSignature(signRequest.DirectoryId, _issuer, _audience, identityEntry.Subject, identityEntry.GetRsaParameters());

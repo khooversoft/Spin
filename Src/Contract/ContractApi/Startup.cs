@@ -27,8 +27,8 @@ public static class Startup
 
         ApplicationOption applicationOption = await DirectoryClient.Run(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
-            ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");
-            StorageRecord storageRecord = await client.GetStorageRecord(option.RunEnvironment, "Artifact");
+            ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, "Contract");
+            StorageRecord storageRecord = await client.GetStorageRecord(option.RunEnvironment, "Contract");
 
             return option with
             {

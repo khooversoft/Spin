@@ -8,7 +8,7 @@ public static class Extensions
     {
         return principleSignature switch
         {
-            PrincipleSignature v => new PrincipleSignature(v.Kid, v.Issuer, audience, v.Subject, v.RSAParameters),
+            PrincipleSignature v => new PrincipleSignature(v.Kid, v.Issuer, audience, v.Subject, v),
 
             PrincipleSignatureCertificate v => new PrincipleSignatureCertificate(v.Kid, v.Issuer, audience, v.Certificate, v.Subject),
 
@@ -20,7 +20,7 @@ public static class Extensions
     {
         return principleSignature switch
         {
-            PrincipleSignature v => new PrincipleSignature(v.Kid, issuer, v.Audience, v.Subject, v.RSAParameters),
+            PrincipleSignature v => new PrincipleSignature(v.Kid, issuer, v.Audience, v.Subject, v),
 
             PrincipleSignatureCertificate v => new PrincipleSignatureCertificate(v.Kid, issuer, v.Audience, v.Certificate, v.Subject),
 
@@ -32,7 +32,7 @@ public static class Extensions
     {
         return principleSignature switch
         {
-            PrincipleSignature v => new PrincipleSignature(v.Kid, v.Issuer, v.Audience, subject, v.RSAParameters),
+            PrincipleSignature v => new PrincipleSignature(v.Kid, v.Issuer, v.Audience, subject, v),
 
             PrincipleSignatureCertificate v => new PrincipleSignatureCertificate(v.Kid, v.Issuer, v.Audience, v.Certificate, subject),
 

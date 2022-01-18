@@ -17,6 +17,7 @@ namespace Directory.sdk.Model
         public string ApiKey { get; init; } = null!;
     }
 
+
     public static class ServiceRecordExtensions
     {
         public static ServiceRecord Verify(this ServiceRecord subject)
