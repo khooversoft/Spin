@@ -19,9 +19,9 @@ namespace Toolbox.Security
     /// </summary>
     public class JwtTokenParser
     {
-        private readonly IPrincipleSignature _principleSignature;
+        private readonly IPrincipalSignature _principleSignature;
 
-        public JwtTokenParser(IPrincipleSignature principleSignature, IEnumerable<string?> validIssuers, IEnumerable<string?> validAudiences)
+        public JwtTokenParser(IPrincipalSignature principleSignature, IEnumerable<string?> validIssuers, IEnumerable<string?> validAudiences)
         {
             principleSignature.VerifyNotNull(nameof(principleSignature));
             validIssuers.VerifyNotNull(nameof(validIssuers));

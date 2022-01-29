@@ -8,7 +8,15 @@ namespace Directory.sdk
 {
     public static class PropertyName
     {
-        public static string Email { get; } = "Email";
-        public static string SigningCredentials { get; } = "SigningCredentials";
+        public const string Email = "Email";
+        public const string SigningCredentials = "SigningCredentials";
+    }
+
+    public static class ClassTypeName
+    {
+        public const string Identity = "identity";
+        public const string Settings = "settings";
+        public const string Service = "service";
+        public const string User = "user";
     }
 }

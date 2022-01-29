@@ -1,15 +1,14 @@
-﻿using Directory.sdk.Client;
-using DirectoryApi.Application;
+﻿using Contract.sdk.Client;
+using ContractApi.Application;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Client;
 using System.Net.Http;
 using Toolbox.Application;
 
-namespace Directory.Test.Application;
+namespace Contract.Test.Application;
 
 internal static class TestApplication
 {
@@ -38,9 +37,5 @@ internal static class TestApplication
 
     public static PingClient GetPingClient() => new PingClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<PingClient>());
 
-    public static DirectoryClient GetDirectoryClient() => new DirectoryClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<DirectoryClient>());
-    
-    public static IdentityClient GetIdentityClient() => new IdentityClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<IdentityClient>());
-
-    public static SigningClient GetSigningClient() => new SigningClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<SigningClient>());
+    public static ContractClient GetContractClient() => new ContractClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<ContractClient>());
 }

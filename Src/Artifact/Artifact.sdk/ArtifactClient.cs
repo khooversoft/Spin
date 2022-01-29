@@ -10,7 +10,7 @@ using Toolbox.Tools;
 
 namespace Artifact.sdk
 {
-    public class ArtifactClient : IArtifactClient
+    public class ArtifactClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<ArtifactClient> _logger;

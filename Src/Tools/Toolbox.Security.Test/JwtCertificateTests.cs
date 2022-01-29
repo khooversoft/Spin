@@ -22,8 +22,8 @@ public class JwtCertificateTests
     private static readonly LocalCertificate _vaultData =
         new LocalCertificate(StoreLocation.LocalMachine, StoreName.My, "E994953A89D53B1F4E5B2529B8DD702F38E8A889", true, new NullLogger<LocalCertificate>());
 
-    public static IPrincipleSignature _jwtPrincipleSignature = new PrincipleSignatureCertificate(jwtKeyId, "test.com", "test.com", _jwtVaultTest.GetCertificate());
-    public static IPrincipleSignature _vaultPrincipleSignature = new PrincipleSignatureCertificate(jwtKeyId, "test.com", "test.com", _vaultData.GetCertificate());
+    public static IPrincipalSignature _jwtPrincipleSignature = new PrincipalSignatureCertificate(jwtKeyId, "test.com", "test.com", _jwtVaultTest.GetCertificate());
+    public static IPrincipalSignature _vaultPrincipleSignature = new PrincipalSignatureCertificate(jwtKeyId, "test.com", "test.com", _vaultData.GetCertificate());
 
 
     [Trait("Category", "LocalOnly")]
@@ -34,7 +34,7 @@ public class JwtCertificateTests
         const string emailText = "Email";
         const string emailId = "testemail@domain.com";
 
-        IPrincipleSignature principle = _jwtPrincipleSignature.WithSubject(userId);
+        IPrincipalSignature principle = _jwtPrincipleSignature.WithSubject(userId);
 
         string token = new JwtTokenBuilder()
             .SetExpires(DateTime.Now.AddDays(10))
@@ -61,7 +61,7 @@ public class JwtCertificateTests
     {
         string audience = "http://localhost/audience";
 
-        IPrincipleSignature principle = _jwtPrincipleSignature.WithAudience(audience);
+        IPrincipalSignature principle = _jwtPrincipleSignature.WithAudience(audience);
 
         string token = new JwtTokenBuilder()
             .SetExpires(DateTime.Now.AddDays(10))
@@ -84,7 +84,7 @@ public class JwtCertificateTests
     {
         string issuer = "http://localhost/Issuer";
 
-        IPrincipleSignature principle = _jwtPrincipleSignature.WithIssuer(issuer);
+        IPrincipalSignature principle = _jwtPrincipleSignature.WithIssuer(issuer);
 
         string token = new JwtTokenBuilder()
             .SetExpires(DateTime.Now.AddDays(10))
@@ -114,7 +114,7 @@ public class JwtCertificateTests
 
         token.Should().NotBeNullOrEmpty();
 
-        IPrincipleSignature principle = _vaultPrincipleSignature.WithIssuer("bad issuer");
+        IPrincipalSignature principle = _vaultPrincipleSignature.WithIssuer("bad issuer");
 
         Action act = () => new JwtTokenParserBuilder()
             .SetPrincipleSignature(principle)

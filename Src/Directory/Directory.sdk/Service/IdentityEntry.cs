@@ -15,7 +15,7 @@ public record IdentityEntry
 
     public string Subject { get; init; } = null!;
 
-    public string ClassType { get; init; } = "identity";
+    public string ClassType { get; init; } = ClassTypeName.Identity;
 
     public string Version { get; init; } = "v1";
 

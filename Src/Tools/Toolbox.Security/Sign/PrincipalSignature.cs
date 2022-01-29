@@ -3,17 +3,17 @@ using System.Security.Cryptography;
 
 namespace Toolbox.Security.Sign;
 
-public class PrincipleSignature : PrincipleSignatureBase
+public class PrincipalSignature : PrincipalSignatureBase
 {
     private RSA _rsa;
 
-    public PrincipleSignature(string kid, string issuer, string? audience, string? subject = null, RSAParameters? rasParameters = null)
+    public PrincipalSignature(string kid, string issuer, string? audience, string? subject = null, RSAParameters? rasParameters = null)
         : base(kid, issuer, audience, subject)
     {
         _rsa = rasParameters == null ? RSA.Create() : RSA.Create((RSAParameters)rasParameters!);
     }
 
-    public PrincipleSignature(string kid, string issuer, string? audience, string? subject, PrincipleSignature source)
+    public PrincipalSignature(string kid, string issuer, string? audience, string? subject, PrincipalSignature source)
         : base(kid, issuer, audience, subject)
     {
         _rsa = source._rsa;

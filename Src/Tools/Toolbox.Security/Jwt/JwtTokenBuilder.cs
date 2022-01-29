@@ -18,7 +18,7 @@ namespace Toolbox.Security
         {
         }
 
-        public IPrincipleSignature? PrincipleSignature { get; set; }
+        public IPrincipalSignature? PrincipleSignature { get; set; }
 
         public IList<Claim> Claims { get; } = new List<Claim>();
 
@@ -40,7 +40,7 @@ namespace Toolbox.Security
         }
 
 
-        public JwtTokenBuilder SetPrincipleSignature(IPrincipleSignature orincipleSignature) => this.Action(x => x.PrincipleSignature = orincipleSignature);
+        public JwtTokenBuilder SetPrincipleSignature(IPrincipalSignature orincipleSignature) => this.Action(x => x.PrincipleSignature = orincipleSignature);
 
         public JwtTokenBuilder SetNotBefore(DateTime? notBefore) => this.Action(x => x.NotBefore = notBefore);
 

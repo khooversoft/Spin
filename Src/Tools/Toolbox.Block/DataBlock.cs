@@ -23,6 +23,8 @@ namespace Toolbox.Block
 
         public IReadOnlyDictionary<string, string> Properties { get; init; } = null!;
 
+        public string PrincipleId { get; init; } = null!;
+
         public string JwtSignature { get; init; } = null!;
 
         public string Digest { get; init; } = null!;
@@ -37,11 +39,12 @@ namespace Toolbox.Block
                 BlockId == other.BlockId &&
                 Data == other.Data &&
                 Properties.IsEqual(other.Properties) &&
+                PrincipleId == other.PrincipleId &&
                 JwtSignature == other.JwtSignature &&
                 Digest == other.Digest;
         }
 
-        public override int GetHashCode() => HashCode.Combine(TimeStamp, BlockType, BlockId, Data, Properties, JwtSignature, Digest);
+        public override int GetHashCode() => HashCode.Combine(TimeStamp, BlockType, BlockId, Data, Properties, PrincipleId, JwtSignature, Digest);
 
         public static bool operator ==(DataBlock? left, DataBlock? right) => EqualityComparer<DataBlock>.Default.Equals(left, right);
 

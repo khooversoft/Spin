@@ -11,7 +11,7 @@ namespace Toolbox.Security
     /// </summary>
     public class JwtTokenParserBuilder
     {
-        public IPrincipleSignature? PrincipleSignature { get; set; }
+        public IPrincipalSignature? PrincipleSignature { get; set; }
 
         public IList<string?> ValidAudiences { get; } = new List<string?>();
 
@@ -21,7 +21,7 @@ namespace Toolbox.Security
 
         public JwtTokenParserBuilder AddValidIssuer(params string[] validIssuer) => this.Action(x => validIssuer.ForEach(y => ValidIssuers.Add(y)));
 
-        public JwtTokenParserBuilder SetPrincipleSignature(IPrincipleSignature orincipleSignature) => this.Action(x => x.PrincipleSignature = orincipleSignature);
+        public JwtTokenParserBuilder SetPrincipleSignature(IPrincipalSignature orincipleSignature) => this.Action(x => x.PrincipleSignature = orincipleSignature);
 
         public JwtTokenParser Build()
         {

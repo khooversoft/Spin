@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Toolbox.Extensions;
-using Toolbox.Security.Keys;
 using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -12,12 +13,12 @@ namespace Toolbox.Block.Test.Blocks
     public class BlockDataTests
     {
         [Fact]
-        public void GivenBlockData_WhenValuesSet_VerifyNoChangeAndSignature()
+        public async Task GivenBlockData_WhenValuesSet_VerifyNoChangeAndSignature()
         {
             const string issuer = "user@domain.com";
-            var now = UnixDate.UtcNow;
+            var now = DateTime.UtcNow;
 
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "test.com");
+            IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "test.com");
 
             var dataPayload = new
             {
@@ -29,7 +30,7 @@ namespace Toolbox.Block.Test.Blocks
 
             string payloadJson = dataPayload.ToJson();
 
-            DataBlock data = new DataBlockBuilder()
+            DataBlock data = await new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
@@ -43,7 +44,7 @@ namespace Toolbox.Block.Test.Blocks
 
             DataBlock received = Json.Default.Deserialize<DataBlock>(json).VerifyNotNull("Json is null");
 
-            data.TimeStamp.Should().Be(now);
+            data.TimeStamp.Should().Be(now.ToUnixDate().TimeStamp);
 
             received.BlockType.Should().Be("blockType");
             received.BlockId.Should().Be("blockId");
@@ -62,12 +63,12 @@ namespace Toolbox.Block.Test.Blocks
         }
 
         [Fact]
-        public void GivenBlockData_WhenTestForEqual_ShouldPass()
+        public async Task GivenBlockData_WhenTestForEqual_ShouldPass()
         {
             const string issuer = "user@domain.com";
-            var now = UnixDate.UtcNow;
+            var now = DateTime.UtcNow;
 
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
+            IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
             var dataPayload = new
             {
@@ -79,7 +80,7 @@ namespace Toolbox.Block.Test.Blocks
 
             string payloadJson = dataPayload.ToJson();
 
-            DataBlock data1 = new DataBlockBuilder()
+            DataBlock data1 = await new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
@@ -87,7 +88,7 @@ namespace Toolbox.Block.Test.Blocks
                 .SetPrincipleSignature(principleSignature)
                 .Build();
 
-            DataBlock data2 = new DataBlockBuilder()
+            DataBlock data2 = await new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
@@ -99,10 +100,9 @@ namespace Toolbox.Block.Test.Blocks
             data1.BlockType.Should().Be(data2.BlockType);
             data1.BlockId.Should().Be(data2.BlockId);
             data1.Data.Should().Be(data2.Data);
-            data1.JwtSignature.Should().Be(data2.JwtSignature);
             data1.Digest.Should().Be(data2.Digest);
 
-            (data1 == data2).Should().BeTrue();
+            (data1 == data2).Should().BeTrue();        // Will fail because of timestamp on JwtSignature
         }
     }
 }

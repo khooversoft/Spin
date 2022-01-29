@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Extensions;
@@ -11,18 +12,18 @@ namespace Toolbox.Block
 {
     public static class Extensions
     {
-        public static void Add<T>(this BlockChain blockChain, T value, IPrincipleSignature principleSignature)
+        public static async Task Add<T>(this BlockChain blockChain, T value, Func<string, Task<string>> sign)
         {
             blockChain.VerifyNotNull(nameof(blockChain));
             value.VerifyNotNull(nameof(value));
-            principleSignature.VerifyNotNull(nameof(principleSignature));
+            sign.VerifyNotNull(nameof(sign));
 
-            blockChain += new DataBlockBuilder()
-                .SetTimeStamp(UnixDate.UtcNow)
+            blockChain += await new DataBlockBuilder()
+                .SetTimeStamp(DateTime.UtcNow)
                 .SetBlockType(value.GetType().Name)
                 .SetBlockId(blockChain.Blocks.Count.ToString())
                 .SetData(value.ToJson())
-                .SetPrincipleSignature(principleSignature)
+                .SetSign(sign)
                 .Build();
         }
 
@@ -31,6 +32,13 @@ namespace Toolbox.Block
             blockChainModel.VerifyNotNull(nameof(blockChainModel));
 
             return new BlockChain(blockChainModel.Blocks);
+        }
+
+        public static BlockChainModel ConvertTo(this BlockChain blockChain)
+        {
+            blockChain.VerifyNotNull(nameof(blockChain));
+
+            return new BlockChainModel { Blocks = blockChain.Blocks.ToList() };
         }
 
         public static string GetDigest(this DataBlock dataBlock)
@@ -53,7 +61,7 @@ namespace Toolbox.Block
                 .Append(blockChain.Blocks.Select(x => x.Digest).ToArray());
         }
 
-        public static void Validate(this DataBlock subject, PrincipleSignature principleSignature)
+        public static void Validate(this DataBlock subject, PrincipalSignature principleSignature)
         {
             subject.VerifyNotNull(nameof(subject));
             principleSignature.VerifyNotNull(nameof(principleSignature));
@@ -72,7 +80,7 @@ namespace Toolbox.Block
             (digest == subject.Digest).VerifyAssert<bool, SecurityException>(x => x == true, _ => "Block's digest does not match signature");
         }
 
-        public static void Validate(this BlockChain blockChain, Func<string, IPrincipleSignature> getPrincipleSignature)
+        public static void Validate(this BlockChain blockChain, Func<string, IPrincipalSignature> getPrincipleSignature)
         {
             blockChain.VerifyNotNull(nameof(blockChain));
             getPrincipleSignature.VerifyNotNull(nameof(getPrincipleSignature));
@@ -82,7 +90,7 @@ namespace Toolbox.Block
 
             foreach (BlockNode node in blockChain.Blocks)
             {
-                IPrincipleSignature principleSignature = getPrincipleSignature(node.BlockData.JwtSignature!)
+                IPrincipalSignature principleSignature = getPrincipleSignature(node.BlockData.JwtSignature!)
                     .VerifyNotNull($"No principle signature returned");
 
                 node.BlockData.Validate(principleSignature);
@@ -94,7 +102,7 @@ namespace Toolbox.Block
             (dataBlock.Digest == dataBlock.GetDigest()).VerifyAssert<bool, SecurityException>(x => x == true, _ => "Digest does not match");
         }
 
-        public static void Validate(this DataBlock dataBlock, IPrincipleSignature principleSignature)
+        public static void Validate(this DataBlock dataBlock, IPrincipalSignature principleSignature)
         {
             principleSignature.VerifyNotNull(nameof(principleSignature));
 

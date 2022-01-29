@@ -1,65 +1,57 @@
+using Artifact.sdk;
+using Contract.sdk.Service;
 using ContractApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
 using Directory.sdk.Service;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Spin.Common.Middleware;
 using Spin.Common.Model;
 using Spin.Common.Services;
-using System.Threading.Tasks;
 using Toolbox.Application;
-using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Document;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace ContractApi;
 
 public static class Startup
 {
-    public static async Task<IServiceCollection> ConfigureArtifactService(this IServiceCollection service, ApplicationOption option)
+    public static async Task<IServiceCollection> ConfigureContractService(this IServiceCollection service, ApplicationOption option)
     {
         service.VerifyNotNull(nameof(service));
 
         ApplicationOption applicationOption = await DirectoryClient.Run(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
-            ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, "Contract");
-            StorageRecord storageRecord = await client.GetStorageRecord(option.RunEnvironment, "Contract");
+            ServiceRecord contractRecord = await client.GetServiceRecord(option.RunEnvironment, "Contract");
+            ServiceRecord artifactRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");
 
-            return option with
+            option = option with
             {
-                HostUrl = serviceRecord.HostUrl,
-                ApiKey = serviceRecord.ApiKey,
-                Storage = new StorageOption
-                {
-                    AccountName = storageRecord.AccountName,
-                    ContainerName = storageRecord.ContainerName,
-                    AccountKey = storageRecord.AccountKey,
-                    BasePath = storageRecord.BasePath,
-                }
+                HostUrl = contractRecord.HostUrl,
+                ApiKey = contractRecord.ApiKey,
+
+                ArtifactUrl = artifactRecord.HostUrl,
+                ArtifactApiKey = artifactRecord.ApiKey,
             };
+
+            return option.Verify();
         });
 
-        service.AddSingleton<IDocumentPackage, DocumentPackage>();
         service.AddSingleton(applicationOption);
-        service.AddSingleton<IDatalakeStore>(service =>
+        service.AddSingleton<ContractService>();
+
+        service.AddHttpClient<SigningClient>((service, httpClient) =>
         {
             ApplicationOption option = service.GetRequiredService<ApplicationOption>();
-            ILoggerFactory loggerFactory = service.GetRequiredService<ILoggerFactory>();
+            httpClient.BaseAddress = new Uri(option.DirectoryUrl);
+            httpClient.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.DirectoryApiKey);
+        });
 
-            var datalakeOption = new DatalakeStoreOption
-            {
-                AccountName = option.Storage.AccountName,
-                ContainerName = option.Storage.ContainerName,
-                AccountKey = option.Storage.AccountKey,
-                BasePath = option.Storage.BasePath
-            };
-
-            return new DatalakeStore(datalakeOption, loggerFactory.CreateLogger<DatalakeStore>());
+        service.AddHttpClient<ArtifactClient>((service, httpClient) =>
+        {
+            ApplicationOption option = service.GetRequiredService<ApplicationOption>();
+            httpClient.BaseAddress = new Uri(option.ArtifactUrl);
+            httpClient.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ArtifactApiKey);
         });
 
         return service;

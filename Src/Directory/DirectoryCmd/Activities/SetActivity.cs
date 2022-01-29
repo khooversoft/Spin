@@ -39,7 +39,7 @@ internal class SetActivity
             await _directoryClient.Set(entry, token);
             _logger.LogInformation($"Writing Id {entry.DirectoryId}");
 
-            if (entry.ClassType == "user")
+            if (entry.ClassType == ClassTypeName.User)
             {
                 await CreateIdentity(entry, token);
             }
@@ -83,8 +83,8 @@ internal class SetActivity
 
     private async Task CreateIdentity(DirectoryEntry entry, CancellationToken token)
     {
-        string? email = entry.GetPropertyValue(PropertyName.Email);
-        string? identityId = entry.GetPropertyValue(PropertyName.SigningCredentials);
+        string? email = entry.GetEmail();
+        string? identityId = entry.GetSigningCredentials();
 
         if (email == null && identityId == null) return;
 

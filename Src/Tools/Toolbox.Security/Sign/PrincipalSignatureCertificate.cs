@@ -3,9 +3,9 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Toolbox.Security.Sign;
 
-public class PrincipleSignatureCertificate : PrincipleSignatureBase
+public class PrincipalSignatureCertificate : PrincipalSignatureBase
 {
-    public PrincipleSignatureCertificate(string kid, string issuer, string? audience, X509Certificate2 x509Certificate2, string? subject = null)
+    public PrincipalSignatureCertificate(string kid, string issuer, string? audience, X509Certificate2 x509Certificate2, string? subject = null)
         :base(kid, issuer, audience, subject)
     {
         Certificate = x509Certificate2;

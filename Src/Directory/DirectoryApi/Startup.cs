@@ -59,6 +59,15 @@ public static class Startup
             return new IdentityService(document, loggerFactory.CreateLogger<IdentityService>());
         });
 
+        service.AddSingleton<SigningService>(service =>
+        {
+            DirectoryService directoryService = service.GetRequiredService<DirectoryService>();
+            IdentityService identityService = service.GetRequiredService<IdentityService>();
+            ILoggerFactory loggerFactory = service.GetRequiredService<ILoggerFactory>();
+
+            return new SigningService(directoryService, identityService, loggerFactory.CreateLogger<SigningService>());
+        });
+
         return service;
     }
 

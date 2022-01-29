@@ -42,6 +42,8 @@ builder.Services.ConfigurePingService(builder.Logging);
 
 var app = builder.Build();
 
+option = app.Services.GetRequiredService<ApplicationOption>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -60,5 +62,5 @@ app.ConfigureArtifactService();
 if (app.Environment.IsEnvironment("Test"))
     app.Run();
 else
-    app.Run(option.HostUrl ?? "http://localhost:5011");
+    app.Run(option.HostUrl ?? "https://localhost:5099");
 

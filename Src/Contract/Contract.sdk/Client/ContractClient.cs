@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Contract.sdk.Models;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -9,62 +10,84 @@ using Toolbox.Document;
 using Toolbox.Model;
 using Toolbox.Tools;
 
-namespace Artifact.sdk
+
+namespace Contract.sdk.Client;
+
+public class ContractClient
 {
-    public class ContractClient
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<ContractClient> _logger;
+
+    public ContractClient(HttpClient httpClient, ILogger<ContractClient> logger)
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<ContractClient> _logger;
-
-        public ContractClient(HttpClient httpClient, ILogger<ContractClient> logger)
-        {
-            _httpClient = httpClient;
-            _logger = logger;
-        }
-
-        public async Task<bool> Delete(DocumentId id, CancellationToken token = default)
-        {
-            id.VerifyNotNull(nameof(id));
-            _logger.LogTrace($"{nameof(Delete)}: Id={id}");
-
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/contract/{id.ToUrlEncoding()}", token);
-
-            return response.StatusCode switch
-            {
-                HttpStatusCode.OK => true,
-                HttpStatusCode.NotFound => false,
-
-                _ => throw new HttpRequestException($"Invalid http code={response.StatusCode}"),
-            };
-        }
-
-        //public async Task<BlockChainDocument?> Get(DocumentId id, CancellationToken token = default)
-        //{
-        //    id.VerifyNotNull(nameof(id));
-        //    _logger.LogTrace($"{nameof(Get)}: Id={id}");
-
-        //    try
-        //    {
-        //        return await _httpClient.GetFromJsonAsync<BlockChainDocument?>($"api/contract/{id.ToUrlEncoding()}", token);
-        //    }
-        //    catch (HttpRequestException ex)
-        //    {
-        //        _logger.LogError(ex, $"{nameof(Get)}: id={id} failed");
-        //        return null;
-        //    }
-        //}
-
-        public async Task Set(Document document, CancellationToken token = default)
-        {
-            document.VerifyNotNull(nameof(document));
-
-            _logger.LogTrace($"{nameof(Set)}: Id={document.DocumentId}");
-
-            HttpResponseMessage message = await _httpClient.PostAsJsonAsync("api/contract", document, token);
-            message.EnsureSuccessStatusCode();
-        }
-
-
-        public BatchSetCursor<string> Search(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, "api/artifact/search", queryParameter, _logger);
+        _httpClient = httpClient;
+        _logger = logger;
     }
+
+    public async Task<bool> Delete(DocumentId documentId, CancellationToken token = default)
+    {
+        documentId.VerifyNotNull(nameof(documentId));
+        _logger.LogTrace($"{nameof(Delete)}: Id={documentId}");
+
+        HttpResponseMessage response = await _httpClient.DeleteAsync($"api/contract/{documentId.ToUrlEncoding()}", token);
+
+        return response.StatusCode switch
+        {
+            HttpStatusCode.OK => true,
+            HttpStatusCode.NotFound => false,
+
+            _ => throw new HttpRequestException($"Invalid http code={response.StatusCode}"),
+        };
+    }
+
+    public async Task Create(BlkHeader blkHeader, CancellationToken token = default)
+    {
+        blkHeader.Verify();
+
+        Document doc = new DocumentBuilder()
+            .SetDocumentId((DocumentId)blkHeader.DocumentId)
+            .SetData(blkHeader)
+            .Build();
+
+        bool status = doc.IsHashVerify();
+
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/create", doc, token);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<BlockChainModel> Get(DocumentId documentId, CancellationToken token = default)
+    {
+        BlockChainModel? model = await _httpClient.GetFromJsonAsync<BlockChainModel>($"api/contract/{documentId.ToUrlEncoding()}", token);
+        model.VerifyNotNull("Null returned");
+
+        return model;
+    }
+
+    public async Task Append(DocumentId documentId, BlkTransaction blkTransaction, CancellationToken token = default)
+    {
+        blkTransaction.Verify();
+
+        Document doc = new DocumentBuilder()
+            .SetDocumentId(documentId)
+            .SetData(blkTransaction)
+            .Build();
+
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/create", doc, token);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task Append(DocumentId documentId, BlkCode blkCode, CancellationToken token = default)
+    {
+        blkCode.Verify();
+
+        Document doc = new DocumentBuilder()
+            .SetDocumentId(documentId)
+            .SetData(blkCode)
+            .Build();
+
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/create", doc, token);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public BatchSetCursor<string> Search(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, "api/contract/search", queryParameter, _logger);
 }

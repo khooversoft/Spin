@@ -6,25 +6,24 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Block;
 using Toolbox.Document;
 using Toolbox.Model;
-using Toolbox.Security.Sign;
 using Xunit;
 
 namespace Directory.Test;
 
-public class IdentityControllerTests
+public class SigningControllerTests
 {
     [Fact]
-    public async Task GivenDirectoryEntry_WhenRoundTrip_Success()
+    public async Task GivenDirectoryEntry_WhenSigned_WillVerify()
     {
         const string issuer = "user@domain.com";
 
         IdentityClient client = TestApplication.GetIdentityClient();
+        SigningClient signClient = TestApplication.GetSigningClient();
 
         var documentId = new DocumentId("test/unit-tests-identity/identity1");
 
@@ -46,29 +45,26 @@ public class IdentityControllerTests
         bool success = await client.Create(request);
         success.Should().BeTrue();
 
-        IdentityEntry? entry = await client.Get(documentId);
-        entry.Should().NotBeNull();
+        var signRequest = new SignRequest
+        {
+            DirectoryId = (string)(documentId),
+            Digest = Guid.NewGuid().ToString(),
+        };
 
-        var issuerSignature = new PrincipalSignature(issuer, issuer, "business@domain.com", rasParameters: entry!.GetRsaParameters());
+        var signedJwt = await signClient.Sign(signRequest);
 
-        BlockChain blockChain = await new BlockChainBuilder()
-            .SetPrincipleSignature(issuerSignature)
-            .Build();
+        var validateRequest = new ValidateRequest
+        {
+            DirectoryId = (string)(documentId),
+            Jwt = signedJwt,
+        };
 
-        var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
+        bool jwtValidated = await signClient.Validate(validateRequest);
+        jwtValidated.Should().BeTrue();
 
-        await blockChain.Add(payload, issuerSignature.GetSign());
-        blockChain.Validate(x => issuerSignature);
 
         await client.Delete(documentId);
         search = (await client.Search(query).ReadNext()).Records;
         search.Any(x => x.Name == (string)documentId).Should().BeFalse();
-    }
-
-    private record Payload
-    {
-        public string? Name { get; set; }
-        public int Value { get; set; }
-        public float Price { get; set; }
     }
 }

@@ -76,22 +76,4 @@ public class IdentityController : ControllerBase
 
         return Ok(result);
     }
-
-    [HttpPost("sign")]
-    public async Task<IActionResult> Sign([FromBody] SignRequest signRequest, CancellationToken token)
-    {
-        string? jwt = await _identityService.Sign(signRequest, token);
-        if (jwt == null) return BadRequest();
-
-        return Ok(jwt);
-    }
-
-    [HttpPost("validate")]
-    public async Task<IActionResult> Validate([FromBody] ValidateRequest validateRequest, CancellationToken token)
-    {
-        bool result = await _identityService.Validate(validateRequest, token);
-        if (result == false) return BadRequest();
-
-        return Ok(true);
-    }
 }

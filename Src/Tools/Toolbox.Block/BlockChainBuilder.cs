@@ -7,22 +7,35 @@ using Toolbox.Extensions;
 using Toolbox.Security.Sign;
 using Toolbox.Tools;
 
-namespace Toolbox.Block
+namespace Toolbox.Block;
+
+public class BlockChainBuilder
 {
-    public class BlockChainBuilder
+    public Func<string, Task<string>>? Sign { get; set; }
+
+    public BlockChainBuilder SetSign(Func<string, Task<string>> sign) => this.Action(x => Sign = sign);
+
+    public async Task<BlockChain> Build()
     {
-        public IPrincipleSignature? PrincipleSignature { get; set; }
+        Sign.VerifyNotNull(nameof(Sign));
 
-        public BlockChainBuilder SetPrincipleSignature(IPrincipleSignature principleSignatures) => this.Action(x => x.PrincipleSignature = principleSignatures);
+        DataBlock genesisBlock = await DataBlockBuilder.CreateGenesisBlock(Sign);
 
-        public BlockChain Build()
-        {
-            PrincipleSignature.VerifyNotNull(nameof(PrincipleSignature));
+        return new BlockChain()
+            .Add(genesisBlock);
+    }
+}
 
-            DataBlock genesisBlock = DataBlockBuilder.CreateGenesisBlock(PrincipleSignature);
 
-            return new BlockChain()
-                .Add(genesisBlock);
-        }
+public static class BlockChainBuilderExtensions
+{
+    public static BlockChainBuilder SetPrincipleSignature(this BlockChainBuilder subject, IPrincipalSignature principalSignature)
+    {
+        subject.VerifyNotNull(nameof(subject));
+        principalSignature.VerifyNotNull(nameof(principalSignature));
+
+        subject.SetSign(x => Task.FromResult(principalSignature.Sign(x)));
+
+        return subject;
     }
 }

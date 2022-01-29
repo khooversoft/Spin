@@ -17,8 +17,6 @@ namespace Directory.sdk.Service;
 
 public class IdentityService
 {
-    private const string _issuer = "identity.com";
-    private const string _audience = "spin.com";
     private readonly IDocumentStorage _documentStorage;
     private readonly ILogger<IdentityService> _logger;
 
@@ -43,7 +41,6 @@ public class IdentityService
         var document = new IdentityEntry
         {
             DirectoryId = identityEntryRequest.DirectoryId,
-            ClassType = "identity",
             Subject = identityEntryRequest.Issuer,
             PublicKey = rsa.ExportRSAPublicKey(),
             PrivateKey = rsa.ExportRSAPrivateKey(),
@@ -77,46 +74,4 @@ public class IdentityService
     }
 
     public Task<IReadOnlyList<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token = default) => _documentStorage.Search(queryParameter, token);
-
-    public async Task<string?> Sign(SignRequest signRequest, CancellationToken token)
-    {
-        _logger.LogTrace($"Sign for directoryId={signRequest.DirectoryId}");
-
-        IdentityEntry? identityEntry = await Get((DocumentId)signRequest.DirectoryId, token, includePrivateKey: true);
-        if (identityEntry == null) return null;
-
-        IPrincipleSignature principleSignature = new PrincipleSignature(signRequest.DirectoryId, _issuer, _audience, identityEntry.Subject, identityEntry.GetRsaParameters());
-
-        return new JwtTokenBuilder()
-            .SetDigest(signRequest.Digest)
-            .SetPrincipleSignature(principleSignature)
-            .SetExpires(DateTime.Now.AddYears(10))
-            .SetIssuedAt(DateTime.Now)
-            .Build();
-    }
-
-    public async Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token)
-    {
-        _logger.LogTrace($"Validate for directoryId={validateRequest.DirectoryId}");
-
-        IdentityEntry? identityEntry = await Get((DocumentId)validateRequest.DirectoryId, token);
-        if (identityEntry == null) return false;
-
-        IPrincipleSignature principleSignature = new PrincipleSignature(validateRequest.DirectoryId, _issuer, _audience, identityEntry.Subject, identityEntry.GetRsaParameters());
-
-        try
-        {
-            JwtTokenDetails tokenDetails = new JwtTokenParserBuilder()
-                .SetPrincipleSignature(principleSignature)
-                .Build()
-                .Parse(validateRequest.Jwt);
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Failed validation for directoryId={validateRequest.DirectoryId}");
-            return false;
-        }
-    }
 }

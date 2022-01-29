@@ -1,43 +1,57 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Toolbox.Tools;
 
 namespace Toolbox.Security.Sign;
 
 public static class Extensions
 {
-    public static IPrincipleSignature WithAudience(this IPrincipleSignature principleSignature, string audience)
+    public static IPrincipalSignature WithAudience(this IPrincipalSignature principalSignature, string audience)
     {
-        return principleSignature switch
+        principalSignature.VerifyNotNull(nameof(principalSignature));
+
+        return principalSignature switch
         {
-            PrincipleSignature v => new PrincipleSignature(v.Kid, v.Issuer, audience, v.Subject, v),
+            PrincipalSignature v => new PrincipalSignature(v.Kid, v.Issuer, audience, v.Subject, v),
 
-            PrincipleSignatureCertificate v => new PrincipleSignatureCertificate(v.Kid, v.Issuer, audience, v.Certificate, v.Subject),
+            PrincipalSignatureCertificate v => new PrincipalSignatureCertificate(v.Kid, v.Issuer, audience, v.Certificate, v.Subject),
 
-            _ => throw new ArgumentException($"Unknown type={principleSignature.GetType().FullName}"),
+            _ => throw new ArgumentException($"Unknown type={principalSignature.GetType().FullName}"),
         };
     }
 
-    public static IPrincipleSignature WithIssuer(this IPrincipleSignature principleSignature, string issuer)
+    public static IPrincipalSignature WithIssuer(this IPrincipalSignature principalSignature, string issuer)
     {
-        return principleSignature switch
+        principalSignature.VerifyNotNull(nameof(principalSignature));
+
+        return principalSignature switch
         {
-            PrincipleSignature v => new PrincipleSignature(v.Kid, issuer, v.Audience, v.Subject, v),
+            PrincipalSignature v => new PrincipalSignature(v.Kid, issuer, v.Audience, v.Subject, v),
 
-            PrincipleSignatureCertificate v => new PrincipleSignatureCertificate(v.Kid, issuer, v.Audience, v.Certificate, v.Subject),
+            PrincipalSignatureCertificate v => new PrincipalSignatureCertificate(v.Kid, issuer, v.Audience, v.Certificate, v.Subject),
 
-            _ => throw new ArgumentException($"Unknown type={principleSignature.GetType().FullName}"),
+            _ => throw new ArgumentException($"Unknown type={principalSignature.GetType().FullName}"),
         };
     }
 
-    public static IPrincipleSignature WithSubject(this IPrincipleSignature principleSignature, string subject)
+    public static IPrincipalSignature WithSubject(this IPrincipalSignature principalSignature, string subject)
     {
-        return principleSignature switch
+        principalSignature.VerifyNotNull(nameof(principalSignature));
+
+        return principalSignature switch
         {
-            PrincipleSignature v => new PrincipleSignature(v.Kid, v.Issuer, v.Audience, subject, v),
+            PrincipalSignature v => new PrincipalSignature(v.Kid, v.Issuer, v.Audience, subject, v),
 
-            PrincipleSignatureCertificate v => new PrincipleSignatureCertificate(v.Kid, v.Issuer, v.Audience, v.Certificate, subject),
+            PrincipalSignatureCertificate v => new PrincipalSignatureCertificate(v.Kid, v.Issuer, v.Audience, v.Certificate, subject),
 
-            _ => throw new ArgumentException($"Unknown type={principleSignature.GetType().FullName}"),
+            _ => throw new ArgumentException($"Unknown type={principalSignature.GetType().FullName}"),
         };
     }
 
+    public static Func<string, Task<string>> GetSign(this IPrincipalSignature principalSignature)
+    {
+        principalSignature.VerifyNotNull(nameof(principalSignature));
+
+        return x => Task.FromResult(principalSignature.Sign(x));
+    }
 }

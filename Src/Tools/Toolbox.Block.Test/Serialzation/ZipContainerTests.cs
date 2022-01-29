@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Sign;
@@ -14,25 +15,25 @@ namespace Toolbox.Block.Test.Serialzation;
 public class ZipContainerTests
 {
     [Fact]
-    public void GivenBlockChain_WhenContainerIsMemory_ShouldRoundTrip()
+    public async Task GivenBlockChain_WhenContainerIsMemory_ShouldRoundTrip()
     {
         const string issuer = "user@domain.com";
         const string issuer2 = "user2@domain.com";
         const string zipPath = "$block";
         var date = DateTime.UtcNow;
 
-        var issuerSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
-        var issuerSignature2 = new PrincipleSignature(issuer2, issuer2, "userBusiness2@domain.com");
+        var issuerSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
+        var issuerSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
-        BlockChain blockChain = new BlockChainBuilder()
+        BlockChain blockChain = await new BlockChainBuilder()
             .SetPrincipleSignature(issuerSignature)
             .Build();
 
         var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
         var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-        blockChain.Add(payload, issuerSignature);
-        blockChain.Add(payload2, issuerSignature2);
+        await blockChain.Add(payload, issuerSignature.GetSign());
+        await blockChain.Add(payload2, issuerSignature2.GetSign());
 
         var getSignature = (string x) =>
         {

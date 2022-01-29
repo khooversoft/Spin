@@ -19,7 +19,7 @@ public class JwtKeyTests
         string subject = "email@test.com";
         string digest = Guid.NewGuid().ToString();
 
-        IPrincipleSignature principle = new PrincipleSignature(kid, "test.com", "spin.com", subject);
+        IPrincipalSignature principle = new PrincipalSignature(kid, "test.com", "spin.com", subject);
 
         string token = new JwtTokenBuilder()
             .SetDigest(digest)
@@ -47,8 +47,8 @@ public class JwtKeyTests
         string subject = "email@test.com";
         string digest = Guid.NewGuid().ToString();
 
-        IPrincipleSignature principle = new PrincipleSignature(kid, "test.com", "spin.com", subject);
-        IPrincipleSignature principle2 = new PrincipleSignature(kid2, "test2.com", "spin2.com", subject);
+        IPrincipalSignature principle = new PrincipalSignature(kid, "test.com", "spin.com", subject);
+        IPrincipalSignature principle2 = new PrincipalSignature(kid2, "test2.com", "spin2.com", subject);
 
         string token = new JwtTokenBuilder()
             .SetDigest(digest)

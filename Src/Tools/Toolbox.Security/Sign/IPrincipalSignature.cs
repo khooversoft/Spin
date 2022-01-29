@@ -3,7 +3,7 @@ using System;
 
 namespace Toolbox.Security.Sign;
 
-public interface IPrincipleSignature
+public interface IPrincipalSignature
 {
     public string Kid { get; }
 

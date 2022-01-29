@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Contract.sdk.Models;
 
@@ -22,4 +24,22 @@ public record BlkRecord : BlkBase
     public double Value { get; init; }
 
     public string? Note { get; init; }
+}
+
+
+public static class BlkRecordExtensions
+{
+    public static void Verify(this BlkRecord subject)
+    {
+        subject.VerifyBase();
+        subject.TrxType.VerifyNotEmpty(nameof(subject.TrxType));
+        subject.Note.VerifyNotEmpty(nameof(subject.Note));
+    }
+
+    public static void Verify(this BlkTransaction subject)
+    {
+        subject.VerifyNotNull(nameof(subject));
+        subject.Records.VerifyNotNull(nameof(subject.Records));
+        subject.Records.ForEach(x => x.Verify());
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Extensions;
@@ -14,14 +15,14 @@ namespace Toolbox.Block.Test.Blocks
     public class BlockChainSignTests
     {
         [Fact]
-        public void GivenEmptyBlockChain_ShouldVerify()
+        public async Task GivenEmptyBlockChain_ShouldVerify()
         {
             const string issuer = "user@domain.com";
             var now = UnixDate.UtcNow;
 
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
+            IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
-            BlockChain blockChain = new BlockChainBuilder()
+            BlockChain blockChain = await new BlockChainBuilder()
                 .SetPrincipleSignature(principleSignature)
                 .Build();
 
@@ -29,12 +30,12 @@ namespace Toolbox.Block.Test.Blocks
         }
 
         [Fact]
-        public void GivenBlockChain_AppendSingleNode_ShouldVerify()
+        public async Task GivenBlockChain_AppendSingleNode_ShouldVerify()
         {
             const string issuer = "user@domain.com";
-            var now = UnixDate.UtcNow;
+            var now = DateTime.UtcNow;
 
-            IPrincipleSignature principleSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
+            IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
             var dataPayload = new
             {
@@ -46,7 +47,7 @@ namespace Toolbox.Block.Test.Blocks
 
             string payloadJson = dataPayload.ToJson();
 
-            DataBlock data = new DataBlockBuilder()
+            DataBlock data = await new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
@@ -54,9 +55,11 @@ namespace Toolbox.Block.Test.Blocks
                 .SetPrincipleSignature(principleSignature)
                 .Build();
 
-            BlockChain blockChain = new BlockChainBuilder()
+            BlockChain blockChain = await new BlockChainBuilder()
                 .SetPrincipleSignature(principleSignature)
-                .Build()
+                .Build();
+
+            blockChain
                 .Add(data);
 
             blockChain.Validate(x => principleSignature);
@@ -75,25 +78,25 @@ namespace Toolbox.Block.Test.Blocks
         }
 
         [Fact]
-        public void GivenBlockChain_TwoTypes_ShouldVerify()
+        public async Task GivenBlockChain_TwoTypes_ShouldVerify()
         {
             const string issuer = "user@domain.com";
             const string issuer2 = "user2@domain.com";
             var now = UnixDate.UtcNow;
             var date = DateTime.UtcNow;
 
-            var issuerSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
-            var issuerSignature2 = new PrincipleSignature(issuer2, issuer2, "userBusiness2@domain.com");
+            var issuerSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
+            var issuerSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
-            BlockChain blockChain = new BlockChainBuilder()
+            BlockChain blockChain = await new BlockChainBuilder()
                 .SetPrincipleSignature(issuerSignature)
                 .Build();
 
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            blockChain.Add(payload, issuerSignature);
-            blockChain.Add(payload2, issuerSignature2);
+            await blockChain.Add(payload, issuerSignature.GetSign());
+            await blockChain.Add(payload2, issuerSignature.GetSign());
 
             blockChain.Validate(x =>
             {
@@ -124,25 +127,25 @@ namespace Toolbox.Block.Test.Blocks
         }
 
         [Fact]
-        public void GivenBlockChain_ShouldSerializeAndDeserialize()
+        public async Task GivenBlockChain_ShouldSerializeAndDeserialize()
         {
             const string issuer = "user@domain.com";
             const string issuer2 = "user2@domain.com";
             var now = UnixDate.UtcNow;
             var date = DateTime.UtcNow;
 
-            var issuerSignature = new PrincipleSignature(issuer, issuer, "userBusiness@domain.com");
-            var issuerSignature2 = new PrincipleSignature(issuer2, issuer2, "userBusiness2@domain.com");
+            var issuerSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
+            var issuerSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
-            BlockChain blockChain = new BlockChainBuilder()
+            BlockChain blockChain = await new BlockChainBuilder()
                 .SetPrincipleSignature(issuerSignature)
                 .Build();
 
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            blockChain.Add(payload, issuerSignature);
-            blockChain.Add(payload2, issuerSignature2);
+            await blockChain.Add(payload, issuerSignature.GetSign());
+            await blockChain.Add(payload2, issuerSignature.GetSign());
 
             var getSignature = (string x) =>
             {

@@ -28,7 +28,6 @@ public class ConversionTests
         var entry = new IdentityEntry
         {
             DirectoryId = (string)documentId,
-            ClassType = "identity",
             Subject = issuer,
             PublicKey = rsa.ExportRSAPublicKey(),
             PrivateKey = rsa.ExportRSAPrivateKey(),
@@ -64,7 +63,7 @@ public class ConversionTests
 
         RSAParameters rsaParameter = Create(documentId);
 
-        IPrincipleSignature principle = new PrincipleSignature(kid, "test.com", "spin.com", subject, rsaParameter);
+        IPrincipalSignature principle = new PrincipalSignature(kid, "test.com", "spin.com", subject, rsaParameter);
 
         string token = new JwtTokenBuilder()
             .SetDigest(digest)
@@ -98,8 +97,8 @@ public class ConversionTests
         RSAParameters rsaParameter = Create(documentId);
         RSAParameters rsaParameter2 = Create(documentId2);
 
-        IPrincipleSignature principle = new PrincipleSignature(kid, "test.com", "spin.com", subject, rsaParameter);
-        IPrincipleSignature principle2 = new PrincipleSignature(kid, "test.com", "spin.com", subject, rsaParameter2);
+        IPrincipalSignature principle = new PrincipalSignature(kid, "test.com", "spin.com", subject, rsaParameter);
+        IPrincipalSignature principle2 = new PrincipalSignature(kid, "test.com", "spin.com", subject, rsaParameter2);
 
         string token = new JwtTokenBuilder()
             .SetDigest(digest)
@@ -126,7 +125,6 @@ public class ConversionTests
         var entry = new IdentityEntry
         {
             DirectoryId = (string)documentId,
-            ClassType = "identity",
             Subject = "<subject>",
             PublicKey = rsa.ExportRSAPublicKey(),
             PrivateKey = rsa.ExportRSAPrivateKey(),

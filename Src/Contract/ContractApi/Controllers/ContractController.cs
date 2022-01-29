@@ -25,53 +25,20 @@ namespace ContractApi.Controllers
             _contractService = contractService;
         }
 
-        [HttpGet("{path}")]
-        public async Task<IActionResult> Get(string path, CancellationToken token)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create([FromBody] Document entry, CancellationToken token)
         {
-            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
-            BlockChainModel? model = await _contractService.Get(documentId, token);
-
-            return model != null ? Ok(model) : NotFound();
-        }
-
-        [HttpPost("create/{path}")]
-        public async Task<IActionResult> Post([FromBody] Document entry, CancellationToken token)
-        {
-            if( entry.IsHashVerify() ) return BadRequest();
-
-            switch(entry.ObjectClass)
-            {
-                case "BlkHeader":
-                    BlkHeader blkHeader = entry.GetData<BlkHeader>();
-                    //await _contractService.Set(blkHeader, token);
-                    break;
-
-                default:
-                    return BadRequest();
-            }
-
-            return Ok();
-        }
-
-        [HttpPost("append/{path}")]
-        public async Task<IActionResult> Append([FromBody] Document entry, CancellationToken token)
-        {
-            if (entry.IsHashVerify()) return BadRequest();
+            if (!entry.IsHashVerify()) return BadRequest();
 
             switch (entry.ObjectClass)
             {
                 case "BlkHeader":
+                    BlkHeader blkHeader = entry.GetData<BlkHeader>();
+                    await _contractService.Create(blkHeader, token);
+                    break;
+
+                default:
                     return BadRequest();
-
-                case "BlkTransaction":
-                    BlkTransaction blkTransaction = entry.GetData<BlkTransaction>();
-                    //await _contractService.Set(blkTransaction, token);
-                    break;
-
-                case "BlkCode":
-                    BlkCode blkCode = entry.GetData<BlkCode>();
-                    //await _contractService.Set(blkCode, token);
-                    break;
             }
 
             return Ok();
@@ -84,6 +51,38 @@ namespace ContractApi.Controllers
             bool status = await _contractService.Delete(documentId, token: token);
 
             return status ? Ok() : NotFound();
+        }
+
+        [HttpGet("{path}")]
+        public async Task<IActionResult> Get(string path, CancellationToken token)
+        {
+            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+            BlockChainModel? model = await _contractService.Get(documentId, token);
+
+            return model != null ? Ok(model) : NotFound();
+        }
+
+        [HttpPost("append")]
+        public async Task<IActionResult> Append([FromBody] Document entry, CancellationToken token)
+        {
+            if (entry.IsHashVerify()) return BadRequest();
+
+            bool stats;
+            switch (entry.ObjectClass)
+            {
+                case "BlkTransaction":
+                    BlkTransaction blkTransaction = entry.GetData<BlkTransaction>();
+                    stats = await _contractService.Append(entry.DocumentId, blkTransaction, token);
+                    return stats ? Ok(stats) : NotFound();
+
+                case "BlkCode":
+                    BlkCode blkCode = entry.GetData<BlkCode>();
+                    stats = await _contractService.Append(entry.DocumentId, blkCode, token);
+                    return stats ? Ok(stats) : NotFound();
+
+                default:
+                    return BadRequest();
+            }
         }
 
         [HttpPost("search")]

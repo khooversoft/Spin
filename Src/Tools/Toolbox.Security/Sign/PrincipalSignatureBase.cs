@@ -4,9 +4,9 @@ using Toolbox.Tools;
 
 namespace Toolbox.Security.Sign;
 
-public abstract class PrincipleSignatureBase : IPrincipleSignature
+public abstract class PrincipalSignatureBase : IPrincipalSignature
 {
-    protected PrincipleSignatureBase(string kid, string issuer, string? audience, string? subject)
+    protected PrincipalSignatureBase(string kid, string issuer, string? audience, string? subject)
     {
         kid.VerifyNotEmpty(nameof(kid));
         issuer.VerifyNotEmpty(nameof(issuer));
@@ -30,21 +30,15 @@ public abstract class PrincipleSignatureBase : IPrincipleSignature
 
     public abstract SecurityKey GetSecurityKey();
 
-    public string Sign(string payloadDigest)
-    {
-        return new JwtTokenBuilder()
+    public string Sign(string payloadDigest) => new JwtTokenBuilder()
             .SetDigest(payloadDigest)
-            .SetExpires(DateTime.Now.AddYears(10))
-            .SetIssuedAt(DateTime.Now)
+            .SetExpires(DateTime.UtcNow.AddYears(10))
+            .SetIssuedAt(DateTime.UtcNow)
             .SetPrincipleSignature(this)
             .Build();
-    }
 
-    public JwtTokenDetails ValidateSignature(string jwt)
-    {
-        return new JwtTokenParserBuilder()
+    public JwtTokenDetails ValidateSignature(string jwt) => new JwtTokenParserBuilder()
             .SetPrincipleSignature(this)
             .Build()
             .Parse(jwt);
-    }
 }

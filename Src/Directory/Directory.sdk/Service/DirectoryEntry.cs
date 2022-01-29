@@ -36,4 +36,8 @@ public static class DirectoryEntryExtensions
             .Properties.Values
             .FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
             ?.Value;
+
+    public static string? GetEmail(this DirectoryEntry directory) => GetPropertyValue(directory, PropertyName.Email);
+
+    public static string? GetSigningCredentials(this DirectoryEntry directory) => GetPropertyValue(directory, PropertyName.SigningCredentials);
 }

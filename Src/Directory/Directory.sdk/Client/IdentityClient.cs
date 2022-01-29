@@ -1,19 +1,13 @@
 ﻿using Directory.sdk.Model;
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Document;
-using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;
 
@@ -72,25 +66,5 @@ namespace Directory.sdk.Client
         }
 
         public BatchSetCursor<DatalakePathItem> Search(QueryParameter query) => new BatchSetCursor<DatalakePathItem>(_httpClient, "api/identity/search", query, _logger);
-
-        public async Task<string> Sign(SignRequest signRequest, CancellationToken token = default)
-        {
-            _logger.LogTrace($"Signing request for directoryId={signRequest.DirectoryId}");
-
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/identity/sign", signRequest, token);
-            response.EnsureSuccessStatusCode();
-
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        public async Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token = default)
-        {
-            _logger.LogTrace($"Signing request for directoryId={validateRequest.DirectoryId}");
-
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/identity/validate", validateRequest, token);
-            response.EnsureSuccessStatusCode();
-
-            return true;
-        }
     }
 }
