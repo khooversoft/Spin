@@ -33,8 +33,6 @@ public static class DocumentIdTools
 
             if (!char.IsLetterOrDigit(item[^1])) return (false, "Must end with letter or number");
 
-
-
             if (!item.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-' || x == '@')) return (false, $"{item} is not valid, Valid Id must be letter, number, '.', '@', or '-'");
         }
 

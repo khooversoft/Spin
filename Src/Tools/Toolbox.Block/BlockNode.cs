@@ -4,66 +4,62 @@ using Toolbox.Security;
 using Toolbox.Security.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Block
+namespace Toolbox.Block;
+
+public record BlockNode
 {
-    public class BlockNode
+    public BlockNode() { }
+
+    public BlockNode(DataBlock blockData)
     {
-        public BlockNode() { }
+        blockData.VerifyNotNull(nameof(blockData));
 
-        public BlockNode(DataBlock blockData)
+        DataBlock = blockData;
+        Digest = BlockNodeExtensions.GetDigest(this);
+    }
+
+    public BlockNode(DataBlock blockData, int index, string? previousHash)
+    {
+        blockData.VerifyNotNull(nameof(blockData));
+
+        DataBlock = blockData;
+        Index = index;
+        PreviousHash = previousHash;
+        Digest = BlockNodeExtensions.GetDigest(this);
+    }
+
+    public DataBlock DataBlock { get; init; } = null!;
+
+    public int Index { get; init; }
+
+    public string? PreviousHash { get; init; }
+
+    public string Digest { get; init; } = null!;
+}
+
+
+public static class BlockNodeExtensions
+{
+    public static string GetDigest(this BlockNode blockNode)
+    {
+        var hashes = new string[]
         {
-            blockData.VerifyNotNull(nameof(blockData));
+                $"{blockNode.Index}-{(blockNode.PreviousHash ?? "")}".ToBytes().ToSHA256Hash(),
+                blockNode.DataBlock.GetDigest(),
+        };
 
-            BlockData = blockData;
-            Digest = GetDigest();
-        }
+        return hashes.ToMerkleHash();
+    }
 
-        public BlockNode(DataBlock blockData, int index, string? previousHash)
-        {
-            blockData.VerifyNotNull(nameof(blockData));
+    public static bool IsValid(this BlockNode blockNode) => blockNode.Digest == blockNode.GetDigest();
 
-            BlockData = blockData;
-            Index = index;
-            PreviousHash = previousHash;
-            Digest = GetDigest();
-        }
+    public static void Verify(this BlockNode blockNode)
+    {
+        blockNode.VerifyNotNull(nameof(blockNode));
 
-        public BlockNode(BlockNode blockNode)
-            : this(blockNode.BlockData, blockNode.Index, blockNode.PreviousHash!)
-        {
-        }
-
-        public DataBlock BlockData { get; init; } = null!;
-
-        public int Index { get; init; }
-
-        public string? PreviousHash { get; init; }
-
-        public string Digest { get; init; } = null!;
-
-        public bool IsValid() => Digest == GetDigest();
-
-        public string GetDigest()
-        {
-            var hashes = new string[]
-            {
-                $"{Index}-{PreviousHash ?? ""}".ToBytes().ToSHA256Hash(),
-                BlockData.ToBytes().ToSHA256Hash(),
-            };
-
-            return hashes.ToMerkleHash();
-        }
-
-        public override bool Equals(object? obj) => obj is BlockNode blockNode &&
-                Index == blockNode.Index &&
-                PreviousHash == blockNode.PreviousHash &&
-                Digest == blockNode.Digest &&
-                BlockData == blockNode.BlockData;
-
-        public override int GetHashCode() => HashCode.Combine(Index, PreviousHash, Digest);
-
-        public static bool operator ==(BlockNode v1, BlockNode v2) => v1.Equals(v2);
-
-        public static bool operator !=(BlockNode v1, BlockNode v2) => !v1.Equals(v2);
+        blockNode.DataBlock.VerifyNotNull(nameof(blockNode.DataBlock));
+        blockNode.Digest.VerifyNotEmpty(nameof(blockNode.Digest));
     }
 }
+
+

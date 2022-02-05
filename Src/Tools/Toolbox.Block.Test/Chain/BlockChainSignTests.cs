@@ -15,22 +15,23 @@ namespace Toolbox.Block.Test.Blocks
     public class BlockChainSignTests
     {
         [Fact]
-        public async Task GivenEmptyBlockChain_ShouldVerify()
+        public void GivenEmptyBlockChain_ShouldVerify()
         {
             const string issuer = "user@domain.com";
             var now = UnixDate.UtcNow;
 
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
-            BlockChain blockChain = await new BlockChainBuilder()
-                .SetPrincipleSignature(principleSignature)
-                .Build();
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleId(issuer)
+                .Build()
+                .Sign(x => principleSignature);
 
             blockChain.Validate(x => principleSignature);
         }
 
         [Fact]
-        public async Task GivenBlockChain_AppendSingleNode_ShouldVerify()
+        public void GivenBlockChain_AppendSingleNode_ShouldVerify()
         {
             const string issuer = "user@domain.com";
             var now = DateTime.UtcNow;
@@ -47,27 +48,26 @@ namespace Toolbox.Block.Test.Blocks
 
             string payloadJson = dataPayload.ToJson();
 
-            DataBlock data = await new DataBlockBuilder()
+            DataBlock data = new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
                 .SetData(payloadJson)
-                .SetPrincipleSignature(principleSignature)
+                .SetPrincipleId(issuer)
                 .Build();
 
-            BlockChain blockChain = await new BlockChainBuilder()
-                .SetPrincipleSignature(principleSignature)
-                .Build();
-
-            blockChain
-                .Add(data);
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleId(issuer)
+                .Build()
+                .Add(data)
+                .Sign(x => principleSignature);
 
             blockChain.Validate(x => principleSignature);
 
             // Get payload of data block
             blockChain.Blocks.Count.Should().Be(2);
 
-            DataBlock receiveBlock = blockChain.Blocks[1].BlockData;
+            DataBlock receiveBlock = blockChain.Blocks[1].DataBlock;
             TestBlockNode(receiveBlock, "blockType", "blockId");
 
             Dictionary<string, string> receivedPayload = receiveBlock.Data.ToObject<Dictionary<string, string>>().VerifyNotNull("payload failed");
@@ -78,7 +78,7 @@ namespace Toolbox.Block.Test.Blocks
         }
 
         [Fact]
-        public async Task GivenBlockChain_TwoTypes_ShouldVerify()
+        public void GivenBlockChain_TwoTypes_ShouldVerify()
         {
             const string issuer = "user@domain.com";
             const string issuer2 = "user2@domain.com";
@@ -88,38 +88,37 @@ namespace Toolbox.Block.Test.Blocks
             var issuerSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
             var issuerSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
-            BlockChain blockChain = await new BlockChainBuilder()
-                .SetPrincipleSignature(issuerSignature)
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleId(issuer)
                 .Build();
 
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            await blockChain.Add(payload, issuerSignature.GetSign());
-            await blockChain.Add(payload2, issuerSignature.GetSign());
+            blockChain.Add(payload, issuer);
+            blockChain.Add(payload2, issuer2);
 
-            blockChain.Validate(x =>
+            var getSignature = (string kid) => kid switch
             {
-                string kid = JwtTokenParser.GetKidFromJwtToken(x).VerifyNotEmpty(nameof(kid));
+                issuer => issuerSignature,
+                issuer2 => issuerSignature2,
+                _ => throw new ArgumentException($"Invalid kid={kid}"),
+            };
 
-                return kid switch
-                {
-                    issuer => issuerSignature,
-                    issuer2 => issuerSignature2,
-                    _ => throw new ArgumentException("Invalid kid"),
-                };
-            });
+            blockChain = blockChain.Sign(getSignature);
+
+            blockChain.Validate(getSignature);
 
             // Get payload of data block
             blockChain.Blocks.Count.Should().Be(3);
 
-            DataBlock receiveBlock = blockChain.Blocks[1].BlockData;
+            DataBlock receiveBlock = blockChain.Blocks[1].DataBlock;
             TestBlockNode(receiveBlock, "Payload", "1");
 
             Payload p1 = receiveBlock.Data.ToObject<Payload>().VerifyNotNull("payload failed");
             (payload == p1).Should().BeTrue();
 
-            DataBlock receiveBlock2 = blockChain.Blocks[2].BlockData;
+            DataBlock receiveBlock2 = blockChain.Blocks[2].DataBlock;
             TestBlockNode(receiveBlock2, "Payload2", "2");
 
             Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().VerifyNotNull("payload2 failed");
@@ -127,7 +126,7 @@ namespace Toolbox.Block.Test.Blocks
         }
 
         [Fact]
-        public async Task GivenBlockChain_ShouldSerializeAndDeserialize()
+        public void GivenBlockChain_ShouldSerializeAndDeserialize()
         {
             const string issuer = "user@domain.com";
             const string issuer2 = "user2@domain.com";
@@ -137,27 +136,24 @@ namespace Toolbox.Block.Test.Blocks
             var issuerSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
             var issuerSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
-            BlockChain blockChain = await new BlockChainBuilder()
-                .SetPrincipleSignature(issuerSignature)
+            BlockChain blockChain = new BlockChainBuilder()
+                .SetPrincipleId(issuer)
                 .Build();
 
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            await blockChain.Add(payload, issuerSignature.GetSign());
-            await blockChain.Add(payload2, issuerSignature.GetSign());
+            blockChain.Add(payload, issuer);
+            blockChain.Add(payload2, issuer2);
 
-            var getSignature = (string x) =>
+            var getSignature = (string kid) => kid switch
             {
-                string kid = JwtTokenParser.GetKidFromJwtToken(x).VerifyNotEmpty(nameof(kid));
-
-                return kid switch
-                {
-                    issuer => issuerSignature,
-                    issuer2 => issuerSignature2,
-                    _ => throw new ArgumentException("Invalid kid"),
-                };
+                issuer => issuerSignature,
+                issuer2 => issuerSignature2,
+                _ => throw new ArgumentException($"Invalid kid={kid}"),
             };
+
+            blockChain = blockChain.Sign(getSignature);
 
             blockChain.Validate(getSignature);
 
@@ -166,20 +162,20 @@ namespace Toolbox.Block.Test.Blocks
             // Receive test
             BlockChain receivedChain = blockChainJson.ToObject<BlockChainModel>()
                 .VerifyNotNull("Cannot deserialize")
-                .ConvertTo();
+                .ToBlockChain();
 
             receivedChain.Should().NotBeNull();
             receivedChain.Validate(getSignature);
 
             receivedChain.Blocks.Count.Should().Be(3);
 
-            DataBlock receiveBlock = receivedChain.Blocks[1].BlockData;
+            DataBlock receiveBlock = receivedChain.Blocks[1].DataBlock;
             TestBlockNode(receiveBlock, "Payload", "1");
 
             Payload p1 = receiveBlock.Data.ToObject<Payload>().VerifyNotNull("payload failed");
             (payload == p1).Should().BeTrue();
 
-            DataBlock receiveBlock2 = receivedChain.Blocks[2].BlockData;
+            DataBlock receiveBlock2 = receivedChain.Blocks[2].DataBlock;
             TestBlockNode(receiveBlock2, "Payload2", "2");
 
             Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().VerifyNotNull("payload2 failed");
@@ -190,8 +186,6 @@ namespace Toolbox.Block.Test.Blocks
         {
             dataBlock.BlockType.Should().Be(blockType);
             dataBlock.BlockId.Should().Be(blockId);
-            dataBlock.Properties.Should().NotBeNull();
-            dataBlock.Properties.Count.Should().Be(0);
             dataBlock.Data.Should().NotBeNullOrEmpty();
         }
 

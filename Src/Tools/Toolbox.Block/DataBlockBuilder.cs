@@ -19,9 +19,7 @@ public class DataBlockBuilder
 
     public string? Data { get; set; }
 
-    public Dictionary<string, string> Properties { get; set; } = new Dictionary<string, string>();
-
-    public Func<string, Task<string>>? Sign { get; set; }
+    public string? PrincipleId { get; set; }
 
     public DataBlockBuilder SetTimeStamp(DateTime timestamp) => this.Action(x => x.TimeStamp = timestamp);
 
@@ -31,16 +29,14 @@ public class DataBlockBuilder
 
     public DataBlockBuilder SetData(string data) => this.Action(x => Data = data);
 
-    public DataBlockBuilder SetSign(Func<string, Task<string>> sign) => this.Action(x => Sign = sign);
+    public DataBlockBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
 
-    public async Task<DataBlock> Build()
+    public DataBlock Build()
     {
         BlockType.VerifyNotEmpty($"{nameof(BlockType)} is required");
         BlockId.VerifyNotEmpty($"{nameof(BlockId)} is required");
         Data.VerifyNotEmpty($"{nameof(Data)} is required");
-        Sign.VerifyNotNull($"{nameof(Sign)} is required");
-
-        Properties ??= new Dictionary<string, string>();
+        PrincipleId.VerifyNotEmpty($"{nameof(SetPrincipleId)} is required");
 
         DataBlock dataBlock = new DataBlock
         {
@@ -48,42 +44,16 @@ public class DataBlockBuilder
             BlockType = BlockType,
             BlockId = BlockId,
             Data = Data,
-            Properties = Properties.ToDictionary(x => x.Key, x => x.Value),
+            PrincipleId = PrincipleId,
         };
 
-        string digest = dataBlock.GetDigest();
-
-        return new DataBlock
-        {
-            TimeStamp = dataBlock.TimeStamp,
-            BlockType = dataBlock.BlockType,
-            BlockId = dataBlock.BlockId,
-            Data = dataBlock.Data,
-            Properties = dataBlock.Properties,
-
-            Digest = digest,
-            JwtSignature = await Sign(digest)
-        };
+        return dataBlock with { Digest = dataBlock.GetDigest() };
     }
 
-    public static Task<DataBlock> CreateGenesisBlock(Func<string, Task<string>> sign) => new DataBlockBuilder()
+    public static DataBlock CreateGenesisBlock(string principleId) => new DataBlockBuilder()
         .SetBlockType("genesis")
         .SetBlockId("0")
         .SetData("genesis")
-        .SetSign(sign)
+        .SetPrincipleId(principleId)
         .Build();
-}
-
-
-public static class DataBlockBuilderExtensions
-{
-    public static DataBlockBuilder SetPrincipleSignature(this DataBlockBuilder subject, IPrincipalSignature principleSignature)
-    {
-        subject.VerifyNotNull(nameof(subject));
-        principleSignature.VerifyNotNull(nameof(principleSignature));
-
-        subject.SetSign(x => Task.FromResult(principleSignature.Sign(x)));
-
-        return subject;
-    }
 }

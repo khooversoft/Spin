@@ -1,9 +1,12 @@
 ﻿using Directory.sdk.Model;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Block;
 using Toolbox.Document;
+using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Sign;
 
@@ -25,75 +28,78 @@ public class SigningService
         _logger = logger;
     }
 
-    public async Task<string?> Sign(SignRequest signRequest, CancellationToken token)
+    public async Task<SignRequest> Sign(SignRequest signRequest, CancellationToken token)
     {
         signRequest.Verify();
 
-        _logger.LogTrace($"Sign for directoryId={signRequest.DirectoryId}, classObject={signRequest.ClassType}");
+        _logger.LogTrace($"Sign for id={signRequest.Id}");
+        List<PrincipleDigest> response = new List<PrincipleDigest>();
 
-        IdentityEntry? identityEntry = signRequest.ClassType switch
+        foreach (var request in signRequest.PrincipleDigests)
         {
-            ClassTypeName.User => await GetFromUser(signRequest.DirectoryId, token),
-            ClassTypeName.Identity => await _identityService.Get((DocumentId)signRequest.DirectoryId, token),
+            IdentityEntry? identityEntry = await GetFromUser(request.PrincipleId, token);
 
-            _ => throw new ArgumentException($"Unknown class type={signRequest.ClassType}"),
-        };
+            if (identityEntry == null)
+            {
+                _logger.LogError($"Cannot find signing data for directoryId={request.PrincipleId}");
+                response.Add(request);
+                continue;
+            }
 
-        if (identityEntry == null)
-        {
-            _logger.LogError($"Cannot find signing data for directoryId={signRequest.DirectoryId}, classObject={signRequest.ClassType}");
-            return null;
+            _logger.LogTrace($"Signing for PrincipleId={request.PrincipleId}");
+            IPrincipalSignature principleSignature = new PrincipalSignature(request.PrincipleId, _issuer, _audience, identityEntry.Subject, identityEntry.GetRsaParameters());
+
+            string jwt = new JwtTokenBuilder()
+                .SetDigest(request.Digest)
+                .SetPrincipleSignature(principleSignature)
+                .SetExpires(DateTime.Now.AddYears(10))
+                .SetIssuedAt(DateTime.Now)
+                .Build();
+
+            _logger.LogInformation($"Signed for directoryId={request.PrincipleId}");
+
+            response.Add(request with { JwtSignature = jwt });
         }
 
-        _logger.LogTrace($"Signing for directoryId={signRequest.DirectoryId}, classObject={signRequest.ClassType}");
-        IPrincipalSignature principleSignature = new PrincipalSignature(signRequest.DirectoryId, _issuer, _audience, identityEntry.Subject, identityEntry.GetRsaParameters());
-
-        string jwt = new JwtTokenBuilder()
-            .SetDigest(signRequest.Digest)
-            .SetPrincipleSignature(principleSignature)
-            .SetExpires(DateTime.Now.AddYears(10))
-            .SetIssuedAt(DateTime.Now)
-            .Build();
-
-        _logger.LogInformation($"Signed for directoryId={signRequest.DirectoryId}, classObject={signRequest.ClassType}");
-        return jwt;
+        return new SignRequest
+        {
+            PrincipleDigests = response,
+        };
     }
 
     public async Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token)
     {
-        _logger.LogTrace($"Validate for directoryId={validateRequest.DirectoryId}");
+        _logger.LogTrace($"Validate for id={validateRequest.Id}");
 
-        IdentityEntry? identityEntry = validateRequest.ClassType switch
+        foreach (var request in validateRequest.PrincipleDigests)
         {
-            ClassTypeName.User => await GetFromUser(validateRequest.DirectoryId, token),
-            ClassTypeName.Identity => await _identityService.Get((DocumentId)validateRequest.DirectoryId, token),
+            IdentityEntry? identityEntry = await GetFromUser(request.PrincipleId, token);
 
-            _ => throw new ArgumentException($"Unknown class type={validateRequest.ClassType}"),
-        };
+            if (identityEntry == null || request.JwtSignature.IsEmpty())
+            {
+                _logger.LogError($"Cannot find signing data for PrincipleId={request.PrincipleId}");
+                return false;
+            }
 
-        if (identityEntry == null)
-        {
-            _logger.LogError($"Cannot find signing data for directoryId={validateRequest.DirectoryId}");
-            return false;
+            IPrincipalSignature principleSignature = new PrincipalSignature(request.PrincipleId, _issuer, _audience, identityEntry.Subject, identityEntry.GetRsaParameters());
+
+            try
+            {
+                JwtTokenDetails tokenDetails = new JwtTokenParserBuilder()
+                    .SetPrincipleSignature(principleSignature)
+                    .Build()
+                    .Parse(request.JwtSignature);
+
+                _logger.LogTrace($"JWT validated for PrincipleId={request.PrincipleId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed validation for PrincipleId={request.PrincipleId}");
+                return false;
+            }
         }
 
-        IPrincipalSignature principleSignature = new PrincipalSignature(validateRequest.DirectoryId, _issuer, _audience, identityEntry.Subject, identityEntry.GetRsaParameters());
-
-        try
-        {
-            JwtTokenDetails tokenDetails = new JwtTokenParserBuilder()
-                .SetPrincipleSignature(principleSignature)
-                .Build()
-                .Parse(validateRequest.Jwt);
-
-            _logger.LogTrace($"JWT validated for directoryId={validateRequest.DirectoryId}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Failed validation for directoryId={validateRequest.DirectoryId}");
-            return false;
-        }
+        return true;
     }
 
     private async Task<IdentityEntry?> GetFromUser(string directoryId, CancellationToken token)

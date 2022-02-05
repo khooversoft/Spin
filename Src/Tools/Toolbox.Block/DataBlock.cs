@@ -4,50 +4,56 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
+using Toolbox.Security;
+using Toolbox.Security.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Block
+namespace Toolbox.Block;
+
+public record DataBlock
 {
-    public class DataBlock : IEquatable<DataBlock?>
+    public long TimeStamp { get; init; } = UnixDate.UtcNow;
+
+    public string BlockType { get; init; } = null!;
+
+    public string BlockId { get; init; } = null!;
+
+    public string Data { get; init; } = null!;
+
+    public string PrincipleId { get; init; } = null!;
+
+    public string? JwtSignature { get; init; }
+
+    public string Digest { get; init; } = null!;
+}
+
+
+public static class DataBlockExtensions
+{
+    public static string GetDigest(this DataBlock dataBlock)
     {
-        public DataBlock() { }
+        dataBlock.VerifyNotNull(nameof(dataBlock));
 
-        public long TimeStamp { get; init; } = UnixDate.UtcNow;
-
-        public string BlockType { get; init; } = null!;
-
-        public string BlockId { get; init; } = null!;
-
-        public string Data { get; init; } = null!;
-
-        public IReadOnlyDictionary<string, string> Properties { get; init; } = null!;
-
-        public string PrincipleId { get; init; } = null!;
-
-        public string JwtSignature { get; init; } = null!;
-
-        public string Digest { get; init; } = null!;
-
-        public override bool Equals(object? obj) => Equals(obj as DataBlock);
-
-        public bool Equals(DataBlock? other)
+        var hashes = new string[]
         {
-            return other != null &&
-                TimeStamp == other.TimeStamp &&
-                BlockType == other.BlockType &&
-                BlockId == other.BlockId &&
-                Data == other.Data &&
-                Properties.IsEqual(other.Properties) &&
-                PrincipleId == other.PrincipleId &&
-                JwtSignature == other.JwtSignature &&
-                Digest == other.Digest;
-        }
+                $"{dataBlock.TimeStamp}-{dataBlock.BlockType}-{dataBlock.BlockId}-{dataBlock.PrincipleId}".ToBytes().ToSHA256Hash(),
+                dataBlock.Data.ToBytes().ToSHA256Hash(),
+        };
 
-        public override int GetHashCode() => HashCode.Combine(TimeStamp, BlockType, BlockId, Data, Properties, PrincipleId, JwtSignature, Digest);
+        return hashes.ToMerkleHash();
+    }
 
-        public static bool operator ==(DataBlock? left, DataBlock? right) => EqualityComparer<DataBlock>.Default.Equals(left, right);
+    public static bool IsValid(this DataBlock dataBlock) => dataBlock.Digest == dataBlock.GetDigest();
 
-        public static bool operator !=(DataBlock? left, DataBlock? right) => !(left == right);
+    public static void Verify(this DataBlock dataBlock)
+    {
+        dataBlock.VerifyNotNull(nameof(dataBlock));
+
+        dataBlock.BlockType.VerifyNotEmpty(nameof(dataBlock.BlockType));
+        dataBlock.BlockId.VerifyNotEmpty(nameof(dataBlock.BlockId));
+        dataBlock.Data.VerifyNotEmpty(nameof(dataBlock.Data));
+        dataBlock.PrincipleId.VerifyNotEmpty(nameof(dataBlock.PrincipleId));
+        dataBlock.Digest.VerifyNotEmpty(nameof(dataBlock.Digest));
     }
 }

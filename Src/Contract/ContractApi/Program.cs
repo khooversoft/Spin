@@ -51,6 +51,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.ConfigureContractService();
+
 if (app.Environment.IsEnvironment("Test"))
     app.Run();
 else

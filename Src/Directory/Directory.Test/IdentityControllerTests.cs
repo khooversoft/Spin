@@ -51,13 +51,14 @@ public class IdentityControllerTests
 
         var issuerSignature = new PrincipalSignature(issuer, issuer, "business@domain.com", rasParameters: entry!.GetRsaParameters());
 
-        BlockChain blockChain = await new BlockChainBuilder()
-            .SetPrincipleSignature(issuerSignature)
-            .Build();
+        BlockChain blockChain = new BlockChainBuilder()
+            .SetPrincipleId(issuer)
+            .Build()
+            .Sign(x => issuerSignature);
 
         var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
 
-        await blockChain.Add(payload, issuerSignature.GetSign());
+        blockChain.Add(payload, issuer);
         blockChain.Validate(x => issuerSignature);
 
         await client.Delete(documentId);

@@ -15,7 +15,7 @@ namespace Toolbox.Block.Test.Serialzation;
 public class ZipContainerTests
 {
     [Fact]
-    public async Task GivenBlockChain_WhenContainerIsMemory_ShouldRoundTrip()
+    public void GivenBlockChain_WhenContainerIsMemory_ShouldRoundTrip()
     {
         const string issuer = "user@domain.com";
         const string issuer2 = "user2@domain.com";
@@ -25,27 +25,28 @@ public class ZipContainerTests
         var issuerSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         var issuerSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com");
 
-        BlockChain blockChain = await new BlockChainBuilder()
-            .SetPrincipleSignature(issuerSignature)
-            .Build();
+        BlockChain blockChain = new BlockChainBuilder()
+            .SetPrincipleId(issuer)
+            .Build()
+            .Sign(x => issuerSignature);
 
         var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
         var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-        await blockChain.Add(payload, issuerSignature.GetSign());
-        await blockChain.Add(payload2, issuerSignature2.GetSign());
+        blockChain.Add(payload, issuer);
+        blockChain.Add(payload2, issuer);
 
-        var getSignature = (string x) =>
+        var getSignature = (string kid) =>
         {
-            string kid = JwtTokenParser.GetKidFromJwtToken(x).VerifyNotEmpty(nameof(kid));
-
             return kid switch
             {
                 issuer => issuerSignature,
                 issuer2 => issuerSignature2,
-                _ => throw new ArgumentException("Invalid kid"),
+                _ => throw new ArgumentException($"Invalid kid={kid}"),
             };
         };
+
+        blockChain = blockChain.Sign(getSignature);
 
         blockChain.Validate(getSignature);
 
@@ -70,7 +71,7 @@ public class ZipContainerTests
 
         BlockChain result = readJson.ToObject<BlockChainModel>()
             .VerifyNotNull("Cannot deserialize")
-            .ConvertTo();
+            .ToBlockChain();
 
         result.Validate(getSignature);
         string resultChainHash = result.ToMerkleTree().BuildTree().ToString();

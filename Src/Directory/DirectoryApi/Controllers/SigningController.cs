@@ -26,10 +26,10 @@ public class SigningController : ControllerBase
     [HttpPost("sign")]
     public async Task<IActionResult> Sign([FromBody] SignRequest signRequest, CancellationToken token)
     {
-        string? jwt = await _signingService.Sign(signRequest, token);
-        if (jwt == null) return BadRequest();
+        SignRequest response = await _signingService.Sign(signRequest, token);
+        if (response == null) return BadRequest();
 
-        return Ok(jwt);
+        return Ok(response);
     }
 
     [HttpPost("validate")]

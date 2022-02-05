@@ -13,14 +13,16 @@ namespace Toolbox.Security.Test;
 
 public class JwtCertificateTests
 {
-    private const string jwtKeyId = "94B9AC01699678F7115DAD10FF022D4C400836F0";
+    private const string jwtKeyId = "70A2CD599E0FFED01DBB98CD21F0FEFC087E106C";
     //private const string vaultKeyId = "E994953A89D53B1F4E5B2529B8DD702F38E8A889";
 
+    // jwt.com
     private static readonly LocalCertificate _jwtVaultTest =
-        new LocalCertificate(StoreLocation.LocalMachine, StoreName.My, "94B9AC01699678F7115DAD10FF022D4C400836F0", true, new NullLogger<LocalCertificate>());
+        new LocalCertificate(StoreLocation.LocalMachine, StoreName.My, "70A2CD599E0FFED01DBB98CD21F0FEFC087E106C", true, new NullLogger<LocalCertificate>());
 
+    // jwt2.com
     private static readonly LocalCertificate _vaultData =
-        new LocalCertificate(StoreLocation.LocalMachine, StoreName.My, "E994953A89D53B1F4E5B2529B8DD702F38E8A889", true, new NullLogger<LocalCertificate>());
+        new LocalCertificate(StoreLocation.LocalMachine, StoreName.My, "D8A9186F26509EEEF7AED6A2C38D312F4438F189", true, new NullLogger<LocalCertificate>());
 
     public static IPrincipalSignature _jwtPrincipleSignature = new PrincipalSignatureCertificate(jwtKeyId, "test.com", "test.com", _jwtVaultTest.GetCertificate());
     public static IPrincipalSignature _vaultPrincipleSignature = new PrincipalSignatureCertificate(jwtKeyId, "test.com", "test.com", _vaultData.GetCertificate());

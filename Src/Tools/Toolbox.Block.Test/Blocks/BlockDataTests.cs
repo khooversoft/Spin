@@ -6,6 +6,7 @@ using Toolbox.Extensions;
 using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Block;
 using Xunit;
 
 namespace Toolbox.Block.Test.Blocks
@@ -13,7 +14,7 @@ namespace Toolbox.Block.Test.Blocks
     public class BlockDataTests
     {
         [Fact]
-        public async Task GivenBlockData_WhenValuesSet_VerifyNoChangeAndSignature()
+        public void GivenBlockData_WhenValuesSet_VerifyNoChangeAndSignature()
         {
             const string issuer = "user@domain.com";
             var now = DateTime.UtcNow;
@@ -30,15 +31,17 @@ namespace Toolbox.Block.Test.Blocks
 
             string payloadJson = dataPayload.ToJson();
 
-            DataBlock data = await new DataBlockBuilder()
+            DataBlock data = new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
                 .SetData(payloadJson)
-                .SetPrincipleSignature(principleSignature)
+                .SetPrincipleId(issuer)
                 .Build();
 
-            data.Validate(principleSignature);
+            data = data with { JwtSignature = principleSignature.Sign(data.Digest) };
+
+            principleSignature.ValidateSignature(data.JwtSignature);
 
             string json = data.ToJson();
 
@@ -50,8 +53,6 @@ namespace Toolbox.Block.Test.Blocks
             received.BlockId.Should().Be("blockId");
             received.Data.Should().Be(payloadJson);
             received.JwtSignature.Should().Be(data.JwtSignature);
-            received.Properties.Should().NotBeNull();
-            received.Properties.Count.Should().Be(0);
             received.Digest.Should().Be(received.GetDigest());
 
             Dictionary<string, string>? readData = Json.Default.Deserialize<Dictionary<string, string>>(data.Data)!;
@@ -63,7 +64,7 @@ namespace Toolbox.Block.Test.Blocks
         }
 
         [Fact]
-        public async Task GivenBlockData_WhenTestForEqual_ShouldPass()
+        public void GivenBlockData_WhenTestForEqual_ShouldPass()
         {
             const string issuer = "user@domain.com";
             var now = DateTime.UtcNow;
@@ -80,20 +81,20 @@ namespace Toolbox.Block.Test.Blocks
 
             string payloadJson = dataPayload.ToJson();
 
-            DataBlock data1 = await new DataBlockBuilder()
+            DataBlock data1 = new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
                 .SetData(payloadJson)
-                .SetPrincipleSignature(principleSignature)
+                .SetPrincipleId(issuer)
                 .Build();
 
-            DataBlock data2 = await new DataBlockBuilder()
+            DataBlock data2 = new DataBlockBuilder()
                 .SetTimeStamp(now)
                 .SetBlockType("blockType")
                 .SetBlockId("blockId")
                 .SetData(payloadJson)
-                .SetPrincipleSignature(principleSignature)
+                .SetPrincipleId(issuer)
                 .Build();
 
             data1.TimeStamp.Should().Be(data2.TimeStamp);

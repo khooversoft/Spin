@@ -11,31 +11,18 @@ namespace Toolbox.Block;
 
 public class BlockChainBuilder
 {
-    public Func<string, Task<string>>? Sign { get; set; }
+    public string? PrincipleId { get; set; }
 
-    public BlockChainBuilder SetSign(Func<string, Task<string>> sign) => this.Action(x => Sign = sign);
+    public BlockChainBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
 
-    public async Task<BlockChain> Build()
+    public BlockChain Build()
     {
-        Sign.VerifyNotNull(nameof(Sign));
+        PrincipleId.VerifyNotEmpty(nameof(PrincipleId));
 
-        DataBlock genesisBlock = await DataBlockBuilder.CreateGenesisBlock(Sign);
+        DataBlock genesisBlock = DataBlockBuilder.CreateGenesisBlock(PrincipleId);
 
         return new BlockChain()
             .Add(genesisBlock);
     }
 }
 
-
-public static class BlockChainBuilderExtensions
-{
-    public static BlockChainBuilder SetPrincipleSignature(this BlockChainBuilder subject, IPrincipalSignature principalSignature)
-    {
-        subject.VerifyNotNull(nameof(subject));
-        principalSignature.VerifyNotNull(nameof(principalSignature));
-
-        subject.SetSign(x => Task.FromResult(principalSignature.Sign(x)));
-
-        return subject;
-    }
-}

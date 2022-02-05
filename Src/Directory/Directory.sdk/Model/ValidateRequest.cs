@@ -1,14 +1,16 @@
-﻿using Toolbox.Tools;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Toolbox.Block;
+using Toolbox.Tools;
 
 namespace Directory.sdk.Model;
 
 public record ValidateRequest
 {
-    public string DirectoryId { get; init; } = null!;
+    public string Id { get; init; } = Guid.NewGuid().ToString();
 
-    public string ClassType { get; init; } = ClassTypeName.Identity;
-
-    public string Jwt { get; init; } = null!;
+    public IReadOnlyList<PrincipleDigest> PrincipleDigests { get; init; } = new List<PrincipleDigest>();
 }
 
 
@@ -17,8 +19,9 @@ public static class ValidateRequestExtensions
     public static void Verify(this ValidateRequest subject)
     {
         subject.VerifyNotNull(nameof(subject));
-        subject.DirectoryId.VerifyNotEmpty(nameof(subject.DirectoryId));
-        subject.ClassType.VerifyNotEmpty(nameof(subject.ClassType));
-        subject.Jwt.VerifyNotEmpty(nameof(subject.Jwt));
+        subject.PrincipleDigests.VerifyNotNull(nameof(subject.PrincipleDigests));
+        subject.PrincipleDigests.VerifyAssert(x => x.Count > 0, nameof(subject.PrincipleDigests));
     }
+
+    public static ValidateRequest ToValidateRequest(this IEnumerable<PrincipleDigest> digests) => new ValidateRequest { PrincipleDigests = digests.ToList() };
 }

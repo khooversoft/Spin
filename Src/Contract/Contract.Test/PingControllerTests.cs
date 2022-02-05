@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Toolbox.Model;
 using Xunit;
 
-namespace Artifact.Test
+namespace Contract.Test
 {
     public class PingControllerTests
     {

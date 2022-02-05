@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Block;
 using Toolbox.Document;
 using Toolbox.Model;
 using Xunit;
@@ -47,16 +48,30 @@ public class SigningControllerTests
 
         var signRequest = new SignRequest
         {
-            DirectoryId = (string)(documentId),
-            Digest = Guid.NewGuid().ToString(),
+            PrincipleDigests = new[]
+            {
+                new PrincipleDigest
+                {
+                    PrincipleId = (string)documentId,
+                    Digest = Guid.NewGuid().ToString()
+                }
+            }
         };
 
-        var signedJwt = await signClient.Sign(signRequest);
+        SignRequest signedJwt = await signClient.Sign(signRequest);
+        signedJwt.Should().NotBeNull();
+        signedJwt.PrincipleDigests.Count.Should().Be(1);
 
         var validateRequest = new ValidateRequest
         {
-            DirectoryId = (string)(documentId),
-            Jwt = signedJwt,
+            PrincipleDigests = new[]
+            {
+                new PrincipleDigest
+                {
+                    PrincipleId = (string)documentId,
+                    JwtSignature = signedJwt.PrincipleDigests.First().JwtSignature,
+                }
+            }
         };
 
         bool jwtValidated = await signClient.Validate(validateRequest);

@@ -57,7 +57,7 @@ public static class Startup
         return service;
     }
 
-    public static IApplicationBuilder ConfigureArtifactService(this IApplicationBuilder app)
+    public static IApplicationBuilder ConfigureContractService(this IApplicationBuilder app)
     {
         app.VerifyNotNull(nameof(app));
 
