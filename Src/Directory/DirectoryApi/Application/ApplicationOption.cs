@@ -37,10 +37,16 @@ public static class ApplicationOptionExtensions
         option.ConfigStore.VerifyNotEmpty($"{nameof(option.ConfigStore)} is required");
 
         option.Storage.VerifyNotNull($"{nameof(option.ConfigStore)} is required");
-        option.Storage.AccountName.VerifyNotEmpty($"{nameof(option.Storage.AccountName)} is required");
-        option.Storage.ContainerName.VerifyNotEmpty($"{nameof(option.Storage.ContainerName)} is required");
-        option.Storage.AccountKey.VerifyNotEmpty($"{nameof(option.Storage.AccountKey)} is required");
-        option.Storage.BasePath.VerifyNotEmpty($"{nameof(option.Storage.BasePath)} is required");
+        option.Storage.AccountName.VerifyNotEmpty($"Storage.{nameof(option.Storage.AccountName)} is required");
+        option.Storage.ContainerName.VerifyNotEmpty($"Storage.{nameof(option.Storage.ContainerName)} is required");
+        option.Storage.AccountKey.VerifyNotEmpty($"Storage.{nameof(option.Storage.AccountKey)} is required");
+        option.Storage.BasePath.VerifyNotEmpty($"Storage.{nameof(option.Storage.BasePath)} is required");
+
+        option.IdentityStorage.VerifyNotNull($"{nameof(option.IdentityStorage)} is required");
+        option.IdentityStorage.AccountName.VerifyNotEmpty($"IdentityStorage.{nameof(option.IdentityStorage.AccountName)} is required");
+        option.IdentityStorage.ContainerName.VerifyNotEmpty($"IdentityStorage.{nameof(option.IdentityStorage.ContainerName)} is required");
+        option.IdentityStorage.AccountKey.VerifyNotEmpty($"IdentityStorage.{nameof(option.IdentityStorage.AccountKey)} is required");
+        option.IdentityStorage.BasePath.VerifyNotEmpty($"IdentityStorage.{nameof(option.IdentityStorage.BasePath)} is required");
 
         return option;
     }

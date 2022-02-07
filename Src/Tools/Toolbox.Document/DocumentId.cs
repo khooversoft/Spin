@@ -9,6 +9,9 @@ namespace Toolbox.Document;
 /// </summary>
 public class DocumentId
 {
+    private string? _container;
+    private string? _path;
+
     public DocumentId(string id)
     {
         id.VerifyNotEmpty(id);
@@ -20,16 +23,10 @@ public class DocumentId
     public string Id { get; }
 
     [JsonIgnore]
-    public string Domain => Id.Split('/')[0];
+    public string? Container => _container ??= Id.Split(':').Func(x => x.Length == 1 ? null : x[0]);
 
     [JsonIgnore]
-    public string Service => Id.Split('/')[1];
-
-    [JsonIgnore]
-    public string Path => Id.Split('/').Skip(2).Join("/");
-
-    [JsonIgnore]
-    public IReadOnlyList<string> PathItems => Id.Split('/').Skip(2).ToArray();
+    public string Path => _path ??= Id.Split(':').Func(x => x.Length == 1 ? x[0] : x[1]);
 
 
     //  ///////////////////////////////////////////////////////////////////////////////////////////

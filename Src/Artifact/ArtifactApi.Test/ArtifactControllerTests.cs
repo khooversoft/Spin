@@ -12,9 +12,9 @@ namespace Artifact.Test
     public class ArtifactControllerTests
     {
         [Theory]
-        [InlineData("dev/testing/customer/file1.txt")]
-        [InlineData("dev/testing/smart-contract/customer/hash0xff3e4/file1.txt")]
-        [InlineData("dev/testing/directory/file5.txt")]
+        [InlineData("contract:test/testing/customer/file1.txt")]
+        [InlineData("contract:test/testing/smart-contract/customer/hash0xff3e4/file1.txt")]
+        [InlineData("contract:test/testing/directory/file5.txt")]
         public async Task GivenData_WhenRoundTrip_ShouldMatch(string id)
         {
             ArtifactClient client = TestApplication.GetArtifactClient();
@@ -39,7 +39,7 @@ namespace Artifact.Test
             string? payloadText = readPayload!.GetData<string>();
             payloadText.Should().Be(payload);
 
-            var search = new QueryParameter { Recursive = true };
+            var search = new QueryParameter { Container = "contract", Recursive = true };
 
             BatchSet<string> searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();
@@ -58,7 +58,7 @@ namespace Artifact.Test
             ArtifactClient client = TestApplication.GetArtifactClient();
 
             var payload = new Payload("name1", "value1");
-            DocumentId documentId = new DocumentId("dev/testing/payload.json");
+            DocumentId documentId = new DocumentId("contract:test/testing/payload.json");
 
             Document document = new DocumentBuilder()
                 .SetDocumentId(documentId)
@@ -78,7 +78,7 @@ namespace Artifact.Test
             readPayload.Should().NotBeNull();
             (payload == readPayload).Should().BeTrue();
 
-            var search = new QueryParameter { Filter = "dev/testing" };
+            var search = new QueryParameter { Container = "contract", Filter = "test/testing" };
 
             BatchSet<string> searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();

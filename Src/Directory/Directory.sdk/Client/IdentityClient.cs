@@ -35,12 +35,15 @@ namespace Directory.sdk.Client
             return true;
         }
 
-        public async Task Delete(DocumentId documentId, CancellationToken token = default)
+        public async Task<bool> Delete(DocumentId documentId, CancellationToken token = default)
         {
             _logger.LogTrace($"Delete directoryId={documentId}");
 
             HttpResponseMessage response = await _httpClient.DeleteAsync($"api/identity/{documentId.ToUrlEncoding()}", token);
+            if( response.StatusCode == HttpStatusCode.NotFound ) return false;
+
             response.EnsureSuccessStatusCode();
+            return true;
         }
 
         public async Task<IdentityEntry?> Get(DocumentId documentId, CancellationToken token = default)

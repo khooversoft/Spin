@@ -19,14 +19,14 @@ namespace Directory.Test;
 public class SigningControllerTests
 {
     [Fact]
-    public async Task GivenDirectoryEntry_WhenSigned_WillVerify()
+    public async Task GivenIdentityEntry_WhenSigned_WillVerify()
     {
         const string issuer = "user@domain.com";
 
         IdentityClient client = TestApplication.GetIdentityClient();
         SigningClient signClient = TestApplication.GetSigningClient();
 
-        var documentId = new DocumentId("test/unit-tests-identity/identity1");
+        var documentId = new DocumentId("identity:test/unit-tests-identity/identity1");
 
         var query = new QueryParameter()
         {
@@ -35,7 +35,10 @@ public class SigningControllerTests
         };
 
         IReadOnlyList<DatalakePathItem> search = (await client.Search(query).ReadNext()).Records;
-        if (search.Any(x => x.Name == (string)documentId)) await client.Delete(documentId);
+        bool isInsearch = search.Any(x => x.Name == documentId.Path);
+
+        bool deleted = await client.Delete(documentId);
+        (isInsearch == deleted).Should().BeTrue();
 
         var request = new IdentityEntryRequest
         {
@@ -58,8 +61,9 @@ public class SigningControllerTests
             }
         };
 
-        SignRequest signedJwt = await signClient.Sign(signRequest);
+        SignRequestResponse signedJwt = await signClient.Sign(signRequest);
         signedJwt.Should().NotBeNull();
+        (signedJwt.Errors == null || signedJwt.Errors.Count == 0).Should().BeTrue();
         signedJwt.PrincipleDigests.Count.Should().Be(1);
 
         var validateRequest = new ValidateRequest
@@ -69,6 +73,7 @@ public class SigningControllerTests
                 new PrincipleDigest
                 {
                     PrincipleId = (string)documentId,
+                    Digest = signRequest.PrincipleDigests[0].Digest,
                     JwtSignature = signedJwt.PrincipleDigests.First().JwtSignature,
                 }
             }
@@ -76,7 +81,6 @@ public class SigningControllerTests
 
         bool jwtValidated = await signClient.Validate(validateRequest);
         jwtValidated.Should().BeTrue();
-
 
         await client.Delete(documentId);
         search = (await client.Search(query).ReadNext()).Records;

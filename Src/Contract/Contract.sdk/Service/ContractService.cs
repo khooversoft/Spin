@@ -17,6 +17,7 @@ public class ContractService
 {
     private readonly ArtifactClient _artifactClient;
     private readonly SigningClient _signingClient;
+    private const string _container = "contract";
 
     public ContractService(ArtifactClient artifactClient, SigningClient signingClient)
     {
@@ -29,7 +30,7 @@ public class ContractService
 
     public async Task<BlockChainModel?> Get(DocumentId documentId, CancellationToken token)
     {
-        Document? document = await _artifactClient.Get(documentId, token);
+        Document? document = await _artifactClient.Get(documentId.WithContainer(_container), token);
         if (document == null) return null;
 
         BlockChainModel model = document.GetData<BlockChainModel>();
@@ -38,8 +39,8 @@ public class ContractService
 
     public async Task Set(DocumentId documentId, BlockChainModel blockChain, CancellationToken token)
     {
-        var document = new DocumentBuilder()
-            .SetDocumentId(documentId)
+        Document document = new DocumentBuilder()
+            .SetDocumentId(documentId.WithContainer(_container))
             .SetData(blockChain)
             .Build();
 
@@ -48,12 +49,13 @@ public class ContractService
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
     {
-        bool status = await _artifactClient.Delete(documentId, token: token);
+        bool status = await _artifactClient.Delete(documentId.WithContainer(_container), token: token);
         return status;
     }
 
     public async Task<BatchSet<string>> Search(QueryParameter queryParameter, CancellationToken token)
     {
+        queryParameter = queryParameter with { Container = _container };
         BatchSet<string> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
         return batch;
     }
@@ -114,7 +116,7 @@ public class ContractService
         SignRequest request = blockChain.GetPrincipleDigests().ToSignRequest();
         if (request.PrincipleDigests.Count == 0) return blockChain;
 
-        SignRequest signedDigests = await _signingClient.Sign(request, token);
+        SignRequestResponse signedDigests = await _signingClient.Sign(request, token);
 
         return blockChain.Sign(signedDigests.PrincipleDigests);
     }

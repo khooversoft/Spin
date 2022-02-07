@@ -31,17 +31,17 @@ public static class IdentityEntryRequestExtensions
         subject.Properties.VerifyNotNull(nameof(subject.Properties));
     }
 
-    public static IdentityEntry ToIdentityEntry(this IdentityEntryRequest subject)
-    {
-        RSA rsa = RSA.Create();
+    //public static IdentityEntry ToIdentityEntry(this IdentityEntryRequest subject)
+    //{
+    //    RSA rsa = RSA.Create();
 
-        return new IdentityEntry
-        {
-            DirectoryId = subject.DirectoryId,
-            ClassType = "identity",
-            Subject = subject.Issuer,
-            PublicKey = rsa.ExportRSAPublicKey(),
-            PrivateKey = rsa.ExportRSAPrivateKey(),
-        };
-    }
+    //    return new IdentityEntry
+    //    {
+    //        DirectoryId = subject.DirectoryId,
+    //        ClassType = "identity",
+    //        Subject = subject.Issuer,
+    //        PublicKey = rsa.ExportRSAPublicKey(),
+    //        PrivateKey = rsa.ExportRSAPrivateKey(),
+    //    };
+    //}
 }

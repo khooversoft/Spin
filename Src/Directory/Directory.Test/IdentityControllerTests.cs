@@ -34,8 +34,7 @@ public class IdentityControllerTests
             Recursive = false,
         };
 
-        IReadOnlyList<DatalakePathItem> search = (await client.Search(query).ReadNext()).Records;
-        if (search.Any(x => x.Name == (string)documentId)) await client.Delete(documentId);
+        await client.Delete(documentId);
 
         var request = new IdentityEntryRequest
         {
@@ -49,21 +48,7 @@ public class IdentityControllerTests
         IdentityEntry? entry = await client.Get(documentId);
         entry.Should().NotBeNull();
 
-        var issuerSignature = new PrincipalSignature(issuer, issuer, "business@domain.com", rasParameters: entry!.GetRsaParameters());
-
-        BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleId(issuer)
-            .Build()
-            .Sign(x => issuerSignature);
-
-        var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
-
-        blockChain.Add(payload, issuer);
-        blockChain.Validate(x => issuerSignature);
-
         await client.Delete(documentId);
-        search = (await client.Search(query).ReadNext()).Records;
-        search.Any(x => x.Name == (string)documentId).Should().BeFalse();
     }
 
     private record Payload

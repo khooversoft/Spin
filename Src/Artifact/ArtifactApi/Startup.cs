@@ -1,4 +1,5 @@
 using Artifact.Application;
+using ArtifactApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
 using Directory.sdk.Service;
@@ -9,12 +10,12 @@ using Microsoft.Extensions.Logging;
 using Spin.Common.Middleware;
 using Spin.Common.Model;
 using Spin.Common.Services;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Toolbox.Application;
-using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Document;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Artifact;
@@ -28,38 +29,34 @@ public static class Startup
         ApplicationOption applicationOption = await DirectoryClient.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
             ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");
-            StorageRecord storageRecord = await client.GetStorageRecord(option.RunEnvironment, "Artifact");
+            IReadOnlyList<StorageRecord> storageRecords = await client.GetStorageRecord(option.RunEnvironment, "Artifact");
 
             return option with
             {
                 HostUrl = serviceRecord.HostUrl,
                 ApiKey = serviceRecord.ApiKey,
-                Storage = new StorageOption
-                {
-                    AccountName = storageRecord.AccountName,
-                    ContainerName = storageRecord.ContainerName,
-                    AccountKey = storageRecord.AccountKey,
-                    BasePath = storageRecord.BasePath,
-                }
+                Storage = storageRecords,
             };
         });
 
         service.AddSingleton<IDocumentPackage, DocumentPackage>();
         service.AddSingleton(applicationOption);
-        service.AddSingleton<IDatalakeStore>(service =>
+
+        service.AddSingleton<DocumentPackageFactory>(service =>
         {
             ApplicationOption option = service.GetRequiredService<ApplicationOption>();
             ILoggerFactory loggerFactory = service.GetRequiredService<ILoggerFactory>();
 
-            var datalakeOption = new DatalakeStoreOption
-            {
-                AccountName = option.Storage.AccountName,
-                ContainerName = option.Storage.ContainerName,
-                AccountKey = option.Storage.AccountKey,
-                BasePath = option.Storage.BasePath
-            };
+            var list = option.Storage
+                .Select(x => (Container: x.Container, Option: new DatalakeStoreOption
+                {
+                    AccountName = x.AccountName,
+                    ContainerName = x.ContainerName,
+                    AccountKey = x.AccountKey,
+                    BasePath = x.BasePath
+                }));
 
-            return new DatalakeStore(datalakeOption, loggerFactory.CreateLogger<DatalakeStore>());
+            return new DocumentPackageFactory(list, loggerFactory);
         });
 
         return service;

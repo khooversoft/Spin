@@ -6,10 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Directory\Directory.sdk\Directory.sdk.csproj" />
-    <ProjectReference Include="..\..\Message\MessageNet.sdk\MessageNet.sdk.csproj" />
-    <ProjectReference Include="..\..\Spin.Common\Spin.Common.csproj" />
-    <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Document\Toolbox.Document.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

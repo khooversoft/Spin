@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
@@ -29,15 +30,19 @@ namespace Toolbox.Configuration
                 list.Add(inlcudeFile);
                 File.Exists(inlcudeFile).VerifyAssert(x => x == true, $"File {inlcudeFile} does not exist");
 
-                new ConfigurationBuilder()
-                    .AddJsonFile(inlcudeFile)
-                    .Build()
-                    .AsEnumerable()
-                    .Where(x => x.Key.StartsWith("$include"))
-                    .Select(x => resolver.Resolve(x.Value))
-                    .Select(x => Path.Combine(folder, x))
-                    .Reverse()
-                    .ForEach(x => stack.Push(x));
+                try
+                {
+                    new ConfigurationBuilder()
+                        .AddJsonFile(inlcudeFile)
+                        .Build()
+                        .AsEnumerable()
+                        .Where(x => x.Key.StartsWith("$include"))
+                        .Select(x => resolver.Resolve(x.Value))
+                        .Select(x => Path.Combine(folder, x))
+                        .Reverse()
+                        .ForEach(x => stack.Push(x));
+                }
+                catch (InvalidDataException) { }
             }
 
             return list;

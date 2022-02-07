@@ -12,6 +12,8 @@ namespace Toolbox.Model
 
         public int Count { get; init; } = 1000;
 
+        public string? Container { get; init; }
+
         public string? Filter { get; init; }
 
         public bool Recursive { get; init; }

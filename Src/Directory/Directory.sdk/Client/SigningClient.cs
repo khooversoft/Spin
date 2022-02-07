@@ -21,7 +21,7 @@ namespace Directory.sdk.Client
             _logger = logger;
         }
 
-        public async Task<SignRequest> Sign(SignRequest signRequest, CancellationToken token = default)
+        public async Task<SignRequestResponse> Sign(SignRequest signRequest, CancellationToken token = default)
         {
             _logger.LogTrace($"Signing request for id={signRequest.Id}");
 
@@ -30,7 +30,7 @@ namespace Directory.sdk.Client
 
             string json = await response.Content.ReadAsStringAsync();
 
-            return Json.Default.Deserialize<SignRequest>(json)
+            return Json.Default.Deserialize<SignRequestResponse>(json)
                 .VerifyNotNull(nameof(Json.Default.Deserialize));
         }
 

@@ -29,7 +29,7 @@ async Task<int> Run(string[] args)
 
     ApplicationOption option = new ConfigurationBuilder()
         .AddJsonFile("appsettings.json")
-        .AddJsonFile($"{{ConfigStore}}/Environments/{{runEnvironment}}-Spin.environment.json", JsonFileOption.Enhance)
+        .AddJsonFile($"{{ConfigStore}}/Environments/{{runEnvironment}}-Spin.resource.json", JsonFileOption.Enhance)
         .AddCommandLine(args)
         .AddPropertyResolver()
         .Build()

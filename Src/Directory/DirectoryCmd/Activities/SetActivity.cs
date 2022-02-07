@@ -2,10 +2,14 @@
 using Directory.sdk.Client;
 using Directory.sdk.Model;
 using Directory.sdk.Service;
+using DirectoryCmd.Application;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Toolbox.Configuration;
 using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Property;
 
 namespace DirectoryCmd.Activities;
 
@@ -28,11 +32,26 @@ internal class SetActivity
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetFile), File = file });
 
-        _logger.LogInformation($"Reading {file} to directory");
-        string json = File.ReadAllText(file);
+        _logger.LogInformation($"Pushing {file} to directory service");
 
-        IList<DirectoryEntry> list = Json.Default.Deserialize<IList<DirectoryEntry>>(json)
-            .VerifyNotNull($"Cannot read json file {file}");
+        IPropertyResolver resolver = new PropertyResolver(new KeyValuePair<string, string>[0]);
+
+        IReadOnlyList<string> includeFiles = ConfigurationTools.GetJsonFiles(file, resolver)
+            .Where(x => x != file)
+            .ToList();
+
+        List<DirectoryEntry> list = new();
+        foreach (string includeFile in includeFiles)
+        {
+            _logger.LogInformation($"Processing {includeFile}");
+
+            string json = File.ReadAllText(includeFile);
+
+            IList<DirectoryEntry> readList = Json.Default.Deserialize<IList<DirectoryEntry>>(json)
+                .VerifyNotNull($"Cannot read json file {includeFile}");
+
+            list.AddRange(readList);
+        }
 
         foreach (DirectoryEntry entry in list)
         {

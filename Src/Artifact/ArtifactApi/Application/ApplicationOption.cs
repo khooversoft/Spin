@@ -1,4 +1,7 @@
-﻿using Toolbox.Application;
+﻿using Directory.sdk.Model;
+using System.Collections.Generic;
+using Toolbox.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Artifact.Application;
@@ -17,16 +20,9 @@ public record ApplicationOption
 
     public string ApiKey { get; init; } = null!;
 
-    public StorageOption Storage { get; init; } = null!;
+    public IReadOnlyList<StorageRecord> Storage { get; init; } = null!;
 }
 
-public record StorageOption
-{
-    public string AccountName { get; init; } = null!;
-    public string ContainerName { get; init; } = null!;
-    public string AccountKey { get; init; } = null!;
-    public string BasePath { get; init; } = null!;
-}
 
 public static class ApplicationOptionExtensions
 {
@@ -49,10 +45,17 @@ public static class ApplicationOptionExtensions
         option.ApiKey.VerifyNotEmpty($"{nameof(option.ApiKey)} is required");
 
         option.Storage.VerifyNotNull($"{nameof(option.ConfigStore)} is required");
-        option.Storage.AccountName.VerifyNotEmpty($"{nameof(option.Storage.AccountName)} is required");
-        option.Storage.ContainerName.VerifyNotEmpty($"{nameof(option.Storage.ContainerName)} is required");
-        option.Storage.AccountKey.VerifyNotEmpty($"{nameof(option.Storage.AccountKey)} is required");
-        option.Storage.BasePath.VerifyNotEmpty($"{nameof(option.Storage.BasePath)} is required");
+        option.Storage.VerifyAssert(x => x.Count > 0, $"{nameof(option.ConfigStore)} is required");
+
+        option.Storage
+            .ForEach(x =>
+            {
+                x.AccountName.VerifyNotEmpty($"{nameof(x.AccountName)} is required");
+                x.AccountName.VerifyNotEmpty($"{nameof(x.AccountName)} is required");
+                x.ContainerName.VerifyNotEmpty($"{nameof(x.ContainerName)} is required");
+                x.AccountKey.VerifyNotEmpty($"{nameof(x.AccountKey)} is required");
+                x.BasePath.VerifyNotEmpty($"{nameof(x.BasePath)} is required");
+            });
 
         return option;
     }

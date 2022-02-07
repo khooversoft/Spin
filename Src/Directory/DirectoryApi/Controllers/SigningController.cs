@@ -26,7 +26,7 @@ public class SigningController : ControllerBase
     [HttpPost("sign")]
     public async Task<IActionResult> Sign([FromBody] SignRequest signRequest, CancellationToken token)
     {
-        SignRequest response = await _signingService.Sign(signRequest, token);
+        SignRequestResponse response = await _signingService.Sign(signRequest, token);
         if (response == null) return BadRequest();
 
         return Ok(response);

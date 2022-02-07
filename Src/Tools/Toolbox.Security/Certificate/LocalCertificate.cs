@@ -48,16 +48,13 @@ namespace Toolbox.Security
         /// <exception cref="ProgramExitException">Certificate is not found</exception>
         /// <returns>X509 certificate</returns>
         /// <exception cref="CertificateNotFoundException">when certificate valid certificate was not found</exception>
-        public X509Certificate2 GetCertificate(bool? throwOnNotFound = null)
+        public X509Certificate2? GetCertificate(bool? throwOnNotFound = null)
         {
-            X509Certificate2 certificate;
-
-            Exception? saveException = null;
             throwOnNotFound ??= LocalCertificateKey.RequirePrivateKey;
 
             lock (_lock)
             {
-                if (_cachedCertificate.TryGetValue(out certificate))
+                if (_cachedCertificate.TryGetValue(out X509Certificate2? certificate))
                 {
                     return certificate;
                 }
@@ -73,31 +70,32 @@ namespace Toolbox.Security
 
                         if (certificateList?.Count != 0)
                         {
-                            _cachedCertificate.Set(
-                                certificateList!
+                            X509Certificate2? cert = certificateList!
                                     .OfType<X509Certificate2>()
                                     .Where(x => !LocalCertificateKey.RequirePrivateKey || x.HasPrivateKey)
                                     .Where(x => DateTime.Now <= x.NotAfter)
-                                    .FirstOrDefault()
-                                );
+                                    .FirstOrDefault();
+
+                            if (cert == null)
+                            {
+                                _logger.LogTrace($"Certificate Not found for {this}");
+                                if (throwOnNotFound == true) throw new CertificateNotFoundException($"Certificate not found: {LocalCertificateKey.ToString()}");
+                                return null;
+                            }
+
+                            _cachedCertificate.Set(cert);
+                            return cert;
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, $"Exception: {ex}");
                         _cachedCertificate.Clear();
-                        saveException = ex;
                     }
                 }
 
-                _logger.LogTrace($"{(_cachedCertificate != null ? "Found" : "Not found")} certificate for {this}");
-
-                if (!_cachedCertificate!.TryGetValue(out certificate) && throwOnNotFound == true)
-                {
-                    throw new CertificateNotFoundException($"Certificate not found: {LocalCertificateKey.ToString()}");
-                }
-
-                return certificate;
+                _cachedCertificate.Clear();
+                return null;
             }
         }
     }

@@ -28,20 +28,24 @@ public class SigningService
         _logger = logger;
     }
 
-    public async Task<SignRequest> Sign(SignRequest signRequest, CancellationToken token)
+    public async Task<SignRequestResponse> Sign(SignRequest signRequest, CancellationToken token)
     {
         signRequest.Verify();
 
         _logger.LogTrace($"Sign for id={signRequest.Id}");
         List<PrincipleDigest> response = new List<PrincipleDigest>();
+        List<string> errors = new();
 
         foreach (var request in signRequest.PrincipleDigests)
         {
-            IdentityEntry? identityEntry = await GetFromUser(request.PrincipleId, token);
+            IdentityEntry? identityEntry = await GetIdentity(request.PrincipleId, token);
 
             if (identityEntry == null)
             {
-                _logger.LogError($"Cannot find signing data for directoryId={request.PrincipleId}");
+                string msg = $"Cannot find signing data for directoryId={request.PrincipleId}";
+                _logger.LogError(msg);
+                errors.Add(msg);
+
                 response.Add(request);
                 continue;
             }
@@ -61,9 +65,10 @@ public class SigningService
             response.Add(request with { JwtSignature = jwt });
         }
 
-        return new SignRequest
+        return new SignRequestResponse
         {
             PrincipleDigests = response,
+            Errors = errors,
         };
     }
 
@@ -73,7 +78,7 @@ public class SigningService
 
         foreach (var request in validateRequest.PrincipleDigests)
         {
-            IdentityEntry? identityEntry = await GetFromUser(request.PrincipleId, token);
+            IdentityEntry? identityEntry = await GetIdentity(request.PrincipleId, token);
 
             if (identityEntry == null || request.JwtSignature.IsEmpty())
             {
@@ -102,23 +107,32 @@ public class SigningService
         return true;
     }
 
-    private async Task<IdentityEntry?> GetFromUser(string directoryId, CancellationToken token)
+    private async Task<IdentityEntry?> GetIdentity(string directoryId, CancellationToken token)
     {
         _logger.LogTrace($"Getting signing directory id from user {directoryId}");
-        DirectoryEntry? directoryEntry = await _directoryService.Get((DocumentId)directoryId, token);
-        if (directoryEntry == null)
-        {
-            _logger.LogWarning($"Cannot find user ENTRY {directoryId} in directory");
-            return null;
-        }
+        DocumentId documentId = (DocumentId)directoryId;
 
-        string? identityId = directoryEntry.GetSigningCredentials();
-        if (identityId == null)
+        switch (documentId.Container)
         {
-            _logger.LogWarning($"Cannot find user {directoryId} signing credential property");
-            return null;
-        }
+            case "identity":
+                return await _identityService.Get(documentId, token, includePrivateKey: true);
 
-        return await _identityService.Get((DocumentId)identityId, token, includePrivateKey: true);
+            default:
+                DirectoryEntry? directoryEntry = await _directoryService.Get((DocumentId)directoryId, token);
+                if (directoryEntry == null)
+                {
+                    _logger.LogWarning($"Cannot find user ENTRY {directoryId} in directory");
+                    return null;
+                }
+
+                string? identityId = directoryEntry.GetSigningCredentials();
+                if (identityId == null)
+                {
+                    _logger.LogWarning($"Cannot find user {directoryId} signing credential property");
+                    return null;
+                }
+
+                return await _identityService.Get((DocumentId)identityId, token, includePrivateKey: true);
+        }
     }
 }
