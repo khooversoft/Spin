@@ -1,11 +1,14 @@
 ﻿using Toolbox.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Bank.Application;
+namespace BankApi.Application;
 
 public record ApplicationOption
 {
     public RunEnvironment RunEnvironment { get; init; }
+
+    public string ConfigStore { get; init; } = null!;
 
     public string DirectoryUrl { get; init; } = null!;
 
@@ -23,10 +26,11 @@ public record ApplicationOption
 
 public static class ApplicationOptionExtensions
 {
-    public static ApplicationOption VerifyBootstrap(this ApplicationOption option)
+    public static ApplicationOption VerifyPartial(this ApplicationOption option)
     {
         option.VerifyNotNull(nameof(option));
 
+        option.ConfigStore.VerifyNotEmpty($"{nameof(option.ConfigStore)} is required");
         option.DirectoryUrl.VerifyNotEmpty($"{nameof(option.DirectoryUrl)} is required");
         option.DirectoryApiKey.VerifyNotEmpty($"{nameof(option.DirectoryApiKey)} is required");
 
@@ -35,7 +39,7 @@ public static class ApplicationOptionExtensions
 
     public static ApplicationOption Verify(this ApplicationOption option)
     {
-        option.VerifyBootstrap();
+        option.VerifyPartial();
 
         option.HostUrl.VerifyNotEmpty($"{nameof(option.HostUrl)} is required");
         option.ApiKey.VerifyNotEmpty($"{nameof(option.ApiKey)} is required");

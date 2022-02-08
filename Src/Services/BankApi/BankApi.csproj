@@ -11,11 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\Artifact\Artifact.sdk\Artifact.sdk.csproj" />
+    <ProjectReference Include="..\..\Directory\Directory.sdk\Directory.sdk.csproj" />
+    <ProjectReference Include="..\..\Spin.Common\Spin.Common.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+    <ProjectReference Include="..\Bank.sdk\Bank.sdk.csproj" />
   </ItemGroup>
 
 </Project>

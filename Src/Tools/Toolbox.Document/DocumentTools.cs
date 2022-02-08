@@ -44,7 +44,7 @@ public static class DocumentTools
         return hash.SequenceEqual(document.Hash);
     }
 
-    public static T GetData<T>(this Document document)
+    public static T DeserializeData<T>(this Document document)
     {
         string strData = Encoding.UTF8.GetString(document.Data);
 

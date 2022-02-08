@@ -95,7 +95,7 @@ public class DocumentTests
         document.IsHashVerify().Should().BeTrue();
         document.Verify();
 
-        document.GetData<string>().Should().Be(payload);
+        document.DeserializeData<string>().Should().Be(payload);
 
 
         Document doc2 = new DocumentBuilder()
@@ -127,7 +127,7 @@ public class DocumentTests
 
         document.IsHashVerify().Should().BeTrue();
         document.Verify();
-        document.GetData<string>().Should().Be(payload);
+        document.DeserializeData<string>().Should().Be(payload);
         document.Properties.Count.Should().Be(1);
         document.Properties[key].Should().Be(value);
 

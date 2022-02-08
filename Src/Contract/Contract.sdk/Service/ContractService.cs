@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Azure.DataLake.Model;
 using Toolbox.Block;
 using Toolbox.Document;
 using Toolbox.Model;
@@ -33,7 +34,7 @@ public class ContractService
         Document? document = await _artifactClient.Get(documentId.WithContainer(_container), token);
         if (document == null) return null;
 
-        BlockChainModel model = document.GetData<BlockChainModel>();
+        BlockChainModel model = document.DeserializeData<BlockChainModel>();
         return model;
     }
 
@@ -53,10 +54,10 @@ public class ContractService
         return status;
     }
 
-    public async Task<BatchSet<string>> Search(QueryParameter queryParameter, CancellationToken token)
+    public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
     {
         queryParameter = queryParameter with { Container = _container };
-        BatchSet<string> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
+        BatchSet<DatalakePathItem> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
         return batch;
     }
 

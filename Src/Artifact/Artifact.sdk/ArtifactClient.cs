@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Azure.DataLake.Model;
 using Toolbox.Document;
 using Toolbox.Model;
 using Toolbox.Tools;
@@ -63,6 +64,7 @@ namespace Artifact.sdk
             };
         }
 
-        public BatchSetCursor<string> Search(QueryParameter queryParameter) => new BatchSetCursor<string>(_httpClient, "api/artifact/search", queryParameter, _logger);
+        public BatchSetCursor<DatalakePathItem> Search(QueryParameter queryParameter) =>
+            new BatchSetCursor<DatalakePathItem>(_httpClient, "api/artifact/search", queryParameter, _logger);
     }
 }

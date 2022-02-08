@@ -72,11 +72,11 @@ namespace Artifact.Controllers
                 .Create(queryParameter.Container)
                 .Search(queryParameter);
 
-            var result = new BatchSet<string>
+            var result = new BatchSet<DatalakePathItem>
             {
                 QueryParameter = queryParameter,
                 NextIndex = queryParameter.Index + queryParameter.Count,
-                Records = list.Select(x => x.Name).ToArray(),
+                Records = list.ToArray(),
             };
 
             return Ok(result);

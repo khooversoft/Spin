@@ -3,6 +3,7 @@ using Artifact.Test.Application;
 using FluentAssertions;
 using System.Linq;
 using System.Threading.Tasks;
+using Toolbox.Azure.DataLake.Model;
 using Toolbox.Document;
 using Toolbox.Model;
 using Xunit;
@@ -36,20 +37,20 @@ namespace Artifact.Test
 
             (document == readPayload).Should().BeTrue();
 
-            string? payloadText = readPayload!.GetData<string>();
+            string? payloadText = readPayload!.DeserializeData<string>();
             payloadText.Should().Be(payload);
 
             var search = new QueryParameter { Container = "contract", Recursive = true };
 
-            BatchSet<string> searchList = await client.Search(search).ReadNext();
+            BatchSet<DatalakePathItem> searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();
-            searchList.Records.Any(x => x.EndsWith(documentId.Path)).Should().BeTrue();
+            searchList.Records.Any(x => x.Name.EndsWith(documentId.Path)).Should().BeTrue();
 
             (await client.Delete(documentId)).Should().BeTrue();
 
             searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();
-            searchList.Records.Any(x => x.EndsWith(documentId.Path)).Should().BeFalse();
+            searchList.Records.Any(x => x.Name.EndsWith(documentId.Path)).Should().BeFalse();
         }
 
         [Fact]
@@ -74,21 +75,21 @@ namespace Artifact.Test
 
             (document == readDocument).Should().BeTrue();
 
-            Payload? readPayload = readDocument!.GetData<Payload>();
+            Payload? readPayload = readDocument!.DeserializeData<Payload>();
             readPayload.Should().NotBeNull();
             (payload == readPayload).Should().BeTrue();
 
             var search = new QueryParameter { Container = "contract", Filter = "test/testing" };
 
-            BatchSet<string> searchList = await client.Search(search).ReadNext();
+            BatchSet<DatalakePathItem> searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();
-            searchList.Records.Any(x => x.EndsWith(documentId.Path)).Should().BeTrue();
+            searchList.Records.Any(x => x.Name.EndsWith(documentId.Path)).Should().BeTrue();
 
             (await client.Delete(documentId)).Should().BeTrue();
 
             searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();
-            searchList.Records.Any(x => x.EndsWith(documentId.Path)).Should().BeFalse();
+            searchList.Records.Any(x => x.Name.EndsWith(documentId.Path)).Should().BeFalse();
         }
 
         private record Payload(string Name, string Value);

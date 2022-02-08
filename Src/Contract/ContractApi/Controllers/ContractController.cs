@@ -63,7 +63,7 @@ namespace ContractApi.Controllers
         [HttpPost("search")]
         public async Task<IActionResult> List([FromBody] QueryParameter queryParameter, CancellationToken token)
         {
-            BatchSet<string> list = await _contractService.Search(queryParameter, token);
+            BatchSet<DatalakePathItem> list = await _contractService.Search(queryParameter, token);
             return Ok(list);
         }
 
@@ -79,7 +79,7 @@ namespace ContractApi.Controllers
             switch (entry.ObjectClass)
             {
                 case "BlkHeader":
-                    BlkHeader blkHeader = entry.GetData<BlkHeader>();
+                    BlkHeader blkHeader = entry.DeserializeData<BlkHeader>();
                     await _contractService.Create(blkHeader, token);
                     break;
 
@@ -99,12 +99,12 @@ namespace ContractApi.Controllers
             switch (entry.ObjectClass)
             {
                 case "BlkTransaction":
-                    BlkTransaction blkTransaction = entry.GetData<BlkTransaction>();
+                    BlkTransaction blkTransaction = entry.DeserializeData<BlkTransaction>();
                     stats = await _contractService.Append(entry.DocumentId, blkTransaction, token);
                     return stats ? Ok(stats) : NotFound();
 
                 case "BlkCode":
-                    BlkCode blkCode = entry.GetData<BlkCode>();
+                    BlkCode blkCode = entry.DeserializeData<BlkCode>();
                     stats = await _contractService.Append(entry.DocumentId, blkCode, token);
                     return stats ? Ok(stats) : NotFound();
 
