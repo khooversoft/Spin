@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Application;
+using Toolbox.Configuration;
 using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -53,10 +54,10 @@ namespace Directory.sdk.Model
 
             List<StorageRecord> list = new();
 
-            foreach(EntryProperty property in entry.Properties.Values)
+            foreach (string item in entry.Properties)
             {
-                DirectoryEntry storage = (await client.Get((DocumentId)property.Value))
-                    .VerifyNotNull($"Configuration {property} not found");
+                DirectoryEntry storage = (await client.Get((DocumentId)item))
+                    .VerifyNotNull($"Configuration {item} not found");
 
                 list.Add(storage.ConvertToStorageRecord());
             }
@@ -68,14 +69,11 @@ namespace Directory.sdk.Model
         {
             entry.VerifyNotNull(nameof(entry));
 
-            return new StorageRecord
-            {
-                Container = entry.GetPropertyValue(nameof(StorageRecord.Container))!,
-                AccountName = entry.GetPropertyValue(nameof(StorageRecord.AccountName))!,
-                ContainerName = entry.GetPropertyValue(nameof(StorageRecord.ContainerName))!,
-                AccountKey = entry.GetPropertyValue(nameof(StorageRecord.AccountKey))!,
-                BasePath = entry.GetPropertyValue(nameof(StorageRecord.BasePath))!,
-            }.Verify();
+            return entry.Properties
+                .ToConfiguration()
+                .Bind<StorageRecord>()
+                .VerifyNotNull($"Cannot bind to {nameof(StorageRecord)}")
+                .Verify();
         }
     }
 }

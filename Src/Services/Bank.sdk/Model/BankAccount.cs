@@ -14,13 +14,5 @@ public record BankAccount
 
 public static class BankAccountExtensions
 {
-    public static decimal Balance(this BankAccount bankAccount) => bankAccount.Transactions
-        .Select(x => x.Type switch
-        {
-            TrxType.Credit => x.Amount,
-            TrxType.Debit => - x.Amount,
-
-            _ => throw new ArgumentException($"Unknown type={x.Type}"),
-        })
-        .Sum();
+    public static decimal Balance(this BankAccount bankAccount) => bankAccount.Transactions.Sum(x => x.NaturalAmount());
 }

@@ -12,7 +12,7 @@ namespace Bank.Test
         [Fact]
         public async Task WhenPinged_ShouldReturnOk()
         {
-            PingClient pingClient = TestApplication.GetPingClient();
+            PingClient pingClient = TestApplication.GetHost(BankName.First).GetPingClient();
 
             (bool ok, PingResponse? response) = await pingClient.Ping();
             ok.Should().BeTrue();
@@ -22,7 +22,7 @@ namespace Bank.Test
         [Fact]
         public async Task WhenReady_ShouldReturnOk()
         {
-            PingClient pingClient = TestApplication.GetPingClient();
+            PingClient pingClient = TestApplication.GetHost(BankName.First).GetPingClient();
 
             (bool ok, PingResponse? response) = await pingClient.Ready();
             ok.Should().BeTrue();
@@ -32,7 +32,7 @@ namespace Bank.Test
         [Fact]
         public async Task WhenAskedForLogs_ShouldReturnData()
         {
-            PingClient pingClient = TestApplication.GetPingClient();
+            PingClient pingClient = TestApplication.GetHost(BankName.First).GetPingClient();
 
             PingLogs? logs = await pingClient.GetLogs();
             logs.Should().NotBeNull();

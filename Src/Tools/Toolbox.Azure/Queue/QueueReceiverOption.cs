@@ -10,7 +10,7 @@ namespace Toolbox.Azure.Queue
     {
         public QueueOption QueueOption { get; init; } = null!;
 
-        public Func<T, Task> Receiver { get; init; } = null!;
+        public Func<T, Task<bool>> Receiver { get; init; } = null!;
 
         public bool AutoComplete { get; init; } = false;
 

@@ -2,7 +2,9 @@
 using Directory.sdk.Service;
 using System.Threading.Tasks;
 using Toolbox.Application;
+using Toolbox.Configuration;
 using Toolbox.Document;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Directory.sdk.Model
@@ -45,11 +47,11 @@ namespace Directory.sdk.Model
         {
             entry.VerifyNotNull(nameof(entry));
 
-            return new ServiceRecord
-            {
-                HostUrl = entry.GetPropertyValue(nameof(ServiceRecord.HostUrl))!,
-                ApiKey = entry.GetPropertyValue(nameof(ServiceRecord.ApiKey))!,
-            }.Verify();
+            return entry.Properties
+                .ToConfiguration()
+                .Bind<ServiceRecord>()
+                .VerifyNotNull($"Cannot bind to {nameof(ServiceRecord)}")
+                .Verify();
         }
     }
 }

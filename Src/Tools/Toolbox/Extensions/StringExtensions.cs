@@ -63,8 +63,19 @@ namespace Toolbox.Extensions
                 .ToDictionary(x => x.Key, x => x.Value);
         }
 
+        /// <summary>
+        /// Join vector(s) to string with delimiter
+        /// </summary>
+        /// <param name="values">values</param>
+        /// <param name="delimiter">delimiter to use in join</param>
+        /// <returns>result</returns>
         public static string Join(this IEnumerable<string?> values, string delimiter = "/") => string.Join(delimiter, values.Where(x => x != null));
 
+        /// <summary>
+        /// Return string's hash in hex numeric form
+        /// </summary>
+        /// <param name="subject"></param>
+        /// <returns>hex values for hash</returns>
         public static string ToHashHex(this string subject) => subject
             .VerifyNotEmpty(nameof(subject))
             .ToBytes()

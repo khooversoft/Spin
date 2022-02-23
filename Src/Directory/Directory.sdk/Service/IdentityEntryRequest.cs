@@ -17,7 +17,9 @@ public record IdentityEntryRequest
 
     public string Version { get; init; } = "v1";
 
-    public IDictionary<string, EntryProperty> Properties { get; init; } = new Dictionary<string, EntryProperty>(StringComparer.OrdinalIgnoreCase);
+    public IList<string> Properties { get; init; } = new List<string>();
+
+    //public IDictionary<string, EntryProperty> Properties { get; init; } = new Dictionary<string, EntryProperty>(StringComparer.OrdinalIgnoreCase);
 }
 
 public static class IdentityEntryRequestExtensions

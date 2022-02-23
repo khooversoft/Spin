@@ -116,5 +116,7 @@ namespace Toolbox.Extensions
 
             return list;
         }
+
+        public static IEnumerable<T> ToSafe<T>(this IEnumerable<T>? list) => (list ?? Array.Empty<T>());
     }
 }

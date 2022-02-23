@@ -8,6 +8,8 @@ public record ApplicationOption
 {
     public RunEnvironment RunEnvironment { get; init; }
 
+    public string BankName { get; init; } = "Bank-First";
+
     public string ConfigStore { get; init; } = null!;
 
     public string DirectoryUrl { get; init; } = null!;
@@ -41,6 +43,7 @@ public static class ApplicationOptionExtensions
     {
         option.VerifyPartial();
 
+        option.BankName.VerifyNotEmpty($"{nameof(option.BankName)} is required");
         option.HostUrl.VerifyNotEmpty($"{nameof(option.HostUrl)} is required");
         option.ApiKey.VerifyNotEmpty($"{nameof(option.ApiKey)} is required");
         option.ArtifactUrl.VerifyNotNull(nameof(option.ArtifactUrl));

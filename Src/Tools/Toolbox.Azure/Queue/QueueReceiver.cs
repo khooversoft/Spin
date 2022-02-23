@@ -103,32 +103,42 @@ namespace Toolbox.Azure.Queue
             {
                 if (_messageReceiver == null || message == null || _messageReceiver?.IsClosedOrClosing == true || token.IsCancellationRequested) return;
 
+                T? value = null;
+
                 // Process the message
                 try
                 {
                     _logger.LogTrace($"Starting processing message {message.SystemProperties.LockToken}");
 
                     string json = Encoding.UTF8.GetString(message.Body);
-                    T? value = Json.Default.Deserialize<T>(json);
+                    value = Json.Default.Deserialize<T>(json);
 
                     if (value == null) throw new ArgumentException($"Failed to parse message, json={json}");
-
-                    await _queueReceiver.Receiver(value);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Cannot parse message, {message.MessageId}, CorrelationId={message.CorrelationId}");
+                    return;
                 }
 
-                // Complete the message so that it is not received again.
-                // This can be done only if the queueClient is created in ReceiveMode.PeekLock mode (which is default).
-                if (!_queueReceiver.AutoComplete)
+                try
                 {
-                    _logger.LogTrace($"Releasing lock on queued message {message.SystemProperties.LockToken}");
-                    await _messageReceiver!.CompleteAsync(message.SystemProperties.LockToken);
-                }
+                    bool status = await _queueReceiver.Receiver(value);
 
-                _logger.LogTrace($"Completed message {message.SystemProperties.LockToken}");
+                    // Complete the message so that it is not received again.
+                    // This can be done only if the queueClient is created in ReceiveMode.PeekLock mode (which is default).
+                    if (status && !_queueReceiver.AutoComplete)
+                    {
+                        _logger.LogTrace($"Releasing lock on queued message {message.SystemProperties.LockToken}");
+                        await _messageReceiver!.CompleteAsync(message.SystemProperties.LockToken);
+                    }
+
+                    _logger.LogTrace($"Completed message {message.SystemProperties.LockToken}");
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, $"Processing message failed, messageId={message.MessageId}, CorrelationId={message.CorrelationId}");
+                }
 
                 // Note: Use the cancellationToken passed as necessary to determine if the queueClient has already been closed.
                 // If queueClient has already been Closed, you may chose to not call CompleteAsync() or AbandonAsync() etc. calls

@@ -76,28 +76,19 @@ internal class SetActivity
 
         DirectoryEntry entry = (await _directoryClient.Get(id)) ?? new DirectoryEntry { DirectoryId = (string)id };
 
+        var propertyList = new List<string>(entry.Properties);
+
         foreach (var item in properties)
         {
-            (string key, string value) = GetProperty(item);
-            entry.Properties[key] = new EntryProperty
-            {
-                Name = key,
-                Value = value,
-            };
+            string property = item
+                .ToKeyValuePair()
+                .ToProperty();
+
+            propertyList.Add(property);
         }
 
         await _directoryClient.Set(entry, token);
         _logger.LogInformation($"Updated property {properties.Join(", ")} on {directoryId}");
-
-        (string key, string value) GetProperty(string value)
-        {
-            string[] values = value.Split('=')
-                .Select(x => x.Trim())
-                .ToArray()
-                .VerifyAssert(x => x.Length == 2, $"{value} syntax error");
-
-            return (values[0], values[1]);
-        }
     }
 
     private async Task CreateIdentity(DirectoryEntry entry, CancellationToken token)

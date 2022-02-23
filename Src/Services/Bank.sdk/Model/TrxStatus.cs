@@ -9,6 +9,8 @@ namespace Bank.sdk.Model;
 public enum TrxStatus
 {
     Unknown,
-    Success,
-    Failed
+    FundsDeposited,
+    FundsWithdrawn,
+    NoFunds,
+    NoAccount
 }

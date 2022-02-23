@@ -17,8 +17,8 @@ public class TransactionControllerTests
     [Fact]
     public async Task GivenBankAccount_WhenTransactionsSet_ShouldSucceed()
     {
-        BankAccountClient accountClient = TestApplication.GetBankAccountClient();
-        BankTransactionClient transactionClient = TestApplication.GetBankTransactionClient();
+        BankAccountClient accountClient = TestApplication.GetHost(BankName.First).GetBankAccountClient();
+        BankTransactionClient transactionClient = TestApplication.GetHost(BankName.First).GetBankTransactionClient();
 
         DocumentId documentId = (DocumentId)"test/bank/bankAccount2";
 

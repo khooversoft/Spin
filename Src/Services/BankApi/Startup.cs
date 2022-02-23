@@ -21,7 +21,7 @@ public static class Startup
 
         ApplicationOption applicationOption = await DirectoryClient.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
-            ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, "Bank");
+            ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, option.BankName);
             ServiceRecord artifactRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");
 
             option = option with
@@ -38,6 +38,7 @@ public static class Startup
         service.AddSingleton(applicationOption);
         service.AddSingleton<BankAccountService>();
         service.AddSingleton<BankTransactionService>();
+        service.AddSingleton<BankClearingService>();
 
         service.AddHttpClient<ArtifactClient>((service, httpClient) =>
         {
@@ -45,6 +46,14 @@ public static class Startup
             httpClient.BaseAddress = new Uri(option.ArtifactUrl);
             httpClient.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ArtifactApiKey);
         });
+
+        service.AddHttpClient<DirectoryClient>((service, httpClient) =>
+        {
+            ApplicationOption option = service.GetRequiredService<ApplicationOption>();
+            httpClient.BaseAddress = new Uri(option.DirectoryUrl);
+            httpClient.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.DirectoryApiKey);
+        });
+
 
         return service;
     }

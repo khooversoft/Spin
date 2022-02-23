@@ -10,6 +10,7 @@ namespace Directory.sdk
     {
         public const string Email = "Email";
         public const string SigningCredentials = "SigningCredentials";
+        public const string QueueId = "QueueId";
     }
 
     public static class ClassTypeName

@@ -78,7 +78,7 @@ public class DocumentStorage : IDocumentStorage
 
     public async Task<DatalakePathProperties> GetProperty(DocumentId documentId, CancellationToken token = default) => await _store.GetPathProperties(documentId.ToJsonFileName(), token);
 
-    private string GetKey(DocumentId documentId) => documentId.ToString().ToLower();
+    private string GetKey(DocumentId documentId) => documentId.Path.ToLower();
 
     private record DocumentCache<T>(T Value, ETag? ETag);
 }

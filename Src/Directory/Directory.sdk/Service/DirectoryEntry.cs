@@ -1,9 +1,11 @@
 ﻿using Azure;
 using Directory.sdk.Model;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Document;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Directory.sdk.Service;
@@ -18,7 +20,7 @@ public record DirectoryEntry
 
     public ETag? ETag { get; init; }
 
-    public IDictionary<string, EntryProperty> Properties { get; init; } = new Dictionary<string, EntryProperty>(StringComparer.OrdinalIgnoreCase);
+    public IReadOnlyList<string> Properties { get; init; } = null!;
 }
 
 
@@ -32,12 +34,7 @@ public static class DirectoryEntryExtensions
         subject.Properties.VerifyNotNull(nameof(subject.Properties));
     }
 
-    public static string? GetPropertyValue(this DirectoryEntry directoryEntry, string name) => directoryEntry
-            .Properties.Values
-            .FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-            ?.Value;
+    public static string? GetEmail(this DirectoryEntry directory) => directory.Properties.GetValue(PropertyName.Email);
 
-    public static string? GetEmail(this DirectoryEntry directory) => GetPropertyValue(directory, PropertyName.Email);
-
-    public static string? GetSigningCredentials(this DirectoryEntry directory) => GetPropertyValue(directory, PropertyName.SigningCredentials);
+    public static string? GetSigningCredentials(this DirectoryEntry directory) => directory.Properties.GetValue(PropertyName.SigningCredentials);
 }

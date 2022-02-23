@@ -42,10 +42,12 @@ internal class DeleteActivity
         DirectoryEntry entry = (await _directoryClient.Get(id))
             .VerifyNotNull($"{documentId} does not exist");
 
-        foreach (var key in properties)
-        {
-            entry.Properties.Remove(key);
-        }
+        var hash = new HashSet<string>(properties);
+
+        var currentProperties = entry.Properties
+            .Where(x => !hash.Contains(x));
+
+        entry = entry with { Properties = currentProperties.ToList() };
 
         await _directoryClient.Set(entry, token);
 

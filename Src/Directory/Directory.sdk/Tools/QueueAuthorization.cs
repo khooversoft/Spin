@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Directory.sdk.Model
+namespace Directory.sdk.Tools
 {
     public static class QueueAuthorization
     {

@@ -36,11 +36,18 @@ namespace Directory.Test
             IReadOnlyList<DatalakePathItem> search = (await client.Search(query).ReadNext()).Records;
             if (search.Any(x => x.Name == (string)documentId)) await client.Delete(documentId);
 
-            var entry = new DirectoryEntryBuilder()
-                .SetDirectoryId(documentId)
-                .SetClassType("test")
-                .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
-                .Build();
+            DirectoryEntry entry = new DirectoryEntry
+            {
+                DirectoryId = documentId.Path,
+                ClassType = "test",
+                Properties = new[] { "property1=value1" }
+            };
+
+            //var entry = new DirectoryEntryBuilder()
+            //    .SetDirectoryId(documentId)
+            //    .SetClassType("test")
+            //    .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
+            //    .Build();
 
             await client.Set(entry);
 
@@ -55,16 +62,21 @@ namespace Directory.Test
             readEntry.ETag.Should().NotBeNull();
             readEntry.Properties.Count.Should().Be(1);
 
-            readEntry.Properties.Values.First().Action(x =>
-            {
-                (x == entry.Properties.Values.First()).Should().BeTrue();
-            });
+            readEntry.Properties
+                .Zip(entry.Properties)
+                .All(x => x.First == x.Second)
+                .Should().BeTrue();
+
+            //readEntry.Properties.Values.First().Action(x =>
+            //{
+            //    (x == entry.Properties.Values.First()).Should().BeTrue();
+            //});
 
             await client.Delete(documentId);
             search = (await client.Search(query).ReadNext()).Records;
             search.Any(x => x.Name == (string)documentId).Should().BeFalse();
         }
-        
+
         [Fact]
         public async Task GivenDirectoryEntry_WhenRoundTripWithETag_Success()
         {
@@ -80,11 +92,18 @@ namespace Directory.Test
 
             await client.Delete(documentId);
 
-            var entry = new DirectoryEntryBuilder()
-                .SetDirectoryId(documentId)
-                .SetClassType("test")
-                .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
-                .Build();
+            DirectoryEntry entry = new DirectoryEntry
+            {
+                DirectoryId = documentId.Path,
+                ClassType = "test",
+                Properties = new[] { "property1=value1" }
+            };
+
+            //var entry = new DirectoryEntryBuilder()
+            //    .SetDirectoryId(documentId)
+            //    .SetClassType("test")
+            //    .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
+            //    .Build();
 
             await client.Set(entry);
 
@@ -93,10 +112,17 @@ namespace Directory.Test
             readEntry!.ETag.Should().NotBeNull();
             readEntry.Properties.Count.Should().Be(1);
 
-            var updateEntry = new DirectoryEntryBuilder(readEntry)
-                .SetClassType("test-next")
-                .AddProperty(new EntryProperty { Name = "property2", Value = "value2" })
-                .Build();
+            DirectoryEntry updateEntry = new DirectoryEntry
+            {
+                DirectoryId = documentId.Path,
+                ClassType = "test",
+                Properties = new[] { "property2=value2" }
+            };
+
+            //var updateEntry = new DirectoryEntryBuilder(readEntry)
+            //    .SetClassType("test-next")
+            //    .AddProperty(new EntryProperty { Name = "property2", Value = "value2" })
+            //    .Build();
 
             await client.Set(updateEntry);
 
@@ -125,11 +151,18 @@ namespace Directory.Test
 
             await client.Delete(documentId);
 
-            var entry = new DirectoryEntryBuilder()
-                .SetDirectoryId(documentId)
-                .SetClassType("test")
-                .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
-                .Build();
+            DirectoryEntry entry = new DirectoryEntry
+            {
+                DirectoryId = documentId.Path,
+                ClassType = "test",
+                Properties = new[] { "property1=value1" }
+            };
+
+            //var entry = new DirectoryEntryBuilder()
+            //    .SetDirectoryId(documentId)
+            //    .SetClassType("test")
+            //    .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
+            //    .Build();
 
             await client.Set(entry);
 
@@ -138,11 +171,19 @@ namespace Directory.Test
             readEntry!.ETag.Should().NotBeNull();
             readEntry.Properties.Count.Should().Be(1);
 
-            var updateEntry = new DirectoryEntryBuilder(readEntry)
-                .SetClassType("test-next")
-                .SetETag(new ETag("0xFF9CA90CB9F5120"))
-                .AddProperty(new EntryProperty { Name = "property2", Value = "value2" })
-                .Build();
+            DirectoryEntry updateEntry = new DirectoryEntry
+            {
+                DirectoryId = documentId.Path,
+                ClassType = "test-next",
+                ETag = new ETag("0xFF9CA90CB9F5120"),
+                Properties = new[] { "property2=value2" }
+            };
+
+            //var updateEntry = new DirectoryEntryBuilder(readEntry)
+            //    .SetClassType("test-next")
+            //    .SetETag(new ETag("0xFF9CA90CB9F5120"))
+            //    .AddProperty(new EntryProperty { Name = "property2", Value = "value2" })
+            //    .Build();
 
             bool failed;
             try
@@ -150,7 +191,7 @@ namespace Directory.Test
                 await client.Set(updateEntry);
                 failed = false;
             }
-            catch(Azure.RequestFailedException)
+            catch (Azure.RequestFailedException)
             {
                 failed = true;
             }

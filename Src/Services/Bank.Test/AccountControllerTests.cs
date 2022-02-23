@@ -21,7 +21,7 @@ public class AccountControllerTests
     [Fact]
     public async Task GivenAccount_WhenRoundTrip_ShouldSucceed()
     {
-        BankAccountClient client = TestApplication.GetBankAccountClient();
+        BankAccountClient client = TestApplication.GetHost(BankName.First).GetBankAccountClient();
 
         DocumentId documentId = (DocumentId)"test/bank/bankAccount1";
 

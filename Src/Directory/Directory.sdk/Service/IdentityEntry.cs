@@ -25,8 +25,9 @@ public record IdentityEntry
 
     public byte[]? PrivateKey { get; init; }
 
-    public IDictionary<string, EntryProperty> Properties { get; init; } = new Dictionary<string, EntryProperty>(StringComparer.OrdinalIgnoreCase);
+    public IList<string> Properties { get; init; } = new List<string>();
 }
+
 
 public static class IdentityEntryExtensions
 {
