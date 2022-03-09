@@ -2,6 +2,7 @@
 
 public enum TrxType
 {
+    Unknown,
     Credit,
     Debit,
 }

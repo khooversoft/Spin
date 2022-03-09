@@ -58,7 +58,8 @@ public class TransactionControllerTests
         {
             Items = amounts.Select(x => new TrxRequest
             {
-                AccountId = documentId.Path,
+                ToId = documentId.Path,
+                FromId = "test/bank/fromAccount",
                 Type = x >= 0 ? TrxType.Credit : TrxType.Debit,
                 Amount = Math.Abs(x),
             }).ToList(),
@@ -71,7 +72,7 @@ public class TransactionControllerTests
 
         response.Items
             .Zip(requestBatch.Items)
-            .All(x => x.First.ReferenceId == x.Second.Id)
+            .All(x => x.First.Reference.Id == x.Second.Id)
             .Should().BeTrue();
 
         TrxBalance? balanceTrx = await transactionClient.GetBalance(documentId);

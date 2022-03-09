@@ -12,13 +12,13 @@ using Toolbox.Model;
 
 namespace Bank.sdk.Service;
 
-public class BankAccountService
+public class BankDocumentService
 {
     private readonly ArtifactClient _artifactClient;
-    private readonly ILogger<BankAccountService> _logger;
+    private readonly ILogger<BankDocumentService> _logger;
     private const string _container = "bank";
 
-    public BankAccountService(ArtifactClient artifactClient, ILogger<BankAccountService> logger)
+    public BankDocumentService(ArtifactClient artifactClient, ILogger<BankDocumentService> logger)
     {
         _artifactClient = artifactClient;
         _logger = logger;

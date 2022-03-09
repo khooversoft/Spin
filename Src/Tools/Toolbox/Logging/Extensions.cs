@@ -30,15 +30,15 @@ namespace Toolbox.Logging
             return builder;
         }
 
-        public static IDisposable BeginScopeWithLocation(this ILogger logger,
-            string? message = null,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0)
-        {
-            var location = new { Function = function, Path = path, LineNumber = lineNumber, Message = message };
-            return logger.BeginScope(location);
-        }
+        //public static IDisposable BeginScopeWithLocation(this ILogger logger,
+        //    string? message = null,
+        //    [CallerMemberName] string function = "",
+        //    [CallerFilePath] string path = "",
+        //    [CallerLineNumber] int lineNumber = 0)
+        //{
+        //    var location = new { Function = function, Path = path, LineNumber = lineNumber, Message = message };
+        //    return logger.BeginScope(location);
+        //}
 
         public static void Trace(
             this ILogger logger,

@@ -10,7 +10,7 @@ public record TrxRequestResponse
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
-    public string ReferenceId { get; init; } = null!;
+    public TrxRequest Reference { get; init; } = null!;
 
     public DateTime Date { get; init; } = DateTime.UtcNow;
 

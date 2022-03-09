@@ -15,6 +15,7 @@ public class KeyValuePairTests
     [Theory]
     [InlineData("name=value", "name", "value")]
     [InlineData("name1 = value1", "name1", "value1")]
+    [InlineData("name1 = value1=", "name1", "value1=")]
     public void TestToKeyValuePair(string property, string name, string value)
     {
         KeyValuePair<string, string> pair = property.ToKeyValuePair();
@@ -24,6 +25,7 @@ public class KeyValuePairTests
 
     [Theory]
     [InlineData("")]
+    [InlineData("=")]
     [InlineData("name")]
     [InlineData("name=")]
     public void TestToKeyValuePair_ShouldFail(string property)

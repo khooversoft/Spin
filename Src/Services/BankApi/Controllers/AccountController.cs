@@ -14,10 +14,10 @@ namespace BankApi.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly BankAccountService _service;
+        private readonly BankDocumentService _service;
         private const string _noContainer = "Container not allowed";
 
-        public AccountController(BankAccountService service)
+        public AccountController(BankDocumentService service)
         {
             _service = service;
         }

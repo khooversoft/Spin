@@ -11,11 +11,19 @@ public static class KeyValuePairExtensions
 {
     public static KeyValuePair<string, string> ToKeyValuePair(this (string name, string value) subject) => new KeyValuePair<string, string>(subject.name, subject.value);
 
-    public static KeyValuePair<string, string> ToKeyValuePair(this string subject, char delimiter = '=') =>
-        subject.VerifyNotEmpty(subject)
-        .Split(delimiter, StringSplitOptions.RemoveEmptyEntries)
-        .VerifyAssert(x => x.Length == 2, "Syntax error")
-        .Func(x => new KeyValuePair<string, string>(x[0].Trim(), x[1].Trim()));
+    public static KeyValuePair<string, string> ToKeyValuePair(this string subject, char delimiter = '=')
+    {
+        const string msg = "Syntax error";
+
+        subject.VerifyNotEmpty(subject);
+
+        int index = subject.IndexOf('=').VerifyAssert(x => x > 0, msg);
+
+        string key = subject.Substring(0, index).Trim().VerifyNotEmpty(msg);
+        string value = subject.Substring(index + 1).Trim().VerifyNotEmpty(msg); ;
+
+        return new KeyValuePair<string, string>(key, value);
+    }
 
     public static string? GetValue(this IEnumerable<string> subject, string name, char delimiter = '=') =>
         subject.VerifyNotNull(nameof(subject))

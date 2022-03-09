@@ -13,10 +13,10 @@ namespace Bank.sdk.Service;
 
 public class BankTransactionService
 {
-    private readonly BankAccountService _bankAccountService;
+    private readonly BankDocumentService _bankAccountService;
     private readonly ILogger<BankTransactionService> _logger;
 
-    public BankTransactionService(BankAccountService bankAccountService, ILogger<BankTransactionService> logger)
+    public BankTransactionService(BankDocumentService bankAccountService, ILogger<BankTransactionService> logger)
     {
         _bankAccountService = bankAccountService;
         _logger = logger;
@@ -29,7 +29,7 @@ public class BankTransactionService
         BankAccount? bankAccount = await _bankAccountService.Get(documentId, token);
         if (bankAccount == null)
         {
-            _logger.LogWarning($"Account not found for directoryId={documentId}");
+            _logger.Warning($"Account not found for directoryId={documentId}");
             return null;
         }
 
@@ -42,103 +42,91 @@ public class BankTransactionService
 
     public async Task<TrxBatch<TrxRequestResponse>> Set(TrxBatch<TrxRequest> batch, CancellationToken token)
     {
-        using var scope = _logger.BeginScopeWithLocation();
         _logger.Trace($"Setting transaction for id={batch.Id}, count={batch.Items.Count}");
 
-        IEnumerable<IGrouping<string, TrxRequest>> groups = batch.Items
-            .GroupBy(x => x.AccountId);
+        var batchContext = new BatchContext(batch.Items);
 
-        List<TrxRequestResponse> responses = new();
+        IEnumerable<IGrouping<string, TrxRequest>> groups = batchContext.GetNotProcessedRequests()
+            .GroupBy(x => x.ToId);
 
         foreach (IGrouping<string, TrxRequest> group in groups)
         {
-            BankAccount? bankAccount = await _bankAccountService.Get((DocumentId)group.Key, token);
-            if (bankAccount == null)
-            {
-                _logger.LogError($"Account not found for directoryId={group.Key}");
-                responses.AddRange(group.Select(x => new TrxRequestResponse
-                {
-                    ReferenceId = x.Id,
-                    Status = TrxStatus.NoAccount,
-                }));
+            BankAccount? bankAccount = await GetBankAccount((DocumentId)group.Key, group, batchContext, token);
+            if (bankAccount == null) continue;
 
-                continue;
-            }
-
-            if( bankAccount.Balance < group.Sum(x => x.Type switch { TrxType.Credit => x.Amount
+            if (!IsWithinBalance(bankAccount, group, batchContext)) continue;
 
             BankAccount entry = bankAccount with
             {
                 Transactions = bankAccount.Transactions
-                    .Concat(group)
-                    .OrderBy(x => x.Date)
-                    .Select(x => new TrxRecord
+                    .Concat(group.Select(x => new TrxRecord
                     {
                         Type = x.Type,
                         Amount = x.Amount,
                         Properties = x.Properties.ToSafe()
                             .Append($"RequestId={x.Id}")
                             .ToList(),
-                    }))
+                    })
+                    )
                     .ToList()
             };
 
-            _logger.LogTrace($"Add transactions to accountId={group.Key}");
+            _logger.Trace($"Add transactions to accountId={group.Key}");
             await _bankAccountService.Set(entry, token);
 
-            responses.AddRange(group.Select(x => new TrxRequestResponse
+            batchContext.Responses.AddRange(group.Select(x => new TrxRequestResponse
             {
-                ReferenceId = x.Id,
+                Reference = x,
                 Status = TrxStatus.Success
             }));
         }
 
         return new TrxBatch<TrxRequestResponse>
         {
-            Items = responses,
+            Items = batchContext.Responses.ToList(),
         };
-
-decimal Balance(IEnumerable<TrxRequest> trxRequests) => trxRequests.Sum(x => x.Type switch
-{
-    TrxType.Credit => x.Amount,
-    TrxType.Debit => 0 - x.Amount,
-
-    _ => throw new ArgumentException
-});
     }
 
-    public async Task<TrxStatus> Set(ClearingRequest clearingRequest, CancellationToken token)
+    private static IEnumerable<TrxRequestResponse> SetResponse(IEnumerable<TrxRequest> requests, TrxStatus status) => requests.Select(x => new TrxRequestResponse
     {
-        using var scope = _logger.BeginScopeWithLocation();
-        _logger.Trace($"Setting clearing request id={clearingRequest.Id}");
+        Reference = x,
+        Status = status,
+    });
 
-
-        BankAccount? bankAccount = await _bankAccountService.Get((DocumentId)clearingRequest.FromId, token);
+    async Task<BankAccount?> GetBankAccount(DocumentId toId, IEnumerable<TrxRequest> requests, BatchContext batchContext, CancellationToken token)
+    {
+        BankAccount? bankAccount = await _bankAccountService.Get(toId, token);
         if (bankAccount == null)
         {
-            _logger.LogError($"Account not found for directoryId={clearingRequest.ToId}");
-            return TrxStatus.NoAccount;
+            _logger.Error($"Account not found for directoryId={toId}");
+            batchContext.Responses.AddRange(SetResponse(requests, TrxStatus.NoAccount));
         }
 
-        if (bankAccount.Balance() < clearingRequest.Amount) return TrxStatus.NoFunds;
+        return bankAccount;
+    }
 
-        BankAccount entry = bankAccount with
-        {
-            Transactions = bankAccount.Transactions
-                .Append(new TrxRecord
-                {
-                    Type = TrxType.Debit,
-                    Amount = clearingRequest.Amount,
-                    Properties = clearingRequest.Properties.ToSafe()
-                        .Append($"RequestId={clearingRequest.Id}")
-                        .ToList(),
-                })
-                .OrderBy(x => x.Date)
-                .ToList()
-        };
+    private bool IsWithinBalance(BankAccount bankAccount, IEnumerable<TrxRequest> requests, BatchContext batchContext)
+    {
+        if (bankAccount.Balance() + requests.Balance() >= 0) return true;
 
-        _logger.LogTrace($"Add clearing request to accountId={clearingRequest.FromId}");
-        await _bankAccountService.Set(entry, token);
-        return TrxStatus.FundsWithdrawn;
+        _logger.Error($"No required funds for directoryId={bankAccount.AccountId}");
+        batchContext.Responses.AddRange(SetResponse(requests, TrxStatus.NoFunds));
+
+        return false;
+    }
+
+    private record BatchContext
+    {
+        public BatchContext(IEnumerable<TrxRequest> trxRequests) => Requests = trxRequests.ToList();
+
+        public IReadOnlyList<TrxRequest> Requests { get; }
+
+        public List<TrxRequestResponse> Responses { get; } = new List<TrxRequestResponse>();
+
+        public IEnumerable<TrxRequest> GetNotProcessedRequests() => Requests
+            .Select(x => x.Id)
+            .Except(Responses.Select(x => x.Reference.Id))
+            .Join(Requests, x => x, x => x.Id, (id, trx) => trx)
+            .ToList();
     }
 }

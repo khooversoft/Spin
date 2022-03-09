@@ -39,7 +39,6 @@ public static class Startup
             };
         });
 
-        service.AddSingleton<IDocumentPackage, DocumentPackage>();
         service.AddSingleton(applicationOption);
 
         service.AddSingleton<DocumentPackageFactory>(service =>

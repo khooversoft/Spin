@@ -36,7 +36,7 @@ public static class Startup
         });
 
         service.AddSingleton(applicationOption);
-        service.AddSingleton<BankAccountService>();
+        service.AddSingleton<BankDocumentService>();
         service.AddSingleton<BankTransactionService>();
         service.AddSingleton<BankClearingService>();
 

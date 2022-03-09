@@ -2,6 +2,7 @@
 using Microsoft.Azure.ServiceBus.Management;
 using System.Linq;
 using System.Text;
+using Toolbox.Azure.Queue.RPC;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
