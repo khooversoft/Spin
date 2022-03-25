@@ -22,8 +22,8 @@ namespace Bank.sdk.Model;
 ///   
 ///     Trx = Amt=50.00, FromId=Bank1, ToId=Bank2
 ///     
-///     Bank1 = -50.00 = 50.00
-///     Bank2 = 50.00 = 250.00
+///     Bank1 => -50.00 = 50.00
+///     Bank2 => 50.00 = 250.00
 ///     
 ///     Response
 ///   
@@ -42,7 +42,7 @@ public record TrxRequest
 
     public decimal Amount { get; init; }
 
-    public IReadOnlyList<string> Properties { get; init; } = null!;
+    public IReadOnlyList<string>? Properties { get; init; }
 }
 
 

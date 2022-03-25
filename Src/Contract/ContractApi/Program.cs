@@ -33,6 +33,7 @@ builder.Services.AddSingleton(option);
 
 await builder.Services.ConfigureContractService(option);
 builder.Services.ConfigurePingService(builder.Logging);
+builder.Services.ConfigureLogBindingErrors();
 
 //  ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,7 +52,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.ConfigureContractService();
+app.UseContractService();
+app.UseLogBindingErrors();
 
 if (app.Environment.IsEnvironment("Test"))
     app.Run();

@@ -30,7 +30,7 @@ namespace Toolbox.Logging
             return builder;
         }
 
-        //public static IDisposable BeginScopeWithLocation(this ILogger logger,
+        //public static IDisposable LocationScope(this ILogger logger,
         //    string? message = null,
         //    [CallerMemberName] string function = "",
         //    [CallerFilePath] string path = "",
@@ -39,71 +39,5 @@ namespace Toolbox.Logging
         //    var location = new { Function = function, Path = path, LineNumber = lineNumber, Message = message };
         //    return logger.BeginScope(location);
         //}
-
-        public static void Trace(
-            this ILogger logger,
-            string? message,
-            object?[] args = null!,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0)
-        {
-            string location = " [Function=" + function + ", Path=" + path + ", LineNumber=" + lineNumber.ToString() + "]";
-
-            logger.Trace((message ?? string.Empty) + location, args);
-        }
-
-        public static void Warning(
-            this ILogger logger,
-            string? message,
-            object?[] args = null!,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0)
-        {
-            string location = " [Function=" + function + ", Path=" + path + ", LineNumber=" + lineNumber.ToString() + "]";
-
-            logger.Warning((message ?? string.Empty) + location, args);
-        }
-
-        public static void Information(
-            this ILogger logger,
-            string? message,
-            object?[] args = null!,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0)
-        {
-            string location = " [Function=" + function + ", Path=" + path + ", LineNumber=" + lineNumber.ToString() + "]";
-
-            logger.LogInformation((message ?? string.Empty) + location, args);
-        }
-
-        public static void Error(
-            this ILogger logger,
-            string? message,
-            object?[] args = null!,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0)
-        {
-            string location = " [Function=" + function + ", Path=" + path + ", LineNumber=" + lineNumber.ToString() + "]";
-
-            logger.LogError((message ?? string.Empty) + location, args);
-        }
-
-        public static void Error(
-            this ILogger logger,
-            Exception ex,
-            string? message,
-            object?[] args = null!,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0)
-        {
-            string location = " [Function=" + function + ", Path=" + path + ", LineNumber=" + lineNumber.ToString() + "]";
-
-            logger.LogError(ex, (message ?? string.Empty) + location, args);
-        }
     }
 }

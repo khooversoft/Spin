@@ -24,12 +24,12 @@ public class BankTransactionService
 
     public async Task<TrxBalance?> GetBalance(DocumentId documentId, CancellationToken token)
     {
-        _logger.LogTrace($"Getting directoryId={documentId}");
+        _logger.LogTrace("Getting directoryId={documentId}", documentId);
 
         BankAccount? bankAccount = await _bankAccountService.Get(documentId, token);
         if (bankAccount == null)
         {
-            _logger.Warning($"Account not found for directoryId={documentId}");
+            _logger.LogWarning("Account not found for directoryId={documentId}", documentId);
             return null;
         }
 
@@ -42,7 +42,7 @@ public class BankTransactionService
 
     public async Task<TrxBatch<TrxRequestResponse>> Set(TrxBatch<TrxRequest> batch, CancellationToken token)
     {
-        _logger.Trace($"Setting transaction for id={batch.Id}, count={batch.Items.Count}");
+        _logger.LogTrace("Setting transaction for id={batch.Id}, count={batch.Items.Count}", batch.Id, batch.Items.Count);
 
         var batchContext = new BatchContext(batch.Items);
 
@@ -71,7 +71,7 @@ public class BankTransactionService
                     .ToList()
             };
 
-            _logger.Trace($"Add transactions to accountId={group.Key}");
+            _logger.LogInformation("Add transactions to accountId={group.Key}", group.Key);
             await _bankAccountService.Set(entry, token);
 
             batchContext.Responses.AddRange(group.Select(x => new TrxRequestResponse
@@ -98,7 +98,7 @@ public class BankTransactionService
         BankAccount? bankAccount = await _bankAccountService.Get(toId, token);
         if (bankAccount == null)
         {
-            _logger.Error($"Account not found for directoryId={toId}");
+            _logger.LogError("Account not found for directoryId={toId}", toId);
             batchContext.Responses.AddRange(SetResponse(requests, TrxStatus.NoAccount));
         }
 
@@ -109,7 +109,7 @@ public class BankTransactionService
     {
         if (bankAccount.Balance() + requests.Balance() >= 0) return true;
 
-        _logger.Error($"No required funds for directoryId={bankAccount.AccountId}");
+        _logger.LogError("No required funds for directoryId={bankAccount.AccountId}", bankAccount.AccountId);
         batchContext.Responses.AddRange(SetResponse(requests, TrxStatus.NoFunds));
 
         return false;

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Document;
+using Toolbox.Logging;
 using Toolbox.Model;
 using Toolbox.Tools;
 
@@ -25,7 +26,8 @@ namespace Artifact.sdk
         public async Task<Document?> Get(DocumentId id, CancellationToken token = default)
         {
             id.VerifyNotNull(nameof(id));
-            _logger.LogTrace($"{nameof(Get)}: Id={id}");
+
+            _logger.LogTrace("Get Id={id}", id);
 
             try
             {
@@ -33,7 +35,7 @@ namespace Artifact.sdk
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, $"{nameof(Get)}: id={id} failed");
+                _logger.LogError(ex, "Get id={id} failed", id);
                 return null;
             }
         }
@@ -42,7 +44,7 @@ namespace Artifact.sdk
         {
             document.VerifyNotNull(nameof(document));
 
-            _logger.LogTrace($"{nameof(Set)}: Id={document.DocumentId}");
+            _logger.LogTrace("Set Id={documentId}", args: document.DocumentId);
 
             HttpResponseMessage message = await _httpClient.PostAsJsonAsync("api/artifact", document, token);
             message.EnsureSuccessStatusCode();
@@ -51,7 +53,7 @@ namespace Artifact.sdk
         public async Task<bool> Delete(DocumentId id, CancellationToken token = default)
         {
             id.VerifyNotNull(nameof(id));
-            _logger.LogTrace($"{nameof(Delete)}: Id={id}");
+            _logger.LogTrace("Delete Id={id}", args: id);
 
             HttpResponseMessage response = await _httpClient.DeleteAsync($"api/artifact/{id.ToUrlEncoding()}", token);
 

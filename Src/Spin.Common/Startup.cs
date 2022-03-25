@@ -2,11 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Logging;
 using Toolbox.Tools;
 
@@ -22,5 +17,23 @@ public static class Startup
         logging.AddLoggerBuffer();
 
         return service;
+    }
+
+    public static IServiceCollection ConfigureLogBindingErrors(this IServiceCollection service)
+    {
+        var logBindingErrors = new LogBindingErrors();
+        service.AddSingleton(logBindingErrors);
+
+        logBindingErrors.ConfigureModelBindingExceptionHandling(service);
+
+        return service;
+    }
+
+    public static IApplicationBuilder UseLogBindingErrors(this IApplicationBuilder app)
+    {
+        ILogger logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>().CreateLogger<LogBindingErrors>();
+        app.ApplicationServices.GetRequiredService<LogBindingErrors>().Logger = logger;
+
+        return app;
     }
 }

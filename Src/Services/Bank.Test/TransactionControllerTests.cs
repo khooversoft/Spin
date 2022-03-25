@@ -37,9 +37,10 @@ public class TransactionControllerTests
         balanceTrx.Should().NotBeNull();
         balanceTrx!.Balance.Should().Be(0.0m);
 
-        await ApplyTransaction(transactionClient, documentId: documentId, balance: 155.15m, 100.0m, 75.15m, -20.0m);
-        await ApplyTransaction(transactionClient, documentId: documentId, balance: 240.30m, -10.0m, 75.15m, 20.0m);
-        await ApplyTransaction(transactionClient, documentId: documentId, balance: 270.42m, -20.0m, 45.0m, 5.12m);
+        decimal finalBalance = 270.42m;
+        await ApplyTransaction(transactionClient, documentId, balance: 155.15m, 100.0m, 75.15m, -20.0m);
+        await ApplyTransaction(transactionClient, documentId, balance: 240.30m, -10.0m, 75.15m, 20.0m);
+        await ApplyTransaction(transactionClient, documentId, balance: finalBalance, -20.0m, 45.0m, 5.12m);
 
         BankAccount? readAccount = await accountClient.Get(documentId);
         readAccount.Should().NotBeNull();
@@ -48,6 +49,7 @@ public class TransactionControllerTests
         readAccount.AccountName.Should().Be(entry.AccountName);
         readAccount.AccountNumber.Should().Be(entry.AccountNumber);
         readAccount.Transactions.Count.Should().Be(9);
+        readAccount.Balance().Should().Be(finalBalance);
 
         await accountClient.Delete(documentId);
     }

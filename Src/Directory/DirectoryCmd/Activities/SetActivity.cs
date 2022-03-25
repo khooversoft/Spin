@@ -32,18 +32,16 @@ internal class SetActivity
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetFile), File = file });
 
-        _logger.LogInformation($"Pushing {file} to directory service");
+        _logger.LogInformation("Pushing {file} to directory service", file);
 
-        IPropertyResolver resolver = new PropertyResolver(new KeyValuePair<string, string>[0]);
-
-        IReadOnlyList<string> includeFiles = ConfigurationTools.GetJsonFiles(file, resolver)
+        IReadOnlyList<string> includeFiles = ConfigurationTools.GetJsonFiles(file, PropertyResolver.CreateEmpty())
             .Where(x => x != file)
             .ToList();
 
         List<DirectoryEntry> list = new();
         foreach (string includeFile in includeFiles)
         {
-            _logger.LogInformation($"Processing {includeFile}");
+            _logger.LogInformation("Processing {includeFile}", includeFile);
 
             string json = File.ReadAllText(includeFile);
 
@@ -56,7 +54,7 @@ internal class SetActivity
         foreach (DirectoryEntry entry in list)
         {
             await _directoryClient.Set(entry, token);
-            _logger.LogInformation($"Writing Id {entry.DirectoryId}");
+            _logger.LogInformation("Writing Id {entry.DirectoryId}", entry.DirectoryId);
 
             if (entry.ClassType == ClassTypeName.User)
             {
@@ -64,13 +62,13 @@ internal class SetActivity
             }
         }
 
-        _logger.LogInformation($"Completed writing {list.Count} entries from {file} to directory");
+        _logger.LogInformation("Completed writing {list.Count} entries from {file} to directory", list.Count, file);
     }
 
     public async Task SetProperty(string directoryId, string[] properties, CancellationToken token)
     {
         var id = new DocumentId(directoryId);
-        _logger.LogInformation($"Updating property {properties.Join(", ")} on {directoryId}");
+        _logger.LogInformation("Updating property {properties} on {directoryId}", properties.Join(", "), directoryId);
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetProperty), DirectoryId = directoryId, Properties = properties });
 
@@ -88,7 +86,7 @@ internal class SetActivity
         }
 
         await _directoryClient.Set(entry, token);
-        _logger.LogInformation($"Updated property {properties.Join(", ")} on {directoryId}");
+        _logger.LogInformation("Updated property {properties} on {directoryId}", properties.Join(", "), directoryId);
     }
 
     private async Task CreateIdentity(DirectoryEntry entry, CancellationToken token)
@@ -100,7 +98,12 @@ internal class SetActivity
 
         if (!(email != null && identityId != null))
         {
-            _logger.LogError($"Directory Id {entry.DirectoryId} must specify both {PropertyName.Email} and {PropertyName.SigningCredentials} properties");
+            _logger.LogError("Directory Id {entry.DirectoryId} must specify both {PropertyName.Email} and {PropertyName.SigningCredentials} properties",
+                entry.DirectoryId,
+                PropertyName.Email,
+                PropertyName.SigningCredentials
+                );
+
             return;
         }
 

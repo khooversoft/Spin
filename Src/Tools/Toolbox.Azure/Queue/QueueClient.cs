@@ -2,6 +2,7 @@
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Logging;
@@ -47,7 +48,7 @@ namespace Toolbox.Azure.Queue
 
             Message message = payload.ToMessage(Guid.NewGuid().ToString());
 
-            _logger.Trace($"Sending message: contentType={message.ContentType}, data.Length {message.Body?.Length}, MessageId={message.MessageId}");
+            _logger.LogTrace("Sending message: contentType={contentType}, data.Length {length}, MessageId={messageId}", message.ContentType, message.Body?.Length, message.MessageId);
 
             await _messageSender!.SendAsync(message);
         }

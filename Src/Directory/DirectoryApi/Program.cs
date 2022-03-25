@@ -33,6 +33,7 @@ builder.Services.AddSingleton(option);
 
 builder.Services.ConfigureDirectoryService();
 builder.Services.ConfigurePingService(builder.Logging);
+builder.Services.ConfigureLogBindingErrors();
 //builder.WebHost.UseUrls(option.HostUrl ?? "http://localhost:5011");
 
 //  ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +53,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.ConfigureDirectoryService();
+app.UseDirectoryService();
+app.UseLogBindingErrors();
 
 if (app.Environment.IsEnvironment("Test"))
     app.Run();

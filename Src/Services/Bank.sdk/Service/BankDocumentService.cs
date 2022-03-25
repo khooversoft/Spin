@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Document;
 using Toolbox.Model;
+using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
@@ -16,12 +17,13 @@ public class BankDocumentService
 {
     private readonly ArtifactClient _artifactClient;
     private readonly ILogger<BankDocumentService> _logger;
-    private const string _container = "bank";
+    private readonly string _container;
 
-    public BankDocumentService(ArtifactClient artifactClient, ILogger<BankDocumentService> logger)
+    public BankDocumentService(string container, ArtifactClient artifactClient, ILogger<BankDocumentService> logger)
     {
-        _artifactClient = artifactClient;
-        _logger = logger;
+        _container = container.VerifyNotEmpty(nameof(container));
+        _artifactClient = artifactClient.VerifyNotNull(nameof(artifactClient));
+        _logger = logger.VerifyNotNull(nameof(logger));
     }
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)

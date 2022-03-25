@@ -92,7 +92,7 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
             $"- Executing Action: {receiverContext.Action}",
         }.Join(Environment.NewLine);
 
-        _logger.Error(msg);
+        _logger.LogError(msg);
 
         return Task.CompletedTask;
     }

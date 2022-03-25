@@ -2,6 +2,7 @@
 using Directory.sdk;
 using Directory.sdk.Client;
 using Directory.sdk.Service;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,32 +18,32 @@ using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
-public class BankClearingService
+public class BankClearingHostedService : IHostedService
 {
     private readonly BankDirectory _bankDirectory;
     private readonly BankTransactionService _bankTransactionService;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly ILogger<BankClearingService> _logger;
+    private readonly ILogger<BankClearingHostedService> _logger;
 
     private int _lock = 0;
     private QueueReceiver<QueueMessage>? _receiver;
     private CancellationTokenSource? _cancellationTokenSource;
 
-    public BankClearingService(BankDirectory bankDirectory, BankTransactionService bankTransactionService, ILoggerFactory loggerFactory)
+    public BankClearingHostedService(BankDirectory bankDirectory, BankTransactionService bankTransactionService, ILoggerFactory loggerFactory)
     {
         _bankDirectory = bankDirectory;
         _bankTransactionService = bankTransactionService;
         _loggerFactory = loggerFactory;
 
-        _logger = _loggerFactory.CreateLogger<BankClearingService>();
+        _logger = _loggerFactory.CreateLogger<BankClearingHostedService>();
     }
 
-    public async Task Start(CancellationToken token)
+    public async Task StartAsync(CancellationToken token)
     {
         int lockState = Interlocked.CompareExchange(ref _lock, 1, 0);
         if (lockState == 1) return;
 
-        _logger.Information("Starting receiver");
+        _logger.LogInformation("Starting receiver");
 
         try
         {
@@ -65,7 +66,7 @@ public class BankClearingService
         }
     }
 
-    public async Task Stop()
+    public async Task StopAsync(CancellationToken token)
     {
         Interlocked.Exchange(ref _cancellationTokenSource, null)?.Cancel();
 
@@ -92,14 +93,14 @@ public class BankClearingService
                 return true;
 
             default:
-                _logger.Error($"Unknown contentType={queueMessage.ContentType}");
+                _logger.LogError($"Unknown contentType={queueMessage.ContentType}");
                 return false;
         }
     }
 
     private async Task ProcessTrxRequests(TrxBatch<TrxRequest> requests, CancellationToken token)
     {
-        _logger.Information($"Processing TrxRequest batch, batchId={requests.Id}");
+        _logger.LogInformation($"Processing TrxRequest batch, batchId={requests.Id}");
 
         TrxBatch<TrxRequestResponse> responses = await _bankTransactionService.Set(requests, token);
         await _bankDirectory.Send(responses, token);
@@ -107,7 +108,7 @@ public class BankClearingService
 
     private async Task ProcessTrxResponses(TrxBatch<TrxRequestResponse> responses, CancellationToken token)
     {
-        _logger.Information($"Processing TrxResponses batch, batchId={responses.Id}");
+        _logger.LogInformation($"Processing TrxResponses batch, batchId={responses.Id}");
 
         var batch = new TrxBatch<TrxRequest>
         {

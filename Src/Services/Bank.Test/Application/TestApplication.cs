@@ -62,21 +62,10 @@ internal class ApiHost
         {
             if (_client != null) return _client;
 
-            ILogger logger = LoggerFactory.Create(builder =>
-            {
-                builder.AddDebug();
-            }).CreateLogger<Program>();
-
             _host = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
-                    builder.UseEnvironment("Test");
-                    builder.ConfigureServices(service => ConfigureModelBindingExceptionHandling(service, logger));
-
-                    builder.ConfigureAppConfiguration(app =>
-                    {
-                        app.AddCommandLine(new[] { $"BankName={_bankName}" });
-                    });
+                    builder.UseEnvironment($"Test;BankName={_bankName}");
                 });
 
             ApplicationOption option = _host.Services.GetRequiredService<ApplicationOption>();
@@ -95,28 +84,5 @@ internal class ApiHost
 
     public BankTransactionClient GetBankTransactionClient() => new BankTransactionClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<BankTransactionClient>());
 
-
-    private static void ConfigureModelBindingExceptionHandling(IServiceCollection services, ILogger logger)
-    {
-        services.Configure<ApiBehaviorOptions>(options =>
-       {
-           options.InvalidModelStateResponseFactory = actionContext =>
-           {
-               ValidationProblemDetails? error = actionContext.ModelState
-                   .Where(e => e.Value?.Errors.Count > 0)
-                   .Select(e => new ValidationProblemDetails(actionContext.ModelState))
-                   .FirstOrDefault();
-
-               Debugger.Break();
-               logger.LogError("ApiBehaviorOption error");
-
-               // Here you can add logging to you log file or to your Application Insights.
-               // For example, using Serilog:
-               // Log.Error($"{{@RequestPath}} received invalid message format: {{@Exception}}", 
-               //   actionContext.HttpContext.Request.Path.Value, 
-               //   error.Errors.Values);
-               return new BadRequestObjectResult(error);
-           };
-       });
-    }
+    public BankClearingClient GetBankClearingClient() => new BankClearingClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<BankClearingClient>());
 }

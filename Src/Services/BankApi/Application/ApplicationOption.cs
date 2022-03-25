@@ -8,7 +8,9 @@ public record ApplicationOption
 {
     public RunEnvironment RunEnvironment { get; init; }
 
-    public string BankName { get; init; } = "Bank-First";
+    public string BankName { get; init; } = null!;
+
+    public string BankContainer { get; init; } = null!;
 
     public string ConfigStore { get; init; } = null!;
 
@@ -32,6 +34,7 @@ public static class ApplicationOptionExtensions
     {
         option.VerifyNotNull(nameof(option));
 
+        option.BankName.VerifyNotEmpty($"{nameof(option.BankName)} is required");
         option.ConfigStore.VerifyNotEmpty($"{nameof(option.ConfigStore)} is required");
         option.DirectoryUrl.VerifyNotEmpty($"{nameof(option.DirectoryUrl)} is required");
         option.DirectoryApiKey.VerifyNotEmpty($"{nameof(option.DirectoryApiKey)} is required");
@@ -43,7 +46,7 @@ public static class ApplicationOptionExtensions
     {
         option.VerifyPartial();
 
-        option.BankName.VerifyNotEmpty($"{nameof(option.BankName)} is required");
+        option.BankContainer.VerifyNotEmpty($"{nameof(option.BankContainer)} is required");
         option.HostUrl.VerifyNotEmpty($"{nameof(option.HostUrl)} is required");
         option.ApiKey.VerifyNotEmpty($"{nameof(option.ApiKey)} is required");
         option.ArtifactUrl.VerifyNotNull(nameof(option.ArtifactUrl));

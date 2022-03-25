@@ -37,6 +37,7 @@ ApplicationOption option = builder.Configuration
 
 await builder.Services.ConfigureArtifactService(option);
 builder.Services.ConfigurePingService(builder.Logging);
+builder.Services.ConfigureLogBindingErrors();
 
 //  ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,7 +58,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.ConfigureArtifactService();
+app.UseArtifactService();
+app.UseLogBindingErrors();
 
 if (app.Environment.IsEnvironment("Test"))
     app.Run();

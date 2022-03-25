@@ -37,4 +37,10 @@ public static class DirectoryEntryExtensions
     public static string? GetEmail(this DirectoryEntry directory) => directory.Properties.GetValue(PropertyName.Email);
 
     public static string? GetSigningCredentials(this DirectoryEntry directory) => directory.Properties.GetValue(PropertyName.SigningCredentials);
+
+    public static T ConvertTo<T>(this DirectoryEntry directoryEntry) where T : new() => directoryEntry.VerifyNotNull(nameof(directoryEntry))
+        .Properties
+        .ToConfiguration()
+        .Bind<T>()
+        .VerifyNotNull($"Cannot bind to {nameof(T)}");
 }

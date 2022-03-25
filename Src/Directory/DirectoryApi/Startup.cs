@@ -71,7 +71,7 @@ public static class Startup
         return service;
     }
 
-    public static IApplicationBuilder ConfigureDirectoryService(this IApplicationBuilder app)
+    public static IApplicationBuilder UseDirectoryService(this IApplicationBuilder app)
     {
         app.VerifyNotNull(nameof(app));
 

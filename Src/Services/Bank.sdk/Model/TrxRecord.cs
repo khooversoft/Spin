@@ -16,7 +16,7 @@ public record TrxRecord
 
     public decimal Amount { get; init; }
 
-    public IReadOnlyList<string> Properties { get; init; } = null!;
+    public IReadOnlyList<string>? Properties { get; init; }
 }
 
 

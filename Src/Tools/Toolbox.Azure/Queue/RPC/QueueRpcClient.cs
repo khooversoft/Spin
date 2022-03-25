@@ -37,7 +37,7 @@ public class QueueRpcClient<T> : QueueClient<T>, IAsyncDisposable where T : clas
     {
         Message message = payload.ToMessage(Guid.NewGuid().ToString());
 
-        _logger.Trace($"Calling message: contentType={message.ContentType}, data.Length {message.Body?.Length}");
+        _logger.LogTrace($"Calling message: contentType={message.ContentType}, data.Length {message.Body?.Length}");
 
         await _messageSender!.SendAsync(message);
 
@@ -48,7 +48,7 @@ public class QueueRpcClient<T> : QueueClient<T>, IAsyncDisposable where T : clas
     {
         if (messageId == null) return Task.FromResult<T>(default!);
 
-        _logger.Trace($"Registering for message receive event.  messageId={messageId}");
+        _logger.LogTrace($"Registering for message receive event.  messageId={messageId}");
 
         var tcs = new TaskCompletionSource<T>();
         _awaiterService.Register((Guid)messageId, tcs, timeout);

@@ -21,11 +21,12 @@ public static class Startup
 
         ApplicationOption applicationOption = await DirectoryClient.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
-            ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, option.BankName);
+            BankServiceRecord serviceRecord = await client.GetBankServiceRecord(option.RunEnvironment, option.BankName);
             ServiceRecord artifactRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");
 
             option = option with
             {
+                BankContainer = serviceRecord.Container,
                 HostUrl = serviceRecord.HostUrl,
                 ApiKey = serviceRecord.ApiKey,
                 ArtifactUrl = artifactRecord.HostUrl,
@@ -36,9 +37,18 @@ public static class Startup
         });
 
         service.AddSingleton(applicationOption);
-        service.AddSingleton<BankDocumentService>();
+
         service.AddSingleton<BankTransactionService>();
-        service.AddSingleton<BankClearingService>();
+        service.AddSingleton<BankClearingQueue>();
+        service.AddHostedService<BankClearingHostedService>();
+
+        service.AddSingleton<BankDocumentService>((service) =>
+        {
+            ArtifactClient artifactClient = service.GetRequiredService<ArtifactClient>();
+            ILoggerFactory factory = service.GetRequiredService<ILoggerFactory>();
+
+            return new BankDocumentService(applicationOption.BankContainer, artifactClient, factory.CreateLogger<BankDocumentService>());
+        });
 
         service.AddHttpClient<ArtifactClient>((service, httpClient) =>
         {
@@ -58,7 +68,7 @@ public static class Startup
         return service;
     }
 
-    public static IApplicationBuilder ConfigureBankService(this IApplicationBuilder app)
+    public static IApplicationBuilder UseBankService(this IApplicationBuilder app)
     {
         app.VerifyNotNull(nameof(app));
 

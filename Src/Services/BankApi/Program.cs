@@ -8,6 +8,10 @@ using Toolbox.Extensions;
 [assembly: InternalsVisibleTo("Bank.Test")]
 
 
+args = args
+    .SelectMany(x => x.Split(';'))
+    .ToArray();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -33,6 +37,7 @@ ApplicationOption option = builder.Configuration
 
 await builder.Services.ConfigureBankService(option);
 builder.Services.ConfigurePingService(builder.Logging);
+builder.Services.ConfigureLogBindingErrors();
 
 //  ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,7 +56,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.ConfigureBankService();
+app.UseBankService();
+app.UseLogBindingErrors();
 
 if (app.Environment.IsEnvironment("Test"))
     app.Run();

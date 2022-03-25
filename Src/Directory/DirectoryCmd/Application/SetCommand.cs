@@ -10,23 +10,23 @@ namespace DirectoryCmd.Application;
 
 internal class SetCommand : Command
 {
-    public SetCommand(IServiceProvider serviceProvider)
+    public SetCommand(SetActivity setActivity)
         : base("set", "Set directory entry from file or by property")
     {
-        AddCommand(new SetFileCommand(serviceProvider));
-        AddCommand(new SetProperty(serviceProvider));
+        AddCommand(new SetFileCommand(setActivity));
+        AddCommand(new SetProperty(setActivity));
     }
 
     private class SetFileCommand : Command
     {
-        public SetFileCommand(IServiceProvider serviceProvider)
+        public SetFileCommand(SetActivity setActivity)
             : base("file", "Read entry from file")
         {
             AddArgument(new Argument<string>("file", "Read directory entries from file"));
 
             Handler = CommandHandler.Create(async (string file, CancellationToken token) =>
             {
-                await serviceProvider.GetRequiredService<SetActivity>().SetFile(file, token);
+                await setActivity.SetFile(file, token);
                 return 0;
             });
         }
@@ -34,7 +34,7 @@ internal class SetCommand : Command
 
     private class SetProperty : Command
     {
-        public SetProperty(IServiceProvider serviceProvider)
+        public SetProperty(SetActivity setActivity)
             : base("property", "Set property of an directory entry")
         {
             AddArgument(new Argument<string>("directoryId", "Directory id of entry"));
@@ -42,7 +42,7 @@ internal class SetCommand : Command
 
             Handler = CommandHandler.Create(async (string directoryId, string[] property, CancellationToken token) =>
             {
-                await serviceProvider.GetRequiredService<SetActivity>().SetProperty(directoryId, property, token);
+                await setActivity.SetProperty(directoryId, property, token);
                 return 0;
             });
         }

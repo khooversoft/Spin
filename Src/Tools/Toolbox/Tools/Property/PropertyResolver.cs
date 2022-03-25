@@ -17,6 +17,9 @@ namespace Toolbox.Tools.Property
             _property = new Dictionary<string, string>(properties, StringComparer.OrdinalIgnoreCase);
         }
 
+        public static IPropertyResolver CreateEmpty() => new PropertyResolver(Array.Empty<KeyValuePair<string, string>>());
+
+
         [return: NotNullIfNotNull("subject")]
         public string? Resolve(string? subject)
         {
@@ -37,7 +40,7 @@ namespace Toolbox.Tools.Property
             }
 
             return subject;
-         }
+        }
 
         public bool HasProperty(string subject)
         {

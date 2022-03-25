@@ -57,7 +57,7 @@ public static class Startup
         return service;
     }
 
-    public static IApplicationBuilder ConfigureContractService(this IApplicationBuilder app)
+    public static IApplicationBuilder UseContractService(this IApplicationBuilder app)
     {
         app.VerifyNotNull(nameof(app));
 

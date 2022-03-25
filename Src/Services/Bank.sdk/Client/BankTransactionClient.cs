@@ -25,7 +25,7 @@ public class BankTransactionClient
 
     public async Task<TrxBalance?> GetBalance(DocumentId documentId, CancellationToken token = default)
     {
-        _logger.LogTrace($"Getting directoryId={documentId}");
+        _logger.LogTrace("Getting directoryId={documentId}", documentId);
 
         try
         {
@@ -39,7 +39,7 @@ public class BankTransactionClient
 
     public async Task<TrxBatch<TrxRequestResponse>> Set(TrxBatch<TrxRequest> batch, CancellationToken token = default)
     {
-        _logger.LogTrace($"Posting accountId={batch.Id}");
+        _logger.LogTrace("Posting accountId={batch.Id}", batch.Id);
 
         HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/transaction", batch, token);
         response.EnsureSuccessStatusCode();
