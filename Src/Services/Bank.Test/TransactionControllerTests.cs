@@ -20,14 +20,14 @@ public class TransactionControllerTests
         BankAccountClient accountClient = TestApplication.GetHost(BankName.First).GetBankAccountClient();
         BankTransactionClient transactionClient = TestApplication.GetHost(BankName.First).GetBankTransactionClient();
 
-        DocumentId documentId = (DocumentId)"test/bank/bankAccount2";
+        DocumentId documentId = (DocumentId)"Bank-First/bankAccount1";
 
         await accountClient.Delete(documentId);
 
         BankAccount entry = new BankAccount
         {
             AccountId = documentId.Path,
-            AccountName = "testBankAccount2",
+            AccountName = "Bank-First/bankAccount1",
             AccountNumber = Guid.NewGuid().ToString(),
         };
 
@@ -61,7 +61,7 @@ public class TransactionControllerTests
             Items = amounts.Select(x => new TrxRequest
             {
                 ToId = documentId.Path,
-                FromId = "test/bank/fromAccount",
+                FromId = "Bank-First/fromAccount",
                 Type = x >= 0 ? TrxType.Credit : TrxType.Debit,
                 Amount = Math.Abs(x),
             }).ToList(),

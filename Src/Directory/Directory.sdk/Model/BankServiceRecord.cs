@@ -12,15 +12,15 @@ using Toolbox.Tools;
 
 namespace Directory.sdk.Model;
 
-public class BankServiceRecord
+public record BankServiceRecord
 {
-    public string HostUrl { get; set; } = null!;
+    public string HostUrl { get; init; } = null!;
 
-    public string ApiKey { get; set; } = null!;
+    public string ApiKey { get; init; } = null!;
 
-    public string QueueId { get; set; } = null!;
+    public string QueueId { get; init; } = null!;
 
-    public string Container { get; set; } = null!;
+    public string Container { get; init; } = null!;
 }
 
 public static class BankServiceRecordExtensions

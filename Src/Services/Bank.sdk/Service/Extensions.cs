@@ -10,21 +10,27 @@ namespace Bank.sdk.Service;
 
 public static class Extensions
 {
-    public static bool IsValidBankAccount(this DocumentId documentId) => documentId.Path.Split('/').Length >= 4;
+    public static bool IsValidBankAccount(this DocumentId documentId) => documentId.Path.Split('/').Length >= 2;
 
     public static string GetBankName(this DocumentId documentId)
     {
-        string[] vectors = documentId.Path.Split('/');
-        vectors.VerifyAssert(x => x.Length >= 3, $"BankName is missing in documentId={documentId}");
+        documentId.VerifyNotNull(nameof(documentId));
 
-        return vectors[2];
+        return documentId.Path.Split('/').FirstOrDefault() ?? throw new ArgumentNullException($"Bank name does not exist.  Should be 2nd vector");
     }
 
     public static string GetBankAccount(this DocumentId documentId)
     {
-        string[] vectors = documentId.Path.Split('/');
-        vectors.VerifyAssert(x => x.Length >= 4, $"Bank Account is missing in documentId={documentId}");
+        documentId.VerifyNotNull(nameof(documentId));
 
-        return vectors[3];
+        return documentId.Path.Split('/').Skip(1).FirstOrDefault() ?? throw new ArgumentNullException($"Bank account does not exist.  Should be 3rd vector");
+    }
+
+    public static bool IsBankName(this DocumentId documentId, string bankName)
+    {
+        documentId.VerifyNotNull(nameof(documentId));
+        bankName.VerifyNotEmpty(nameof(bankName));
+
+        return documentId.GetBankName().Equals(bankName, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -62,7 +62,7 @@ public class BankDocumentService
 
     public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
     {
-        queryParameter = queryParameter with { Container = "bank" };
+        queryParameter = queryParameter with { Container = _container };
         BatchSet<DatalakePathItem> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
         return batch;
     }

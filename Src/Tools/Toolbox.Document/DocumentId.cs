@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Toolbox.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -52,5 +53,15 @@ public class DocumentId
     {
         documentId.IsDocumentIdValid()
             .VerifyAssert(x => x.Valid, x => x.Message);
+    }
+}
+
+
+public static class DocumentIdExtensions
+{
+    public static RunEnvironment GetRunEnvironment(this DocumentId documentId)
+    {
+        documentId.VerifyNotNull(nameof(documentId));
+        return (RunEnvironment)Enum.Parse(typeof(RunEnvironment), documentId.Path.Split('/').First());
     }
 }

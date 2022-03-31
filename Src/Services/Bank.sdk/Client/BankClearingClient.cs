@@ -16,11 +16,11 @@ public class BankClearingClient
         _logger = logger;
     }
 
-    public async Task<TrxBatch<TrxRequestResponse>> Set(TrxBatch<TrxRequest> batch, CancellationToken token = default)
+    public async Task<TrxBatch<TrxRequestResponse>> Send(TrxBatch<TrxRequest> batch, CancellationToken token = default)
     {
         _logger.LogTrace("Posting accountId={batch.Id}", batch.Id);
 
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/transaction", batch, token);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/clearing", batch, token);
         response.EnsureSuccessStatusCode();
 
         string json = await response.Content.ReadAsStringAsync();

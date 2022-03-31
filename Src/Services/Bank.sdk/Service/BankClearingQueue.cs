@@ -15,10 +15,10 @@ namespace Bank.sdk.Service;
 public class BankClearingQueue
 {
     private readonly BankDirectory _bankDirectory;
-    private readonly ClearingOption _clearingOption;
+    private readonly BankOption _clearingOption;
     private readonly ILogger<BankClearingQueue> _logger;
 
-    public BankClearingQueue(ClearingOption clearingOption, BankDirectory bankDirectory, ILogger<BankClearingQueue> logger)
+    public BankClearingQueue(BankOption clearingOption, BankDirectory bankDirectory, ILogger<BankClearingQueue> logger)
     {
         _bankDirectory = bankDirectory.VerifyNotNull(nameof(bankDirectory));
         _clearingOption = clearingOption;

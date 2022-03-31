@@ -78,4 +78,9 @@ public static class TrxRequestExtensions
     public static decimal Balance(this IEnumerable<TrxRequest> trxRequests) => trxRequests
         .ToSafe()
         .Sum(x => x.NaturalAmount());
+
+    public static (string FromId, string ToId) GetCreditId(this TrxRequest trxRequest) => trxRequest.Type ==
+        TrxType.Credit
+        ? (trxRequest.FromId, trxRequest.ToId)
+        : (trxRequest.ToId, trxRequest.FromId);
 }

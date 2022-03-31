@@ -21,19 +21,18 @@ namespace Bank.sdk.Service;
 public class BankClearingHostedService : IHostedService
 {
     private readonly BankDirectory _bankDirectory;
-    private readonly BankTransactionService _bankTransactionService;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<BankClearingHostedService> _logger;
-
+    private readonly BankClearingService _bankClearingService;
     private int _lock = 0;
     private QueueReceiver<QueueMessage>? _receiver;
     private CancellationTokenSource? _cancellationTokenSource;
 
-    public BankClearingHostedService(BankDirectory bankDirectory, BankTransactionService bankTransactionService, ILoggerFactory loggerFactory)
+    public BankClearingHostedService(BankClearingService bankClearingService, BankDirectory bankDirectory, ILoggerFactory loggerFactory)
     {
-        _bankDirectory = bankDirectory;
-        _bankTransactionService = bankTransactionService;
-        _loggerFactory = loggerFactory;
+        _bankClearingService = bankClearingService.VerifyNotNull(nameof(bankClearingService));
+        _bankDirectory = bankDirectory.VerifyNotNull(nameof(bankDirectory));
+        _loggerFactory = loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
         _logger = _loggerFactory.CreateLogger<BankClearingHostedService>();
     }
@@ -84,7 +83,7 @@ public class BankClearingHostedService : IHostedService
         {
             case nameof(TrxRequest):
                 TrxBatch<TrxRequest> requests = queueMessage.GetContent<TrxBatch<TrxRequest>>();
-                await ProcessTrxRequests(requests, _cancellationTokenSource.Token);
+                await _bankClearingService.Process(requests, _cancellationTokenSource.Token);
                 return true;
 
             case nameof(TrxRequestResponse):
@@ -96,14 +95,6 @@ public class BankClearingHostedService : IHostedService
                 _logger.LogError($"Unknown contentType={queueMessage.ContentType}");
                 return false;
         }
-    }
-
-    private async Task ProcessTrxRequests(TrxBatch<TrxRequest> requests, CancellationToken token)
-    {
-        _logger.LogInformation($"Processing TrxRequest batch, batchId={requests.Id}");
-
-        TrxBatch<TrxRequestResponse> responses = await _bankTransactionService.Set(requests, token);
-        await _bankDirectory.Send(responses, token);
     }
 
     private async Task ProcessTrxResponses(TrxBatch<TrxRequestResponse> responses, CancellationToken token)

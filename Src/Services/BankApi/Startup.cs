@@ -37,9 +37,16 @@ public static class Startup
         });
 
         service.AddSingleton(applicationOption);
+        service.AddSingleton(new BankOption
+        { 
+            RunEnvironment = option.RunEnvironment,
+            BankName = option.BankName
+        });
 
         service.AddSingleton<BankTransactionService>();
         service.AddSingleton<BankClearingQueue>();
+        service.AddSingleton<BankDirectory>();
+
         service.AddHostedService<BankClearingHostedService>();
 
         service.AddSingleton<BankDocumentService>((service) =>

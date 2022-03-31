@@ -37,7 +37,7 @@ namespace Toolbox.Azure.DataLake
         public async Task Append(string path, byte[] data, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            _logger.LogTrace($"Appending to {path}, data.Length={data.Length}");
+            _logger.LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
 
             data
                 .VerifyNotNull(nameof(data))
@@ -59,57 +59,102 @@ namespace Toolbox.Azure.DataLake
                 await Write(path, data, true, token: token);
             }
             catch (TaskCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to append file {path}", path);
+                throw;
+            }
         }
 
         public async Task<bool> Delete(string path, ETag? eTag = null, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            _logger.LogTrace($"Deleting to {path}, ETag={eTag}");
+            _logger.LogTrace("Deleting to {path}, ETag={eTag}", path, eTag);
 
-            DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            Response<bool> response = await file.DeleteIfExistsAsync(cancellationToken: token);
+            try
+            {
+                DataLakeFileClient file = _fileSystem.GetFileClient(path);
+                Response<bool> response = await file.DeleteIfExistsAsync(cancellationToken: token);
 
-            return response.Value;
+                return response.Value;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete file {path}", path);
+                throw;
+            }
         }
 
         public async Task DeleteDirectory(string path, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            _logger.LogTrace($"Deleting directory {path}");
+            _logger.LogTrace("Deleting directory {path}", path);
 
-            DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
-            await directoryClient.DeleteAsync(cancellationToken: token);
+            try
+            {
+                DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
+                await directoryClient.DeleteAsync(cancellationToken: token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete directory for {path}", path);
+                throw;
+            }
         }
 
         public async Task<bool> Exist(string path, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            _logger.LogTrace($"Is path {path} exist");
+            _logger.LogTrace("Is path {path} exist", path);
 
-            DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            Response<bool> response = await file.ExistsAsync(token);
-            return response.Value;
+            try
+            {
+                DataLakeFileClient file = _fileSystem.GetFileClient(path);
+                Response<bool> response = await file.ExistsAsync(token);
+                return response.Value;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to ExistsAsync for {path}", path);
+                throw;
+            }
         }
 
         public async Task<DatalakePathProperties> GetPathProperties(string path, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            _logger.LogTrace($"Getting path {path} properties");
+            _logger.LogTrace("Getting path {path} properties", path);
 
-            DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            return (await file.GetPropertiesAsync(cancellationToken: token))
-                .Value
-                .ConvertTo(path);
+            try
+            {
+                DataLakeFileClient file = _fileSystem.GetFileClient(path);
+                return (await file.GetPropertiesAsync(cancellationToken: token))
+                    .Value
+                    .ConvertTo(path);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to GetPathProperties for file {path}", path);
+                throw;
+            }
         }
 
         public async Task Read(string path, Stream toStream, CancellationToken token = default)
         {
             path = WithBasePath(path);
             toStream.VerifyNotNull(nameof(toStream));
-            _logger.LogTrace($"Reading {path} to stream");
+            _logger.LogTrace("Reading {path} to stream", path);
 
-            DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            await file.ReadToAsync(toStream, cancellationToken: token);
+            try
+            {
+                DataLakeFileClient file = _fileSystem.GetFileClient(path);
+                await file.ReadToAsync(toStream, cancellationToken: token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to read file {path}", path);
+                throw;
+            }
         }
 
         public async Task<byte[]?> Read(string path, CancellationToken token = default) => (await ReadWithTag(path, token)).Data;
@@ -117,7 +162,7 @@ namespace Toolbox.Azure.DataLake
         public async Task<(byte[]? Data, ETag? Etag)> ReadWithTag(string path, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            _logger.LogTrace($"Reading {path}");
+            _logger.LogTrace("Reading file {path}", path);
 
             try
             {
@@ -131,7 +176,13 @@ namespace Toolbox.Azure.DataLake
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
             {
+                _logger.LogError(ex, "Cannot read file {path}", path);
                 return (null, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to read file {path}", path);
+                throw;
             }
         }
 
@@ -139,7 +190,7 @@ namespace Toolbox.Azure.DataLake
         {
             queryParameter ??= new QueryParameter();
             queryParameter = queryParameter with { Filter = WithBasePath(queryParameter.Filter) };
-            _logger.LogTrace($"Searching {queryParameter}");
+            _logger.LogTrace("Searching {queryParameter}", queryParameter);
 
             var list = new List<DatalakePathItem>();
 
@@ -165,6 +216,11 @@ namespace Toolbox.Azure.DataLake
             {
                 return list;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to search, query={queryParameter}", queryParameter);
+                throw;
+            }
         }
 
         public async Task<ETag> Write(Stream fromStream, string toPath, bool overwrite, ETag? eTag = null, CancellationToken token = default)
@@ -174,7 +230,15 @@ namespace Toolbox.Azure.DataLake
 
             fromStream.VerifyNotNull(nameof(fromStream));
 
-            return await Upload(toPath, fromStream, overwrite, eTag, token);
+            try
+            {
+                return await Upload(toPath, fromStream, overwrite, eTag, token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to write file {path}", toPath);
+                throw;
+            }
         }
 
         public async Task<ETag> Write(string path, byte[] data, bool overwrite, ETag? eTag = null, CancellationToken token = default)
@@ -206,21 +270,29 @@ namespace Toolbox.Azure.DataLake
         {
             Response<PathInfo> result;
 
-            DataLakeFileClient file = _fileSystem.GetFileClient(path);
-
-            if (eTag != null)
+            try
             {
-                var option = new DataLakeFileUploadOptions
-                {
-                    Conditions = new DataLakeRequestConditions { IfMatch = eTag }
-                };
+                DataLakeFileClient file = _fileSystem.GetFileClient(path);
 
-                result = await file.UploadAsync(fromStream, option, token);
+                if (eTag != null)
+                {
+                    var option = new DataLakeFileUploadOptions
+                    {
+                        Conditions = new DataLakeRequestConditions { IfMatch = eTag }
+                    };
+
+                    result = await file.UploadAsync(fromStream, option, token);
+                    return result.Value.ETag;
+                }
+
+                result = await file.UploadAsync(fromStream, overwrite, token);
                 return result.Value.ETag;
             }
-
-            result = await file.UploadAsync(fromStream, overwrite, token);
-            return result.Value.ETag;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload {path}", path);
+                throw;
+            }
         }
     }
 }

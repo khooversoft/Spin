@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Application;
 using Toolbox.Document;
 using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
-public record ClearingOption
+public record BankOption
 {
-    public DocumentId BankDirectoryId { get; init; } = null!;
+    public RunEnvironment RunEnvironment { get; init; }
 
     public string BankName { get; init; } = null!;
 }
@@ -18,11 +19,11 @@ public record ClearingOption
 
 public static class ClearingOptionExtensions
 {
-    public static ClearingOption Verify(this ClearingOption subject)
+    public static BankOption Verify(this BankOption subject)
     {
         subject.VerifyNotNull(nameof(subject));
 
-        subject.BankDirectoryId.VerifyNotNull(nameof(subject.BankDirectoryId));
+        subject.RunEnvironment.VerifyAssert(x => x != RunEnvironment.Unknown, "Environment is required");
         subject.BankName.VerifyNotEmpty(nameof(subject.BankName));
 
         return subject;

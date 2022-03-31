@@ -1,6 +1,7 @@
 ﻿using Bank.sdk.Model;
 using Directory.sdk;
 using Directory.sdk.Client;
+using Directory.sdk.Model;
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
 using System;
@@ -23,13 +24,13 @@ public class BankDirectory
     private readonly DirectoryClient _directoryClient;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<BankDirectory> _logger;
-    private readonly ConcurrentDictionary<string, BankDetail> _banks = new ConcurrentDictionary<string, BankDetail>(StringComparer.OrdinalIgnoreCase);
-    private readonly ClearingOption _clearingOption;
+    private readonly ConcurrentDictionary<string, BankServiceRecord> _banks = new ConcurrentDictionary<string, BankServiceRecord>(StringComparer.OrdinalIgnoreCase);
+    private readonly BankOption _bankOption;
     private readonly ConcurrentDictionary<string, QueueClient<QueueMessage>> _clientCache = new ConcurrentDictionary<string, QueueClient<QueueMessage>>(StringComparer.OrdinalIgnoreCase);
 
-    public BankDirectory(ClearingOption clearingOption, DirectoryClient directoryClient, ILoggerFactory loggerFactory)
+    public BankDirectory(BankOption bankOption, DirectoryClient directoryClient, ILoggerFactory loggerFactory)
     {
-        _clearingOption = clearingOption;
+        _bankOption = bankOption;
         _directoryClient = directoryClient;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<BankDirectory>();
@@ -43,7 +44,7 @@ public class BankDirectory
 
         if (_clientCache.TryGetValue(bankName, out QueueClient<QueueMessage>? cacheClient)) return cacheClient;
 
-        _banks.TryGetValue(bankName, out BankDetail? bankDetail)
+        _banks.TryGetValue(bankName, out BankServiceRecord? bankDetail)
             .VerifyAssert(x => x == true, $"No {bankName} was found");
 
         QueueOption option = await GetQueueOption((DocumentId)bankDetail!.QueueId, token);
@@ -55,8 +56,10 @@ public class BankDirectory
 
     public async Task<QueueOption> GetQueueOption(CancellationToken token)
     {
-        _banks.TryGetValue(_clearingOption.BankName, out BankDetail? bankDetail)
-            .VerifyAssert(x => x == true, $"Bank {_clearingOption.BankName} not found");
+        await LoadDirectory(token);
+
+        _banks.TryGetValue(_bankOption.BankName, out BankServiceRecord? bankDetail)
+            .VerifyAssert(x => x == true, $"Bank {_bankOption.BankName} not found");
 
         return await GetQueueOption((DocumentId)bankDetail!.QueueId, token);
     }
@@ -81,17 +84,14 @@ public class BankDirectory
 
             _logger.LogTrace("Loading directory");
 
-            DirectoryEntry entry = (await _directoryClient.Get(_clearingOption.BankDirectoryId))
-                .VerifyNotNull($"Bank directory {_clearingOption.BankDirectoryId} does not exist");
+            BankDirectoryRecord bankDirectoryRecord = await _directoryClient.GetBankDirectory(_bankOption.RunEnvironment);
 
-            foreach (var bank in entry.Properties.Select(x => x.ToKeyValuePair()))
+            foreach (BankDirectoryEntry bank in bankDirectoryRecord.Banks.Values)
             {
-                DocumentId bankId = (DocumentId)bank.Value;
-                DirectoryEntry bankEntry = (await _directoryClient.Get(bankId)).VerifyNotNull($"BankId={bankId.Path} does not exist");
+                BankServiceRecord bankEntry = (await _directoryClient.GetBankServiceRecord(_bankOption.RunEnvironment, _bankOption.BankName))
+                    .VerifyNotNull($"BankId={bank.DirectoryId} does not exist");
 
-                string queueId = bankEntry.Properties.GetValue(PropertyName.QueueId).VerifyNotEmpty($"{bankId} does not have property {PropertyName.QueueId}=...");
-
-                _banks[bank.Key] = new BankDetail { BankId = bankId, QueueId = queueId };
+                _banks[bank.BankName] = bankEntry;
             }
 
             _logger.LogTrace("Loaded directory, count={count}", _banks.Count);
@@ -100,12 +100,5 @@ public class BankDirectory
         {
             _asyncLock.Release();
         }
-    }
-
-    private record BankDetail
-    {
-        public DocumentId BankId { get; init; } = null!;
-
-        public string QueueId { get; init; } = null!;
     }
 }

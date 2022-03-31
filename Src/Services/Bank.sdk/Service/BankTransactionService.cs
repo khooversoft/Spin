@@ -8,23 +8,32 @@ using System.Threading.Tasks;
 using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Logging;
+using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
 public class BankTransactionService
 {
+    private readonly BankOption _bankOption;
     private readonly BankDocumentService _bankAccountService;
     private readonly ILogger<BankTransactionService> _logger;
 
-    public BankTransactionService(BankDocumentService bankAccountService, ILogger<BankTransactionService> logger)
+    public BankTransactionService(BankOption bankOption, BankDocumentService bankAccountService, ILogger<BankTransactionService> logger)
     {
-        _bankAccountService = bankAccountService;
-        _logger = logger;
+        _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
+        _bankAccountService = bankAccountService.VerifyNotNull(nameof(bankAccountService));
+        _logger = logger.VerifyNotNull(nameof(logger));
     }
 
     public async Task<TrxBalance?> GetBalance(DocumentId documentId, CancellationToken token)
     {
         _logger.LogTrace("Getting directoryId={documentId}", documentId);
+
+        if (!documentId.IsBankName(_bankOption.BankName))
+        {
+            _logger.LogWarning("Bank name is not valid for this service, bankName={bankName}", documentId.GetBankName());
+            return null;
+        }
 
         BankAccount? bankAccount = await _bankAccountService.Get(documentId, token);
         if (bankAccount == null)
@@ -47,10 +56,17 @@ public class BankTransactionService
         var batchContext = new BatchContext(batch.Items);
 
         IEnumerable<IGrouping<string, TrxRequest>> groups = batchContext.GetNotProcessedRequests()
-            .GroupBy(x => x.ToId);
+            .GroupBy(x => x.GetCreditId().ToId);
 
         foreach (IGrouping<string, TrxRequest> group in groups)
         {
+            if (!((DocumentId)group.Key).IsBankName(_bankOption.BankName))
+            {
+                _logger.LogWarning("Bank name is not valid for this service, bankName={bankName}", group.Key);
+                batchContext.Responses.AddRange(SetResponse(group, TrxStatus.InvalidBank));
+                continue;
+            }
+
             BankAccount? bankAccount = await GetBankAccount((DocumentId)group.Key, group, batchContext, token);
             if (bankAccount == null) continue;
 
