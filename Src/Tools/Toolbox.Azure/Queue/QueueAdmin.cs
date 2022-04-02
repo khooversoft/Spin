@@ -89,7 +89,7 @@ namespace Toolbox.Azure.Queue
                 if (subjects.Count == 0) break;
 
                 index += subjects.Count;
-                list.AddRange(subjects.Where(x => search == null || isMatch(x.Path)).Select(x => x.ConvertTo()));
+                list.AddRange(subjects.Where(x => search == null || isMatch(x.Path)).Select(x => x.ConvertTo())); 
             }
 
             return list;

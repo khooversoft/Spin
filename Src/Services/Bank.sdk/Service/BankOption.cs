@@ -28,4 +28,6 @@ public static class ClearingOptionExtensions
 
         return subject;
     }
+
+    public static bool IsBankName(this BankOption bankOption, string id) => ((DocumentId)id).IsBankName(bankOption.BankName);
 }

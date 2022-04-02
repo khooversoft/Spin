@@ -107,7 +107,6 @@ public class BankClearingHostedService : IHostedService
             {
                 FromId = x.Reference.ToId,
                 ToId = x.Reference.ToId,
-                Type = x.Reference.Type == TrxType.Credit ? TrxType.Debit : TrxType.Credit,
                 Amount = x.Reference.Amount,
                 Properties = x.Reference.Properties
             }).ToList()

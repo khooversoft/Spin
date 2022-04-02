@@ -55,35 +55,35 @@ public class BankTransactionService
 
         var batchContext = new BatchContext(batch.Items);
 
-        IEnumerable<IGrouping<string, TrxRequest>> groups = batchContext.GetNotProcessedRequests()
-            .GroupBy(x => x.GetCreditId().ToId);
+        batchContext.GetNotProcessedRequests()
+            .Where(x => !_bankOption.IsBankName(x.ToId) && !_bankOption.IsBankName(x.FromId))
+            .Action(x => _logger.LogWarning("Bank name is not valid for this service, bankName={bankName}, trx={trx}", _bankOption.BankName, x))
+            .Action(x => batchContext.Responses.AddRange(SetResponse(x, TrxStatus.InvalidBank)));
+
+
+        var groups = batchContext.GetNotProcessedRequests()
+            .GroupBy(x => _bankOption.IsBankName(x.ToId) ? x.ToId : x.FromId);
 
         foreach (IGrouping<string, TrxRequest> group in groups)
         {
-            if (!((DocumentId)group.Key).IsBankName(_bankOption.BankName))
-            {
-                _logger.LogWarning("Bank name is not valid for this service, bankName={bankName}", group.Key);
-                batchContext.Responses.AddRange(SetResponse(group, TrxStatus.InvalidBank));
-                continue;
-            }
-
             BankAccount? bankAccount = await GetBankAccount((DocumentId)group.Key, group, batchContext, token);
             if (bankAccount == null) continue;
 
             if (!IsWithinBalance(bankAccount, group, batchContext)) continue;
 
+            var appendTrx = group.Select(x => new TrxRecord
+            {
+                Type = _bankOption.IsBankName(x.ToId) ? TrxType.Credit : TrxType.Debit,
+                Amount = x.Amount,
+                Properties = x.Properties.ToSafe()
+                            .Append($"RequestId={x.Id}")
+                            .ToList(),
+            }).ToList();
+
             BankAccount entry = bankAccount with
             {
                 Transactions = bankAccount.Transactions
-                    .Concat(group.Select(x => new TrxRecord
-                    {
-                        Type = x.Type,
-                        Amount = x.Amount,
-                        Properties = x.Properties.ToSafe()
-                            .Append($"RequestId={x.Id}")
-                            .ToList(),
-                    })
-                    )
+                    .Concat(appendTrx)
                     .ToList()
             };
 
@@ -123,7 +123,7 @@ public class BankTransactionService
 
     private bool IsWithinBalance(BankAccount bankAccount, IEnumerable<TrxRequest> requests, BatchContext batchContext)
     {
-        if (bankAccount.Balance() + requests.Balance() >= 0) return true;
+        if (bankAccount.Balance() + requests.Balance(_bankOption.BankName) >= 0) return true;
 
         _logger.LogError("No required funds for directoryId={bankAccount.AccountId}", bankAccount.AccountId);
         batchContext.Responses.AddRange(SetResponse(requests, TrxStatus.NoFunds));

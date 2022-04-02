@@ -34,8 +34,6 @@ public record TrxRequest
 
     public DateTime Date { get; init; } = DateTime.UtcNow;
 
-    public TrxType Type { get; init; }
-
     public string FromId { get; init; } = null!;
 
     public string ToId { get; init; } = null!;
@@ -53,7 +51,6 @@ public static class TrxRequestExtensions
         subject.VerifyNotNull(nameof(subject));
 
         if (subject.Id.IsEmpty()) return (false, $"{nameof(subject.Id)} is required");
-        if (subject.Type != TrxType.Credit && subject.Type != TrxType.Debit) return (false, $"Invalid type {subject.Type}");
         if (subject.FromId.IsEmpty()) return (false, $"{nameof(subject.FromId)} is required");
         if (subject.ToId.IsEmpty()) return (false, $"{nameof(subject.ToId)} is required");
 
@@ -65,22 +62,11 @@ public static class TrxRequestExtensions
         static bool isValidId(string id) => id.IsDocumentIdValid().Valid && ((DocumentId)id).IsValidBankAccount();
     }
 
-    public static decimal NaturalAmount(this TrxRequest trxRecord) => trxRecord
+    public static decimal NaturalAmount(this TrxRequest trxRecord, string bankName) => trxRecord
         .VerifyNotNull(nameof(TrxRequest))
-        .Func(x => x.Type switch
-        {
-            TrxType.Credit => x.Amount,
-            TrxType.Debit => -x.Amount,
+        .Func(x => ((DocumentId)x.ToId).IsBankName(bankName) ? x.Amount : -x.Amount);
 
-            _ => throw new ArgumentException($"Unknown type={x.Type}"),
-        });
-
-    public static decimal Balance(this IEnumerable<TrxRequest> trxRequests) => trxRequests
+    public static decimal Balance(this IEnumerable<TrxRequest> trxRequests, string bankName) => trxRequests
         .ToSafe()
-        .Sum(x => x.NaturalAmount());
-
-    public static (string FromId, string ToId) GetCreditId(this TrxRequest trxRequest) => trxRequest.Type ==
-        TrxType.Credit
-        ? (trxRequest.FromId, trxRequest.ToId)
-        : (trxRequest.ToId, trxRequest.FromId);
+        .Sum(x => x.NaturalAmount(bankName));
 }

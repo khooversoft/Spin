@@ -62,7 +62,6 @@ public class TransactionControllerTests
             {
                 ToId = documentId.Path,
                 FromId = "Bank-First/fromAccount",
-                Type = x >= 0 ? TrxType.Credit : TrxType.Debit,
                 Amount = Math.Abs(x),
             }).ToList(),
         };
