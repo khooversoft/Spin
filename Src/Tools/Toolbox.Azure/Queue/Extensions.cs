@@ -1,8 +1,7 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Management;
-using System.Linq;
+﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
+using System;
 using System.Text;
-using Toolbox.Azure.Queue.RPC;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -10,12 +9,12 @@ namespace Toolbox.Azure.Queue
 {
     public static class Extensions
     {
-        public static QueueDescription ConvertTo(this QueueDefinition subject)
+        public static CreateQueueOptions ToCreateQueue(this QueueDefinition subject)
         {
             subject.VerifyNotNull(nameof(subject));
             subject.QueueName!.VerifyNotEmpty(nameof(subject.QueueName));
 
-            return new QueueDescription(subject.QueueName)
+            var option = new CreateQueueOptions(subject.QueueName)
             {
                 LockDuration = subject.LockDuration,
                 RequiresDuplicateDetection = subject.RequiresDuplicateDetection,
@@ -23,26 +22,51 @@ namespace Toolbox.Azure.Queue
                 RequiresSession = subject.RequiresSession,
                 DefaultMessageTimeToLive = subject.DefaultMessageTimeToLive,
                 AutoDeleteOnIdle = subject.AutoDeleteOnIdle,
-                EnableDeadLetteringOnMessageExpiration = subject.EnableDeadLetteringOnMessageExpiration,
+                DeadLetteringOnMessageExpiration = subject.DeadLetteringOnMessageExpiration,
                 MaxDeliveryCount = subject.MaxDeliveryCount,
                 EnablePartitioning = subject.EnablePartitioning,
             };
+
+            option.AuthorizationRules.Add(new SharedAccessAuthorizationRule(
+                "allClaims",
+                new[] { AccessRights.Manage, AccessRights.Send, AccessRights.Listen }));
+
+            return option;
         }
 
-        public static QueueDefinition ConvertTo(this QueueDescription subject)
+        public static QueueDefinition ConvertTo(this CreateQueueOptions subject)
         {
             subject.VerifyNotNull(nameof(subject));
 
             return new QueueDefinition
             {
-                QueueName = subject.Path,
+                QueueName = subject.Name,
                 LockDuration = subject.LockDuration,
                 RequiresDuplicateDetection = subject.RequiresDuplicateDetection,
                 DuplicateDetectionHistoryTimeWindow = subject.DuplicateDetectionHistoryTimeWindow,
                 RequiresSession = subject.RequiresSession,
                 DefaultMessageTimeToLive = subject.DefaultMessageTimeToLive,
                 AutoDeleteOnIdle = subject.AutoDeleteOnIdle,
-                EnableDeadLetteringOnMessageExpiration = subject.EnableDeadLetteringOnMessageExpiration,
+                DeadLetteringOnMessageExpiration = subject.DeadLetteringOnMessageExpiration,
+                MaxDeliveryCount = subject.MaxDeliveryCount,
+                EnablePartitioning = subject.EnablePartitioning,
+            };
+        }
+
+        public static QueueDefinition ConvertTo(this QueueProperties subject)
+        {
+            subject.VerifyNotNull(nameof(subject));
+
+            return new QueueDefinition
+            {
+                QueueName = subject.Name,
+                LockDuration = subject.LockDuration,
+                RequiresDuplicateDetection = subject.RequiresDuplicateDetection,
+                DuplicateDetectionHistoryTimeWindow = subject.DuplicateDetectionHistoryTimeWindow,
+                RequiresSession = subject.RequiresSession,
+                DefaultMessageTimeToLive = subject.DefaultMessageTimeToLive,
+                AutoDeleteOnIdle = subject.AutoDeleteOnIdle,
+                DeadLetteringOnMessageExpiration = subject.DeadLetteringOnMessageExpiration,
                 MaxDeliveryCount = subject.MaxDeliveryCount,
                 EnablePartitioning = subject.EnablePartitioning,
             };
@@ -50,13 +74,7 @@ namespace Toolbox.Azure.Queue
 
         public static string ToConnectionString(this QueueOption subject)
         {
-            return new ServiceBusConnectionStringBuilder
-            {
-                Endpoint = $"{subject.Namespace}.servicebus.windows.net",
-                SasKeyName = subject.KeyName,
-                SasKey = subject.AccessKey,
-                TransportType = TransportType.Amqp,
-            }.ToString();
+            return $"{subject.Namespace}.servicebus.windows.net/;SharedAccessKeyName={subject.KeyName};SharedAccessKey={subject.AccessKey}";
         }
 
         public static void Verify(this QueueOption subject)
@@ -69,19 +87,6 @@ namespace Toolbox.Azure.Queue
             subject.AccessKey.VerifyNotEmpty(nameof(subject.AccessKey));
         }
 
-        public static void Verify(this MessagePayload subject)
-        {
-            subject.VerifyNotNull(nameof(subject));
-
-            subject.ContentType.VerifyNotEmpty(nameof(subject.ContentType));
-            subject.MessageId.VerifyNotNull(nameof(subject.MessageId));
-            subject.CorrelationId.VerifyNotNull(nameof(subject.CorrelationId));
-
-            subject.Data
-                .VerifyNotNull(nameof(subject.Data))
-                .VerifyAssert(x => x.Length > 0, "data is empty");
-        }
-
         public static void Verify<T>(this QueueReceiverOption<T> subject) where T : class
         {
             subject.VerifyNotNull(nameof(subject));
@@ -90,52 +95,22 @@ namespace Toolbox.Azure.Queue
             subject.Receiver.VerifyNotNull(nameof(subject.Receiver));
         }
 
-        public static Message ToMessage(this MessagePayload subject)
+        public static ServiceBusMessage ToMessage<T>(this T subject) where T : class
         {
-            subject.Verify();
-
-            string json = Json.Default.Serialize(subject);
-            byte[] body = Encoding.UTF8.GetBytes(json);
-
-            return new Message
-            {
-                ContentType = nameof(MessagePayload),
-                Body = body,
-                MessageId = subject.MessageId.ToString(),
-                CorrelationId = subject.CorrelationId,
-            };
-        }
-
-        public static MessagePayload ToMessagePayload(this Message subject)
-        {
-            subject.VerifyNotNull(nameof(subject));
-            subject.ContentType.VerifyAssert(x => x == nameof(MessagePayload), "Invalid content type");
-
-            string json = Encoding.UTF8.GetString(subject.Body);
-            json.VerifyNotEmpty(nameof(json));
-
-            MessagePayload messagePayload = Json.Default.Deserialize<MessagePayload>(json)!;
-            messagePayload.Verify();
-
-            return messagePayload;
-        }
-
-        public static Message ToMessage<T>(this T subject, string messageId) where T : class
-        {
-            return new Message
+            return new ServiceBusMessage
             {
                 ContentType = nameof(T),
-                Body = subject.ToBytes(),
-                MessageId = messageId,
+                Body = new BinaryData(subject.ToBytes()),
+                MessageId = Guid.NewGuid().ToString(),
             };
         }
 
-        public static T? FromMessage<T>(this Message message)
+        public static T? FromMessage<T>(this ServiceBusMessage message)
         {
             message.VerifyNotNull(nameof(message));
             message.ContentType.VerifyAssert(x => x == nameof(T), "Invalid content type");
 
-            return message.Body.ToObject<T>();
+            return message.Body.ToArray().ToObject<T>();
         }
     }
 }

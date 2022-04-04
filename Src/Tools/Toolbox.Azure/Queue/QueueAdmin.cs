@@ -1,10 +1,5 @@
-﻿using Microsoft.Azure.ServiceBus.Management;
+﻿using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Tools;
@@ -13,7 +8,7 @@ namespace Toolbox.Azure.Queue
 {
     public class QueueAdmin
     {
-        private readonly ManagementClient _managementClient;
+        private readonly ServiceBusAdministrationClient _managementClient;
         private readonly ILogger<QueueAdmin> _logging;
 
         public QueueAdmin(QueueOption queueOption, ILogger<QueueAdmin> logging)
@@ -22,7 +17,7 @@ namespace Toolbox.Azure.Queue
             logging.VerifyNotNull(nameof(logging));
 
             ConnectionString = queueOption.ToConnectionString();
-            _managementClient = new ManagementClient(ConnectionString);
+            _managementClient = new ServiceBusAdministrationClient(ConnectionString);
             _logging = logging;
         }
 
@@ -37,21 +32,11 @@ namespace Toolbox.Azure.Queue
             return exist;
         }
 
-        public async Task<QueueDefinition> Update(QueueDefinition queueDefinition, CancellationToken token)
-        {
-            queueDefinition.VerifyNotNull(nameof(queueDefinition));
-
-            QueueDescription result = await _managementClient.UpdateQueueAsync(queueDefinition.ConvertTo(), token);
-            _logging.LogTrace($"{nameof(Update)}: QueueName={queueDefinition.QueueName}");
-
-            return result.ConvertTo();
-        }
-
         public async Task<QueueDefinition> Create(QueueDefinition queueDefinition, CancellationToken token)
         {
             queueDefinition.VerifyNotNull(nameof(queueDefinition));
 
-            QueueDescription createdDescription = await _managementClient.CreateQueueAsync(queueDefinition.ConvertTo(), token);
+            QueueProperties createdDescription = await _managementClient.CreateQueueAsync(queueDefinition.ToCreateQueue(), token);
             _logging.LogTrace($"{nameof(Create)}: QueueName={queueDefinition.QueueName}");
 
             return createdDescription.ConvertTo();
@@ -61,7 +46,7 @@ namespace Toolbox.Azure.Queue
         {
             queueName.VerifyNotEmpty(nameof(queueName));
 
-            QueueDescription queueDescription = await _managementClient.GetQueueAsync(queueName, token);
+            QueueProperties queueDescription = await _managementClient.GetQueueAsync(queueName, token);
             _logging.LogTrace($"{nameof(GetDefinition)}: QueueName={queueName}");
             return queueDescription.ConvertTo();
         }
@@ -72,27 +57,6 @@ namespace Toolbox.Azure.Queue
 
             _logging.LogTrace($"{nameof(Delete)}: QueueName={queueName}");
             await _managementClient.DeleteQueueAsync(queueName, token);
-        }
-
-        public async Task<IReadOnlyList<QueueDefinition>> Search(CancellationToken token, string? search = null, int maxSize = 100)
-        {
-            List<QueueDefinition> list = new List<QueueDefinition>();
-            int windowSize = 100;
-            int index = 0;
-
-            string regPattern = "^" + Regex.Escape(search ?? string.Empty).Replace("\\*", ".*") + "$";
-            Func<string, bool> isMatch = x => Regex.IsMatch(x, regPattern, RegexOptions.IgnoreCase);
-
-            while (list.Count < maxSize)
-            {
-                IList<QueueDescription> subjects = await _managementClient.GetQueuesAsync(windowSize, index, token);
-                if (subjects.Count == 0) break;
-
-                index += subjects.Count;
-                list.AddRange(subjects.Where(x => search == null || isMatch(x.Path)).Select(x => x.ConvertTo())); 
-            }
-
-            return list;
         }
 
         public async Task<QueueDefinition> CreateIfNotExist(QueueDefinition queueDefinition, CancellationToken token)

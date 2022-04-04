@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
+﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -7,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 
 namespace Toolbox.Azure.Queue;
@@ -16,43 +14,35 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
 {
     private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     private readonly ILogger<QueueReceiver<T>> _logger;
-    private MessageReceiver? _messageReceiver;
     private readonly QueueReceiverOption<T> _queueReceiver;
+    private ServiceBusClient? _serviceBusClient;
+    private ServiceBusProcessor? _serviceBusProcessor;
 
     public QueueReceiver(QueueReceiverOption<T> queueReceiver, ILogger<QueueReceiver<T>> logger)
     {
-        queueReceiver.VerifyNotNull(nameof(queueReceiver));
+        _queueReceiver = queueReceiver.VerifyNotNull(nameof(queueReceiver));
+        _logger = logger.VerifyNotNull(nameof(logger));
 
-        _queueReceiver = queueReceiver;
+        var options = new ServiceBusProcessorOptions
+        {
+            AutoCompleteMessages = _queueReceiver.AutoComplete,
+            MaxConcurrentCalls = _queueReceiver.MaxConcurrentCalls,
+        };
 
-        _messageReceiver = new MessageReceiver(
-            _queueReceiver.QueueOption.ToConnectionString(),
-            _queueReceiver.QueueOption.QueueName,
-            _queueReceiver.AutoComplete ? ReceiveMode.ReceiveAndDelete : ReceiveMode.PeekLock);
-
-        _logger = logger;
+        _serviceBusClient = new ServiceBusClient(queueReceiver.QueueOption.ToConnectionString());
+        _serviceBusProcessor = _serviceBusClient.CreateProcessor(queueReceiver.QueueOption.QueueName, options);
+        _serviceBusProcessor.ProcessMessageAsync += MessageHandler;
+        _serviceBusProcessor.ProcessErrorAsync += ErrorHandler;
     }
 
     public async ValueTask DisposeAsync() => await Stop();
 
-    public void Start()
+    public async Task Start()
     {
-        _messageReceiver.VerifyNotNull("MessageProcessor is not running");
+        _serviceBusClient.VerifyNotNull("MessageProcessor is not running");
 
-        // Configure the MessageHandler Options in terms of exception handling, number of concurrent messages to deliver etc.
-        var messageHandlerOptions = new MessageHandlerOptions(x => ExceptionReceivedHandler(x))
-        {
-            // Maximum number of Concurrent calls to the callback `ProcessMessagesAsync`, set to 1 for simplicity.
-            // Set it according to how many messages the application wants to process in parallel.
-            MaxConcurrentCalls = _queueReceiver.MaxConcurrentCalls,
-
-            // Indicates whether MessagePump should automatically complete the messages after returning from User Callback.
-            // False below indicates the Complete will be handled by the User Callback as in `ProcessMessagesAsync` below.
-            AutoComplete = _queueReceiver.AutoComplete,
-        };
-
-        _logger.LogTrace($"{nameof(Start)}: Register message handler");
-        _messageReceiver.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
+        await _serviceBusProcessor!.StartProcessingAsync();
+        _logger.LogInformation("Queue receiver started");
     }
 
     /// <summary>
@@ -65,11 +55,18 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
 
         try
         {
-            MessageReceiver? messageReceiver = Interlocked.Exchange(ref _messageReceiver, null!);
-            if (messageReceiver != null)
+            ServiceBusProcessor? processor = Interlocked.Exchange(ref _serviceBusProcessor, null!);
+            if (processor != null)
             {
-                _logger.LogTrace($"{nameof(Stop)}: Stopping");
-                await messageReceiver.CloseAsync();
+                _logger.LogTrace("Stopping receiver processor");
+                await processor.CloseAsync();
+            }
+
+            ServiceBusClient? client = Interlocked.Exchange(ref _serviceBusClient, null!);
+            if (client != null)
+            {
+                _logger.LogTrace("Closing queue client");
+                await client.DisposeAsync();
             }
         }
         finally
@@ -78,77 +75,65 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
         }
     }
 
-    private Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
+    private async Task MessageHandler(ProcessMessageEventArgs args)
     {
-        _logger.LogError(exceptionReceivedEventArgs.Exception, "Message handler encountered an exception");
+        T? value = null;
 
-        var receiverContext = exceptionReceivedEventArgs.ExceptionReceivedContext;
+        // Process the message
+        try
+        {
+            _logger.LogTrace($"Starting processing message {args.Message.MessageId}");
+
+            string json = Encoding.UTF8.GetString(args.Message.Body.ToArray());
+            value = Json.Default.Deserialize<T>(json);
+
+            if (value == null) throw new ArgumentException($"Failed to parse message, json={json}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cannot parse message, {args.Message.MessageId}, CorrelationId={args.Message.CorrelationId}", args.Message.MessageId, args.Message.CorrelationId);
+            return;
+        }
+
+        try
+        {
+            bool status = await _queueReceiver.Receiver(value);
+
+            // Complete the message so that it is not received again.
+            // This can be done only if the queueClient is created in ReceiveMode.PeekLock mode (which is default).
+            if (status && !_queueReceiver.AutoComplete)
+            {
+                _logger.LogTrace("Releasing lock on queued message {args.Message.MessageId}", args.Message.MessageId);
+                await args.CompleteMessageAsync(args.Message);
+            }
+
+            _logger.LogTrace("Completed message {args.Message.MessageId}", args.Message.MessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Processing message failed, messageId={args.Message.MessageId}, CorrelationId={args.Message.CorrelationId}",
+                args.Message.MessageId,
+                args.Message.CorrelationId
+                );
+        }
+    }
+
+    private Task ErrorHandler(ProcessErrorEventArgs args)
+    {
+        _logger.LogError(args.Exception, "Message handler encountered an exception");
 
         string msg = new[]
         {
             "Exception context for troubleshooting:",
-            $"- Endpoint: {receiverContext.Endpoint}",
-            $"- Entity Path: {receiverContext.EntityPath}",
-            $"- Executing Action: {receiverContext.Action}",
+            $"- Endpoint: {args.EntityPath}",
+            $"- FullyQualifiedNamespace: {args.FullyQualifiedNamespace}",
+            $"- ErrorSource: {args.ErrorSource}",
         }.Join(Environment.NewLine);
 
         _logger.LogError(msg);
 
         return Task.CompletedTask;
-    }
-
-    private async Task ProcessMessagesAsync(Message message, CancellationToken token)
-    {
-        await _lock.WaitAsync();
-
-        try
-        {
-            if (_messageReceiver == null || message == null || _messageReceiver?.IsClosedOrClosing == true || token.IsCancellationRequested) return;
-
-            T? value = null;
-
-            // Process the message
-            try
-            {
-                _logger.LogTrace($"Starting processing message {message.SystemProperties.LockToken}");
-
-                string json = Encoding.UTF8.GetString(message.Body);
-                value = Json.Default.Deserialize<T>(json);
-
-                if (value == null) throw new ArgumentException($"Failed to parse message, json={json}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Cannot parse message, {message.MessageId}, CorrelationId={message.CorrelationId}");
-                return;
-            }
-
-            try
-            {
-                bool status = await _queueReceiver.Receiver(value);
-
-                // Complete the message so that it is not received again.
-                // This can be done only if the queueClient is created in ReceiveMode.PeekLock mode (which is default).
-                if (status && !_queueReceiver.AutoComplete)
-                {
-                    _logger.LogTrace($"Releasing lock on queued message {message.SystemProperties.LockToken}");
-                    await _messageReceiver!.CompleteAsync(message.SystemProperties.LockToken);
-                }
-
-                _logger.LogTrace($"Completed message {message.SystemProperties.LockToken}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Processing message failed, messageId={message.MessageId}, CorrelationId={message.CorrelationId}");
-            }
-
-            // Note: Use the cancellationToken passed as necessary to determine if the queueClient has already been closed.
-            // If queueClient has already been Closed, you may chose to not call CompleteAsync() or AbandonAsync() etc. calls
-            // to avoid unnecessary exceptions.
-        }
-        finally
-        {
-            _lock.Release();
-        }
     }
 }

@@ -18,7 +18,7 @@ public record QueueDefinition
 
     public TimeSpan AutoDeleteOnIdle { get; init; } = TimeSpan.FromDays(30);
 
-    public bool EnableDeadLetteringOnMessageExpiration { get; init; }
+    public bool DeadLetteringOnMessageExpiration { get; init; }
 
     public int MaxDeliveryCount { get; init; } = 8;
 

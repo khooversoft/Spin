@@ -4,7 +4,7 @@ namespace Toolbox.Azure.Queue
 {
     public interface IQueueReceiver
     {
-        void Start();
+        Task Start();
         Task Stop();
     }
 }
