@@ -12,6 +12,12 @@ namespace Toolbox.Configuration
 {
     public static class ConfigurationTools
     {
+        /// <summary>
+        /// Return list of json files by searching for "$include*" instructions
+        /// </summary>
+        /// <param name="file">root json file (start search)</param>
+        /// <param name="resolver">Property resolver</param>
+        /// <returns>list of Json files</returns>
         public static IReadOnlyList<string> GetJsonFiles(string file, IPropertyResolver resolver)
         {
             file.VerifyNotEmpty(nameof(file));

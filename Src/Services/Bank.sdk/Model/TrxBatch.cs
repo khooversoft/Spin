@@ -18,17 +18,6 @@ public record TrxBatch<T>
 
 public static class TrxBatchExtensions
 {
-    public static QueueMessage ToQueueMessage<T>(this TrxBatch<T> subject)
-    {
-        subject.VerifyNotNull(nameof(subject));
-
-        return new QueueMessage
-        {
-            ContentType = typeof(T).Name,
-            Content = Json.Default.Serialize(subject),
-        };
-    }
-
     public static TrxBatch<T> ToBatch<T>(this QueueMessage queueMessage)
     {
         queueMessage.VerifyNotNull(nameof(queueMessage));

@@ -23,7 +23,7 @@ namespace Toolbox.Azure.Queue
 
         public string ConnectionString { get; }
 
-        public async Task<bool> Exist(string queueName, CancellationToken token)
+        public async Task<bool> Exist(string queueName, CancellationToken token = default)
         {
             queueName.VerifyNotEmpty(nameof(queueName));
 
@@ -32,7 +32,7 @@ namespace Toolbox.Azure.Queue
             return exist;
         }
 
-        public async Task<QueueDefinition> Create(QueueDefinition queueDefinition, CancellationToken token)
+        public async Task<QueueDefinition> Create(QueueDefinition queueDefinition, CancellationToken token = default)
         {
             queueDefinition.VerifyNotNull(nameof(queueDefinition));
 
@@ -42,7 +42,7 @@ namespace Toolbox.Azure.Queue
             return createdDescription.ConvertTo();
         }
 
-        public async Task<QueueDefinition> GetDefinition(string queueName, CancellationToken token)
+        public async Task<QueueDefinition> GetDefinition(string queueName, CancellationToken token = default)
         {
             queueName.VerifyNotEmpty(nameof(queueName));
 
@@ -51,7 +51,7 @@ namespace Toolbox.Azure.Queue
             return queueDescription.ConvertTo();
         }
 
-        public async Task Delete(string queueName, CancellationToken token)
+        public async Task Delete(string queueName, CancellationToken token = default)
         {
             queueName.VerifyNotEmpty(nameof(queueName));
 
@@ -59,20 +59,22 @@ namespace Toolbox.Azure.Queue
             await _managementClient.DeleteQueueAsync(queueName, token);
         }
 
-        public async Task<QueueDefinition> CreateIfNotExist(QueueDefinition queueDefinition, CancellationToken token)
+        public async Task<QueueDefinition> CreateIfNotExist(QueueDefinition queueDefinition, CancellationToken token = default)
         {
             if ((await Exist(queueDefinition.QueueName, token))) return queueDefinition;
 
             return await Create(queueDefinition, token);
         }
 
-        public async Task DeleteIfExist(string queueName, CancellationToken token)
+        public async Task DeleteIfExist(string queueName, CancellationToken token = default)
         {
             queueName.VerifyNotEmpty(nameof(queueName));
 
-            if ((await Exist(queueName, token))) return;
-
-            await Delete(queueName, token);
+            bool exist = await Exist(queueName, token);
+            if (exist)
+            {
+                await Delete(queueName, token);
+            }
         }
     }
 }

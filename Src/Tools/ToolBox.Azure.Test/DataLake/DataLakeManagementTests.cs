@@ -16,7 +16,7 @@ namespace ToolBox.Azure.Test.DataLake
         private readonly DatalakeStoreOption _testOption;
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
 
-        public DataLakeManagementTests() => _testOption = new TestOptionBuilder().Build();
+        public DataLakeManagementTests() => _testOption = TestHost.Default.GetDatalakeStoreOption();
 
         [Fact]
         public async Task GivenFileSystem_WhenExist_SearchDoesReturn()

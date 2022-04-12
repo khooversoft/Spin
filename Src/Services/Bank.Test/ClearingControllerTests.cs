@@ -40,7 +40,6 @@ public class ClearingControllerTests
                 {
                     ToId = (string)firstAccountId,
                     FromId = (string)secondAccountId,
-                    Type = TrxType.Credit,
                     Amount = 150.00m,
                 }
             }

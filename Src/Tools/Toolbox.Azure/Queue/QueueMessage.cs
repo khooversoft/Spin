@@ -8,7 +8,7 @@ using Toolbox.Tools;
 
 namespace Toolbox.Azure.Queue;
 
-public class QueueMessage
+public record QueueMessage
 {
     public Guid MessageId { get; init; } = Guid.NewGuid();
 
@@ -17,22 +17,22 @@ public class QueueMessage
     public string ContentType { get; init; } = null!;
 
     public string Content { get; init; } = null!;
-
-    public static QueueMessage Create<T>(T value)
-    {
-        value.VerifyNotNull(nameof(value));
-
-        return new QueueMessage
-        {
-            ContentType = typeof(T).Name,
-            Content = value.ToJson()
-        };
-    }
 }
 
 
 public static class QueueMessageExtensions
 {
+    public static QueueMessage ToQueueMessage<T>(this T subject)
+    {
+        subject.VerifyNotNull(nameof(subject));
+
+        return new QueueMessage
+        {
+            ContentType = typeof(T).Name,
+            Content = Json.Default.Serialize(subject),
+        };
+    }
+    
     public static T GetContent<T>(this QueueMessage queueMessage)
     {
         queueMessage.VerifyNotNull(nameof(queueMessage));

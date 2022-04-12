@@ -1,9 +1,6 @@
 ﻿using Directory.sdk;
 using Directory.sdk.Client;
-using Directory.sdk.Model;
 using Directory.sdk.Service;
-using DirectoryCmd.Application;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Toolbox.Configuration;
 using Toolbox.Document;
@@ -38,18 +35,9 @@ internal class SetActivity
             .Where(x => x != file)
             .ToList();
 
-        List<DirectoryEntry> list = new();
-        foreach (string includeFile in includeFiles)
-        {
-            _logger.LogInformation("Processing {includeFile}", includeFile);
-
-            string json = File.ReadAllText(includeFile);
-
-            IList<DirectoryEntry> readList = Json.Default.Deserialize<IList<DirectoryEntry>>(json)
-                .VerifyNotNull($"Cannot read json file {includeFile}");
-
-            list.AddRange(readList);
-        }
+        IReadOnlyList<DirectoryEntry> list = new DirectoryEntryBuilder()
+            .Add(includeFiles)
+            .Build();
 
         foreach (DirectoryEntry entry in list)
         {

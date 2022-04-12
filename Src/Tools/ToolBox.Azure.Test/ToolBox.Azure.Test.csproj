@@ -8,14 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Application\TestConfig.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Application\TestConfig.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.11.0" />
     <PackageReference Include="FluentAssertions" Version="6.6.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
@@ -35,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Directory\Directory.sdk\Directory.sdk.csproj" />
     <ProjectReference Include="..\Toolbox.Azure\Toolbox.Azure.csproj" />
     <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
   </ItemGroup>

@@ -112,6 +112,6 @@ public class BankClearingHostedService : IHostedService
             }).ToList()
         };
 
-        await _bankTransactionService.Set(batch, token);
+        //await _bankTransactionService.Set(batch, token);
     }
 }

@@ -21,7 +21,7 @@ namespace Toolbox.Azure.Queue
                 DuplicateDetectionHistoryTimeWindow = subject.DuplicateDetectionHistoryTimeWindow,
                 RequiresSession = subject.RequiresSession,
                 DefaultMessageTimeToLive = subject.DefaultMessageTimeToLive,
-                AutoDeleteOnIdle = subject.AutoDeleteOnIdle,
+                //AutoDeleteOnIdle = subject.AutoDeleteOnIdle,
                 DeadLetteringOnMessageExpiration = subject.DeadLetteringOnMessageExpiration,
                 MaxDeliveryCount = subject.MaxDeliveryCount,
                 EnablePartitioning = subject.EnablePartitioning,
@@ -74,10 +74,10 @@ namespace Toolbox.Azure.Queue
 
         public static string ToConnectionString(this QueueOption subject)
         {
-            return $"{subject.Namespace}.servicebus.windows.net/;SharedAccessKeyName={subject.KeyName};SharedAccessKey={subject.AccessKey}";
+            return $"Endpoint=sb://{subject.Namespace}.servicebus.windows.net/;SharedAccessKeyName={subject.KeyName};SharedAccessKey={subject.AccessKey}";
         }
 
-        public static void Verify(this QueueOption subject)
+        public static QueueOption Verify(this QueueOption subject)
         {
             subject.VerifyNotNull(nameof(subject));
 
@@ -85,6 +85,8 @@ namespace Toolbox.Azure.Queue
             subject.QueueName.VerifyNotEmpty(nameof(subject.QueueName));
             subject.KeyName.VerifyNotEmpty(nameof(subject.KeyName));
             subject.AccessKey.VerifyNotEmpty(nameof(subject.AccessKey));
+
+            return subject;
         }
 
         public static void Verify<T>(this QueueReceiverOption<T> subject) where T : class

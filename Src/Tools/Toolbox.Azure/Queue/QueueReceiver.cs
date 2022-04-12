@@ -101,10 +101,18 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
 
             // Complete the message so that it is not received again.
             // This can be done only if the queueClient is created in ReceiveMode.PeekLock mode (which is default).
-            if (status && !_queueReceiver.AutoComplete)
+            if (status)
             {
-                _logger.LogTrace("Releasing lock on queued message {args.Message.MessageId}", args.Message.MessageId);
-                await args.CompleteMessageAsync(args.Message);
+                if (!_queueReceiver.AutoComplete)
+                {
+                    _logger.LogTrace("Complete queued message {args.Message.MessageId}", args.Message.MessageId);
+                    await args.CompleteMessageAsync(args.Message);
+                }
+            }
+            else
+            {
+                _logger.LogTrace("Receiver return false, message is sent to the dead letter queue {args.Message.MessageId}", args.Message.MessageId);
+                await args.DeadLetterMessageAsync(args.Message);
             }
 
             _logger.LogTrace("Completed message {args.Message.MessageId}", args.Message.MessageId);

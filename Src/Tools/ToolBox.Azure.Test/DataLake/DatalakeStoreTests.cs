@@ -22,7 +22,7 @@ namespace ToolBox.Azure.Test.DataLake
         private readonly DatalakeStoreOption _testOption;
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
 
-        public DatalakeStoreTests() => _testOption = new TestOptionBuilder().Build() with { ContainerName = "adls-store-test" };
+        public DatalakeStoreTests() => _testOption = TestHost.Default.GetDatalakeStoreOption() with { ContainerName = "adls-store-test" };
 
         [Fact]
         public async Task GivenData_WhenSaved_ShouldWork()
@@ -111,7 +111,7 @@ namespace ToolBox.Azure.Test.DataLake
             await InitializeFileSystem();
             IDatalakeStore dataLakeStore = new DatalakeStore(_testOption, _loggerFactory.CreateLogger<DatalakeStore>());
 
-            string originalFilePath = TestOptionBuilder.WriteResourceToFile(Path.GetFileName(path));
+            string originalFilePath = TestHost.WriteResourceToFile(Path.GetFileName(path));
             originalFilePath.Should().NotBeNullOrEmpty();
 
             using (Stream readFile = new FileStream(originalFilePath, FileMode.Open))
@@ -157,7 +157,7 @@ namespace ToolBox.Azure.Test.DataLake
             verifyList.Should().NotBeNull();
             verifyList.Count.Should().Be(0);
 
-            string originalFilePath = TestOptionBuilder.WriteResourceToFile(Path.GetFileName(path));
+            string originalFilePath = TestHost.WriteResourceToFile(Path.GetFileName(path));
             originalFilePath.Should().NotBeNullOrEmpty();
 
             string[] fileLists = new[]

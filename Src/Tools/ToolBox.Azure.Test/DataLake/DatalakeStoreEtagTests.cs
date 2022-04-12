@@ -16,7 +16,7 @@ namespace ToolBox.Azure.Test.DataLake
         private readonly DatalakeStoreOption _testOption;
         private readonly ILoggerFactory _loggerFactory = new TestLoggerFactory();
 
-        public DatalakeStoreEtagTests() => _testOption = new TestOptionBuilder().Build() with { ContainerName = "adls-etag-test" };
+        public DatalakeStoreEtagTests() => _testOption = TestHost.Default.GetDatalakeStoreOption() with { ContainerName = "adls-etag-test" };
 
         [Fact]
         public async Task GivenData_WhenSaved_ShouldMatchEtag()

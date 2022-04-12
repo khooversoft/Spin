@@ -26,7 +26,7 @@ namespace ToolBox.Azure.Test.DataLake
 
         public DatalakePerformanceTests(ITestOutputHelper output)
         {
-            _testOption = new TestOptionBuilder().Build() with { ContainerName = "adls-performance" };
+            _testOption = TestHost.Default.GetDatalakeStoreOption() with { ContainerName = "adls-performance" };
 
             _output = output;
         }
