@@ -46,27 +46,18 @@ public record TrxRequest
 
 public static class TrxRequestExtensions
 {
-    public static (bool Pass, string? Message) IsVerify(this TrxRequest subject, string? fromBankName = null, string? toBankName = null)
+    public static bool IsVerify(this TrxRequest trxRequest)
     {
-        subject.VerifyNotNull(nameof(subject));
+        if (trxRequest == null) return false;
 
-        if (subject.Id.IsEmpty()) return (false, $"{nameof(subject.Id)} is required");
-        if (subject.FromId.IsEmpty()) return (false, $"{nameof(subject.FromId)} is required");
-        if (subject.ToId.IsEmpty()) return (false, $"{nameof(subject.ToId)} is required");
+        if (!isValid(trxRequest.FromId)) return false;
+        if (!isValid(trxRequest.ToId)) return false;
 
-        if (!isValidId(subject.FromId)) return (false, $"Invalid fromId={subject.FromId}");
-        if (!isValidId(subject.ToId)) return (false, $"Invalid toId={subject.ToId}");
+        return true;
 
-        return (true, null);
-
-        static bool isValidId(string id) => id.IsDocumentIdValid().Valid && ((DocumentId)id).IsValidBankAccount();
+        static bool isValid(string subject) =>
+            !subject.IsEmpty() &&
+            subject.IsDocumentIdValid().Valid &&
+            subject.ToDocumentId().ToBankAccountId() != null;
     }
-
-    public static decimal NaturalAmount(this TrxRequest trxRecord, string bankName) => trxRecord
-        .VerifyNotNull(nameof(TrxRequest))
-        .Func(x => ((DocumentId)x.ToId).IsBankName(bankName) ? x.Amount : -x.Amount);
-
-    public static decimal Balance(this IEnumerable<TrxRequest> trxRequests, string bankName) => trxRequests
-        .ToSafe()
-        .Sum(x => x.NaturalAmount(bankName));
 }

@@ -13,15 +13,15 @@ using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
-public class BankDocumentService
+public class BankDocument
 {
     private readonly ArtifactClient _artifactClient;
-    private readonly ILogger<BankDocumentService> _logger;
-    private readonly string _container;
+    private readonly ILogger<BankDocument> _logger;
+    private readonly BankOption _bankOption;
 
-    public BankDocumentService(string container, ArtifactClient artifactClient, ILogger<BankDocumentService> logger)
+    internal BankDocument(BankOption bankOption, ArtifactClient artifactClient, ILogger<BankDocument> logger)
     {
-        _container = container.VerifyNotEmpty(nameof(container));
+        _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
         _artifactClient = artifactClient.VerifyNotNull(nameof(artifactClient));
         _logger = logger.VerifyNotNull(nameof(logger));
     }
@@ -29,7 +29,7 @@ public class BankDocumentService
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
     {
         _logger.LogInformation($"Deleting documentId={documentId}");
-        documentId = documentId.WithContainer(_container);
+        documentId = documentId.WithContainer(_bankOption.ArtifactContainerName);
 
         return await _artifactClient.Delete(documentId, token);
     }
@@ -37,7 +37,7 @@ public class BankDocumentService
     public async Task<BankAccount?> Get(DocumentId documentId, CancellationToken token)
     {
         _logger.LogInformation($"Getting documentId={documentId}");
-        documentId = documentId.WithContainer(_container);
+        documentId = documentId.WithContainer(_bankOption.ArtifactContainerName);
 
         Document? document = await _artifactClient.Get(documentId, token);
         if (document == null) return null;
@@ -50,7 +50,7 @@ public class BankDocumentService
         _logger.LogInformation($"Set documentId={entry.AccountId}");
 
         DocumentId documentId = (DocumentId)entry.AccountId;
-        documentId = documentId.WithContainer(_container);
+        documentId = documentId.WithContainer(_bankOption.ArtifactContainerName);
 
         Document document = new DocumentBuilder()
             .SetDocumentId(documentId)
@@ -62,7 +62,7 @@ public class BankDocumentService
 
     public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
     {
-        queryParameter = queryParameter with { Container = _container };
+        queryParameter = queryParameter with { Container = _bankOption.ArtifactContainerName };
         BatchSet<DatalakePathItem> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
         return batch;
     }

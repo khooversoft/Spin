@@ -13,5 +13,4 @@ public enum TrxStatus
     NoFunds,
     NoAccount,
     InvalidRequest,
-    InvalidBank
 }

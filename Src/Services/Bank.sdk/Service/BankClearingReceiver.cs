@@ -18,23 +18,23 @@ using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
-public class BankClearingHostedService : IHostedService
+public class BankClearingReceiver : IHostedService
 {
     private readonly BankDirectory _bankDirectory;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly ILogger<BankClearingHostedService> _logger;
-    private readonly BankClearingService _bankClearingService;
+    private readonly ILogger<BankClearingReceiver> _logger;
+    private readonly BankClearing _bankClearingService;
     private int _lock = 0;
     private QueueReceiver<QueueMessage>? _receiver;
     private CancellationTokenSource? _cancellationTokenSource;
 
-    public BankClearingHostedService(BankClearingService bankClearingService, BankDirectory bankDirectory, ILoggerFactory loggerFactory)
+    internal BankClearingReceiver(BankClearing bankClearingService, BankDirectory bankDirectory, ILoggerFactory loggerFactory)
     {
         _bankClearingService = bankClearingService.VerifyNotNull(nameof(bankClearingService));
         _bankDirectory = bankDirectory.VerifyNotNull(nameof(bankDirectory));
         _loggerFactory = loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
-        _logger = _loggerFactory.CreateLogger<BankClearingHostedService>();
+        _logger = _loggerFactory.CreateLogger<BankClearingReceiver>();
     }
 
     public async Task StartAsync(CancellationToken token)
@@ -57,7 +57,7 @@ public class BankClearingHostedService : IHostedService
             };
 
             _receiver = new QueueReceiver<QueueMessage>(receiverOption, _loggerFactory.CreateLogger<QueueReceiver<QueueMessage>>());
-            _receiver.Start();
+            await _receiver.Start();
         }
         finally
         {

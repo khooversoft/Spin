@@ -31,4 +31,6 @@ public static class TrxRecordExtensions
 
             _ => throw new ArgumentException($"Unknown type={x.Type}"),
         });
+
+    public static decimal Balance(this IEnumerable<TrxRecord> trxRecords) => trxRecords.Sum(x => x.NaturalAmount());
 }

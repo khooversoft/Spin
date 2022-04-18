@@ -21,14 +21,14 @@ namespace Bank.sdk.Service;
 ///     Send transactions to each of the "to" queues
 /// 
 /// </summary>
-public class BankClearingService
+public class BankClearing
 {
     private readonly BankClearingQueue _bankClearingQueue;
-    private readonly ILogger<BankClearingService> _logging;
-    private readonly BankTransactionService _bankTransactionService;
+    private readonly ILogger<BankClearing> _logging;
+    private readonly BankTransaction _bankTransactionService;
     private readonly BankOption _bankOption;
 
-    public BankClearingService(BankOption bankOption, BankClearingQueue bankClearingQueue, BankTransactionService bankTransactionService, ILogger<BankClearingService> logging)
+    internal BankClearing(BankOption bankOption, BankClearingQueue bankClearingQueue, BankTransaction bankTransactionService, ILogger<BankClearing> logging)
     {
         _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
         _bankClearingQueue = bankClearingQueue.VerifyNotNull(nameof(bankClearingQueue));
@@ -81,7 +81,6 @@ public class BankClearingService
         var sendRequest = new TrxBatch<TrxRequest>
         {
             Items = requests.Items
-                .Where(x => !_bankOption.IsBankName(x.FromId) || response.Items.Where(y => x.Id == y.Id && y.Status == TrxStatus.Success).Any())
                 .ToList()
         };
 
@@ -99,38 +98,24 @@ public class BankClearingService
 
     private void Verify(IEnumerable<TrxRequest> requests)
     {
-
-        requests
-            .Select(x => (x, isVerify: x.IsVerify()))
-            .Where(x => !x.isVerify.Pass)
-            .Select(x => $"{x.x} {x.isVerify.Message}")
-            .Func(x => x.Join(", "))
-            .Action(x =>
-            {
-                if (!x.IsEmpty())
-                {
-                    _logging.LogError("TrxBatch has errors: {error}", x);
-                    throw new ArgumentException($"TrxBatch has errors: {x}");
-                }
-            });
+        if (!requests.All(x => x.IsVerify()))
+        {
+            const string msg = "TrxBatch has errors";
+            _logging.LogError(msg);
+            throw new ArgumentException(msg);
+        }
     }
 
     private void VerifyBank(TrxBatch<TrxRequest> requests) => requests.Items
-            .Where(x => !_bankOption.IsBankName(x.ToId) && !_bankOption.IsBankName(x.FromId))
-            .Select(x => $"{x} transaction is not associated with bank {_bankOption.BankName}")
-            .Func(x => x.Join(", "))
-            .Action(x =>
+        .Where(x => !_bankOption.IsBankName(x.ToId) && !_bankOption.IsBankName(x.FromId))
+        .Select(x => $"{x} transaction is not associated with bank {_bankOption.BankName}")
+        .Func(x => x.Join(", "))
+        .Action(x =>
+        {
+            if (!x.IsEmpty())
             {
-                if (!x.IsEmpty())
-                {
-                    _logging.LogError("TrxBatch has errors: {error}", x);
-                    throw new ArgumentException($"TrxBatch has errors: {x}");
-                }
-            });
-
-    public void Verify(TrxBatch<TrxRequestResponse> responses)
-    {
-        responses.VerifyNotNull(nameof(responses));
-
-    }
+                _logging.LogError("TrxBatch has errors: {error}", x);
+                throw new ArgumentException($"TrxBatch has errors: {x}");
+            }
+        });
 }

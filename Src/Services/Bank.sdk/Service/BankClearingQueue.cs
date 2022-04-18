@@ -18,47 +18,38 @@ public class BankClearingQueue
     private readonly BankOption _clearingOption;
     private readonly ILogger<BankClearingQueue> _logger;
 
-    public BankClearingQueue(BankOption clearingOption, BankDirectory bankDirectory, ILogger<BankClearingQueue> logger)
+    internal BankClearingQueue(BankOption clearingOption, BankDirectory bankDirectory, ILogger<BankClearingQueue> logger)
     {
         _bankDirectory = bankDirectory.VerifyNotNull(nameof(bankDirectory));
         _clearingOption = clearingOption;
         _logger = logger;
     }
 
-    public async Task Send(TrxBatch<TrxRequest> requests, CancellationToken token) => await Send(requests, x => x.ToId, x => x.FromId, token);
+    public async Task Send(TrxBatch<TrxRequest> requests, CancellationToken token) => await Send(requests, x => x.ToId.ToDocumentId(), x => x.FromId.ToDocumentId(), token);
 
-    public async Task Send(TrxBatch<TrxRequestResponse> requests, CancellationToken token) => await Send(requests, x => x.Reference.FromId, x => x.Reference.ToId, token);
+    public async Task Send(TrxBatch<TrxRequestResponse> requests, CancellationToken token) => await Send(requests, x => x.Reference.FromId.ToDocumentId(), x => x.Reference.ToId.ToDocumentId(), token);
 
-    private async Task<bool> Send<T>(TrxBatch<T> batch, Func<T, string> getToId, Func<T, string> getFromId, CancellationToken token)
+    private async Task<bool> Send<T>(TrxBatch<T> batch, Func<T, DocumentId> getToId, Func<T, DocumentId> getFromId, CancellationToken token)
     {
-        bool pass = batch.Items
-            .Select(x =>
-            {
-                bool ok = true;
-                if (getFromId(x) != _clearingOption.BankName)
-                {
-                    _logger.LogError("Transaction {trx} is not 'from' bankName={bankName}", x, _clearingOption.BankName);
-                    ok = false;
-                }
+        batch.VerifyNotNull(nameof(batch));
+        getToId.VerifyNotNull(nameof(getToId));
+        getFromId.VerifyNotNull(nameof(getFromId));
 
-                if (!_bankDirectory.IsBankNameExist(getToId(x)))
-                {
-                    _logger.LogError("Transaction {trx} 'To' bankName={bankName} is not registered", x, getToId(x));
-                    ok = false;
-                }
+        bool verify(T subject) =>
+            getFromId(subject).GetBankName().Equals(_clearingOption.BankName, StringComparison.OrdinalIgnoreCase) &&
+            _bankDirectory.IsBankNameExist(getToId(subject).GetBankName());
 
-                return ok;
-            })
-            .All(x => x == true);
+        if (!batch.Items.All(x => verify(x)))
+        {
+            _logger.LogError("One or more transactions has errors in to or from id");
+            return false;
+        }
 
-        if (pass == false) return false;
-
-        var groups = batch.Items.GroupBy(x => getToId(x));
+        var groups = batch.Items.GroupBy(x => getToId(x).ToString());
 
         foreach (var groupItem in groups)
         {
-            DocumentId bankId = (DocumentId)groupItem.Key;
-            string bankName = bankId.GetBankName();
+            string bankName = groupItem.Key.ToDocumentId().GetBankName();
             QueueClient<QueueMessage> client = await _bankDirectory.GetClient(bankName, token);
 
             var trxBatch = new TrxBatch<T>

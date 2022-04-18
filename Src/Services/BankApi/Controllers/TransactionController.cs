@@ -12,12 +12,12 @@ namespace BankApi.Controllers
     [ApiController]
     public class TransactionController : ControllerBase
     {
-        private readonly BankTransactionService _service;
+        private readonly BankTransaction _service;
         private const string _noContainer = "Container not allowed";
 
-        public TransactionController(BankTransactionService service)
+        public TransactionController(BankHost bankHost)
         {
-            _service = service;
+            _service = bankHost.Transaction;
         }
 
         [HttpGet("balance/{path}")]

@@ -38,24 +38,14 @@ public static class Startup
 
         service.AddSingleton(applicationOption);
         service.AddSingleton(new BankOption
-        { 
-            RunEnvironment = option.RunEnvironment,
-            BankName = option.BankName
-        });
-
-        service.AddSingleton<BankTransactionService>();
-        service.AddSingleton<BankClearingQueue>();
-        service.AddSingleton<BankDirectory>();
-
-        service.AddHostedService<BankClearingHostedService>();
-
-        service.AddSingleton<BankDocumentService>((service) =>
         {
-            ArtifactClient artifactClient = service.GetRequiredService<ArtifactClient>();
-            ILoggerFactory factory = service.GetRequiredService<ILoggerFactory>();
-
-            return new BankDocumentService(applicationOption.BankContainer, artifactClient, factory.CreateLogger<BankDocumentService>());
+            RunEnvironment = option.RunEnvironment,
+            BankName = option.BankName,
+            ArtifactContainerName = applicationOption.BankContainer
         });
+
+        service.AddSingleton<BankHost>();
+        service.AddHostedService<BankHost>();
 
         service.AddHttpClient<ArtifactClient>((service, httpClient) =>
         {

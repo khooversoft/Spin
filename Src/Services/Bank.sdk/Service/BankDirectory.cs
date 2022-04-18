@@ -28,7 +28,7 @@ public class BankDirectory
     private readonly BankOption _bankOption;
     private readonly ConcurrentDictionary<string, QueueClient<QueueMessage>> _clientCache = new ConcurrentDictionary<string, QueueClient<QueueMessage>>(StringComparer.OrdinalIgnoreCase);
 
-    public BankDirectory(BankOption bankOption, DirectoryClient directoryClient, ILoggerFactory loggerFactory)
+    internal BankDirectory(BankOption bankOption, DirectoryClient directoryClient, ILoggerFactory loggerFactory)
     {
         _bankOption = bankOption;
         _directoryClient = directoryClient;

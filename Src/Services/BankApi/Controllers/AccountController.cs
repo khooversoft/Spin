@@ -14,12 +14,12 @@ namespace BankApi.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly BankDocumentService _service;
+        private readonly BankDocument _service;
         private const string _noContainer = "Container not allowed";
 
-        public AccountController(BankDocumentService service)
+        public AccountController(BankHost bankHost)
         {
-            _service = service;
+            _service = bankHost.BankDocument;
         }
 
         [HttpGet("{path}")]

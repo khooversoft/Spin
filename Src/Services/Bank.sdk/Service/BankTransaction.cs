@@ -12,13 +12,13 @@ using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
-public class BankTransactionService
+public class BankTransaction
 {
     private readonly BankOption _bankOption;
-    private readonly BankDocumentService _bankAccountService;
-    private readonly ILogger<BankTransactionService> _logger;
+    private readonly BankDocument _bankAccountService;
+    private readonly ILogger<BankTransaction> _logger;
 
-    public BankTransactionService(BankOption bankOption, BankDocumentService bankAccountService, ILogger<BankTransactionService> logger)
+    internal BankTransaction(BankOption bankOption, BankDocument bankAccountService, ILogger<BankTransaction> logger)
     {
         _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
         _bankAccountService = bankAccountService.VerifyNotNull(nameof(bankAccountService));
@@ -29,9 +29,16 @@ public class BankTransactionService
     {
         _logger.LogTrace("Getting directoryId={documentId}", documentId);
 
-        if (!documentId.IsBankName(_bankOption.BankName))
+        BankAccountId? bankAccountId = documentId.ToBankAccountId();
+        if (bankAccountId == null)
         {
-            _logger.LogWarning("Bank name is not valid for this service, bankName={bankName}", documentId.GetBankName());
+            _logger.LogWarning("Bank account id is not valid, id={id}", documentId);
+            return null;
+        }
+
+        if (!bankAccountId.BankName.Equals(_bankOption.BankName, StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("Bank name is not valid for this service, bankName={bankName}, can only be {serviceBankName}", bankAccountId.BankName, _bankOption.BankName);
             return null;
         }
 
@@ -55,12 +62,6 @@ public class BankTransactionService
 
         var batchContext = new BatchContext(batch.Items);
 
-        batchContext.GetNotProcessedRequests()
-            .Where(x => !_bankOption.IsBankName(x.ToId) && !_bankOption.IsBankName(x.FromId))
-            .Action(x => _logger.LogWarning("Bank name is not valid for this service, bankName={bankName}, trx={trx}", _bankOption.BankName, x))
-            .Action(x => batchContext.Responses.AddRange(SetResponse(x, TrxStatus.InvalidBank)));
-
-
         var groups = batchContext.GetNotProcessedRequests()
             .GroupBy(x => _bankOption.IsBankName(x.ToId) ? x.ToId : x.FromId);
 
@@ -69,16 +70,16 @@ public class BankTransactionService
             BankAccount? bankAccount = await GetBankAccount((DocumentId)group.Key, group, batchContext, token);
             if (bankAccount == null) continue;
 
-            if (!IsWithinBalance(bankAccount, group, batchContext)) continue;
-
             var appendTrx = group.Select(x => new TrxRecord
             {
-                Type = _bankOption.IsBankName(x.ToId) ? TrxType.Credit : TrxType.Debit,
+                Type = x.ToId.EqualsCaseIgnore(group.Key) ? TrxType.Credit : TrxType.Debit,
                 Amount = x.Amount,
                 Properties = x.Properties.ToSafe()
                             .Append($"RequestId={x.Id}")
                             .ToList(),
             }).ToList();
+
+            if (!IsWithinBalance(bankAccount, group, appendTrx, batchContext)) continue;
 
             BankAccount entry = bankAccount with
             {
@@ -121,9 +122,9 @@ public class BankTransactionService
         return bankAccount;
     }
 
-    private bool IsWithinBalance(BankAccount bankAccount, IEnumerable<TrxRequest> requests, BatchContext batchContext)
+    private bool IsWithinBalance(BankAccount bankAccount, IEnumerable<TrxRequest> requests, IEnumerable<TrxRecord> records, BatchContext batchContext)
     {
-        if (bankAccount.Balance() + requests.Balance(_bankOption.BankName) >= 0) return true;
+        if (bankAccount.Balance() + records.Balance() >= 0) return true;
 
         _logger.LogError("No required funds for directoryId={bankAccount.AccountId}", bankAccount.AccountId);
         batchContext.Responses.AddRange(SetResponse(requests, TrxStatus.NoFunds));
@@ -133,7 +134,27 @@ public class BankTransactionService
 
     private record BatchContext
     {
-        public BatchContext(IEnumerable<TrxRequest> trxRequests) => Requests = trxRequests.ToList();
+        public BatchContext(IEnumerable<TrxRequest> trxRequests)
+        {
+            var requests = trxRequests
+                .Select(x => (source: x, verify: x.IsVerify()))
+                .ToList();
+
+            Requests = requests
+                .Where(x => x.verify)
+                .Select(x => x.source)
+                .ToList();
+
+            var invalid = requests
+                .Where(x => !x.verify)
+                .Select(x => new TrxRequestResponse
+                {
+                    Reference = x.source,
+                    Status = TrxStatus.InvalidRequest
+                });
+
+            Responses.AddRange(invalid);
+        }
 
         public IReadOnlyList<TrxRequest> Requests { get; }
 
@@ -141,7 +162,7 @@ public class BankTransactionService
 
         public IEnumerable<TrxRequest> GetNotProcessedRequests() => Requests
             .Select(x => x.Id)
-            .Except(Responses.Select(x => x.Reference.Id))
+            .Except(Responses.Select(x => x.Id))
             .Join(Requests, x => x, x => x.Id, (id, trx) => trx)
             .ToList();
     }

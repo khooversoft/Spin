@@ -14,9 +14,9 @@ namespace BankApi.Controllers
     {
         private readonly BankClearingQueue _client;
 
-        public ClearingController(BankClearingQueue client)
+        public ClearingController(BankHost bankHost)
         {
-            _client = client;
+            _client = bankHost.ClearingQueue;
         }
 
         [HttpPost]

@@ -12,6 +12,7 @@ public class DocumentId
 {
     private string? _container;
     private string? _path;
+    private IReadOnlyList<string>? _vectors;
 
     public DocumentId(string id)
     {
@@ -28,6 +29,9 @@ public class DocumentId
 
     [JsonIgnore]
     public string Path => _path ??= Id.Split(':').Func(x => x.Length == 1 ? x[0] : x[1]);
+
+    [JsonIgnore]
+    public IReadOnlyList<string> Vectors => _vectors ??= Path.Split('/');
 
 
     //  ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +68,6 @@ public static class DocumentIdExtensions
         documentId.VerifyNotNull(nameof(documentId));
         return (RunEnvironment)Enum.Parse(typeof(RunEnvironment), documentId.Path.Split('/').First());
     }
+
+    public static DocumentId ToDocumentId(this string subject) => (DocumentId)subject;
 }
