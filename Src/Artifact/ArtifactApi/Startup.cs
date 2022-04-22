@@ -3,6 +3,7 @@ using ArtifactApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
 using Directory.sdk.Service;
+using Directory.sdk.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +27,7 @@ public static class Startup
     {
         service.VerifyNotNull(nameof(service));
 
-        ApplicationOption applicationOption = await DirectoryClient.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
+        ApplicationOption applicationOption = await DirectoryTools.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
             ServiceRecord serviceRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");
             IReadOnlyList<StorageRecord> storageRecords = await client.GetStorageRecord(option.RunEnvironment, "Artifact");

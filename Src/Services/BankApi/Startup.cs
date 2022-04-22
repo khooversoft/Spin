@@ -1,8 +1,10 @@
 using Artifact.sdk;
+using Bank.sdk;
 using Bank.sdk.Service;
 using BankApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
+using Directory.sdk.Tools;
 using Spin.Common.Middleware;
 using Spin.Common.Model;
 using Spin.Common.Services;
@@ -19,7 +21,7 @@ public static class Startup
     {
         service.VerifyNotNull(nameof(service));
 
-        ApplicationOption applicationOption = await DirectoryClient.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
+        ApplicationOption applicationOption = await DirectoryTools.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
             BankServiceRecord serviceRecord = await client.GetBankServiceRecord(option.RunEnvironment, option.BankName);
             ServiceRecord artifactRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");
@@ -37,15 +39,13 @@ public static class Startup
         });
 
         service.AddSingleton(applicationOption);
-        service.AddSingleton(new BankOption
+
+        service.AddBankHost(new BankOption
         {
             RunEnvironment = option.RunEnvironment,
             BankName = option.BankName,
             ArtifactContainerName = applicationOption.BankContainer
         });
-
-        service.AddSingleton<BankHost>();
-        service.AddHostedService<BankHost>();
 
         service.AddHttpClient<ArtifactClient>((service, httpClient) =>
         {

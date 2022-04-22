@@ -54,22 +54,5 @@ public static class BankDirectoryRecordExtensions
 
         return subject;
     }
-
-    public static async Task<BankDirectoryRecord> GetBankDirectory(this DirectoryClient client, RunEnvironment runEnvironment)
-    {
-        client.VerifyNotNull(nameof(client));
-
-        var documentId = (DocumentId)$"{runEnvironment}/setting/BankDirectory";
-
-        DirectoryEntry entry = (await client.Get(documentId))
-            .VerifyNotNull($"Configuration {documentId} not found");
-
-        return new BankDirectoryRecord
-        {
-            Banks = entry.Properties
-                .Select(x => x.ToKeyValuePair())
-                .ToDictionary(x => x.Key, x => new BankDirectoryEntry { BankName = x.Key, DirectoryId = x.Value })
-        }.Verify();
-    }
 }
 

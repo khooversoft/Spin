@@ -42,37 +42,4 @@ public static class StorageRecordExtensions
         return subject;
     }
 
-    public static async Task<IReadOnlyList<StorageRecord>> GetStorageRecord(this DirectoryClient client, RunEnvironment runEnvironment, string settingName)
-    {
-        client.VerifyNotNull(nameof(client));
-        settingName.VerifyNotNull(nameof(settingName));
-
-        var documentId = (DocumentId)$"{runEnvironment}/setting/{settingName}";
-
-        DirectoryEntry entry = (await client.Get(documentId))
-            .VerifyNotNull($"Configuration {documentId} not found");
-
-        List<StorageRecord> list = new();
-
-        foreach (string item in entry.Properties)
-        {
-            DirectoryEntry storage = (await client.Get((DocumentId)item))
-                .VerifyNotNull($"Configuration {item} not found");
-
-            list.Add(storage.ConvertToStorageRecord());
-        }
-
-        return list;
-    }
-
-    public static StorageRecord ConvertToStorageRecord(this DirectoryEntry entry)
-    {
-        entry.VerifyNotNull(nameof(entry));
-
-        return entry.Properties
-            .ToConfiguration()
-            .Bind<StorageRecord>()
-            .VerifyNotNull($"Cannot bind to {nameof(StorageRecord)}")
-            .Verify();
-    }
 }

@@ -25,27 +25,24 @@ public class BankClearingQueue
         _logger = logger;
     }
 
-    public async Task Send(TrxBatch<TrxRequest> requests, CancellationToken token) => await Send(requests, x => x.ToId.ToDocumentId(), x => x.FromId.ToDocumentId(), token);
+    public async Task Send(TrxBatch<TrxRequest> requests, CancellationToken token) => await Send(requests, x => x.ToId, x => x.FromId, token);
 
-    public async Task Send(TrxBatch<TrxRequestResponse> requests, CancellationToken token) => await Send(requests, x => x.Reference.FromId.ToDocumentId(), x => x.Reference.ToId.ToDocumentId(), token);
+    public async Task Send(TrxBatch<TrxRequestResponse> requests, CancellationToken token) => await Send(requests, x => x.Reference.ToId, x => x.Reference.FromId, token);
 
-    private async Task<bool> Send<T>(TrxBatch<T> batch, Func<T, DocumentId> getToId, Func<T, DocumentId> getFromId, CancellationToken token)
+    private async Task Send<T>(TrxBatch<T> batch, Func<T, string> getToId, Func<T, string> getFromId, CancellationToken token)
     {
         batch.VerifyNotNull(nameof(batch));
         getToId.VerifyNotNull(nameof(getToId));
         getFromId.VerifyNotNull(nameof(getFromId));
 
-        bool verify(T subject) =>
-            getFromId(subject).GetBankName().Equals(_clearingOption.BankName, StringComparison.OrdinalIgnoreCase) &&
-            _bankDirectory.IsBankNameExist(getToId(subject).GetBankName());
-
-        if (!batch.Items.All(x => verify(x)))
+        if (Verify(batch, getToId, getFromId))
         {
-            _logger.LogError("One or more transactions has errors in to or from id");
-            return false;
+            throw new ArgumentException("One or more transactions has errors");
         }
 
-        var groups = batch.Items.GroupBy(x => getToId(x).ToString());
+        string getSendToId(T item) => _clearingOption.IsBankName(getToId(item)) ? getFromId(item) : getToId(item);
+
+        var groups = batch.Items.GroupBy(x => getSendToId(x));
 
         foreach (var groupItem in groups)
         {
@@ -57,12 +54,27 @@ public class BankClearingQueue
                 Items = new List<T>(groupItem)
             };
 
-            QueueMessage queueMessage = trxBatch.ToQueueMessage();
-            await client.Send(queueMessage);
+            QueueMessage queueMessage = trxBatch.ToQueueMessage(typeof(T).Name);
+            await client.Send(queueMessage, token);
 
-            _logger.LogInformation($"Sent batch to bank={bankName}, count={trxBatch.Items.Count}");
+            _logger.LogInformation("Sent batch to bank={bankName}, count={trxBatch.Items.Count}", bankName, trxBatch.Items.Count);
         }
+    }
 
-        return true;
+    private bool Verify<T>(TrxBatch<T> batch, Func<T, string> getToId, Func<T, string> getFromId)
+    {
+        Func<T, bool>[] tests = new Func<T, bool>[]
+        {
+            x => !getFromId(x).EqualsIgnoreCase(getFromId(x)),
+
+            x => _clearingOption.IsBankName(getToId(x)) || _clearingOption.IsBankName(getFromId(x)),
+
+            x => _bankDirectory.IsBankNameExist(((DocumentId)getToId(x)).GetBankName()) ||
+                    _bankDirectory.IsBankNameExist(((DocumentId)getFromId(x)).GetBankName()),
+        };
+
+        bool isVerify(T item) => tests.All(x => x(item));
+
+        return batch.Items.All(x => isVerify(x));
     }
 }

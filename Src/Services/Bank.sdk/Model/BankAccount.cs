@@ -8,7 +8,11 @@ public record BankAccount
 
     public string AccountNumber { get; init; } = null!;
 
-    public IReadOnlyList<TrxRecord> Transactions { get; init; } = new List<TrxRecord>();
+    public IReadOnlyList<TrxRecord> Transactions { get; init; } = Array.Empty<TrxRecord>();
+
+    public IReadOnlyList<TrxRequest> Requests { get; init; } = Array.Empty<TrxRequest>();
+
+    public IReadOnlyList<TrxRequestResponse> Responses { get; init; } = Array.Empty<TrxRequestResponse>();
 }
 
 

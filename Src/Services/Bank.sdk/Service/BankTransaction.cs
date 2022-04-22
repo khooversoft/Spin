@@ -60,10 +60,10 @@ public class BankTransaction
     {
         _logger.LogTrace("Setting transaction for id={batch.Id}, count={batch.Items.Count}", batch.Id, batch.Items.Count);
 
-        var batchContext = new BatchContext(batch.Items);
+        var batchContext = new BatchContext(batch.Items, _bankOption);
 
         var groups = batchContext.GetNotProcessedRequests()
-            .GroupBy(x => _bankOption.IsBankName(x.ToId) ? x.ToId : x.FromId);
+            .GroupBy(x =>_bankOption.GetLocalId(x));
 
         foreach (IGrouping<string, TrxRequest> group in groups)
         {
@@ -72,11 +72,10 @@ public class BankTransaction
 
             var appendTrx = group.Select(x => new TrxRecord
             {
-                Type = x.ToId.EqualsCaseIgnore(group.Key) ? TrxType.Credit : TrxType.Debit,
+                Type = x.ToId.EqualsIgnoreCase(group.Key) ? TrxType.Credit : TrxType.Debit,
                 Amount = x.Amount,
-                Properties = x.Properties.ToSafe()
-                            .Append($"RequestId={x.Id}")
-                            .ToList(),
+                Properties = x.Properties.ToSafe().ToList(),
+                TrxRequestId = x.Id,
             }).ToList();
 
             if (!IsWithinBalance(bankAccount, group, appendTrx, batchContext)) continue;
@@ -85,7 +84,10 @@ public class BankTransaction
             {
                 Transactions = bankAccount.Transactions
                     .Concat(appendTrx)
-                    .ToList()
+                    .ToList(),
+                Requests = bankAccount.Requests
+                    .Concat(group)
+                    .ToList(),
             };
 
             _logger.LogInformation("Add transactions to accountId={group.Key}", group.Key);
@@ -104,13 +106,37 @@ public class BankTransaction
         };
     }
 
+    public async Task RecordResponses(TrxBatch<TrxRequestResponse> batch, CancellationToken token)
+    {
+        List<TrxRequestResponse> updateItems = batch.Items
+            .Where(x => _bankOption.IsForLocalHost(x.Reference))
+            .Select(x => x)
+            .ToList();
+
+        var groups = updateItems.GroupBy(x => _bankOption.GetLocalId(x.Reference));
+
+        foreach (var group in groups)
+        {
+            BankAccount? bankAccount = await _bankAccountService.Get((DocumentId)group.Key, token);
+            if (bankAccount == null || group.Count() == 0) continue;
+
+            bankAccount = bankAccount with
+            {
+                Responses = bankAccount.Responses.Concat(group).ToList()
+            };
+
+            await _bankAccountService.Set(bankAccount, token);
+        }
+    }
+
+
     private static IEnumerable<TrxRequestResponse> SetResponse(IEnumerable<TrxRequest> requests, TrxStatus status) => requests.Select(x => new TrxRequestResponse
     {
         Reference = x,
         Status = status,
     });
 
-    async Task<BankAccount?> GetBankAccount(DocumentId toId, IEnumerable<TrxRequest> requests, BatchContext batchContext, CancellationToken token)
+    private async Task<BankAccount?> GetBankAccount(DocumentId toId, IEnumerable<TrxRequest> requests, BatchContext batchContext, CancellationToken token)
     {
         BankAccount? bankAccount = await _bankAccountService.Get(toId, token);
         if (bankAccount == null)
@@ -134,10 +160,10 @@ public class BankTransaction
 
     private record BatchContext
     {
-        public BatchContext(IEnumerable<TrxRequest> trxRequests)
+        public BatchContext(IEnumerable<TrxRequest> trxRequests, BankOption bankOption)
         {
             var requests = trxRequests
-                .Select(x => (source: x, verify: x.IsVerify()))
+                .Select(x => (source: x, verify: x.IsVerify() && bankOption.IsForLocalHost(x)))
                 .ToList();
 
             Requests = requests

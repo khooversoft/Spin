@@ -1,12 +1,21 @@
 ﻿using Spin.Common.Model;
 
-namespace Spin.Common.Services
-{
-    public interface IServiceStatus
-    {
-        ServiceStatusLevel Level { get; }
-        string? Message { get; }
+namespace Spin.Common.Services;
 
-        ServiceStatus SetStatus(ServiceStatusLevel serviceStatusLevel, string? message);
-    }
+public interface IServiceStatus
+{
+    ServiceStatusLevel Level { get; }
+
+    string? Message { get; }
+
+    ServiceStatus SetStatus(ServiceStatusLevel serviceStatusLevel, string? message = null);
+}
+
+public interface IServiceStatus<T>
+{
+    ServiceStatusLevel Level { get; }
+
+    string? Message { get; }
+
+    ServiceStatus SetStatus(ServiceStatusLevel serviceStatusLevel, string? message = null);
 }

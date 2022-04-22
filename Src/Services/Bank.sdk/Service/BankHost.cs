@@ -2,11 +2,13 @@
 using Directory.sdk.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Spin.Common.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
 
@@ -25,10 +27,10 @@ public class BankHost : IHostedService
 
     public BankHost(BankOption bankOption, DirectoryClient directoryClient, ArtifactClient artifactClient, ILoggerFactory loggerFactory)
     {
-        _bankOption = bankOption;
-        _directoryClient = directoryClient;
-        _artifactClient = artifactClient;
-        _loggerFactory = loggerFactory;
+        _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
+        _directoryClient = directoryClient.VerifyNotNull(nameof(directoryClient));
+        _artifactClient = artifactClient.VerifyNotNull(nameof(artifactClient));
+        _loggerFactory = loggerFactory.VerifyNotNull(nameof(loggerFactory));
 
         _bankDirectory = new BankDirectory(_bankOption, _directoryClient, _loggerFactory);
         _clearingQueue = new BankClearingQueue(_bankOption, _bankDirectory, _loggerFactory.CreateLogger<BankClearingQueue>());
@@ -39,13 +41,19 @@ public class BankHost : IHostedService
         _bankClearingReceiver = new BankClearingReceiver(_bankClearing, _bankDirectory, _loggerFactory);
     }
 
-    public async Task StartAsync(CancellationToken token) => await _bankClearingReceiver.StartAsync(token);
+    public async Task StartAsync(CancellationToken token)
+    {
+        await _bankDirectory.LoadDirectory(token);
+        await _bankClearingReceiver.StartAsync(token);
+    }
 
     public async Task StopAsync(CancellationToken token) => await _bankClearingReceiver.StopAsync(token);
 
     public BankTransaction Transaction => _bankTransaction;
 
-    public BankClearingQueue ClearingQueue => _clearingQueue;
+    public BankClearing BankClearing => _bankClearing;
 
     public BankDocument BankDocument => _bankDocument;
+
+    public BankDirectory BankDirectory => _bankDirectory;
 }

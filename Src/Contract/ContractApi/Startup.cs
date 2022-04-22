@@ -4,6 +4,7 @@ using ContractApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
 using Directory.sdk.Service;
+using Directory.sdk.Tools;
 using Spin.Common.Middleware;
 using Spin.Common.Model;
 using Spin.Common.Services;
@@ -20,7 +21,7 @@ public static class Startup
     {
         service.VerifyNotNull(nameof(service));
 
-        ApplicationOption applicationOption = await DirectoryClient.Run(option.DirectoryUrl, option.DirectoryApiKey, async client =>
+        ApplicationOption applicationOption = await DirectoryTools.Run(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
             ServiceRecord contractRecord = await client.GetServiceRecord(option.RunEnvironment, "Contract");
             ServiceRecord artifactRecord = await client.GetServiceRecord(option.RunEnvironment, "Artifact");

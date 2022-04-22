@@ -12,11 +12,11 @@ namespace BankApi.Controllers
     [ApiController]
     public class ClearingController : ControllerBase
     {
-        private readonly BankClearingQueue _client;
+        private readonly BankClearing _client;
 
         public ClearingController(BankHost bankHost)
         {
-            _client = bankHost.ClearingQueue;
+            _client = bankHost.BankClearing;
         }
 
         [HttpPost]
@@ -24,8 +24,8 @@ namespace BankApi.Controllers
         {
             if (batch.Items.Count == 0) return BadRequest("Batch is empty");
 
-            await _client.Send(batch, token);
-            return Ok();
+            TrxBatch<TrxRequestResponse> result = await _client.Send(batch, token);
+            return Ok(result);
         }
     }
 }

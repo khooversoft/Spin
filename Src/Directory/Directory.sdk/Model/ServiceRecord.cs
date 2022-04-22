@@ -28,19 +28,4 @@ public static class ServiceRecordExtensions
 
         return subject;
     }
-
-    public static async Task<ServiceRecord> GetServiceRecord(this DirectoryClient client, RunEnvironment runEnvironment, string serviceName)
-    {
-        client.VerifyNotNull(nameof(client));
-        serviceName.VerifyNotNull(nameof(serviceName));
-
-        var documentId = (DocumentId)$"{runEnvironment}/service/{serviceName}";
-
-        DirectoryEntry entry = (await client.Get(documentId))
-            .VerifyNotNull($"Configuration {documentId} not found");
-
-        return entry
-            .ConvertTo<ServiceRecord>()
-            .Verify();
-    }
 }

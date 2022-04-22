@@ -24,42 +24,16 @@ namespace Bank.sdk.Service;
 public class BankClearing
 {
     private readonly BankClearingQueue _bankClearingQueue;
-    private readonly ILogger<BankClearing> _logging;
+    private readonly ILogger<BankClearing> _logger;
     private readonly BankTransaction _bankTransactionService;
     private readonly BankOption _bankOption;
 
-    internal BankClearing(BankOption bankOption, BankClearingQueue bankClearingQueue, BankTransaction bankTransactionService, ILogger<BankClearing> logging)
+    internal BankClearing(BankOption bankOption, BankClearingQueue bankClearingQueue, BankTransaction bankTransactionService, ILogger<BankClearing> logger)
     {
         _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
         _bankClearingQueue = bankClearingQueue.VerifyNotNull(nameof(bankClearingQueue));
         _bankTransactionService = bankTransactionService.VerifyNotNull(nameof(bankTransactionService));
-        _logging = logging.VerifyNotNull(nameof(logging));
-    }
-
-    public async Task Process(TrxBatch<TrxRequest> requests, CancellationToken token)
-    {
-        Verify(requests);
-
-        TrxBatch<TrxRequestResponse> response = await _bankTransactionService.Set(requests, token);
-
-        await _bankClearingQueue.Send(response, token);
-    }
-
-    public async Task Process(TrxBatch<TrxRequestResponse> responses, CancellationToken token)
-    {
-        Verify(responses.Items.Select(x => x.Reference));
-
-        var creditTrx = new TrxBatch<TrxRequest>
-        {
-            Items = responses.Items
-                .Where(x => _bankOption.IsBankName(x.Reference.ToId) && x.Status == TrxStatus.Success)
-                .Select(x => x.Reference)
-                .ToList()
-        };
-
-        TrxBatch<TrxRequestResponse> response = await _bankTransactionService.Set(creditTrx, token);
-
-        await _bankClearingQueue.Send(response, token);
+        _logger = logger.VerifyNotNull(nameof(logger));
     }
 
     public async Task<TrxBatch<TrxRequestResponse>> Send(TrxBatch<TrxRequest> requests, CancellationToken token)
@@ -75,7 +49,12 @@ public class BankClearing
                 .ToList()
         };
 
-        TrxBatch<TrxRequestResponse> response = await _bankTransactionService.Set(debitTrx, token);
+        TrxBatch<TrxRequestResponse>? response = null;
+
+        if (debitTrx.Items.Count > 0)
+        {
+            response = await _bankTransactionService.Set(debitTrx, token);
+        }
 
         // Only send pull and valid push
         var sendRequest = new TrxBatch<TrxRequest>
@@ -86,9 +65,44 @@ public class BankClearing
 
         await _bankClearingQueue.Send(sendRequest, token);
 
-        return response;
+        return response ?? new TrxBatch<TrxRequestResponse>();
     }
 
+    internal async Task Process(TrxBatch<TrxRequest> requests, CancellationToken token)
+    {
+        Verify(requests);
+
+        _logger.LogTrace("Processing TrxBatch<TrxRequest>, id={id}", requests.Id);
+
+        TrxBatch<TrxRequestResponse> response = await _bankTransactionService.Set(requests, token);
+
+        _logger.LogTrace("Queuing responses for TrxBatch<TrxRequest>, id={id}", requests.Id);
+        await _bankClearingQueue.Send(response, token);
+    }
+
+    internal async Task Process(TrxBatch<TrxRequestResponse> responses, CancellationToken token)
+    {
+        Verify(responses.Items.Select(x => x.Reference));
+
+        _logger.LogTrace("Processing TrxBatch<TrxRequestResponse>, id={id}", responses.Id);
+
+        var creditTrx = new TrxBatch<TrxRequest>
+        {
+            Items = responses.Items
+                .Where(x => _bankOption.IsBankName(x.Reference.ToId) && x.Status == TrxStatus.Success)
+                .Select(x => x.Reference)
+                .ToList()
+        };
+
+        if (creditTrx.Items.Any())
+        {
+            _logger.LogTrace("Processing credit's from TrxBatch<TrxRequestResponse>, messageId={messageId}", responses.Id);
+            await _bankTransactionService.Set(creditTrx, token);
+        }
+
+        _logger.LogTrace("Recording TrxBatch<TrxRequestResponse>, id={id}", responses.Id);
+        await _bankTransactionService.RecordResponses(responses, token);
+    }
 
     private void Verify(TrxBatch<TrxRequest> batch)
     {
@@ -101,7 +115,7 @@ public class BankClearing
         if (!requests.All(x => x.IsVerify()))
         {
             const string msg = "TrxBatch has errors";
-            _logging.LogError(msg);
+            _logger.LogError(msg);
             throw new ArgumentException(msg);
         }
     }
@@ -114,7 +128,7 @@ public class BankClearing
         {
             if (!x.IsEmpty())
             {
-                _logging.LogError("TrxBatch has errors: {error}", x);
+                _logger.LogError("TrxBatch has errors: {error}", x);
                 throw new ArgumentException($"TrxBatch has errors: {x}");
             }
         });

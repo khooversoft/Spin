@@ -54,7 +54,7 @@ public class BankDirectory
 
     public bool IsBankNameExist(string bankName) => _banks.ContainsKey(bankName);
 
-    public async Task<QueueOption> GetQueueOption(CancellationToken token)
+    public async Task<QueueOption> GetQueueOption(CancellationToken token = default)
     {
         await LoadDirectory(token);
 
@@ -74,7 +74,7 @@ public class BankDirectory
             .Bind<QueueOption>();
     }
 
-    private async Task LoadDirectory(CancellationToken token)
+    public async Task LoadDirectory(CancellationToken token = default)
     {
         await _asyncLock.WaitAsync();
 
@@ -84,15 +84,8 @@ public class BankDirectory
 
             _logger.LogTrace("Loading directory");
 
-            BankDirectoryRecord bankDirectoryRecord = await _directoryClient.GetBankDirectory(_bankOption.RunEnvironment);
-
-            foreach (BankDirectoryEntry bank in bankDirectoryRecord.Banks.Values)
-            {
-                BankServiceRecord bankEntry = (await _directoryClient.GetBankServiceRecord(_bankOption.RunEnvironment, _bankOption.BankName))
-                    .VerifyNotNull($"BankId={bank.DirectoryId} does not exist");
-
-                _banks[bank.BankName] = bankEntry;
-            }
+            IReadOnlyList<BankServiceRecord> banks = await _directoryClient.GetBankServiceRecords(_bankOption.RunEnvironment);
+            banks.ForEach(x => _banks[x.BankName] = x);
 
             _logger.LogTrace("Loaded directory, count={count}", _banks.Count);
         }

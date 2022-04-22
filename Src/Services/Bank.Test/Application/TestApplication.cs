@@ -1,25 +1,23 @@
-﻿using Bank.sdk.Client;
-using BankApi.Application;
-using Microsoft.AspNetCore.Hosting;
+﻿using Directory.sdk.Client;
+using Directory.sdk.Model;
+using Directory.sdk.Tools;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Spin.Common.Client;
+using Microsoft.Extensions.Logging.Abstractions;
+using Spin.Common.Model;
+using Spin.Common.Services;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Toolbox.Application;
+using Toolbox.Azure.Queue;
+using Toolbox.Extensions;
 
 namespace Bank.Test.Application;
-
-internal enum BankName
-{
-    First,
-    Second,
-}
 
 internal static class TestApplication
 {
@@ -41,48 +39,41 @@ internal static class TestApplication
             return _hosts[(int)bank] ??= new ApiHost(hostName);
         }
     }
-}
 
-
-internal class ApiHost
-{
-    private HttpClient? _client;
-    private WebApplicationFactory<Program> _host = null!;
-    private readonly string _bankName;
-    private object _lock = new object();
-
-    public ApiHost(string bankName)
+    public static async Task ResetQueues()
     {
-        _bankName = bankName;
-    }
+        if (_hosts.Any(x => x != null)) return;
 
-    public HttpClient GetClient()
-    {
-        lock (_lock)
-        {
-            if (_client != null) return _client;
+        var queueOptions = await DirectoryTools.GetDirectoryOption(@"d:\SpinDisk", RunEnvironment.Dev)
+            .Run<IReadOnlyList<QueueOption>>(async client =>
+            {
+                IReadOnlyList<BankServiceRecord> bankServiceRecords = await client.GetBankServiceRecords(RunEnvironment.Dev);
 
-            _host = new WebApplicationFactory<Program>()
-                .WithWebHostBuilder(builder =>
+                var list = new List<QueueOption>();
+                foreach (var bank in bankServiceRecords)
                 {
-                    builder.UseEnvironment($"Test;BankName={_bankName}");
-                });
+                    QueueOption queueOption = await client.GetQueueOption(RunEnvironment.Dev, bank.QueueId);
+                    list.Add(queueOption);
+                }
 
-            ApplicationOption option = _host.Services.GetRequiredService<ApplicationOption>();
+                return list;
+            });
 
-            _client = _host.CreateClient();
-            _client.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ApiKey);
-            _client.DefaultRequestHeaders.Add(Constants.BypassCacheName, "true");
+        foreach (var queue in queueOptions)
+        {
+            QueueAdmin admin = new QueueAdmin(queue, new NullLogger<QueueAdmin>());
+            await admin.DeleteIfExist(queue.QueueName);
 
-            return _client;
+            var definition = new QueueDefinition
+            {
+                QueueName = queue.QueueName,
+            };
+
+            await admin.CreateIfNotExist(definition);
+
+            var getDefinition = await admin.GetDefinition(queue.QueueName);
+            getDefinition.Should().NotBeNull();
+            getDefinition.QueueName.Should().Be(queue.QueueName);
         }
     }
-
-    public PingClient GetPingClient() => new PingClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<PingClient>());
-
-    public BankAccountClient GetBankAccountClient() => new BankAccountClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<BankAccountClient>());
-
-    public BankTransactionClient GetBankTransactionClient() => new BankTransactionClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<BankTransactionClient>());
-
-    public BankClearingClient GetBankClearingClient() => new BankClearingClient(GetClient(), _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<BankClearingClient>());
 }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Document;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
@@ -35,13 +36,17 @@ public static class ClearingOptionExtensions
 
     public static bool IsBankName(this BankOption bankOption, string bankName)
     {
-        {
-            bankOption.VerifyNotNull(nameof(bankOption));
-            bankName.VerifyNotEmpty(nameof(bankName));
+        bankOption.VerifyNotNull(nameof(bankOption));
+        bankName.VerifyNotEmpty(nameof(bankName));
 
-            bankName = bankName.Split('/').First();
+        bankName = bankName.Split('/').First();
 
-            return bankOption.BankName.Equals(bankName, StringComparison.OrdinalIgnoreCase);
-        }
+        return bankOption.BankName.EqualsIgnoreCase(bankName);
     }
+
+    public static bool IsForLocalHost(this BankOption bankOption, TrxRequest trxRequest) =>
+        bankOption.IsBankName(trxRequest.ToId) || bankOption.IsBankName(trxRequest.FromId);
+
+    public static string GetLocalId(this BankOption bankOption, TrxRequest trxRequest) =>
+        bankOption.IsBankName(trxRequest.ToId) ? trxRequest.ToId : trxRequest.FromId;
 }

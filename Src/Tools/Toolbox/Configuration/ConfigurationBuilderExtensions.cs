@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,6 +39,7 @@ public static class ConfigurationBuilderExtensions
 
         IConfiguration configuration = configurationBuilder.Build();
 
+        // Add source
         configurationBuilder.AddSource(_ => new ResolverConfigurationProvider(configuration, configuration.BuildResolver()));
 
         return configurationBuilder;

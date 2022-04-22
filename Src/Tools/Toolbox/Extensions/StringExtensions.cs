@@ -88,6 +88,6 @@ namespace Toolbox.Extensions
         /// <param name="subject">subject to compare</param>
         /// <param name="value">value to compare to</param>
         /// <returns>true or false</returns>
-        public static bool EqualsCaseIgnore(this string subject, string value) => subject.Equals(value, StringComparison.OrdinalIgnoreCase);
+        public static bool EqualsIgnoreCase(this string subject, string value) => subject.Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 }

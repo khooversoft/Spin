@@ -6,33 +6,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Spin.Common.Services
+namespace Spin.Common.Services;
+
+public class ServiceStatus : IServiceStatus
 {
-    public class ServiceStatus : IServiceStatus
+    private readonly object _lock = new();
+
+    public ServiceStatusLevel Level { get; private set; }
+
+    public string? Message { get; private set; }
+
+    public ServiceStatus SetStatus(ServiceStatusLevel serviceStatusLevel, string? message = null)
     {
-        private readonly object _lock = new();
-
-        public ServiceStatusLevel Level { get; private set; }
-
-        public string? Message { get; private set; }
-
-        public ServiceStatus SetStatus(ServiceStatusLevel serviceStatusLevel, string? message = null)
+        message ??= serviceStatusLevel switch
         {
-            message ??= serviceStatusLevel switch
-            {
-                ServiceStatusLevel.Ready => ServiceStatusLevel.Ready.ToString(),
-                ServiceStatusLevel.Running => ServiceStatusLevel.Running.ToString(),
+            ServiceStatusLevel.Ready => ServiceStatusLevel.Ready.ToString(),
+            ServiceStatusLevel.Running => ServiceStatusLevel.Running.ToString(),
 
-                _ => ServiceStatusLevel.Unknown.ToString(),
-            };
+            _ => ServiceStatusLevel.Unknown.ToString(),
+        };
 
-            lock (_lock)
-            {
-                Level = serviceStatusLevel;
-                Message = message;
-            }
-
-            return this;
+        lock (_lock)
+        {
+            Level = serviceStatusLevel;
+            Message = message;
         }
+
+        return this;
     }
 }
+
+public class ServiceStatus<T> : ServiceStatus, IServiceStatus<T>
+{
+}
+

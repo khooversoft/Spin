@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,8 +9,11 @@ using Toolbox.Tools;
 
 namespace Bank.sdk.Model;
 
+[DebuggerDisplay("Type={Type}, Amount={Amount}")]
 public record TrxRecord
 {
+    public string Id { get; init; } = Guid.NewGuid().ToString();
+
     public DateTime Date { get; init; } = DateTime.UtcNow;
 
     public TrxType Type { get; init; }
@@ -17,6 +21,8 @@ public record TrxRecord
     public decimal Amount { get; init; }
 
     public IReadOnlyList<string>? Properties { get; init; }
+
+    public string? TrxRequestId { get; init; }
 }
 
 

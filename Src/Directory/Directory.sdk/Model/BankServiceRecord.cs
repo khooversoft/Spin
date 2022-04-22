@@ -14,6 +14,8 @@ namespace Directory.sdk.Model;
 
 public record BankServiceRecord
 {
+    public string BankName { get; init; } = null!;
+
     public string HostUrl { get; init; } = null!;
 
     public string ApiKey { get; init; } = null!;
@@ -29,26 +31,12 @@ public static class BankServiceRecordExtensions
     {
         subject.VerifyNotNull(nameof(subject));
 
+        subject.BankName.VerifyNotEmpty($"{nameof(subject.BankName)} is required");
         subject.HostUrl.VerifyNotEmpty($"{nameof(subject.HostUrl)} is required");
         subject.ApiKey.VerifyNotEmpty($"{nameof(subject.ApiKey)} is required");
         subject.QueueId.VerifyNotEmpty($"{nameof(subject.QueueId)} is required");
         subject.Container.VerifyNotEmpty($"{nameof(subject.Container)} is required");
 
         return subject;
-    }
-
-    public static async Task<BankServiceRecord> GetBankServiceRecord(this DirectoryClient client, RunEnvironment runEnvironment, string bankName)
-    {
-        client.VerifyNotNull(nameof(client));
-        bankName.VerifyNotNull(nameof(bankName));
-
-        var documentId = (DocumentId)$"{runEnvironment}/service/{bankName}";
-
-        DirectoryEntry entry = (await client.Get(documentId))
-            .VerifyNotNull($"Configuration {documentId} not found");
-
-        return entry
-            .ConvertTo<BankServiceRecord>()
-            .Verify();
     }
 }

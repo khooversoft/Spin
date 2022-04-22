@@ -22,24 +22,20 @@ public record QueueMessage
 
 public static class QueueMessageExtensions
 {
-    public static QueueMessage ToQueueMessage<T>(this T subject)
+    public static QueueMessage ToQueueMessage<T>(this T subject, string? contentType = null)
     {
         subject.VerifyNotNull(nameof(subject));
 
         return new QueueMessage
         {
-            ContentType = typeof(T).Name,
+            ContentType = contentType ?? typeof(T).Name,
             Content = Json.Default.Serialize(subject),
         };
     }
-    
+
     public static T GetContent<T>(this QueueMessage queueMessage)
     {
         queueMessage.VerifyNotNull(nameof(queueMessage));
-        queueMessage.ContentType.VerifyAssert(
-            x => x == typeof(T).Name,
-            x => $"Invalid content type, required type{typeof(T).Name}, is {queueMessage.ContentType}"
-            );
 
         return queueMessage.Content.ToObject<T>()
             .VerifyNotNull("Deserialize failure");

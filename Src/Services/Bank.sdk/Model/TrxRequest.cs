@@ -1,6 +1,7 @@
 ﻿using Bank.sdk.Service;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace Bank.sdk.Model;
 ///     Response
 ///   
 /// </summary>
+[DebuggerDisplay("FromId={FromId}, ToId={ToId}, Amount={Amount}")]
 public record TrxRequest
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();

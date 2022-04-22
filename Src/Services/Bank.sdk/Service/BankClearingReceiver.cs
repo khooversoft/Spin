@@ -1,19 +1,9 @@
 ﻿using Bank.sdk.Model;
-using Directory.sdk;
-using Directory.sdk.Client;
-using Directory.sdk.Service;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Application;
+using Spin.Common.Model;
+using Spin.Common.Services;
 using Toolbox.Azure.Queue;
-using Toolbox.Document;
-using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 
 namespace Bank.sdk.Service;
@@ -48,6 +38,7 @@ public class BankClearingReceiver : IHostedService
         {
             if (_receiver != null) return;
 
+            _cancellationTokenSource = new CancellationTokenSource();
             QueueOption queueOption = await _bankDirectory.GetQueueOption(token);
 
             var receiverOption = new QueueReceiverOption<QueueMessage>
@@ -79,6 +70,8 @@ public class BankClearingReceiver : IHostedService
     {
         if (_cancellationTokenSource == null || _cancellationTokenSource.Token.IsCancellationRequested == true) return false;
 
+        _logger.LogTrace("Receive queue message, id={id}, contentType={contentType}", queueMessage.MessageId, queueMessage.ContentType);
+
         switch (queueMessage.ContentType)
         {
             case nameof(TrxRequest):
@@ -88,30 +81,12 @@ public class BankClearingReceiver : IHostedService
 
             case nameof(TrxRequestResponse):
                 TrxBatch<TrxRequestResponse> responses = queueMessage.GetContent<TrxBatch<TrxRequestResponse>>();
-                await ProcessTrxResponses(responses, _cancellationTokenSource.Token);
+                await _bankClearingService.Process(responses, _cancellationTokenSource.Token);
                 return true;
 
             default:
                 _logger.LogError($"Unknown contentType={queueMessage.ContentType}");
                 return false;
         }
-    }
-
-    private async Task ProcessTrxResponses(TrxBatch<TrxRequestResponse> responses, CancellationToken token)
-    {
-        _logger.LogInformation($"Processing TrxResponses batch, batchId={responses.Id}");
-
-        var batch = new TrxBatch<TrxRequest>
-        {
-            Items = responses.Items.Select(x => new TrxRequest
-            {
-                FromId = x.Reference.ToId,
-                ToId = x.Reference.ToId,
-                Amount = x.Reference.Amount,
-                Properties = x.Reference.Properties
-            }).ToList()
-        };
-
-        //await _bankTransactionService.Set(batch, token);
     }
 }
