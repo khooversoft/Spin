@@ -1,16 +1,11 @@
-﻿using Artifact.sdk;
-using Contract.sdk.Models;
-using Contract.sdk.Service;
+﻿using Contract.sdk.Models;
+using ContractApi.Application;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Block;
-using Toolbox.Document;
+using Toolbox.DocumentStore;
 using Toolbox.Model;
-using Toolbox.Tools;
 
 namespace ContractApi.Controllers
 {

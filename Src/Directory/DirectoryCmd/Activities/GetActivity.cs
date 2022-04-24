@@ -1,8 +1,8 @@
 ﻿using Directory.sdk.Client;
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
+using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;

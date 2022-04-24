@@ -1,26 +1,23 @@
 ﻿using Azure;
-using Directory.sdk.Model;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
+using Toolbox.DocumentStore;
 using Toolbox.Model;
-using Toolbox.Security;
-using Toolbox.Security.Sign;
 using Toolbox.Tools;
 
 namespace Directory.sdk.Service;
 
 public class IdentityService
 {
-    private readonly IDocumentStorage _documentStorage;
+    private readonly DocumentStorage _documentStorage;
     private readonly ILogger<IdentityService> _logger;
 
-    public IdentityService(IDocumentStorage documentStorage, ILogger<IdentityService> logger)
+    public IdentityService(DocumentStorage documentStorage, ILogger<IdentityService> logger)
     {
         documentStorage.VerifyNotNull(nameof(documentStorage));
 

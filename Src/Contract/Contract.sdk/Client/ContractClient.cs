@@ -1,20 +1,17 @@
 ﻿using Contract.sdk.Models;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
-using System.Threading.Tasks;
+using Toolbox.Abstractions;
 using Toolbox.Block;
-using Toolbox.Document;
-using Toolbox.Extensions;
+using Toolbox.DocumentStore;
 using Toolbox.Model;
 using Toolbox.Tools;
 
 
 namespace Contract.sdk.Client;
 
-public class ContractClient
+public class ContractClient : IContractClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<ContractClient> _logger;

@@ -67,9 +67,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Directory.Test", "Directory
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirectoryCmd", "Directory\DirectoryCmd\DirectoryCmd.csproj", "{7696DC30-4842-4188-9B02-74BEA520446B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Document", "Tools\Toolbox.Document\Toolbox.Document.csproj", "{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.DocumentStore", "Tools\Toolbox.DocumentStore\Toolbox.DocumentStore.csproj", "{4498EB02-DCDA-4FDB-9E7F-11BDF244E1B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Document.Test", "Tools\Toolbox.Document.Test\Toolbox.Document.Test.csproj", "{18D03A0A-4DA7-4464-BC07-803B2D6CA547}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.DocumentStore.Test", "Tools\Toolbox.DocumentStore.Test\Toolbox.DocumentStore.Test.csproj", "{18D03A0A-4DA7-4464-BC07-803B2D6CA547}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contract", "Contract", "{AB2A70BC-C50D-43FC-9C78-B266D00697AD}"
 EndProject
@@ -79,13 +79,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContractApi", "Contract\Con
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contract.Test", "Contract\Contract.Test\Contract.Test.csproj", "{154F97B1-DFA7-4F25-B965-79CB45636214}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{59DE4C9F-5C87-4C95-B8F0-0BDCFE1A5904}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bank", "Bank", "{59DE4C9F-5C87-4C95-B8F0-0BDCFE1A5904}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BankApi", "Services\BankApi\BankApi.csproj", "{C8937BFB-FA32-4342-A67D-722F1A55340D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BankApi", "Bank\BankApi\BankApi.csproj", "{C8937BFB-FA32-4342-A67D-722F1A55340D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.sdk", "Services\Bank.sdk\Bank.sdk.csproj", "{66D0A106-468B-471C-8BDE-A6CA61BB48AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.sdk", "Bank\Bank.sdk\Bank.sdk.csproj", "{66D0A106-468B-471C-8BDE-A6CA61BB48AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bank.Test", "Services\Bank.Test\Bank.Test.csproj", "{99F7230E-1161-4CA9-BB77-FBEBEF199243}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.Test", "Bank\Bank.Test\Bank.Test.csproj", "{99F7230E-1161-4CA9-BB77-FBEBEF199243}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContractHost.sdk", "Contract\ContractHost.sdk\ContractHost.sdk.csproj", "{030F20A2-5675-43F7-A5F3-E25A605D30A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank.Abstractions", "Bank\Bank.Abstractions\Bank.Abstractions.csproj", "{8BB34621-0BA8-4FB4-9DFF-E2DA5C65215D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Abstractions", "Tools\Toolbox.Abstractions\Toolbox.Abstractions.csproj", "{6D3BA714-00C3-431C-9E3C-6E01A2D2F8C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Smart", "Smart", "{A7320A90-705D-4C92-B370-7E69D482A14E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart-Installment", "Contract\Smart\Smart-Installment\Smart-Installment.csproj", "{ABB1B633-C252-41B5-9220-F7BC743B2AE4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -229,6 +239,22 @@ Global
 		{99F7230E-1161-4CA9-BB77-FBEBEF199243}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99F7230E-1161-4CA9-BB77-FBEBEF199243}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99F7230E-1161-4CA9-BB77-FBEBEF199243}.Release|Any CPU.Build.0 = Release|Any CPU
+		{030F20A2-5675-43F7-A5F3-E25A605D30A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{030F20A2-5675-43F7-A5F3-E25A605D30A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{030F20A2-5675-43F7-A5F3-E25A605D30A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{030F20A2-5675-43F7-A5F3-E25A605D30A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BB34621-0BA8-4FB4-9DFF-E2DA5C65215D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BB34621-0BA8-4FB4-9DFF-E2DA5C65215D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BB34621-0BA8-4FB4-9DFF-E2DA5C65215D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BB34621-0BA8-4FB4-9DFF-E2DA5C65215D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D3BA714-00C3-431C-9E3C-6E01A2D2F8C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D3BA714-00C3-431C-9E3C-6E01A2D2F8C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D3BA714-00C3-431C-9E3C-6E01A2D2F8C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D3BA714-00C3-431C-9E3C-6E01A2D2F8C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABB1B633-C252-41B5-9220-F7BC743B2AE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABB1B633-C252-41B5-9220-F7BC743B2AE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABB1B633-C252-41B5-9220-F7BC743B2AE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABB1B633-C252-41B5-9220-F7BC743B2AE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -267,6 +293,11 @@ Global
 		{C8937BFB-FA32-4342-A67D-722F1A55340D} = {59DE4C9F-5C87-4C95-B8F0-0BDCFE1A5904}
 		{66D0A106-468B-471C-8BDE-A6CA61BB48AE} = {59DE4C9F-5C87-4C95-B8F0-0BDCFE1A5904}
 		{99F7230E-1161-4CA9-BB77-FBEBEF199243} = {59DE4C9F-5C87-4C95-B8F0-0BDCFE1A5904}
+		{030F20A2-5675-43F7-A5F3-E25A605D30A4} = {AB2A70BC-C50D-43FC-9C78-B266D00697AD}
+		{8BB34621-0BA8-4FB4-9DFF-E2DA5C65215D} = {59DE4C9F-5C87-4C95-B8F0-0BDCFE1A5904}
+		{6D3BA714-00C3-431C-9E3C-6E01A2D2F8C6} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
+		{A7320A90-705D-4C92-B370-7E69D482A14E} = {AB2A70BC-C50D-43FC-9C78-B266D00697AD}
+		{ABB1B633-C252-41B5-9220-F7BC743B2AE4} = {A7320A90-705D-4C92-B370-7E69D482A14E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

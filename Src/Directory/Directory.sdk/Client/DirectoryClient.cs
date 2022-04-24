@@ -1,18 +1,12 @@
 ﻿using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Application;
+using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
-using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;
 

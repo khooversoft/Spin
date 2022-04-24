@@ -14,7 +14,7 @@
     <ProjectReference Include="..\..\Artifact\Artifact.sdk\Artifact.sdk.csproj" />
     <ProjectReference Include="..\..\Directory\Directory.sdk\Directory.sdk.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
-    <ProjectReference Include="..\..\Tools\Toolbox.Document\Toolbox.Document.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.DocumentStore\Toolbox.DocumentStore.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

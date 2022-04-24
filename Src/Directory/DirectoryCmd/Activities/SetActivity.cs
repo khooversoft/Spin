@@ -2,8 +2,8 @@
 using Directory.sdk.Client;
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
+using Toolbox.Abstractions;
 using Toolbox.Configuration;
-using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Property;

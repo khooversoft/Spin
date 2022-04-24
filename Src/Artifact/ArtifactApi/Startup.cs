@@ -2,10 +2,8 @@ using Artifact.Application;
 using ArtifactApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
-using Directory.sdk.Service;
 using Directory.sdk.Tools;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Middleware;
@@ -16,7 +14,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
 using Toolbox.Tools;
 
 namespace Artifact;

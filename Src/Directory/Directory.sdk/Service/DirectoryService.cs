@@ -1,13 +1,10 @@
 ﻿using Azure;
-using Directory.sdk.Model;
-using Microsoft.Extensions.Caching.Memory;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Azure.DataLake;
+using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
+using Toolbox.DocumentStore;
 using Toolbox.Model;
 using Toolbox.Tools;
 
@@ -15,9 +12,9 @@ namespace Directory.sdk.Service;
 
 public class DirectoryService
 {
-    private readonly IDocumentStorage _documentStorage;
+    private readonly DocumentStorage _documentStorage;
 
-    public DirectoryService(IDocumentStorage documentStorage)
+    public DirectoryService(DocumentStorage documentStorage)
     {
         documentStorage.VerifyNotNull(nameof(documentStorage));
 

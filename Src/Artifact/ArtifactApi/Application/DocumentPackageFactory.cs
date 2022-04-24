@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
+using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 

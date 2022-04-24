@@ -1,9 +1,7 @@
 ﻿using Directory.sdk.Client;
-using Directory.sdk.Model;
 using Directory.sdk.Service;
 using Microsoft.Extensions.Logging;
-using Toolbox.Document;
-using Toolbox.Extensions;
+using Toolbox.Abstractions;
 using Toolbox.Tools;
 
 namespace DirectoryCmd.Activities;

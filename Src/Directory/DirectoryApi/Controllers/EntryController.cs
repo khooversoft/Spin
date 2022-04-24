@@ -1,9 +1,8 @@
 ﻿using Directory.sdk.Service;
 using Microsoft.AspNetCore.Mvc;
+using Toolbox.Abstractions;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
-using Toolbox.Extensions;
 using Toolbox.Model;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860

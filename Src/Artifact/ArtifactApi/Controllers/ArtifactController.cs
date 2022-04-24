@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Model;
 

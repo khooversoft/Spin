@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Tools\Toolbox.Document\Toolbox.Document.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Abstractions\Toolbox.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

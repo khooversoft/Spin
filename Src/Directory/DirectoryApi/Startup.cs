@@ -7,7 +7,7 @@ using Spin.Common.Services;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
+using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 

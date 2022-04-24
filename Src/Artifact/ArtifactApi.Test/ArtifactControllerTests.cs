@@ -3,8 +3,9 @@ using Artifact.Test.Application;
 using FluentAssertions;
 using System.Linq;
 using System.Threading.Tasks;
+using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
+using Toolbox.DocumentStore;
 using Toolbox.Model;
 using Xunit;
 

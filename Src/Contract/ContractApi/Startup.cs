@@ -1,5 +1,4 @@
 using Artifact.sdk;
-using Contract.sdk.Service;
 using ContractApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
@@ -10,7 +9,6 @@ using Spin.Common.Model;
 using Spin.Common.Services;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Document;
 using Toolbox.Tools;
 
 namespace ContractApi;

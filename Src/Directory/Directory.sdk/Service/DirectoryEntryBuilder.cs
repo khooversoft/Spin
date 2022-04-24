@@ -1,10 +1,5 @@
-﻿using Azure;
-using Directory.sdk.Model;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Toolbox.Document;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
