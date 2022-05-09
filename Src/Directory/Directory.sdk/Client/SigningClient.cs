@@ -31,7 +31,7 @@ namespace Directory.sdk.Client
             string json = await response.Content.ReadAsStringAsync();
 
             return Json.Default.Deserialize<SignRequestResponse>(json)
-                .VerifyNotNull(nameof(Json.Default.Deserialize));
+                .NotNull(nameof(Json.Default.Deserialize));
         }
 
         public async Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token = default)

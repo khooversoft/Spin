@@ -18,9 +18,9 @@ public static class ValidateRequestExtensions
 {
     public static void Verify(this ValidateRequest subject)
     {
-        subject.VerifyNotNull(nameof(subject));
-        subject.PrincipleDigests.VerifyNotNull(nameof(subject.PrincipleDigests));
-        subject.PrincipleDigests.VerifyAssert(x => x.Count > 0, nameof(subject.PrincipleDigests));
+        subject.NotNull(nameof(subject));
+        subject.PrincipleDigests.NotNull(nameof(subject.PrincipleDigests));
+        subject.PrincipleDigests.Assert(x => x.Count > 0, nameof(subject.PrincipleDigests));
     }
 
     public static ValidateRequest ToValidateRequest(this IEnumerable<PrincipleDigest> digests) => new ValidateRequest { PrincipleDigests = digests.ToList() };

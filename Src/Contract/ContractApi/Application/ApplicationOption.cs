@@ -25,10 +25,10 @@ public static class ApplicationOptionExtensions
 {
     public static ApplicationOption VerifyBootstrap(this ApplicationOption option)
     {
-        option.VerifyNotNull(nameof(option));
+        option.NotNull(nameof(option));
 
-        option.DirectoryUrl.VerifyNotEmpty($"{nameof(option.DirectoryUrl)} is required");
-        option.DirectoryApiKey.VerifyNotEmpty($"{nameof(option.DirectoryApiKey)} is required");
+        option.DirectoryUrl.NotEmpty($"{nameof(option.DirectoryUrl)} is required");
+        option.DirectoryApiKey.NotEmpty($"{nameof(option.DirectoryApiKey)} is required");
 
         return option;
     }
@@ -37,10 +37,10 @@ public static class ApplicationOptionExtensions
     {
         option.VerifyBootstrap();
 
-        option.HostUrl.VerifyNotEmpty($"{nameof(option.HostUrl)} is required");
-        option.ApiKey.VerifyNotEmpty($"{nameof(option.ApiKey)} is required");
-        option.ArtifactUrl.VerifyNotNull(nameof(option.ArtifactUrl));
-        option.ArtifactApiKey.VerifyNotNull(nameof(option.ArtifactApiKey));
+        option.HostUrl.NotEmpty($"{nameof(option.HostUrl)} is required");
+        option.ApiKey.NotEmpty($"{nameof(option.ApiKey)} is required");
+        option.ArtifactUrl.NotNull(nameof(option.ArtifactUrl));
+        option.ArtifactApiKey.NotNull(nameof(option.ArtifactApiKey));
 
         return option;
     }

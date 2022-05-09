@@ -16,10 +16,24 @@ public record BlockChainModel
 
 public static class BlockChainModelExtensions
 {
-    public static void Verify(this BlockChainModel blockChainModel)
+    public static BlockChainModel Verify(this BlockChainModel blockChainModel)
     {
-        blockChainModel.VerifyNotNull(nameof(blockChainModel));
-        blockChainModel.Blocks.VerifyNotNull(nameof(blockChainModel.Blocks));
+        blockChainModel.NotNull(nameof(blockChainModel));
+        blockChainModel.Blocks.NotNull(nameof(blockChainModel.Blocks));
         blockChainModel.Blocks.ForEach(x => x.Verify());
+
+        return blockChainModel;
+    }
+
+    public static IReadOnlyList<T> GetBlockType<T>(this BlockChainModel model, string? blockType = null)
+    {
+        model.Verify();
+
+        blockType ??= typeof(T).Name;
+
+        return model.Blocks
+            .Where(x => x.DataBlock.BlockType == blockType)
+            .Select(x => x.DataBlock.ToObject<T>())
+            .ToList();
     }
 }

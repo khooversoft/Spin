@@ -15,7 +15,7 @@ namespace Toolbox.Services
 
         public SecretFilter(IEnumerable<string> secrets)
         {
-            secrets.VerifyNotNull(nameof(secrets));
+            secrets.NotNull(nameof(secrets));
 
             _secrets = new HashSet<string>(secrets);
         }
@@ -23,7 +23,7 @@ namespace Toolbox.Services
         public string? FilterSecrets(string? data, string replaceSecretWith = "***")
         {
             if (data.ToNullIfEmpty() == null || _secrets.Count == 0) return data;
-            replaceSecretWith.VerifyNotEmpty(nameof(replaceSecretWith));
+            replaceSecretWith.NotEmpty(nameof(replaceSecretWith));
 
             return _secrets.Aggregate(data!, (acc, x) => acc.Replace(x, replaceSecretWith));
         }

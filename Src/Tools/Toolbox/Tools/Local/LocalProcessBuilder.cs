@@ -17,7 +17,7 @@ namespace Toolbox.Tools.Local
 
         public LocalProcessBuilder(LocalProcessBuilder clone)
         {
-            clone.VerifyNotNull(nameof(clone));
+            clone.NotNull(nameof(clone));
 
             SuccessExitCode = clone.SuccessExitCode;
             ExecuteFile = clone.ExecuteFile;

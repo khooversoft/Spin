@@ -30,8 +30,8 @@ namespace Toolbox.Tools.Local
 
         public LocalProcess(LocalProcessBuilder builder, ILogger logger)
         {
-            builder.VerifyNotNull(nameof(builder));
-            logger.VerifyNotNull(nameof(logger));
+            builder.NotNull(nameof(builder));
+            logger.NotNull(nameof(logger));
 
             _logger = logger;
             _successExitCode = builder.SuccessExitCode;
@@ -130,7 +130,7 @@ namespace Toolbox.Tools.Local
         /// </summary>
         public void Stop()
         {
-            _logger.LogInformation($"Stopping {_executeFile}");
+            _logger.LogInformation("Stopping {executeFile}", _executeFile);
 
             TokenUnregister();
 
@@ -151,7 +151,7 @@ namespace Toolbox.Tools.Local
             TokenUnregister();
             ExitCode = _process.Subject.ExitCode;
 
-            _logger.LogInformation($"Process has exit, ExitCode={ExitCode}");
+            _logger.LogInformation("Process has exit, ExitCode={ExitCode}", ExitCode);
 
             switch (_process.Subject.ExitCode)
             {

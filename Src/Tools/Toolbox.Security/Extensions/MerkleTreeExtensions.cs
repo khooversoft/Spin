@@ -10,7 +10,7 @@ namespace Toolbox.Security
     {
         public static string ToMerkleHash(this IEnumerable<string> hashes)
         {
-            hashes.VerifyNotNull(nameof(hashes));
+            hashes.NotNull(nameof(hashes));
 
             return new MerkleTree()
                 .Append(hashes.ToArray())

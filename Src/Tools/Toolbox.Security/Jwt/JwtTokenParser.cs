@@ -23,9 +23,9 @@ namespace Toolbox.Security
 
         public JwtTokenParser(IPrincipalSignature principleSignature, IEnumerable<string?> validIssuers, IEnumerable<string?> validAudiences)
         {
-            principleSignature.VerifyNotNull(nameof(principleSignature));
-            validIssuers.VerifyNotNull(nameof(validIssuers));
-            validAudiences.VerifyNotNull(nameof(validAudiences));
+            principleSignature.NotNull(nameof(principleSignature));
+            validIssuers.NotNull(nameof(validIssuers));
+            validAudiences.NotNull(nameof(validAudiences));
 
             ValidIssuers = validIssuers
                 .Append(principleSignature.Issuer)
@@ -59,7 +59,7 @@ namespace Toolbox.Security
         /// <returns>token details or null</returns>
         public JwtTokenDetails Parse(string token)
         {
-            token.VerifyNotEmpty(nameof(token));
+            token.NotEmpty(nameof(token));
 
             var tokenHandler = new JwtSecurityTokenHandler();
             JwtSecurityToken jwtToken = tokenHandler.ReadJwtToken(token);
@@ -67,7 +67,7 @@ namespace Toolbox.Security
             if ((jwtToken?.Header.Kid).IsEmpty()) return new JwtTokenDetails(jwtToken!);
 
             SecurityKey privateKey = _principleSignature.GetSecurityKey()
-                .VerifyNotNull(nameof(_principleSignature.GetSecurityKey));
+                .NotNull(nameof(_principleSignature.GetSecurityKey));
 
             var validation = new TokenValidationParameters
             {

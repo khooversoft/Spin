@@ -70,7 +70,7 @@ public class ZipContainerTests
         }
 
         BlockChain result = readJson.ToObject<BlockChainModel>()
-            .VerifyNotNull("Cannot deserialize")
+            .NotNull("Cannot deserialize")
             .ToBlockChain();
 
         result.Validate(getSignature);

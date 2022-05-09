@@ -9,7 +9,7 @@ namespace Contract.sdk.Client;
 public interface IContractClient
 {
     Task Append(DocumentId documentId, BlkCode blkCode, CancellationToken token = default);
-    Task Append(DocumentId documentId, BlkTransaction blkTransaction, CancellationToken token = default);
+    Task Append(DocumentId documentId, BlkCollection blkTransaction, CancellationToken token = default);
     Task Create(BlkHeader blkHeader, CancellationToken token = default);
     Task<bool> Delete(DocumentId documentId, CancellationToken token = default);
     Task<BlockChainModel> Get(DocumentId documentId, CancellationToken token = default);

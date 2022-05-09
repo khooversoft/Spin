@@ -20,7 +20,7 @@ namespace Toolbox.Security
 
         public LocalCertificate(LocalCertificateKey key, ILogger<LocalCertificate> logger)
         {
-            key.VerifyNotNull(nameof(key));
+            key.NotNull(nameof(key));
 
             LocalCertificateKey = key;
             _logger = logger;

@@ -12,8 +12,8 @@ namespace Toolbox.Actor.Host
     {
         public ActorRegistration(Type interfaceType, Func<IActor> createImplementation)
         {
-            interfaceType.VerifyNotNull(nameof(interfaceType));
-            createImplementation.VerifyNotNull(nameof(createImplementation));
+            interfaceType.NotNull(nameof(interfaceType));
+            createImplementation.NotNull(nameof(createImplementation));
 
             InterfaceType = interfaceType;
             CreateImplementation = createImplementation;

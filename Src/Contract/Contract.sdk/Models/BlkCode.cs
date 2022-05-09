@@ -8,7 +8,7 @@ public record BlkCode : BlkBase
 
     public string Framework { get; init; } = ".net6.0";
 
-    public IReadOnlyList<string> Lines { get; init; } = new List<string>();
+    public IReadOnlyList<string> Lines { get; init; } = Array.Empty<string>();
 }
 
 public static class BlkCodeExtensions
@@ -16,8 +16,10 @@ public static class BlkCodeExtensions
     public static void Verify(this BlkCode blkCode)
     {
         blkCode.VerifyBase();
-        blkCode.Language.VerifyNotEmpty(nameof(blkCode.Language));
-        blkCode.Framework.VerifyNotEmpty(nameof(blkCode.Framework));
-        blkCode.Lines.VerifyNotNull(nameof(blkCode.Lines));
+        blkCode.Language.NotEmpty(nameof(blkCode.Language));
+        blkCode.Framework.NotEmpty(nameof(blkCode.Framework));
+        blkCode.Lines
+            .NotNull(nameof(blkCode.Lines))
+            .Assert(x => x.Count > 0, $"{blkCode.Lines} is empty");
     }
 }

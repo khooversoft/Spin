@@ -94,7 +94,7 @@ namespace ContractApi.Controllers
             switch (entry.ObjectClass)
             {
                 case "BlkTransaction":
-                    BlkTransaction blkTransaction = entry.DeserializeData<BlkTransaction>();
+                    BlkCollection blkTransaction = entry.DeserializeData<BlkCollection>();
                     stats = await _contractService.Append(entry.DocumentId, blkTransaction, token);
                     return stats ? Ok(stats) : NotFound();
 

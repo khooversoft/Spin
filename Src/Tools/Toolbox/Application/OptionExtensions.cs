@@ -46,7 +46,7 @@ namespace Toolbox.Application
 
             return Assembly.GetAssembly(type)!
                 .GetManifestResourceStream(resourceId)
-                .VerifyNotNull($"Resource {resourceId} not found in assembly");
+                .NotNull($"Resource {resourceId} not found in assembly");
         }
     }
 }

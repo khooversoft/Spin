@@ -19,9 +19,9 @@ public static class TableOptionExtensions
 {
     public static void Verify(this TableOption subject)
     {
-        subject.VerifyNotNull(nameof(subject));
+        subject.NotNull(nameof(subject));
 
-        subject.AccountName.VerifyNotEmpty(nameof(subject.AccountName));
-        subject.AccountKey.VerifyNotEmpty(nameof(subject.AccountKey));
+        subject.AccountName.NotEmpty(nameof(subject.AccountName));
+        subject.AccountKey.NotEmpty(nameof(subject.AccountKey));
     }
 }

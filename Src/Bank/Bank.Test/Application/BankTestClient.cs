@@ -131,7 +131,7 @@ internal class BankTestClient
                 Thread.Sleep(TimeSpan.FromSeconds(1));
 
                 BankAccount entry = _bankAccountClient.Get(BankAccountId, tokenSource.Token).Result
-                    .VerifyNotNull($"Bank not found: {BankAccountId}");
+                    .NotNull($"Bank not found: {BankAccountId}");
 
                 if (test(entry))
                 {

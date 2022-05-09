@@ -6,7 +6,9 @@ using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Block;
 using Toolbox.DocumentStore;
+using Toolbox.Extensions;
 using Toolbox.Model;
+using Toolbox.Tools;
 
 namespace ContractApi.Application;
 
@@ -27,6 +29,8 @@ public class ContractService
 
     public async Task<BlockChainModel?> Get(DocumentId documentId, CancellationToken token)
     {
+        documentId.NotNull(nameof(documentId));
+
         Document? document = await _artifactClient.Get(documentId.WithContainer(_container), token);
         if (document == null) return null;
 
@@ -36,6 +40,9 @@ public class ContractService
 
     public async Task Set(DocumentId documentId, BlockChainModel blockChain, CancellationToken token)
     {
+        documentId.NotNull(nameof(documentId));
+        blockChain.NotNull(nameof(blockChain));
+
         Document document = new DocumentBuilder()
             .SetDocumentId(documentId.WithContainer(_container))
             .SetData(blockChain)
@@ -46,12 +53,16 @@ public class ContractService
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
     {
+        documentId.NotNull(nameof(documentId));
+
         bool status = await _artifactClient.Delete(documentId.WithContainer(_container), token: token);
         return status;
     }
 
     public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
     {
+        queryParameter.NotNull(nameof(queryParameter));
+
         queryParameter = queryParameter with { Container = _container };
         BatchSet<DatalakePathItem> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
         return batch;
@@ -63,16 +74,22 @@ public class ContractService
 
     public async Task<bool> Create(BlkHeader blkHeader, CancellationToken token)
     {
+        blkHeader.NotNull(nameof(blkHeader));
+
         var documentId = new DocumentId(blkHeader.DocumentId);
 
         BlockChainModel? model = await Get(documentId, token);
         if (model != null) return false;
 
         BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleId(blkHeader.PrincipalId)
+            .SetPrincipleId(blkHeader.PrincipleId)
             .Build();
 
-        blockChain.Add(blkHeader, blkHeader.PrincipalId);
+        var blockHeader = blkHeader with { Blocks = null };
+
+        blockChain.Add(blockHeader, blkHeader.PrincipleId);
+
+        blkHeader.Blocks?.ForEach(x => blockChain.Add(x, blkHeader.PrincipleId));
 
         blockChain = await Sign(blockChain, token);
         if (!blockChain.IsValid()) throw new InvalidOperationException("Blockchain is invalid");
@@ -83,17 +100,20 @@ public class ContractService
 
     public async Task<bool> Append(DocumentId documentId, BlkBase blkBase, CancellationToken token)
     {
+        documentId.NotNull(nameof(documentId));
+        blkBase.NotNull(nameof(blkBase));
+
         BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
         if (blockChain == null) return false;
 
         switch (blkBase)
         {
-            case BlkTransaction blkTransaction:
-                blockChain.Add(blkTransaction, blkTransaction.PrincipalId);
+            case BlkCollection blkTransaction:
+                blkTransaction.Blocks.ForEach(x => blockChain.Add(x, blkTransaction.PrincipleId));
                 break;
 
             case BlkCode blkCode:
-                blockChain.Add(blkCode, blkCode.PrincipalId);
+                blockChain.Add(blkCode, blkCode.PrincipleId);
                 break;
 
             default: throw new ArgumentException($"Unknown type={blkBase.GetType().Name}");
@@ -110,6 +130,8 @@ public class ContractService
 
     public async Task<BlockChain> Sign(BlockChain blockChain, CancellationToken token)
     {
+        blockChain.NotNull(nameof(blockChain));
+
         SignRequest request = blockChain.GetPrincipleDigests().ToSignRequest();
         if (request.PrincipleDigests.Count == 0) return blockChain;
 
@@ -120,6 +142,8 @@ public class ContractService
 
     public async Task<bool> Validate(DocumentId documentId, CancellationToken token)
     {
+        documentId.NotNull(nameof(documentId));
+
         BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
         if (blockChain == null) return false;
 
@@ -129,6 +153,8 @@ public class ContractService
 
     public async Task<bool> Validate(BlockChain blockChain, CancellationToken token)
     {
+        blockChain.NotNull(nameof(blockChain));
+
         ValidateRequest request = blockChain.GetPrincipleDigests(onlyUnsighed: false).ToValidateRequest();
         return await _signingClient.Validate(request, token);
     }

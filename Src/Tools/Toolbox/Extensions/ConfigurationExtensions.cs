@@ -11,7 +11,7 @@ public static class ConfigurationExtensions
 {
     public static T Bind<T>(this IConfiguration configuration) where T : new()
     {
-        configuration.VerifyNotNull(nameof(configuration));
+        configuration.NotNull(nameof(configuration));
 
         var option = new T();
         configuration.Bind(option, x => x.BindNonPublicProperties = true);
@@ -20,7 +20,7 @@ public static class ConfigurationExtensions
 
     public static IConfiguration Bind<T>(this IConfiguration configuration, out T value) where T : new()
     {
-        configuration.VerifyNotNull(nameof(configuration));
+        configuration.NotNull(nameof(configuration));
 
         value = configuration.Bind<T>();
         return configuration;
@@ -34,9 +34,9 @@ public static class ConfigurationExtensions
     /// <returns>list or configuration settings "propertyName=value"</returns>
     public static IReadOnlyList<KeyValuePair<string, string>> GetConfigurationValues<T>(this T subject) where T : class
     {
-        subject.VerifyNotNull(nameof(subject));
+        subject.NotNull(nameof(subject));
 
-        string json = Json.Default.Serialize(subject).VerifyNotEmpty("Serialization failed");
+        string json = Json.Default.Serialize(subject).NotEmpty("Serialization failed");
 
         byte[] byteArray = Encoding.UTF8.GetBytes(json);
         MemoryStream stream = new MemoryStream(byteArray);

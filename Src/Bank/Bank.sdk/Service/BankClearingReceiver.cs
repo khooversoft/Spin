@@ -20,9 +20,9 @@ public class BankClearingReceiver : IHostedService
 
     internal BankClearingReceiver(BankClearing bankClearingService, BankDirectory bankDirectory, ILoggerFactory loggerFactory)
     {
-        _bankClearingService = bankClearingService.VerifyNotNull(nameof(bankClearingService));
-        _bankDirectory = bankDirectory.VerifyNotNull(nameof(bankDirectory));
-        _loggerFactory = loggerFactory.VerifyNotNull(nameof(loggerFactory));
+        _bankClearingService = bankClearingService.NotNull(nameof(bankClearingService));
+        _bankDirectory = bankDirectory.NotNull(nameof(bankDirectory));
+        _loggerFactory = loggerFactory.NotNull(nameof(loggerFactory));
 
         _logger = _loggerFactory.CreateLogger<BankClearingReceiver>();
     }

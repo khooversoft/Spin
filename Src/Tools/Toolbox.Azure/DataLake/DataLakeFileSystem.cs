@@ -19,8 +19,8 @@ namespace Toolbox.Azure.DataLake
 
         public DatalakeFileSystem(DatalakeStoreOption azureStoreOption, ILogger<DatalakeFileSystem> logger)
         {
-            azureStoreOption.VerifyNotNull(nameof(azureStoreOption));
-            logger.VerifyNotNull(nameof(logger));
+            azureStoreOption.NotNull(nameof(azureStoreOption));
+            logger.NotNull(nameof(logger));
 
             _logger = logger;
             _serviceClient = azureStoreOption.CreateDataLakeServiceClient();
@@ -40,7 +40,7 @@ namespace Toolbox.Azure.DataLake
 
         public async Task Create(string name, CancellationToken token = default)
         {
-            name.VerifyNotEmpty(nameof(name));
+            name.NotEmpty(nameof(name));
             bool created = false;
 
             CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(60));
@@ -76,7 +76,7 @@ namespace Toolbox.Azure.DataLake
 
         public async Task Delete(string name, CancellationToken token = default)
         {
-            name.VerifyNotEmpty(nameof(name));
+            name.NotEmpty(nameof(name));
 
             CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             while (!tokenSource.IsCancellationRequested)

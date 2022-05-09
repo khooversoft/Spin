@@ -14,9 +14,9 @@ namespace Toolbox.Block
     {
         public static BlockChain Add<T>(this BlockChain blockChain, T value, string principleId)
         {
-            blockChain.VerifyNotNull(nameof(blockChain));
-            value.VerifyNotNull(nameof(value));
-            principleId.VerifyNotEmpty(nameof(principleId));
+            blockChain.NotNull(nameof(blockChain));
+            value.NotNull(nameof(value));
+            principleId.NotEmpty(nameof(principleId));
 
             blockChain += new DataBlockBuilder()
                 .SetTimeStamp(DateTime.UtcNow)
@@ -31,14 +31,14 @@ namespace Toolbox.Block
 
         public static BlockChain ToBlockChain(this BlockChainModel blockChainModel)
         {
-            blockChainModel.VerifyNotNull(nameof(blockChainModel));
+            blockChainModel.NotNull(nameof(blockChainModel));
 
             return new BlockChain(blockChainModel.Blocks);
         }
 
         public static BlockChainModel ToBlockChainModel(this BlockChain blockChain)
         {
-            blockChain.VerifyNotNull(nameof(blockChain));
+            blockChain.NotNull(nameof(blockChain));
 
             return new BlockChainModel { Blocks = blockChain.Blocks.ToList() };
         }

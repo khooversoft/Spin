@@ -12,7 +12,7 @@ public record BlockNode
 
     public BlockNode(DataBlock blockData)
     {
-        blockData.VerifyNotNull(nameof(blockData));
+        blockData.NotNull(nameof(blockData));
 
         DataBlock = blockData;
         Digest = BlockNodeExtensions.GetDigest(this);
@@ -20,7 +20,7 @@ public record BlockNode
 
     public BlockNode(DataBlock blockData, int index, string? previousHash)
     {
-        blockData.VerifyNotNull(nameof(blockData));
+        blockData.NotNull(nameof(blockData));
 
         DataBlock = blockData;
         Index = index;
@@ -55,11 +55,9 @@ public static class BlockNodeExtensions
 
     public static void Verify(this BlockNode blockNode)
     {
-        blockNode.VerifyNotNull(nameof(blockNode));
+        blockNode.NotNull(nameof(blockNode));
 
-        blockNode.DataBlock.VerifyNotNull(nameof(blockNode.DataBlock));
-        blockNode.Digest.VerifyNotEmpty(nameof(blockNode.Digest));
+        blockNode.DataBlock.NotNull(nameof(blockNode.DataBlock));
+        blockNode.Digest.NotEmpty(nameof(blockNode.Digest));
     }
 }
-
-

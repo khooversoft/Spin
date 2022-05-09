@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>Smart_Installment.sdk</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Contract\Contract.sdk\Contract.sdk.csproj" />
+    <ProjectReference Include="..\..\Contract\ContractHost.sdk\ContractHost.sdk.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
+  </ItemGroup>
+
+</Project>

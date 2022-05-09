@@ -14,7 +14,7 @@ public static class SignExtensions
 {
     public static IReadOnlyList<PrincipleDigest> GetPrincipleDigests(this BlockChain blockChain, bool onlyUnsighed = true)
     {
-        blockChain.VerifyNotNull(nameof(blockChain));
+        blockChain.NotNull(nameof(blockChain));
 
         return blockChain.Blocks
             .Where(x => !onlyUnsighed || x.DataBlock.JwtSignature.IsEmpty())
@@ -40,8 +40,8 @@ public static class SignExtensions
 
     public static BlockChain Sign(this BlockChain blockChain, IEnumerable<PrincipleDigest> principleDigests)
     {
-        blockChain.VerifyNotNull(nameof(blockChain));
-        principleDigests.VerifyNotNull(nameof(principleDigests));
+        blockChain.NotNull(nameof(blockChain));
+        principleDigests.NotNull(nameof(principleDigests));
 
         return new BlockChain(blockChain.Blocks.Select(x =>
         {
@@ -50,8 +50,8 @@ public static class SignExtensions
             PrincipleDigest principleDigest = principleDigests
                 .Where(y => y.PrincipleId == x.DataBlock.PrincipleId && y.Digest == x.DataBlock.Digest)
                 .FirstOrDefault()
-                .VerifyNotNull($"Cannot locate principleId={x.DataBlock.PrincipleId} and digest={x.DataBlock.Digest} in {nameof(principleDigests)}")
-                .VerifyAssert(x => !x.JwtSignature.IsEmpty(), x => $"{nameof(x.JwtSignature)} is required");
+                .NotNull($"Cannot locate principleId={x.DataBlock.PrincipleId} and digest={x.DataBlock.Digest} in {nameof(principleDigests)}")
+                .Assert(x => !x.JwtSignature.IsEmpty(), x => $"{nameof(x.JwtSignature)} is required");
 
             return x with { DataBlock = x.DataBlock with { JwtSignature = principleDigest.JwtSignature! } };
         }));
@@ -67,13 +67,13 @@ public static class SignExtensions
     {
         foreach (var item in principleDigests)
         {
-            item.JwtSignature.VerifyNotEmpty($"JwtSignature is required, key={item.Key}");
+            item.JwtSignature.NotEmpty($"JwtSignature is required, key={item.Key}");
 
             string kid = JwtTokenParser.GetKidFromJwtToken(item.JwtSignature)
-                .VerifyNotEmpty("JWT kid not found");
+                .NotEmpty("JWT kid not found");
 
             IPrincipalSignature principleSignature = getPrincipleSignature(kid)
-                .VerifyNotNull($"No principle signature returned");
+                .NotNull($"No principle signature returned");
 
             principleSignature.ValidateSignature(item.Digest);
         }

@@ -16,7 +16,7 @@ public class DirectoryService
 
     public DirectoryService(DocumentStorage documentStorage)
     {
-        documentStorage.VerifyNotNull(nameof(documentStorage));
+        documentStorage.NotNull(nameof(documentStorage));
 
         _documentStorage = documentStorage;
     }

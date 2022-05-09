@@ -28,11 +28,11 @@ public static class ApplicationOptionExtensions
 {
     public static ApplicationOption VerifyPartial(this ApplicationOption option)
     {
-        option.VerifyNotNull(nameof(option));
+        option.NotNull(nameof(option));
 
-        option.ConfigStore.VerifyNotEmpty($"{nameof(option.ConfigStore)} is required");
-        option.DirectoryUrl.VerifyNotEmpty($"{nameof(option.DirectoryUrl)} is required");
-        option.DirectoryApiKey.VerifyNotEmpty($"{nameof(option.DirectoryApiKey)} is required");
+        option.ConfigStore.NotEmpty($"{nameof(option.ConfigStore)} is required");
+        option.DirectoryUrl.NotEmpty($"{nameof(option.DirectoryUrl)} is required");
+        option.DirectoryApiKey.NotEmpty($"{nameof(option.DirectoryApiKey)} is required");
 
         return option;
     }
@@ -41,11 +41,11 @@ public static class ApplicationOptionExtensions
     {
         option.VerifyPartial();
 
-        option.HostUrl.VerifyNotEmpty($"{nameof(option.HostUrl)} is required");
-        option.ApiKey.VerifyNotEmpty($"{nameof(option.ApiKey)} is required");
+        option.HostUrl.NotEmpty($"{nameof(option.HostUrl)} is required");
+        option.ApiKey.NotEmpty($"{nameof(option.ApiKey)} is required");
 
-        option.Storage.VerifyNotNull($"{nameof(option.ConfigStore)} is required");
-        option.Storage.VerifyAssert(x => x.Count > 0, $"{nameof(option.ConfigStore)} is required");
+        option.Storage.NotNull($"{nameof(option.ConfigStore)} is required");
+        option.Storage.Assert(x => x.Count > 0, $"{nameof(option.ConfigStore)} is required");
 
         option.Storage.ForEach(x => x.Verify());
 

@@ -24,15 +24,15 @@ namespace Toolbox.Actor.Host
         public void Register(Type type, Func<IActor> createImplementation)
         {
             type
-                .VerifyNotNull(nameof(type))
-                .IsInterface.VerifyAssert(x => x == true, $"{type} must be an interface");
+                .NotNull(nameof(type))
+                .IsInterface.Assert(x => x == true, $"{type} must be an interface");
 
-            createImplementation.VerifyNotNull(nameof(createImplementation));
+            createImplementation.NotNull(nameof(createImplementation));
 
             _typeRegistry[type] = new ActorRegistration(type, createImplementation);
         }
 
-        public bool Unregister(Type type) => _typeRegistry.Remove(type.VerifyNotNull(nameof(type)));
+        public bool Unregister(Type type) => _typeRegistry.Remove(type.NotNull(nameof(type)));
 
         /// <summary>
         /// Create actor from either lambda or activator
@@ -44,11 +44,11 @@ namespace Toolbox.Actor.Host
         /// <returns>instance of actor implementation</returns>
         public IActorBase Create<T>(ActorKey actorKey, ActorHost actorHost) where T : IActor
         {
-            actorKey.VerifyNotNull(nameof(actorKey));
-            actorHost.VerifyNotNull(nameof(actorHost));
+            actorKey.NotNull(nameof(actorKey));
+            actorHost.NotNull(nameof(actorHost));
 
             Type actorType = typeof(T)
-                .VerifyAssert(x => x.IsInterface, $"{typeof(T)} must be an interface");
+                .Assert(x => x.IsInterface, $"{typeof(T)} must be an interface");
 
             ActorRegistration typeRegistration = GetTypeRegistration(actorType);
 

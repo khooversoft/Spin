@@ -15,7 +15,7 @@ namespace Toolbox.Configuration
 
         public PropertyResolverProvider(PropertyResolverSource secretConfigurationSource)
         {
-            secretConfigurationSource.VerifyNotNull(nameof(secretConfigurationSource));
+            secretConfigurationSource.NotNull(nameof(secretConfigurationSource));
 
             _source = secretConfigurationSource;
         }
@@ -23,7 +23,7 @@ namespace Toolbox.Configuration
 
         public IConfiguration Resolve(IConfiguration configuration)
         {
-            configuration.VerifyNotNull(nameof(configuration));
+            configuration.NotNull(nameof(configuration));
 
             IReadOnlyList<KeyValuePair<string, string>> list = configuration
                 .AsEnumerable()

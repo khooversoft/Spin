@@ -16,12 +16,12 @@ public class DocumentStorage
 
     public DocumentStorage(IDatalakeStore store)
     {
-        _store = store.VerifyNotNull(nameof(store)); ;
+        _store = store.NotNull(nameof(store)); ;
     }
 
     public DocumentStorage(IDatalakeStore store, IMemoryCache memoryCache)
     {
-        _store = store.VerifyNotNull(nameof(store)); ;
+        _store = store.NotNull(nameof(store)); ;
         _memoryCache = memoryCache;
     }
 
@@ -34,7 +34,7 @@ public class DocumentStorage
 
     public async Task<(T?, ETag? eTag)> Get<T>(DocumentId documentId, CancellationToken token = default, bool bypassCache = false)
     {
-        documentId.VerifyNotNull(nameof(documentId));
+        documentId.NotNull(nameof(documentId));
 
         if (_memoryCache != null && !bypassCache)
         {
@@ -57,8 +57,8 @@ public class DocumentStorage
 
     public async Task<ETag> Set<T>(DocumentId documentId, T value, ETag? eTag = null, CancellationToken token = default)
     {
-        documentId.VerifyNotNull(nameof(documentId));
-        value.VerifyNotNull(nameof(value));
+        documentId.NotNull(nameof(documentId));
+        value.NotNull(nameof(value));
 
         string path = documentId.ToJsonFileName();
         ETag writeEtag = await _store.Write(path, value.ToJsonFormat().ToBytes(), true, eTag: eTag, token: token);

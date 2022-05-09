@@ -16,7 +16,7 @@ namespace Toolbox.Extensions
         /// <returns>task</returns>
         public static Task WhenAll(this IEnumerable<Task> tasks)
         {
-            tasks.VerifyNotNull(nameof(tasks));
+            tasks.NotNull(nameof(tasks));
 
             return Task.WhenAll(tasks);
         }
@@ -29,7 +29,7 @@ namespace Toolbox.Extensions
         /// <returns>array of types</returns>
         public static Task<T[]> WhenAll<T>(this IEnumerable<Task<T>> tasks)
         {
-            tasks.VerifyNotNull(nameof(tasks));
+            tasks.NotNull(nameof(tasks));
 
             return Task.WhenAll(tasks);
         }

@@ -20,8 +20,8 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
 
     public QueueReceiver(QueueReceiverOption<T> queueReceiver, ILogger<QueueReceiver<T>> logger)
     {
-        _queueReceiver = queueReceiver.VerifyNotNull(nameof(queueReceiver));
-        _logger = logger.VerifyNotNull(nameof(logger));
+        _queueReceiver = queueReceiver.NotNull(nameof(queueReceiver));
+        _logger = logger.NotNull(nameof(logger));
 
         var options = new ServiceBusProcessorOptions
         {
@@ -39,7 +39,7 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
 
     public async Task Start()
     {
-        _serviceBusClient.VerifyNotNull("MessageProcessor is not running");
+        _serviceBusClient.NotNull("MessageProcessor is not running");
 
         await _serviceBusProcessor!.StartProcessingAsync();
         _logger.LogInformation("Queue receiver started");

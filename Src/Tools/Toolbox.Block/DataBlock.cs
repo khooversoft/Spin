@@ -33,7 +33,7 @@ public static class DataBlockExtensions
 {
     public static string GetDigest(this DataBlock dataBlock)
     {
-        dataBlock.VerifyNotNull(nameof(dataBlock));
+        dataBlock.NotNull(nameof(dataBlock));
 
         var hashes = new string[]
         {
@@ -48,12 +48,50 @@ public static class DataBlockExtensions
 
     public static void Verify(this DataBlock dataBlock)
     {
-        dataBlock.VerifyNotNull(nameof(dataBlock));
+        dataBlock.NotNull(nameof(dataBlock));
 
-        dataBlock.BlockType.VerifyNotEmpty(nameof(dataBlock.BlockType));
-        dataBlock.BlockId.VerifyNotEmpty(nameof(dataBlock.BlockId));
-        dataBlock.Data.VerifyNotEmpty(nameof(dataBlock.Data));
-        dataBlock.PrincipleId.VerifyNotEmpty(nameof(dataBlock.PrincipleId));
-        dataBlock.Digest.VerifyNotEmpty(nameof(dataBlock.Digest));
+        dataBlock.BlockType.NotEmpty(nameof(dataBlock.BlockType));
+        dataBlock.BlockId.NotEmpty(nameof(dataBlock.BlockId));
+        dataBlock.Data.NotEmpty(nameof(dataBlock.Data));
+        dataBlock.PrincipleId.NotEmpty(nameof(dataBlock.PrincipleId));
+        dataBlock.Digest.NotEmpty(nameof(dataBlock.Digest));
+    }
+
+    public static DataBlock ToDataBlock<T>(this T subject, string principalId) where T : class
+    {
+        subject.NotNull(nameof(subject));
+
+        if (subject.GetType().IsAssignableTo(typeof(IEnumerable<T>)))
+        {
+            return ((IEnumerable<T>)subject).ToDataBlock(principalId);
+        }
+
+        return new DataBlockBuilder()
+            .SetBlockType<T>()
+            .SetPrincipleId(principalId)
+            .SetData(subject)
+            .Build();
+    }
+
+    public static DataBlock ToDataBlock<T>(this IEnumerable<T> subjects, string principalId)
+    {
+        subjects.NotNull(nameof(subjects));
+        subjects.Count().Assert(x => x > 0, "Empty set");
+
+        return new DataBlockBuilder()
+            .SetBlockType<T>()
+            .SetPrincipleId(principalId)
+            .SetData(new List<T>(subjects))
+            .Build();
+    }
+
+    public static T ToObject<T>(this DataBlock dataBlock)
+    {
+        dataBlock.NotNull(nameof(dataBlock));
+        dataBlock.Data.NotEmpty(nameof(dataBlock.Data));
+
+        return dataBlock.Data
+            .ToObject<T>()
+            .NotNull("Serialization error");
     }
 }

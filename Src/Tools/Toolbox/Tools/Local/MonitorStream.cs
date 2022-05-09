@@ -14,7 +14,7 @@ namespace Toolbox.Tools.Local
 
         public MonitorStream(Func<string, Task> monitor)
         {
-            monitor.VerifyNotNull(nameof(monitor));
+            monitor.NotNull(nameof(monitor));
 
             _stream = new ActionBlock<(int id, string dataLine)>(async x =>
             {

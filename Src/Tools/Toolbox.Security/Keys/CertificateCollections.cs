@@ -18,7 +18,7 @@ namespace Toolbox.Security.Keys
 
         public CertificateCollection(CertificateCollection subject)
         {
-            subject.VerifyNotNull(nameof(subject));
+            subject.NotNull(nameof(subject));
 
             subject._collection
                 .ForEach(x => Add(x.Key, x.Value));

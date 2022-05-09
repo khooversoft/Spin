@@ -39,6 +39,8 @@ builder.Services.ConfigureLogBindingErrors();
 
 var app = builder.Build();
 
+option = app.Services.GetRequiredService<ApplicationOption>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

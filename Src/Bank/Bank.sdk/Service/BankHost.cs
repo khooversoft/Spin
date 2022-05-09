@@ -21,10 +21,10 @@ public class BankHost : IHostedService
 
     public BankHost(BankOption bankOption, DirectoryClient directoryClient, ArtifactClient artifactClient, ILoggerFactory loggerFactory)
     {
-        _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
-        _directoryClient = directoryClient.VerifyNotNull(nameof(directoryClient));
-        _artifactClient = artifactClient.VerifyNotNull(nameof(artifactClient));
-        _loggerFactory = loggerFactory.VerifyNotNull(nameof(loggerFactory));
+        _bankOption = bankOption.NotNull(nameof(bankOption));
+        _directoryClient = directoryClient.NotNull(nameof(directoryClient));
+        _artifactClient = artifactClient.NotNull(nameof(artifactClient));
+        _loggerFactory = loggerFactory.NotNull(nameof(loggerFactory));
 
         _bankDirectory = new BankDirectory(_bankOption, _directoryClient, _loggerFactory);
         _clearingQueue = new BankClearingQueue(_bankOption, _bankDirectory, _loggerFactory.CreateLogger<BankClearingQueue>());

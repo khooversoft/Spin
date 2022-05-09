@@ -10,16 +10,16 @@ public static class DocumentTools
 {
     public static Document Verify(this Document document)
     {
-        document.IsHashVerify().VerifyAssert(x => x == true, "Document is not valid");
+        document.IsHashVerify().Assert(x => x == true, "Document is not valid");
         return document;
     }
 
     public static byte[] ComputeHash(this DocumentId documentId, IEnumerable<KeyValuePair<string, string>> properties, string objectClass, byte[] data)
     {
-        documentId.VerifyNotNull(nameof(documentId));
-        properties.VerifyNotNull(nameof(properties));
-        objectClass.VerifyNotEmpty(nameof(objectClass));
-        data.VerifyNotNull(nameof(data));
+        documentId.NotNull(nameof(documentId));
+        properties.NotNull(nameof(properties));
+        objectClass.NotEmpty(nameof(objectClass));
+        data.NotNull(nameof(data));
 
         var ms = new MemoryStream();
         ms.Write(documentId.ToString().ToBytes());
@@ -38,7 +38,7 @@ public static class DocumentTools
 
     public static bool IsHashVerify(this Document document)
     {
-        document.VerifyNotNull(nameof(document));
+        document.NotNull(nameof(document));
 
         byte[] hash = DocumentTools.ComputeHash(document.DocumentId, document.Properties, document.ObjectClass, document.Data);
 

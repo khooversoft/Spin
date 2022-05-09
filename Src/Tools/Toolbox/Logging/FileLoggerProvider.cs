@@ -21,9 +21,9 @@ namespace Toolbox.Logging
 
         public FileLoggerProvider(string loggingFolder, string baseLogFileName, int limit = 10)
         {
-            loggingFolder.VerifyNotEmpty(nameof(loggingFolder));
-            baseLogFileName.VerifyNotEmpty(nameof(baseLogFileName));
-            limit.VerifyAssert(x => x > 0, "Limit must be greater then 0");
+            loggingFolder.NotEmpty(nameof(loggingFolder));
+            baseLogFileName.NotEmpty(nameof(baseLogFileName));
+            limit.Assert(x => x > 0, "Limit must be greater then 0");
 
             _loggingFolder = loggingFolder;
             _baseFileName = baseLogFileName;

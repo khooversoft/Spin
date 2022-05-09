@@ -56,7 +56,7 @@ namespace Toolbox.Security
 
         public MerkleHash AddTree(MerkleTree tree)
         {
-            _leaves.VerifyAssert(x => x.Count > 0, "Cannot add to a tree with no leaves.");
+            _leaves.Assert(x => x.Count > 0, "Cannot add to a tree with no leaves.");
             tree._leaves.ForEach(x => Append(x));
 
             return BuildTree();
@@ -87,7 +87,7 @@ namespace Toolbox.Security
         {
             // We do not call FixOddNumberLeaves because we want the ability to append
             // leaves and add additional trees without creating unnecessary wasted space in the tree.
-            _leaves.VerifyAssert(x => x.Count > 0, "Cannot build a tree with no leaves.");
+            _leaves.Assert(x => x.Count > 0, "Cannot build a tree with no leaves.");
             BuildTree(_leaves);
 
             return RootNode!.Hash;
@@ -106,7 +106,7 @@ namespace Toolbox.Security
 
             if (leafNode != null)
             {
-                leafNode.VerifyAssert(x => x.Parent != null, "Expected leaf to have a parent.");
+                leafNode.Assert(x => x.Parent != null, "Expected leaf to have a parent.");
                 var parent = leafNode.Parent;
                 BuildAuditTrail(auditTrail, parent, leafNode);
             }
@@ -157,7 +157,7 @@ namespace Toolbox.Security
 
                 while (traverseTree)
                 {
-                    sn.VerifyAssert(x => x != null, "Sibling node must exist because m != k");
+                    sn.Assert(x => x != null, "Sibling node must exist because m != k");
                     int sncount = sn.Leaves().Count();
 
                     if (m - k == sncount)
@@ -192,7 +192,7 @@ namespace Toolbox.Security
             List<MerkleProofHash> auditTrail = new List<MerkleProofHash>();
 
             var node = RootNode
-                .VerifyNotNull(nameof(RootNode))
+                .NotNull(nameof(RootNode))
                 .Single(n => n.Hash == nodeHash);
 
             var parent = node.Parent;
@@ -206,7 +206,7 @@ namespace Toolbox.Security
         /// </summary>
         public static bool VerifyAudit(MerkleHash rootHash, MerkleHash leafHash, List<MerkleProofHash> auditTrail)
         {
-            auditTrail.VerifyAssert(x => x.Count > 0, "Audit trail cannot be empty.");
+            auditTrail.Assert(x => x.Count > 0, "Audit trail cannot be empty.");
             MerkleHash testHash = leafHash;
 
             // TODO: Inefficient - compute hashes directly.
@@ -225,7 +225,7 @@ namespace Toolbox.Security
         /// </summary>
         public static List<Tuple<MerkleHash, MerkleHash>> AuditHashPairs(MerkleHash leafHash, List<MerkleProofHash> auditTrail)
         {
-            auditTrail.VerifyAssert(x => x.Count > 0, "Audit trail cannot be empty.");
+            auditTrail.Assert(x => x.Count > 0, "Audit trail cannot be empty.");
             var auditPairs = new List<Tuple<MerkleHash, MerkleHash>>();
             MerkleHash testHash = leafHash;
 
@@ -286,7 +286,7 @@ namespace Toolbox.Security
         {
             if (parent == null) return;
 
-            child.VerifyAssert(x => x.Parent == parent, "Parent of child is not expected parent.");
+            child.Assert(x => x.Parent == parent, "Parent of child is not expected parent.");
             var nextChild = parent.LeftNode == child ? parent.RightNode : parent.LeftNode;
             var direction = parent.LeftNode == child ? MerkleProofHash.Branch.Left : MerkleProofHash.Branch.Right;
 
@@ -314,7 +314,7 @@ namespace Toolbox.Security
         /// <param name="nodes"></param>
         private void BuildTree(List<MerkleNode> nodes)
         {
-            nodes.VerifyAssert(x => x.Count > 0, "node list not expected to be empty.");
+            nodes.Assert(x => x.Count > 0, "node list not expected to be empty.");
 
             if (nodes.Count == 1)
             {

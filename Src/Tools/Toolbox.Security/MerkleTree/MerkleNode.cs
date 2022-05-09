@@ -50,8 +50,8 @@ namespace Toolbox.Security
 
         public void SetLeftNode(MerkleNode node)
         {
-            node.VerifyNotNull(nameof(node))
-                .VerifyAssert(x => node.Hash != default, "Node hash must be initialized.");
+            node.NotNull(nameof(node))
+                .Assert(x => node.Hash != default, "Node hash must be initialized.");
 
             LeftNode = node;
             LeftNode.Parent = this;
@@ -60,8 +60,8 @@ namespace Toolbox.Security
 
         public void SetRightNode(MerkleNode node)
         {
-            node.VerifyNotNull(nameof(node))
-                .VerifyAssert(x => node.Hash != default, "Node hash must be initialized.");
+            node.NotNull(nameof(node))
+                .Assert(x => node.Hash != default, "Node hash must be initialized.");
 
             RightNode = node;
             RightNode.Parent = this;
@@ -98,7 +98,7 @@ namespace Toolbox.Security
                 return Hash.Equals(LeftNode!.Hash);
             }
 
-            LeftNode.VerifyAssert(x => x != null, "Left branch must be a node if right branch is a node.");
+            LeftNode.Assert(x => x != null, "Left branch must be a node if right branch is a node.");
             MerkleHash leftRightHash = new MerkleHash(LeftNode!.Hash, RightNode.Hash);
 
             return Hash.Equals(leftRightHash);

@@ -22,7 +22,7 @@ public static class Startup
 {
     public static async Task<IServiceCollection> ConfigureArtifactService(this IServiceCollection service, ApplicationOption option)
     {
-        service.VerifyNotNull(nameof(service));
+        service.NotNull(nameof(service));
 
         ApplicationOption applicationOption = await DirectoryTools.Run<ApplicationOption>(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {
@@ -61,7 +61,7 @@ public static class Startup
 
     public static IApplicationBuilder UseArtifactService(this IApplicationBuilder app)
     {
-        app.VerifyNotNull(nameof(app));
+        app.NotNull(nameof(app));
 
         ApplicationOption option = app.ApplicationServices.GetRequiredService<ApplicationOption>();
         app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, new[] { "/api/ping" });

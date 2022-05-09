@@ -53,7 +53,7 @@ namespace Toolbox.Extensions
 
             KeyValuePair<string, string> GetKeyValue(string property)
             {
-                int index = property.IndexOf(valueDelimiter).VerifyAssert(x => x >= 0, $"Syntax error, no {valueDelimiter} for {property}");
+                int index = property.IndexOf(valueDelimiter).Assert(x => x >= 0, $"Syntax error, no {valueDelimiter} for {property}");
                 return new KeyValuePair<string, string>(property[0..index], property[(index + 1)..^0]);
             }
 
@@ -77,7 +77,7 @@ namespace Toolbox.Extensions
         /// <param name="subject"></param>
         /// <returns>hex values for hash</returns>
         public static string ToHashHex(this string subject) => subject
-            .VerifyNotEmpty(nameof(subject))
+            .NotEmpty(nameof(subject))
             .ToBytes()
             .ToHash()
             .ToHex();

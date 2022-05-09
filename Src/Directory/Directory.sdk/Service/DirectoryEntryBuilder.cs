@@ -19,7 +19,7 @@ public class DirectoryEntryBuilder
 
     public IReadOnlyList<DirectoryEntry> Build()
     {
-        Files.Count.VerifyAssert(x => x > 0, "No files specified");
+        Files.Count.Assert(x => x > 0, "No files specified");
 
         List<DirectoryEntry> list = new();
         foreach (string file in Files)
@@ -27,7 +27,7 @@ public class DirectoryEntryBuilder
             string json = File.ReadAllText(file);
 
             IList<DirectoryEntry> readList = Json.Default.Deserialize<IList<DirectoryEntry>>(json)
-                .VerifyNotNull($"Cannot read json file {file}");
+                .NotNull($"Cannot read json file {file}");
 
             list.AddRange(readList);
         }

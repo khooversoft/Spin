@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Smart-Installment": {
+      "commandName": "Project",
+      "commandLineArgs": "ConfigFile=D:\\SpinDisk\\ContractCommands\\ContractHostOption.json"
+    }
+  }
+}

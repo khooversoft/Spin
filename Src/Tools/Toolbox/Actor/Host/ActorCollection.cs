@@ -23,8 +23,8 @@ namespace Toolbox.Actor.Host
 
         public ActorCollection(int capacity, ILogger<ActorCollection> logger)
         {
-            capacity.VerifyAssert(x => x > 0, "Capacity must be greater then 0");
-            logger.VerifyNotNull(nameof(logger));
+            capacity.Assert(x => x > 0, "Capacity must be greater then 0");
+            logger.NotNull(nameof(logger));
 
             _actorRemove = new ActionBlock<ActorInstance>(async x => await x.Instance.Deactivate());
             _logger = logger;
@@ -57,7 +57,7 @@ namespace Toolbox.Actor.Host
         /// <returns>task</returns>
         public void Set(ActorInstance registration)
         {
-            registration.VerifyNotNull(nameof(registration));
+            registration.NotNull(nameof(registration));
 
             _logger.LogTrace($"{nameof(Set)}: Setting actor {registration.ActorKey}");
             ActorInstance? currentActorRegistration = null;
@@ -89,8 +89,8 @@ namespace Toolbox.Actor.Host
         /// <returns>true or false</returns>
         public bool TryGetValue(Type actorType, ActorKey actorKey, out ActorInstance actorInstance)
         {
-            actorType.VerifyNotNull(nameof(actorType));
-            actorKey.VerifyNotNull(nameof(actorKey));
+            actorType.NotNull(nameof(actorType));
+            actorKey.NotNull(nameof(actorKey));
 
             lock (_lock)
             {
@@ -109,7 +109,7 @@ namespace Toolbox.Actor.Host
         /// <returns>actor registration or null if not exist</returns>
         public bool TryRemove(Type actorType, ActorKey actorKey, out ActorInstance actorInstance)
         {
-            actorKey.VerifyNotNull(nameof(actorKey));
+            actorKey.NotNull(nameof(actorKey));
 
             lock (_lock)
             {
@@ -129,7 +129,7 @@ namespace Toolbox.Actor.Host
         {
             public ActorTypeKey(Type actorType, ActorKey actorKey)
             {
-                ActorTypeName = actorType.FullName.VerifyNotEmpty(nameof(actorType.FullName));
+                ActorTypeName = actorType.FullName.NotEmpty(nameof(actorType.FullName));
                 ActorKeyGuid = actorKey.Key;
             }
 

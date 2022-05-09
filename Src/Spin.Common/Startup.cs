@@ -11,7 +11,7 @@ public static class Startup
 {
     public static IServiceCollection ConfigurePingService(this IServiceCollection service, ILoggingBuilder logging)
     {
-        service.VerifyNotNull(nameof(service));
+        service.NotNull(nameof(service));
 
         service.AddSingleton<IServiceStatus, ServiceStatus>();
         logging.AddLoggerBuffer();

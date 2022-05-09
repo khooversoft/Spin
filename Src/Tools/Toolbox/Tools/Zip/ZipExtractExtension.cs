@@ -13,8 +13,8 @@ public static class ZipExtractExtension
 {
     public static void ExtractToFolder(this ZipArchive zipArchive, string toFolder, CancellationToken token, Action<FileActionProgress>? monitor)
     {
-        zipArchive.VerifyNotNull(nameof(zipArchive));
-        toFolder.VerifyNotEmpty(nameof(toFolder));
+        zipArchive.NotNull(nameof(zipArchive));
+        toFolder.NotEmpty(nameof(toFolder));
 
         if (Directory.Exists(toFolder)) Directory.Delete(toFolder);
         Directory.CreateDirectory(toFolder);
@@ -32,14 +32,14 @@ public static class ZipExtractExtension
             monitor?.Invoke(new FileActionProgress(zipFiles.Length, ++fileCount));
 
             Path.Combine(toFolder, zipFile.FilePath
-                .VerifyAssert(x => !x.StartsWith("\\"), $"Invalid zip file path {zipFile.FilePath}"))
+                .Assert(x => !x.StartsWith("\\"), $"Invalid zip file path {zipFile.FilePath}"))
                 .Action(x => zipFile.ExtractToFile(x));
         }
     }
 
     public static void CompressFiles(this ZipArchive zipArchive, CopyTo[] files, CancellationToken token = default, Action<FileActionProgress>? monitor = null)
     {
-        files.VerifyAssert(x => x.Length > 0, "No fileFolder(s) specified");
+        files.Assert(x => x.Length > 0, "No fileFolder(s) specified");
 
         int fileCount = 0;
         foreach (CopyTo file in files)
@@ -67,7 +67,7 @@ public static class ZipExtractExtension
 
         public void ExtractToFile(string filePath)
         {
-            filePath.VerifyNotEmpty(nameof(filePath));
+            filePath.NotEmpty(nameof(filePath));
 
             ZipArchiveEntry.ExtractToFile(filePath, true);
         }

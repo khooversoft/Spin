@@ -15,8 +15,8 @@ namespace Toolbox.Tools
 
         public WorkAsync(Func<TIn, TOut> action, int maxDegreeOfParallelism)
         {
-            action.VerifyNotNull(nameof(action));
-            maxDegreeOfParallelism.VerifyAssert(x => x >= 1, x => $"MaxDegreeOfParallelism {maxDegreeOfParallelism} is invalid");
+            action.NotNull(nameof(action));
+            maxDegreeOfParallelism.Assert(x => x >= 1, x => $"MaxDegreeOfParallelism {maxDegreeOfParallelism} is invalid");
 
             var option = new ExecutionDataflowBlockOptions
             {

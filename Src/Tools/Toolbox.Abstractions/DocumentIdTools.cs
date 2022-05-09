@@ -18,12 +18,12 @@ public static class DocumentIdTools
     public static string RemoveExtension(this string path) => PathTools.RemoveExtension(path, ".json", ".zip");
 
     public static void VerifyDocumentId(this string id) => id.IsDocumentIdValid()
-        .VerifyAssert(x => x.Valid, x => x.Message);
+        .Assert(x => x.Valid, x => x.Message);
 
     public static DocumentId WithContainer(this DocumentId documentId, string container)
     {
-        documentId.VerifyNotNull(nameof(documentId));
-        container.VerifyNotEmpty(nameof(container));
+        documentId.NotNull(nameof(documentId));
+        container.NotEmpty(nameof(container));
 
         return new DocumentId(container + ":" + documentId.Path);
     }

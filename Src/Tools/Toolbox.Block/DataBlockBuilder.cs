@@ -11,32 +11,36 @@ namespace Toolbox.Block;
 
 public class DataBlockBuilder
 {
-    public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset TimeStamp { get; set; } = DateTimeOffset.UtcNow;
 
     public string? BlockType { get; set; }
 
-    public string? BlockId { get; set; }
+    public string BlockId { get; set; } = Guid.NewGuid().ToString();
 
     public string? Data { get; set; }
 
     public string? PrincipleId { get; set; }
 
-    public DataBlockBuilder SetTimeStamp(DateTime timestamp) => this.Action(x => x.TimeStamp = timestamp);
+    public DataBlockBuilder SetTimeStamp(DateTimeOffset timestamp) => this.Action(x => x.TimeStamp = timestamp);
 
     public DataBlockBuilder SetBlockType(string blockType) => this.Action(x => x.BlockType = blockType);
+
+    public DataBlockBuilder SetBlockType<T>() => this.Action(x => x.BlockType = typeof(T).Name);
 
     public DataBlockBuilder SetBlockId(string blockId) => this.Action(x => x.BlockId = blockId);
 
     public DataBlockBuilder SetData(string data) => this.Action(x => Data = data);
 
+    public DataBlockBuilder SetData<T>(T data) => this.Action(x => Data = data?.ToJson());
+
     public DataBlockBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
 
     public DataBlock Build()
     {
-        BlockType.VerifyNotEmpty($"{nameof(BlockType)} is required");
-        BlockId.VerifyNotEmpty($"{nameof(BlockId)} is required");
-        Data.VerifyNotEmpty($"{nameof(Data)} is required");
-        PrincipleId.VerifyNotEmpty($"{nameof(SetPrincipleId)} is required");
+        BlockType.NotEmpty($"{nameof(BlockType)} is required");
+        BlockId.NotEmpty($"{nameof(BlockId)} is required");
+        Data.NotEmpty($"{nameof(Data)} is required");
+        PrincipleId.NotEmpty($"{nameof(SetPrincipleId)} is required");
 
         DataBlock dataBlock = new DataBlock
         {

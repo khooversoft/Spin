@@ -11,7 +11,7 @@ namespace Toolbox.Logging
 
         public TargetBlockLogger(string name, ITargetBlock<string> targetBlock)
         {
-            targetBlock.VerifyNotNull(nameof(targetBlock));
+            targetBlock.NotNull(nameof(targetBlock));
 
             Name = name;
             _targetBlock = targetBlock;

@@ -19,7 +19,7 @@ public class IdentityService
 
     public IdentityService(DocumentStorage documentStorage, ILogger<IdentityService> logger)
     {
-        documentStorage.VerifyNotNull(nameof(documentStorage));
+        documentStorage.NotNull(nameof(documentStorage));
 
         _documentStorage = documentStorage;
         _logger = logger;

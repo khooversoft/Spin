@@ -33,7 +33,7 @@ namespace Toolbox.Security
 
         public JwtTokenBuilder AddClaim(Claim claim)
         {
-            claim.VerifyNotNull(nameof(claim));
+            claim.NotNull(nameof(claim));
 
             Claims.Add(claim);
             return this;
@@ -52,7 +52,7 @@ namespace Toolbox.Security
 
         public string Build()
         {
-            PrincipleSignature.VerifyNotNull($"{nameof(PrincipleSignature)} is required");
+            PrincipleSignature.NotNull($"{nameof(PrincipleSignature)} is required");
 
             var header = new JwtHeader(PrincipleSignature.GetSigningCredentials());
             if (!PrincipleSignature.Kid.IsEmpty()) header["kid"] = PrincipleSignature.Kid;

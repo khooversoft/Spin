@@ -11,7 +11,7 @@ namespace Toolbox.Security
     {
         public MerkleHash(byte[] buffer)
         {
-            buffer.VerifyNotNull(nameof(buffer));
+            buffer.NotNull(nameof(buffer));
 
             SHA256 sha256 = SHA256.Create();
             Value = sha256.ComputeHash(buffer);
@@ -35,8 +35,8 @@ namespace Toolbox.Security
 
         public override bool Equals(object? obj)
         {
-            obj.VerifyNotNull(nameof(obj))
-                .VerifyAssert(x => x is MerkleHash, "r-value is not a MerkleHash");
+            obj.NotNull(nameof(obj))
+                .Assert(x => x is MerkleHash, "r-value is not a MerkleHash");
 
             return Equals((MerkleHash)obj);
         }

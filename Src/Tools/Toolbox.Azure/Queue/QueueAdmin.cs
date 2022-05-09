@@ -13,8 +13,8 @@ namespace Toolbox.Azure.Queue
 
         public QueueAdmin(QueueOption queueOption, ILogger<QueueAdmin> logging)
         {
-            queueOption.VerifyNotNull(nameof(queueOption));
-            logging.VerifyNotNull(nameof(logging));
+            queueOption.NotNull(nameof(queueOption));
+            logging.NotNull(nameof(logging));
 
             ConnectionString = queueOption.ToConnectionString();
             _managementClient = new ServiceBusAdministrationClient(ConnectionString);
@@ -25,7 +25,7 @@ namespace Toolbox.Azure.Queue
 
         public async Task<bool> Exist(string queueName, CancellationToken token = default)
         {
-            queueName.VerifyNotEmpty(nameof(queueName));
+            queueName.NotEmpty(nameof(queueName));
 
             bool exist = await _managementClient.QueueExistsAsync(queueName, token);
             _logging.LogTrace($"{nameof(Exist)}: Queue={queueName}, return={exist}");
@@ -34,7 +34,7 @@ namespace Toolbox.Azure.Queue
 
         public async Task<QueueDefinition> Create(QueueDefinition queueDefinition, CancellationToken token = default)
         {
-            queueDefinition.VerifyNotNull(nameof(queueDefinition));
+            queueDefinition.NotNull(nameof(queueDefinition));
 
             QueueProperties createdDescription = await _managementClient.CreateQueueAsync(queueDefinition.ToCreateQueue(), token);
             _logging.LogTrace($"{nameof(Create)}: QueueName={queueDefinition.QueueName}");
@@ -44,7 +44,7 @@ namespace Toolbox.Azure.Queue
 
         public async Task<QueueDefinition> GetDefinition(string queueName, CancellationToken token = default)
         {
-            queueName.VerifyNotEmpty(nameof(queueName));
+            queueName.NotEmpty(nameof(queueName));
 
             QueueProperties queueDescription = await _managementClient.GetQueueAsync(queueName, token);
             _logging.LogTrace($"{nameof(GetDefinition)}: QueueName={queueName}");
@@ -53,7 +53,7 @@ namespace Toolbox.Azure.Queue
 
         public async Task Delete(string queueName, CancellationToken token = default)
         {
-            queueName.VerifyNotEmpty(nameof(queueName));
+            queueName.NotEmpty(nameof(queueName));
 
             _logging.LogTrace($"{nameof(Delete)}: QueueName={queueName}");
             await _managementClient.DeleteQueueAsync(queueName, token);
@@ -68,7 +68,7 @@ namespace Toolbox.Azure.Queue
 
         public async Task DeleteIfExist(string queueName, CancellationToken token = default)
         {
-            queueName.VerifyNotEmpty(nameof(queueName));
+            queueName.NotEmpty(nameof(queueName));
 
             bool exist = await Exist(queueName, token);
             if (exist)

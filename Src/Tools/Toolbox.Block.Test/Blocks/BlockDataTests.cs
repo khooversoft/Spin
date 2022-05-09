@@ -45,7 +45,7 @@ namespace Toolbox.Block.Test.Blocks
 
             string json = data.ToJson();
 
-            DataBlock received = Json.Default.Deserialize<DataBlock>(json).VerifyNotNull("Json is null");
+            DataBlock received = Json.Default.Deserialize<DataBlock>(json).NotNull("Json is null");
 
             data.TimeStamp.Should().Be(now.ToUnixDate().TimeStamp);
 

@@ -14,9 +14,9 @@ public class BankTransaction
 
     internal BankTransaction(BankOption bankOption, BankDocument bankAccountService, ILogger<BankTransaction> logger)
     {
-        _bankOption = bankOption.VerifyNotNull(nameof(bankOption));
-        _bankAccountService = bankAccountService.VerifyNotNull(nameof(bankAccountService));
-        _logger = logger.VerifyNotNull(nameof(logger));
+        _bankOption = bankOption.NotNull(nameof(bankOption));
+        _bankAccountService = bankAccountService.NotNull(nameof(bankAccountService));
+        _logger = logger.NotNull(nameof(logger));
     }
 
     public async Task<TrxBalance?> GetBalance(DocumentId documentId, CancellationToken token)

@@ -16,7 +16,7 @@ public class DocumentId
 
     public DocumentId(string id)
     {
-        id.VerifyNotEmpty(id);
+        id.NotEmpty(id);
 
         Id = id.ToLower();
         VerifyId(Id);
@@ -56,7 +56,7 @@ public class DocumentId
     public static void VerifyId(string documentId)
     {
         documentId.IsDocumentIdValid()
-            .VerifyAssert(x => x.Valid, x => x.Message);
+            .Assert(x => x.Valid, x => x.Message);
     }
 }
 
@@ -65,7 +65,7 @@ public static class DocumentIdExtensions
 {
     public static RunEnvironment GetRunEnvironment(this DocumentId documentId)
     {
-        documentId.VerifyNotNull(nameof(documentId));
+        documentId.NotNull(nameof(documentId));
         return (RunEnvironment)Enum.Parse(typeof(RunEnvironment), documentId.Path.Split('/').First());
     }
 

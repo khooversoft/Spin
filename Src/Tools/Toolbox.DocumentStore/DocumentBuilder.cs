@@ -13,12 +13,12 @@ public class DocumentBuilder
 
     public DocumentBuilder(Document document)
     {
-        document.VerifyNotNull(nameof(document));
+        document.NotNull(nameof(document));
 
-        DocumentId = document.DocumentId.VerifyNotNull(nameof(document.DocumentId));
+        DocumentId = document.DocumentId.NotNull(nameof(document.DocumentId));
         document.Properties.ForEach(x => Properties.Add(x.Key, x.Value));
-        ObjectClass = document.ObjectClass.VerifyNotEmpty(nameof(document.ObjectClass));
-        Data = document.Data.VerifyNotNull(nameof(document.Data));
+        ObjectClass = document.ObjectClass.NotEmpty(nameof(document.ObjectClass));
+        Data = document.Data.NotNull(nameof(document.Data));
     }
 
     public DocumentId? DocumentId { get; set; }
@@ -37,9 +37,9 @@ public class DocumentBuilder
 
     public DocumentBuilder SetData(byte[] data) => this.Action(x => x.Data = data);
 
-    public DocumentBuilder SetData<T>(T value)
+    public DocumentBuilder SetData<T>(T value, string? objectClass = null)
     {
-        value.VerifyNotNull(nameof(value));
+        value.NotNull(nameof(value));
 
         byte[] data = typeof(T) switch
         {
@@ -48,7 +48,7 @@ public class DocumentBuilder
             _ => Encoding.UTF8.GetBytes(Json.Default.SerializeFormat<T>(value)),
         };
 
-        ObjectClass = typeof(T).Name;
+        ObjectClass = objectClass ?? typeof(T).Name;
         SetData(data);
 
         return this;
@@ -57,10 +57,10 @@ public class DocumentBuilder
 
     public Document Build()
     {
-        DocumentId.VerifyNotNull($"{nameof(DocumentId)} is required");
-        Properties.VerifyNotNull($"{nameof(Properties)} is required");
-        ObjectClass.VerifyNotEmpty($"{nameof(ObjectClass)} is required");
-        Data.VerifyNotNull($"{nameof(Data)} is required");
+        DocumentId.NotNull($"{nameof(DocumentId)} is required");
+        Properties.NotNull($"{nameof(Properties)} is required");
+        ObjectClass.NotEmpty($"{nameof(ObjectClass)} is required");
+        Data.NotNull($"{nameof(Data)} is required");
 
         byte[] hash = DocumentTools.ComputeHash(DocumentId!, Properties!, ObjectClass!, Data!);
 

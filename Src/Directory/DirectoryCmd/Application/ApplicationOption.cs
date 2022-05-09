@@ -18,9 +18,9 @@ internal static class ApplicationOptionExtensions
 {
     public static ApplicationOption Verify(this ApplicationOption applicationOption)
     {
-        applicationOption.VerifyNotNull(nameof(applicationOption));
-        applicationOption.DirectoryUrl.VerifyNotEmpty(nameof(applicationOption.DirectoryUrl));
-        applicationOption.ApiKey.VerifyNotEmpty(nameof(applicationOption.ApiKey));
+        applicationOption.NotNull(nameof(applicationOption));
+        applicationOption.DirectoryUrl.NotEmpty(nameof(applicationOption.DirectoryUrl));
+        applicationOption.ApiKey.NotEmpty(nameof(applicationOption.ApiKey));
 
         return applicationOption;
     }

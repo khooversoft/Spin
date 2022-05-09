@@ -24,16 +24,16 @@ public class ContractControllerTests
 
         var blkHeader = new BlkHeader
         {
-            PrincipalId = "dev/user/endUser1@default.com",
+            PrincipleId = "dev/user/endUser1@default.com",
             DocumentId = (string)documentId,
             Creator = "test",
             Description = "test description",
         };
 
         BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleId(blkHeader.PrincipalId)
+            .SetPrincipleId(blkHeader.PrincipleId)
             .Build()
-            .Add(blkHeader, blkHeader.PrincipalId);
+            .Add(blkHeader, blkHeader.PrincipleId);
 
         BlockChainModel signedBlockChainModel = await client.Sign(blockChain.ToBlockChainModel());
         signedBlockChainModel.Should().NotBeNull();
@@ -59,16 +59,16 @@ public class ContractControllerTests
 
         var blkHeader = new BlkHeader
         {
-            PrincipalId = "dev/user/endUser1@default.com",
+            PrincipleId = "dev/user/endUser1@default.com",
             DocumentId = (string)documentId,
             Creator = "test",
             Description = "test description",
         };
 
         BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleId(blkHeader.PrincipalId)
+            .SetPrincipleId(blkHeader.PrincipleId)
             .Build()
-            .Add(blkHeader, blkHeader.PrincipalId);
+            .Add(blkHeader, blkHeader.PrincipleId);
 
         BlockChainModel signedBlockChainModel = await client.Sign(blockChain.ToBlockChainModel());
         signedBlockChainModel.Should().NotBeNull();
@@ -111,7 +111,7 @@ public class ContractControllerTests
 
         var blkHeader = new BlkHeader
         {
-            PrincipalId = "dev/user/endUser1@default.com",
+            PrincipleId = "dev/user/endUser1@default.com",
             DocumentId = (string)documentId,
             Creator = "test",
             Description = "test description",

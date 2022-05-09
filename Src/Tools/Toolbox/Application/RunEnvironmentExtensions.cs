@@ -13,7 +13,7 @@ namespace Toolbox.Application
         public static RunEnvironment ToEnvironment(this string subject)
         {
             Enum.TryParse(subject, true, out RunEnvironment enviornment)
-                .VerifyAssert(x => x == true, $"Invalid environment {subject.ToNullIfEmpty() ?? "<none>"}");
+                .Assert(x => x == true, $"Invalid environment {subject.ToNullIfEmpty() ?? "<none>"}");
 
             return enviornment;
         }
@@ -34,7 +34,7 @@ namespace Toolbox.Application
 
         public static string ToResourceId(this RunEnvironment subject, string baseId)
         {
-            baseId.VerifyNotEmpty(nameof(baseId));
+            baseId.NotEmpty(nameof(baseId));
 
             return baseId + "." + subject.ToResourceId();
         }

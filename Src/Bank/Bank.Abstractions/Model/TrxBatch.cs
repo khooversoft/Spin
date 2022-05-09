@@ -20,7 +20,7 @@ public static class TrxBatchExtensions
 {
     public static TrxBatch<T> ToBatch<T>(this QueueMessage queueMessage)
     {
-        queueMessage.VerifyNotNull(nameof(queueMessage));
+        queueMessage.NotNull(nameof(queueMessage));
 
         return queueMessage.ContentType switch
         {

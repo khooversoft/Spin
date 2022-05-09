@@ -18,9 +18,9 @@ public static class SignRequestExtensions
 {
     public static void Verify(this SignRequest subject)
     {
-        subject.VerifyNotNull(nameof(subject));
-        subject.PrincipleDigests.VerifyNotNull(nameof(subject.PrincipleDigests));
-        subject.PrincipleDigests.VerifyAssert(x => x.Count > 0, nameof(subject.PrincipleDigests));
+        subject.NotNull(nameof(subject));
+        subject.PrincipleDigests.NotNull(nameof(subject.PrincipleDigests));
+        subject.PrincipleDigests.Assert(x => x.Count > 0, nameof(subject.PrincipleDigests));
     }
 
     public static SignRequest ToSignRequest(this IEnumerable<PrincipleDigest> digests) => new SignRequest { PrincipleDigests = digests.ToList() };

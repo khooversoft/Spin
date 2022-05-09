@@ -28,16 +28,16 @@ namespace Toolbox.Model
 
         public ResourceId(string resourceType, string path)
         {
-            Type = resourceType.VerifyNotEmpty(nameof(resourceType));
+            Type = resourceType.NotEmpty(nameof(resourceType));
             Channel = null;
-            Path = path.VerifyNotEmpty(nameof(path));
+            Path = path.NotEmpty(nameof(path));
         }
 
         public ResourceId(string resourceType, string channel, string path)
         {
-            Type = resourceType.VerifyNotEmpty(nameof(resourceType));
-            Channel = channel.VerifyNotEmpty(nameof(channel));
-            Path = path.VerifyNotEmpty(nameof(path));
+            Type = resourceType.NotEmpty(nameof(resourceType));
+            Channel = channel.NotEmpty(nameof(channel));
+            Path = path.NotEmpty(nameof(path));
         }
 
         public string Type { get; }
@@ -50,15 +50,15 @@ namespace Toolbox.Model
 
         static private (string resourceType, string? channel, string? path) Parse(string uri)
         {
-            uri.VerifyNotEmpty(nameof(uri));
+            uri.NotEmpty(nameof(uri));
 
             string type = uri
                 .Split("//")
                 .First()
                 .Split(':')
                 .First()
-                .VerifyNotEmpty($"Resource type not found in {uri}, format: ({_syntax})")
-                .VerifyAssert(x => VerifySyntax(x), _errorMsg);
+                .NotEmpty($"Resource type not found in {uri}, format: ({_syntax})")
+                .Assert(x => VerifySyntax(x), _errorMsg);
 
             string? channel = uri
                 .Split("//")
@@ -66,7 +66,7 @@ namespace Toolbox.Model
                 .Split(':')
                 .Skip(1)
                 .FirstOrDefault()
-                ?.VerifyAssert(x => VerifySyntax(x), _errorMsg);
+                ?.Assert(x => VerifySyntax(x), _errorMsg);
 
             string? path = uri
                 .Split("//")

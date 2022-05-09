@@ -15,18 +15,18 @@ public static class KeyValuePairExtensions
     {
         const string msg = "Syntax error";
 
-        subject.VerifyNotEmpty(subject);
+        subject.NotEmpty(subject);
 
-        int index = subject.IndexOf('=').VerifyAssert(x => x > 0, msg);
+        int index = subject.IndexOf('=').Assert(x => x > 0, msg);
 
-        string key = subject.Substring(0, index).Trim().VerifyNotEmpty(msg);
-        string value = subject.Substring(index + 1).Trim().VerifyNotEmpty(msg); ;
+        string key = subject.Substring(0, index).Trim().NotEmpty(msg);
+        string value = subject.Substring(index + 1).Trim().NotEmpty(msg); ;
 
         return new KeyValuePair<string, string>(key, value);
     }
 
     public static string? GetValue(this IEnumerable<string> subject, string name, char delimiter = '=') =>
-        subject.VerifyNotNull(nameof(subject))
+        subject.NotNull(nameof(subject))
         .Select(x => x.ToKeyValuePair(delimiter))
         .Where(x => x.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
         .Select(x => x.Value)

@@ -12,16 +12,16 @@ namespace Directory.sdk.Tools
     {
         public static (string KeyName, string AccessKey) Parse(string data)
         {
-            data.VerifyNotEmpty(nameof(data));
+            data.NotEmpty(nameof(data));
 
             IReadOnlyDictionary<string, string> datDict = data
                 .ToDictionary()!;
 
             datDict.TryGetValue("SharedAccessKeyName", out string? sharedAccessKeyName)
-                .VerifyAssert(x => x == true, "SharedAccessKeyName not found in configuration");
+                .Assert(x => x == true, "SharedAccessKeyName not found in configuration");
 
             datDict.TryGetValue("SharedAccessKey", out string? sharedAccessKey)
-                .VerifyAssert(x => x == true, "SharedAccessKey not found in configuration");
+                .Assert(x => x == true, "SharedAccessKey not found in configuration");
 
             return (sharedAccessKeyName!, sharedAccessKey!);
         }

@@ -18,8 +18,8 @@ namespace Toolbox.Azure.Queue
 
         public QueueClient(QueueOption queueOption, ILogger<QueueClient<T>> logger)
         {
-            queueOption.VerifyNotNull(nameof(queueOption));
-            logger.VerifyNotNull(nameof(logger));
+            queueOption.NotNull(nameof(queueOption));
+            logger.NotNull(nameof(logger));
 
             _logger = logger;
 
@@ -70,7 +70,7 @@ namespace Toolbox.Azure.Queue
         /// <exception cref="Exception">message too large or other error</exception>
         public async Task Send(IEnumerable<T> payloads, CancellationToken token = default)
         {
-            payloads.VerifyNotNull(nameof(payloads));
+            payloads.NotNull(nameof(payloads));
             if (_messageSender == null || _messageSender.IsClosed == true) return;
 
             var messages = payloads

@@ -8,9 +8,9 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
 {
     protected PrincipalSignatureBase(string kid, string issuer, string? audience, string? subject)
     {
-        kid.VerifyNotEmpty(nameof(kid));
-        issuer.VerifyNotEmpty(nameof(issuer));
-        audience.VerifyNotEmpty(nameof(audience));
+        kid.NotEmpty(nameof(kid));
+        issuer.NotEmpty(nameof(issuer));
+        audience.NotEmpty(nameof(audience));
 
         Kid = kid;
         Issuer = issuer;

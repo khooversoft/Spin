@@ -15,7 +15,7 @@ public class BankClearingQueue
 
     internal BankClearingQueue(BankOption clearingOption, BankDirectory bankDirectory, ILogger<BankClearingQueue> logger)
     {
-        _bankDirectory = bankDirectory.VerifyNotNull(nameof(bankDirectory));
+        _bankDirectory = bankDirectory.NotNull(nameof(bankDirectory));
         _clearingOption = clearingOption;
         _logger = logger;
     }
@@ -26,9 +26,9 @@ public class BankClearingQueue
 
     private async Task Send<T>(TrxBatch<T> batch, Func<T, string> getToId, Func<T, string> getFromId, CancellationToken token)
     {
-        batch.VerifyNotNull(nameof(batch));
-        getToId.VerifyNotNull(nameof(getToId));
-        getFromId.VerifyNotNull(nameof(getFromId));
+        batch.NotNull(nameof(batch));
+        getToId.NotNull(nameof(getToId));
+        getFromId.NotNull(nameof(getFromId));
 
         if (Verify(batch, getToId, getFromId))
         {

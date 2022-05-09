@@ -26,7 +26,7 @@ namespace Toolbox.Azure.DataLake
         public DatalakeStore(DatalakeStoreOption azureStoreOption, ILogger<DatalakeStore> logger)
         {
             _azureStoreOption = azureStoreOption.Verify();
-            _logger = logger.VerifyNotNull(nameof(logger));
+            _logger = logger.NotNull(nameof(logger));
 
             _serviceClient = azureStoreOption.CreateDataLakeServiceClient();
 
@@ -40,8 +40,8 @@ namespace Toolbox.Azure.DataLake
             _logger.LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
 
             data
-                .VerifyNotNull(nameof(data))
-                .VerifyAssert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
+                .NotNull(nameof(data))
+                .Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
 
             using var memoryBuffer = new MemoryStream(data.ToArray());
 
@@ -142,7 +142,7 @@ namespace Toolbox.Azure.DataLake
         public async Task Read(string path, Stream toStream, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            toStream.VerifyNotNull(nameof(toStream));
+            toStream.NotNull(nameof(toStream));
             _logger.LogTrace("Reading {path} to stream", path);
 
             try
@@ -228,7 +228,7 @@ namespace Toolbox.Azure.DataLake
             toPath = WithBasePath(toPath);
             _logger.LogTrace($"Writing from stream to {toPath}");
 
-            fromStream.VerifyNotNull(nameof(fromStream));
+            fromStream.NotNull(nameof(fromStream));
 
             try
             {
@@ -247,8 +247,8 @@ namespace Toolbox.Azure.DataLake
             _logger.LogTrace($"Writing to {path}, data.Length={data.Length}, eTag={eTag}");
 
             data
-                .VerifyNotNull(nameof(data))
-                .VerifyAssert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
+                .NotNull(nameof(data))
+                .Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
 
             _logger.LogTrace($"{nameof(Write)} to {path}");
             using var memoryBuffer = new MemoryStream(data.ToArray());

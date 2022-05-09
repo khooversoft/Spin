@@ -61,7 +61,7 @@ namespace Toolbox.Actor.Host
         /// <returns>actor instance</returns>
         public T GetActor<T>(ActorKey actorKey) where T : IActor
         {
-            actorKey.VerifyNotNull(nameof(actorKey));
+            actorKey.NotNull(nameof(actorKey));
 
             Type actoryType = typeof(T);
 
@@ -75,7 +75,7 @@ namespace Toolbox.Actor.Host
 
                 // Create actor object
                 IActorBase actorBase = _registry.Create<T>(actorKey, this);
-                (actorKey == actorBase.ActorKey).VerifyAssert(x => x, $"{nameof(GetActor)}: CREATED-Error  Actor key !=, actorKey={actorKey}, actorBase.ActorKey={actorBase.ActorKey}");
+                (actorKey == actorBase.ActorKey).Assert(x => x, $"{nameof(GetActor)}: CREATED-Error  Actor key !=, actorKey={actorKey}, actorBase.ActorKey={actorBase.ActorKey}");
                 _logger.LogTrace($"{nameof(GetActor)}: CREATED actorBase.ActorKey={actorBase.ActorKey}");
 
                 // Create proxy
@@ -99,7 +99,7 @@ namespace Toolbox.Actor.Host
         /// <returns>true if deactivated, false if not found</returns>
         public async Task<bool> Deactivate<T>(ActorKey actorKey)
         {
-            actorKey.VerifyNotNull(nameof(actorKey));
+            actorKey.NotNull(nameof(actorKey));
 
             if (!_actorCollection.TryRemove(typeof(T), actorKey, out ActorInstance registration)) return false;
 

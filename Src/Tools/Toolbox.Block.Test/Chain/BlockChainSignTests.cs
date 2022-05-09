@@ -70,7 +70,7 @@ namespace Toolbox.Block.Test.Blocks
             DataBlock receiveBlock = blockChain.Blocks[1].DataBlock;
             TestBlockNode(receiveBlock, "blockType", "blockId");
 
-            Dictionary<string, string> receivedPayload = receiveBlock.Data.ToObject<Dictionary<string, string>>().VerifyNotNull("payload failed");
+            Dictionary<string, string> receivedPayload = receiveBlock.Data.ToObject<Dictionary<string, string>>().NotNull("payload failed");
             (receivedPayload["name"] == "Name").Should().BeTrue();
             (receivedPayload["type"] == "Type").Should().BeTrue();
             (receivedPayload["author"] == "Author").Should().BeTrue();
@@ -115,13 +115,13 @@ namespace Toolbox.Block.Test.Blocks
             DataBlock receiveBlock = blockChain.Blocks[1].DataBlock;
             TestBlockNode(receiveBlock, "Payload", "1");
 
-            Payload p1 = receiveBlock.Data.ToObject<Payload>().VerifyNotNull("payload failed");
+            Payload p1 = receiveBlock.Data.ToObject<Payload>().NotNull("payload failed");
             (payload == p1).Should().BeTrue();
 
             DataBlock receiveBlock2 = blockChain.Blocks[2].DataBlock;
             TestBlockNode(receiveBlock2, "Payload2", "2");
 
-            Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().VerifyNotNull("payload2 failed");
+            Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().NotNull("payload2 failed");
             (payload2 == p2).Should().BeTrue();
         }
 
@@ -161,7 +161,7 @@ namespace Toolbox.Block.Test.Blocks
 
             // Receive test
             BlockChain receivedChain = blockChainJson.ToObject<BlockChainModel>()
-                .VerifyNotNull("Cannot deserialize")
+                .NotNull("Cannot deserialize")
                 .ToBlockChain();
 
             receivedChain.Should().NotBeNull();
@@ -172,13 +172,13 @@ namespace Toolbox.Block.Test.Blocks
             DataBlock receiveBlock = receivedChain.Blocks[1].DataBlock;
             TestBlockNode(receiveBlock, "Payload", "1");
 
-            Payload p1 = receiveBlock.Data.ToObject<Payload>().VerifyNotNull("payload failed");
+            Payload p1 = receiveBlock.Data.ToObject<Payload>().NotNull("payload failed");
             (payload == p1).Should().BeTrue();
 
             DataBlock receiveBlock2 = receivedChain.Blocks[2].DataBlock;
             TestBlockNode(receiveBlock2, "Payload2", "2");
 
-            Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().VerifyNotNull("payload2 failed");
+            Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().NotNull("payload2 failed");
             (payload2 == p2).Should().BeTrue();
         }
 

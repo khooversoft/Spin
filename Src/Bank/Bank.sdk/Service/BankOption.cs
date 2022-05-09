@@ -19,19 +19,19 @@ public static class ClearingOptionExtensions
 {
     public static BankOption Verify(this BankOption subject)
     {
-        subject.VerifyNotNull(nameof(subject));
+        subject.NotNull(nameof(subject));
 
-        subject.RunEnvironment.VerifyAssert(x => x != RunEnvironment.Unknown, "Environment is required");
-        subject.BankName.VerifyNotEmpty(nameof(subject.BankName));
-        subject.ArtifactContainerName.VerifyNotEmpty(nameof(subject.ArtifactContainerName));
+        subject.RunEnvironment.Assert(x => x != RunEnvironment.Unknown, "Environment is required");
+        subject.BankName.NotEmpty(nameof(subject.BankName));
+        subject.ArtifactContainerName.NotEmpty(nameof(subject.ArtifactContainerName));
 
         return subject;
     }
 
     public static bool IsBankName(this BankOption bankOption, string bankName)
     {
-        bankOption.VerifyNotNull(nameof(bankOption));
-        bankName.VerifyNotEmpty(nameof(bankName));
+        bankOption.NotNull(nameof(bankOption));
+        bankName.NotEmpty(nameof(bankName));
 
         bankName = bankName.Split('/').First();
 

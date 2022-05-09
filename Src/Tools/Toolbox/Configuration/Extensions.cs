@@ -31,7 +31,7 @@ public static class Extensions
 
     public static IPropertyResolver BuildResolver(this IConfiguration configuration)
     {
-        configuration.VerifyNotNull(nameof(configuration));
+        configuration.NotNull(nameof(configuration));
 
         IReadOnlyList<KeyValuePair<string, string>> list = configuration
             .AsEnumerable()

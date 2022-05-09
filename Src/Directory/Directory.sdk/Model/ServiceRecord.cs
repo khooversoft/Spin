@@ -14,10 +14,10 @@ public static class ServiceRecordExtensions
 {
     public static ServiceRecord Verify(this ServiceRecord subject)
     {
-        subject.VerifyNotNull(nameof(subject));
+        subject.NotNull(nameof(subject));
 
-        subject.HostUrl.VerifyNotEmpty($"{nameof(subject.HostUrl)} is required");
-        subject.ApiKey.VerifyNotEmpty($"{nameof(subject.ApiKey)} is required");
+        subject.HostUrl.NotEmpty($"{nameof(subject.HostUrl)} is required");
+        subject.ApiKey.NotEmpty($"{nameof(subject.ApiKey)} is required");
 
         return subject;
     }

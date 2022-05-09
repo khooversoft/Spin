@@ -12,7 +12,7 @@ namespace Toolbox.Tools.Property
 
         public PropertyResolver(IEnumerable<KeyValuePair<string, string>> properties)
         {
-            properties.VerifyNotNull(nameof(properties));
+            properties.NotNull(nameof(properties));
 
             _property = new Dictionary<string, string>(properties, StringComparer.OrdinalIgnoreCase);
         }

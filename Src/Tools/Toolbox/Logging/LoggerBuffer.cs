@@ -21,7 +21,7 @@ namespace Toolbox.Logging
 
         public LoggerBuffer(int maxSize = 1000)
         {
-            maxSize.VerifyAssert(x => x > 0, $"{nameof(maxSize)} must be greater then 0");
+            maxSize.Assert(x => x > 0, $"{nameof(maxSize)} must be greater then 0");
 
             _maxSize = maxSize;
             _block = new ActionBlock<string>(Receiver);

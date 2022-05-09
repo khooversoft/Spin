@@ -52,7 +52,7 @@ namespace Toolbox.Tools
             ) where T : Exception
         {
             if (test) return;
-            message.VerifyNotEmpty(nameof(message));
+            message.NotEmpty(nameof(message));
 
             message += ", " + FormatCaller(function, path, lineNumber);
             logger?.LogError(message);
@@ -68,7 +68,7 @@ namespace Toolbox.Tools
         /// <param name="message">message</param>
         /// <returns>subject</returns>
         [DebuggerStepThrough]
-        public static T VerifyAssert<T>(
+        public static T Assert<T>(
                 this T subject,
                 Func<T, bool> test,
                 string message,
@@ -80,7 +80,7 @@ namespace Toolbox.Tools
         {
             if (test(subject)) return subject;
 
-            message.VerifyNotEmpty(nameof(message));
+            message.NotEmpty(nameof(message));
 
             message += ", " + FormatCaller(function, path, lineNumber);
             logger?.LogError(message);
@@ -96,7 +96,7 @@ namespace Toolbox.Tools
         /// <param name="getMessage">get message</param>
         /// <returns>subject</returns>
         [DebuggerStepThrough]
-        public static T VerifyAssert<T>(
+        public static T Assert<T>(
                 this T subject,
                 Func<T, bool> test,
                 Func<T, string> getMessage,
@@ -108,7 +108,7 @@ namespace Toolbox.Tools
         {
             if (test(subject)) return subject;
 
-            getMessage.VerifyNotNull(nameof(getMessage));
+            getMessage.NotNull(nameof(getMessage));
             string msg = getMessage(subject) + ", " + FormatCaller(function, path, lineNumber);
             logger?.LogError(msg);
             throw new ArgumentException(msg);
@@ -121,7 +121,7 @@ namespace Toolbox.Tools
         /// <param name="test">test</param>
         /// <param name="message">exception message optional</param>
         [DebuggerStepThrough]
-        public static T VerifyAssert<T, TException>(
+        public static T Assert<T, TException>(
                 this T subject,
                 Func<T, bool> test,
                 Func<T, string> getMessage,
@@ -132,7 +132,7 @@ namespace Toolbox.Tools
             ) where TException : Exception
         {
             if (test(subject)) return subject;
-            getMessage.VerifyNotNull(nameof(getMessage));
+            getMessage.NotNull(nameof(getMessage));
 
             string msg = getMessage(subject) + ", " + FormatCaller(function, path, lineNumber);
 
@@ -149,7 +149,7 @@ namespace Toolbox.Tools
         /// <returns>subject</returns>
         [DebuggerStepThrough]
         [return: NotNull]
-        public static T VerifyNotNull<T>(
+        public static T NotNull<T>(
                 [NotNull] this T subject,
                 string name,
                 ILogger? logger = null,
@@ -178,7 +178,7 @@ namespace Toolbox.Tools
         /// <returns>subject</returns>
         [DebuggerStepThrough]
         [return: NotNull]
-        public static string VerifyNotEmpty(
+        public static string NotEmpty(
                 [NotNull] this string? subject,
                 string name,
                 ILogger? logger = null,
@@ -197,6 +197,27 @@ namespace Toolbox.Tools
             }
 
             return subject;
+        }
+
+        /// <summary>
+        /// Assert test
+        /// </summary>
+        /// <param name="state">state to test</param>
+        /// <param name="message">message</param>
+        [DebuggerStepThrough]
+        public static void AssertValid<T>(
+                this T value,
+                ILogger? logger = null,
+                [CallerMemberName] string function = "",
+                [CallerFilePath] string path = "",
+                [CallerLineNumber] int lineNumber = 0
+            ) where T : struct, Enum
+        {
+            if (value.IsValid()) return;
+
+            string message = FormatCaller(function, path, lineNumber);
+            logger?.LogError(message);
+            throw new ArgumentException(message);
         }
 
         private static string FormatCaller(string function, string path, int lineNumber) => $"Function={function}, File={path}, LineNumber={lineNumber}";

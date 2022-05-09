@@ -29,7 +29,7 @@ public record TrxRecord
 public static class TrxRecordExtensions
 {
     public static decimal NaturalAmount(this TrxRecord trxRecord) => trxRecord
-        .VerifyNotNull(nameof(TrxRequest))
+        .NotNull(nameof(TrxRequest))
         .Func(x => x.Type switch
         {
             TrxType.Credit => x.Amount,

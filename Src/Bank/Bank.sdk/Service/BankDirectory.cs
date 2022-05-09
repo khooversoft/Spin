@@ -30,14 +30,14 @@ public class BankDirectory
 
     public async Task<QueueClient<QueueMessage>> GetClient(string bankName, CancellationToken token)
     {
-        bankName.VerifyNotEmpty(nameof(bankName));
+        bankName.NotEmpty(nameof(bankName));
 
         await LoadDirectory(token);
 
         if (_clientCache.TryGetValue(bankName, out QueueClient<QueueMessage>? cacheClient)) return cacheClient;
 
         _banks.TryGetValue(bankName, out BankServiceRecord? bankDetail)
-            .VerifyAssert(x => x == true, $"No {bankName} was found");
+            .Assert(x => x == true, $"No {bankName} was found");
 
         QueueOption option = await GetQueueOption((DocumentId)bankDetail!.QueueId, token);
 
@@ -51,7 +51,7 @@ public class BankDirectory
         await LoadDirectory(token);
 
         _banks.TryGetValue(_bankOption.BankName, out BankServiceRecord? bankDetail)
-            .VerifyAssert(x => x == true, $"Bank {_bankOption.BankName} not found");
+            .Assert(x => x == true, $"Bank {_bankOption.BankName} not found");
 
         return await GetQueueOption((DocumentId)bankDetail!.QueueId, token);
     }
@@ -59,7 +59,7 @@ public class BankDirectory
     private async Task<QueueOption> GetQueueOption(DocumentId documentId, CancellationToken token)
     {
         DirectoryEntry queueEntry = (await _directoryClient.Get(documentId, token))
-            .VerifyNotNull($"{documentId} does not exist");
+            .NotNull($"{documentId} does not exist");
 
         return queueEntry.Properties
             .ToConfiguration()

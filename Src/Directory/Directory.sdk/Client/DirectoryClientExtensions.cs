@@ -18,24 +18,24 @@ public static class DirectoryClientExtensions
 {
     public static async Task<IReadOnlyList<StorageRecord>> GetStorageRecord(this DirectoryClient client, RunEnvironment runEnvironment, string settingName, CancellationToken token = default)
     {
-        client.VerifyNotNull(nameof(client));
+        client.NotNull(nameof(client));
 
         var documentId = (DocumentId)$"{runEnvironment}/setting/{settingName.GetInstanceName()}";
 
         DirectoryEntry entry = (await client.Get(documentId, token))
-            .VerifyNotNull($"Configuration {documentId} not found");
+            .NotNull($"Configuration {documentId} not found");
 
         List<StorageRecord> list = new();
 
         foreach (string item in entry.Properties)
         {
             DirectoryEntry storage = (await client.Get((DocumentId)item, token))
-                .VerifyNotNull($"Configuration {item} not found");
+                .NotNull($"Configuration {item} not found");
 
             StorageRecord storageRecord = storage.Properties
                 .ToConfiguration()
                 .Bind<StorageRecord>()
-                .VerifyNotNull($"Cannot bind to {nameof(StorageRecord)}")
+                .NotNull($"Cannot bind to {nameof(StorageRecord)}")
                 .Verify();
 
             list.Add(storageRecord);
@@ -46,12 +46,12 @@ public static class DirectoryClientExtensions
 
     public static async Task<ServiceRecord> GetServiceRecord(this DirectoryClient client, RunEnvironment runEnvironment, string serviceName, CancellationToken token = default)
     {
-        client.VerifyNotNull(nameof(client));
+        client.NotNull(nameof(client));
 
         var documentId = (DocumentId)$"{runEnvironment}/service/{serviceName.GetInstanceName()}";
 
         DirectoryEntry entry = (await client.Get(documentId, token))
-            .VerifyNotNull($"Configuration {documentId} not found");
+            .NotNull($"Configuration {documentId} not found");
 
         return entry
             .ConvertTo<ServiceRecord>()
@@ -60,12 +60,12 @@ public static class DirectoryClientExtensions
 
     public static async Task<QueueOption> GetQueueOption(this DirectoryClient client, RunEnvironment runEnvironment, string queueName, CancellationToken token = default)
     {
-        client.VerifyNotNull(nameof(client));
+        client.NotNull(nameof(client));
 
         var documentId = (DocumentId)$"{runEnvironment}/queue/{queueName.GetInstanceName()}";
 
         DirectoryEntry queueEntry = (await client.Get(documentId, token))
-            .VerifyNotNull($"{documentId} does not exist");
+            .NotNull($"{documentId} does not exist");
 
         return queueEntry.Properties
             .ToConfiguration()
@@ -74,13 +74,13 @@ public static class DirectoryClientExtensions
 
     public static async Task<BankServiceRecord> GetBankServiceRecord(this DirectoryClient client, RunEnvironment runEnvironment, string bankName, CancellationToken token = default)
     {
-        client.VerifyNotNull(nameof(client));
-        bankName.VerifyNotNull(nameof(bankName));
+        client.NotNull(nameof(client));
+        bankName.NotNull(nameof(bankName));
 
         var documentId = (DocumentId)$"{runEnvironment}/service/{bankName.GetInstanceName()}";
 
         DirectoryEntry entry = (await client.Get(documentId, token))
-            .VerifyNotNull($"Configuration {documentId} not found");
+            .NotNull($"Configuration {documentId} not found");
 
         return entry
             .ConvertTo<BankServiceRecord>()
@@ -90,12 +90,12 @@ public static class DirectoryClientExtensions
 
     public static async Task<BankDirectoryRecord> GetBankDirectory(this DirectoryClient client, RunEnvironment runEnvironment, CancellationToken token = default)
     {
-        client.VerifyNotNull(nameof(client));
+        client.NotNull(nameof(client));
 
         var documentId = (DocumentId)$"{runEnvironment}/setting/BankDirectory";
 
         DirectoryEntry entry = (await client.Get(documentId, token))
-            .VerifyNotNull($"Configuration {documentId} not found");
+            .NotNull($"Configuration {documentId} not found");
 
         return new BankDirectoryRecord
         {
@@ -107,7 +107,7 @@ public static class DirectoryClientExtensions
 
     public static async Task<IReadOnlyList<BankServiceRecord>> GetBankServiceRecords(this DirectoryClient client, RunEnvironment runEnvironment, CancellationToken token = default)
     {
-        client.VerifyNotNull(nameof(client));
+        client.NotNull(nameof(client));
 
         BankDirectoryRecord bankDirectoryRecord = await client.GetBankDirectory(runEnvironment, token);
 
@@ -115,7 +115,7 @@ public static class DirectoryClientExtensions
         foreach (BankDirectoryEntry bank in bankDirectoryRecord.Banks.Values)
         {
             BankServiceRecord bankEntry = (await client.GetBankServiceRecord(runEnvironment, bank.BankName, token))
-                .VerifyNotNull($"BankId={bank.DirectoryId} does not exist");
+                .NotNull($"BankId={bank.DirectoryId} does not exist");
 
             list.Add(bankEntry);
         }
@@ -125,7 +125,7 @@ public static class DirectoryClientExtensions
 
     private static string GetInstanceName(this string name)
     {
-        name.VerifyNotEmpty(nameof(name));
+        name.NotEmpty(nameof(name));
 
         string[] item = name.Split('/');
 

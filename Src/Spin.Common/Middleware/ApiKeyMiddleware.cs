@@ -19,10 +19,10 @@ namespace Spin.Common.Middleware
 
         public ApiKeyMiddleware(RequestDelegate next, string apiKeyName, string apiKey, IEnumerable<string> bypassPaths)
         {
-            next.VerifyNotNull(nameof(next));
-            apiKeyName.VerifyNotNull(nameof(apiKeyName));
-            apiKey.VerifyNotNull(nameof(apiKey));
-            bypassPaths.VerifyNotNull(nameof(bypassPaths));
+            next.NotNull(nameof(next));
+            apiKeyName.NotNull(nameof(apiKeyName));
+            apiKey.NotNull(nameof(apiKey));
+            bypassPaths.NotNull(nameof(bypassPaths));
 
             _next = next;
             _apiKeyName = apiKeyName;

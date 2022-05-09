@@ -29,8 +29,8 @@ namespace Toolbox.Pattern
         public bool TryMatch(PatternSearch pathPatternSearch, string source, [NotNullWhen(true)] out PatternResult? pathPatternResult)
         {
             pathPatternSearch
-                .VerifyNotNull(nameof(pathPatternSearch))
-                .Pattern.VerifyNotEmpty(nameof(pathPatternSearch.Pattern));
+                .NotNull(nameof(pathPatternSearch))
+                .Pattern.NotEmpty(nameof(pathPatternSearch.Pattern));
 
             pathPatternResult = null;
             if (source.IsEmpty()) return false;

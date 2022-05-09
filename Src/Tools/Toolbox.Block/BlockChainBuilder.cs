@@ -17,7 +17,7 @@ public class BlockChainBuilder
 
     public BlockChain Build()
     {
-        PrincipleId.VerifyNotEmpty(nameof(PrincipleId));
+        PrincipleId.NotEmpty(nameof(PrincipleId));
 
         DataBlock genesisBlock = DataBlockBuilder.CreateGenesisBlock(PrincipleId);
 

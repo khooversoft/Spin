@@ -11,8 +11,8 @@ namespace Toolbox.Azure.Queue
     {
         public static CreateQueueOptions ToCreateQueue(this QueueDefinition subject)
         {
-            subject.VerifyNotNull(nameof(subject));
-            subject.QueueName!.VerifyNotEmpty(nameof(subject.QueueName));
+            subject.NotNull(nameof(subject));
+            subject.QueueName!.NotEmpty(nameof(subject.QueueName));
 
             var option = new CreateQueueOptions(subject.QueueName)
             {
@@ -36,7 +36,7 @@ namespace Toolbox.Azure.Queue
 
         public static QueueDefinition ConvertTo(this CreateQueueOptions subject)
         {
-            subject.VerifyNotNull(nameof(subject));
+            subject.NotNull(nameof(subject));
 
             return new QueueDefinition
             {
@@ -55,7 +55,7 @@ namespace Toolbox.Azure.Queue
 
         public static QueueDefinition ConvertTo(this QueueProperties subject)
         {
-            subject.VerifyNotNull(nameof(subject));
+            subject.NotNull(nameof(subject));
 
             return new QueueDefinition
             {
@@ -79,22 +79,22 @@ namespace Toolbox.Azure.Queue
 
         public static QueueOption Verify(this QueueOption subject)
         {
-            subject.VerifyNotNull(nameof(subject));
+            subject.NotNull(nameof(subject));
 
-            subject.Namespace.VerifyNotEmpty(nameof(subject.Namespace));
-            subject.QueueName.VerifyNotEmpty(nameof(subject.QueueName));
-            subject.KeyName.VerifyNotEmpty(nameof(subject.KeyName));
-            subject.AccessKey.VerifyNotEmpty(nameof(subject.AccessKey));
+            subject.Namespace.NotEmpty(nameof(subject.Namespace));
+            subject.QueueName.NotEmpty(nameof(subject.QueueName));
+            subject.KeyName.NotEmpty(nameof(subject.KeyName));
+            subject.AccessKey.NotEmpty(nameof(subject.AccessKey));
 
             return subject;
         }
 
         public static void Verify<T>(this QueueReceiverOption<T> subject) where T : class
         {
-            subject.VerifyNotNull(nameof(subject));
+            subject.NotNull(nameof(subject));
 
             subject.QueueOption.Verify();
-            subject.Receiver.VerifyNotNull(nameof(subject.Receiver));
+            subject.Receiver.NotNull(nameof(subject.Receiver));
         }
 
         public static ServiceBusMessage ToMessage<T>(this T subject) where T : class
@@ -109,8 +109,8 @@ namespace Toolbox.Azure.Queue
 
         public static T? FromMessage<T>(this ServiceBusMessage message)
         {
-            message.VerifyNotNull(nameof(message));
-            message.ContentType.VerifyAssert(x => x == nameof(T), "Invalid content type");
+            message.NotNull(nameof(message));
+            message.ContentType.Assert(x => x == nameof(T), "Invalid content type");
 
             return message.Body.ToArray().ToObject<T>();
         }

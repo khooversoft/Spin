@@ -8,8 +8,8 @@ public static class Extensions
 {
     public static IServiceCollection AddBankHost(this IServiceCollection service, BankOption bankOption)
     {
-        service.VerifyNotNull(nameof(service));
-        service.VerifyNotNull(nameof(bankOption));
+        service.NotNull(nameof(service));
+        service.NotNull(nameof(bankOption));
 
         service.AddSingleton(bankOption);
 

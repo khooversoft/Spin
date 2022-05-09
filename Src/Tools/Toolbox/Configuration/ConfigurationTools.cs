@@ -20,8 +20,8 @@ namespace Toolbox.Configuration
         /// <returns>list of Json files</returns>
         public static IReadOnlyList<string> GetJsonFiles(string file, IPropertyResolver resolver)
         {
-            file.VerifyNotEmpty(nameof(file));
-            resolver.VerifyNotNull(nameof(resolver));
+            file.NotEmpty(nameof(file));
+            resolver.NotNull(nameof(resolver));
 
             file = resolver.Resolve(file);
             if (!File.Exists(file)) return new[] { file };
@@ -34,7 +34,7 @@ namespace Toolbox.Configuration
             while (stack.TryPop(out string? inlcudeFile))
             {
                 list.Add(inlcudeFile);
-                File.Exists(inlcudeFile).VerifyAssert(x => x == true, $"File {inlcudeFile} does not exist");
+                File.Exists(inlcudeFile).Assert(x => x == true, $"File {inlcudeFile} does not exist");
 
                 try
                 {

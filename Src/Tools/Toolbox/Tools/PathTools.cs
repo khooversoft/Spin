@@ -9,8 +9,8 @@ namespace Toolbox.Tools
     {
         public static string SetExtension(string path, string extension)
         {
-            path.VerifyNotEmpty(nameof(path));
-            extension.VerifyNotEmpty(nameof(extension));
+            path.NotEmpty(nameof(path));
+            extension.NotEmpty(nameof(extension));
 
             extension = extension.StartsWith(".") ? extension : "." + extension;
 
@@ -19,7 +19,7 @@ namespace Toolbox.Tools
 
         public static string RemoveExtension(string path, string extension, params string[] extensions)
         {
-            path.VerifyNotEmpty(nameof(path));
+            path.NotEmpty(nameof(path));
 
             var extensionList = (extension.ToEnumerable().Concat(extensions))
                 .Select(x => x.StartsWith(".") ? x : "." + x)

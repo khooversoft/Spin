@@ -15,8 +15,8 @@ public class TableStore
 
     public TableStore(TableOption tableOption, ILogger<TableStore> logger)
     {
-        _tableOption = tableOption.VerifyNotNull(nameof(tableOption));
-        _logger = logger.VerifyNotNull(nameof(logger));
+        _tableOption = tableOption.NotNull(nameof(tableOption));
+        _logger = logger.NotNull(nameof(logger));
 
         //var account = CloudStorageAccount
     }

@@ -30,24 +30,24 @@ public static class IdentityEntryExtensions
 {
     public static void Verify(this IdentityEntry subject)
     {
-        subject.VerifyNotNull(nameof(subject));
+        subject.NotNull(nameof(subject));
         subject.DirectoryId.VerifyDocumentId();
-        subject.Subject.VerifyNotEmpty(nameof(subject.Subject));
-        subject.ClassType.VerifyNotEmpty(nameof(subject.ClassType));
-        subject.PublicKey.VerifyNotNull(nameof(subject.PublicKey));
-        subject.Properties.VerifyNotNull(nameof(subject.Properties));
+        subject.Subject.NotEmpty(nameof(subject.Subject));
+        subject.ClassType.NotEmpty(nameof(subject.ClassType));
+        subject.PublicKey.NotNull(nameof(subject.PublicKey));
+        subject.Properties.NotNull(nameof(subject.Properties));
     }
 
     public static void VerifyWithPrivateKey(this IdentityEntry subject)
     {
         subject.Verify();
-        subject.PrivateKey.VerifyNotNull(nameof(subject.PrivateKey));
+        subject.PrivateKey.NotNull(nameof(subject.PrivateKey));
     }
 
     public static RSAParameters GetRsaParameters(this IdentityEntry identityEntry)
     {
-        identityEntry.VerifyNotNull(nameof(identityEntry));
-        identityEntry.PublicKey.VerifyNotNull(nameof(identityEntry.PublicKey));
+        identityEntry.NotNull(nameof(identityEntry));
+        identityEntry.PublicKey.NotNull(nameof(identityEntry.PublicKey));
 
         RSA rsa = RSA.Create();
         rsa.ImportRSAPublicKey(identityEntry.PublicKey, out int publicReadSize);

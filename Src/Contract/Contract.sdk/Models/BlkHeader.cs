@@ -1,4 +1,5 @@
 ﻿using Toolbox.Abstractions;
+using Toolbox.Block;
 using Toolbox.Tools;
 
 namespace Contract.sdk.Models;
@@ -11,7 +12,7 @@ public record BlkHeader : BlkBase
 
     public string Description { get; init; } = null!;
 
-    public DateTime Created { get; init; } = DateTime.UtcNow;
+    public IReadOnlyList<DataBlock>? Blocks { get; init; }
 }
 
 
@@ -19,11 +20,11 @@ public static class BlkHeaderExtensions
 {
     public static void Verify(this BlkHeader subject)
     {
-        subject.VerifyNotNull(nameof(subject));
+        subject.NotNull(nameof(subject));
         subject.VerifyBase();
 
         DocumentId.VerifyId(subject.DocumentId);
-        subject.Creator.VerifyNotEmpty(nameof(subject.Creator));
-        subject.Description.VerifyNotEmpty(nameof(subject.Description));
+        subject.Creator.NotEmpty(nameof(subject.Creator));
+        subject.Description.NotEmpty(nameof(subject.Description));
     }
 }

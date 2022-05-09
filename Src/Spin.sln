@@ -95,7 +95,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Abstractions", "Too
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Smart", "Smart", "{A7320A90-705D-4C92-B370-7E69D482A14E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart-Installment", "Contract\Smart\Smart-Installment\Smart-Installment.csproj", "{ABB1B633-C252-41B5-9220-F7BC743B2AE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart-Installment", "Smart\Smart-Installment\Smart-Installment.csproj", "{ABB1B633-C252-41B5-9220-F7BC743B2AE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart-Installment.sdk", "Smart\Smart-Installment.sdk\Smart-Installment.sdk.csproj", "{9904EC71-254C-46E9-816B-8632B60B75B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -255,6 +257,10 @@ Global
 		{ABB1B633-C252-41B5-9220-F7BC743B2AE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABB1B633-C252-41B5-9220-F7BC743B2AE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABB1B633-C252-41B5-9220-F7BC743B2AE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9904EC71-254C-46E9-816B-8632B60B75B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9904EC71-254C-46E9-816B-8632B60B75B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9904EC71-254C-46E9-816B-8632B60B75B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9904EC71-254C-46E9-816B-8632B60B75B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -298,6 +304,7 @@ Global
 		{6D3BA714-00C3-431C-9E3C-6E01A2D2F8C6} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
 		{A7320A90-705D-4C92-B370-7E69D482A14E} = {AB2A70BC-C50D-43FC-9C78-B266D00697AD}
 		{ABB1B633-C252-41B5-9220-F7BC743B2AE4} = {A7320A90-705D-4C92-B370-7E69D482A14E}
+		{9904EC71-254C-46E9-816B-8632B60B75B2} = {A7320A90-705D-4C92-B370-7E69D482A14E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

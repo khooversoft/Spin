@@ -20,7 +20,7 @@ internal class DeleteActivity
 
     internal async Task DeleteEntry(string documentId, CancellationToken token)
     {
-        documentId.VerifyNotEmpty(nameof(documentId));
+        documentId.NotEmpty(nameof(documentId));
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId });
 
@@ -32,14 +32,14 @@ internal class DeleteActivity
 
     internal async Task DeleteProperty(string documentId, string[] properties, CancellationToken token)
     {
-        documentId.VerifyNotEmpty(nameof(documentId));
-        properties.VerifyNotNull(nameof(properties));
+        documentId.NotEmpty(nameof(documentId));
+        properties.NotNull(nameof(properties));
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId });
 
         var id = new DocumentId(documentId);
         DirectoryEntry entry = (await _directoryClient.Get(id))
-            .VerifyNotNull($"{documentId} does not exist");
+            .NotNull($"{documentId} does not exist");
 
         var hash = new HashSet<string>(properties);
 

@@ -23,7 +23,7 @@ public class LogBindingErrors
                     .FirstOrDefault();
 
                 Logger
-                    .VerifyNotNull("Logger not set, execute: app.UseLogBindingErrors()")
+                    .NotNull("Logger not set, execute: app.UseLogBindingErrors()")
                     .LogError("{requestPath} received invalid message format: {errors}",
                         actionContext.HttpContext.Request.Path.Value,
                         error?.Errors?.Select(x => $"{x.Key}={x.Value.Join(", ")}")
