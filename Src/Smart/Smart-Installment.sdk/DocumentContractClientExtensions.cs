@@ -12,7 +12,7 @@ public static class DocumentContractClientExtensions
 {
     public static async Task Create(this DocumentContractClient client, CreateContractOption option, CancellationToken token)
     {
-        client.NotNull(nameof(client));
+        client.NotNull();
         option.Verify();
 
         var contract = new InstallmentContract

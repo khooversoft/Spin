@@ -15,7 +15,7 @@ public static class ZipTools
 {
     public static void Write(this ZipArchive zipArchive, string path, string data)
     {
-        data.NotEmpty(nameof(data));
+        data.NotEmpty();
 
         using var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(data));
         zipArchive.Write(path, memoryStream);
@@ -23,7 +23,7 @@ public static class ZipTools
 
     public static void Write(this ZipArchive zipArchive, string path, byte[] data)
     {
-        data.NotNull(nameof(data));
+        data.NotNull();
 
         using var memoryStream = new MemoryStream(data);
         zipArchive.Write(path, memoryStream);
@@ -31,9 +31,9 @@ public static class ZipTools
 
     public static void Write(this ZipArchive zipArchive, string path, Stream sourceStream)
     {
-        zipArchive.NotNull(nameof(zipArchive));
-        path.NotEmpty(nameof(path));
-        sourceStream.NotNull(nameof(sourceStream));
+        zipArchive.NotNull();
+        path.NotEmpty();
+        sourceStream.NotNull();
 
         ZipArchiveEntry entry = zipArchive!.CreateEntry(path);
 
@@ -43,8 +43,8 @@ public static class ZipTools
 
     public static bool Exist(this ZipArchive zipArchive, string path)
     {
-        zipArchive.NotNull(nameof(zipArchive));
-        path.NotEmpty(nameof(path));
+        zipArchive.NotNull();
+        path.NotEmpty();
 
         ZipArchiveEntry? zipArchiveEntry = zipArchive!.Entries
             .Where(x => x.FullName == path)
@@ -55,7 +55,7 @@ public static class ZipTools
 
     public static string ReadAsString(this ZipArchive zipArchive, string path)
     {
-        zipArchive.NotNull(nameof(zipArchive));
+        zipArchive.NotNull();
         using var memoryStream = new MemoryStream();
 
         zipArchive.Read(path, memoryStream);
@@ -66,7 +66,7 @@ public static class ZipTools
 
     public static byte[] Read(this ZipArchive zipArchive, string path)
     {
-        zipArchive.NotNull(nameof(zipArchive));
+        zipArchive.NotNull();
 
         using var memoryStream = new MemoryStream();
         zipArchive.Read(path, memoryStream);
@@ -77,12 +77,12 @@ public static class ZipTools
 
     public static void Read(this ZipArchive zipArchive, string path, Stream targetStream)
     {
-        zipArchive.NotNull(nameof(zipArchive));
-        path.NotEmpty(nameof(path));
-        targetStream.NotNull(nameof(targetStream));
+        zipArchive.NotNull();
+        path.NotEmpty();
+        targetStream.NotNull();
 
         ZipArchiveEntry? entry = zipArchive!.GetEntry(path);
-        entry.NotNull($"{path} does not exist in zip");
+        entry.NotNull(name: $"{path} does not exist in zip");
 
         using StreamReader writer = new StreamReader(entry.Open());
         writer.BaseStream.CopyTo(targetStream);

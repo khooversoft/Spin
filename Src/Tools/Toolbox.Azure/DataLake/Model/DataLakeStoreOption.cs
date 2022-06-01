@@ -18,11 +18,11 @@ public static class DatalakeStoreOptionExtensions
 {
     public static DatalakeStoreOption Verify(this DatalakeStoreOption option)
     {
-        option.NotNull(nameof(option));
+        option.NotNull();
 
-        option.AccountName.NotEmpty(nameof(option.AccountName));
-        option.AccountKey.NotEmpty(nameof(option.AccountKey));
-        option.ContainerName.NotEmpty(nameof(option.ContainerName));
+        option.AccountName.NotEmpty();
+        option.AccountKey.NotEmpty();
+        option.ContainerName.NotEmpty();
 
         return option;
     }

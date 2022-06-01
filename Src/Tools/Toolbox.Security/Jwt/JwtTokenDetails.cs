@@ -16,7 +16,7 @@ namespace Toolbox.Security
     {
         public JwtTokenDetails(JwtSecurityToken jwtSecurityToken)
         {
-            jwtSecurityToken.NotNull(nameof(jwtSecurityToken));
+            jwtSecurityToken.NotNull();
 
             JwtSecurityToken = jwtSecurityToken;
 
@@ -41,8 +41,8 @@ namespace Toolbox.Security
         public JwtTokenDetails(JwtSecurityToken jwtSecurityToken, SecurityToken securityToken, ClaimsPrincipal claimsPrincipal)
             : this(jwtSecurityToken)
         {
-            securityToken.NotNull(nameof(securityToken));
-            claimsPrincipal.NotNull(nameof(claimsPrincipal));
+            securityToken.NotNull();
+            claimsPrincipal.NotNull();
 
             SecurityToken = securityToken;
             ClaimsPrincipal = claimsPrincipal;

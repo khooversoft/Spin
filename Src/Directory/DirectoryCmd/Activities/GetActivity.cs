@@ -22,7 +22,7 @@ internal class GetActivity
 
     public async Task WriteFile(string file, string path, bool recursive, CancellationToken token)
     {
-        file.NotEmpty(nameof(file));
+        file.NotEmpty();
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(WriteFile), File=file, Path=path, Recursive=recursive });
 
@@ -69,7 +69,7 @@ internal class GetActivity
         var id = new DocumentId(directoryId);
 
         DirectoryEntry directoryEntry = (await _directoryClient.Get(id, token))
-            .NotNull($"{directoryId} not found");
+            .NotNull(name: $"{directoryId} not found");
 
         string lines = new[]
         {

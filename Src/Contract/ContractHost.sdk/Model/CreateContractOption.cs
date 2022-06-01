@@ -23,15 +23,15 @@ public static class CreateContractOptionExtensions
 {
     public static CreateContractOption Verify(this CreateContractOption option)
     {
-        option.NotNull(nameof(option));
+        option.NotNull();
 
-        option.Creator.NotNull(nameof(option.Creator));
-        option.Description.NotNull(nameof(option.Description));
+        option.Creator.NotNull();
+        option.Description.NotNull();
 
-        option.SellerUserId.NotNull(nameof(option.SellerUserId));
-        option.SellerBankAccountId.NotNull(nameof(option.SellerBankAccountId));
-        option.PurchaserUserId.NotNull(nameof(option.PurchaserUserId));
-        option.PurchaserBankAccountId.NotNull(nameof(option.PurchaserBankAccountId));
+        option.SellerUserId.NotNull();
+        option.SellerBankAccountId.NotNull();
+        option.PurchaserUserId.NotNull();
+        option.PurchaserBankAccountId.NotNull();
 
         return option;
     }

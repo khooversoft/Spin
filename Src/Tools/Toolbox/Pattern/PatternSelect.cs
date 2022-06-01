@@ -19,7 +19,7 @@ namespace Toolbox.Pattern
             lock (_lock)
             {
                 name
-                    .NotEmpty(nameof(name))
+                    .NotEmpty()
                     .Assert(x => _patterns.Any(y => string.Equals(y.Key, name, StringComparison.OrdinalIgnoreCase)) == false, $"Duplicate name {name}");
 
                 _patterns.Add(new KeyValuePair<string, PatternFactory>(name, new PatternFactory { Name = name, Factory = factory }));

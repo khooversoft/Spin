@@ -29,7 +29,7 @@ public class ContractService
 
     public async Task<BlockChainModel?> Get(DocumentId documentId, CancellationToken token)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
 
         Document? document = await _artifactClient.Get(documentId.WithContainer(_container), token);
         if (document == null) return null;
@@ -40,8 +40,8 @@ public class ContractService
 
     public async Task Set(DocumentId documentId, BlockChainModel blockChain, CancellationToken token)
     {
-        documentId.NotNull(nameof(documentId));
-        blockChain.NotNull(nameof(blockChain));
+        documentId.NotNull();
+        blockChain.NotNull();
 
         Document document = new DocumentBuilder()
             .SetDocumentId(documentId.WithContainer(_container))
@@ -53,7 +53,7 @@ public class ContractService
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
 
         bool status = await _artifactClient.Delete(documentId.WithContainer(_container), token: token);
         return status;
@@ -61,7 +61,7 @@ public class ContractService
 
     public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
     {
-        queryParameter.NotNull(nameof(queryParameter));
+        queryParameter.NotNull();
 
         queryParameter = queryParameter with { Container = _container };
         BatchSet<DatalakePathItem> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
@@ -74,7 +74,7 @@ public class ContractService
 
     public async Task<bool> Create(BlkHeader blkHeader, CancellationToken token)
     {
-        blkHeader.NotNull(nameof(blkHeader));
+        blkHeader.NotNull();
 
         var documentId = new DocumentId(blkHeader.DocumentId);
 
@@ -100,8 +100,8 @@ public class ContractService
 
     public async Task<bool> Append(DocumentId documentId, BlkBase blkBase, CancellationToken token)
     {
-        documentId.NotNull(nameof(documentId));
-        blkBase.NotNull(nameof(blkBase));
+        documentId.NotNull();
+        blkBase.NotNull();
 
         BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
         if (blockChain == null) return false;
@@ -130,7 +130,7 @@ public class ContractService
 
     public async Task<BlockChain> Sign(BlockChain blockChain, CancellationToken token)
     {
-        blockChain.NotNull(nameof(blockChain));
+        blockChain.NotNull();
 
         SignRequest request = blockChain.GetPrincipleDigests().ToSignRequest();
         if (request.PrincipleDigests.Count == 0) return blockChain;
@@ -142,7 +142,7 @@ public class ContractService
 
     public async Task<bool> Validate(DocumentId documentId, CancellationToken token)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
 
         BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
         if (blockChain == null) return false;
@@ -153,7 +153,7 @@ public class ContractService
 
     public async Task<bool> Validate(BlockChain blockChain, CancellationToken token)
     {
-        blockChain.NotNull(nameof(blockChain));
+        blockChain.NotNull();
 
         ValidateRequest request = blockChain.GetPrincipleDigests(onlyUnsighed: false).ToValidateRequest();
         return await _signingClient.Validate(request, token);

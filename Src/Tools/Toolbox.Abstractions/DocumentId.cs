@@ -16,7 +16,7 @@ public class DocumentId
 
     public DocumentId(string id)
     {
-        id.NotEmpty(id);
+        id.NotEmpty(name: id);
 
         Id = id.ToLower();
         VerifyId(Id);
@@ -65,7 +65,7 @@ public static class DocumentIdExtensions
 {
     public static RunEnvironment GetRunEnvironment(this DocumentId documentId)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
         return (RunEnvironment)Enum.Parse(typeof(RunEnvironment), documentId.Path.Split('/').First());
     }
 

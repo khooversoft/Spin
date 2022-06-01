@@ -22,8 +22,8 @@ public static class DocumentIdTools
 
     public static DocumentId WithContainer(this DocumentId documentId, string container)
     {
-        documentId.NotNull(nameof(documentId));
-        container.NotEmpty(nameof(container));
+        documentId.NotNull();
+        container.NotEmpty();
 
         return new DocumentId(container + ":" + documentId.Path);
     }

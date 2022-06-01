@@ -1,11 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Services;
 using Toolbox.Tools;
@@ -46,7 +43,7 @@ namespace Toolbox.Application
 
             return Assembly.GetAssembly(type)!
                 .GetManifestResourceStream(resourceId)
-                .NotNull($"Resource {resourceId} not found in assembly");
+                .NotNull(name: $"Resource {resourceId} not found in assembly");
         }
     }
 }

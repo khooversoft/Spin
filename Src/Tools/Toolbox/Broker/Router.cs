@@ -23,8 +23,8 @@ namespace Toolbox.Broker
 
         public async Task Send(string path, object message)
         {
-            path.NotEmpty(nameof(path));
-            message.NotNull(nameof(message));
+            path.NotEmpty();
+            message.NotNull();
 
             _patternSelect ??= new PatternSelect()
                 .Action(x => _routes.Values.ForEach(y => x.AddPattern(y.Pattern, y.Pattern)));
@@ -70,7 +70,7 @@ namespace Toolbox.Broker
 
         public Router Delete(string path)
         {
-            _routes.TryRemove(path.NotEmpty(nameof(path)), out IRoute? _);
+            _routes.TryRemove(path.NotEmpty(), out IRoute? _);
             _patternSelect = null;
             return this;
         }

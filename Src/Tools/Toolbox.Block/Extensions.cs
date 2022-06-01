@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Security;
-using Toolbox.Security.Extensions;
-using Toolbox.Security.Sign;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Block
 {
@@ -14,9 +10,9 @@ namespace Toolbox.Block
     {
         public static BlockChain Add<T>(this BlockChain blockChain, T value, string principleId)
         {
-            blockChain.NotNull(nameof(blockChain));
-            value.NotNull(nameof(value));
-            principleId.NotEmpty(nameof(principleId));
+            blockChain.NotNull();
+            value.NotNull();
+            principleId.NotEmpty();
 
             blockChain += new DataBlockBuilder()
                 .SetTimeStamp(DateTime.UtcNow)
@@ -31,14 +27,14 @@ namespace Toolbox.Block
 
         public static BlockChain ToBlockChain(this BlockChainModel blockChainModel)
         {
-            blockChainModel.NotNull(nameof(blockChainModel));
+            blockChainModel.NotNull();
 
             return new BlockChain(blockChainModel.Blocks);
         }
 
         public static BlockChainModel ToBlockChainModel(this BlockChain blockChain)
         {
-            blockChain.NotNull(nameof(blockChain));
+            blockChain.NotNull();
 
             return new BlockChainModel { Blocks = blockChain.Blocks.ToList() };
         }

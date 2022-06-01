@@ -26,7 +26,7 @@ namespace Toolbox.Azure.DataLake
         public DatalakeStore(DatalakeStoreOption azureStoreOption, ILogger<DatalakeStore> logger)
         {
             _azureStoreOption = azureStoreOption.Verify();
-            _logger = logger.NotNull(nameof(logger));
+            _logger = logger.NotNull();
 
             _serviceClient = azureStoreOption.CreateDataLakeServiceClient();
 
@@ -40,7 +40,7 @@ namespace Toolbox.Azure.DataLake
             _logger.LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
 
             data
-                .NotNull(nameof(data))
+                .NotNull()
                 .Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
 
             using var memoryBuffer = new MemoryStream(data.ToArray());
@@ -142,7 +142,7 @@ namespace Toolbox.Azure.DataLake
         public async Task Read(string path, Stream toStream, CancellationToken token = default)
         {
             path = WithBasePath(path);
-            toStream.NotNull(nameof(toStream));
+            toStream.NotNull();
             _logger.LogTrace("Reading {path} to stream", path);
 
             try
@@ -228,7 +228,7 @@ namespace Toolbox.Azure.DataLake
             toPath = WithBasePath(toPath);
             _logger.LogTrace($"Writing from stream to {toPath}");
 
-            fromStream.NotNull(nameof(fromStream));
+            fromStream.NotNull();
 
             try
             {
@@ -247,7 +247,7 @@ namespace Toolbox.Azure.DataLake
             _logger.LogTrace($"Writing to {path}, data.Length={data.Length}, eTag={eTag}");
 
             data
-                .NotNull(nameof(data))
+                .NotNull()
                 .Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
 
             _logger.LogTrace($"{nameof(Write)} to {path}");

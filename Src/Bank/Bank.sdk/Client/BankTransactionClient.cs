@@ -43,6 +43,6 @@ public class BankTransactionClient : IBankTransactionClient
         string json = await response.Content.ReadAsStringAsync();
 
         return Json.Default.Deserialize<TrxBatch<TrxRequestResponse>>(json)
-            .NotNull("Deserialize failed");
+            .NotNull(name: "Deserialize failed");
     }
 }

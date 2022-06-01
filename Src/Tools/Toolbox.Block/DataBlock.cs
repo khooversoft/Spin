@@ -33,7 +33,7 @@ public static class DataBlockExtensions
 {
     public static string GetDigest(this DataBlock dataBlock)
     {
-        dataBlock.NotNull(nameof(dataBlock));
+        dataBlock.NotNull();
 
         var hashes = new string[]
         {
@@ -48,18 +48,18 @@ public static class DataBlockExtensions
 
     public static void Verify(this DataBlock dataBlock)
     {
-        dataBlock.NotNull(nameof(dataBlock));
+        dataBlock.NotNull();
 
-        dataBlock.BlockType.NotEmpty(nameof(dataBlock.BlockType));
-        dataBlock.BlockId.NotEmpty(nameof(dataBlock.BlockId));
-        dataBlock.Data.NotEmpty(nameof(dataBlock.Data));
-        dataBlock.PrincipleId.NotEmpty(nameof(dataBlock.PrincipleId));
-        dataBlock.Digest.NotEmpty(nameof(dataBlock.Digest));
+        dataBlock.BlockType.NotEmpty();
+        dataBlock.BlockId.NotEmpty();
+        dataBlock.Data.NotEmpty();
+        dataBlock.PrincipleId.NotEmpty();
+        dataBlock.Digest.NotEmpty();
     }
 
     public static DataBlock ToDataBlock<T>(this T subject, string principalId) where T : class
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
         if (subject.GetType().IsAssignableTo(typeof(IEnumerable<T>)))
         {
@@ -75,7 +75,7 @@ public static class DataBlockExtensions
 
     public static DataBlock ToDataBlock<T>(this IEnumerable<T> subjects, string principalId)
     {
-        subjects.NotNull(nameof(subjects));
+        subjects.NotNull();
         subjects.Count().Assert(x => x > 0, "Empty set");
 
         return new DataBlockBuilder()
@@ -87,11 +87,11 @@ public static class DataBlockExtensions
 
     public static T ToObject<T>(this DataBlock dataBlock)
     {
-        dataBlock.NotNull(nameof(dataBlock));
-        dataBlock.Data.NotEmpty(nameof(dataBlock.Data));
+        dataBlock.NotNull();
+        dataBlock.Data.NotEmpty();
 
         return dataBlock.Data
             .ToObject<T>()
-            .NotNull("Serialization error");
+            .NotNull(name: "Serialization error");
     }
 }

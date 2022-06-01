@@ -46,7 +46,7 @@ public class KeyValuePairTests
 
         TestRecord testRecord = lines.ToConfiguration()
             .Bind<TestRecord>()
-            .NotNull("Parsing error");
+            .NotNull(name: "Parsing error");
 
         testRecord.Name.Should().Be("Name1");
         testRecord.Value.Should().Be("Value2");
@@ -63,7 +63,7 @@ public class KeyValuePairTests
 
         TestRecord testRecord = lines.ToConfiguration()
             .Bind<TestRecord>()
-            .NotNull("Parsing error");
+            .NotNull(name: "Parsing error");
 
         testRecord.Name.Should().Be("Name1");
         testRecord.Value.Should().Be("Value2");

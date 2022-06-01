@@ -37,10 +37,10 @@ public class DataBlockBuilder
 
     public DataBlock Build()
     {
-        BlockType.NotEmpty($"{nameof(BlockType)} is required");
-        BlockId.NotEmpty($"{nameof(BlockId)} is required");
-        Data.NotEmpty($"{nameof(Data)} is required");
-        PrincipleId.NotEmpty($"{nameof(SetPrincipleId)} is required");
+        BlockType.NotEmpty(name: $"{nameof(BlockType)} is required");
+        BlockId.NotEmpty(name: $"{nameof(BlockId)} is required");
+        Data.NotEmpty(name: $"{nameof(Data)} is required");
+        PrincipleId.NotEmpty(name: $"{nameof(SetPrincipleId)} is required");
 
         DataBlock dataBlock = new DataBlock
         {

@@ -9,9 +9,9 @@ namespace Toolbox.Tools
     {
         private T? _subject;
 
-        public SubjectScope(T subject) => _subject = subject.NotNull(nameof(subject));
+        public SubjectScope(T subject) => _subject = subject.NotNull();
 
-        public T Subject => _subject.NotNull(nameof(Subject));
+        public T Subject => _subject.NotNull();
 
         public T? SubjectOrDefault => _subject;
 
@@ -20,6 +20,6 @@ namespace Toolbox.Tools
 
     public static class SubjectScopeExtensions
     {
-        public static SubjectScope<T> ToSubjectScope<T>(this T subject) where T : class => new SubjectScope<T>(subject.NotNull(nameof(subject)));
+        public static SubjectScope<T> ToSubjectScope<T>(this T subject) where T : class => new SubjectScope<T>(subject.NotNull());
     }
 }

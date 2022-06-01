@@ -192,7 +192,7 @@ namespace Toolbox.Security
             List<MerkleProofHash> auditTrail = new List<MerkleProofHash>();
 
             var node = RootNode
-                .NotNull(nameof(RootNode))
+                .NotNull()
                 .Single(n => n.Hash == nodeHash);
 
             var parent = node.Parent;

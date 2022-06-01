@@ -22,9 +22,9 @@ public static class BankDirectoryRecordExtensions
 {
     public static BankDirectoryRecord Verify(this BankDirectoryRecord subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
-        subject.Banks.NotNull(nameof(subject.Banks));
+        subject.Banks.NotNull();
         subject.Banks.Assert(x => x?.Count > 0, "Banks list is empty");
 
         subject.Banks
@@ -39,10 +39,10 @@ public static class BankDirectoryRecordExtensions
 
     public static BankDirectoryEntry Verify(this BankDirectoryEntry subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
-        subject.BankName.NotEmpty($"{nameof(subject.BankName)} is required");
-        subject.DirectoryId.NotEmpty($"{nameof(subject.DirectoryId)} is required");
+        subject.BankName.NotEmpty(name: $"{nameof(subject.BankName)} is required");
+        subject.DirectoryId.NotEmpty(name: $"{nameof(subject.DirectoryId)} is required");
 
         return subject;
     }

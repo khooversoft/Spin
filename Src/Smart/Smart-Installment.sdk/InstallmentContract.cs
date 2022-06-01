@@ -27,10 +27,10 @@ public static class InstallmentContractExtensions
 {
     public static InstallmentContract Verify(this InstallmentContract subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
-        subject.Creator.NotEmpty(nameof(subject.Creator));
-        subject.Description.NotEmpty(nameof(subject.Description));
+        subject.Creator.NotEmpty();
+        subject.Description.NotEmpty();
         subject.NumPayments.Assert(x => x > 0, "NumPayment must be > 0");
         subject.Principal.Assert(x => x > 0.00m, "Principal amount must be > 0");
         subject.Payment.Assert(x => x > 0.00m, "Payment amount must be > 0");
@@ -40,7 +40,7 @@ public static class InstallmentContractExtensions
 
     public static decimal Balance(this IEnumerable<LedgerRecord> ledgerRecords)
     {
-        ledgerRecords.NotNull(nameof(ledgerRecords));
+        ledgerRecords.NotNull();
 
         return ledgerRecords
             .Select(x => x.NaturalAmount())

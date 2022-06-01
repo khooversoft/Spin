@@ -18,10 +18,10 @@ public static class LedgerExtensions
 {
     public static LedgerRecord Verify(this LedgerRecord subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
-        subject.Id.NotEmpty(nameof(subject.Id));
-        subject.TrxType.NotEmpty(nameof(subject.TrxType));
+        subject.Id.NotEmpty();
+        subject.TrxType.NotEmpty();
         subject.Type.Assert(x => Enum.IsDefined(typeof(LedgerType), x), "Invalid Ledger type");
         subject.Amount.Assert(x => x > 0, "Amount must be positive");
 
@@ -29,7 +29,7 @@ public static class LedgerExtensions
     }
 
     public static decimal NaturalAmount(this LedgerRecord ledgerRecord) => ledgerRecord
-        .NotNull(nameof(ledgerRecord))
+        .NotNull()
         .Func(x => x.Type switch
         {
             LedgerType.Credit => x.Amount,

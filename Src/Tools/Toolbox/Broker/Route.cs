@@ -8,8 +8,8 @@ namespace Toolbox.Broker
     {
         public Route(string pattern, Func<T, Task> receiver)
         {
-            pattern.NotEmpty(nameof(pattern));
-            receiver.NotNull(nameof(receiver));
+            pattern.NotEmpty();
+            receiver.NotNull();
 
             Pattern = pattern;
             Receiver = receiver;

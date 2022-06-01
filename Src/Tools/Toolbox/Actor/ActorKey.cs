@@ -15,7 +15,7 @@ namespace Toolbox.Actor
         /// <param name="vectorKey"></param>
         public ActorKey(string vectorKey)
         {
-            vectorKey.NotNull(nameof(vectorKey));
+            vectorKey.NotNull();
 
             Value = vectorKey.ToLowerInvariant();
             Key = Value.ToGuid();
@@ -39,7 +39,7 @@ namespace Toolbox.Actor
         /// <param name="actorKey"></param>
         public static explicit operator string(ActorKey actorKey)
         {
-            actorKey.NotNull(nameof(actorKey));
+            actorKey.NotNull();
 
             return actorKey.Value;
         }

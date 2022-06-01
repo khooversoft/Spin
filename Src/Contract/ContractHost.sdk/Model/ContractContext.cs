@@ -8,8 +8,8 @@ public record ContractContext
     public ContractContext(ContractHostOption contractHostOption, IReadOnlyList<EventClassRegistry> eventClassRegistries, string[] args)
     {
         Option = contractHostOption.Verify();
-        EventClassRegistries = eventClassRegistries.NotNull(nameof(eventClassRegistries));
-        Args = args.NotNull(nameof(args));
+        EventClassRegistries = eventClassRegistries.NotNull();
+        Args = args.NotNull();
     }
 
     public ContractHostOption Option { get; }

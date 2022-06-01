@@ -12,7 +12,7 @@ public static class DatalakeExtensions
 {
     public static DatalakePathItem ConvertTo(this PathItem subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
         return new DatalakePathItem
         {
@@ -29,8 +29,8 @@ public static class DatalakeExtensions
 
     public static DatalakePathProperties ConvertTo(this PathProperties subject, string path)
     {
-        subject.NotNull(nameof(subject));
-        path.NotEmpty(nameof(path));
+        subject.NotNull();
+        path.NotEmpty();
 
         return new DatalakePathProperties
         {
@@ -46,7 +46,7 @@ public static class DatalakeExtensions
 
     public static DataLakeServiceClient CreateDataLakeServiceClient(this DatalakeStoreOption azureStoreOption)
     {
-        azureStoreOption.NotNull(nameof(azureStoreOption));
+        azureStoreOption.NotNull();
 
         // Create DataLakeServiceClient using StorageSharedKeyCredentials
         var serviceUri = new Uri($"https://{azureStoreOption.AccountName}.blob.core.windows.net");

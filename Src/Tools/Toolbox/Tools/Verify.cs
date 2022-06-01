@@ -52,7 +52,7 @@ namespace Toolbox.Tools
             ) where T : Exception
         {
             if (test) return;
-            message.NotEmpty(nameof(message));
+            message.NotEmpty();
 
             message += ", " + FormatCaller(function, path, lineNumber);
             logger?.LogError(message);
@@ -80,9 +80,7 @@ namespace Toolbox.Tools
         {
             if (test(subject)) return subject;
 
-            message.NotEmpty(nameof(message));
-
-            message += ", " + FormatCaller(function, path, lineNumber);
+            message.NotEmpty(name: message += ", " + FormatCaller(function, path, lineNumber));
             logger?.LogError(message);
             throw new ArgumentException(message);
         }
@@ -108,7 +106,7 @@ namespace Toolbox.Tools
         {
             if (test(subject)) return subject;
 
-            getMessage.NotNull(nameof(getMessage));
+            getMessage.NotNull();
             string msg = getMessage(subject) + ", " + FormatCaller(function, path, lineNumber);
             logger?.LogError(msg);
             throw new ArgumentException(msg);
@@ -132,7 +130,7 @@ namespace Toolbox.Tools
             ) where TException : Exception
         {
             if (test(subject)) return subject;
-            getMessage.NotNull(nameof(getMessage));
+            getMessage.NotNull();
 
             string msg = getMessage(subject) + ", " + FormatCaller(function, path, lineNumber);
 
@@ -151,12 +149,12 @@ namespace Toolbox.Tools
         [return: NotNull]
         public static T NotNull<T>(
                 [NotNull] this T subject,
-                string name,
                 ILogger? logger = null,
                 string? message = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
-                [CallerLineNumber] int lineNumber = 0
+                [CallerLineNumber] int lineNumber = 0,
+                [CallerArgumentExpression("subject")] string name = ""
             )
         {
             if (subject == null || EqualityComparer<T>.Default.Equals(subject, default!))
@@ -180,12 +178,12 @@ namespace Toolbox.Tools
         [return: NotNull]
         public static string NotEmpty(
                 [NotNull] this string? subject,
-                string name,
                 ILogger? logger = null,
                 string? message = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
-                [CallerLineNumber] int lineNumber = 0
+                [CallerLineNumber] int lineNumber = 0,
+                [CallerArgumentExpression("subject")] string name = ""
             )
         {
             if (subject.IsEmpty())
@@ -220,6 +218,7 @@ namespace Toolbox.Tools
             throw new ArgumentException(message);
         }
 
+        [DebuggerStepThrough]
         private static string FormatCaller(string function, string path, int lineNumber) => $"Function={function}, File={path}, LineNumber={lineNumber}";
     }
 }

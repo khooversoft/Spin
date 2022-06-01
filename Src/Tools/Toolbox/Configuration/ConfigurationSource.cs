@@ -14,7 +14,7 @@ namespace Toolbox.Configuration
 
         public ConfigurationSource(Func<IConfigurationBuilder, IConfigurationProvider> factory)
         {
-            factory.NotNull(nameof(factory));
+            factory.NotNull();
 
             _factory = factory;
         }

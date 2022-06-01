@@ -34,7 +34,7 @@ namespace Toolbox.Application
 
         public static string ToResourceId(this RunEnvironment subject, string baseId)
         {
-            baseId.NotEmpty(nameof(baseId));
+            baseId.NotEmpty();
 
             return baseId + "." + subject.ToResourceId();
         }

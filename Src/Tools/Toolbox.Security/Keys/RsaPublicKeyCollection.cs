@@ -17,7 +17,7 @@ namespace Toolbox.Security.Keys
 
         public RsaPublicKeyCollection(RsaPublicKeyCollection subject)
         {
-            subject.NotNull(nameof(subject));
+            subject.NotNull();
 
             subject._collection
                 .ForEach(x => Add(x.Key, x.Value));

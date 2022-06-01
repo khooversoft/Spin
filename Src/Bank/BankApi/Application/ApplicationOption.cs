@@ -32,12 +32,12 @@ public static class ApplicationOptionExtensions
 {
     public static ApplicationOption VerifyPartial(this ApplicationOption option)
     {
-        option.NotNull(nameof(option));
+        option.NotNull();
 
-        option.BankName.NotEmpty($"{nameof(option.BankName)} is required");
-        option.ConfigStore.NotEmpty($"{nameof(option.ConfigStore)} is required");
-        option.DirectoryUrl.NotEmpty($"{nameof(option.DirectoryUrl)} is required");
-        option.DirectoryApiKey.NotEmpty($"{nameof(option.DirectoryApiKey)} is required");
+        option.BankName.NotEmpty(name: $"{nameof(option.BankName)} is required");
+        option.ConfigStore.NotEmpty(name: $"{nameof(option.ConfigStore)} is required");
+        option.DirectoryUrl.NotEmpty(name: $"{nameof(option.DirectoryUrl)} is required");
+        option.DirectoryApiKey.NotEmpty(name: $"{nameof(option.DirectoryApiKey)} is required");
 
         return option;
     }
@@ -46,11 +46,11 @@ public static class ApplicationOptionExtensions
     {
         option.VerifyPartial();
 
-        option.BankContainer.NotEmpty($"{nameof(option.BankContainer)} is required");
-        option.HostUrl.NotEmpty($"{nameof(option.HostUrl)} is required");
-        option.ApiKey.NotEmpty($"{nameof(option.ApiKey)} is required");
-        option.ArtifactUrl.NotNull(nameof(option.ArtifactUrl));
-        option.ArtifactApiKey.NotNull(nameof(option.ArtifactApiKey));
+        option.BankContainer.NotEmpty(name: $"{nameof(option.BankContainer)} is required");
+        option.HostUrl.NotEmpty(name: $"{nameof(option.HostUrl)} is required");
+        option.ApiKey.NotEmpty(name: $"{nameof(option.ApiKey)} is required");
+        option.ArtifactUrl.NotNull(name: $"{nameof(option.ArtifactUrl)} is required");
+        option.ArtifactApiKey.NotNull(name: $"{nameof(option.ArtifactApiKey)} is required");
 
         return option;
     }

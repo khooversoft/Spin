@@ -61,7 +61,7 @@ namespace Toolbox.Actor.Host
         /// <returns>actor instance</returns>
         public T GetActor<T>(ActorKey actorKey) where T : IActor
         {
-            actorKey.NotNull(nameof(actorKey));
+            actorKey.NotNull();
 
             Type actoryType = typeof(T);
 
@@ -99,7 +99,7 @@ namespace Toolbox.Actor.Host
         /// <returns>true if deactivated, false if not found</returns>
         public async Task<bool> Deactivate<T>(ActorKey actorKey)
         {
-            actorKey.NotNull(nameof(actorKey));
+            actorKey.NotNull();
 
             if (!_actorCollection.TryRemove(typeof(T), actorKey, out ActorInstance registration)) return false;
 

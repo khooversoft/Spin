@@ -37,9 +37,9 @@ public static class DirectoryTools
 
     public static async Task<T> Run<T>(string hostUrl, string apiKey, Func<DirectoryClient, Task<T>> action, ILoggerFactory? loggerFactory = null)
     {
-        hostUrl.NotEmpty(nameof(hostUrl));
-        apiKey.NotEmpty(nameof(apiKey));
-        action.NotNull(nameof(action));
+        hostUrl.NotEmpty();
+        apiKey.NotEmpty();
+        action.NotNull();
 
         ILoggerFactory factory = loggerFactory ?? LoggerFactory.Create(builder =>
         {

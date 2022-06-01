@@ -21,7 +21,7 @@ namespace Toolbox.Block
 
         public BlockChain(IEnumerable<BlockNode> blockNodes)
         {
-            blockNodes.NotNull(nameof(blockNodes));
+            blockNodes.NotNull();
 
             _blocks = blockNodes.ToList();
         }

@@ -20,11 +20,11 @@ public static class BlkHeaderExtensions
 {
     public static void Verify(this BlkHeader subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
         subject.VerifyBase();
 
         DocumentId.VerifyId(subject.DocumentId);
-        subject.Creator.NotEmpty(nameof(subject.Creator));
-        subject.Description.NotEmpty(nameof(subject.Description));
+        subject.Creator.NotEmpty();
+        subject.Description.NotEmpty();
     }
 }

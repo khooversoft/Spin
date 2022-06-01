@@ -48,7 +48,7 @@ public class ContractHostBuilder : IContractHostBuilder
             .Select(x =>
             {
                 Delegate.CreateDelegate(typeof(EventNameHandler<T>), x.methodInfo)
-                    .NotNull("Method signature is not valid");
+                    .NotNull(name: "Method signature is not valid");
 
                 return new EventClassRegistry
                 {
@@ -69,7 +69,7 @@ public class ContractHostBuilder : IContractHostBuilder
     public IContractHostBuilder AddEvent<T>(EventName contractEvent, EventNameHandler<T> method) where T : class, IEventService
     {
         contractEvent.Assert(x => x.IsValid(), $"Unknown eventName={(int)contractEvent}");
-        method.NotNull(nameof(method));
+        method.NotNull();
 
         _serviceCollection.AddSingleton<T>();
 
@@ -85,7 +85,7 @@ public class ContractHostBuilder : IContractHostBuilder
 
     public async Task<IContractHost> Build()
     {
-        _args.NotNull("Args are required, use AddCommand()");
+        _args.NotNull(name: "Args are required, use AddCommand()");
         _eventRegistrations.Assert(x => x.Count > 0, "Events are required, use AddEvent<T>(...)");
 
         ContractHostOption contractHostOption = await BuildOption(_args);
@@ -117,13 +117,13 @@ public class ContractHostBuilder : IContractHostBuilder
 
     private static async Task<ContractHostOption> BuildOption(string[] args)
     {
-        args.NotNull(nameof(args));
+        args.NotNull();
 
         string configFile = new ConfigurationBuilder()
             .AddCommandLine(args)
             .Build()
             .Bind<ContractHostOption>()
-            .Func(x => x.ConfigFile.NotEmpty("ConfigFile is required"))
+            .Func(x => x.ConfigFile.NotEmpty(name: "ConfigFile is required"))
             .Assert(x => File.Exists(x), x => $"File {x} does not exist");
 
         ContractHostOption option = new ConfigurationBuilder()

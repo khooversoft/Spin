@@ -48,7 +48,8 @@ namespace Toolbox.Tools
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(_postUrl, queryParameter);
             response.EnsureSuccessStatusCode();
 
-            return (await response.Content.ReadFromJsonAsync<BatchSet<T>>()).NotNull("No payload was returned");
+            return (await response.Content.ReadFromJsonAsync<BatchSet<T>>())
+                .NotNull(name: "No payload was returned");
         }
 
         private async Task<BatchSet<T>> Start(CancellationToken token)

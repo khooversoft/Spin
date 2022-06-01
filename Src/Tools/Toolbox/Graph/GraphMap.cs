@@ -26,7 +26,7 @@ namespace Toolbox.Graph
 
         public GraphMap(GraphMap<TKey, TNode, TEdge> graphMap) : this()
         {
-            graphMap.NotNull(nameof(graphMap));
+            graphMap.NotNull();
 
             graphMap.Nodes.Values.ForEach(x => Add(x));
             graphMap.Edges.Values.ForEach(x => Add(x));
@@ -40,7 +40,7 @@ namespace Toolbox.Graph
 
         public GraphMap<TKey, TNode, TEdge> Add(TNode node)
         {
-            node.NotNull(nameof(node));
+            node.NotNull();
 
             _nodes[node.Key] = node;
             return this;
@@ -49,7 +49,7 @@ namespace Toolbox.Graph
         public GraphMap<TKey, TNode, TEdge> Add(TEdge edge)
         {
             edge
-                .NotNull(nameof(edge))
+                .NotNull()
                 .Assert(x => !KeyCompare.Equals(edge.FromNodeKey, edge.ToNodeKey), "From and to keys cannot be the same");
 
             _edges.Add(edge.Key, edge);

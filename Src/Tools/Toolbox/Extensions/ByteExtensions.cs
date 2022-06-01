@@ -94,7 +94,7 @@ namespace Toolbox.Extensions
         public static T? ToObject<T>(this byte[] subject)
         {
             subject
-                .NotNull(nameof(subject))
+                .NotNull()
                 .Assert(x => x.Length > 0, nameof(subject));
 
             string json = subject.BytesToString();

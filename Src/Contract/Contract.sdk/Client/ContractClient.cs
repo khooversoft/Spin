@@ -28,30 +28,30 @@ public class ContractClient : IContractClient
 
     public async Task<BlockChainModel> Get(DocumentId documentId, CancellationToken token = default)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
         _logger.LogTrace($"{nameof(Delete)}: Id={{documentId}}", documentId);
 
         BlockChainModel? model = await _httpClient.GetFromJsonAsync<BlockChainModel>($"api/contract/{documentId.ToUrlEncoding()}", token);
-        model.NotNull($"{nameof(Get)} failed", _logger);
+        model.NotNull(name: $"{nameof(Get)} failed", logger: _logger);
 
         return model;
     }
 
     public async Task Set(DocumentId documentId, BlockChainModel blockChainModel, CancellationToken token = default)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
         blockChainModel.Verify();
 
         _logger.LogTrace($"{nameof(Delete)}: Id={{documentId}}", documentId);
 
         HttpResponseMessage? response = await _httpClient.PostAsJsonAsync($"api/contract/set/{documentId.ToUrlEncoding()}", blockChainModel, token);
-        response.NotNull($"{nameof(Set)} failed", _logger);
+        response.NotNull(name: $"{nameof(Set)} failed", logger: _logger);
         response.EnsureSuccessStatusCode();
     }
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token = default)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
         _logger.LogTrace($"{nameof(Delete)}: Id={{documentId}}", documentId);
 
         HttpResponseMessage response = await _httpClient.DeleteAsync($"api/contract/{documentId.ToUrlEncoding()}", token);
@@ -87,7 +87,7 @@ public class ContractClient : IContractClient
 
     public async Task Append(DocumentId documentId, BlkCollection blkTransaction, CancellationToken token = default)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
         blkTransaction.Verify();
 
         Document doc = new DocumentBuilder()
@@ -102,7 +102,7 @@ public class ContractClient : IContractClient
 
     public async Task Append(DocumentId documentId, BlkCode blkCode, CancellationToken token = default)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
         blkCode.Verify();
 
         Document doc = new DocumentBuilder()
@@ -121,7 +121,7 @@ public class ContractClient : IContractClient
 
     public async Task Sign(DocumentId documentId, BlockChainModel blockChainModel, CancellationToken token = default)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
         blockChainModel.Verify();
 
         _logger.LogTrace("Sign model for contract={id}", documentId);
@@ -140,12 +140,12 @@ public class ContractClient : IContractClient
         string json = await response.Content.ReadAsStringAsync();
 
         return Json.Default.Deserialize<BlockChainModel>(json)
-            .NotNull("Cannot deserialize");
+            .NotNull(name: "Cannot deserialize");
     }
 
     public async Task<bool> Validate(DocumentId documentId, CancellationToken token = default)
     {
-        documentId.NotNull(nameof(documentId));
+        documentId.NotNull();
 
         _logger.LogTrace("Validate contract={id}", documentId);
 

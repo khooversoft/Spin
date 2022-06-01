@@ -15,12 +15,12 @@ public static class PartyExtensions
 {
     public static PartyRecord Verify(this PartyRecord subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
-        subject.TrxCode.NotEmpty(nameof(subject.TrxCode));
-        subject.UserId.NotEmpty(nameof(subject.UserId));
-        subject.PartyType.NotEmpty(nameof(subject.PartyType));
-        subject.BankAccountId.NotEmpty(nameof(subject.BankAccountId));
+        subject.TrxCode.NotEmpty();
+        subject.UserId.NotEmpty();
+        subject.PartyType.NotEmpty();
+        subject.BankAccountId.NotEmpty();
 
         return subject;
     }

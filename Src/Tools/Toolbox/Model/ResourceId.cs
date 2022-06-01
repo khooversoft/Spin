@@ -28,16 +28,16 @@ namespace Toolbox.Model
 
         public ResourceId(string resourceType, string path)
         {
-            Type = resourceType.NotEmpty(nameof(resourceType));
+            Type = resourceType.NotEmpty();
             Channel = null;
-            Path = path.NotEmpty(nameof(path));
+            Path = path.NotEmpty();
         }
 
         public ResourceId(string resourceType, string channel, string path)
         {
-            Type = resourceType.NotEmpty(nameof(resourceType));
-            Channel = channel.NotEmpty(nameof(channel));
-            Path = path.NotEmpty(nameof(path));
+            Type = resourceType.NotEmpty();
+            Channel = channel.NotEmpty();
+            Path = path.NotEmpty();
         }
 
         public string Type { get; }
@@ -50,14 +50,14 @@ namespace Toolbox.Model
 
         static private (string resourceType, string? channel, string? path) Parse(string uri)
         {
-            uri.NotEmpty(nameof(uri));
+            uri.NotEmpty();
 
             string type = uri
                 .Split("//")
                 .First()
                 .Split(':')
                 .First()
-                .NotEmpty($"Resource type not found in {uri}, format: ({_syntax})")
+                .NotEmpty(name: $"Resource type not found in {uri}, format: ({_syntax})")
                 .Assert(x => VerifySyntax(x), _errorMsg);
 
             string? channel = uri

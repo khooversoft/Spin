@@ -11,7 +11,7 @@ namespace Toolbox.Security
     {
         public LocalCertificateKey(StoreLocation storeLocation, StoreName storeName, string thumbprint, bool requirePrivateKey)
         {
-            thumbprint.NotNull(nameof(thumbprint));
+            thumbprint.NotNull();
 
             StoreLocation = storeLocation;
             StoreName = storeName;

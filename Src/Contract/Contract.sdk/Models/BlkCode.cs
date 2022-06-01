@@ -16,10 +16,10 @@ public static class BlkCodeExtensions
     public static void Verify(this BlkCode blkCode)
     {
         blkCode.VerifyBase();
-        blkCode.Language.NotEmpty(nameof(blkCode.Language));
-        blkCode.Framework.NotEmpty(nameof(blkCode.Framework));
+        blkCode.Language.NotEmpty();
+        blkCode.Framework.NotEmpty();
         blkCode.Lines
-            .NotNull(nameof(blkCode.Lines))
+            .NotNull()
             .Assert(x => x.Count > 0, $"{blkCode.Lines} is empty");
     }
 }

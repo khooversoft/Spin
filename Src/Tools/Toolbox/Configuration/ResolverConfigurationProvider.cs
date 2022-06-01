@@ -16,8 +16,8 @@ namespace Toolbox.Configuration
 
         public ResolverConfigurationProvider(IConfiguration configuration, IPropertyResolver propertyResolver)
         {
-            configuration.NotNull(nameof(configuration));
-            propertyResolver.NotNull(nameof(propertyResolver));
+            configuration.NotNull();
+            propertyResolver.NotNull();
 
             _configuration = configuration;
             _propertyResolver = propertyResolver;

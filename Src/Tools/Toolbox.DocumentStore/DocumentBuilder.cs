@@ -13,12 +13,12 @@ public class DocumentBuilder
 
     public DocumentBuilder(Document document)
     {
-        document.NotNull(nameof(document));
+        document.NotNull();
 
-        DocumentId = document.DocumentId.NotNull(nameof(document.DocumentId));
+        DocumentId = document.DocumentId.NotNull();
         document.Properties.ForEach(x => Properties.Add(x.Key, x.Value));
-        ObjectClass = document.ObjectClass.NotEmpty(nameof(document.ObjectClass));
-        Data = document.Data.NotNull(nameof(document.Data));
+        ObjectClass = document.ObjectClass.NotEmpty();
+        Data = document.Data.NotNull();
     }
 
     public DocumentId? DocumentId { get; set; }
@@ -39,7 +39,7 @@ public class DocumentBuilder
 
     public DocumentBuilder SetData<T>(T value, string? objectClass = null)
     {
-        value.NotNull(nameof(value));
+        value.NotNull();
 
         byte[] data = typeof(T) switch
         {
@@ -57,10 +57,10 @@ public class DocumentBuilder
 
     public Document Build()
     {
-        DocumentId.NotNull($"{nameof(DocumentId)} is required");
-        Properties.NotNull($"{nameof(Properties)} is required");
-        ObjectClass.NotEmpty($"{nameof(ObjectClass)} is required");
-        Data.NotNull($"{nameof(Data)} is required");
+        DocumentId.NotNull(name: $"{nameof(DocumentId)} is required");
+        Properties.NotNull(name: $"{nameof(Properties)} is required");
+        ObjectClass.NotEmpty(name: $"{nameof(ObjectClass)} is required");
+        Data.NotNull(name: $"{nameof(Data)} is required");
 
         byte[] hash = DocumentTools.ComputeHash(DocumentId!, Properties!, ObjectClass!, Data!);
 

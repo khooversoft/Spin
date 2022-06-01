@@ -29,7 +29,7 @@ namespace Toolbox.Services
 
         public bool Register(Guid id, TaskCompletionSource<T> tcs, TimeSpan? timeout = null)
         {
-            tcs.NotNull(nameof(tcs));
+            tcs.NotNull();
 
             bool added = false;
 

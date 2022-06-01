@@ -24,10 +24,10 @@ public class BankClearing
 
     internal BankClearing(BankOption bankOption, BankClearingQueue bankClearingQueue, BankTransaction bankTransactionService, ILogger<BankClearing> logger)
     {
-        _bankOption = bankOption.NotNull(nameof(bankOption));
-        _bankClearingQueue = bankClearingQueue.NotNull(nameof(bankClearingQueue));
-        _bankTransactionService = bankTransactionService.NotNull(nameof(bankTransactionService));
-        _logger = logger.NotNull(nameof(logger));
+        _bankOption = bankOption.NotNull();
+        _bankClearingQueue = bankClearingQueue.NotNull();
+        _bankTransactionService = bankTransactionService.NotNull();
+        _logger = logger.NotNull();
     }
 
     public async Task<TrxBatch<TrxRequestResponse>> Send(TrxBatch<TrxRequest> requests, CancellationToken token)
@@ -100,7 +100,7 @@ public class BankClearing
 
     private void Verify(TrxBatch<TrxRequest> batch)
     {
-        batch.NotNull(nameof(batch));
+        batch.NotNull();
         Verify(batch.Items);
     }
 

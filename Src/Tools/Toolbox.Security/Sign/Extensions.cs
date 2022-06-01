@@ -8,7 +8,7 @@ public static class Extensions
 {
     public static IPrincipalSignature WithAudience(this IPrincipalSignature principalSignature, string audience)
     {
-        principalSignature.NotNull(nameof(principalSignature));
+        principalSignature.NotNull();
 
         return principalSignature switch
         {
@@ -22,7 +22,7 @@ public static class Extensions
 
     public static IPrincipalSignature WithIssuer(this IPrincipalSignature principalSignature, string issuer)
     {
-        principalSignature.NotNull(nameof(principalSignature));
+        principalSignature.NotNull();
 
         return principalSignature switch
         {
@@ -36,7 +36,7 @@ public static class Extensions
 
     public static IPrincipalSignature WithSubject(this IPrincipalSignature principalSignature, string subject)
     {
-        principalSignature.NotNull(nameof(principalSignature));
+        principalSignature.NotNull();
 
         return principalSignature switch
         {
@@ -50,7 +50,7 @@ public static class Extensions
 
     public static Func<string, Task<string>> GetSign(this IPrincipalSignature principalSignature)
     {
-        principalSignature.NotNull(nameof(principalSignature));
+        principalSignature.NotNull();
 
         return x => Task.FromResult(principalSignature.Sign(x));
     }

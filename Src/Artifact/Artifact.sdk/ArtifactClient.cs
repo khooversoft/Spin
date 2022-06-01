@@ -24,7 +24,7 @@ public class ArtifactClient : IArtifactClient
 
     public async Task<Document?> Get(DocumentId id, CancellationToken token = default)
     {
-        id.NotNull(nameof(id));
+        id.NotNull();
 
         _logger.LogTrace("Get Id={id}", id);
 
@@ -41,7 +41,7 @@ public class ArtifactClient : IArtifactClient
 
     public async Task Set(Document document, CancellationToken token = default)
     {
-        document.NotNull(nameof(document));
+        document.NotNull();
 
         _logger.LogTrace("Set Id={documentId}", args: document.DocumentId);
 
@@ -51,7 +51,7 @@ public class ArtifactClient : IArtifactClient
 
     public async Task<bool> Delete(DocumentId id, CancellationToken token = default)
     {
-        id.NotNull(nameof(id));
+        id.NotNull();
         _logger.LogTrace("Delete Id={id}", args: id);
 
         HttpResponseMessage response = await _httpClient.DeleteAsync($"api/artifact/{id.ToUrlEncoding()}", token);

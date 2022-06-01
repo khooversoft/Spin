@@ -20,8 +20,8 @@ namespace Toolbox.Configuration
         /// <returns>list of Json files</returns>
         public static IReadOnlyList<string> GetJsonFiles(string file, IPropertyResolver resolver)
         {
-            file.NotEmpty(nameof(file));
-            resolver.NotNull(nameof(resolver));
+            file.NotEmpty();
+            resolver.NotNull();
 
             file = resolver.Resolve(file);
             if (!File.Exists(file)) return new[] { file };

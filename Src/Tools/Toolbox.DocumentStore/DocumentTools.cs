@@ -16,10 +16,10 @@ public static class DocumentTools
 
     public static byte[] ComputeHash(this DocumentId documentId, IEnumerable<KeyValuePair<string, string>> properties, string objectClass, byte[] data)
     {
-        documentId.NotNull(nameof(documentId));
-        properties.NotNull(nameof(properties));
-        objectClass.NotEmpty(nameof(objectClass));
-        data.NotNull(nameof(data));
+        documentId.NotNull();
+        properties.NotNull();
+        objectClass.NotEmpty();
+        data.NotNull();
 
         var ms = new MemoryStream();
         ms.Write(documentId.ToString().ToBytes());
@@ -38,7 +38,7 @@ public static class DocumentTools
 
     public static bool IsHashVerify(this Document document)
     {
-        document.NotNull(nameof(document));
+        document.NotNull();
 
         byte[] hash = DocumentTools.ComputeHash(document.DocumentId, document.Properties, document.ObjectClass, document.Data);
 

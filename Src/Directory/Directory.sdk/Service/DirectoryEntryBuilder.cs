@@ -27,7 +27,7 @@ public class DirectoryEntryBuilder
             string json = File.ReadAllText(file);
 
             IList<DirectoryEntry> readList = Json.Default.Deserialize<IList<DirectoryEntry>>(json)
-                .NotNull($"Cannot read json file {file}");
+                .NotNull(name: $"Cannot read json file {file}");
 
             list.AddRange(readList);
         }

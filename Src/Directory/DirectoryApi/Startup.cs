@@ -17,7 +17,7 @@ public static class Startup
 {
     public static IServiceCollection ConfigureDirectoryService(this IServiceCollection service)
     {
-        service.NotNull(nameof(service));
+        service.NotNull();
 
         service.AddSingleton<IMemoryCache, MemoryCache>();
 
@@ -73,7 +73,7 @@ public static class Startup
 
     public static IApplicationBuilder UseDirectoryService(this IApplicationBuilder app)
     {
-        app.NotNull(nameof(app));
+        app.NotNull();
 
         ApplicationOption option = app.ApplicationServices.GetRequiredService<ApplicationOption>();
         app.UseMiddleware<ApiKeyMiddleware>(Constants.ApiKeyName, option.ApiKey, "/api/ping".ToEnumerable());

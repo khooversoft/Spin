@@ -12,7 +12,7 @@ namespace Directory.sdk.Tools
     {
         public static (string KeyName, string AccessKey) Parse(string data)
         {
-            data.NotEmpty(nameof(data));
+            data.NotEmpty();
 
             IReadOnlyDictionary<string, string> datDict = data
                 .ToDictionary()!;

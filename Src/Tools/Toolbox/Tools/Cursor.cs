@@ -23,7 +23,7 @@ namespace Toolbox.Tools
         /// <param name="collection"></param>
         public Cursor(IReadOnlyList<T> collection)
         {
-            collection.NotNull(nameof(collection));
+            collection.NotNull();
 
             _list = collection;
         }

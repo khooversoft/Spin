@@ -23,11 +23,11 @@ public static class IdentityEntryRequestExtensions
 {
     public static void Verify(this IdentityEntryRequest subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
         subject.DirectoryId.VerifyDocumentId();
-        subject.Issuer.NotEmpty(nameof(subject.Issuer));
-        subject.ClassType.NotEmpty(nameof(subject.ClassType));
-        subject.Properties.NotNull(nameof(subject.Properties));
+        subject.Issuer.NotEmpty();
+        subject.ClassType.NotEmpty();
+        subject.Properties.NotNull();
     }
 
     //public static IdentityEntry ToIdentityEntry(this IdentityEntryRequest subject)

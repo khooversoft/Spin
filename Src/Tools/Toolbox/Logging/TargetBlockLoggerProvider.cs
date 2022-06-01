@@ -13,7 +13,7 @@ namespace Toolbox.Logging
 
         public TargetBlockLoggerProvider(ITargetBlock<string> queue)
         {
-            queue.NotNull(nameof(queue));
+            queue.NotNull();
 
             _queue = queue;
         }

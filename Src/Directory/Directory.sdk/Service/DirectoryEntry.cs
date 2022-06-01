@@ -25,19 +25,19 @@ public static class DirectoryEntryExtensions
 {
     public static void Verify(this DirectoryEntry subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
         subject.DirectoryId.VerifyDocumentId();
-        subject.ClassType.NotEmpty(nameof(subject.ClassType));
-        subject.Properties.NotNull(nameof(subject.Properties));
+        subject.ClassType.NotEmpty();
+        subject.Properties.NotNull();
     }
 
     public static string? GetEmail(this DirectoryEntry directory) => directory.Properties.GetValue(PropertyName.Email);
 
     public static string? GetSigningCredentials(this DirectoryEntry directory) => directory.Properties.GetValue(PropertyName.SigningCredentials);
 
-    public static T ConvertTo<T>(this DirectoryEntry directoryEntry) where T : new() => directoryEntry.NotNull(nameof(directoryEntry))
+    public static T ConvertTo<T>(this DirectoryEntry directoryEntry) where T : new() => directoryEntry.NotNull()
         .Properties
         .ToConfiguration()
         .Bind<T>()
-        .NotNull($"Cannot bind to {nameof(T)}");
+        .NotNull(name: $"Cannot bind to {nameof(T)}");
 }

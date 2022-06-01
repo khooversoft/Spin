@@ -29,8 +29,8 @@ namespace Toolbox.Extensions
         /// <param name="action">action to execute</param>
         public static void ForEach<T>(this IEnumerable<T> subjects, Action<T> action)
         {
-            subjects.NotNull(nameof(subjects));
-            action.NotNull(nameof(action));
+            subjects.NotNull();
+            action.NotNull();
 
             foreach (var item in subjects)
             {
@@ -46,8 +46,8 @@ namespace Toolbox.Extensions
         /// <param name="action">action to execute</param>
         public static void ForEach<T>(this IEnumerable<T> subjects, Action<T, int> action)
         {
-            subjects.NotNull(nameof(subjects));
-            action.NotNull(nameof(action));
+            subjects.NotNull();
+            action.NotNull();
 
             int index = 0;
             foreach (var item in subjects)
@@ -65,8 +65,8 @@ namespace Toolbox.Extensions
         /// <returns></returns>
         public static async Task ForEachAsync<T>(this IEnumerable<T> subjects, Func<T, Task> action)
         {
-            subjects.NotNull(nameof(subjects));
-            action.NotNull(nameof(action));
+            subjects.NotNull();
+            action.NotNull();
 
             foreach (var item in subjects)
             {
@@ -90,7 +90,7 @@ namespace Toolbox.Extensions
         /// <returns>shuffled list</returns>
         public static IReadOnlyList<T> Shuffle<T>(this IEnumerable<T> self)
         {
-            self.NotNull(nameof(self));
+            self.NotNull();
 
             var list = self.ToList();
 

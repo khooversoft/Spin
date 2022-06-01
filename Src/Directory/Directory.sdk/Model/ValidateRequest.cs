@@ -18,8 +18,8 @@ public static class ValidateRequestExtensions
 {
     public static void Verify(this ValidateRequest subject)
     {
-        subject.NotNull(nameof(subject));
-        subject.PrincipleDigests.NotNull(nameof(subject.PrincipleDigests));
+        subject.NotNull();
+        subject.PrincipleDigests.NotNull();
         subject.PrincipleDigests.Assert(x => x.Count > 0, nameof(subject.PrincipleDigests));
     }
 

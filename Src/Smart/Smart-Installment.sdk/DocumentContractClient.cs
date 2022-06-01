@@ -18,8 +18,8 @@ public class DocumentContractClient
 
     public DocumentContractClient(ContractClient client, ContractHostOption contractHostOption, ILogger<DocumentContractClient> logger)
     {
-        _client = client.NotNull(nameof(client));
-        _logger = logger.NotNull(nameof(logger));
+        _client = client.NotNull();
+        _logger = logger.NotNull();
         _contractHostOption = contractHostOption.Verify();
     }
 
@@ -65,7 +65,7 @@ public class DocumentContractClient
 
     public async Task Append<T>(IEnumerable<T> items, CancellationToken token = default)
     {
-        items.NotNull(nameof(items));
+        items.NotNull();
         items.Assert(x => x.Any(), "Empty list");
 
         var collection = new BlkCollection

@@ -15,17 +15,16 @@ namespace Toolbox.Security
         /// <returns>byte array</returns>
         public static byte[] Encrypt(this X509Certificate2 self, byte[] data)
         {
-            self.NotNull(nameof(self));
-            data.NotNull(nameof(data));
+            self.NotNull();
+            data.NotNull();
 
             // GetRSAPublicKey returns an object with an independent lifetime, so it should be
             // handled via a using statement.
-            using (RSA rsa = self.GetRSAPublicKey().NotNull(nameof(RSACertificateExtensions.GetRSAPublicKey)))
-            {
-                // OAEP allows for multiple hashing algorithms, what was formerly just "OAEP" is
-                // now OAEP-SHA1.
-                return rsa.Encrypt(data, RSAEncryptionPadding.OaepSHA1);
-            }
+            using RSA rsa = self.GetRSAPublicKey().NotNull();
+
+            // OAEP allows for multiple hashing algorithms, what was formerly just "OAEP" is
+            // now OAEP-SHA1.
+            return rsa.Encrypt(data, RSAEncryptionPadding.OaepSHA1);
         }
 
         /// <summary>
@@ -36,15 +35,14 @@ namespace Toolbox.Security
         /// <returns>unencrypted byte array</returns>
         public static byte[] Decrypt(this X509Certificate2 self, byte[] data)
         {
-            self.NotNull(nameof(self));
-            data.NotNull(nameof(data));
+            self.NotNull();
+            data.NotNull();
 
             // GetRSAPrivateKey returns an object with an independent lifetime, so it should be
             // handled via a using statement.
-            using (RSA rsa = self.GetRSAPrivateKey().NotNull(nameof(RSACertificateExtensions.GetRSAPublicKey)))
-            {
-                return rsa.Decrypt(data, RSAEncryptionPadding.OaepSHA1);
-            }
+            using RSA rsa = self.GetRSAPrivateKey().NotNull();
+
+            return rsa.Decrypt(data, RSAEncryptionPadding.OaepSHA1);
         }
     }
 }

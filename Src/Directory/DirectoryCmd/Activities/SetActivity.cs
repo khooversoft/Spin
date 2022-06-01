@@ -25,7 +25,7 @@ internal class SetActivity
 
     public async Task SetFile(string file, CancellationToken token)
     {
-        file.NotEmpty(nameof(file));
+        file.NotEmpty();
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetFile), File = file });
 

@@ -24,20 +24,20 @@ internal class ContractActual : IEventService
 
     public ContractActual(ContractHostOption contractHostOption, DocumentContractClient documentContractClient, ILogger<ContractActual> logger)
     {
-        _contractHostOption = contractHostOption.NotNull(nameof(contractHostOption));
-        _documentContractClient = documentContractClient.NotNull(nameof(documentContractClient));
-        _logger = logger.NotNull(nameof(logger));
+        _contractHostOption = contractHostOption.NotNull();
+        _documentContractClient = documentContractClient.NotNull();
+        _logger = logger.NotNull();
     }
 
     [EventName(EventName.Create)]
     public async Task Create(IContractHost runHost, CancellationToken token)
     {
-        runHost.NotNull(nameof(runHost));
+        runHost.NotNull();
 
         _logger.LogInformation("Running checkpoint, eventName={eventName}", runHost.Context.Option.EventName);
 
         string eventConfig = _contractHostOption
-            .EventConfig.NotNull($"{nameof(_contractHostOption.EventConfig)} is required");
+            .EventConfig.NotNull(name: $"{nameof(_contractHostOption.EventConfig)} is required");
 
         CreateContractOption option = new ConfigurationBuilder()
             .AddJsonFile(eventConfig)
@@ -52,7 +52,7 @@ internal class ContractActual : IEventService
     [EventName(EventName.Checkpoint)]
     public async Task Checkpoint(IContractHost runHost, CancellationToken token)
     {
-        runHost.NotNull(nameof(runHost));
+        runHost.NotNull();
 
         InstallmentContract installmentContract = await _documentContractClient.GetContract(token);
 

@@ -19,9 +19,9 @@ public class DocumentPackageFactory
 
     public DocumentPackageFactory(IEnumerable<(string Container, DatalakeStoreOption Option)> options, ILoggerFactory loggerFactory)
     {
-        options.NotNull(nameof(options));
+        options.NotNull();
         options.Assert(x => x.Count() > 0, $"{nameof(options)} is empty");
-        loggerFactory.NotNull(nameof(loggerFactory));
+        loggerFactory.NotNull();
 
         _options = options.ToDictionary(x => x.Container, x => x.Option, StringComparer.OrdinalIgnoreCase);
         _loggerFactory = loggerFactory;
@@ -31,7 +31,7 @@ public class DocumentPackageFactory
 
     public DocumentPackage Create(string container)
     {
-        container.NotEmpty(nameof(container));
+        container.NotEmpty();
 
         return _active.GetOrAdd(container, x =>
         {

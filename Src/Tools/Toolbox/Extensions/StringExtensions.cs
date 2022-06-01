@@ -77,7 +77,7 @@ namespace Toolbox.Extensions
         /// <param name="subject"></param>
         /// <returns>hex values for hash</returns>
         public static string ToHashHex(this string subject) => subject
-            .NotEmpty(nameof(subject))
+            .NotEmpty()
             .ToBytes()
             .ToHash()
             .ToHex();

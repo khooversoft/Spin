@@ -13,8 +13,8 @@ public static class ZipExtractExtension
 {
     public static void ExtractToFolder(this ZipArchive zipArchive, string toFolder, CancellationToken token, Action<FileActionProgress>? monitor)
     {
-        zipArchive.NotNull(nameof(zipArchive));
-        toFolder.NotEmpty(nameof(toFolder));
+        zipArchive.NotNull();
+        toFolder.NotEmpty();
 
         if (Directory.Exists(toFolder)) Directory.Delete(toFolder);
         Directory.CreateDirectory(toFolder);
@@ -67,7 +67,7 @@ public static class ZipExtractExtension
 
         public void ExtractToFile(string filePath)
         {
-            filePath.NotEmpty(nameof(filePath));
+            filePath.NotEmpty();
 
             ZipArchiveEntry.ExtractToFile(filePath, true);
         }

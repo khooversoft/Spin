@@ -18,8 +18,8 @@ public static class BlockChainModelExtensions
 {
     public static BlockChainModel Verify(this BlockChainModel blockChainModel)
     {
-        blockChainModel.NotNull(nameof(blockChainModel));
-        blockChainModel.Blocks.NotNull(nameof(blockChainModel.Blocks));
+        blockChainModel.NotNull();
+        blockChainModel.Blocks.NotNull();
         blockChainModel.Blocks.ForEach(x => x.Verify());
 
         return blockChainModel;

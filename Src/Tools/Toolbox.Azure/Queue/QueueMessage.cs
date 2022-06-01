@@ -24,7 +24,7 @@ public static class QueueMessageExtensions
 {
     public static QueueMessage ToQueueMessage<T>(this T subject, string? contentType = null)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
         return new QueueMessage
         {
@@ -35,9 +35,9 @@ public static class QueueMessageExtensions
 
     public static T GetContent<T>(this QueueMessage queueMessage)
     {
-        queueMessage.NotNull(nameof(queueMessage));
+        queueMessage.NotNull();
 
         return queueMessage.Content.ToObject<T>()
-            .NotNull("Deserialize failure");
+            .NotNull(name: "Deserialize failure");
     }
 }

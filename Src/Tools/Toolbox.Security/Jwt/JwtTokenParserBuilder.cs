@@ -25,7 +25,7 @@ namespace Toolbox.Security
 
         public JwtTokenParser Build()
         {
-            PrincipleSignature.NotNull($"{nameof(PrincipleSignature)} is required");
+            PrincipleSignature.NotNull(name: $"{nameof(PrincipleSignature)} is required");
 
             return new JwtTokenParser(PrincipleSignature, ValidIssuers, ValidAudiences);
         }

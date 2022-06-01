@@ -22,9 +22,9 @@ namespace Toolbox.Tools.Local
 
         public MonitorLocalProcess(LocalProcessBuilder localProcessBuilder, Func<string, MonitorState?> monitor, ILogger logger)
         {
-            localProcessBuilder.NotNull(nameof(localProcessBuilder));
-            monitor.NotNull(nameof(monitor));
-            logger.NotNull(nameof(logger));
+            localProcessBuilder.NotNull();
+            monitor.NotNull();
+            logger.NotNull();
 
             _localProcessBuilder = new LocalProcessBuilder(localProcessBuilder);
             _monitor = monitor;

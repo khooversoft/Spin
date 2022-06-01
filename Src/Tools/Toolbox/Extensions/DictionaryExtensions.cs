@@ -32,7 +32,7 @@ public static class DictionaryExtensions
         [CallerLineNumber] int lineNumber = 0
         )
     {
-        directory.NotNull(nameof(directory), function: function, path: path, lineNumber: lineNumber);
+        directory.NotNull(function: function, path: path, lineNumber: lineNumber);
 
         directory.TryGetValue(key, out TValue? value)
             .Assert(x => x == true, x => message ?? $"{objectType ?? string.Empty}{x} not found", logger: logger, function: function, path: path, lineNumber: lineNumber);

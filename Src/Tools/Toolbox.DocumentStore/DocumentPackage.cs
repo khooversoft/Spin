@@ -19,7 +19,7 @@ public class DocumentPackage
 
     public DocumentPackage(IDatalakeStore store, ILogger<DocumentPackage> logger)
     {
-        _store = store.NotNull(nameof(store));
+        _store = store.NotNull();
         _logger = logger;
     }
 
@@ -27,7 +27,7 @@ public class DocumentPackage
 
     public async Task<Document?> Get(DocumentId id, CancellationToken token = default)
     {
-        id.NotNull(nameof(id));
+        id.NotNull();
         string zipFileName = id.ToZipFileName();
 
         _logger.LogTrace($"Reading {zipFileName}");

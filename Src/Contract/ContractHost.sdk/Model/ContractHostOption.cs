@@ -29,13 +29,13 @@ public static class ContractOptionExtensions
 {
     public static ContractHostOption VerifyBootstrap(this ContractHostOption option)
     {
-        option.NotNull(nameof(option));
+        option.NotNull();
 
-        option.DirectoryUrl.NotEmpty($"{nameof(option.DirectoryUrl)} is required");
-        option.DirectoryApiKey.NotEmpty($"{nameof(option.DirectoryApiKey)} is required");
+        option.DirectoryUrl.NotEmpty(name: $"{nameof(option.DirectoryUrl)} is required");
+        option.DirectoryApiKey.NotEmpty(name: $"{nameof(option.DirectoryApiKey)} is required");
         option.EventName.Assert(x => Enum.IsDefined(typeof(EventName), option.EventName), "Unknown option");
-        option.DocumentId.NotEmpty($"{nameof(option.DocumentId)} is required");
-        option.PrincipleId.NotEmpty($"{nameof(option.PrincipleId)} is required");
+        option.DocumentId.NotEmpty(name: $"{nameof(option.DocumentId)} is required");
+        option.PrincipleId.NotEmpty(name: $"{nameof(option.PrincipleId)} is required");
 
         return option;
     }
@@ -44,8 +44,8 @@ public static class ContractOptionExtensions
     {
         option.VerifyBootstrap();
 
-        option.ContractUrl.NotNull(nameof(option.ContractUrl));
-        option.ContractApiKey.NotNull(nameof(option.ContractApiKey));
+        option.ContractUrl.NotNull();
+        option.ContractApiKey.NotNull();
 
         return option;
     }

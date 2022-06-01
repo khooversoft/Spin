@@ -7,9 +7,9 @@ namespace Toolbox.Pattern
     {
         public static PatternSelect AddPattern(this PatternSelect subject, string name, string pattern, Func<PatternContext, PatternResult, PatternResult>? transform = null)
         {
-            subject.NotNull(nameof(subject));
-            name.NotEmpty(nameof(name));
-            pattern.NotEmpty(nameof(pattern));
+            subject.NotNull();
+            name.NotEmpty();
+            pattern.NotEmpty();
 
             subject.Add(name, context =>
             {
@@ -29,9 +29,9 @@ namespace Toolbox.Pattern
 
         public static PatternSelect AddTransform(this PatternSelect subject, string name, Func<PatternContext, PatternResult, PatternResult> select)
         {
-            subject.NotNull(nameof(subject));
-            name.NotEmpty(nameof(name));
-            select.NotNull(nameof(select));
+            subject.NotNull();
+            name.NotEmpty();
+            select.NotNull();
 
             subject.Add(name, select);
 

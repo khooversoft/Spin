@@ -30,8 +30,8 @@ namespace Toolbox.Tools.Local
 
         public LocalProcess(LocalProcessBuilder builder, ILogger logger)
         {
-            builder.NotNull(nameof(builder));
-            logger.NotNull(nameof(logger));
+            builder.NotNull();
+            logger.NotNull();
 
             _logger = logger;
             _successExitCode = builder.SuccessExitCode;

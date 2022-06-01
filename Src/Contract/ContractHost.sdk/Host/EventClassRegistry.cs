@@ -25,10 +25,10 @@ public static class EventClassRegistryExtensions
 {
     public static EventClassRegistry Verify(this EventClassRegistry subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
         subject.EventName.Assert(x => Enum.IsDefined(typeof(EventName), x), $"{nameof(EventName)} required");
-        subject.Type.NotNull(nameof(subject.Type));
-        subject.Method.NotNull(nameof(subject.Method));
+        subject.Type.NotNull();
+        subject.Method.NotNull();
 
         return subject;
     }

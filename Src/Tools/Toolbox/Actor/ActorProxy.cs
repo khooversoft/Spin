@@ -30,8 +30,8 @@ namespace Toolbox.Actor
         /// <returns>proxy</returns>
         public static T Create(IActorBase instance, ActorHost actorHost)
         {
-            instance.NotNull(nameof(instance));
-            actorHost.NotNull(nameof(actorHost));
+            instance.NotNull();
+            actorHost.NotNull();
 
             object proxyObject = Create<T, ActorProxy<T>>();
 
@@ -50,7 +50,7 @@ namespace Toolbox.Actor
         /// <returns>return value</returns>
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
-            targetMethod.NotNull(nameof(targetMethod));
+            targetMethod.NotNull();
 
             try
             {

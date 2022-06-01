@@ -23,10 +23,10 @@ namespace Toolbox.Actor.Host
         /// <param name="actorProxy">actor proxy</param>
         public ActorInstance(Type actorType, ActorKey actorKey, IActorBase instance, IActor actorProxy)
         {
-            actorType.NotNull(nameof(actorType));
-            actorKey.NotNull(nameof(actorKey));
-            instance.NotNull(nameof(instance));
-            actorProxy.NotNull(nameof(actorProxy));
+            actorType.NotNull();
+            actorKey.NotNull();
+            instance.NotNull();
+            actorProxy.NotNull();
 
             ActorType = actorType;
             ActorKey = actorKey;

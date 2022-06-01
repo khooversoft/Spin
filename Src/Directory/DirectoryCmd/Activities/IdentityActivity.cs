@@ -57,7 +57,7 @@ internal class IdentityActivity
 
     public async Task Set(string file, CancellationToken token)
     {
-        file.NotEmpty(nameof(file));
+        file.NotEmpty();
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(Set), File = file });
 

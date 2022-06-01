@@ -30,7 +30,7 @@ public class BankDirectory
 
     public async Task<QueueClient<QueueMessage>> GetClient(string bankName, CancellationToken token)
     {
-        bankName.NotEmpty(nameof(bankName));
+        bankName.NotEmpty();
 
         await LoadDirectory(token);
 
@@ -59,7 +59,7 @@ public class BankDirectory
     private async Task<QueueOption> GetQueueOption(DocumentId documentId, CancellationToken token)
     {
         DirectoryEntry queueEntry = (await _directoryClient.Get(documentId, token))
-            .NotNull($"{documentId} does not exist");
+            .NotNull(name: $"{documentId} does not exist");
 
         return queueEntry.Properties
             .ToConfiguration()

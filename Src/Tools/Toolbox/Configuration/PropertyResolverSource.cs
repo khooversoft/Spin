@@ -14,14 +14,14 @@ namespace Toolbox.Configuration
 
         public PropertyResolverSource(string secretId)
         {
-            secretId.NotEmpty(nameof(secretId));
+            secretId.NotEmpty();
 
             _secretId = secretId;
         }
 
         public PropertyResolverSource(IEnumerable<KeyValuePair<string, string>> values)
         {
-            values.NotNull(nameof(values));
+            values.NotNull();
 
             _values = values;
         }

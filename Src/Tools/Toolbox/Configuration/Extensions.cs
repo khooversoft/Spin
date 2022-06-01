@@ -1,11 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using Toolbox.Extensions;
-using Toolbox.Model;
 using Toolbox.Tools;
 using Toolbox.Tools.Property;
 
@@ -31,7 +26,7 @@ public static class Extensions
 
     public static IPropertyResolver BuildResolver(this IConfiguration configuration)
     {
-        configuration.NotNull(nameof(configuration));
+        configuration.NotNull();
 
         IReadOnlyList<KeyValuePair<string, string>> list = configuration
             .AsEnumerable()

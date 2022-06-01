@@ -8,7 +8,7 @@ namespace Toolbox.Security
     {
         public static bool IsExpired(this X509Certificate2 self)
         {
-            self.NotNull(nameof(self));
+            self.NotNull();
 
             return DateTime.Now > self.NotAfter;
         }

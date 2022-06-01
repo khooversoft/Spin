@@ -17,7 +17,7 @@ public static class ConfigurationBuilderExtensions
 {
     public static IConfigurationBuilder AddPropertyResolver(this IConfigurationBuilder configurationBuilder, string secretId)
     {
-        configurationBuilder.NotNull(nameof(configurationBuilder));
+        configurationBuilder.NotNull();
 
         configurationBuilder.Add(new PropertyResolverSource(secretId));
 
@@ -26,7 +26,7 @@ public static class ConfigurationBuilderExtensions
 
     public static IConfigurationBuilder AddPropertyResolver(this IConfigurationBuilder configurationBuilder, IEnumerable<KeyValuePair<string, string>> values)
     {
-        configurationBuilder.NotNull(nameof(configurationBuilder));
+        configurationBuilder.NotNull();
 
         configurationBuilder.Add(new PropertyResolverSource(values));
 
@@ -35,7 +35,7 @@ public static class ConfigurationBuilderExtensions
 
     public static IConfigurationBuilder AddPropertyResolver(this IConfigurationBuilder configurationBuilder)
     {
-        configurationBuilder.NotNull(nameof(configurationBuilder));
+        configurationBuilder.NotNull();
 
         IConfiguration configuration = configurationBuilder.Build();
 
@@ -47,8 +47,8 @@ public static class ConfigurationBuilderExtensions
 
     public static IConfigurationBuilder AddJsonFile(this IConfigurationBuilder configurationBuilder, string file, JsonFileOption jsonFileOption, bool optional = false)
     {
-        configurationBuilder.NotNull(nameof(configurationBuilder));
-        file.NotEmpty(nameof(file));
+        configurationBuilder.NotNull();
+        file.NotEmpty();
 
         if (jsonFileOption != JsonFileOption.Enhance)
         {
@@ -68,13 +68,13 @@ public static class ConfigurationBuilderExtensions
 
     public static IConfigurationBuilder AddResourceStream(this IConfigurationBuilder configurationBuilder, Type type, string name)
     {
-        configurationBuilder.NotNull(nameof(configurationBuilder));
-        type.NotNull(nameof(type));
-        name.NotEmpty(nameof(name));
+        configurationBuilder.NotNull();
+        type.NotNull();
+        name.NotEmpty();
 
         Stream stream = Assembly.GetAssembly(type)
             ?.GetManifestResourceStream(name)
-            .NotNull($"Resource {name} not found in assembly")!;
+            .NotNull(name: $"Resource {name} not found in assembly")!;
 
         configurationBuilder.AddJsonStream(stream);
 
@@ -83,7 +83,7 @@ public static class ConfigurationBuilderExtensions
 
     public static IConfigurationBuilder AddSource(this IConfigurationBuilder configurationBuilder, Func<IConfigurationBuilder, IConfigurationProvider> factory)
     {
-        configurationBuilder.NotNull(nameof(configurationBuilder));
+        configurationBuilder.NotNull();
 
         configurationBuilder.Add(new ConfigurationSource(factory));
 

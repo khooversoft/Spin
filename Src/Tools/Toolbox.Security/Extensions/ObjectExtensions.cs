@@ -16,7 +16,7 @@ public static class ObjectExtensions
     /// <returns>hash as base 64</returns>
     public static string ToSHA256Hash(this IEnumerable<byte> inputBytes)
     {
-        inputBytes.NotNull(nameof(inputBytes));
+        inputBytes.NotNull();
 
         return SHA256.Create()
             .ComputeHash(inputBytes.ToArray())

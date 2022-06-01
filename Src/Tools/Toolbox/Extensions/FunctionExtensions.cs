@@ -16,7 +16,7 @@ namespace Toolbox.Extensions
         /// <param name="subject">subject</param>
         /// <param name="function">lambda execute</param>
         /// <returns>return from lambda</returns>
-        public static TResult Func<T, TResult>(this T subject, Func<T, TResult> function) => function.NotNull(nameof(subject))(subject);
+        public static TResult Func<T, TResult>(this T subject, Func<T, TResult> function) => function.NotNull()(subject);
 
         /// <summary>
         /// Execute action
@@ -27,11 +27,27 @@ namespace Toolbox.Extensions
         /// <returns>subject</returns>
         public static T Action<T>(this T subject, Action<T> action)
         {
-            subject.NotNull(nameof(subject));
-            action.NotNull(nameof(action));
+            subject.NotNull();
+            action.NotNull();
 
             action(subject);
             return subject;
+        }
+
+        /// <summary>
+        /// Function async
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="subject"></param>
+        /// <param name="function"></param>
+        /// <returns></returns>
+        public static async Task<TResult> FuncAsync<T, TResult>(this T subject, Func<T, Task<TResult>> function)
+        {
+            subject.NotNull();
+            function.NotNull();
+
+            return await function(subject);
         }
     }
 }

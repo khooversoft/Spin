@@ -50,7 +50,7 @@ namespace Toolbox.Security
 
         public void SetLeftNode(MerkleNode node)
         {
-            node.NotNull(nameof(node))
+            node.NotNull()
                 .Assert(x => node.Hash != default, "Node hash must be initialized.");
 
             LeftNode = node;
@@ -60,7 +60,7 @@ namespace Toolbox.Security
 
         public void SetRightNode(MerkleNode node)
         {
-            node.NotNull(nameof(node))
+            node.NotNull()
                 .Assert(x => node.Hash != default, "Node hash must be initialized.");
 
             RightNode = node;

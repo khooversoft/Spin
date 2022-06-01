@@ -11,7 +11,7 @@ namespace Toolbox.Extensions
     {
         public static byte[] RemoveBOM(this byte[] data)
         {
-            data.NotNull(nameof(data));
+            data.NotNull();
 
             if (data.Length > 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF)
             {

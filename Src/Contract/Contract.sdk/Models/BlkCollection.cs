@@ -14,8 +14,9 @@ public static class BlkCollectionExtensions
 {
     public static void Verify(this BlkCollection subject)
     {
-        subject.NotNull(nameof(subject));
-        subject.Blocks.NotNull(nameof(subject.Blocks));
+        subject.NotNull();
+        subject.Blocks.NotNull();
+
         subject.Blocks.ForEach(x => x.Verify());
     }
 }

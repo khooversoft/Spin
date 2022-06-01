@@ -13,9 +13,9 @@ public class ContractHost : IContractHost
 
     public ContractHost(IServiceProvider serviceProvider, ContractContext contractContext, ILogger<ContractHost> logger)
     {
-        ServiceProvider = serviceProvider.NotNull(nameof(serviceProvider));
-        Context = contractContext.NotNull(nameof(contractContext));
-        _logger = logger.NotNull(nameof(logger));
+        ServiceProvider = serviceProvider.NotNull();
+        Context = contractContext.NotNull();
+        _logger = logger.NotNull();
     }
 
     public IServiceProvider ServiceProvider { get; }

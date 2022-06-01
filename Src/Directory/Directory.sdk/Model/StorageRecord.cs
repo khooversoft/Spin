@@ -20,13 +20,13 @@ public static class StorageRecordExtensions
 {
     public static StorageRecord Verify(this StorageRecord subject)
     {
-        subject.NotNull(nameof(subject));
+        subject.NotNull();
 
-        subject.Container.NotEmpty($"{nameof(subject.Container)} is required");
-        subject.AccountName.NotEmpty($"{nameof(subject.AccountName)} is required");
-        subject.ContainerName.NotEmpty($"{nameof(subject.ContainerName)} is required");
-        subject.AccountKey.NotEmpty($"{nameof(subject.AccountKey)} is required");
-        subject.BasePath.NotEmpty($"{nameof(subject.BasePath)} is required");
+        subject.Container.NotEmpty(name: $"{nameof(subject.Container)} is required");
+        subject.AccountName.NotEmpty(name: $"{nameof(subject.AccountName)} is required");
+        subject.ContainerName.NotEmpty(name: $"{nameof(subject.ContainerName)} is required");
+        subject.AccountKey.NotEmpty(name: $"{nameof(subject.AccountKey)} is required");
+        subject.BasePath.NotEmpty(name: $"{nameof(subject.BasePath)} is required");
 
         return subject;
     }

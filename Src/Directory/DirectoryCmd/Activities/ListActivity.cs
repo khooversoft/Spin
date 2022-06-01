@@ -20,7 +20,7 @@ internal class ListActivity
 
     public async Task List(string path, bool recursive, CancellationToken token)
     {
-        path.NotEmpty(nameof(path));
+        path.NotEmpty();
 
         using IDisposable scope = _logger.BeginScope(new { Command = nameof(List), Path = path });
 

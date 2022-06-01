@@ -17,9 +17,9 @@ public class BankDocument
 
     internal BankDocument(BankOption bankOption, ArtifactClient artifactClient, ILogger<BankDocument> logger)
     {
-        _bankOption = bankOption.NotNull(nameof(bankOption));
-        _artifactClient = artifactClient.NotNull(nameof(artifactClient));
-        _logger = logger.NotNull(nameof(logger));
+        _bankOption = bankOption.NotNull();
+        _artifactClient = artifactClient.NotNull();
+        _logger = logger.NotNull();
     }
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)

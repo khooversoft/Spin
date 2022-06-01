@@ -16,7 +16,7 @@ public static class BlkBaseExtensions
 {
     public static void VerifyBase(this BlkBase subject)
     {
-        subject.NotNull(nameof(subject));
-        subject.PrincipleId.NotEmpty(nameof(subject.PrincipleId));
+        subject.NotNull();
+        subject.PrincipleId.NotEmpty();
     }
 }
