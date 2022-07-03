@@ -7,6 +7,7 @@ using Smart_Installment.sdk;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
+
 IContractHost host = await ContractHostBuilder.Create()
     .AddCommand(args)
     .AddEvent<ContractActual>()

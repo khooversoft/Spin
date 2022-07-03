@@ -1,13 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
-using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Logging
 {
@@ -30,14 +26,22 @@ namespace Toolbox.Logging
             return builder;
         }
 
-        //public static IDisposable LocationScope(this ILogger logger,
-        //    string? message = null,
-        //    [CallerMemberName] string function = "",
-        //    [CallerFilePath] string path = "",
-        //    [CallerLineNumber] int lineNumber = 0)
-        //{
-        //    var location = new { Function = function, Path = path, LineNumber = lineNumber, Message = message };
-        //    return logger.BeginScope(location);
-        //}
+        public static IDisposable LogEntryExit(
+            this ILogger logger,
+            [CallerMemberName] string function = "",
+            [CallerFilePath] string path = "",
+            [CallerLineNumber] int lineNumber = 0
+            )
+        {
+            logger
+                .NotNull()
+                .LogTrace("Enter: Method={method}, path={path}, line={lineNumber}", function, path, lineNumber);
+
+            var sw = Stopwatch.StartNew();
+
+            return new FinalizeScope(() =>
+                logger.LogTrace("Exit: ms={ms} Method={method}, path={path}, line={lineNumber}", sw.ElapsedMilliseconds, function, path, lineNumber)
+                );
+        }
     }
 }

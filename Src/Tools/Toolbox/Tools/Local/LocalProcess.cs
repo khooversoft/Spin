@@ -22,11 +22,11 @@ namespace Toolbox.Tools.Local
         private readonly string? _workingDirectory;
         private readonly bool _useShellExecute;
         private readonly Action<string>? _captureOutput;
-        private readonly SubjectScope<Action>? _onExitNotify;
+        private readonly SubjectState<Action>? _onExitNotify;
 
         private CancellationTokenRegistration? _tokenRegistration;
-        private SubjectScope<TaskCompletionSource<LocalProcess>>? _processCompletedTcs;
-        private SubjectScope<Process>? _process;
+        private SubjectState<TaskCompletionSource<LocalProcess>>? _processCompletedTcs;
+        private SubjectState<Process>? _process;
 
         public LocalProcess(LocalProcessBuilder builder, ILogger logger)
         {
@@ -41,7 +41,7 @@ namespace Toolbox.Tools.Local
             _captureOutput = builder.CaptureOutput;
             _useShellExecute = builder.UseShellExecute;
 
-            _onExitNotify = builder.OnExit != null ? new SubjectScope<Action>(builder.OnExit) : null;
+            _onExitNotify = builder.OnExit != null ? new SubjectState<Action>(builder.OnExit) : null;
         }
 
         public int? ExitCode { get; private set; }
@@ -90,7 +90,7 @@ namespace Toolbox.Tools.Local
             if (_processCompletedTcs != null) throw new InvalidOperationException("Local process is running");
 
             _process = BuildProcess();
-            _processCompletedTcs = new SubjectScope<TaskCompletionSource<LocalProcess>>(new TaskCompletionSource<LocalProcess>());
+            _processCompletedTcs = new SubjectState<TaskCompletionSource<LocalProcess>>(new TaskCompletionSource<LocalProcess>());
 
             _tokenRegistration ??= cancellationToken.Register(() =>
             {
@@ -183,7 +183,7 @@ namespace Toolbox.Tools.Local
             _captureOutput?.Invoke(message);
         }
 
-        private SubjectScope<Process> BuildProcess()
+        private SubjectState<Process> BuildProcess()
         {
             var process = new Process()
             {
@@ -205,7 +205,7 @@ namespace Toolbox.Tools.Local
             process.ErrorDataReceived += (s, e) => LogOutput(e.Data);
             process.Exited += OnProcessExit;
 
-            return new SubjectScope<Process>(process);
+            return new SubjectState<Process>(process);
         }
 
         private void TokenUnregister()

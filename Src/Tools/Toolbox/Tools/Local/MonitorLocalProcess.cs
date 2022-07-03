@@ -15,8 +15,8 @@ namespace Toolbox.Tools.Local
         private readonly ILogger _logger;
         private readonly MonitorStateScope _monitorStateScope = new MonitorStateScope(MonitorState.Stopped);
 
-        private SubjectScope<LocalProcess>? _localProcess;
-        private SubjectScope<TaskCompletionSource<bool>>? _runningTcs;
+        private SubjectState<LocalProcess>? _localProcess;
+        private SubjectState<TaskCompletionSource<bool>>? _runningTcs;
         private CancellationTokenRegistration? _tokenRegistration;
         private CancellationToken? _token;
 

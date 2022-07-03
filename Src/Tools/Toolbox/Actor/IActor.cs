@@ -1,6 +1,5 @@
-﻿namespace Toolbox.Actor
+﻿namespace Toolbox.Actor;
+
+public interface IActor
 {
-    public interface IActor
-    {
-    }
 }

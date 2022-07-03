@@ -35,19 +35,19 @@ namespace Toolbox.Actor.Host
 
         public TimeSpan ActorCallTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
-        public ActorHost Register(Type type, Func<IActor> createImplementation)
+        public IActorHost Register(Type type, Func<IActor> createImplementation)
         {
             _registry.Register(type, createImplementation);
             return this;
         }
 
-        public ActorHost Register<T>(Func<IActor> createImplementation)
+        public IActorHost Register<T>(Func<IActor> createImplementation)
         {
             _registry.Register(typeof(T), createImplementation);
             return this;
         }
 
-        public ActorHost Unregister(Type type)
+        public IActorHost Unregister(Type type)
         {
             _registry.Unregister(type);
             return this;
