@@ -30,7 +30,7 @@ namespace Toolbox.Test.Actor
             int count2 = 0;
             const int max = 10;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => CountControl(ref count, y)))
                 .Register<ICache2>(() => new StringCache2(y => CountControl(ref count2, y)));
 
@@ -100,7 +100,7 @@ namespace Toolbox.Test.Actor
             const int max = 10;
             const int maxLoop = 10;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => CountControl(ref count, y)))
                 .Register<ICache2>(() => new StringCache2(y => CountControl(ref count2, y)));
 
@@ -156,7 +156,7 @@ namespace Toolbox.Test.Actor
             const int max = 1000;
             const int maxLoop = 10;
 
-            using IActorHost actorHost = new ActorHost(100000, _loggerFactory)
+            using IActorService actorHost = new ActorService(100000, _loggerFactory)
                 .Register<ICache>(() => new StringCache(y => CountControl(ref count, y)))
                 .Register<ICache2>(() => new StringCache2(y => CountControl(ref count2, y)));
 
@@ -218,7 +218,7 @@ namespace Toolbox.Test.Actor
 
             ActorKey GetActorKey();
 
-            IActorHost GetActorHost();
+            IActorService GetActorHost();
         }
 
         private class StringCache : ActorBase, ICache
@@ -231,7 +231,7 @@ namespace Toolbox.Test.Actor
 
             public ActorKey GetActorKey() => ActorKey;
 
-            public IActorHost GetActorHost() => ActorHost;
+            public IActorService GetActorHost() => ActorHost;
 
             protected override Task OnActivate()
             {
@@ -270,7 +270,7 @@ namespace Toolbox.Test.Actor
 
             ActorKey GetActorKey();
 
-            IActorHost GetActorHost();
+            IActorService GetActorHost();
         }
 
         private class StringCache2 : ActorBase, ICache2
@@ -283,7 +283,7 @@ namespace Toolbox.Test.Actor
 
             public ActorKey GetActorKey() => ActorKey;
 
-            public IActorHost GetActorHost() => ActorHost;
+            public IActorService GetActorHost() => ActorHost;
 
             protected override Task OnActivate()
             {

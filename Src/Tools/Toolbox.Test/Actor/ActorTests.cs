@@ -21,7 +21,7 @@ namespace Toolbox.Test.Actor
         {
             int count = 0;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => count += y));
 
             ActorKey key = new ActorKey("cache/test");
@@ -42,7 +42,7 @@ namespace Toolbox.Test.Actor
         {
             int count = 0;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => count += y));
 
             const int max = 10;
@@ -88,7 +88,7 @@ namespace Toolbox.Test.Actor
         {
             int count = 0;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => count += y));
 
             ActorKey key = new ActorKey("cache/test");
@@ -107,7 +107,7 @@ namespace Toolbox.Test.Actor
         {
             int count = 0;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => count += y));
 
             ActorKey key = new ActorKey("cache/test");
@@ -124,7 +124,7 @@ namespace Toolbox.Test.Actor
         {
             int count = 0;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => count += y));
 
             ActorKey key1 = new ActorKey("Cache/Test1");
@@ -149,7 +149,7 @@ namespace Toolbox.Test.Actor
         {
             int count = 0;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => count += y));
 
             ActorKey key1 = new ActorKey("Cache/Test1");
@@ -175,7 +175,7 @@ namespace Toolbox.Test.Actor
         {
             int count = 0;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache(y => count += y));
 
             ActorKey key1 = new ActorKey("Cache/Test1");
@@ -218,7 +218,7 @@ namespace Toolbox.Test.Actor
 
             ActorKey GetActorKey();
 
-            IActorHost GetActorManager();
+            IActorService GetActorManager();
         }
 
         private class StringCache : ActorBase, ICache
@@ -234,7 +234,7 @@ namespace Toolbox.Test.Actor
 
             public ActorKey GetActorKey() => ActorKey;
 
-            public IActorHost GetActorManager() => ActorHost;
+            public IActorService GetActorManager() => ActorHost;
 
             protected override Task OnActivate()
             {

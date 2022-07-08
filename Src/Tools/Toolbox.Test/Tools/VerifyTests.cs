@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,8 +16,16 @@ public class VerifyTests
     {
         List<string>? kv = new List<string>();
         kv.NotNull();
+    }
+
+    [Fact]
+    public void GivenNotNull_VerifyNull_ShouldPass()
+    {
+        List<string>? kv = null;
 
         kv = null;
-        kv.NotNull();
+
+        Action action = () => kv.NotNull();
+        action.Should().Throw<ArgumentNullException>();
     }
 }

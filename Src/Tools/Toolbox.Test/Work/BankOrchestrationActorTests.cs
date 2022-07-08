@@ -35,7 +35,7 @@ public class BankOrchestrationActorTests
                 config.AddDebug();
                 config.AddFilter(x => true);
             })
-            .AddActorHost(config =>
+            .AddActor(config =>
             {
                 config.Register<IBankAccount, BankAccount>();
             })
@@ -62,17 +62,27 @@ public class BankOrchestrationActorTests
         result.StatusCode.Should().Be(StatusCode.Ok);
         result.ToBalance.Should().Be(100.00m);
         result.FromBalance.Should().Be(400.00m);
+
+        IActorService actorService = service.GetRequiredService<IActorService>();
+        var firstBank = actorService.GetActor<IBankAccount>((ActorKey)BankAccountName.FirstAcount.ToString());
+        var secondBank = actorService.GetActor<IBankAccount>((ActorKey)BankAccountName.SecondAcount.ToString());
+
+        var firstBankBalance = firstBank.GetBalance();
+        firstBankBalance.Should().Be(400.00m);
+
+        var secondBankBalance = secondBank.GetBalance();
+        secondBankBalance.Should().Be(100.00m);
     }
 }
 
 public class BankMoveOrchestration
 {
-    private readonly IActorHost _actorHost;
+    private readonly IActorService _actorService;
     private readonly ILogger<BankMoveOrchestration> _logger;
 
-    public BankMoveOrchestration(IActorHost actorHost, ILogger<BankMoveOrchestration> logger)
+    public BankMoveOrchestration(IActorService actorService, ILogger<BankMoveOrchestration> logger)
     {
-        _actorHost = actorHost;
+        _actorService = actorService;
         _logger = logger;
     }
 
@@ -81,24 +91,24 @@ public class BankMoveOrchestration
         var trx1 = new BankTransaction
         {
             FromAccount = input.ToAccount,
-            Credit = true,
+            Credit = false,
             Amount = input.Amount,
         };
 
-        var fromBank = _actorHost.GetActor<IBankAccount>((ActorKey)input.FromAccount);
+        var fromBank = _actorService.GetActor<IBankAccount>((ActorKey)input.FromAccount);
         fromBank.Add(trx1);
         var fromBalance = fromBank.GetBalance();
 
         var trx2 = new BankTransaction
         {
             FromAccount = input.FromAccount,
-            Credit = false,
+            Credit = true,
             Amount = input.Amount,
         };
 
-        var toBank = _actorHost.GetActor<IBankAccount>((ActorKey)input.ToAccount);
+        var toBank = _actorService.GetActor<IBankAccount>((ActorKey)input.ToAccount);
         toBank.Add(trx2);
-        var toBalance = fromBank.GetBalance();
+        var toBalance = toBank.GetBalance();
 
         return new BankMoveResult
         {

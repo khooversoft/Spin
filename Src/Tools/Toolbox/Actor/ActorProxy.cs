@@ -15,7 +15,7 @@ namespace Toolbox.Actor
     {
         private readonly SemaphoreSlim _lockSemaphore = new SemaphoreSlim(1, 1);
         private IActorBase? _instance;
-        private ActorHost? _actorHost;
+        private ActorService? _actorHost;
 
         public ActorProxy()
         {
@@ -28,7 +28,7 @@ namespace Toolbox.Actor
         /// <param name="instance">instance of actor class</param>
         /// <param name="manager">actor manager</param>
         /// <returns>proxy</returns>
-        public static T Create(IActorBase instance, ActorHost actorHost)
+        public static T Create(IActorBase instance, ActorService actorHost)
         {
             instance.NotNull();
             actorHost.NotNull();

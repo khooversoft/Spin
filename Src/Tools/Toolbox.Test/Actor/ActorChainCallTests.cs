@@ -16,7 +16,7 @@ namespace Toolbox.Test.Actor
         [Fact]
         public async Task ActorSingleChainTest()
         {
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<IActorNode>(() => new ActorNode())
                 .Register<IActorSum>(() => new ActorSum());
 

@@ -23,7 +23,7 @@ namespace Toolbox.Actor
         /// <summary>
         /// Get actor manager
         /// </summary>
-        public IActorHost ActorHost { get; internal set; } = null!;
+        public IActorService ActorHost { get; internal set; } = null!;
 
         /// <summary>
         /// Actor type, to deactivate

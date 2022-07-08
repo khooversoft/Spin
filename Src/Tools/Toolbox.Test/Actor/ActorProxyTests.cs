@@ -20,7 +20,7 @@ namespace Toolbox.Test.Actor
         {
             const int taskCount = 10;
 
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache());
 
             var tasks = new List<Task>();
@@ -40,7 +40,7 @@ namespace Toolbox.Test.Actor
             (await actorHost.Deactivate<ICache>(key1)).Should().BeTrue();
         }
 
-        private async Task TestAccess(IActorHost host, ActorKey actorKey, CancellationToken token)
+        private async Task TestAccess(IActorService host, ActorKey actorKey, CancellationToken token)
         {
             const string firstText = "first";
 

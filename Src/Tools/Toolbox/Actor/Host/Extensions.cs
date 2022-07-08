@@ -11,23 +11,23 @@ namespace Toolbox.Actor.Host;
 
 public static class Extensions
 {
-    public static IServiceCollection AddActorHost(this IServiceCollection collection)
+    public static IServiceCollection AddActor(this IServiceCollection collection)
     {
         collection.NotNull();
 
-        collection.AddSingleton<IActorHost, ActorHost>();
+        collection.AddSingleton<IActorService, ActorService>();
         return collection;
     }
 
-    public static IServiceCollection AddActorHost(this IServiceCollection collection, Action<IActorHostRegistration> actorHostConfiguration)
+    public static IServiceCollection AddActor(this IServiceCollection collection, Action<IActorServiceConfiguration> actorHostConfiguration)
     {
         collection.NotNull();
         actorHostConfiguration.NotNull();
 
-        collection.AddSingleton<IActorHost>(service =>
+        collection.AddSingleton<IActorService>(service =>
         {
-            var host = new ActorHost(service.GetRequiredService<ILoggerFactory>());
-            actorHostConfiguration(new ActorHostRegistration(host, service));
+            var host = new ActorService(service.GetRequiredService<ILoggerFactory>());
+            actorHostConfiguration(new ActorServiceConfiguration(host, service));
             return host;
         });
 
@@ -39,7 +39,7 @@ public static class Extensions
         provider.NotNull();
         actorKey.NotNull();
 
-        var host = provider.GetRequiredService<IActorHost>();
+        var host = provider.GetRequiredService<IActorService>();
         return host.GetActor<T>(actorKey);
     }
 }

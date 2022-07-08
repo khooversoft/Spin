@@ -15,7 +15,7 @@ namespace Toolbox.Test.Actor
         [Fact]
         public async Task GivenActor_WhenDeactivated_ShouldPass()
         {
-            using IActorHost actorHost = new ActorHost(_loggerFactory)
+            using IActorService actorHost = new ActorService(_loggerFactory)
                 .Register<ICache>(() => new StringCache());
 
             ActorKey actorKey = new ActorKey("Cache/Test1");
