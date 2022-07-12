@@ -59,7 +59,15 @@ namespace ContractApi.Controllers
         public async Task<IActionResult> List([FromBody] QueryParameter queryParameter, CancellationToken token)
         {
             BatchSet<DatalakePathItem> list = await _contractService.Search(queryParameter, token);
-            return Ok(list);
+
+            BatchSet<string> result = new BatchSet<string>()
+            {
+                QueryParameter = list.QueryParameter,
+                NextIndex = list.NextIndex,
+                Records = list.Records.Select(x => x.Name).ToArray()
+            };
+
+            return Ok(result);
         }
 
 
@@ -115,7 +123,7 @@ namespace ContractApi.Controllers
 
             BlockChain blockChain = await _contractService.Sign(blockChainModel.ToBlockChain(), token);
 
-            if(path == "model")
+            if (path == "model")
             {
                 return Ok(blockChain.ToBlockChainModel());
             }

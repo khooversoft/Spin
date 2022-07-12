@@ -13,7 +13,7 @@ public record ContractHostOption
 
 
     // Specific contract operation
-    public EventName EventName { get; init; }
+    public string EventPath { get; init; } = null!;
     public string DocumentId { get; init; } = null!;
     public string PrincipleId { get; init; } = null!;
     public string? EventConfig { get; init; }
@@ -27,13 +27,13 @@ public record ContractHostOption
 
 public static class ContractOptionExtensions
 {
-    public static ContractHostOption VerifyBootstrap(this ContractHostOption option)
+    public static ContractHostOption VerifyFull(this ContractHostOption option)
     {
         option.NotNull();
 
         option.DirectoryUrl.NotEmpty(name: $"{nameof(option.DirectoryUrl)} is required");
         option.DirectoryApiKey.NotEmpty(name: $"{nameof(option.DirectoryApiKey)} is required");
-        option.EventName.Assert(x => Enum.IsDefined(typeof(EventName), option.EventName), "Unknown option");
+        option.EventPath.NotEmpty(name: $"{nameof(option.EventPath)} is required");
         option.DocumentId.NotEmpty(name: $"{nameof(option.DocumentId)} is required");
         option.PrincipleId.NotEmpty(name: $"{nameof(option.PrincipleId)} is required");
 
@@ -42,7 +42,7 @@ public static class ContractOptionExtensions
 
     public static ContractHostOption Verify(this ContractHostOption option)
     {
-        option.VerifyBootstrap();
+        option.VerifyFull();
 
         option.ContractUrl.NotNull();
         option.ContractApiKey.NotNull();

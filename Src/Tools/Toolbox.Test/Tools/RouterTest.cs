@@ -1,16 +1,15 @@
-﻿using System;
+﻿using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
-using Toolbox.Broker;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Xunit;
 
-namespace Toolbox.Test.Broker
+namespace Toolbox.Test.Tools
 {
     public class RouterTest
     {
@@ -19,12 +18,34 @@ namespace Toolbox.Test.Broker
         {
             var sync = new TaskCompletionSource<int>();
 
-            await new Router(new NullLogger<Router>())
-                .Add(new Route<int>("*", x => { sync.SetResult(x); return Task.CompletedTask; }))
-                .Send("*", 5);
+            int v = new Router<int, int>(new NullLogger<Router<int, int>>())
+               .Add("*", (x, _) => { sync.SetResult(x); return 0; })
+               .Send("*", 5, CancellationToken.None);
+
+            v.Should().Be(0);
 
             int receive = await sync.Task;
             receive.Should().Be(5);
+        }
+        
+        [Fact]
+        public void GivenSimpleRouteMessage_ShouldReceive()
+        {
+            int v = new Router<int, int>(new NullLogger<Router<int, int>>())
+               .Add("*", (x, c) => x * 10)
+               .Send("*", 5, CancellationToken.None);
+
+            v.Should().Be(50);
+        }   
+        
+        [Fact]
+        public async Task GivenSimpleAsyncRouteMessage_ShouldReceive()
+        {
+            int v = await new Router<int, Task<int>>(new NullLogger<Router<int, Task<int>>>())
+               .Add("*", (x, c) => Task.FromResult(x * 10))
+               .Send("*", 5, CancellationToken.None);
+
+            v.Should().Be(50);
         }
 
         [Fact]
@@ -40,8 +61,8 @@ namespace Toolbox.Test.Broker
                 (new TaskCompletionSource<int>(),  "6"),
             };
 
-            var router = new Router(new NullLogger<Router>())
-                .Action(x => list.ForEach(y => x.Add(new Route<int>(y.path, z => { y.tcs.SetResult(z); return Task.CompletedTask; }))));
+            var router = new Router<int, int>(new NullLogger<Router<int, int>>())
+                .Action(x => list.ForEach(y => x.Add(y.path, (z, _) => { y.tcs.SetResult(z); return 0; })));
 
             IReadOnlyList<string> randomList = list
                 .Select(x => x.path)
@@ -49,7 +70,7 @@ namespace Toolbox.Test.Broker
 
             int index = 0;
 
-            await randomList.ForEachAsync(async x => await router.Send(x, index++));
+            randomList.ForEach(x => router.Send(x, index++, CancellationToken.None));
 
             int[] results = await Task.WhenAll(list.Select(x => x.tcs.Task).ToArray());
 
@@ -76,9 +97,9 @@ namespace Toolbox.Test.Broker
 
             var failed = new ConcurrentQueue<int>();
 
-            var router = new Router(new NullLogger<Router>())
-                .Add(list.Select(x => new Route<int>(x.path, z => { x.queue.Enqueue(z); return Task.CompletedTask; })).ToArray())
-                .SetForward(x => { failed.Enqueue((int)x); return Task.CompletedTask; });
+            var router = new Router<int, Task>(new NullLogger<Router<int, Task>>())
+                .Action(x => list.ForEach(y => x.Add(y.path, (z, _) => { y.queue.Enqueue(z); return Task.CompletedTask; })))
+                .Add("*", (x, _) => { failed.Enqueue(x); return Task.CompletedTask; });
 
             int index = 0;
             int loopCount = 9999;
@@ -86,10 +107,12 @@ namespace Toolbox.Test.Broker
             foreach (var loop in Enumerable.Range(0, loopCount))
             {
                 await list
-                    .ForEachAsync(async x => await router.Send(x.path, index++));
+                    .ForEachAsync(async x => await router.Send(x.path, index++, CancellationToken.None));
             }
 
-            failed.Count.Should().Be(0);
+            await router.Send("*", -1, CancellationToken.None);
+
+            failed.Count.Should().Be(1);
 
             list
                 .Count(x => x.queue.Count == loopCount)

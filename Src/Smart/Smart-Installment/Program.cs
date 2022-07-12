@@ -8,16 +8,20 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 
 
+// Commands
+
+
 IContractHost host = await ContractHostBuilder.Create()
     .AddCommand(args)
-    .AddEvent<ContractActual>()
     .AddContractServices()
     .Build();
 
 await host.Run();
 
+Console.WriteLine("***");
 
-internal class ContractActual : IEventService
+
+internal class ContractActual
 {
     private readonly ILogger<ContractActual> _logger;
     private readonly DocumentContractClient _documentContractClient;
@@ -30,12 +34,11 @@ internal class ContractActual : IEventService
         _logger = logger.NotNull();
     }
 
-    [EventName(EventName.Create)]
     public async Task Create(IContractHost runHost, CancellationToken token)
     {
         runHost.NotNull();
 
-        _logger.LogInformation("Running checkpoint, eventName={eventName}", runHost.Context.Option.EventName);
+        _logger.LogInformation("Running checkpoint, EventPath={eventPath}", runHost.Context.Option.EventPath);
 
         string eventConfig = _contractHostOption
             .EventConfig.NotNull(name: $"{nameof(_contractHostOption.EventConfig)} is required");
@@ -50,7 +53,6 @@ internal class ContractActual : IEventService
         await _documentContractClient.Create(option, token);
     }
 
-    [EventName(EventName.Checkpoint)]
     public async Task Checkpoint(IContractHost runHost, CancellationToken token)
     {
         runHost.NotNull();

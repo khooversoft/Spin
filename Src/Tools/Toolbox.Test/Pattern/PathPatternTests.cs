@@ -17,7 +17,7 @@ namespace Toolbox.Test.Pattern
             const string name = "main";
             const string source = "root/path";
 
-            new PatternSelect()
+            new PatternCollection()
                 .AddPattern(name, source)
                 .TryMatch(source, out PatternResult? result)
                 .Should().BeTrue();
@@ -37,7 +37,7 @@ namespace Toolbox.Test.Pattern
             const string source = "root";
             const string pattern = "root/{path}";
 
-            new PatternSelect()
+            new PatternCollection()
                 .AddPattern(name, pattern)
                 .TryMatch(source, out PatternResult? result)
                 .Should().BeFalse();
@@ -50,7 +50,7 @@ namespace Toolbox.Test.Pattern
             const string source = "root";
             const string pattern = "root/{path}";
 
-            new PatternSelect()
+            new PatternCollection()
                 .AddPattern(name, pattern)
                 .TryMatch(source, out PatternResult? result)
                 .Should().BeFalse();
@@ -63,7 +63,7 @@ namespace Toolbox.Test.Pattern
             const string source = "root/pathValue";
             const string pattern = "root/{path}";
 
-            new PatternSelect()
+            new PatternCollection()
                 .AddPattern(name, pattern)
                 .TryMatch(source, out PatternResult? result)
                 .Should().BeTrue();
@@ -85,7 +85,7 @@ namespace Toolbox.Test.Pattern
             const string source = "root/pathValue/5";
             const string pattern = "root/{path}/{id}";
 
-            new PatternSelect()
+            new PatternCollection()
                 .AddPattern(name, pattern)
                 .TryMatch(source, out PatternResult? result)
                 .Should().BeTrue();
@@ -113,7 +113,7 @@ namespace Toolbox.Test.Pattern
             const string pattern1 = "root/{path}/{id}";
             const string pattern2 = "root/index";
 
-            var collection = new PatternSelect()
+            var collection = new PatternCollection()
                 .AddPattern("main1", pattern1)
                 .AddPattern("main2", pattern2);
 
@@ -198,7 +198,7 @@ namespace Toolbox.Test.Pattern
                 return result with { Transform = $"keyVault://{kv}/{keyName}" };
             }
 
-            var collection = new PatternSelect()
+            var collection = new PatternCollection()
                 .AddPattern("file", "file://{namespace}/{environment}/{root}/{file}") // adls://server/filesystem/root/file
                 .AddPattern("keyVault", "kv://{namespace}/{environment}/{keyName}") // kv://
                 .AddTransform("file", TransformFile)

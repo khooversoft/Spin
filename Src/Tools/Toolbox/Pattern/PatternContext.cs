@@ -10,7 +10,5 @@ namespace Toolbox.Pattern
     public class PatternContext
     {
         public string Source { get; init; } = null!;
-
-        public ConcurrentDictionary<string, object> Properties { get; } = new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase);
     }
 }

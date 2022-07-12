@@ -15,7 +15,10 @@ public static class Extensions
 {
     public static IContractHostBuilder AddContractServices(this IContractHostBuilder builder)
     {
-        builder.AddSingleton<DocumentContractClient>();
+        builder.ConfigureService(service =>
+        {
+            service.AddSingleton<DocumentContractClient>();
+        });
 
         return builder;
     }

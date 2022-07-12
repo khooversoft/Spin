@@ -94,12 +94,6 @@ namespace Directory.Test
                 Properties = new[] { "property1=value1" }
             };
 
-            //var entry = new DirectoryEntryBuilder()
-            //    .SetDirectoryId(documentId)
-            //    .SetClassType("test")
-            //    .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
-            //    .Build();
-
             await client.Set(entry);
 
             DirectoryEntry? readEntry = await client.Get(documentId);
@@ -111,13 +105,9 @@ namespace Directory.Test
             {
                 DirectoryId = documentId.Path,
                 ClassType = "test",
-                Properties = new[] { "property2=value2" }
+                Properties = new[] { "property1=value1", "property2=value2" },
+                ETag = readEntry.ETag,
             };
-
-            //var updateEntry = new DirectoryEntryBuilder(readEntry)
-            //    .SetClassType("test-next")
-            //    .AddProperty(new EntryProperty { Name = "property2", Value = "value2" })
-            //    .Build();
 
             await client.Set(updateEntry);
 
@@ -136,7 +126,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            var documentId = new DocumentId("test/unit-tests/entry1");
+            var documentId = new DocumentId("test/unit-tests/entry2");
 
             var query = new QueryParameter()
             {
@@ -153,12 +143,6 @@ namespace Directory.Test
                 Properties = new[] { "property1=value1" }
             };
 
-            //var entry = new DirectoryEntryBuilder()
-            //    .SetDirectoryId(documentId)
-            //    .SetClassType("test")
-            //    .AddProperty(new EntryProperty { Name = "property1", Value = "value1" })
-            //    .Build();
-
             await client.Set(entry);
 
             DirectoryEntry? readEntry = await client.Get(documentId);
@@ -173,12 +157,6 @@ namespace Directory.Test
                 ETag = new ETag("0xFF9CA90CB9F5120"),
                 Properties = new[] { "property2=value2" }
             };
-
-            //var updateEntry = new DirectoryEntryBuilder(readEntry)
-            //    .SetClassType("test-next")
-            //    .SetETag(new ETag("0xFF9CA90CB9F5120"))
-            //    .AddProperty(new EntryProperty { Name = "property2", Value = "value2" })
-            //    .Build();
 
             bool failed;
             try

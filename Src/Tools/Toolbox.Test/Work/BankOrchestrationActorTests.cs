@@ -3,14 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Actor;
 using Toolbox.Actor.Host;
-using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Xunit;
 
@@ -58,7 +53,7 @@ public class BankOrchestrationActorTests
             Amount = 100.00m,
         };
 
-        BankMoveResult result = bankMoveOrchestration.Run(new ContextProperty(), trx1);
+        BankMoveResult result = bankMoveOrchestration.Run(new PropertyDictionary(), trx1);
         result.StatusCode.Should().Be(StatusCode.Ok);
         result.ToBalance.Should().Be(100.00m);
         result.FromBalance.Should().Be(400.00m);
@@ -86,7 +81,7 @@ public class BankMoveOrchestration
         _logger = logger;
     }
 
-    public BankMoveResult Run(ContextProperty context, BankMoveRequest input)
+    public BankMoveResult Run(PropertyDictionary context, BankMoveRequest input)
     {
         var trx1 = new BankTransaction
         {

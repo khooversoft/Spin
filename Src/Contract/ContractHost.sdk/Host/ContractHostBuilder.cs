@@ -14,87 +14,40 @@ using Toolbox.Tools;
 
 namespace ContractHost.sdk.Host;
 
+public interface IContractHostBuilder
+{
+    IContractHostBuilder AddCommand(string[] args);
+    Task<IContractHost> Build();
+    IContractHostBuilder ConfigureEvent(Action<IRouter<string, Task>> config);
+    IContractHostBuilder ConfigureService(Action<IServiceCollection> config);
+}
+
+
 public class ContractHostBuilder : IContractHostBuilder
 {
     private string[]? _args;
     private readonly IServiceCollection _serviceCollection = new ServiceCollection();
-    private readonly List<EventClassRegistry> _eventRegistrations = new List<EventClassRegistry>();
+    private List<Action<IServiceCollection>> _serviceConfig = new List<Action<IServiceCollection>>();
+    private List<Action<IRouter<string, Task>>> _routerConfig = new List<Action<IRouter<string, Task>>>();
 
     public static IContractHostBuilder Create() => new ContractHostBuilder();
 
     public IContractHostBuilder AddCommand(string[] args) => this.Action(x => x._args = args);
 
-    public IContractHostBuilder AddSingleton<T>() where T : class => this.Action(x => x._serviceCollection.AddSingleton<T>());
-
-    public IContractHostBuilder AddSingleton<T>(Func<IServiceProvider, T> implementationFactory) where T : class =>
-        this.Action(x => x._serviceCollection.AddSingleton(service => implementationFactory(service)));
-
-    public IContractHostBuilder AddEvent<T>() where T : class, IEventService
-    {
-        List<(MethodInfo methodInfo, EventNameAttribute attr)> methodsMap = typeof(T)
-            .GetMethods()
-            .Select(x => (methodInfo: x, attr: x.GetCustomAttribute<EventNameAttribute>()!))
-            .Where(x => x.attr != null)
-            .ToList()
-            .Assert(x => x.Count > 0, "No methods marked with 'EventNameAttribute'");
-
-        methodsMap
-            .GroupBy(x => x.attr.EventName)
-            .Where(x => x.Count() > 1)
-            .Any()
-            .Assert(x => x == false, "Multiple methods marked with the same 'EventNameAttribute'");
-
-        methodsMap
-            .Select(x =>
-            {
-                Delegate.CreateDelegate(typeof(EventNameHandler<T>), x.methodInfo)
-                    .NotNull(name: "Method signature is not valid");
-
-                return new EventClassRegistry
-                {
-                    EventName = x.attr.EventName,
-                    Type = typeof(T),
-                    Method = (service, host, token) =>
-                    {
-                        MethodInfo methodInfo = x.methodInfo;
-                        return (Task)methodInfo.Invoke(service, new object[] { host, token })!;
-                    },
-                };
-            })
-            .ForEach(x => _eventRegistrations.Add(x));
-
-        return this;
-    }
-
-    public IContractHostBuilder AddEvent<T>(EventName contractEvent, EventNameHandler<T> method) where T : class, IEventService
-    {
-        contractEvent.Assert(x => x.IsValid(), $"Unknown eventName={(int)contractEvent}");
-        method.NotNull();
-
-        _serviceCollection.AddSingleton<T>();
-
-        _eventRegistrations.Add(new EventClassRegistry
-        {
-            EventName = contractEvent,
-            Type = typeof(T),
-            Method = (service, host, token) => method((T)service, host, token)
-        }.Verify());
-
-        return this;
-    }
+    public IContractHostBuilder ConfigureService(Action<IServiceCollection> config) => this.Action(_ => _serviceConfig.Add(config.NotNull()));
+    public IContractHostBuilder ConfigureEvent(Action<IRouter<string, Task>> config) => this.Action(_ => _routerConfig.Add(config.NotNull()));
 
     public async Task<IContractHost> Build()
     {
         _args.NotNull(name: "Args are required, use AddCommand()");
-        _eventRegistrations.Assert(x => x.Count > 0, "Events are required, use AddEvent<T>(...)");
+        _routerConfig.Assert(x => x.Count > 0, "Events are required, use AddEvent<T>(...) or ConfigureEvent(...)");
 
         ContractHostOption contractHostOption = await BuildOption(_args);
 
         _serviceCollection.AddSingleton(contractHostOption);
-        _serviceCollection.AddSingleton(new ContractContext(contractHostOption, _eventRegistrations, _args));
+        _serviceCollection.AddSingleton(new ContractContext(contractHostOption, _args));
         _serviceCollection.AddSingleton<ContractHost>();
-
-        _eventRegistrations.ForEach(x => _serviceCollection.AddSingleton(x.Type));
+        _serviceCollection.AddSingleton<IRouter<string, Task>, Router<string, Task>>();
 
         _serviceCollection.AddHttpClient<ContractClient>((service, httpClient) =>
         {
@@ -103,6 +56,8 @@ public class ContractHostBuilder : IContractHostBuilder
             httpClient.DefaultRequestHeaders.Add(Constants.ApiKeyName, option.ContractApiKey);
         });
 
+        _serviceConfig.ForEach(x => x(_serviceCollection));
+
         _serviceCollection.AddLogging(configure =>
         {
             configure.AddConsole();
@@ -110,9 +65,12 @@ public class ContractHostBuilder : IContractHostBuilder
             configure.AddFilter(x => true);
         });
 
-        return _serviceCollection
-            .BuildServiceProvider()
-            .GetRequiredService<ContractHost>();
+        IServiceProvider serviceProvider = _serviceCollection.BuildServiceProvider();
+
+        IRouter<string, Task> router = serviceProvider.GetRequiredService<IRouter<string, Task>>();
+        _routerConfig.ForEach(x => x(router));
+
+        return serviceProvider.GetRequiredService<ContractHost>();
     }
 
     private static async Task<ContractHostOption> BuildOption(string[] args)
@@ -131,7 +89,7 @@ public class ContractHostBuilder : IContractHostBuilder
             .AddCommandLine(args)
             .Build()
             .Bind<ContractHostOption>()
-            .VerifyBootstrap();
+            .VerifyFull();
 
         return await DirectoryTools.Run(option.DirectoryUrl, option.DirectoryApiKey, async client =>
         {

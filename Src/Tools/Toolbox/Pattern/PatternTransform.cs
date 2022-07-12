@@ -89,7 +89,7 @@ namespace Toolbox.Pattern
                 Name = pathPatternSearch.Name,
                 Pattern = pathPatternSearch.Pattern,
                 Source = source,
-                Values = new ConcurrentDictionary<string, string>(names.Zip(nameValues, (o, i) => new KeyValuePair<string, string>(o, i)), StringComparer.OrdinalIgnoreCase),
+                Values = new Dictionary<string, string>(names.Zip(nameValues, (o, i) => new KeyValuePair<string, string>(o, i)), StringComparer.OrdinalIgnoreCase),
             };
 
             return true;

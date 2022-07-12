@@ -7,14 +7,25 @@ using Toolbox.Tools;
 
 namespace ContractHost.sdk.Host;
 
+public interface IContractHost
+{
+    IServiceProvider ServiceProvider { get; }
+    ContractContext Context { get; }
+
+    Task Run();
+}
+
+
 public class ContractHost : IContractHost
 {
     private readonly ILogger<ContractHost> _logger;
+    private readonly IRouter<string, Task> _router;
 
-    public ContractHost(IServiceProvider serviceProvider, ContractContext contractContext, ILogger<ContractHost> logger)
+    public ContractHost(IServiceProvider serviceProvider, ContractContext contractContext, IRouter<string, Task> router, ILogger<ContractHost> logger)
     {
         ServiceProvider = serviceProvider.NotNull();
         Context = contractContext.NotNull();
+        _router = router.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -22,20 +33,13 @@ public class ContractHost : IContractHost
 
     public ContractContext Context { get; }
 
-    public IDictionary<string, object> Properties { get; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-
     public async Task Run()
     {
         ContractHostOption option = ServiceProvider.GetRequiredService<ContractHostOption>().Verify();
-        _logger.LogInformation("Starting eventName={eventName}", Context.Option.EventName);
+        _logger.LogInformation("Starting eventName={eventPath}", Context.Option.EventPath);
 
         var tokenSource = new CancellationTokenSource();
-
-        foreach (EventClassRegistry eventClass in Context.EventClassRegistries.Where(x => x.EventName == Context.Option.EventName))
-        {
-            IEventService service = (IEventService)ServiceProvider.GetRequiredService(eventClass.Type);
-            await eventClass.Method(service, this, tokenSource.Token);
-        }
+        await _router.Send(Context.Option.EventPath, Context.Option.EventPath, tokenSource.Token);
     }
 }
 

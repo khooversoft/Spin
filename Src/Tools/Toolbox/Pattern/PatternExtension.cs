@@ -5,7 +5,7 @@ namespace Toolbox.Pattern
 {
     public static class PatternExtension
     {
-        public static PatternSelect AddPattern(this PatternSelect subject, string name, string pattern, Func<PatternContext, PatternResult, PatternResult>? transform = null)
+        public static PatternCollection AddPattern(this PatternCollection subject, string name, string pattern, Func<PatternContext, PatternResult, PatternResult>? transform = null)
         {
             subject.NotNull();
             name.NotEmpty();
@@ -27,7 +27,7 @@ namespace Toolbox.Pattern
             return subject;
         }
 
-        public static PatternSelect AddTransform(this PatternSelect subject, string name, Func<PatternContext, PatternResult, PatternResult> select)
+        public static PatternCollection AddTransform(this PatternCollection subject, string name, Func<PatternContext, PatternResult, PatternResult> select)
         {
             subject.NotNull();
             name.NotEmpty();

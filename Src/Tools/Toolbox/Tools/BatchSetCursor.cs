@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Model;
 
 namespace Toolbox.Tools
@@ -33,7 +35,8 @@ namespace Toolbox.Tools
 
         private async Task<BatchSet<T>> Continue(CancellationToken token)
         {
-            _logger.LogTrace($"{nameof(Continue)}: Query={_queryParameter}");
+            var sl = _logger.LogEntryExit();
+            _logger.LogTrace("Query={_queryParameter}", _queryParameter);
 
             QueryParameter queryParameter = _queryParameter with { Index = Current!.NextIndex };
 
@@ -45,16 +48,24 @@ namespace Toolbox.Tools
 
         private async Task<BatchSet<T>> Post(QueryParameter queryParameter)
         {
+            var sl = _logger.LogEntryExit();
+
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(_postUrl, queryParameter);
             response.EnsureSuccessStatusCode();
 
-            return (await response.Content.ReadFromJsonAsync<BatchSet<T>>())
-                .NotNull(name: "No payload was returned");
+            string content = (await response.Content.ReadAsStringAsync())
+                .Assert(x => !x.IsEmpty(), "No content");
+
+            _logger.LogTrace("Content={content}", content);
+
+            return content.ToObject<BatchSet<T>>()
+                .NotNull(name: "Serialization failed");
         }
 
         private async Task<BatchSet<T>> Start(CancellationToken token)
         {
-            _logger.LogTrace($"{nameof(Start)}: Query={_queryParameter}");
+            var sl = _logger.LogEntryExit();
+            _logger.LogTrace("Query={_queryParameter}", _queryParameter);
 
             Current = await Post(_queryParameter);
             _getFunc = Continue;
