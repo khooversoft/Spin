@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Block;
+using Toolbox.Logging;
 using Toolbox.Tools;
 
 namespace Directory.sdk.Client
@@ -23,20 +24,21 @@ namespace Directory.sdk.Client
 
         public async Task<SignRequestResponse> Sign(SignRequest signRequest, CancellationToken token = default)
         {
-            _logger.LogTrace($"Signing request for id={signRequest.Id}");
+            var ls = _logger.LogEntryExit();
+            _logger.LogTrace("Signing request for id={id}", signRequest.Id);
 
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/signing/sign", signRequest, token);
             response.EnsureSuccessStatusCode();
 
             string json = await response.Content.ReadAsStringAsync();
 
-            return Json.Default.Deserialize<SignRequestResponse>(json)
-                .NotNull();
+            return Json.Default.Deserialize<SignRequestResponse>(json).NotNull();
         }
 
         public async Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token = default)
         {
-            _logger.LogTrace($"Signing request for id={validateRequest.Id}");
+            var ls = _logger.LogEntryExit();
+            _logger.LogTrace("Signing request for id={id}", validateRequest.Id);
 
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/signing/validate", validateRequest, token);
             return response.StatusCode == HttpStatusCode.OK ? true : false;

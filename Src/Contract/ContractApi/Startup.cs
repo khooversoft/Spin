@@ -1,4 +1,5 @@
 using Artifact.sdk;
+using Contract.sdk.Service;
 using ContractApi.Application;
 using Directory.sdk.Client;
 using Directory.sdk.Model;

@@ -38,13 +38,13 @@ public class ContractControllerTests
         BlockChainModel signedBlockChainModel = await client.Sign(blockChain.ToBlockChainModel());
         signedBlockChainModel.Should().NotBeNull();
 
-        bool isValid = await client.Validate(signedBlockChainModel);
+        _ = await client.Validate(signedBlockChainModel);
 
 
         // Modify signature
         signedBlockChainModel.Blocks[1] = signedBlockChainModel.Blocks[1] with { DataBlock = signedBlockChainModel.Blocks[1].DataBlock with { JwtSignature = "junk" } };
 
-        isValid = await client.Validate(signedBlockChainModel);
+        bool isValid = await client.Validate(signedBlockChainModel);
         isValid.Should().BeFalse();
     }
 

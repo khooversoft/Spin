@@ -39,7 +39,7 @@ public static class ConfigurationExtensions
         string json = Json.Default.Serialize(subject).NotEmpty(name: "Serialization failed");
 
         byte[] byteArray = Encoding.UTF8.GetBytes(json);
-        MemoryStream stream = new MemoryStream(byteArray);
+        using MemoryStream stream = new MemoryStream(byteArray);
 
         IConfiguration config = new ConfigurationBuilder()
             .AddJsonStream(stream)

@@ -9,9 +9,9 @@ namespace Toolbox.Monads;
 
 public static class TypeExtensions
 {
-    public static Maybe<TValue> TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) where TValue : class
+    public static Option<TValue> TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) where TValue : class
     {
         bool found = dictionary.TryGetValue(key, out var value);
-        return found ? new Maybe<TValue>(value) : Maybe<TValue>.None;
+        return found ? new Option<TValue>(value) : Option<TValue>.None;
     }
 }

@@ -4,7 +4,7 @@ using Toolbox.Tools;
 
 namespace Contract.sdk.Models;
 
-public record BlkHeader : BlkBase
+public record BlkHeader
 {
     public string DocumentId { get; init; } = null!;
 
@@ -20,9 +20,6 @@ public static class BlkHeaderExtensions
 {
     public static void Verify(this BlkHeader subject)
     {
-        subject.NotNull();
-        subject.VerifyBase();
-
         DocumentId.VerifyId(subject.DocumentId);
         subject.Creator.NotEmpty();
         subject.Description.NotEmpty();

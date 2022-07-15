@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using Toolbox.Actor;
 using Toolbox.Actor.Host;
-using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit;
 
 namespace Toolbox.Test.Work;

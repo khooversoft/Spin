@@ -1,4 +1,5 @@
-﻿using ContractHost.sdk.Event;
+﻿using Contract.sdk.Options;
+using ContractHost.sdk.Event;
 using ContractHost.sdk.Host;
 using ContractHost.sdk.Model;
 using Microsoft.Extensions.Configuration;

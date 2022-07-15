@@ -81,8 +81,7 @@ namespace Toolbox.Extensions
         {
             if (subject == null) return new byte[0];
 
-            string json = subject.ToJson();
-            return json.ToBytes();
+            return subject.ToJson().ToBytes();
         }
 
         /// <summary>
@@ -107,11 +106,16 @@ namespace Toolbox.Extensions
         /// <typeparam name="T">deserialize to type</typeparam>
         /// <param name="json">json string</param>
         /// <returns>object</returns>
-        public static T? ToObject<T>(this string json)
+        public static T? ToObject<T>(this string json, bool required = false)
         {
             if (json.IsEmpty()) return default;
 
-            return Json.Default.Deserialize<T>(json);
+            var obj = Json.Default.Deserialize<T>(json);
+            return required switch
+            {
+                false => obj,
+                true => obj.NotNull(name: "Deserialize error"),
+            };
         }
     }
 }

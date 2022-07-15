@@ -5,8 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Monads;
+using Toolbox.Tools;
 
-namespace Toolbox.Tools
+namespace Toolbox.Types
 {
     /// <summary>
     /// Provides cursor capability to a collection
@@ -31,7 +33,7 @@ namespace Toolbox.Tools
         /// <summary>
         /// Reference list
         /// </summary>
-        public IReadOnlyList<T> List => (List<T>)_list;
+        public IReadOnlyList<T> List => _list;
 
         /// <summary>
         /// Current cursor index (0 base)
@@ -75,6 +77,16 @@ namespace Toolbox.Tools
         }
 
         /// <summary>
+        /// Get next value
+        /// </summary>
+        /// <returns>Option with hasValue set</returns>
+        public Option<T> NextValue()
+        {
+            bool hasValue = TryNextValue(out T? value);
+            return (hasValue, value).Option();
+        }
+
+        /// <summary>
         /// Try to get next value but do not increment the cursor
         /// </summary>
         /// <param name="value">value to return</param>
@@ -89,6 +101,16 @@ namespace Toolbox.Tools
 
             value = _list[current];
             return true;
+        }
+
+        /// <summary>
+        /// Try get next value but do not increment the cursor
+        /// </summary>
+        /// <returns></returns>
+        public Option<T> PeekValue()
+        {
+            bool hasValue = TryPeekValue(out T? value);
+            return (hasValue, value).Option();
         }
     }
 }

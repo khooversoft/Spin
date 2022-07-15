@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tokenizer;
 using Toolbox.Tokenizer.Token;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Pattern
 {

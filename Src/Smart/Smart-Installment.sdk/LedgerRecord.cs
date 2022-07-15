@@ -1,11 +1,12 @@
-﻿using Toolbox.Extensions;
+﻿using Contract.sdk.Models;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Smart_Installment.sdk;
 
 public record LedgerRecord
 {
-    public string Id { get; init; } = Guid.NewGuid().ToString();
+    public Guid Id { get; init; } = Guid.NewGuid();
     public DateTimeOffset Date { get; init; }
     public LedgerType Type { get; init; }
     public string TrxType { get; init; } = null!;
@@ -20,7 +21,6 @@ public static class LedgerExtensions
     {
         subject.NotNull();
 
-        subject.Id.NotEmpty();
         subject.TrxType.NotEmpty();
         subject.Type.Assert(x => Enum.IsDefined(typeof(LedgerType), x), "Invalid Ledger type");
         subject.Amount.Assert(x => x > 0, "Amount must be positive");
@@ -36,4 +36,22 @@ public static class LedgerExtensions
             LedgerType.Debit => -x.Amount,
             _ => throw new ArgumentException($"Unknown ledger type={x.Type}"),
         });
+
+    public static DataItem ConvertTo(this LedgerRecord subject)
+    {
+        subject.NotNull();
+
+        return new DataItem
+        {
+            Id = subject.Id,
+            Name = subject.GetType().Name,
+            Value = subject.ToJson(),
+        };
+    }
+
+    public static LedgerRecord ConvertTo(this DataItem dataItem) => dataItem
+        .NotNull()
+        .Assert(x => x.Name == typeof(LedgerRecord).Name, "Invalid type")
+        .Value
+        .ToObject<LedgerRecord>(true)!;
 }

@@ -6,7 +6,7 @@ namespace Toolbox.Monads;
 
 public static class Seq
 {
-    public static IEnumerable<Maybe<T>> Enumerable<T>()
+    public static IEnumerable<Option<T>> Enumerable<T>()
     {
         yield break;
     }
@@ -21,17 +21,17 @@ public readonly struct Seq<T>
         Values = Seq.Enumerable<T>();
     }
 
-    public Seq(Unit<T> value, IEnumerable<Maybe<T>> values)
+    public Seq(Unit<T> value, IEnumerable<Option<T>> values)
     {
         Value = value.Return();
         Values = values;
     }
 
     public T Value { get; }
-    public IEnumerable<Maybe<T>> Values { get; }
+    public IEnumerable<Option<T>> Values { get; }
 
-    public Seq<T> Bind(Func<T, Maybe<T>> func) => new Seq<T>(Value.Unit(), Values.Append(func(Value)));
-    public IEnumerable<Maybe<T>> Return() => Values;
+    public Seq<T> Bind(Func<T, Option<T>> func) => new Seq<T>(Value.Unit(), Values.Append(func(Value)));
+    public IEnumerable<Option<T>> Return() => Values;
 
 }
 
@@ -44,15 +44,15 @@ public readonly struct Seq<TRoot, T>
         Values = Seq.Enumerable<T>();
     }
 
-    public Seq(Unit<TRoot> value, IEnumerable<Maybe<T>> values)
+    public Seq(Unit<TRoot> value, IEnumerable<Option<T>> values)
     {
         Value = value.Return();
         Values = values;
     }
 
     public TRoot Value { get; }
-    public IEnumerable<Maybe<T>> Values { get; }
+    public IEnumerable<Option<T>> Values { get; }
 
-    public Seq<TRoot, T> Bind(Func<TRoot, Maybe<T>> func) => new Seq<TRoot, T>(Value.Unit(), Values.Append(func(Value)));
-    public IEnumerable<Maybe<T>> Return() => Values;
+    public Seq<TRoot, T> Bind(Func<TRoot, Option<T>> func) => new Seq<TRoot, T>(Value.Unit(), Values.Append(func(Value)));
+    public IEnumerable<Option<T>> Return() => Values;
 }

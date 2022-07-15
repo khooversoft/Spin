@@ -1,4 +1,5 @@
 ﻿using Contract.sdk.Models;
+using Contract.sdk.Service;
 using ContractApi.Application;
 using Microsoft.AspNetCore.Mvc;
 using Toolbox.Abstractions;
@@ -7,149 +8,148 @@ using Toolbox.Block;
 using Toolbox.DocumentStore;
 using Toolbox.Model;
 
-namespace ContractApi.Controllers
+namespace ContractApi.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class ContractController : Controller
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ContractController : Controller
+    private readonly ContractService _contractService;
+
+    public ContractController(ContractService contractService)
     {
-        private readonly ContractService _contractService;
+        _contractService = contractService;
+    }
 
-        public ContractController(ContractService contractService)
+
+    //  ///////////////////////////////////////////////////////////////////////////////////////
+    //  CRUD
+
+    [HttpGet("{path}")]
+    public async Task<IActionResult> Get(string path, CancellationToken token)
+    {
+        DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+        BlockChainModel? model = await _contractService.Get(documentId, token);
+
+        return model != null ? Ok(model) : NotFound();
+    }
+
+    [HttpPost("set/{path}")]
+    public async Task<IActionResult> Set(string path, [FromBody] BlockChainModel blockChainModel, CancellationToken token)
+    {
+        blockChainModel.Verify();
+        DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+
+        bool isValid = await _contractService.Validate(blockChainModel.ToBlockChain(), token);
+        if (!isValid) return Conflict();
+
+        await _contractService.Set(documentId, blockChainModel, token);
+        return Ok();
+    }
+
+    [HttpDelete("{path}")]
+    public async Task<IActionResult> Delete(string path, CancellationToken token)
+    {
+        DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+        bool status = await _contractService.Delete(documentId, token: token);
+
+        return status ? Ok() : NotFound();
+    }
+
+    [HttpPost("search")]
+    public async Task<IActionResult> List([FromBody] QueryParameter queryParameter, CancellationToken token)
+    {
+        BatchSet<DatalakePathItem> list = await _contractService.Search(queryParameter, token);
+
+        BatchSet<string> result = new BatchSet<string>()
         {
-            _contractService = contractService;
+            QueryParameter = list.QueryParameter,
+            NextIndex = list.NextIndex,
+            Records = list.Records.Select(x => x.Name).ToArray()
+        };
+
+        return Ok(result);
+    }
+
+
+    //  ///////////////////////////////////////////////////////////////////////////////////////
+    //  Block chain
+
+    [HttpPost("create")]
+    public async Task<IActionResult> Create([FromBody] Document entry, CancellationToken token)
+    {
+        if (!entry.IsHashVerify()) return BadRequest();
+
+        switch (entry.ObjectClass)
+        {
+            case "BlkHeader":
+                BlkHeader blkHeader = entry.DeserializeData<BlkHeader>();
+                await _contractService.Create(blkHeader, token);
+                break;
+
+            default:
+                return BadRequest();
         }
 
+        return Ok();
+    }
 
-        //  ///////////////////////////////////////////////////////////////////////////////////////
-        //  CRUD
+    [HttpPost("append")]
+    public async Task<IActionResult> Append([FromBody] Document entry, CancellationToken token)
+    {
+        if (entry.IsHashVerify()) return BadRequest();
 
-        [HttpGet("{path}")]
-        public async Task<IActionResult> Get(string path, CancellationToken token)
+        bool stats;
+        switch (entry.ObjectClass)
         {
-            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
-            BlockChainModel? model = await _contractService.Get(documentId, token);
+            case "BlkTransaction":
+                BlkCollection blkTransaction = entry.DeserializeData<BlkCollection>();
+                stats = await _contractService.Append(entry.DocumentId, blkTransaction, token);
+                return stats ? Ok(stats) : NotFound();
 
-            return model != null ? Ok(model) : NotFound();
+            case "BlkCode":
+                ContractBlkCode blkCode = entry.DeserializeData<ContractBlkCode>();
+                stats = await _contractService.Append(entry.DocumentId, blkCode, token);
+                return stats ? Ok(stats) : NotFound();
+
+            default:
+                return BadRequest();
+        }
+    }
+
+    [HttpPost("sign/{path}")]
+    public async Task<IActionResult> Sign(string path, [FromBody] BlockChainModel blockChainModel, CancellationToken token)
+    {
+        blockChainModel.Verify();
+
+        BlockChain blockChain = await _contractService.Sign(blockChainModel.ToBlockChain(), token);
+
+        if (path == "model")
+        {
+            return Ok(blockChain.ToBlockChainModel());
         }
 
-        [HttpPost("set/{path}")]
-        public async Task<IActionResult> Set(string path, [FromBody] BlockChainModel blockChainModel, CancellationToken token)
-        {
-            blockChainModel.Verify();
-            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+        DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+        await _contractService.Set(documentId, blockChain.ToBlockChainModel(), token);
+        return Ok();
+    }
 
-            bool isValid = await _contractService.Validate(blockChainModel.ToBlockChain(), token);
-            if (!isValid) return Conflict();
+    [HttpPost("validate/{path}")]
+    public async Task<IActionResult> Validate(string path, CancellationToken token)
+    {
+        DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
 
-            await _contractService.Set(documentId, blockChainModel, token);
-            return Ok();
-        }
-
-        [HttpDelete("{path}")]
-        public async Task<IActionResult> Delete(string path, CancellationToken token)
-        {
-            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
-            bool status = await _contractService.Delete(documentId, token: token);
-
-            return status ? Ok() : NotFound();
-        }
-
-        [HttpPost("search")]
-        public async Task<IActionResult> List([FromBody] QueryParameter queryParameter, CancellationToken token)
-        {
-            BatchSet<DatalakePathItem> list = await _contractService.Search(queryParameter, token);
-
-            BatchSet<string> result = new BatchSet<string>()
-            {
-                QueryParameter = list.QueryParameter,
-                NextIndex = list.NextIndex,
-                Records = list.Records.Select(x => x.Name).ToArray()
-            };
-
-            return Ok(result);
-        }
+        bool isValid = await _contractService.Validate(documentId, token);
+        return isValid ? Ok() : Conflict();
+    }
 
 
-        //  ///////////////////////////////////////////////////////////////////////////////////////
-        //  Block chain
+    [HttpPost("validate")]
+    public async Task<IActionResult> Validate([FromBody] BlockChainModel blockChainModel, CancellationToken token)
+    {
+        blockChainModel.Verify();
 
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] Document entry, CancellationToken token)
-        {
-            if (!entry.IsHashVerify()) return BadRequest();
-
-            switch (entry.ObjectClass)
-            {
-                case "BlkHeader":
-                    BlkHeader blkHeader = entry.DeserializeData<BlkHeader>();
-                    await _contractService.Create(blkHeader, token);
-                    break;
-
-                default:
-                    return BadRequest();
-            }
-
-            return Ok();
-        }
-
-        [HttpPost("append")]
-        public async Task<IActionResult> Append([FromBody] Document entry, CancellationToken token)
-        {
-            if (entry.IsHashVerify()) return BadRequest();
-
-            bool stats;
-            switch (entry.ObjectClass)
-            {
-                case "BlkTransaction":
-                    BlkCollection blkTransaction = entry.DeserializeData<BlkCollection>();
-                    stats = await _contractService.Append(entry.DocumentId, blkTransaction, token);
-                    return stats ? Ok(stats) : NotFound();
-
-                case "BlkCode":
-                    BlkCode blkCode = entry.DeserializeData<BlkCode>();
-                    stats = await _contractService.Append(entry.DocumentId, blkCode, token);
-                    return stats ? Ok(stats) : NotFound();
-
-                default:
-                    return BadRequest();
-            }
-        }
-
-        [HttpPost("sign/{path}")]
-        public async Task<IActionResult> Sign(string path, [FromBody] BlockChainModel blockChainModel, CancellationToken token)
-        {
-            blockChainModel.Verify();
-
-            BlockChain blockChain = await _contractService.Sign(blockChainModel.ToBlockChain(), token);
-
-            if (path == "model")
-            {
-                return Ok(blockChain.ToBlockChainModel());
-            }
-
-            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
-            await _contractService.Set(documentId, blockChain.ToBlockChainModel(), token);
-            return Ok();
-        }
-
-        [HttpPost("validate/{path}")]
-        public async Task<IActionResult> Validate(string path, CancellationToken token)
-        {
-            DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
-
-            bool isValid = await _contractService.Validate(documentId, token);
-            return isValid ? Ok() : Conflict();
-        }
-
-
-        [HttpPost("validate")]
-        public async Task<IActionResult> Validate([FromBody] BlockChainModel blockChainModel, CancellationToken token)
-        {
-            blockChainModel.Verify();
-
-            bool isValid = await _contractService.Validate(blockChainModel.ToBlockChain(), token);
-            return isValid ? Ok() : Conflict();
-        }
+        bool isValid = await _contractService.Validate(blockChainModel.ToBlockChain(), token);
+        return isValid ? Ok() : Conflict();
     }
 }

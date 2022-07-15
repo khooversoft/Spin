@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Toolbox.Extensions;
 using Toolbox.Security;
@@ -23,6 +24,26 @@ namespace Toolbox.Block
                 .Build();
 
             return blockChain;
+        }
+
+        public static IReadOnlyList<DataBlock> FindBlockType(this BlockChain blockChain, string blockType)
+        {
+            blockChain.NotNull();
+
+            return blockChain
+                .Blocks.Where(x => x.DataBlock.BlockType == blockType)
+                .Select(x => x.DataBlock)
+                .ToList();
+        }
+
+        public static IReadOnlyList<T> FindBlockType<T>(this BlockChain blockChain)
+        {
+            blockChain.NotNull();
+
+            return blockChain
+                .Blocks.Where(x => x.DataBlock.BlockType == typeof(T).Name)
+                .Select(x => x.DataBlock.ToObject<T>())
+                .ToList();
         }
 
         public static BlockChain ToBlockChain(this BlockChainModel blockChainModel)

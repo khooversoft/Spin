@@ -2,7 +2,7 @@
 
 namespace Contract.sdk.Models;
 
-public record BlkCode : BlkBase
+public record ContractBlkCode
 {
     public string Language { get; init; } = "C#";
 
@@ -11,13 +11,13 @@ public record BlkCode : BlkBase
     public IReadOnlyList<string> Lines { get; init; } = Array.Empty<string>();
 }
 
-public static class BlkCodeExtensions
+public static class ContractBlkCodeExtensions
 {
-    public static void Verify(this BlkCode blkCode)
+    public static void Verify(this ContractBlkCode blkCode)
     {
-        blkCode.VerifyBase();
         blkCode.Language.NotEmpty();
         blkCode.Framework.NotEmpty();
+
         blkCode.Lines
             .NotNull()
             .Assert(x => x.Count > 0, $"{blkCode.Lines} is empty");

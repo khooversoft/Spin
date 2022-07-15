@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Monads;
 using Toolbox.Tools;
 
 namespace Toolbox.Extensions;
@@ -21,22 +22,70 @@ public static class DictionaryExtensions
             .All(x => x.o.Key == x.i.Key && x.o.Value == x.i.Value);
     }
 
-    public static TValue Get<TKey, TValue>(
-        this IReadOnlyDictionary<TKey, TValue> directory,
-        TKey key,
-        string? objectType = null,
-        string? message = null,
-        ILogger? logger = null,
-        [CallerMemberName] string function = "",
-        [CallerFilePath] string path = "",
-        [CallerLineNumber] int lineNumber = 0
-        )
+
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+    // Generic
+
+    public static Option<TValue> Get<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
     {
-        directory.NotNull(function: function, path: path, lineNumber: lineNumber);
+        dictionary.NotNull();
 
-        directory.TryGetValue(key, out TValue? value)
-            .Assert(x => x == true, x => message ?? $"{objectType ?? string.Empty}{x} not found", logger: logger, function: function, path: path, lineNumber: lineNumber);
+        bool found = dictionary.TryGetValue(key, out TValue? value);
+        return (found, value).Option();
+    }
 
-        return value!;
+
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+    // String key
+
+    public static Option<T> Get<T>(this IReadOnlyDictionary<string, T> dictionary, string key)
+    {
+        dictionary.NotNull();
+        key.NotEmpty();
+
+        bool found = dictionary.TryGetValue(key, out T? value);
+        return (found, value).Option();
+    }
+
+    public static Option<T> Get<T>(this IReadOnlyDictionary<string, T> dictionary)
+    {
+        dictionary.NotNull();
+
+        bool found = dictionary.TryGetValue(typeof(T).Name, out T? value);
+        return (found, value).Option();
+    }
+
+
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+    // Embedded json object
+
+    public static Option<string> Get(this IReadOnlyDictionary<string, string> dictionary, string key)
+    {
+        dictionary.NotNull();
+        key.NotEmpty();
+
+        bool found = dictionary.TryGetValue(key, out string? value);
+        return (found, value).Option();
+    }
+
+    public static Option<T> Get<T>(this IReadOnlyDictionary<string, string> dictionary)
+    {
+        dictionary.NotNull();
+
+        bool found = dictionary.TryGetValue(typeof(T).Name, out string? data);
+        if (!found) return Option<T>.None;
+
+        var value = Json.Default.Deserialize<T>(data!)
+            .Assert(x => x != null, "Deserialize error");
+
+        return value.Option();
+    }
+
+    public static void Set<T>(this IDictionary<string, string> dictionary, T value)
+    {
+        dictionary.NotNull();
+
+        string json = Json.Default.Serialize(value);
+        dictionary[typeof(T).Name] = json;
     }
 }

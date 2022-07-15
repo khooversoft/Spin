@@ -4,7 +4,7 @@ using Toolbox.Tools;
 
 namespace Contract.sdk.Models;
 
-public record BlkCollection : BlkBase
+public record BlkCollection
 {
     public IReadOnlyList<DataBlock> Blocks { get; init; } = Array.Empty<DataBlock>();
 }

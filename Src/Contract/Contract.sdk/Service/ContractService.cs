@@ -10,7 +10,7 @@ using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;
 
-namespace ContractApi.Application;
+namespace Contract.sdk.Service;
 
 public class ContractService
 {
@@ -98,7 +98,7 @@ public class ContractService
         return true;
     }
 
-    public async Task<bool> Append(DocumentId documentId, BlkBase blkBase, CancellationToken token)
+    public async Task<bool> Append(DocumentId documentId, ContractBlkBase blkBase, CancellationToken token)
     {
         documentId.NotNull();
         blkBase.NotNull();
@@ -112,7 +112,7 @@ public class ContractService
                 blkTransaction.Blocks.ForEach(x => blockChain.Add(x, blkTransaction.PrincipleId));
                 break;
 
-            case BlkCode blkCode:
+            case ContractBlkCode blkCode:
                 blockChain.Add(blkCode, blkCode.PrincipleId);
                 break;
 

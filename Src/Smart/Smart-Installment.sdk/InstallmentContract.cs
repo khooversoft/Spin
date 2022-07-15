@@ -9,7 +9,13 @@ namespace Smart_Installment.sdk;
 
 public class InstallmentContract
 {
-    public string Creator { get; init; } = null!;
+    public DateTimeOffset Date { get; init; }
+    public Guid ContractId { get; init; } = Guid.NewGuid();
+    public string PrincipleId { get; set; } = null!;
+    public string Name { get; set; } = null!;
+    public DocumentId DocumentId { get; init; } = null!;
+
+    public string Issuer { get; init; } = null!;
     public string Description { get; init; } = null!;
     public int NumPayments { get; init; }
     public decimal Principal { get; init; }
@@ -19,8 +25,8 @@ public class InstallmentContract
 
     public IReadOnlyList<PartyRecord> Parties { get; init; } = Array.Empty<PartyRecord>();
     public IReadOnlyList<LedgerRecord> Ledger { get; init; } = Array.Empty<LedgerRecord>();
-    public IReadOnlyList<string>? Properties { get; init; }
 }
+
 
 
 public static class InstallmentContractExtensions
@@ -29,7 +35,12 @@ public static class InstallmentContractExtensions
     {
         subject.NotNull();
 
-        subject.Creator.NotEmpty();
+        subject.PrincipleId.NotEmpty();
+        subject.Name.NotEmpty();
+        subject.DocumentId.NotNull();
+        subject.Parties.NotNull();
+        subject.Ledger.NotNull();
+        subject.Issuer.NotEmpty();
         subject.Description.NotEmpty();
         subject.NumPayments.Assert(x => x > 0, "NumPayment must be > 0");
         subject.Principal.Assert(x => x > 0.00m, "Principal amount must be > 0");

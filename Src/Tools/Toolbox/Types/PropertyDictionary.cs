@@ -2,13 +2,16 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Toolbox.Tools;
 
-namespace Toolbox.Tools;
+namespace Toolbox.Types;
 
 
 public class PropertyDictionary : IEnumerable<KeyValuePair<string, object>>
 {
     private readonly ConcurrentDictionary<string, object> _properties = new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+    public int Count => _properties.Count;
 
     public T? Get<T>() => Get<T>(typeof(T).Name);
 

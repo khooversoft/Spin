@@ -49,18 +49,18 @@ public class DocumentContractClient
             blocks.Add(installmentContract.Ledger.ToDataBlock(_contractHostOption.PrincipleId));
         }
 
-        var header = new BlkHeader
-        {
-            PrincipleId = _contractHostOption.PrincipleId,
-            DocumentId = _contractHostOption.DocumentId,
-            Creator = installmentContract.Creator,
-            Description = installmentContract.Description,
-            Blocks = blocks,
-            Properties = installmentContract.Properties?.ToList(),
-        };
+        //var header = new BlkHeader
+        //{
+        //    PrincipleId = _contractHostOption.PrincipleId,
+        //    DocumentId = _contractHostOption.DocumentId,
+        //    Creator = installmentContract.Creator,
+        //    Description = installmentContract.Description,
+        //    Blocks = blocks,
+        //    Properties = installmentContract.Properties?.ToList(),
+        //};
 
-        _logger.LogInformation("Creating contract id={id}", _contractHostOption.DocumentId);
-        await _client.Create(header, token);
+        //_logger.LogInformation("Creating contract id={id}", _contractHostOption.DocumentId);
+        //await _client.Create(header, token);
     }
 
     public async Task Append<T>(IEnumerable<T> items, CancellationToken token = default)
