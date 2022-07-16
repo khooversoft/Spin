@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using Toolbox.Tools;
 
 namespace Toolbox.Extensions;
@@ -14,7 +15,12 @@ public static class ConfigurationExtensions
         configuration.NotNull();
 
         var option = new T();
-        configuration.Bind(option, x => x.BindNonPublicProperties = true);
+        configuration.Bind(option, x =>
+        {
+            x.BindNonPublicProperties = true;
+            x.ErrorOnUnknownConfiguration = true;
+        });
+
         return option;
     }
 
@@ -36,7 +42,7 @@ public static class ConfigurationExtensions
     {
         subject.NotNull();
 
-        string json = Json.Default.Serialize(subject).NotEmpty(name: "Serialization failed");
+        string json = JsonSerializer.Serialize(subject).NotEmpty(name: "Serialization failed");
 
         byte[] byteArray = Encoding.UTF8.GetBytes(json);
         using MemoryStream stream = new MemoryStream(byteArray);
@@ -48,6 +54,7 @@ public static class ConfigurationExtensions
         return config
             .AsEnumerable()
             .Where(x => x.Value != null)
+            .OrderBy(x => x.Key)
             .ToArray();
     }
 

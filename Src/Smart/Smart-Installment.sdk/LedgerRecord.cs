@@ -1,4 +1,4 @@
-﻿using Contract.sdk.Models;
+﻿using Toolbox.Block.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -44,14 +44,14 @@ public static class LedgerExtensions
         return new DataItem
         {
             Id = subject.Id,
-            Name = subject.GetType().Name,
+            Key = subject.GetType().Name,
             Value = subject.ToJson(),
         };
     }
 
     public static LedgerRecord ConvertTo(this DataItem dataItem) => dataItem
         .NotNull()
-        .Assert(x => x.Name == typeof(LedgerRecord).Name, "Invalid type")
+        .Assert(x => x.Key == typeof(LedgerRecord).Name, "Invalid type")
         .Value
         .ToObject<LedgerRecord>(true)!;
 }

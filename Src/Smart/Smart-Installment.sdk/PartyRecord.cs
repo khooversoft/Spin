@@ -1,4 +1,4 @@
-﻿using Contract.sdk.Models;
+﻿using Toolbox.Block.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -35,14 +35,14 @@ public static class PartyExtensions
         return new DataItem
         {
             Id = subject.Id,
-            Name = subject.GetType().Name,
+            Key = subject.GetType().Name,
             Value = subject.ToJson(),
         };
     }
 
     public static PartyRecord ConvertTo(this DataItem dataItem) => dataItem
         .NotNull()
-        .Assert(x => x.Name == typeof(PartyRecord).Name, "Invalid type")
+        .Assert(x => x.Key == typeof(PartyRecord).Name, "Invalid type")
         .Value
         .ToObject<PartyRecord>(true)!;
 }
