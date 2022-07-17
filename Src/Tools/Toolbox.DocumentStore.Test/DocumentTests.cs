@@ -29,7 +29,6 @@ public class DocumentTests
         Document document = builder.Build();
 
         document.DocumentId.Id.Should().Be(documentId);
-        document.Properties.Count.Should().Be(0);
         document.ObjectClass.Should().Be(classObject);
         Encoding.UTF8.GetString(document.Data).Should().Be(payload);
         document.Hash.Should().NotBeNull();
@@ -47,13 +46,10 @@ public class DocumentTests
         const string documentId = "domain/service/a1";
         const string classObject = "ClassObject";
         const string payload = "This is the message";
-        const string key = "Key1";
-        const string value = "Value1";
 
         var builder = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
             .SetObjectClass(classObject)
-            .SetProperties(key, value)
             .SetData(Encoding.UTF8.GetBytes(payload));
 
         Document sourceDocument = builder.Build();
@@ -67,8 +63,6 @@ public class DocumentTests
         readDocument.ObjectClass.Should().Be(classObject);
         Encoding.UTF8.GetString(readDocument.Data).Should().Be(payload);
         readDocument.Hash.Should().NotBeNull();
-        readDocument.Properties.Count.Should().Be(1);
-        readDocument.Properties[key].Should().Be(value);
 
         readDocument.IsHashVerify().Should().BeTrue();
         readDocument.Verify();
@@ -113,28 +107,22 @@ public class DocumentTests
         const string documentId = "domain/service/a1";
         const string classObject = "ClassObject";
         const string payload = "This is the message";
-        const string key = "Key1";
-        const string value = "Value1";
 
         var builder = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
             .SetObjectClass(classObject)
-            .SetData(payload)
-            .SetProperties(key, value);
+            .SetData(payload);
 
         Document document = builder.Build();
 
         document.IsHashVerify().Should().BeTrue();
         document.Verify();
         document.ToObject<string>().Should().Be(payload);
-        document.Properties.Count.Should().Be(1);
-        document.Properties[key].Should().Be(value);
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
             .SetObjectClass(classObject)
             .SetData(payload)
-            .SetProperties(key, value)
             .Build()
             .Verify();
 

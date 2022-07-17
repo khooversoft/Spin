@@ -13,8 +13,4 @@
     <ProjectReference Include="..\..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
-
 </Project>

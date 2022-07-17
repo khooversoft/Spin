@@ -14,21 +14,17 @@ public class DocumentBuilder
         document.NotNull();
 
         DocumentId = document.DocumentId.NotNull();
-        document.Properties.ForEach(x => Properties.Add(x.Key, x.Value));
         ObjectClass = document.ObjectClass.NotEmpty();
         Data = document.Data.NotNull();
     }
 
     public DocumentId? DocumentId { get; set; }
 
-    public IDictionary<string, string> Properties { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
     public string? ObjectClass { get; set; }
     public byte[]? Data { get; set; }
     public string? PrincipleId { get; set; }
 
     public DocumentBuilder SetDocumentId(DocumentId document) => this.Action(x => x.DocumentId = document);
-    public DocumentBuilder SetProperties(string key, string value) => this.Action(x => x.Properties[key] = value);
     public DocumentBuilder SetObjectClass(string objectClass) => this.Action(x => x.ObjectClass = objectClass);
     public DocumentBuilder SetPrincipleId(string principleId) => this.Action(x => x.PrincipleId = principleId);
 
@@ -55,16 +51,14 @@ public class DocumentBuilder
     public Document Build()
     {
         DocumentId.NotNull(name: $"{nameof(DocumentId)} is required");
-        Properties.NotNull(name: $"{nameof(Properties)} is required");
         ObjectClass.NotEmpty(name: $"{nameof(ObjectClass)} is required");
         Data.NotNull(name: $"{nameof(Data)} is required");
 
-        byte[] hash = DocumentTools.ComputeHash(DocumentId!, Properties!, ObjectClass!, Data!);
+        byte[] hash = DocumentTools.ComputeHash(DocumentId!, ObjectClass!, Data!);
 
         return new Document
         {
             DocumentId = DocumentId,
-            Properties = Properties.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
             ObjectClass = ObjectClass,
             Data = Data,
             Hash = hash,

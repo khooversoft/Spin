@@ -16,21 +16,14 @@ public static class DocumentTools
         return document;
     }
 
-    public static byte[] ComputeHash(this DocumentId documentId, IEnumerable<KeyValuePair<string, string>> properties, string objectClass, byte[] data)
+    public static byte[] ComputeHash(this DocumentId documentId, string objectClass, byte[] data)
     {
         documentId.NotNull();
-        properties.NotNull();
         objectClass.NotEmpty();
         data.NotNull();
 
         var ms = new MemoryStream();
         ms.Write(documentId.ToString().ToBytes());
-
-        properties.ForEach(x =>
-        {
-            ms.Write(x.Key.ToBytes());
-            ms.Write(x.Value.ToBytes());
-        });
 
         ms.Write(data);
 
@@ -42,7 +35,7 @@ public static class DocumentTools
     {
         document.NotNull();
 
-        byte[] hash = DocumentTools.ComputeHash(document.DocumentId, document.Properties, document.ObjectClass, document.Data);
+        byte[] hash = DocumentTools.ComputeHash(document.DocumentId, document.ObjectClass, document.Data);
 
         return hash.SequenceEqual(document.Hash);
     }

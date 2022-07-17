@@ -1,5 +1,4 @@
-﻿using Toolbox.Block.Serialization;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Smart_Installment.sdk;
@@ -36,22 +35,4 @@ public static class LedgerExtensions
             LedgerType.Debit => -x.Amount,
             _ => throw new ArgumentException($"Unknown ledger type={x.Type}"),
         });
-
-    public static DataItem ConvertTo(this LedgerRecord subject)
-    {
-        subject.NotNull();
-
-        return new DataItem
-        {
-            Id = subject.Id,
-            Key = subject.GetType().Name,
-            Value = subject.ToJson(),
-        };
-    }
-
-    public static LedgerRecord ConvertTo(this DataItem dataItem) => dataItem
-        .NotNull()
-        .Assert(x => x.Key == typeof(LedgerRecord).Name, "Invalid type")
-        .Value
-        .ToObject<LedgerRecord>(true)!;
 }

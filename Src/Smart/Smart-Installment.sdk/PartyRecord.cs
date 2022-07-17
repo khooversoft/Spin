@@ -1,5 +1,4 @@
-﻿using Toolbox.Block.Serialization;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Smart_Installment.sdk;
@@ -27,23 +26,5 @@ public static class PartyExtensions
 
         return subject;
     }
-
-    public static DataItem ConvertTo(this PartyRecord subject)
-    {
-        subject.NotNull();
-
-        return new DataItem
-        {
-            Id = subject.Id,
-            Key = subject.GetType().Name,
-            Value = subject.ToJson(),
-        };
-    }
-
-    public static PartyRecord ConvertTo(this DataItem dataItem) => dataItem
-        .NotNull()
-        .Assert(x => x.Key == typeof(PartyRecord).Name, "Invalid type")
-        .Value
-        .ToObject<PartyRecord>(true)!;
 }
 

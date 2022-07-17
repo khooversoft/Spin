@@ -6,8 +6,6 @@ public class Document
 {
     public DocumentId DocumentId { get; init; } = null!;
 
-    public IReadOnlyDictionary<string, string> Properties { get; init; } = null!;
-
     public string ObjectClass { get; init; } = null!;
 
     public byte[] Data { get; init; } = null!;
@@ -20,15 +18,12 @@ public class Document
     {
         return obj is Document document &&
             DocumentId == document.DocumentId &&
-            Properties.IsEqual(document.Properties) &&
             ObjectClass == document.ObjectClass &&
             Data.SequenceEqual(document.Data) &&
             Hash.SequenceEqual(document.Hash);
     }
 
-    public override int GetHashCode() => HashCode.Combine(DocumentId, Properties, ObjectClass, Data, Hash);
-
+    public override int GetHashCode() => HashCode.Combine(DocumentId, ObjectClass, Data, Hash);
     public static bool operator ==(Document? left, Document? right) => EqualityComparer<Document>.Default.Equals(left, right);
-
     public static bool operator !=(Document? left, Document? right) => !(left == right);
 }
