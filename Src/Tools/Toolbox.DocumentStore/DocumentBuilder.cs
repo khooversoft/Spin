@@ -7,9 +7,7 @@ namespace Toolbox.DocumentStore;
 
 public class DocumentBuilder
 {
-    public DocumentBuilder()
-    {
-    }
+    public DocumentBuilder() { }
 
     public DocumentBuilder(Document document)
     {
@@ -26,14 +24,13 @@ public class DocumentBuilder
     public IDictionary<string, string> Properties { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     public string? ObjectClass { get; set; }
-
     public byte[]? Data { get; set; }
+    public string? PrincipleId { get; set; }
 
     public DocumentBuilder SetDocumentId(DocumentId document) => this.Action(x => x.DocumentId = document);
-
     public DocumentBuilder SetProperties(string key, string value) => this.Action(x => x.Properties[key] = value);
-
     public DocumentBuilder SetObjectClass(string objectClass) => this.Action(x => x.ObjectClass = objectClass);
+    public DocumentBuilder SetPrincipleId(string principleId) => this.Action(x => x.PrincipleId = principleId);
 
     public DocumentBuilder SetData(byte[] data) => this.Action(x => x.Data = data);
 
@@ -70,7 +67,8 @@ public class DocumentBuilder
             Properties = Properties.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
             ObjectClass = ObjectClass,
             Data = Data,
-            Hash = hash
+            Hash = hash,
+            PrincipleId = PrincipleId,
         };
     }
 }

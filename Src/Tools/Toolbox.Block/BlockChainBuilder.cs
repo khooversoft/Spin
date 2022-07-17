@@ -21,8 +21,7 @@ public class BlockChainBuilder
 
         DataBlock genesisBlock = DataBlockBuilder.CreateGenesisBlock(PrincipleId);
 
-        return new BlockChain()
-            .Add(genesisBlock);
+        return new BlockChain().Add(genesisBlock);
     }
 }
 

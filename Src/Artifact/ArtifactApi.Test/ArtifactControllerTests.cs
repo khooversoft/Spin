@@ -38,7 +38,7 @@ namespace Artifact.Test
 
             (document == readPayload).Should().BeTrue();
 
-            string? payloadText = readPayload!.DeserializeData<string>();
+            string? payloadText = readPayload!.ToObject<string>();
             payloadText.Should().Be(payload);
 
             var search = new QueryParameter { Container = "contract", Recursive = true };
@@ -76,7 +76,7 @@ namespace Artifact.Test
 
             (document == readDocument).Should().BeTrue();
 
-            Payload? readPayload = readDocument!.DeserializeData<Payload>();
+            Payload? readPayload = readDocument!.ToObject<Payload>();
             readPayload.Should().NotBeNull();
             (payload == readPayload).Should().BeTrue();
 

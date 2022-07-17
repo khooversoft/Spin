@@ -15,11 +15,7 @@ public static class ConfigurationExtensions
         configuration.NotNull();
 
         var option = new T();
-        configuration.Bind(option, x =>
-        {
-            x.BindNonPublicProperties = true;
-            x.ErrorOnUnknownConfiguration = true;
-        });
+        configuration.Bind(option, x => x.BindNonPublicProperties = true);
 
         return option;
     }

@@ -38,7 +38,7 @@ public class BankDocument
         Document? document = await _artifactClient.Get(documentId, token);
         if (document == null) return null;
 
-        return document.DeserializeData<BankAccount>();
+        return document.ToObject<BankAccount>();
     }
 
     public async Task Set(BankAccount entry, CancellationToken token)

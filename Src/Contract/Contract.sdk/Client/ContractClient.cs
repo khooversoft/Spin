@@ -8,11 +8,11 @@ using Toolbox.DocumentStore;
 using Toolbox.Logging;
 using Toolbox.Model;
 using Toolbox.Tools;
-
+using Toolbox.Extensions;
 
 namespace Contract.sdk.Client;
 
-public class ContractClient : IContractClient
+public class ContractClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<ContractClient> _logger;
@@ -40,17 +40,26 @@ public class ContractClient : IContractClient
         return model;
     }
 
-    public async Task Set(DocumentId documentId, BlockChainModel blockChainModel, CancellationToken token = default)
+    public async Task<T?> GetLatest<T>(DocumentId documentId, CancellationToken token = default) where T : class
+    {
+        Document? document = await GetLatest(documentId, typeof(T).Name, token);
+        return document switch
+        {
+            null => null,
+            _ => document.ToObject<T>(),
+        };
+    }
+
+    public async Task<Document?> GetLatest(DocumentId documentId, string blockType, CancellationToken token = default)
     {
         documentId.NotNull();
-        blockChainModel.Verify();
         var ls = _logger.LogEntryExit();
 
-        _logger.LogTrace("Id={documentId}", documentId);
-
-        HttpResponseMessage? response = await _httpClient.PostAsJsonAsync($"api/contract/set/{documentId.ToUrlEncoding()}", blockChainModel, token);
-        response.NotNull(name: $"{nameof(Set)} failed", logger: _logger);
+        HttpResponseMessage response = await _httpClient.GetAsync($"api/contract/latest/{documentId.ToUrlEncoding()}/{blockType}", token);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();
+
+        return (await response.Content.ReadAsStringAsync())?.ToObject<Document>();
     }
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token = default)
@@ -76,82 +85,38 @@ public class ContractClient : IContractClient
     //  ///////////////////////////////////////////////////////////////////////////////////////
     //  Block chain
 
-    public async Task Create(BlkHeader blkHeader, CancellationToken token = default)
+    public async Task Create(ContractCreateModel contractCreate, CancellationToken token = default)
     {
-        blkHeader.Verify();
+        contractCreate.Verify();
         var ls = _logger.LogEntryExit();
 
-        Document doc = new DocumentBuilder()
-            .SetDocumentId((DocumentId)blkHeader.DocumentId)
-            .SetData(blkHeader)
-            .Build();
-
-        _logger.LogTrace("Creating contract={id}", blkHeader.DocumentId);
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/create", doc, token);
+        _logger.LogTrace("Creating contract={id}", contractCreate.DocumentId);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/create", contractCreate, token);
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task Append(DocumentId documentId, BlkCollection blkTransaction, CancellationToken token = default)
+    public async Task Append<T>(DocumentId documentId, T value, string principleId, CancellationToken token = default) where T : class
     {
         documentId.NotNull();
-        blkTransaction.Verify();
+        value.NotNull();
+        principleId.NotNull();
         var ls = _logger.LogEntryExit();
 
         Document doc = new DocumentBuilder()
             .SetDocumentId(documentId)
-            .SetData(blkTransaction)
+            .SetData(value)
+            .SetObjectClass(value.GetType().Name)
+            .SetPrincipleId(principleId)
             .Build();
 
-        _logger.LogTrace("Append 'BlkCollection' to contract={id}", documentId);
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/create", doc, token);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task Append(DocumentId documentId, ContractBlkCode blkCode, CancellationToken token = default)
-    {
-        documentId.NotNull();
-        blkCode.Verify();
-        var ls = _logger.LogEntryExit();
-
-        Document doc = new DocumentBuilder()
-            .SetDocumentId(documentId)
-            .SetData(blkCode)
-            .Build();
-
-        _logger.LogTrace("Append 'BlkCode' to contract={id}", documentId);
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/create", doc, token);
+        _logger.LogTrace("Append to contract={id}", documentId);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/append", doc, token);
         response.EnsureSuccessStatusCode();
     }
 
 
     //  ///////////////////////////////////////////////////////////////////////////////////////
-    //  Sign
-
-    public async Task Sign(DocumentId documentId, BlockChainModel blockChainModel, CancellationToken token = default)
-    {
-        documentId.NotNull();
-        blockChainModel.Verify();
-        var ls = _logger.LogEntryExit();
-
-        _logger.LogTrace("Sign model for contract={id}", documentId);
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/sign/{documentId.ToUrlEncoding()}", blockChainModel, token);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task<BlockChainModel> Sign(BlockChainModel blockChainModel, CancellationToken token = default)
-    {
-        blockChainModel.Verify();
-        var ls = _logger.LogEntryExit();
-
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/sign/model", blockChainModel, token);
-        response.EnsureSuccessStatusCode();
-
-        _logger.LogTrace("Sign model");
-        string json = await response.Content.ReadAsStringAsync();
-
-        return Json.Default.Deserialize<BlockChainModel>(json)
-            .NotNull(name: "Cannot deserialize");
-    }
+    //  Validate
 
     public async Task<bool> Validate(DocumentId documentId, CancellationToken token = default)
     {
@@ -161,19 +126,6 @@ public class ContractClient : IContractClient
         _logger.LogTrace("Validate contract={id}", documentId);
 
         HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/validate/{documentId.ToUrlEncoding()}", "<empty>", token);
-        if (response.StatusCode == HttpStatusCode.Conflict) return false;
-
-        response.EnsureSuccessStatusCode();
-        return true;
-    }
-
-    public async Task<bool> Validate(BlockChainModel blockChainModel, CancellationToken token = default)
-    {
-        blockChainModel.Verify();
-        var ls = _logger.LogEntryExit();
-
-        _logger.LogTrace("Validate model");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/validate", blockChainModel, token);
         if (response.StatusCode == HttpStatusCode.Conflict) return false;
 
         response.EnsureSuccessStatusCode();

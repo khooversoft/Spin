@@ -26,10 +26,8 @@ public class DocumentId
 
     [JsonIgnore]
     public string? Container => _container ??= Id.Split(':').Func(x => x.Length == 1 ? null : x[0]);
-
     [JsonIgnore]
     public string Path => _path ??= Id.Split(':').Func(x => x.Length == 1 ? x[0] : x[1]);
-
     [JsonIgnore]
     public IReadOnlyList<string> Vectors => _vectors ??= Path.Split('/');
 

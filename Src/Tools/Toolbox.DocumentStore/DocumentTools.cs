@@ -11,6 +11,8 @@ public static class DocumentTools
     public static Document Verify(this Document document)
     {
         document.IsHashVerify().Assert(x => x == true, "Document is not valid");
+        document.ObjectClass.NotNull(name: $"{nameof(document.ObjectClass)} is required");
+
         return document;
     }
 
@@ -45,14 +47,13 @@ public static class DocumentTools
         return hash.SequenceEqual(document.Hash);
     }
 
-    public static T DeserializeData<T>(this Document document)
+    public static T ToObject<T>(this Document document)
     {
         string strData = Encoding.UTF8.GetString(document.Data);
 
         return typeof(T) switch
         {
             Type type when type == typeof(string) => (T)(object)strData,
-
             _ => Json.Default.Deserialize<T>(strData)!
         };
     }

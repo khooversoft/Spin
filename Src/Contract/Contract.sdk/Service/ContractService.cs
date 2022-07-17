@@ -27,6 +27,14 @@ public class ContractService
     // ////////////////////////////////////////////////////////////////////////////////////////////
     // CRUD methods
 
+    public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
+    {
+        documentId.NotNull();
+
+        bool status = await _artifactClient.Delete(documentId.WithContainer(_container), token: token);
+        return status;
+    }
+
     public async Task<BlockChainModel?> Get(DocumentId documentId, CancellationToken token)
     {
         documentId.NotNull();
@@ -34,29 +42,24 @@ public class ContractService
         Document? document = await _artifactClient.Get(documentId.WithContainer(_container), token);
         if (document == null) return null;
 
-        BlockChainModel model = document.DeserializeData<BlockChainModel>();
+        BlockChainModel model = document.ToObject<BlockChainModel>();
         return model;
     }
 
-    public async Task Set(DocumentId documentId, BlockChainModel blockChain, CancellationToken token)
+    public async Task<Document?> GetLatest(DocumentId documentId, string blockType, CancellationToken token)
     {
         documentId.NotNull();
-        blockChain.NotNull();
+        blockType.NotEmpty();
 
-        Document document = new DocumentBuilder()
-            .SetDocumentId(documentId.WithContainer(_container))
-            .SetData(blockChain)
-            .Build();
+        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
+        if (blockChain == null) return null;
 
-        await _artifactClient.Set(document, token);
-    }
-
-    public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
-    {
-        documentId.NotNull();
-
-        bool status = await _artifactClient.Delete(documentId.WithContainer(_container), token: token);
-        return status;
+        BlockNode? latest = blockChain.Blocks.Where(x => x.DataBlock.BlockType == blockType).LastOrDefault();
+        return latest switch
+        {
+            null => null,
+            _ => latest.DataBlock.ToObject<Document>(),
+        };
     }
 
     public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
@@ -72,24 +75,20 @@ public class ContractService
     // ////////////////////////////////////////////////////////////////////////////////////////////
     // Contract support
 
-    public async Task<bool> Create(BlkHeader blkHeader, CancellationToken token)
+    public async Task<bool> Create(ContractCreateModel contractCreate, CancellationToken token)
     {
-        blkHeader.NotNull();
+        contractCreate.NotNull();
 
-        var documentId = new DocumentId(blkHeader.DocumentId);
+        var documentId = new DocumentId(contractCreate.DocumentId);
 
         BlockChainModel? model = await Get(documentId, token);
         if (model != null) return false;
 
         BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleId(blkHeader.PrincipleId)
+            .SetPrincipleId(contractCreate.PrincipleId)
             .Build();
 
-        var blockHeader = blkHeader with { Blocks = null };
-
-        blockChain.Add(blockHeader, blkHeader.PrincipleId);
-
-        blkHeader.Blocks?.ForEach(x => blockChain.Add(x, blkHeader.PrincipleId));
+        blockChain.Add(contractCreate, contractCreate.PrincipleId);
 
         blockChain = await Sign(blockChain, token);
         if (!blockChain.IsValid()) throw new InvalidOperationException("Blockchain is invalid");
@@ -98,29 +97,18 @@ public class ContractService
         return true;
     }
 
-    public async Task<bool> Append(DocumentId documentId, ContractBlkBase blkBase, CancellationToken token)
+    public async Task<bool> Append(Document document, CancellationToken token)
     {
-        documentId.NotNull();
-        blkBase.NotNull();
+        document.Verify();
+        document.PrincipleId.NotEmpty(name: $"{nameof(document.PrincipleId)} is required");
 
-        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
+        BlockChain? blockChain = (await Get(document.DocumentId, token))?.ToBlockChain();
         if (blockChain == null) return false;
 
-        switch (blkBase)
-        {
-            case BlkCollection blkTransaction:
-                blkTransaction.Blocks.ForEach(x => blockChain.Add(x, blkTransaction.PrincipleId));
-                break;
-
-            case ContractBlkCode blkCode:
-                blockChain.Add(blkCode, blkCode.PrincipleId);
-                break;
-
-            default: throw new ArgumentException($"Unknown type={blkBase.GetType().Name}");
-        }
+        blockChain.Add(document, document.PrincipleId, document.ObjectClass);
 
         blockChain = await Sign(blockChain, token);
-        await Set(documentId, blockChain.ToBlockChainModel(), token);
+        await Set(document.DocumentId, blockChain.ToBlockChainModel(), token);
         return true;
     }
 
@@ -157,5 +145,20 @@ public class ContractService
 
         ValidateRequest request = blockChain.GetPrincipleDigests(onlyUnsighed: false).ToValidateRequest();
         return await _signingClient.Validate(request, token);
+    }
+
+
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+    private async Task Set(DocumentId documentId, BlockChainModel blockChain, CancellationToken token)
+    {
+        documentId.NotNull();
+        blockChain.NotNull();
+
+        Document document = new DocumentBuilder()
+            .SetDocumentId(documentId.WithContainer(_container))
+            .SetData(blockChain)
+            .Build();
+
+        await _artifactClient.Set(document, token);
     }
 }

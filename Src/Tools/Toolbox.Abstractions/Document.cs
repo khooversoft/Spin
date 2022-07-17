@@ -14,6 +14,8 @@ public class Document
 
     public byte[] Hash { get; init; } = null!;
 
+    public string? PrincipleId { get; init; }
+
     public override bool Equals(object? obj)
     {
         return obj is Document document &&

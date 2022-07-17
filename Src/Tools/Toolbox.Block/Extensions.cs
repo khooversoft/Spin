@@ -9,17 +9,17 @@ namespace Toolbox.Block
 {
     public static class Extensions
     {
-        public static BlockChain Add<T>(this BlockChain blockChain, T value, string principleId)
+        public static BlockChain Add<T>(this BlockChain blockChain, T value, string principleId, string? blockType = null) where T : class
         {
             blockChain.NotNull();
             value.NotNull();
             principleId.NotEmpty();
+            blockType.Assert(x => x == null | !x.IsEmpty(), $"{nameof(blockType)} cannot be empty, null is valid");
 
             blockChain += new DataBlockBuilder()
                 .SetTimeStamp(DateTime.UtcNow)
-                .SetBlockType(value.GetType().Name)
-                .SetBlockId(blockChain.Blocks.Count.ToString())
-                .SetData(value.ToJson())
+                .SetBlockType(blockType ?? value.GetType().Name)
+                .SetData(value)
                 .SetPrincipleId(principleId)
                 .Build();
 

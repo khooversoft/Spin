@@ -2,6 +2,7 @@
 using Contract.sdk.Models;
 using Contract.Test.Application;
 using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,84 +16,6 @@ namespace Contract.Test;
 
 public class ContractControllerTests
 {
-    [Fact]
-    public async Task GivenBlockChain_WhenSigned_FailedWithWrongSignature()
-    {
-        ContractClient client = TestApplication.GetContractClient();
-
-        var documentId = new DocumentId("test/unit-tests-smart/contract1");
-
-        var blkHeader = new BlkHeader
-        {
-            PrincipleId = "dev/user/endUser1@default.com",
-            DocumentId = (string)documentId,
-            Creator = "test",
-            Description = "test description",
-        };
-
-        BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleId(blkHeader.PrincipleId)
-            .Build()
-            .Add(blkHeader, blkHeader.PrincipleId);
-
-        BlockChainModel signedBlockChainModel = await client.Sign(blockChain.ToBlockChainModel());
-        signedBlockChainModel.Should().NotBeNull();
-
-        _ = await client.Validate(signedBlockChainModel);
-
-
-        // Modify signature
-        signedBlockChainModel.Blocks[1] = signedBlockChainModel.Blocks[1] with { DataBlock = signedBlockChainModel.Blocks[1].DataBlock with { JwtSignature = "junk" } };
-
-        bool isValid = await client.Validate(signedBlockChainModel);
-        isValid.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task GivenBlockChain_WhenFile_WillRoundTrip()
-    {
-        ContractClient client = TestApplication.GetContractClient();
-
-        var documentId = new DocumentId("test/unit-tests-smart/contract1");
-
-        await Delete(documentId, false);
-
-        var blkHeader = new BlkHeader
-        {
-            PrincipleId = "dev/user/endUser1@default.com",
-            DocumentId = (string)documentId,
-            Creator = "test",
-            Description = "test description",
-        };
-
-        BlockChain blockChain = new BlockChainBuilder()
-            .SetPrincipleId(blkHeader.PrincipleId)
-            .Build()
-            .Add(blkHeader, blkHeader.PrincipleId);
-
-        BlockChainModel signedBlockChainModel = await client.Sign(blockChain.ToBlockChainModel());
-        signedBlockChainModel.Should().NotBeNull();
-
-        await client.Set(documentId, signedBlockChainModel);
-
-        BlockChainModel readBlockChainModel = await client.Get(documentId);
-        readBlockChainModel.Should().NotBeNull();
-
-        readBlockChainModel.Blocks.Count.Should().Be(signedBlockChainModel.Blocks.Count);
-        readBlockChainModel.Blocks
-            .Zip(signedBlockChainModel.Blocks)
-            .All(x => x.First == x.Second)
-            .Should().BeTrue();
-
-        bool isValid = await client.Validate(documentId);
-        isValid.Should().BeTrue();
-
-        isValid = await client.Validate(readBlockChainModel);
-        isValid.Should().BeTrue();
-
-        await Delete(documentId, true);
-    }
-
     [Fact]
     public async Task GivenNoContract_WhenCreated_ShouldVerify()
     {
@@ -109,15 +32,16 @@ public class ContractControllerTests
         IReadOnlyList<string> search = (await client.Search(query).ReadNext()).Records;
         if (search.Any(x => x == (string)documentId)) await client.Delete(documentId);
 
-        var blkHeader = new BlkHeader
+        var contractCreate = new ContractCreateModel
         {
             PrincipleId = "dev/user/endUser1@default.com",
             DocumentId = (string)documentId,
             Creator = "test",
             Description = "test description",
+            Name = "document name",
         };
 
-        await client.Create(blkHeader);
+        await client.Create(contractCreate);
 
         BlockChainModel model = await client.Get(documentId);
         model.Should().NotBeNull();
@@ -130,10 +54,13 @@ public class ContractControllerTests
         model.Blocks[1].Should().NotBeNull();
         model.Blocks[1].IsValid().Should().BeTrue();
         model.Blocks[1].DataBlock.Should().NotBeNull();
-        model.Blocks[1].DataBlock.BlockType.Should().Be(typeof(BlkHeader).Name);
+        model.Blocks[1].DataBlock.BlockType.Should().Be(typeof(ContractCreateModel).Name);
 
-        bool isValid = await client.Validate(model);
-        isValid.Should().BeTrue();
+        var readContract = model.Blocks[1].DataBlock.ToObject<ContractCreateModel>();
+        (contractCreate == readContract).Should().BeTrue();
+
+        bool verified = await client.Validate(documentId);
+        verified.Should().BeTrue();
 
 
         BatchSet<string> searchList = await client.Search(query).ReadNext();
@@ -146,29 +73,126 @@ public class ContractControllerTests
         searchList.Should().NotBeNull();
         searchList.Records.Any(x => x.EndsWith(documentId.Path)).Should().BeFalse();
     }
-
-    private async Task Delete(DocumentId documentId, bool shouldExist)
+    
+    [Fact]
+    public async Task GivenContract_WhenAppend_ShouldVerify()
     {
         ContractClient client = TestApplication.GetContractClient();
 
+        var documentId = new DocumentId("test/unit-tests-smart/contract2");
+
         var query = new QueryParameter()
         {
-            Filter = documentId.Id.Split('/').Reverse().Skip(1).Reverse().Join("/"),
+            Filter = "test/unit-tests-smart",
             Recursive = false,
         };
 
-        BatchSet<string> searchList = await client.Search(query).ReadNext();
-        searchList.Should().NotBeNull();
-        bool exists = searchList.Records.Any(x => x.EndsWith(documentId.Path));
-        if (!shouldExist && !exists) return;
-        exists.Should().BeTrue();
+        IReadOnlyList<string> search = (await client.Search(query).ReadNext()).Records;
+        if (search.Any(x => x == (string)documentId)) await client.Delete(documentId);
+
+        var contractCreate = new ContractCreateModel
+        {
+            PrincipleId = "dev/user/endUser1@default.com",
+            DocumentId = (string)documentId,
+            Creator = "test",
+            Description = "test description2",
+            Name = "document2 name",
+        };
+
+        await client.Create(contractCreate);
+
+        var payload = new Payload("payloadName","payloadValue");
+        await client.Append(documentId, payload, contractCreate.PrincipleId);
+
+        bool verified = await client.Validate(documentId);
+        verified.Should().BeTrue();
+
+
+        BlockChainModel model = await client.Get(documentId);
+        model.Should().NotBeNull();
+        model.Blocks.Should().NotBeNull();
+        model.Blocks.Count.Should().Be(3);
+
+        model.Blocks[0].Should().NotBeNull();
+        model.Blocks[0].IsValid().Should().BeTrue();
+
+        model.Blocks.Skip(1).ForEach((x, i) =>
+        {
+            x.Should().NotBeNull();
+            x.IsValid().Should().BeTrue();
+            x.DataBlock.Should().NotBeNull();
+
+            switch (i)
+            {
+                case 0:
+                    x.DataBlock.BlockType.Should().Be(typeof(ContractCreateModel).Name);
+                    x.DataBlock.ObjectClass.Should().Be(typeof(ContractCreateModel).Name);
+                    break;
+
+                case 1:
+                    x.DataBlock.BlockType.Should().Be(typeof(Payload).Name);
+                    x.DataBlock.ObjectClass.Should().Be(typeof(Document).Name);
+                    break;
+
+                default:
+                    throw new Exception("oops");
+            }
+        });
 
         (await client.Delete(documentId)).Should().BeTrue();
-
-        searchList = await client.Search(query).ReadNext();
-        searchList.Should().NotBeNull();
-        searchList.Records.Any(x => x.EndsWith(documentId.Path)).Should().BeFalse();
     }
 
+    
+    [Fact]
+    public async Task GivenContractWithMultipleAppend_WhenGetLatest_ShouldVerify()
+    {
+        ContractClient client = TestApplication.GetContractClient();
+
+        var documentId = new DocumentId("test/unit-tests-smart/contract2");
+
+        var query = new QueryParameter()
+        {
+            Filter = "test/unit-tests-smart",
+            Recursive = false,
+        };
+
+        IReadOnlyList<string> search = (await client.Search(query).ReadNext()).Records;
+        if (search.Any(x => x == (string)documentId)) await client.Delete(documentId);
+
+        var contractCreate = new ContractCreateModel
+        {
+            PrincipleId = "dev/user/endUser1@default.com",
+            DocumentId = (string)documentId,
+            Creator = "test",
+            Description = "test description2",
+            Name = "document2 name",
+        };
+
+        await client.Create(contractCreate);
+
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload("payloadName", "payloadValue"));
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload("Pay2", "value2"));
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload2(10, "2-1"));
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload2(20, "2-2"));
+
+
+        (await client.Delete(documentId)).Should().BeTrue();
+    }
+
+    private async Task AppendPayload<T>(DocumentId documentId, ContractClient client, string principleId, Func<T> create) where T : class
+    {
+        var payload = create();
+        await client.Append(documentId, payload, principleId);
+
+        bool verified = await client.Validate(documentId);
+        verified.Should().BeTrue();
+
+        T? readPayload = await client.GetLatest<T>(documentId);
+        readPayload.Should().NotBeNull();
+        payload.Equals(readPayload).Should().BeTrue();
+    }
+
+
     private record Payload(string Name, string Value);
+    private record Payload2(int Id, string Data);
 }

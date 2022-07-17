@@ -33,8 +33,9 @@ namespace Toolbox.Block.Test.Blocks
 
             DataBlock data = new DataBlockBuilder()
                 .SetTimeStamp(now)
-                .SetBlockType("blockType")
                 .SetBlockId("blockId")
+                .SetBlockType("blockType")
+                .SetObjectClass("blockClass")
                 .SetData(payloadJson)
                 .SetPrincipleId(issuer)
                 .Build();
@@ -50,6 +51,7 @@ namespace Toolbox.Block.Test.Blocks
             data.TimeStamp.Should().Be(now.ToUnixDate().TimeStamp);
 
             received.BlockType.Should().Be("blockType");
+            received.ObjectClass.Should().Be("blockClass");
             received.BlockId.Should().Be("blockId");
             received.Data.Should().Be(payloadJson);
             received.JwtSignature.Should().Be(data.JwtSignature);
@@ -83,23 +85,25 @@ namespace Toolbox.Block.Test.Blocks
 
             DataBlock data1 = new DataBlockBuilder()
                 .SetTimeStamp(now)
-                .SetBlockType("blockType")
                 .SetBlockId("blockId")
+                .SetBlockType("blockType")
+                .SetObjectClass("blockClass")
                 .SetData(payloadJson)
                 .SetPrincipleId(issuer)
                 .Build();
 
             DataBlock data2 = new DataBlockBuilder()
                 .SetTimeStamp(now)
-                .SetBlockType("blockType")
                 .SetBlockId("blockId")
+                .SetBlockType("blockType")
+                .SetObjectClass("blockClass")
                 .SetData(payloadJson)
                 .SetPrincipleId(issuer)
                 .Build();
 
             data1.TimeStamp.Should().Be(data2.TimeStamp);
             data1.BlockType.Should().Be(data2.BlockType);
-            data1.BlockId.Should().Be(data2.BlockId);
+            data1.ObjectClass.Should().Be(data2.ObjectClass);
             data1.Data.Should().Be(data2.Data);
             data1.Digest.Should().Be(data2.Digest);
 

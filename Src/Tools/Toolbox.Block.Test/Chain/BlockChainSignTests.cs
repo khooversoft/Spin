@@ -50,8 +50,9 @@ namespace Toolbox.Block.Test.Blocks
 
             DataBlock data = new DataBlockBuilder()
                 .SetTimeStamp(now)
-                .SetBlockType("blockType")
                 .SetBlockId("blockId")
+                .SetBlockType("blockType")
+                .SetObjectClass("blockClass")
                 .SetData(payloadJson)
                 .SetPrincipleId(issuer)
                 .Build();
@@ -68,7 +69,7 @@ namespace Toolbox.Block.Test.Blocks
             blockChain.Blocks.Count.Should().Be(2);
 
             DataBlock receiveBlock = blockChain.Blocks[1].DataBlock;
-            TestBlockNode(receiveBlock, "blockType", "blockId");
+            TestBlockNode(receiveBlock, "blockType", "blockId", "blockClass");
 
             Dictionary<string, string> receivedPayload = receiveBlock.Data.ToObject<Dictionary<string, string>>().NotNull(name: "payload failed");
             (receivedPayload["name"] == "Name").Should().BeTrue();
@@ -95,8 +96,8 @@ namespace Toolbox.Block.Test.Blocks
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            blockChain.Add(payload, issuer);
-            blockChain.Add(payload2, issuer2);
+            blockChain.Add(payload, issuer, "objectClass");
+            blockChain.Add(payload2, issuer2, "objectClass");
 
             var getSignature = (string kid) => kid switch
             {
@@ -113,13 +114,13 @@ namespace Toolbox.Block.Test.Blocks
             blockChain.Blocks.Count.Should().Be(3);
 
             DataBlock receiveBlock = blockChain.Blocks[1].DataBlock;
-            TestBlockNode(receiveBlock, "Payload", "1");
+            TestBlockNode(receiveBlock, "objectClass", null, "Payload");
 
             Payload p1 = receiveBlock.Data.ToObject<Payload>().NotNull(name: "payload failed");
             (payload == p1).Should().BeTrue();
 
             DataBlock receiveBlock2 = blockChain.Blocks[2].DataBlock;
-            TestBlockNode(receiveBlock2, "Payload2", "2");
+            TestBlockNode(receiveBlock2, "objectClass", null, "Payload2");
 
             Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().NotNull(name: "payload2 failed");
             (payload2 == p2).Should().BeTrue();
@@ -143,8 +144,8 @@ namespace Toolbox.Block.Test.Blocks
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
 
-            blockChain.Add(payload, issuer);
-            blockChain.Add(payload2, issuer2);
+            blockChain.Add(payload, issuer, "objectClass");
+            blockChain.Add(payload2, issuer2, "objectClass");
 
             var getSignature = (string kid) => kid switch
             {
@@ -170,23 +171,25 @@ namespace Toolbox.Block.Test.Blocks
             receivedChain.Blocks.Count.Should().Be(3);
 
             DataBlock receiveBlock = receivedChain.Blocks[1].DataBlock;
-            TestBlockNode(receiveBlock, "Payload", "1");
+            TestBlockNode(receiveBlock, "objectClass", null, "Payload");
 
             Payload p1 = receiveBlock.Data.ToObject<Payload>().NotNull(name: "payload failed");
             (payload == p1).Should().BeTrue();
 
             DataBlock receiveBlock2 = receivedChain.Blocks[2].DataBlock;
-            TestBlockNode(receiveBlock2, "Payload2", "2");
+            TestBlockNode(receiveBlock2, "objectClass", null, "Payload2");
 
             Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().NotNull(name: "payload2 failed");
             (payload2 == p2).Should().BeTrue();
         }
 
-        private void TestBlockNode(DataBlock dataBlock, string blockType, string blockId)
+        private void TestBlockNode(DataBlock dataBlock, string blockType, string? blockId, string objectClass)
         {
             dataBlock.BlockType.Should().Be(blockType);
-            dataBlock.BlockId.Should().Be(blockId);
+            dataBlock.ObjectClass.Should().Be(objectClass);
             dataBlock.Data.Should().NotBeNullOrEmpty();
+
+            if (!blockId.IsEmpty()) dataBlock.BlockId.Should().Be(blockId);
         }
 
         private record Payload
