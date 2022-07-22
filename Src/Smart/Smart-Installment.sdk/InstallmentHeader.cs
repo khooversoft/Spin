@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Abstractions;
 using Toolbox.Tools;
 
 namespace Smart_Installment.sdk;
 
 public record InstallmentHeader
 {
+    public DateTimeOffset Date { get; init; }
+    public Guid ContractId { get; init; } = Guid.NewGuid();
+    public string PrincipleId { get; set; } = null!;
+    public string Name { get; set; } = null!;
+    public DocumentId DocumentId { get; init; } = null!;
     public string Issuer { get; init; } = null!;
     public string Description { get; init; } = null!;
     public int NumPayments { get; init; }
@@ -25,6 +31,9 @@ public static class InstallmentHeaderExtensions
     {
         subject.NotNull();
 
+        subject.PrincipleId.NotEmpty();
+        subject.Name.NotEmpty();
+        subject.DocumentId.NotNull();
         subject.Issuer.NotEmpty();
         subject.Description.NotEmpty();
         subject.NumPayments.Assert(x => x > 0, "NumPayment must be > 0");

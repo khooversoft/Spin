@@ -8,7 +8,7 @@ public class Document
 
     public string ObjectClass { get; init; } = null!;
 
-    public byte[] Data { get; init; } = null!;
+    public string Data { get; init; } = null!;
 
     public byte[] Hash { get; init; } = null!;
 
@@ -19,7 +19,7 @@ public class Document
         return obj is Document document &&
             DocumentId == document.DocumentId &&
             ObjectClass == document.ObjectClass &&
-            Data.SequenceEqual(document.Data) &&
+            Data == document.Data &&
             Hash.SequenceEqual(document.Hash);
     }
 

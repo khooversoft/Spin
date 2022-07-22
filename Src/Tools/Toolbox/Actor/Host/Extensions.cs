@@ -11,13 +11,13 @@ namespace Toolbox.Actor.Host;
 
 public static class Extensions
 {
-    public static IServiceCollection AddActor(this IServiceCollection collection)
-    {
-        collection.NotNull();
+    //public static IServiceCollection AddActor(this IServiceCollection collection)
+    //{
+    //    collection.NotNull();
 
-        collection.AddSingleton<IActorService, ActorService>();
-        return collection;
-    }
+    //    collection.AddSingleton<IActorService, ActorService>();
+    //    return collection;
+    //}
 
     public static IServiceCollection AddActor(this IServiceCollection collection, Action<IActorServiceConfiguration> actorHostConfiguration)
     {

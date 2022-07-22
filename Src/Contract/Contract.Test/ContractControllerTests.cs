@@ -73,7 +73,7 @@ public class ContractControllerTests
         searchList.Should().NotBeNull();
         searchList.Records.Any(x => x.EndsWith(documentId.Path)).Should().BeFalse();
     }
-    
+
     [Fact]
     public async Task GivenContract_WhenAppend_ShouldVerify()
     {
@@ -101,7 +101,7 @@ public class ContractControllerTests
 
         await client.Create(contractCreate);
 
-        var payload = new Payload("payloadName","payloadValue");
+        var payload = new Payload("payloadName", "payloadValue");
         await client.Append(documentId, payload, contractCreate.PrincipleId);
 
         bool verified = await client.Validate(documentId);
@@ -142,13 +142,13 @@ public class ContractControllerTests
         (await client.Delete(documentId)).Should().BeTrue();
     }
 
-    
+
     [Fact]
     public async Task GivenContractWithMultipleAppend_WhenGetLatest_ShouldVerify()
     {
         ContractClient client = TestApplication.GetContractClient();
 
-        var documentId = new DocumentId("test/unit-tests-smart/contract2");
+        var documentId = new DocumentId("test/unit-tests-smart/contract3");
 
         var query = new QueryParameter()
         {
@@ -170,11 +170,42 @@ public class ContractControllerTests
 
         await client.Create(contractCreate);
 
-        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload("payloadName", "payloadValue"));
-        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload("Pay2", "value2"));
-        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload2(10, "2-1"));
-        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => new Payload2(20, "2-2"));
+        var payloadList = new[]
+        {
+            new Payload("payloadName", "payloadValue"),
+            new Payload("Pay2", "value2"),
+        };
 
+        var payloadList2 = new[]
+        {
+            new Payload2(10, "2-1"),
+            new Payload2(20, "2-2"),
+            new Payload2(30, "2-3")
+        };
+
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => payloadList[0]);
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => payloadList2[0]);
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => payloadList[1]);
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => payloadList2[1]);
+        await AppendPayload(documentId, client, contractCreate.PrincipleId, () => payloadList2[2]);
+
+        var payloadResultList = await client.GetAll<Payload>(documentId);
+        payloadResultList.Should().NotBeNull();
+        payloadResultList!.Count.Should().Be(2);
+
+        payloadList.OrderBy(x => x.Name)
+            .Zip(payloadResultList.OrderBy(x => x.Name))
+            .All(x => x.First == x.Second)
+            .Should().BeTrue();
+
+        var payload2ResultList = await client.GetAll<Payload2>(documentId);
+        payload2ResultList.Should().NotBeNull();
+        payload2ResultList!.Count.Should().Be(3);
+
+        payloadList2.OrderBy(x => x.Id)
+            .Zip(payload2ResultList.OrderBy(x => x.Id))
+            .All(x => x.First == x.Second)
+            .Should().BeTrue();
 
         (await client.Delete(documentId)).Should().BeTrue();
     }

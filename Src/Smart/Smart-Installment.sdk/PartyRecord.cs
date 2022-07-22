@@ -6,6 +6,7 @@ namespace Smart_Installment.sdk;
 public record PartyRecord
 {
     public Guid Id { get; init; } = Guid.NewGuid();
+    public DateTimeOffset Date { get; init; } = DateTimeOffset.UtcNow;
     public string TrxCode { get; init; } = "add";
     public string UserId { get; init; } = null!;
     public string PartyType { get; init; } = null!;

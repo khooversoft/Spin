@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Model;
 using Toolbox.Tools;
 
@@ -25,23 +27,24 @@ public class ArtifactClient : IArtifactClient
     public async Task<Document?> Get(DocumentId id, CancellationToken token = default)
     {
         id.NotNull();
+        var ls = _logger.LogEntryExit();
 
         _logger.LogTrace("Get Id={id}", id);
 
-        try
-        {
-            return await _httpClient.GetFromJsonAsync<Document?>($"api/artifact/{id.ToUrlEncoding()}", token);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Get id={id} failed", id);
-            return null;
-        }
+        HttpResponseMessage message = await _httpClient.GetAsync($"api/artifact/{id.ToUrlEncoding()}", token);
+        _logger.LogTrace("Getting {id}, statusCode={statusCode}", id, message.StatusCode);
+
+        if (message.StatusCode == HttpStatusCode.NotFound) return null;
+        message.EnsureSuccessStatusCode();
+
+        string content = await message.Content.ReadAsStringAsync();
+        return content.ToObject<Document>();
     }
 
     public async Task Set(Document document, CancellationToken token = default)
     {
         document.NotNull();
+        var ls = _logger.LogEntryExit();
 
         _logger.LogTrace("Set Id={documentId}", args: document.DocumentId);
 
@@ -52,6 +55,7 @@ public class ArtifactClient : IArtifactClient
     public async Task<bool> Delete(DocumentId id, CancellationToken token = default)
     {
         id.NotNull();
+        var ls = _logger.LogEntryExit();
         _logger.LogTrace("Delete Id={id}", args: id);
 
         HttpResponseMessage response = await _httpClient.DeleteAsync($"api/artifact/{id.ToUrlEncoding()}", token);

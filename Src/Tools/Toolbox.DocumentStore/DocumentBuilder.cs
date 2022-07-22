@@ -21,45 +21,45 @@ public class DocumentBuilder
     public DocumentId? DocumentId { get; set; }
 
     public string? ObjectClass { get; set; }
-    public byte[]? Data { get; set; }
+    public string? TypeClassName { get; set; }
+    public string? Data { get; set; }
     public string? PrincipleId { get; set; }
 
     public DocumentBuilder SetDocumentId(DocumentId document) => this.Action(x => x.DocumentId = document);
     public DocumentBuilder SetObjectClass(string objectClass) => this.Action(x => x.ObjectClass = objectClass);
     public DocumentBuilder SetPrincipleId(string principleId) => this.Action(x => x.PrincipleId = principleId);
 
-    public DocumentBuilder SetData(byte[] data) => this.Action(x => x.Data = data);
-
-    public DocumentBuilder SetData<T>(T value, string? objectClass = null)
+    public DocumentBuilder SetData<T>(T value) where T : class
     {
         value.NotNull();
 
-        byte[] data = typeof(T) switch
+        Data = typeof(T) switch
         {
-            Type type when type == typeof(string) => Encoding.UTF8.GetBytes((string)(object)value),
-
-            _ => Encoding.UTF8.GetBytes(Json.Default.SerializeFormat<T>(value)),
+            Type type when type == typeof(string) => value.ToString()!,
+            _ => Json.Default.SerializeDefault<T>(value),
         };
 
-        ObjectClass = objectClass ?? typeof(T).Name;
-        SetData(data);
-
+        TypeClassName = typeof(T).Name;
         return this;
     }
 
 
     public Document Build()
     {
-        DocumentId.NotNull(name: $"{nameof(DocumentId)} is required");
-        ObjectClass.NotEmpty(name: $"{nameof(ObjectClass)} is required");
-        Data.NotNull(name: $"{nameof(Data)} is required");
+        const string classError = $"{nameof(ObjectClass)} || {nameof(TypeClassName)} is required";
 
-        byte[] hash = DocumentTools.ComputeHash(DocumentId!, ObjectClass!, Data!);
+        DocumentId.NotNull(name: $"{nameof(DocumentId)} is required");
+        Data.NotEmpty(name: $"{nameof(Data)} is required");
+        (!ObjectClass.IsEmpty() || !TypeClassName.IsEmpty()).Assert(x => x == true, classError);
+
+        string objectClass = ObjectClass ?? TypeClassName ?? throw new ArgumentException(classError);
+
+        byte[] hash = DocumentTools.ComputeHash(DocumentId!, objectClass!, Data!);
 
         return new Document
         {
             DocumentId = DocumentId,
-            ObjectClass = ObjectClass,
+            ObjectClass = objectClass,
             Data = Data,
             Hash = hash,
             PrincipleId = PrincipleId,

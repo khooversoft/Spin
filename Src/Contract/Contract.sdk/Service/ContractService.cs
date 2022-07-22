@@ -62,6 +62,20 @@ public class ContractService
         };
     }
 
+    public async Task<IReadOnlyList<Document>?> GetAll(DocumentId documentId, string blockType, CancellationToken token)
+    {
+        documentId.NotNull();
+        blockType.NotEmpty();
+
+        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
+        if (blockChain == null) return null;
+
+        return blockChain.Blocks
+            .Where(x => x.DataBlock.BlockType == blockType)
+            .Select(x => x.DataBlock.ToObject<Document>())
+            .ToList();
+    }
+
     public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
     {
         queryParameter.NotNull();

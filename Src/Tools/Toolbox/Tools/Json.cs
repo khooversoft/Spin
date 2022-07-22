@@ -26,9 +26,8 @@ namespace Toolbox.Tools
         };
 
         public T? Deserialize<T>(string subject) => JsonSerializer.Deserialize<T>(subject, JsonSerializerOptions);
-
         public string Serialize<T>(T subject) => JsonSerializer.Serialize(subject, JsonSerializerOptions);
-
         public string SerializeFormat<T>(T subject) => JsonSerializer.Serialize(subject, JsonSerializerFormatOption);
+        public string SerializeDefault<T>(T subject) => JsonSerializer.Serialize(subject);
     }
 }

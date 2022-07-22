@@ -16,7 +16,7 @@ public static class DocumentTools
         return document;
     }
 
-    public static byte[] ComputeHash(this DocumentId documentId, string objectClass, byte[] data)
+    public static byte[] ComputeHash(this DocumentId documentId, string objectClass, string data)
     {
         documentId.NotNull();
         objectClass.NotEmpty();
@@ -24,8 +24,7 @@ public static class DocumentTools
 
         var ms = new MemoryStream();
         ms.Write(documentId.ToString().ToBytes());
-
-        ms.Write(data);
+        ms.Write(data.ToBytes());
 
         ms.Seek(0, SeekOrigin.Begin);
         return MD5.Create().ComputeHash(ms);
@@ -42,12 +41,10 @@ public static class DocumentTools
 
     public static T ToObject<T>(this Document document)
     {
-        string strData = Encoding.UTF8.GetString(document.Data);
-
         return typeof(T) switch
         {
-            Type type when type == typeof(string) => (T)(object)strData,
-            _ => Json.Default.Deserialize<T>(strData)!
+            Type type when type == typeof(string) => (T)(object)document.Data,
+            _ => Json.Default.Deserialize<T>(document.Data)!
         };
     }
 }

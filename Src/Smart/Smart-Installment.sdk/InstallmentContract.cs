@@ -9,24 +9,34 @@ namespace Smart_Installment.sdk;
 
 public class InstallmentContract
 {
-    public DateTimeOffset Date { get; init; }
-    public Guid ContractId { get; init; } = Guid.NewGuid();
-    public string PrincipleId { get; set; } = null!;
-    public string Name { get; set; } = null!;
     public DocumentId DocumentId { get; init; } = null!;
+    public InstallmentHeader Header { get; init; } = null!;
+    public IReadOnlyList<PartyRecord> CommittedParties { get; init; } = Array.Empty<PartyRecord>();
+    public IList<PartyRecord> Parties { get; init; } = new List<PartyRecord>();
+    public IReadOnlyList<LedgerRecord> CommittedLedger { get; init; } = Array.Empty<LedgerRecord>();
+    public IList<LedgerRecord> Ledger { get; init; } = new List<LedgerRecord>();
 
-    public string Issuer { get; init; } = null!;
-    public string Description { get; init; } = null!;
-    public int NumPayments { get; init; }
-    public decimal Principal { get; init; }
-    public decimal Payment { get; init; }
-    public DateTimeOffset StartDate { get; init; }
-    public DateTimeOffset? CompletedDate { get; init; }
+    public override bool Equals(object? obj)
+    {
+        return obj is InstallmentContract contract &&
+               EqualityComparer<DocumentId>.Default.Equals(DocumentId, contract.DocumentId) &&
+               EqualityComparer<InstallmentHeader>.Default.Equals(Header, contract.Header) &&
 
-    public IReadOnlyList<PartyRecord> Parties { get; init; } = Array.Empty<PartyRecord>();
-    public IReadOnlyList<LedgerRecord> Ledger { get; init; } = Array.Empty<LedgerRecord>();
+               CommittedParties.Count == contract.CommittedParties.Count &&
+               Parties.Count == contract.Parties.Count &&
+               CommittedLedger.Count == contract.CommittedLedger.Count &&
+               Ledger.Count == contract.Ledger.Count &&
+
+               Enumerable.SequenceEqual(CommittedParties, contract.CommittedParties) &&
+               Enumerable.SequenceEqual(Parties, contract.Parties) &&
+               Enumerable.SequenceEqual(CommittedLedger, contract.CommittedLedger) &&
+               Enumerable.SequenceEqual(Ledger, contract.Ledger);
+    }
+
+    public override int GetHashCode() => HashCode.Combine(DocumentId, Header, CommittedParties, Parties, CommittedLedger, Ledger);
+    public static bool operator ==(InstallmentContract? left, InstallmentContract? right) => EqualityComparer<InstallmentContract>.Default.Equals(left, right);
+    public static bool operator !=(InstallmentContract? left, InstallmentContract? right) => !(left == right);
 }
-
 
 
 public static class InstallmentContractExtensions
@@ -34,17 +44,11 @@ public static class InstallmentContractExtensions
     public static InstallmentContract Verify(this InstallmentContract subject)
     {
         subject.NotNull();
-
-        subject.PrincipleId.NotEmpty();
-        subject.Name.NotEmpty();
-        subject.DocumentId.NotNull();
+        subject.Header.Verify();
+        subject.CommittedParties.NotNull();
         subject.Parties.NotNull();
         subject.Ledger.NotNull();
-        subject.Issuer.NotEmpty();
-        subject.Description.NotEmpty();
-        subject.NumPayments.Assert(x => x > 0, "NumPayment must be > 0");
-        subject.Principal.Assert(x => x > 0.00m, "Principal amount must be > 0");
-        subject.Payment.Assert(x => x > 0.00m, "Payment amount must be > 0");
+        subject.CommittedLedger.NotNull();
 
         return subject;
     }

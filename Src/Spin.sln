@@ -97,7 +97,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Smart", "Smart", "{A7320A90
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart-Installment", "Smart\Smart-Installment\Smart-Installment.csproj", "{ABB1B633-C252-41B5-9220-F7BC743B2AE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart-Installment.sdk", "Smart\Smart-Installment.sdk\Smart-Installment.sdk.csproj", "{9904EC71-254C-46E9-816B-8632B60B75B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart-Installment.sdk", "Smart\Smart-Installment.sdk\Smart-Installment.sdk.csproj", "{9904EC71-254C-46E9-816B-8632B60B75B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart-Installment.sdk.Test", "Smart\Smart-Installment.sdk.Test\Smart-Installment.sdk.Test.csproj", "{F0D34614-D46E-4D52-B491-B78D26CDE142}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -261,6 +263,10 @@ Global
 		{9904EC71-254C-46E9-816B-8632B60B75B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9904EC71-254C-46E9-816B-8632B60B75B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9904EC71-254C-46E9-816B-8632B60B75B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0D34614-D46E-4D52-B491-B78D26CDE142}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0D34614-D46E-4D52-B491-B78D26CDE142}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0D34614-D46E-4D52-B491-B78D26CDE142}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0D34614-D46E-4D52-B491-B78D26CDE142}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -305,6 +311,7 @@ Global
 		{A7320A90-705D-4C92-B370-7E69D482A14E} = {AB2A70BC-C50D-43FC-9C78-B266D00697AD}
 		{ABB1B633-C252-41B5-9220-F7BC743B2AE4} = {A7320A90-705D-4C92-B370-7E69D482A14E}
 		{9904EC71-254C-46E9-816B-8632B60B75B2} = {A7320A90-705D-4C92-B370-7E69D482A14E}
+		{F0D34614-D46E-4D52-B491-B78D26CDE142} = {A7320A90-705D-4C92-B370-7E69D482A14E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

@@ -42,6 +42,8 @@ public class DocumentPackage
         using var zip = new ZipArchive(dataStream, ZipArchiveMode.Read, leaveOpen: true);
 
         byte[] defaultPackage = zip.Read(_defaultPath);
+        string json = 
+
         Document? document = Json.Default.Deserialize<Document>(Encoding.UTF8.GetString(defaultPackage));
         if(document == null)
         {

@@ -9,6 +9,7 @@ public interface IActorServiceConfiguration
     IActorServiceConfiguration Register(Type type, Func<IActor> createImplementation);
     IActorServiceConfiguration Register<T, TImpl>() where T : IActor where TImpl : IActor;
     IActorServiceConfiguration Register<T>(Func<IActor> createImplementation);
+    IActorServiceConfiguration Register<T>() where T : IActor;
 }
 
 
@@ -29,15 +30,21 @@ internal class ActorServiceConfiguration : IActorServiceConfiguration
         return this;
     }
 
-    public IActorServiceConfiguration Register<T, TImpl>() where T : IActor where TImpl : IActor
-    {
-        _actorHost.Register<T>(() => _serviceProvider.GetRequiredService<TImpl>());
-        return this;
-    }
-
     public IActorServiceConfiguration Register<T>(Func<IActor> createImplementation)
     {
         _actorHost.Register<T>(createImplementation);
+        return this;
+    }
+
+    public IActorServiceConfiguration Register<T>() where T : IActor
+    {
+        _actorHost.Register<T>(() => _serviceProvider.GetRequiredService<T>());
+        return this;
+    }
+
+    public IActorServiceConfiguration Register<T, TImpl>() where T : IActor where TImpl : IActor
+    {
+        _actorHost.Register<T>(() => _serviceProvider.GetRequiredService<TImpl>());
         return this;
     }
 }

@@ -50,6 +50,22 @@ public class ContractController : Controller
         };
     }
 
+    [HttpGet("all/{path}/{blockType}")]
+    public async Task<IActionResult> GetAll(string path, string blockType, CancellationToken token)
+    {
+        if (path.IsEmpty()) return BadRequest();
+        if (blockType.IsEmpty()) return BadRequest();
+
+        DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
+        IReadOnlyList<Document>? document = await _contractService.GetAll(documentId, blockType, token);
+
+        return document switch
+        {
+            null => NotFound(),
+            _ => Ok(document),
+        };
+    }
+
     [HttpDelete("{path}")]
     public async Task<IActionResult> Delete(string path, CancellationToken token)
     {

@@ -5,10 +5,10 @@ using System.Net.Http.Json;
 using Toolbox.Abstractions;
 using Toolbox.Block;
 using Toolbox.DocumentStore;
+using Toolbox.Extensions;
 using Toolbox.Logging;
 using Toolbox.Model;
 using Toolbox.Tools;
-using Toolbox.Extensions;
 
 namespace Contract.sdk.Client;
 
@@ -60,6 +60,28 @@ public class ContractClient
         response.EnsureSuccessStatusCode();
 
         return (await response.Content.ReadAsStringAsync())?.ToObject<Document>();
+    }
+
+    public async Task<IReadOnlyList<T>?> GetAll<T>(DocumentId documentId, CancellationToken token = default) where T : class
+    {
+        IReadOnlyList<Document>? list = await GetAll(documentId, typeof(T).Name, token);
+        return list switch
+        {
+            null => null,
+            _ => list.Select(x => x.ToObject<T>()).ToList(),
+        };
+    }
+
+    public async Task<IReadOnlyList<Document>?> GetAll(DocumentId documentId, string blockType, CancellationToken token = default)
+    {
+        documentId.NotNull();
+        blockType.NotEmpty();
+
+        HttpResponseMessage response = await _httpClient.GetAsync($"api/contract/all/{documentId.ToUrlEncoding()}/{blockType}", token);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+
+        return (await response.Content.ReadAsStringAsync())?.ToObject<IReadOnlyList<Document>>();
     }
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token = default)
