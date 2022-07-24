@@ -115,14 +115,15 @@ public class ContractService
     {
         document.Verify();
         document.PrincipleId.NotEmpty(name: $"{nameof(document.PrincipleId)} is required");
+        DocumentId documentId = (DocumentId)document.DocumentId;
 
-        BlockChain? blockChain = (await Get(document.DocumentId, token))?.ToBlockChain();
+        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
         if (blockChain == null) return false;
 
         blockChain.Add(document, document.PrincipleId, document.ObjectClass);
 
         blockChain = await Sign(blockChain, token);
-        await Set(document.DocumentId, blockChain.ToBlockChainModel(), token);
+        await Set(documentId, blockChain.ToBlockChainModel(), token);
         return true;
     }
 

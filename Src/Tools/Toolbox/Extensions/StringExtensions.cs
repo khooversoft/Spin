@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -89,5 +90,21 @@ namespace Toolbox.Extensions
         /// <param name="value">value to compare to</param>
         /// <returns>true or false</returns>
         public static bool EqualsIgnoreCase(this string subject, string value) => subject.Equals(value, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Compute hash for multiple objects, using string representations
+        /// </summary>
+        /// <param name="values">values</param>
+        /// <returns>hash bytes</returns>
+        public static byte[] ComputeHash(this IEnumerable<string?> values)
+        {
+            values.NotNull();
+
+            var ms = new MemoryStream();
+            values.ForEach(x => ms.Write(x.ToBytes()));
+
+            ms.Seek(0, SeekOrigin.Begin);
+            return MD5.Create().ComputeHash(ms);
+        }
     }
 }

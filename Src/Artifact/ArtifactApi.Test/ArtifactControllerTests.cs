@@ -7,6 +7,7 @@ using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.DocumentStore;
 using Toolbox.Model;
+using Toolbox.Tools;
 using Xunit;
 
 namespace Artifact.Test
@@ -21,8 +22,9 @@ namespace Artifact.Test
         {
             ArtifactClient client = TestApplication.GetArtifactClient();
 
-            const string payload = "This is a test";
             DocumentId documentId = new DocumentId(id);
+
+            var payload = new Payload("Test1_name", "value1");
 
             Document document = new DocumentBuilder()
                 .SetDocumentId(documentId)
@@ -38,7 +40,7 @@ namespace Artifact.Test
 
             (document == readPayload).Should().BeTrue();
 
-            string? payloadText = readPayload!.ToObject<string>();
+            var payloadText = readPayload!.ToObject<Payload>();
             payloadText.Should().Be(payload);
 
             var search = new QueryParameter { Container = "contract", Recursive = true };
@@ -64,15 +66,23 @@ namespace Artifact.Test
 
             Document document = new DocumentBuilder()
                 .SetDocumentId(documentId)
+                .SetObjectClass("test")
                 .SetData(payload)
                 .Build()
                 .Verify();
 
             await client.Set(document);
 
-            Document? readDocument = await client.Get(documentId);
+            Document readDocument = (await client.Get(documentId)).NotNull();
             readDocument.Should().NotBeNull();
-            readDocument!.Verify();
+            readDocument.Verify();
+
+            (document.DocumentId == readDocument.DocumentId).Should().BeTrue();
+            (document.ObjectClass == readDocument.ObjectClass).Should().BeTrue();
+            (document.TypeName == readDocument.TypeName).Should().BeTrue();
+            (document.Data == readDocument.Data).Should().BeTrue();
+            Enumerable.SequenceEqual(document.Hash, readDocument.Hash).Should().BeTrue();
+            (document.PrincipleId == readDocument.PrincipleId).Should().BeTrue();
 
             (document == readDocument).Should().BeTrue();
 

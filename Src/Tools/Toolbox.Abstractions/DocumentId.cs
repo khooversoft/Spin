@@ -8,7 +8,7 @@ namespace Toolbox.Abstractions;
 /// <summary>
 /// Id is a path of {domain}/{resource}
 /// </summary>
-public class DocumentId
+public class DocumentId : IEquatable<DocumentId?>
 {
     private string? _container;
     private string? _path;
@@ -35,17 +35,44 @@ public class DocumentId
     //  ///////////////////////////////////////////////////////////////////////////////////////////
 
     public override string ToString() => Id;
-    public override bool Equals(object? obj) => obj is DocumentId documentId && Id == documentId.Id;
-    public override int GetHashCode() => HashCode.Combine(Id);
+    //public override bool Equals(object? obj) => obj is DocumentId documentId && Id == documentId.Id;
+    //public override int GetHashCode() => HashCode.Combine(Id);
 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////
 
     public static explicit operator DocumentId(string documentId) => new DocumentId(documentId);
     public static explicit operator string(DocumentId documentId) => documentId.ToString();
-    public static bool operator ==(DocumentId? left, DocumentId? right) => EqualityComparer<DocumentId>.Default.Equals(left, right);
-    public static bool operator !=(DocumentId? left, DocumentId? right) => !(left == right);
+
+    public static bool operator ==(DocumentId? left, DocumentId? right)
+    {
+        return EqualityComparer<DocumentId>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(DocumentId? left, DocumentId? right)
+    {
+        return !(left == right);
+    }
+
+    //public static bool operator ==(DocumentId? left, DocumentId? right) => EqualityComparer<DocumentId>.Default.Equals(left, right);
+    //public static bool operator !=(DocumentId? left, DocumentId? right) => !(left == right);
     public static void VerifyId(string documentId) => documentId.IsDocumentIdValid().Assert(x => x.Valid, x => x.Message);
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as DocumentId);
+    }
+
+    public bool Equals(DocumentId? other)
+    {
+        return other is not null &&
+               Id == other.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Id);
+    }
 }
 
 

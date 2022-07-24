@@ -29,7 +29,7 @@ public class DocumentTests
 
         Document document = builder.Build();
 
-        document.DocumentId.Id.Should().Be(documentId);
+        ((DocumentId)document.DocumentId).Id.Should().Be(documentId);
         document.ObjectClass.Should().Be(classObject);
         document.Data.Should().Be(payload);
         document.Hash.Should().NotBeNull();
@@ -57,7 +57,7 @@ public class DocumentTests
         Document readDocument = Json.Default.Deserialize<Document>(json)!;
         readDocument.Should().NotBeNull();
 
-        readDocument.DocumentId.Id.Should().Be(documentId);
+        ((DocumentId)readDocument.DocumentId).Id.Should().Be(documentId);
         readDocument.ObjectClass.Should().Be(classObject);
         readDocument.Data.Should().Be(payload);
         readDocument.Hash.Should().NotBeNull();

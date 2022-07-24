@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections;
+using System.Text;
 using Toolbox.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -13,17 +14,17 @@ public class DocumentBuilder
     {
         document.NotNull();
 
-        DocumentId = document.DocumentId.NotNull();
+        DocumentId = (DocumentId)document.DocumentId.NotNull();
         ObjectClass = document.ObjectClass.NotEmpty();
         Data = document.Data.NotNull();
     }
 
-    public DocumentId? DocumentId { get; set; }
+    public DocumentId? DocumentId { get; private set; }
 
-    public string? ObjectClass { get; set; }
-    public string? TypeClassName { get; set; }
-    public string? Data { get; set; }
-    public string? PrincipleId { get; set; }
+    public string? ObjectClass { get; private set; }
+    public string? TypeName { get; private set; }
+    public string? Data { get; private set; }
+    public string? PrincipleId { get; private set; }
 
     public DocumentBuilder SetDocumentId(DocumentId document) => this.Action(x => x.DocumentId = document);
     public DocumentBuilder SetObjectClass(string objectClass) => this.Action(x => x.ObjectClass = objectClass);
@@ -31,38 +32,36 @@ public class DocumentBuilder
 
     public DocumentBuilder SetData<T>(T value) where T : class
     {
+        const string errorMsg = "Unsupported type";
         value.NotNull();
 
         Data = typeof(T) switch
         {
-            Type type when type == typeof(string) => value.ToString()!,
+            Type type when type == typeof(string) => value.ToString().NotEmpty(),
+            Type type when type.IsAssignableTo(typeof(Array)) => throw new ArgumentException(errorMsg),
+            Type type when type.IsAssignableTo(typeof(IEnumerable)) => throw new ArgumentException(errorMsg),
+
             _ => Json.Default.SerializeDefault<T>(value),
         };
 
-        TypeClassName = typeof(T).Name;
+        TypeName = typeof(T).Name;
         return this;
     }
 
 
     public Document Build()
     {
-        const string classError = $"{nameof(ObjectClass)} || {nameof(TypeClassName)} is required";
-
         DocumentId.NotNull(name: $"{nameof(DocumentId)} is required");
+        TypeName.NotEmpty(name: $"{nameof(TypeName)} is required");
         Data.NotEmpty(name: $"{nameof(Data)} is required");
-        (!ObjectClass.IsEmpty() || !TypeClassName.IsEmpty()).Assert(x => x == true, classError);
-
-        string objectClass = ObjectClass ?? TypeClassName ?? throw new ArgumentException(classError);
-
-        byte[] hash = DocumentTools.ComputeHash(DocumentId!, objectClass!, Data!);
 
         return new Document
         {
-            DocumentId = DocumentId,
-            ObjectClass = objectClass,
+            DocumentId = (string)DocumentId,
+            ObjectClass = ObjectClass ?? TypeName,
+            TypeName = TypeName,
             Data = Data,
-            Hash = hash,
             PrincipleId = PrincipleId,
-        };
+        }.WithHash();
     }
 }

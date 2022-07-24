@@ -2,9 +2,12 @@
 using Microsoft.Extensions.Logging;
 using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
+using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Tools;
 using Toolbox.Tools.Zip;
@@ -42,33 +45,31 @@ public class DocumentPackage
         using var zip = new ZipArchive(dataStream, ZipArchiveMode.Read, leaveOpen: true);
 
         byte[] defaultPackage = zip.Read(_defaultPath);
-        string json = 
+        string json = Encoding.UTF8.GetString(defaultPackage);
 
-        Document? document = Json.Default.Deserialize<Document>(Encoding.UTF8.GetString(defaultPackage));
-        if(document == null)
-        {
-            _logger.LogWarning($"File {zipFileName} cannot be deserialize into {nameof(Document)}");
-            return null;
-        }
-
-        _logger.LogTrace($"File {zipFileName} read and {nameof(Document)} returned");
-        return document;
+        _logger.LogTrace("File {zipFileName} read and Document returned", zipFileName);
+        return Document.CreateFromJson(json);
     }
 
-    public async Task<IReadOnlyList<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token = default) =>
-        (await _store.Search(queryParameter, token))
+    public async Task<IReadOnlyList<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token = default)
+    {
+        IReadOnlyList<DatalakePathItem> result = await _store.Search(queryParameter, token).NotNull();
+
+        return result
             .Select(x => x with { Name = DocumentIdTools.RemoveExtension(x.Name) })
             .ToList();
+    }
 
     public async Task<ETag> Set(Document document, ETag? eTag = null, CancellationToken token = default)
     {
         document.Verify();
-        string zipFileName = document.DocumentId.ToZipFileName();
+        DocumentId documentId = (DocumentId)document.DocumentId;
+
+        string zipFileName = documentId.ToZipFileName();
 
         _logger.LogTrace($"Writing documentId={document.DocumentId} to {zipFileName}");
 
-        string json = Json.Default.Serialize(document);
-        byte[] data = Encoding.UTF8.GetBytes(json);
+        byte[] data = document.ToJson().ToBytes();
 
         using var writeBuffer = new MemoryStream();
         using (var zipWrite = new ZipArchive(writeBuffer, ZipArchiveMode.Create, leaveOpen: true))
@@ -77,7 +78,7 @@ public class DocumentPackage
         }
 
         writeBuffer.Seek(0, SeekOrigin.Begin);
-        ETag resultEtag = await _store.Write(document.DocumentId.ToZipFileName(), writeBuffer.ToArray(), true, eTag, token);
+        ETag resultEtag = await _store.Write(documentId.ToZipFileName(), writeBuffer.ToArray(), true, eTag, token);
 
         _logger.LogTrace($"DocumentId={document.DocumentId} written to {zipFileName}");
         return resultEtag;
