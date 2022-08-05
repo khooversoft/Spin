@@ -29,7 +29,7 @@ public static class BlockChainModelExtensions
     {
         model.Verify();
 
-        blockType ??= typeof(T).Name;
+        blockType ??= typeof(T).GetTypeName();
 
         return model.Blocks
             .Where(x => x.DataBlock.BlockType == blockType)

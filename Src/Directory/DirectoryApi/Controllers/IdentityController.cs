@@ -65,7 +65,7 @@ public class IdentityController : ControllerBase
     {
         IReadOnlyList<DatalakePathItem> list = await _identityService.Search(queryParameter);
 
-        var result = new BatchSet<DatalakePathItem>
+        var result = new BatchQuerySet<DatalakePathItem>
         {
             QueryParameter = queryParameter,
             NextIndex = queryParameter.Index + queryParameter.Count,

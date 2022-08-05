@@ -2,12 +2,16 @@
 using Contract.sdk.Models;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Block;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Model;
+using Toolbox.Monads;
 using Toolbox.Tools;
 
 namespace Contract.sdk.Service;
@@ -16,12 +20,14 @@ public class ContractService
 {
     private readonly ArtifactClient _artifactClient;
     private readonly SigningClient _signingClient;
+    private readonly ILogger<ContractService> _logger;
     private const string _container = "contract";
 
-    public ContractService(ArtifactClient artifactClient, SigningClient signingClient)
+    public ContractService(ArtifactClient artifactClient, SigningClient signingClient, ILogger<ContractService> logger)
     {
-        _artifactClient = artifactClient;
-        _signingClient = signingClient;
+        _artifactClient = artifactClient.NotNull();
+        _signingClient = signingClient.NotNull();
+        _logger = logger.NotNull();
     }
 
     // ////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,58 +36,65 @@ public class ContractService
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token)
     {
         documentId.NotNull();
+        var lc = _logger.LogEntryExit();
 
         bool status = await _artifactClient.Delete(documentId.WithContainer(_container), token: token);
+        _logger.LogTrace("Delete documentId={documentId}", documentId);
         return status;
     }
 
-    public async Task<BlockChainModel?> Get(DocumentId documentId, CancellationToken token)
+    public async Task<Option<BlockChainModel>> Get(DocumentId documentId, CancellationToken token)
     {
         documentId.NotNull();
+        var lc = _logger.LogEntryExit();
 
         Document? document = await _artifactClient.Get(documentId.WithContainer(_container), token);
-        if (document == null) return null;
+        if (document == null) return Option<BlockChainModel>.None;
 
         BlockChainModel model = document.ToObject<BlockChainModel>();
+        _logger.LogTrace("Get documentId={documentId}", documentId);
         return model;
     }
 
-    public async Task<Document?> GetLatest(DocumentId documentId, string blockType, CancellationToken token)
+    public async Task<Option<IReadOnlyList<Document>>> Get(DocumentId documentId, string blockTypes, CancellationToken token)
     {
         documentId.NotNull();
-        blockType.NotEmpty();
+        blockTypes.NotEmpty();
+        var lc = _logger.LogEntryExit();
 
-        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
-        if (blockChain == null) return null;
+        var blockTypeRequests = BlockTypeRequest.Parse(blockTypes);
 
-        BlockNode? latest = blockChain.Blocks.Where(x => x.DataBlock.BlockType == blockType).LastOrDefault();
-        return latest switch
-        {
-            null => null,
-            _ => latest.DataBlock.ToObject<Document>(),
-        };
-    }
+        var blockChainOption = (await Get(documentId, token)).Bind<BlockChain>(x => x.ToBlockChain());
 
-    public async Task<IReadOnlyList<Document>?> GetAll(DocumentId documentId, string blockType, CancellationToken token)
-    {
-        documentId.NotNull();
-        blockType.NotEmpty();
+        if (!blockChainOption.HasValue) return Option<IReadOnlyList<Document>>.None;
+        var blockChain = blockChainOption.Return();
 
-        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
-        if (blockChain == null) return null;
+        _logger.LogTrace("Getting blockTypes{blockTypes} for documentId={documentId}", blockTypes, documentId);
 
-        return blockChain.Blocks
-            .Where(x => x.DataBlock.BlockType == blockType)
+        var result = blockTypeRequests
+            .SelectMany(x => x.All ? all(x.BlockType) : latest(x.BlockType))
             .Select(x => x.DataBlock.ToObject<Document>())
             .ToList();
+
+        return result;
+
+
+        IEnumerable<BlockNode> latest(string bt) => blockChain.Blocks
+            .Where(x => x.DataBlock.BlockType == bt)
+            .Reverse()
+            .Take(1);
+
+        IEnumerable<BlockNode> all(string bt) => blockChain.Blocks
+            .Where(x => x.DataBlock.BlockType == bt);
     }
 
-    public async Task<BatchSet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
+    public async Task<BatchQuerySet<DatalakePathItem>> Search(QueryParameter queryParameter, CancellationToken token)
     {
         queryParameter.NotNull();
+        var lc = _logger.LogEntryExit();
 
         queryParameter = queryParameter with { Container = _container };
-        BatchSet<DatalakePathItem> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
+        BatchQuerySet<DatalakePathItem> batch = await _artifactClient.Search(queryParameter).ReadNext(token);
         return batch;
     }
 
@@ -92,11 +105,12 @@ public class ContractService
     public async Task<bool> Create(ContractCreateModel contractCreate, CancellationToken token)
     {
         contractCreate.NotNull();
+        var lc = _logger.LogEntryExit();
 
         var documentId = new DocumentId(contractCreate.DocumentId);
 
-        BlockChainModel? model = await Get(documentId, token);
-        if (model != null) return false;
+        var modelOption = await Get(documentId, token);
+        if (modelOption.HasValue) return false;
 
         BlockChain blockChain = new BlockChainBuilder()
             .SetPrincipleId(contractCreate.PrincipleId)
@@ -111,20 +125,50 @@ public class ContractService
         return true;
     }
 
-    public async Task<bool> Append(Document document, CancellationToken token)
+    public async Task<AppendResult> Append(Batch<Document> batch, CancellationToken token)
     {
-        document.Verify();
-        document.PrincipleId.NotEmpty(name: $"{nameof(document.PrincipleId)} is required");
-        DocumentId documentId = (DocumentId)document.DocumentId;
+        batch.NotNull();
+        batch.Items.ForEach(x => x.Verify(true));
+        var lc = _logger.LogEntryExit();
 
-        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
-        if (blockChain == null) return false;
+        var tracking = new List<(bool Success, string documentId)>();
 
-        blockChain.Add(document, document.PrincipleId, document.ObjectClass);
+        var group = batch.Items
+            .GroupBy(x => x.DocumentId)
+            .ToList();
 
-        blockChain = await Sign(blockChain, token);
-        await Set(documentId, blockChain.ToBlockChainModel(), token);
-        return true;
+        foreach (var item in group)
+        {
+            DocumentId documentId = (DocumentId)item.Key;
+
+            var blockChainOption = (await Get(documentId, token)).Bind(x => x.ToBlockChain());
+            if (!blockChainOption.HasValue)
+            {
+                tracking.Add((false, item.Key));
+                continue;
+            }
+
+            BlockChain blockChain = blockChainOption.Return();
+
+            foreach (var doc in item)
+            {
+                blockChain.Add(doc, doc.PrincipleId.NotNull(), doc.ObjectClass);
+            }
+
+            blockChain = await Sign(blockChain, token);
+            await Set(documentId, blockChain.ToBlockChainModel(), token);
+
+            _logger.LogTrace("Appending count={count} blocks for blockchain documentId={documentId}", item.Count(), documentId);
+            tracking.Add((true, item.Key));
+        }
+
+        return new AppendResult
+        {
+            ReferenceId = batch.Id,
+            Items = tracking
+                .Select(x => new AppendState(x.Success, x.documentId))
+                .ToList(),
+        };
     }
 
 
@@ -147,8 +191,10 @@ public class ContractService
     {
         documentId.NotNull();
 
-        BlockChain? blockChain = (await Get(documentId, token))?.ToBlockChain();
-        if (blockChain == null) return false;
+        var blockChainOption = (await Get(documentId, token)).Bind(x => x.ToBlockChain());
+        if (!blockChainOption.HasValue) return false;
+
+        BlockChain blockChain = blockChainOption.Return();
 
         ValidateRequest request = blockChain.GetPrincipleDigests(onlyUnsighed: false).ToValidateRequest();
         return await _signingClient.Validate(request, token);

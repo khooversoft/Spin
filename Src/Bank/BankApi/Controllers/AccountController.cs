@@ -57,7 +57,7 @@ namespace BankApi.Controllers
         {
             if (!queryParameter.Container.IsEmpty()) return BadRequest(_noContainer);
 
-            BatchSet<DatalakePathItem> response = await _service.Search(queryParameter, token);
+            BatchQuerySet<DatalakePathItem> response = await _service.Search(queryParameter, token);
             return Ok(response);
         }
     }

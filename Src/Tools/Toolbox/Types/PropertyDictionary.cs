@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -13,7 +14,7 @@ public class PropertyDictionary : IEnumerable<KeyValuePair<string, object>>
 
     public int Count => _properties.Count;
 
-    public T? Get<T>() => Get<T>(typeof(T).Name);
+    public T? Get<T>() => Get<T>(typeof(T).GetTypeName());
 
     public T? Get<T>(string name)
     {
@@ -27,11 +28,11 @@ public class PropertyDictionary : IEnumerable<KeyValuePair<string, object>>
         return (T)value;
     }
 
-    public void Set<T>(T value) => _properties[typeof(T).Name] = value!;
+    public void Set<T>(T value) => _properties[typeof(T).GetTypeName()] = value!;
 
     public void Set<T>(string name, T value) => _properties[name.NotEmpty()] = value!;
 
-    public void Delete<T>() => _properties.TryRemove(typeof(T).Name, out var _);
+    public void Delete<T>() => _properties.TryRemove(typeof(T).GetTypeName(), out var _);
 
     public void Delete<T>(string name) => _properties.TryRemove(name.NotEmpty(), out var _);
 

@@ -41,7 +41,7 @@ namespace Toolbox.Block
             blockChain.NotNull();
 
             return blockChain
-                .Blocks.Where(x => x.DataBlock.BlockType == typeof(T).Name)
+                .Blocks.Where(x => x.DataBlock.BlockType == typeof(T).GetTypeName())
                 .Select(x => x.DataBlock.ToObject<T>())
                 .ToList();
         }

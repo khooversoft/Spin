@@ -69,7 +69,7 @@ public class AccountControllerTests
         BatchSetCursor<DatalakePathItem> cursor = client.Search(query);
         cursor.Should().NotBeNull();
 
-        BatchSet<DatalakePathItem> batchSet = await cursor.ReadNext();
+        BatchQuerySet<DatalakePathItem> batchSet = await cursor.ReadNext();
         batchSet.Should().NotBeNull();
         batchSet.Records.Any(x => x.Name.EndsWith(documentId.Path)).Should().BeTrue();
 

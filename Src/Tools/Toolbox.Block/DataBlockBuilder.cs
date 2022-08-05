@@ -22,7 +22,7 @@ public class DataBlockBuilder
     public DataBlockBuilder SetTimeStamp(DateTime timestamp) => this.Action(x => x.TimeStamp = timestamp);
     public DataBlockBuilder SetBlockType(string blockType) => this.Action(x => x.BlockType = blockType);
     public DataBlockBuilder SetObjectClass(string objectClass) => this.Action(x => x.ObjectClass = objectClass);
-    public DataBlockBuilder SetBlockType<T>() => this.Action(x => x.BlockType = typeof(T).Name);
+    public DataBlockBuilder SetBlockType<T>() => this.Action(x => x.BlockType = typeof(T).GetTypeName());
     public DataBlockBuilder SetBlockId(string blockId) => this.Action(x => x.BlockId = blockId);
     public DataBlockBuilder SetData(string data) => this.Action(x => Data = data);
     public DataBlockBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
@@ -44,7 +44,7 @@ public class DataBlockBuilder
         Data.NotEmpty(name: $"{nameof(Data)} is required");
         PrincipleId.NotEmpty(name: $"{nameof(SetPrincipleId)} is required");
 
-        DataBlock dataBlock = new DataBlock
+        var dataBlock = new DataBlock
         {
             TimeStamp = TimeStamp.ToUnixDate(),
             BlockType = BlockType,

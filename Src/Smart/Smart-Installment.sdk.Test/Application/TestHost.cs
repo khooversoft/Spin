@@ -29,11 +29,11 @@ internal class TestHost
 
             var builder = new ServiceCollection();
             builder.AddSingleton(option);
-            builder.AddTransient<IInstallmentContractActor, InstallmentContractActor>();
+            builder.AddTransient<IContractStoreActor, ContractStoreActor>();
 
             builder.AddActor(config =>
             {
-                config.Register<IInstallmentContractActor>();
+                config.Register<IContractStoreActor>();
             });
 
             builder.AddHttpClient<ContractClient>((service, httpClient) =>

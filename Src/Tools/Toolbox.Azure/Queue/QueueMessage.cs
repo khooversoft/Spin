@@ -28,7 +28,7 @@ public static class QueueMessageExtensions
 
         return new QueueMessage
         {
-            ContentType = contentType ?? typeof(T).Name,
+            ContentType = contentType ?? typeof(T).GetTypeName(),
             Content = Json.Default.Serialize(subject),
         };
     }

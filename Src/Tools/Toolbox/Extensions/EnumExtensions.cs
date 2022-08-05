@@ -10,7 +10,7 @@ public static class EnumExtensions
         value.NotEmpty();
 
         Enum.TryParse(typeof(T), value, out object? enumValue)
-            .Assert(x => x == true, $"{value} is not valid for enum {typeof(T).Name}");
+            .Assert(x => x == true, $"{value} is not valid for enum {typeof(T).GetTypeName()}");
 
         return (T)enumValue!;
     }

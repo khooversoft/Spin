@@ -16,8 +16,8 @@ public class PipelineTests
     {
         int result = 5
             .Option()
-            .Bind<int>(x => x + 10)
-            .Bind(x => (Option<int>)(x + 20))
+            .Bind(x => x + 10)
+            .Bind(x => x + 20)
             .Return();
 
         result.Should().Be(35);
@@ -28,9 +28,9 @@ public class PipelineTests
     {
         int? result = 5
             .Option()
-            .Bind<int?>(x => x + 10)
-            .Bind<int?>(x => Option<int?>.None)
-            .Bind(x => (Option<int?>)(x + 20))
+            .Bind(x => x + 10)
+            .Bind(x => Option<int?>.None)
+            .Bind(x => x + 20)
             .Return();
 
         (result == Option<int?>.None).Should().BeTrue();
@@ -74,6 +74,7 @@ public class PipelineTests
 
         Option<int> result = 5;
         (result == 5).Should().BeTrue();
+        (5 == result).Should().BeTrue();
 
         int v = result;
         v.Should().Be(5);

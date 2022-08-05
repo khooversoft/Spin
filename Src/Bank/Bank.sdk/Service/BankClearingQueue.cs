@@ -49,7 +49,7 @@ public class BankClearingQueue
                 Items = new List<T>(groupItem)
             };
 
-            QueueMessage queueMessage = trxBatch.ToQueueMessage(typeof(T).Name);
+            QueueMessage queueMessage = trxBatch.ToQueueMessage(typeof(T).GetTypeName());
             await client.Send(queueMessage, token);
 
             _logger.LogInformation("Sent batch to bank={bankName}, count={trxBatch.Items.Count}", bankName, trxBatch.Items.Count);

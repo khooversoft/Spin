@@ -3,10 +3,10 @@ using Toolbox.Actor;
 
 namespace Smart_Installment.sdk.Actor
 {
-    public interface IInstallmentContractActor : IActor
+    public interface IContractStoreActor : IActor
     {
         Task Append(InstallmentContract contract, CancellationToken token);
-        Task CreateContract(InstallmentHeader header, CancellationToken token);
+        Task Create(InstallmentHeader header, CancellationToken token);
         Task<InstallmentContract?> Get(CancellationToken token);
     }
 }

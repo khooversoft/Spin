@@ -44,7 +44,7 @@ public class DocumentBuilder
             _ => Json.Default.SerializeDefault<T>(value),
         };
 
-        TypeName = typeof(T).Name;
+        TypeName = typeof(T).GetTypeName();
         return this;
     }
 

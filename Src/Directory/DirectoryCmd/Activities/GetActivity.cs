@@ -40,7 +40,7 @@ internal class GetActivity
 
         while (true)
         {
-            BatchSet<DatalakePathItem> batchSet = await batch.ReadNext(token);
+            BatchQuerySet<DatalakePathItem> batchSet = await batch.ReadNext(token);
             if (batchSet.IsEndSignaled) break;
 
             foreach(var entry in batchSet.Records)

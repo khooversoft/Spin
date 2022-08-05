@@ -3,7 +3,7 @@ using System;
 using Toolbox.Abstractions;
 using Xunit;
 
-namespace Toolbox.DocumentStore.Test;
+namespace Toolbox.Test.Abstract;
 
 public class DocumentIdTests
 {
@@ -28,10 +28,10 @@ public class DocumentIdTests
     [InlineData("container:domain/service")]
     [InlineData("container:domain/service/path")]
     public void GivenValidArticleId_WhenVerified_ShouldPass(string id)
-    {
-        _ = ((DocumentId)id).Id.Should().Be(id.ToLower());
-        _ = ((string)(DocumentId)id).Should().Be(id.ToLower());
-        _ = ((string)(new DocumentId(id))).Should().Be(id.ToLower());
+   {
+        ((DocumentId)id).Id.Should().Be(id.ToLower());
+        ((string)(DocumentId)id).Should().Be(id.ToLower());
+        ((string)new DocumentId(id)).Should().Be(id.ToLower());
     }
 
     [Theory]
@@ -53,10 +53,30 @@ public class DocumentIdTests
         Action action = () => _ = (DocumentId)id;
         action.Should().Throw<ArgumentException>();
 
-        action = () => _ = (string)(DocumentId)id;
+        action = () => _ = (DocumentId)id;
         action.Should().Throw<ArgumentException>();
 
-        action = () => _ = (string)(new DocumentId(id));
+        action = () => _ = new DocumentId(id);
         action.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void GivenTwoDocumentID_WithSameValue_ShouldEqual()
+    {
+        var document1 = (DocumentId)"test/path";
+        var document2 = (DocumentId)"test/path";
+
+        (document1 == document2).Should().BeTrue();
+        (document1 != document2).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GivenTwoDocumentID_WithDifferentValue_ShouldNotEqual()
+    {
+        var document1 = (DocumentId)"test/path";
+        var document2 = (DocumentId)"test/path2";
+
+        (document1 == document2).Should().BeFalse();
+        (document1 != document2).Should().BeTrue();
     }
 }

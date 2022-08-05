@@ -1,4 +1,5 @@
 ﻿using Contract.sdk.Models;
+using Contract.sdk.Service;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;
@@ -8,6 +9,7 @@ using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Logging;
 using Toolbox.Model;
+using Toolbox.Monads;
 using Toolbox.Tools;
 
 namespace Contract.sdk.Client;
@@ -40,48 +42,27 @@ public class ContractClient
         return model;
     }
 
-    public async Task<T?> GetLatest<T>(DocumentId documentId, CancellationToken token = default) where T : class
+    public async Task<Option<T>> GetLatest<T>(DocumentId documentId, CancellationToken token = default) where T : class
     {
-        Document? document = await GetLatest(documentId, typeof(T).Name, token);
-        return document switch
-        {
-            null => null,
-            _ => document.ToObject<T>(),
-        };
+        var list = await Get(documentId, typeof(T).ToBlockTypeRequest(), token);
+        if (list == null || list.Count == 0) return Option<T>.None;
+
+        return list.GetLast<T>().Option();
     }
 
-    public async Task<Document?> GetLatest(DocumentId documentId, string blockType, CancellationToken token = default)
+    public async Task<IReadOnlyList<DataBlockResult>> Get(DocumentId documentId, string blockTypes, CancellationToken token = default)
     {
         documentId.NotNull();
+        blockTypes.NotEmpty();
         var ls = _logger.LogEntryExit();
 
-        HttpResponseMessage response = await _httpClient.GetAsync($"api/contract/latest/{documentId.ToUrlEncoding()}/{blockType}", token);
-        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        HttpResponseMessage response = await _httpClient.GetAsync($"api/contract/{documentId.ToUrlEncoding()}/{blockTypes}", token);
         response.EnsureSuccessStatusCode();
 
-        return (await response.Content.ReadAsStringAsync())?.ToObject<Document>();
-    }
-
-    public async Task<IReadOnlyList<T>?> GetAll<T>(DocumentId documentId, CancellationToken token = default) where T : class
-    {
-        IReadOnlyList<Document>? list = await GetAll(documentId, typeof(T).Name, token);
-        return list switch
-        {
-            null => null,
-            _ => list.Select(x => x.ToObject<T>()).ToList(),
-        };
-    }
-
-    public async Task<IReadOnlyList<Document>?> GetAll(DocumentId documentId, string blockType, CancellationToken token = default)
-    {
-        documentId.NotNull();
-        blockType.NotEmpty();
-
-        HttpResponseMessage response = await _httpClient.GetAsync($"api/contract/all/{documentId.ToUrlEncoding()}/{blockType}", token);
-        if (response.StatusCode == HttpStatusCode.NotFound) return null;
-        response.EnsureSuccessStatusCode();
-
-        return (await response.Content.ReadAsStringAsync())?.ToObject<IReadOnlyList<Document>>();
+        return (await response.Content.ReadAsStringAsync(token))
+            .ToObject<IReadOnlyList<Document>>().NotNull()
+            .Select(x => new DataBlockResult(x.ObjectClass, x))
+            .ToList();
     }
 
     public async Task<bool> Delete(DocumentId documentId, CancellationToken token = default)
@@ -117,23 +98,24 @@ public class ContractClient
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task Append<T>(DocumentId documentId, T value, string principleId, CancellationToken token = default) where T : class
+    public async Task<AppendResult> Append(Batch<Document> batch, CancellationToken token)
     {
-        documentId.NotNull();
-        value.NotNull();
-        principleId.NotNull();
+        batch.NotNull();
         var ls = _logger.LogEntryExit();
+        _logger.LogTrace("Append batch={id}", batch.Id);
 
-        Document doc = new DocumentBuilder()
-            .SetDocumentId(documentId)
-            .SetData(value)
-            .SetObjectClass(value.GetType().Name)
-            .SetPrincipleId(principleId)
-            .Build();
-
-        _logger.LogTrace("Append to contract={id}", documentId);
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/append", doc, token);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"api/contract/append", batch, token);
         response.EnsureSuccessStatusCode();
+
+        string content = await response.Content.ReadAsStringAsync(token);
+        var result = content.ToObject<AppendResult>().NotNull(name: "Deserialize error");
+
+        if (result.HasError)
+            _logger.LogError("Append batch failed some or all transactions, successCount={successCount}, failCount={failCount}, data={data}", result.SuccessCount, result.ErrorCount, result);
+        else
+            _logger.LogTrace("Append batch completed, successCount={successCount}, failCount={failCount}, data={data}", result.SuccessCount, result.ErrorCount, result);
+
+        return result;
     }
 
 

@@ -45,7 +45,7 @@ namespace Artifact.Test
 
             var search = new QueryParameter { Container = "contract", Recursive = true };
 
-            BatchSet<DatalakePathItem> searchList = await client.Search(search).ReadNext();
+            BatchQuerySet<DatalakePathItem> searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();
             searchList.Records.Any(x => x.Name.EndsWith(documentId.Path)).Should().BeTrue();
 
@@ -92,7 +92,7 @@ namespace Artifact.Test
 
             var search = new QueryParameter { Container = "contract", Filter = "test/testing" };
 
-            BatchSet<DatalakePathItem> searchList = await client.Search(search).ReadNext();
+            BatchQuerySet<DatalakePathItem> searchList = await client.Search(search).ReadNext();
             searchList.Should().NotBeNull();
             searchList.Records.Any(x => x.Name.EndsWith(documentId.Path)).Should().BeTrue();
 

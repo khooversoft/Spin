@@ -51,7 +51,7 @@ public static class DictionaryExtensions
     {
         dictionary.NotNull();
 
-        bool found = dictionary.TryGetValue(typeof(T).Name, out T? value);
+        bool found = dictionary.TryGetValue(typeof(T).GetTypeName(), out T? value);
         return (found, value).Option();
     }
 
@@ -72,7 +72,7 @@ public static class DictionaryExtensions
     {
         dictionary.NotNull();
 
-        bool found = dictionary.TryGetValue(typeof(T).Name, out string? data);
+        bool found = dictionary.TryGetValue(typeof(T).GetTypeName(), out string? data);
         if (!found) return Option<T>.None;
 
         var value = Json.Default.Deserialize<T>(data!)
@@ -86,6 +86,6 @@ public static class DictionaryExtensions
         dictionary.NotNull();
 
         string json = Json.Default.Serialize(value);
-        dictionary[typeof(T).Name] = json;
+        dictionary[typeof(T).GetTypeName()] = json;
     }
 }

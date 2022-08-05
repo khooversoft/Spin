@@ -6,6 +6,7 @@ using Smart_Installment.sdk.Actor;
 using Smart_Installment.sdk.Test.Application;
 using Toolbox.Abstractions;
 using Toolbox.Actor.Host;
+using Toolbox.Extensions;
 using Toolbox.Model;
 
 namespace Smart_Installment.sdk.Test;
@@ -20,6 +21,30 @@ public class InstallmentContractActorTests
 
         DocumentId documentId = (DocumentId)"test/unit-tests-smart/contract4";
 
+        var addPartyItems = Enumerable.Range(0, 5).Select(x => new PartyRecord
+        {
+            UserId = $"UserId_{x}",
+            PartyType = $"PartyType_{x}",
+            BankAccountId = $"AccountId_{x}",
+        }).ToList();
+        var partyFirst = 3;
+        var partySecond = 2;
+        var partyGetFirst = () => addPartyItems.Take(partyFirst);
+        var partyGetSecond = () => addPartyItems.Skip(partyFirst).Take(partySecond);
+        var partyGetThird = () => addPartyItems.Skip(partyFirst + partySecond);
+
+        var addLedgerItems = Enumerable.Range(0, 8).Select(x => new LedgerRecord
+        {
+            Type = LedgerType.Credit,
+            TrxType = $"TrxType_{x}",
+            Amount = x * 150m,
+        }).ToList();
+        var ledgerFirst = 5;
+        var ledgerSecond = 2;
+        var ledgerGetFirst = () => addLedgerItems.Take(ledgerFirst);
+        var ledgerGetSecond = () => addLedgerItems.Skip(ledgerFirst).Take(ledgerSecond);
+        var ledgerGetThird = () => addLedgerItems.Skip(ledgerFirst + ledgerSecond);
+
         var query = new QueryParameter()
         {
             Filter = "test/unit-tests-smart",
@@ -30,7 +55,7 @@ public class InstallmentContractActorTests
         if (search.Any(x => x == (string)documentId)) await client.Delete(documentId);
 
 
-        IInstallmentContractActor actor = serviceProvider.GetActor<IInstallmentContractActor>(documentId.ToActorKey());
+        IContractStoreActor actor = serviceProvider.GetActor<IContractStoreActor>(documentId.ToActorKey());
 
         var installmentHeader = new InstallmentHeader()
         {
@@ -45,58 +70,54 @@ public class InstallmentContractActorTests
             StartDate = DateTime.UtcNow,
         };
 
-        
-        await actor.CreateContract(installmentHeader, CancellationToken.None);
+        await actor.Create(installmentHeader, CancellationToken.None);
 
         InstallmentContract installmentContract = (await actor.Get(CancellationToken.None)).NotNull();
-        installmentContract.Should().NotBeNull();
+        Test(installmentContract, Array.Empty<PartyRecord>(), Array.Empty<LedgerRecord>());
 
-        var parties = Enumerable.Range(0, 2).Select(x => new PartyRecord
-        {
-            UserId = $"UserId_{x}",
-            PartyType = $"PartyType_{x}",
-            BankAccountId = $"AccountId_{x}",
-        }).ToList();
 
-        parties.ForEach(x => installmentContract.Parties.Add(x));
+        // ========================================================================================
 
-        var ledgers = Enumerable.Range(0, 5).Select(x => new LedgerRecord
-        {
-            Type = LedgerType.Credit,
-            TrxType = $"TrxType_{x}",
-            Amount = x * 150m,
-        }).ToList();
-
-        ledgers.ForEach(x => installmentContract.Ledger.Add(x));
+        partyGetFirst().ForEach(x => installmentContract.PartyRecords.Items.Add(x));
+        ledgerGetFirst().ForEach(x => installmentContract.LedgerRecords.Items.Add(x));
 
         await actor.Append(installmentContract, CancellationToken.None);
-
 
         installmentContract = (await actor.Get(CancellationToken.None)).NotNull();
-        installmentContract.Should().NotBeNull();
+        Test(installmentContract, partyGetFirst(), ledgerGetFirst());
 
-        installmentContract.Parties.Add(new PartyRecord
-        {
-            UserId = "UserId_new",
-            PartyType = "PartyType_new",
-            BankAccountId = $"AccountId_new",
-        });
 
-        installmentContract.Ledger.Add(new LedgerRecord
-        {
-            Type = LedgerType.Credit,
-            TrxType = $"TrxType_new",
-            Amount = 2150m,
-        });
+        // ========================================================================================
+
+        partyGetSecond().ForEach(x => installmentContract.PartyRecords.Items.Add(x));
+        ledgerGetSecond().ForEach(x => installmentContract.LedgerRecords.Items.Add(x));
 
         await actor.Append(installmentContract, CancellationToken.None);
 
+        installmentContract = (await actor.Get(CancellationToken.None)).NotNull();
+        Test(installmentContract, partyGetFirst().Concat(partyGetSecond()), ledgerGetFirst().Concat(ledgerGetSecond()));
 
-        InstallmentContract? readInstallmentContract = await actor.Get(CancellationToken.None);
-        readInstallmentContract.Should().NotBeNull();
 
-        (installmentContract == readInstallmentContract).Should().BeTrue();
+        // ========================================================================================
+
+        partyGetThird().ForEach(x => installmentContract.PartyRecords.Items.Add(x));
+        ledgerGetThird().ForEach(x => installmentContract.LedgerRecords.Items.Add(x));
+
+        await actor.Append(installmentContract, CancellationToken.None);
+
+        installmentContract = (await actor.Get(CancellationToken.None)).NotNull();
+        Test(installmentContract, addPartyItems, addLedgerItems);
+
 
         (await client.Delete(documentId)).Should().BeTrue();
+    }
+
+    private void Test(InstallmentContract contract, IEnumerable<PartyRecord> partyRecords, IEnumerable<LedgerRecord> ledgerRecords)
+    {
+        contract.Should().NotBeNull();
+        contract.PartyRecords.Committed.Count.Should().Be(partyRecords.Count());
+        contract.LedgerRecords.Committed.Count.Should().Be(ledgerRecords.Count());
+        Enumerable.SequenceEqual(contract.PartyRecords.Committed, partyRecords).Should().BeTrue();
+        Enumerable.SequenceEqual(contract.LedgerRecords.Committed, ledgerRecords).Should().BeTrue();
     }
 }

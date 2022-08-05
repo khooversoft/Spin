@@ -12,12 +12,12 @@ namespace Toolbox.Tools
 {
     public class BatchSetCursor<T>
     {
-        private static readonly BatchSet<T> _noResult = new BatchSet<T>();
+        private static readonly BatchQuerySet<T> _noResult = new BatchQuerySet<T>();
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly string _postUrl;
         private readonly QueryParameter _queryParameter;
-        private Func<CancellationToken, Task<BatchSet<T>>> _getFunc;
+        private Func<CancellationToken, Task<BatchQuerySet<T>>> _getFunc;
 
         public BatchSetCursor(HttpClient httpClient, string postUrl, QueryParameter queryParameter, ILogger logger)
         {
@@ -29,11 +29,11 @@ namespace Toolbox.Tools
             _getFunc = Start;
         }
 
-        public BatchSet<T>? Current { get; private set; }
+        public BatchQuerySet<T>? Current { get; private set; }
 
-        public async Task<BatchSet<T>> ReadNext(CancellationToken token = default) => await _getFunc(token);
+        public async Task<BatchQuerySet<T>> ReadNext(CancellationToken token = default) => await _getFunc(token);
 
-        private async Task<BatchSet<T>> Continue(CancellationToken token)
+        private async Task<BatchQuerySet<T>> Continue(CancellationToken token)
         {
             var sl = _logger.LogEntryExit();
             _logger.LogTrace("Query={_queryParameter}", _queryParameter);
@@ -46,7 +46,7 @@ namespace Toolbox.Tools
             return Current;
         }
 
-        private async Task<BatchSet<T>> Post(QueryParameter queryParameter)
+        private async Task<BatchQuerySet<T>> Post(QueryParameter queryParameter)
         {
             var sl = _logger.LogEntryExit();
 
@@ -58,11 +58,11 @@ namespace Toolbox.Tools
 
             _logger.LogTrace("Content={content}", content);
 
-            return content.ToObject<BatchSet<T>>()
+            return content.ToObject<BatchQuerySet<T>>()
                 .NotNull(name: "Serialization failed");
         }
 
-        private async Task<BatchSet<T>> Start(CancellationToken token)
+        private async Task<BatchQuerySet<T>> Start(CancellationToken token)
         {
             var sl = _logger.LogEntryExit();
             _logger.LogTrace("Query={_queryParameter}", _queryParameter);

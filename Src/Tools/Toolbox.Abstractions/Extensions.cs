@@ -26,11 +26,13 @@ public static class Extensions
         };
     }
 
-    public static Document Verify(this Document document)
+    public static Document Verify(this Document document, bool principleRequired = false)
     {
         document.NotNull();
         document.IsHashVerify().Assert(x => x == true, "Document is not valid");
         document.ObjectClass.NotEmpty(name: $"{nameof(document.ObjectClass)} is required");
+
+        if (principleRequired) document.PrincipleId.NotEmpty(name: $"{nameof(document.PrincipleId)} is required");
 
         return document;
     }

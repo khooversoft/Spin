@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Toolbox.Model
 {
-    public record BatchSet<T>
+    public record BatchQuerySet<T>
     {
         public QueryParameter QueryParameter { get; init; } = null!;
 

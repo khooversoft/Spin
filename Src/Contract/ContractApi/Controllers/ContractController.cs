@@ -7,6 +7,7 @@ using Toolbox.Block;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Model;
+using Toolbox.Monads;
 
 namespace ContractApi.Controllers;
 
@@ -31,39 +32,23 @@ public class ContractController : Controller
         DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
         BlockChainModel? model = await _contractService.Get(documentId, token);
 
-        return model != null ? Ok(model) : NotFound();
-    }
-
-    [HttpGet("latest/{path}/{blockType}")]
-    public async Task<IActionResult> GetLatest(string path, string blockType, CancellationToken token)
-    {
-        if (path.IsEmpty()) return BadRequest();
-        if (blockType.IsEmpty()) return BadRequest();
-
-        DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
-        Document? document = await _contractService.GetLatest(documentId, blockType, token);
-
-        return document switch
+        return model switch
         {
             null => NotFound(),
-            _ => Ok(document),
+            _ => Ok(model)
         };
     }
 
-    [HttpGet("all/{path}/{blockType}")]
-    public async Task<IActionResult> GetAll(string path, string blockType, CancellationToken token)
+    [HttpGet("{path}/{blockTypes}")]
+    public async Task<IActionResult> GetCollections(string path, string blockTypes, CancellationToken token)
     {
         if (path.IsEmpty()) return BadRequest();
-        if (blockType.IsEmpty()) return BadRequest();
+        if (blockTypes.IsEmpty()) return BadRequest();
 
         DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
-        IReadOnlyList<Document>? document = await _contractService.GetAll(documentId, blockType, token);
 
-        return document switch
-        {
-            null => NotFound(),
-            _ => Ok(document),
-        };
+        return (await _contractService.Get(documentId, blockTypes, token))
+            .Switch<IActionResult>(x => Ok(x), () => NotFound());
     }
 
     [HttpDelete("{path}")]
@@ -78,9 +63,9 @@ public class ContractController : Controller
     [HttpPost("search")]
     public async Task<IActionResult> List([FromBody] QueryParameter queryParameter, CancellationToken token)
     {
-        BatchSet<DatalakePathItem> list = await _contractService.Search(queryParameter, token);
+        BatchQuerySet<DatalakePathItem> list = await _contractService.Search(queryParameter, token);
 
-        BatchSet<string> result = new BatchSet<string>()
+        BatchQuerySet<string> result = new BatchQuerySet<string>()
         {
             QueryParameter = list.QueryParameter,
             NextIndex = list.NextIndex,
@@ -102,16 +87,13 @@ public class ContractController : Controller
     }
 
     [HttpPost("append")]
-    public async Task<IActionResult> Append([FromBody] Document entry, CancellationToken token)
+    public async Task<IActionResult> Append([FromBody] Batch<Document> batch, CancellationToken token)
     {
-        if (!entry.IsHashVerify()) return BadRequest();
+        if (batch.Items.Count == 0) return BadRequest();
+        if (batch.Items.Any(x => !x.IsHashVerify())) return BadRequest();
 
-        bool result = await _contractService.Append(entry, token);
-        return result switch
-        {
-            true => Ok(),
-            false => BadRequest(),
-        };
+        AppendResult result = await _contractService.Append(batch, token);
+        return Ok(result);
     }
 
     [HttpPost("validate/{path}")]

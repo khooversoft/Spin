@@ -55,7 +55,7 @@ public class EntryController : ControllerBase
     {
         IReadOnlyList<DatalakePathItem> list = await _directoryService.Search(queryParameter);
 
-        var result = new BatchSet<DatalakePathItem>
+        var result = new BatchQuerySet<DatalakePathItem>
         {
             QueryParameter = queryParameter,
             NextIndex = queryParameter.Index + queryParameter.Count,

@@ -3,14 +3,27 @@ using Toolbox.Tools;
 
 namespace Smart_Installment.sdk;
 
-public record LedgerRecord
+public sealed record LedgerRecord
 {
     public Guid Id { get; init; } = Guid.NewGuid();
-    public DateTimeOffset Date { get; init; }
+    public DateTime Date { get; init; }
     public LedgerType Type { get; init; }
     public string TrxType { get; init; } = null!;
     public decimal Amount { get; init; }
     public IReadOnlyList<string>? Properties { get; init; }
+
+    public bool Equals(LedgerRecord? obj)
+    {
+        return obj is LedgerRecord ledgerRecord &&
+               Id == ledgerRecord.Id &&
+               Date == ledgerRecord.Date &&
+               Type == ledgerRecord.Type &&
+               TrxType == ledgerRecord.TrxType &&
+               Amount == ledgerRecord.Amount &&
+               Enumerable.SequenceEqual(Properties ?? Array.Empty<string>(), ledgerRecord.Properties ?? Array.Empty<string>());
+    }
+
+    public override int GetHashCode() => HashCode.Combine(Id, Date, Type, TrxType, Amount, Properties);
 }
 
 

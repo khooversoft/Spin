@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Toolbox.DocumentStore.Test;
 
-public class DocumentTests
+public class DocumentBuilderTests
 {
     [Fact]
     public void Document_WhenConstructed_ShouldRoundTrip()

@@ -57,32 +57,32 @@ public class DocumentTests
         }
     }
 
-    //[Fact]
-    //public void GivenDocument_WithAlteredData_WhenHashChecked_ShouldFail()
-    //{
-    //    DocumentId documentId = (DocumentId)"test/path";
+    [Fact]
+    public void GivenDocument_WithAlteredData_WhenHashChecked_ShouldFail()
+    {
+        DocumentId documentId = (DocumentId)"test/path";
 
-    //    var rec1 = new Document
-    //    {
-    //        DocumentId = (string)documentId,
-    //        ObjectClass = "objectClass",
-    //        TypeName = "typeName",
-    //        Data = "data",
-    //    }.WithHash();
+        var rec1 = new Document
+        {
+            DocumentId = (string)documentId,
+            ObjectClass = "objectClass",
+            TypeName = "typeName",
+            Data = "data",
+        }.WithHash();
 
-    //    var rec2 = new Document
-    //    {
-    //        DocumentId = rec1.DocumentId,
-    //        ObjectClass = rec1.ObjectClass,
-    //        TypeName = "badType",
-    //        Data = rec1.Data,
-    //        PrincipleId = rec1.PrincipleId,
-    //    }.WithHash() with
-    //    {
-    //        TypeName = rec1.TypeName,
-    //    };
+        var rec2 = new Document
+        {
+            DocumentId = rec1.DocumentId,
+            ObjectClass = rec1.ObjectClass,
+            TypeName = "badType",
+            Data = rec1.Data,
+            PrincipleId = rec1.PrincipleId,
+        }.WithHash() with
+        {
+            TypeName = rec1.TypeName,
+        };
 
-    //    rec2.IsHashVerify().Should().BeFalse();
-    //    (rec1 == rec2).Should().BeFalse();
-    //}
+        rec2.IsHashVerify().Should().BeFalse();
+        (rec1 == rec2).Should().BeFalse();
+    }
 }

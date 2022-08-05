@@ -33,7 +33,7 @@ public class InstallmentContractModelTests
             NumPayments = 1,
             Principal = 100.00m,
             Payment = 20.00m,
-        };
+        }.Verify();
 
         var header2 = new InstallmentHeader
         {
@@ -46,7 +46,7 @@ public class InstallmentContractModelTests
             NumPayments = 1,
             Principal = 100.00m,
             Payment = 20.00m,
-        };
+        }.Verify();
 
         (header1.PrincipleId == header1.PrincipleId).Should().BeTrue();
         (header1.Name == header1.Name).Should().BeTrue();
@@ -66,7 +66,7 @@ public class InstallmentContractModelTests
     public void Equal_ShouldPass()
     {
         Guid id = Guid.NewGuid();
-        DateTimeOffset now = DateTimeOffset.Now;
+        DateTime now = DateTime.Now;
 
         var model1 = new InstallmentContract
         {
@@ -82,42 +82,50 @@ public class InstallmentContractModelTests
                 Principal = 100.00m,
                 Payment = 20.00m,
             },
-            CommittedParties = Enumerable.Range(0, 3).Select(x => new PartyRecord
+            PartyRecords = new TrxList<PartyRecord>
             {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            Parties = Enumerable.Range(10, 3).Select(x => new PartyRecord
-            {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            CommittedLedger = Enumerable.Range(0, 2).Select(x => new LedgerRecord
-            {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
 
-            }).ToList(),
-            Ledger = Enumerable.Range(10, 3).Select(x => new LedgerRecord
+                Items = Enumerable.Range(10, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
+            },
+            LedgerRecords = new TrxList<LedgerRecord>
             {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 2).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
 
-            }).ToList(),
+                }).ToList(),
+
+                Items = Enumerable.Range(10, 3).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
+
+                }).ToList(),
+            },
         };
 
         var model2 = new InstallmentContract
@@ -125,7 +133,6 @@ public class InstallmentContractModelTests
             DocumentId = (DocumentId)"test",
             Header = new InstallmentHeader
             {
-                ContractId = model1.Header.ContractId,
                 PrincipleId = "PrincipleId",
                 Name = "Name",
                 DocumentId = (DocumentId)"DocumentId",
@@ -135,42 +142,50 @@ public class InstallmentContractModelTests
                 Principal = 100.00m,
                 Payment = 20.00m,
             },
-            CommittedParties = Enumerable.Range(0, 3).Select(x => new PartyRecord
+            PartyRecords = new TrxList<PartyRecord>
             {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            Parties = Enumerable.Range(10, 3).Select(x => new PartyRecord
-            {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            CommittedLedger = Enumerable.Range(0, 2).Select(x => new LedgerRecord
-            {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
 
-            }).ToList(),
-            Ledger = Enumerable.Range(10, 3).Select(x => new LedgerRecord
+                Items = Enumerable.Range(10, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
+            },
+            LedgerRecords = new TrxList<LedgerRecord>
             {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 2).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
 
-            }).ToList(),
+                }).ToList(),
+
+                Items = Enumerable.Range(10, 3).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
+
+                }).ToList(),
+            },
         };
 
         (model1 == model2).Should().BeTrue();
@@ -181,7 +196,7 @@ public class InstallmentContractModelTests
     public void NotEqual_ShouldPass()
     {
         Guid id = Guid.NewGuid();
-        DateTimeOffset now = DateTimeOffset.Now;
+        DateTime now = DateTime.Now;
 
         var model1 = new InstallmentContract
         {
@@ -197,42 +212,50 @@ public class InstallmentContractModelTests
                 Principal = 100.00m,
                 Payment = 20.00m,
             },
-            CommittedParties = Enumerable.Range(0, 3).Select(x => new PartyRecord
+            PartyRecords = new TrxList<PartyRecord>
             {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            Parties = Enumerable.Range(10, 3).Select(x => new PartyRecord
-            {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            CommittedLedger = Enumerable.Range(0, 2).Select(x => new LedgerRecord
-            {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
 
-            }).ToList(),
-            Ledger = Enumerable.Range(10, 3).Select(x => new LedgerRecord
+                Items = Enumerable.Range(10, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
+            },
+            LedgerRecords = new TrxList<LedgerRecord>
             {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 2).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
 
-            }).ToList(),
+                }).ToList(),
+
+                Items = Enumerable.Range(10, 3).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
+
+                }).ToList(),
+            },
         };
 
         var model2 = new InstallmentContract
@@ -240,7 +263,6 @@ public class InstallmentContractModelTests
             DocumentId = (DocumentId)"test",
             Header = new InstallmentHeader
             {
-                ContractId = model1.Header.ContractId,
                 PrincipleId = "PrincipleId",
                 Name = "Name",
                 DocumentId = (DocumentId)"DocumentId",
@@ -250,44 +272,53 @@ public class InstallmentContractModelTests
                 Principal = 100.00m,
                 Payment = 20.00m,
             },
-            CommittedParties = Enumerable.Range(0, 3).Select(x => new PartyRecord
+            PartyRecords = new TrxList<PartyRecord>
             {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            Parties = Enumerable.Range(10, 3).Select(x => new PartyRecord
-            {
-                Id = id,
-                Date = now,
-                TrxCode = $"add_{x}",
-                UserId = $"UserId_{x}",
-                PartyType = $"PartyType_{x}",
-                BankAccountId = $"BankAccountId_{x}",
-            }).ToList(),
-            CommittedLedger = Enumerable.Range(0, 12).Select(x => new LedgerRecord
-            {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
 
-            }).ToList(),
-            Ledger = Enumerable.Range(10, 4).Select(x => new LedgerRecord
+                Items = Enumerable.Range(10, 3).Select(x => new PartyRecord
+                {
+                    Id = id,
+                    Date = now,
+                    TrxCode = $"add_{x}",
+                    UserId = $"UserId_{x}",
+                    PartyType = $"PartyType_{x}",
+                    BankAccountId = $"BankAccountId_{x}",
+                }).ToList(),
+            },
+            LedgerRecords = new TrxList<LedgerRecord>
             {
-                Id = id,
-                Date = now,
-                Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
-                TrxType = $"Trx_Type_{x}",
-                Amount = x * 120.00m,
+                Committed = Enumerable.Range(0, 1).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
 
-            }).ToList(),
+                }).ToList(),
+
+                Items = Enumerable.Range(10, 3).Select(x => new LedgerRecord
+                {
+                    Id = id,
+                    Date = now,
+                    Type = x % 1 == 0 ? LedgerType.Debit : LedgerType.Credit,
+                    TrxType = $"Trx_Type_{x}",
+                    Amount = x * 120.00m,
+
+                }).ToList(),
+            },
         };
 
         (model1 == model2).Should().BeFalse();
+        (model1 != model2).Should().BeTrue();
     }
 }
