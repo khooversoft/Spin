@@ -12,7 +12,7 @@ using Toolbox.Tools;
 
 IContractHost host = await ContractHostBuilder.Create()
     .AddCommand(args)
-    //.AddContractServices()
+    .AddContractServices()
     .Build();
 
 await host.Run();

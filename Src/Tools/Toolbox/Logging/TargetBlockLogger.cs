@@ -3,29 +3,28 @@ using System;
 using System.Threading.Tasks.Dataflow;
 using Toolbox.Tools;
 
-namespace Toolbox.Logging
+namespace Toolbox.Logging;
+
+public class TargetBlockLogger : ILogger
 {
-    public class TargetBlockLogger : ILogger
+    private readonly ITargetBlock<string> _targetBlock;
+
+    public TargetBlockLogger(string name, ITargetBlock<string> targetBlock)
     {
-        private readonly ITargetBlock<string> _targetBlock;
+        targetBlock.NotNull();
 
-        public TargetBlockLogger(string name, ITargetBlock<string> targetBlock)
-        {
-            targetBlock.NotNull();
+        Name = name;
+        _targetBlock = targetBlock;
+    }
 
-            Name = name;
-            _targetBlock = targetBlock;
-        }
+    public string Name { get; }
 
-        public string Name { get; }
+    public IDisposable BeginScope<TState>(TState state) => null!;
 
-        public IDisposable BeginScope<TState>(TState state) => null!;
+    public bool IsEnabled(LogLevel logLevel) => true;
 
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            _targetBlock.Post($"{Name}: " + formatter(state, exception));
-        }
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        _targetBlock.Post($"{Name}: " + formatter(state, exception));
     }
 }

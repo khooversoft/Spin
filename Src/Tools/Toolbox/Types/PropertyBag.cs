@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Toolbox.Types;
 
-public class PropertyBag : ConcurrentDictionary<string, string>
+public class PropertyBag : ConcurrentDictionary<string, object>
 {
     public PropertyBag() { }
-    public PropertyBag(IEnumerable<KeyValuePair<string, string>> collection) : base(collection) { }
+    public PropertyBag(IEnumerable<KeyValuePair<string, object>> collection) : base(collection) { }
     public PropertyBag(int concurrencyLevel, int capacity) : base(concurrencyLevel, capacity) { }
 }
