@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Toolbox.Tools;
 
 namespace Toolbox.Tokenizer.Token
 {
@@ -9,10 +10,7 @@ namespace Toolbox.Tokenizer.Token
     /// </summary>
     public struct TokenValue : IToken
     {
-        public TokenValue(string value)
-        {
-            Value = value;
-        }
+        public TokenValue(string value) => Value = value.NotNull();
 
         public string Value { get; }
 
@@ -25,5 +23,7 @@ namespace Toolbox.Tokenizer.Token
         public static bool operator ==(TokenValue left, TokenValue right) => left.Equals(right);
 
         public static bool operator !=(TokenValue left, TokenValue right) => !(left == right);
+
+        public static implicit operator string(TokenValue tokenValue) => tokenValue.Value;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Toolbox.Tools;
 
 namespace Toolbox.Extensions;
@@ -20,6 +21,17 @@ public static class EnumExtensions
         value.NotEmpty();
 
         return Enum.IsDefined(typeof(T), value);
+    }
+
+    public static string? FindEnumValue<T>(this string value, bool caseInsensitive = false) where T : Enum
+    {
+        value.NotEmpty();
+
+        return caseInsensitive switch
+        {
+            false => Enum.GetNames(typeof(T)).FirstOrDefault(x => x == value),
+            true => Enum.GetNames(typeof(T)).FirstOrDefault(x => x.Equals(value, StringComparison.OrdinalIgnoreCase)),
+        };
     }
 
     public static bool IsValid<T>(this T value) where T : struct, Enum => Enum.IsDefined<T>(value);
