@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Toolbox.Graph
+namespace Toolbox.Graph;
+
+public interface IGraphNode<TKey> : IGraphCommon
 {
-    public interface IGraphNode<TKey> : IGraphCommon
-    {
-        TKey Key { get; }
-    }
+    TKey Key { get; }
 }

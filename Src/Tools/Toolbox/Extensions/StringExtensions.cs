@@ -70,7 +70,8 @@ namespace Toolbox.Extensions
         /// <param name="values">values</param>
         /// <param name="delimiter">delimiter to use in join</param>
         /// <returns>result</returns>
-        public static string Join(this IEnumerable<string?> values, string delimiter = "/") => string.Join(delimiter, values.Where(x => x != null));
+        public static string Join(this IEnumerable<string?> values, string delimiter = "") => string.Join(delimiter, values.Where(x => x != null));
+
 
         /// <summary>
         /// Return string's hash in hex numeric form

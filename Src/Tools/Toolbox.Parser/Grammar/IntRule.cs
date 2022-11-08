@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Extensions;
 using Toolbox.Tokenizer.Token;
+using Toolbox.Types;
 
 namespace Toolbox.Parser.Grammar;
 
@@ -13,12 +15,12 @@ public class IntRule : IRule
 
     public IntRule(int value) => Value = value;
 
-    public static IntRule? Match(IToken token) => token switch
+    public static IReadOnlyList<IntRule>? Match(Cursor<IToken> tokenCursor) => (found: tokenCursor.TryNextValue(out IToken? token), token) switch
     {
-        TokenValue v => int.TryParse(v, out _) switch
+        (true, TokenValue) v => int.TryParse(v.token!.Value, out int intValue) switch
         {
-            false => null,
-            true => new IntRule(int.Parse(v)),
+            true => new IntRule(intValue).ToEnumerable().ToArray(),
+            _ => null,
         },
 
         _ => null,

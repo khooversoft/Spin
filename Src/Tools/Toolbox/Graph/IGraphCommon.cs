@@ -1,6 +1,5 @@
-﻿namespace Toolbox.Graph
+﻿namespace Toolbox.Graph;
+
+public interface IGraphCommon
 {
-    public interface IGraphCommon
-    {
-    }
 }

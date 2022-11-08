@@ -27,7 +27,7 @@ namespace Toolbox.Test.Tools
         {
             const int max = 1;
             var list = new List<int>(Enumerable.Range(0, max));
-            var cursor = new Cursor<int>(list);
+            var cursor = list.ToCursor();
 
             cursor.List.Count.Should().Be(max);
             cursor.Index.Should().Be(-1);
@@ -50,7 +50,7 @@ namespace Toolbox.Test.Tools
         {
             const int max = 10;
             var list = new List<int>(Enumerable.Range(0, max));
-            var cursor = new Cursor<int>(list);
+            var cursor = list.ToCursor();
 
             cursor.List.Count.Should().Be(max);
             cursor.Index.Should().Be(-1);
