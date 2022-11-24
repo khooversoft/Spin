@@ -19,7 +19,7 @@ public class TargetBlockLogger : ILogger
 
     public string Name { get; }
 
-    public IDisposable BeginScope<TState>(TState state) => null!;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null!;
 
     public bool IsEnabled(LogLevel logLevel) => true;
 

@@ -31,6 +31,7 @@ public static class Extensions
         IReadOnlyList<KeyValuePair<string, string>> list = configuration
             .AsEnumerable()
             .Where(x => x.Value != null)
+            .OfType<KeyValuePair<string, string>>()
             .ToArray();
 
         return new PropertyResolver(list);

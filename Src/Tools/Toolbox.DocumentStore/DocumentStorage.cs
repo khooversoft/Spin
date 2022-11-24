@@ -38,7 +38,7 @@ public class DocumentStorage
 
         if (_memoryCache != null && !bypassCache)
         {
-            if (_memoryCache.TryGetValue<DocumentCache<T>>(GetKey(documentId), out DocumentCache<T> foundEntry)) return (foundEntry.Value, foundEntry.ETag);
+            if (_memoryCache.TryGetValue<DocumentCache<T>>(GetKey(documentId), out DocumentCache<T>? foundEntry)) return (foundEntry!.Value, foundEntry.ETag);
         }
 
         _memoryCache?.Remove(GetKey(documentId));

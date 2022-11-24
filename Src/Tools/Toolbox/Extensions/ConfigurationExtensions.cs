@@ -50,6 +50,7 @@ public static class ConfigurationExtensions
         return config
             .AsEnumerable()
             .Where(x => x.Value != null)
+            .OfType<KeyValuePair<string, string>>()
             .OrderBy(x => x.Key)
             .ToArray();
     }

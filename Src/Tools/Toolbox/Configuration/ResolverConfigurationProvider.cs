@@ -28,6 +28,7 @@ namespace Toolbox.Configuration
             IReadOnlyList<KeyValuePair<string, string>> list = _configuration
                 .AsEnumerable()
                 .Where(x => x.Value != null)
+                .OfType<KeyValuePair<string, string>>()
                 .ToArray();
 
             foreach (KeyValuePair<string, string> item in list)

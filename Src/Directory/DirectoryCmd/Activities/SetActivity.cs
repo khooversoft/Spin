@@ -27,7 +27,7 @@ internal class SetActivity
     {
         file.NotEmpty();
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetFile), File = file });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetFile), File = file }).NotNull();
 
         _logger.LogInformation("Pushing {file} to directory service", file);
 
@@ -58,7 +58,7 @@ internal class SetActivity
         var id = new DocumentId(directoryId);
         _logger.LogInformation("Updating property {properties} on {directoryId}", properties.Join(", "), directoryId);
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetProperty), DirectoryId = directoryId, Properties = properties });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(SetProperty), DirectoryId = directoryId, Properties = properties }).NotNull();
 
         DirectoryEntry entry = (await _directoryClient.Get(id)) ?? new DirectoryEntry { DirectoryId = (string)id };
 

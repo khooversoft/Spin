@@ -24,7 +24,7 @@ internal class GetActivity
     {
         file.NotEmpty();
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(WriteFile), File=file, Path=path, Recursive=recursive });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(WriteFile), File=file, Path=path, Recursive=recursive }).NotNull();
 
         _logger.LogInformation($"Reading directory at {path}, recursive={recursive}...");
 

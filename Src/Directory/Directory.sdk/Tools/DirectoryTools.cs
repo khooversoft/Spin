@@ -25,7 +25,7 @@ public static class DirectoryTools
         string configFile = $"{configStore}/Environments/{runEnvironment}-Spin.resource.json";
 
         return new ConfigurationBuilder()
-            .AddInMemoryCollection(appConfig)
+            .AddInMemoryCollection(appConfig.OfType<KeyValuePair<string, string?>>())
             .AddJsonFile(configFile)
             .AddPropertyResolver()
             .Build()

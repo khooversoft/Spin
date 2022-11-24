@@ -7,7 +7,7 @@ public record DataCode
     public Guid Id { get; init; } = Guid.NewGuid();
     public DateTimeOffset Date { get; init; }
     public string Language { get; init; } = "C#";
-    public string Framework { get; init; } = ".net6.0";
+    public string Framework { get; init; } = ".net7.0";
     public IReadOnlyList<string> Lines { get; init; } = Array.Empty<string>();
 }
 

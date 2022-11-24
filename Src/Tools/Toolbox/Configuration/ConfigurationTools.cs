@@ -44,6 +44,7 @@ namespace Toolbox.Configuration
                         .AsEnumerable()
                         .Where(x => x.Key.StartsWith("$include"))
                         .Select(x => resolver.Resolve(x.Value))
+                        .OfType<string>()
                         .Select(x => Path.Combine(folder, x))
                         .Reverse()
                         .ForEach(x => stack.Push(x));

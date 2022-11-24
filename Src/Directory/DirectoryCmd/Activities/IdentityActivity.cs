@@ -59,7 +59,7 @@ internal class IdentityActivity
     {
         file.NotEmpty();
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(Set), File = file });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(Set), File = file }).NotNull();
 
         if( !File.Exists(file) )
         {

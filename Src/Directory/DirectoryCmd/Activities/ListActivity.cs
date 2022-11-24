@@ -22,7 +22,7 @@ internal class ListActivity
     {
         path.NotEmpty();
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(List), Path = path });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(List), Path = path }).NotNull();
 
         var query = new QueryParameter()
         {

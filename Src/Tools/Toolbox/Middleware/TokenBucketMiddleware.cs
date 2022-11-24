@@ -30,7 +30,9 @@ public class TokenBucketMiddleware
         {
             if (item.Path == "*" || context.Request.Path.StartsWithSegments(item.Path, StringComparison.OrdinalIgnoreCase))
             {
-                TokenBucketPolicyState policy = _memoryCache.GetOrCreate(ConstructKey(item.PolicyName), x => ConstructPolicyState(item));
+                TokenBucketPolicyState? policy = _memoryCache.GetOrCreate(ConstructKey(item.PolicyName), x => ConstructPolicyState(item));
+                if (policy == null) continue;
+
                 if (policy.Limiter.TryGetPermit())
                 {
                     await _next(context);

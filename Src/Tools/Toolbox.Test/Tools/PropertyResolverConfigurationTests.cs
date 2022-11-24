@@ -13,7 +13,7 @@ namespace Toolbox.Test.Tools
         [Fact]
         public void NoPropertyResolver_ShouldPass()
         {
-            var dict = new Dictionary<string, string>
+            var dict = new Dictionary<string, string?>
             {
                 ["key1"] = "value1",
                 ["key1:subKey1"] = "value1-1",
@@ -32,6 +32,7 @@ namespace Toolbox.Test.Tools
             IReadOnlyList<KeyValuePair<string, string>> results = config
                 .AsEnumerable()
                 .Where(x => x.Value != null)
+                .OfType<KeyValuePair<string, string>>()
                 .ToArray();
 
             dict.Keys.OrderBy(x => x).SequenceEqual(results.Select(x => x.Key).OrderBy(x => x));
@@ -44,7 +45,7 @@ namespace Toolbox.Test.Tools
         [Fact]
         public void WithPropertyResolver_ShouldPass()
         {
-            var dict = new Dictionary<string, string>
+            var dict = new Dictionary<string, string?>
             {
                 ["key1"] = "value1={secretKey}",
                 ["key1:subKey1"] = "value1-1",
@@ -67,6 +68,7 @@ namespace Toolbox.Test.Tools
             IReadOnlyList<KeyValuePair<string, string>> results = config
                 .AsEnumerable()
                 .Where(x => x.Value != null)
+                .OfType<KeyValuePair<string, string>>()
                 .ToArray();
 
             config["key1"].Should().Be("value1=MyLady");

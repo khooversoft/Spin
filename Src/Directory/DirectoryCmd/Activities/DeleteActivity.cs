@@ -22,7 +22,7 @@ internal class DeleteActivity
     {
         documentId.NotEmpty();
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId }).NotNull();
 
         var id = new DocumentId(documentId);
         await _directoryClient.Delete(id, token);
@@ -35,7 +35,7 @@ internal class DeleteActivity
         documentId.NotEmpty();
         properties.NotNull();
 
-        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId });
+        using IDisposable scope = _logger.BeginScope(new { Command = nameof(DeleteEntry), DirectoryId = documentId }).NotNull();
 
         var id = new DocumentId(documentId);
         DirectoryEntry entry = (await _directoryClient.Get(id))
