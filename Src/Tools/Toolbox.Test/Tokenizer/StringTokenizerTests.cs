@@ -25,6 +25,88 @@ namespace Toolbox.Test.Tokenizer
         }
 
         [Fact]
+        public void BlockStringToken_WhenDoubleQuotedString_ShouldReturnString()
+        {
+            IReadOnlyList<IToken> tokens = new StringTokenizer()
+                .UseCollapseWhitespace()
+                .UseDoubleQuote()
+                .UseSingleQuote()
+                .Parse("\"quote\"");
+
+            tokens.Count.Should().Be(1);
+        }
+
+        [Fact]
+        public void BlockStringToken_WhenDoubleQuoteInString_ShouldReturnString()
+        {
+            var tokenizer = new StringTokenizer()
+                .UseCollapseWhitespace()
+                .UseDoubleQuote()
+                .UseSingleQuote();
+
+            IReadOnlyList<IToken> tokens = tokenizer.Parse("\"this \"is quote");
+
+            IToken[] expectedTokens = new IToken[]
+            {
+                new TokenValue("this "),
+                new TokenValue("is"),
+                new TokenValue(" "),
+                new TokenValue("quote"),
+            };
+
+            test();
+
+            tokens = tokenizer.Parse("this is \"quote\"");
+
+            expectedTokens = new IToken[]
+            {
+                new TokenValue("this"),
+                new TokenValue(" "),
+                new TokenValue("is"),
+                new TokenValue(" "),
+                new TokenValue("quote"),
+            };
+
+            test();
+
+            tokens = tokenizer.Parse("this \"is text\" quote");
+
+            expectedTokens = new IToken[]
+            {
+                new TokenValue("this"),
+                new TokenValue(" "),
+                new TokenValue("is text"),
+                new TokenValue(" "),
+                new TokenValue("quote"),
+            };
+
+            test();
+
+
+            void test()
+            {
+                tokens.Count.Should().Be(expectedTokens.Length);
+
+                tokens
+                    .Zip(expectedTokens, (o, i) => (o, i))
+                    .All(x => x.o.Value == x.i.Value)
+                    .Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public void BlockStringToken_WhenSingleFullString_ShouldReturnString()
+        {
+            IReadOnlyList<IToken> tokens = new StringTokenizer()
+                .UseCollapseWhitespace()
+                .UseDoubleQuote()
+                .UseSingleQuote()
+                .Parse("'quote'");
+
+            tokens.Count.Should().Be(1);
+        }
+
+        [Fact]
         public void BasicToken_WhenPadString_ShouldReturnSpaceToken()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()

@@ -2,47 +2,54 @@ using FluentAssertions;
 using System.Data;
 using Toolbox.Extensions;
 using Toolbox.Parser.Grammar;
+using Toolbox.Parser.Syntax;
+using Toolbox.Tools;
+using Toolbox.Types.Structure;
 
 namespace Toolbox.Parser.Test;
 
 public class GrammarTests
 {
     [Fact]
-    public void GivenTypeOfStringDefinition_ShouldPass()
+    public void GivenPropertyTypeDefinition_ShouldPass()
     {
-        string line = "name = string";
+        var grammarTree = new Tree()
+            + (new RuleNode("propertyType") + new LiteralRule() + new TokenRule("=") + new LiteralRule() + new TokenRule(";"));
 
-        //var rule = RuleBuilder.Build(line.ToEnumerable());
-        //rule.Should().NotBeNull();
-        //rule.Name.Should().Be("name");
-        //rule.Rules.Count.Should().Be(1);
+        string line = "name = string;";
 
-        //(rule.Rules[0] is DataTypeRule dataTypeRule && dataTypeRule.Type == DataType.String).Should().BeTrue();
+        Tree? syntaxTree = new SyntaxTreeBuilder().Build(line, grammarTree);
+        syntaxTree.Should().NotBeNull();
+        var ruleNode = syntaxTree!.OfType<RuleNodeValue>().FirstOrDefault();
+        ruleNode.Should().NotBeNull();
+        ruleNode!.Name.Should().Be("propertyType");
+        ruleNode.Count.Should().Be(4);
+
+        ruleNode.OfType<LiteralRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("name");
+        ruleNode.OfType<TokenRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("=");
+        ruleNode.OfType<LiteralRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("string");
+        ruleNode.OfType<TokenRuleValue>().Skip(1).FirstOrDefault().NotNull().Value.Should().Be(";");
     }
 
-    //[Fact]
-    //public void GivenTypeOfIntDefinition_ShouldPass()
-    //{
-    //    string line = "name = int";
+    [Fact]
+    public void GivenVariableDefinition_ShouldPass()
+    {
+        var grammarTree = new Tree()
+            + (new RuleNode("variable") + new LiteralRule() + new TokenRule("=") + new LiteralRule() + new TokenRule(";"));
 
-    //    GrammarRule rule = RuleBuilder.Build(line.ToEnumerable());
-    //    rule.Should().NotBeNull();
-    //    rule.Name.Should().Be("name");
-    //    rule.Rules.Count.Should().Be(1);
+        string line = "name = \"this is a text string\";";
 
-    //    (rule.Rules[0] is DataTypeRule dataTypeRule && dataTypeRule.Type == DataType.Int).Should().BeTrue();
-    //}
+        Tree? syntaxTree = new SyntaxTreeBuilder().Build(line, grammarTree);
+        syntaxTree.Should().NotBeNull();
 
-    //[Fact]
-    //public void GivenChoiceDefinition_ShouldPass()
-    //{
-    //    string line = "rank = 'prefix' | 'suffix'";
+        var ruleNode = syntaxTree!.OfType<RuleNodeValue>().FirstOrDefault();
+        ruleNode.Should().NotBeNull();
+        ruleNode!.Name.Should().Be("variable");
+        ruleNode.Count.Should().Be(4);
 
-    //    GrammarRule rule = RuleBuilder.Build(line.ToEnumerable());
-    //    rule.Should().NotBeNull();
-    //    rule.Name.Should().Be("name");
-    //    rule.Rules.Count.Should().Be(1);
-
-    //    (rule.Rules[0] is DataTypeRule dataTypeRule && dataTypeRule.Type == DataType.Int).Should().BeTrue();
-    //}
+        ruleNode.OfType<LiteralRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("name");
+        ruleNode.OfType<TokenRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("=");
+        ruleNode.OfType<LiteralRuleValue>().Skip(1).FirstOrDefault().NotNull().Value.Should().Be("this is a text string");
+        ruleNode.OfType<TokenRuleValue>().Skip(1).FirstOrDefault().NotNull().Value.Should().Be(";");
+    }
 }

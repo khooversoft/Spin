@@ -8,11 +8,11 @@ namespace Toolbox.Tokenizer.Token
     /// <summary>
     /// Token value extracted from data
     /// </summary>
-    public struct TokenValue : IToken
+    public readonly struct TokenValue : IToken
     {
         public TokenValue(string value) => Value = value.NotNull();
 
-        public string Value { get; }
+        public string Value { get; init; }
 
         public override bool Equals(object? obj) => obj is TokenValue value && Value == value.Value;
 

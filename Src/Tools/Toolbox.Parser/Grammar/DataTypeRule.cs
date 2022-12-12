@@ -1,40 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tokenizer.Token;
-using Toolbox.Extensions;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
+//using Toolbox.Tokenizer.Token;
+//using Toolbox.Extensions;
+//using Toolbox.Types.Structure;
+//using Toolbox.Tools;
 
-namespace Toolbox.Parser.Grammar;
+//namespace Toolbox.Parser.Grammar;
 
-public enum DataType
-{
-    None,
-    String,
-    Int,
-}
+//public enum DataType
+//{
+//    None,
+//    String,
+//    Int,
+//}
 
-public class DataTypeRule : IRule
-{
-    private static IReadOnlyList<(DataType DataType, string MatchToValue)> _dataTypeTextList = new[]
-    {
-        (DataType.String, "string"),
-        (DataType.Int, "int"),
-    };
+//public class DataTypeRule : TreeNode<IRule>, IRuleSingle
+//{
+//    private static Dictionary<string, DataType> _map = new(StringComparer.OrdinalIgnoreCase)
+//    {
+//        ["string"] = DataType.String,
+//        ["int"] = DataType.Int,
+//    };
 
-    public DataTypeRule(DataType dataType) => Type = dataType;
+//    public IRuleValue? Match(IToken token) => token switch
+//    {
+//        TokenValue v => _map.TryGetValue(v.Value, out var value) switch
+//        {
+//            true => new DataTypeRuleValue(value),
+//            _ => null,
+//        },
 
-    public DataType Type { get; }
+//        _ => null,
+//    };
+//}
 
-    public static DataTypeRule? Match(IToken token) => token switch
-    {
-        TokenValue v => _dataTypeTextList.FirstOrDefault(x => x.MatchToValue == v) switch
-        {
-            (DataType, string) v1 => new DataTypeRule(v1.DataType),
-            _ => null,
-        },
 
-        _ => null,
-    };
-}
+//public class DataTypeRuleValue : TreeNode<IRuleValue>, IRuleValue
+//{
+//    public DataTypeRuleValue(DataType dataType) => Value = dataType;
+//    public DataType Value { get; }
+//}

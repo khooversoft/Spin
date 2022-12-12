@@ -6,18 +6,37 @@ using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tokenizer.Token;
 using Toolbox.Tools;
+using Toolbox.Types.Structure;
 
 namespace Toolbox.Parser.Grammar;
 
-public class LiteralRule : IRule
+
+public class LiteralRule : TreeNode<IRule>, IRuleSingle
 {
-    public LiteralRule(string value) => Value = value;
+    public override string ToString() => $"[{this.GetType().Name}]";
 
-    public string Value { get; }
-
-    public static LiteralRule? Match(IToken token) => token switch
+    public IRuleValue? Match(IToken token) => token switch
     {
-        BlockToken v => new LiteralRule(v.Value),
+        TokenValue v => new LiteralRuleValue(v.Value),
+        BlockToken v => new LiteralRuleValue(v.Value, v.BlockSignal),
         _ => null,
     };
+}
+
+
+public class LiteralRuleValue : TreeNode<IRuleValue>, IRuleValue
+{
+    public LiteralRuleValue(string value) => Value = value.NotEmpty();
+
+    public LiteralRuleValue(string value, char blockSignal)
+    {
+        Value = value.NotEmpty();
+        BlockSignal = blockSignal;
+    }
+
+    public string Value { get; }
+    public char? BlockSignal { get; }
+
+    public override string ToString() => $"[{this.GetType().Name}]: value={Value}";
+
 }

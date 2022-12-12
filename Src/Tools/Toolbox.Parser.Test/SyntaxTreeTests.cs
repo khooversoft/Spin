@@ -36,6 +36,22 @@ public class SyntaxTreeTests
     }
 
     [Fact]
+    public void CreateAddOneNodeCompose_ShouldPass()
+    {
+        var tree = new SyntaxTree()
+            + new SyntaxNode<string>("#1")
+            + (new SyntaxNode<int>(2) + new SyntaxNode<string>("#2.1") + new SyntaxNode<string>("#2.1"))
+            + new SyntaxNode<string>("#3");
+
+        tree.Count.Should().Be(3);
+        tree.OfType<SyntaxNode<string>>().Count().Should().Be(3);
+
+        tree.OfType<SyntaxNode<string>>().First().Count.Should().Be(0);
+        tree.OfType<SyntaxNode<string>>().Skip(1).First().Count.Should().Be(2);
+        tree.OfType<SyntaxNode<string>>().Skip(2).First().Count.Should().Be(0);
+    }
+
+    [Fact]
     public void CreateAddOneWithOperatorNode_ShouldPass()
     {
         SyntaxTree tree = new SyntaxTree();

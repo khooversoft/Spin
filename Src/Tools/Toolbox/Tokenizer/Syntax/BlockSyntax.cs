@@ -41,7 +41,7 @@ namespace Toolbox.Tokenizer.Syntax
                     continue;
                 }
 
-                if (span[index] == BlockSignal) return index;
+                if (span[index] == BlockSignal) return index + 1;
             }
 
             throw new ArgumentException("Missing ending quote");

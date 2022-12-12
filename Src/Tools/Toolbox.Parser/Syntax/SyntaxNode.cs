@@ -32,3 +32,4 @@ public class SyntaxNode<T> : List<ISyntaxNode>, ISyntaxNode, ISyntaxNodeCollecti
 
     public static SyntaxNode<T> operator +(SyntaxNode<T> node, ISyntaxNode value) => node.Action(x => x.Add(value));
 }
+
