@@ -9,9 +9,6 @@ namespace Toolbox.Extensions;
 
 public static class KeyValuePairExtensions
 {
-    public static KeyValuePair<string, string> ToKeyValuePair(this (string name, string value) subject) =>
-        new KeyValuePair<string, string>(subject.name, subject.value);
-
     public static KeyValuePair<string, string> ToKeyValuePair(this string subject, char delimiter = '=')
     {
         const string msg = "Syntax error";

@@ -27,7 +27,7 @@ public class GrammarTests
 
         ruleNode.OfType<LiteralRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("name");
         ruleNode.OfType<TokenRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("=");
-        ruleNode.OfType<LiteralRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("string");
+        ruleNode.OfType<LiteralRuleValue>().Skip(1).FirstOrDefault().NotNull().Value.Should().Be("string");
         ruleNode.OfType<TokenRuleValue>().Skip(1).FirstOrDefault().NotNull().Value.Should().Be(";");
     }
 
@@ -35,7 +35,7 @@ public class GrammarTests
     public void GivenVariableDefinition_ShouldPass()
     {
         var grammarTree = new Tree()
-            + (new RuleNode("variable") + new LiteralRule() + new TokenRule("=") + new LiteralRule() + new TokenRule(";"));
+            + (new RuleNode("variable") + new LiteralRule() + new TokenRule("=") + new LiteralRule(LiteralType.String) + new TokenRule(";"));
 
         string line = "name = \"this is a text string\";";
 
@@ -51,5 +51,17 @@ public class GrammarTests
         ruleNode.OfType<TokenRuleValue>().FirstOrDefault().NotNull().Value.Should().Be("=");
         ruleNode.OfType<LiteralRuleValue>().Skip(1).FirstOrDefault().NotNull().Value.Should().Be("this is a text string");
         ruleNode.OfType<TokenRuleValue>().Skip(1).FirstOrDefault().NotNull().Value.Should().Be(";");
+    }
+
+    [Fact]
+    public void GivenVariableNotStringDefinition_ShouldPass()
+    {
+        var grammarTree = new Tree()
+            + (new RuleNode("variable") + new LiteralRule() + new TokenRule("=") + new LiteralRule() + new TokenRule(";"));
+
+        string line = "name = \"this is a text string\";";
+
+        Tree? syntaxTree = new SyntaxTreeBuilder().Build(line, grammarTree);
+        syntaxTree.Should().NotNull();
     }
 }
