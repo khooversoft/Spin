@@ -18,7 +18,7 @@ public class IdentityControllerTests
 
         IdentityClient client = TestApplication.GetIdentityClient();
 
-        var documentId = new DocumentId("test/unit-tests-identity/identity1");
+        var documentId = new DocumentId("test/IdentityControllerTests/identity1");
 
         var query = new QueryParameter()
         {

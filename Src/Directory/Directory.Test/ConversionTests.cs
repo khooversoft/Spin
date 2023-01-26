@@ -52,7 +52,7 @@ public class ConversionTests
     [Fact]
     public void GivenIdentity_WhenSigned_ShouldValidate()
     {
-        var documentId = new DocumentId("test/unit-tests-identity/identity1");
+        var documentId = new DocumentId("test/unit-tests-identity/identity2");
 
         string kid = Guid.NewGuid().ToString();
         string subject = "email@test.com";
@@ -84,8 +84,8 @@ public class ConversionTests
     [Fact]
     public void GivenIdentity_WhenSigned_ShouldFailWithOtherIdentity()
     {
-        var documentId = new DocumentId("test/unit-tests-identity/identity1");
-        var documentId2 = new DocumentId("test/unit-tests-identity/identity2");
+        var documentId = new DocumentId("test/unit-tests-identity/identity3");
+        var documentId2 = new DocumentId("test/unit-tests-identity/identity4");
 
         string kid = Guid.NewGuid().ToString();
         string subject = "email@test.com";

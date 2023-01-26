@@ -25,7 +25,7 @@ public class SigningControllerTests
         IdentityClient client = TestApplication.GetIdentityClient();
         SigningClient signClient = TestApplication.GetSigningClient();
 
-        var documentId = new DocumentId("identity:test/unit-tests-identity/identity1");
+        var documentId = new DocumentId("identity:test/SigningControllerTests/identity1");
 
         var query = new QueryParameter()
         {

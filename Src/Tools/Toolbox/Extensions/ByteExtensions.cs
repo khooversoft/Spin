@@ -56,22 +56,6 @@ namespace Toolbox.Extensions
         public static byte[] ToHash(this IEnumerable<byte> bytes) => MD5.Create().ComputeHash(bytes.ToArray());
 
         /// <summary>
-        /// Convert to Json
-        /// </summary>
-        /// <typeparam name="T">type</typeparam>
-        /// <param name="subject">subject</param>
-        /// <returns>json</returns>
-        public static string ToJson<T>(this T subject) => Json.Default.Serialize(subject);
-
-        /// <summary>
-        /// Convert to Json formatted
-        /// </summary>
-        /// <typeparam name="T">type</typeparam>
-        /// <param name="subject">subject</param>
-        /// <returns>json</returns>
-        public static string ToJsonFormat<T>(this T subject) => Json.Default.SerializeFormat(subject);
-
-        /// <summary>
         /// Convert object to bytes
         /// </summary>
         /// <typeparam name="T">type</typeparam>

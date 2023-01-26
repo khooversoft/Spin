@@ -31,4 +31,58 @@ public static class KeyValuePairExtensions
         .FirstOrDefault();
 
     public static string ToProperty(this KeyValuePair<string, string> subject) => $"{subject.Key}={subject.Value}";
+
+    public static IReadOnlyList<KeyValuePair<string, string>> ToTags(this string? line) => line.ToNullIfEmpty() switch
+    {
+        null => Array.Empty<KeyValuePair<string, string>>(),
+        string v => v
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.ToTag())
+            .OfType<KeyValuePair<string, string>>()
+            .ToArray(),
+    };
+
+    public static KeyValuePair<string, string>? ToTag(this string? subject, char delimiter = '=')
+    {
+        return subject.ToNullIfEmpty() switch
+        {
+            null => null,
+
+            string sub => sub.IndexOf('=') switch
+            {
+                -1 => null,
+
+                int index => (Key: sub[..index].Trim(), Value: sub[(index + 1)..].Trim()) switch
+                {
+                    (null, null) => null,
+                    ("", "") => null,
+                    (string, string) v => new KeyValuePair<string, string>(v.Key, v.Value),
+
+                    _ => throw new NotImplementedException(),
+                },
+            }
+        };
+    }
+
+    public static string? FindTag(this string? line, string name) => line switch
+    {
+        null => null,
+        string v => v.ToTags().FindTag(name),
+    };
+
+    public static string? FindTag(this IEnumerable<KeyValuePair<string, string>> subject, string name, char delimiter = '=') =>
+        subject.NotNull()
+        .Where(x => x.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+        .Select(x => x.Value)
+        .FirstOrDefault();
+
+    public static string KeyValueSerialize(this IEnumerable<KeyValuePair<string, string>> subject) => subject
+        .NotNull()
+        .Select(x => x.ToKeyValueString())
+        .Join(";");
+
+    public static string ToKeyValueString(this KeyValuePair<string, string> subject) => $"{subject.Key}={subject.Value}";
+    public static string ToKeyValueString(this (string Key, string Value) subject) => subject.NotNull().ToKeyValuePair().ToKeyValueString();
+    public static KeyValuePair<string, string> ToKeyValuePair(this (string Key, string Value) subject) =>
+        new KeyValuePair<string, string>(subject.Key.NotEmpty(), subject.Value.NotEmpty());
 }

@@ -70,7 +70,7 @@ public class ContractControllerBatchTests
     {
         ContractClient client = TestApplication.GetContractClient();
 
-        var documentId = new DocumentId("test/unit-tests-smart/contract10");
+        var documentId = new DocumentId("test/unit-tests-smart/contract11");
         string principleId = "dev/user/endUser1@default.com";
 
         await DeleteDocument(client, documentId);
@@ -119,18 +119,18 @@ public class ContractControllerBatchTests
         (await client.Delete(documentId)).Should().BeTrue();
     }
 
-    private async Task AppendPayload<T>(DocumentId documentId, ContractClient client, string principleId, Func<T> create) where T : class
-    {
-        var payload = create();
-        await client.Append(documentId, payload, principleId);
+    //private async Task AppendPayload<T>(DocumentId documentId, ContractClient client, string principleId, Func<T> create) where T : class
+    //{
+    //    var payload = create();
+    //    await client.Append(documentId, payload, principleId);
 
-        bool verified = await client.Validate(documentId);
-        verified.Should().BeTrue();
+    //    bool verified = await client.Validate(documentId);
+    //    verified.Should().BeTrue();
 
-        T? readPayload = await client.GetLatest<T>(documentId);
-        readPayload.Should().NotBeNull();
-        payload.Equals(readPayload).Should().BeTrue();
-    }
+    //    T? readPayload = await client.GetLatest<T>(documentId);
+    //    readPayload.Should().NotBeNull();
+    //    payload.Equals(readPayload).Should().BeTrue();
+    //}
 
     private async Task DeleteDocument(ContractClient client, DocumentId documentId)
     {

@@ -77,7 +77,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            var documentId = new DocumentId("test/unit-tests/entry1");
+            var documentId = new DocumentId("test/unit-tests/entry2");
 
             var query = new QueryParameter()
             {
@@ -126,7 +126,7 @@ namespace Directory.Test
         {
             DirectoryClient client = TestApplication.GetDirectoryClient();
 
-            var documentId = new DocumentId("test/unit-tests/entry2");
+            var documentId = new DocumentId("test/unit-tests/entry3");
 
             var query = new QueryParameter()
             {

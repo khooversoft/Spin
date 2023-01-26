@@ -19,6 +19,17 @@ namespace Toolbox.Extensions
         public static TResult Func<T, TResult>(this T subject, Func<T, TResult> function) => function.NotNull()(subject);
 
         /// <summary>
+        /// Exceute Async function
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="subject"></param>
+        /// <param name="function"></param>
+        /// <returns></returns>
+        public static Task<TResult> FuncAsync<T, TResult>(this T subject, Func<T, Task<TResult>> function) => function.NotNull()(subject);
+
+
+        /// <summary>
         /// Execute action
         /// </summary>
         /// <typeparam name="T">any type</typeparam>
@@ -32,22 +43,6 @@ namespace Toolbox.Extensions
 
             action(subject);
             return subject;
-        }
-
-        /// <summary>
-        /// Function async
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="subject"></param>
-        /// <param name="function"></param>
-        /// <returns></returns>
-        public static async Task<TResult> FuncAsync<T, TResult>(this T subject, Func<T, Task<TResult>> function)
-        {
-            subject.NotNull();
-            function.NotNull();
-
-            return await function(subject);
         }
     }
 }

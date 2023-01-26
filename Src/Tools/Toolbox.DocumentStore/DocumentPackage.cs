@@ -33,7 +33,7 @@ public class DocumentPackage
         id.NotNull();
         string zipFileName = id.ToZipFileName();
 
-        _logger.LogTrace($"Reading {zipFileName}");
+        _logger.LogInformation($"Reading {zipFileName}");
         byte[]? data = await _store.Read(zipFileName, token);
         if (data == null)
         {
@@ -47,7 +47,6 @@ public class DocumentPackage
         byte[] defaultPackage = zip.Read(_defaultPath);
         string json = Encoding.UTF8.GetString(defaultPackage);
 
-        _logger.LogTrace("File {zipFileName} read and Document returned", zipFileName);
         return Document.CreateFromJson(json);
     }
 
