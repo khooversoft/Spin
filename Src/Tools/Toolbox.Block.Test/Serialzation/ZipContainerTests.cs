@@ -1,10 +1,12 @@
-﻿using FluentAssertions;
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Compression;
-using System.Threading.Tasks;
+using FluentAssertions;
+using Toolbox.Block.Application;
+using Toolbox.Block.Container;
+using Toolbox.Block.Serialization;
+using Toolbox.Block.Signature;
 using Toolbox.Extensions;
-using Toolbox.Security;
 using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Tools.Zip;
@@ -62,12 +64,9 @@ public class ZipContainerTests
 
         writeBuffer.Length.Should().BeGreaterThan(0);
         writeBuffer.Seek(0, SeekOrigin.Begin);
-        string readJson;
 
-        using (var reader = new ZipArchive(writeBuffer, ZipArchiveMode.Read, leaveOpen: true))
-        {
-            readJson = reader.ReadAsString(zipPath);
-        }
+        using var reader = new ZipArchive(writeBuffer, ZipArchiveMode.Read);
+        string readJson = reader.ReadAsString(zipPath);
 
         BlockChain result = readJson.ToObject<BlockChainModel>()
             .NotNull(name: "Cannot deserialize")

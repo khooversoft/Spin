@@ -31,7 +31,7 @@ public static class DictionaryExtensions
         dictionary.NotNull();
 
         bool found = dictionary.TryGetValue(key, out TValue? value);
-        return (found, value).Option();
+        return (found, value!).Option();
     }
 
 
@@ -44,7 +44,7 @@ public static class DictionaryExtensions
         key.NotEmpty();
 
         bool found = dictionary.TryGetValue(key, out T? value);
-        return (found, value).Option();
+        return (found, value!).Option();
     }
 
     public static Option<T> Get<T>(this IReadOnlyDictionary<string, T> dictionary)
@@ -52,7 +52,7 @@ public static class DictionaryExtensions
         dictionary.NotNull();
 
         bool found = dictionary.TryGetValue(typeof(T).GetTypeName(), out T? value);
-        return (found, value).Option();
+        return (found, value!).Option();
     }
 
 
@@ -65,7 +65,7 @@ public static class DictionaryExtensions
         key.NotEmpty();
 
         bool found = dictionary.TryGetValue(key, out string? value);
-        return (found, value).Option();
+        return (found, value!).Option();
     }
 
     public static Option<T> Get<T>(this IReadOnlyDictionary<string, string> dictionary)
@@ -75,9 +75,7 @@ public static class DictionaryExtensions
         bool found = dictionary.TryGetValue(typeof(T).GetTypeName(), out string? data);
         if (!found) return Option<T>.None;
 
-        var value = Json.Default.Deserialize<T>(data!)
-            .Assert(x => x != null, "Deserialize error");
-
+        T value = Json.Default.Deserialize<T>(data!).NotNull(name: "Deserialize error");
         return value.Option();
     }
 

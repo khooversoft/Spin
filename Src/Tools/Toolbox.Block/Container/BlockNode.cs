@@ -4,7 +4,7 @@ using Toolbox.Security;
 using Toolbox.Security.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Block;
+namespace Toolbox.Block.Container;
 
 public record BlockNode
 {
@@ -15,7 +15,7 @@ public record BlockNode
         blockData.NotNull();
 
         DataBlock = blockData;
-        Digest = BlockNodeExtensions.GetDigest(this);
+        Digest = this.GetDigest();
     }
 
     public BlockNode(DataBlock blockData, int index, string? previousHash)
@@ -25,7 +25,7 @@ public record BlockNode
         DataBlock = blockData;
         Index = index;
         PreviousHash = previousHash;
-        Digest = BlockNodeExtensions.GetDigest(this);
+        Digest = this.GetDigest();
     }
 
     public DataBlock DataBlock { get; init; } = null!;
@@ -44,7 +44,7 @@ public static class BlockNodeExtensions
     {
         var hashes = new string[]
         {
-                $"{blockNode.Index}-{(blockNode.PreviousHash ?? "")}".ToBytes().ToSHA256Hash(),
+                $"{blockNode.Index}-{blockNode.PreviousHash ?? ""}".ToBytes().ToSHA256Hash(),
                 blockNode.DataBlock.GetDigest(),
         };
 

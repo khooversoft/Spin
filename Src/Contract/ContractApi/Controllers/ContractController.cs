@@ -3,7 +3,7 @@ using Contract.sdk.Service;
 using Microsoft.AspNetCore.Mvc;
 using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Block;
+using Toolbox.Block.Serialization;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Model;
@@ -47,8 +47,11 @@ public class ContractController : Controller
 
         DocumentId documentId = DocumentIdTools.FromUrlEncoding(path);
 
-        return (await _contractService.Get(documentId, blockTypes, token))
-            .Switch<IActionResult>(x => Ok(x), () => NotFound());
+        return (await _contractService.Get(documentId, blockTypes, token)) switch
+        {
+            var v when !v.HasValue => NotFound(),
+            var v => Ok(v)
+        };
     }
 
     [HttpDelete("{path}")]

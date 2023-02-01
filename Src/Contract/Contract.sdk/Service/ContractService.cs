@@ -3,10 +3,12 @@ using Contract.sdk.Models;
 using Directory.sdk.Client;
 using Directory.sdk.Model;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using Toolbox.Abstractions;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Block;
+using Toolbox.Block.Application;
+using Toolbox.Block.Container;
+using Toolbox.Block.Serialization;
+using Toolbox.Block.Signature;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Logging;
@@ -64,7 +66,7 @@ public class ContractService
 
         var blockTypeRequests = BlockTypeRequest.Parse(blockTypes);
 
-        var blockChainOption = (await Get(documentId, token)).Bind<BlockChain>(x => x.ToBlockChain());
+        var blockChainOption = (await Get(documentId, token)).Bind(x => x.ToBlockChain());
 
         if (!blockChainOption.HasValue) return Option<IReadOnlyList<Document>>.None;
         var blockChain = blockChainOption.Return();

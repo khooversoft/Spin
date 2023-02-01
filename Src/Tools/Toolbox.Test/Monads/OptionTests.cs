@@ -12,6 +12,25 @@ namespace Toolbox.Test.Monads;
 public class OptionTests
 {
     [Fact]
+    public void TestNone()
+    {
+        (Option<int>.None == Option<int>.None).Should().BeTrue();
+        ((false, default(int)).Option() == Option<int>.None).Should().BeTrue();
+        (5.Option() != Option<int>.None).Should().BeTrue();
+        (Option<int>.None != 5.Option()).Should().BeTrue();
+
+        (5.Option() == 5.Option()).Should().BeTrue();
+
+        (new Option<string>("value") == new Option<string>("value")).Should().BeTrue();
+        (new Option<string>("value") == "value".Option()).Should().BeTrue();
+        (new Option<int?>(null) == new Option<int?>()).Should().BeTrue();
+        (new Option<int?>(null) != new Option<int?>(5)).Should().BeTrue();
+
+        (new Option<int>(10).Equals("hello")).Should().BeFalse();
+        (new Option<string>("hello").Equals("hello")).Should().BeTrue();
+    }
+
+    [Fact]
     public void TypeConversionTest_ShouldPass()
     {
         var str = "hello".Option();
@@ -22,54 +41,47 @@ public class OptionTests
     [Fact]
     public void ValidValues_WhenMatch_ShouldPass()
     {
-        int? value = null;
-        bool noValue = false;
-
-        5.Option()
+        var value = 5.Option()
             .Bind(x => x + 10)
             .Bind(x => x + 20)
-            .Match(x => value = x, () => noValue = true);
+            .Return();
 
-        value.Should().NotBeNull().And.Be(35);
-        noValue.Should().Be(false);
+        value.Should().Be(35);
+
+        var value1 = 10.Option()
+            .Bind(x => x + 10)
+            .Bind(x => x + 20) switch
+        {
+            var v when v == Option<int>.None => -1,
+            var v => v.Return(),
+        };
+
+        value1.Should().Be(40);
     }
 
     [Fact]
     public void NotValidValues_WhenMatch_ShouldPass()
     {
-        int? value = null;
-        bool noValue = false;
-
-        5.Option()
+        var value = 5.Option()
             .Bind(x => x + 10)
             .Bind(x => Option<int>.None)
-            .Bind(x => x + 20)
-            .Match(x => value = x, () => noValue = true);
+            .Bind(x => x + 20) switch
+        {
+            var v when !v.HasValue => -1,
+            var v => v.Return(),
+        };
 
-        value.Should().BeNull();
-        noValue.Should().Be(true);
-    }
+        value.Should().Be(-1);
 
-    [Fact]
-    public void ValidValues_WhenMatchWithReturn_ShouldPass()
-    {
-        int result = 5.Option()
-            .Bind(x => x + 10)
-            .Bind(x => x + 20)
-            .Switch(x => x, () => -1);
-
-        result.Should().Be(35);
-    }
-
-    [Fact]
-    public void NotValidValues_WhenMatchWithReturn_ShouldPass()
-    {
-        var result = 5.Option()
+        var value1 = 5.Option()
             .Bind(x => x + 10)
             .Bind(x => Option<int>.None)
-            .Bind(x => x + 20)
-            .Switch(x => x, () => -1);
+            .Bind(x => x + 20) switch
+        {
+            var v when v == Option<int>.None => -1,
+            var v => v.Return(),
+        };
 
-        result.Should().Be(-1);
+        value.Should().Be(-1);
     }
 }

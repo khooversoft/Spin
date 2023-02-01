@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Toolbox.Block;
+namespace Toolbox.Block.Application;
 
 internal static class Constants
 {

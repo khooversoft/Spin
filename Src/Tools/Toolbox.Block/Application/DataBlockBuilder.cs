@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Toolbox.Block.Container;
 using Toolbox.Extensions;
-using Toolbox.Monads;
-using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Block;
+namespace Toolbox.Block.Application;
 
 public class DataBlockBuilder
 {

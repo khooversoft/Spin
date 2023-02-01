@@ -3,7 +3,7 @@ using System.Linq;
 using Toolbox.Security;
 using Toolbox.Tools;
 
-namespace Toolbox.Block
+namespace Toolbox.Block.Container
 {
     /// <summary>
     /// Block chain container

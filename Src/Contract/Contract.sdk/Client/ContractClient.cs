@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;
 using Toolbox.Abstractions;
-using Toolbox.Block;
+using Toolbox.Block.Serialization;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Logging;
@@ -42,10 +42,10 @@ public class ContractClient
         return model;
     }
 
-    public async Task<Option<T>> GetLatest<T>(DocumentId documentId, CancellationToken token = default) where T : class
+    public async Task<Option<T?>> GetLatest<T>(DocumentId documentId, CancellationToken token = default) where T : class
     {
         var list = await Get(documentId, typeof(T).ToBlockTypeRequest(), token);
-        if (list == null || list.Count == 0) return Option<T>.None;
+        if (list == null || list.Count == 0) return Option<T?>.None;
 
         return list.GetLast<T>().Option();
     }

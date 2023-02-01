@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Abstractions;
 using Toolbox.Block;
+using Toolbox.Block.Signature;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
 using Toolbox.Security;

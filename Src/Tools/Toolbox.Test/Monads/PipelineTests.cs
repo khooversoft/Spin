@@ -31,10 +31,9 @@ public class PipelineTests
             .Bind(x => x + 10)
             .Bind(x => Option<int?>.None)
             .Bind(x => x + 20)
-            .Return();
+            .Return(() => null);
 
-        (result == Option<int?>.None).Should().BeTrue();
-        (result == null).Should().BeTrue();
+        result.Should().BeNull();
     }
 
     [Fact]
@@ -42,13 +41,12 @@ public class PipelineTests
     {
         int result = 5
             .Option()
-            .Bind<int>(x => x + 10)
-            .Bind<int>(x => Option<int>.None)
+            .Bind(x => x + 10)
+            .Bind(x => Option<int>.None)
             .Bind(x => (Option<int>)(x + 20))
-            .Return();
+            .Return(() => -1);
 
-        (result == Option<int>.None).Should().BeTrue();
-        (result == 0).Should().BeTrue();
+        result.Should().Be(-1);
     }
 
     [Fact]
@@ -56,7 +54,7 @@ public class PipelineTests
     {
         string? result = "This is a test"
             .Option()
-            .Bind<string>(x => x += "***")
+            .Bind(x => x += "***")
             .Bind(x => new Option<string>(x!.Replace(" ", "-")))
             .Return();
 
@@ -66,7 +64,6 @@ public class PipelineTests
     [Fact]
     public void ConversionTest()
     {
-        var none1 = new Option<int?>();
         var none = Option<int>.None;
 
         (none == Option<int>.None).Should().BeTrue();
