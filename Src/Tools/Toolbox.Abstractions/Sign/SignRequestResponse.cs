@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Toolbox.Block.Application;
-
-namespace Spin.Common.Sign;
+﻿namespace Toolbox.Sign;
 
 public record SignRequestResponse
 {

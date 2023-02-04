@@ -1,18 +1,17 @@
-﻿using Azure;
-using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Abstractions.Protocol;
-using Toolbox.Abstractions.Tools;
+using Azure;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Model;
+using Toolbox.Models;
+using Toolbox.Protocol;
+using Toolbox.Tools;
 using Xunit;
 
 namespace Toolbox.DocumentStore.Test;

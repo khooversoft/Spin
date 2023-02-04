@@ -5,12 +5,12 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Abstractions;
+using Toolbox.Abstractions.Models;
 using Toolbox.Abstractions.Protocol;
 using Toolbox.Abstractions.Tools;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Extensions;
 using Toolbox.Logging;
-using Toolbox.Model;
 using Toolbox.Tools;
 
 namespace Artifact.sdk;

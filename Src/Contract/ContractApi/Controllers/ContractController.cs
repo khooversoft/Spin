@@ -2,6 +2,7 @@
 using Contract.sdk.Service;
 using Microsoft.AspNetCore.Mvc;
 using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Models;
 using Toolbox.Abstractions.Protocol;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Block.Serialization;

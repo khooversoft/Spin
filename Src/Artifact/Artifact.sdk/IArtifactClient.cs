@@ -1,9 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Model;
 using Toolbox.Tools;
 using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Models;
 
 namespace Artifact.sdk;
 

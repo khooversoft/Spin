@@ -1,21 +1,18 @@
-﻿using Artifact.sdk;
-using Provider.Abstractions;
+﻿using Provider.Abstractions;
 using Provider.Abstractions.Models;
-using Spin.Common.Client;
 using SpinNet.sdk.Model;
-using Toolbox.Abstractions.Tools;
-using Toolbox.Extensions;
+using Toolbox.Sign;
+using Toolbox.Tools;
+using Toolbox.Store;
 
 namespace InstallmentContract.Provider;
 
 public class ContractService : IProvider
 {
-    private readonly IArtifactClient _client;
     private readonly ISigningClient _signingClient;
 
-    public ContractService(IArtifactClient client, ISigningClient signingClient)
+    public ContractService(IDocumentStore documentStore, ISigningClient signingClient)
     {
-        _client = client.NotNull();
         _signingClient = signingClient;
     }
 
@@ -32,5 +29,7 @@ public class ContractService : IProvider
     private async Task<NetResponse> CreateContract(NetMessage message, CancellationToken token)
     {
         CreateContractRequest request = message.GetTypedPayloadSingle<CreateContractRequest>();
+
+        return null;
     }
 }

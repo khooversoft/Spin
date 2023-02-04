@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Toolbox.Abstractions.Tools;
-using Toolbox.Block.Application;
+﻿using Toolbox.Tools;
 
-namespace Spin.Common.Sign;
+namespace Toolbox.Sign;
 
 public record SignRequest
 {

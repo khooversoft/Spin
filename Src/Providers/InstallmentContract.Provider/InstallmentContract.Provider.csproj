@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Artifact\Artifact.sdk\Artifact.sdk.csproj" />
     <ProjectReference Include="..\..\Spin.Common\Spin.Common.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Abstractions\Toolbox.Abstractions.csproj" />
     <ProjectReference Include="..\Provider.Abstractions\Provider.Abstractions.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,6 @@
-using FluentAssertions;
 using System;
-using Toolbox.Abstractions.Protocol;
+using FluentAssertions;
+using Toolbox.Protocol;
 using Xunit;
 
 namespace Toolbox.Test.Abstract;

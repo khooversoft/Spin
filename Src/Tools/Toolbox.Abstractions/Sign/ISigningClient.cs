@@ -1,8 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Spin.Common.Sign;
-
-namespace Spin.Common.Client
+﻿namespace Toolbox.Sign
 {
     public interface ISigningClient
     {

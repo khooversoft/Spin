@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Abstractions.Models;
 using Toolbox.Abstractions.Protocol;
 using Toolbox.Abstractions.Tools;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.DocumentStore;
-using Toolbox.Model;
 
 namespace Directory.sdk.Service;
 

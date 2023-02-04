@@ -1,13 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Abstractions.Extensions;
-using Toolbox.Abstractions.Tools;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Model;
+using Toolbox.Tools;
 
 namespace Spin.Common.Client
 {

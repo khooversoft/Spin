@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Toolbox.Abstractions.Tools;
-using Toolbox.Application;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
+using Toolbox.Tools;
 
 namespace Spin.Common.Middleware
 {

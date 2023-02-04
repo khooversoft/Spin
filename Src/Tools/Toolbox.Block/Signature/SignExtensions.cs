@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Abstractions.Extensions;
-using Toolbox.Abstractions.Tools;
-using Toolbox.Block.Application;
 using Toolbox.Block.Container;
+using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Sign;
-
+using Toolbox.Sign;
+using Toolbox.Tools;
 
 namespace Toolbox.Block.Signature;
 
@@ -48,7 +45,7 @@ public static class SignExtensions
 
         return new BlockChain(blockChain.Blocks.Select(x =>
         {
-            if (!x.DataBlock.JwtSignature.IsEmpty()) return x;
+            if (x.DataBlock.JwtSignature.IsNotEmpty()) return x;
 
             PrincipleDigest principleDigest = principleDigests
                 .Where(y => y.PrincipleId == x.DataBlock.PrincipleId && y.Digest == x.DataBlock.Digest)

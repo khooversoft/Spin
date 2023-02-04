@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using Spin.Common.Client;
 using Spin.Common.Sign;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Toolbox.Abstractions.Clients;
 using Toolbox.Abstractions.Tools;
 using Toolbox.Block;
 using Toolbox.Logging;

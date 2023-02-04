@@ -1,11 +1,8 @@
-﻿using FluentAssertions;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Abstractions.Tools;
+using FluentAssertions;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Xunit;
 
 namespace Toolbox.Test.Extensions;

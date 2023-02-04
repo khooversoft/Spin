@@ -1,13 +1,9 @@
-﻿using FluentAssertions;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Abstractions.Extensions;
-using Toolbox.Abstractions.Protocol;
+using FluentAssertions;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
+using Toolbox.Protocol;
 using Xunit;
 
 namespace Toolbox.Test.Abstract;

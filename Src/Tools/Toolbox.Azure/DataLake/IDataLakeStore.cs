@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Model;
+using Toolbox.Models;
 
 namespace Toolbox.Azure.DataLake
 {

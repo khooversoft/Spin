@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Models;
 using Toolbox.Abstractions.Protocol;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Model;

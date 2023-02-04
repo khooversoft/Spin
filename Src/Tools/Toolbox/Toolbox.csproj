@@ -20,4 +20,8 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Toolbox.Abstractions\Toolbox.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

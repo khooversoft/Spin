@@ -4,6 +4,7 @@ using Directory.sdk.Client;
 using Directory.sdk.Model;
 using Microsoft.Extensions.Logging;
 using Spin.Common.Sign;
+using Toolbox.Abstractions.Models;
 using Toolbox.Abstractions.Protocol;
 using Toolbox.Abstractions.Tools;
 using Toolbox.Azure.DataLake.Model;
