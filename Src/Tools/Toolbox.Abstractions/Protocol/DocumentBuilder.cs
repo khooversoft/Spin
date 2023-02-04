@@ -1,9 +1,8 @@
 ﻿using System.Collections;
 using Toolbox.Extensions;
-using Toolbox.Protocol;
 using Toolbox.Tools;
 
-namespace Toolbox.DocumentStore;
+namespace Toolbox.Protocol;
 
 public class DocumentBuilder
 {
@@ -40,7 +39,7 @@ public class DocumentBuilder
             Type type when type.IsAssignableTo(typeof(Array)) => throw new ArgumentException(errorMsg),
             Type type when type.IsAssignableTo(typeof(IEnumerable)) => throw new ArgumentException(errorMsg),
 
-            _ => Json.Default.SerializeDefault<T>(value),
+            _ => Json.Default.SerializeDefault(value),
         };
 
         TypeName = typeof(T).GetTypeName();
@@ -50,9 +49,9 @@ public class DocumentBuilder
 
     public Document Build()
     {
-        DocumentId.NotNull(name: $"{nameof(DocumentId)} is required");
-        TypeName.NotEmpty(name: $"{nameof(TypeName)} is required");
-        Data.NotEmpty(name: $"{nameof(Data)} is required");
+        DocumentId.NotNull(name: "required");
+        TypeName.NotEmpty(name: "required");
+        Data.NotEmpty(name: "required");
 
         return new Document
         {

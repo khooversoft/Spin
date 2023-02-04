@@ -28,14 +28,17 @@ namespace Toolbox.Logging
 
         public static IDisposable LogEntryExit(
             this ILogger logger,
+            string? message = null,
             [CallerMemberName] string function = "",
             [CallerFilePath] string path = "",
             [CallerLineNumber] int lineNumber = 0
             )
         {
+            message = message ?? "<no message>";
+
             logger
                 .NotNull()
-                .LogTrace("Enter: Method={method}, path={path}, line={lineNumber}", function, path, lineNumber);
+                .LogTrace("Enter: Message={message}, Method={method}, path={path}, line={lineNumber}", message, function, path, lineNumber);
 
             var sw = Stopwatch.StartNew();
 
