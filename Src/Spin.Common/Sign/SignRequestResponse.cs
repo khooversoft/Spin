@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Toolbox.Block.Signature;
-using Toolbox.Tools;
+using Toolbox.Block.Application;
 
-namespace Directory.sdk.Model;
+namespace Spin.Common.Sign;
 
 public record SignRequestResponse
 {

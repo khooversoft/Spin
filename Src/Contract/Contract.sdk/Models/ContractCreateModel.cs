@@ -1,6 +1,6 @@
-﻿using Toolbox.Abstractions;
+﻿using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Block;
-using Toolbox.Tools;
 
 namespace Contract.sdk.Models;
 

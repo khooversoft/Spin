@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Toolbox.Abstractions;
-using Toolbox.Tools;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 
 namespace Directory.sdk.Service;
 

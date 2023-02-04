@@ -8,6 +8,7 @@ using Contract.sdk.Service;
 using Contract.Test.Application;
 using FluentAssertions;
 using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.Block.Container;
 using Toolbox.Block.Serialization;
 using Toolbox.Extensions;

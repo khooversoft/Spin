@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Block.Application;
 using Toolbox.Block.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Security;
-using Toolbox.Tools;
 
 namespace Toolbox.Block.Container;
 
@@ -28,22 +29,16 @@ public static class BlockChainExtensions
         return blockChain;
     }
 
-    public static IReadOnlyList<T> GetTypedBlocks<T>(this BlockChain blockChain) =>
-        blockChain
+    public static IReadOnlyList<T> GetTypedBlocks<T>(this BlockChain blockChain) => blockChain.NotNull()
         .GetTypedBlocks(typeof(T).GetTypeName())
         .Select(x => x.ToObject<T>())
         .ToArray();
 
-    public static IReadOnlyList<DataBlock> GetTypedBlocks(this BlockChain blockChain, string blockType)
-    {
-        blockChain.NotNull();
-
-        return blockChain
-            .Blocks
-            .Where(x => x.DataBlock.BlockType == blockType)
-            .Select(x => x.DataBlock)
-            .ToList();
-    }
+    public static IReadOnlyList<DataBlock> GetTypedBlocks(this BlockChain blockChain, string blockType) => blockChain.NotNull()
+        .Blocks
+        .Where(x => x.DataBlock.BlockType == blockType)
+        .Select(x => x.DataBlock)
+        .ToList();
 
     public static BlockChain ToBlockChain(this BlockChainModel blockChainModel)
     {

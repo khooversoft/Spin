@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Model;
 using Toolbox.Tools;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
 
 namespace Artifact.sdk;
 

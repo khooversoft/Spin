@@ -1,8 +1,7 @@
 ﻿using System.Text.Json.Nodes;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Abstractions;
+namespace Toolbox.Protocol;
 
 public sealed record Document
 {
@@ -20,7 +19,7 @@ public sealed record Document
                ObjectClass == document.ObjectClass &&
                TypeName == document.TypeName &&
                Data == document.Data &&
-               Enumerable.SequenceEqual(Hash, document.Hash) &&
+               Hash.SequenceEqual(document.Hash) &&
                PrincipleId == document.PrincipleId;
     }
 
@@ -31,7 +30,7 @@ public sealed record Document
         json.NotEmpty();
 
         DocumentBase documentBase = Json.Default.Deserialize<DocumentBase>(json).NotNull();
-        JsonNode jsonObject = JsonObject.Parse(json).NotNull();
+        JsonNode jsonObject = JsonNode.Parse(json).NotNull();
 
         string data = documentBase.TypeName switch
         {

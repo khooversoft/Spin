@@ -1,5 +1,5 @@
-﻿using Toolbox.Application;
-using Toolbox.Tools;
+﻿using Toolbox.Abstractions.Application;
+using Toolbox.Abstractions.Tools;
 
 namespace DirectoryApi.Application;
 

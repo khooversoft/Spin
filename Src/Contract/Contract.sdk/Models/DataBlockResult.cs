@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Toolbox.Abstractions;
-using Toolbox.Tools;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 
 namespace Contract.sdk.Models;
 

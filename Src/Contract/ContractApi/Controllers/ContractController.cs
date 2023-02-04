@@ -1,11 +1,11 @@
 ﻿using Contract.sdk.Models;
 using Contract.sdk.Service;
 using Microsoft.AspNetCore.Mvc;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Block.Serialization;
 using Toolbox.DocumentStore;
-using Toolbox.Extensions;
 using Toolbox.Model;
 using Toolbox.Monads;
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using Toolbox.Tools;
@@ -17,6 +13,13 @@ namespace Toolbox.Extensions
         /// <param name="subject">subject</param>
         /// <returns>true or false</returns>
         public static bool IsEmpty([NotNullWhen(false)] this string? subject) => string.IsNullOrWhiteSpace(subject);
+
+        /// <summary>
+        /// Is string null or just white spaces
+        /// </summary>
+        /// <param name="subject">subject</param>
+        /// <returns>true or false</returns>
+        public static bool IsNotEmpty([NotNullWhen(false)] this string? subject) => !string.IsNullOrWhiteSpace(subject);
 
         /// <summary>
         /// Convert to null if string is "empty"

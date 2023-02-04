@@ -1,8 +1,8 @@
 ﻿using Azure;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using Toolbox.Abstractions;
-using Toolbox.Tools;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 
 namespace Directory.sdk.Service;
 

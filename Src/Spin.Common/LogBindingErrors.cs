@@ -2,8 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Linq;
-using Toolbox.Extensions;
-using Toolbox.Tools;
+using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Tools;
 
 namespace Spin.Common;
 

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Extensions;
 using Toolbox.Model;
 
 namespace Artifact.Controllers

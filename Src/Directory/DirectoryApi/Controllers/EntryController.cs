@@ -1,6 +1,6 @@
 ﻿using Directory.sdk.Service;
 using Microsoft.AspNetCore.Mvc;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Model;

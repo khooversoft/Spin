@@ -1,8 +1,8 @@
 ﻿using Directory.sdk.Model;
 using System.Collections.Generic;
-using Toolbox.Application;
+using Toolbox.Abstractions.Application;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
 namespace Artifact.Application;
 

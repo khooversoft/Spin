@@ -1,14 +1,16 @@
 ﻿using Directory.sdk.Model;
 using Microsoft.Extensions.Logging;
+using Spin.Common.Sign;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Abstractions;
+using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.Block;
-using Toolbox.Block.Signature;
+using Toolbox.Block.Application;
 using Toolbox.DocumentStore;
-using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Security.Sign;
 

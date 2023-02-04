@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Abstractions.Tools;
 
 namespace Directory.sdk.Model;
 

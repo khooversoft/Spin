@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.DocumentStore;
 using Toolbox.Model;
 using Xunit;

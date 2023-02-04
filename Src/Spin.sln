@@ -101,9 +101,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart-Installment.sdk", "Sm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart-Installment.sdk.Test", "Smart\Smart-Installment.sdk.Test\Smart-Installment.sdk.Test.csproj", "{F0D34614-D46E-4D52-B491-B78D26CDE142}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Parser", "Tools\Toolbox.Parser\Toolbox.Parser.csproj", "{5F171604-5F09-4AD7-9E1B-14AD4561207C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Parser", "Tools\Toolbox.Parser\Toolbox.Parser.csproj", "{5F171604-5F09-4AD7-9E1B-14AD4561207C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Parser.Test", "Tools\Toolbox.Parser.Test\Toolbox.Parser.Test.csproj", "{CD1EFDCD-6E7A-4AFE-BFBF-C3097300C924}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Parser.Test", "Tools\Toolbox.Parser.Test\Toolbox.Parser.Test.csproj", "{CD1EFDCD-6E7A-4AFE-BFBF-C3097300C924}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{E2C1F84C-A30C-4E43-A333-D81CC02CC286}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InstallmentContract.Provider", "Providers\InstallmentContract.Provider\InstallmentContract.Provider.csproj", "{9C338186-7547-460D-A2A6-F5FD4027F15A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Net", "Net", "{7200142A-1439-4A94-8732-452A0BE8FAF9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinNet.sdk", "Net\SpinNet.sdk\SpinNet.sdk.csproj", "{18D23CA8-4B8C-4171-A646-0D92C530BA0A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinNet.Test", "Net\SpinNet.Test\SpinNet.Test.csproj", "{E40502ED-518C-4AC9-88D5-77392706C430}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Provider.Abstractions", "Providers\Provider.Abstractions\Provider.Abstractions.csproj", "{99D66D4F-99DE-4C92-9FA2-2E6754348E83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Abstractions.Test", "Tools\Toolbox.Abstractions.Test\Toolbox.Abstractions.Test.csproj", "{DEC5B739-F59F-4402-9AB3-1329F53E6426}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -279,6 +293,26 @@ Global
 		{CD1EFDCD-6E7A-4AFE-BFBF-C3097300C924}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD1EFDCD-6E7A-4AFE-BFBF-C3097300C924}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD1EFDCD-6E7A-4AFE-BFBF-C3097300C924}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C338186-7547-460D-A2A6-F5FD4027F15A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C338186-7547-460D-A2A6-F5FD4027F15A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C338186-7547-460D-A2A6-F5FD4027F15A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C338186-7547-460D-A2A6-F5FD4027F15A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18D23CA8-4B8C-4171-A646-0D92C530BA0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18D23CA8-4B8C-4171-A646-0D92C530BA0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18D23CA8-4B8C-4171-A646-0D92C530BA0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18D23CA8-4B8C-4171-A646-0D92C530BA0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E40502ED-518C-4AC9-88D5-77392706C430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E40502ED-518C-4AC9-88D5-77392706C430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E40502ED-518C-4AC9-88D5-77392706C430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E40502ED-518C-4AC9-88D5-77392706C430}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99D66D4F-99DE-4C92-9FA2-2E6754348E83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99D66D4F-99DE-4C92-9FA2-2E6754348E83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99D66D4F-99DE-4C92-9FA2-2E6754348E83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99D66D4F-99DE-4C92-9FA2-2E6754348E83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEC5B739-F59F-4402-9AB3-1329F53E6426}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEC5B739-F59F-4402-9AB3-1329F53E6426}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEC5B739-F59F-4402-9AB3-1329F53E6426}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEC5B739-F59F-4402-9AB3-1329F53E6426}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -326,6 +360,11 @@ Global
 		{F0D34614-D46E-4D52-B491-B78D26CDE142} = {A7320A90-705D-4C92-B370-7E69D482A14E}
 		{5F171604-5F09-4AD7-9E1B-14AD4561207C} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
 		{CD1EFDCD-6E7A-4AFE-BFBF-C3097300C924} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
+		{9C338186-7547-460D-A2A6-F5FD4027F15A} = {E2C1F84C-A30C-4E43-A333-D81CC02CC286}
+		{18D23CA8-4B8C-4171-A646-0D92C530BA0A} = {7200142A-1439-4A94-8732-452A0BE8FAF9}
+		{E40502ED-518C-4AC9-88D5-77392706C430} = {7200142A-1439-4A94-8732-452A0BE8FAF9}
+		{99D66D4F-99DE-4C92-9FA2-2E6754348E83} = {E2C1F84C-A30C-4E43-A333-D81CC02CC286}
+		{DEC5B739-F59F-4402-9AB3-1329F53E6426} = {363371EF-FAAC-42B7-999F-54CAA56F6910}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2737D286-DF88-4536-ADB7-D42352CD655C}

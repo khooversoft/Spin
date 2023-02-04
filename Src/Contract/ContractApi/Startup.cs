@@ -8,9 +8,9 @@ using Directory.sdk.Tools;
 using Spin.Common.Middleware;
 using Spin.Common.Model;
 using Spin.Common.Services;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake.Model;
-using Toolbox.Tools;
 
 namespace ContractApi;
 

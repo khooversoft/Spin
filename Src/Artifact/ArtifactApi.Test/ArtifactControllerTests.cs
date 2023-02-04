@@ -3,11 +3,11 @@ using Artifact.Test.Application;
 using FluentAssertions;
 using System.Linq;
 using System.Threading.Tasks;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.DocumentStore;
 using Toolbox.Model;
-using Toolbox.Tools;
 using Xunit;
 
 namespace Artifact.Test

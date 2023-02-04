@@ -4,12 +4,12 @@ using Microsoft.Extensions.Caching.Memory;
 using Spin.Common.Middleware;
 using Spin.Common.Model;
 using Spin.Common.Services;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
 namespace DirectoryApi;
 

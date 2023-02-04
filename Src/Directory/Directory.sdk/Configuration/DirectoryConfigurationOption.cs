@@ -1,8 +1,8 @@
 ﻿using Directory.sdk.Model;
 using System;
 using System.Collections.Generic;
-using Toolbox.Application;
-using Toolbox.Tools;
+using Toolbox.Abstractions.Application;
+using Toolbox.Abstractions.Tools;
 
 namespace Directory.sdk.Configuration;
 

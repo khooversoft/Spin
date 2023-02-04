@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;
 using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Block.Serialization;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;

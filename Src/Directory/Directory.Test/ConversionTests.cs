@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.Security;
 using Toolbox.Security.Sign;
 using Xunit;

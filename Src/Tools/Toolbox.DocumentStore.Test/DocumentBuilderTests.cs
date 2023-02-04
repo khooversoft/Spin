@@ -2,9 +2,9 @@
 using System;
 using System.Linq;
 using System.Text;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 using Toolbox.DocumentStore;
-using Toolbox.Tools;
 using Xunit;
 
 namespace Toolbox.DocumentStore.Test;

@@ -3,7 +3,7 @@ using Toolbox.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Abstractions;
+namespace Toolbox.Protocol;
 
 /// <summary>
 /// Id is a path of {domain}/{resource}

@@ -1,6 +1,6 @@
 ﻿using Toolbox.Tools;
 
-namespace Toolbox.Abstractions;
+namespace Toolbox.Protocol;
 
 public record DocumentBase
 {

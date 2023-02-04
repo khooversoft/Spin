@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
 namespace Toolbox.DocumentStore;
 

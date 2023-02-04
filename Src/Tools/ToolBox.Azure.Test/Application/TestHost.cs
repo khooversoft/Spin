@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox.Abstractions.Extensions;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Azure.Queue;
-using Toolbox.Extensions;
 
 namespace ToolBox.Azure.Test.Application;
 

@@ -1,7 +1,7 @@
 ﻿using System;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Block.Container;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Application;
@@ -27,7 +27,7 @@ public class DataBlockBuilder
     {
         data.NotNull();
 
-        ObjectClass = data.GetType().Name;
+        ObjectClass = data.GetType().GetTypeName();
         Data = data?.ToJson();
         return this;
     }

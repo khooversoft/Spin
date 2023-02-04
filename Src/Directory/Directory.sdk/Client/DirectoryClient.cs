@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Protocol;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Model;
 using Toolbox.Tools;

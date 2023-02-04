@@ -5,8 +5,8 @@ using System.Linq;
 using Toolbox.Block.Container;
 using Toolbox.Block.Serialization;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Tools.Zip;
+using Toolbox.Abstractions.Tools;
 
 namespace Toolbox.Block.Serialization;
 

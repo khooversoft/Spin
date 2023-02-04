@@ -1,11 +1,12 @@
 ﻿using Azure;
 using Microsoft.Extensions.Caching.Memory;
-using Toolbox.Abstractions;
+using Toolbox.Abstractions.Extensions;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.DataLake.Model;
 using Toolbox.Extensions;
 using Toolbox.Model;
-using Toolbox.Tools;
 
 namespace Toolbox.DocumentStore;
 

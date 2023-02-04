@@ -6,11 +6,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Toolbox.Abstractions;
-using Toolbox.Application;
+using Toolbox.Abstractions.Application;
+using Toolbox.Abstractions.Protocol;
+using Toolbox.Abstractions.Tools;
 using Toolbox.Azure.Queue;
 using Toolbox.DocumentStore;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
 namespace Directory.sdk.Client;
 

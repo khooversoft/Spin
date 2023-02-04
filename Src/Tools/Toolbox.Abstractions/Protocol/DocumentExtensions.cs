@@ -1,16 +1,11 @@
 ﻿using System.Text.Json.Nodes;
-using Toolbox.Actor;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Abstractions;
+namespace Toolbox.Protocol;
 
-public static class Extensions
+public static class DocumentExtensions
 {
-    public static ActorKey ToActorKey(this DocumentId documentId) => (ActorKey)documentId.NotNull().Id;
-
-    public static DocumentId ToDocumentId(this ActorKey actorKey) => (DocumentId)actorKey.Value;
-
     public static Document WithHash(this Document document)
     {
         document.NotNull();
@@ -68,12 +63,12 @@ public static class Extensions
         subject.Verify();
 
         var documentBase = subject.ConvertTo();
-        var jsonObject = JsonObject.Parse(documentBase.ToJson()).NotNull();
+        var jsonObject = JsonNode.Parse(documentBase.ToJson()).NotNull();
 
         jsonObject[nameof(subject.Data)] = subject.TypeName switch
         {
             "String" => JsonValue.Create(subject.Data),
-            _ => JsonObject.Parse(subject.Data),
+            _ => JsonNode.Parse(subject.Data),
         };
 
         return jsonObject.ToJsonString();

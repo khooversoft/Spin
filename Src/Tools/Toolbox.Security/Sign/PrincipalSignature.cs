@@ -10,7 +10,11 @@ public class PrincipalSignature : PrincipalSignatureBase
     public PrincipalSignature(string kid, string issuer, string? audience, string? subject = null, RSAParameters? rasParameters = null)
         : base(kid, issuer, audience, subject)
     {
-        _rsa = rasParameters == null ? RSA.Create() : RSA.Create((RSAParameters)rasParameters!);
+        _rsa = rasParameters switch
+        {
+            null => RSA.Create(),
+            RSAParameters v => RSA.Create(v),
+        };
     }
 
     public PrincipalSignature(string kid, string issuer, string? audience, string? subject, PrincipalSignature source)
