@@ -12,9 +12,9 @@ public class PayloadBuilder
 
     public PayloadBuilder SetPayloadId(string? value) => this.Action(x => x.PayloadId = value);
     public PayloadBuilder SetTypeName(string? value) => this.Action(x => x.TypeName = value);
-    public PayloadBuilder SetData(string? value) => this.Action(x => x.Data = value);
+    public PayloadBuilder SetContent(string? value) => this.Action(x => x.Data = value);
 
-    public PayloadBuilder SetData<T>(T value) where T : class
+    public PayloadBuilder SetContent<T>(T value) where T : class
     {
         value.NotNull();
 
@@ -35,4 +35,6 @@ public class PayloadBuilder
             Data = Data,
         };
     }
+
+    public static Payload Create<T>(T value) where T : class => new PayloadBuilder().SetContent(value).Build();
 }

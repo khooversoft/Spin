@@ -12,24 +12,20 @@ public class DocumentBuilderTests
     public void Document_WhenConstructed_ShouldRoundTrip()
     {
         const string documentId = "domain/service/a1";
-        const string classObject = "ClassObject";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetObjectClass(classObject)
-            .SetData(payload);
+            .SetContent(payload);
 
         builder.DocumentId!.Id.Should().Be(documentId);
-        builder.ObjectClass!.Should().Be(classObject);
-        builder.Data.Should().Be(payload);
+        builder.Content.Should().Be(payload);
 
         Document document = builder.Build();
 
         ((DocumentId)document.DocumentId).Id.Should().Be(documentId);
-        document.ObjectClass.Should().Be(classObject);
-        document.Data.Should().Be(payload);
-        document.Hash.Should().NotBeNull();
+        document.Content.Should().Be(payload);
+        document.HashBase64.Should().NotBeNull();
 
         document.IsHashVerify().Should().BeTrue();
         document.Verify();
@@ -39,13 +35,11 @@ public class DocumentBuilderTests
     public void Document_WhenSerialized_ShouldRoundTrip()
     {
         const string documentId = "domain/service/a1";
-        const string classObject = "ClassObject";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetObjectClass(classObject)
-            .SetData(payload);
+            .SetContent(payload);
 
         Document sourceDocument = builder.Build();
 
@@ -55,9 +49,8 @@ public class DocumentBuilderTests
         readDocument.Should().NotBeNull();
 
         ((DocumentId)readDocument.DocumentId).Id.Should().Be(documentId);
-        readDocument.ObjectClass.Should().Be(classObject);
-        readDocument.Data.Should().Be(payload);
-        readDocument.Hash.Should().NotBeNull();
+        readDocument.Content.Should().Be(payload);
+        readDocument.HashBase64.Should().NotBeNull();
 
         readDocument.IsHashVerify().Should().BeTrue();
         readDocument.Verify();
@@ -67,13 +60,11 @@ public class DocumentBuilderTests
     public void Document2_WhenConstructed_ShouldRoundTrip()
     {
         const string documentId = "domain/service/a1";
-        const string classObject = "ClassObject";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetObjectClass(classObject)
-            .SetData(payload);
+            .SetContent(payload);
 
         Document document = builder.Build();
 
@@ -85,8 +76,7 @@ public class DocumentBuilderTests
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetObjectClass(classObject)
-            .SetData(payload)
+            .SetContent(payload)
             .Build()
             .Verify();
 
@@ -97,13 +87,11 @@ public class DocumentBuilderTests
     public void DocumentWithProperties_WhenConstructed_ShouldRoundTrip()
     {
         const string documentId = "domain/service/a1";
-        const string classObject = "ClassObject";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetObjectClass(classObject)
-            .SetData(payload);
+            .SetContent(payload);
 
         Document document = builder.Build();
 
@@ -113,8 +101,7 @@ public class DocumentBuilderTests
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetObjectClass(classObject)
-            .SetData(payload)
+            .SetContent(payload)
             .Build()
             .Verify();
 
@@ -134,7 +121,7 @@ public class DocumentBuilderTests
 
         var builder = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetData(payload);
+            .SetContent(payload);
 
         Document document = builder.Build();
 
@@ -144,7 +131,7 @@ public class DocumentBuilderTests
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((DocumentId)documentId)
-            .SetData(payload)
+            .SetContent(payload)
             .Build()
             .Verify();
 

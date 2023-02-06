@@ -1,30 +1,31 @@
-﻿using Provider.Abstractions;
-using Provider.Abstractions.Models;
+﻿using System.Net;
+using InstallmentContract.Provider.Models;
+using Microsoft.Extensions.Logging;
+using Provider.Abstractions;
 using SpinNet.sdk.Model;
-using Toolbox.Sign;
-using Toolbox.Tools;
-using Toolbox.Store;
-using System.Net;
 using Toolbox.Block.Application;
 using Toolbox.Block.Container;
-using Toolbox.DocumentStore;
-using Toolbox.Protocol;
-using Microsoft.Extensions.Logging;
+using Toolbox.Block.Signature;
+using Toolbox.Extensions;
 using Toolbox.Logging;
+using Toolbox.Protocol;
+using Toolbox.Sign;
+using Toolbox.Store;
+using Toolbox.Tools;
 
 namespace InstallmentContract.Provider;
 
 public class ContractService : IProvider
 {
-    private readonly IDocumentStore _documentStore;
-    private readonly ISigningClient _signingClient;
+    private readonly IBlockDocumentStore _documentStore;
     private readonly ILogger<ContractService> _logger;
+    private readonly ISigningClient _signingClient;
 
-    public ContractService(IDocumentStore documentStore, ISigningClient signingClient, ILogger<ContractService> logger)
+    public ContractService(IBlockDocumentStore documentStore, ISigningClient signingClient, ILogger<ContractService> logger)
     {
         _documentStore = documentStore.NotNull();
-        _signingClient = signingClient.NotNull();
         _logger = logger.NotNull();
+        _signingClient = signingClient;
     }
 
     public async Task<NetResponse> Post(NetMessage message, CancellationToken token)
@@ -36,7 +37,6 @@ public class ContractService : IProvider
         return message.Command switch
         {
             CommandMethod.Create => await CreateContract(message, token),
-
             _ => throw new InvalidOperationException("Unknown command")
         };
     }
@@ -45,34 +45,40 @@ public class ContractService : IProvider
     {
         using var ls = _logger.LogEntryExit();
 
-        CreateContractRequest request = message.GetTypedPayloadSingle<CreateContractRequest>();
-        _logger.LogInformation("Create contract - DocumentId={documentId}", request.DocumentId);
+        (NetResponse? contractDetailNotFound, ContractDetails request) = message.FindSingle<ContractDetails>(x => x.IsValid());
+        if (contractDetailNotFound != null) return contractDetailNotFound;
+        _logger.LogInformation("Creating contract for documentId={documentId}", request.DocumentId);
 
-        if (!request.IsValid()) return new NetResponse
-        { 
-            StatusCode = HttpStatusCode.BadRequest,
-            Message = $"{nameof(CreateContractRequest)} message is invalid",
-        };
 
-        if( await _documentStore.Exists(request.DocumentId, token) == false) return new NetResponse
+        if (await _documentStore.Exists(request.DocumentId, token) == false) return new NetResponse
         {
             StatusCode = HttpStatusCode.Conflict,
             Message = $"{request.DocumentId} already exist",
         };
+
 
         BlockChain blockChain = new BlockChainBuilder()
             .SetPrincipleId(request.PrincipleId)
             .Build()
             .Add(request, request.PrincipleId);
 
+        blockChain = await _signingClient.Sign(blockChain, token);
+
+
         Document contract = new DocumentBuilder()
             .SetDocumentId(request.DocumentId)
             .SetPrincipleId(request.PrincipleId)
-            .SetData(request)
+            .SetContent(blockChain)
             .Build();
 
-        await _documentStore.Set(contract, token);
+        bool success = await _documentStore.Set(contract, token);
 
-        return new NetResponse { StatusCode = HttpStatusCode.OK };
+        _logger.LogInformation("Completed creating contract for documentId={documentId}, success={success}", request.DocumentId, success);
+
+        return success switch
+        {
+            true => new NetResponse { StatusCode = HttpStatusCode.OK },
+            false => new NetResponse { StatusCode = HttpStatusCode.UnprocessableEntity, Message = $"Could not create documentId={request.DocumentId}" },
+        };
     }
 }

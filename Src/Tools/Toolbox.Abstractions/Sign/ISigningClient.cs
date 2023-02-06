@@ -2,7 +2,7 @@
 {
     public interface ISigningClient
     {
-        Task<SignRequestResponse> Sign(SignRequest signRequest, CancellationToken token = default);
-        Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token = default);
+        Task<SignRequestResponse> Sign(SignRequest signRequest, CancellationToken token);
+        Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token);
     }
 }

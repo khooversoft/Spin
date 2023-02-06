@@ -23,8 +23,7 @@ public class DocumentBatch
         {
             Items = _values.Select(x => new DocumentBuilder()
                 .SetDocumentId(DocumentId)
-                .SetData(x.Value)
-                .SetObjectClass(x.Value.GetType().GetTypeName())
+                .SetContent(x.Value)
                 .SetPrincipleId(x.PrincipleId)
                 .Build()
             ).ToList()

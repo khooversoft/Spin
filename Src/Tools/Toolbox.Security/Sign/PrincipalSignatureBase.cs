@@ -6,7 +6,7 @@ namespace Toolbox.Security.Sign;
 
 public abstract class PrincipalSignatureBase : IPrincipalSignature
 {
-    protected PrincipalSignatureBase(string kid, string issuer, string? audience, string? subject)
+    protected PrincipalSignatureBase(string kid, string issuer, string? audience, string? subject, DateTime? expires)
     {
         kid.NotEmpty();
         issuer.NotEmpty();
@@ -16,6 +16,7 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
         Issuer = issuer;
         Audience = audience;
         Subject = subject;
+        Expires = expires ?? DateTime.UtcNow.AddYears(10);
     }
 
     public string Kid { get; }
@@ -25,6 +26,7 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
     public string? Audience { get; }
 
     public string? Subject { get; }
+    public DateTime Expires { get; }
 
     public abstract SigningCredentials GetSigningCredentials();
 

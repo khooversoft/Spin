@@ -36,7 +36,7 @@ public sealed record DocumentId
     public bool Equals(DocumentId? other) => other is not null && Id == other.Id;
     public override int GetHashCode() => HashCode.Combine(Id);
 
-    public static explicit operator DocumentId(string documentId) => new DocumentId(documentId);
+    public static implicit operator DocumentId(string documentId) => new DocumentId(documentId);
     public static explicit operator string(DocumentId documentId) => documentId.ToString();
     public static void VerifyId(string documentId) => documentId.IsDocumentIdValid().Assert(x => x.Valid, x => x.Message);
 }

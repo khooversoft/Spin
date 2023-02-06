@@ -33,7 +33,7 @@ public class DocumentPackageTests
         var package = new DocumentPackage(store, new NullLogger<DocumentPackage>());
 
         var document = new DocumentBuilder()
-            .SetData(payload)
+            .SetContent(payload)
             .SetDocumentId(documentId)
             .Build();
 

@@ -1,12 +1,13 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Toolbox.Security.Sign;
 
 public class PrincipalSignatureCertificate : PrincipalSignatureBase
 {
-    public PrincipalSignatureCertificate(string kid, string issuer, string? audience, X509Certificate2 x509Certificate2, string? subject = null)
-        :base(kid, issuer, audience, subject)
+    public PrincipalSignatureCertificate(string kid, string issuer, string? audience, X509Certificate2 x509Certificate2, string? subject = null, DateTime? expires = null)
+        :base(kid, issuer, audience, subject, expires)
     {
         Certificate = x509Certificate2;
     }

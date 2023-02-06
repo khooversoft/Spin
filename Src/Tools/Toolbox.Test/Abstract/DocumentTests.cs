@@ -17,7 +17,7 @@ public class DocumentTests
             DocumentId = (string)documentId,
             ObjectClass = "objectClass",
             TypeName = "typeName",
-            Data = "data",
+            Content = "data",
         }.WithHash();
 
         rec1.IsHashVerify().Should().BeTrue();
@@ -28,7 +28,7 @@ public class DocumentTests
             ObjectClass = rec1.ObjectClass,
             TypeName = rec1.TypeName,
             Hash = rec1.Hash,
-            Data = rec1.Data,
+            Content = rec1.Content,
             PrincipleId = rec1.PrincipleId,
         };
 
@@ -62,7 +62,7 @@ public class DocumentTests
             DocumentId = (string)documentId,
             ObjectClass = "objectClass",
             TypeName = "typeName",
-            Data = "data",
+            Content = "data",
         }.WithHash();
 
         var rec2 = new Document
@@ -70,7 +70,7 @@ public class DocumentTests
             DocumentId = rec1.DocumentId,
             ObjectClass = rec1.ObjectClass,
             TypeName = "badType",
-            Data = rec1.Data,
+            Content = rec1.Content,
             PrincipleId = rec1.PrincipleId,
         }.WithHash() with
         {

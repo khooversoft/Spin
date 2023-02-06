@@ -31,11 +31,17 @@ public static class SignExtensions
     {
         IReadOnlyList<PrincipleDigest> principleDigests = blockChain.GetPrincipleDigests();
 
+        var signedDigests = principleDigests.Sign(getPrincipleSignature);
+        return blockChain.Sign(signedDigests);
+    }
+
+    public static IReadOnlyList<PrincipleDigest> Sign(this IEnumerable<PrincipleDigest> principleDigests, Func<string, IPrincipalSignature> getPrincipleSignature)
+    {
         List<PrincipleDigest> signedDigests = principleDigests
             .Select(x => x with { JwtSignature = getPrincipleSignature(x.PrincipleId).Sign(x.Digest) })
             .ToList();
 
-        return blockChain.Sign(signedDigests);
+        return signedDigests;
     }
 
     public static BlockChain Sign(this BlockChain blockChain, IEnumerable<PrincipleDigest> principleDigests)

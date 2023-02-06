@@ -1,5 +1,6 @@
 ﻿using SpinNet.sdk.Model;
 using Toolbox.Extensions;
+using Toolbox.Model;
 using Toolbox.Tools;
 
 namespace SpinNet.sdk.Application;

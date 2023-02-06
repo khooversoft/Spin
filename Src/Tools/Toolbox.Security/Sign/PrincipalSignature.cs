@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Security.Cryptography;
 
 namespace Toolbox.Security.Sign;
@@ -7,8 +8,8 @@ public class PrincipalSignature : PrincipalSignatureBase
 {
     private RSA _rsa;
 
-    public PrincipalSignature(string kid, string issuer, string? audience, string? subject = null, RSAParameters? rasParameters = null)
-        : base(kid, issuer, audience, subject)
+    public PrincipalSignature(string kid, string issuer, string? audience, string? subject = null, RSAParameters? rasParameters = null, DateTime? expires = null)
+        : base(kid, issuer, audience, subject, expires)
     {
         _rsa = rasParameters switch
         {
@@ -17,8 +18,8 @@ public class PrincipalSignature : PrincipalSignatureBase
         };
     }
 
-    public PrincipalSignature(string kid, string issuer, string? audience, string? subject, PrincipalSignature source)
-        : base(kid, issuer, audience, subject)
+    public PrincipalSignature(string kid, string issuer, string? audience, string? subject, PrincipalSignature source, DateTime? expires = null)
+        : base(kid, issuer, audience, subject, expires)
     {
         _rsa = source._rsa;
     }

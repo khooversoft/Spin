@@ -17,16 +17,14 @@ public class DocumentBuilderTests
         string payload = "this is the payload";
 
         Document document = new DocumentBuilder()
-            .SetObjectClass("test")
             .SetDocumentId(documentId)
-            .SetData(payload)
+            .SetContent(payload)
             .Build()
             .Verify();
 
         document.Should().NotBeNull();
-        document.ObjectClass.Should().Be("test");
         document.TypeName.Should().Be("String");
-        document.Data.Should().Be(payload);
+        document.Content.Should().Be(payload);
 
         string json = document.ToJson();
 
@@ -52,14 +50,12 @@ public class DocumentBuilderTests
         };
 
         Document document = new DocumentBuilder()
-            .SetObjectClass("test")
             .SetDocumentId(documentId)
-            .SetData(payload)
+            .SetContent(payload)
             .Build()
             .Verify();
 
         document.Should().NotBeNull();
-        document.ObjectClass.Should().Be("test");
         document.TypeName.Should().Be("Payload");
 
         string json = document.ToJson();
@@ -76,13 +72,13 @@ public class DocumentBuilderTests
     {
         var documentId = (DocumentId)"test/pass";
 
-        Action act = () => new DocumentBuilder().SetData("payload".ToBytes());
+        Action act = () => new DocumentBuilder().SetContent("payload".ToBytes());
         act.Should().Throw<ArgumentException>();
 
-        Action act2 = () => new DocumentBuilder().SetData(new[] { 1, 2, 3, 4 });
+        Action act2 = () => new DocumentBuilder().SetContent(new[] { 1, 2, 3, 4 });
         act2.Should().Throw<ArgumentException>();
 
-        Action act3 = () => new DocumentBuilder().SetData(new[] { 1, 2, 3, 4 }.ToList());
+        Action act3 = () => new DocumentBuilder().SetContent(new[] { 1, 2, 3, 4 }.ToList());
         act3.Should().Throw<ArgumentException>();
     }
 

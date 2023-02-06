@@ -5,39 +5,39 @@ namespace Toolbox.Protocol;
 
 public sealed record Document
 {
-    public string DocumentId { get; init; } = null!;
-    public string ObjectClass { get; init; } = null!;
-    public string TypeName { get; init; } = null!;
-    public string Data { get; init; } = null!;
-    public byte[] Hash { get; init; } = null!;
+    public required string DocumentId { get; init; } = null!;
+    public required string TypeName { get; init; } = null!;
+    public required string Content { get; init; } = null!;
+    public string? HashBase64 { get; init; }
     public string? PrincipleId { get; init; }
+    public string? Tags { get; init; } = null!;
 
     public bool Equals(Document? obj)
     {
         return obj is Document document &&
                DocumentId == document.DocumentId &&
-               ObjectClass == document.ObjectClass &&
                TypeName == document.TypeName &&
-               Data == document.Data &&
-               Hash.SequenceEqual(document.Hash) &&
-               PrincipleId == document.PrincipleId;
+               Content == document.Content &&
+               HashBase64 == document.HashBase64 &&
+               PrincipleId == document.PrincipleId &&
+               Tags == document.Tags;
     }
 
-    public override int GetHashCode() => HashCode.Combine(DocumentId, ObjectClass, TypeName, Data, Hash, PrincipleId);
+    public override int GetHashCode() => HashCode.Combine(DocumentId, TypeName, Content, HashBase64, PrincipleId, Tags);
 
     public static Document CreateFromJson(string json)
     {
         json.NotEmpty();
 
-        DocumentBase documentBase = Json.Default.Deserialize<DocumentBase>(json).NotNull();
+        Document document = Json.Default.Deserialize<Document>(json).NotNull();
         JsonNode jsonObject = JsonNode.Parse(json).NotNull();
 
-        string data = documentBase.TypeName switch
+        string data = document.TypeName switch
         {
-            "String" => jsonObject[nameof(Data)].NotNull().ToString(),
-            _ => jsonObject[nameof(Data)].NotNull().ToJsonString(),
+            "String" => jsonObject[nameof(Content)].NotNull().ToString(),
+            _ => jsonObject[nameof(Content)].NotNull().ToJsonString(),
         };
 
-        return documentBase.ConvertTo(data);
+        return document;
     }
 }

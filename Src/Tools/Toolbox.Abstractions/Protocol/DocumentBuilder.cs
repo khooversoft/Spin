@@ -8,32 +8,32 @@ public class DocumentBuilder
 {
     public DocumentBuilder() { }
 
-    public DocumentBuilder(Document document)
-    {
-        document.NotNull();
+    public DocumentId? DocumentId { get; set; }
+    public string? TypeName { get; set; }
+    public string? Content { get; set; }
+    public string? HashBase64 { get; set; }
+    public string? PrincipleId { get; set; }
+    public string? Tags { get; set; }
 
-        DocumentId = (DocumentId)document.DocumentId.NotNull();
-        ObjectClass = document.ObjectClass.NotEmpty();
-        Data = document.Data.NotNull();
+    public DocumentBuilder SetDocumentId(DocumentId value) => this.Action(x => x.DocumentId = value);
+    public DocumentBuilder SetHashBase64(string value) => this.Action(x => x.HashBase64 = value);
+    public DocumentBuilder SetPrincipleId(string value) => this.Action(x => x.PrincipleId = value);
+    public DocumentBuilder SetTags(params string[] value) => this.Action(x => x.Tags = value.Join(";"));
+
+    public DocumentBuilder SetContent(string value)
+    {
+        Content = value;
+        TypeName = typeof(string).GetTypeName();
+
+        return this;
     }
 
-    public DocumentId? DocumentId { get; private set; }
-
-    public string? ObjectClass { get; private set; }
-    public string? TypeName { get; private set; }
-    public string? Data { get; private set; }
-    public string? PrincipleId { get; private set; }
-
-    public DocumentBuilder SetDocumentId(DocumentId document) => this.Action(x => x.DocumentId = document);
-    public DocumentBuilder SetObjectClass(string objectClass) => this.Action(x => x.ObjectClass = objectClass);
-    public DocumentBuilder SetPrincipleId(string principleId) => this.Action(x => x.PrincipleId = principleId);
-
-    public DocumentBuilder SetData<T>(T value) where T : class
+    public DocumentBuilder SetContent<T>(T value) where T : class
     {
         const string errorMsg = "Unsupported type";
         value.NotNull();
 
-        Data = typeof(T) switch
+        Content = typeof(T) switch
         {
             Type type when type == typeof(string) => value.ToString().NotEmpty(),
             Type type when type.IsAssignableTo(typeof(Array)) => throw new ArgumentException(errorMsg),
@@ -51,14 +51,13 @@ public class DocumentBuilder
     {
         DocumentId.NotNull(name: "required");
         TypeName.NotEmpty(name: "required");
-        Data.NotEmpty(name: "required");
+        Content.NotEmpty(name: "required");
 
         return new Document
         {
             DocumentId = (string)DocumentId,
-            ObjectClass = ObjectClass ?? TypeName,
             TypeName = TypeName,
-            Data = Data,
+            Content = Content,
             PrincipleId = PrincipleId,
         }.WithHash();
     }

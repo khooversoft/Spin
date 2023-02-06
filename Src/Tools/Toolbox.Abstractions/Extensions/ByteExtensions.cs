@@ -49,7 +49,7 @@ namespace Toolbox.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static byte[] ToHash(this IEnumerable<byte> bytes) => MD5.Create().ComputeHash(bytes.ToArray());
+        public static byte[] ToHash(this IEnumerable<byte> bytes) => MD5.Create().ComputeHash(bytes.NotNull().ToArray());
 
         /// <summary>
         /// Convert object to bytes

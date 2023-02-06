@@ -72,6 +72,8 @@ public class ZipContainerTests
             .NotNull(name: "Cannot deserialize")
             .ToBlockChain();
 
+        result.Blocks.Count.Should().Be(3);
+
         result.Validate(getSignature);
         string resultChainHash = result.ToMerkleTree().BuildTree().ToString();
 

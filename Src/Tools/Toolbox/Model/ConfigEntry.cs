@@ -1,7 +1,8 @@
-﻿using Toolbox.Extensions;
+﻿using System;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace SpinNet.sdk.Model;
+namespace Toolbox.Model;
 
 public record ConfigEntry
 {

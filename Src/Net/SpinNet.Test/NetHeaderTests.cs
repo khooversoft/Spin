@@ -32,7 +32,7 @@ public class NetHeaderTests
         var payload1 = new Payload1("name1", "value1");
 
         var payload = new PayloadBuilder()
-            .SetData(payload1)
+            .SetContent(payload1)
             .Build();
 
         var message = new NetMessageBuilder()
