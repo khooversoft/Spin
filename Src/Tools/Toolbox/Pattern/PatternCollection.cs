@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,8 +19,7 @@ public class PatternCollection
     {
         lock (_lock)
         {
-            name
-                .NotEmpty()
+            name.NotEmpty()
                 .Assert(x => _patterns.Any(y => string.Equals(y.Key, name, StringComparison.OrdinalIgnoreCase)) == false, $"Duplicate name {name}");
 
             _patterns.Add(new KeyValuePair<string, PatternFactory>(name, new PatternFactory { Name = name, Factory = factory }));
@@ -33,7 +33,7 @@ public class PatternCollection
 
     public (bool Matched, T? Result) TryMatch<T>(string data) where T : class, IPatternResult => (TryMatch(data, out T? result), result);
 
-    public bool TryMatch<T>(string data, out T? result) where T : class, IPatternResult
+    public bool TryMatch<T>(string data, [NotNullWhen(true)] out T? result) where T : class, IPatternResult
     {
         result = default;
 

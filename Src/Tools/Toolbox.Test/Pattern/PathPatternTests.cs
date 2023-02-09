@@ -31,7 +31,7 @@ namespace Toolbox.Test.Pattern
         }
 
         [Fact]
-        public void BasicPathNotMatch_ShouldNotPass()
+        public void ApiPathDoesNotMatch_ShouldNotPass()
         {
             const string name = "main";
             const string source = "root";
@@ -43,17 +43,27 @@ namespace Toolbox.Test.Pattern
                 .Should().BeFalse();
         }
 
+
         [Fact]
-        public void ApiPathDoesNotMatch_ShouldNotPass()
+        public void ScaleParameter_ShouldPass()
         {
             const string name = "main";
-            const string source = "root";
-            const string pattern = "root/{path}";
+            const string source = "pathValue";
+            const string pattern = "{path}";
 
             new PatternCollection()
                 .AddPattern(name, pattern)
                 .TryMatch(source, out PatternResult? result)
-                .Should().BeFalse();
+                .Should().BeTrue();
+
+            result.Should().NotBeNull();
+            result!.Name.Should().Be(name);
+            result.Source.Should().Be(source);
+            result.Pattern.Should().Be(pattern);
+            result.Values.Should().NotBeNull();
+            result.Values.Count.Should().Be(1);
+            result.Values.TryGetValue("path", out string? value).Should().BeTrue();
+            value.Should().Be("pathValue");
         }
 
         [Fact]
@@ -149,22 +159,35 @@ namespace Toolbox.Test.Pattern
         [Fact]
         public void ResolvePath()
         {
+            var collection = new PatternCollection()
+                .AddPattern("file", "file://{namespace}/{environment}/{root}/{file}") // adls://server/filesystem/root/file
+                .AddPattern("keyVault", "kv://{namespace}/{environment}/{keyName}") // kv://
+                .AddTransform("file", TransformFile)
+                .AddTransform("keyVault", TransformKv);
+
+            collection.TryMatch("file://contract/dev/config/contract.json", out PatternResult? result1).Should().BeTrue();
+            result1.Should().NotBeNull();
+            result1!.Transform.Should().Be("adls://contract.server/testing/config/contract.json");
+
+            collection.TryMatch("kv://identity/prod/keyName1", out PatternResult? result2).Should().BeTrue();
+            result2.Should().NotBeNull();
+            result2!.Transform.Should().Be("keyVault://kv2.server-prod/keyName1");
+
+
             PatternResult TransformFile(PatternContext context, PatternResult result)
             {
                 string server = result.Values["namespace"] switch
                 {
                     "contract" => "contract.server",
                     "identity" => "identity.server",
-
                     _ => throw new ArgumentException("unknown")
                 };
 
                 string filesystem = result.Values["environment"] switch
                 {
-                    "dev" =>  "testing",
+                    "dev" => "testing",
                     "ppe" => "preProd",
                     "prod" => "prod",
-
                     _ => throw new ArgumentException("unknown")
                 };
 
@@ -180,7 +203,6 @@ namespace Toolbox.Test.Pattern
                 {
                     "contract" => "kv1.server",
                     "identity" => "kv2.server",
-
                     _ => throw new ArgumentException("unknown")
                 };
 
@@ -189,7 +211,6 @@ namespace Toolbox.Test.Pattern
                     "dev" => "-test",
                     "ppe" => "-ppe",
                     "prod" => "-prod",
-
                     _ => throw new ArgumentException("unknown")
                 };
 
@@ -197,20 +218,6 @@ namespace Toolbox.Test.Pattern
 
                 return result with { Transform = $"keyVault://{kv}/{keyName}" };
             }
-
-            var collection = new PatternCollection()
-                .AddPattern("file", "file://{namespace}/{environment}/{root}/{file}") // adls://server/filesystem/root/file
-                .AddPattern("keyVault", "kv://{namespace}/{environment}/{keyName}") // kv://
-                .AddTransform("file", TransformFile)
-                .AddTransform("keyVault", TransformKv);
-
-            collection.TryMatch("file://contract/dev/config/contract.json", out PatternResult? result1).Should().BeTrue();
-            result1.Should().NotBeNull();
-            result1!.Transform.Should().Be("adls://contract.server/testing/config/contract.json");
-
-            collection.TryMatch("kv://identity/prod/keyName1", out PatternResult? result2).Should().BeTrue();
-            result2.Should().NotBeNull();
-            result2!.Transform.Should().Be("keyVault://kv2.server-prod/keyName1");
         }
     }
 }

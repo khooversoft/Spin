@@ -46,6 +46,14 @@ public class DocumentBuilder
         return this;
     }
 
+    public DocumentBuilder SetContent(byte[] bytes)
+    {
+        bytes.NotNull();
+
+        TypeName = "bytes";
+        Content = Convert.ToBase64String(bytes);
+        return this;
+    }
 
     public Document Build()
     {

@@ -69,7 +69,7 @@ internal class SetActivity
         {
             string property = item
                 .ToKeyValuePair()
-                .ToProperty();
+                .ToKeyValueString();
 
             propertyList.Add(property);
         }

@@ -44,11 +44,11 @@ public static class InstallmentContractExtensions
         subject.Parties != null &&
         subject.Ledgers != null;
 
-    public static decimal Balance(this IEnumerable<LedgerRecord> ledgerRecords)
+    public static decimal GetBalance(this ContractDetails ledgerRecords)
     {
         ledgerRecords.NotNull();
 
-        return ledgerRecords
+        return ledgerRecords.Ledgers
             .Select(x => x.NaturalAmount())
             .Sum(x => x);
     }

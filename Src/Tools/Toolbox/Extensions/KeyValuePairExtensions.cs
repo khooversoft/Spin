@@ -30,8 +30,6 @@ public static class KeyValuePairExtensions
         .Select(x => x.Value)
         .FirstOrDefault();
 
-    public static string ToProperty(this KeyValuePair<string, string> subject) => $"{subject.Key}={subject.Value}";
-
     public static IReadOnlyList<KeyValuePair<string, string>> ToTags(this string? line) => line.ToNullIfEmpty() switch
     {
         null => Array.Empty<KeyValuePair<string, string>>(),
@@ -70,7 +68,7 @@ public static class KeyValuePairExtensions
         string v => v.ToTags().FindTag(name),
     };
 
-    public static string? FindTag(this IEnumerable<KeyValuePair<string, string>> subject, string name, char delimiter = '=') =>
+    public static string? FindTag(this IEnumerable<KeyValuePair<string, string>> subject, string name) =>
         subject.NotNull()
         .Where(x => x.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
         .Select(x => x.Value)

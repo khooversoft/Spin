@@ -15,7 +15,6 @@ public class DocumentTests
         var rec1 = new Document
         {
             DocumentId = (string)documentId,
-            ObjectClass = "objectClass",
             TypeName = "typeName",
             Content = "data",
         }.WithHash();
@@ -25,9 +24,8 @@ public class DocumentTests
         var rec2 = new Document
         {
             DocumentId = rec1.DocumentId,
-            ObjectClass = rec1.ObjectClass,
             TypeName = rec1.TypeName,
-            Hash = rec1.Hash,
+            HashBase64 = rec1.HashBase64,
             Content = rec1.Content,
             PrincipleId = rec1.PrincipleId,
         };
@@ -60,7 +58,6 @@ public class DocumentTests
         var rec1 = new Document
         {
             DocumentId = (string)documentId,
-            ObjectClass = "objectClass",
             TypeName = "typeName",
             Content = "data",
         }.WithHash();
@@ -68,7 +65,6 @@ public class DocumentTests
         var rec2 = new Document
         {
             DocumentId = rec1.DocumentId,
-            ObjectClass = rec1.ObjectClass,
             TypeName = "badType",
             Content = rec1.Content,
             PrincipleId = rec1.PrincipleId,

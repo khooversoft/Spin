@@ -13,11 +13,10 @@ namespace SpinNet.sdk.Model;
 public record NetMessage
 {
     public required string MessageId { get; init; }
-    public required string FromId { get; init; }
-    public required string ToId { get; init; }
+    public required string ResourceUri { get; init; }
     public required string Command { get; init; }
     public IReadOnlyList<Payload> Payloads { get; init; } = Array.Empty<Payload>();
-    public IReadOnlyList<ConfigEntry> Configuration { get; init; } = new List<ConfigEntry>();
+    public IReadOnlyList<KeyValuePair<string, string>> Headers { get; init; } = new List<KeyValuePair<string, string>>();
     public DateTime TimeStamp { get; init; } = DateTime.UtcNow;
 }
 
@@ -25,31 +24,15 @@ public static class NetHeaderExtensions
 {
     public static bool IsValid(this NetMessage subject) =>
         subject != null &&
-        !subject.FromId.IsEmpty() &&
-        !subject.ToId.IsEmpty() &&
+        !subject.ResourceUri.IsEmpty() &&
         subject.Payloads != null &&
-        subject.Configuration != null;
+        subject.Headers != null;
 
     public static NetMessage Verify(this NetMessage subject) => subject.Action(x => x.IsValid().Assert(x => x == true, "Invalid"));
 
-    public static IReadOnlyList<T> GetTypedPayloads<T>(this NetMessage subject) => subject
-        .GetTypedPayloads(typeof(T).GetTypeName())
-        .Select(x => x.ToObject<T>())
-        .ToArray();
-
-    public static IReadOnlyList<Payload> GetTypedPayloads(this NetMessage subject, string typeName) => subject.NotNull()
-        .Payloads
-        .Where(x => x.TypeName == typeName)
-        .ToList();
-
-    public static T? GetTypedPayloadSingle<T>(this NetMessage subject) => subject
-        .GetTypedPayloads(typeof(T).GetTypeName())
-        .Select(x => x.ToObject<T>())
-        .SingleOrDefault();
-
     public static (NetResponse? notFound, IReadOnlyList<T> value) Find<T>(this NetMessage message, Func<T, bool> isValid) where T : class
     {
-        return message.GetTypedPayloads<T>() switch
+        return message.Payloads.GetTypedPayloads<T>() switch
         {
             var v when v.Count == 0 => (BuildBadRequestResponse<T>("not found"), Array.Empty<T>()),
             var v when v.All(y => !isValid(y)) => (BuildBadRequestResponse<T>("is invalid"), Array.Empty<T>()),
@@ -59,7 +42,7 @@ public static class NetHeaderExtensions
 
     public static (NetResponse? notFound, T value) FindSingle<T>(this NetMessage message, Func<T, bool> isValid) where T : class
     {
-        return message.GetTypedPayloadSingle<T>() switch
+        return message.Payloads.GetTypedPayloadSingle<T>() switch
         {
             null => (BuildBadRequestResponse<T>("not found"), null!),
             var v when !isValid(v) => (BuildBadRequestResponse<T>("is invalid"), null!),

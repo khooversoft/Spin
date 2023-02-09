@@ -20,7 +20,7 @@ public class NetHeaderTests
 
         message.MessageId.Should().NotBeEmpty();
         message.FromId.Should().Be(fromId);
-        message.ToId.Should().Be(toId);
+        message.ResourceUri.Should().Be(toId);
         message.Payloads.Should().HaveCount(0);
     }
 
@@ -43,7 +43,7 @@ public class NetHeaderTests
 
         message.MessageId.Should().NotBeEmpty();
         message.FromId.Should().Be(fromId);
-        message.ToId.Should().Be(toId);
+        message.ResourceUri.Should().Be(toId);
         message.Payloads.Should().HaveCount(1);
 
         message.Payloads[0].TypeName.Should().Be(payload1.GetType().GetTypeName());

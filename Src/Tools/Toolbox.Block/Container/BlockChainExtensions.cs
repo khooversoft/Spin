@@ -4,6 +4,7 @@ using System.Linq;
 using Toolbox.Block.Application;
 using Toolbox.Block.Serialization;
 using Toolbox.Extensions;
+using Toolbox.Protocol;
 using Toolbox.Security;
 using Toolbox.Tools;
 
@@ -56,4 +57,7 @@ public static class BlockChainExtensions
         return new MerkleTree()
             .Append(blockChain.Blocks.Select(x => x.Digest).ToArray());
     }
+
+    public static DocumentBuilder SetBlockContent(this DocumentBuilder builder, BlockChain blockChain) => builder.NotNull()
+        .Action(x => x.SetContent(blockChain.NotNull().ToBlockChainModel().ToPackage()));
 }

@@ -5,18 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Toolbox.Pattern
+namespace Toolbox.Pattern;
+
+public record PatternResult : IPatternResult
 {
-    public record PatternResult : IPatternResult
-    {
-        public string Name { get; init; } = null!;
+    public string Name { get; init; } = null!;
 
-        public string Pattern { get; init; } = null!;
+    public string Pattern { get; init; } = null!;
 
-        public string Source { get; init; } = null!;
+    public string Source { get; init; } = null!;
 
-        public string? Transform { get; init; }
+    public string? Transform { get; init; }
 
-        public IReadOnlyDictionary<string, string> Values { get; init; } = null!;
-    }
+    public IReadOnlyDictionary<string, string> Values { get; init; } = null!;
 }
