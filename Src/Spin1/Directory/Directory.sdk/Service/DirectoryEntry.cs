@@ -1,9 +1,9 @@
-﻿using Azure;
+﻿using System.Collections.Generic;
+using Azure;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using Toolbox.Abstractions.Protocol;
-using Toolbox.Abstractions.Tools;
 using Toolbox.Extensions;
+using Toolbox.Protocol;
+using Toolbox.Tools;
 
 namespace Directory.sdk.Service;
 

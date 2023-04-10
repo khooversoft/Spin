@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Directory\Directory.sdk\Directory.sdk.csproj" />
     <ProjectReference Include="..\Toolbox.Azure\Toolbox.Azure.csproj" />
     <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
   </ItemGroup>
