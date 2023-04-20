@@ -2,7 +2,7 @@
 using FluentAssertions;
 using Toolbox.Application;
 
-namespace Toolbox.Abstractions.Test.Type;
+namespace Toolbox.Test.Types;
 
 public class DocumentIdPathRegexTests
 {
@@ -20,5 +20,5 @@ public class DocumentIdPathRegexTests
     {
         Match m = Regex.Match(input, ToolboxConstants.DocumentIdRegexPattern, RegexOptions.IgnoreCase);
         (expected == m.Success).Should().BeTrue();
-    } 
+    }
 }

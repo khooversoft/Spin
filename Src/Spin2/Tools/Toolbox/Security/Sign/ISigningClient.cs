@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Sign
+﻿namespace Toolbox.Security.Sign
 {
     public interface ISigningClient
     {

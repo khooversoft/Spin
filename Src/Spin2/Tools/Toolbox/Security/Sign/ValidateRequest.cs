@@ -1,8 +1,8 @@
 ﻿using Toolbox.Tools;
 
-namespace Toolbox.Sign;
+namespace Toolbox.Security.Sign;
 
-public record SignRequest
+public record ValidateRequest
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
@@ -10,14 +10,14 @@ public record SignRequest
 }
 
 
-public static class SignRequestExtensions
+public static class ValidateRequestExtensions
 {
-    public static void Verify(this SignRequest subject)
+    public static void Verify(this ValidateRequest subject)
     {
         subject.NotNull();
         subject.PrincipleDigests.NotNull();
         subject.PrincipleDigests.Assert(x => x.Count > 0, nameof(subject.PrincipleDigests));
     }
 
-    public static SignRequest ToSignRequest(this IEnumerable<PrincipleDigest> digests) => new SignRequest { PrincipleDigests = digests.ToList() };
+    public static ValidateRequest ToValidateRequest(this IEnumerable<PrincipleDigest> digests) => new ValidateRequest { PrincipleDigests = digests.ToList() };
 }

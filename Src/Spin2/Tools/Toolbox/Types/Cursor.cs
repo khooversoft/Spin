@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Toolbox.Monads;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;

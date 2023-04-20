@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-namespace Toolbox.Tools.Property
+﻿namespace Toolbox.Tools.Property
 {
     public class PropertySecret
     {

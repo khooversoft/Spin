@@ -97,5 +97,19 @@ namespace Toolbox.Extensions
                 true => obj.NotNull(name: "Deserialize error"),
             };
         }
+
+        /// <summary>
+        /// Convert bytes to SHA256 hash
+        /// </summary>
+        /// <param name="inputBytes">input bytes</param>
+        /// <returns>hash as base 64</returns>
+        public static string ToSHA256Hash(this IEnumerable<byte> inputBytes)
+        {
+            inputBytes.NotNull();
+
+            return SHA256.Create()
+                .ComputeHash(inputBytes.ToArray())
+                .Func(Convert.ToBase64String);
+        }
     }
 }

@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Types;
-using Xunit;
 
 namespace Toolbox.Test.Types;
 

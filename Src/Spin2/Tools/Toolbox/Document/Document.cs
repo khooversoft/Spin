@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Nodes;
-using Toolbox.Tools;
-
-namespace Toolbox.Protocol;
+﻿namespace Toolbox.Protocol;
 
 public sealed record Document
 {

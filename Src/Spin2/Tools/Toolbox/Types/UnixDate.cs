@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Toolbox.Types;
+﻿namespace Toolbox.Types;
 
 /// <summary>
 /// Unix date is number of seconds from 1970-01-01T00:00:00Z
