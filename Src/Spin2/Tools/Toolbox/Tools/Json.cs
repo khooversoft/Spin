@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace Toolbox.Tools;
@@ -35,4 +36,16 @@ public class Json
     public string SerializePascal<T>(T subject) => JsonSerializer.Serialize(subject, PascalOptions);
     public string SerializeFormat<T>(T subject) => JsonSerializer.Serialize(subject, JsonSerializerFormatOption);
     public string SerializeDefault<T>(T subject) => JsonSerializer.Serialize(subject);
+
+    public static string ExpandNode<T>(T subject, string nodeName)
+    {
+        subject.NotNull();
+
+        var jsonObject = JsonNode.Parse(subject).NotNull();
+        string content = jsonObject[nodeName].NotNull().GetValue<string>();
+
+        jsonObject[nodeName] = JsonNode.Parse(content);
+
+        return jsonObject.ToJsonString();
+    }
 }

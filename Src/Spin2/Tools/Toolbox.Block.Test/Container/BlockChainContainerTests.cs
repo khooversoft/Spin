@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Toolbox.Block.Application;
 using Toolbox.Block.Container;
 using Toolbox.Block.Serialization;
 using Toolbox.Block.Signature;
@@ -37,7 +36,7 @@ public class BlockChainContainerTests
             new Payload { Name = "Name1", Value = 2, Price = 10.5f },
             new Payload { Name = "Name2", Value = 3, Price = 20.5f },
         }
-        .Action(x => Enumerable.SequenceEqual(payloads, x));
+        .Func(x => Enumerable.SequenceEqual(payloads, x)).Should().BeTrue();
 
         IReadOnlyList<Payload2> payload2s = blockChain.GetTypedBlocks<Payload2>();
         payload2s.Should().HaveCount(1);
@@ -46,7 +45,7 @@ public class BlockChainContainerTests
         {
             new Payload2 { Last = "Last", Current = _date, Author = "test" }
         }
-        .Action(x => Enumerable.SequenceEqual(payload2s, x));
+        .Func(x => Enumerable.SequenceEqual(payload2s, x)).Should().BeTrue();
     }
 
 

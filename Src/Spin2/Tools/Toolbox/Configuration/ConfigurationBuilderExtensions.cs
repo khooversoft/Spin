@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using System.Reflection;
+﻿using System.Reflection;
+using Microsoft.Extensions.Configuration;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Property;

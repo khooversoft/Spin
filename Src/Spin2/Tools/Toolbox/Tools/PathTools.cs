@@ -11,7 +11,7 @@ namespace Toolbox.Tools
 
             extension = extension.StartsWith(".") ? extension : "." + extension;
 
-            return path.EndsWith(extension) ? path: path + extension;
+            return path.EndsWith(extension) ? path : path + extension;
         }
 
         public static string RemoveExtension(string path, string extension, params string[] extensions)
@@ -22,7 +22,7 @@ namespace Toolbox.Tools
                 .Select(x => x.StartsWith(".") ? x : "." + x)
                 .ToArray();
 
-            foreach(var item in extensionList)
+            foreach (var item in extensionList)
             {
                 if (path.EndsWith(item)) return path[0..^(item.Length)];
             }

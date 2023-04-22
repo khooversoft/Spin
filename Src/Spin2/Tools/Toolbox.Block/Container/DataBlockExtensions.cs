@@ -1,5 +1,4 @@
-﻿using Toolbox.Block.Application;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types.MerkleTree;
 

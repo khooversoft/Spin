@@ -2,7 +2,7 @@
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Protocol;
+namespace Toolbox.DocumentContainer;
 
 public class DocumentBuilder
 {
@@ -12,12 +12,10 @@ public class DocumentBuilder
     public string? TypeName { get; set; }
     public string? Content { get; set; }
     public string? HashBase64 { get; set; }
-    public string? PrincipleId { get; set; }
     public string? Tags { get; set; }
 
     public DocumentBuilder SetDocumentId(DocumentId value) => this.Action(x => x.DocumentId = value);
     public DocumentBuilder SetHashBase64(string value) => this.Action(x => x.HashBase64 = value);
-    public DocumentBuilder SetPrincipleId(string value) => this.Action(x => x.PrincipleId = value);
     public DocumentBuilder SetTags(params string[] value) => this.Action(x => x.Tags = value.Join(";"));
 
     public DocumentBuilder SetContent(string value)
@@ -66,7 +64,6 @@ public class DocumentBuilder
             DocumentId = (string)DocumentId,
             TypeName = TypeName,
             Content = Content,
-            PrincipleId = PrincipleId,
         }.WithHash();
     }
 }

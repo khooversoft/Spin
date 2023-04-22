@@ -2,7 +2,7 @@
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Protocol;
+namespace Toolbox.DocumentContainer;
 
 public static class DocumentExtensions
 {
@@ -16,12 +16,10 @@ public static class DocumentExtensions
         };
     }
 
-    public static Document Verify(this Document document, bool principleRequired = false)
+    public static Document Verify(this Document document)
     {
         document.NotNull();
         document.IsHashVerify().Assert("Document is not valid");
-
-        if (principleRequired) document.PrincipleId.NotEmpty(name: $"{nameof(document.PrincipleId)} is required");
 
         return document;
     }
@@ -31,11 +29,9 @@ public static class DocumentExtensions
         document.DocumentId,
         document.TypeName,
         document.Content,
-        document.PrincipleId,
         document.Tags,
     }.ComputeHash()
     .Func(x => Convert.ToBase64String(x));
-
 
     public static bool IsHashVerify(this Document document)
     {
@@ -55,7 +51,7 @@ public static class DocumentExtensions
     {
         subject.Verify();
 
-        var jsonObject = JsonNode.Parse(subject.ToJson()).NotNull();
+        var jsonObject = JsonNode.Parse(Json.Default.Serialize(subject)).NotNull();
 
         jsonObject[nameof(subject.Content)] = subject.TypeName switch
         {
