@@ -37,15 +37,35 @@ public class Json
     public string SerializeFormat<T>(T subject) => JsonSerializer.Serialize(subject, JsonSerializerFormatOption);
     public string SerializeDefault<T>(T subject) => JsonSerializer.Serialize(subject);
 
-    public static string ExpandNode<T>(T subject, string nodeName)
+    public static string ExpandNode(string sourceJson, string nodeName, string nodeJson)
     {
-        subject.NotNull();
+        sourceJson.NotEmpty();
+        nodeName.NotEmpty();
+        nodeJson.NotEmpty();
 
-        var jsonObject = JsonNode.Parse(subject).NotNull();
-        string content = jsonObject[nodeName].NotNull().GetValue<string>();
+        JsonObject sourceJsonObject = JsonNode.Parse(sourceJson).NotNull().AsObject();
 
-        jsonObject[nodeName] = JsonNode.Parse(content);
+        if (sourceJsonObject.TryGetPropertyValue(nodeName, out var _)) sourceJsonObject.Remove(nodeName);
 
-        return jsonObject.ToJsonString();
+        JsonObject jsonObject = JsonObject.Parse(nodeJson).NotNull().AsObject();
+        sourceJsonObject.Add(nodeName, jsonObject);
+
+        return sourceJsonObject.ToJsonString(JsonSerializerOptions);
+    }
+
+    public static string WrapNode(string sourceJson, string nodeName)
+    {
+        sourceJson.NotEmpty();
+        nodeName.NotEmpty();
+
+        JsonObject sourceJsonObject = JsonNode.Parse(sourceJson).NotNull().AsObject();
+
+        if (!sourceJsonObject.TryGetPropertyValue(nodeName, out var node)) throw new ArgumentException($"Cannot find nodeName={nodeName}");
+        sourceJsonObject.Remove(nodeName);
+
+        string nodeJson = node.NotNull().ToJsonString(JsonSerializerOptions).NotEmpty();
+        sourceJsonObject.Add(nodeName, nodeJson);
+
+        return sourceJsonObject.ToJsonString(JsonSerializerOptions);
     }
 }

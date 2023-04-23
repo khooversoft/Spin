@@ -55,9 +55,10 @@ public class DocumentBuilder
 
     public Document Build()
     {
-        DocumentId.NotNull(name: "required");
-        TypeName.NotEmpty(name: "required");
-        Content.NotEmpty(name: "required");
+        const string msg = "required";
+        DocumentId.NotNull(name: msg);
+        TypeName.NotEmpty(name: msg);
+        Content.NotEmpty(name: msg);
 
         return new Document
         {

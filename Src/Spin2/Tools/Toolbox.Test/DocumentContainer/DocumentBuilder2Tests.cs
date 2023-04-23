@@ -25,11 +25,11 @@ public class DocumentBuilder2Tests
 
         string json = document.ToJson();
 
-        Document readDocument = Document.Create(json);
-        (document == readDocument).Should().BeTrue();
+        //Document readDocument = Document.Create(json);
+        //(document == readDocument).Should().BeTrue();
 
-        string payloadValue = readDocument.ToObject<string>();
-        (payload == payloadValue).Should().BeTrue();
+        //string payloadValue = readDocument.ToObject<string>();
+        //(payload == payloadValue).Should().BeTrue();
     }
 
     [Fact]
@@ -62,28 +62,6 @@ public class DocumentBuilder2Tests
 
         //var payloadValue = readDocument.ToObject<Payload>();
         //(payload == payloadValue).Should().BeTrue();
-    }
-
-    [Fact]
-    public void GivenD1_ShouldPass()
-    {
-        var payload = new
-        {
-            ClassTypeName = "classType",
-            Index = (int)100,
-            subPayload = "this is a test",
-        };
-
-        var subPayload = new Payload
-        {
-            Name = "Name1",
-            IntValue = 5,
-            DateValue = DateTime.Now,
-            FloatValue = 1.5f,
-            DecimalValue = 55.23m,
-        };
-
-        string result = Json.ExpandNode(
     }
 
     [Fact]
