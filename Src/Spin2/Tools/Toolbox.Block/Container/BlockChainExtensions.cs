@@ -11,21 +11,23 @@ public static class BlockChainExtensions
 {
     private const string _zipPath = "$block";
 
-    public static BlockChain Add<T>(this BlockChain blockChain, T value, string principleId, string? blockType = null) where T : class
+    public static string Add<T>(this BlockChain blockChain, T value, string principleId, string? blockType = null) where T : class
     {
         blockChain.NotNull();
         value.NotNull();
         principleId.NotEmpty();
         blockType.Assert(x => x == null | !x.IsEmpty(), $"{nameof(blockType)} cannot be empty, null is valid");
 
-        blockChain += new DataBlockBuilder()
+        DataBlock block = new DataBlockBuilder()
             .SetTimeStamp(DateTime.UtcNow)
             .SetBlockType(blockType ?? value.GetType().GetTypeName())
             .SetData(value)
             .SetPrincipleId(principleId)
             .Build();
 
-        return blockChain;
+        blockChain += block;
+
+        return block.BlockId;
     }
 
     public static IReadOnlyList<T> GetTypedBlocks<T>(this BlockChain blockChain) => blockChain.NotNull()

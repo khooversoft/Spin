@@ -5,10 +5,10 @@ using Toolbox.Tools;
 
 namespace Toolbox.Test.DocumentContainer;
 
-public class DocumentBuilder2Tests
+public class DocumentSerializationTests
 {
     [Fact]
-    public void GivenStringDocument_WillPass()
+    public void GivenStringDocument_WillRoundTrip()
     {
         var documentId = (DocumentId)"test/pass";
         string payload = "this is the payload";
@@ -23,13 +23,11 @@ public class DocumentBuilder2Tests
         document.TypeName.Should().Be("String");
         document.Content.Should().Be(payload);
 
-        string json = document.ToJson();
+        byte[] bytes = document.ToBytes();
 
-        //Document readDocument = Document.Create(json);
-        //(document == readDocument).Should().BeTrue();
+        Document resultDocument = bytes.ToDocument();
 
-        //string payloadValue = readDocument.ToObject<string>();
-        //(payload == payloadValue).Should().BeTrue();
+        (document == resultDocument).Should().BeTrue();
     }
 
     [Fact]
@@ -53,15 +51,13 @@ public class DocumentBuilder2Tests
             .Verify();
 
         document.Should().NotBeNull();
-        document.TypeName.Should().Be("Payload");
+        document.TypeName.Should().Be(typeof(Payload).Name);
 
-        string json = document.ToJson();
+        byte[] bytes = document.ToBytes();
 
-        //Document readDocument = Document.Create(json);
-        //(document == readDocument).Should().BeTrue();
+        Document resultDocument = bytes.ToDocument();
 
-        //var payloadValue = readDocument.ToObject<Payload>();
-        //(payload == payloadValue).Should().BeTrue();
+        (document == resultDocument).Should().BeTrue();
     }
 
     [Fact]

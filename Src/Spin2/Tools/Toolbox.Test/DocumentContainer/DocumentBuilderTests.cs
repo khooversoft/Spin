@@ -23,7 +23,7 @@ public class DocumentBuilderTests
 
         ((DocumentId)document.DocumentId).Id.Should().Be(documentId);
         document.Content.Should().Be(payload);
-        document.HashBase64.Should().NotBeNull();
+        document.ETag.Should().NotBeNull();
 
         document.IsHashVerify().Should().BeTrue();
         document.Verify();
@@ -48,7 +48,7 @@ public class DocumentBuilderTests
 
         ((DocumentId)readDocument.DocumentId).Id.Should().Be(documentId);
         readDocument.Content.Should().Be(payload);
-        readDocument.HashBase64.Should().NotBeNull();
+        readDocument.ETag.Should().NotBeNull();
 
         readDocument.IsHashVerify().Should().BeTrue();
         readDocument.Verify();

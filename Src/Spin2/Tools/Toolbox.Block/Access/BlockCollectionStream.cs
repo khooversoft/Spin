@@ -1,8 +1,8 @@
 ﻿using Toolbox.Block.Container;
 using Toolbox.Tools;
-using Toolbox.Types;
+using Toolbox.Types.Maybe;
 
-namespace Toolbox.Block.Document;
+namespace Toolbox.Block.Access;
 
 /// <summary>
 /// Provides multiple stream capability for block chains.
@@ -25,10 +25,10 @@ public class BlockCollectionStream
         _blockType = $"collection:{_streamName.NotEmpty()}";
     }
 
-    public BlockCollectionStream Add<T>(T value, string principleId) where T : class
+    public string Add<T>(T value, string principleId) where T : class
     {
-        _blockChain.Add(value, principleId, _blockType);
-        return this;
+        string blockId = _blockChain.Add(value, principleId, _blockType);
+        return blockId;
     }
 
     public Option<IReadOnlyList<T>> Get<T>() where T : class => _blockChain

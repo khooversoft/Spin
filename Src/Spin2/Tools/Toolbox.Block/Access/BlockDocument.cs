@@ -6,7 +6,7 @@ using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
 
-namespace Toolbox.Block.Document;
+namespace Toolbox.Block.Access;
 
 public class BlockDocument
 {

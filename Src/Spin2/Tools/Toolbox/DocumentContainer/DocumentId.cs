@@ -42,7 +42,7 @@ public sealed record DocumentId
 
     public static implicit operator DocumentId(string documentId) => new DocumentId(documentId);
 
-    public static explicit operator string(DocumentId documentId) => documentId.ToString();
+    public static implicit operator string(DocumentId documentId) => documentId.ToString();
 
     public static (bool IsValid, string? Message) IsDocumentIdValid(string documentId)
     {

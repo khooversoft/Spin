@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Toolbox.Tools;
+using Toolbox.Types.Maybe;
 
 namespace Toolbox.Types;
 

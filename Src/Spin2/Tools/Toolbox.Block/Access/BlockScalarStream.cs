@@ -1,8 +1,8 @@
 ﻿using Toolbox.Block.Container;
 using Toolbox.Tools;
-using Toolbox.Types;
+using Toolbox.Types.Maybe;
 
-namespace Toolbox.Block.Document;
+namespace Toolbox.Block.Access;
 
 /// <summary>
 /// Provides snapshot stream, last entry is current
@@ -33,6 +33,5 @@ public class BlockScalarStream
 
     public Option<T> Get<T>() where T : class => _blockChain
         .GetTypedBlocks<T>(_blockType)
-        .LastOrDefault()
-        .ToOption();
+        .LastOrDefaultOption();
 }

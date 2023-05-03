@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -12,7 +13,7 @@ public static class DocumentExtensions
 
         return document with
         {
-            HashBase64 = document.ComputeHash(),
+            ETag = document.ComputeHash(),
         };
     }
 
@@ -38,7 +39,7 @@ public static class DocumentExtensions
         document.NotNull();
 
         string hashBase64 = document.ComputeHash();
-        return document.HashBase64 == hashBase64;
+        return document.ETag == hashBase64;
     }
 
     public static T ToObject<T>(this Document document) => typeof(T) switch
@@ -47,18 +48,52 @@ public static class DocumentExtensions
         _ => Json.Default.Deserialize<T>(document.Content)!
     };
 
-    public static string ToJson(this Document subject)
+    public static byte[] ToBytes(this Document subject)
     {
-        subject.Verify();
+        subject.NotNull();
 
-        var jsonObject = JsonNode.Parse(Json.Default.Serialize(subject)).NotNull();
+        string subjectJson = subject.ToJson();
 
-        jsonObject[nameof(subject.Content)] = subject.TypeName switch
+        string json = subject.TypeName switch
         {
-            "String" => JsonValue.Create(subject.Content),
-            _ => JsonNode.Parse(subject.Content),
+            string v when typeof(string).Name == v => subjectJson,
+            _ => expand(),
         };
 
-        return jsonObject.ToJsonString();
+        return json.ToBytes();
+
+        string expand()
+        {
+            string nodeJson = subject.Content;
+            return Json.ExpandNode(subjectJson, "content", nodeJson);
+        }
+    }
+
+    public static Document ToDocument<T>(this Document subject) => subject.ToBytes().ToDocument();
+
+    public static Document ToDocument(this byte[] data)
+    {
+        const string nodeName = "typeName";
+        const string error = "serialization error";
+        data.NotNull();
+
+        string json = data.BytesToString();
+
+        JsonObject sourceJsonObject = JsonNode.Parse(json).NotNull().AsObject();
+        if (!sourceJsonObject.TryGetPropertyValue(nodeName, out var node)) throw new ArgumentException($"Cannot find nodeName={nodeName}");
+
+        string typeName = node.NotNull().ToJsonString(Json.JsonSerializerOptions).NotEmpty() switch
+        {
+            string v when v.Length >= 2 && v[0] == '"' && v[^1] == '"' => v[1..^1],
+            string v => v,
+        };
+
+        Document result = typeName switch
+        {
+            string v when typeof(string).Name == v => json.ToObject<Document>().NotNull(name: error),
+            _ => Json.WrapNode(json, "content").ToObject<Document>().NotNull(name: error),
+        };
+
+        return result;
     }
 }
