@@ -14,6 +14,7 @@ public class BankBroker
     private BankAccountSC _sc = null!;
     private string _path = null!;
     private string _principleId = null!;
+    private BankAccountSCActor _bankAccountSCActor = null!;
 
     public BankBroker(IMessageBroker messageBroker, ILogger<BankBroker> logger)
     {
@@ -22,7 +23,7 @@ public class BankBroker
     }
 
     // Path = {domain}/{resource}/{command}
-    public Task<BankBroker> Start(BankAccountSC sc, string path, string principleId, ScopeContext context)
+    public Task<BankBroker> Start(BankAccountSC sc, BankAccountSCActor bankAccountSCActor, string path, string principleId, ScopeContext context)
     {
         sc.NotNull();
         path.NotEmpty();
@@ -32,6 +33,7 @@ public class BankBroker
         _sc = sc;
         _path = path;
         _principleId = principleId;
+        _bankAccountSCActor = bankAccountSCActor;
 
         _messageBroker.AddRoute<PushTransfer, TransferResult>($"{_path}/push", PushCommand);
         _messageBroker.AddRoute<ApplyDeposit, TransferResult>($"{_path}/applyDeposit", ApplyDeposit);
@@ -74,7 +76,7 @@ public class BankBroker
 
         _logger.LogInformation("Sending command to toPath={toPath}, command={command}", command.ToPath, command.ToJsonPascal());
         TransferResult result = await _messageBroker.Send<ApplyDeposit, TransferResult>($"{command.ToPath}/applyDeposit", reqeust, context);
-        if (result.Status != OptionStatus.OK) return TransferResult.Error();
+        if (result.Status != StatusCode.OK) return TransferResult.Error();
 
         _logger.LogInformation(context.Location(), "Debit SC");
 
@@ -86,11 +88,12 @@ public class BankBroker
         };
 
         string blockId = _sc.AddLedger(ledger, _principleId);
+        await _bankAccountSCActor.Set(_sc, context);
 
         return TransferResult.Ok();
     }
 
-    public Task<TransferResult> ApplyDeposit(ApplyDeposit command, ScopeContext context)
+    public async Task<TransferResult> ApplyDeposit(ApplyDeposit command, ScopeContext context)
     {
         _sc.NotNull(name: "not initialized");
         command.Verify();
@@ -104,8 +107,9 @@ public class BankBroker
         };
 
         string blockId = _sc.AddLedger(ledger, _principleId);
+        await _bankAccountSCActor.Set(_sc, context);
 
-        return Task.FromResult(TransferResult.Ok());
+        return TransferResult.Ok();
     }
 
 }
@@ -114,11 +118,11 @@ public record TransferResult
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
     public DateTime Timestamp { get; init; } = DateTime.UtcNow;
-    public OptionStatus Status { get; init; }
+    public StatusCode Status { get; init; }
     public string Description { get; init; } = null!;
 
-    public static TransferResult Ok() => new TransferResult { Status = OptionStatus.OK };
-    public static TransferResult Error() => new TransferResult { Status = OptionStatus.BadRequest };
+    public static TransferResult Ok() => new TransferResult { Status = StatusCode.OK };
+    public static TransferResult Error() => new TransferResult { Status = StatusCode.BadRequest };
 }
 
 public record PushTransfer

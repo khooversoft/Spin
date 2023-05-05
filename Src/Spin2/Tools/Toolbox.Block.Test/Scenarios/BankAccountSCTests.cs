@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
+using Toolbox.Types;
 using Toolbox.Types.Maybe;
 
 namespace Toolbox.Block.Test.Scenarios;
@@ -31,20 +34,33 @@ public class BankAccountSCTests
 
     private const string _accountName = "accountName1";
     private const string _owner = "user@domain.com";
+    private const string _path = "default/bank1";
     private readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ScopeContext _context = new ScopeContext();
 
-    [Fact]
-    public void BankAcountCreationTest()
+    public BankAccountSCTests()
     {
-        CreateDocument();
+        _serviceProvider = new ServiceCollection()
+            .AddLogging()
+            .AddSingleton<BankAccountSCActor>()
+            .AddSingleton<IDocumentStore, DocumentStoreInMemory>()
+            .AddSingleton<DocumentLease>()
+            .BuildServiceProvider();
     }
 
     [Fact]
-    public BankAccountSC BankAccounModificationTest()
+    public async Task BankAcountCreationTest()
+    {
+        await CreateDocument();
+    }
+
+    [Fact]
+    public async Task<BankAccountSC> BankAccounModificationTest()
     {
         DateTime now = DateTime.UtcNow;
 
-        BankAccountSC sc = CreateDocument();
+        BankAccountSC sc = await CreateDocument();
 
         AccountMaster accountMaster = sc.GetAccountMaster();
 
@@ -64,15 +80,18 @@ public class BankAccountSCTests
 
         sc.GetBalance().Should().Be(GetDataBalance(_firstList));
 
+        var actor = _serviceProvider.GetRequiredService<BankAccountSCActor>();
+        await actor.Set(sc, _context);
+
         return sc;
     }
 
     [Fact]
-    public BankAccountSC BankAccounLedgerTest()
+    public async Task<BankAccountSC> BankAccounLedgerTest()
     {
         DateTime now = DateTime.UtcNow;
 
-        BankAccountSC sc = CreateDocument();
+        BankAccountSC sc = await CreateDocument();
 
         AccountMaster accountMaster = sc.GetAccountMaster();
 
@@ -103,9 +122,11 @@ public class BankAccountSCTests
         return sc;
     }
 
-    private BankAccountSC CreateDocument()
+    private async Task<BankAccountSC> CreateDocument()
     {
-        BankAccountSC sc = BankAccountSC.Create(_accountName, _owner);
+        var actor = _serviceProvider.GetRequiredService<BankAccountSCActor>();
+
+        BankAccountSC sc = await actor.Create((DocumentId)_path, _accountName, _owner, _context);
 
         _firstList.ForEach(x => sc.AddLedger(x.description, x.type, x.amount, _owner));
 
@@ -134,10 +155,14 @@ public class BankAccountSCTests
         sc.Sign();
         sc.Validate();
 
+        await actor.Set(sc, _context);
+
         return sc;
     }
 
     private decimal GetDataBalance(IEnumerable<(string description, LedgerType type, decimal amount)> values) => values
         .Select(x => x.type.NaturalAmount(x.amount))
         .Sum();
+
+
 }

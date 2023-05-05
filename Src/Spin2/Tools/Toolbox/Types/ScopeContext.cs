@@ -19,6 +19,8 @@ public readonly record struct ScopeContext
         Token = token;
     }
 
+    public static ScopeContext Default { get; } = new ScopeContext();
+
     public string TraceId { get; }
 
     [JsonIgnore]

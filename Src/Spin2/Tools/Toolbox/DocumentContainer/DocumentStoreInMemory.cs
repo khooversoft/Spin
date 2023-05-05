@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection.Metadata;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Logging;
@@ -10,11 +11,11 @@ namespace Toolbox.DocumentContainer;
 
 public interface IDocumentStore
 {
-    Task<OptionStatus> CreateIfNotExists(Document document, ScopeContext context);
-    Task<OptionStatus> Delete(string id, ScopeContext context, string? eTag = null, string? leaseId = null);
-    Task<Option> Exists(string id, ScopeContext context);
+    Task<StatusCode> CreateIfNotExists(Document document, ScopeContext context);
+    Task<StatusCode> Delete(string id, ScopeContext context, string? eTag = null, string? leaseId = null);
+    Task<StatusCode> Exists(string id, ScopeContext context);
     Task<Option<Document>> Get(string id, string? eTag = null);
-    Task<OptionStatus> Set(Document document, ScopeContext context, string? eTag = null, string? leaseId = null);
+    Task<StatusCode> Set(Document document, ScopeContext context, string? eTag = null, string? leaseId = null);
 }
 
 public class DocumentStoreInMemory : IDocumentStore
@@ -30,19 +31,19 @@ public class DocumentStoreInMemory : IDocumentStore
         _logger = logger.NotNull();
     }
 
-    public async Task<OptionStatus> CreateIfNotExists(Document document, ScopeContext context)
+    public async Task<StatusCode> CreateIfNotExists(Document document, ScopeContext context)
     {
         document.Verify();
 
         await _lock.WaitAsync();
         try
         {
-            if ((await Exists(document.DocumentId, context)) == OptionStatus.NotFound) return OptionStatus.NotFound;
+            if ((await Exists(document.DocumentId, context)) == StatusCode.NotFound) return StatusCode.NotFound;
 
             await InternalSet(document);
             _logger.LogInformation(context.Location(), "Created document id={documentId}", document.DocumentId);
 
-            return OptionStatus.OK.ToOption();
+            return StatusCode.OK.ToOption();
         }
         finally
         {
@@ -50,29 +51,20 @@ public class DocumentStoreInMemory : IDocumentStore
         }
     }
 
-    public async Task<OptionStatus> Delete(string id, ScopeContext context, string? eTag = null, string? leaseId = null)
+    public async Task<StatusCode> Delete(string id, ScopeContext context, string? eTag = null, string? leaseId = null)
     {
         id.NotEmpty();
 
         await _lock.WaitAsync();
         try
         {
-            if (_lease.IsLeased(id, leaseId))
-            {
-                _logger.LogWarning(context.Location(), "Locked id={id}", id);
-                return OptionStatus.Forbidden;
-            }
-
-            if (!(await IsEtagCurrent(id, eTag)))
-            {
-                _logger.LogWarning(context.Location(), "ETag conflict id={id}", id);
-                return OptionStatus.Conflict;
-            }
+            var status = await CanProceed(id, eTag, leaseId, context);
+            if (status.IsError()) return status;
 
             return _store.TryRemove(id, out _) switch
             {
-                true => OptionStatus.OK.Action(x => _logger.LogInformation(context.Location(), "Removed id={id}", id)),
-                false => OptionStatus.NotFound,
+                true => StatusCode.OK.Action(x => _logger.LogInformation(context.Location(), "Removed id={id}", id)),
+                false => StatusCode.NotFound,
             };
         }
         finally
@@ -81,10 +73,10 @@ public class DocumentStoreInMemory : IDocumentStore
         }
     }
 
-    public Task<Option> Exists(string id, ScopeContext context) => _store.ContainsKey(id) switch
+    public Task<StatusCode> Exists(string id, ScopeContext context) => _store.ContainsKey(id) switch
     {
-        false => Task.FromResult(new Option(OptionStatus.NotFound)),
-        true => Task.FromResult(new Option(OptionStatus.OK)),
+        false => Task.FromResult(StatusCode.NotFound),
+        true => Task.FromResult(StatusCode.OK),
     };
 
     public async Task<Option<Document>> Get(string id, string? eTag = null)
@@ -94,7 +86,7 @@ public class DocumentStoreInMemory : IDocumentStore
         await _lock.WaitAsync();
         try
         {
-            if (!(await IsEtagCurrent(id, eTag))) return new Option<Document>(OptionStatus.Conflict);
+            if (!(await IsEtagCurrent(id, eTag))) return new Option<Document>(StatusCode.Conflict);
 
             return await InternalGet(id);
         }
@@ -104,33 +96,41 @@ public class DocumentStoreInMemory : IDocumentStore
         }
     }
 
-    public async Task<OptionStatus> Set(Document document, ScopeContext context, string? eTag = null, string? leaseId = null)
+    public async Task<StatusCode> Set(Document document, ScopeContext context, string? eTag = null, string? leaseId = null)
     {
         document.Verify();
 
         await _lock.WaitAsync();
         try
         {
-            if (_lease.IsLeased(document.DocumentId, leaseId))
-            {
-                _logger.LogWarning(context.Location(), "Locked id={id}", document.DocumentId);
-                return OptionStatus.Forbidden;
-            }
-
-            if (!(await IsEtagCurrent(document.DocumentId, eTag)))
-            {
-                _logger.LogWarning(context.Location(), "ETag conflict id={id}", document.DocumentId);
-                return OptionStatus.Conflict;
-            }
+            var status = await CanProceed(document.DocumentId, eTag, leaseId, context);
+            if (status.IsError()) return status;
 
             await InternalSet(document);
 
-            return OptionStatus.OK;
+            return StatusCode.OK;
         }
         finally
         {
             _lock.Release();
         }
+    }
+
+    private async Task<StatusCode> CanProceed(string id, string? eTag, string? leaseId, ScopeContext context)
+    {
+        if (_lease.IsLeased(id, leaseId))
+        {
+            _logger.LogWarning(context.Location(), "Locked id={id}", id);
+            return StatusCode.Forbidden;
+        }
+
+        if (!(await IsEtagCurrent(id, eTag)))
+        {
+            _logger.LogWarning(context.Location(), "ETag conflict id={id}", id);
+            return StatusCode.Conflict;
+        }
+
+        return StatusCode.OK;
     }
 
     private async Task<bool> IsEtagCurrent(string id, string? eTag)
@@ -139,7 +139,7 @@ public class DocumentStoreInMemory : IDocumentStore
         {
             string e => await InternalGet(id) switch
             {
-                var o when o.StatusCode == OptionStatus.NotFound => true,
+                var o when o.StatusCode == StatusCode.NotFound => true,
                 var o when o.Return().ETag == e => true,
                 _ => false,
             },
@@ -150,7 +150,7 @@ public class DocumentStoreInMemory : IDocumentStore
 
     private Task<Option<Document>> InternalGet(string id) => _store.TryGetValue(id, out Payload result) switch
     {
-        false => Task.FromResult(OptionStatus.NotFound.ToOption<Document>()),
+        false => Task.FromResult(StatusCode.NotFound.ToOption<Document>()),
         _ => Task.FromResult(new Option<Document>(result.Data.ToDocument())),
     };
 

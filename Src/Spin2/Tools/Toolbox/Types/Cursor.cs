@@ -77,7 +77,7 @@ public class Cursor<T>
     public Option<T> NextValue()
     {
         bool hasValue = TryNextValue(out T? value);
-        return (hasValue, value!).ToOption();
+        return new Option<T>(hasValue, value);
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class Cursor<T>
     public Option<T> PeekValue()
     {
         bool hasValue = TryPeekValue(out T? value);
-        return (hasValue, value!).ToOption();
+        return new Option<T>(hasValue, value);
     }
 }
 

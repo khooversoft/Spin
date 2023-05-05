@@ -2,6 +2,7 @@
 using Toolbox.Block.Container;
 using Toolbox.Block.Serialization;
 using Toolbox.Block.Signature;
+using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
@@ -46,4 +47,9 @@ public class BlockDocument
     public static BlockDocument Create(byte[] zipData) => zipData
         .ToBlockChain()
         .Func(x => new BlockDocument(x));
+
+    public Document GetDocument(DocumentId documentId) => new DocumentBuilder()
+        .SetDocumentId(documentId)
+        .SetContent(_blockChain)
+        .Build();
 }

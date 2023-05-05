@@ -17,11 +17,9 @@ public static class OptionTExtensions
     };
 
     public static Option<T> ToOption<T>(this T? value) => new Option<T>(value);
-    public static Option<T> ToOption<T>(this T? value, OptionStatus statusCode) => new Option<T>(value, statusCode);
-    public static Option<T> ToOption<T>(this OptionStatus statusCode) => new Option<T>(statusCode);
-
-    public static Option<T> ToOption<T>(this (bool hasValue, OptionStatus statusCode, T value) value) => new Option<T>(value.hasValue, value.statusCode, value.value);
-    public static Option<T> ToOption<T>(this (bool hasValue, T value) value) => new Option<T>(value.hasValue, value.value);
+    public static Option<T> ToOption<T>(this T? value, StatusCode statusCode) => new Option<T>(value, statusCode);
+    public static Option<T> ToOption<T>(this StatusCode statusCode) => new Option<T>(statusCode);
+    public static Option<T> ToOption<T>(this IOption subject) => new Option<T>(subject.StatusCode);
 
     public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source)
     {
@@ -52,4 +50,10 @@ public static class OptionTExtensions
 
         return Option<T>.None;
     }
+
+    public static bool IsOk<T>(this Option<T> subject) => subject.StatusCode.IsOk();
+    public static bool IsNoContent<T>(this Option<T> subject) => subject.StatusCode.IsNoContent();
+    public static bool IsSuccess<T>(this Option<T> subject) => subject.StatusCode.IsSuccess();
+    public static bool IsError<T>(this Option<T> subject) => subject.StatusCode.IsError();
+    public static bool IsNotFound<T>(this Option<T> subject) => subject.StatusCode.IsNotFound();
 }

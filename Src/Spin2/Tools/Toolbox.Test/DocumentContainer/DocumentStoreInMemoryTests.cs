@@ -36,14 +36,14 @@ public class DocumentStoreInMemoryTests
 
         var lookupOption = await store.Get(document.DocumentId);
         lookupOption.HasValue.Should().BeFalse();
-        lookupOption.StatusCode.Should().Be(OptionStatus.NotFound);
+        lookupOption.StatusCode.Should().Be(StatusCode.NotFound);
 
-        OptionStatus putResult = await store.Set(document, context);
-        putResult.Should().Be(OptionStatus.OK);
+        StatusCode putResult = await store.Set(document, context);
+        putResult.Should().Be(StatusCode.OK);
 
         var readOption = await store.Get(document.DocumentId, document.ETag);
         readOption.HasValue.Should().BeTrue();
-        readOption.StatusCode.Should().Be(OptionStatus.OK);
+        readOption.StatusCode.Should().Be(StatusCode.OK);
 
         Document readDocument = readOption.Return();
         readDocument.IsHashVerify().Should().BeTrue();
@@ -54,7 +54,7 @@ public class DocumentStoreInMemoryTests
         (payload == readPayload).Should().BeTrue();
 
         var deleteResult = await store.Delete(document.DocumentId, context, eTag: document.ETag);
-        deleteResult.Should().Be(OptionStatus.OK);
+        deleteResult.Should().Be(StatusCode.OK);
     }
 
     [Fact]
@@ -87,13 +87,13 @@ public class DocumentStoreInMemoryTests
         foreach (var doc in documents)
         {
             var status = await store.Set(doc, context);
-            status.Should().Be(OptionStatus.OK);
+            status.Should().Be(StatusCode.OK);
         }
 
         foreach (var doc in documents)
         {
             Option<Document> result = await store.Get(doc.DocumentId, doc.ETag);
-            result.StatusCode.Should().Be(OptionStatus.OK);
+            result.StatusCode.Should().Be(StatusCode.OK);
             (result.Return() == doc).Should().BeTrue();
         }
     }
@@ -124,18 +124,18 @@ public class DocumentStoreInMemoryTests
 
         document.IsHashVerify().Should().BeTrue();
 
-        OptionStatus putResult = await store.Set(document, context);
-        putResult.Should().Be(OptionStatus.OK);
+        StatusCode putResult = await store.Set(document, context);
+        putResult.Should().Be(StatusCode.OK);
 
         var readOption = await store.Get(document.DocumentId, "bad");
         readOption.HasValue.Should().BeFalse();
-        readOption.StatusCode.Should().Be(OptionStatus.Conflict);
+        readOption.StatusCode.Should().Be(StatusCode.Conflict);
 
-        OptionStatus putResult2 = await store.Set(document, context, eTag: "bad");
-        putResult2.Should().Be(OptionStatus.Conflict);
+        StatusCode putResult2 = await store.Set(document, context, eTag: "bad");
+        putResult2.Should().Be(StatusCode.Conflict);
 
-        OptionStatus deleteResult = await store.Delete(document.DocumentId, context, eTag: "bad");
-        deleteResult.Should().Be(OptionStatus.Conflict);
+        StatusCode deleteResult = await store.Delete(document.DocumentId, context, eTag: "bad");
+        deleteResult.Should().Be(StatusCode.Conflict);
     }
 
 

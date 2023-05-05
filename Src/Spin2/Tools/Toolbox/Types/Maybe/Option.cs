@@ -1,28 +1,101 @@
-﻿namespace Toolbox.Types.Maybe;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
-public readonly struct Option : IEquatable<Option>
+namespace Toolbox.Types.Maybe;
+
+/// <summary>
+/// Option struct to prevent allocations
+/// 
+/// Rules:
+///     (1) struct (hasValue + value + StatusCode) must == default (i.e. all zeros)
+///     (2) HasValue marks if there is a value, null is HasValue == false
+/// 
+/// hasValue == true when value is provided
+/// Value is only valid when hasValue == true
+/// 
+/// </summary>
+/// <typeparam name="T"></typeparam>
+[DebuggerDisplay("HasValue={HasValue}, Value={Value}")]
+public readonly struct Option<T> : IOption, IEquatable<Option<T>>
 {
-    public Option() => StatusCode = OptionStatus.OK;
-    public Option(OptionStatus optionStatus)
+    [SetsRequiredMembers()]
+    public Option() : this(false, default!) { }
+
+    [SetsRequiredMembers()]
+    public Option(T? value)
     {
-        StatusCode = optionStatus;
+        (HasValue, StatusCode) = value switch
+        {
+            null => (false, StatusCode.NoContent),
+            _ => (true, StatusCode.OK),
+        };
+
+        Value = value!;
     }
 
-    public OptionStatus StatusCode { get; }
+    [SetsRequiredMembers()]
+    public Option(StatusCode statusCode)
+    {
+        StatusCode = statusCode;
 
-    public override int GetHashCode() => HashCode.Combine(StatusCode);
-    public override bool Equals(object? obj) => obj is Option option && option.StatusCode == StatusCode;
-    public bool Equals(Option other) => StatusCode == other.StatusCode;
+        HasValue = false;
+        Value = default!;
+    }
 
-    public static bool operator ==(Option left, Option right) => left.Equals(right);
-    public static bool operator !=(Option left, Option right) => !(left == right);
+    [SetsRequiredMembers()]
+    public Option(T? value, StatusCode statusCode)
+    {
+        HasValue = value switch
+        {
+            null => false,
+            _ => true,
+        };
 
-    public static implicit operator OptionStatus(Option other) => other.StatusCode;
-    public static implicit operator Option(OptionStatus value) => new Option(value);
-}
+        Value = value!;
+        StatusCode = statusCode;
+    }
 
+    [SetsRequiredMembers()]
+    public Option(bool hasValue, StatusCode statusCode, T value)
+    {
+        HasValue = hasValue;
+        Value = value;
+        StatusCode = statusCode;
+    }
 
-public static class OptionExtensions
-{
-    public static Option ToOption(this OptionStatus option) => new Option(option);
+    [SetsRequiredMembers()]
+    public Option(bool hasValue, T? value)
+    {
+        HasValue = hasValue;
+        Value = value!;
+        StatusCode = hasValue ? StatusCode.OK : StatusCode.NoContent;
+    }
+
+    public static Option<T> None { get; } = default;
+
+    public StatusCode StatusCode { get; }
+
+    public bool HasValue { get; }
+
+    public T Value { get; }
+
+    public override bool Equals(object? obj) =>
+        obj is Option<T> maybe &&
+        HasValue == maybe.HasValue &&
+        StatusCode == maybe.StatusCode &&
+        EqualityComparer<T>.Default.Equals(Value, maybe.Value);
+
+    public bool Equals(Option<T> obj) =>
+        obj is Option<T> maybe &&
+        HasValue == maybe.HasValue &&
+        StatusCode == maybe.StatusCode &&
+        EqualityComparer<T>.Default.Equals(Value, maybe.Value);
+
+    public override int GetHashCode() => HashCode.Combine(Value);
+
+    public static bool operator ==(Option<T> left, Option<T> right) => left.Equals(right);
+    public static bool operator !=(Option<T> left, Option<T> right) => !(left == right);
+
+    public static implicit operator T(Option<T> other) => other.HasValue ? other.Value : throw new ArgumentNullException("No value");
+    public static implicit operator Option<T>(T value) => new Option<T>(value);
 }

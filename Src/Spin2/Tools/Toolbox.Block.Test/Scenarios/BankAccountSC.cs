@@ -3,6 +3,7 @@ using Toolbox.Block.Access;
 using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Types.Maybe;
 
@@ -23,6 +24,24 @@ public class BankAccountSCActor
     {
         return Task.FromResult(new BankAccountSC(documentId, accountName, ownerPrincipleId).ToOption());
     }
+
+    public async Task<Option<BankAccountSC>> Get(DocumentId documentId, ScopeContext context)
+    {
+        Option<Document> oDocument = await _documentStore.Get(documentId);
+        if (oDocument.StatusCode.IsError()) return oDocument.ToOption<BankAccountSC>();
+
+        BlockDocument document = oDocument.Value.ToObject<BlockDocument>();
+        var sc = new BankAccountSC(document);
+
+        return new Option<BankAccountSC>(sc);
+    }
+
+    public async Task<StatusCode> Set(BankAccountSC sc, ScopeContext context)
+    {
+        Document document = sc.GetDocument();
+        var status = await _documentStore.Set(document, context, document.ETag);
+        return status;
+    }
 }
 
 
@@ -32,6 +51,15 @@ public class BankAccountSC
     private const string _itemLedgerText = "ItemLedger";
     private BlockDocument _document;
 
+    public BankAccountSC(BlockDocument document)
+    {
+        _document = document;
+
+        AccountMaster account = GetAccountMaster().Assert(x => x.IsSuccess(), "Cannot find account master");
+        DocumentId = account.DocumentId;
+        AccountName = account.AccountName;
+    }
+
     public BankAccountSC(DocumentId documentId, string accountName, string ownerPrincipleId)
     {
         _document = new BlockDocument(ownerPrincipleId);
@@ -39,12 +67,13 @@ public class BankAccountSC
         var model = new AccountMaster
         {
             AccountName = accountName,
+            DocumentId = documentId,
             OwnerPrincipleId = ownerPrincipleId
         };
 
         _document.GetScalar(_accountText).Add(model, ownerPrincipleId);
-        AccountName = accountName;
         DocumentId = documentId;
+        AccountName = accountName;
     }
 
     public DocumentId DocumentId { get; }
@@ -78,10 +107,7 @@ public class BankAccountSC
 
     public BankAccountSC Validate() => this.Action(x => _document.Validate());
 
-    public Document GetDocument() => new DocumentBuilder()
-        .SetDocumentId(this.DocumentId)
-        .SetContent(_document)
-        .Build();
+    public Document GetDocument() => _document.GetDocument(DocumentId);
 
     public Option<AccountMaster> GetAccountMaster() => _document
         .GetScalar(_accountText)
@@ -101,6 +127,7 @@ public class BankAccountSC
 public record AccountMaster
 {
     public string AccountName { get; init; } = null!;
+    public string DocumentId { get; init; } = null!;
     public string OwnerPrincipleId { get; init; } = null!;
     public DateTime? UpdateDate { get; init; } = null!;
     public int Counter { get; init; }
