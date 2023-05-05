@@ -11,7 +11,7 @@ public class BankBroker
 {
     private readonly IMessageBroker _messageBroker;
     private readonly ILogger<BankBroker> _logger;
-    private BankAccountSC _sc = null!;
+    private BankAccountBlock _sc = null!;
     private string _path = null!;
     private string _principleId = null!;
     private BankAccountSCActor _bankAccountSCActor = null!;
@@ -23,7 +23,7 @@ public class BankBroker
     }
 
     // Path = {domain}/{resource}/{command}
-    public Task<BankBroker> Start(BankAccountSC sc, BankAccountSCActor bankAccountSCActor, string path, string principleId, ScopeContext context)
+    public Task<BankBroker> Start(BankAccountBlock sc, BankAccountSCActor bankAccountSCActor, string path, string principleId, ScopeContext context)
     {
         sc.NotNull();
         path.NotEmpty();

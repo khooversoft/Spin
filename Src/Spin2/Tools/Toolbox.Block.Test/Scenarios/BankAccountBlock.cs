@@ -1,57 +1,20 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Block.Access;
+﻿using Toolbox.Block.Access;
 using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
-using Toolbox.Types;
 using Toolbox.Types.Maybe;
 
 namespace Toolbox.Block.Test.Scenarios;
 
-public class BankAccountSCActor
-{
-    private readonly IDocumentStore _documentStore;
-    private readonly ILogger<BankAccountSCActor> _logger;
 
-    public BankAccountSCActor(IDocumentStore documentStore, ILogger<BankAccountSCActor> logger)
-    {
-        _documentStore = documentStore;
-        _logger = logger;
-    }
-
-    public Task<Option<BankAccountSC>> Create(DocumentId documentId, string accountName, string ownerPrincipleId, ScopeContext context)
-    {
-        return Task.FromResult(new BankAccountSC(documentId, accountName, ownerPrincipleId).ToOption());
-    }
-
-    public async Task<Option<BankAccountSC>> Get(DocumentId documentId, ScopeContext context)
-    {
-        Option<Document> oDocument = await _documentStore.Get(documentId);
-        if (oDocument.StatusCode.IsError()) return oDocument.ToOption<BankAccountSC>();
-
-        BlockDocument document = oDocument.Value.ToObject<BlockDocument>();
-        var sc = new BankAccountSC(document);
-
-        return new Option<BankAccountSC>(sc);
-    }
-
-    public async Task<StatusCode> Set(BankAccountSC sc, ScopeContext context)
-    {
-        Document document = sc.GetDocument();
-        var status = await _documentStore.Set(document, context, document.ETag);
-        return status;
-    }
-}
-
-
-public class BankAccountSC
+public class BankAccountBlock
 {
     private const string _accountText = "AccountMaster";
     private const string _itemLedgerText = "ItemLedger";
     private BlockDocument _document;
 
-    public BankAccountSC(BlockDocument document)
+    public BankAccountBlock(BlockDocument document)
     {
         _document = document;
 
@@ -60,7 +23,7 @@ public class BankAccountSC
         AccountName = account.AccountName;
     }
 
-    public BankAccountSC(DocumentId documentId, string accountName, string ownerPrincipleId)
+    public BankAccountBlock(DocumentId documentId, string accountName, string ownerPrincipleId)
     {
         _document = new BlockDocument(ownerPrincipleId);
 
@@ -80,11 +43,11 @@ public class BankAccountSC
 
     public string AccountName { get; }
 
-    public BankAccountSC Add(PrincipalSignature principalSignature) => this.Action(x => _document.Add(principalSignature));
+    public BankAccountBlock Add(PrincipalSignature principalSignature) => this.Action(x => _document.Add(principalSignature));
 
-    public BankAccountSC Add(AccountMaster accountMaster, string principleId) => this.Action(x => _document.GetScalar(_accountText).Add(accountMaster, principleId));
+    public BankAccountBlock Add(AccountMaster accountMaster, string principleId) => this.Action(x => _document.GetScalar(_accountText).Add(accountMaster, principleId));
 
-    public BankAccountSC AddLedger(string description, LedgerType type, decimal amount, string principleId)
+    public BankAccountBlock AddLedger(string description, LedgerType type, decimal amount, string principleId)
     {
         var ledgerItem = new LedgerItem
         {
@@ -103,9 +66,9 @@ public class BankAccountSC
         return blockId;
     }
 
-    public BankAccountSC Sign() => this.Action(x => _document.Sign());
+    public BankAccountBlock Sign() => this.Action(x => _document.Sign());
 
-    public BankAccountSC Validate() => this.Action(x => _document.Validate());
+    public BankAccountBlock Validate() => this.Action(x => _document.Validate());
 
     public Document GetDocument() => _document.GetDocument(DocumentId);
 

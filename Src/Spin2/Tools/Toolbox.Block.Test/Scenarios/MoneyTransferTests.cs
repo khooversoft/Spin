@@ -33,16 +33,16 @@ public class MoneyTransferTests
             .AddLogging()
             .AddSingleton<IMessageBroker, MessageBrokerEmulator>()
             .AddSingleton<ITimeContext, TimeContext>()
+            .AddSingleton<IDocumentStore, DocumentStoreInMemory>()
             .AddTransient<BankBroker>()
             .AddSingleton<BankAccountSCActor>()
-            .AddSingleton<IDocumentStore, DocumentStoreInMemory>()
             .AddSingleton<DocumentLease>()
             .BuildServiceProvider();
 
         var actor = services.GetRequiredService<BankAccountSCActor>();
 
-        BankAccountSC bank1 = await CreateDocument("bank1", bank1Path, services);
-        BankAccountSC bank2 = await CreateDocument("bank2", bank2Path, services);
+        BankAccountBlock bank1 = await CreateDocument("bank1", bank1Path, services);
+        BankAccountBlock bank2 = await CreateDocument("bank2", bank2Path, services);
 
         var broker1 = await services.GetRequiredService<BankBroker>().Start(bank1, actor, bank1Path, _owner, ScopeContext.Default);
         var broker2 = await services.GetRequiredService<BankBroker>().Start(bank2, actor, bank2Path, _owner, ScopeContext.Default);
@@ -66,10 +66,10 @@ public class MoneyTransferTests
         balance2.Should().Be(100.00m);
     }
 
-    private async Task<BankAccountSC> CreateDocument(string accountName, string path, IServiceProvider serviceProvider)
+    private async Task<BankAccountBlock> CreateDocument(string accountName, string path, IServiceProvider serviceProvider)
     {
         var actor = serviceProvider.GetRequiredService<BankAccountSCActor>();
-        BankAccountSC sc = await actor.Create((DocumentId)path, accountName, _owner, ScopeContext.Default);
+        BankAccountBlock sc = await actor.Create((DocumentId)path, accountName, _owner, ScopeContext.Default);
 
         sc.Add(_ownerSignature);
         sc.Sign();
