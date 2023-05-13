@@ -62,7 +62,7 @@
 //    {
 //        DateTime now = DateTime.UtcNow;
 
-//        BankAccountBlock sc = await CreateDocument();
+        BankAccountSC sc = await CreateDocument();
 
 //        AccountMaster accountMaster = sc.GetAccountMaster();
 
@@ -88,12 +88,12 @@
 //        return sc;
 //    }
 
-//    [Fact]
-//    public async Task<BankAccountBlock> BankAccounLedgerTest()
-//    {
-//        DateTime now = DateTime.UtcNow;
+    [Fact]
+    public async Task<BankAccountSC> BankAccounLedgerTest()
+    {
+        DateTime now = DateTime.UtcNow;
 
-//        BankAccountBlock sc = await CreateDocument();
+        BankAccountSC sc = await CreateDocument();
 
 //        AccountMaster accountMaster = sc.GetAccountMaster();
 
@@ -124,11 +124,11 @@
 //        return sc;
 //    }
 
-//    private async Task<BankAccountBlock> CreateDocument()
-//    {
-//        var actor = _serviceProvider.GetRequiredService<BankAccountSCActor>();
+    private async Task<BankAccountSC> CreateDocument()
+    {
+        var actor = _serviceProvider.GetRequiredService<BankAccountSCActor>();
 
-//        BankAccountBlock sc = await actor.Create((DocumentId)_path, _accountName, _owner, _context);
+        BankAccountSC sc = await actor.Create((DocumentId)_path, _accountName, _owner, _context);
 
 //        _firstList.ForEach(x => sc.AddLedger(x.description, x.type, x.amount, _owner));
 
