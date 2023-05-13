@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Block.Test.Scenarios.Bank;
+using Toolbox.Block.Test.Scenarios.Bank.Models;
 using Toolbox.DocumentContainer;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
@@ -31,21 +33,22 @@ public class MoneyTransferTests
 
         var services = new ServiceCollection()
             .AddLogging()
-            .AddSingleton<IMessageBroker, MessageBrokerEmulator>()
-            .AddSingleton<ITimeContext, TimeContext>()
-            .AddTransient<BankBroker>()
-            .AddSingleton<BankAccountSCActor>()
-            .AddSingleton<IDocumentStore, DocumentStoreInMemory>()
-            .AddSingleton<DocumentLease>()
+            .AddBank()
             .BuildServiceProvider();
 
-        var actor = services.GetRequiredService<BankAccountSCActor>();
+        var host = services.GetRequiredService<BankHost>();
 
-        BankAccountSC bank1 = await CreateDocument("bank1", bank1Path, services);
-        BankAccountSC bank2 = await CreateDocument("bank2", bank2Path, services);
+        BankSC bank1 = await host.Create(bank1Path, "bank1", _owner).Return();
+        BankSC bank2 = await host.Create(bank2Path, "bank1", _owner).Return();
 
-        var broker1 = await services.GetRequiredService<BankBroker>().Start(bank1, actor, bank1Path, _owner, ScopeContext.Default);
-        var broker2 = await services.GetRequiredService<BankBroker>().Start(bank2, actor, bank2Path, _owner, ScopeContext.Default);
+        await host.Start(bank1, ScopeContext.Default);
+        await host.Start(bank2, ScopeContext.Default);
+
+        //BankAccountBlock bank1 = await CreateDocument("bank1", bank1Path, services);
+        //BankAccountBlock bank2 = await CreateDocument("bank2", bank2Path, services);
+
+        //var broker1 = await services.GetRequiredService<BankSC>().Start(bank1, host, bank1Path, _owner, ScopeContext.Default);
+        //var broker2 = await services.GetRequiredService<BankSC>().Start(bank2, host, bank2Path, _owner, ScopeContext.Default);
         var message = services.GetRequiredService<IMessageBroker>();
 
         var command = new PushTransfer
@@ -59,25 +62,25 @@ public class MoneyTransferTests
         result.Should().NotBeNull();
         result.Status.Should().Be(StatusCode.OK);
 
-        var balance1 = bank1.GetBalance();
-        var balance2 = bank2.GetBalance();
+        var balance1 = bank1.AccountBlock.GetBalance();
+        var balance2 = bank2.AccountBlock.GetBalance();
 
         balance1.Should().Be(-100.00m);
         balance2.Should().Be(100.00m);
     }
 
-    private async Task<BankAccountSC> CreateDocument(string accountName, string path, IServiceProvider serviceProvider)
-    {
-        var actor = serviceProvider.GetRequiredService<BankAccountSCActor>();
-        BankAccountSC sc = await actor.Create((DocumentId)path, accountName, _owner, ScopeContext.Default);
+    //private async Task<BankAccountBlock> CreateDocument(string accountName, string path, IServiceProvider serviceProvider)
+    //{
+    //    var actor = serviceProvider.GetRequiredService<BankAccountSCActor>();
+    //    BankAccountBlock sc = await actor.Create((DocumentId)path, accountName, _owner, ScopeContext.Default);
 
-        sc.Add(_ownerSignature);
-        sc.Sign();
-        sc.Validate();
+    //    sc.Add(_ownerSignature);
+    //    sc.Sign();
+    //    sc.Validate();
 
-        await actor.Set(sc, ScopeContext.Default);
+    //    await actor.Set(sc, ScopeContext.Default);
 
-        return sc;
-    }
+    //    return sc;
+    //}
 }
 

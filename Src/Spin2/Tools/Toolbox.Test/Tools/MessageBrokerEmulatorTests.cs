@@ -14,7 +14,7 @@ public class MessageBrokerEmulatorTests
         ScopeContext context = new();
         var broker = new MessageBrokerEmulator(NullLogger<MessageBrokerEmulator>.Instance);
 
-        broker.AddRoute<Message, int>("path", receiver);
+        broker.AddRoute<Message, int>("path", receiver, ScopeContext.Default);
 
         var msg = new Message
         {
@@ -42,7 +42,7 @@ public class MessageBrokerEmulatorTests
         Queue<Message> queue = new Queue<Message>();
         var broker = new MessageBrokerEmulator(NullLogger<MessageBrokerEmulator>.Instance);
 
-        broker.AddRoute<Message, bool>("path", receiver);
+        broker.AddRoute<Message, bool>("path", receiver, ScopeContext.Default);
 
         foreach (var item in Enumerable.Range(0, count))
         {

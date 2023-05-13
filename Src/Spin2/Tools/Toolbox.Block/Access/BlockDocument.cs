@@ -14,15 +14,28 @@ public class BlockDocument
     private readonly ConcurrentDictionary<string, PrincipalSignature> _signatures = new(StringComparer.OrdinalIgnoreCase);
     private BlockChain _blockChain;
 
-    public BlockDocument(BlockChain blockChain) => _blockChain = blockChain.NotNull();
-    public BlockDocument(string ownerPrincipleId)
+    public BlockDocument(BlockChain blockChain, DocumentId documentId, string? loadETag = null)
+    {
+        _blockChain = blockChain.NotNull();
+
+        DocumentId = documentId.NotNull();
+        LoadETag = loadETag;
+    }
+
+    public BlockDocument(string ownerPrincipleId, DocumentId documentId, string? loadETag = null)
     {
         ownerPrincipleId.NotEmpty();
 
         _blockChain = new BlockChainBuilder()
             .SetPrincipleId(ownerPrincipleId)
             .Build();
+
+        DocumentId = documentId.NotNull();
+        LoadETag = loadETag;
     }
+
+    public DocumentId DocumentId { get; }
+    public string? LoadETag { get; }
 
     public BlockDocument Add(PrincipalSignature signature) => this.Action(x => _signatures[signature.Kid] = signature.NotNull());
 
@@ -38,17 +51,17 @@ public class BlockDocument
 
     public byte[] ToZip() => _blockChain.ToZip();
 
-    public static BlockDocument Create(string json) => json
+    public static BlockDocument Create(string json, DocumentId documentId) => json
         .ToObject<BlockChainModel>()
         .NotNull(name: "Serialization error")
         .ToBlockChain()
-        .Func(x => new BlockDocument(x));
+        .Func(x => new BlockDocument(x, documentId));
 
-    public static BlockDocument Create(byte[] zipData) => zipData
+    public static BlockDocument Create(byte[] zipData, DocumentId documentId) => zipData
         .ToBlockChain()
-        .Func(x => new BlockDocument(x));
+        .Func(x => new BlockDocument(x, documentId));
 
-    public Document GetDocument(DocumentId documentId) => new DocumentBuilder()
+    public Document ToDocument(DocumentId documentId) => new DocumentBuilder()
         .SetDocumentId(documentId)
         .SetContent(_blockChain)
         .Build();

@@ -235,6 +235,6 @@ namespace Toolbox.Tools
         }
 
         [DebuggerStepThrough]
-        private static string FormatCaller(string function, string path, int lineNumber) => $"Function={function}, File={path}, LineNumber={lineNumber}";
+        public static string FormatCaller(string function, string path, int lineNumber) => $"Function={function}, File={path}, LineNumber={lineNumber}";
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Toolbox.Types.Maybe;
+namespace Toolbox.Types;
 
 public enum StatusCode
 {

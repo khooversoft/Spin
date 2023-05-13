@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Toolbox.Types;
 using Toolbox.Types.Maybe;
 
 namespace Toolbox.Test.Types;
 
-public class OptionStatusCodeTests
+public class StatusCodeTests
 {
     [Fact]
     public void UsingValueTypeRequestStatus()

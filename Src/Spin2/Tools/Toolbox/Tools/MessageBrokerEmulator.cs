@@ -9,7 +9,8 @@ namespace Toolbox.Tools;
 
 public interface IMessageBroker
 {
-    MessageBrokerEmulator AddRoute<TSend, TReturn>(string path, Func<TSend, ScopeContext, Task<TReturn>> forwardTo) where TReturn : notnull;
+    IMessageBroker AddRoute<TSend, TReturn>(string path, Func<TSend, ScopeContext, Task<TReturn>> forwardTo, ScopeContext context) where TReturn : notnull;
+    StatusCode RemoveRoute(string path, ScopeContext context);
     Task<TReturn> Send<TSend, TReturn>(string path, TSend message, ScopeContext context);
 }
 
@@ -25,7 +26,11 @@ public class MessageBrokerEmulator : IMessageBroker
     }
 
     [DebuggerStepThrough]
-    public MessageBrokerEmulator AddRoute<TSend, TReturn>(string path, Func<TSend, ScopeContext, Task<TReturn>> forwardTo) where TReturn : notnull
+    public IMessageBroker AddRoute<TSend, TReturn>(
+        string path, 
+        Func<TSend, ScopeContext, Task<TReturn>> forwardTo, 
+        ScopeContext context
+        ) where TReturn : notnull
     {
         path.NotEmpty();
         _routes[path] = new Register
@@ -36,10 +41,26 @@ public class MessageBrokerEmulator : IMessageBroker
             ForwardTo = async (x, c) => await forwardTo((TSend)x, c),
         };
 
-        _logger.LogInformation("Register route, path={path}", path);
+        _logger.LogInformation(context.Location(), "Register route, path={path}", path);
 
         return this;
     }
+
+    [DebuggerStepThrough]
+    public StatusCode RemoveRoute(string path, ScopeContext context)
+    {
+        path.NotEmpty();
+
+        _logger.LogInformation(context.Location(), "Removing route, path={path}", path);
+
+        return _routes.TryRemove(path, out _) switch
+        {
+            true => StatusCode.OK,
+            false => StatusCode.NotFound,
+        };
+    }
+
+
 
     [DebuggerStepThrough]
     public async Task<TReturn> Send<TSend, TReturn>(string path, TSend message, ScopeContext context)
