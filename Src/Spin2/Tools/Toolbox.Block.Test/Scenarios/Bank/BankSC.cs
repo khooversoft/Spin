@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Block.Contract;
 using Toolbox.Block.Test.Scenarios.Bank.Models;
 using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
@@ -11,13 +12,17 @@ namespace Toolbox.Block.Test.Scenarios.Bank;
 
 public class BankSC
 {
-    private readonly BankHost _host;
+    private readonly IContractHost _host;
     private readonly IMessageBroker _messageBroker;
     private readonly ILogger<BankSC> _logger;
     private readonly BankAccountBlock _accountBlock;
     private readonly string _ownerPrincipleId;
 
-    public BankSC(BankHost host, BankAccountBlock sc, IMessageBroker messageBroker, ILogger<BankSC> logger)
+    public BankSC(IContractHost host, DocumentId documentId, ILogger<BankSC> logger)
+    {
+    }
+
+    public BankSC(IContractHost host, BankAccountBlock sc, IMessageBroker messageBroker, ILogger<BankSC> logger)
     {
         _host = host;
         _accountBlock = sc;
@@ -57,7 +62,7 @@ public class BankSC
 
         _logger.LogInformation(context.Location(), "Sending command to toPath={toPath}, command={command}", command.ToPath, command.ToJsonPascal());
 
-        TransferResult result = await _messageBroker.Send<ApplyDeposit, TransferResult>($"{command.ToPath}/applyDeposit", reqeust, context);
+        TransferResult result = await _messageBroker.Call<ApplyDeposit, TransferResult>($"{command.ToPath}/applyDeposit", reqeust, context);
         if (result.Status != StatusCode.OK) return TransferResult.Error();
 
         _logger.LogInformation(context.Location(), "Debit SC");

@@ -11,7 +11,7 @@ public interface IMessageBroker
 {
     IMessageBroker AddRoute<TSend, TReturn>(string path, Func<TSend, ScopeContext, Task<TReturn>> forwardTo, ScopeContext context) where TReturn : notnull;
     StatusCode RemoveRoute(string path, ScopeContext context);
-    Task<TReturn> Send<TSend, TReturn>(string path, TSend message, ScopeContext context);
+    Task<TReturn> Call<TSend, TReturn>(string path, TSend message, ScopeContext context);
 }
 
 
@@ -63,7 +63,7 @@ public class MessageBrokerEmulator : IMessageBroker
 
 
     [DebuggerStepThrough]
-    public async Task<TReturn> Send<TSend, TReturn>(string path, TSend message, ScopeContext context)
+    public async Task<TReturn> Call<TSend, TReturn>(string path, TSend message, ScopeContext context)
     {
         path.NotEmpty();
         message.NotNull();

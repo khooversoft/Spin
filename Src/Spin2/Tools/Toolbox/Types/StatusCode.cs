@@ -39,7 +39,7 @@ public static class OptionStatusCodeExtensions
 
     public static bool IsNotFound(this StatusCode subject) => subject == StatusCode.NotFound;
 
-    public static StatusCode ToOptionStatusCode(this HttpStatusCode subject) => subject switch
+    public static StatusCode ToStatusCode(this HttpStatusCode subject) => subject switch
     {
         HttpStatusCode.NoContent => StatusCode.NoContent,
         HttpStatusCode.OK => StatusCode.OK,

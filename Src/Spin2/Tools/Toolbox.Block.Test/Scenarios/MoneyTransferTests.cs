@@ -58,7 +58,7 @@ public class MoneyTransferTests
             Amount = 100.00m,
         };
 
-        TransferResult result = await message.Send<PushTransfer, TransferResult>($"{bank1Path}/push", command, ScopeContext.Default);
+        TransferResult result = await message.Call<PushTransfer, TransferResult>($"{bank1Path}/push", command, ScopeContext.Default);
         result.Should().NotBeNull();
         result.Status.Should().Be(StatusCode.OK);
 

@@ -1,19 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Block.Access;
 using Toolbox.DocumentContainer;
+using Toolbox.Logging;
 using Toolbox.Tools;
-using Toolbox.Types.Maybe;
 using Toolbox.Types;
-using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Types.Maybe;
 
 namespace Toolbox.Block.Contract;
 
-public class ContractHost
+public interface IContractHost
+{
+    Task<Option<T>> Create<T>(DocumentId documentId, ScopeContext context) where T : IContract;
+    Task<Option<BlockDocument>> Get(DocumentId documentId, ScopeContext context);
+    Task<StatusCode> Set(BlockDocument document, DocumentId documentId, ScopeContext context);
+    Task Start(IContract sc, ScopeContext context);
+    Task Stop(IContract sc, ScopeContext context);
+}
+
+public class ContractHost : IContractHost
 {
     private readonly IMessageBroker _messageBroker;
     private readonly IDocumentStore _documentStore;
@@ -28,11 +33,21 @@ public class ContractHost
         _logger = logger.NotNull();
     }
 
-    public Task<Option<T>> Create<T>(DocumentId documentId,ScopeContext context)
+    public Task<Option<T>> Create<T>(DocumentId documentId, ScopeContext context)
         where T : IContract
     {
-        T sc = ActivatorUtilities.CreateInstance<T>(_service, this);
+        T sc = ActivatorUtilities.CreateInstance<T>(_service, (IContractHost)this, documentId);
         return Task.FromResult(sc.ToOption());
+    }
+
+    public async Task<Option<T>> Load<T>(DocumentId documentId, ScopeContext context)
+        where T : IContract
+    {
+        var oBlockDocument = await Get(documentId, context).ConfigureAwait(false);
+        if (oBlockDocument.IsError()) return oBlockDocument.ToOption<T>();
+
+        T sc = ActivatorUtilities.CreateInstance<T>(_service, (IContractHost)this, documentId, oBlockDocument.Return());
+        return sc;
     }
 
     public async Task<Option<BlockDocument>> Get(DocumentId documentId, ScopeContext context)
@@ -55,27 +70,17 @@ public class ContractHost
         return status;
     }
 
-    public Task Start(BankSC sc, ScopeContext context)
+    public async Task Start(IContract sc, ScopeContext context)
     {
         sc.NotNull();
-        _logger.LogInformation(context.Location(), "Starting, DocumentId={path}", sc.AccountBlock.DocumentId);
+        _logger.LogInformation(context.Location(), "Starting, DocumentId={path}", sc.DocumentId);
 
-        _messageBroker.AddRoute<PushTransfer, TransferResult>(GetPushPath(sc), sc.PushCommand, context);
-        _messageBroker.AddRoute<ApplyDeposit, TransferResult>(GetApplyDeplositPath(sc), sc.ApplyDeposit, context);
-
-        return Task.CompletedTask;
+        await sc.Start(context);
     }
 
-    public Task Stop(BankSC sc, ScopeContext context)
+    public async Task Stop(IContract sc, ScopeContext context)
     {
         sc.NotNull();
-        _messageBroker.RemoveRoute(GetPushPath(sc), context);
-        _messageBroker.RemoveRoute(GetApplyDeplositPath(sc), context);
-
-        return Task.CompletedTask;
+        await sc.Stop(context);
     }
-
-    private static string GetPushPath(BankSC sc) => $"{sc.AccountBlock.DocumentId}/push";
-    private static string GetApplyDeplositPath(BankSC sc) => $"{sc.AccountBlock.DocumentId}/applyDeposit";
-
 }

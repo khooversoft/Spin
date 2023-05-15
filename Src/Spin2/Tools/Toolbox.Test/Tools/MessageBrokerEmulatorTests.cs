@@ -21,7 +21,7 @@ public class MessageBrokerEmulatorTests
             Data = "Data1",
         };
 
-        int status = await broker.Send<Message, int>("path", msg, context);
+        int status = await broker.Call<Message, int>("path", msg, context);
         status.Should().Be(1);
 
         queue.Count.Should().Be(1);
@@ -51,7 +51,7 @@ public class MessageBrokerEmulatorTests
                 Data = $"Data1-{item}",
             };
 
-            bool status = await broker.Send<Message, bool>("path", msg, context);
+            bool status = await broker.Call<Message, bool>("path", msg, context);
         }
 
         queue.Count.Should().Be(count);
