@@ -1,6 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
+using Toolbox.Types;
+using Toolbox.Logging;
 
 namespace Toolbox.Extensions;
 
@@ -16,13 +19,43 @@ public static class ObjectExtensions
 
     public static string ToJson<T>(this T subject) => Json.Default.Serialize(subject);
 
-    public static string ToSafeJson<T>(this T subject)
+    public static string ToSafeJson<T>(this T subject, ScopeContext context)
     {
-        try { return Json.Default.Serialize(subject); }
-        catch { return "<serialzation failed>"; }
+        try 
+        {
+            return subject switch
+            {
+                null => string.Empty,
+                string v => v,
+                var v => Json.Default.Serialize(v.ToJsonPascal()),
+            };
+        }
+        catch(Exception ex)
+        {
+            context.Logger?.LogError(context.Location(), ex, "Json serialzation error");
+            return string.Empty;
+        }
     }
 
     public static string ToJsonPascal<T>(this T subject) => Json.Default.SerializePascal(subject);
+    
+    public static string? ToJsonPascalSafe<T>(this T subject, ScopeContext context)
+    {
+        try
+        {
+            return subject switch
+            {
+                null => string.Empty,
+                string v => v,
+                var v => v.ToJsonPascal(),
+            };
+        }
+        catch (Exception ex)
+        {
+            context.Logger?.LogError(context.Location(), ex, "Json serialzation error");
+            return string.Empty;
+        }
+    }
 
     public static T? ToObject<T>(this string json)
     {

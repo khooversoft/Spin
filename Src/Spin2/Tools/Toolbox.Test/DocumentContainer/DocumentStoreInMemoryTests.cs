@@ -11,10 +11,10 @@ public class DocumentStoreInMemoryTests
     [Fact]
     public async Task SingleDocumentRoundtrip()
     {
-        DocumentId documentId = (DocumentId)"test/document1";
+        ObjectId documentId = (ObjectId)"test/document1";
 
-        var lease = new DocumentLease(new TimeContext(), NullLogger<DocumentLease>.Instance);
-        var store = new DocumentStoreInMemory(lease, NullLogger<DocumentStoreInMemory>.Instance);
+        var lease = new DocumentObjectLease(new TimeContext(), NullLogger<DocumentObjectLease>.Instance);
+        var store = new InMemoryStore(lease, NullLogger<InMemoryStore>.Instance);
         var context = new ScopeContext();
 
         var payload = new Payload
@@ -34,14 +34,14 @@ public class DocumentStoreInMemoryTests
 
         document.IsHashVerify().Should().BeTrue();
 
-        var lookupOption = await store.Get(document.DocumentId);
+        var lookupOption = await store.Get(document.ObjectId);
         lookupOption.HasValue.Should().BeFalse();
         lookupOption.StatusCode.Should().Be(StatusCode.NotFound);
 
         StatusCode putResult = await store.Set(document, context);
         putResult.Should().Be(StatusCode.OK);
 
-        var readOption = await store.Get(document.DocumentId, document.ETag);
+        var readOption = await store.Get(document.ObjectId, document.ETag);
         readOption.HasValue.Should().BeTrue();
         readOption.StatusCode.Should().Be(StatusCode.OK);
 
@@ -53,7 +53,7 @@ public class DocumentStoreInMemoryTests
 
         (payload == readPayload).Should().BeTrue();
 
-        var deleteResult = await store.Delete(document.DocumentId, context, eTag: document.ETag);
+        var deleteResult = await store.Delete(document.ObjectId, context, eTag: document.ETag);
         deleteResult.Should().Be(StatusCode.OK);
     }
 
@@ -62,8 +62,8 @@ public class DocumentStoreInMemoryTests
     {
         const int count = 10;
 
-        var lease = new DocumentLease(new TimeContext(), NullLogger<DocumentLease>.Instance);
-        var store = new DocumentStoreInMemory(lease, NullLogger<DocumentStoreInMemory>.Instance);
+        var lease = new DocumentObjectLease(new TimeContext(), NullLogger<DocumentObjectLease>.Instance);
+        var store = new InMemoryStore(lease, NullLogger<InMemoryStore>.Instance);
         var context = new ScopeContext();
 
         var payloads = Enumerable.Range(0, count)
@@ -78,7 +78,7 @@ public class DocumentStoreInMemoryTests
 
         var documents = payloads
             .Select(x => new DocumentBuilder()
-                .SetDocumentId((DocumentId)x.DocumentId)
+                .SetDocumentId((ObjectId)x.DocumentId)
                 .SetContent(x)
                 .Build()
                 .Verify()
@@ -92,7 +92,7 @@ public class DocumentStoreInMemoryTests
 
         foreach (var doc in documents)
         {
-            Option<Document> result = await store.Get(doc.DocumentId, doc.ETag);
+            Option<Document> result = await store.Get(doc.ObjectId, doc.ETag);
             result.StatusCode.Should().Be(StatusCode.OK);
             (result.Return() == doc).Should().BeTrue();
         }
@@ -101,10 +101,10 @@ public class DocumentStoreInMemoryTests
     [Fact]
     public async Task ETagFailDocument()
     {
-        DocumentId documentId = (DocumentId)"test/document1";
+        ObjectId documentId = (ObjectId)"test/document1";
 
-        var lease = new DocumentLease(new TimeContext(), NullLogger<DocumentLease>.Instance);
-        var store = new DocumentStoreInMemory(lease, NullLogger<DocumentStoreInMemory>.Instance);
+        var lease = new DocumentObjectLease(new TimeContext(), NullLogger<DocumentObjectLease>.Instance);
+        var store = new InMemoryStore(lease, NullLogger<InMemoryStore>.Instance);
         var context = new ScopeContext();
 
         var payload = new Payload
@@ -127,14 +127,14 @@ public class DocumentStoreInMemoryTests
         StatusCode putResult = await store.Set(document, context);
         putResult.Should().Be(StatusCode.OK);
 
-        var readOption = await store.Get(document.DocumentId, "bad");
+        var readOption = await store.Get(document.ObjectId, "bad");
         readOption.HasValue.Should().BeFalse();
         readOption.StatusCode.Should().Be(StatusCode.Conflict);
 
         StatusCode putResult2 = await store.Set(document, context, eTag: "bad");
         putResult2.Should().Be(StatusCode.Conflict);
 
-        StatusCode deleteResult = await store.Delete(document.DocumentId, context, eTag: "bad");
+        StatusCode deleteResult = await store.Delete(document.ObjectId, context, eTag: "bad");
         deleteResult.Should().Be(StatusCode.Conflict);
     }
 

@@ -11,9 +11,9 @@ namespace Toolbox.Block.Contract;
 
 public interface IContractHost
 {
-    Task<Option<T>> Create<T>(DocumentId documentId, ScopeContext context) where T : IContract;
-    Task<Option<BlockDocument>> Get(DocumentId documentId, ScopeContext context);
-    Task<StatusCode> Set(BlockDocument document, DocumentId documentId, ScopeContext context);
+    Task<Option<T>> Create<T>(ObjectId documentId, ScopeContext context) where T : IContract;
+    Task<Option<BlockDocument>> Get(ObjectId documentId, ScopeContext context);
+    Task<StatusCode> Set(BlockDocument document, ObjectId documentId, ScopeContext context);
     Task Start(IContract sc, ScopeContext context);
     Task Stop(IContract sc, ScopeContext context);
 }
@@ -21,11 +21,11 @@ public interface IContractHost
 public class ContractHost : IContractHost
 {
     private readonly IMessageBroker _messageBroker;
-    private readonly IDocumentStore _documentStore;
+    private readonly IInMemoryStore _documentStore;
     private readonly IServiceProvider _service;
     private readonly ILogger<ContractHost> _logger;
 
-    public ContractHost(IMessageBroker messageBroker, IDocumentStore documentStore, IServiceProvider service, ILogger<ContractHost> logger)
+    public ContractHost(IMessageBroker messageBroker, IInMemoryStore documentStore, IServiceProvider service, ILogger<ContractHost> logger)
     {
         _messageBroker = messageBroker.NotNull();
         _documentStore = documentStore.NotNull(); ;
@@ -33,14 +33,14 @@ public class ContractHost : IContractHost
         _logger = logger.NotNull();
     }
 
-    public Task<Option<T>> Create<T>(DocumentId documentId, ScopeContext context)
+    public Task<Option<T>> Create<T>(ObjectId documentId, ScopeContext context)
         where T : IContract
     {
         T sc = ActivatorUtilities.CreateInstance<T>(_service, (IContractHost)this, documentId);
         return Task.FromResult(sc.ToOption());
     }
 
-    public async Task<Option<T>> Load<T>(DocumentId documentId, ScopeContext context)
+    public async Task<Option<T>> Load<T>(ObjectId documentId, ScopeContext context)
         where T : IContract
     {
         var oBlockDocument = await Get(documentId, context).ConfigureAwait(false);
@@ -50,7 +50,7 @@ public class ContractHost : IContractHost
         return sc;
     }
 
-    public async Task<Option<BlockDocument>> Get(DocumentId documentId, ScopeContext context)
+    public async Task<Option<BlockDocument>> Get(ObjectId documentId, ScopeContext context)
     {
         Option<Document> oDocument = await _documentStore.Get(documentId);
         if (oDocument.StatusCode.IsError()) return oDocument.ToOption<BlockDocument>();
@@ -60,7 +60,7 @@ public class ContractHost : IContractHost
         return new Option<BlockDocument>(document);
     }
 
-    public async Task<StatusCode> Set(BlockDocument document, DocumentId documentId, ScopeContext context)
+    public async Task<StatusCode> Set(BlockDocument document, ObjectId documentId, ScopeContext context)
     {
         //document.Validate();
 

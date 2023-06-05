@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -12,10 +13,10 @@ public readonly record struct ScopeContext
         Token = token;
     }
 
-    public ScopeContext(string workId, CancellationToken? token = null)
+    public ScopeContext(string traceId, CancellationToken? token = null)
     {
-        workId.NotEmpty();
-        TraceId = workId;
+        traceId.NotEmpty();
+        TraceId = traceId;
         Token = token;
     }
 
@@ -25,11 +26,17 @@ public readonly record struct ScopeContext
 
     [JsonIgnore]
     public CancellationToken? Token { get; init; }
+    public bool IsCancellationRequested => Token?.IsCancellationRequested ?? false;
+
+    [JsonIgnore]
+    public ILogger? Logger { get; init; }
 
     public ScopeContextLocation Location([CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
     {
         return new ScopeContextLocation(this, new CodeLocation(function, path, lineNumber));
     }
+
+    public static implicit operator CancellationToken(ScopeContext context) => context.Token ?? default;
 }
 
 
@@ -41,6 +48,11 @@ public readonly record struct ScopeContextLocation
         Location = location;
     }
 
-    public ScopeContext Context { get; }
+    public ScopeContext Context { get; init; }
     public CodeLocation Location { get; }
+
+    public ScopeContextLocation With(ILogger logger) => this with
+    {
+        Context = this.Context with { Logger = logger },
+    };
 }

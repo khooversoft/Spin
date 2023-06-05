@@ -6,13 +6,13 @@ using Toolbox.Types;
 
 namespace Toolbox.DocumentContainer;
 
-public class DocumentLease
+public class DocumentObjectLease
 {
     private readonly ITimeContext _timeContext;
-    private readonly ILogger<DocumentLease> _logger;
+    private readonly ILogger<DocumentObjectLease> _logger;
     private ConcurrentDictionary<string, Lease> _leases = new(StringComparer.OrdinalIgnoreCase);
 
-    public DocumentLease(ITimeContext timeContext, ILogger<DocumentLease> logger)
+    public DocumentObjectLease(ITimeContext timeContext, ILogger<DocumentObjectLease> logger)
     {
         _timeContext = timeContext;
         _logger = logger;

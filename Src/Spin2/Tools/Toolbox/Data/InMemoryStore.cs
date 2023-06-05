@@ -9,7 +9,7 @@ using Toolbox.Types.Maybe;
 
 namespace Toolbox.DocumentContainer;
 
-public interface IDocumentStore
+public interface IInMemoryStore
 {
     Task<StatusCode> CreateIfNotExists(Document document, ScopeContext context);
     Task<StatusCode> Delete(string id, ScopeContext context, string? eTag = null, string? leaseId = null);
@@ -18,14 +18,14 @@ public interface IDocumentStore
     Task<StatusCode> Set(Document document, ScopeContext context, string? eTag = null, string? leaseId = null);
 }
 
-public class DocumentStoreInMemory : IDocumentStore
+public class InMemoryStore : IInMemoryStore
 {
-    private readonly DocumentLease _lease;
-    private readonly ILogger<DocumentStoreInMemory> _logger;
+    private readonly DocumentObjectLease _lease;
+    private readonly ILogger<InMemoryStore> _logger;
     private ConcurrentDictionary<string, Payload> _store = new();
     private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
-    public DocumentStoreInMemory(DocumentLease lease, ILogger<DocumentStoreInMemory> logger)
+    public InMemoryStore(DocumentObjectLease lease, ILogger<InMemoryStore> logger)
     {
         _lease = lease.NotNull();
         _logger = logger.NotNull();
@@ -38,12 +38,12 @@ public class DocumentStoreInMemory : IDocumentStore
         await _lock.WaitAsync();
         try
         {
-            if ((await Exists(document.DocumentId, context)) == StatusCode.NotFound) return StatusCode.NotFound;
+            if ((await Exists(document.ObjectId, context)) == StatusCode.NotFound) return StatusCode.NotFound;
 
             await InternalSet(document);
-            _logger.LogInformation(context.Location(), "Created document id={documentId}", document.DocumentId);
+            _logger.LogInformation(context.Location(), "Created document id={documentId}", document.ObjectId);
 
-            return StatusCode.OK.ToOption();
+            return StatusCode.OK;
         }
         finally
         {
@@ -103,7 +103,7 @@ public class DocumentStoreInMemory : IDocumentStore
         await _lock.WaitAsync();
         try
         {
-            var status = await CanProceed(document.DocumentId, eTag, leaseId, context);
+            var status = await CanProceed(document.ObjectId, eTag, leaseId, context);
             if (status.IsError()) return status;
 
             await InternalSet(document);
@@ -163,7 +163,7 @@ public class DocumentStoreInMemory : IDocumentStore
             Data = bytes,
         };
 
-        _store[document.DocumentId] = payload;
+        _store[document.ObjectId] = payload;
 
         return Task.CompletedTask;
     }

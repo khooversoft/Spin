@@ -2,6 +2,7 @@
 using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Test.DocumentContainer;
 
@@ -10,7 +11,7 @@ public class DocumentSerializationTests
     [Fact]
     public void GivenStringDocument_WillRoundTrip()
     {
-        var documentId = (DocumentId)"test/pass";
+        var documentId = (ObjectId)"test/pass";
         string payload = "this is the payload";
 
         Document document = new DocumentBuilder()
@@ -33,7 +34,7 @@ public class DocumentSerializationTests
     [Fact]
     public void GivenClassDocument_WillPass()
     {
-        var documentId = (DocumentId)"test/pass";
+        var documentId = (ObjectId)"test/pass";
 
         var payload = new Payload
         {
@@ -63,7 +64,7 @@ public class DocumentSerializationTests
     [Fact]
     public void GivenDifferentPayloadTypes_Invalid_ShouldFail()
     {
-        var documentId = (DocumentId)"test/pass";
+        var documentId = (ObjectId)"test/pass";
 
         Action act = () => new DocumentBuilder().SetContent("payload".ToBytes());
         act.Should().NotThrow<ArgumentException>();

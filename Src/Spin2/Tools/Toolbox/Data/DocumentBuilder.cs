@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.DocumentContainer;
 
@@ -8,13 +9,13 @@ public class DocumentBuilder
 {
     public DocumentBuilder() { }
 
-    public DocumentId? DocumentId { get; set; }
+    public ObjectId? DocumentId { get; set; }
     public string? TypeName { get; set; }
     public string? Content { get; set; }
     public string? HashBase64 { get; set; }
     public string? Tags { get; set; }
 
-    public DocumentBuilder SetDocumentId(DocumentId value) => this.Action(x => x.DocumentId = value);
+    public DocumentBuilder SetDocumentId(ObjectId value) => this.Action(x => x.DocumentId = value);
     public DocumentBuilder SetHashBase64(string value) => this.Action(x => x.HashBase64 = value);
     public DocumentBuilder SetTags(params string[] value) => this.Action(x => x.Tags = value.Join(";"));
 
@@ -62,7 +63,7 @@ public class DocumentBuilder
 
         return new Document
         {
-            DocumentId = (string)DocumentId,
+            ObjectId = (string)DocumentId,
             TypeName = TypeName,
             Content = Content,
         }.WithHash();

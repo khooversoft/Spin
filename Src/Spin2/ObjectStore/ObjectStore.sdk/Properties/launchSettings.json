@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "ObjectStore.sdk": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53580;http://localhost:53581"
+    }
+  }
+}

@@ -4,6 +4,7 @@ using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
+using Toolbox.Types;
 using Toolbox.Types.Maybe;
 
 namespace Toolbox.Block.Test.Scenarios.Bank;
@@ -17,33 +18,9 @@ public class BankAccountBlock
     public BankAccountBlock(BlockDocument document)
     {
         _document = document;
-
-        //AccountMaster account = GetAccountMaster().Assert(x => x.IsSuccess(), "Cannot find account master");
-        //DocumentId = account.DocumentId;
-        //AccountName = account.AccountName;
     }
 
-    //public BankAccountBlock(DocumentId documentId, string accountName, string ownerPrincipleId)
-    //{
-    //    _document = new BlockDocument(ownerPrincipleId);
-
-    //    var model = new AccountMaster
-    //    {
-    //        AccountName = accountName,
-    //        DocumentId = documentId,
-    //        OwnerPrincipleId = ownerPrincipleId
-    //    };
-
-    //    _document.GetScalar(_accountText).Add(model, ownerPrincipleId);
-    //    DocumentId = documentId;
-    //    AccountName = accountName;
-    //}
-
-    public DocumentId DocumentId { get; }
-
-    public string AccountName { get; }
-
-    public BankAccountBlock Initialize(
+    public ObjectId DocumentId => _document.DocumentId;
 
     public BankAccountBlock Add(PrincipalSignature principalSignature) => this.Action(x => _document.Add(principalSignature));
 

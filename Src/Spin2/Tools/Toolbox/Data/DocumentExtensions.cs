@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -7,6 +6,10 @@ namespace Toolbox.DocumentContainer;
 
 public static class DocumentExtensions
 {
+    public static Document Verify(this Document subject) => DocumentValidator.Default.Verify(subject);
+    public static bool IsVerify(this Document subject) => DocumentValidator.Default.IsValid(subject);
+    public static IReadOnlyList<string> GetVerifyErrors(this Document subject) => DocumentValidator.Default.GetErrors(subject);
+
     public static Document WithHash(this Document document)
     {
         document.NotNull();
@@ -17,17 +20,9 @@ public static class DocumentExtensions
         };
     }
 
-    public static Document Verify(this Document document)
-    {
-        document.NotNull();
-        document.IsHashVerify().Assert("Document is not valid");
-
-        return document;
-    }
-
     public static string ComputeHash(this Document document) => new string?[]
     {
-        document.DocumentId,
+        document.ObjectId,
         document.TypeName,
         document.Content,
         document.Tags,
@@ -68,8 +63,6 @@ public static class DocumentExtensions
             return Json.ExpandNode(subjectJson, "content", nodeJson);
         }
     }
-
-    public static Document ToDocument<T>(this Document subject) => subject.ToBytes().ToDocument();
 
     public static Document ToDocument(this byte[] data)
     {
