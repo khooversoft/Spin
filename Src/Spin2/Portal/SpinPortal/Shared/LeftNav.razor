@@ -1,0 +1,16 @@
+﻿<MudDrawer @bind-Open="@_open" ClipMode="DrawerClipMode.Docked" Breakpoint="Breakpoint.Sm" Elevation="4" Variant="@DrawerVariant.Mini" PreserveOpenState=true>
+    <MudPaper Class="d-flex align-start gap-4" Style="padding:2px" Elevation="0">
+        <MudPaper Class="d-flex flex-1" Elevation=0 />
+        <MudPaper Class="d-flex flex-1" MaxWidth="10px" Elevation=0>
+            <MudIconButton Icon="@_menuBarIcon" Color="Color.Inherit" OnClick="@ToggleDrawer" Edge=Edge.Start Variant=Variant.Outlined
+                           DisableElevation=true Style="border:0;padding:0" Size="Size.Small" />
+        </MudPaper>
+    </MudPaper>
+    <MudNavMenu Color="Color.Inherit">
+        <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Store">Store</MudNavLink>
+        <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.LibraryBooks">Library</MudNavLink>
+        <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">Community</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+
+

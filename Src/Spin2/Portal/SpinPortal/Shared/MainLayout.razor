@@ -1,20 +1,24 @@
 ﻿@inherits LayoutComponentBase
 
-<PageTitle>SpinPortal</PageTitle>
+<MudThemeProvider Theme="_mudTheme" @bind-IsDarkMode=_isDarkMode />
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<PageTitle>Spin Portal</PageTitle>
 
-    <main>
-        <div class="top-row px-4 auth">
-            <LoginDisplay />
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+<MudLayout>
+    <MudAppBar Elevation="1" Style="background-color:#5A3751" Dense=true>
+        <MudIconButton Icon="@Icons.Material.Sharp.Apps" Color="Color.Inherit" Edge="Edge.Start" OnClick="@GoHome" />
+        <MudText Typo="Typo.h6">Spin Portal</MudText>
+        <MudSpacer />
+        @*<LoginDisplay />*@
+        <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" Color="Color.Inherit" Edge="Edge.Start" OnClick="ShowUserInfo" />
+        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Edge="Edge.Start" OnClick="ShowSettings" />
+    </MudAppBar>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    <LeftNav />
+    <Settings Show=_showSettings OnSetDark="x => _isDarkMode = x" />
+    <UserInfo Show=_showUserInfo />
+
+    <MudContainer Class="pt-15 px-4">
+        @Body
+    </MudContainer>
+</MudLayout>

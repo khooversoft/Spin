@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Azure.test", "Tools
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{FAC225B7-CD34-432D-A258-B04410197003}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinPortal", "Portal\SpinPortal\SpinPortal.csproj", "{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinPortal", "Portal\SpinPortal\SpinPortal.csproj", "{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

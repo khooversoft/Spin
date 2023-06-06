@@ -12,12 +12,15 @@
         }
         else
         {
-            <span>Hello, @(user.DisplayName)</span>
+            <MudButton Color="Color.Primary" Variant="Variant.Outlined"
+                       StartIcon=@Icons.Material.Outlined.PeopleAlt DisableElevation=true Style="text-transform: none;color:white;">
+                @(user.DisplayName)
+            </MudButton>
         }
         <a href="MicrosoftIdentity/Account/SignOut">Log out</a>
     </Authorized>
     <NotAuthorized>
-        <a href="MicrosoftIdentity/Account/SignIn">Log in</a>
+        <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt">Log In</MudIconButton>
     </NotAuthorized>
 </AuthorizeView>
 

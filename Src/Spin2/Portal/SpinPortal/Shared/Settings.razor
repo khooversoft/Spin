@@ -1,0 +1,16 @@
+﻿<MudDrawer @bind-Open=Show ClipMode="DrawerClipMode.Docked" Breakpoint="Breakpoint.Sm" Elevation="4" Variant=DrawerVariant.Persistent PreserveOpenState=true Anchor=Anchor.End>
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Settings</MudText>
+    </MudDrawerHeader>
+    <MudDivider DividerType="DividerType.Middle" />
+
+    <MudStack Spacing=2 class="px-4">
+        <MudNavMenu Color="Color.Inherit">
+            <MudSwitch Color="Color.Primary" Class="ma-4" T="bool" Label="Dark Mode" CheckedChanged=SetDarkMode />
+        </MudNavMenu>
+    </MudStack>
+</MudDrawer>
+
+
+
+
