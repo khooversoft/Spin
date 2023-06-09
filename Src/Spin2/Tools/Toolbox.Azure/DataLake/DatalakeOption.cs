@@ -2,6 +2,7 @@
 using Azure.Storage.Files.DataLake;
 using FluentValidation;
 using Toolbox.Azure.Identity;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Tools.Validation.Validators;
@@ -25,7 +26,9 @@ public static class DatalakeOptionExtensions
         .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
         .Build();
 
-    public static ValidatorResult<DatalakeOption> Validate(this DatalakeOption subject) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this DatalakeOption subject) => Validator.Validate(subject);
+
+    public static DatalakeOption Verify(this DatalakeOption subject) => subject.Action(x => x.Validate().ThrowOnError());
 
     public static DataLakeServiceClient CreateDataLakeServiceClient(this DatalakeOption subject)
     {

@@ -22,7 +22,7 @@ public static class ClientSecretOptionValidator
         .RuleFor(x => x.ClientSecret).NotEmpty()
         .Build();
 
-    public static ValidatorResult<ClientSecretOption> Validate(this ClientSecretOption subject) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this ClientSecretOption subject) => Validator.Validate(subject);
 
     public static TokenCredential ToTokenCredential(this ClientSecretOption subject) =>
         new ClientSecretCredential(subject.TenantId, subject.ClientId, subject.ClientSecret);

@@ -32,5 +32,5 @@ public static class DomainProfileOptionExtensions
         .RuleFor(x => x.ContainerName).NotEmpty()
         .Build();
 
-    public static ValidatorResult<DomainProfileOption> Validate(this DomainProfileOption subject) => _validator.Validate(subject);
+    public static ValidatorResult Validate(this DomainProfileOption subject) => _validator.Validate(subject);
 }

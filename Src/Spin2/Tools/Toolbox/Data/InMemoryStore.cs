@@ -32,7 +32,7 @@ public class InMemoryStore : IInMemoryStore
 
     public async Task<StatusCode> CreateIfNotExists(Document document, ScopeContext context)
     {
-        document.Validate().Verify();
+        document.Verify();
 
         await _lock.WaitAsync();
         try
@@ -97,7 +97,7 @@ public class InMemoryStore : IInMemoryStore
 
     public async Task<StatusCode> Set(Document document, ScopeContext context, string? eTag = null, string? leaseId = null)
     {
-        document.Validate().Verify();
+        document.Verify();
 
         await _lock.WaitAsync();
         try

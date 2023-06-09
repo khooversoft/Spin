@@ -12,6 +12,13 @@ public record TestOption
     public string AccountName { get; init; } = null!;
     public int Value { get; init; }
     public IReadOnlyList<string> ScalarValues { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<SubOption> SubOptions { get; init; } = Array.Empty<SubOption>();
+}
+
+public record SubOption
+{
+    public string Name { get; init; } = null!;
+    public int Value { get; init; }
 }
 
 public class ValidationTests
@@ -19,20 +26,26 @@ public class ValidationTests
     [Fact]
     public void TestValidationShouldPass()
     {
+        var subValidation = new Validator<SubOption>();
+        subValidation.RuleFor(x => x.Name).NotEmpty().Must(x => x.EndsWith("name"), x => $"{x} does not end with 'name'");
+        subValidation.RuleFor(x => x.Value).Must(x => x >= 0, x => $"{x} must >= 0");
+
         var validations = new Validator<TestOption>();
 
         validations.RuleFor(x => x.DomainName).NotEmpty();
         validations.RuleFor(x => x.AccountName).NotEmpty();
         validations.RuleFor(x => x.Value).Must(x => x == 1, _ => "must be one");
         validations.RuleFor(x => x.ScalarValues).NotNull();
-        //validations.RuleFor(x => x.ScalarValues).ForEach().NotEmpty();
+        validations.RuleForEach(x => x.ScalarValues).NotEmpty();
+        validations.RuleForEach(x => x.SubOptions).Validate(subValidation);
 
         var option = new TestOption
         {
             DomainName = "domain",
             AccountName = "accountName",
             Value = 1,
-            ScalarValues = Enumerable.Range(0, 5).Select(x => $"Item {x}").Append("").ToArray(),
+            ScalarValues = Enumerable.Range(0, 5).Select(x => $"Item {x}").ToArray(),
+            SubOptions = Enumerable.Range(0, 3).Select(x => new SubOption { Name = $"{x} name", Value = x }).ToArray(),
         };
 
         var result = validations.Validate(option);
@@ -91,7 +104,7 @@ public class ValidationTests
             result.Should().NotBeNull();
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-            result.Errors[0].Message.Should().Be("domain is required");
+            result.Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");
         });
 
         new TestOption
@@ -104,7 +117,7 @@ public class ValidationTests
             result.Should().NotBeNull();
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-            result.Errors[0].Message.Should().Be("accountName is required");
+            result.Errors[0].Cast<ValidatorError>().Message.Should().Be("accountName is required");
         });
 
         new TestOption
@@ -117,9 +130,8 @@ public class ValidationTests
             result.Should().NotBeNull();
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(2);
-            result.Errors[0].Message.Should().Be("domain is required");
-            result.Errors[1].Message.Should().Be("accountName is required");
+            result.Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");
+            result.Errors[1].Cast<ValidatorError>().Message.Should().Be("accountName is required");
         });
-
     }
 }

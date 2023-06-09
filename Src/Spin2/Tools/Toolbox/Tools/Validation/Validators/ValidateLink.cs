@@ -2,7 +2,7 @@
 
 namespace Toolbox.Tools.Validation.Validators;
 
-public class ValidateLink<T, TProperty> : IValidator<T>
+public class ValidateLink<T, TProperty> : IValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly Validator<TProperty> _validator;
@@ -12,10 +12,9 @@ public class ValidateLink<T, TProperty> : IValidator<T>
         _validator = validator.NotNull();
     }
 
-    public Option<IValidateResult> Validate(T subject)
+    public Option<IValidateResult> Validate(TProperty subject)
     {
-        var property = _rule.GetValue(subject);
-        return _validator.Validate(property);
+        return _validator.Validate(subject);
     }
 }
 

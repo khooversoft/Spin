@@ -3,7 +3,7 @@ using Toolbox.Types.Maybe;
 
 namespace Toolbox.Tools.Validation.Validators;
 
-public class NotEmpty<T> : IValidator<T>
+public class NotEmpty<T> : IValidator<string>
 {
     private readonly IPropertyRule<T, string> _rule;
     private readonly string _errorMessage;
@@ -14,9 +14,9 @@ public class NotEmpty<T> : IValidator<T>
         _errorMessage = errorMessage.NotEmpty();
     }
 
-    public Option<IValidateResult> Validate(T subject)
+    public Option<IValidateResult> Validate(string subject)
     {
-        return _rule.GetValue(subject).IsEmpty() switch
+        return subject.IsEmpty() switch
         {
             false => Option<IValidateResult>.None,
             true => _rule.CreateError(_errorMessage),

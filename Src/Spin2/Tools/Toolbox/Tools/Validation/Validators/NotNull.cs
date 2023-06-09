@@ -2,7 +2,7 @@
 
 namespace Toolbox.Tools.Validation.Validators;
 
-public class NotNull<T, TProperty> : IValidator<T>
+public class NotNull<T, TProperty> : IValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly string _errorMessage;
@@ -13,9 +13,9 @@ public class NotNull<T, TProperty> : IValidator<T>
         _errorMessage = errorMessage.NotEmpty();
     }
 
-    public Option<IValidateResult> Validate(T subject)
+    public Option<IValidateResult> Validate(TProperty subject)
     {
-        return _rule.GetValue(subject) switch
+        return subject switch
         {
             not null => Option<IValidateResult>.None,
             null => _rule.CreateError(_errorMessage),

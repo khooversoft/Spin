@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Tools.Validation.Validators;
 using Toolbox.Types;
@@ -26,27 +27,6 @@ public sealed record Document
     public override int GetHashCode() => HashCode.Combine(ObjectId, TypeName, Content, ETag, Tags);
 }
 
-//public class DocumentValidator : AbstractValidator<Document>
-//{
-//    public DocumentValidator()
-//    {
-//        RuleFor(x => x.ObjectId).NotEmpty()
-//            .Must(x => ObjectId.IsValid(x))
-//            .WithMessage($"Must match {ObjectId.Syntax}");
-
-//        RuleFor(x => x.TypeName).NotEmpty();
-//        RuleFor(x => x.Content).NotEmpty();
-
-//        RuleFor(x => x.ETag)
-//            .Must((x, p) => x.IsHashVerify())
-//            .When(x => x.ETag.IsNotEmpty())
-//            .WithMessage("ETag does not match");
-//    }
-
-//    public static DocumentValidator Default { get; } = new DocumentValidator();
-//}
-
-
 public static class DocumentValidationExtensions
 {
     public static Validator<Document> _validator = new Validator<Document>()
@@ -56,5 +36,7 @@ public static class DocumentValidationExtensions
         .RuleFor(x => x.ETag).NotNull()
         .Build();
 
-    public static ValidatorResult<Document> Validate(this Document subject) => _validator.Validate(subject);
+    public static ValidatorResult Validate(this Document subject) => _validator.Validate(subject);
+
+    public static Document Verify(this Document subject) => subject.Action(x => x.Validate().ThrowOnError());
 }

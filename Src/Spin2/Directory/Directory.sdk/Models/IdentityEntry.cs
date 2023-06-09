@@ -3,6 +3,7 @@ using Toolbox.Tools.Validation;
 using Toolbox.Tools.Validation.Validators;
 using Toolbox.Types;
 using Toolbox.Tools;
+using Toolbox.Extensions;
 
 namespace Directory.sdk.Models;
 
@@ -20,9 +21,9 @@ public record IdentityEntry
 }
 
 
-public static class IdentityEntryExtensions
+public static class IdentityEntryValidator
 {
-    public static Validator<IdentityEntry> _validator = new Validator<IdentityEntry>()
+    public static Validator<IdentityEntry> Validator = new Validator<IdentityEntry>()
         .RuleFor(x => x.DirectoryId).NotEmpty().Must(x => ObjectId.IsValid(x), x => $"{x} is not a valid ObjectId")
         .RuleFor(x => x.Subject).NotEmpty()
         .RuleFor(x => x.Version).NotEmpty()
@@ -30,5 +31,7 @@ public static class IdentityEntryExtensions
         .RuleFor(x => x.Properties).NotNull()
         .Build();
 
-    public static ValidatorResult<IdentityEntry> Validate(this IdentityEntry subject) => _validator.Validate(subject);
+    public static ValidatorResult Validate(this IdentityEntry subject) => Validator.Validate(subject);
+
+    public static IdentityEntry Verify(this IdentityEntry subject) => subject.Action(x => x.Validate().ThrowOnError());
 }

@@ -10,7 +10,7 @@ public class DocumentBuilderTests
     [Fact]
     public void Document_WhenConstructed_ShouldRoundTrip()
     {
-        const string documentId = "domain/service/a1";
+        const string documentId = "domain:service/a1";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
@@ -27,13 +27,13 @@ public class DocumentBuilderTests
         document.ETag.Should().NotBeNull();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Validate().Verify();
+        document.Verify();
     }
 
     [Fact]
     public void Document_WhenSerialized_ShouldRoundTrip()
     {
-        const string documentId = "domain/service/a1";
+        const string documentId = "domain:service/a1";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
@@ -52,13 +52,13 @@ public class DocumentBuilderTests
         readDocument.ETag.Should().NotBeNull();
 
         readDocument.IsHashVerify().Should().BeTrue();
-        readDocument.Validate().Verify();
+        readDocument.Verify();
     }
 
     [Fact]
     public void Document2_WhenConstructed_ShouldRoundTrip()
     {
-        const string documentId = "domain/service/a1";
+        const string documentId = "domain:service/a1";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
@@ -68,7 +68,7 @@ public class DocumentBuilderTests
         Document document = builder.Build();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Validate().Verify();
+        document.Verify();
 
         document.ToObject<string>().Should().Be(payload);
 
@@ -77,7 +77,7 @@ public class DocumentBuilderTests
             .SetDocumentId((ObjectId)documentId)
             .SetContent(payload)
             .Build()
-            .Validate().Verify();
+            .Verify();
 
         (document == doc2).Should().BeTrue();
     }
@@ -85,7 +85,7 @@ public class DocumentBuilderTests
     [Fact]
     public void DocumentWithProperties_WhenConstructed_ShouldRoundTrip()
     {
-        const string documentId = "domain/service/a1";
+        const string documentId = "domain:service/a1";
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
@@ -95,14 +95,14 @@ public class DocumentBuilderTests
         Document document = builder.Build();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Validate().Verify();
+        document.Verify();
         document.ToObject<string>().Should().Be(payload);
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((ObjectId)documentId)
             .SetContent(payload)
             .Build()
-            .Validate().Verify();
+            .Verify();
 
         (document == doc2).Should().BeTrue();
     }
@@ -110,7 +110,7 @@ public class DocumentBuilderTests
     [Fact]
     public void Class_WhenSerialized_ShouldRoundTrip()
     {
-        const string documentId = "domain/service/a1";
+        const string documentId = "domain:service/a1";
 
         var payload = new Payload
         {
@@ -125,14 +125,14 @@ public class DocumentBuilderTests
         Document document = builder.Build();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Validate().Verify();
+        document.Verify();
         document.ToObject<Payload>().Should().Be(payload);
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((ObjectId)documentId)
             .SetContent(payload)
             .Build()
-            .Validate().Verify();
+            .Verify();
 
         (document == doc2).Should().BeTrue();
     }

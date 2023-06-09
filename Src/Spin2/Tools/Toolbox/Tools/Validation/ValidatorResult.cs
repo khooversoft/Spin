@@ -5,21 +5,11 @@ namespace Toolbox.Tools.Validation;
 
 public interface IValidateResult { }
 
-public record ValidatorResult<T> : IValidateResult
+public record ValidatorResult : IValidateResult
 {
-    public IReadOnlyList<ValidatorError> Errors { get; init; } = Array.Empty<ValidatorError>();
+    public IReadOnlyList<IValidateResult> Errors { get; init; } = Array.Empty<IValidateResult>();
 
     public bool IsValid => Errors.Count == 0;
-
-    public T? Subject { get; set; }
-
-    public T Verify()
-    {
-        if (IsValid) return Subject.NotNull();
-
-        string msg = "Property errors: " + Errors.Select(x => x.ToString()).Join(", ");
-        throw new ArgumentException(msg);
-    }
 }
 
 
@@ -45,4 +35,21 @@ public static class ValidationErrorExtensions
             Message = message,
         };
     }
+
+    public static IReadOnlyList<ValidatorError> GetErrors(this ValidatorResult subject) => subject.Errors
+        .SelectMany(x => x switch
+        {
+            ValidatorError v => new[] { v },
+            ValidatorResult v => v.GetErrors(),
+
+            var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
+        })
+        .ToArray();
+
+    public static string FormatErrors(this IReadOnlyList<ValidatorError> subject) => subject
+        .Select(x => x.ToString())
+        .Join(", ");
+
+    public static void ThrowOnError(this ValidatorResult subject) => subject.NotNull()
+        .Assert(x => x.IsValid, x => $"Validation failed: Errors={x.GetErrors().FormatErrors()}");
 }

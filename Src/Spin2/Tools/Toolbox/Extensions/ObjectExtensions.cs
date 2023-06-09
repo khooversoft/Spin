@@ -20,7 +20,7 @@ public static class ObjectExtensions
 
     public static string ToSafeJson<T>(this T subject, ScopeContext context)
     {
-        try 
+        try
         {
             return subject switch
             {
@@ -29,7 +29,7 @@ public static class ObjectExtensions
                 var v => Json.Default.Serialize(v.ToJsonPascal()),
             };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             context.Logger?.LogError(context.Location(), ex, "Json serialzation error");
             return string.Empty;
@@ -37,7 +37,7 @@ public static class ObjectExtensions
     }
 
     public static string ToJsonPascal<T>(this T subject) => Json.Default.SerializePascal(subject);
-    
+
     public static string? ToJsonPascalSafe<T>(this T subject, ScopeContext context)
     {
         try
@@ -72,4 +72,16 @@ public static class ObjectExtensions
     /// <param name="subject">subject</param>
     /// <returns>json</returns>
     public static string ToJsonFormat<T>(this T subject) => Json.Default.SerializeFormat(subject);
+
+    /// <summary>
+    /// Simple cast
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="subject"></param>
+    /// <returns></returns>
+    public static T Cast<T>(this object? subject) => subject switch
+    {
+        null => default!,
+        var v => (T)v,
+    };
 }

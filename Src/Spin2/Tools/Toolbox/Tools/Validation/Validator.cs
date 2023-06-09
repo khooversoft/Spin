@@ -27,19 +27,37 @@ public class Validator<T>
         };
     }
 
-    public ValidatorResult<T> Validate(T subject)
+    public Rule<T, TProperty> RuleForEach<TProperty>(Expression<Func<T, IEnumerable<TProperty>>> expression)
     {
-        return new ValidatorResult<T>
-        {
-            Subject = subject,
+        MemberExpression expressionBody = (MemberExpression)expression.Body;
+        var propertyFunc = expression.Compile();
 
+        var propertyRule = new PropertyCollectionRule<T, TProperty>
+        {
+            Name = expressionBody.Member.Name,
+            GetValue = propertyFunc,
+        };
+
+        _rules.Add(propertyRule);
+
+        return new Rule<T, TProperty>
+        {
+            Validator = this,
+            PropertyRule = propertyRule
+        };
+    }
+
+    public ValidatorResult Validate(T subject)
+    {
+        return new ValidatorResult
+        {
             Errors = _rules
                 .SelectMany(x => x.Validate(subject) switch
                 {
                     var o when o.HasValue => o.Return() switch
                     {
                         ValidatorError v => new[] { v },
-                        ValidatorResult<T> v => v.Errors,
+                        ValidatorResult v => v.GetErrors(),
 
                         var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
                     },

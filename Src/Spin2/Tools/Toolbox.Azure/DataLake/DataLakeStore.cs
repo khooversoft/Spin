@@ -20,7 +20,7 @@ public class DatalakeStore : IDatalakeStore
 
     public DatalakeStore(DatalakeOption azureStoreOption, ILogger<DatalakeStore> logger)
     {
-        _azureStoreOption = azureStoreOption.Validate().Verify();
+        _azureStoreOption = azureStoreOption.Verify();
         _logger = logger.NotNull();
 
         _serviceClient = azureStoreOption.CreateDataLakeServiceClient();

@@ -11,7 +11,7 @@ public class DocumentStoreInMemoryTests
     [Fact]
     public async Task SingleDocumentRoundtrip()
     {
-        ObjectId documentId = (ObjectId)"test/document1";
+        ObjectId documentId = (ObjectId)"test:document1";
 
         var lease = new DocumentObjectLease(new TimeContext(), NullLogger<DocumentObjectLease>.Instance);
         var store = new InMemoryStore(lease, NullLogger<InMemoryStore>.Instance);
@@ -30,7 +30,7 @@ public class DocumentStoreInMemoryTests
             .SetDocumentId(documentId)
             .SetContent(payload)
             .Build()
-            .Validate().Verify();
+            .Verify();
 
         document.IsHashVerify().Should().BeTrue();
 
@@ -69,7 +69,7 @@ public class DocumentStoreInMemoryTests
         var payloads = Enumerable.Range(0, count)
             .Select(x => new Payload
             {
-                DocumentId = $"test/document{x}",
+                DocumentId = $"test:document{x}",
                 IntValue = x,
                 DateValue = DateTime.Now.AddDays(x),
                 FloatValue = x,
@@ -81,7 +81,7 @@ public class DocumentStoreInMemoryTests
                 .SetDocumentId((ObjectId)x.DocumentId)
                 .SetContent(x)
                 .Build()
-                .Validate().Verify()
+                .Verify()
             ).ToArray();
 
         foreach (var doc in documents)
@@ -101,7 +101,7 @@ public class DocumentStoreInMemoryTests
     [Fact]
     public async Task ETagFailDocument()
     {
-        ObjectId documentId = (ObjectId)"test/document1";
+        ObjectId documentId = (ObjectId)"test:document1";
 
         var lease = new DocumentObjectLease(new TimeContext(), NullLogger<DocumentObjectLease>.Instance);
         var store = new InMemoryStore(lease, NullLogger<InMemoryStore>.Instance);
@@ -120,7 +120,7 @@ public class DocumentStoreInMemoryTests
             .SetDocumentId(documentId)
             .SetContent(payload)
             .Build()
-            .Validate().Verify();
+            .Verify();
 
         document.IsHashVerify().Should().BeTrue();
 

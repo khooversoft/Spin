@@ -2,7 +2,7 @@
 
 namespace Toolbox.Tools.Validation.Validators;
 
-public class MustFunc<T, TProperty> : IValidator<T>
+public class MustFunc<T, TProperty> : IValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly Func<TProperty, Option<string>> _check;
@@ -13,9 +13,9 @@ public class MustFunc<T, TProperty> : IValidator<T>
         _check = check.NotNull();
     }
 
-    public Option<IValidateResult> Validate(T subject)
+    public Option<IValidateResult> Validate(TProperty subject)
     {
-        var result = _check(_rule.GetValue(subject));
+        var result = _check(subject);
 
         return result.HasValue switch
         {
@@ -26,7 +26,7 @@ public class MustFunc<T, TProperty> : IValidator<T>
 }
 
 
-public class MustTest<T, TProperty> : IValidator<T>
+public class MustTest<T, TProperty> : IValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly Func<TProperty, bool> _check;
@@ -39,16 +39,14 @@ public class MustTest<T, TProperty> : IValidator<T>
         _getMsg = getMsg.NotNull();
     }
 
-    public Option<IValidateResult> Validate(T subject)
+    public Option<IValidateResult> Validate(TProperty subject)
     {
-        TProperty value = _rule.GetValue(subject);
-
-        bool result = _check(value);
+        bool result = _check(subject);
 
         return result switch
         {
             true => Option<IValidateResult>.None,
-            false => _rule.CreateError(_getMsg(value)),
+            false => _rule.CreateError(_getMsg(subject)),
         };
     }
 }
