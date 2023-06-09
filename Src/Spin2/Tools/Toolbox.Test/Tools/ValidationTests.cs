@@ -1,0 +1,125 @@
+﻿using FluentAssertions;
+using Toolbox.Extensions;
+using Toolbox.Tools.Validation;
+using Toolbox.Tools.Validation.Validators;
+using Toolbox.Types.Maybe;
+
+namespace Toolbox.Test.Tools;
+
+public record TestOption
+{
+    public string DomainName { get; init; } = null!;
+    public string AccountName { get; init; } = null!;
+    public int Value { get; init; }
+    public IReadOnlyList<string> ScalarValues { get; init; } = Array.Empty<string>();
+}
+
+public class ValidationTests
+{
+    [Fact]
+    public void TestValidationShouldPass()
+    {
+        var validations = new Validator<TestOption>();
+
+        validations.RuleFor(x => x.DomainName).NotEmpty();
+        validations.RuleFor(x => x.AccountName).NotEmpty();
+        validations.RuleFor(x => x.Value).Must(x => x == 1, _ => "must be one");
+        validations.RuleFor(x => x.ScalarValues).NotNull();
+        //validations.RuleFor(x => x.ScalarValues).ForEach().NotEmpty();
+
+        var option = new TestOption
+        {
+            DomainName = "domain",
+            AccountName = "accountName",
+            Value = 1,
+            ScalarValues = Enumerable.Range(0, 5).Select(x => $"Item {x}").Append("").ToArray(),
+        };
+
+        var result = validations.Validate(option);
+        result.Should().NotBeNull();
+        result.IsValid.Should().BeTrue();
+        result.Errors.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public void TestValidationNotEmpty()
+    {
+        var validations = new Validator<TestOption>()
+            .RuleFor(x => x.DomainName).NotEmpty()
+            .RuleFor(x => x.AccountName).NotEmpty()
+            .RuleFor(x => x.Value).Must(x => x == 1, _ => "must be one")
+            .Build();
+
+        var option = new TestOption
+        {
+            DomainName = "domain",
+        };
+
+        var result = validations.Validate(option);
+        result.Should().NotBeNull();
+        result.IsValid.Should().BeFalse();
+        result.Errors.Count.Should().Be(2);
+    }
+
+    [Fact]
+    public void TestValidationMust()
+    {
+        var validations = new Validator<TestOption>()
+            .RuleFor(x => x.DomainName).NotEmpty().Must(x => x == "domain" ? Option<string>.None : "domain is required")
+            .RuleFor(x => x.AccountName).NotEmpty().Must(x => x == "accountName", _ => "accountName is required")
+            .Build();
+
+        new TestOption
+        {
+            DomainName = "domain",
+            AccountName = "accountName",
+        }.Action(x =>
+        {
+            var result = validations.Validate(x);
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeTrue();
+            result.Errors.Count.Should().Be(0);
+        });
+
+        new TestOption
+        {
+            DomainName = "domain-not",
+            AccountName = "accountName",
+        }.Action(x =>
+        {
+            var result = validations.Validate(x);
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Errors.Count.Should().Be(1);
+            result.Errors[0].Message.Should().Be("domain is required");
+        });
+
+        new TestOption
+        {
+            DomainName = "domain",
+            AccountName = "accountName-not",
+        }.Action(x =>
+        {
+            var result = validations.Validate(x);
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Errors.Count.Should().Be(1);
+            result.Errors[0].Message.Should().Be("accountName is required");
+        });
+
+        new TestOption
+        {
+            DomainName = "domain-not",
+            AccountName = "accountName-not",
+        }.Action(x =>
+        {
+            var result = validations.Validate(x);
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Errors.Count.Should().Be(2);
+            result.Errors[0].Message.Should().Be("domain is required");
+            result.Errors[1].Message.Should().Be("accountName is required");
+        });
+
+    }
+}

@@ -1,4 +1,4 @@
-﻿@using Microsoft.Identity.Web
+﻿@*@using Microsoft.Identity.Web
 @using Microsoft.Graph
 @inject Microsoft.Graph.GraphServiceClient GraphServiceClient
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
@@ -6,15 +6,16 @@
 
 <AuthorizeView>
     <Authorized>
-        @if (user == null)
+        @if (_user == null)
         {
             <span>Hello, @context.User.Identity?.Name!</span>
         }
         else
         {
+            <MudAvatar Color="Color.Warning" Variant="Variant.Filled">@GetInitials()</MudAvatar>
             <MudButton Color="Color.Primary" Variant="Variant.Outlined"
                        StartIcon=@Icons.Material.Outlined.PeopleAlt DisableElevation=true Style="text-transform: none;color:white;">
-                @(user.DisplayName)
+                @(_user.DisplayName)
             </MudButton>
         }
         <a href="MicrosoftIdentity/Account/SignOut">Log out</a>
@@ -25,17 +26,29 @@
 </AuthorizeView>
 
 @code {
-    User? user;
+    User? _user;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            user = await GraphServiceClient.Me.Request().GetAsync();
+            _user = await GraphServiceClient.Me.Request().GetAsync();
         }
         catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
         }
     }
+
+    private string GetInitials()
+    {
+        if (_user == null) return "U";
+
+        return _user.DisplayName.Split(' ') switch
+        {
+            var v when v.Length == 1 => v[0][0..1],
+            var v => v[0][0..1] + v[^1][0..1],
+        };
+    }
 }
+*@

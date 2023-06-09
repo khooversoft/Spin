@@ -2,7 +2,6 @@
 using System.Reflection.Metadata;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Types.Maybe;
@@ -33,7 +32,7 @@ public class InMemoryStore : IInMemoryStore
 
     public async Task<StatusCode> CreateIfNotExists(Document document, ScopeContext context)
     {
-        document.Verify();
+        document.Validate().Verify();
 
         await _lock.WaitAsync();
         try
@@ -98,7 +97,7 @@ public class InMemoryStore : IInMemoryStore
 
     public async Task<StatusCode> Set(Document document, ScopeContext context, string? eTag = null, string? leaseId = null)
     {
-        document.Verify();
+        document.Validate().Verify();
 
         await _lock.WaitAsync();
         try

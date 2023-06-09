@@ -1,22 +1,20 @@
 ﻿using Azure;
 using Microsoft.Extensions.Logging;
-using ObjectStore.sdk.Connectors;
 using Toolbox.Azure.DataLake;
 using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Types.Maybe;
 
-namespace ObjectStore.sdk.Api;
+namespace ObjectStore.sdk.Connectors;
 
-internal class ObjectStoreApi
+internal class ObjectStoreConnector
 {
-    private readonly ILogger<ObjectStoreApi> _logger;
+    private readonly ILogger<ObjectStoreConnector> _logger;
     private readonly ObjectStoreFactory _factory;
 
-    public ObjectStoreApi(ObjectStoreFactory factory, ILogger<ObjectStoreApi> logger)
+    public ObjectStoreConnector(ObjectStoreFactory factory, ILogger<ObjectStoreConnector> logger)
     {
         _factory = factory.NotNull();
         _logger = logger.NotNull();
@@ -24,7 +22,7 @@ internal class ObjectStoreApi
 
     public async Task<Option<ETag>> Write(Document document, ScopeContext context)
     {
-        if (!document.IsVerify()) return new Option<ETag>(StatusCode.BadRequest);
+        if (!document.Validate().IsValid) return new Option<ETag>(StatusCode.BadRequest);
 
         _logger.LogInformation(context.Location(), "Writing document objectId={objectId}", document.ObjectId);
 
@@ -44,11 +42,9 @@ internal class ObjectStoreApi
         if (store.IsError()) return store.ToOption<Document>();
 
         Option<DataETag> result = await store.Return().Read(path, context);
-        if(result.IsError()) return result.ToOption<Document>();
+        if (result.IsError()) return result.ToOption<Document>();
 
-        return result.Return().Data
-            .ToDocument()
-            .ToOption();
+        return result.Return().Data.ToDocument();
     }
 
     public async Task<StatusCode> Delete(ObjectId objectId, ScopeContext context)
@@ -60,5 +56,15 @@ internal class ObjectStoreApi
         if (store.IsError()) return store.StatusCode;
 
         return await store.Return().Delete(path, context);
+    }
+
+    public async Task<Option<IReadOnlyList<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context)
+    {
+        _logger.LogInformation(context.Location(), "Searching for queryParameter={queryParameter}", queryParameter);
+
+        Option<IDatalakeStore> store = _factory.Get(queryParameter.Domain.NotEmpty());
+        if (store.IsError()) return store.ToOption<IReadOnlyList<DatalakePathItem>>();
+
+        return await store.Return().Search(queryParameter, context);
     }
 }

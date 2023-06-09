@@ -1,6 +1,8 @@
 ﻿using Azure.Core;
 using Azure.Identity;
 using FluentValidation;
+using Toolbox.Tools.Validation;
+using Toolbox.Tools.Validation.Validators;
 
 namespace Toolbox.Azure.Identity;
 
@@ -11,32 +13,16 @@ public record ClientSecretOption
     public string ClientSecret { get; init; } = null!;
 }
 
-public class ClientSecretOptionValidator : AbstractValidator<ClientSecretOption>
+
+public static class ClientSecretOptionValidator
 {
-    public static ClientSecretOptionValidator Default { get; } = new ClientSecretOptionValidator();
+    public static Validator<ClientSecretOption> Validator = new Validator<ClientSecretOption>()
+        .RuleFor(x => x.TenantId).NotEmpty()
+        .RuleFor(x => x.ClientId).NotEmpty()
+        .RuleFor(x => x.ClientSecret).NotEmpty()
+        .Build();
 
-    public ClientSecretOptionValidator()
-    {
-        RuleFor(x => x.ClientId).NotEmpty();
-        RuleFor(x => x.TenantId).NotEmpty();
-        RuleFor(x => x.ClientSecret).NotEmpty();
-    }
-}
-
-
-public static class ClientSecretOptionExtensions
-{
-    public static void Verify(this ClientSecretOption subject) =>
-        ClientSecretOptionValidator.Default.ValidateAndThrow(subject);
-
-    public static bool IsVerify(this ClientSecretOption subject) =>
-        ClientSecretOptionValidator.Default.Validate(subject).IsValid;
-
-    public static IReadOnlyList<string> GetVerifyErrors(this ClientSecretOption subject) => ClientSecretOptionValidator.Default
-        .Validate(subject)
-        .Errors
-        .Select(x => x.ErrorMessage)
-        .ToArray();
+    public static ValidatorResult<ClientSecretOption> Validate(this ClientSecretOption subject) => Validator.Validate(subject);
 
     public static TokenCredential ToTokenCredential(this ClientSecretOption subject) =>
         new ClientSecretCredential(subject.TenantId, subject.ClientId, subject.ClientSecret);

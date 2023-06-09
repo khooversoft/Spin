@@ -1,5 +1,8 @@
 ﻿using Azure;
-using FluentValidation;
+using Toolbox.Tools.Validation;
+using Toolbox.Tools.Validation.Validators;
+using Toolbox.Types;
+using Toolbox.Tools;
 
 namespace Directory.sdk.Models;
 
@@ -17,29 +20,15 @@ public record IdentityEntry
 }
 
 
-public class IdentityEntryValidator : AbstractValidator<IdentityEntry>
-{
-    public static IdentityEntryValidator Default { get; } = new IdentityEntryValidator();
-
-    public IdentityEntryValidator()
-    {
-        RuleFor(x => x.DirectoryId).NotEmpty();
-        RuleFor(x => x.Subject).NotEmpty();
-        RuleFor(x => x.Version).NotEmpty();
-        RuleFor(x => x.PublicKey).NotNull();
-    }
-}
-
-
 public static class IdentityEntryExtensions
 {
-    public static void Verify(this IdentityEntry subject) => IdentityEntryValidator.Default.ValidateAndThrow(subject);
+    public static Validator<IdentityEntry> _validator = new Validator<IdentityEntry>()
+        .RuleFor(x => x.DirectoryId).NotEmpty().Must(x => ObjectId.IsValid(x), x => $"{x} is not a valid ObjectId")
+        .RuleFor(x => x.Subject).NotEmpty()
+        .RuleFor(x => x.Version).NotEmpty()
+        .RuleFor(x => x.PublicKey).NotNull()
+        .RuleFor(x => x.Properties).NotNull()
+        .Build();
 
-    public static bool IsVerify(this IdentityEntry subject) => IdentityEntryValidator.Default.Validate(subject).IsValid;
-
-    public static IReadOnlyList<string> GetVerifyErrors(this IdentityEntry subject) => IdentityEntryValidator.Default
-        .Validate(subject)
-        .Errors
-        .Select(x => x.ErrorMessage)
-        .ToArray();
+    public static ValidatorResult<IdentityEntry> Validate(this IdentityEntry subject) => _validator.Validate(subject);
 }

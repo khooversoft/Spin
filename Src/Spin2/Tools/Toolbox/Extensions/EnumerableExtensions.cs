@@ -157,4 +157,14 @@ public static class EnumerableExtensions
 
         if (hasValue) yield return save;
     }
+
+    /// <summary>
+    /// Collection with index to be used with ForEach(...)
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static IEnumerable<(T Item, int Index)> WithIndex<T>(this IEnumerable<T> source) => source
+        .NotNull()
+        .Select((item, index) => (item, index));
 }

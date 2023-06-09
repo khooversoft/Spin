@@ -6,10 +6,6 @@ namespace Toolbox.DocumentContainer;
 
 public static class DocumentExtensions
 {
-    public static Document Verify(this Document subject) => DocumentValidator.Default.Verify(subject);
-    public static bool IsVerify(this Document subject) => DocumentValidator.Default.IsValid(subject);
-    public static IReadOnlyList<string> GetVerifyErrors(this Document subject) => DocumentValidator.Default.GetErrors(subject);
-
     public static Document WithHash(this Document document)
     {
         document.NotNull();

@@ -1,7 +1,6 @@
-﻿using System.Text.Json.Nodes;
-using FluentValidation;
-using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Validation;
+using Toolbox.Tools.Validation.Validators;
 using Toolbox.Types;
 
 namespace Toolbox.DocumentContainer;
@@ -27,22 +26,35 @@ public sealed record Document
     public override int GetHashCode() => HashCode.Combine(ObjectId, TypeName, Content, ETag, Tags);
 }
 
-public class DocumentValidator : AbstractValidator<Document>
+//public class DocumentValidator : AbstractValidator<Document>
+//{
+//    public DocumentValidator()
+//    {
+//        RuleFor(x => x.ObjectId).NotEmpty()
+//            .Must(x => ObjectId.IsValid(x))
+//            .WithMessage($"Must match {ObjectId.Syntax}");
+
+//        RuleFor(x => x.TypeName).NotEmpty();
+//        RuleFor(x => x.Content).NotEmpty();
+
+//        RuleFor(x => x.ETag)
+//            .Must((x, p) => x.IsHashVerify())
+//            .When(x => x.ETag.IsNotEmpty())
+//            .WithMessage("ETag does not match");
+//    }
+
+//    public static DocumentValidator Default { get; } = new DocumentValidator();
+//}
+
+
+public static class DocumentValidationExtensions
 {
-    public DocumentValidator()
-    {
-        RuleFor(x => x.ObjectId).NotEmpty()
-            .Must(x => ObjectId.IsObjectIdValid(x).IsOk())
-            .WithMessage($"Must match {ObjectId.Syntax}");
+    public static Validator<Document> _validator = new Validator<Document>()
+        .RuleFor(x => x.ObjectId).NotEmpty().Must(x => ObjectId.IsValid(x), _ => $"not a valid ObjectId, syntax={ObjectId.Syntax}")
+        .RuleFor(x => x.TypeName).NotEmpty()
+        .RuleFor(x => x.Content).NotEmpty()
+        .RuleFor(x => x.ETag).NotNull()
+        .Build();
 
-        RuleFor(x => x.TypeName).NotEmpty();
-        RuleFor(x => x.Content).NotEmpty();
-
-        RuleFor(x => x.ETag)
-            .Must((x, p) => x.IsHashVerify())
-            .When(x => x.ETag.IsNotEmpty())
-            .WithMessage("ETag does not match");
-    }
-
-    public static DocumentValidator Default { get; } = new DocumentValidator();
+    public static ValidatorResult<Document> Validate(this Document subject) => _validator.Validate(subject);
 }

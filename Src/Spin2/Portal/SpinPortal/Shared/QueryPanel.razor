@@ -1,0 +1,26 @@
+﻿<MudPaper Elevation="2" Class="nvarbar-panel pt-1">
+    <MudToolBar Dense=true>
+        <MudText>@Title</MudText>
+        <MudDivider DividerType=DividerType.Inset />
+
+        <MudStack Spacing=3 Row=true>
+            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" OnClick=Refresh Text="Open" />
+            <StandardButton Icon="@Icons.Material.Sharp.Upload" OnClick=Refresh Text="Upload" />
+            <StandardButton Icon="@Icons.Material.Sharp.Download" OnClick=Refresh Text="Download" />
+            <StandardButton Icon="@Icons.Material.Sharp.Clear" OnClick=Refresh Text="Delete" />
+            <StandardButton Icon="@Icons.Material.Sharp.Refresh" OnClick=Refresh Text="Refresh" />
+            <StandardButton Icon="@Icons.Material.Sharp.Refresh" OnClick=Refresh Text="Refresh" />
+        </MudStack>
+    </MudToolBar>
+</MudPaper>
+
+<Message Text=@_errorMsg IsError=true />
+
+<Waiting Show=@(!_initialized && _errorMsg == null) />
+
+@if (_initialized)
+{
+    <MudPaper Class="mt-2">
+        <DataTable Table="@_table" DetailColumns=_detailColumns />
+    </MudPaper>
+}

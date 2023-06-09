@@ -1,0 +1,11 @@
+﻿@if (Show)
+{
+    <div class="m-2 d-flex align-items-center">
+        <MudProgressLinear Color="Color.Info" Rounded="true" Indeterminate="true" Class="my-7" />
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool Show { get; set; }
+}

@@ -22,9 +22,8 @@ public partial class LeftNav
     [Inject]
     public NavigationManager NavManager { get; set; } = null!;
 
-    private bool _open = false;
+    private bool _open = true;
     private string _menuBarIcon = null!;
-    private bool _isDarkMode;
 
     protected override void OnInitialized()
     {

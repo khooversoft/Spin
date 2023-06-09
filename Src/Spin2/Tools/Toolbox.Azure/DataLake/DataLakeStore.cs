@@ -5,7 +5,6 @@ using Azure.Storage.Files.DataLake.Models;
 using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Types.Maybe;
@@ -21,7 +20,7 @@ public class DatalakeStore : IDatalakeStore
 
     public DatalakeStore(DatalakeOption azureStoreOption, ILogger<DatalakeStore> logger)
     {
-        _azureStoreOption = azureStoreOption.Verify();
+        _azureStoreOption = azureStoreOption.Validate().Verify();
         _logger = logger.NotNull();
 
         _serviceClient = azureStoreOption.CreateDataLakeServiceClient();

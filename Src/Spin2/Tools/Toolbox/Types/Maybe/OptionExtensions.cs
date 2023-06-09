@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Net;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 
@@ -18,30 +19,9 @@ public static class OptionTExtensions
         _ => default!,
     };
 
-    public static T Return<T>(this Option<T> subject, string errorMessage,
-        ILogger? logger = null,
-        [CallerMemberName] string function = "",
-        [CallerFilePath] string path = "",
-        [CallerLineNumber] int lineNumber = 0,
-        [CallerArgumentExpression("errorMessage")] string name = "")
+    public static T Return<T>(this Option<T> subject, Func<T> defaultValue) => subject switch
     {
-        return subject.HasValue switch
-        {
-            true => subject.Value,
-            false => throw new ArgumentException(fmt(errorMessage)),
-        };
-
-        string fmt(string message)
-        {
-            message += $", {name}, " + Verify.FormatCaller(function, path, lineNumber);
-            logger?.LogError(message);
-            return message;
-        }
-    }
-
-    public static T Return<T>(this Option<T> subject, Func<T> none) => subject switch
-    {
-        var v when !v.HasValue => none(),
+        var v when !v.HasValue => defaultValue(),
         var v => v.Return(),
     };
 
@@ -85,4 +65,5 @@ public static class OptionTExtensions
     public static bool IsSuccess<T>(this Option<T> subject) => subject.StatusCode.IsSuccess();
     public static bool IsError<T>(this Option<T> subject) => subject.StatusCode.IsError();
     public static bool IsNotFound<T>(this Option<T> subject) => subject.StatusCode.IsNotFound();
+    public static HttpStatusCode ToHttpStatusCode<T>(this Option<T> subject) => subject.StatusCode.ToHttpStatusCode();
 }

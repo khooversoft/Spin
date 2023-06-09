@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using ObjectStore.sdk.Api;
-using ObjectStore.sdk.Application;
 using ObjectStore.sdk.Connectors;
 using Toolbox.DocumentContainer;
 using Toolbox.Types;
 
-namespace ObjectStore.sdk;
+namespace ObjectStore.sdk.Application;
 
 public static class Startup
 {
@@ -15,7 +13,7 @@ public static class Startup
     {
         service.AddSingleton(option);
         service.AddSingleton<ObjectStoreFactory>();
-        service.AddSingleton<ObjectStoreApi>();
+        service.AddSingleton<ObjectStoreConnector>();
         service.AddSingleton<ObjectStoreEndpoint>();
 
         return service;
@@ -26,6 +24,7 @@ public static class Startup
         ObjectStoreEndpoint endpoint = app.ServiceProvider.GetRequiredService<ObjectStoreEndpoint>();
 
         var group = app.MapGroup("/data");
+
         group.MapGet("/{objectId}", async (string objectId, CancellationToken token) => await endpoint.Read(objectId, new ScopeContext(token)))
             .WithName("Read")
             .WithOpenApi();
@@ -36,6 +35,10 @@ public static class Startup
 
         group.MapDelete("/{objectId}", async (string objectId, CancellationToken token) => await endpoint.Delete(objectId, new ScopeContext(token)))
             .WithName("Delete")
+            .WithOpenApi();
+
+        group.MapPost("/search", async (QueryParameter query, CancellationToken token) => await endpoint.Search(query, new ScopeContext(token)))
+            .WithName("Search")
             .WithOpenApi();
     }
 }

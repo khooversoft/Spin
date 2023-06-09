@@ -20,7 +20,7 @@ public class ObjectIdTests
     [InlineData("d:a/b/c/d", true)]
     public void TestRegex(string input, bool expected)
     {
-        bool pass = ObjectId.IsObjectIdValid(input) == StatusCode.OK;
+        bool pass = ObjectId.IsValid(input);
         (expected == pass).Should().BeTrue();
     }
 

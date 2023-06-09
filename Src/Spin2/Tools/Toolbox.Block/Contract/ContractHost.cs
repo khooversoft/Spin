@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Toolbox.Block.Access;
 using Toolbox.DocumentContainer;
-using Toolbox.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Types.Maybe;

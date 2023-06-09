@@ -1,4 +1,3 @@
-using ObjectStore.sdk;
 using ObjectStore.sdk.Application;
 using Toolbox.Extensions;
 
@@ -18,6 +17,11 @@ ObjectStoreOption option = builder.Configuration
 
 builder.Services.AddObjectStore(option);
 
+builder.Logging.AddApplicationInsights(
+    configureTelemetryConfiguration: (config) => config.ConnectionString = option.AppicationInsightsConnectionString,
+    configureApplicationInsightsLoggerOptions: (options) => { }
+);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,7 +32,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 
 app.MapObjectStore();
 app.Run();

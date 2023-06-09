@@ -27,7 +27,7 @@ public class DocumentBuilderTests
         document.ETag.Should().NotBeNull();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Verify();
+        document.Validate().Verify();
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class DocumentBuilderTests
         readDocument.ETag.Should().NotBeNull();
 
         readDocument.IsHashVerify().Should().BeTrue();
-        readDocument.Verify();
+        readDocument.Validate().Verify();
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class DocumentBuilderTests
         Document document = builder.Build();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Verify();
+        document.Validate().Verify();
 
         document.ToObject<string>().Should().Be(payload);
 
@@ -77,7 +77,7 @@ public class DocumentBuilderTests
             .SetDocumentId((ObjectId)documentId)
             .SetContent(payload)
             .Build()
-            .Verify();
+            .Validate().Verify();
 
         (document == doc2).Should().BeTrue();
     }
@@ -95,14 +95,14 @@ public class DocumentBuilderTests
         Document document = builder.Build();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Verify();
+        document.Validate().Verify();
         document.ToObject<string>().Should().Be(payload);
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((ObjectId)documentId)
             .SetContent(payload)
             .Build()
-            .Verify();
+            .Validate().Verify();
 
         (document == doc2).Should().BeTrue();
     }
@@ -125,14 +125,14 @@ public class DocumentBuilderTests
         Document document = builder.Build();
 
         document.IsHashVerify().Should().BeTrue();
-        document.Verify();
+        document.Validate().Verify();
         document.ToObject<Payload>().Should().Be(payload);
 
         Document doc2 = new DocumentBuilder()
             .SetDocumentId((ObjectId)documentId)
             .SetContent(payload)
             .Build()
-            .Verify();
+            .Validate().Verify();
 
         (document == doc2).Should().BeTrue();
     }

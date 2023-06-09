@@ -2,8 +2,9 @@
 using Azure.Storage.Files.DataLake;
 using FluentValidation;
 using Toolbox.Azure.Identity;
-using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Validation;
+using Toolbox.Tools.Validation.Validators;
 
 namespace Toolbox.Azure.DataLake;
 
@@ -16,23 +17,15 @@ public record DatalakeOption
 }
 
 
-public class DatalakeOptionValidator : AbstractValidator<DatalakeOption>
-{
-    public DatalakeOptionValidator()
-    {
-        RuleFor(x => x.AccountName).NotEmpty();
-        RuleFor(x => x.Credentials).SetValidator(ClientSecretOptionValidator.Default);
-    }
-
-    public static DatalakeOptionValidator Default { get; } = new DatalakeOptionValidator();
-}
-
-
 public static class DatalakeOptionExtensions
 {
-    public static DatalakeOption Verify(this DatalakeOption subject) => DatalakeOptionValidator.Default.Verify(subject);
-    public static bool IsVerify(this DatalakeOption subject) => DatalakeOptionValidator.Default.IsValid(subject);
-    public static IReadOnlyList<string> GetVerifyErrors(this DatalakeOption subject) => DatalakeOptionValidator.Default.GetErrors(subject);
+    public static Validator<DatalakeOption> Validator = new Validator<DatalakeOption>()
+        .RuleFor(x => x.AccountName).NotEmpty()
+        .RuleFor(x => x.ContainerName).NotEmpty()
+        .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
+        .Build();
+
+    public static ValidatorResult<DatalakeOption> Validate(this DatalakeOption subject) => Validator.Validate(subject);
 
     public static DataLakeServiceClient CreateDataLakeServiceClient(this DatalakeOption subject)
     {

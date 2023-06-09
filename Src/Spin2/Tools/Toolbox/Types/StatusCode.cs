@@ -23,7 +23,6 @@ public enum StatusCode
 public static class OptionStatusCodeExtensions
 {
     public static bool IsOk(this StatusCode subject) => subject == StatusCode.OK;
-
     public static bool IsNoContent(this StatusCode subject) => subject == StatusCode.NoContent;
 
     public static bool IsSuccess(this StatusCode subject) => subject switch

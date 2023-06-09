@@ -1,0 +1,18 @@
+﻿@if (Text != null)
+{
+    <div style="padding:.2cm;margin-top:.15cm">
+        <div class="@AlertCssClass" role="alert">
+            @Text
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Text { get; set; } = null!;
+
+    [Parameter]
+    public bool IsError { get; set; }
+
+    public string AlertCssClass => IsError ? "alert alert-danger" : "alert alert-success";
+}

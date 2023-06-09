@@ -1,0 +1,15 @@
+﻿<MudButton Variant="Variant.Filled" DisableElevation=true Disabled=Disabled StartIcon="@Icon" Size="Size.Small" OnClick=OnClick>@Text</MudButton>
+
+@code {
+    [Parameter]
+    public string Text { get; set; } = null!;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string Icon { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

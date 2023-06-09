@@ -17,7 +17,6 @@ namespace Toolbox.Tools
         public static void Assert(
                 bool state,
                 string message,
-                ILogger? logger = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0,
@@ -27,7 +26,6 @@ namespace Toolbox.Tools
             if (!state)
             {
                 message += $", {name}, " + FormatCaller(function, path, lineNumber);
-                logger?.LogError(message);
                 throw new ArgumentException(message);
             }
         }
@@ -42,7 +40,6 @@ namespace Toolbox.Tools
         public static void Assert<T>(
                 bool test,
                 string message,
-                ILogger? logger = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0,
@@ -53,7 +50,6 @@ namespace Toolbox.Tools
             message.NotEmpty();
 
             message += $", {name}, " + FormatCaller(function, path, lineNumber);
-            logger?.LogError(message);
             throw (Exception)Activator.CreateInstance(typeof(T), message).NotNull();
         }
 
@@ -69,7 +65,6 @@ namespace Toolbox.Tools
         public static T Assert<T>(
                 this T subject,
                 string message,
-                ILogger? logger = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0,
@@ -88,7 +83,6 @@ namespace Toolbox.Tools
             message.NotEmpty();
 
             message += $", {name}" + FormatCaller(function, path, lineNumber);
-            logger?.LogError(message);
             throw new ArgumentException(message);
         }
 
@@ -105,7 +99,6 @@ namespace Toolbox.Tools
                 this T subject,
                 Func<T, bool> test,
                 string message,
-                ILogger? logger = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0,
@@ -116,7 +109,6 @@ namespace Toolbox.Tools
             message.NotEmpty();
 
             message += $", {name}" + FormatCaller(function, path, lineNumber);
-            logger?.LogError(message);
             throw new ArgumentException(message);
         }
 
@@ -133,7 +125,6 @@ namespace Toolbox.Tools
                 this T subject,
                 Func<T, bool> test,
                 Func<T, string> getMessage,
-                ILogger? logger = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0,
@@ -144,7 +135,6 @@ namespace Toolbox.Tools
 
             getMessage.NotNull();
             string msg = getMessage(subject) + $", {name}, " + FormatCaller(function, path, lineNumber);
-            logger?.LogError(msg);
             throw new ArgumentException(msg);
         }
 
@@ -159,7 +149,6 @@ namespace Toolbox.Tools
                 this T subject,
                 Func<T, bool> test,
                 Func<T, string> getMessage,
-                ILogger? logger = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
                 [CallerLineNumber] int lineNumber = 0,
@@ -171,7 +160,6 @@ namespace Toolbox.Tools
 
             string msg = getMessage(subject) + $", {name}, " + FormatCaller(function, path, lineNumber);
 
-            logger?.LogError(msg);
             throw (Exception)Activator.CreateInstance(typeof(TException), msg)!;
         }
 
@@ -186,7 +174,6 @@ namespace Toolbox.Tools
         [return: NotNull]
         public static T NotNull<T>(
                 [NotNull] this T subject,
-                ILogger? logger = null,
                 string? message = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
@@ -198,7 +185,6 @@ namespace Toolbox.Tools
             {
                 string msg = message ?? "Null object";
                 msg += $", {name}, {FormatCaller(function, path, lineNumber)}";
-                logger?.LogError(msg);
                 throw new ArgumentNullException(msg);
             }
 
@@ -215,7 +201,6 @@ namespace Toolbox.Tools
         [return: NotNull]
         public static string NotEmpty(
                 [NotNull] this string? subject,
-                ILogger? logger = null,
                 string? message = null,
                 [CallerMemberName] string function = "",
                 [CallerFilePath] string path = "",
@@ -227,7 +212,6 @@ namespace Toolbox.Tools
             {
                 string msg = message ?? "Empty or null string";
                 msg += $", {name}, {FormatCaller(function, path, lineNumber)}";
-                logger?.LogError(msg);
                 throw new ArgumentNullException(msg);
             }
 

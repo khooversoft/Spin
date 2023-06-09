@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
 
 namespace Toolbox.Extensions;
 

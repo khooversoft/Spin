@@ -22,7 +22,7 @@ public sealed record ObjectId
         id.NotEmpty(name: id);
 
         Id = id.ToLower();
-        IsObjectIdValid(id).Assert(x => x.IsOk(), $"Syntax error, {Syntax}");
+        IsValid(id).Assert($"Syntax error, {Syntax}");
     }
 
     public void Deconstruct(out string Domain, out string Path)
@@ -50,15 +50,11 @@ public sealed record ObjectId
 
     public static implicit operator string(ObjectId documentId) => documentId.ToString();
 
-    public static StatusCode IsObjectIdValid(string objectId)
+    public static bool IsValid(string objectId)
     {
-        if (objectId.IsEmpty()) return StatusCode.BadRequest;
+        if (objectId.IsEmpty()) return false;
 
-        return Regex.Match(objectId, _regexRequired, RegexOptions.IgnoreCase).Success switch
-        {
-            true => StatusCode.OK,
-            false => StatusCode.BadRequest,
-        };
+        return Regex.Match(objectId, _regexRequired, RegexOptions.IgnoreCase).Success;
     }
 }
 

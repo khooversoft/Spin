@@ -30,7 +30,7 @@ public class DocumentStoreInMemoryTests
             .SetDocumentId(documentId)
             .SetContent(payload)
             .Build()
-            .Verify();
+            .Validate().Verify();
 
         document.IsHashVerify().Should().BeTrue();
 
@@ -81,7 +81,7 @@ public class DocumentStoreInMemoryTests
                 .SetDocumentId((ObjectId)x.DocumentId)
                 .SetContent(x)
                 .Build()
-                .Verify()
+                .Validate().Verify()
             ).ToArray();
 
         foreach (var doc in documents)
@@ -120,7 +120,7 @@ public class DocumentStoreInMemoryTests
             .SetDocumentId(documentId)
             .SetContent(payload)
             .Build()
-            .Verify();
+            .Validate().Verify();
 
         document.IsHashVerify().Should().BeTrue();
 

@@ -18,7 +18,7 @@ public class DocumentSerializationTests
             .SetDocumentId(documentId)
             .SetContent(payload)
             .Build()
-            .Verify();
+            .Validate().Verify();
 
         document.Should().NotBeNull();
         document.TypeName.Should().Be("String");
@@ -49,7 +49,7 @@ public class DocumentSerializationTests
             .SetDocumentId(documentId)
             .SetContent(payload)
             .Build()
-            .Verify();
+            .Validate().Verify();
 
         document.Should().NotBeNull();
         document.TypeName.Should().Be(typeof(Payload).Name);

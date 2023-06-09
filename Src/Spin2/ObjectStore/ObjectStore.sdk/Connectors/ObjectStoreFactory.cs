@@ -13,7 +13,7 @@ public class ObjectStoreFactory
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ObjectStoreOption _option;
-    private readonly IReadOnlyDictionary<string, DomainProfile> _profiles;
+    private readonly IReadOnlyDictionary<string, DomainProfileOption> _profiles;
     private readonly ConcurrentDictionary<string, IDatalakeStore> _stores;
     private readonly ILogger<ObjectStoreFactory> _logger;
 
@@ -31,7 +31,7 @@ public class ObjectStoreFactory
     {
         domain.NotEmpty();
 
-        if (!_profiles.TryGetValue(domain, out DomainProfile? profile))
+        if (!_profiles.TryGetValue(domain, out DomainProfileOption? profile))
             return new Option<IDatalakeStore>(StatusCode.NotFound);
 
         IDatalakeStore store = _stores.GetOrAdd(domain, x =>
