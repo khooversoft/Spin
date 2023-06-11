@@ -55,47 +55,19 @@ public sealed record ObjectUri
     public static bool IsValid(string? objectUri)
     {
         if (objectUri.IsEmpty()) return false;
+        if (objectUri.StartsWith('.')) return false;
+        if (objectUri.Length > 0 && char.IsNumber(objectUri[0])) return false;
 
         string[] parts = objectUri.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        return parts
-            .Select((x, i) => testPart(x, i))
-            .All(x => x == true);
+        return parts.All(x => testPart(x));
 
-        static bool testPart(string part, int index)
+        static bool testPart(string part)
         {
-            if (!testFirst(part[0], index) )return false;
-            if( part.Length > 1 && !testLast(part[^1])) return false;
+            if (part.EndsWith('.')) return false;
+            if (part.EndsWith('-')) return false;
 
-            return part
-                .Skip(1)
-                .Take(part.Length - 2)
-                .All(x => testChar(x));
+            return part.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-');
         }
-
-        static bool testFirst(char chr, int index) => chr switch
-        {
-            var v when index != 0 && v == '.' => true,
-            var v when char.IsLetter(v) => true,
-
-            _ => false,
-        };
-
-        static bool testLast(char chr) => chr switch
-        {
-            var v when v == '.' => true,
-            var v when char.IsLetterOrDigit(v) => true,
-
-            _ => false,
-        };
-
-        static bool testChar(char chr) => chr switch
-        {
-            var v when v == '.' => true,
-            var v when v == '-' => true,
-            var v when char.IsLetterOrDigit(v) => true,
-
-            _ => false,
-        };
     }
 }
 

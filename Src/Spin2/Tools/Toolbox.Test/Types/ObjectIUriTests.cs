@@ -28,9 +28,9 @@ public class ObjectIUriTests
     [InlineData("domain/path/path2/", true)]
 
     [InlineData(".domain", false)]
-    [InlineData("domain.", true)]
+    [InlineData("domain.", false)]
     [InlineData("domain/.file", true)]
-    public void TestRegex(string input, bool expected)
+    public void IsValid(string input, bool expected)
     {
         bool pass = ObjectUri.IsValid(input);
         (expected == pass).Should().BeTrue();
