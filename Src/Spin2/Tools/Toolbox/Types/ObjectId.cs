@@ -1,9 +1,6 @@
-﻿using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using Toolbox.Application;
+﻿using System.Text.RegularExpressions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types.Maybe;
 
 namespace Toolbox.Types;
 

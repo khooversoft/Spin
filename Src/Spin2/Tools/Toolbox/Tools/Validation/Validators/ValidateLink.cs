@@ -1,6 +1,6 @@
-﻿using Toolbox.Types.Maybe;
+﻿using Toolbox.Types;
 
-namespace Toolbox.Tools.Validation.Validators;
+namespace Toolbox.Tools.Validation;
 
 public class ValidateLink<T, TProperty> : IValidator<TProperty>
 {

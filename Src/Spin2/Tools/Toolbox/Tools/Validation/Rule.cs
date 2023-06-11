@@ -1,6 +1,4 @@
-﻿using Toolbox.Tools.Validation.Validators;
-
-namespace Toolbox.Tools.Validation;
+﻿namespace Toolbox.Tools.Validation;
 
 public readonly struct Rule<T, TProperty>
 {

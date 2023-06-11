@@ -3,12 +3,11 @@ using Microsoft.Extensions.Logging;
 using ObjectStore.sdk.Connectors;
 using Toolbox.Azure.DataLake;
 using Toolbox.DocumentContainer;
-using Toolbox.Tools;
-using Toolbox.Types;
-using Toolbox.Types.Maybe;
 using Toolbox.Extensions;
 using Toolbox.Rest;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace ObjectStore.sdk.Application;
 

@@ -5,8 +5,8 @@ using Azure.Storage.Files.DataLake.Models;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Validation;
 using Toolbox.Types;
-using Toolbox.Types.Maybe;
 
 namespace Toolbox.Azure.DataLake;
 
@@ -158,9 +158,15 @@ public class DatalakeStore : IDatalakeStore
 
     public async Task<Option<IReadOnlyList<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context)
     {
+        context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
+        if (!queryParameter.Validate().IsValid(context.Location()))
+            return new Option<IReadOnlyList<DatalakePathItem>>(StatusCode.BadRequest);
+
         queryParameter.NotNull();
         queryParameter = queryParameter with { Filter = WithBasePath(queryParameter.Filter) };
-        _logger.LogTrace(context.Location(), "Searching {queryParameter}", queryParameter);
+        context.Location().LogTrace("Searching {queryParameter}", queryParameter);
 
         var list = new List<DatalakePathItem>();
 
@@ -188,7 +194,7 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to search, query={queryParameter}", queryParameter);
+            _logger.LogWarning(context.Location(), ex, "Failed to search, query={queryParameter}", queryParameter);
             return new Option<IReadOnlyList<DatalakePathItem>>(StatusCode.BadRequest);
         }
     }

@@ -1,7 +1,4 @@
 ﻿using System.Net;
-using Azure;
-using Toolbox.Types;
-using Toolbox.Types.Maybe;
 
 namespace Toolbox.Rest;
 

@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Toolbox.Types.Maybe;
+using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
 

@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Types.Maybe;
+﻿namespace Toolbox.Types;
 
 public static class OptionBindExtensions
 {

@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Types.Maybe;
+using Toolbox.Types;
 
-namespace Toolbox.Tools.Validation.Validators;
+namespace Toolbox.Tools.Validation;
 
 public class NotEmpty<T> : IValidator<string>
 {

@@ -9,7 +9,7 @@
                 <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@GotoParent" Icon="@Icons.Material.Sharp.ArrowUpward" />
             }
 
-            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" Disabled=_disableRowIcons OnClick=Refresh Text="Open" />
+            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" Disabled=_disableRowIcons OnClick=Open Text="Open" />
             <StandardButton Icon="@Icons.Material.Sharp.Upload" Disabled=_disableRowIcons OnClick =Refresh Text="Upload" />
             <StandardButton Icon="@Icons.Material.Sharp.Download" Disabled=_disableRowIcons OnClick =Refresh Text="Download" />
             <StandardButton Icon="@Icons.Material.Sharp.Clear" Disabled=_disableRowIcons OnClick =Refresh Text="Delete" />
@@ -27,11 +27,11 @@
     </MudToolBar>
 </MudPaper>
 
-<Message Text=@_errorMsg IsError=true />
+<Message Text=@_errorMsg Severity=Severity.Error />
 
 <Waiting Show=@(!_initialized && _errorMsg == null) />
 
-@if (_initialized && _errorMsg == null)
+@if (_initialized)
 {
     <MudPaper Class="mt-2">
         <DataTable Table="@_table" OnRowClick="x => OnRowClick(x)" />

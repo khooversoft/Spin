@@ -1,6 +1,5 @@
 ﻿using Azure;
 using Toolbox.Types;
-using Toolbox.Types.Maybe;
 
 namespace Toolbox.Azure.DataLake
 {

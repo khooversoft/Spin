@@ -1,0 +1,26 @@
+﻿<MudPaper Class="nvarbar-subpanel">
+    <MudToolBar>
+        <MudTooltip Text="@TitleTooltip">
+            <span>@Title</span>
+        </MudTooltip>
+        <MudSpacer />
+
+        <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@OnClose" Icon="@Icons.Material.Sharp.Clear" />
+        <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@CopyToClipboard" Icon="@Icons.Material.Filled.CopyAll" />
+
+    </MudToolBar>
+</MudPaper>
+<div class="p-1" style="word-break: break-all;">
+    <pre>@CodeText</pre>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = null!;
+    [Parameter] public string? TitleTooltip { get; set; }
+    [Parameter] public string CodeText { get; set; } = null!;
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    [Inject] public ClipboardService Clipboard { get; set; } = null!;
+
+    private async Task CopyToClipboard() => await Clipboard.WriteTextAsync(CodeText);
+}

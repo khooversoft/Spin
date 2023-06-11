@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Azure;
+﻿using Azure;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.DataLake;
 using Toolbox.DocumentContainer;
-using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Types.Maybe;
 
 namespace ObjectStore.sdk.Client;
 

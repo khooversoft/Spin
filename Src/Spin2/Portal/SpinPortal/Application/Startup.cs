@@ -19,6 +19,7 @@ public static class Startup
             .Verify();
 
         builder.Services.AddSingleton(option);
+        builder.Services.AddSingleton<ClipboardService>();
 
         builder.Services.AddHttpClient<ObjectStoreClient>((services, httpClient) =>
         {

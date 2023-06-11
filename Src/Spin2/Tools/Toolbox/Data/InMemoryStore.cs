@@ -1,10 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using System.Reflection.Metadata;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Types.Maybe;
 
 namespace Toolbox.DocumentContainer;
 

@@ -1,9 +1,8 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Types.Maybe;
-using Toolbox.Extensions;
 
 namespace Toolbox.Rest;
 

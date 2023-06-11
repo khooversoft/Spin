@@ -1,9 +1,6 @@
 ﻿using System.Net;
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
 
-namespace Toolbox.Types.Maybe;
+namespace Toolbox.Types;
 
 public static class OptionTExtensions
 {

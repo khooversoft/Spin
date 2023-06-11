@@ -5,7 +5,6 @@ using Toolbox.DocumentContainer;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Types.Maybe;
 
 namespace Toolbox.Block.Contract;
 

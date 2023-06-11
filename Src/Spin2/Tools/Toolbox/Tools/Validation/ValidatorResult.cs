@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Types.Maybe;
+using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
@@ -54,4 +54,13 @@ public static class ValidationErrorExtensions
 
     public static void ThrowOnError(this ValidatorResult subject) => subject.NotNull()
         .Assert(x => x.IsValid, x => subject.GetErrors().FormatErrors());
+
+    public static bool IsValid(this ValidatorResult subject, ScopeContextLocation location)
+    {
+        location.Context.Logger.NotNull();
+        if (subject.IsValid) return true;
+
+        location.Context.Logger.LogError(location, subject.FormatErrors());
+        return false;
+    }
 }

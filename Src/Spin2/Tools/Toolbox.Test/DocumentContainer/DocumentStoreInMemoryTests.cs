@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.DocumentContainer;
 using Toolbox.Types;
-using Toolbox.Types.Maybe;
 
 namespace Toolbox.Test.DocumentContainer;
 

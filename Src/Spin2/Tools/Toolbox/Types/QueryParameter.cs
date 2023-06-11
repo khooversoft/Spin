@@ -1,6 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Tools.Validation;
-using Toolbox.Tools.Validation.Validators;
+﻿using Toolbox.Tools.Validation;
 
 namespace Toolbox.Types;
 
@@ -23,4 +21,5 @@ public static class QueryParameterValidator
         .Build();
 
     public static ValidatorResult Validate(this QueryParameter subject) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this QueryParameter subject, ScopeContext context) => Validator.Validate(subject);
 }

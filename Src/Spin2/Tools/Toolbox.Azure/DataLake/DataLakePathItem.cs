@@ -15,6 +15,7 @@ namespace Toolbox.Azure.DataLake
         public string? Owner { get; init; }
         public string? Group { get; init; }
         public string? Permissions { get; init; }
+        public string? ObjectId { get; init; }
     }
 }
 
