@@ -13,7 +13,8 @@ builder.Logging
     .AddDebug();
 
 ObjectStoreOption option = builder.Configuration
-    .Bind<ObjectStoreOption>();
+    .Bind<ObjectStoreOption>()
+    .Verify();
 
 builder.Services.AddObjectStore(option);
 

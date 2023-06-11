@@ -3,11 +3,12 @@ using System.Text.RegularExpressions;
 using Toolbox.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types.Maybe;
 
 namespace Toolbox.Types;
 
 /// <summary>
-/// Id is a path of {domain}/{resource}
+/// Object ID, domain + path
 /// </summary>
 public sealed record ObjectId
 {
@@ -19,7 +20,7 @@ public sealed record ObjectId
 
     public ObjectId(string id)
     {
-        id.NotEmpty(name: id);
+        id.NotEmpty();
 
         Id = id.ToLower();
         IsValid(id).Assert($"Syntax error, {Syntax}");
@@ -60,7 +61,7 @@ public sealed record ObjectId
 
 public static class ObjectIdExtensions
 {
-    public static ObjectId ToObjectId(this string objectId) => (ObjectId)objectId;
-    public static string ToUrlEncoding(this ObjectId objectId) => Uri.EscapeDataString((string)objectId);
+    public static ObjectId ToObjectId(this string subject) => (ObjectId)subject;
+    public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString((string)subject);
     public static ObjectId FromUrlEncoding(this string id) => Uri.UnescapeDataString(id).ToObjectId();
 }

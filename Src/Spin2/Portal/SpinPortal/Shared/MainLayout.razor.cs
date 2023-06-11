@@ -30,7 +30,7 @@ public partial class MainLayout
     [Inject]
     MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler { get; set; } = null!;
 
-    private bool _isDarkMode;
+    private bool _isDarkMode = true;
     private bool _showSettings = false;
     private bool _showUserInfo = false;
     private User? _user;

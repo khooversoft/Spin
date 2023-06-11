@@ -1,59 +1,55 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using ObjectStore.sdk.Application;
 using Toolbox.Tools;
 using Toolbox.Tools.Table;
+using Toolbox.Extensions;
+using Toolbox.Types;
+using SpinPortal.Application;
 
 namespace SpinPortal.Shared;
 
 public partial class DataTable
 {
+    [Inject]
+    public NavigationManager NavManager { get; set; } = null!;
+
     [Parameter]
     public ObjectTable Table { get; set; } = null!;
 
     [Parameter]
-    public bool Show { get; set; } = true;
-
-    [Parameter]
-    public bool ShowSearch { get; set; } = true;
-
-    [Parameter]
-    public IReadOnlyList<string> DetailColumns { get; set; } = Array.Empty<string>();
-
-    [Parameter]
-    public EventCallback<int> OnSearchClick { get; set; }
+    public EventCallback<int?> OnRowClick { get; set; }
 
     private IReadOnlyList<Column> _columns { get; set; } = Array.Empty<Column>();
     private IReadOnlyList<Row> _rows { get; set; } = Array.Empty<Row>();
 
-    private bool _showDetail;
     private IReadOnlyList<KeyValuePair<string, string>> _map = Array.Empty<KeyValuePair<string, string>>();
+    private int? _selectedRow;
 
     protected override void OnInitialized()
     {
-        //Table.NotNull();
+        Table.NotNull();
+        _selectedRow = null;
     }
 
     protected override void OnParametersSet()
     {
-        var dColumns = new HashSet<string>(DetailColumns, StringComparer.OrdinalIgnoreCase);
         if (Table == null) return;
 
         _columns = Table.Header.Columns
             .Select((x, i) => new Column { Title = x.Name, Index = i })
-            .Where(x => !dColumns.Contains(x.Title))
             .ToArray();
-
-        var selectedColumns = new HashSet<int>(_columns.Select(x => x.Index));
 
         _rows = Table.Rows
             .Select((x, i) => new Row
             {
                 Index = i,
+                ShowFolder = x.Tag.HasTag(ObjectStoreConstants.Folder),
+                ShowOpen = x.Tag.HasTag(ObjectStoreConstants.Open),
+                Key = x.Key,
 
                 Items = x.Items
-                    .Select((x, i) => (value: x.Get<string>(), index: i))
-                    .Where(x => selectedColumns.Contains(x.index))
-                    .Select(x => x.value)
+                    .Select(x => x.Get<string>())
                     .ToArray(),
 
             }).ToArray();
@@ -61,12 +57,12 @@ public partial class DataTable
         StateHasChanged();
     }
 
-    private async Task OnSearchButton(int index)
+    private void OnFolderButton(Row row)
     {
-        await OnSearchClick.InvokeAsync(index);
+        NavManager.NavigateTo(NavTools.ToObjectStorePath(row.Key), true);
     }
 
-    private void OnDetailButton(int index)
+    private void OnView(int index)
     {
         //_map = Table.Rows
         //    .Skip(index)
@@ -79,22 +75,22 @@ public partial class DataTable
         //StateHasChanged();
     }
 
-    private void OnRowClick(DataGridRowClickEventArgs<Row> e)
+    private async Task OnRowClickInternal(DataGridRowClickEventArgs<Row> e)
     {
-        OnDetailButton(e.RowIndex);
+        _selectedRow = e.RowIndex;
+        await OnRowClick.InvokeAsync(e.RowIndex);
+        await InvokeAsync(() => StateHasChanged());
     }
 
-    private void OnClose()
-    {
-        _showDetail = false;
-        StateHasChanged();
-    }
-
-    private string _cellStyleFunc(Row? _) => ShowSearch switch
+    private string _cellStyleFunc(Row? _) => false switch
     {
         true => "max-width:6rem;padding-right:0;padding-left:0;margin-left:0;margin-right:0",
         false => "max-width:4rem;padding-right:0;padding-left:0",
     };
+
+    private string _rowStyleFunc(Row? row, int index) => _selectedRow == index ? "background-color: #D4D4D4" : string.Empty;
+
+    private string _selectedCellStyleFunc(Row? row) => row.NotNull().Index == _selectedRow ? "color:#000000" : string.Empty;
 
     private record Column
     {
@@ -106,5 +102,8 @@ public partial class DataTable
     {
         public int Index { get; init; }
         public IReadOnlyList<string> Items { get; init; } = Array.Empty<string>();
+        public bool ShowFolder { get; init; }
+        public bool ShowOpen { get; init; }
+        public string? Key { get; init; }
     }
 }

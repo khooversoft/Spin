@@ -1,5 +1,5 @@
-﻿using FluentValidation;
-using Toolbox.Azure.Identity;
+﻿using Toolbox.Azure.Identity;
+using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Tools.Validation.Validators;
 
@@ -16,51 +16,14 @@ public record ObjectStoreOption
 
 public static class ObjectStoreOptionValidator
 {
-    //public static Validator<ObjectStoreOption> _validator = new Validator<ObjectStoreOption>()
-    //    .AddRule(x => x.ClientIdentity).Validate(ClientSecretOptionValidator.Validator)
-    //    .AddRule(x => x.DomainProfiles).NotEmpty()
-    //    .AddRule(x => x.ContainerName).NotEmpty()
-    //    .Build();
+    public static Validator<ObjectStoreOption> Validator = new Validator<ObjectStoreOption>()
+        .RuleFor(x => x.ClientIdentity).Validate(ClientSecretOptionValidator.Validator)
+        .RuleForEach(x => x.DomainProfiles).Validate(DomainProfileOptionValidator.Validator)
+        .RuleFor(x => x.AppicationInsightsConnectionString).NotEmpty()
+        .RuleFor(x => x.IpAddress).NotEmpty()
+        .Build();
 
-    //public static ValidatorResult<DomainProfileOption> Validate(this DomainProfileOption subject) => _validator.Validate(subject);
+    public static ValidatorResult Validate(this ObjectStoreOption subject) => Validator.Validate(subject);
+
+    public static ObjectStoreOption Verify(this ObjectStoreOption subject) => subject.Action(x => Validator.Validate(x).ThrowOnError());
 }
-
-//public class ObjectStoreOptionValidator : AbstractValidator<ObjectStoreOption>
-//{
-//    public static ObjectStoreOptionValidator Default { get; } = new ObjectStoreOptionValidator();
-
-//    public ObjectStoreOptionValidator()
-//    {
-//        RuleFor(x => x.DirectoryId).NotEmpty();
-//        RuleFor(x => x.Subject).NotEmpty();
-//        RuleFor(x => x.Version).NotEmpty();
-//        RuleFor(x => x.PublicKey).NotNull();
-//    }
-//}
-
-//public class DomainProfileValidator : AbstractValidator<DomainProfileOption>
-//{
-//    public static DomainProfileValidator Default { get; } = new DomainProfileValidator();
-
-//    public DomainProfileValidator()
-//    {
-//        RuleFor(x => x.DirectoryId).NotEmpty();
-//        RuleFor(x => x.Subject).NotEmpty();
-//        RuleFor(x => x.Version).NotEmpty();
-//        RuleFor(x => x.PublicKey).NotNull();
-//    }
-//}
-
-
-//public static class ObjectStoreOptionExtensions
-//{
-//    public static void Verify(this IdentityEntry subject) => IdentityEntryValidator.Default.ValidateAndThrow(subject);
-
-//    public static bool IsVerify(this IdentityEntry subject) => IdentityEntryValidator.Default.Validate(subject).IsValid;
-
-//    public static IReadOnlyList<string> GetVerifyErrors(this IdentityEntry subject) => IdentityEntryValidator.Default
-//        .Validate(subject)
-//        .Errors
-//        .Select(x => x.ErrorMessage)
-//        .ToArray();
-//}

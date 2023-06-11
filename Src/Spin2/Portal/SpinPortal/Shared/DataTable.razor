@@ -1,33 +1,35 @@
-﻿@if (Show)
-{
-    <MudDataGrid Items="@_rows" T=Row Dense=true Striped=true Hover=true Bordered=true ColumnResizeMode=ResizeMode.Column FilterMode=DataGridFilterMode.Simple
-                 FilterCaseSensitivity=DataGridFilterCaseSensitivity.CaseInsensitive Filterable=true RowClick=OnRowClick>
-        <Columns>
-            <TemplateColumn T=Row CellClass="d-flex justify-end" ShowColumnOptions=false Sortable=false ShowFilterIcon=false CellStyleFunc=_cellStyleFunc>
-                <CellTemplate>
-                    <MudStack Row>
-                    @if (ShowSearch)
-                        {
-                            <MudTooltip Text="Search">
-                                <MudButton Style="min-width:0" Size="@Size.Small" StartIcon="oi oi-magnifying-glass" OnClick="() => OnSearchButton(context.Item!.Index)"></MudButton>
-                            </MudTooltip>
-                        }
-                        <MudTooltip Text="Show Details">
-                            <MudButton Style="min-width:0" Size="@Size.Small" StartIcon="oi oi-list" OnClick="() => OnDetailButton(context.Item!.Index)"></MudButton>
+﻿<MudDataGrid Items="@_rows" T=Row Dense=true Striped=true Hover=true Bordered=true ColumnResizeMode=ResizeMode.Column
+             FilterMode=DataGridFilterMode.Simple FilterCaseSensitivity=DataGridFilterCaseSensitivity.CaseInsensitive Filterable=true
+             RowStyleFunc=_rowStyleFunc
+             RowClick=OnRowClickInternal>
+    <Columns>
+        <TemplateColumn T=Row CellClass="d-flex justify-end" ShowColumnOptions=false Sortable=false ShowFilterIcon=false CellStyleFunc=_cellStyleFunc>
+            <CellTemplate>
+                <MudStack Row>
+                    @if (context.Item.ShowFolder)
+                    {
+                        <MudTooltip Text="Folder">
+                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.Outlined.Folder" OnClick="() => OnFolderButton(context.Item)"></MudButton>
                         </MudTooltip>
-                    </MudStack>
-                </CellTemplate>
-            </TemplateColumn>
-            @foreach (var column in _columns.WithIndex())
-            {
-                <PropertyColumn Property="x => x!.Items[column.Index]" Title="@column.Item.Title" CellClass="data-table-cell" />
-            }
-        </Columns>
-        <PagerContent>
-            <MudDataGridPager T="Row" />
-        </PagerContent>
-        <NoRecordsContent>
-            No data
-        </NoRecordsContent>
-    </MudDataGrid>
-}
+                    }
+                    @if (context.Item.ShowOpen)
+                    {
+                        <MudTooltip Text="Open">
+                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.Sharp.Shortcut" OnClick="() => OnView(context.Item!.Index)"></MudButton>
+                        </MudTooltip>
+                    }
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+        @foreach (var column in _columns.WithIndex())
+        {
+            <PropertyColumn Property="x => x!.Items[column.Index]" Title="@column.Item.Title" CellStyleFunc="x => _selectedCellStyleFunc(x)" />
+        }
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Row" />
+    </PagerContent>
+    <NoRecordsContent>
+        No data
+    </NoRecordsContent>
+</MudDataGrid>

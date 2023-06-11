@@ -119,7 +119,7 @@ public static class StringExtensions
     /// <param name="maxLength">max length allowed, must be positive or defaults to 0</param>
     /// <returns>truncate string if required</returns>
     [DebuggerStepThrough]
-    //[return: NotNullIfNotNull(nameof(subject))]
+    [return: NotNullIfNotNull(nameof(subject))]
     public static string? Truncate(this string? subject, int maxLength) => subject switch
     {
         null => null,

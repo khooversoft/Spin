@@ -43,7 +43,7 @@ public class Validator<T>
         return new Rule<T, TProperty>
         {
             Validator = this,
-            PropertyRule = propertyRule
+            PropertyRule = propertyRule,
         };
     }
 
@@ -78,5 +78,10 @@ public static class ValidatorExtensions
     public static Rule<T, TProperty> RuleFor<T, TInput, TProperty>(this Rule<T, TInput> rule, Expression<Func<T, TProperty>> expression)
     {
         return rule.Validator.RuleFor(expression);
+    }
+
+    public static Rule<T, TProperty> RuleForEach<T, TInput, TProperty>(this Rule<T, TInput> rule, Expression<Func<T, IEnumerable<TProperty>>> expression)
+    {
+        return rule.Validator.RuleForEach(expression);
     }
 }

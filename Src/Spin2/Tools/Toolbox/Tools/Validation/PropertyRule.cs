@@ -62,6 +62,3 @@ public record PropertyCollectionRule<T, TProperty> : IPropertyRule<T, TProperty>
         };
     }
 };
-
-
-

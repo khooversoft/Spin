@@ -16,30 +16,39 @@ using SpinPortal.Shared;
 using MudBlazor;
 using Microsoft.Graph.ExternalConnectors;
 using ObjectStore.sdk.Client;
+using Microsoft.Graph;
+using Toolbox.Extensions;
+using SpinPortal.Application;
+using Toolbox.Types;
 
 namespace SpinPortal.Pages;
 
 public partial class ObjectStore
 {
+    [Parameter]
+    public string? pageRoute { get; set; } = null!;
+
+    [Inject]
+    public PortalOption Option { get; set; } = null!;
+
+    private ObjectUri _resolvedPath { get; set; } = null!;
+
     private string _textValue { get; set; } = null!;
     private bool _showResult { get; set; }
 
     protected override void OnParametersSet()
     {
         _showResult = false;
-    }
 
-    private void OnSearch()
-    {
-        _showResult = true;
-        StateHasChanged();
-    }
-
-    private void HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
+        _resolvedPath = ObjectUri.IsValid(pageRoute) switch
         {
-            OnSearch();
-        }
+            true => pageRoute.ToObjectUri() switch
+            {
+                var u when Option.Domains.Any(x => x == u.Domain) => u.ToString(),
+                _ => Option.Domains.First(),
+            },
+
+            false => Option.Domains.First(),
+        };
     }
 }

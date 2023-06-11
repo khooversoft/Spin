@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="2.11.1" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.11.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
-    <PackageReference Include="MudBlazor" Version="6.3.1" />
+    <PackageReference Include="MudBlazor" Version="6.4.1" />
     <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
     <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />

@@ -23,6 +23,8 @@ public static class RestExtensions
 
     public static Option<T> GetContent<T>(this RestResponse response, ScopeContext context)
     {
+        if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode());
+
         return response.Content switch
         {
             null => default,
@@ -38,7 +40,7 @@ public static class RestExtensions
             catch (Exception ex)
             {
                 context.Logger?.LogCritical(context.Location(), ex, "Failed deserialization into type={type}, value={value}", typeof(T).Name, value);
-                return default;
+                return new Option<T>(StatusCode.BadRequest);
             }
         };
     }

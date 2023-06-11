@@ -15,7 +15,7 @@ namespace Toolbox.Types.Maybe;
 /// 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-[DebuggerDisplay("HasValue={HasValue}, Value={Value}")]
+[DebuggerDisplay("HasValue={HasValue}, Value={Value}, StatusCode={StatusCode}")]
 public readonly struct Option<T> : IOption, IEquatable<Option<T>>
 {
     [SetsRequiredMembers()]

@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Toolbox.Tools.Validation;
+﻿using Toolbox.Tools.Validation;
 using Toolbox.Tools.Validation.Validators;
 
 namespace ObjectStore.sdk.Application;
@@ -12,25 +11,13 @@ public record DomainProfileOption
     public string? BasePath { get; init; }
 }
 
-public class DomainProfileOptionValidator : AbstractValidator<DomainProfileOption>
+public static class DomainProfileOptionValidator
 {
-    public static DomainProfileOptionValidator Default { get; } = new DomainProfileOptionValidator();
-
-    public DomainProfileOptionValidator()
-    {
-        RuleFor(x => x.DomainName).NotEmpty();
-        RuleFor(x => x.AccountName).NotEmpty();
-        RuleFor(x => x.ContainerName).NotEmpty();
-    }
-}
-
-public static class DomainProfileOptionExtensions
-{
-    public static Validator<DomainProfileOption> _validator = new Validator<DomainProfileOption>()
+    public static Validator<DomainProfileOption> Validator { get; } = new Validator<DomainProfileOption>()
         .RuleFor(x => x.DomainName).NotEmpty()
         .RuleFor(x => x.AccountName).NotEmpty()
         .RuleFor(x => x.ContainerName).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this DomainProfileOption subject) => _validator.Validate(subject);
+    public static ValidatorResult Validate(this DomainProfileOption subject) => Validator.Validate(subject);
 }

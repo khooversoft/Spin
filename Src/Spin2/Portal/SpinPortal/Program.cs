@@ -31,6 +31,7 @@ builder.Services.AddServerSideBlazor()
     .AddMicrosoftIdentityConsentHandler();
 
 builder.Services.AddMudServices();
+
 builder.AddPortal();
 
 var app = builder.Build();

@@ -2,10 +2,13 @@
 
 public record TableRow
 {
-    public TableRow(IEnumerable<object> dataItems, TableHeader header)
+    public TableRow(IEnumerable<object?> dataItems, TableHeader header, string? tag, string? key)
     {
         dataItems.NotNull();
         Header = header.NotNull();
+
+        Tag = tag;
+        Key = key;
 
         Items = dataItems
             .Select((x, i) => new DataItem(i, x))
@@ -17,6 +20,8 @@ public record TableRow
     public object this[int index] => Items[index];
 
     public IReadOnlyList<DataItem> Items { get; }
+    public string? Tag { get; }
+    public string? Key { get; }
 
     public T Get<T>(int index) => Items[index].Get<T>();
     public T Get<T>(string name) => Items[Header.NotNull().ByName[name]].Get<T>();
@@ -25,13 +30,15 @@ public record TableRow
 
 public record DataItem
 {
-    public DataItem(int index, object value) => (Index, Value) = (index, value);
+    public DataItem(int index, object? value) => (Index, Value) = (index, value);
 
     public int Index { get; }
-    public object Value { get; }
+    public object? Value { get; }
 
     public T Get<T>()
     {
+        if (Value == null) return default!;
+
         return typeof(T) switch
         {
             Type v when v == typeof(string) => (T)(object)toObjectValue(Value),
@@ -46,7 +53,8 @@ public record DataItem
         {
             Type v when v == typeof(DateTime) => DateTime.Parse(toString(Value)).ToString("yyyy-MM-dd hh:mm:ss.fff"),
             Type v when v == typeof(DateTimeOffset) => ((DateTimeOffset)Value).ToLocalTime().ToString("yyyy-MM-dd hh:mm:ss.fff"),
-            var v => value?.ToString() ?? "<null>",
+
+            _ => value?.ToString() ?? "<null>",
         };
 
         string toString(object? value) => value switch

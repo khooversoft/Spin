@@ -1,16 +1,29 @@
 ﻿<MudPaper Elevation="2" Class="nvarbar-panel pt-1">
     <MudToolBar Dense=true>
         <MudText>@Title</MudText>
-        <MudDivider DividerType=DividerType.Inset />
+        <MudDivider DividerType=DividerType.Middle />
 
         <MudStack Spacing=3 Row=true>
-            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" OnClick=Refresh Text="Open" />
-            <StandardButton Icon="@Icons.Material.Sharp.Upload" OnClick=Refresh Text="Upload" />
-            <StandardButton Icon="@Icons.Material.Sharp.Download" OnClick=Refresh Text="Download" />
-            <StandardButton Icon="@Icons.Material.Sharp.Clear" OnClick=Refresh Text="Delete" />
-            <StandardButton Icon="@Icons.Material.Sharp.Refresh" OnClick=Refresh Text="Refresh" />
+            @if (_showUpFolderButton)
+            {
+                <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@GotoParent" Icon="@Icons.Material.Sharp.ArrowUpward" />
+            }
+
+            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" Disabled=_disableRowIcons OnClick=Refresh Text="Open" />
+            <StandardButton Icon="@Icons.Material.Sharp.Upload" Disabled=_disableRowIcons OnClick =Refresh Text="Upload" />
+            <StandardButton Icon="@Icons.Material.Sharp.Download" Disabled=_disableRowIcons OnClick =Refresh Text="Download" />
+            <StandardButton Icon="@Icons.Material.Sharp.Clear" Disabled=_disableRowIcons OnClick =Refresh Text="Delete" />
             <StandardButton Icon="@Icons.Material.Sharp.Refresh" OnClick=Refresh Text="Refresh" />
         </MudStack>
+
+        <MudSpacer />
+
+        <MudSelect T="string" Value=@Path.Domain Label="Domain" DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetDomain(args))">
+            @foreach (var item in _domains)
+            {
+                <MudSelectItem Value=@item />
+            }
+        </MudSelect>
     </MudToolBar>
 </MudPaper>
 
@@ -18,9 +31,9 @@
 
 <Waiting Show=@(!_initialized && _errorMsg == null) />
 
-@if (_initialized)
+@if (_initialized && _errorMsg == null)
 {
     <MudPaper Class="mt-2">
-        <DataTable Table="@_table" DetailColumns=_detailColumns />
+        <DataTable Table="@_table" OnRowClick="x => OnRowClick(x)" />
     </MudPaper>
 }

@@ -13,7 +13,11 @@ public static class Startup
 
     public static void AddPortal(this WebApplicationBuilder builder)
     {
-        PortalOption option = builder.Configuration.Bind<PortalOption>();
+        PortalOption option = builder
+            .Configuration
+            .Bind<PortalOption>()
+            .Verify();
+
         builder.Services.AddSingleton(option);
 
         builder.Services.AddHttpClient<ObjectStoreClient>((services, httpClient) =>

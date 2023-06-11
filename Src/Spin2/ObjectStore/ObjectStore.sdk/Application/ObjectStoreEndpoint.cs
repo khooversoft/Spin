@@ -8,6 +8,7 @@ using Toolbox.Types;
 using Toolbox.Types.Maybe;
 using Toolbox.Extensions;
 using Toolbox.Rest;
+using Toolbox.Tools.Validation;
 
 namespace ObjectStore.sdk.Application;
 
@@ -63,6 +64,12 @@ internal class ObjectStoreEndpoint
     {
         _logger.LogInformation(context.Location(), "Search queryParameter={queryParameter}", queryParameter);
 
+        var validatorResult = queryParameter.Validate();
+        if (!validatorResult.IsValid)
+        {
+            return Results.BadRequest(validatorResult.FormatErrors());
+        }
+
         Option<IReadOnlyList<DatalakePathItem>> result = await _connector.Search(queryParameter, context);
 
         if (result.IsError()) return Results.StatusCode((int)result.StatusCode.ToHttpStatusCode());
@@ -74,6 +81,6 @@ internal class ObjectStoreEndpoint
             Items = result.Return().ToArray(),
         };
 
-        return Results.Ok(result.Return());
+        return Results.Ok(response);
     }
 }

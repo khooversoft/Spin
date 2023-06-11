@@ -1,9 +1,8 @@
-﻿@page "/objectStore"
+﻿@page "/objectStore/{*pageRoute}"
 
 <MudStack Spacing=2 Class="pt-4 px-2">
     <MudText Typo=Typo.h5>Directory Search</MudText>
-    <MudTextField T="string" Class="mud-width-full" @bind-Value="_textValue" Label="Path" Variant="Variant.Text" OnKeyDown=HandleKeyPress Immediate></MudTextField>
+    <PathText Path="@_resolvedPath" />
 
-    <QueryPanel Title="Files"/>
-
+    <QueryPanel Title="Files" Path="@_resolvedPath" />
 </MudStack>

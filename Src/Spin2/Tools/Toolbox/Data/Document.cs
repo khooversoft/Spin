@@ -29,7 +29,7 @@ public sealed record Document
 
 public static class DocumentValidationExtensions
 {
-    public static Validator<Document> _validator = new Validator<Document>()
+    public static Validator<Document> _validator { get; } = new Validator<Document>()
         .RuleFor(x => x.ObjectId).NotEmpty().Must(x => ObjectId.IsValid(x), _ => $"not a valid ObjectId, syntax={ObjectId.Syntax}")
         .RuleFor(x => x.TypeName).NotEmpty()
         .RuleFor(x => x.Content).NotEmpty()

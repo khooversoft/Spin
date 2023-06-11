@@ -1,0 +1,32 @@
+﻿<MudPaper @onclick="OnPanelClick" Outlined=true>
+    <MudToolBar Dense=true>
+        @if (_showEditor)
+        {
+            <MudTextField T="string" Class="mud-width-full" @bind-Value="Path" DisableUnderLine=true style="margin:0"
+                          Variant="Variant.Text" OnKeyDown=HandleKeyPress Immediate />
+
+            <MudStack Row=true Spacing="1">
+                <MudButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="() => GoTo()" StartIcon="@Icons.Material.Sharp.Shortcut"
+                           Style="@PortalConstants.NormalText">Go</MudButton>
+
+                <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="() => OnLeaveClick()" Icon="@Icons.Material.Sharp.Clear" />
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="0" Row=true>
+                @foreach (var item in _items.WithIndex())
+                {
+                    if (item.Index != 0)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowRight" Color="@Color.Default" Size="@Size.Small" Style="height:2em" />
+                    }
+
+                    <MudButton Variant="@Variant.Text" Color="@Color.Default" Size="@Size.Small" OnClick="() => OnPathElementClick(item.Index)" Style="@_buttonStyle">
+                        @item.Item.Title
+                    </MudButton>
+                }
+            </MudStack>
+        }
+    </MudToolBar>
+</MudPaper>

@@ -1,6 +1,5 @@
 ﻿using Azure.Core;
 using Azure.Identity;
-using FluentValidation;
 using Toolbox.Tools.Validation;
 using Toolbox.Tools.Validation.Validators;
 
@@ -16,7 +15,7 @@ public record ClientSecretOption
 
 public static class ClientSecretOptionValidator
 {
-    public static Validator<ClientSecretOption> Validator = new Validator<ClientSecretOption>()
+    public static Validator<ClientSecretOption> Validator { get; } = new Validator<ClientSecretOption>()
         .RuleFor(x => x.TenantId).NotEmpty()
         .RuleFor(x => x.ClientId).NotEmpty()
         .RuleFor(x => x.ClientSecret).NotEmpty()

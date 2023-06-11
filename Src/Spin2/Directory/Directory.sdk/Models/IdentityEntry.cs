@@ -23,7 +23,7 @@ public record IdentityEntry
 
 public static class IdentityEntryValidator
 {
-    public static Validator<IdentityEntry> Validator = new Validator<IdentityEntry>()
+    public static Validator<IdentityEntry> Validator { get; } = new Validator<IdentityEntry>()
         .RuleFor(x => x.DirectoryId).NotEmpty().Must(x => ObjectId.IsValid(x), x => $"{x} is not a valid ObjectId")
         .RuleFor(x => x.Subject).NotEmpty()
         .RuleFor(x => x.Version).NotEmpty()

@@ -23,6 +23,7 @@ public static class ValidateLinkExtensions
 {
     public static Rule<T, TProperty> Validate<T, TProperty>(this Rule<T, TProperty> rule, Validator<TProperty> validator)
     {
+        rule.NotNull();
         rule.PropertyRule.Validators.Add(new ValidateLink<T, TProperty>(rule.PropertyRule, validator));
         return rule;
     }

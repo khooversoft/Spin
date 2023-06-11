@@ -41,6 +41,7 @@ public class ObjectStoreFactory
             var option = new DatalakeOption
             {
                 AccountName = profile.AccountName,
+                ContainerName = profile.ContainerName,
                 Credentials = _option.ClientIdentity,
                 BasePath = profile.BasePath,
             };

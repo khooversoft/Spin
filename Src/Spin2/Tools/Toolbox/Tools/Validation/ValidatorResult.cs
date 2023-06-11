@@ -46,10 +46,12 @@ public static class ValidationErrorExtensions
         })
         .ToArray();
 
-    public static string FormatErrors(this IReadOnlyList<ValidatorError> subject) => subject
+    public static string FormatErrors(this ValidatorResult subject) => subject.NotNull().GetErrors().FormatErrors();
+
+    public static string FormatErrors(this IReadOnlyList<ValidatorError> subject) => "Validation failed: Errors=" + subject
         .Select(x => x.ToString())
         .Join(", ");
 
     public static void ThrowOnError(this ValidatorResult subject) => subject.NotNull()
-        .Assert(x => x.IsValid, x => $"Validation failed: Errors={x.GetErrors().FormatErrors()}");
+        .Assert(x => x.IsValid, x => subject.GetErrors().FormatErrors());
 }
