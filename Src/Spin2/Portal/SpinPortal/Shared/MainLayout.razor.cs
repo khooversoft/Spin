@@ -16,6 +16,7 @@ using SpinPortal.Shared;
 using MudBlazor;
 using Microsoft.Graph;
 using Microsoft.Identity.Web;
+using SpinPortal.Application;
 
 namespace SpinPortal.Shared;
 
@@ -30,7 +31,7 @@ public partial class MainLayout
     [Inject]
     MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler { get; set; } = null!;
 
-    private bool _isDarkMode = true;
+    private bool _isDarkMode = false;
     private bool _showSettings = false;
     private bool _showUserInfo = false;
     private User? _user;
@@ -83,6 +84,8 @@ public partial class MainLayout
             PrimaryContrastText = Colors.Shades.White,
             Secondary = "#F3F3F3",
             SecondaryContrastText = Colors.Shades.Black,
+            Background = PortalConstants.GrayBackgroundColor,
+            DrawerBackground = PortalConstants.GrayBackgroundColor,
         },
 
         PaletteDark = new PaletteDark
