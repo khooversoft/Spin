@@ -14,9 +14,10 @@ public class ObjectIUriTests
     [InlineData("domain", true)]
     [InlineData("do88main", true)]
     [InlineData("domain3", true)]
-    [InlineData("domain3-", false)]
+    [InlineData("domain3-", true)]
     [InlineData("doma#in", false)]
-    [InlineData("do$main", false)]
+    [InlineData("dom@ain", false)]
+    [InlineData("do$main", true)]
     [InlineData("dom-ain", true)]
     [InlineData("domain/", true)]
     [InlineData("domain/path", true)]
@@ -27,8 +28,8 @@ public class ObjectIUriTests
     [InlineData("domain/pa-th/pa-th2", true)]
     [InlineData("domain/path/path2/", true)]
 
-    [InlineData(".domain", false)]
-    [InlineData("domain.", false)]
+    [InlineData(".domain", true)]
+    [InlineData("domain.", true)]
     [InlineData("domain/.file", true)]
     public void IsValid(string input, bool expected)
     {

@@ -52,22 +52,19 @@ public sealed record ObjectUri
 
     public static implicit operator string(ObjectUri documentId) => documentId.ToString();
 
+    // Rules
+    //  domain is required
+    //  domain and path(s) can have alpha, numeric, '$', '.', '-'
+    //  1 path is required
     public static bool IsValid(string? objectUri)
     {
         if (objectUri.IsEmpty()) return false;
-        if (objectUri.StartsWith('.')) return false;
-        if (objectUri.Length > 0 && char.IsNumber(objectUri[0])) return false;
 
         string[] parts = objectUri.Split('/', StringSplitOptions.RemoveEmptyEntries);
         return parts.All(x => testPart(x));
 
-        static bool testPart(string part)
-        {
-            if (part.EndsWith('.')) return false;
-            if (part.EndsWith('-')) return false;
-
-            return part.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-');
-        }
+        static bool testPart(string part) =>
+            part.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-' || x == '$');
     }
 }
 

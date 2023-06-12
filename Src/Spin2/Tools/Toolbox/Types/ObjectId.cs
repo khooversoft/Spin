@@ -47,38 +47,22 @@ public sealed record ObjectId
 
     // Rules
     //  domain is required
-    //  domain must start with alpha
-    //  domain can have alpha, numeric, '-', '.'
+    //  domain and path(s) can have alpha, numeric, '$', '.', '-'
     //  1 path is required
-    //  path must start with alpha, numeric, '.'
-    //  path must end with alpha, numeric
-    //  path can have alpha, numeric, '-', '.'
     public static bool IsValid(string? objectId)
     {
         if (objectId.IsEmpty()) return false;
-        if (objectId.Length > 0 && char.IsNumber(objectId[0])) return false;
 
         string[] domainParts = objectId.Split(':', StringSplitOptions.RemoveEmptyEntries);
-        if(domainParts.Length != 2) return false;
-        if( !testDomain(domainParts[0]) ) return false;
+        if (domainParts.Length != 2) return false;
+        if (!test(domainParts[0])) return false;
 
         string[] parts = domainParts[^1].Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if(parts.Length == 0) return false;
-        return parts.All(x => testPath(x));
+        if (parts.Length == 0) return false;
+        return parts.All(x => test(x));
 
-        static bool testDomain(string domain)
-        {
-            if (!char.IsLetter(domain[0])) return false;
-            if (domain.Length > 1 && !char.IsLetterOrDigit(domain[^1])) return false;
-            return domain.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-');
-        }
-
-        static bool testPath(string path)
-        {
-            if( !char.IsLetterOrDigit(path[0]) && !path.StartsWith('.')) return false;
-            if (path.Length > 1 && !char.IsLetterOrDigit(path[^1])) return false;
-            return path.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-');
-        }
+        static bool test(string subject) => subject
+            .All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-' || x == '$');
     }
 }
 

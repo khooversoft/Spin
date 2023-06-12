@@ -14,6 +14,8 @@ public class ObjectIdTests
     [InlineData("path:/path2/")]
     [InlineData("path:/.path2/")]
     [InlineData("d:a/b/c/d")]
+    [InlineData("-path:/path2")]
+    [InlineData("path:/.path2./")]
     public void TestPositivePatterns(string input)
     {
         ObjectId.IsValid(input).Should().BeTrue();
@@ -24,10 +26,10 @@ public class ObjectIdTests
     [InlineData("domain:/")]
     [InlineData("domain:")]
     [InlineData("path")]
+    [InlineData("path:/data#")]
     [InlineData(".path/path2")]
+    [InlineData("path:/da&ta")]
     [InlineData("5path/path2/")]
-    [InlineData("path:/.path2./")]
-    [InlineData("-path:/path2")]
     public void TestNegativePatterns(string input)
     {
         ObjectId.IsValid(input).Should().BeFalse();
