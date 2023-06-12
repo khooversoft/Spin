@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
-using Toolbox.DocumentContainer;
+using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -18,12 +19,12 @@ public class DocumentBuilderTests
             .SetContent(payload);
 
         builder.DocumentId!.Id.Should().Be(documentId);
-        builder.Content.Should().Be(payload);
+        builder.Content.NotNull().BytesToString().Should().Be(payload);
 
         Document document = builder.Build();
 
         ((ObjectId)document.ObjectId).Id.Should().Be(documentId);
-        document.Content.Should().Be(payload);
+        document.Content.BytesToString().Should().Be(payload);
         document.ETag.Should().NotBeNull();
 
         document.IsHashVerify().Should().BeTrue();
@@ -48,7 +49,7 @@ public class DocumentBuilderTests
         readDocument.Should().NotBeNull();
 
         ((ObjectId)readDocument.ObjectId).Id.Should().Be(documentId);
-        readDocument.Content.Should().Be(payload);
+        readDocument.Content.BytesToString().Should().Be(payload);
         readDocument.ETag.Should().NotBeNull();
 
         readDocument.IsHashVerify().Should().BeTrue();

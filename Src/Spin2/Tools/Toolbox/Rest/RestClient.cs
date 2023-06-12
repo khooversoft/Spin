@@ -31,7 +31,6 @@ public class RestClient
     public object? Content { get; private set; }
     public RestContentType ContentType { get; private set; }
 
-    public ILogger Logger { get; private set; } = null!;
     public bool EnsureSuccessStatusCode { get; private set; } = false;
     public IReadOnlyDictionary<string, string> Headers => _headers;
 
@@ -56,20 +55,16 @@ public class RestClient
         return this;
     }
 
-    public RestClient SetLogger(ILogger logger) => this.Action(x => x.Logger = logger.NotNull());
     public RestClient SetEnsureSuccessStatusCode(bool state) => this.Action(x => x.EnsureSuccessStatusCode = state);
     public RestClient AddHeader(string header, string value) => this.Action(x => x._headers[header] = value);
 
     public async Task<RestResponse> SendAsync(HttpRequestMessage requestMessage, ScopeContext context)
     {
-        Logger.NotNull();
-
-        using var ls = Logger.LogEntryExit(context);
+        var ls = context.Location().LogEntryExit();
 
         Option<string> requestPayload = await requestMessage.GetContent();
 
-        Logger.LogTrace(
-            context.Location(),
+        context.Location().LogTrace(
             "[RestClient-Calling] {uri}, method={method}, request={request}",
             requestMessage.RequestUri?.ToString() ?? "<no uri>",
             requestMessage.Method,
@@ -79,8 +74,7 @@ public class RestClient
         HttpResponseMessage response = await _client.SendAsync(requestMessage.NotNull(), context);
         string content = await response.Content.ReadAsStringAsync();
 
-        Logger.Log(
-            context.Location(),
+        context.Location().Log(
             response.IsSuccessStatusCode ? LogLevel.Information : LogLevel.Error,
             "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request} response={response}",
             requestMessage.RequestUri?.ToString(),
@@ -93,7 +87,8 @@ public class RestClient
         var result = new RestResponse
         {
             StatusCode = response.StatusCode,
-            Content = content
+            Content = content,
+            Context = context
         };
 
         if (EnsureSuccessStatusCode) response.EnsureSuccessStatusCode();

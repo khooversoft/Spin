@@ -28,7 +28,7 @@
 //        sc.NotNull();
 //        path.NotEmpty();
 //        principleId.NotEmpty();
-//        _logger.LogInformation(context.Location(), "Starting, sc={scName}, path={path}", sc.AccountName, path);
+//        context.Location().LogInformation("Starting, sc={scName}, path={path}", sc.AccountName, path);
 
 //        _sc = sc;
 //        _path = path;
@@ -65,7 +65,7 @@
 //        command.Verify();
 //        command.FromPath.Assert(x => x == _path, x => $"Address validation, toPath={x}, expected {_path}");
 
-//        _logger.LogInformation(context.Location(), "Pushing transfer from path={path}, toPath{toPath}", _path, command.ToPath);
+//        context.Location().LogInformation("Pushing transfer from path={path}, toPath{toPath}", _path, command.ToPath);
 
 //        var reqeust = new ApplyDeposit
 //        {
@@ -78,7 +78,7 @@
 //        TransferResult result = await _messageBroker.Call<ApplyDeposit, TransferResult>($"{command.ToPath}/applyDeposit", reqeust, context);
 //        if (result.Status != StatusCode.OK) return TransferResult.Error();
 
-//        _logger.LogInformation(context.Location(), "Debit SC");
+//        context.Location().LogInformation("Debit SC");
 
 //        var ledger = new LedgerItem
 //        {

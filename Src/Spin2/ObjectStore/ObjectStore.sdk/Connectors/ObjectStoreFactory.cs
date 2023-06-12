@@ -31,7 +31,10 @@ public class ObjectStoreFactory
         domain.NotEmpty();
 
         if (!_profiles.TryGetValue(domain, out DomainProfileOption? profile))
+        {
+            _logger.LogInformation("Cannot find domain={domain}", domain);
             return new Option<IDatalakeStore>(StatusCode.NotFound);
+        }
 
         IDatalakeStore store = _stores.GetOrAdd(domain, x =>
         {

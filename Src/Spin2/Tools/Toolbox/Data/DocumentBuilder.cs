@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.DocumentContainer;
+namespace Toolbox.Data;
 
 public class DocumentBuilder
 {
@@ -11,21 +11,13 @@ public class DocumentBuilder
 
     public ObjectId? DocumentId { get; set; }
     public string? TypeName { get; set; }
-    public string? Content { get; set; }
+    public byte[]? Content { get; set; }
     public string? HashBase64 { get; set; }
     public string? Tags { get; set; }
 
     public DocumentBuilder SetDocumentId(ObjectId value) => this.Action(x => x.DocumentId = value);
     public DocumentBuilder SetHashBase64(string value) => this.Action(x => x.HashBase64 = value);
     public DocumentBuilder SetTags(params string[] value) => this.Action(x => x.Tags = value.Join(";"));
-
-    public DocumentBuilder SetContent(string value)
-    {
-        Content = value;
-        TypeName = typeof(string).GetTypeName();
-
-        return this;
-    }
 
     public DocumentBuilder SetContent<T>(T value) where T : class
     {
@@ -34,23 +26,15 @@ public class DocumentBuilder
 
         Content = typeof(T) switch
         {
-            Type type when type == typeof(string) => value.ToString().NotEmpty(),
+            Type type when type == typeof(string) => value.ToString().NotEmpty().ToBytes(),
+            Type type when type == typeof(byte[]) => (byte[])(object)value,
             Type type when type.IsAssignableTo(typeof(Array)) => throw new ArgumentException(errorMsg),
             Type type when type.IsAssignableTo(typeof(IEnumerable)) => throw new ArgumentException(errorMsg),
 
-            _ => Json.Default.SerializeDefault(value),
+            _ => Json.Default.SerializeDefault(value).ToBytes(),
         };
 
         TypeName = typeof(T).GetTypeName();
-        return this;
-    }
-
-    public DocumentBuilder SetContent(byte[] bytes)
-    {
-        bytes.NotNull();
-
-        TypeName = "bytes";
-        Content = Convert.ToBase64String(bytes);
         return this;
     }
 
@@ -59,7 +43,7 @@ public class DocumentBuilder
         const string msg = "required";
         DocumentId.NotNull(name: msg);
         TypeName.NotEmpty(name: msg);
-        Content.NotEmpty(name: msg);
+        Content.NotNull(name: msg);
 
         return new Document
         {

@@ -1,9 +1,11 @@
 ﻿using System.Net;
+using Toolbox.Types;
 
 namespace Toolbox.Rest;
 
-public record RestResponse
+public readonly record struct RestResponse
 {
-    public HttpStatusCode StatusCode { get; init; }
+    public required HttpStatusCode StatusCode { get; init; }
     public string? Content { get; init; }
+    public required ScopeContext Context { get; init; }
 }

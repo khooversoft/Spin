@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.test.Application;
 using Toolbox.Extensions;
@@ -10,7 +11,7 @@ namespace Toolbox.Azure.test.Datalake;
 public class DatalakeStoreTests
 {
     public readonly IDatalakeStore _dataLakeStore;
-    public readonly ScopeContext _context = new ScopeContext();
+    public readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
     public DatalakeStoreTests()
     {

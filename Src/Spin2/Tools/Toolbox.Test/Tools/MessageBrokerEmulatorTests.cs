@@ -11,10 +11,10 @@ public class MessageBrokerEmulatorTests
     public async Task SingleMessageMessageBrokerEmulator()
     {
         Queue<Message> queue = new Queue<Message>();
-        ScopeContext context = new();
+        ScopeContext context = new ScopeContext(NullLogger.Instance);
         var broker = new MessageBrokerEmulator(NullLogger<MessageBrokerEmulator>.Instance);
 
-        broker.AddRoute<Message, int>("path", receiver, ScopeContext.Default);
+        broker.AddRoute<Message, int>("path", receiver, new ScopeContext(NullLogger.Instance));
 
         var msg = new Message
         {
@@ -38,11 +38,11 @@ public class MessageBrokerEmulatorTests
     public async Task MultipleMessageMessageBrokerEmulator()
     {
         const int count = 10;
-        ScopeContext context = new();
+        ScopeContext context = new ScopeContext(NullLogger.Instance);
         Queue<Message> queue = new Queue<Message>();
         var broker = new MessageBrokerEmulator(NullLogger<MessageBrokerEmulator>.Instance);
 
-        broker.AddRoute<Message, bool>("path", receiver, ScopeContext.Default);
+        broker.AddRoute<Message, bool>("path", receiver, new ScopeContext(NullLogger.Instance));
 
         foreach (var item in Enumerable.Range(0, count))
         {

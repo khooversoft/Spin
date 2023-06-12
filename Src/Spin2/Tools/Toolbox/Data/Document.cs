@@ -3,13 +3,13 @@ using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace Toolbox.DocumentContainer;
+namespace Toolbox.Data;
 
 public sealed record Document
 {
     public required string ObjectId { get; init; } = null!;
     public required string TypeName { get; init; } = null!;
-    public required string Content { get; init; } = null!;
+    public required byte[] Content { get; init; } = null!;
     public string? ETag { get; init; }
     public string? Tags { get; init; } = null!;
 
@@ -18,7 +18,7 @@ public sealed record Document
         return obj is Document document &&
                ObjectId == document.ObjectId &&
                TypeName == document.TypeName &&
-               Content == document.Content &&
+               Enumerable.SequenceEqual(Content, document.Content) &&
                ETag == document.ETag &&
                Tags == document.Tags;
     }
@@ -31,7 +31,7 @@ public static class DocumentValidationExtensions
     public static Validator<Document> _validator { get; } = new Validator<Document>()
         .RuleFor(x => x.ObjectId).NotEmpty().Must(x => ObjectId.IsValid(x), _ => $"not a valid ObjectId, syntax={ObjectId.Syntax}")
         .RuleFor(x => x.TypeName).NotEmpty()
-        .RuleFor(x => x.Content).NotEmpty()
+        .RuleFor(x => x.Content).NotNull()
         .RuleFor(x => x.ETag).NotNull()
         .Build();
 

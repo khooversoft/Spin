@@ -1,48 +1,36 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 public readonly record struct ScopeContext
 {
-    private readonly ILogger _logger = NullLogger.Instance;
-
-    public ScopeContext(CancellationToken token = default)
-    {
-        TraceId = Guid.NewGuid().ToString();
-        Token = token;
-    }
+    [Obsolete("Do not use, logger is required, will throw")]
+    public ScopeContext() { throw new InvalidOperationException(); }
 
     public ScopeContext(ILogger logger, CancellationToken token = default)
     {
-        _logger = logger.NotNull();
-        TraceId = Guid.NewGuid().ToString();
+        Logger = logger.NotNull();
         Token = token;
-    }
 
-    public ScopeContext(string traceId, CancellationToken token = default)
-    {
-        traceId.NotEmpty();
-        TraceId = traceId;
-        Token = token;
+        TraceId = Guid.NewGuid().ToString();
     }
 
     public ScopeContext(string traceId, ILogger logger, CancellationToken token = default)
     {
         traceId.NotEmpty();
+        Logger = logger.NotNull();
         TraceId = traceId;
         Token = token;
     }
 
     public string TraceId { get; }
-    public static ScopeContext Default { get; } = new ScopeContext();
     public bool IsCancellationRequested => Token.IsCancellationRequested;
 
     [JsonIgnore] public CancellationToken Token { get; init; }
-    [JsonIgnore] public ILogger Logger { get => _logger.NotNull(); }
+    [JsonIgnore] public ILogger Logger { get; }
 
     public ScopeContextLocation Location([CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
     {

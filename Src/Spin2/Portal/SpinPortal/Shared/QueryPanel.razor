@@ -9,10 +9,23 @@
                 <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@GotoParent" Icon="@Icons.Material.Sharp.ArrowUpward" />
             }
 
-            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" Disabled=_disableRowIcons OnClick=Open Text="Open" />
-            <StandardButton Icon="@Icons.Material.Sharp.Upload" Disabled=_disableRowIcons OnClick =Refresh Text="Upload" />
-            <StandardButton Icon="@Icons.Material.Sharp.Download" Disabled=_disableRowIcons OnClick =Refresh Text="Download" />
-            <StandardButton Icon="@Icons.Material.Sharp.Clear" Disabled=_disableRowIcons OnClick =Refresh Text="Delete" />
+            <MudFileUpload T="IBrowserFile" OnFilesChanged="@(x => OnUploadFile(x))" Style="margin:0">
+                <ButtonTemplate>
+                    <MudButton HtmlTag="label"
+                               DisableElevation=true
+                               Variant="Variant.Filled"
+                               Size="Size.Small"
+                               StartIcon="@Icons.Material.Sharp.Upload"
+                               Style="@_uploadStyle"
+                               for="@context">
+                        Upload
+                    </MudButton>
+                </ButtonTemplate>
+            </MudFileUpload>
+
+            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" Disabled=_disableOpen OnClick=Open Text="Open" />
+            <StandardButton Icon="@Icons.Material.Sharp.Download" Disabled=_disableRowIcons OnClick=Download Text="Download" />
+            <StandardButton Icon="@Icons.Material.Sharp.Clear" Disabled=_disableRowIcons OnClick=Delete Text="Delete" />
             <StandardButton Icon="@Icons.Material.Sharp.Refresh" OnClick=Refresh Text="Refresh" />
         </MudStack>
 
@@ -31,9 +44,14 @@
 
 <Waiting Show=@(!_initialized && _errorMsg == null) />
 
+@*@if (_showUpload)
+{
+    <Upload OnUpload="@(x => OnUpload(x))" />
+}
+*@
 @if (_initialized)
 {
     <MudPaper Class="mt-2">
-        <DataTable Table="@_table" OnRowClick="x => OnRowClick(x)" />
+        <DataTable Table="@_table" OnRowClick="x => OnRowClick(x)" OnOpenClick="x => OnOpen(x)" />
     </MudPaper>
 }

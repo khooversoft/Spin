@@ -60,7 +60,7 @@ public static class ValidationErrorExtensions
         location.Context.Logger.NotNull();
         if (subject.IsValid) return true;
 
-        location.Context.Logger.LogError(location, subject.FormatErrors());
+        location.LogError(subject.FormatErrors());
         return false;
     }
 }

@@ -8,20 +8,29 @@ namespace Toolbox.Test.Types;
 public class ObjectIdTests
 {
     [Theory]
-    [InlineData("", false)]
-    [InlineData("domain:/", false)]
-    [InlineData("domain:", false)]
-    [InlineData("domain:path", true)]
-    [InlineData("domain:path/path2", true)]
-    [InlineData("domain:path/path2/", false)]
-    [InlineData("path", false)]
-    [InlineData("path/path2", false)]
-    [InlineData("path/path2/", false)]
-    [InlineData("d:a/b/c/d", true)]
-    public void TestRegex(string input, bool expected)
+    [InlineData("domain:path")]
+    [InlineData("domain:path/path2")]
+    [InlineData("domain:path/path2/")]
+    [InlineData("path:/path2/")]
+    [InlineData("path:/.path2/")]
+    [InlineData("d:a/b/c/d")]
+    public void TestPositivePatterns(string input)
     {
-        bool pass = ObjectId.IsValid(input);
-        (expected == pass).Should().BeTrue();
+        ObjectId.IsValid(input).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("domain:/")]
+    [InlineData("domain:")]
+    [InlineData("path")]
+    [InlineData(".path/path2")]
+    [InlineData("5path/path2/")]
+    [InlineData("path:/.path2./")]
+    [InlineData("-path:/path2")]
+    public void TestNegativePatterns(string input)
+    {
+        ObjectId.IsValid(input).Should().BeFalse();
     }
 
     [Theory]
@@ -30,7 +39,7 @@ public class ObjectIdTests
     [InlineData("domain:path/path2", "domain", "path/path2")]
     [InlineData("d:a", "d", "a")]
     [InlineData("d:a/b/c/d", "d", "a/b/c/d")]
-    public void TestObjectIdParse(string input, string domain, string path)
+    public void TestObjectIdParse(string input, string domain, string? path)
     {
         ObjectId objectId = input.ToObjectId();
         objectId.Domain.Should().Be(domain);

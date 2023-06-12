@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using ObjectStore.sdk.Connectors;
-using Toolbox.DocumentContainer;
+using Toolbox.Data;
 using Toolbox.Types;
 
 namespace ObjectStore.sdk.Application;
@@ -25,19 +25,19 @@ public static class Startup
 
         var group = app.MapGroup("/data");
 
-        group.MapGet("/{objectId}", async (string objectId, CancellationToken token) => await endpoint.Read(objectId, new ScopeContext(token)))
+        group.MapGet("/{objectId}", async (string objectId, CancellationToken token) => await endpoint.Read(objectId, new ScopeContext(endpoint.Logger, token)))
             .WithName("Read")
             .WithOpenApi();
 
-        group.MapPost("/", async (Document document, CancellationToken token) => await endpoint.Write(document, new ScopeContext(token)))
+        group.MapPost("/", async (Document document, CancellationToken token) => await endpoint.Write(document, new ScopeContext(endpoint.Logger, token)))
             .WithName("Write")
             .WithOpenApi();
 
-        group.MapDelete("/{objectId}", async (string objectId, CancellationToken token) => await endpoint.Delete(objectId, new ScopeContext(token)))
+        group.MapDelete("/{objectId}", async (string objectId, CancellationToken token) => await endpoint.Delete(objectId, new ScopeContext(endpoint.Logger, token)))
             .WithName("Delete")
             .WithOpenApi();
 
-        group.MapPost("/search", async (QueryParameter query, CancellationToken token) => await endpoint.Search(query, new ScopeContext(token)))
+        group.MapPost("/search", async (QueryParameter query, CancellationToken token) => await endpoint.Search(query, new ScopeContext(endpoint.Logger, token)))
             .WithName("Search")
             .WithOpenApi();
     }

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using ObjectStore.sdk.Connectors;
 using Toolbox.Azure.DataLake;
-using Toolbox.DocumentContainer;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -13,18 +13,20 @@ namespace ObjectStore.sdk.Application;
 
 internal class ObjectStoreEndpoint
 {
-    private readonly ILogger<ObjectStoreEndpoint> _logger;
     private readonly ObjectStoreConnector _connector;
 
     public ObjectStoreEndpoint(ObjectStoreConnector api, ILogger<ObjectStoreEndpoint> logger)
     {
         _connector = api.NotNull();
-        _logger = logger.NotNull();
+        Logger = logger.NotNull();
     }
+
+    public ILogger<ObjectStoreEndpoint> Logger { get; }
 
     public async Task<IResult> Read(string objectId, ScopeContext context)
     {
-        _logger.LogInformation(context.Location(), "Read objectId={objectId}", objectId);
+        context = context.With(Logger);
+        context.Location().LogInformation("Read objectId={objectId}", objectId);
 
         ObjectId id = objectId.FromUrlEncoding();
         Option<Document> result = await _connector.Read(id, context);
@@ -38,7 +40,8 @@ internal class ObjectStoreEndpoint
 
     public async Task<IResult> Write(Document document, ScopeContext context)
     {
-        _logger.LogInformation(context.Location(), "Write document={document}", document);
+        context = context.With(Logger);
+        context.Location().LogInformation("Write document={document}", document);
 
         var result = await _connector.Write(document, context);
 
@@ -51,7 +54,8 @@ internal class ObjectStoreEndpoint
 
     public async Task<IResult> Delete(string objectId, ScopeContext context)
     {
-        _logger.LogInformation(context.Location(), "Delete objectId={objectId}", objectId);
+        context = context.With(Logger);
+        context.Location().LogInformation("Delete objectId={objectId}", objectId);
 
         ObjectId id = objectId.FromUrlEncoding();
         StatusCode result = await _connector.Delete(id, context);
@@ -61,7 +65,8 @@ internal class ObjectStoreEndpoint
 
     public async Task<IResult> Search(QueryParameter queryParameter, ScopeContext context)
     {
-        _logger.LogInformation(context.Location(), "Search queryParameter={queryParameter}", queryParameter);
+        context = context.With(Logger);
+        context.Location().LogInformation("Search queryParameter={queryParameter}", queryParameter);
 
         var validatorResult = queryParameter.Validate();
         if (!validatorResult.IsValid)

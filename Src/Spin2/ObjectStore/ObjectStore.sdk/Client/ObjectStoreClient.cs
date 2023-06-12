@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.DataLake;
-using Toolbox.DocumentContainer;
+using Toolbox.Data;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -19,30 +19,25 @@ public class ObjectStoreClient
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<Document>> Read(string objectId, ScopeContext context) => await new RestClient(_httpClient)
-        .SetPath($"data/{objectId}")
-        .SetLogger(_logger)
-        .GetAsync(context)
-        .GetContent<Document>(context);
+    public async Task<Option<Document>> Read(ObjectId objectId, ScopeContext context) => await new RestClient(_httpClient)
+        .SetPath($"data/{objectId.ToUrlEncoding()}")
+        .GetAsync(context.With(_logger))
+        .GetContent<Document>();
 
     public async Task<Option<ETag>> Write(Document document, ScopeContext context) => await new RestClient(_httpClient)
         .SetPath("data")
-        .SetLogger(_logger)
         .SetContent(document)
-        .PostAsync(context)
-        .GetContent<ETag>(context);
+        .PostAsync(context.With(_logger))
+        .GetContent<ETag>();
 
-    public async Task<StatusCode> Delete(string objectId, ScopeContext context) => await new RestClient(_httpClient)
-        .SetPath($"data/{objectId}")
-        .SetPath(objectId)
-        .SetLogger(_logger)
-        .DeleteAsync(context)
+    public async Task<StatusCode> Delete(ObjectId objectId, ScopeContext context) => await new RestClient(_httpClient)
+        .SetPath($"data/{objectId.ToUrlEncoding()}")
+        .DeleteAsync(context.With(_logger))
         .GetStatusCode();
 
     public async Task<Option<BatchQuerySet<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context) => await new RestClient(_httpClient)
         .SetPath("data/search")
-        .SetLogger(_logger)
         .SetContent(queryParameter)
-        .PostAsync(context)
-        .GetContent<BatchQuerySet<DatalakePathItem>>(context);
+        .PostAsync(context.With(_logger))
+        .GetContent<BatchQuerySet<DatalakePathItem>>();
 }

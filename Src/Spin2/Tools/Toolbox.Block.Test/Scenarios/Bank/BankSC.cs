@@ -80,12 +80,12 @@
 //            Amount = command.Amount,
 //        };
 
-//        _logger.LogInformation(context.Location(), "Sending command to toPath={toPath}, command={command}", command.ToPath, command.ToJsonPascal());
+//        context.Location().LogInformation("Sending command to toPath={toPath}, command={command}", command.ToPath, command.ToJsonPascal());
 
 //        TransferResult result = await _messageBroker.Call<ApplyDeposit, TransferResult>($"{command.ToPath}/applyDeposit", reqeust, context);
 //        if (result.Status != StatusCode.OK) return TransferResult.Error();
 
-//        _logger.LogInformation(context.Location(), "Debit SC");
+//        context.Location().LogInformation("Debit SC");
 
 //        var ledger = new LedgerItem
 //        {

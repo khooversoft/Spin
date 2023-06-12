@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using MudBlazor;
 using ObjectStore.sdk.Application;
 using ObjectStore.sdk.Client;
 using SpinPortal.Application;
 using Toolbox.Azure.DataLake;
-using Toolbox.DocumentContainer;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Table;
@@ -19,6 +21,8 @@ public partial class QueryPanel
     [Inject] public ObjectStoreClient Client { get; set; } = null!;
     [Inject] public NavigationManager NavManager { get; set; } = null!;
     [Inject] IDialogService DialogService { get; set; } = null!;
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+    [Inject] public JsRunTimeService JsService { get; set; } = null!;
 
     [Parameter] public string Title { get; set; } = null!;
     [Parameter] public ObjectUri Path { get; set; } = null!;
@@ -32,8 +36,9 @@ public partial class QueryPanel
     private ObjectTable _table { get; set; } = null!;
     private int? _selectedRow { get; set; }
     private bool _disableRowIcons => _selectedRow == null;
+    private bool _disableOpen => _selectedRow == null || !_table.Rows[(int)_selectedRow].Tag.HasTag(ObjectStoreConstants.Open);
     private bool _showUpFolderButton => Path.Path.IsNotEmpty();
-    private IReadOnlyList<DatalakePathItem> _datalakePathItems = Array.Empty<DatalakePathItem>();
+    private string _uploadStyle => PortalConstants.NormalText; // + ";min-height:36.75px";
 
     protected override void OnParametersSet()
     {
@@ -55,64 +60,115 @@ public partial class QueryPanel
         }
     }
 
+    private async Task Delete()
+    {
+        ObjectId id = GetSelectedKey().ToObjectUri().ToObjectId();
+
+        StatusCode result = await Client.Delete(id, new ScopeContext(Logger));
+        if (result.IsError())
+        {
+            _errorMsg = $"Cannot delete document objectId='{id}'";
+            return;
+        }
+
+        await Refresh();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        Snackbar.Add($"Deleted document, objectId='{id}", Severity.Info);
+    }
     private async Task Refresh()
     {
         _initialized = false;
+        _selectedRow = null;
         await Task.Delay(TimeSpan.FromMilliseconds(500));
         StateHasChanged();
 
         await LoadData();
     }
 
-    private async Task Open()
+    private string GetSelectedKey() => _table.Rows[(int)_selectedRow!].Key!;
+
+    private Task Open() => OnOpen(GetSelectedKey());
+
+    private async Task OnOpen(string key)
     {
-        //string file = _datalakePathItems[(int)_selectedRow!].Name.ToObjectId
-        //DialogOptions option = new DialogOptions
-        //{
-        //    Position = DialogPosition.Center,
-        //    MaxWidth = MaxWidth.ExtraExtraLarge,
-        //    CloseOnEscapeKey = true,
-        //    CloseButton = true,
-        //};
+        ObjectId id = key.ToObjectUri().ToObjectId();
 
-        //Option<Document> document = await Client.Read(_datalakePathItems[(int)_selectedRow!].Name, new ScopeContext());
-        //if (document.IsError())
-        //{
-        //    _errorMsg = $"Cannot read file '{}'"
-        //}
+        Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
+        if (document.IsError())
+        {
+            _errorMsg = $"Cannot read file '{id}'";
+            return;
+        }
 
-        //DialogParameters parameters = new DialogParameters();
-        //parameters.Add("Title", _datalakePathItems[(int)_selectedRow!].Name);
-        //parameters.Add("TitleTooltip", "File");
-        //parameters.Add("CodeText", "File");
+        DialogOptions option = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullScreen = true,
+        };
 
-        //DialogService.Show(
-        //_initialized = false;
-        //await Task.Delay(TimeSpan.FromMilliseconds(500));
-        //StateHasChanged();
+        DialogParameters parameters = new DialogParameters();
+        parameters.Add("Title", key);
+        parameters.Add("TitleTooltip", id.ToString());
+        parameters.Add("CodeText", document.Return().ToObject<string>());
 
-        await LoadData();
+        DialogService.Show<Code>("Content", parameters, option);
+    }
+
+    private async Task OnUploadFile(InputFileChangeEventArgs args)
+    {
+        var memoryStream = new MemoryStream();
+        await args.File.OpenReadStream().CopyToAsync(memoryStream);
+
+        string fileName = args.File.Name
+            .Select(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' ? x : '-')
+            .Func(x => new string(x.ToArray()));
+
+        ObjectId id = (Path.Id + "/" + fileName).ToObjectUri().ToObjectId();
+
+        var document = new DocumentBuilder()
+            .SetDocumentId(id)
+            .SetContent(memoryStream.ToArray())
+            .Build();
+
+        await Client.Write(document, new ScopeContext(Logger));
+    }
+
+    private async Task Download()
+    {
+        ObjectUri path = GetSelectedKey().ToObjectUri();
+        ObjectId id = path.ToObjectId();
+
+        Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
+        if (document.IsError())
+        {
+            _errorMsg = $"Cannot read file '{id}'";
+            return;
+        }
+
+        await JsService.DownloadFile(path.GetFile().NotEmpty(), document.Return().Content);
     }
 
     private async Task LoadData()
     {
+        var context = new ScopeContext(Logger);
+
         try
         {
             var queryParameter = new QueryParameter { Domain = Path.Domain, Filter = Path.Path };
-            Option<BatchQuerySet<DatalakePathItem>> batch = await Client.Search(queryParameter, new ScopeContext());
+
+            Option<BatchQuerySet<DatalakePathItem>> batch = await Client.Search(queryParameter, context);
             if (batch.IsError())
             {
                 _errorMsg = "Failed to connect to storage";
                 return;
             }
 
-            _datalakePathItems = batch.Return().Items.ToArray();
-
             ObjectRow[] rows = batch.Return().Items.Select(x => new ObjectRow(new object?[]
                 {
                     x.Name.ToObjectUri().SetDomain(Path.Domain).GetFile(),
                     x.LastModified
-                }, getTag(x), x.Name.ToObjectUri().SetDomain(Path.Domain))
+                }, createTag(x), x.Name.ToObjectUri().SetDomain(Path.Domain))
             ).ToArray();
 
             _table = new ObjectTableBuilder()
@@ -127,7 +183,7 @@ public partial class QueryPanel
         catch (OperationCanceledException ex)
         {
             _errorMsg = "Query timed out";
-            Logger.LogError(ex, _errorMsg);
+            context.Location().LogError(ex, _errorMsg);
         }
         finally
         {
@@ -136,7 +192,7 @@ public partial class QueryPanel
             await InvokeAsync(() => StateHasChanged());
         }
 
-        string getTag(DatalakePathItem item) => item.IsDirectory == true ? ObjectStoreConstants.Folder : ObjectStoreConstants.Open;
+        string createTag(DatalakePathItem item) => item.IsDirectory == true ? ObjectStoreConstants.Folder : ObjectStoreConstants.Open;
     }
 
     private void SetDomain(string domain)

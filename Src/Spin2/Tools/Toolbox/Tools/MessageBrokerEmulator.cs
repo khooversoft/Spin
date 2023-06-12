@@ -40,7 +40,7 @@ public class MessageBrokerEmulator : IMessageBroker
             ForwardTo = async (x, c) => await forwardTo((TSend)x, c),
         };
 
-        _logger.LogInformation(context.Location(), "Register route, path={path}", path);
+        context.Location().LogInformation("Register route, path={path}", path);
 
         return this;
     }
@@ -50,7 +50,7 @@ public class MessageBrokerEmulator : IMessageBroker
     {
         path.NotEmpty();
 
-        _logger.LogInformation(context.Location(), "Removing route, path={path}", path);
+        context.Location().LogInformation("Removing route, path={path}", path);
 
         return _routes.TryRemove(path, out _) switch
         {
@@ -69,7 +69,7 @@ public class MessageBrokerEmulator : IMessageBroker
 
         if (!_routes.TryGetValue(path, out Register? route)) throw new ArgumentException($"Path={path} is not registered");
 
-        _logger.LogInformation(context.Location(), "Sending to path={path}, message={message}", path, message.ToJsonPascal());
+        context.Location().LogInformation("Sending to path={path}, message={message}", path, message.ToJsonPascal());
 
         return (TReturn)await route.ForwardTo(message, context with { Token = default });
     }

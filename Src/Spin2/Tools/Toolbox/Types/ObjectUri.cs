@@ -37,7 +37,7 @@ public sealed record ObjectUri
     public string? Path => _path ??= Id.Split('/') switch
     {
         var v when v.Length == 0 => null,
-        var v => v.Skip(1).Join("/").ToNullIfEmpty(),
+        var v => v.Skip(1).Join('/').ToNullIfEmpty(),
     };
 
     public IReadOnlyList<string> Vectors => _vectors ??= Id?.Split('/') ?? Array.Empty<string>();
@@ -74,6 +74,8 @@ public sealed record ObjectUri
 public static class ObjectIUExtensions
 {
     public static ObjectUri ToObjectUri(this string? subject) => (ObjectUri)subject!;
+
+    public static ObjectId ToObjectId(this ObjectUri subject) => new ObjectId($"{subject.Domain}:{subject.Path}");
 
     public static ObjectUri SetDomain(this ObjectUri objectUri, string domain) => objectUri.Vectors
         .Prepend(domain)

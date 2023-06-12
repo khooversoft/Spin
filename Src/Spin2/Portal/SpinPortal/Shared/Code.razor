@@ -5,7 +5,6 @@
         </MudTooltip>
         <MudSpacer />
 
-        <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@OnClose" Icon="@Icons.Material.Sharp.Clear" />
         <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@CopyToClipboard" Icon="@Icons.Material.Filled.CopyAll" />
 
     </MudToolBar>
@@ -18,9 +17,8 @@
     [Parameter] public string Title { get; set; } = null!;
     [Parameter] public string? TitleTooltip { get; set; }
     [Parameter] public string CodeText { get; set; } = null!;
-    [Parameter] public EventCallback OnClose { get; set; }
 
-    [Inject] public ClipboardService Clipboard { get; set; } = null!;
+    [Inject] public JsRunTimeService JsService { get; set; } = null!;
 
-    private async Task CopyToClipboard() => await Clipboard.WriteTextAsync(CodeText);
+    private async Task CopyToClipboard() => await JsService.WriteToClipboard(CodeText);
 }

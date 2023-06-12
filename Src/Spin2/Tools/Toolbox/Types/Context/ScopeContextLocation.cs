@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Toolbox.Types;
+﻿namespace Toolbox.Types;
 
 public readonly record struct ScopeContextLocation
 {
@@ -12,9 +10,4 @@ public readonly record struct ScopeContextLocation
 
     public ScopeContext Context { get; init; }
     public CodeLocation Location { get; }
-
-    public ScopeContextLocation With(ILogger logger) => this with
-    {
-        Context = this.Context with { Logger = logger },
-    };
 }

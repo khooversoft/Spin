@@ -69,12 +69,20 @@ public static class StringExtensions
     }
 
     /// <summary>
-    /// Join vector(s) to string with delimiter
+    /// Join vector(s) to string with string delimiter
     /// </summary>
     /// <param name="values">values</param>
     /// <param name="delimiter">delimiter to use in join</param>
     /// <returns>result</returns>
     public static string Join(this IEnumerable<string?> values, string delimiter = "") => string.Join(delimiter, values.Where(x => x != null));
+
+    /// <summary>
+    /// Join vector(s) to string with character delimiter
+    /// </summary>
+    /// <param name="values"></param>
+    /// <param name="delimiter"></param>
+    /// <returns></returns>
+    public static string Join(this IEnumerable<string?> values, char delimiter) => string.Join(delimiter, values.Where(x => x != null));
 
 
     /// <summary>
@@ -101,12 +109,21 @@ public static class StringExtensions
     /// </summary>
     /// <param name="values">values</param>
     /// <returns>hash bytes</returns>
-    public static byte[] ComputeHash(this IEnumerable<string?> values)
+    public static byte[] ComputeHash(this IEnumerable<object?> values)
     {
         values.NotNull();
 
         var ms = new MemoryStream();
-        values.ForEach(x => ms.Write(x.ToBytes()));
+
+        values.Select(x => x switch
+        {
+            null => null,
+            string v => v.ToBytes(),
+            byte[] v => v,
+
+            var v => throw new InvalidDataException($"Not supported type={(v?.GetType()?.Name ?? "<null>")}"),
+        })
+        .ForEach(x => ms.Write(x));
 
         ms.Seek(0, SeekOrigin.Begin);
         return MD5.Create().ComputeHash(ms);

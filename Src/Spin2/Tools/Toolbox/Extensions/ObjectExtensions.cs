@@ -31,7 +31,7 @@ public static class ObjectExtensions
         }
         catch (Exception ex)
         {
-            context.Logger?.LogError(context.Location(), ex, "Json serialzation error");
+            context.Location().LogError(ex, "Json serialzation error");
             return string.Empty;
         }
     }
@@ -51,7 +51,7 @@ public static class ObjectExtensions
         }
         catch (Exception ex)
         {
-            context.Logger?.LogError(context.Location(), ex, "Json serialzation error");
+            context.Location().LogError(ex, "Json serialzation error");
             return string.Empty;
         }
     }

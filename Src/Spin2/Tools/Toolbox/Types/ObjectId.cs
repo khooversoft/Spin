@@ -9,17 +9,13 @@ namespace Toolbox.Types;
 /// </summary>
 public sealed record ObjectId
 {
-    //private const string _regexDomainNotRequired = "^([a-zA-Z][a-zA-Z0-9]*[:])?[a-zA-Z][a-zA-Z0-9]+([/][a-zA-Z][a-zA-Z0-9]*)*$";
-    private const string _regexRequired = "^([a-zA-Z][a-zA-Z0-9]*[:]){1}[a-zA-Z][a-zA-Z0-9]*([/][a-zA-Z][a-zA-Z0-9]*)*$";
     private string? _domain;
     private string? _path;
     private IReadOnlyList<string>? _vectors;
 
     public ObjectId(string id)
     {
-        id.NotEmpty();
-
-        Id = id.ToLower();
+        Id = id.NotEmpty();
         IsValid(id).Assert($"Syntax error, {Syntax}");
     }
 
@@ -34,7 +30,7 @@ public sealed record ObjectId
     public string Id { get; }
 
     public string Domain => _domain ??= Id.Split(':')[0];
-    public string Path => _path ??= Id.Split(':')[1];
+    public string Path => _path ??= Id.Split(':')[1].Split('/', StringSplitOptions.RemoveEmptyEntries).Join('/');
     public (string Domain, string Path) Components => (Domain, Path);
     public IReadOnlyList<string> Vectors => _vectors ??= Path.Split('/');
 
@@ -48,11 +44,41 @@ public sealed record ObjectId
 
     public static implicit operator string(ObjectId documentId) => documentId.ToString();
 
-    public static bool IsValid(string objectId)
+
+    // Rules
+    //  domain is required
+    //  domain must start with alpha
+    //  domain can have alpha, numeric, '-', '.'
+    //  1 path is required
+    //  path must start with alpha, numeric, '.'
+    //  path must end with alpha, numeric
+    //  path can have alpha, numeric, '-', '.'
+    public static bool IsValid(string? objectId)
     {
         if (objectId.IsEmpty()) return false;
+        if (objectId.Length > 0 && char.IsNumber(objectId[0])) return false;
 
-        return Regex.Match(objectId, _regexRequired, RegexOptions.IgnoreCase).Success;
+        string[] domainParts = objectId.Split(':', StringSplitOptions.RemoveEmptyEntries);
+        if(domainParts.Length != 2) return false;
+        if( !testDomain(domainParts[0]) ) return false;
+
+        string[] parts = domainParts[^1].Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if(parts.Length == 0) return false;
+        return parts.All(x => testPath(x));
+
+        static bool testDomain(string domain)
+        {
+            if (!char.IsLetter(domain[0])) return false;
+            if (domain.Length > 1 && !char.IsLetterOrDigit(domain[^1])) return false;
+            return domain.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-');
+        }
+
+        static bool testPath(string path)
+        {
+            if( !char.IsLetterOrDigit(path[0]) && !path.StartsWith('.')) return false;
+            if (path.Length > 1 && !char.IsLetterOrDigit(path[^1])) return false;
+            return path.All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-');
+        }
     }
 }
 

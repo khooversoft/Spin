@@ -2,6 +2,7 @@
 using Azure.Storage.Files.DataLake.Models;
 using Toolbox.Azure.DataLake;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Azure.DataLake
 {
@@ -22,9 +23,10 @@ namespace Toolbox.Azure.DataLake
 
 public static class DatalakePathItemExtensions
 {
-    public static DatalakePathItem ConvertTo(this PathItem subject)
+    public static DatalakePathItem ConvertTo(this PathItem subject, string domain)
     {
         subject.NotNull();
+        domain.NotNull();
 
         return new DatalakePathItem
         {
@@ -36,6 +38,7 @@ public static class DatalakePathItemExtensions
             Owner = subject.Owner,
             Group = subject.Group,
             Permissions = subject.Permissions,
+            ObjectId = $"{domain}:{subject.Name}".ToObjectId()
         };
     }
 }

@@ -29,8 +29,9 @@ public class DatalakeStore : IDatalakeStore
 
     public async Task<StatusCode> Append(string path, byte[] data, ScopeContext context)
     {
+        context = context.With(_logger);
         path = WithBasePath(path);
-        _logger.LogTrace(context.Location(), "Appending to {path}, data.Length={data.Length}", path, data.Length);
+        context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
 
         data.NotNull().Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
 
@@ -46,11 +47,11 @@ public class DatalakeStore : IDatalakeStore
             await file.AppendAsync(memoryBuffer, properties.Return().ContentLength, cancellationToken: context);
             await file.FlushAsync(properties.Return().ContentLength + data.Length);
 
-            _logger.LogInformation(context.Location(), "Appended to path={path}", path);
+            context.Location().LogInformation("Appended to path={path}", path);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound" || ex.ErrorCode == "BlobNotFound")
         {
-            _logger.LogInformation(context.Location(), "Creating path={path}", path);
+            context.Location().LogInformation("Creating path={path}", path);
             await Write(path, data, true, context);
 
             return StatusCode.OK;
@@ -58,7 +59,7 @@ public class DatalakeStore : IDatalakeStore
         catch (TaskCanceledException) { }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to append file {path}", path);
+            context.Location().LogError(ex, "Failed to append file {path}", path);
             return StatusCode.BadRequest;
         }
 
@@ -67,8 +68,9 @@ public class DatalakeStore : IDatalakeStore
 
     public async Task<StatusCode> Delete(string path, ScopeContext context)
     {
+        context = context.With(_logger);
         path = WithBasePath(path);
-        _logger.LogTrace(context.Location(), "Deleting to {path}", path);
+        context.Location().LogTrace("Deleting to {path}", path);
 
         try
         {
@@ -79,15 +81,16 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to delete file {path}", path);
+            context.Location().LogError(ex, "Failed to delete file {path}", path);
             return StatusCode.BadRequest;
         }
     }
 
     public async Task<StatusCode> DeleteDirectory(string path, ScopeContext context)
     {
+        context = context.With(_logger);
         path = WithBasePath(path);
-        _logger.LogTrace(context.Location(), "Deleting directory {path}", path);
+        context.Location().LogTrace("Deleting directory {path}", path);
 
         try
         {
@@ -98,15 +101,16 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to delete directory for {path}", path);
+            context.Location().LogError(ex, "Failed to delete directory for {path}", path);
             return StatusCode.BadRequest;
         }
     }
 
     public async Task<StatusCode> Exist(string path, ScopeContext context)
     {
+        context = context.With(_logger);
         path = WithBasePath(path);
-        _logger.LogTrace(context.Location(), "Is path {path} exist", path);
+        context.Location().LogTrace("Is path {path} exist", path);
 
         try
         {
@@ -116,21 +120,23 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to ExistsAsync for {path}", path);
+            context.Location().LogError(ex, "Failed to ExistsAsync for {path}", path);
             throw;
         }
     }
 
     public Task<Option<DatalakePathProperties>> GetPathProperties(string path, ScopeContext context)
     {
+        context = context.With(_logger);
         path = WithBasePath(path);
-        _logger.LogInformation(context.Location(), "Getting path {path} properties", path);
+        context.Location().LogInformation("Getting path {path} properties", path);
 
         return InternalGetPathProperties(path, context);
     }
 
     public async Task<Option<DataETag>> Read(string path, ScopeContext context)
     {
+        context = context.With(_logger);
         path = WithBasePath(path);
 
         try
@@ -141,17 +147,17 @@ public class DatalakeStore : IDatalakeStore
             using MemoryStream memory = new MemoryStream();
             await response.Value.Content.CopyToAsync(memory);
 
-            _logger.LogTrace(context.Location(), "Read file {path}", path);
+            context.Location().LogTrace("Read file {path}", path);
             return new DataETag(memory.ToArray(), response.Value.Properties.ETag);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
-            _logger.LogError(context.Location(), ex, "Cannot read file {path}", path);
+            context.Location().LogError(ex, "Cannot read file {path}", path);
             return new Option<DataETag>(StatusCode.NotFound);
         }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to read file {path}", path);
+            context.Location().LogError(ex, "Failed to read file {path}", path);
             return new Option<DataETag>(StatusCode.BadRequest);
         }
     }
@@ -178,7 +184,7 @@ public class DatalakeStore : IDatalakeStore
                 index++;
                 if (index < queryParameter.Index) continue;
 
-                DatalakePathItem datalakePathItem = pathItem.ConvertTo();
+                DatalakePathItem datalakePathItem = pathItem.ConvertTo(queryParameter.Domain);
 
                 list.Add(datalakePathItem);
                 if (list.Count >= queryParameter.Count) break;
@@ -194,7 +200,7 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(context.Location(), ex, "Failed to search, query={queryParameter}", queryParameter);
+            context.Location().LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
             return new Option<IReadOnlyList<DatalakePathItem>>(StatusCode.BadRequest);
         }
     }
@@ -202,11 +208,11 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option<ETag>> Write(string path, DataETag data, bool overwrite, ScopeContext context)
     {
         path = WithBasePath(path);
-        _logger.LogTrace(context.Location(), $"Writing to {path}, data.Length={data.Data.Length}, eTag={data.ETag?.ToString() ?? "<null>"}");
+        context.Location().LogTrace($"Writing to {path}, data.Length={data.Data.Length}, eTag={data.ETag?.ToString() ?? "<null>"}");
 
         data.NotNull().Assert(x => x.Data.Length > 0, "length must be greater then 0");
 
-        _logger.LogTrace(context.Location(), "Writing path={path}", path);
+        context.Location().LogTrace("Writing path={path}", path);
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());
 
         return await Upload(path, memoryBuffer, overwrite, data, context);
@@ -246,14 +252,14 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to upload {path}", path);
+            context.Location().LogError(ex, "Failed to upload {path}", path);
             return new Option<ETag>(StatusCode.NotFound);
         }
     }
 
     private async Task<Option<DatalakePathProperties>> InternalGetPathProperties(string path, ScopeContext context)
     {
-        _logger.LogTrace(context.Location(), "Getting path {path} properties", path);
+        context.Location().LogTrace("Getting path {path} properties", path);
 
         try
         {
@@ -264,7 +270,7 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(context.Location(), ex, "Failed to GetPathProperties for file {path}", path);
+            context.Location().LogError(ex, "Failed to GetPathProperties for file {path}", path);
             return new Option<DatalakePathProperties>(StatusCode.BadRequest);
         }
     }

@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Toolbox.DocumentContainer;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -22,13 +22,7 @@ public class DocumentSerializationTests
 
         document.Should().NotBeNull();
         document.TypeName.Should().Be("String");
-        document.Content.Should().Be(payload);
-
-        byte[] bytes = document.ToBytes();
-
-        Document resultDocument = bytes.ToDocument();
-
-        (document == resultDocument).Should().BeTrue();
+        document.ToObject<string>().Should().Be(payload);
     }
 
     [Fact]
@@ -53,12 +47,24 @@ public class DocumentSerializationTests
 
         document.Should().NotBeNull();
         document.TypeName.Should().Be(typeof(Payload).Name);
+        document.ToObject<Payload>().Should().Be(payload);
+    }
 
-        byte[] bytes = document.ToBytes();
+    [Fact]
+    public void GivenClassDocumentBlob_WillPass()
+    {
+        var documentId = (ObjectId)"test:pass";
+        byte[] payload = "this is a test 123".ToBytes();
 
-        Document resultDocument = bytes.ToDocument();
+        Document document = new DocumentBuilder()
+            .SetDocumentId(documentId)
+            .SetContent(payload)
+            .Build()
+            .Verify();
 
-        (document == resultDocument).Should().BeTrue();
+        document.Should().NotBeNull();
+        document.TypeName.Should().Be(typeof(byte[]).Name);
+        document.ToObject<byte[]>().NotNull().Func(x => Enumerable.SequenceEqual(x, payload)).Should().BeTrue();
     }
 
     [Fact]

@@ -18,12 +18,13 @@ public partial class DataTable
     public ObjectTable Table { get; set; } = null!;
 
     [Parameter]
-    public EventCallback<int?> OnRowClick { get; set; }
+    public EventCallback<int> OnRowClick { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnOpenClick { get; set; }
 
     private IReadOnlyList<Column> _columns { get; set; } = Array.Empty<Column>();
     private IReadOnlyList<Row> _rows { get; set; } = Array.Empty<Row>();
-
-    private IReadOnlyList<KeyValuePair<string, string>> _map = Array.Empty<KeyValuePair<string, string>>();
     private int? _selectedRow;
 
     protected override void OnInitialized()
@@ -46,7 +47,7 @@ public partial class DataTable
                 Index = i,
                 ShowFolder = x.Tag.HasTag(ObjectStoreConstants.Folder),
                 ShowOpen = x.Tag.HasTag(ObjectStoreConstants.Open),
-                Key = x.Key,
+                Key = x.Key.NotEmpty(),
 
                 Items = x.Items
                     .Select(x => x.Get<string>())
@@ -62,17 +63,9 @@ public partial class DataTable
         NavManager.NavigateTo(NavTools.ToObjectStorePath(row.Key), true);
     }
 
-    private void OnView(int index)
+    private async Task OnView(string key)
     {
-        //_map = Table.Rows
-        //    .Skip(index)
-        //    .SelectMany(x => x.Items)
-        //    .Zip(Table.Header.Columns, (o, i) => new KeyValuePair<string, string>(i.Name, o.Get<string>()))
-        //    .Where(x => x.Value.IsNotEmpty())
-        //    .ToArray();
-
-        //_showDetail = true;
-        //StateHasChanged();
+        await OnOpenClick.InvokeAsync(key);
     }
 
     private async Task OnRowClickInternal(DataGridRowClickEventArgs<Row> e)
@@ -104,6 +97,6 @@ public partial class DataTable
         public IReadOnlyList<string> Items { get; init; } = Array.Empty<string>();
         public bool ShowFolder { get; init; }
         public bool ShowOpen { get; init; }
-        public string? Key { get; init; }
+        public string Key { get; init; } = null!;
     }
 }

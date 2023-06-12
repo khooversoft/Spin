@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Block.Access;
-using Toolbox.DocumentContainer;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -72,7 +72,7 @@ public class ContractHost : IContractHost
     public async Task Start(IContract sc, ScopeContext context)
     {
         sc.NotNull();
-        _logger.LogInformation(context.Location(), "Starting, DocumentId={path}", sc.DocumentId);
+        context.Location().LogInformation("Starting, DocumentId={path}", sc.DocumentId);
 
         await sc.Start(context);
     }

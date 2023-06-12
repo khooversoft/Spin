@@ -8,10 +8,10 @@ namespace Toolbox.Rest;
 
 public static class RestExtensions
 {
-    public static async Task<Option<T>> GetContent<T>(this Task<RestResponse> httpResponse, ScopeContext context)
+    public static async Task<Option<T>> GetContent<T>(this Task<RestResponse> httpResponse)
     {
         var response = await httpResponse;
-        return response.GetContent<T>(context);
+        return response.GetContent<T>();
     }
 
     public static async Task<StatusCode> GetStatusCode(this Task<RestResponse> httpResponse)
@@ -20,7 +20,7 @@ public static class RestExtensions
         return response.StatusCode.ToStatusCode();
     }
 
-    public static Option<T> GetContent<T>(this RestResponse response, ScopeContext context)
+    public static Option<T> GetContent<T>(this RestResponse response)
     {
         if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode());
 
@@ -38,7 +38,7 @@ public static class RestExtensions
             }
             catch (Exception ex)
             {
-                context.Logger?.LogCritical(context.Location(), ex, "Failed deserialization into type={type}, value={value}", typeof(T).Name, value);
+                response.Context.Location().LogCritical(ex, "Failed deserialization into type={type}, value={value}", typeof(T).Name, value);
                 return new Option<T>(StatusCode.BadRequest);
             }
         };

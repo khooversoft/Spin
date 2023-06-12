@@ -1,10 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.DocumentContainer;
+namespace Toolbox.Data;
 
 public class DocumentObjectLease
 {
@@ -30,7 +29,7 @@ public class DocumentObjectLease
         };
 
         _leases.TryAdd(model.Id, model);
-        _logger.LogInformation(context.Location(), "Issuing lease to leaseTo={leaseTo}, amount={amount}, validTo={validTo}", objectId, amount, validTo);
+        context.Location().LogInformation("Issuing lease to leaseTo={leaseTo}, amount={amount}, validTo={validTo}", objectId, amount, validTo);
 
         return model.Id;
     }
@@ -60,7 +59,7 @@ public class DocumentObjectLease
     public bool ReleaseLease(string id, ScopeContext context)
     {
         _leases.TryRemove(id, out var _);
-        _logger.LogInformation(context.Location(), "Release lease leaseTo={id}", id);
+        context.Location().LogInformation("Release lease leaseTo={id}", id);
 
         return true;
     }

@@ -87,19 +87,21 @@ public static class ScopeExtensions
 
     public static IDisposable LogEntryExit(this ScopeContextLocation context, string? message = null, params object?[] args)
     {
-        message = ConstructMessage("[ScopeEnter] " + message);
-        object[] newObjects = AddContext(args, context);
-
-        context.Context.Logger.LogInformation(message, newObjects);
+        log("ScopeEnter", message, args);
 
         var sw = Stopwatch.StartNew();
 
         return new FinalizeScope<ScopeContextLocation>(context, x =>
         {
-            message = ConstructMessage("[ScopeExit] " + message);
+            log("ScopeExit", message, args);
+        });
+
+        void log(string header, string? message, object?[] args)
+        {
+            message = ConstructMessage($"[{header}] " + message);
             object[] newObjects = AddContext(args, context);
             context.Context.Logger.LogInformation(message, newObjects);
-        });
+        }
     }
 
     private static string ConstructMessage(string? message) => message switch
@@ -107,14 +109,13 @@ public static class ScopeExtensions
         null => string.Empty,
         string v => v + ", ",
     } +
-        "traceId={traceId}, " +
-        "function={function}, " +
-        "path={path}, " +
-        "lineNumber={lineNumber}";
+    "traceId={traceId}, " +
+    "function={function}, " +
+    "path={path}, " +
+    "lineNumber={lineNumber}";
 
-    private static object[] AddContext(object?[] args, ScopeContextLocation context) => (object[])(args ?? Array.Empty<object>())
-        .OfType<object>()
-        .Select(x => (x.GetType().IsClass) switch
+    private static object[] AddContext(object?[] args, ScopeContextLocation context) => (object[])(args ?? Array.Empty<object?>())
+        .Select(x => (x?.GetType().IsClass == true) switch
         {
             true => x.ToJsonPascalSafe(context.Context),
             false => x

@@ -57,7 +57,7 @@
 //    public Task Start(BankSC sc, ScopeContext context)
 //    {
 //        sc.NotNull();
-//        _logger.LogInformation(context.Location(), "Starting, DocumentId={path}", sc.AccountBlock.DocumentId);
+//        context.Location().LogInformation("Starting, DocumentId={path}", sc.AccountBlock.DocumentId);
 
 //        _messageBroker.AddRoute<PushTransfer, TransferResult>(GetPushPath(sc), sc.PushCommand, context);
 //        _messageBroker.AddRoute<ApplyDeposit, TransferResult>(GetApplyDeplositPath(sc), sc.ApplyDeposit, context);

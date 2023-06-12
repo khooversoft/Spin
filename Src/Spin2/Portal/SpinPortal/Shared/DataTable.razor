@@ -15,7 +15,7 @@
                     @if (context.Item.ShowOpen)
                     {
                         <MudTooltip Text="Open">
-                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.Sharp.Shortcut" OnClick="() => OnView(context.Item!.Index)"></MudButton>
+                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.Sharp.Shortcut" OnClick="() => OnView(context.Item.Key)"></MudButton>
                         </MudTooltip>
                     }
                 </MudStack>
