@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Extensions;
 
@@ -18,7 +19,7 @@ public static class ConfigurationExtensions
     }
 
     /// <summary>
-    /// Uses function to recursive build configuration settings (.Net Core Configuration) from a class that can have sub-classes
+    /// Convert an object to its configuration properties {key[:key...}}:{value}
     /// </summary>
     /// <typeparam name="T">type of class</typeparam>
     /// <param name="subject">instance of class</param>
@@ -42,5 +43,23 @@ public static class ConfigurationExtensions
             .OfType<KeyValuePair<string, string>>()
             .OrderBy(x => x.Key)
             .ToArray();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="values"></param>
+    /// <returns></returns>
+    public static T ToObject<T>(this IEnumerable<KeyValuePair<string, string>> values) where T : new()
+    {
+        var dict = values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+        T result = new ConfigurationBuilder()
+            .AddInMemoryCollection(values!)
+            .Build()
+            .Bind<T>();
+
+        return result;
     }
 }

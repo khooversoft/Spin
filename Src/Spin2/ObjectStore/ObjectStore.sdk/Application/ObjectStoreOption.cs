@@ -8,7 +8,7 @@ public record ObjectStoreOption
 {
     public ClientSecretOption ClientIdentity { get; init; } = null!;
     public IReadOnlyList<DomainProfileOption> DomainProfiles { get; init; } = Array.Empty<DomainProfileOption>();
-    public string AppicationInsightsConnectionString { get; init; } = null!;
+    public string ApplicationInsightsConnectionString { get; init; } = null!;
     public string IpAddress { get; init; } = null!;
 }
 
@@ -18,7 +18,7 @@ public static class ObjectStoreOptionValidator
     public static Validator<ObjectStoreOption> Validator = new Validator<ObjectStoreOption>()
         .RuleFor(x => x.ClientIdentity).Validate(ClientSecretOptionValidator.Validator)
         .RuleForEach(x => x.DomainProfiles).Validate(DomainProfileOptionValidator.Validator)
-        .RuleFor(x => x.AppicationInsightsConnectionString).NotEmpty()
+        .RuleFor(x => x.ApplicationInsightsConnectionString).NotEmpty()
         .RuleFor(x => x.IpAddress).NotEmpty()
         .Build();
 

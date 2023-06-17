@@ -19,7 +19,7 @@ ObjectStoreOption option = builder.Configuration
 builder.Services.AddObjectStore(option);
 
 builder.Logging.AddApplicationInsights(
-    configureTelemetryConfiguration: (config) => config.ConnectionString = option.AppicationInsightsConnectionString,
+    configureTelemetryConfiguration: (config) => config.ConnectionString = option.ApplicationInsightsConnectionString,
     configureApplicationInsightsLoggerOptions: (options) => { }
 );
 
