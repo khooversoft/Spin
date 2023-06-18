@@ -33,6 +33,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{FAC225
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinPortal", "Portal\SpinPortal\SpinPortal.csproj", "{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cluster", "Cluster", "{39A9C238-9E03-4176-8394-BA4144393D82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinSilo", "Cluster\SpinSilo\SpinSilo.csproj", "{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +87,10 @@ Global
 		{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +107,7 @@ Global
 		{8730EF5A-DF50-4F46-956C-6409A30A2D9F} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{1E92660A-C80A-4C4B-84EE-FB8650910156} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4} = {FAC225B7-CD34-432D-A258-B04410197003}
+		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11} = {39A9C238-9E03-4176-8394-BA4144393D82}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C148F5D7-56ED-4D3F-8AAB-8363CB110674}

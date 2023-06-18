@@ -26,7 +26,7 @@ internal class ObjectStoreConnector
 
         context.Location().LogInformation("Writing document objectId={objectId}", document.ObjectId);
 
-        (string domain, string path) = document.ObjectId.ToObjectId();
+        (string domain, string? tenant, string path) = document.ObjectId.ToObjectId();
         Option<IDatalakeStore> store = _factory.Get(domain);
         if (store.IsError()) return store.ToOption<ETag>();
 
@@ -38,7 +38,7 @@ internal class ObjectStoreConnector
         context = context.With(_logger);
         context.Location().LogInformation("Reading document objectId={objectId}", objectId);
 
-        (string domain, string path) = objectId;
+        (string domain, string? tenant, string path) = objectId;
         Option<IDatalakeStore> store = _factory.Get(domain);
         if (store.IsError()) return store.ToOption<Document>();
 
@@ -58,7 +58,7 @@ internal class ObjectStoreConnector
         context = context.With(_logger);
         context.Location().LogInformation("Deleting document objectId={objectId}", objectId);
 
-        (string domain, string path) = objectId;
+        (string domain, string? tenant, string path) = objectId;
         Option<IDatalakeStore> store = _factory.Get(domain);
         if (store.IsError()) return store.StatusCode;
 

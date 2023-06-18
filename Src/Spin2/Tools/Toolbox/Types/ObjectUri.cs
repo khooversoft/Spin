@@ -6,6 +6,10 @@ using Toolbox.Tools;
 namespace Toolbox.Types;
 
 /// <summary>
+/// 
+///   {schema}:path[/path...]
+///   {schema}://tenant/path[/path...]
+///   
 /// Id is a path of {domain}[/{resource}]
 /// </summary>
 public sealed record ObjectUri
