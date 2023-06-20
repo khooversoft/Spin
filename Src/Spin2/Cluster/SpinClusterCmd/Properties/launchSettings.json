@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SpinClusterCmd": {
+      "commandName": "Project",
+      "commandLineArgs": "user set D:\\Sources\\Spin\\Src\\Spin2\\Cluster\\SpinClusterCmd\\Data\\User_U001.json"
+    }
+  }
+}

@@ -1,15 +1,18 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using SpinCluster.sdk.Application;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace Toolbox.Data;
+namespace SpinCluster.sdk.Application;
 
+[GenerateSerializer, Immutable]
 public record DataObject
 {
-    public required string Key { get; init; } = null!;
-    public required string TypeName { get; init; } = null!;
-    public required IReadOnlyList<KeyValuePair<string, string>> Values { get; init; } = null!;
+    [Id(0)] public string Key { get; init; } = null!;
+    [Id(1)] public string TypeName { get; init; } = null!;
+    [Id(2)] public IReadOnlyList<KeyValuePair<string, string>> Values { get; init; } = null!;
 }
 
 

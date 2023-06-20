@@ -48,7 +48,7 @@ public static class ValidationErrorExtensions
 
     public static string FormatErrors(this ValidatorResult subject) => subject.NotNull().GetErrors().FormatErrors();
 
-    public static string FormatErrors(this IReadOnlyList<ValidatorError> subject) => "Validation failed: Errors=" + subject
+    public static string FormatErrors(this IReadOnlyList<ValidatorError> subject) => subject
         .Select(x => x.ToString())
         .Join(", ");
 

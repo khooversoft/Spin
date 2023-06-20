@@ -7,10 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Core" Version="1.32.0" />
+        <PackageReference Include="Azure.Core" Version="1.33.0" />
+        <PackageReference Include="Microsoft.Orleans.Runtime" Version="7.1.2" />
+        <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.1.2" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Tools\Toolbox.Orleans\Toolbox.Orleans\Toolbox.Orleans.csproj" />
         <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
     </ItemGroup>
 

@@ -18,7 +18,7 @@ public static class ObjectExtensions
 
     public static string ToJson<T>(this T subject) => Json.Default.Serialize(subject);
 
-    public static string ToSafeJson<T>(this T subject, ScopeContext context)
+    public static string ToJsonSafe<T>(this T subject, ScopeContextLocation context)
     {
         try
         {
@@ -31,7 +31,7 @@ public static class ObjectExtensions
         }
         catch (Exception ex)
         {
-            context.Location().LogError(ex, "Json serialzation error");
+            context.LogError(ex, "Json serialzation error");
             return string.Empty;
         }
     }

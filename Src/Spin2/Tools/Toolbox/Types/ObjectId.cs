@@ -8,8 +8,9 @@ namespace Toolbox.Types;
 /// <summary>
 /// Object ID
 /// 
-///   {schema}:path[/path...]
-///   {schema}:@tenant/path[/path...]
+///   {schema}/{tenant}/{path}[/path...]
+///   
+/// Valid characters are a-z A-Z 0-9 . $ @ -
 ///   
 /// Examples of schema are domains like "contract", "file", "user", "group", etc...
 /// 
@@ -39,7 +40,7 @@ public sealed record ObjectId
         Path = this.Path;
     }
 
-    public const string Syntax = "{schema}:path[/path...] || {schema}:@tenant/path[/path...] valid characters: [azAZ09].-$";
+    public const string Syntax = "{schema}/{tenant}/{path}[/{path}...] Valid characters are a-z A-Z 0-9 . $ @ - _";
 
     public string Id => _id ?? _parsedObjectId.ToString();
     public string Schema => _parsedObjectId.Schema;
@@ -59,42 +60,27 @@ public sealed record ObjectId
 
     public static bool IsValid(string objectId) => Parse(objectId).IsOk();
 
-    ///   {schema}:path[/path...]
-    ///   {schema}://tenant/path[/path...]
+    ///   {schema}:tenant/path[/path...]
     private static Option<ParsedObjectId> Parse(string? objectId)
     {
         if (objectId.IsEmpty()) return new Option<ParsedObjectId>(StatusCode.BadRequest);
 
-        Stack<TokenValue> tokenStack = new StringTokenizer()
-            .UseCollapseWhitespace()
-            .Add(":", "@", "/")
-            .Parse(objectId)
-            .OfType<TokenValue>()
+        Stack<string> tokenStack = objectId
+            .Split('/', StringSplitOptions.RemoveEmptyEntries)
             .Reverse()
             .ToStack();
 
         var badResult = new Option<ParsedObjectId>(StatusCode.BadRequest);
 
-        if (!tokenStack.TryPop(out TokenValue schema)) return badResult;
+        if( tokenStack.Count < 3) return badResult;
+
+        if (!tokenStack.TryPop(out string? schema)) return badResult;
         if (!test(schema)) return badResult;
 
-        if (!tokenStack.TryPop(out TokenValue colonToken) || colonToken != ":") return badResult;
+        if (!tokenStack.TryPop(out string? tenant)) return badResult;
+        if (!test(tenant)) return badResult;
 
-        string? tenant = null;
-        if (!tokenStack.TryPeek(out TokenValue slashToken)) return badResult;
-        if (slashToken == "@")
-        {
-            tokenStack.Pop();
-            if (!tokenStack.TryPop(out TokenValue tenantToken)) return badResult;
-            if (!test(tenantToken)) return badResult;
-            tenant = tenantToken;
-        }
-
-        IReadOnlyList<string> paths = tokenStack
-            .Where(x => x != "/")
-            .Select(x => (string)x)
-            .ToArray();
-
+        IReadOnlyList<string> paths = tokenStack.ToArray();
         if (paths.Count == 0 || !paths.All(x => test(x))) return badResult;
 
         ParsedObjectId result = new ParsedObjectId(schema, tenant, paths);
@@ -103,12 +89,12 @@ public sealed record ObjectId
 
 
         static bool test(string subject) => subject
-            .All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-' || x == '$');
+            .All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-' || x == '$' || x == '@' || x == '_');
     }
 
     private readonly record struct ParsedObjectId
     {
-        public ParsedObjectId(string schema, string? tentant, IReadOnlyList<string> paths)
+        public ParsedObjectId(string schema, string tentant, IReadOnlyList<string> paths)
         {
             this.Schema = schema;
             this.Tentant = tentant;
@@ -116,10 +102,10 @@ public sealed record ObjectId
         }
 
         public string Schema { get; }
-        public string? Tentant { get; }
+        public string Tentant { get; }
         public IReadOnlyList<string> Paths { get; }
 
-        public override string ToString() => Schema + ":" + (Tentant != null ? $"@{Tentant}/" : string.Empty) + Paths.Join("/");
+        public override string ToString() => $"{Schema}/{Tentant}/" + Paths.Join("/");
         public string GetPath() => Paths.Join("/");
     }
 }
