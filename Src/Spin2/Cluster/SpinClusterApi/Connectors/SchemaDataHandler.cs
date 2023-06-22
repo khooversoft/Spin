@@ -21,14 +21,14 @@ internal class SchemaDataHandler<TInterface, TModel> : ISchemaDataHandler
     public async Task<StatusCode> Delete(ObjectId objectId, ScopeContext context)
     {
         TInterface actor = _client.GetGrain<TInterface>(objectId);
-        return await actor.Delete();
+        return await actor.Delete(context.TraceId);
     }
 
     public async Task<Option<string>> Get(ObjectId objectId, ScopeContext context)
     {
         TInterface actor = _client.GetGrain<TInterface>(objectId);
 
-        return await actor.Get() switch
+        return await actor.Get(context.TraceId) switch
         {
             { StatusCode: StatusCode.OK } v => v.Return().ToJsonSafe(context.Location()),
             var v => v.ToOption<string>(),
@@ -40,7 +40,7 @@ internal class SchemaDataHandler<TInterface, TModel> : ISchemaDataHandler
         TInterface actor = _client.GetGrain<TInterface>(objectId);
 
         TModel model = payload.ToObject<TModel>().NotNull();
-        StatusCode statusCode = await actor.Set(model);
+        StatusCode statusCode = await actor.Set(model, context.TraceId);
         return statusCode;
     }
 }

@@ -17,7 +17,7 @@ public class UserPrincipleActor : ActorDataBase<UserPrincipal>, IUserPrincipleAc
     private readonly ILogger<UserPrincipleActor> _logger;
 
     public UserPrincipleActor(
-        [PersistentState(stateName: "user", storageName: "User")] IPersistentState<UserPrincipal> state,
+        [PersistentState(stateName: "userPrincipal", storageName: "user")] IPersistentState<UserPrincipal> state,
         Validator<UserPrincipal> validator,
         ILogger<UserPrincipleActor> logger
         )

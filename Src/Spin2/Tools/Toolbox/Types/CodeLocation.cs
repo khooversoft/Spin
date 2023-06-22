@@ -7,12 +7,12 @@ public readonly struct CodeLocation
 {
     public CodeLocation([CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
     {
-        Function = function.NotEmpty();
-        Path = path.NotEmpty();
-        LineNumber = lineNumber;
+        CallerFunction = function.NotEmpty();
+        CallerFilePath = path.NotEmpty();
+        CallerLineNumber = lineNumber;
     }
 
-    public string Function { get; }
-    public string Path { get; }
-    public int LineNumber { get; }
+    public string CallerFunction { get; }
+    public string CallerFilePath { get; }
+    public int CallerLineNumber { get; }
 }

@@ -25,6 +25,7 @@ public class DatalakeStore : IDatalakeStore
         _serviceClient = azureStoreOption.CreateDataLakeServiceClient();
 
         _fileSystem = _serviceClient.GetFileSystemClient(azureStoreOption.ContainerName);
+        _fileSystem.Exists().Assert(x => x == true, $"Datalake file system does not exist, containerName={azureStoreOption.ContainerName}");
     }
 
     public async Task<StatusCode> Append(string path, byte[] data, ScopeContext context)
@@ -152,7 +153,7 @@ public class DatalakeStore : IDatalakeStore
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
-            context.Location().LogError(ex, "Cannot read file {path}", path);
+            context.Location().LogWarning("File not found {path}", path);
             return new Option<DataETag>(StatusCode.NotFound);
         }
         catch (Exception ex)

@@ -16,7 +16,7 @@ public record DatalakeOption
 }
 
 
-public static class DatalakeOptionExtensions
+public static class DatalakeOptionValidator
 {
     public static Validator<DatalakeOption> Validator { get; } = new Validator<DatalakeOption>()
         .RuleFor(x => x.AccountName).NotEmpty()

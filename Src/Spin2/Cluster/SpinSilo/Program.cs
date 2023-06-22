@@ -3,24 +3,26 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
-using SpinSilo.Application;
 using Toolbox.Extensions;
+using SpinCluster.sdk.Storage;
 
-SiloOption option = new ConfigurationBuilder()
+SpinClusterOption option = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .AddUserSecrets("SpinSilo")
     .Build()
-    .Bind<SiloOption>();
+    .Bind<SpinClusterOption>()
+    .Verify();
 
 IHostBuilder builder = Host.CreateDefaultBuilder(args)
     .UseOrleans(silo =>
     {
         silo.UseLocalhostClustering()
             .ConfigureLogging(logging => logging.AddConsole())
-            .AddAzureBlobGrainStorage("User", config =>
-            {
-                config.ConfigureBlobServiceClient(option.StorageAccountConnectionString);
-            });
+            .AddDatalakeGrainStorage(option);
+            //.AddAzureBlobGrainStorage("User", config =>
+            //{
+            //    config.ConfigureBlobServiceClient(option.StorageAccountConnectionString);
+            //});
     })
     .UseConsoleLifetime()
     .ConfigureLogging(config =>
@@ -32,7 +34,7 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices(services =>
     {
-        services.AddSpinCluster();
+        services.AddSpinCluster(option);
     });
 
 using IHost host = builder.Build();

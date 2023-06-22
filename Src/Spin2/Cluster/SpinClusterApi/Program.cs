@@ -45,7 +45,7 @@ if (option.UseSwagger)
 app.UseHttpsRedirection();
 
 app.MapSpinApi();
-option.Urls.Split(';').ForEach(x => app.Urls.Add(x));
+option.IpAddress.Split(';').ForEach(x => app.Urls.Add(x));
 
 app.WaitForSpinSilo();
 

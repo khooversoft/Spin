@@ -110,9 +110,9 @@ public static class ScopeExtensions
         string v => v + ", ",
     } +
     "traceId={traceId}, " +
-    "function={function}, " +
-    "path={path}, " +
-    "lineNumber={lineNumber}";
+    "callerFunction={callerFunction}, " +
+    "callerFilePath={callerFilePath}, " +
+    "callerLineNumber={callerLineNumber}";
 
     private static object[] AddContext(object?[] args, ScopeContextLocation context) => (object[])(args ?? Array.Empty<object?>())
         .Select(x => (x?.GetType().IsClass == true) switch
@@ -121,8 +121,8 @@ public static class ScopeExtensions
             false => x
         })
         .Append(context.Context.TraceId)
-        .Append(context.Location.Function)
-        .Append(context.Location.Path)
-        .Append(context.Location.LineNumber)
+        .Append(context.Location.CallerFunction)
+        .Append(context.Location.CallerFilePath)
+        .Append(context.Location.CallerLineNumber)
         .ToArray();
 }
