@@ -1,21 +1,25 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 
 namespace Toolbox.Types;
 
 public static class OptionTExtensions
 {
+    [DebuggerStepThrough]
     public static T Return<T>(this Option<T> subject) => subject.HasValue switch
     {
         true => subject.Value,
         false => default!,
     };
 
+    [DebuggerStepThrough]
     public static async Task<T> Return<T>(this Task<Option<T>> subject) => (await subject) switch
     {
         var v when v.HasValue => v.Value,
         _ => default!,
     };
 
+    [DebuggerStepThrough]
     public static T Return<T>(this Option<T> subject, Func<T> defaultValue) => subject switch
     {
         var v when !v.HasValue => defaultValue(),

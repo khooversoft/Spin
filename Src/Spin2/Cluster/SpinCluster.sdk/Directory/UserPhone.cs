@@ -1,8 +1,8 @@
-﻿using SpinCluster.sdk.Directory.Models;
+﻿using SpinCluster.sdk.Directory;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Directory.Models;
+namespace SpinCluster.sdk.Directory;
 
 [GenerateSerializer, Immutable]
 public record UserPhone

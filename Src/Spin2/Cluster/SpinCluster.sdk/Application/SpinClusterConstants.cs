@@ -12,7 +12,8 @@ public static class SpinClusterConstants
     {
         public const string User = "user";
         public const string Group = "group";
-        public const string Key = "principle-key";
+        public const string Key = "principalKey";
+        public const string Storage = "storage";
     }
 
     public static class Protocol

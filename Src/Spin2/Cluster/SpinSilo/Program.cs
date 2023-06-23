@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
-using SpinCluster.sdk.Storage;
+using SpinCluster.sdk.State;
 
 SpinClusterOption option = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")

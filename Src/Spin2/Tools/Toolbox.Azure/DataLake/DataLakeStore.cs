@@ -237,7 +237,7 @@ public class DatalakeStore : IDatalakeStore
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
 
-            if (dataETag.ETag != null)
+            if (dataETag.ETag != default)
             {
                 var option = new DataLakeFileUploadOptions
                 {

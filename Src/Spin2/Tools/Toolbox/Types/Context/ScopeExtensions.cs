@@ -42,7 +42,7 @@ public static class ScopeExtensions
         message = ConstructMessage(message);
         object[] newObjects = AddContext(args, context);
 
-        context.Context.Logger.LogWarning(message, ex, newObjects);
+        context.Context.Logger.LogWarning(ex, message, newObjects);
     }
 
     public static void LogError(this ScopeContextLocation context, string? message, params object?[] args)
@@ -58,7 +58,7 @@ public static class ScopeExtensions
         message = ConstructMessage(message);
         object[] newObjects = AddContext(args, context);
 
-        context.Context.Logger.LogError(message, ex, newObjects);
+        context.Context.Logger.LogError(ex, message, newObjects);
     }
 
     public static void LogCritical(this ScopeContextLocation context, string? message, params object?[] args)
@@ -74,7 +74,7 @@ public static class ScopeExtensions
         message = ConstructMessage(message);
         object[] newObjects = AddContext(args, context);
 
-        context.Context.Logger.LogCritical(message, ex, newObjects);
+        context.Context.Logger.LogCritical(ex, message, newObjects);
     }
 
     public static void LogTrace(this ScopeContextLocation context, string? message, params object?[] args)

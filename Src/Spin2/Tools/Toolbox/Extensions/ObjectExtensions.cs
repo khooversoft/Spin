@@ -26,7 +26,7 @@ public static class ObjectExtensions
             {
                 null => string.Empty,
                 string v => v,
-                var v => Json.Default.Serialize(v.ToJsonPascal()),
+                var v => Json.Default.Serialize(v),
             };
         }
         catch (Exception ex)

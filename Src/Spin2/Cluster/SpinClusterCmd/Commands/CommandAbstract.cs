@@ -1,7 +1,6 @@
 ﻿using System.CommandLine;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Client;
-using SpinCluster.sdk.Directory.Models;
 using SpinClusterCmd.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -50,6 +49,11 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
         cmd.SetHandler(async (file) =>
         {
             var context = new ScopeContext(_logger);
+            if (!File.Exists(file))
+            {
+                context.Location().LogError("File {file} does not exist", file);
+                return;
+            }
 
             T model = JsonFileTools.Read<T>(file);
             if (!_dataType.Validator.Validate(model).IsValid)
@@ -60,7 +64,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
             }
 
             StatusCode statusCode = await _client.Set(_dataType.GetKey(model), model, context);
-            context.Location().LogInformation("Set file={file}, statusCode={statusCode}", file, statusCode);
+            context.Location().Log(statusCode.IsOk() ? LogLevel.Information : LogLevel.Error, "Set file={file}, statusCode={statusCode}", file, statusCode);
 
         }, file);
 
@@ -84,7 +88,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
                 return;
             }
 
-            Toolbox.Types.Option<UserPrincipal> user = await _client.Get<UserPrincipal>(objectId, context);
+            Toolbox.Types.Option<T> user = await _client.Get<T>(objectId, context);
 
             context.Location().LogInformation("Get objectId={objectId}, statusCode={statusCode}, mode={model}",
                 objectId, user.StatusCode, user.Return().ToJsonSafe(context.Location()));
@@ -110,7 +114,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
                 return;
             }
 
-            Toolbox.Types.Option<UserPrincipal> user = await _client.Get<UserPrincipal>(objectId, context);
+            Toolbox.Types.Option<T> user = await _client.Get<T>(objectId, context);
 
             context.Location().LogInformation("Get objectId={objectId}, statusCode={statusCode}, mode={model}",
                 objectId, user.StatusCode, user.Return().ToJsonSafe(context.Location()));

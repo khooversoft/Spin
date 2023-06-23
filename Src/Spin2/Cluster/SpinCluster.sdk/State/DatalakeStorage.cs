@@ -12,7 +12,7 @@ using Toolbox.Types;
 using Toolbox.Extensions;
 using Azure;
 
-namespace SpinCluster.sdk.Storage;
+namespace SpinCluster.sdk.State;
 
 public class DatalakeStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -32,7 +32,7 @@ public class DatalakeStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecyc
         var context = new ScopeContext(_logger);
         context.Location().LogInformation("Clearing state for stateName={stateName}, grainId={grainId}", stateName, grainId);
 
-        string path = CreatePath(grainId);
+        string path = CreatePath(grainId, stateName);
 
         var result = await _datalakeStore.Delete(path, context);
         if (result.IsError())
@@ -41,8 +41,7 @@ public class DatalakeStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecyc
                 _storageName, stateName, path);
         }
 
-        grainState.State = default!;
-        grainState.RecordExists = false;
+        ResetState(grainState);
     }
 
     public async Task ReadStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)
@@ -50,24 +49,33 @@ public class DatalakeStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecyc
         var context = new ScopeContext(_logger);
         context.Location().LogInformation("Reading state for stateName={stateName}, grainId={grainId}", stateName, grainId);
 
-        string path = CreatePath(grainId);
+        string path = CreatePath(grainId, stateName);
 
         var result = await _datalakeStore.Read(path, context);
         if (result.IsError())
         {
-            context.Location().LogError("Failed to read state file, storageName={storageName}, stateName={stateName}, path={path}",
+            context.Location().LogWarning("Failed to read state file, storageName={storageName}, stateName={stateName}, path={path}",
                 _storageName, stateName, path);
 
-            grainState.State = default!;
-            grainState.RecordExists = false;
+            ResetState(grainState);
             return;
         }
 
-        grainState.State = result.Return().Data
-            .BytesToString()
-            .ToObject<T>()
-            .NotNull();
+        try
+        {
+            grainState.State = result.Return().Data
+                .BytesToString()
+                .ToObject<T>()
+                .NotNull();
+        }
+        catch (Exception ex)
+        {
+            context.Location().LogError("Failed to parse file path={path}, ex={ex}", path, ex.ToString());
+            ResetState(grainState);
+            return;
+        }
 
+        grainState.RecordExists = true;
         grainState.ETag = result.Return().ETag.ToString();
 
         context.Location().LogInformation("Read state file=file{path}, storageName={storageName}, stateName={stateName}", path, _storageName, stateName);
@@ -78,7 +86,7 @@ public class DatalakeStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecyc
         var context = new ScopeContext(_logger);
         context.Location().LogInformation("Writing state for stateName={stateName}, grainId={grainId}", stateName, grainId);
 
-        string path = CreatePath(grainId);
+        string path = CreatePath(grainId, stateName);
 
         byte[] data = grainState.State
             .ToJsonSafe(context.Location())
@@ -93,18 +101,26 @@ public class DatalakeStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecyc
             context.Location().LogError("Failed to write state file, storageName={storageName}, stateName={stateName}, path={path}",
                 _storageName, stateName, path);
 
-            grainState.State = default!;
-            grainState.RecordExists = false;
+            ResetState(grainState);
             return;
         }
+
+        grainState.RecordExists = true;
     }
 
-    private static string CreatePath(GrainId grainId) => grainId.ToString()
+    private static string CreatePath(GrainId grainId, string stateName) => grainId.ToString()
         .Split('/', StringSplitOptions.RemoveEmptyEntries)
         .Skip(1)
         .Join("/")
         .ToObjectId()
-        .Func(x => x.Tenant + "/" + x.Path);
+        .Func(x => x.Tenant + "/" + x.Path + "." + stateName);
+
+    private void ResetState<T>(IGrainState<T> grainState)
+    {
+        grainState.State = default!;
+        grainState.RecordExists = false;
+        grainState.ETag = null;
+    }
 
     public void Participate(ISiloLifecycle lifecycle) =>
     lifecycle.Subscribe(

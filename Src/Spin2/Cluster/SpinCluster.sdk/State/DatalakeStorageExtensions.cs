@@ -4,7 +4,7 @@ using Orleans.Storage;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 
-namespace SpinCluster.sdk.Storage;
+namespace SpinCluster.sdk.State;
 
 public static class DatalakeStorageExtensions
 {

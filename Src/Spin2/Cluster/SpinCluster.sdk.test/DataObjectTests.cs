@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using SpinCluster.sdk.Application;
+using SpinCluster.sdk.ActorBase;
 using Toolbox.Data;
 
 namespace Toolbox.Test.Data;

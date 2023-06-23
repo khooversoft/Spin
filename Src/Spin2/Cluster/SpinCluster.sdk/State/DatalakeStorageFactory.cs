@@ -6,7 +6,7 @@ using SpinCluster.sdk.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.Tools;
 
-namespace SpinCluster.sdk.Storage;
+namespace SpinCluster.sdk.State;
 
 public class DatalakeStorageFactory
 {

@@ -1,12 +1,12 @@
-﻿using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Directory.Models;
+﻿using SpinCluster.sdk.ActorBase;
+using SpinCluster.sdk.Directory;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Directory.Models;
+namespace SpinCluster.sdk.Directory;
 
 [GenerateSerializer, Immutable]
 public record UserPrincipal

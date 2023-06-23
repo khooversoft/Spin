@@ -2,13 +2,15 @@
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using SpinCluster.sdk.Types;
+using SpinCluster.sdk.ActorBase;
 
 namespace SpinClusterApi.Connectors;
 
 internal interface ISchemaDataHandler
 {
     Task<StatusCode> Delete(ObjectId objectId, ScopeContext context);
-    Task<Option<string>> Get(ObjectId objectId, ScopeContext context);
+    Task<Option<object>> Get(ObjectId objectId, ScopeContext context);
     Task<StatusCode> Set(ObjectId objectId, string payload, ScopeContext context);
 }
 
@@ -24,14 +26,14 @@ internal class SchemaDataHandler<TInterface, TModel> : ISchemaDataHandler
         return await actor.Delete(context.TraceId);
     }
 
-    public async Task<Option<string>> Get(ObjectId objectId, ScopeContext context)
+    public async Task<Option<object>> Get(ObjectId objectId, ScopeContext context)
     {
         TInterface actor = _client.GetGrain<TInterface>(objectId);
 
         return await actor.Get(context.TraceId) switch
         {
-            { StatusCode: StatusCode.OK } v => v.Return().ToJsonSafe(context.Location()),
-            var v => v.ToOption<string>(),
+            { StatusCode: StatusCode.OK } v => v.Return().NotNull(),
+            var v => v.ToOption<object>(),
         };
     }
 

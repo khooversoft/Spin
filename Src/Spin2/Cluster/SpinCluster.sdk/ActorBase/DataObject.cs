@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using SpinCluster.sdk.Application;
+using SpinCluster.sdk.ActorBase;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Application;
+namespace SpinCluster.sdk.ActorBase;
 
 [GenerateSerializer, Immutable]
 public record DataObject

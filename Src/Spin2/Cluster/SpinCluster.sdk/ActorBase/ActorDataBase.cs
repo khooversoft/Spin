@@ -1,15 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Application;
+namespace SpinCluster.sdk.ActorBase;
 
 public interface IActorDataBase<T> : IGrainWithStringKey
 {
     Task<StatusCode> Delete(string traceId);
-    Task<Option<T>> Get(string traceId);
+    Task<SpinResponse<T>> Get(string traceId);
     Task<StatusCode> Set(T model, string traceId);
 }
 
@@ -26,14 +27,7 @@ public abstract class ActorDataBase<T> : Grain, IActorDataBase<T>
         _logger = logger;
     }
 
-    //protected ScopeContext GetScopeContext() => RequestContext.Get(nameof(ScopeContext)) switch
-    //{
-    //    null => new ScopeContext(_logger),
-    //    ScopeContext v => v.With(_logger),
-    //    _ => throw new InvalidOperationException(),
-    //};
-
-    public async Task<StatusCode> Delete(string traceId)
+    public virtual async Task<StatusCode> Delete(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting {typeName}, id={id}", typeof(T).GetTypeName(), this.GetPrimaryKeyString());
@@ -42,19 +36,19 @@ public abstract class ActorDataBase<T> : Grain, IActorDataBase<T>
         return StatusCode.OK;
     }
 
-    public Task<Option<T>> Get(string traceId)
+    public virtual Task<SpinResponse<T>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Getting {typeName}, id={id}", typeof(T).GetTypeName(), this.GetPrimaryKeyString());
 
         return _state.RecordExists switch
         {
-            false => Task.FromResult(Option<T>.None),
-            true => Task.FromResult(_state.State.ToOption()),
+            false => Task.FromResult(new SpinResponse<T>()),
+            true => Task.FromResult(_state.State.ToSpinResponse()),
         };
     }
 
-    public async Task<StatusCode> Set(T model, string traceId)
+    public virtual async Task<StatusCode> Set(T model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 

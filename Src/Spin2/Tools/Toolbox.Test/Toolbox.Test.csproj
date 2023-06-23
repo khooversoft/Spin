@@ -27,8 +27,4 @@
     <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\" />
-  </ItemGroup>
-
 </Project>

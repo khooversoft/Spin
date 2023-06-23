@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Client;
-using SpinCluster.sdk.Directory.Models;
+using SpinCluster.sdk.Directory;
 
 namespace SpinClusterCmd.Commands;
 

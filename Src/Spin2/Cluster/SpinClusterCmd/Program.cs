@@ -36,6 +36,9 @@ async Task<int> Run(IServiceProvider service, string[] args)
         var rc = new RootCommand()
         {
             service.GetRequiredService<UserCommand>(),
+            service.GetRequiredService<KeyCommand>(),
+            service.GetRequiredService<StorageCommand>(),
+            service.GetRequiredService<LeaseCommand>(),
         };
 
         return await rc.InvokeAsync(args);

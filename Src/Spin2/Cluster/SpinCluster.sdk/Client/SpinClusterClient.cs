@@ -23,19 +23,19 @@ public class SpinClusterClient
     }
 
     public async Task<StatusCode> Delete(ObjectId id, ScopeContext context) => await new RestClient(_client)
-        .SetPath(id)
+        .SetPath($"/data/{id}")
         .AddHeader(SpinClusterConstants.Protocol.TraceId, context.TraceId)
         .GetAsync(context)
         .GetStatusCode();
 
     public async Task<Option<T>> Get<T>(ObjectId id, ScopeContext context) => await new RestClient(_client)
-        .SetPath(id)
+        .SetPath($"/data/{id}")
         .AddHeader(SpinClusterConstants.Protocol.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<T>();
 
     public async Task<StatusCode> Set<T>(ObjectId id, T content, ScopeContext context) => await new RestClient(_client)
-        .SetPath(id)
+        .SetPath($"/data/{id}")
         .AddHeader(SpinClusterConstants.Protocol.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context)
