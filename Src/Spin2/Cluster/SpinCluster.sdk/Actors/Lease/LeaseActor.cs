@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Lease;
+namespace SpinCluster.sdk.Actors.Lease;
 
 public interface ILeaseActor : IGrainWithStringKey
 {
@@ -19,7 +20,7 @@ public class LeaseActor : Grain, ILeaseActor
     private readonly ILogger _logger;
 
     public LeaseActor(
-        [PersistentState(stateName: "leaseV1", storageName: "lease")] IPersistentState<LeaseData> state,
+        [PersistentState(stateName: "leaseV1", storageName: SpinClusterConstants.SpinStateStore)] IPersistentState<LeaseData> state,
         ILogger<LeaseActor> logger
         )
     {
@@ -35,6 +36,7 @@ public class LeaseActor : Grain, ILeaseActor
 
         var leaseData = new LeaseData
         {
+            LeaseId = Guid.NewGuid().ToString(),
             ObjectId = this.GetPrimaryKeyString(),
         };
 

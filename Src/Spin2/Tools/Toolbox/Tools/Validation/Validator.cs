@@ -7,6 +7,23 @@ public class Validator<T>
 {
     private readonly IList<IPropertyRuleBase<T>> _rules = new List<IPropertyRuleBase<T>>();
 
+    public Rule<T, T> RuleForObject(Func<T, T> func)
+    {
+        var propertyRule = new PropertyRule<T, T>
+        {
+            Name = "subject",
+            GetValue = func,
+        };
+
+        _rules.Add(propertyRule);
+
+        return new Rule<T, T>
+        {
+            Validator = this,
+            PropertyRule = propertyRule
+        };
+    }
+    
     public Rule<T, TProperty> RuleFor<TProperty>(Expression<Func<T, TProperty>> expression)
     {
         MemberExpression expressionBody = (MemberExpression)expression.Body;
@@ -74,6 +91,11 @@ public class Validator<T>
 public static class ValidatorExtensions
 {
     public static Validator<T> Build<T, TProperty>(this Rule<T, TProperty> rule) => rule.Validator;
+
+    public static Rule<T, T> RuleForObject<T, TInput>(this Rule<T, TInput> rule, Func<T, T> func)
+    {
+        return rule.Validator.RuleForObject(func);
+    }
 
     public static Rule<T, TProperty> RuleFor<T, TInput, TProperty>(this Rule<T, TInput> rule, Expression<Func<T, TProperty>> expression)
     {

@@ -3,7 +3,7 @@ using System.Net;
 
 namespace Toolbox.Types;
 
-public static class OptionTExtensions
+public static class OptionExtensions
 {
     [DebuggerStepThrough]
     public static T Return<T>(this Option<T> subject) => subject.HasValue switch

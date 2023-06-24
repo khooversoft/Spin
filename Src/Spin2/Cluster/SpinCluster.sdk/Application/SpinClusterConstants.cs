@@ -8,6 +8,8 @@ namespace SpinCluster.sdk.Application;
 
 public static class SpinClusterConstants
 {
+    public const string SpinStateStore = "spinStateStore";
+
     public static class Schema
     {
         public const string User = "user";

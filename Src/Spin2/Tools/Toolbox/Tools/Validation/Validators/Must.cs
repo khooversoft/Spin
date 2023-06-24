@@ -2,6 +2,7 @@
 
 namespace Toolbox.Tools.Validation;
 
+
 public class MustFunc<T, TProperty> : IValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;

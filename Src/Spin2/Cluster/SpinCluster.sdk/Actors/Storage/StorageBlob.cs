@@ -4,7 +4,7 @@ using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Storage;
+namespace SpinCluster.sdk.Actors.Storage;
 
 [GenerateSerializer, Immutable]
 public sealed record StorageBlob
@@ -37,6 +37,7 @@ public static class StorageBlobValidator
         .RuleFor(x => x.TypeName).NotEmpty()
         .RuleFor(x => x.Content).NotNull()
         .RuleFor(x => x.HashBase64).NotNull()
+        .RuleForObject(x => x).Must(x => x.IsHashVerify(), _ => "Blob's hash validation failed")
         .Build();
 
     public static ValidatorResult Validate(this StorageBlob subject) => Validator.Validate(subject);

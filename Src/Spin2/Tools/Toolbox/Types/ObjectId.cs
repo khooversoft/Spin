@@ -25,6 +25,8 @@ public sealed record ObjectId
     private readonly string? _id = null;
     private readonly string? _path = null;
 
+    private ObjectId(ParsedObjectId id) => _parsedObjectId = id;
+
     public ObjectId(string id)
     {
         Option<ParsedObjectId> option = Parse(id);
@@ -59,6 +61,14 @@ public sealed record ObjectId
     public static implicit operator string(ObjectId id) => id.ToString();
 
     public static bool IsValid(string objectId) => Parse(objectId).IsOk();
+
+    public static Option<ObjectId> CreateIfValid(string id)
+    {
+        Option<ParsedObjectId> objectId = Parse(id);
+        if (objectId.IsError()) return objectId.ToOption<ObjectId>();
+
+        return new ObjectId(objectId.Return());
+    }
 
     ///   {schema}:tenant/path[/path...]
     private static Option<ParsedObjectId> Parse(string? objectId)
@@ -113,6 +123,7 @@ public sealed record ObjectId
 public static class ObjectIdExtensions
 {
     public static ObjectId ToObjectId(this string subject) => (ObjectId)subject;
+    public static Option<ObjectId> ToObjectIdIfValid(this string subject) => ObjectId.CreateIfValid(subject);
     public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString((string)subject);
     public static ObjectId FromUrlEncoding(this string id) => Uri.UnescapeDataString(id).ToObjectId();
 }

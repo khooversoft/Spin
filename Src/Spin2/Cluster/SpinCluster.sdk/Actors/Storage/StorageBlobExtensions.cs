@@ -1,9 +1,9 @@
-﻿using SpinCluster.sdk.Storage;
+﻿using SpinCluster.sdk.Actors.Storage;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace SpinCluster.sdk.Storage;
+namespace SpinCluster.sdk.Actors.Storage;
 
 public static class StorageBlobExtensions
 {

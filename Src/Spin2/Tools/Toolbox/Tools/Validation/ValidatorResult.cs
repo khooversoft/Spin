@@ -13,15 +13,6 @@ public record ValidatorResult : IValidateResult
 }
 
 
-public record ValidatorError : IValidateResult
-{
-    public string Name { get; init; } = null!;
-    public string Message { get; init; } = null!;
-
-    public override string ToString() => $"Property {Name}, {Message}";
-}
-
-
 public static class ValidationErrorExtensions
 {
     public static Option<IValidateResult> CreateError<T, TProperty>(this IPropertyRule<T, TProperty> propertyRule, string message)

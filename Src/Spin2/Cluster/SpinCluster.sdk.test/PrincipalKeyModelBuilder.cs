@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SpinCluster.sdk.Directory;
+using SpinCluster.sdk.Actors.Directory;
 using Toolbox.Extensions;
 
 namespace SpinCluster.sdk.test;

@@ -37,6 +37,7 @@ public class ValidationTests
         validations.RuleFor(x => x.ScalarValues).NotNull();
         validations.RuleForEach(x => x.SubOptions).Validate(subValidation);
         validations.RuleForEach(x => x.ScalarValues).NotEmpty();
+        validations.RuleForObject(x => x).Must(x => x.DomainName == "domain", _ => "'domain' is required for DomainName");
 
         var option = new TestOption
         {
@@ -65,6 +66,7 @@ public class ValidationTests
             .RuleFor(x => x.AccountName).NotEmpty()
             .RuleFor(x => x.Value).Must(x => x == 1, _ => "must be one")
             .RuleFor(x => x.ScalarValues).NotNull()
+            .RuleForObject(x => x).Must(x => x.DomainName == "domain", _ => "'domain' is required for DomainName")
             .RuleForEach(x => x.SubOptions).Validate(subValidation)
             .RuleForEach(x => x.ScalarValues).NotEmpty()
             .Build();

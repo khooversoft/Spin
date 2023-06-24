@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.ActorBase;
+using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Storage;
+namespace SpinCluster.sdk.Actors.Storage;
 
 public interface IStorageActor : IActorDataBase<StorageBlob>
 {
@@ -16,7 +17,7 @@ public class StorageActor : ActorDataBase<StorageBlob>, IStorageActor
     private readonly ILogger<StorageActor> _logger;
 
     public StorageActor(
-        [PersistentState(stateName: "storageV1", storageName: "storage")] IPersistentState<StorageBlob> state,
+        [PersistentState(stateName: "storageV1", storageName: SpinClusterConstants.SpinStateStore)] IPersistentState<StorageBlob> state,
         Validator<StorageBlob> validator,
         ILogger<StorageActor> logger
         )

@@ -4,7 +4,7 @@ using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Storage;
+namespace SpinCluster.sdk.Actors.Storage;
 
 public class StorageBlobBuilder
 {

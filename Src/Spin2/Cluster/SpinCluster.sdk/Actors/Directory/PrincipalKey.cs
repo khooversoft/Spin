@@ -9,7 +9,7 @@ using Toolbox.Tools;
 using System.Security.Cryptography;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Directory;
+namespace SpinCluster.sdk.Actors.Directory;
 
 [GenerateSerializer, Immutable]
 public record PrincipalKey

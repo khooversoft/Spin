@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.ActorBase;
+using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Directory;
+namespace SpinCluster.sdk.Actors.Directory;
 
 public interface IPrincipalKeyActor : IActorDataBase<PrincipalKey>
 {
@@ -21,7 +22,7 @@ public class PrincipalKeyActor : ActorDataBase<PrincipalKey>, IPrincipalKeyActor
     private readonly ILogger<PrincipalKeyActor> _logger;
 
     public PrincipalKeyActor(
-        [PersistentState(stateName: "principalKeyV1", storageName: "principalKey")] IPersistentState<PrincipalKey> state,
+        [PersistentState(stateName: "principalKeyV1", storageName: SpinClusterConstants.SpinStateStore)] IPersistentState<PrincipalKey> state,
         Validator<PrincipalKey> validator,
         ILogger<PrincipalKeyActor> logger
         )

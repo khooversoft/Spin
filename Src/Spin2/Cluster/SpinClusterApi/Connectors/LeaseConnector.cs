@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using SpinCluster.sdk.Lease;
+using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Types;
 using SpinClusterApi.Application;
 using Toolbox.Tools;
