@@ -4,6 +4,7 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace Toolbox.Block.Test.Scenarios.Bank;
 

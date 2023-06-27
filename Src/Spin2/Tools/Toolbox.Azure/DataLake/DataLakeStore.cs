@@ -149,7 +149,7 @@ public class DatalakeStore : IDatalakeStore
             await response.Value.Content.CopyToAsync(memory);
 
             context.Location().LogTrace("Read file {path}", path);
-            return new DataETag(memory.ToArray(), response.Value.Properties.ETag);
+            return new DataETag(memory.ToArray(), response.Value.Properties.ETag).ToOption();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
@@ -219,11 +219,11 @@ public class DatalakeStore : IDatalakeStore
         return await Upload(path, memoryBuffer, overwrite, data, context);
     }
 
-    private string WithBasePath(string? path) => _azureStoreOption.BasePath + (_azureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path;
+    private string WithBasePath(string? path) => AzureStoreOption.BasePath + (AzureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path;
 
     private string RemoveBaseRoot(string path)
     {
-        string newPath = path.Substring(_azureStoreOption.BasePath?.Length ?? 0);
+        string newPath = path.Substring(AzureStoreOption.BasePath?.Length ?? 0);
         if (newPath.StartsWith("/")) newPath = newPath.Substring(1);
 
         return newPath;

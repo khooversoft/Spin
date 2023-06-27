@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -71,28 +72,48 @@ public class RestClient
             requestPayload
             );
 
-        HttpResponseMessage response = await _client.SendAsync(requestMessage.NotNull(), context);
-        string content = await response.Content.ReadAsStringAsync();
-
-        context.Location().Log(
-            response.IsSuccessStatusCode ? LogLevel.Information : LogLevel.Error,
-            "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request} response={response}",
-            requestMessage.RequestUri?.ToString(),
-            requestMessage.Method,
-            response.StatusCode,
-            requestPayload.Return(),
-            (content.ToNullIfEmpty() ?? "<no content>").Truncate(30000)
-            );
-
-        var result = new RestResponse
+        try
         {
-            StatusCode = response.StatusCode,
-            Content = content,
-            Context = context
-        };
+            HttpResponseMessage response = await _client.SendAsync(requestMessage.NotNull(), context);
+            string content = await response.Content.ReadAsStringAsync();
 
-        if (EnsureSuccessStatusCode) response.EnsureSuccessStatusCode();
-        return result;
+            context.Location().Log(
+                response.IsSuccessStatusCode ? LogLevel.Information : LogLevel.Error,
+                "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request} response={response}",
+                requestMessage.RequestUri?.ToString(),
+                requestMessage.Method,
+                response.StatusCode,
+                requestPayload.Return(),
+                (content.ToNullIfEmpty() ?? "<no content>").Truncate(30000)
+                );
+
+            var result = new RestResponse
+            {
+                StatusCode = response.StatusCode,
+                Content = content,
+                Context = context
+            };
+
+            if (EnsureSuccessStatusCode) response.EnsureSuccessStatusCode();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            context.Location().LogCritical("[Restclient-Error] call to {uri} failed, method={method}, request={request}",
+                requestMessage.RequestUri?.ToString(),
+                requestMessage.Method,
+                requestPayload.Return()
+                );
+
+            var result = new RestResponse
+            {
+                StatusCode = StatusCode.InternalServerError.ToHttpStatusCode(),
+                Content = ex.ToString(),
+                Context = context
+            };
+
+            return result;
+        }
     }
 
     public Task<RestResponse> GetAsync(ScopeContext context) => SendAsync(BuildRequestMessage(HttpMethod.Get), context);

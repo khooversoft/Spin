@@ -14,13 +14,13 @@ using Azure;
 
 namespace SpinCluster.sdk.State;
 
-public class DatalakeState
+public class DatalakeStateHandler
 {
     private readonly string _storageName;
     private readonly IDatalakeStore _datalakeStore;
-    private readonly ILogger<DatalakeState> _logger;
+    private readonly ILogger<DatalakeStateHandler> _logger;
 
-    public DatalakeState(string storageName, IDatalakeStore datalakeStore, ILogger<DatalakeState> logger)
+    public DatalakeStateHandler(string storageName, IDatalakeStore datalakeStore, ILogger<DatalakeStateHandler> logger)
     {
         _storageName = storageName.NotEmpty();
         _datalakeStore = datalakeStore.NotNull();

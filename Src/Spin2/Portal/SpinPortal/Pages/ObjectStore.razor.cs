@@ -20,35 +20,45 @@ using Microsoft.Graph;
 using Toolbox.Extensions;
 using SpinPortal.Application;
 using Toolbox.Types;
+using SpinCluster.sdk.Client;
+using SpinCluster.sdk.Actors.Configuration;
+using Toolbox.Tools;
+using System.Threading.Tasks;
+using Toolbox.Types.Id;
 
 namespace SpinPortal.Pages;
 
 public partial class ObjectStore
 {
-    [Parameter]
-    public string? pageRoute { get; set; } = null!;
+    [Inject] public PortalOption Option { get; set; } = null!;
+    [Inject] public SpinConfigurationClient SpinConfigurationClient { get; set; } = null!;
+    [Inject] public ILogger<ObjectStore> Logger { get; set; } = null!;
 
-    [Inject]
-    public PortalOption Option { get; set; } = null!;
+    [Parameter] public string? pageRoute { get; set; } = null!;
 
-    private ObjectUri _resolvedPath { get; set; } = null!;
+    private string _resolvedPath { get; set; } = "default";
+    private SiloConfigOption _siloConfigOption { get; set; } = null!;
 
     private string _textValue { get; set; } = null!;
     private bool _showResult { get; set; }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         _showResult = false;
+
+        _siloConfigOption = (await SpinConfigurationClient.Get(new ScopeContext(Logger)))
+            .Assert(x => x.IsOk(), "Failed to get Spin configuration from Silo")
+            .Return();
 
         _resolvedPath = ObjectUri.IsValid(pageRoute) switch
         {
             true => pageRoute.ToObjectUri() switch
             {
-                var u when Option.Domains.Any(x => x == u.Domain) => u.ToString(),
-                _ => Option.Domains.First(),
+                var u when _siloConfigOption.Schemas.Any(x => x.SchemaName == u.Domain) => u.ToString(),
+                _ => _siloConfigOption.Schemas.Select(x => x.SchemaName).First(),
             },
 
-            false => Option.Domains.First(),
+            false => _siloConfigOption.Schemas.Select(x => x.SchemaName).First(),
         };
     }
 }

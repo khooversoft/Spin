@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Directory;
 using SpinCluster.sdk.Actors.Storage;
 using SpinCluster.sdk.Services;
@@ -17,7 +19,10 @@ public static class Setup
 
         services.AddSingleton<Validator<UserPrincipal>>(UserPrincipalValidator.Validator);
         services.AddSingleton<Validator<PrincipalKey>>(PrincipalKeyValidator.Validator);
-        services.AddSingleton<Validator<StorageBlob>>(StorageBlobValidator.Validator);
+        services.AddSingleton<Validator<PrincipalKey>>(PrincipalKeyValidator.Validator);
+        services.AddSingleton<Validator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
+
+        services.AddSingleton<DatalakeResources>();
 
         services.AddSingleton<SiloConfigStore>(service =>
         {
@@ -38,6 +43,15 @@ public static class Setup
         });
 
 
+
         return services;
+    }
+
+    public static async Task UseSpinCluster(this IApplicationBuilder app)
+    {
+        DatalakeResources datalakeResources = app.ApplicationServices.GetRequiredService<DatalakeResources>();
+        ILoggerFactory factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+
+        await datalakeResources.Startup(new ScopeContext(factory.CreateLogger(nameof(UseSpinCluster))));
     }
 }

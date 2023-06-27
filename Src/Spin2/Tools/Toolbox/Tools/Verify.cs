@@ -94,7 +94,7 @@ public static class Verify
     /// <param name="test">test func</param>
     /// <param name="message">message</param>
     /// <returns>subject</returns>
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public static T Assert<T>(
             this T subject,
             Func<T, bool> test,

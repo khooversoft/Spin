@@ -15,7 +15,6 @@ public partial class PathText
     public string Path { get; set; } = null!;
 
     private bool _showEditor { get; set; }
-
     private string _buttonStyle = PortalConstants.NormalText + ";border-width:0";
 
     protected override void OnParametersSet()

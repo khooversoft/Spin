@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Services;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Services;
+namespace SpinCluster.sdk.Actors.Configuration;
 
+[GenerateSerializer, Immutable]
 public record SiloConfigOption
 {
-    public IReadOnlyList<SchemaOption> Schemas { get; init; } = Array.Empty<SchemaOption>();
+    [Id(0)] public List<SchemaOption> Schemas { get; init; } = new List<SchemaOption>();
 }
 
 

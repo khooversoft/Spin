@@ -20,7 +20,7 @@ public class LeaseActor : Grain, ILeaseActor
     private readonly ILogger _logger;
 
     public LeaseActor(
-        [PersistentState(stateName: "leaseV1", storageName: SpinClusterConstants.SpinStateStore)] IPersistentState<LeaseData> state,
+        [PersistentState(stateName: "leaseV1", storageName: SpinConstants.SpinStateStore)] IPersistentState<LeaseData> state,
         ILogger<LeaseActor> logger
         )
     {

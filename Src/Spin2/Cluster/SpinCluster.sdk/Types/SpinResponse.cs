@@ -9,7 +9,7 @@ using Toolbox.Tools;
 namespace SpinCluster.sdk.Types;
 
 [GenerateSerializer, Immutable]
-public record SpinResponse<T> : IOption
+public record SpinResponse<T>
 {
     public SpinResponse() => StatusCode = StatusCode.NotFound;
     public SpinResponse(StatusCode statusCode) => StatusCode = statusCode;

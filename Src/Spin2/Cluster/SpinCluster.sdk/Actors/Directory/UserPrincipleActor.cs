@@ -17,7 +17,7 @@ public class UserPrincipleActor : ActorDataBase<UserPrincipal>, IUserPrincipleAc
     private readonly ILogger<UserPrincipleActor> _logger;
 
     public UserPrincipleActor(
-        [PersistentState(stateName: "userPrincipalV1", storageName: SpinClusterConstants.SpinStateStore)] IPersistentState<UserPrincipal> state,
+        [PersistentState(stateName: SpinConstants.Extension.User, storageName: SpinConstants.SpinStateStore)] IPersistentState<UserPrincipal> state,
         Validator<UserPrincipal> validator,
         ILogger<UserPrincipleActor> logger
         )

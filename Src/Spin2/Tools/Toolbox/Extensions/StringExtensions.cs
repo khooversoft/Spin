@@ -142,4 +142,18 @@ public static class StringExtensions
         null => null,
         string v => v[..Math.Min(v.Length, Math.Max(maxLength, 0))],
     };
+
+    /// <summary>
+    /// Primary used for logging secrets, just the first and last part of the secret is returned
+    /// if requirements are meet.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    public static string GetSecretThumbprint(this string value, int count = 3) => value switch
+    {
+        null => "***",
+        string v when v.Length < count * 2 => "***",
+        string v => value[0..count] + "..." + value[^count..],
+    };
 }

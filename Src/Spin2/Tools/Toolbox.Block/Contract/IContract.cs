@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace Toolbox.Block.Contract;
 

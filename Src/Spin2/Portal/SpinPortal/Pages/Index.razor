@@ -9,6 +9,11 @@
     Build, manage, and monitor Smart Contracts in a single, unified console.
 </MudText>
 
+@if (_errorMessage.IsNotEmpty())
+{
+    <Message Severity=Severity.Error Text="@_errorMessage" />
+}
+
 @*
 <MudStack AlignItems=AlignItems.Start>
     <MudButton Variant="Variant.Filled" Color="Color.Default">Default</MudButton>

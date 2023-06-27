@@ -7,7 +7,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Tools;
 using System.Security.Cryptography;
-using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace SpinCluster.sdk.Actors.Directory;
 

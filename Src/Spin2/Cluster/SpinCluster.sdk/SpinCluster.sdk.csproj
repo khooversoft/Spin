@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.33.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
     <PackageReference Include="Microsoft.Orleans.Client" Version="7.1.2" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.1.2" />

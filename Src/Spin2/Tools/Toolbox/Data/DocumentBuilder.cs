@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace Toolbox.Data;
 

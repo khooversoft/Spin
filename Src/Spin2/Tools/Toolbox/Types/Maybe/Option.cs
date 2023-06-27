@@ -3,6 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Toolbox.Types;
 
+public interface IOption
+{
+    StatusCode StatusCode { get; }
+    bool HasValue { get; }
+    object ValueObject { get; }
+}
+
+
 /// <summary>
 /// Option struct to prevent allocations
 /// 
@@ -24,20 +32,19 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     [SetsRequiredMembers()]
     public Option(T? value)
     {
-        (HasValue, StatusCode) = value switch
+        (HasValue, StatusCode, Value) = value switch
         {
-            null => (false, StatusCode.NoContent),
-            _ => (true, StatusCode.OK),
-        };
+            null => (false, StatusCode.NoContent, value!),
+            IOption v => (v.HasValue, v.StatusCode, (T)v.ValueObject),
 
-        Value = value!;
+            _ => (true, StatusCode.OK, value!),
+        };
     }
 
     [SetsRequiredMembers()]
     public Option(StatusCode statusCode)
     {
         StatusCode = statusCode;
-
         HasValue = false;
         Value = default!;
     }
@@ -72,12 +79,10 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     }
 
     public static Option<T> None { get; } = default;
-
     public StatusCode StatusCode { get; }
-
     public bool HasValue { get; }
-
     public T Value { get; }
+    object IOption.ValueObject => throw new NotImplementedException();
 
     public override bool Equals(object? obj) =>
         obj is Option<T> maybe &&

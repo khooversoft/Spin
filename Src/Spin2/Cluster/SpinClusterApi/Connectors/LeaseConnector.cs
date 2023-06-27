@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using SpinCluster.sdk.Actors.Lease;
+using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Types;
 using SpinClusterApi.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace SpinClusterApi.Connectors;
 
@@ -23,14 +25,14 @@ internal class LeaseConnector
     {
         var group = app.MapGroup("/lease");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = "spin-trace-id")] string traceId) => await Acquire(objectId, traceId) switch
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => await Acquire(objectId, traceId) switch
         {
             var v when v.IsError() => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
             var v when v.HasValue => Results.Ok(v.Return()),
             var v => Results.BadRequest(v.Return()),
         });
 
-        group.MapDelete("/{leaseId}/{*objectId}", async (string leaseId, string objectId, [FromHeader(Name = "spin-trace-id")] string traceId) =>
+        group.MapDelete("/{leaseId}/{*objectId}", async (string leaseId, string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
             StatusCode statusCode = await Release(objectId, leaseId, traceId);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());
@@ -47,8 +49,8 @@ internal class LeaseConnector
         ILeaseActor actor = _client.GetGrain<ILeaseActor>(objectId);
         SpinResponse<LeaseData> response = await actor.Acquire(context.TraceId);
 
-        if( response.StatusCode.IsError()) return response.ToOption<LeaseData>();
-        return response.Return().ToOption();
+        if (response.StatusCode.IsError()) return new Option<LeaseData>(response.StatusCode);
+        return response.Return();
     }
 
     public async Task<StatusCode> Release(ObjectId objectId, string leaseId, string traceId)

@@ -5,6 +5,7 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace Toolbox.Block.Contract;
 
@@ -46,7 +47,7 @@ public class ContractHost : IContractHost
         if (oBlockDocument.IsError()) return oBlockDocument.ToOption<T>();
 
         T sc = ActivatorUtilities.CreateInstance<T>(_service, (IContractHost)this, documentId, oBlockDocument.Return());
-        return sc;
+        return sc.ToOption();
     }
 
     public async Task<Option<BlockDocument>> Get(ObjectId documentId, ScopeContext context)

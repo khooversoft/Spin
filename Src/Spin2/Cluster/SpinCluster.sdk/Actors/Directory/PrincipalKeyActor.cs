@@ -22,7 +22,7 @@ public class PrincipalKeyActor : ActorDataBase<PrincipalKey>, IPrincipalKeyActor
     private readonly ILogger<PrincipalKeyActor> _logger;
 
     public PrincipalKeyActor(
-        [PersistentState(stateName: "principalKeyV1", storageName: SpinClusterConstants.SpinStateStore)] IPersistentState<PrincipalKey> state,
+        [PersistentState(stateName: SpinConstants.Extension.Key, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalKey> state,
         Validator<PrincipalKey> validator,
         ILogger<PrincipalKeyActor> logger
         )

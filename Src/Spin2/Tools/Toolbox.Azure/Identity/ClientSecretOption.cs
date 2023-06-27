@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Azure.Identity;
+using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 
 namespace Toolbox.Azure.Identity;
@@ -9,6 +10,8 @@ public record ClientSecretOption
     public string TenantId { get; init; } = null!;
     public string ClientId { get; init; } = null!;
     public string ClientSecret { get; init; } = null!;
+
+    public override string ToString() => $"TenantId={TenantId}, ClientId={ClientId}, ClientSecret={ClientSecret.GetSecretThumbprint()}";
 }
 
 

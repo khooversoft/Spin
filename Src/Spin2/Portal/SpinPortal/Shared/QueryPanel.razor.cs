@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using MudBlazor;
 using ObjectStore.sdk.Application;
 using ObjectStore.sdk.Client;
+using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Client;
 using SpinPortal.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.Data;
@@ -11,6 +13,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Table;
 using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace SpinPortal.Shared;
 
@@ -23,6 +26,8 @@ public partial class QueryPanel
     [Inject] IDialogService DialogService { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
     [Inject] public JsRunTimeService JsService { get; set; } = null!;
+
+    [Inject] public SpinConfigurationClient SpinConfigurationClient { get; set; } = null!;
 
     [Parameter] public string Title { get; set; } = null!;
     [Parameter] public ObjectUri Path { get; set; } = null!;
@@ -40,12 +45,17 @@ public partial class QueryPanel
     private bool _showUpFolderButton => Path.Path.IsNotEmpty();
     private string _uploadStyle => PortalConstants.NormalText; // + ";min-height:36.75px";
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         Path.NotNull();
 
         _initialized = false;
-        _domains = Option.Domains.ToArray();
+
+        SiloConfigOption siloConfigOption = (await SpinConfigurationClient.Get(new ScopeContext(Logger)))
+            .Assert(x => x.IsError(), "Failed to get Spin configuration from Silo")
+            .Return();
+
+        _domains = siloConfigOption.Schemas.Select(x => x.SchemaName).ToArray();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -168,7 +178,7 @@ public partial class QueryPanel
                 {
                     x.Name.ToObjectUri().SetDomain(Path.Domain).GetFile(),
                     x.LastModified
-                }, createTag(x), x.Name.ToObjectUri().SetDomain(Path.Domain))
+                }, createTag(x), x.Name.ToObjectUri().SetDomain(Path.Domain).Id)
             ).ToArray();
 
             _table = new ObjectTableBuilder()

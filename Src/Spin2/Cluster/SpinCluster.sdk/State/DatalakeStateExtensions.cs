@@ -14,7 +14,7 @@ public static class DatalakeStateExtensions
     public static IServiceCollection AddDatalakeGrainStorage(this IServiceCollection services, SpinClusterOption option)
     {
         services.AddSingleton<DatalakeStateConnector>();
-        services.AddSingletonNamedService(SpinClusterConstants.SpinStateStore, CreateStorage);
+        services.AddSingletonNamedService(SpinConstants.SpinStateStore, CreateStorage);
 
         //option.Schemas.ForEach(x => services.AddSingletonNamedService(x.SchemaName, CreateStorage));
         //services.AddSingletonNamedService(datalakeText, (p, n) => (ILifecycleParticipant<ISiloLifecycle>)p.GetRequiredServiceByName<IGrainStorage>(n));
@@ -26,7 +26,7 @@ public static class DatalakeStateExtensions
     {
         return name switch
         {
-            SpinClusterConstants.SpinStateStore => service.GetRequiredService<DatalakeStateConnector>(),
+            SpinConstants.SpinStateStore => service.GetRequiredService<DatalakeStateConnector>(),
 
             _ => throw new InvalidOperationException($"Invalid storage name={name}"),
         };

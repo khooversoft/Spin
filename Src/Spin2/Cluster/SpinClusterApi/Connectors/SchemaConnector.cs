@@ -21,9 +21,9 @@ internal class SchemaConnector
 
         _handlers = new Dictionary<string, ISchemaDataHandler>()
         {
-            [SpinClusterConstants.Schema.User] = new SchemaDataHandler<IUserPrincipleActor, UserPrincipal>(client),
-            [SpinClusterConstants.Schema.Key] = new SchemaDataHandler<IPrincipalKeyActor, PrincipalKey>(client),
-            [SpinClusterConstants.Schema.Storage] = new SchemaDataHandler<IStorageActor, StorageBlob>(client),
+            [SpinConstants.Schema.User] = new SchemaDataHandler<IUserPrincipleActor, UserPrincipal>(client),
+            [SpinConstants.Schema.Key] = new SchemaDataHandler<IPrincipalKeyActor, PrincipalKey>(client),
+            [SpinConstants.Schema.Storage] = new SchemaDataHandler<IStorageActor, StorageBlob>(client),
         };
     }
 
@@ -31,14 +31,14 @@ internal class SchemaConnector
     {
         var group = app.MapGroup("/data");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = "spin-trace-id")] string traceId) => await Get(objectId, traceId) switch
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => await Get(objectId, traceId) switch
         {
             var v when v.IsError() => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
             var v when v.HasValue => Results.Ok(v.Return()),
             var v => Results.BadRequest(v.Return()),
         });
 
-        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = "spin-trace-id")] string traceId, HttpRequest request) =>
+        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, HttpRequest request) =>
         {
             string body = "";
             using (StreamReader stream = new StreamReader(request.Body))
@@ -50,7 +50,7 @@ internal class SchemaConnector
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());
         });
 
-        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = "spin-trace-id")] string traceId) =>
+        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
             StatusCode statusCode = await Delete(objectId, traceId);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());

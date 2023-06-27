@@ -13,6 +13,8 @@ public record DatalakeOption
     public string ContainerName { get; init; } = null!;
     public string? BasePath { get; init; }
     public ClientSecretOption Credentials { get; init; } = null!;
+
+    public override string ToString() => $"AccountName={AccountName}, ContainerName={ContainerName}, BasePath={BasePath}, Credentials={Credentials}";
 }
 
 

@@ -12,6 +12,7 @@ using SpinClusterCmd.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace SpinClusterCmd.Commands;
 

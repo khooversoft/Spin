@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Actors.Configuration;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -11,7 +12,7 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Services;
 
-internal class SiloConfigStore
+public class SiloConfigStore
 {
     private readonly IDatalakeStore _datalakeStore;
     private readonly ILogger<SiloConfigStore> _logger;
@@ -32,7 +33,7 @@ internal class SiloConfigStore
         Option<DataETag> result = await _datalakeStore.Read(_datalakeLocation.Path, context);
         if (result.IsError())
         {
-            context.Location().LogCritical("Reading Datalake file={file} failed", _datalakeLocation.Path);
+            context.Location().LogCritical("Reading datalake file={file} failed", _datalakeLocation.Path);
             return new Option<SiloConfigOption>(StatusCode.NotFound);
         }
 

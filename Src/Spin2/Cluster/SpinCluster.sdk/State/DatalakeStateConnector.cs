@@ -3,28 +3,28 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Orleans.Storage;
+using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Types.Id;
 
 namespace SpinCluster.sdk.State;
 
 internal class DatalakeStateConnector : IGrainStorage
 {
     private readonly ILogger<DatalakeStateConnector> _logger;
-    private readonly ConcurrentDictionary<string, DatalakeState> _stores = new ConcurrentDictionary<string, DatalakeState>(StringComparer.OrdinalIgnoreCase);
-    private readonly SiloConfigStore _siloConfigStore;
-    private readonly SpinClusterOption _clusterOption;
-    private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+    private readonly ConcurrentDictionary<string, DatalakeStateHandler> _stores = new ConcurrentDictionary<string, DatalakeStateHandler>(StringComparer.OrdinalIgnoreCase);
+    private readonly DatalakeResources _datalakeResources;
+    //private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
     private readonly ILoggerFactory _loggerFactory;
 
-    public DatalakeStateConnector(SpinClusterOption clusterOption, SiloConfigStore siloConfigStore, ILoggerFactory loggerFactory)
+    public DatalakeStateConnector(DatalakeResources datalakeResources, ILoggerFactory loggerFactory)
     {
-        _clusterOption = clusterOption.NotNull();
-        _siloConfigStore = siloConfigStore.NotNull();
+        _datalakeResources = datalakeResources.NotNull();
         _loggerFactory = loggerFactory.NotNull();
 
         _logger = _loggerFactory.CreateLogger<DatalakeStateConnector>();
@@ -33,7 +33,7 @@ internal class DatalakeStateConnector : IGrainStorage
     public async Task ClearStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)
     {
         (string filePath, string schema, ScopeContext context) = VerifyAndGetDetails(grainId, stateName);
-        DatalakeState datalakeState = await GetGrainStorageBySchema(schema);
+        DatalakeStateHandler datalakeState = GetGrainStorageBySchema(schema, context);
 
         context.Location().LogInformation("Clearing state for stateName={stateName}, grainId={grainId}", stateName, grainId);
         await datalakeState.ClearStateAsync(filePath, grainState, context);
@@ -42,7 +42,7 @@ internal class DatalakeStateConnector : IGrainStorage
     public async Task ReadStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)
     {
         (string filePath, string schema, ScopeContext context) = VerifyAndGetDetails(grainId, stateName);
-        DatalakeState datalakeState = await GetGrainStorageBySchema(schema);
+        DatalakeStateHandler datalakeState = GetGrainStorageBySchema(schema, context);
 
         context.Location().LogInformation("Reading state for stateName={stateName}, grainId={grainId}", stateName, grainId);
         await datalakeState.ReadStateAsync(filePath, grainState, context);
@@ -51,7 +51,7 @@ internal class DatalakeStateConnector : IGrainStorage
     public async Task WriteStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)
     {
         (string filePath, string schema, ScopeContext context) = VerifyAndGetDetails(grainId, stateName);
-        DatalakeState datalakeState = await GetGrainStorageBySchema(schema);
+        DatalakeStateHandler datalakeState = GetGrainStorageBySchema(schema, context);
 
         context.Location().LogInformation("Writing state for stateName={stateName}, grainId={grainId}", stateName, grainId);
         await datalakeState.WriteStateAsync(filePath, grainState, context);
@@ -83,48 +83,61 @@ internal class DatalakeStateConnector : IGrainStorage
         .Skip(1)
         .Join("/");
 
-    private async Task<DatalakeState> GetGrainStorageBySchema(string schemaName)
+    private DatalakeStateHandler GetGrainStorageBySchema(string schemaName, ScopeContext context)
     {
+        context = context.With(_logger);
         _logger.LogInformation("Requesting store for schema={schema}", schemaName);
 
-        await _lock.WaitAsync();
-
-        try
+        return _stores.GetOrAdd(schemaName, x =>
         {
-            if (_stores.TryGetValue(schemaName, out var storage)) return storage;
-
-            var newStorage = await create(schemaName);
-            _stores[schemaName] = newStorage;
-
-            return newStorage;
-        }
-        finally
-        {
-            _lock.Release();
-        }
-
-        async Task<DatalakeState> create(string name)
-        {
-            _logger.LogInformation("Creating store for name={name}", name);
-            var context = new ScopeContext(_logger);
-
-            Option<SiloConfigOption> siloConfigOption = await _siloConfigStore.Get(context);
-            if (siloConfigOption.IsError()) throw new InvalidOperationException("Cannot read Silo configuration option from datalake");
-
-            SchemaOption schemaOption = siloConfigOption.Return().Schemas.FirstOrDefault(x => x.SchemaName == name) ??
-                throw new ArgumentException($"Cannot find name={name} in schema options to create data lake storage");
-
-            var option = new DatalakeOption
+            Option<IDatalakeStore> store = _datalakeResources.GetStore(x);
+            if (store.IsError())
             {
-                AccountName = schemaOption.AccountName,
-                ContainerName = schemaOption.ContainerName,
-                BasePath = schemaOption.BasePath,
-                Credentials = _clusterOption.ClientCredentials,
-            };
+                context.Location().LogCritical("Failed to get datalake connection to schemaName={schemaName}", schemaName);
+                throw new ArgumentException($"Failed to get datalake connection to schemaName={schemaName}", schemaName);
+            }
 
-            IDatalakeStore store = new DatalakeStore(option, _loggerFactory.CreateLogger<DatalakeStore>());
+            return new DatalakeStateHandler(schemaName, store.Return(), _loggerFactory.CreateLogger<DatalakeStateHandler>());
+        });
 
-            return new DatalakeState(name, store, _loggerFactory.CreateLogger<DatalakeState>());
-        }
+        //await _lock.WaitAsync();
+
+        //try
+        //{
+        //    if (_stores.TryGetValue(schemaName, out var storage)) return storage;
+
+        //    var newStorage = await create(schemaName);
+        //    _stores[schemaName] = newStorage;
+
+        //    return newStorage;
+        //}
+        //finally
+        //{
+        //    _lock.Release();
+        //}
+
+        //async Task<DatalakeStateHandler> create(string name)
+        //{
+        //    _logger.LogInformation("Creating store for name={name}", name);
+        //    var context = new ScopeContext(_logger);
+
+        //    Option<SiloConfigOption> siloConfigOption = await _datalakeResources.Get(context);
+        //    if (siloConfigOption.IsError()) throw new InvalidOperationException("Cannot read Silo configuration option from datalake");
+
+        //    SchemaOption schemaOption = siloConfigOption.Return().Schemas.FirstOrDefault(x => x.SchemaName == name) ??
+        //        throw new ArgumentException($"Cannot find name={name} in schema options to create data lake storage");
+
+        //    var option = new DatalakeOption
+        //    {
+        //        AccountName = schemaOption.AccountName,
+        //        ContainerName = schemaOption.ContainerName,
+        //        BasePath = schemaOption.BasePath,
+        //        Credentials = _clusterOption.ClientCredentials,
+        //    };
+
+        //    IDatalakeStore store = new DatalakeStore(option, _loggerFactory.CreateLogger<DatalakeStore>());
+
+        //    return new DatalakeStateHandler(name, store, _loggerFactory.CreateLogger<DatalakeStateHandler>());
+        //}
     }
 }

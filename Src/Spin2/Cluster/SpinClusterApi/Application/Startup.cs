@@ -10,6 +10,8 @@ internal static class Startup
     {
         services.AddSingleton<SchemaConnector>();
         services.AddSingleton<LeaseConnector>();
+        services.AddSingleton<ConfigurationConnector>();
+        services.AddSingleton<SearchConnector>();
 
         return services;
     }
@@ -18,5 +20,7 @@ internal static class Startup
     {
         app.ServiceProvider.GetRequiredService<SchemaConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<LeaseConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<ConfigurationConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<SearchConnector>().Setup(app);
     }
 }
