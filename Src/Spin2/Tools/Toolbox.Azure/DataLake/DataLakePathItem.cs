@@ -1,9 +1,7 @@
-﻿using System;
-using Azure.Storage.Files.DataLake.Models;
+﻿using Azure.Storage.Files.DataLake.Models;
 using Toolbox.Azure.DataLake;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Types.Id;
 
 namespace Toolbox.Azure.DataLake
 {

@@ -1,30 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.JSInterop;
-using SpinPortal;
-using SpinPortal.Shared;
-using MudBlazor;
-using Microsoft.Graph.ExternalConnectors;
-using ObjectStore.sdk.Client;
-using Microsoft.Graph;
-using Toolbox.Extensions;
-using SpinPortal.Application;
-using Toolbox.Types;
-using SpinCluster.sdk.Client;
 using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Client;
+using SpinPortal.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
-using System.Threading.Tasks;
-using Toolbox.Types.Id;
+using Toolbox.Types;
 
 namespace SpinPortal.Pages;
 
@@ -50,11 +30,11 @@ public partial class ObjectStore
             .Assert(x => x.IsOk(), "Failed to get Spin configuration from Silo")
             .Return();
 
-        _resolvedPath = ObjectUri.IsValid(pageRoute) switch
+        _resolvedPath = ObjectId.IsValid(pageRoute) switch
         {
-            true => pageRoute.ToObjectUri() switch
+            true => pageRoute.ToObjectId() switch
             {
-                var u when _siloConfigOption.Schemas.Any(x => x.SchemaName == u.Domain) => u.ToString(),
+                var u when _siloConfigOption.Schemas.Any(x => x.SchemaName == u.Schema) => u.ToString(),
                 _ => _siloConfigOption.Schemas.Select(x => x.SchemaName).First(),
             },
 

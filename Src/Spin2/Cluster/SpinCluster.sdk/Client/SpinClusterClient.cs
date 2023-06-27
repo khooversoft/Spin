@@ -2,7 +2,6 @@
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Types.Id;
 
 namespace SpinCluster.sdk.Client;
 

@@ -219,11 +219,11 @@ public class DatalakeStore : IDatalakeStore
         return await Upload(path, memoryBuffer, overwrite, data, context);
     }
 
-    private string WithBasePath(string? path) => AzureStoreOption.BasePath + (AzureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path;
+    private string WithBasePath(string? path) => _azureStoreOption.BasePath + (_azureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path;
 
     private string RemoveBaseRoot(string path)
     {
-        string newPath = path.Substring(AzureStoreOption.BasePath?.Length ?? 0);
+        string newPath = path.Substring(_azureStoreOption.BasePath?.Length ?? 0);
         if (newPath.StartsWith("/")) newPath = newPath.Substring(1);
 
         return newPath;

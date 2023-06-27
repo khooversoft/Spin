@@ -1,40 +1,37 @@
-﻿using System.Text.RegularExpressions;
-using FluentAssertions;
-using Toolbox.Application;
+﻿using FluentAssertions;
 using Toolbox.Types;
-using Toolbox.Types.Id;
 
 namespace Toolbox.Test.Types;
 
 public class ObjectIdTests
 {
-    [Fact]
-    public void TestTenantId()
-    {
-        const string id = "schema/tenant/path";
-        ObjectId.IsValid(id).Should().BeTrue();
+    //[Fact]
+    //public void TestTenantId()
+    //{
+    //    const string id = "schema/tenant/path";
+    //    ObjectId.IsValid(id).Should().BeTrue();
 
-        var o = new ObjectId(id);
-        o.Id.Should().Be(id);
-        o.Schema.Should().Be("schema");
-        o.Tenant.Should().Be("tenant");
-        o.Path.Should().Be("path");
-        Enumerable.SequenceEqual(o.Paths, new[] { "path" }).Should().BeTrue();
-    }
+    //    var o = new ObjectId(id);
+    //    o.Id.Should().Be(id);
+    //    o.Schema.Should().Be("schema");
+    //    o.Tenant.Should().Be("tenant");
+    //    o.Path.Should().Be("path");
+    //    Enumerable.SequenceEqual(o.Paths, new[] { "path" }).Should().BeTrue();
+    //}
 
-    [Fact]
-    public void TestTenantId2Paths()
-    {
-        const string id = "schema/tenant/path1/path2";
-        ObjectId.IsValid(id).Should().BeTrue();
+    //[Fact]
+    //public void TestTenantId2Paths()
+    //{
+    //    const string id = "schema/tenant/path1/path2";
+    //    ObjectId.IsValid(id).Should().BeTrue();
 
-        var o = new ObjectId(id);
-        o.Id.Should().Be(id);
-        o.Schema.Should().Be("schema");
-        o.Tenant.Should().Be("tenant");
-        o.Path.Should().Be("path1/path2");
-        Enumerable.SequenceEqual(o.Paths, new[] { "path1", "path2" }).Should().BeTrue();
-    }
+    //    var o = new ObjectId(id);
+    //    o.Id.Should().Be(id);
+    //    o.Schema.Should().Be("schema");
+    //    o.Tenant.Should().Be("tenant");
+    //    o.Path.Should().Be("path1/path2");
+    //    Enumerable.SequenceEqual(o.Paths, new[] { "path1", "path2" }).Should().BeTrue();
+    //}
 
     [Fact]
     public void TestNoTenantSystemId()

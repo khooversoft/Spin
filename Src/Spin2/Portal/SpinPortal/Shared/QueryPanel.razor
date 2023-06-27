@@ -31,7 +31,7 @@
 
         <MudSpacer />
 
-        <MudSelect T="string" Value=@Path.Domain Label="Domain" DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetDomain(args))">
+        <MudSelect T="string" Value=@Path.Tenant Label="Domain" DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetDomain(args))">
             @foreach (var item in _domains)
             {
                 <MudSelectItem Value=@item />

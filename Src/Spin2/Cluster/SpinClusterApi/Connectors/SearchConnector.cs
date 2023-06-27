@@ -43,18 +43,25 @@ internal class SearchConnector
         });
     }
 
-    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string objectId, int? index, int? count, string traceId)
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string path, int? index, int? count, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
+
+        Option<ObjectId> objectId = ObjectId.CreateIfValid(path);
+        if (objectId.IsError())
+        {
+            context.Location().LogError("ObjectId is not valid, objectId={objectId}");
+            return new Option<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest);
+        }
 
         var query = new SearchQuery
         {
             Index = index ?? 0,
             Count = count ?? 1000,
-            Filter = objectId,
+            Filter = path,
         };
 
-        ISearchActor actor = _client.GetGrain<ISearchActor>(objectId);
+        ISearchActor actor = _client.GetGrain<ISearchActor>(objectId.Return());
 
         SpinResponse<IReadOnlyList<StorePathItem>> result = await actor.Search(query, context);
         if (result.StatusCode.IsError()) return new Option<IReadOnlyList<StorePathItem>>(result.StatusCode);

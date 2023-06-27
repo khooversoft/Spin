@@ -5,58 +5,63 @@ using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tokenizer.Token;
+using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 ///   {schema}:tenant/path[/path...]
-public sealed record ParsedObjectId
+public sealed record ObjectId
 {
-    public ParsedObjectId(string schema, string tentant, IEnumerable<string> paths)
+    public string? _path;
+    public string? _id;
+
+    public ObjectId(string schema, string tentant, IEnumerable<string> paths)
     {
         Schema = schema;
-        Tentant = tentant;
+        Tenant = tentant;
         Paths = paths.ToArray();
     }
 
     public const string Syntax = "{schema}/{tenant}[/{path}...] Valid characters are a-z A-Z 0-9 . $ @ - _ *";
 
     public string Schema { get; }
-    public string Tentant { get; }
+    public string Tenant { get; }
     public IReadOnlyList<string> Paths { get; }
+    public string Path => _path ?? Paths.Join("/");
+    public string Id => _id ?? $"{Schema}/{Tenant}/{Path}";
+    public override string ToString() => Id;
 
-    public string GetPath() => Paths.Join("/");
-    public override string ToString() => $"{Schema}/{Tentant}/" + Paths.Join("/");
-
-    public bool Equals(ParsedObjectId? obj) => obj is ParsedObjectId value &&
+    public bool Equals(ObjectId? obj) => obj is ObjectId value &&
         value.Schema == Schema &&
-        value.Tentant == Tentant &&
+        value.Tenant == Tenant &&
         value.Paths.Count == Paths.Count &&
         Enumerable.SequenceEqual(Paths, value.Paths);
 
-    public override int GetHashCode() => HashCode.Combine(Schema, Tentant, GetPath());
+    public override int GetHashCode() => HashCode.Combine(Schema, Tenant, Path);
 
-    public static implicit operator ParsedObjectId(string id) => Parse(id).Return();
-    public static implicit operator string(ParsedObjectId id) => id.ToString();
+    public static implicit operator ObjectId(string id) => Parse(id).Return();
+    public static implicit operator string(ObjectId id) => id.ToString();
 
+    public static bool IsValid(string? id) => ObjectId.Parse(id).HasValue;
     public static Option<ObjectId> CreateIfValid(string id)
     {
-        Option<ParsedObjectId> objectId = ParsedObjectId.Parse(id);
+        Option<ObjectId> objectId = ObjectId.Parse(id);
         if (objectId.IsError()) return objectId.ToOption<ObjectId>();
 
         return new ObjectId(objectId.Return());
     }
 
 
-    public static Option<ParsedObjectId> Parse(string? objectId)
+    public static Option<ObjectId> Parse(string? objectId)
     {
-        if (objectId.IsEmpty()) return new Option<ParsedObjectId>(StatusCode.BadRequest);
+        if (objectId.IsEmpty()) return new Option<ObjectId>(StatusCode.BadRequest);
 
         Stack<string> tokenStack = objectId
             .Split('/', StringSplitOptions.RemoveEmptyEntries)
             .Reverse()
             .ToStack();
 
-        var badResult = new Option<ParsedObjectId>(StatusCode.BadRequest);
+        var badResult = new Option<ObjectId>(StatusCode.BadRequest);
 
         if (tokenStack.Count < 3) return badResult;
 
@@ -69,7 +74,7 @@ public sealed record ParsedObjectId
         IReadOnlyList<string> paths = tokenStack.ToArray();
         if (!paths.All(x => Test(x))) return badResult;
 
-        return new ParsedObjectId(schema, tenant, paths);
+        return new ObjectId(schema, tenant, paths);
     }
 
     private static bool Test(string subject) => subject
@@ -78,8 +83,12 @@ public sealed record ParsedObjectId
 
 public static class ObjectIdExtensions
 {
-    public static ObjectId ToObjectId(this string subject) => (ObjectId)subject;
+    public static ObjectId ToObjectId(this string? subject) => (ObjectId)subject.NotNull();
     public static Option<ObjectId> ToObjectIdIfValid(this string subject) => ObjectId.CreateIfValid(subject);
     public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString((string)subject);
     public static ObjectId FromUrlEncoding(this string id) => Uri.UnescapeDataString(id).ToObjectId();
+
+    public static string GetParent(this ObjectId uri) => uri.Paths
+        .Take(Math.Max(1, uri.Paths.Count - 2))
+        .Join("/");
 }

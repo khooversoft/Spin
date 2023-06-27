@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using MudBlazor;
 using ObjectStore.sdk.Application;
 using ObjectStore.sdk.Client;
@@ -13,7 +12,6 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Table;
 using Toolbox.Types;
-using Toolbox.Types.Id;
 
 namespace SpinPortal.Shared;
 
@@ -30,7 +28,7 @@ public partial class QueryPanel
     [Inject] public SpinConfigurationClient SpinConfigurationClient { get; set; } = null!;
 
     [Parameter] public string Title { get; set; } = null!;
-    [Parameter] public ObjectUri Path { get; set; } = null!;
+    [Parameter] public ObjectId Path { get; set; } = null!;
 
     private object _lock = new object();
     private bool _initialized { get; set; }
@@ -72,7 +70,7 @@ public partial class QueryPanel
 
     private async Task Delete()
     {
-        ObjectId id = GetSelectedKey().ToObjectUri().ToObjectId();
+        ObjectId id = GetSelectedKey().ToObjectId();
 
         StatusCode result = await Client.Delete(id, new ScopeContext(Logger));
         if (result.IsError())
@@ -101,7 +99,7 @@ public partial class QueryPanel
 
     private async Task OnOpen(string key)
     {
-        ObjectId id = key.ToObjectUri().ToObjectId();
+        ObjectId id = key.ToObjectId();
 
         Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
         if (document.IsError())
@@ -134,7 +132,7 @@ public partial class QueryPanel
             .Select(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' ? x : '-')
             .Func(x => new string(x.ToArray()));
 
-        ObjectId id = (Path.Id + "/" + fileName).ToObjectUri().ToObjectId();
+        ObjectId id = (Path.Id + "/" + fileName).ToObjectId();
 
         var document = new DocumentBuilder()
             .SetDocumentId(id)
@@ -146,8 +144,8 @@ public partial class QueryPanel
 
     private async Task Download()
     {
-        ObjectUri path = GetSelectedKey().ToObjectUri();
-        ObjectId id = path.ToObjectId();
+        ObjectId path = GetSelectedKey();
+        ObjectId id = path;
 
         Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
         if (document.IsError())
@@ -156,7 +154,7 @@ public partial class QueryPanel
             return;
         }
 
-        await JsService.DownloadFile(path.GetFile().NotEmpty(), document.Return().Content);
+        await JsService.DownloadFile(path.Path.NotEmpty(), document.Return().Content);
     }
 
     private async Task LoadData()
@@ -165,7 +163,7 @@ public partial class QueryPanel
 
         try
         {
-            var queryParameter = new QueryParameter { Domain = Path.Domain, Filter = Path.Path };
+            var queryParameter = new QueryParameter { Domain = Path.Tenant, Filter = Path.Path };
 
             Option<BatchQuerySet<DatalakePathItem>> batch = await Client.Search(queryParameter, context);
             if (batch.IsError())
@@ -176,9 +174,9 @@ public partial class QueryPanel
 
             ObjectRow[] rows = batch.Return().Items.Select(x => new ObjectRow(new object?[]
                 {
-                    x.Name.ToObjectUri().SetDomain(Path.Domain).GetFile(),
+                    x.Name, // TODO: .TObjectId().SetDomain(Path.Domain).GetFile(),
                     x.LastModified
-                }, createTag(x), x.Name.ToObjectUri().SetDomain(Path.Domain).Id)
+                }, createTag(x), x.Name.ToObjectId() /* TODO .SetDomain(Path.Domain).Id */)
             ).ToArray();
 
             _table = new ObjectTableBuilder()
