@@ -19,13 +19,8 @@ public partial class ObjectStore
     private string _resolvedPath { get; set; } = "default";
     private SiloConfigOption _siloConfigOption { get; set; } = null!;
 
-    private string _textValue { get; set; } = null!;
-    private bool _showResult { get; set; }
-
     protected override async Task OnParametersSetAsync()
     {
-        _showResult = false;
-
         _siloConfigOption = (await SpinConfigurationClient.Get(new ScopeContext(Logger)))
             .Assert(x => x.IsOk(), "Failed to get Spin configuration from Silo")
             .Return();

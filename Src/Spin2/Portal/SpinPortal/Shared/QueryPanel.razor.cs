@@ -4,6 +4,7 @@ using MudBlazor;
 using ObjectStore.sdk.Application;
 using ObjectStore.sdk.Client;
 using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Client;
 using SpinPortal.Application;
 using Toolbox.Azure.DataLake;
@@ -19,12 +20,11 @@ public partial class QueryPanel
 {
     [Inject] public ILogger<QueryPanel> Logger { get; set; } = null!;
     [Inject] public PortalOption Option { get; set; } = null!;
-    [Inject] public ObjectStoreClient Client { get; set; } = null!;
+    [Inject] public SpinClusterClient Client { get; set; } = null!;
     [Inject] public NavigationManager NavManager { get; set; } = null!;
     [Inject] IDialogService DialogService { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
     [Inject] public JsRunTimeService JsService { get; set; } = null!;
-
     [Inject] public SpinConfigurationClient SpinConfigurationClient { get; set; } = null!;
 
     [Parameter] public string Title { get; set; } = null!;
@@ -34,7 +34,7 @@ public partial class QueryPanel
     private bool _initialized { get; set; }
     private bool _runningQuery { get; set; }
     private string? _errorMsg { get; set; }
-    private IReadOnlyList<string> _domains { get; set; } = Array.Empty<string>();
+    private IReadOnlyList<string> _schemas { get; set; } = Array.Empty<string>();
 
     private ObjectTable _table { get; set; } = null!;
     private int? _selectedRow { get; set; }
@@ -53,7 +53,7 @@ public partial class QueryPanel
             .Assert(x => x.IsError(), "Failed to get Spin configuration from Silo")
             .Return();
 
-        _domains = siloConfigOption.Schemas.Select(x => x.SchemaName).ToArray();
+        _schemas = siloConfigOption.Schemas.Select(x => x.SchemaName).ToArray();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -70,18 +70,18 @@ public partial class QueryPanel
 
     private async Task Delete()
     {
-        ObjectId id = GetSelectedKey().ToObjectId();
+        //ObjectId id = GetSelectedKey().ToObjectId();
 
-        StatusCode result = await Client.Delete(id, new ScopeContext(Logger));
-        if (result.IsError())
-        {
-            _errorMsg = $"Cannot delete document objectId='{id}'";
-            return;
-        }
+        //StatusCode result = await Client.Data.Delete(id, new ScopeContext(Logger));
+        //if (result.IsError())
+        //{
+        //    _errorMsg = $"Cannot delete document objectId='{id}'";
+        //    return;
+        //}
 
-        await Refresh();
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
-        Snackbar.Add($"Deleted document, objectId='{id}", Severity.Info);
+        //await Refresh();
+        //Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        //Snackbar.Add($"Deleted document, objectId='{id}", Severity.Info);
     }
     private async Task Refresh()
     {
@@ -101,60 +101,60 @@ public partial class QueryPanel
     {
         ObjectId id = key.ToObjectId();
 
-        Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
-        if (document.IsError())
-        {
-            _errorMsg = $"Cannot read file '{id}'";
-            return;
-        }
+        //Option<Document> document = await Client.Data.Get(id, new ScopeContext(Logger));
+        //if (document.IsError())
+        //{
+        //    _errorMsg = $"Cannot read file '{id}'";
+        //    return;
+        //}
 
-        DialogOptions option = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            CloseButton = true,
-            FullScreen = true,
-        };
+        //DialogOptions option = new DialogOptions
+        //{
+        //    CloseOnEscapeKey = true,
+        //    CloseButton = true,
+        //    FullScreen = true,
+        //};
 
-        DialogParameters parameters = new DialogParameters();
-        parameters.Add("Title", key);
-        parameters.Add("TitleTooltip", id.ToString());
-        parameters.Add("CodeText", document.Return().ToObject<string>());
+        //DialogParameters parameters = new DialogParameters();
+        //parameters.Add("Title", key);
+        //parameters.Add("TitleTooltip", id.ToString());
+        //parameters.Add("CodeText", document.Return().ToObject<string>());
 
-        DialogService.Show<Code>("Content", parameters, option);
+        //DialogService.Show<Code>("Content", parameters, option);
     }
 
     private async Task OnUploadFile(InputFileChangeEventArgs args)
     {
-        var memoryStream = new MemoryStream();
-        await args.File.OpenReadStream().CopyToAsync(memoryStream);
+        //var memoryStream = new MemoryStream();
+        //await args.File.OpenReadStream().CopyToAsync(memoryStream);
 
-        string fileName = args.File.Name
-            .Select(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' ? x : '-')
-            .Func(x => new string(x.ToArray()));
+        //string fileName = args.File.Name
+        //    .Select(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' ? x : '-')
+        //    .Func(x => new string(x.ToArray()));
 
-        ObjectId id = (Path.Id + "/" + fileName).ToObjectId();
+        //ObjectId id = (Path.Id + "/" + fileName).ToObjectId();
 
-        var document = new DocumentBuilder()
-            .SetDocumentId(id)
-            .SetContent(memoryStream.ToArray())
-            .Build();
+        //var document = new DocumentBuilder()
+        //    .SetDocumentId(id)
+        //    .SetContent(memoryStream.ToArray())
+        //    .Build();
 
-        await Client.Write(document, new ScopeContext(Logger));
+        //await Client.Data.Set(document, new ScopeContext(Logger));
     }
 
     private async Task Download()
     {
-        ObjectId path = GetSelectedKey();
-        ObjectId id = path;
+        //ObjectId path = GetSelectedKey();
+        //ObjectId id = path;
 
-        Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
-        if (document.IsError())
-        {
-            _errorMsg = $"Cannot read file '{id}'";
-            return;
-        }
+        //Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
+        //if (document.IsError())
+        //{
+        //    _errorMsg = $"Cannot read file '{id}'";
+        //    return;
+        //}
 
-        await JsService.DownloadFile(path.Path.NotEmpty(), document.Return().Content);
+        //await JsService.DownloadFile(path.Path.NotEmpty(), document.Return().Content);
     }
 
     private async Task LoadData()
@@ -163,20 +163,20 @@ public partial class QueryPanel
 
         try
         {
-            var queryParameter = new QueryParameter { Domain = Path.Tenant, Filter = Path.Path };
+            var queryParameter = new QueryParameter { Filter = Path.Path };
 
-            Option<BatchQuerySet<DatalakePathItem>> batch = await Client.Search(queryParameter, context);
+            Option<IReadOnlyList<StorePathItem>> batch = await Client.Resource.Search(queryParameter, context);
             if (batch.IsError())
             {
                 _errorMsg = "Failed to connect to storage";
                 return;
             }
 
-            ObjectRow[] rows = batch.Return().Items.Select(x => new ObjectRow(new object?[]
+            ObjectRow[] rows = batch.Return().Select(x => new ObjectRow(new object?[]
                 {
                     x.Name, // TODO: .TObjectId().SetDomain(Path.Domain).GetFile(),
                     x.LastModified
-                }, createTag(x), x.Name.ToObjectId() /* TODO .SetDomain(Path.Domain).Id */)
+                }, createTag(x), x.Name)
             ).ToArray();
 
             _table = new ObjectTableBuilder()
@@ -200,7 +200,7 @@ public partial class QueryPanel
             await InvokeAsync(() => StateHasChanged());
         }
 
-        string createTag(DatalakePathItem item) => item.IsDirectory == true ? ObjectStoreConstants.Folder : ObjectStoreConstants.Open;
+        string createTag(StorePathItem item) => item.IsDirectory == true ? ObjectStoreConstants.Folder : ObjectStoreConstants.Open;
     }
 
     private void SetDomain(string domain)

@@ -26,45 +26,40 @@ internal class SearchConnector
     {
         // http://{server}/search/{schema}/{tenant}/{path}[/{path}...]?index=n&count=n
 
-        app.MapGet("/search/{*objectId}", async (
-            string objectId,
+        app.MapGet("/search/{*filter}", async (
+            string filter,
             [FromQuery(Name = "index")] int? index,
             [FromQuery(Name = "count")] int? count,
+            [FromQuery(Name = "recurse")] bool? recurse,
             [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId
             ) =>
         {
-            var result = await Search(objectId, index, count, traceId);
+            var result = await Search(filter, index, count, recurse, traceId);
 
             return result.IsOk() switch
             {
                 true => Results.Ok(result.Return()),
-                false => Results.StatusCode((int)result.StatusCode.ToHttpStatusCode())
+                false => Results.BadRequest($"StatusCode={result.StatusCode}, error={result.Error}"),
             };
         });
     }
 
-    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string path, int? index, int? count, string traceId)
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string filter, int? index, int? count, bool? recurse, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-
-        Option<ObjectId> objectId = ObjectId.CreateIfValid(path);
-        if (objectId.IsError())
-        {
-            context.Location().LogError("ObjectId is not valid, objectId={objectId}");
-            return new Option<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest);
-        }
 
         var query = new SearchQuery
         {
             Index = index ?? 0,
             Count = count ?? 1000,
-            Filter = path,
+            Filter = filter,
+            Recursive = recurse ?? false,
         };
 
-        ISearchActor actor = _client.GetGrain<ISearchActor>(objectId.Return());
+        ISearchActor actor = _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch);
 
-        SpinResponse<IReadOnlyList<StorePathItem>> result = await actor.Search(query, context);
-        if (result.StatusCode.IsError()) return new Option<IReadOnlyList<StorePathItem>>(result.StatusCode);
+        SpinResponse<IReadOnlyList<StorePathItem>> result = await actor.Search(query, context.TraceId);
+        if (result.StatusCode.IsError()) return new Option<IReadOnlyList<StorePathItem>>(result.StatusCode, result.Error);
 
         return result.Return().ToOption();
     }

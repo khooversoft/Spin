@@ -159,7 +159,7 @@ public class DatalakeStore : IDatalakeStore
         catch (Exception ex)
         {
             context.Location().LogError(ex, "Failed to read file {path}", path);
-            return new Option<DataETag>(StatusCode.BadRequest);
+            return new Option<DataETag>(StatusCode.BadRequest, ex.ToString());
         }
     }
 
@@ -167,9 +167,6 @@ public class DatalakeStore : IDatalakeStore
     {
         context = context.With(_logger);
         using var scope = context.Location().LogEntryExit();
-
-        if (!queryParameter.Validate().IsValid(context.Location()))
-            return new Option<IReadOnlyList<DatalakePathItem>>(StatusCode.BadRequest);
 
         queryParameter.NotNull();
         queryParameter = queryParameter with { Filter = WithBasePath(queryParameter.Filter) };
@@ -185,7 +182,7 @@ public class DatalakeStore : IDatalakeStore
                 index++;
                 if (index < queryParameter.Index) continue;
 
-                DatalakePathItem datalakePathItem = pathItem.ConvertTo(queryParameter.Domain);
+                DatalakePathItem datalakePathItem = pathItem.ConvertTo();
 
                 list.Add(datalakePathItem);
                 if (list.Count >= queryParameter.Count) break;
@@ -202,7 +199,7 @@ public class DatalakeStore : IDatalakeStore
         catch (Exception ex)
         {
             context.Location().LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
-            return new Option<IReadOnlyList<DatalakePathItem>>(StatusCode.BadRequest);
+            return new Option<IReadOnlyList<DatalakePathItem>>(StatusCode.BadRequest, ex.ToString());
         }
     }
 

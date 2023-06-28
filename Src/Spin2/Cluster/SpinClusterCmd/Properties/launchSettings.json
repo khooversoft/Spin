@@ -2,7 +2,7 @@
   "profiles": {
     "SpinClusterCmd": {
       "commandName": "Project",
-      "commandLineArgs": "storage upload storage/$system/testupload D:\\Sources\\Spin\\Src\\Spin2\\Cluster\\SpinClusterCmd\\Data\\User_U001.json"
+      "commandLineArgs": "search lease/$system"
     }
   }
 }

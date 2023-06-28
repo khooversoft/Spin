@@ -13,6 +13,7 @@ public record SpinResponse<T>
 {
     public SpinResponse() => StatusCode = StatusCode.NotFound;
     public SpinResponse(StatusCode statusCode) => StatusCode = statusCode;
+    public SpinResponse(StatusCode statusCode, string error) => (StatusCode, Error) = (statusCode, error);
     public SpinResponse(T? value) => (Value, StatusCode) = value switch
     {
         null => (default, StatusCode.NotFound),
@@ -22,6 +23,7 @@ public record SpinResponse<T>
 
     [Id(0)] public StatusCode StatusCode { get; init; }
     [Id(1)] public T? Value { get; init; }
+    [Id(2)] public string? Error { get; init; }
 
     public static implicit operator SpinResponse<T>(T value) => new SpinResponse<T>(value);
 

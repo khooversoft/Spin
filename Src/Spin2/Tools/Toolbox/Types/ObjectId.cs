@@ -27,6 +27,7 @@ public sealed record ObjectId
     public string Schema { get; }
     public string Tenant { get; }
     public IReadOnlyList<string> Paths { get; }
+
     public string Path => _path ?? Paths.Join("/");
     public string Id => _id ?? $"{Schema}/{Tenant}/{Path}";
     public override string ToString() => Id;
@@ -39,7 +40,7 @@ public sealed record ObjectId
 
     public override int GetHashCode() => HashCode.Combine(Schema, Tenant, Path);
 
-    public static implicit operator ObjectId(string id) => Parse(id).Return();
+    public static implicit operator ObjectId(string id) => Parse(id).ThrowOnError().Return();
     public static implicit operator string(ObjectId id) => id.ToString();
 
     public static bool IsValid(string? id) => ObjectId.Parse(id).HasValue;
@@ -63,7 +64,7 @@ public sealed record ObjectId
 
         var badResult = new Option<ObjectId>(StatusCode.BadRequest);
 
-        if (tokenStack.Count < 3) return badResult;
+        if (tokenStack.Count < 2) return badResult;
 
         if (!tokenStack.TryPop(out string? schema)) return badResult;
         if (!Test(schema)) return badResult;

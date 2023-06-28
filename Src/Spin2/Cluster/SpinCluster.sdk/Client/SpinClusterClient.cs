@@ -1,32 +1,24 @@
-﻿using SpinCluster.sdk.Application;
-using Toolbox.Rest;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace SpinCluster.sdk.Client;
 
 public class SpinClusterClient
 {
-    private readonly HttpClient _client;
-    public SpinClusterClient(HttpClient client) => _client = client.NotNull();
+    public SpinClusterClient(HttpClient client)
+    {
+        Configuration = new SpinConfigurationClient(client);
+        Data = new SpinDataClient(client);
+        Lease = new SpinLeaseClient(client);
+        Resource = new SpinResourceClient(client);
+    }
 
-    public async Task<StatusCode> Delete(ObjectId id, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/data/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .GetStatusCode();
-
-    public async Task<Option<T>> Get<T>(ObjectId id, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/data/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .GetContent<T>();
-
-    public async Task<StatusCode> Set<T>(ObjectId id, T content, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/data/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .SetContent(content)
-        .PostAsync(context)
-        .GetStatusCode();
+    public SpinConfigurationClient Configuration { get; }
+    public SpinDataClient Data { get; }
+    public SpinLeaseClient Lease { get; }
+    public SpinResourceClient Resource { get; }
 }
-

@@ -41,7 +41,7 @@ public class DatalakeResources
             throw new InvalidOperationException(msg);
         }
 
-        var query = new QueryParameter();
+        var query = new QueryParameter { Count = 1 };
         var list = new List<Task<bool>>();
 
         foreach (var schemaOption in siloConfigOption.Return().Schemas)
@@ -69,7 +69,7 @@ public class DatalakeResources
 
         async Task<bool> verifyConnection(IDatalakeStore store, SchemaOption schemaOption)
         {
-            var result = await store.Search(new QueryParameter(), context);
+            var result = await store.Search(query, context);
             if (result.IsError())
             {
                 context.Location().LogCritical("Failed to connect to datalake store schemaOption={schemaOption}, credentials={credentials}",

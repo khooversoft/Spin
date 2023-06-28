@@ -10,23 +10,21 @@ using Toolbox.Tools;
 namespace SpinCluster.sdk.Actors.Search;
 
 [GenerateSerializer, Immutable]
-public class StorePathItem
+public record StorePathItem
 {
     [Id(0)] public string Name { get; init; } = null!;
     [Id(1)] public bool? IsDirectory { get; init; }
     [Id(2)] public DateTimeOffset LastModified { get; init; }
     [Id(3)] public string ETag { get; init; } = null!;
     [Id(4)] public long? ContentLength { get; init; }
-    [Id(5)] public string ObjectId { get; init; } = null!;
 }
 
 
 public static class StorePathItemExtensions
 {
-    public static StorePathItem ConvertTo(this DatalakePathItem subject, string objectId)
+    public static StorePathItem ConvertTo(this DatalakePathItem subject)
     {
         subject.NotNull();
-        objectId.NotNull();
 
         return new StorePathItem
         {
@@ -35,7 +33,6 @@ public static class StorePathItemExtensions
             LastModified = subject.LastModified,
             ETag = subject.ETag.ToString(),
             ContentLength = subject.ContentLength,
-            ObjectId = objectId,
         };
     }
 }

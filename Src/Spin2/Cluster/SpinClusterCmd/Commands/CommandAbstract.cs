@@ -63,7 +63,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
                 return;
             }
 
-            StatusCode statusCode = await _client.Set(_dataType.GetKey(model), model, context);
+            StatusCode statusCode = await _client.Data.Set(_dataType.GetKey(model), model, context);
             context.Location().Log(statusCode.IsOk() ? LogLevel.Information : LogLevel.Error, "Set file={file}, statusCode={statusCode}", file, statusCode);
 
         }, file);
@@ -88,7 +88,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
                 return;
             }
 
-            Toolbox.Types.Option<T> user = await _client.Get<T>(objectId, context);
+            Toolbox.Types.Option<T> user = await _client.Data.Get<T>(objectId, context);
 
             context.Location().LogInformation("Get objectId={objectId}, statusCode={statusCode}, mode={model}",
                 objectId, user.StatusCode, user.Return().ToJsonSafe(context.Location()));
@@ -114,7 +114,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
                 return;
             }
 
-            Toolbox.Types.Option<T> user = await _client.Get<T>(objectId, context);
+            Toolbox.Types.Option<T> user = await _client.Data.Get<T>(objectId, context);
 
             context.Location().LogInformation("Get objectId={objectId}, statusCode={statusCode}, mode={model}",
                 objectId, user.StatusCode, user.Return().ToJsonSafe(context.Location()));

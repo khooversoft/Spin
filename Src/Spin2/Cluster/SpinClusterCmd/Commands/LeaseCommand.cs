@@ -10,10 +10,10 @@ namespace SpinClusterCmd.Commands;
 
 internal class LeaseCommand : Command
 {
-    private readonly SpinLeaseClient _client;
+    private readonly SpinClusterClient _client;
     private readonly ILogger<LeaseCommand> _logger;
 
-    public LeaseCommand(SpinLeaseClient client, ILogger<LeaseCommand> logger)
+    public LeaseCommand(SpinClusterClient client, ILogger<LeaseCommand> logger)
         : base("lease", "Acquire or release a lease")
     {
         _client = client.NotNull();
@@ -35,7 +35,7 @@ internal class LeaseCommand : Command
         {
             var context = new ScopeContext(_logger);
 
-            Toolbox.Types.Option<LeaseData> leaseData = await _client.Acquire(objectId, context);
+            Toolbox.Types.Option<LeaseData> leaseData = await _client.Lease.Acquire(objectId, context);
 
             context.Location().Log(
                 leaseData.IsOk() ? LogLevel.Information : LogLevel.Error,
@@ -61,7 +61,7 @@ internal class LeaseCommand : Command
         {
             var context = new ScopeContext(_logger);
 
-            StatusCode statusCode = await _client.Release(objectId, leaseId, context);
+            StatusCode statusCode = await _client.Lease.Release(objectId, leaseId, context);
 
             context.Location().Log(statusCode.IsOk() ? LogLevel.Information : LogLevel.Error,
                 "Release objectId={objectId}, leaseId={leaseId}, statusCode={statusCode}", objectId, leaseId, statusCode);

@@ -15,17 +15,15 @@ namespace Toolbox.Azure.DataLake
         public string? Owner { get; init; }
         public string? Group { get; init; }
         public string? Permissions { get; init; }
-        public string? ObjectId { get; init; }
     }
 }
 
 
 public static class DatalakePathItemExtensions
 {
-    public static DatalakePathItem ConvertTo(this PathItem subject, string domain)
+    public static DatalakePathItem ConvertTo(this PathItem subject)
     {
         subject.NotNull();
-        domain.NotNull();
 
         return new DatalakePathItem
         {
@@ -37,7 +35,6 @@ public static class DatalakePathItemExtensions
             Owner = subject.Owner,
             Group = subject.Group,
             Permissions = subject.Permissions,
-            ObjectId = $"{domain}:{subject.Name}".ToObjectId()
         };
     }
 }

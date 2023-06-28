@@ -39,6 +39,7 @@ async Task<int> Run(IServiceProvider service, string[] args)
             service.GetRequiredService<KeyCommand>(),
             service.GetRequiredService<StorageCommand>(),
             service.GetRequiredService<LeaseCommand>(),
+            service.GetRequiredService<SearchCommand>(),
         };
 
         return await rc.InvokeAsync(args);

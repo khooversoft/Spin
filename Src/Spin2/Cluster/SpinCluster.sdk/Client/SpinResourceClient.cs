@@ -17,12 +17,18 @@ public class SpinResourceClient
     private readonly HttpClient _client;
     public SpinResourceClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string filter, int? index, int? start, ScopeContext context)
+    public Task<Option<IReadOnlyList<StorePathItem>>> Search(QueryParameter queryParameter, ScopeContext context)
+    {
+        return Search(queryParameter.Filter, queryParameter.Index, queryParameter.Count, queryParameter.Recursive, context);
+    }
+
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string? filter, int? index, int? count, bool? recurse, ScopeContext context)
     {
         string query = new string?[]
         {
-            index?.ToString(),
-            start?.ToString(),
+            index?.ToString()?.Func(x => $"index={x}"),
+            count?.ToString()?.Func(x => $"count={x}"),
+            recurse?.ToString()?.Func(x => $"recurse={x}"),
         }
         .Where(x => x != null)
         .Join("&")

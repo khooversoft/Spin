@@ -57,7 +57,7 @@ internal class StorageCommand : CommandAbstract<StorageBlob>
                 .Build();
 
             context.Location().LogInformation("Uploading blob={blob}", blob.ToString());
-            StatusCode statusCode = await _client.Set<StorageBlob>(objectId, blob, context);
+            StatusCode statusCode = await _client.Data.Set<StorageBlob>(objectId, blob, context);
 
             context.Location().Log(statusCode.IsOk() ? LogLevel.Information : LogLevel.Error, "Set file={file}, statusCode={statusCode}", file, statusCode);
 
@@ -85,7 +85,7 @@ internal class StorageCommand : CommandAbstract<StorageBlob>
                 return;
             }
 
-            Toolbox.Types.Option<StorageBlob> blob = await _client.Get<StorageBlob>(objectId, context);
+            Toolbox.Types.Option<StorageBlob> blob = await _client.Data.Get<StorageBlob>(objectId, context);
             if (blob.IsError())
             {
                 context.Location().LogError("Could not download objectId={objectId}", objectId);

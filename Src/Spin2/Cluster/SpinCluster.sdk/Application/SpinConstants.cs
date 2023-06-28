@@ -3,6 +3,7 @@
 public static class SpinConstants
 {
     public const string SpinStateStore = "spinStateStore";
+    public const string SchemaSearch = "schemaSearch";
 
     public static class Schema
     {

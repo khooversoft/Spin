@@ -19,10 +19,10 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
         silo.UseLocalhostClustering()
             .ConfigureLogging(logging => logging.AddConsole())
             .AddDatalakeGrainStorage(option);
-            //.AddAzureBlobGrainStorage("User", config =>
-            //{
-            //    config.ConfigureBlobServiceClient(option.StorageAccountConnectionString);
-            //});
+        //.AddAzureBlobGrainStorage("User", config =>
+        //{
+        //    config.ConfigureBlobServiceClient(option.StorageAccountConnectionString);
+        //});
     })
     .UseConsoleLifetime()
     .ConfigureLogging(config =>
@@ -38,6 +38,8 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
     });
 
 using IHost host = builder.Build();
+
+await host.UseSpinCluster();
 
 Console.WriteLine($"Spin Silo - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();

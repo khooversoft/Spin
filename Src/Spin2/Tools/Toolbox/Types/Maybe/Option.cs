@@ -8,6 +8,7 @@ public interface IOption
     StatusCode StatusCode { get; }
     bool HasValue { get; }
     object ValueObject { get; }
+    string? Error { get; }
 }
 
 
@@ -48,6 +49,15 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
         HasValue = false;
         Value = default!;
     }
+    
+    [SetsRequiredMembers()]
+    public Option(StatusCode statusCode, string? error)
+    {
+        StatusCode = statusCode;
+        HasValue = false;
+        Value = default!;
+        Error = error;
+    }
 
     [SetsRequiredMembers()]
     public Option(T? value, StatusCode statusCode)
@@ -63,14 +73,6 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     }
 
     [SetsRequiredMembers()]
-    public Option(bool hasValue, StatusCode statusCode, T value)
-    {
-        HasValue = hasValue;
-        Value = value;
-        StatusCode = statusCode;
-    }
-
-    [SetsRequiredMembers()]
     public Option(bool hasValue, T? value)
     {
         HasValue = hasValue;
@@ -78,11 +80,11 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
         StatusCode = hasValue ? StatusCode.OK : StatusCode.NoContent;
     }
 
-    public static Option<T> None { get; } = default;
     public StatusCode StatusCode { get; }
     public bool HasValue { get; }
     public T Value { get; }
-    object IOption.ValueObject => throw new NotImplementedException();
+    public string? Error { get; }
+    object IOption.ValueObject => Value!;
 
     public override bool Equals(object? obj) =>
         obj is Option<T> maybe &&
@@ -102,4 +104,5 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     public static bool operator !=(Option<T> left, Option<T> right) => !(left == right);
 
     public static implicit operator Option<T>(T value) => new Option<T>(value);
+    public static Option<T> None { get; } = default;
 }

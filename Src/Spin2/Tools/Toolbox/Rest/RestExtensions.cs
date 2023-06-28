@@ -22,7 +22,7 @@ public static class RestExtensions
 
     public static Option<T> GetContent<T>(this RestResponse response)
     {
-        if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode());
+        if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode(), response.Content);
 
         return response.Content switch
         {

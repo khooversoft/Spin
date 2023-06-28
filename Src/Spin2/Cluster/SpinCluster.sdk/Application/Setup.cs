@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Directory;
+using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.Storage;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
@@ -19,8 +21,8 @@ public static class Setup
 
         services.AddSingleton<Validator<UserPrincipal>>(UserPrincipalValidator.Validator);
         services.AddSingleton<Validator<PrincipalKey>>(PrincipalKeyValidator.Validator);
-        services.AddSingleton<Validator<PrincipalKey>>(PrincipalKeyValidator.Validator);
         services.AddSingleton<Validator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
+        services.AddSingleton<Validator<SearchQuery>>(SearchQueryValidator.Validator);
 
         services.AddSingleton<DatalakeResources>();
 
@@ -47,10 +49,10 @@ public static class Setup
         return services;
     }
 
-    public static async Task UseSpinCluster(this IApplicationBuilder app)
+    public static async Task UseSpinCluster(this IHost app)
     {
-        DatalakeResources datalakeResources = app.ApplicationServices.GetRequiredService<DatalakeResources>();
-        ILoggerFactory factory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+        DatalakeResources datalakeResources = app.Services.GetRequiredService<DatalakeResources>();
+        ILoggerFactory factory = app.Services.GetRequiredService<ILoggerFactory>();
 
         await datalakeResources.Startup(new ScopeContext(factory.CreateLogger(nameof(UseSpinCluster))));
     }

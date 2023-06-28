@@ -29,21 +29,5 @@ public static class Startup
             httpClient.Timeout = TimeSpan.FromMinutes(5);
         });
         //.AddPolicyHandler(_retryPolicy);
-
-        builder.Services.AddHttpClient<SpinLeaseClient>((services, httpClient) =>
-        {
-            var option = services.GetRequiredService<PortalOption>();
-            httpClient.BaseAddress = new Uri(option.SpinSiloApi);
-            httpClient.Timeout = TimeSpan.FromMinutes(5);
-        });
-        //.AddPolicyHandler(_retryPolicy);
-
-        builder.Services.AddHttpClient<SpinConfigurationClient>((services, httpClient) =>
-        {
-            var option = services.GetRequiredService<PortalOption>();
-            httpClient.BaseAddress = new Uri(option.SpinSiloApi);
-            httpClient.Timeout = TimeSpan.FromMinutes(5);
-        });
-        //.AddPolicyHandler(_retryPolicy);
     }
 }

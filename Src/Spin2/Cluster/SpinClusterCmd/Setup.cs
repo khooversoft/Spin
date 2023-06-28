@@ -15,18 +15,11 @@ internal static class Setup
         services.AddSingleton<KeyCommand>();
         services.AddSingleton<StorageCommand>();
         services.AddSingleton<LeaseCommand>();
+        services.AddSingleton<SearchCommand>();
 
         services.AddHttpClient<SpinClusterClient>((services, httpClient) =>
         {
             var option = services.GetRequiredService<CmdOption>();
-
-            httpClient.BaseAddress = new Uri(option.ClusterApi);
-        });
-
-        services.AddHttpClient<SpinLeaseClient>((services, httpClient) =>
-        {
-            var option = services.GetRequiredService<CmdOption>();
-
             httpClient.BaseAddress = new Uri(option.ClusterApi);
         });
 

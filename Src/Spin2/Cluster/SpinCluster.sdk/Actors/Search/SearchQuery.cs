@@ -10,7 +10,7 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.Search;
 
 [GenerateSerializer, Immutable]
-public class SearchQuery
+public record SearchQuery
 {
     [Id(0)] public int Index { get; init; } = 0;
     [Id(1)] public int Count { get; init; } = 1000;
