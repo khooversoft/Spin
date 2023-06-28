@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Cluster\SpinCluster.sdk\SpinCluster.sdk.csproj" />
-    <ProjectReference Include="..\..\ObjectStore\ObjectStore.sdk\ObjectStore.sdk.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

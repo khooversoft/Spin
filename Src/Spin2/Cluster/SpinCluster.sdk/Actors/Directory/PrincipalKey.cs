@@ -20,7 +20,7 @@ public record PrincipalKey
 
         return new PrincipalKey
         {
-            UserId = userId,
+            UserId = userId.ToString(),
             PublicKey = rsa.ExportRSAPublicKey(),
             PrivateKey = rsa.ExportRSAPrivateKey(),
         };

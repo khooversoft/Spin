@@ -13,7 +13,7 @@ internal class StorageCommand : CommandAbstract<StorageBlob>
     {
         Name = "storage",
         Validator = StorageBlobValidator.Validator,
-        GetKey = x => x.ObjectId,
+        GetKey = x => x.ObjectId.ToObjectId(),
     };
 
     public StorageCommand(SpinClusterClient client, ILogger<StorageCommand> logger)
@@ -52,12 +52,12 @@ internal class StorageCommand : CommandAbstract<StorageBlob>
             byte[] content = File.ReadAllBytes(file);
 
             StorageBlob blob = new StorageBlobBuilder()
-                .SetObjectId(objectId)
+                .SetObjectId(objectId.ToObjectId())
                 .SetContent(content)
                 .Build();
 
             context.Location().LogInformation("Uploading blob={blob}", blob.ToString());
-            StatusCode statusCode = await _client.Data.Set<StorageBlob>(objectId, blob, context);
+            StatusCode statusCode = await _client.Data.Set<StorageBlob>(objectId.ToObjectId(), blob, context);
 
             context.Location().Log(statusCode.IsOk() ? LogLevel.Information : LogLevel.Error, "Set file={file}, statusCode={statusCode}", file, statusCode);
 
@@ -85,7 +85,7 @@ internal class StorageCommand : CommandAbstract<StorageBlob>
                 return;
             }
 
-            Toolbox.Types.Option<StorageBlob> blob = await _client.Data.Get<StorageBlob>(objectId, context);
+            Toolbox.Types.Option<StorageBlob> blob = await _client.Data.Get<StorageBlob>(objectId.ToObjectId(), context);
             if (blob.IsError())
             {
                 context.Location().LogError("Could not download objectId={objectId}", objectId);

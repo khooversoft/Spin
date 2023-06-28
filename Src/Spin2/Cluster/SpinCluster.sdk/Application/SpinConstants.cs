@@ -4,6 +4,8 @@ public static class SpinConstants
 {
     public const string SpinStateStore = "spinStateStore";
     public const string SchemaSearch = "schemaSearch";
+    public const string Folder = "folder";
+    public const string Open = "open";
 
     public static class Schema
     {

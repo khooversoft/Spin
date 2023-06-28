@@ -24,5 +24,10 @@
       "ContainerName": "lease",
       "BasePath": "leaseV1"
     }
+  ],
+  "Tenants": [
+    "$system",
+    "Tenant1",
+    "Tenant2"
   ]
 }

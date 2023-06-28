@@ -23,7 +23,7 @@ public class BlockDocumentCollectionStreamTests
             new Payload { Name = "Name2-offset", Value = 5, Price = 5.5f },
         };
 
-        var doc = new BlockDocument(_owner, "path")
+        var doc = new BlockDocument(_owner, "path".ToObjectId())
             .Add(_ownerSignature)
             .Add(_issuerSignature2);
 
@@ -36,7 +36,7 @@ public class BlockDocumentCollectionStreamTests
         string merkleTreeValue = doc.GetMerkleTreeValue();
         string json = doc.ToJson();
 
-        BlockDocument doc2 = BlockDocument.Create(json, "path");
+        BlockDocument doc2 = BlockDocument.Create(json, "path".ToObjectId());
         string doc2MerkleTreeValue = doc.GetMerkleTreeValue();
         merkleTreeValue.Should().Be(doc2MerkleTreeValue);
 
@@ -58,7 +58,7 @@ public class BlockDocumentCollectionStreamTests
             new Payload { Name = "Name2-offset", Value = 5, Price = 5.5f },
         };
 
-        var doc = new BlockDocument(_owner, "path")
+        var doc = new BlockDocument(_owner, "path".ToObjectId())
             .Add(_ownerSignature)
             .Add(_issuerSignature2);
 
@@ -72,7 +72,7 @@ public class BlockDocumentCollectionStreamTests
 
         byte[] zip = doc.ToZip();
 
-        BlockDocument doc2 = BlockDocument.Create(zip, "path");
+        BlockDocument doc2 = BlockDocument.Create(zip, "path".ToObjectId());
         string doc2MerkleTreeValue = doc.GetMerkleTreeValue();
         merkleTreeValue.Should().Be(doc2MerkleTreeValue);
 

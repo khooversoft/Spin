@@ -7,7 +7,7 @@ namespace SpinPortal.Pages;
 
 public partial class Index
 {
-    [Inject] public SpinConfigurationClient SpinConfigurationClient { get; set; } = null!;
+    [Inject] public SpinClusterClient SpinClusterClient { get; set; } = null!;
     [Inject] public ILogger<Index> Logger { get; set; } = null!;
 
     private string? _errorMessage;
@@ -16,7 +16,7 @@ public partial class Index
     {
         _errorMessage = null;
 
-        Option<SiloConfigOption> option = await SpinConfigurationClient.Get(new ScopeContext(Logger));
+        Option<SiloConfigOption> option = await SpinClusterClient.Configuration.Get(new ScopeContext(Logger));
         if (option.IsError())
         {
             _errorMessage = $"Failed to get Spin configuration from server, statusCode={option.StatusCode}";

@@ -2,7 +2,10 @@
 
 <MudStack Spacing=2 Class="pt-4 px-2">
     <MudText Typo=Typo.h5>Directory Search</MudText>
-    <PathText Path="@_resolvedPath" />
 
-    <QueryPanel Title="Files" Path="@_resolvedPath" />
+    @if (_resolvedPath != null)
+    {
+        <PathText Path="@_resolvedPath" />
+        <QueryPanel Title="Files" Path="@_resolvedPath" />
+    }
 </MudStack>

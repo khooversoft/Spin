@@ -21,13 +21,13 @@ internal class SchemaDataHandler<TInterface, TModel> : ISchemaDataHandler
 
     public async Task<StatusCode> Delete(ObjectId objectId, ScopeContext context)
     {
-        TInterface actor = _client.GetGrain<TInterface>(objectId);
+        TInterface actor = _client.GetGrain<TInterface>(objectId.ToString());
         return await actor.Delete(context.TraceId);
     }
 
     public async Task<Option<object>> Get(ObjectId objectId, ScopeContext context)
     {
-        TInterface actor = _client.GetGrain<TInterface>(objectId);
+        TInterface actor = _client.GetGrain<TInterface>(objectId.ToString());
 
         return await actor.Get(context.TraceId) switch
         {
@@ -38,7 +38,7 @@ internal class SchemaDataHandler<TInterface, TModel> : ISchemaDataHandler
 
     public async Task<StatusCode> Set(ObjectId objectId, string payload, ScopeContext context)
     {
-        TInterface actor = _client.GetGrain<TInterface>(objectId);
+        TInterface actor = _client.GetGrain<TInterface>(objectId.ToString());
 
         TModel model = payload.ToObject<TModel>().NotNull();
         StatusCode statusCode = await actor.Set(model, context.TraceId);

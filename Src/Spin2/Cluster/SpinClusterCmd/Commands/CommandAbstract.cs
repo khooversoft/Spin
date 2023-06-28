@@ -88,7 +88,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
                 return;
             }
 
-            Toolbox.Types.Option<T> user = await _client.Data.Get<T>(objectId, context);
+            Toolbox.Types.Option<T> user = await _client.Data.Get<T>(objectId.ToObjectId(), context);
 
             context.Location().LogInformation("Get objectId={objectId}, statusCode={statusCode}, mode={model}",
                 objectId, user.StatusCode, user.Return().ToJsonSafe(context.Location()));
@@ -114,7 +114,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
                 return;
             }
 
-            Toolbox.Types.Option<T> user = await _client.Data.Get<T>(objectId, context);
+            Toolbox.Types.Option<T> user = await _client.Data.Get<T>(objectId.ToObjectId(), context);
 
             context.Location().LogInformation("Get objectId={objectId}, statusCode={statusCode}, mode={model}",
                 objectId, user.StatusCode, user.Return().ToJsonSafe(context.Location()));

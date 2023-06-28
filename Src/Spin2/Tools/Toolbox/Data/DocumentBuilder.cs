@@ -47,7 +47,7 @@ public class DocumentBuilder
 
         return new Document
         {
-            ObjectId = (string)DocumentId,
+            ObjectId = DocumentId.ToString(),
             TypeName = TypeName,
             Content = Content,
         }.WithHash();

@@ -11,7 +11,7 @@ public class DocumentSerializationTests
     [Fact]
     public void GivenStringDocument_WillRoundTrip()
     {
-        var documentId = (ObjectId)"test:pass";
+        var documentId = "test:pass".ToObjectId();
         string payload = "this is the payload";
 
         Document document = new DocumentBuilder()
@@ -28,7 +28,7 @@ public class DocumentSerializationTests
     [Fact]
     public void GivenClassDocument_WillPass()
     {
-        var documentId = (ObjectId)"test:pass";
+        var documentId = "test:pass".ToObjectId();
 
         var payload = new Payload
         {
@@ -53,7 +53,7 @@ public class DocumentSerializationTests
     [Fact]
     public void GivenClassDocumentBlob_WillPass()
     {
-        var documentId = (ObjectId)"test:pass";
+        var documentId = "test:pass".ToObjectId();
         byte[] payload = "this is a test 123".ToBytes();
 
         Document document = new DocumentBuilder()
@@ -70,7 +70,7 @@ public class DocumentSerializationTests
     [Fact]
     public void GivenDifferentPayloadTypes_Invalid_ShouldFail()
     {
-        var documentId = (ObjectId)"test:pass";
+        var documentId = "test:pass".ToObjectId();
 
         Action act = () => new DocumentBuilder().SetContent("payload".ToBytes());
         act.Should().NotThrow<ArgumentException>();

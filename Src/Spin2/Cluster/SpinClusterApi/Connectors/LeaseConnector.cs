@@ -37,7 +37,7 @@ internal class LeaseConnector
         });
     }
 
-    public async Task<Option<LeaseData>> Acquire(ObjectId objectId, string traceId)
+    public async Task<Option<LeaseData>> Acquire(string objectId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
@@ -51,7 +51,7 @@ internal class LeaseConnector
         return response.Return();
     }
 
-    public async Task<StatusCode> Release(ObjectId objectId, string leaseId, string traceId)
+    public async Task<StatusCode> Release(string objectId, string leaseId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 

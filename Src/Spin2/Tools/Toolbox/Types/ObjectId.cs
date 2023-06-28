@@ -40,9 +40,6 @@ public sealed record ObjectId
 
     public override int GetHashCode() => HashCode.Combine(Schema, Tenant, Path);
 
-    public static implicit operator ObjectId(string id) => Parse(id).ThrowOnError().Return();
-    public static implicit operator string(ObjectId id) => id.ToString();
-
     public static bool IsValid(string? id) => ObjectId.Parse(id).HasValue;
     public static Option<ObjectId> CreateIfValid(string id)
     {
@@ -84,9 +81,9 @@ public sealed record ObjectId
 
 public static class ObjectIdExtensions
 {
-    public static ObjectId ToObjectId(this string? subject) => (ObjectId)subject.NotNull();
+    public static ObjectId ToObjectId(this string? subject) => ObjectId.Parse(subject).ThrowOnError().Return();
     public static Option<ObjectId> ToObjectIdIfValid(this string subject) => ObjectId.CreateIfValid(subject);
-    public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString((string)subject);
+    public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString(subject.ToString());
     public static ObjectId FromUrlEncoding(this string id) => Uri.UnescapeDataString(id).ToObjectId();
 
     public static string GetParent(this ObjectId uri) => uri.Paths

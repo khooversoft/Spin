@@ -35,7 +35,7 @@ internal class LeaseCommand : Command
         {
             var context = new ScopeContext(_logger);
 
-            Toolbox.Types.Option<LeaseData> leaseData = await _client.Lease.Acquire(objectId, context);
+            Toolbox.Types.Option<LeaseData> leaseData = await _client.Lease.Acquire(objectId.ToObjectId(), context);
 
             context.Location().Log(
                 leaseData.IsOk() ? LogLevel.Information : LogLevel.Error,
@@ -61,7 +61,7 @@ internal class LeaseCommand : Command
         {
             var context = new ScopeContext(_logger);
 
-            StatusCode statusCode = await _client.Lease.Release(objectId, leaseId, context);
+            StatusCode statusCode = await _client.Lease.Release(objectId.ToObjectId(), leaseId, context);
 
             context.Location().Log(statusCode.IsOk() ? LogLevel.Information : LogLevel.Error,
                 "Release objectId={objectId}, leaseId={leaseId}, statusCode={statusCode}", objectId, leaseId, statusCode);

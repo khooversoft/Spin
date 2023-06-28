@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using ObjectStore.sdk.Application;
+using SpinCluster.sdk.Application;
+using SpinPortal.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Table;
-using Toolbox.Extensions;
-using Toolbox.Types;
-using SpinPortal.Application;
 
 namespace SpinPortal.Shared;
 
@@ -45,8 +44,8 @@ public partial class DataTable
             .Select((x, i) => new Row
             {
                 Index = i,
-                ShowFolder = x.Tag.HasTag(ObjectStoreConstants.Folder),
-                ShowOpen = x.Tag.HasTag(ObjectStoreConstants.Open),
+                ShowFolder = x.Tag.HasTag(SpinConstants.Folder),
+                ShowOpen = x.Tag.HasTag(SpinConstants.Open),
                 Key = x.Key.NotEmpty(),
 
                 Items = x.Items

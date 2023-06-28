@@ -47,7 +47,7 @@ public class StorageBlobBuilder
 
         return new StorageBlob
         {
-            ObjectId = ObjectId,
+            ObjectId = ObjectId.ToString(),
             TypeName = TypeName,
             Content = Content,
             Tags = Tags,

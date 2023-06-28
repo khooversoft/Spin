@@ -1,5 +1,4 @@
-﻿using ObjectStore.sdk.Client;
-using Polly;
+﻿using Polly;
 using Polly.Extensions.Http;
 using SpinCluster.sdk.Client;
 using Toolbox.Extensions;

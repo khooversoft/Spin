@@ -51,7 +51,7 @@ public class ContractHost : IContractHost
 
     public async Task<Option<BlockDocument>> Get(ObjectId documentId, ScopeContext context)
     {
-        Option<Document> oDocument = await _documentStore.Get(documentId);
+        Option<Document> oDocument = await _documentStore.Get(documentId.ToString());
         if (oDocument.StatusCode.IsError()) return oDocument.ToOption<BlockDocument>();
 
         BlockDocument document = oDocument.Value.ToObject<BlockDocument>();

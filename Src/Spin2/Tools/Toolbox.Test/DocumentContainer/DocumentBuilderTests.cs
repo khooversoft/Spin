@@ -15,7 +15,7 @@ public class DocumentBuilderTests
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload);
 
         builder.DocumentId!.Id.Should().Be(documentId);
@@ -23,7 +23,7 @@ public class DocumentBuilderTests
 
         Document document = builder.Build();
 
-        ((ObjectId)document.ObjectId).Id.Should().Be(documentId);
+        document.ObjectId.Should().Be(documentId);
         document.Content.BytesToString().Should().Be(payload);
         document.ETag.Should().NotBeNull();
 
@@ -38,7 +38,7 @@ public class DocumentBuilderTests
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload);
 
         Document sourceDocument = builder.Build();
@@ -48,7 +48,7 @@ public class DocumentBuilderTests
         Document readDocument = Json.Default.Deserialize<Document>(json)!;
         readDocument.Should().NotBeNull();
 
-        ((ObjectId)readDocument.ObjectId).Id.Should().Be(documentId);
+        readDocument.ObjectId.Should().Be(documentId);
         readDocument.Content.BytesToString().Should().Be(payload);
         readDocument.ETag.Should().NotBeNull();
 
@@ -63,7 +63,7 @@ public class DocumentBuilderTests
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload);
 
         Document document = builder.Build();
@@ -75,7 +75,7 @@ public class DocumentBuilderTests
 
 
         Document doc2 = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload)
             .Build()
             .Verify();
@@ -90,7 +90,7 @@ public class DocumentBuilderTests
         const string payload = "This is the message";
 
         var builder = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload);
 
         Document document = builder.Build();
@@ -100,7 +100,7 @@ public class DocumentBuilderTests
         document.ToObject<string>().Should().Be(payload);
 
         Document doc2 = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload)
             .Build()
             .Verify();
@@ -120,7 +120,7 @@ public class DocumentBuilderTests
         };
 
         var builder = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload);
 
         Document document = builder.Build();
@@ -130,7 +130,7 @@ public class DocumentBuilderTests
         document.ToObject<Payload>().Should().Be(payload);
 
         Document doc2 = new DocumentBuilder()
-            .SetDocumentId((ObjectId)documentId)
+            .SetDocumentId(documentId.ToObjectId())
             .SetContent(payload)
             .Build()
             .Verify();

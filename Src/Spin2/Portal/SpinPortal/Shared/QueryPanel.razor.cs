@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
-using ObjectStore.sdk.Application;
-using ObjectStore.sdk.Client;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Search;
+using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Client;
 using SpinPortal.Application;
-using Toolbox.Azure.DataLake;
-using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Table;
@@ -25,35 +22,39 @@ public partial class QueryPanel
     [Inject] IDialogService DialogService { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
     [Inject] public JsRunTimeService JsService { get; set; } = null!;
-    [Inject] public SpinConfigurationClient SpinConfigurationClient { get; set; } = null!;
+    [Inject] public SpinClusterClient SpinClusterClient { get; set; } = null!;
 
     [Parameter] public string Title { get; set; } = null!;
-    [Parameter] public ObjectId Path { get; set; } = null!;
+    [Parameter] public string Path { get; set; } = null!;
 
     private object _lock = new object();
     private bool _initialized { get; set; }
     private bool _runningQuery { get; set; }
     private string? _errorMsg { get; set; }
     private IReadOnlyList<string> _schemas { get; set; } = Array.Empty<string>();
+    private IReadOnlyList<string> _tenants { get; set; } = Array.Empty<string>();
 
     private ObjectTable _table { get; set; } = null!;
     private int? _selectedRow { get; set; }
     private bool _disableRowIcons => _selectedRow == null;
-    private bool _disableOpen => _selectedRow == null || !_table.Rows[(int)_selectedRow].Tag.HasTag(ObjectStoreConstants.Open);
-    private bool _showUpFolderButton => Path.Path.IsNotEmpty();
+    private bool _disableOpen => _selectedRow == null || !_table.Rows[(int)_selectedRow].Tag.HasTag(SpinConstants.Open);
+    private bool _showUpFolderButton => _pathObjectId.Path.IsNotEmpty();
     private string _uploadStyle => PortalConstants.NormalText; // + ";min-height:36.75px";
+    private ObjectId _pathObjectId { get; set; } = null!;
 
     protected override async Task OnParametersSetAsync()
     {
         Path.NotNull();
+        _pathObjectId = Path.ToObjectId();
 
         _initialized = false;
 
-        SiloConfigOption siloConfigOption = (await SpinConfigurationClient.Get(new ScopeContext(Logger)))
-            .Assert(x => x.IsError(), "Failed to get Spin configuration from Silo")
+        SiloConfigOption siloConfigOption = (await SpinClusterClient.Configuration.Get(new ScopeContext(Logger)))
+            .Assert(x => x.IsOk(), "Failed to get Spin configuration from Silo")
             .Return();
 
         _schemas = siloConfigOption.Schemas.Select(x => x.SchemaName).ToArray();
+        _tenants = siloConfigOption.Tenants.ToArray();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -163,7 +164,7 @@ public partial class QueryPanel
 
         try
         {
-            var queryParameter = new QueryParameter { Filter = Path.Path };
+            var queryParameter = new QueryParameter { Filter = _pathObjectId.ToString() };
 
             Option<IReadOnlyList<StorePathItem>> batch = await Client.Resource.Search(queryParameter, context);
             if (batch.IsError())
@@ -200,12 +201,17 @@ public partial class QueryPanel
             await InvokeAsync(() => StateHasChanged());
         }
 
-        string createTag(StorePathItem item) => item.IsDirectory == true ? ObjectStoreConstants.Folder : ObjectStoreConstants.Open;
+        string createTag(StorePathItem item) => item.IsDirectory == true ? SpinConstants.Folder : SpinConstants.Open;
     }
 
-    private void SetDomain(string domain)
+    private void SetSchema(string schema)
     {
-        NavManager.NavigateTo(NavTools.ToObjectStorePath(domain), true);
+        NavManager.NavigateTo(NavTools.ToObjectStorePath(schema), true);
+    }
+
+    private void SetTenant(string tenant)
+    {
+        NavManager.NavigateTo(NavTools.ToObjectStorePath(tenant), true);
     }
 
     private Task OnRowClick(int? index)
@@ -216,7 +222,7 @@ public partial class QueryPanel
 
     private void GotoParent()
     {
-        string parentPath = Path.GetParent();
+        string parentPath = _pathObjectId.GetParent();
 
         NavManager.NavigateTo(NavTools.ToObjectStorePath(parentPath), true);
     }
