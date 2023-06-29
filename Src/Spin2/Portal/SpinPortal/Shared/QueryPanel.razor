@@ -31,14 +31,16 @@
 
         <MudSpacer />
 
-        <MudSelect T="string" Value=@_pathObjectId.Schema Label="Schema" DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetSchema(args))">
+        <MudSelect T="string" Style="max-width:200px" Value=@_pathObjectId.Schema Label="Schema" 
+                DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetSchema(args))">
             @foreach (var item in _schemas)
             {
                 <MudSelectItem Value=@item />
             }
         </MudSelect>
 
-        <MudSelect T="string" Value=@_pathObjectId.Tenant Label="Tenant" DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetTenant(args))">
+        <MudSelect T="string" Style="max-width:200px" Value=@_pathObjectId.Tenant Label="Tenant" 
+                DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetTenant(args))">
             @foreach (var item in _tenants)
             {
                 <MudSelectItem Value=@item />
