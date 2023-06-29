@@ -31,6 +31,8 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> Append(string path, byte[] data, ScopeContext context)
     {
         context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
         path = WithBasePath(path);
         context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
 
@@ -70,6 +72,8 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> Delete(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
         path = WithBasePath(path);
         context.Location().LogTrace("Deleting to {path}", path);
 
@@ -90,6 +94,8 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> DeleteDirectory(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
         path = WithBasePath(path);
         context.Location().LogTrace("Deleting directory {path}", path);
 
@@ -110,6 +116,8 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> Exist(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
         path = WithBasePath(path);
         context.Location().LogTrace("Is path {path} exist", path);
 
@@ -129,15 +137,19 @@ public class DatalakeStore : IDatalakeStore
     public Task<Option<DatalakePathProperties>> GetPathProperties(string path, ScopeContext context)
     {
         context = context.With(_logger);
-        path = WithBasePath(path);
-        context.Location().LogInformation("Getting path {path} properties", path);
+        using var scope = context.Location().LogEntryExit();
 
+        path = WithBasePath(path);
+
+        context.Location().LogInformation("Getting path {path} properties", path);
         return InternalGetPathProperties(path, context);
     }
 
     public async Task<Option<DataETag>> Read(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
         path = WithBasePath(path);
 
         try
@@ -205,6 +217,9 @@ public class DatalakeStore : IDatalakeStore
 
     public async Task<Option<ETag>> Write(string path, DataETag data, bool overwrite, ScopeContext context)
     {
+        context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
         path = WithBasePath(path);
         context.Location().LogTrace($"Writing to {path}, data.Length={data.Data.Length}, eTag={data.ETag?.ToString() ?? "<null>"}");
 
@@ -252,6 +267,26 @@ public class DatalakeStore : IDatalakeStore
         {
             context.Location().LogError(ex, "Failed to upload {path}", path);
             return new Option<ETag>(StatusCode.NotFound);
+        }
+    }
+
+    public async Task<bool> TestConnection(ScopeContext context)
+    {
+        context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
+        context.Location().LogTrace("Testing connection");
+
+        try
+        {
+            Response<bool> response = await _fileSystem.ExistsAsync(cancellationToken: context);
+            context.Location().LogInformation("Testing exist of file system, exists={fileSystemExist}", response.Value);
+            return response.Value;
+        }
+        catch (Exception ex)
+        {
+            context.Location().LogWarning(ex, "Failed exist for file systgem");
+            return false;
         }
     }
 

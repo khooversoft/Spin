@@ -1,0 +1,61 @@
+﻿<MudPaper Elevation="2" Class="nvarbar-panel pt-1">
+    <MudToolBar Dense=true>
+        <MudText>@Title</MudText>
+        <MudDivider DividerType=DividerType.Middle />
+
+        <MudStack Spacing=3 Row=true>
+            @if (_showUpFolderButton)
+            {
+                <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@GotoParent" Icon="@Icons.Material.Sharp.ArrowUpward" />
+            }
+
+            <MudFileUpload T="IBrowserFile" OnFilesChanged="@(x => OnUploadFile(x))" Style="margin:0">
+                <ButtonTemplate>
+                    <MudButton HtmlTag="label"
+                               DisableElevation=true
+                               Variant="Variant.Filled"
+                               Size="Size.Small"
+                               StartIcon="@Icons.Material.Sharp.Upload"
+                               Style="@_uploadStyle"
+                               for="@context">
+                        Upload
+                    </MudButton>
+                </ButtonTemplate>
+            </MudFileUpload>
+
+            <StandardButton Icon="@Icons.Material.Sharp.Shortcut" Disabled=_disableOpen OnClick=Open Text="Open" />
+            <StandardButton Icon="@Icons.Material.Sharp.Download" Disabled=_disableRowIcons OnClick=Download Text="Download" />
+            <StandardButton Icon="@Icons.Material.Sharp.Clear" Disabled=_disableRowIcons OnClick=Delete Text="Delete" />
+            <StandardButton Icon="@Icons.Material.Sharp.Refresh" OnClick=Refresh Text="Refresh" />
+        </MudStack>
+
+        <MudSpacer />
+
+        <MudSelect T="string" Style="max-width:200px" Value=@_pathObjectId.Schema Label="Schema" 
+                DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetSchema(args))">
+            @foreach (var item in _schemas)
+            {
+                <MudSelectItem Value=@item />
+            }
+        </MudSelect>
+
+        <MudSelect T="string" Style="max-width:200px" Value=@_pathObjectId.Tenant Label="Tenant" 
+                DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetTenant(args))">
+            @foreach (var item in _tenants)
+            {
+                <MudSelectItem Value=@item />
+            }
+        </MudSelect>
+    </MudToolBar>
+</MudPaper>
+
+<Message Text=@_errorMsg Severity=Severity.Error />
+
+<Waiting Show=@(!_initialized && _errorMsg == null) />
+
+@if (_initialized)
+{
+    <MudPaper Class="mt-2">
+        <DataTable Table="@_table" OnRowClick="x => OnRowClick(x)" OnOpenClick="x => OnOpen(x)" />
+    </MudPaper>
+}
