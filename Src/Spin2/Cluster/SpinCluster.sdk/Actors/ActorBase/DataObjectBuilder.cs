@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace SpinCluster.sdk.ActorBase;
+namespace SpinCluster.sdk.Actors.ActorBase;
 
 public class DataObjectBuilder
 {

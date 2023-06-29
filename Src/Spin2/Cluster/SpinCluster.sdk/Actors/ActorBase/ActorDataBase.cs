@@ -5,7 +5,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.ActorBase;
+namespace SpinCluster.sdk.Actors.ActorBase;
 
 public interface IActorDataBase<T> : IGrainWithStringKey
 {

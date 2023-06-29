@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
-using SpinCluster.sdk.ActorBase;
+using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 

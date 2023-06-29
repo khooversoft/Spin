@@ -19,6 +19,6 @@ internal static class WaitForSpinSiloTool
             Thread.Sleep(TimeSpan.FromSeconds(2));
         }
 
-        Thread.Sleep(TimeSpan.FromSeconds(5));
+        Thread.Sleep(TimeSpan.FromSeconds(2));
     }
 }

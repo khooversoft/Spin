@@ -1,4 +1,4 @@
-﻿using SpinCluster.sdk.ActorBase;
+﻿using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
 using Toolbox.Tools;

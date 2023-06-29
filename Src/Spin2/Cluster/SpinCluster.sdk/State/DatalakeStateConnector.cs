@@ -15,7 +15,6 @@ internal class DatalakeStateConnector : IGrainStorage
     private readonly ILogger<DatalakeStateConnector> _logger;
     private readonly ConcurrentDictionary<string, DatalakeStateHandler> _stores = new ConcurrentDictionary<string, DatalakeStateHandler>(StringComparer.OrdinalIgnoreCase);
     private readonly DatalakeResources _datalakeResources;
-    //private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
     private readonly ILoggerFactory _loggerFactory;
 
     public DatalakeStateConnector(DatalakeResources datalakeResources, ILoggerFactory loggerFactory)
@@ -57,7 +56,7 @@ internal class DatalakeStateConnector : IGrainStorage
     {
         var context = new ScopeContext(_logger);
 
-        string grainPath = GetPath(grainId, stateName);
+        string grainPath = GetPath(grainId);
 
         var objectIdOption = grainPath.ToObjectIdIfValid();
         if (objectIdOption.IsError())
@@ -74,7 +73,7 @@ internal class DatalakeStateConnector : IGrainStorage
         return (filePath, objectId.Schema, context);
     }
 
-    private static string GetPath(GrainId grainId, string stateName) => grainId.ToString()
+    private static string GetPath(GrainId grainId) => grainId.ToString()
         .Split('/', StringSplitOptions.RemoveEmptyEntries)
         .Skip(1)
         .Join("/");
@@ -95,45 +94,5 @@ internal class DatalakeStateConnector : IGrainStorage
 
             return new DatalakeStateHandler(schemaName, store.Return(), _loggerFactory.CreateLogger<DatalakeStateHandler>());
         });
-
-        //await _lock.WaitAsync();
-
-        //try
-        //{
-        //    if (_stores.TryGetValue(schemaName, out var storage)) return storage;
-
-        //    var newStorage = await create(schemaName);
-        //    _stores[schemaName] = newStorage;
-
-        //    return newStorage;
-        //}
-        //finally
-        //{
-        //    _lock.Release();
-        //}
-
-        //async Task<DatalakeStateHandler> create(string name)
-        //{
-        //    _logger.LogInformation("Creating store for name={name}", name);
-        //    var context = new ScopeContext(_logger);
-
-        //    Option<SiloConfigOption> siloConfigOption = await _datalakeResources.Get(context);
-        //    if (siloConfigOption.IsError()) throw new InvalidOperationException("Cannot read Silo configuration option from datalake");
-
-        //    SchemaOption schemaOption = siloConfigOption.Return().Schemas.FirstOrDefault(x => x.SchemaName == name) ??
-        //        throw new ArgumentException($"Cannot find name={name} in schema options to create data lake storage");
-
-        //    var option = new DatalakeOption
-        //    {
-        //        AccountName = schemaOption.AccountName,
-        //        ContainerName = schemaOption.ContainerName,
-        //        BasePath = schemaOption.BasePath,
-        //        Credentials = _clusterOption.ClientCredentials,
-        //    };
-
-        //    IDatalakeStore store = new DatalakeStore(option, _loggerFactory.CreateLogger<DatalakeStore>());
-
-        //    return new DatalakeStateHandler(name, store, _loggerFactory.CreateLogger<DatalakeStateHandler>());
-        //}
     }
 }

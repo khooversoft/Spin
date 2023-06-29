@@ -1,11 +1,11 @@
 ﻿@page "/objectStore/{*pageRoute}"
 
 <MudStack Spacing=2 Class="pt-4 px-2">
-    <MudText Typo=Typo.h5>Directory Search</MudText>
+    <MudText Typo=Typo.h5>Object Store</MudText>
 
     @if (_resolvedPath != null)
     {
-        <PathText Path="@_resolvedPath" />
+        <PathText Path="@_resolvedPath" BaseAddress="objectStore" />
         <QueryPanel Title="Files" Path="@_resolvedPath" />
     }
 </MudStack>

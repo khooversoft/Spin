@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Actors.Resource;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Client;
@@ -71,18 +73,18 @@ public partial class QueryPanel
 
     private async Task Delete()
     {
-        //ObjectId id = GetSelectedKey().ToObjectId();
+        ObjectId id = GetSelectedKey().ToObjectId();
 
-        //StatusCode result = await Client.Data.Delete(id, new ScopeContext(Logger));
-        //if (result.IsError())
-        //{
-        //    _errorMsg = $"Cannot delete document objectId='{id}'";
-        //    return;
-        //}
+        StatusCode statusCode = await Client.Resource.Delete(id, new ScopeContext(Logger));
+        if (statusCode.IsError())
+        {
+            _errorMsg = $"Cannot read file '{id}'";
+            return;
+        }
 
-        //await Refresh();
-        //Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
-        //Snackbar.Add($"Deleted document, objectId='{id}", Severity.Info);
+        await Refresh();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        Snackbar.Add($"Deleted document, objectId='{id}", Severity.Info);
     }
     private async Task Refresh()
     {
@@ -102,60 +104,73 @@ public partial class QueryPanel
     {
         ObjectId id = key.ToObjectId();
 
-        //Option<Document> document = await Client.Data.Get(id, new ScopeContext(Logger));
-        //if (document.IsError())
-        //{
-        //    _errorMsg = $"Cannot read file '{id}'";
-        //    return;
-        //}
+        Option<ResourceFile> document = await Client.Resource.Get(id, new ScopeContext(Logger));
+        if (document.IsError())
+        {
+            _errorMsg = $"Cannot read file '{id}'";
+            return;
+        }
 
-        //DialogOptions option = new DialogOptions
-        //{
-        //    CloseOnEscapeKey = true,
-        //    CloseButton = true,
-        //    FullScreen = true,
-        //};
+        DialogOptions option = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullScreen = true,
+        };
 
-        //DialogParameters parameters = new DialogParameters();
-        //parameters.Add("Title", key);
-        //parameters.Add("TitleTooltip", id.ToString());
-        //parameters.Add("CodeText", document.Return().ToObject<string>());
+        string json = pretty(document.Return().Content.BytesToString());
 
-        //DialogService.Show<Code>("Content", parameters, option);
+        DialogParameters parameters = new DialogParameters();
+        parameters.Add("Title", key);
+        parameters.Add("TitleTooltip", id.ToString());
+        parameters.Add("CodeText", json);
+
+        DialogService.Show<Code>("Content", parameters, option);
+
+        static string pretty(string json)
+        {
+            using var doc = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(doc, Json.JsonSerializerFormatOption);
+        }
     }
 
     private async Task OnUploadFile(InputFileChangeEventArgs args)
     {
-        //var memoryStream = new MemoryStream();
-        //await args.File.OpenReadStream().CopyToAsync(memoryStream);
+        var memoryStream = new MemoryStream();
+        await args.File.OpenReadStream().CopyToAsync(memoryStream);
 
-        //string fileName = args.File.Name
-        //    .Select(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' ? x : '-')
-        //    .Func(x => new string(x.ToArray()));
+        string fileName = args.File.Name
+            .Select(x => ObjectId.IsCharacterValid(x) ? x : '-')
+            .Func(x => new string(x.ToArray()));
 
-        //ObjectId id = (Path.Id + "/" + fileName).ToObjectId();
+        ObjectId id = (_pathObjectId.Schema + "/" + _pathObjectId.Tenant + "/" + fileName).ToObjectId();
 
-        //var document = new DocumentBuilder()
-        //    .SetDocumentId(id)
-        //    .SetContent(memoryStream.ToArray())
-        //    .Build();
+        var resourceFile = new ResourceFile
+        {
+            ObjectId = id.ToString(),
+            Content = memoryStream.ToArray(),
+        };
 
-        //await Client.Data.Set(document, new ScopeContext(Logger));
+        StatusCode statusCode = await Client.Resource.Set(id, resourceFile, new ScopeContext(Logger));
+        if (statusCode.IsError())
+        {
+            _errorMsg = $"Cannot read file '{id}'";
+            return;
+        }
     }
 
     private async Task Download()
     {
-        //ObjectId path = GetSelectedKey();
-        //ObjectId id = path;
+        ObjectId id = GetSelectedKey().ToObjectId();
 
-        //Option<Document> document = await Client.Read(id, new ScopeContext(Logger));
-        //if (document.IsError())
-        //{
-        //    _errorMsg = $"Cannot read file '{id}'";
-        //    return;
-        //}
+        Option<ResourceFile> document = await Client.Resource.Get(id, new ScopeContext(Logger));
+        if (document.IsError())
+        {
+            _errorMsg = $"Cannot read file '{id}'";
+            return;
+        }
 
-        //await JsService.DownloadFile(path.Path.NotEmpty(), document.Return().Content);
+        await JsService.DownloadFile(id.Path.NotEmpty(), document.Return().Content);
     }
 
     private async Task LoadData()
@@ -175,9 +190,9 @@ public partial class QueryPanel
 
             ObjectRow[] rows = batch.Return().Select(x => new ObjectRow(new object?[]
                 {
-                    x.Name, // TODO: .TObjectId().SetDomain(Path.Domain).GetFile(),
+                    x.Name.Split('/').Skip(1).Join('/'),
                     x.LastModified
-                }, createTag(x), x.Name)
+                }, createTag(x), _pathObjectId.Schema + "/" + x.Name)
             ).ToArray();
 
             _table = new ObjectTableBuilder()
@@ -204,15 +219,9 @@ public partial class QueryPanel
         string createTag(StorePathItem item) => item.IsDirectory == true ? SpinConstants.Folder : SpinConstants.Open;
     }
 
-    private void SetSchema(string schema)
-    {
-        NavManager.NavigateTo(NavTools.ToObjectStorePath(schema), true);
-    }
+    private void SetSchema(string schema) => NavManager.NavigateTo(NavTools.ToObjectStorePath(schema + "/" + _pathObjectId.Tenant), true);
 
-    private void SetTenant(string tenant)
-    {
-        NavManager.NavigateTo(NavTools.ToObjectStorePath(tenant), true);
-    }
+    private void SetTenant(string tenant) => NavManager.NavigateTo(NavTools.ToObjectStorePath(_pathObjectId.Schema + "/" + tenant), true);
 
     private Task OnRowClick(int? index)
     {

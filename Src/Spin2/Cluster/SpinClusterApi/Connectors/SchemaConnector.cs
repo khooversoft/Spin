@@ -40,11 +40,7 @@ internal class SchemaConnector
 
         group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, HttpRequest request) =>
         {
-            string body = "";
-            using (StreamReader stream = new StreamReader(request.Body))
-            {
-                body = await stream.ReadToEndAsync();
-            }
+            string body = await request.Body.ReadStringStream();
 
             StatusCode statusCode = await Set(objectId, traceId, body);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());

@@ -2,7 +2,7 @@
     <MudToolBar Dense=true>
         @if (_showEditor)
         {
-            <MudTextField T="string" Class="mud-width-full" @bind-Value="Path" DisableUnderLine=true style="margin:0"
+            <MudTextField T="string" Class="mud-width-full" @bind-Value="_editAddress" DisableUnderLine=true style="margin:0"
                           Variant="Variant.Text" OnKeyDown=HandleKeyPress Immediate />
 
             <MudStack Row=true Spacing="1">

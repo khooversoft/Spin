@@ -24,6 +24,13 @@ public sealed record ObjectId
 
     public const string Syntax = "{schema}/{tenant}[/{path}...] Valid characters are a-z A-Z 0-9 . $ @ - _ *";
 
+    public void Deconstruct(out string Schema, out string Tenant, out string Path)
+    {
+        Schema = this.Schema;
+        Tenant = this.Tenant;
+        Path = this.Path;
+    }
+
     public string Schema { get; }
     public string Tenant { get; }
     public IReadOnlyList<string> Paths { get; }
@@ -41,6 +48,7 @@ public sealed record ObjectId
     public override int GetHashCode() => HashCode.Combine(Schema, Tenant, Path);
 
     public static bool IsValid(string? id) => ObjectId.Parse(id).HasValue;
+
     public static Option<ObjectId> CreateIfValid(string id)
     {
         Option<ObjectId> objectId = ObjectId.Parse(id);
@@ -48,7 +56,6 @@ public sealed record ObjectId
 
         return new ObjectId(objectId.Return());
     }
-
 
     public static Option<ObjectId> Parse(string? objectId)
     {
@@ -64,19 +71,21 @@ public sealed record ObjectId
         if (tokenStack.Count < 2) return badResult;
 
         if (!tokenStack.TryPop(out string? schema)) return badResult;
-        if (!Test(schema)) return badResult;
+        if (!IsPartValid(schema)) return badResult;
 
         if (!tokenStack.TryPop(out string? tenant)) return badResult;
-        if (!Test(tenant)) return badResult;
+        if (!IsPartValid(tenant)) return badResult;
 
         IReadOnlyList<string> paths = tokenStack.ToArray();
-        if (!paths.All(x => Test(x))) return badResult;
+        if (!paths.All(x => IsPartValid(x))) return badResult;
 
         return new ObjectId(schema, tenant, paths);
     }
 
-    private static bool Test(string subject) => subject
-        .All(x => char.IsLetterOrDigit(x) || x == '.' || x == '-' || x == '$' || x == '@' || x == '_'  || x == '*');
+    private static bool IsPartValid(string subject) => subject.All(x => IsCharacterValid(x));
+
+    public static bool IsCharacterValid(char ch) =>
+        char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*';
 }
 
 public static class ObjectIdExtensions

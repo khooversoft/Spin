@@ -13,7 +13,7 @@ public record SpinResponse<T>
 {
     public SpinResponse() => StatusCode = StatusCode.NotFound;
     public SpinResponse(StatusCode statusCode) => StatusCode = statusCode;
-    public SpinResponse(StatusCode statusCode, string error) => (StatusCode, Error) = (statusCode, error);
+    public SpinResponse(StatusCode statusCode, string? error) => (StatusCode, Error) = (statusCode, error);
     public SpinResponse(T? value) => (Value, StatusCode) = value switch
     {
         null => (default, StatusCode.NotFound),

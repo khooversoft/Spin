@@ -9,6 +9,7 @@ using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Extensions;
+using SpinCluster.sdk.Actors.Resource;
 
 namespace SpinCluster.sdk.Client;
 
@@ -40,4 +41,23 @@ public class SpinResourceClient
             .GetAsync(context)
             .GetContent<IReadOnlyList<StorePathItem>>();
     }
+
+    public async Task<StatusCode> Delete(ObjectId id, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/resource/{id}")
+        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .GetAsync(context)
+        .GetStatusCode();
+
+    public async Task<Option<ResourceFile>> Get(ObjectId id, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/resource/{id}")
+        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .GetAsync(context)
+        .GetContent<ResourceFile>();
+
+    public async Task<StatusCode> Set(ObjectId id, ResourceFile content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/resource/{id}")
+        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .SetContent(content)
+        .PostAsync(context)
+        .GetStatusCode();
 }
