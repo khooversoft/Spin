@@ -26,8 +26,8 @@ public class MessageBrokerEmulator : IMessageBroker
 
     [DebuggerStepThrough]
     public IMessageBroker AddRoute<TSend, TReturn>(
-        string path, 
-        Func<TSend, ScopeContext, Task<TReturn>> forwardTo, 
+        string path,
+        Func<TSend, ScopeContext, Task<TReturn>> forwardTo,
         ScopeContext context
         ) where TReturn : notnull
     {

@@ -6,6 +6,7 @@ public static class SpinConstants
     public const string SchemaSearch = "schemaSearch";
     public const string Folder = "folder";
     public const string Open = "open";
+    public const string SystemTenant = "$system";
 
     public static class Schema
     {

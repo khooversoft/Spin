@@ -6,7 +6,7 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Client;
 
-public  class SpinConfigurationClient
+public class SpinConfigurationClient
 {
     private readonly HttpClient _client;
     public SpinConfigurationClient(HttpClient client) => _client = client.NotNull();

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 
 namespace Toolbox.Test.Extensions;
@@ -21,7 +16,7 @@ public class StringParsingTest
         char? chr = input.GetFirstChar();
         chr.Should().Be(expected);
     }
-    
+
     [Theory]
     [InlineData(null, null)]
     [InlineData("", null)]

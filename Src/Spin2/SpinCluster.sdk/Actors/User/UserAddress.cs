@@ -1,8 +1,8 @@
-﻿using SpinCluster.sdk.Actors.Directory;
+﻿using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Directory;
+namespace SpinCluster.sdk.Actors.User;
 
 [GenerateSerializer, Immutable]
 public record UserAddress

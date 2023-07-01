@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Actors.Directory;
+namespace SpinCluster.sdk.Actors.Key;
 
 public interface IPrincipalKeyActor : IActorDataBase<PrincipalKey>
 {

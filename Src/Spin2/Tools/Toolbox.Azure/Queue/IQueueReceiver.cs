@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Toolbox.Azure.Queue
+﻿namespace Toolbox.Azure.Queue
 {
     public interface IQueueReceiver
     {

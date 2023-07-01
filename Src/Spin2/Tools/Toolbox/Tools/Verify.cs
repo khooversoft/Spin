@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 
 namespace Toolbox.Tools;

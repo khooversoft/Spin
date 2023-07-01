@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using MudBlazor.Services;
 using SpinPortal.Application;
-using Toolbox.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -59,8 +59,8 @@ public partial class PathText
         string href = parts switch
         {
             var v when v.Length == 1 => string.Empty,
-            _ => prefix.ToEnumerable().Concat(parts[1..(index+1)]).Join('/'),
-        };        
+            _ => prefix.ToEnumerable().Concat(parts[1..(index + 1)]).Join('/'),
+        };
 
         return new PathElement { Title = parts[index], HRef = href };
     }

@@ -1,10 +1,8 @@
-﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Types;
-using SpinClusterApi.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -34,7 +32,7 @@ internal class ConfigurationConnector
         });
 
         app.MapPost("/configuration", async (SiloConfigOption request, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
-        {            
+        {
             StatusCode statusCode = await Set(request, traceId);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());
         });

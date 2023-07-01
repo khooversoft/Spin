@@ -56,7 +56,7 @@ public class JsonTests
     public void WrapJsonObject_ShouldPass()
     {
         DateTime now = DateTime.Now;
-     
+
         var payload = new
         {
             ClassTypeName = "classType",

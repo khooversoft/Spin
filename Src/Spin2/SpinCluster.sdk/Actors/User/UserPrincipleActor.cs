@@ -4,7 +4,7 @@ using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Actors.Directory;
+namespace SpinCluster.sdk.Actors.User;
 
 public interface IUserPrincipleActor : IActorDataBase<UserPrincipal>
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Toolbox.Tokenizer.Token;
+﻿using Toolbox.Tokenizer.Token;
 
 namespace Toolbox.Tokenizer.Syntax
 {

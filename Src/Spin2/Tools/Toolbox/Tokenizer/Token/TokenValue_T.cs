@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Toolbox.Tokenizer.Token;
+﻿namespace Toolbox.Tokenizer.Token;
 
 /// <summary>
 /// Token value with token type

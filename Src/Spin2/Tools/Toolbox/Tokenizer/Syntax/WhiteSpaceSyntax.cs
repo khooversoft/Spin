@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Toolbox.Tokenizer.Token;
+﻿using Toolbox.Tokenizer.Token;
 
 namespace Toolbox.Tokenizer.Syntax
 {
@@ -17,9 +14,9 @@ namespace Toolbox.Tokenizer.Syntax
 
         public int? Match(ReadOnlySpan<char> span)
         {
-            for(int i = 0; i < span.Length; i++)
+            for (int i = 0; i < span.Length; i++)
             {
-                if( char.IsWhiteSpace(span[i]))
+                if (char.IsWhiteSpace(span[i]))
                 {
                     continue;
                 }

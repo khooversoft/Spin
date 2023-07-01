@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Azure;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;

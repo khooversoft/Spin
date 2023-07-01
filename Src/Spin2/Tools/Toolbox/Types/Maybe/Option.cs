@@ -49,7 +49,7 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
         HasValue = false;
         Value = default!;
     }
-    
+
     [SetsRequiredMembers()]
     public Option(StatusCode statusCode, string? error)
     {
@@ -70,6 +70,20 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
 
         Value = value!;
         StatusCode = statusCode;
+    }
+
+    [SetsRequiredMembers()]
+    public Option(T? value, StatusCode statusCode, string? error)
+    {
+        HasValue = value switch
+        {
+            null => false,
+            _ => true,
+        };
+
+        Value = value!;
+        StatusCode = statusCode;
+        Error = error;
     }
 
     [SetsRequiredMembers()]

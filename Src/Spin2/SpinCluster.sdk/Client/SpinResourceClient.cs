@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SpinCluster.sdk.Actors.Resource;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Application;
+using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Extensions;
-using SpinCluster.sdk.Actors.Resource;
 
 namespace SpinCluster.sdk.Client;
 
@@ -20,7 +15,7 @@ public class SpinResourceClient
 
     public Task<Option<IReadOnlyList<StorePathItem>>> Search(QueryParameter queryParameter, ScopeContext context)
     {
-        return Search(queryParameter.Filter, queryParameter.Index, queryParameter.Count, queryParameter.Recursive, context);
+        return Search(queryParameter.Filter, queryParameter.Index, queryParameter.Count, queryParameter.Recurse, context);
     }
 
     public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string? filter, int? index, int? count, bool? recurse, ScopeContext context)

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using SpinCluster.sdk.Actors.ActorBase;
+﻿using SpinCluster.sdk.Actors.ActorBase;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;

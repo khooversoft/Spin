@@ -1,4 +1,4 @@
-using SpinCluster.sdk.Actors.Directory;
+using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools;
 
 namespace SpinCluster.sdk.test

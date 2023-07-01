@@ -3,7 +3,7 @@ using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Directory;
+namespace SpinCluster.sdk.Actors.Key;
 
 [GenerateSerializer, Immutable]
 public record PrincipalKey

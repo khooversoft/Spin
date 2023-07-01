@@ -11,7 +11,7 @@ public interface IDatalakeStore
     Task<StatusCode> Exist(string path, ScopeContext context);
     Task<Option<DatalakePathProperties>> GetPathProperties(string path, ScopeContext context);
     Task<Option<DataETag>> Read(string path, ScopeContext context);
-    Task<Option<IReadOnlyList<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context);
+    Task<Option<QueryResponse<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context);
     Task<Option<ETag>> Write(string path, DataETag data, bool overwrite, ScopeContext context);
     Task<bool> TestConnection(ScopeContext context);
 }

@@ -23,7 +23,7 @@ public class Validator<T>
             PropertyRule = propertyRule
         };
     }
-    
+
     public Rule<T, TProperty> RuleFor<TProperty>(Expression<Func<T, TProperty>> expression)
     {
         MemberExpression expressionBody = (MemberExpression)expression.Body;

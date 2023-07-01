@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Toolbox.Tokenizer.Syntax;
+﻿using Toolbox.Tokenizer.Syntax;
 using Toolbox.Tokenizer.Token;
 
 namespace Toolbox.Tokenizer

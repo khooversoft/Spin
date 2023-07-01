@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Toolbox.Tokenizer.Token
+﻿namespace Toolbox.Tokenizer.Token
 {
     /// <summary>
     /// Block token that has been extracted from the data.

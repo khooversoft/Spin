@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Toolbox.Azure.Queue;
+﻿namespace Toolbox.Azure.Queue;
 
 public record QueueDefinition
 {

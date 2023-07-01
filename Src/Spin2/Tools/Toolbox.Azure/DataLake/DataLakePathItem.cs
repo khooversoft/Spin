@@ -1,7 +1,6 @@
 ﻿using Azure.Storage.Files.DataLake.Models;
 using Toolbox.Azure.DataLake;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Azure.DataLake
 {

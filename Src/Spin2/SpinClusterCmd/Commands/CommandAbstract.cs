@@ -59,7 +59,7 @@ internal class CommandAbstract<T> : Command, ICommandAbstract
             if (!_dataType.Validator.Validate(model).IsValid)
             {
                 string errors = _dataType.Validator.Validate(model).FormatErrors();
-                context.Location().LogError("File {file} has validation errors, errors={errors}", file,errors);
+                context.Location().LogError("File {file} has validation errors, errors={errors}", file, errors);
                 return;
             }
 

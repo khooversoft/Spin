@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Directory;
+using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Client;
 using Toolbox.Types;
 

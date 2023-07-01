@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration.UserSecrets;
-using Toolbox.Azure.DataLake;
+﻿using Toolbox.Azure.DataLake;
 
 namespace Toolbox.Azure.test.Application;
 

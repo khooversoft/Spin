@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Concurrency;
 using SpinCluster.sdk.Services;
 using SpinCluster.sdk.Types;
@@ -57,14 +52,14 @@ public class SearchActor : Grain, ISearchActor
 
         searchQuery = searchQuery with { Filter = filter };
 
-        var result = await store.Return().Search(searchQuery.ConvertTo(), context);
+        Option<QueryResponse<DatalakePathItem>> result = await store.Return().Search(searchQuery.ConvertTo(), context);
         if (result.IsError())
         {
             context.Location().LogError("Failed to search datalake store for searchQuery={searchQuery}", searchQuery);
             return new SpinResponse<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest);
         }
 
-        return result.Return()
+        return result.Return().Items
             .Select(x => x.ConvertTo())
             .ToArray()
             .ToSpinResponse<IReadOnlyList<StorePathItem>>();

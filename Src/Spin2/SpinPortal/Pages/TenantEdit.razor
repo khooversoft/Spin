@@ -1,0 +1,42 @@
+﻿@page "/tenant/new"
+
+<MudPaper Elevation="2" Class="nvarbar-panel pt-1">
+    <MudToolBar Dense=true>
+        <MudText>Add Tenant</MudText>
+        <MudDivider DividerType=DividerType.Middle />
+
+        <MudStack Spacing=3 Row=true>
+            <StandardButton Icon="@Icons.Material.Sharp.Cancel" OnClick=Cancel Text="Cancel" />
+        </MudStack>
+
+    </MudToolBar>
+</MudPaper>
+
+<Message Text=@_errorMsg Severity=Severity.Error />
+
+<EditForm class="mt-2" Model="@_model" OnValidSubmit="OnValidSubmit" style="min-width:400px">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Tenant ID" HelperText="Max 50 characters, only alpha numeric, [-._]" Disabled=_disableUserId @bind-Value="_model.TenantId" For="@(() => _model.TenantId)" />
+                    <MudTextField Label="Name" HelperText="Max 100 characters" @bind-Value="_model.TenantName" For="@(() => _model.TenantName)" />
+                    <MudTextField Label="Contact" HelperText="Max 100 characters" @bind-Value="_model.Contact" For="@(() => _model.Contact)" />
+                    <MudTextField Label="Email" Class="mt-3" @bind-Value="_model.Email" For="@(() => _model.Email)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">@_addOrUpdateButtonText</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="5">
+            <MudPaper Class="pa-4 mud-height-full">
+                <MudText Typo="Typo.subtitle2">Properties</MudText>
+                <MudField Label="Global Principal ID">@_model.GlobalPrincipleId</MudField>
+                <MudField Label="Created Date">@_model.CreatedDate</MudField>
+                <MudField Label="Active Date">@_model.ActiveDateText</MudField>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</EditForm>

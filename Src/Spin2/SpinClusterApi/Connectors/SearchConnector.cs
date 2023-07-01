@@ -1,11 +1,7 @@
-﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using SpinCluster.sdk.Actors.Configuration;
-using SpinCluster.sdk.Actors.Lease;
+﻿using Microsoft.AspNetCore.Mvc;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Types;
-using SpinClusterApi.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -53,7 +49,7 @@ internal class SearchConnector
             Index = index ?? 0,
             Count = count ?? 1000,
             Filter = filter,
-            Recursive = recurse ?? false,
+            Recurse = recurse ?? false,
         };
 
         ISearchActor actor = _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch);

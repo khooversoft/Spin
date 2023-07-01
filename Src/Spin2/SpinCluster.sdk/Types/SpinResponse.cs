@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Tools;
 
 namespace SpinCluster.sdk.Types;
 
@@ -41,5 +36,5 @@ public static class SpinResponseExtensions
         false => throw new ArgumentException("Value is null"),
     };
 
-    public static Option<T> ToObject<T>(this SpinResponse<T> subject) => new Option<T>(subject.Value, subject.StatusCode);
+    public static Option<T> ToObject<T>(this SpinResponse<T> subject) => new Option<T>(subject.Value, subject.StatusCode, subject.Error);
 }

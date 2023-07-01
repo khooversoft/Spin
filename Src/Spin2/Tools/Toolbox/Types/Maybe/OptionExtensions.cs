@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -28,7 +27,7 @@ public static class OptionExtensions
     public static Option<T> ToOption<T>(this T? value, StatusCode statusCode) => new Option<T>(value, statusCode);
     public static Option<T> ToOption<T>(this StatusCode statusCode) => new Option<T>(statusCode);
     public static Option<T> ToOption<T>(this StatusCode statusCode, string error) => new Option<T>(statusCode, error);
-    public static Option<T> ToOption<T>(this IOption subject) => new Option<T>(subject.StatusCode);
+    public static Option<T> ToOption<T>(this IOption subject) => new Option<T>(subject.StatusCode, subject.Error);
 
     public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source)
     {

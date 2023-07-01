@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Tokenizer.Token;
-using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
@@ -66,23 +60,21 @@ public sealed record ObjectId
             .Reverse()
             .ToStack();
 
-        var badResult = new Option<ObjectId>(StatusCode.BadRequest);
+        if (tokenStack.Count < 2) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, no schema and tenant");
 
-        if (tokenStack.Count < 2) return badResult;
+        string schema = tokenStack.Pop();
+        if (!IsPathValid(schema)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, schema has invalid characters");
 
-        if (!tokenStack.TryPop(out string? schema)) return badResult;
-        if (!IsPartValid(schema)) return badResult;
-
-        if (!tokenStack.TryPop(out string? tenant)) return badResult;
-        if (!IsPartValid(tenant)) return badResult;
+        string tenant = tokenStack.Pop();
+        if (!IsPathValid(tenant)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, tenant has invalid characters");
 
         IReadOnlyList<string> paths = tokenStack.ToArray();
-        if (!paths.All(x => IsPartValid(x))) return badResult;
+        if (!paths.All(x => IsPathValid(x))) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, one or more of the paths has invalid characters");
 
         return new ObjectId(schema, tenant, paths);
     }
 
-    private static bool IsPartValid(string subject) => subject.All(x => IsCharacterValid(x));
+    public static bool IsPathValid(string subject) => subject.All(x => IsCharacterValid(x));
 
     public static bool IsCharacterValid(char ch) =>
         char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*';
@@ -91,7 +83,17 @@ public sealed record ObjectId
 public static class ObjectIdExtensions
 {
     public static ObjectId ToObjectId(this string? subject) => ObjectId.Parse(subject).ThrowOnError().Return();
+    public static ObjectId ToObjectId(this string? subject, string schema, string tenant) => ObjectId.Parse($"{schema}/{tenant}/{subject}").ThrowOnError().Return();
     public static Option<ObjectId> ToObjectIdIfValid(this string subject) => ObjectId.CreateIfValid(subject);
+
+    public static Option<ObjectId> ToObjectIdIfValid(this string subject, ScopeContextLocation location)
+    {
+        var option = ObjectId.CreateIfValid(subject);
+        if (option.IsError()) location.LogError("ObjectId is not valid, objectId={objectId}, error={error}", subject, option.Error);
+        return option;
+    }
+
+
     public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString(subject.ToString());
     public static ObjectId FromUrlEncoding(this string id) => Uri.UnescapeDataString(id).ToObjectId();
 

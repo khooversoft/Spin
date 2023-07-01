@@ -1,5 +1,4 @@
-﻿using System;
-using Toolbox.Tokenizer.Token;
+﻿using Toolbox.Tokenizer.Token;
 
 namespace Toolbox.Tokenizer.Syntax
 {

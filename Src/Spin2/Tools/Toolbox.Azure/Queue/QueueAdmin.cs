@@ -1,7 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.Logging;
-using System.Threading;
-using System.Threading.Tasks;
 using Toolbox.Tools;
 
 namespace Toolbox.Azure.Queue

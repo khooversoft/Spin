@@ -5,7 +5,6 @@ using Azure.Storage.Files.DataLake.Models;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace Toolbox.Azure.DataLake;
@@ -175,7 +174,7 @@ public class DatalakeStore : IDatalakeStore
         }
     }
 
-    public async Task<Option<IReadOnlyList<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context)
+    public async Task<Option<QueryResponse<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context)
     {
         context = context.With(_logger);
         using var scope = context.Location().LogEntryExit();
@@ -184,34 +183,45 @@ public class DatalakeStore : IDatalakeStore
         queryParameter = queryParameter with { Filter = WithBasePath(queryParameter.Filter) };
         context.Location().LogTrace("Searching {queryParameter}", queryParameter);
 
-        var list = new List<DatalakePathItem>();
+        var collection = new List<DatalakePathItem>();
 
         int index = -1;
         try
         {
-            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.Filter, queryParameter.Recursive, cancellationToken: context))
+            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.Filter, queryParameter.Recurse, cancellationToken: context))
             {
                 index++;
                 if (index < queryParameter.Index) continue;
 
                 DatalakePathItem datalakePathItem = pathItem.ConvertTo();
 
-                list.Add(datalakePathItem);
-                if (list.Count >= queryParameter.Count) break;
+                collection.Add(datalakePathItem);
+                if (collection.Count >= queryParameter.Count) break;
             }
 
-            return list
+            var list = collection
                 .Select(x => x with { Name = RemoveBaseRoot(x.Name) })
                 .ToList();
+
+            return new QueryResponse<DatalakePathItem>
+            {
+                Query = queryParameter with { Index = index },
+                Items = list,
+                EndOfSearch = list.Count == 0,
+            };
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound")
         {
-            return list;
+            return new QueryResponse<DatalakePathItem>
+            {
+                Query = queryParameter,
+                EndOfSearch = false,
+            };
         }
         catch (Exception ex)
         {
             context.Location().LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
-            return new Option<IReadOnlyList<DatalakePathItem>>(StatusCode.BadRequest, ex.ToString());
+            return new Option<QueryResponse<DatalakePathItem>>(StatusCode.BadRequest, ex.ToString());
         }
     }
 
@@ -229,6 +239,26 @@ public class DatalakeStore : IDatalakeStore
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());
 
         return await Upload(path, memoryBuffer, overwrite, data, context);
+    }
+
+    public async Task<bool> TestConnection(ScopeContext context)
+    {
+        context = context.With(_logger);
+        using var scope = context.Location().LogEntryExit();
+
+        context.Location().LogTrace("Testing connection");
+
+        try
+        {
+            Response<bool> response = await _fileSystem.ExistsAsync(cancellationToken: context);
+            context.Location().LogInformation("Testing exist of file system, exists={fileSystemExist}", response.Value);
+            return response.Value;
+        }
+        catch (Exception ex)
+        {
+            context.Location().LogWarning(ex, "Failed exist for file systgem");
+            return false;
+        }
     }
 
     private string WithBasePath(string? path) => _azureStoreOption.BasePath + (_azureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path;
@@ -270,25 +300,6 @@ public class DatalakeStore : IDatalakeStore
         }
     }
 
-    public async Task<bool> TestConnection(ScopeContext context)
-    {
-        context = context.With(_logger);
-        using var scope = context.Location().LogEntryExit();
-
-        context.Location().LogTrace("Testing connection");
-
-        try
-        {
-            Response<bool> response = await _fileSystem.ExistsAsync(cancellationToken: context);
-            context.Location().LogInformation("Testing exist of file system, exists={fileSystemExist}", response.Value);
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            context.Location().LogWarning(ex, "Failed exist for file systgem");
-            return false;
-        }
-    }
 
     private async Task<Option<DatalakePathProperties>> InternalGetPathProperties(string path, ScopeContext context)
     {
