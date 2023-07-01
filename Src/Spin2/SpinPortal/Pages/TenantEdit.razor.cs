@@ -44,7 +44,7 @@ public partial class TenantEdit
 
     private async Task AddOrUpdate()
     {
-        var request = new TenantRegister
+        var request = new TenantModel
         {
             TenantId = _model.TenantId,
             GlobalPrincipleId = _model.GlobalPrincipleId,
@@ -56,10 +56,10 @@ public partial class TenantEdit
             ActiveDate = _model.ActiveDate,
         };
 
-        StatusCode result = await Client.Data.Set(request.TenantId.ToObjectId("tenant", SpinConstants.SystemTenant), request, new ScopeContext(Logger));
+        Option<StatusResponse> result = await Client.Tenant.Set(request.TenantId.ToObjectId("tenant", SpinConstants.SystemTenant), request, new ScopeContext(Logger));
         if (result.IsError())
         {
-            _errorMsg = $"Failed to write, statusCode={result}";
+            _errorMsg = $"Failed to write, statusCode={result.StatusCode}, error={result.Error}";
         }
     }
 
@@ -67,7 +67,7 @@ public partial class TenantEdit
     {
         if (TenantId == null) return new RegisterAccountForm();
 
-        var result = await Client.Data.Get<TenantRegister>(TenantId, new ScopeContext(Logger));
+        var result = await Client.Tenant.Get(TenantId, new ScopeContext(Logger));
         if (result.IsError())
         {
             _errorMsg = $"Fail to read TenantId={TenantId}";
@@ -76,7 +76,7 @@ public partial class TenantEdit
 
         return ConvertTo(result.Return());
     }
-    private RegisterAccountForm ConvertTo(TenantRegister subject) => new RegisterAccountForm
+    private RegisterAccountForm ConvertTo(TenantModel subject) => new RegisterAccountForm
     {
         TenantId = subject.TenantId,
         GlobalPrincipleId = subject.GlobalPrincipleId,

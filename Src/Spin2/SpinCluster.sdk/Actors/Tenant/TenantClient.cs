@@ -7,7 +7,7 @@ using SpinCluster.sdk.Actors.ActorBase;
 
 namespace SpinCluster.sdk.Actors.Tenant;
 
-public class TenantClient : ClientBase<TenantRegister>
+public class TenantClient : ClientBase<TenantModel>
 {
     public TenantClient(HttpClient client) : base(client, "tenant") { }
 }

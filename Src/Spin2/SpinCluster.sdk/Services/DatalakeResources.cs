@@ -84,22 +84,22 @@ public class DatalakeResources
         false => new Option<IDatalakeStore>(StatusCode.NotFound),
     };
 
-    public async Task<Option<IReadOnlyList<DatalakePathItem>>> Search(string schemaName, QueryParameter queryParameter, ScopeContext context)
-    {
-        var store = GetStore(schemaName);
-        if (store.IsError())
-        {
-            context.Location().LogError("Schema not found, schemaName={schemaName}", schemaName);
-            return store.ToOption<IReadOnlyList<DatalakePathItem>>();
-        }
+    //public async Task<Option<IReadOnlyList<DatalakePathItem>>> Search(string schemaName, QueryParameter queryParameter, ScopeContext context)
+    //{
+    //    var store = GetStore(schemaName);
+    //    if (store.IsError())
+    //    {
+    //        context.Location().LogError("Schema not found, schemaName={schemaName}", schemaName);
+    //        return store.ToOption<IReadOnlyList<DatalakePathItem>>();
+    //    }
 
-        var result = await store.Return().Search(queryParameter, context);
-        if (result.IsError())
-        {
-            context.Location().LogCritical("Error in searching schemaName={schemaName}, queryParameter={queryParameter}", schemaName, queryParameter);
-            return result;
-        }
+    //    var result = await store.Return().Search(queryParameter, context);
+    //    if (result.IsError())
+    //    {
+    //        context.Location().LogCritical("Error in searching schemaName={schemaName}, queryParameter={queryParameter}", schemaName, queryParameter);
+    //        return result;
+    //    }
 
-        return result;
-    }
+    //    return result;
+    //}
 }

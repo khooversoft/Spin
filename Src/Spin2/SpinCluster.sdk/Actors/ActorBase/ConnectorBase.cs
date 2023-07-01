@@ -19,15 +19,15 @@ using SpinCluster.sdk.Actors.Search;
 
 namespace SpinCluster.sdk.Actors.ActorBase;
 
-public interface IObjectOperation<T> : IGrainWithStringKey
+public interface IActionOperation<T> : IGrainWithStringKey
 {
     Task<SpinResponse<T>> Delete(string traceId);
     Task<SpinResponse<T>> Get(string traceId);
     Task<SpinResponse<T>> Set(T model, string traceId);
-    Task<SpinResponse<QueryResponse<StorePathItem>>> Search(QueryParameter query, string traceId);
+    //Task<SpinResponse<QueryResponse<StorePathItem>>> Search(QueryParameter query, string traceId);
 }
 
-public abstract class ConnectorBase<T, TActor> where TActor : IObjectOperation<T>
+public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T>
 {
     private readonly IClusterClient _client;
     private readonly ILogger _logger;

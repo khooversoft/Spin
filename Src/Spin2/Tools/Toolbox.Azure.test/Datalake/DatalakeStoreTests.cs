@@ -42,7 +42,7 @@ public class DatalakeStoreTests
         (await _dataLakeStore.Delete(path, _context)).IsOk().Should().BeTrue();
         (await _dataLakeStore.Exist(path, _context)).IsNotFound().Should().BeTrue();
 
-        Option<IReadOnlyList<DatalakePathItem>> list = await _dataLakeStore.Search(QueryParameter.Default, _context);
+        Option<QueryResponse<DatalakePathItem>> list = await _dataLakeStore.Search(QueryParameter.Default, _context);
         list.Should().NotBeNull();
     }
 
@@ -102,9 +102,9 @@ public class DatalakeStoreTests
     {
         await ClearContainer(_dataLakeStore);
 
-        Option<IReadOnlyList<DatalakePathItem>> verifyList = await _dataLakeStore.Search(QueryParameter.Default, _context);
+        Option<QueryResponse<DatalakePathItem>> verifyList = await _dataLakeStore.Search(QueryParameter.Default, _context);
         verifyList.IsOk().Should().BeTrue();
-        verifyList.Return().Count.Should().Be(0);
+        verifyList.Return().Items.Count.Should().Be(0);
 
         var dataSet = new (string path, string data)[]
         {
@@ -118,33 +118,33 @@ public class DatalakeStoreTests
         await dataSet
             .ForEachAsync(async x => await _dataLakeStore.Write(x.path, x.data.ToBytes(), true, _context));
 
-        Option<IReadOnlyList<DatalakePathItem>> subSearchList = await _dataLakeStore.Search(new QueryParameter { Filter = "data" }, _context);
+        Option<QueryResponse<DatalakePathItem>> subSearchList = await _dataLakeStore.Search(new QueryParameter { Filter = "data" }, _context);
         subSearchList.IsOk().Should().BeTrue();
-        subSearchList.Return().Count.Should().Be(dataSet.Where(x => x.path.StartsWith("data/")).Count());
+        subSearchList.Return().Items.Count.Should().Be(dataSet.Where(x => x.path.StartsWith("data/")).Count());
 
-        Option<IReadOnlyList<DatalakePathItem>> searchList = await _dataLakeStore.Search(QueryParameter.Default, _context);
+        Option<QueryResponse<DatalakePathItem>> searchList = await _dataLakeStore.Search(QueryParameter.Default, _context);
         searchList.IsOk().Should().BeTrue();
-        searchList.Return().Where(x => x.IsDirectory == false).Count().Should().Be(2);
-        searchList.Return().Where(x => x.IsDirectory == true).Count().Should().Be(2);
+        searchList.Return().Items.Where(x => x.IsDirectory == false).Count().Should().Be(2);
+        searchList.Return().Items.Where(x => x.IsDirectory == true).Count().Should().Be(2);
 
         await ClearContainer(_dataLakeStore);
 
         searchList = await _dataLakeStore.Search(QueryParameter.Default, _context);
         searchList.IsOk().Should().BeTrue();
-        searchList.Return().Count.Should().Be(0);
+        searchList.Return().Items.Count.Should().Be(0);
     }
 
     private async Task ClearContainer(IDatalakeStore dataLakeStore)
     {
-        Option<IReadOnlyList<DatalakePathItem>> list = await dataLakeStore.Search(QueryParameter.Default, _context);
+        Option<QueryResponse<DatalakePathItem>> list = await dataLakeStore.Search(QueryParameter.Default, _context);
         list.IsOk().Should().BeTrue();
 
-        foreach (var fileItem in list.Return().Where(x => x.IsDirectory == true))
+        foreach (var fileItem in list.Return().Items.Where(x => x.IsDirectory == true))
         {
             (await dataLakeStore.DeleteDirectory(fileItem.Name, _context)).IsOk().Should().BeTrue();
         }
 
-        foreach (var fileItem in list.Return().Where(x => x.IsDirectory == false))
+        foreach (var fileItem in list.Return().Items.Where(x => x.IsDirectory == false))
         {
             (await dataLakeStore.Delete(fileItem.Name, _context)).IsOk().Should().BeTrue();
         }

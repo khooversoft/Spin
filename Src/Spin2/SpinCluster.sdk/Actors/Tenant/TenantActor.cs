@@ -6,19 +6,19 @@ using Toolbox.Tools.Validation;
 
 namespace SpinCluster.sdk.Actors.Tenant;
 
-public interface ITenantActorActor : IActorDataBase<TenantRegister>
+public interface ITenantActorActor : IActionOperation<TenantModel>
 {
 }
 
 
-public class TenantActor : ActorDataBase<TenantRegister>, ITenantActorActor
+public class TenantActor : ActorDataBase2<TenantModel>, ITenantActorActor
 {
-    private readonly IPersistentState<TenantRegister> _state;
+    private readonly IPersistentState<TenantModel> _state;
     private readonly ILogger<TenantActor> _logger;
 
     public TenantActor(
-        [PersistentState(stateName: SpinConstants.Extension.Tenant, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantRegister> state,
-        Validator<TenantRegister> validator,
+        [PersistentState(stateName: SpinConstants.Extension.Tenant, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
+        Validator<TenantModel> validator,
         ILogger<TenantActor> logger
         )
         : base(state, validator, logger)

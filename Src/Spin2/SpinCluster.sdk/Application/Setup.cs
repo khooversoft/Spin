@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.Search;
+using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
@@ -22,6 +23,7 @@ public static class Setup
         services.AddSingleton<Validator<PrincipalKey>>(PrincipalKeyValidator.Validator);
         services.AddSingleton<Validator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
         services.AddSingleton<Validator<SearchQuery>>(SearchQueryValidator.Validator);
+        services.AddSingleton<Validator<TenantModel>>(TenantRegisterValidator.Validator);
 
         services.AddSingleton<DatalakeResources>();
 

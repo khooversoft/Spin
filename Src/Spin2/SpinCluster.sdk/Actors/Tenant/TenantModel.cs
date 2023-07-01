@@ -5,7 +5,7 @@ using Toolbox.Tools.Validation;
 namespace SpinCluster.sdk.Actors.Tenant;
 
 [GenerateSerializer, Immutable]
-public record TenantRegister
+public record TenantModel
 {
     [Id(0)] public string TenantId { get; init; } = null!;
     [Id(1)] public string GlobalPrincipleId { get; init; } = Guid.NewGuid().ToString();
@@ -24,7 +24,7 @@ public record TenantRegister
 
 public static class TenantRegisterValidator
 {
-    public static Validator<TenantRegister> Validator { get; } = new Validator<TenantRegister>()
+    public static Validator<TenantModel> Validator { get; } = new Validator<TenantModel>()
         .RuleFor(x => x.TenantId).NotEmpty()
         .RuleFor(x => x.GlobalPrincipleId).NotEmpty()
         .RuleFor(x => x.Contact).NotEmpty()
@@ -34,5 +34,5 @@ public static class TenantRegisterValidator
         .RuleFor(x => x.DataObjects).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this TenantRegister subject) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this TenantModel subject) => Validator.Validate(subject);
 }
