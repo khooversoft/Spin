@@ -1,4 +1,5 @@
 ﻿using SpinCluster.sdk.Actors.Tenant;
+using SpinCluster.sdk.Actors.User;
 using SpinClusterApi.Connectors;
 
 namespace SpinClusterApi.Application;
@@ -13,6 +14,7 @@ internal static class Startup
         services.AddSingleton<SearchConnector>();
         services.AddSingleton<ResourceConnect>();
         services.AddSingleton<TenantConnector>();
+        services.AddSingleton<UserConnector>();
 
         return services;
     }
@@ -25,5 +27,6 @@ internal static class Startup
         app.ServiceProvider.GetRequiredService<SearchConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<ResourceConnect>().Setup(app);
         app.ServiceProvider.GetRequiredService<TenantConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<UserConnector>().Setup(app);
     }
 }

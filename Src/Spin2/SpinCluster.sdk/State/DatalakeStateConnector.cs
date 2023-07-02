@@ -14,10 +14,10 @@ internal class DatalakeStateConnector : IGrainStorage
 {
     private readonly ILogger<DatalakeStateConnector> _logger;
     private readonly ConcurrentDictionary<string, DatalakeStateHandler> _stores = new ConcurrentDictionary<string, DatalakeStateHandler>(StringComparer.OrdinalIgnoreCase);
-    private readonly DatalakeResources _datalakeResources;
+    private readonly DatalakeSchemaResources _datalakeResources;
     private readonly ILoggerFactory _loggerFactory;
 
-    public DatalakeStateConnector(DatalakeResources datalakeResources, ILoggerFactory loggerFactory)
+    public DatalakeStateConnector(DatalakeSchemaResources datalakeResources, ILoggerFactory loggerFactory)
     {
         _datalakeResources = datalakeResources.NotNull();
         _loggerFactory = loggerFactory.NotNull();
@@ -67,7 +67,15 @@ internal class DatalakeStateConnector : IGrainStorage
 
         ObjectId objectId = objectIdOption.Return();
 
-        string filePath = objectId.Tenant + "/" + objectId.Path + "." + stateName;
+        string filePath = objectId.Tenant + "/" + objectId.Path;
+        string stateSufix = $".{stateName}";
+
+        filePath = filePath.EndsWith(stateSufix) switch
+        {
+            true => filePath,
+            false => filePath + stateSufix,
+        };
+
         context.Location().LogInformation("GrainId={grainId} to FilePath={filePath}", grainId.ToString(), filePath);
 
         return (filePath, objectId.Schema, context);

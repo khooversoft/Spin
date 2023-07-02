@@ -19,13 +19,13 @@ public static class Setup
     {
         services.AddSingleton(option);
 
-        services.AddSingleton<Validator<UserPrincipal>>(UserPrincipalValidator.Validator);
+        services.AddSingleton<Validator<UserModel>>(UserModelValidator.Validator);
         services.AddSingleton<Validator<PrincipalKey>>(PrincipalKeyValidator.Validator);
         services.AddSingleton<Validator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
         services.AddSingleton<Validator<SearchQuery>>(SearchQueryValidator.Validator);
         services.AddSingleton<Validator<TenantModel>>(TenantRegisterValidator.Validator);
 
-        services.AddSingleton<DatalakeResources>();
+        services.AddSingleton<DatalakeSchemaResources>();
 
         services.AddSingleton<SiloConfigStore>(service =>
         {
@@ -52,7 +52,7 @@ public static class Setup
 
     public static async Task UseSpinCluster(this IHost app)
     {
-        DatalakeResources datalakeResources = app.Services.GetRequiredService<DatalakeResources>();
+        DatalakeSchemaResources datalakeResources = app.Services.GetRequiredService<DatalakeSchemaResources>();
         ILoggerFactory factory = app.Services.GetRequiredService<ILoggerFactory>();
 
         await datalakeResources.Startup(new ScopeContext(factory.CreateLogger(nameof(UseSpinCluster))));

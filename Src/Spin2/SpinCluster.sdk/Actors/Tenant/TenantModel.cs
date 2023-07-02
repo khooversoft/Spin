@@ -7,13 +7,16 @@ namespace SpinCluster.sdk.Actors.Tenant;
 [GenerateSerializer, Immutable]
 public record TenantModel
 {
+    private const string _version = nameof(TenantModel) + "-v1";
+
     [Id(0)] public string TenantId { get; init; } = null!;
-    [Id(1)] public string GlobalPrincipleId { get; init; } = Guid.NewGuid().ToString();
-    [Id(2)] public string TenantName { get; init; } = null!;
+    [Id(1)] public string Version { get; init; } = _version;
+    [Id(2)] public string GlobalPrincipleId { get; init; } = Guid.NewGuid().ToString();
+    [Id(3)] public string TenantName { get; init; } = null!;
     [Id(4)] public string Contact { get; init; } = null!;
     [Id(5)] public string Email { get; init; } = null!;
-    [Id(6)] public IReadOnlyList<UserPhone> Phone { get; init; } = Array.Empty<UserPhone>();
-    [Id(7)] public IReadOnlyList<UserAddress> Addresses { get; init; } = Array.Empty<UserAddress>();
+    [Id(6)] public IReadOnlyList<UserPhoneModel> Phone { get; init; } = Array.Empty<UserPhoneModel>();
+    [Id(7)] public IReadOnlyList<UserAddressModel> Addresses { get; init; } = Array.Empty<UserAddressModel>();
 
     [Id(8)] public IReadOnlyList<DataObject> DataObjects { get; init; } = Array.Empty<DataObject>();
     [Id(9)] public bool AccountEnabled { get; init; } = false;

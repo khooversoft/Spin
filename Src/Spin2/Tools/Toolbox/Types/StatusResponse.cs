@@ -11,8 +11,8 @@ public readonly struct StatusResponse
     public StatusResponse(StatusCode statusCode) => StatusCode = statusCode;
     public StatusResponse(StatusCode statusCode, string? error) => (StatusCode, Error) = (statusCode, error);
 
-    public StatusCode StatusCode { get; }
-    public string? Error { get; }
+    public StatusCode StatusCode { get; init; }
+    public string? Error { get; init; }
 }
 
 

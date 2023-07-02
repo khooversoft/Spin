@@ -8,7 +8,7 @@ using SpinCluster.sdk.Actors.ActorBase;
 
 namespace SpinCluster.sdk.Actors.Tenant;
 
-public class TenantConnector : ConnectorBase<TenantModel, ITenantActorActor>
+public class TenantConnector : ConnectorBase<TenantModel, ITenantActor>
 {
     public TenantConnector(IClusterClient client, ILogger<TenantConnector> logger)
         : base(client, "tenant", logger)

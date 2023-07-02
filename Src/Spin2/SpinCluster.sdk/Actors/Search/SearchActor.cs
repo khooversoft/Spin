@@ -19,11 +19,11 @@ public interface ISearchActor : IGrainWithStringKey
 [Reentrant]
 public class SearchActor : Grain, ISearchActor
 {
-    private readonly DatalakeResources _datalakeResources;
+    private readonly DatalakeSchemaResources _datalakeResources;
     private readonly ILogger<SearchActor> _logger;
     private readonly Validator<SearchQuery> _validator;
 
-    public SearchActor(DatalakeResources datalakeResources, Validator<SearchQuery> validator, ILogger<SearchActor> logger)
+    public SearchActor(DatalakeSchemaResources datalakeResources, Validator<SearchQuery> validator, ILogger<SearchActor> logger)
     {
         _datalakeResources = datalakeResources.NotNull();
         _logger = logger.NotNull();

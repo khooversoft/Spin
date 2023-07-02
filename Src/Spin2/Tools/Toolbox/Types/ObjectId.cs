@@ -1,19 +1,29 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 ///   {schema}:tenant/path[/path...]
 public sealed record ObjectId
 {
+    private const string _syntaxError = "Syntax error";
     public string? _path;
     public string? _id;
 
+    public ObjectId(string schema, string tenant, string path)
+        : this(schema, tenant, path.Split('/', StringSplitOptions.RemoveEmptyEntries))
+    {
+    }
+
     public ObjectId(string schema, string tentant, IEnumerable<string> paths)
     {
-        Schema = schema;
-        Tenant = tentant;
-        Paths = paths.ToArray();
+        Schema = schema.Assert(x => IsPathValid(x), _syntaxError);
+        Tenant = tentant.Assert(x => IsPathValid(x), _syntaxError);
+
+        Paths = paths.NotNull()
+            .Action(x => x.ForEach(x => x.Assert(x => IsPathValid(x), _syntaxError)))
+            .ToArray();
     }
 
     public const string Syntax = "{schema}/{tenant}[/{path}...] Valid characters are a-z A-Z 0-9 . $ @ - _ *";

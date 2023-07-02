@@ -24,10 +24,10 @@ public interface IResourceActor : IGrainWithStringKey
 [Reentrant]
 public class ResourceActor : Grain, IResourceActor
 {
-    private readonly DatalakeResources _datalakeResources;
+    private readonly DatalakeSchemaResources _datalakeResources;
     private readonly ILogger<SearchActor> _logger;
 
-    public ResourceActor(DatalakeResources datalakeResources, Validator<SearchQuery> validator, ILogger<SearchActor> logger)
+    public ResourceActor(DatalakeSchemaResources datalakeResources, Validator<SearchQuery> validator, ILogger<SearchActor> logger)
     {
         _datalakeResources = datalakeResources.NotNull();
         _logger = logger.NotNull();

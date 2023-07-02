@@ -1,6 +1,6 @@
-﻿@if (Text != null)
+﻿@if (Text != null && _show)
 {
-    <MudAlert Severity="@Severity" Variant="Variant.Outlined" ShowCloseIcon="true">@Text</MudAlert>
+    <MudAlert Severity="@Severity" Variant="Variant.Outlined" ShowCloseIcon="true" CloseIconClicked="() => Close()">@Text</MudAlert>
 }
 
 @code {
@@ -9,4 +9,11 @@
 
     [Parameter]
     public Severity Severity { get; set; }
+
+    private bool _show { get; set; } = true;
+
+    private void Close()
+    {
+        _show = false;
+    }
 }

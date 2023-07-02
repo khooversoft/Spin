@@ -70,6 +70,7 @@ public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T
             var v when v.StatusCode == StatusCode.Conflict => Results.Conflict(v.ToStatusReponse()),
 
             var v when v.IsOk() && v.HasValue => Results.Ok(v.Return()),
+            var v when v.IsOk() => Results.Ok(v.ToStatusReponse()),
             var v => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
         };
     }
@@ -110,26 +111,26 @@ public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T
         return response.ToObject<T>();
     }
 
-    public async Task<Option<QueryResponse<StorePathItem>>> Search(string filter, int index, int count, bool recurse, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
+    //public async Task<Option<QueryResponse<StorePathItem>>> Search(string filter, int index, int count, bool recurse, string traceId)
+    //{
+    //    var context = new ScopeContext(traceId, _logger);
 
-        var query = new SearchQuery
-        {
-            Index = index,
-            Count = count,
-            Filter = filter,
-            Recurse = recurse,
-        };
+    //    var query = new SearchQuery
+    //    {
+    //        Index = index,
+    //        Count = count,
+    //        Filter = filter,
+    //        Recurse = recurse,
+    //    };
 
-        ISearchActor actor = _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch);
-        SpinResponse<IReadOnlyList<StorePathItem>> result = await actor.Search(query, context.TraceId);
+    //    ISearchActor actor = _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch);
+    //    SpinResponse<IReadOnlyList<StorePathItem>> result = await actor.Search(query, context.TraceId);
 
-        return new QueryResponse<StorePathItem>
-        {
-            Query = query.ConvertTo() with { Index = query.Index + result.Value?.Count ?? 0 },
-            Items = result.Value ?? Array.Empty<StorePathItem>(),
-            EndOfSearch = result.Value == null || result.Value.Count == 0,
-        };
-    }
+    //    return new QueryResponse<StorePathItem>
+    //    {
+    //        Query = query.ConvertTo() with { Index = query.Index + result.Value?.Count ?? 0 },
+    //        Items = result.Value ?? Array.Empty<StorePathItem>(),
+    //        EndOfSearch = result.Value == null || result.Value.Count == 0,
+    //    };
+    //}
 }

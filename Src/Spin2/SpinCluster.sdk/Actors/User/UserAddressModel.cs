@@ -5,7 +5,7 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.User;
 
 [GenerateSerializer, Immutable]
-public record UserAddress
+public record UserAddressModel
 {
     [Id(0)] public string Type { get; init; } = null!;
     [Id(1)] public string Address1 { get; init; } = null!;
@@ -17,9 +17,9 @@ public record UserAddress
 }
 
 
-public static class UserAddressValidator
+public static class UserAddressModelValidator
 {
-    public static Validator<UserAddress> Validator { get; } = new Validator<UserAddress>()
+    public static Validator<UserAddressModel> Validator { get; } = new Validator<UserAddressModel>()
         .RuleFor(x => x.Type).NotEmpty()
         .RuleFor(x => x.Address1).NotEmpty()
         .RuleFor(x => x.City).NotEmpty()
@@ -28,7 +28,7 @@ public static class UserAddressValidator
         .RuleFor(x => x.Country).NotEmpty()
         .Build();
 
-    public static bool IsValid(this UserAddress subject, ScopeContextLocation location) => Validator
+    public static bool IsValid(this UserAddressModel subject, ScopeContextLocation location) => Validator
         .Validate(subject)
         .IsValid(location);
 }

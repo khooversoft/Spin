@@ -5,20 +5,20 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.User;
 
 [GenerateSerializer, Immutable]
-public record UserPhone
+public record UserPhoneModel
 {
     [Id(0)] public string Type { get; init; } = null!;
     [Id(1)] public string Number { get; init; } = null!;
 }
 
-public static class UserPhoneValidator
+public static class UserPhoneModelValidator
 {
-    public static Validator<UserPhone> Validator { get; } = new Validator<UserPhone>()
+    public static Validator<UserPhoneModel> Validator { get; } = new Validator<UserPhoneModel>()
         .RuleFor(x => x.Type).NotEmpty()
         .RuleFor(x => x.Number).NotEmpty()
         .Build();
 
-    public static bool IsValid(this UserPhone subject, ScopeContextLocation location) => Validator
+    public static bool IsValid(this UserPhoneModel subject, ScopeContextLocation location) => Validator
         .Validate(subject)
         .IsValid(location);
 }

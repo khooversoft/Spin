@@ -6,12 +6,12 @@ using Toolbox.Tools.Validation;
 
 namespace SpinCluster.sdk.Actors.Tenant;
 
-public interface ITenantActorActor : IActionOperation<TenantModel>
+public interface ITenantActor : IActionOperation<TenantModel>
 {
 }
 
 
-public class TenantActor : ActorDataBase2<TenantModel>, ITenantActorActor
+public class TenantActor : ActorDataBase2<TenantModel>, ITenantActor
 {
     private readonly IPersistentState<TenantModel> _state;
     private readonly ILogger<TenantActor> _logger;

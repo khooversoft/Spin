@@ -45,7 +45,7 @@ namespace SpinCluster.sdk.test
                 }
                 """;
 
-            UserPrincipal user = Json.Default.Deserialize<UserPrincipal>(payload).NotNull();
+            UserModel user = Json.Default.Deserialize<UserModel>(payload).NotNull();
             string a = user.UserId;
         }
     }

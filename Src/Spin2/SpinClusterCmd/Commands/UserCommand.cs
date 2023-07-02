@@ -5,12 +5,12 @@ using Toolbox.Types;
 
 namespace SpinClusterCmd.Commands;
 
-internal class UserCommand : CommandAbstract<UserPrincipal>
+internal class UserCommand : CommandAbstract<UserModel>
 {
-    private readonly static DataType<UserPrincipal> _dataType = new DataType<UserPrincipal>
+    private readonly static DataType<UserModel> _dataType = new DataType<UserModel>
     {
         Name = "User",
-        Validator = UserPrincipalValidator.Validator,
+        Validator = UserModelValidator.Validator,
         GetKey = x => x.UserId.ToObjectId(),
     };
 
