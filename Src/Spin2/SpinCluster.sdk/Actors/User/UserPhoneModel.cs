@@ -1,4 +1,6 @@
-﻿using SpinCluster.sdk.Actors.User;
+﻿using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.Tenant;
+using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -13,12 +15,12 @@ public record UserPhoneModel
 
 public static class UserPhoneModelValidator
 {
-    public static Validator<UserPhoneModel> Validator { get; } = new Validator<UserPhoneModel>()
+    public static IValidator<UserPhoneModel> Validator { get; } = new Validator<UserPhoneModel>()
         .RuleFor(x => x.Type).NotEmpty()
         .RuleFor(x => x.Number).NotEmpty()
         .Build();
 
-    public static bool IsValid(this UserPhoneModel subject, ScopeContextLocation location) => Validator
+    public static ValidatorResult Validate(this UserPhoneModel subject, ScopeContextLocation location) => Validator
         .Validate(subject)
-        .IsValid(location);
+        .LogResult(location);
 }

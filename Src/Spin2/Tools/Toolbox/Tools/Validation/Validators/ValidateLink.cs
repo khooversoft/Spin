@@ -2,11 +2,11 @@
 
 namespace Toolbox.Tools.Validation;
 
-public class ValidateLink<T, TProperty> : IValidator<TProperty>
+public class ValidateLink<T, TProperty> : IPropertyValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
-    private readonly Validator<TProperty> _validator;
-    public ValidateLink(IPropertyRule<T, TProperty> rule, Validator<TProperty> validator)
+    private readonly IValidator<TProperty> _validator;
+    public ValidateLink(IPropertyRule<T, TProperty> rule, IValidator<TProperty> validator)
     {
         _rule = rule.NotNull();
         _validator = validator.NotNull();
@@ -21,7 +21,7 @@ public class ValidateLink<T, TProperty> : IValidator<TProperty>
 
 public static class ValidateLinkExtensions
 {
-    public static Rule<T, TProperty> Validate<T, TProperty>(this Rule<T, TProperty> rule, Validator<TProperty> validator)
+    public static Rule<T, TProperty> Validate<T, TProperty>(this Rule<T, TProperty> rule, IValidator<TProperty> validator)
     {
         rule.NotNull();
         rule.PropertyRule.Validators.Add(new ValidateLink<T, TProperty>(rule.PropertyRule, validator));

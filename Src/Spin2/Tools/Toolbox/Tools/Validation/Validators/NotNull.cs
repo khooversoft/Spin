@@ -2,7 +2,7 @@
 
 namespace Toolbox.Tools.Validation;
 
-public class NotNull<T, TProperty> : IValidator<TProperty>
+public class NotNull<T, TProperty> : IPropertyValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly string _errorMessage;

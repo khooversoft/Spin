@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Tools.Validation;
 
 namespace Toolbox.Azure.DataLake;
 
@@ -18,7 +19,8 @@ public class DatalakeStore : IDatalakeStore
 
     public DatalakeStore(DatalakeOption azureStoreOption, ILogger<DatalakeStore> logger)
     {
-        _azureStoreOption = azureStoreOption.Verify();
+        azureStoreOption.Validate(new ScopeContext(logger).Location()).ThrowOnError();
+        _azureStoreOption = azureStoreOption;
         _logger = logger.NotNull();
 
         _serviceClient = azureStoreOption.CreateDataLakeServiceClient();

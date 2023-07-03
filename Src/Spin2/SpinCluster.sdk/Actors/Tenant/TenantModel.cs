@@ -1,6 +1,9 @@
 ﻿using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Tenant;
 
@@ -27,7 +30,7 @@ public record TenantModel
 
 public static class TenantRegisterValidator
 {
-    public static Validator<TenantModel> Validator { get; } = new Validator<TenantModel>()
+    public static IValidator<TenantModel> Validator { get; } = new Validator<TenantModel>()
         .RuleFor(x => x.TenantId).NotEmpty()
         .RuleFor(x => x.GlobalPrincipleId).NotEmpty()
         .RuleFor(x => x.Contact).NotEmpty()
@@ -37,5 +40,7 @@ public static class TenantRegisterValidator
         .RuleFor(x => x.DataObjects).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this TenantModel subject) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this TenantModel subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 }

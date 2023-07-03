@@ -22,7 +22,6 @@ internal class SchemaConnector
 
         _handlers = new Dictionary<string, ISchemaDataHandler>()
         {
-            [SpinConstants.Schema.Key] = new SchemaDataHandler<IPrincipalKeyActor, PrincipalKey>(client),
             [SpinConstants.Schema.Storage] = new SchemaDataHandler<IStorageActor, StorageBlob>(client),
         };
     }

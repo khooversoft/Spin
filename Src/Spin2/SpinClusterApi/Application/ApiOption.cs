@@ -1,6 +1,8 @@
-﻿using Toolbox.Extensions;
+﻿using SpinCluster.sdk.Services;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinClusterApi.Application;
 
@@ -19,6 +21,7 @@ public static class ApiOptionExtensions
         .RuleFor(x => x.IpAddress).NotEmpty()
         .Build();
 
-    public static ApiOption Verify(this ApiOption subject) =>
-        subject.Action(x => Validator.Validate(x).ThrowOnError());
+    public static ValidatorResult Validate(this ApiOption subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 }

@@ -1,9 +1,15 @@
 ﻿using System.Linq.Expressions;
+using Microsoft.Extensions.Logging;
 using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class Validator<T>
+public interface IValidator<T>
+{
+    ValidatorResult Validate(T subject);
+}
+
+public class Validator<T> : IValidator<T>
 {
     private readonly IList<IPropertyRuleBase<T>> _rules = new List<IPropertyRuleBase<T>>();
 
@@ -90,6 +96,11 @@ public class Validator<T>
 
 public static class ValidatorExtensions
 {
+    public static ValidatorResult Validate<T>(this IValidator<T> validator, T subject, ScopeContextLocation location)
+    {
+        return validator.Validate(subject).LogResult(location);
+    }
+
     public static Validator<T> Build<T, TProperty>(this Rule<T, TProperty> rule) => rule.Validator;
 
     public static Rule<T, T> RuleForObject<T, TInput>(this Rule<T, TInput> rule, Func<T, T> func)

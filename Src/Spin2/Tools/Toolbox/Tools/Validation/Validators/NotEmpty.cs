@@ -3,7 +3,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class NotEmpty<T> : IValidator<string>
+public class NotEmpty<T> : IPropertyValidator<string>
 {
     private readonly IPropertyRule<T, string> _rule;
     private readonly string _errorMessage;

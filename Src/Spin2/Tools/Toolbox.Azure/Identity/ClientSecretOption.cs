@@ -1,7 +1,9 @@
 ﻿using Azure.Core;
 using Azure.Identity;
+using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Azure.Identity;
 
@@ -23,7 +25,9 @@ public static class ClientSecretOptionValidator
         .RuleFor(x => x.ClientSecret).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this ClientSecretOption subject) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this ClientSecretOption subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 
     public static TokenCredential ToTokenCredential(this ClientSecretOption subject) =>
         new ClientSecretCredential(subject.TenantId, subject.ClientId, subject.ClientSecret);

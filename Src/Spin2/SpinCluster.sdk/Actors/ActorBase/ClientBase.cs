@@ -36,10 +36,4 @@ public abstract class ClientBase<T>
         .SetContent(content)
         .PostAsync(context)
         .GetContent<StatusResponse>();
-
-    public async Task<Option<QueryResponse<T>>> Search(QueryParameter query, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{_rootPath}/search?{query.ToQueryString()}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .GetContent<QueryResponse<T>>();
 }

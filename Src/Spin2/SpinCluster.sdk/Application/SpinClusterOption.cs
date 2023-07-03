@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Services;
+﻿using SpinCluster.sdk.Actors.User;
+using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.Identity;
 using Toolbox.Extensions;
@@ -23,7 +24,17 @@ public static class SpinClusterOptionValidator
         .RuleFor(x => x.ClientCredentials).Validate(ClientSecretOptionValidator.Validator)
         .Build();
 
-    public static SpinClusterOption Verify(this SpinClusterOption option) => option.Action(x => Validator.Validate(option).ThrowOnError());
+    public static ValidatorResult Validate(this SpinClusterOption subject) => Validator.Validate(subject);
+
+    public static ValidatorResult Validate(this SpinClusterOption subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
+
+    public static SpinClusterOption Verify(this SpinClusterOption subject)
+    {
+        subject.Validate().Assert(x => x.IsValid, x => $"Option is not valid, errors={x.FormatErrors()}");
+        return subject;
+    }
 }
 
 

@@ -1,4 +1,6 @@
-﻿using SpinCluster.sdk.Actors.User;
+﻿using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.Tenant;
+using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -19,7 +21,7 @@ public record UserAddressModel
 
 public static class UserAddressModelValidator
 {
-    public static Validator<UserAddressModel> Validator { get; } = new Validator<UserAddressModel>()
+    public static IValidator<UserAddressModel> Validator { get; } = new Validator<UserAddressModel>()
         .RuleFor(x => x.Type).NotEmpty()
         .RuleFor(x => x.Address1).NotEmpty()
         .RuleFor(x => x.City).NotEmpty()
@@ -28,7 +30,7 @@ public static class UserAddressModelValidator
         .RuleFor(x => x.Country).NotEmpty()
         .Build();
 
-    public static bool IsValid(this UserAddressModel subject, ScopeContextLocation location) => Validator
+    public static ValidatorResult Validate(this UserAddressModel subject, ScopeContextLocation location) => Validator
         .Validate(subject)
-        .IsValid(location);
+        .LogResult(location);
 }

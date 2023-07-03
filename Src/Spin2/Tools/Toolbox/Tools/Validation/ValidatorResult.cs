@@ -43,15 +43,19 @@ public static class ValidationErrorExtensions
         .Select(x => x.ToString())
         .Join(", ");
 
-    public static void ThrowOnError(this ValidatorResult subject) => subject.NotNull()
+    public static ValidatorResult ThrowOnError(this ValidatorResult subject) => subject.NotNull()
         .Assert(x => x.IsValid, x => subject.GetErrors().FormatErrors());
 
-    public static bool IsValid(this ValidatorResult subject, ScopeContextLocation location)
+    public static ValidatorResult LogResult(this ValidatorResult subject, ScopeContextLocation location)
     {
         location.Context.Logger.NotNull();
-        if (subject.IsValid) return true;
+        if (subject.IsValid) return subject;
 
         location.LogError(subject.FormatErrors());
-        return false;
+        return subject;
     }
+
+    public static Option<T> ToOption<T>(this ValidatorResult subject) => new Option<T>(subject.IsValid ? StatusCode.OK : StatusCode.BadRequest, subject.FormatErrors());
+
+
 }

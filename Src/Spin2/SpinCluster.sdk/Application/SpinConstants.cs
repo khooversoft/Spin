@@ -32,4 +32,9 @@ public static class SpinConstants
     {
         public const string TraceId = "spin-trace-id";
     }
+
+    public static class ApiPath
+    {
+        public const string PrincipalKey = "principalKey";
+    }
 }

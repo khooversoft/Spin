@@ -11,10 +11,10 @@ namespace SpinCluster.sdk.Actors.ActorBase;
 public abstract class ActorDataBase2<T> : Grain, IActionOperation<T>
 {
     private readonly IPersistentState<T> _state;
-    private readonly Validator<T> _validator;
+    private readonly IValidator<T> _validator;
     private readonly ILogger _logger;
 
-    public ActorDataBase2(IPersistentState<T> state, Validator<T> validator, ILogger logger)
+    public ActorDataBase2(IPersistentState<T> state, IValidator<T> validator, ILogger logger)
     {
         _state = state;
         _validator = validator;
@@ -28,6 +28,16 @@ public abstract class ActorDataBase2<T> : Grain, IActionOperation<T>
 
         await _state.ClearStateAsync();
         return new SpinResponse<T>(StatusCode.OK);
+    }
+
+    public async Task<SpinResponse> Exist(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+
+        await _state.ReadStateAsync();
+        StatusCode state = _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
+        context.Location().LogInformation("Checking if {typeName} exist, id={id}, statusCode={statusCode}", typeof(T).GetTypeName(), this.GetPrimaryKeyString(), state);
+        return new SpinResponse(state);
     }
 
     public virtual Task<SpinResponse<T>> Get(string traceId)

@@ -1,6 +1,8 @@
-﻿using Toolbox.Extensions;
+﻿using SpinCluster.sdk.Actors.Lease;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Resource;
 
@@ -20,7 +22,7 @@ public static class ResourceFileValidator
         .RuleFor(x => x.Content).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this ResourceFile subject) => Validator.Validate(subject);
-
-    public static ResourceFile Verify(this ResourceFile subject) => subject.Action(x => x.Validate().ThrowOnError());
+    public static ValidatorResult Validate(this ResourceFile subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 }

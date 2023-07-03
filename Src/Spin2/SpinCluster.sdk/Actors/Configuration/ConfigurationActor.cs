@@ -47,7 +47,7 @@ public class ConfigurationActor : Grain, IConfigurationActor
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Setting id={id}, model={model}", this.GetPrimaryKeyString(), model.ToJsonPascalSafe(new ScopeContext(_logger)));
-        if (!_validator.Validate(model).IsValid(context.Location())) return StatusCode.BadRequest;
+        if (!_validator.Validate(model).LogResult(context.Location()).IsValid) return StatusCode.BadRequest;
 
         return await _configStore.Set(model, context);
     }

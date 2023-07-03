@@ -1,4 +1,6 @@
-﻿using Toolbox.Tools.Validation;
+﻿using SpinCluster.sdk.Actors.Key;
+using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Lease;
 
@@ -19,7 +21,9 @@ public static class LeaseDataValidator
         .RuleFor(x => x.ObjectId).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this LeaseData data) => Validator.Validate(data);
+    public static ValidatorResult Validate(this LeaseData subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 
     public static bool IsLeaseValid(this LeaseData data) => data != null && DateTime.UtcNow < data.CreatedDate + data.TimeToLive;
 }

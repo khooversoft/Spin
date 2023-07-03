@@ -1,4 +1,6 @@
-﻿using Toolbox.Tools.Validation;
+﻿using SpinCluster.sdk.Actors.User;
+using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Configuration;
 
@@ -20,7 +22,7 @@ public static class SchemaOptionValidator
         .RuleFor(x => x.ContainerName).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this SchemaOption subject) => Validator.Validate(subject);
-
-    public static bool IsValid(this SchemaOption subject) => Validator.Validate(subject).IsValid;
+    public static ValidatorResult Validate(this SchemaOption subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 }

@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Validation;
+﻿using SpinCluster.sdk.Actors.Resource;
+using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Search;
@@ -17,12 +18,13 @@ public record SearchQuery
 
 public static class SearchQueryValidator
 {
-    public static Validator<SearchQuery> Validator { get; } = new Validator<SearchQuery>()
+    public static IValidator<SearchQuery> Validator { get; } = new Validator<SearchQuery>()
         .RuleFor(x => x.Filter).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this SearchQuery subject) => Validator.Validate(subject);
-    public static ValidatorResult Validate(this SearchQuery subject, ScopeContext context) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this SearchQuery subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 
     public static QueryParameter ConvertTo(this SearchQuery subject) => new QueryParameter
     {

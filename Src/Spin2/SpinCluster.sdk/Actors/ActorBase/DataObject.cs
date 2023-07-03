@@ -1,4 +1,5 @@
 ﻿using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors.Key;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
@@ -24,7 +25,9 @@ public static class DataObjectValidator
         .RuleForEach(x => x.Values).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this DataObject subject, ScopeContext context) => Validator.Validate(subject);
+    public static ValidatorResult Validate(this DataObject subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 
     public static DataObject ToDataObject<T>(this T value, string? key = null) where T : class
     {

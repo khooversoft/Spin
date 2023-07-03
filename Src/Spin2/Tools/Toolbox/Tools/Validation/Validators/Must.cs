@@ -3,7 +3,7 @@
 namespace Toolbox.Tools.Validation;
 
 
-public class MustFunc<T, TProperty> : IValidator<TProperty>
+public class MustFunc<T, TProperty> : IPropertyValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly Func<TProperty, Option<string>> _check;
@@ -27,7 +27,7 @@ public class MustFunc<T, TProperty> : IValidator<TProperty>
 }
 
 
-public class MustTest<T, TProperty> : IValidator<TProperty>
+public class MustTest<T, TProperty> : IPropertyValidator<TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly Func<TProperty, bool> _check;

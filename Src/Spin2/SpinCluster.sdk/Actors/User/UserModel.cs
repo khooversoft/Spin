@@ -1,4 +1,5 @@
 ﻿using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.User;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -33,7 +34,7 @@ public record UserModel
 
 public static class UserModelValidator
 {
-    public static Validator<UserModel> Validator { get; } = new Validator<UserModel>()
+    public static IValidator<UserModel> Validator { get; } = new Validator<UserModel>()
         .RuleFor(x => x.UserId).NotEmpty().Must(x => ObjectId.IsValid(x), x => $"{x} is not a valid ObjectId")
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalPrincipleId).NotEmpty()
@@ -49,7 +50,7 @@ public static class UserModelValidator
         .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
         .Build();
 
-    public static ValidatorResult Validate(this UserModel subject) => Validator.Validate(subject);
-
-    public static UserModel Verify(this UserModel subject) => subject.Action(x => x.Validate().ThrowOnError());
+    public static ValidatorResult Validate(this UserModel subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 }

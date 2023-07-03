@@ -19,18 +19,21 @@ public static class Setup
     {
         services.AddSingleton(option);
 
-        services.AddSingleton<Validator<UserModel>>(UserModelValidator.Validator);
-        services.AddSingleton<Validator<PrincipalKey>>(PrincipalKeyValidator.Validator);
-        services.AddSingleton<Validator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
-        services.AddSingleton<Validator<SearchQuery>>(SearchQueryValidator.Validator);
-        services.AddSingleton<Validator<TenantModel>>(TenantRegisterValidator.Validator);
+        services.AddSingleton<IValidator<UserModel>>(UserModelValidator.Validator);
+        services.AddSingleton<IValidator<PrincipalKeyModel>>(PrincipalKeyValidator.Validator);
+        services.AddSingleton<IValidator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
+        services.AddSingleton<IValidator<SearchQuery>>(SearchQueryValidator.Validator);
+        services.AddSingleton<IValidator<TenantModel>>(TenantRegisterValidator.Validator);
+        services.AddSingleton<IValidator<PrincipalKeyRequest>>(PrincipalKeyRequestValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
 
         services.AddSingleton<SiloConfigStore>(service =>
         {
             SpinClusterOption clusterOption = service.GetRequiredService<SpinClusterOption>();
-            DatalakeLocation datalakeLocation = DatalakeLocation.ParseConnectionString(clusterOption.BootConnectionString).Return();
+            var context = new ScopeContext(service.GetRequiredService<ILoggerFactory>().CreateLogger<SiloConfigStore>());
+
+            DatalakeLocation datalakeLocation = DatalakeLocation.ParseConnectionString(clusterOption.BootConnectionString, context.Location()).Return();
             var loggerFactory = service.GetRequiredService<ILoggerFactory>();
 
             var option = new DatalakeOption

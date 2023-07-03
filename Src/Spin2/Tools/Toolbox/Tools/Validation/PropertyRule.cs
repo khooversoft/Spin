@@ -10,7 +10,7 @@ public interface IPropertyRuleBase<T>
 public interface IPropertyRule<T, TProperty> : IPropertyRuleBase<T>
 {
     string Name { get; }
-    IList<IValidator<TProperty>> Validators { get; }
+    IList<IPropertyValidator<TProperty>> Validators { get; }
 }
 
 
@@ -18,7 +18,7 @@ public record PropertyRule<T, TProperty> : IPropertyRule<T, TProperty>
 {
     public string Name { get; init; } = null!;
     public Func<T, TProperty> GetValue { get; init; } = null!;
-    public IList<IValidator<TProperty>> Validators { get; init; } = new List<IValidator<TProperty>>();
+    public IList<IPropertyValidator<TProperty>> Validators { get; init; } = new List<IPropertyValidator<TProperty>>();
 
     public Option<IValidateResult> Validate(T value)
     {
@@ -36,7 +36,7 @@ public record PropertyCollectionRule<T, TProperty> : IPropertyRule<T, TProperty>
 {
     public string Name { get; init; } = null!;
     public Func<T, IEnumerable<TProperty>> GetValue { get; init; } = null!;
-    public IList<IValidator<TProperty>> Validators { get; init; } = new List<IValidator<TProperty>>();
+    public IList<IPropertyValidator<TProperty>> Validators { get; init; } = new List<IPropertyValidator<TProperty>>();
 
     public Option<IValidateResult> Validate(T value)
     {

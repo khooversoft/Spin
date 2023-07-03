@@ -4,6 +4,7 @@ using Toolbox.Azure.Identity;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Azure.DataLake;
 
@@ -26,9 +27,9 @@ public static class DatalakeOptionValidator
         .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
         .Build();
 
-    public static ValidatorResult Validate(this DatalakeOption subject) => Validator.Validate(subject);
-
-    public static DatalakeOption Verify(this DatalakeOption subject) => subject.Action(x => x.Validate().ThrowOnError());
+    public static ValidatorResult Validate(this DatalakeOption subject, ScopeContextLocation location) => Validator
+        .Validate(subject)
+        .LogResult(location);
 
     public static DataLakeServiceClient CreateDataLakeServiceClient(this DatalakeOption subject)
     {

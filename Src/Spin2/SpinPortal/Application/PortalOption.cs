@@ -1,5 +1,8 @@
-﻿using Toolbox.Extensions;
+﻿using SpinCluster.sdk.Application;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinPortal.Application;
 
@@ -14,7 +17,11 @@ public static class PortalOptionValidator
         .RuleFor(x => x.SpinSiloApi).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this PortalOption option) => Validator.Validate(option);
+    public static ValidatorResult Validate(this PortalOption subject) => Validator.Validate(subject);
 
-    public static PortalOption Verify(this PortalOption option) => option.Action(x => x.Validate().ThrowOnError());
+    public static PortalOption Verify(this PortalOption subject)
+    {
+        subject.Validate().Assert(x => x.IsValid, x => $"Option is not valid, errors={x.FormatErrors()}");
+        return subject;
+    }
 }
