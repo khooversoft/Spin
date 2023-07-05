@@ -263,7 +263,13 @@ public class DatalakeStore : IDatalakeStore
         }
     }
 
-    private string WithBasePath(string? path) => _azureStoreOption.BasePath + (_azureStoreOption.BasePath.IsEmpty() ? string.Empty : "/") + path;
+    private string WithBasePath(string? path) => new[]
+    {
+        _azureStoreOption.BasePath,
+        path,
+    }.Where(x => x.IsNotEmpty())
+    .Join('/')
+    .RemoveTrailing('/');
 
     private string RemoveBaseRoot(string path)
     {

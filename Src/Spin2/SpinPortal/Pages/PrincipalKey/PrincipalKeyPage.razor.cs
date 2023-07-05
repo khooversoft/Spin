@@ -1,24 +1,36 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using System.Net.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
+using Microsoft.JSInterop;
+using SpinPortal;
+using SpinPortal.Shared;
+using SpinPortal.Application;
 using MudBlazor;
-using SpinCluster.sdk.Actors.Search;
+using Toolbox.Extensions;
+using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Client;
-using SpinPortal.Application;
-using SpinPortal.Shared;
-using Toolbox.Extensions;
+using static MudBlazor.CategoryTypes;
 using Toolbox.Tools.Table;
 using Toolbox.Types;
+using SpinCluster.sdk.Actors.Search;
 
-namespace SpinPortal.Pages.User;
+namespace SpinPortal.Pages.PrincipalKey;
 
-public partial class UserPage
+public partial class PrincipalKeyPage
 {
-    [Inject] public ILogger<QueryPanel> Logger { get; set; } = null!;
-    [Inject] public PortalOption Option { get; set; } = null!;
+    [Inject] public ILogger<PrincipalKeyPage> Logger { get; set; } = null!;
     [Inject] public SpinClusterClient Client { get; set; } = null!;
-    [Inject] IDialogService DialogService { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
-    [Inject] public SpinClusterClient SpinClusterClient { get; set; } = null!;
     [Inject] NavigationManager NavManager { get; set; } = null!;
 
     private object _lock = new object();
@@ -30,7 +42,6 @@ public partial class UserPage
     private int? _selectedRow { get; set; }
     private bool _disableRowIcons => _selectedRow == null;
     private bool _disableOpen => _selectedRow == null || !_table.Rows[(int)_selectedRow].Tag.HasTag(SpinConstants.Open);
-    private ObjectId _pathObjectId { get; set; } = null!;
 
     protected override void OnParametersSet()
     {
@@ -51,12 +62,12 @@ public partial class UserPage
 
     private string GetSelectedKey() => _table.Rows[(int)_selectedRow!].Key!;
 
-    private void Add() => NavManager.NavigateTo(PortalConstants.Pages.TenantEditPage(), true);
+    private void Add() => NavManager.NavigateTo(PortalConstants.Pages.PrincipalKeyPage(), true);
     private void Open() => OnOpen(GetSelectedKey());
     private void OnOpen(string key)
     {
         ObjectId objectId = key.ToObjectId();
-        NavManager.NavigateTo(PortalConstants.Pages.TenantEditPage(objectId.Path), true);
+        NavManager.NavigateTo(PortalConstants.Pages.PrincipalKeyPage(objectId.Path), true);
     }
 
 

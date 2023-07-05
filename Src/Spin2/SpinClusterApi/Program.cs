@@ -1,4 +1,5 @@
 using System.Reflection;
+using SpinCluster.sdk.Application;
 using SpinClusterApi.Application;
 using Toolbox.Extensions;
 
@@ -29,6 +30,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSpinApi();
+builder.Services.AddSpinApiInternal();
 
 var app = builder.Build();
 
@@ -43,6 +45,8 @@ if (option.UseSwagger)
 app.UseHttpsRedirection();
 
 app.MapSpinApi();
+app.MapSpinApiInternal();
+
 option.IpAddress.Split(';').ForEach(x => app.Urls.Add(x));
 
 app.WaitForSpinSilo();

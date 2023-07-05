@@ -13,7 +13,7 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Application;
 
-public static class Setup
+public static class SiloSetup
 {
     public static IServiceCollection AddSpinCluster(this IServiceCollection services, SpinClusterOption option)
     {

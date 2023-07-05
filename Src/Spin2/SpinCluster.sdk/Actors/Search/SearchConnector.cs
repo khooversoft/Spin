@@ -1,7 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Types;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -22,15 +27,27 @@ internal class SearchConnector
     {
         // http://{server}/search/{schema}/{tenant}/{path}[/{path}...]?index=n&count=n
 
-        app.MapGet("/search/{*filter}", async (
-            string filter,
+        app.MapGet("/search", async (
+            [FromQuery(Name = "schema")] string schema,
+            [FromQuery(Name = "tenant")] string tenant,
+            [FromQuery(Name = "filter")] string? filter,
             [FromQuery(Name = "index")] int? index,
             [FromQuery(Name = "count")] int? count,
             [FromQuery(Name = "recurse")] bool? recurse,
             [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId
             ) =>
         {
-            var result = await Search(filter, index, count, recurse, traceId);
+            var query = new SearchQuery
+            {
+                Schema = schema,
+                Tenant = tenant,
+                Filter = filter.ToNullIfEmpty() ?? "/",
+                Index = index ?? 0,
+                Count = count ?? 1000,
+                Recurse = recurse ?? false,
+            };
+
+            var result = await Search(query, traceId);
 
             return result.IsOk() switch
             {
@@ -40,17 +57,9 @@ internal class SearchConnector
         });
     }
 
-    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(string filter, int? index, int? count, bool? recurse, string traceId)
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(SearchQuery query, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-
-        var query = new SearchQuery
-        {
-            Index = index ?? 0,
-            Count = count ?? 1000,
-            Filter = filter,
-            Recurse = recurse ?? false,
-        };
 
         ISearchActor actor = _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch);
 

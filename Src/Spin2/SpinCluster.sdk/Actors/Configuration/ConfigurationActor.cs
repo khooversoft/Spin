@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Actors.Search;
+using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Services;
 using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
@@ -19,28 +22,33 @@ public interface IConfigurationActor : IGrainWithStringKey
 public class ConfigurationActor : Grain, IConfigurationActor
 {
     private readonly SiloConfigStore _configStore;
-    private readonly Validator<SiloConfigOption> _validator;
-    private readonly CacheObject<SiloConfigOption> _cacheObject = new CacheObject<SiloConfigOption>(TimeSpan.FromMinutes(15));
+    private readonly IValidator<SiloConfigOption> _validator;
     private readonly ILogger _logger;
+    private readonly SiloConfigurationAgent _siloConfigurationAgent;
+    private readonly TenantListAgent _tenantListAgent;
 
-    public ConfigurationActor(SiloConfigStore configStore, Validator<SiloConfigOption> validator, ILogger<LeaseActor> logger)
+    public ConfigurationActor(SiloConfigStore configStore, IValidator<SiloConfigOption> validator, ILogger<LeaseActor> logger)
     {
         _configStore = configStore;
         _validator = validator;
         _logger = logger;
+
+        _siloConfigurationAgent = new SiloConfigurationAgent(configStore);
+        _tenantListAgent = new TenantListAgent(() => GrainFactory.GetGrain<ISearchActor>(SpinConstants.SchemaSearch));
     }
 
     public virtual async Task<SpinResponse<SiloConfigOption>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Getting SpinConfigruation id={id}", this.GetPrimaryKeyString());
+        Option<SiloConfigOption> soloConfigOption = await _siloConfigurationAgent.Get(context);
+        IReadOnlyList<string> tenantList = await _tenantListAgent.Get(context);
 
-        if (_cacheObject.TryGetValue(out SiloConfigOption value)) return value;
+        var mergedConfig = soloConfigOption.Return(() => new SiloConfigOption()) switch
+        {
+            var v => v with { Tenants = v.Tenants.Concat(tenantList).ToArray() }
+        };
 
-        SiloConfigOption option = await _configStore.Get(context).Return();
-        _cacheObject.Set(option);
-
-        return option;
+        return mergedConfig;
     }
 
     public virtual async Task<StatusCode> Set(SiloConfigOption model, string traceId)

@@ -1,0 +1,51 @@
+﻿@page "/data/{schema}/{tenant?}/{*pageRoute}"
+
+<MudStack Spacing=2 Class="pt-4 px-2">
+    <MudText Typo=Typo.h5>@_title</MudText>
+
+    @if (_dataObjectId != null)
+    {
+        <PathText DataObjectId="@_dataObjectId" />
+    }
+
+    <MudPaper Elevation="2" Class="nvarbar-panel pt-1">
+        <MudToolBar Dense=true>
+            <MudText>Users</MudText>
+            <MudDivider DividerType=DividerType.Middle />
+
+            @if (_dataObjectId?.Paths.Count > 0)
+            {
+                <MudIconButton Variant="@Variant.Outlined" Color="@Color.Default" Size="@Size.Small" OnClick="@GotoParent" Icon="@Icons.Material.Sharp.ArrowUpward" />
+            }
+
+            <MudStack Spacing=3 Row=true>
+                <StandardButton Icon="@Icons.Material.Sharp.Add" OnClick=Add Text="Add" />
+                <StandardButton Icon="@Icons.Material.TwoTone.FileOpen" Disabled="@_dataControl.DisableOpen" OnClick=Open Text="Open" />
+                <StandardButton Icon="@Icons.Material.Sharp.Clear" Disabled="@_dataControl.DisableClear" OnClick=Delete Text="Delete" />
+                <StandardButton Icon="@Icons.Material.Sharp.Refresh" OnClick=Refresh Text="Refresh" />
+            </MudStack>
+
+            <MudSpacer />
+
+            <MudSelect T="string" Style="max-width:200px" Value="@Tenant" Label="Tenant"
+                       DisableUnderLine=true AnchorOrigin="Origin.BottomCenter" Margin=Margin.Dense ValueChanged="@(args => SetTenant(args))">
+                @foreach (var item in _dataControl.Tenants)
+                {
+                    <MudSelectItem Value=@item />
+                }
+            </MudSelect>
+
+        </MudToolBar>
+    </MudPaper>
+
+    <Message Text=@_errorMsg Severity=Severity.Error />
+
+    <Waiting Show=@(!_displayState.IsInitialized() && _errorMsg == null) />
+
+    @if (_displayState.IsInitialized())
+    {
+        <MudPaper Class="mt-2">
+            <DataTable Table="@_dataControl.Table" OnRowClick="x => OnRowClick(x)" OnOpenClick="x => OnOpen(x)" />
+        </MudPaper>
+    }
+</MudStack>

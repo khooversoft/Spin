@@ -8,11 +8,12 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Key;
 
+[GenerateSerializer, Immutable]
 public record PrincipalKeyRequest
 {
-    public string KeyId { get; init; } = null!;
-    public string OwnerId { get; init; } = null!;
-    public string Name { get; init; } = null!;
+    [Id(0)] public string KeyId { get; init; } = null!;
+    [Id(1)] public string OwnerId { get; init; } = null!;
+    [Id(2)] public string Name { get; init; } = null!;
 }
 
 

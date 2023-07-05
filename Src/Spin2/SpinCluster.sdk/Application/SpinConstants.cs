@@ -10,10 +10,11 @@ public static class SpinConstants
 
     public static class Schema
     {
+        public const string System = "$system";
         public const string Tenant = "tenant";
         public const string User = "user";
         public const string Group = "group";
-        public const string Key = "principalKey";
+        public const string PrincipalKey = "principalKey";
         public const string Storage = "storage";
         public const string Config = "storage";
     }
@@ -23,7 +24,7 @@ public static class SpinConstants
         public const string Tenant = Schema.Tenant + "v1";
         public const string User = Schema.User + "v1";
         public const string Group = Schema.Group + "v1";
-        public const string Key = Schema.Key + "v1";
+        public const string PrincipalKey = Schema.PrincipalKey + "v1";
         public const string Storage = Schema.Storage + "v1";
         public const string Config = Schema.Config + "v1";
     }

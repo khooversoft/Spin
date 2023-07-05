@@ -18,7 +18,7 @@ public class TenantActor : ActorDataBase2<TenantModel>, ITenantActor
 
     public TenantActor(
         [PersistentState(stateName: SpinConstants.Extension.Tenant, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
-        Validator<TenantModel> validator,
+        IValidator<TenantModel> validator,
         ILogger<TenantActor> logger
         )
         : base(state, validator, logger)

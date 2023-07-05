@@ -1,8 +1,8 @@
-﻿@*@page "/tenant"
+﻿@page "/principalKey"
 
 <MudPaper Elevation="2" Class="nvarbar-panel pt-1">
     <MudToolBar Dense=true>
-        <MudText>Tenants</MudText>
+        <MudText>Users</MudText>
         <MudDivider DividerType=DividerType.Middle />
 
         <MudStack Spacing=3 Row=true>
@@ -24,4 +24,4 @@
     <MudPaper Class="mt-2">
         <DataTable Table="@_table" OnRowClick="x => OnRowClick(x)" OnOpenClick="x => OnOpen(x)" />
     </MudPaper>
-}*@
+}

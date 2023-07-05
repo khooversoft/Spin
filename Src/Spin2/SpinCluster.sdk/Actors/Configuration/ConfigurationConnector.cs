@@ -1,20 +1,33 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SpinCluster.sdk.Actors.Configuration;
-using SpinCluster.sdk.Actors.Lease;
-using SpinCluster.sdk.Application;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Actors.Resource;
 using SpinCluster.sdk.Types;
+using Toolbox.Tools.Zip;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Builder;
+using SpinCluster.sdk.Application;
+using Microsoft.AspNetCore.Http;
+using Toolbox.Azure.DataLake;
+using SpinCluster.sdk.Actors.Search;
+using System.Reflection;
+using SpinCluster.sdk.Actors.Lease;
 
-namespace SpinClusterApi.Connectors;
+namespace SpinCluster.sdk.Actors.Configuration;
 
 internal class ConfigurationConnector
 {
     private readonly IClusterClient _client;
-    private readonly ILogger<LeaseConnector> _logger;
+    private readonly ILogger<ConfigurationConnector> _logger;
     private const string _configKey = "$system";
 
-    public ConfigurationConnector(IClusterClient client, ILogger<LeaseConnector> logger)
+    public ConfigurationConnector(IClusterClient client, ILogger<ConfigurationConnector> logger)
     {
         _client = client.NotNull();
         _logger = logger.NotNull();
@@ -22,14 +35,7 @@ internal class ConfigurationConnector
 
     public void Setup(IEndpointRouteBuilder app)
     {
-        //var group = app.MapGroup("/configuration");
-
-        app.MapGet("/configuration", async ([FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => await Get(traceId) switch
-        {
-            var v when v.IsError() => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
-            var v when v.HasValue => Results.Ok(v.Return()),
-            var v => Results.BadRequest(v.Return()),
-        });
+        app.MapGet("/configuration", async ([FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => (await Get(traceId)).ToResult());
 
         app.MapPost("/configuration", async (SiloConfigOption request, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
@@ -38,14 +44,14 @@ internal class ConfigurationConnector
         });
     }
 
-    public async Task<Option<object>> Get(string traceId)
+    public async Task<Option<SiloConfigOption>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         IConfigurationActor actor = _client.GetGrain<IConfigurationActor>(_configKey);
         SpinResponse<SiloConfigOption> response = await actor.Get(context.TraceId);
 
-        if (response.StatusCode.IsError()) return response.StatusCode.ToOption<object>();
+        if (response.StatusCode.IsError()) return response.StatusCode.ToOption<SiloConfigOption>();
         return response.Return();
     }
 

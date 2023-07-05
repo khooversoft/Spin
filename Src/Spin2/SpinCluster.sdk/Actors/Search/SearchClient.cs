@@ -18,44 +18,39 @@ public class SearchClient
     private readonly HttpClient _client;
     public SearchClient(HttpClient client) => _client = client.NotNull();
 
-    public Task<Option<IReadOnlyList<StorePathItem>>> Query(QueryParameter queryParameter, ScopeContext context)
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Query(SearchQuery searchQuery, ScopeContext context)
     {
-        return Query(queryParameter.Filter, queryParameter.Index, queryParameter.Count, queryParameter.Recurse, context);
-    }
+        searchQuery.NotNull();
 
-    public async Task<Option<IReadOnlyList<StorePathItem>>> Query(string? filter, int? index, int? count, bool? recurse, ScopeContext context)
-    {
-        string query = new string?[]
+        string query = new string[]
         {
-            index?.ToString()?.Func(x => $"index={x}"),
-            count?.ToString()?.Func(x => $"count={x}"),
-            recurse?.ToString()?.Func(x => $"recurse={x}"),
-        }
-        .Where(x => x != null)
-        .Join("&")
-        .Func(x => x.IsNotEmpty() ? "?" + x : string.Empty);
+            $"schema={searchQuery.Schema}",
+            $"tenant={searchQuery.Tenant}",
+            $"filter={searchQuery.Filter}",
+            $"index={searchQuery.Index}",
+            $"count={searchQuery.Count}",
+            $"recurse={searchQuery.Recurse}",
+        }.Join('&');
 
         return await new RestClient(_client)
-            .SetPath($"/search/{filter}{query}")
+            .SetPath($"/search?{query}")
             .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
             .GetAsync(context)
             .GetContent<IReadOnlyList<StorePathItem>>();
     }
 
-    public async Task<Option<ObjectTable>> Load(QueryParameter queryParameter, ScopeContext context)
+    public async Task<Option<ObjectTable>> Load(SearchQuery searchQuery, ScopeContext context)
     {
         try
         {
-            Option<IReadOnlyList<StorePathItem>> batch = await Query(queryParameter, context);
+            Option<IReadOnlyList<StorePathItem>> batch = await Query(searchQuery, context);
             if (batch.IsError()) return batch.ToOption<ObjectTable>();
-
-            string? tenant = queryParameter?.Filter?.Split('/')?.First();
 
             ObjectRow[] rows = batch.Return().Select(x => new ObjectRow(new object?[]
                 {
                     x.Name.Split('/').Skip(1).Join('/'),
                     x.LastModified
-                }, createTag(x), createName(tenant, x.Name))
+                }, createTag(x), createName(searchQuery.Schema, x.Name))
             ).ToArray();
 
             ObjectTable table = new ObjectTableBuilder()

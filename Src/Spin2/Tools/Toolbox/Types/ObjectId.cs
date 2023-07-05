@@ -11,19 +11,17 @@ public sealed record ObjectId
     public string? _path;
     public string? _id;
 
-    public ObjectId(string schema, string tenant, string path)
-        : this(schema, tenant, path.Split('/', StringSplitOptions.RemoveEmptyEntries))
-    {
-    }
-
-    public ObjectId(string schema, string tentant, IEnumerable<string> paths)
+    public ObjectId(string schema, string tentant, params string?[] paths)
     {
         Schema = schema.Assert(x => IsPathValid(x), _syntaxError);
         Tenant = tentant.Assert(x => IsPathValid(x), _syntaxError);
 
-        Paths = paths.NotNull()
-            .Action(x => x.ForEach(x => x.Assert(x => IsPathValid(x), _syntaxError)))
-            .ToArray();
+        Paths = (paths ?? Array.Empty<string>())
+            .Where(x => x != null)
+            .OfType<string>()
+            .Join('/')
+            .Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Action(x => x.ForEach(x => x.Assert(x => IsPathValid(x), _syntaxError)));
     }
 
     public const string Syntax = "{schema}/{tenant}[/{path}...] Valid characters are a-z A-Z 0-9 . $ @ - _ *";
@@ -40,7 +38,7 @@ public sealed record ObjectId
     public IReadOnlyList<string> Paths { get; }
 
     public string Path => _path ?? Paths.Join("/");
-    public string Id => _id ?? $"{Schema}/{Tenant}/{Path}";
+    public string Id => _id ?? $"{Schema}/{Tenant}/{Path}".RemoveTrailing('/');
     public override string ToString() => Id;
 
     public bool Equals(ObjectId? obj) => obj is ObjectId value &&
@@ -78,7 +76,7 @@ public sealed record ObjectId
         string tenant = tokenStack.Pop();
         if (!IsPathValid(tenant)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, tenant has invalid characters");
 
-        IReadOnlyList<string> paths = tokenStack.ToArray();
+        var paths = tokenStack.ToArray();
         if (!paths.All(x => IsPathValid(x))) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, one or more of the paths has invalid characters");
 
         return new ObjectId(schema, tenant, paths);
@@ -107,7 +105,7 @@ public static class ObjectIdExtensions
     public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString(subject.ToString());
     public static ObjectId FromUrlEncoding(this string id) => Uri.UnescapeDataString(id).ToObjectId();
 
-    public static string GetParent(this ObjectId uri) => uri.Paths
-        .Take(Math.Max(1, uri.Paths.Count - 2))
+    public static string GetParent(this ObjectId subject) => subject.Paths
+        .Take(Math.Max(0, subject.Paths.Count - 2))
         .Join("/");
 }

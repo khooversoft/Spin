@@ -9,13 +9,13 @@
                     @if (context.Item.ShowFolder)
                     {
                         <MudTooltip Text="Folder">
-                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.Outlined.Folder" OnClick="() => OnFolderButton(context.Item)"></MudButton>
+                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.TwoTone.Folder" OnClick="() => OnFolderButton(context.Item)"></MudButton>
                         </MudTooltip>
                     }
                     @if (context.Item.ShowOpen)
                     {
                         <MudTooltip Text="Open">
-                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.Sharp.Shortcut" OnClick="() => OnView(context.Item.Key)"></MudButton>
+                            <MudButton Style="min-width:0" Size=Size.Small StartIcon="@Icons.Material.TwoTone.FileOpen" OnClick="() => OnView(context.Item.Key)"></MudButton>
                         </MudTooltip>
                     }
                 </MudStack>

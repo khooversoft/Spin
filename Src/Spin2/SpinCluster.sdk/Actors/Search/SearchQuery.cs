@@ -7,10 +7,12 @@ namespace SpinCluster.sdk.Actors.Search;
 [GenerateSerializer, Immutable]
 public record SearchQuery
 {
-    [Id(0)] public int Index { get; init; } = 0;
-    [Id(1)] public int Count { get; init; } = 1000;
-    [Id(2)] public string Filter { get; init; } = null!;
-    [Id(3)] public bool Recurse { get; init; }
+    [Id(0)] public string Schema { get; init; } = null!;
+    [Id(1)] public string Tenant { get; init; } = null!;
+    [Id(2)] public string Filter { get; init; } = "/";
+    [Id(3)] public int Index { get; init; } = 0;
+    [Id(4)] public int Count { get; init; } = 1000;
+    [Id(5)] public bool Recurse { get; init; }
 
     public static QueryParameter Default { get; } = new QueryParameter();
 }
@@ -19,6 +21,8 @@ public record SearchQuery
 public static class SearchQueryValidator
 {
     public static IValidator<SearchQuery> Validator { get; } = new Validator<SearchQuery>()
+        .RuleFor(x => x.Schema).NotEmpty()
+        .RuleFor(x => x.Tenant).NotEmpty()
         .RuleFor(x => x.Filter).NotEmpty()
         .Build();
 
@@ -30,7 +34,7 @@ public static class SearchQueryValidator
     {
         Index = subject.Index,
         Count = subject.Count,
-        Filter = subject.Filter,
+        Filter = $"{subject.Tenant}/{subject.Filter}",
         Recurse = subject.Recurse,
     };
 }

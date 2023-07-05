@@ -156,4 +156,29 @@ public static class StringExtensions
         string v when v.Length < count * 2 => "***",
         string v => value[0..count] + "..." + value[^count..],
     };
+
+
+    public static string? RemoveDuplicates(this string? input, char removeDuplicateChr)
+    {
+        if (input.IsEmpty()) return input;
+
+        ReadOnlySpan<char> inputSpan = input.AsSpan();
+        Span<char> outputSpan = stackalloc char[inputSpan.Length];
+        int outputIndex = 0;
+        int i = 0;
+        outputSpan[outputIndex++] = inputSpan[i++];
+
+        for (; i < inputSpan.Length; i++)
+        {
+            if (inputSpan[i] == removeDuplicateChr && inputSpan[i - 1] == removeDuplicateChr) continue;
+
+            outputSpan[outputIndex++] = inputSpan[i];
+        }
+
+        return outputSpan.Slice(0, outputIndex).ToString();
+    }
+
+    [return: NotNullIfNotNull(nameof(input))]
+    public static string? RemoveTrailing(this string? input, char removeTrailingChr) =>
+        input?.Func(x => x.EndsWith(removeTrailingChr) ? x[0..(x.Length-1)] : x);        
 }

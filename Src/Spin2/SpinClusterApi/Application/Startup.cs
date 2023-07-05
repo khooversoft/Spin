@@ -1,33 +1,22 @@
-﻿using SpinCluster.sdk.Actors.Key;
-using SpinCluster.sdk.Actors.Tenant;
-using SpinCluster.sdk.Actors.User;
-using SpinClusterApi.Connectors;
+﻿using SpinClusterApi.Connectors;
 
 namespace SpinClusterApi.Application;
 
 internal static class Startup
 {
-    public static IServiceCollection AddSpinApi(this IServiceCollection services)
+    public static IServiceCollection AddSpinApiInternal(this IServiceCollection services)
     {
         services.AddSingleton<SchemaConnector>();
         services.AddSingleton<LeaseConnector>();
-        services.AddSingleton<ConfigurationConnector>();
-        services.AddSingleton<SearchConnector>();
         services.AddSingleton<ResourceConnect>();
-        services.AddSingleton<TenantConnector>();
-        services.AddSingleton<UserConnector>();
 
         return services;
     }
 
-    public static void MapSpinApi(this IEndpointRouteBuilder app)
+    public static void MapSpinApiInternal(this IEndpointRouteBuilder app)
     {
         app.ServiceProvider.GetRequiredService<SchemaConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<LeaseConnector>().Setup(app);
-        app.ServiceProvider.GetRequiredService<ConfigurationConnector>().Setup(app);
-        app.ServiceProvider.GetRequiredService<SearchConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<ResourceConnect>().Setup(app);
-        app.ServiceProvider.GetRequiredService<TenantConnector>().Setup(app);
-        app.ServiceProvider.GetRequiredService<UserConnector>().Setup(app);
     }
 }

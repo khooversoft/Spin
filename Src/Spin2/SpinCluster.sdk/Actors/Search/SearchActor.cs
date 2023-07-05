@@ -21,9 +21,9 @@ public class SearchActor : Grain, ISearchActor
 {
     private readonly DatalakeSchemaResources _datalakeResources;
     private readonly ILogger<SearchActor> _logger;
-    private readonly Validator<SearchQuery> _validator;
+    private readonly IValidator<SearchQuery> _validator;
 
-    public SearchActor(DatalakeSchemaResources datalakeResources, Validator<SearchQuery> validator, ILogger<SearchActor> logger)
+    public SearchActor(DatalakeSchemaResources datalakeResources, IValidator<SearchQuery> validator, ILogger<SearchActor> logger)
     {
         _datalakeResources = datalakeResources.NotNull();
         _logger = logger.NotNull();
@@ -39,18 +39,12 @@ public class SearchActor : Grain, ISearchActor
                 return new SpinResponse<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest, v.FormatErrors());
         }
 
-        string[] parts = searchQuery.Filter.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        string schema = parts[0];
-        string filter = parts.Skip(1).Join('/');
-
-        Option<IDatalakeStore> store = _datalakeResources.GetStore(schema);
+        Option<IDatalakeStore> store = _datalakeResources.GetStore(searchQuery.Schema);
         if (store.IsError())
         {
-            context.Location().LogError("Failed to get datalake store for schemaName={schemaName}", schema);
+            context.Location().LogError("Failed to get datalake store for schemaName={schemaName}", searchQuery.Schema);
             return new SpinResponse<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest, "Failed to get schema");
         }
-
-        searchQuery = searchQuery with { Filter = filter };
 
         Option<QueryResponse<DatalakePathItem>> result = await store.Return().Search(searchQuery.ConvertTo(), context);
         if (result.IsError())

@@ -17,7 +17,7 @@ public class PrincipalPrivateKeyActor : ActorDataBase2<PrincipalPrivateKeyModel>
     private readonly ILogger<PrincipalPrivateKeyActor> _logger;
 
     public PrincipalPrivateKeyActor(
-        [PersistentState(stateName: SpinConstants.Extension.Key, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
+        [PersistentState(stateName: SpinConstants.Extension.PrincipalKey, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
         Validator<PrincipalPrivateKeyModel> validator,
         ILogger<PrincipalPrivateKeyActor> logger
         )
