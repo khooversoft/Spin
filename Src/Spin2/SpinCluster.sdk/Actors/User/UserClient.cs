@@ -8,7 +8,7 @@ using SpinCluster.sdk.Actors.Tenant;
 
 namespace SpinCluster.sdk.Actors.User;
 
-public class UserClient : ClientBase<TenantModel>
+public class UserClient : ClientBase<UserModel>
 {
     public UserClient(HttpClient client) : base(client, "user") { }
 }

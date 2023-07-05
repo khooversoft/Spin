@@ -20,22 +20,39 @@ public partial class UserEdit
     [Inject] NavigationManager NavManager { get; set; } = null!;
     [Inject] public SpinClusterClient Client { get; set; } = null!;
 
-    [Parameter] public string? path { get; set; }
+    [Parameter] public string Tenant { get; set; } = null!;
+    [Parameter] public string? PageRoute { get; set; }
 
     private ObjectId _objectId { get; set; } = null!;
-    private RegisterAccountForm _model = new RegisterAccountForm();
-    private const string _notActive = "< not active >";
+    private UserEditModel _model = new UserEditModel();
     private string? _errorMsg { get; set; }
     private string _addOrUpdateButtonText = null!;
     private bool _disableUserId;
+    private string _returnAddress = null!;
+    private string _title = null!;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
-        _objectId = path != null ? new ObjectId("tenant", "$system", path) : null!;
-        _addOrUpdateButtonText = _objectId != null ? "Update" : "Add";
-        _disableUserId = _objectId != null ? true : false;
+        Tenant.NotNull();
 
-        _model = await Read();
+        _objectId = new ObjectId("user", Tenant, PageRoute);
+
+        (_title, _addOrUpdateButtonText, _disableUserId) = _objectId.Path.IsNotEmpty() switch
+        {
+            true => ("Edit User", "Update", true),
+            false => ("Add User", "Add", false),
+        };
+
+        _returnAddress = $"/data/user/{Tenant}/{_objectId.GetParent()}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _model = await Read();
+            StateHasChanged();
+        }
     }
 
     private async void OnValidSubmit(EditContext context)
@@ -44,116 +61,31 @@ public partial class UserEdit
         StateHasChanged();
     }
 
-    private void Cancel() { NavManager.NavigateTo("/tenant"); }
+    private void Cancel() { NavManager.NavigateTo(_returnAddress, true); }
 
     private async Task AddOrUpdate()
     {
-        var request = new TenantModel
-        {
-            TenantId = _model.TenantId,
-            GlobalPrincipleId = _model.GlobalPrincipleId,
-            TenantName = _model.TenantName,
-            Contact = _model.Contact,
-            Email = _model.Email,
-            AccountEnabled = _model.AccountEnabled,
-            CreatedDate = _model.CreatedDate,
-            ActiveDate = _model.ActiveDate,
+        var request = _model.ConvertTo();
+        var requestObjectId = new ObjectId(SpinConstants.Schema.User, Tenant, request.UserId);
 
-            Phone = new UserPhoneModel { Type = "Default", Number = _model.PhoneNumber }.ToEnumerable().ToArray(),
-
-            Addresses = new UserAddressModel
-            {
-                Type = "Default",
-                Address1 = _model.Address1,
-                Address2 = _model.Address2,
-                City = _model.City,
-                State = _model.State,
-                ZipCode = _model.ZipCode,
-                Country = _model.Country,
-            }.ToEnumerable().ToArray(),
-        };
-
-        Option<StatusResponse> result = await Client.Tenant.Set(request.TenantId.ToObjectId("tenant", SpinConstants.SystemTenant), request, new ScopeContext(Logger));
+        Option<StatusResponse> result = await Client.User.Set(requestObjectId, request, new ScopeContext(Logger));
         if (result.IsError())
         {
             _errorMsg = $"Failed to write, statusCode={result.StatusCode}, error={result.Error}";
         }
 
-        NavManager.NavigateTo("/tenant");
+        NavManager.NavigateTo(_returnAddress, true);
     }
 
-    private async Task<RegisterAccountForm> Read()
+    private async Task<UserEditModel> Read()
     {
-        if (_objectId == null) return new RegisterAccountForm
-        {
-            TenantId = "Tenant1",
-            TenantName = "Company1",
-            Contact = "Contact1",
-            Email = "contact1@company1.com",
-            PhoneNumber = "206-555-1212",
-            Address1 = "Address1",
-            Address2 = "Address2",
-            City = "City1",
-            State = "State1",
-            ZipCode = "ZipCode1",
-            Country = "Country1",
-        };
-
-        var result = await Client.Tenant.Get(_objectId, new ScopeContext(Logger));
+        var result = await Client.User.Get(_objectId, new ScopeContext(Logger));
         if (result.IsError())
         {
             _errorMsg = $"Fail to read TenantId={_objectId}";
-            return new RegisterAccountForm();
+            return new UserEditModel();
         }
 
-        return ConvertTo(result.Return());
-    }
-    private RegisterAccountForm ConvertTo(TenantModel subject) => new RegisterAccountForm
-    {
-        TenantId = subject.TenantId,
-        GlobalPrincipleId = subject.GlobalPrincipleId,
-        TenantName = subject.TenantName,
-        Contact = subject.Contact,
-        Email = subject.Email,
-        AccountEnabled = subject.AccountEnabled,
-        CreatedDate = subject.CreatedDate.ToUniversalTime(),
-        ActiveDate = subject.ActiveDate?.ToUniversalTime(),
-
-        PhoneNumber = subject.Phone.FirstOrDefault()?.Number!,
-        Address1 = subject.Addresses.FirstOrDefault()?.Address1!,
-        Address2 = subject.Addresses.FirstOrDefault()?.Address2!,
-        City = subject.Addresses.FirstOrDefault()?.City!,
-        State = subject.Addresses.FirstOrDefault()?.State!,
-        ZipCode = subject.Addresses.FirstOrDefault()?.ZipCode!,
-        Country = subject.Addresses.FirstOrDefault()?.Country!,
-    };
-
-    private class RegisterAccountForm : IValidatableObject
-    {
-        public string GlobalPrincipleId { get; set; } = Guid.NewGuid().ToString();
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime? ActiveDate { get; set; }
-        public string ActiveDateText => ActiveDate?.ToString() ?? _notActive;
-
-        [Required, StringLength(50)] public string TenantId { get; set; } = null!;
-        [Required, StringLength(100)] public string TenantName { get; set; } = null!;
-        [Required, StringLength(100)] public string Contact { get; set; } = null!;
-        [Required, EmailAddress] public string Email { get; set; } = null!;
-        public bool AccountEnabled { get; set; }
-        [Required] public string PhoneNumber { get; set; } = null!;
-        [Required] public string Address1 { get; set; } = null!;
-        public string? Address2 { get; set; }
-        [Required] public string City { get; set; } = null!;
-        [Required] public string State { get; set; } = null!;
-        [Required] public string ZipCode { get; set; } = null!;
-        [Required] public string Country { get; set; } = null!;
-
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            if (!ObjectId.IsPathValid(TenantId))
-            {
-                yield return new ValidationResult("Tenant Id is not valid, only alpha numeric, [-._]", new[] { nameof(TenantId) });
-            }
-        }
+        return result.Return().ConvertTo();
     }
 }

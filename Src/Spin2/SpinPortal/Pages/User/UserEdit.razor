@@ -1,8 +1,8 @@
-﻿@page "/userEdit/{path?}"
+﻿@page "/userEdit/{tenant}/{*pageRoute}"
 
 <MudPaper Elevation="2" Class="nvarbar-panel pt-1">
     <MudToolBar Dense=true>
-        <MudText>Add Tenant</MudText>
+        <MudText>@_title</MudText>
         <MudDivider DividerType=DividerType.Middle />
 
         <MudStack Spacing=3 Row=true>
@@ -20,10 +20,11 @@
         <MudItem xs="12" sm="7">
             <MudCard>
                 <MudCardContent>
-                    <MudTextField Label="User ID" HelperText="Max 50 characters, only alpha numeric, [-._]" Disabled=_disableUserId @bind-Value="_model.TenantId" For="@(() => _model.TenantId)" />
+                    <MudTextField Label="User ID" HelperText="Max 50 characters, only alpha numeric, [-._]" Disabled=_disableUserId @bind-Value="_model.UserId" For="@(() => _model.UserId)" />
 
-                    <MudTextField Label="Name" HelperText="Max 100 characters" @bind-Value="_model.TenantName" For="@(() => _model.TenantName)" />
-                    <MudTextField Label="Contact" HelperText="Max 100 characters" @bind-Value="_model.Contact" For="@(() => _model.Contact)" />
+                    <MudTextField Label="DisplayName" HelperText="Max 100 characters" @bind-Value="_model.DisplayName" For="@(() => _model.DisplayName)" />
+                    <MudTextField Label="First Name" HelperText="Max 100 characters" @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" />
+                    <MudTextField Label="Last Name" HelperText="Max 100 characters" @bind-Value="_model.LastName" For="@(() => _model.LastName)" />
                     <MudTextField Label="Email" Class="mt-3" @bind-Value="_model.Email" For="@(() => _model.Email)" />
                 </MudCardContent>
                 <MudCardContent>

@@ -18,7 +18,7 @@ public class UserActor : ActorDataBase2<UserModel>, IUserActor
 
     public UserActor(
         [PersistentState(stateName: SpinConstants.Extension.User, storageName: SpinConstants.SpinStateStore)] IPersistentState<UserModel> state,
-        Validator<UserModel> validator,
+        IValidator<UserModel> validator,
         ILogger<UserActor> logger
         )
         : base(state, validator, logger)

@@ -29,14 +29,19 @@ public partial class TenantEdit
     private string _addOrUpdateButtonText = null!;
     private bool _disableUserId;
     private string _returnAddress = null!;
+    private string _title = null!;
 
     protected override void OnParametersSet()
     {
         Tenant.NotNull();
 
         _objectId = new ObjectId("tenant", Tenant, PageRoute);
-        _addOrUpdateButtonText = _objectId.Path.IsNotEmpty() ? "Update" : "Add";
-        _disableUserId = _objectId.Path.IsNotEmpty() ? true : false;
+
+        (_title, _addOrUpdateButtonText, _disableUserId) = _objectId.Path.IsNotEmpty() switch
+        {
+            true => ("Edit Tenant", "Update", true),
+            false => ("Add Tenant", "Add", false),
+        };
 
         _returnAddress = $"/data/tenant/{Tenant}/{_objectId.GetParent()}";
     }
