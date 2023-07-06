@@ -55,7 +55,6 @@ public class SearchActor : Grain, ISearchActor
 
         return result.Return().Items
             .Select(x => x.ConvertTo())
-            .ToArray()
-            .ToSpinResponse<IReadOnlyList<StorePathItem>>();
+            .ToArray();
     }
 }

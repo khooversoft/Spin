@@ -25,8 +25,6 @@ internal class SearchConnector
 
     public void Setup(IEndpointRouteBuilder app)
     {
-        // http://{server}/search/{schema}/{tenant}/{path}[/{path}...]?index=n&count=n
-
         app.MapGet("/search", async (
             [FromQuery(Name = "schema")] string schema,
             [FromQuery(Name = "tenant")] string tenant,
@@ -47,9 +45,9 @@ internal class SearchConnector
                 Recurse = recurse ?? false,
             };
 
-            var result = await Search(query, traceId);
+            SpinResponse<IReadOnlyList<StorePathItem>> result = await Search(query, traceId);
 
-            return result.IsOk() switch
+            return result.StatusCode.IsOk() switch
             {
                 true => Results.Ok(result.Return()),
                 false => Results.BadRequest($"StatusCode={result.StatusCode}, error={result.Error}"),
@@ -57,15 +55,9 @@ internal class SearchConnector
         });
     }
 
-    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(SearchQuery query, string traceId)
+    public async Task<SpinResponse<IReadOnlyList<StorePathItem>>> Search(SearchQuery query, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-
-        ISearchActor actor = _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch);
-
-        SpinResponse<IReadOnlyList<StorePathItem>> result = await actor.Search(query, context.TraceId);
-        if (result.StatusCode.IsError()) return new Option<IReadOnlyList<StorePathItem>>(result.StatusCode, result.Error);
-
-        return result.Return().ToOption();
+        return await _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch).Search(query, context.TraceId);
     }
 }

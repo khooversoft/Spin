@@ -17,9 +17,9 @@ public class SpinLeaseClient
         .GetAsync(context)
         .GetContent<LeaseData>();
 
-    public async Task<StatusCode> Release(ObjectId id, string leaseId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"lease/{leaseId}/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .DeleteAsync(context)
-        .GetStatusCode();
+    //public async Task<Option> Release(ObjectId id, string leaseId, ScopeContext context) => await new RestClient(_client)
+    //    .SetPath($"lease/{leaseId}/{id}")
+    //    .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+    //    .DeleteAsync(context)
+    //    .GetStatusCode();
 }

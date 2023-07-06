@@ -15,7 +15,7 @@ namespace SpinCluster.sdk.Actors.Lease;
 public interface IConfigurationActor : IGrainWithStringKey
 {
     Task<SpinResponse<SiloConfigOption>> Get(string traceId);
-    Task<StatusCode> Set(SiloConfigOption model, string traceId);
+    Task<SpinResponse> Set(SiloConfigOption model, string traceId);
 }
 
 
@@ -51,12 +51,13 @@ public class ConfigurationActor : Grain, IConfigurationActor
         return mergedConfig;
     }
 
-    public virtual async Task<StatusCode> Set(SiloConfigOption model, string traceId)
+    public virtual async Task<SpinResponse> Set(SiloConfigOption model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Setting id={id}, model={model}", this.GetPrimaryKeyString(), model.ToJsonPascalSafe(new ScopeContext(_logger)));
-        if (!_validator.Validate(model).LogResult(context.Location()).IsValid) return StatusCode.BadRequest;
+        if (!_validator.Validate(model).LogResult(context.Location()).IsValid) return new SpinResponse(StatusCode.BadRequest);
 
-        return await _configStore.Set(model, context);
+        var statusResult = await _configStore.Set(model, context);
+        return new SpinResponse(statusResult);
     }
 }

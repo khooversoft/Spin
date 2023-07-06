@@ -22,17 +22,17 @@ namespace SpinCluster.sdk.Actors.ActorBase;
 
 public interface IActionOperation<T> : IGrainWithStringKey
 {
-    Task<SpinResponse<T>> Delete(string traceId);
+    Task<SpinResponse> Delete(string traceId);
     Task<SpinResponse<T>> Get(string traceId);
-    Task<SpinResponse<T>> Set(T model, string traceId);
+    Task<SpinResponse> Set(T model, string traceId);
     Task<SpinResponse> Exist(string traceId);
 }
 
 public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T>
 {
-    private readonly IClusterClient _client;
-    private readonly ILogger _logger;
-    private readonly string _rootPath;
+    protected readonly IClusterClient _client;
+    protected readonly ILogger _logger;
+    protected readonly string _rootPath;
 
     public ConnectorBase(IClusterClient client, string rootPath, ILogger logger)
     {
@@ -41,86 +41,70 @@ public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T
         _logger = logger.NotNull();
     }
 
-    public void Setup(IEndpointRouteBuilder app)
+    public virtual RouteGroupBuilder Setup(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup($"/{_rootPath}");
+        RouteGroupBuilder group = app.MapGroup($"/{_rootPath}");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
-        {
-            var response = await Get(objectId, traceId);
-            return constructResponse(response);
-        });
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => (await Get(objectId, traceId)).ToResult());
 
         group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, T model) =>
         {
             var response = await Set(objectId, traceId, model);
-            return constructResponse(response);
+            return response.ToResult();
         });
 
         group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
             var response = await Delete(objectId, traceId);
-            return constructResponse(response);
+            return response.ToResult();
         });
 
-
-        IResult constructResponse(Option<T> option) => option switch
+        group.MapGet("/exist/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
-            var v when v.StatusCode == StatusCode.BadRequest => Results.BadRequest(v.ToStatusResponse()),
-            var v when v.StatusCode == StatusCode.NotFound => Results.NotFound(v.ToStatusResponse()),
-            var v when v.StatusCode == StatusCode.Conflict => Results.Conflict(v.ToStatusResponse()),
+            var response = await Exist(objectId, traceId);
+            return response.ToResult();
+        });
 
-            var v when v.IsOk() && v.HasValue => Results.Ok(v.Return()),
-            var v when v.IsOk() => Results.Ok(v.ToStatusResponse()),
-            var v => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
-        };
+        return group;
     }
 
-    public async Task<Option<T>> Delete(string objectId, string traceId)
+    private async Task<SpinResponse> Delete(string objectId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+
+        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        if (option.IsError()) return option.ToSpinResponse();
+
+        return await _client.GetGrain<TActor>(objectId).Delete(context.TraceId);
+    }
+
+    private async Task<SpinResponse> Exist(string objectId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         var option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToOption<T>();
+        if (option.IsError()) return option.ToSpinResponse();
 
-        TActor actor = _client.GetGrain<TActor>(objectId);
-        var response = await actor.Delete(context.TraceId);
-        return response.ToOption<T>();
+        return await _client.GetGrain<TActor>(objectId).Exist(context.TraceId);
     }
 
-    public async Task<StatusResponse> Exist(string objectId, string traceId)
+    private async Task<SpinResponse<T>> Get(string objectId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         var option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToStatusResponse();
+        if (option.IsError()) return option.ToSpinResponse<T>();
 
-        TActor actor = _client.GetGrain<TActor>(objectId);
-        SpinResponse response = await actor.Exist(context.TraceId);
-        return response.ToStatusResponse();
+        return await _client.GetGrain<TActor>(objectId).Get(context.TraceId);
     }
 
-    public async Task<Option<T>> Get(string objectId, string traceId)
+    private async Task<SpinResponse> Set(string objectId, string traceId, T model)
     {
         var context = new ScopeContext(traceId, _logger);
 
         var option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToOption<T>();
+        if (option.IsError()) return option.ToSpinResponse();
 
-        TActor actor = _client.GetGrain<TActor>(objectId);
-        var response = await actor.Get(context.TraceId);
-        return response.ToOption<T>();
-    }
-
-    public async Task<Option<T>> Set(string objectId, string traceId, T model)
-    {
-        var context = new ScopeContext(traceId, _logger);
-
-        var option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToOption<T>();
-
-        TActor actor = _client.GetGrain<TActor>(objectId);
-        var response = await actor.Set(model, context.TraceId);
-        return response.ToOption<T>();
+        return await _client.GetGrain<TActor>(objectId).Set(model, context.TraceId);
     }
 }

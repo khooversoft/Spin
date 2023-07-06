@@ -6,34 +6,21 @@ using System.Threading.Tasks;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
+using SpinCluster.sdk.Types;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Key;
 
-public class PrincipalKeyClient
+public class PrincipalKeyClient : ClientBase<PrincipalKeyModel>
 {
-    private readonly HttpClient _client;
-    public PrincipalKeyClient(HttpClient client) => _client = client.NotNull();
+    public PrincipalKeyClient(HttpClient client) : base(client, SpinConstants.ApiPath.PrincipalKey) { }
 
-    public async Task<Option<StatusResponse>> Delete(string keyId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.ApiPath.PrincipalKey}/{keyId}")
+    public async Task<Option<SpinResponse>> Set(PrincipalKeyRequest content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{_rootPath}")
         .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .GetContent<StatusResponse>();
-
-    public async Task<Option<PrincipalKeyModel>> Get(string keyId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.ApiPath.PrincipalKey}/{keyId}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .GetContent<PrincipalKeyModel>();
-
-    public async Task<Option<StatusResponse>> Create(PrincipalKeyRequest model, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.ApiPath.PrincipalKey}/{model.KeyId}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .SetContent(model)
+        .SetContent(content)
         .PostAsync(context)
-        .GetContent<StatusResponse>();
-
+        .GetContent<SpinResponse>();
 }

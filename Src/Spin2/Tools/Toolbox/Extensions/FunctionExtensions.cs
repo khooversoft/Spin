@@ -34,7 +34,6 @@ public static class FunctionExtensions
     /// <returns>subject</returns>
     public static T Action<T>(this T subject, Action<T> action)
     {
-        subject.NotNull();
         action.NotNull();
 
         action(subject);

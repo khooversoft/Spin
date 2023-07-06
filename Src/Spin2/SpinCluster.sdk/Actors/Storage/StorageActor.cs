@@ -18,7 +18,7 @@ public class StorageActor : ActorDataBase<StorageBlob>, IStorageActor
 
     public StorageActor(
         [PersistentState(stateName: SpinConstants.Extension.Storage, storageName: SpinConstants.SpinStateStore)] IPersistentState<StorageBlob> state,
-        Validator<StorageBlob> validator,
+        IValidator<StorageBlob> validator,
         ILogger<StorageActor> logger
         )
         : base(state, validator, logger)

@@ -76,7 +76,7 @@ public class Cursor<T>
     public Option<T> NextValue()
     {
         bool hasValue = TryNextValue(out T? value);
-        return new Option<T>(hasValue, value);
+        return new Option<T>(hasValue, value!);
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class Cursor<T>
     public Option<T> PeekValue()
     {
         bool hasValue = TryPeekValue(out T? value);
-        return new Option<T>(hasValue, value);
+        return new Option<T>(hasValue, value!);
     }
 }
 
@@ -111,7 +111,5 @@ public class Cursor<T>
 public static class CursorExtensions
 {
     public static Cursor<T> ToCursor<T>(this IReadOnlyList<T> collection) => new Cursor<T>(collection);
-
-    //public static IReadOnlyList<T> FromIndex<T>(this Cursor<T> cursor, int index) =>
 }
 

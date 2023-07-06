@@ -1,7 +1,7 @@
 ﻿<MudDrawer @bind-Open="@_open" ClipMode="DrawerClipMode.Docked" Breakpoint="Breakpoint.Sm" Elevation="4" Variant="@DrawerVariant.Mini" PreserveOpenState=true>
-    <MudPaper Class="d-flex align-start gap-4 gray-background" Elevation="0">
+    <MudPaper Class="d-flex align-start gap-4" Elevation="0">
         <MudPaper Class="d-flex flex-1" Elevation=0 />
-        <MudPaper Class="d-flex flex-1 gray-background" MaxWidth="20px" Elevation=0>
+        <MudPaper Class="d-flex flex-1" MaxWidth="20px" Elevation=0>
             <MudIconButton Icon="@_menuBarIcon" Color="Color.Inherit" OnClick="@ToggleDrawer" Edge=Edge.Start Variant=Variant.Outlined
                            DisableElevation=true Style="border:0;padding:0;margin:0px" Size="Size.Small" />
         </MudPaper>
@@ -15,5 +15,3 @@
         <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Sharp.BlurOn">Smart Contracts</MudNavLink>
     </MudNavMenu>
 </MudDrawer>
-
-

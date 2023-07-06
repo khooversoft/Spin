@@ -5,6 +5,7 @@ using SpinPortal.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using SpinCluster.sdk.Types;
 
 namespace SpinPortal.Pages;
 
@@ -22,7 +23,7 @@ public partial class ObjectStore
     protected override async Task OnParametersSetAsync()
     {
         _siloConfigOption = (await SpinClusterClient.Configuration.Get(new ScopeContext(Logger)))
-            .Assert(x => x.IsOk(), "Failed to get Spin configuration from Silo")
+            .Assert(x => x.StatusCode.IsOk(), "Failed to get Spin configuration from Silo")
             .Return();
 
         _resolvedPath = ObjectId.IsValid(pageRoute) switch

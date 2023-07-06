@@ -4,7 +4,7 @@ using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Actors.Key;
+namespace SpinCluster.sdk.Actors.Key.Private;
 
 public interface IPrincipalPrivateKeyActor : IActionOperation<PrincipalPrivateKeyModel>
 {
@@ -13,17 +13,12 @@ public interface IPrincipalPrivateKeyActor : IActionOperation<PrincipalPrivateKe
 
 public class PrincipalPrivateKeyActor : ActorDataBase2<PrincipalPrivateKeyModel>, IPrincipalPrivateKeyActor
 {
-    private readonly IPersistentState<PrincipalPrivateKeyModel> _state;
-    private readonly ILogger<PrincipalPrivateKeyActor> _logger;
-
     public PrincipalPrivateKeyActor(
-        [PersistentState(stateName: SpinConstants.Extension.PrincipalKey, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
+        [PersistentState(stateName: SpinConstants.Extension.PrincipalPrivateKey, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
         Validator<PrincipalPrivateKeyModel> validator,
         ILogger<PrincipalPrivateKeyActor> logger
         )
         : base(state, validator, logger)
     {
-        _state = state;
-        _logger = logger;
     }
 }

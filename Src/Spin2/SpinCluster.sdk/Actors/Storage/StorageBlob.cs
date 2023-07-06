@@ -32,7 +32,7 @@ public sealed record StorageBlob
 
 public static class StorageBlobValidator
 {
-    public static Validator<StorageBlob> Validator { get; } = new Validator<StorageBlob>()
+    public static IValidator<StorageBlob> Validator { get; } = new Validator<StorageBlob>()
         .RuleFor(x => x.ObjectId).NotEmpty().Must(x => ObjectId.IsValid(x), _ => $"not a valid ObjectId, syntax={ObjectId.Syntax}")
         .RuleFor(x => x.TypeName).NotEmpty()
         .RuleFor(x => x.Content).NotNull()

@@ -23,47 +23,21 @@ public static class OptionExtensions
         var v => v.Return(),
     };
 
+    public static Option Unwrap(this Option<Option> subject) => subject switch
+    {
+        var v when v.StatusCode.IsError() => new Option(v.StatusCode, v.Error),
+        var v => v.Return(),
+    };
+
+    public static Option<T> Unwrap<T>(this Option<Option<T>> subject) => subject switch
+    {
+        var v when v.StatusCode.IsError() => new Option<T>(v.StatusCode, v.Error),
+        var v => v.Return(),
+    };
+
+    public static async Task<Option> UnwrapAsync(this Task<Option<Option>> subject) => (await subject).Unwrap();
+    public static async Task<Option<T>> UnwrapAsync<T>(this Task<Option<Option<T>>> subject) => (await subject).Unwrap();
+
     public static Option<T> ToOption<T>(this T? value) => new Option<T>(value);
-    public static Option<T> ToOption<T>(this T? value, StatusCode statusCode) => new Option<T>(value, statusCode);
-    public static Option<T> ToOption<T>(this StatusCode statusCode) => new Option<T>(statusCode);
-    public static Option<T> ToOption<T>(this StatusCode statusCode, string error) => new Option<T>(statusCode, error);
     public static Option<T> ToOption<T>(this IOption subject) => new Option<T>(subject.StatusCode, subject.Error);
-
-    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source)
-    {
-        foreach (T element in source)
-        {
-            return new Option<T>(true, element);
-        }
-
-        return Option<T>.None;
-    }
-
-    public static Option<T> LastOrDefaultOption<T>(this IEnumerable<T> source)
-    {
-        using (IEnumerator<T> e = source.GetEnumerator())
-        {
-            if (e.MoveNext())
-            {
-                T result;
-                do
-                {
-                    result = e.Current;
-                }
-                while (e.MoveNext());
-
-                return new Option<T>(true, result);
-            }
-        }
-
-        return Option<T>.None;
-    }
-
-    public static bool IsOk<T>(this Option<T> subject) => subject.StatusCode.IsOk();
-    public static bool IsNoContent<T>(this Option<T> subject) => subject.StatusCode.IsNoContent();
-    public static bool IsSuccess<T>(this Option<T> subject) => subject.StatusCode.IsSuccess();
-    public static bool IsError<T>(this Option<T> subject) => subject.StatusCode.IsError();
-    public static bool IsNotFound<T>(this Option<T> subject) => subject.StatusCode.IsNotFound();
-    public static HttpStatusCode ToHttpStatusCode<T>(this Option<T> subject) => subject.StatusCode.ToHttpStatusCode();
-    public static Option<T> ThrowOnError<T>(this Option<T> option) => option.Assert(x => x.IsOk(), x => $"Option is error, statusCode={x.StatusCode}");
 }

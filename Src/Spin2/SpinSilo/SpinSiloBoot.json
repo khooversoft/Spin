@@ -13,6 +13,12 @@
       "BasePath": "keyV1"
     },
     {
+      "SchemaName": "principalPrivateKey",
+      "AccountName": "devspinstore",
+      "ContainerName": "directory",
+      "BasePath": "keyPrivateV1"
+    },
+    {
       "SchemaName": "tenant",
       "AccountName": "devspinstore",
       "ContainerName": "directory",

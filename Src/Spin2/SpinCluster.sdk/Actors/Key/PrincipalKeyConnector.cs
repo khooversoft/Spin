@@ -16,79 +16,25 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Key;
 
-public class PrincipalKeyConnector
+public class PrincipalKeyConnector : ConnectorBase<PrincipalKeyModel, IPrincipalKeyActor>
 {
-    private readonly IClusterClient _client;
-    private readonly ILogger<PrincipalKeyConnector> _logger;
-
     public PrincipalKeyConnector(IClusterClient client, ILogger<PrincipalKeyConnector> logger)
+        : base(client, "principalKey", logger)
     {
-        _client = client;
-        _logger = logger;
     }
 
-    public void Setup(IEndpointRouteBuilder app)
+    public override RouteGroupBuilder Setup(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup($"/{SpinConstants.ApiPath.PrincipalKey}");
+        RouteGroupBuilder builder = base.Setup(app);
 
-        group.MapGet("/{*keyId}", async (string keyId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
-        {
-            var response = await Get(keyId, traceId);
+        builder.MapPost("/create", async (PrincipalKeyRequest model, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => (await Create(model, traceId)).ToResult());
 
-            return response switch
-            {
-                var v when v.StatusCode.IsOk() => Results.Ok(v.Return()),
-                var v when v.StatusCode == StatusCode.NotFound => Results.NotFound(v.ToStatusResponse()),
-                var v => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
-            };
-        });
-
-        group.MapPost("/", async ([FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, PrincipalKeyRequest model) =>
-        {
-            var response = await Create(model, traceId);
-            return constructResponse(response);
-        });
-
-        group.MapDelete("/{*keyId}", async (string keyId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
-        {
-            var response = await Delete(keyId, traceId);
-            return constructResponse(response);
-        });
-
-        IResult constructResponse(StatusResponse response) => response switch
-        {
-            var v when v.StatusCode.IsOk() => Results.Ok(),
-            var v when v.StatusCode == StatusCode.NotFound => Results.NotFound(v.Error),
-            var v => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
-        };
+        return builder;
     }
 
-    public async Task<Option<PrincipalKeyModel>> Get(string keyId, string traceId)
+    private async Task<SpinResponse> Create(PrincipalKeyRequest model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-
-        IPrincipalKeyActor actor = _client.GetGrain<IPrincipalKeyActor>(keyId);
-        SpinResponse<PrincipalKeyModel> response = await actor.Get(context.TraceId);
-        return response.ToOption();
-    }
-
-    public async Task<StatusResponse> Create(PrincipalKeyRequest model, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        var validation = model.Validate(context.Location());
-        if (!validation.IsValid) return validation.ToStatusResponse();
-
-        IPrincipalKeyActor actor = _client.GetGrain<IPrincipalKeyActor>(model.KeyId);
-        var response = await actor.Create(model, context.TraceId);
-        return response.ToStatusResponse();
-    }
-
-    public async Task<StatusResponse> Delete(string keyId, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-
-        IPrincipalKeyActor actor = _client.GetGrain<IPrincipalKeyActor>(keyId);
-        var response = await actor.Delete(context.TraceId);
-        return response.ToStatusResponse();
+        return await _client.GetGrain<IPrincipalKeyActor>(model.KeyId).Create(model, context.TraceId);
     }
 }

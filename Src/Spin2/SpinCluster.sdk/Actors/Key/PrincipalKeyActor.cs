@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors.Key.Private;
+using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Types;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -12,42 +15,55 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Key;
 
-public interface IPrincipalKeyActor : IGrainWithStringKey
+public interface IPrincipalKeyActor : IActionOperation<PrincipalKeyModel>
 {
     Task<SpinResponse> Create(PrincipalKeyRequest request, string traceId);
-    Task<SpinResponse> Delete(string traceId);
-    Task<SpinResponse<PrincipalKeyModel>> Get(string traceId);
 }
 
-internal class PrincipalKeyActor : Grain
+internal class PrincipalKeyActor : ActorDataBase2<PrincipalKeyModel>
 {
+    private readonly IPersistentState<PrincipalKeyModel> _state;
     private readonly ILogger<PrincipalKeyActor> _logger;
 
-    public PrincipalKeyActor(ILogger<PrincipalKeyActor> logger) => _logger = logger;
+    public PrincipalKeyActor(
+        [PersistentState(stateName: SpinConstants.Extension.PrincipalKey, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalKeyModel> state,
+        IValidator<PrincipalKeyModel> validator,
+        ILogger<PrincipalKeyActor> logger
+        )
+        : base(state, validator, logger)
+    {
+        _state = state;
+        _logger = logger;
+    }
 
     public async Task<SpinResponse> Create(PrincipalKeyRequest request, IValidator<PrincipalKeyRequest> validator, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         var validation = validator.Validate(request, context.Location());
-        if(!validation.IsValid) return validation.ToSpinResponse();
+        if (!validation.IsValid) return validation.ToSpinResponse();
 
         string keyId = this.GetPrimaryKeyString().NotEmpty();
         context.Location().LogInformation("Creating principal key, keyId={keyId}, request={request}", keyId, request);
 
-        var rsaKey = new RsaKeyPair(keyId);
-        IPrincipalPublicKeyActor publicKeyActor = GrainFactory.GetGrain<IPrincipalPublicKeyActor>(rsaKey.KeyId);
-        IPrincipalPrivateKeyActor privateKeyActor = GrainFactory.GetGrain<IPrincipalPrivateKeyActor>(rsaKey.KeyId);
-
-        bool publicExist = (await publicKeyActor.Exist(traceId)).StatusCode.IsOk();
-        bool privateExist = (await privateKeyActor.Exist(traceId)).StatusCode.IsOk();
-
-        if (publicExist || privateExist)
+        await _state.ReadStateAsync();
+        if (_state.RecordExists)
         {
-            context.Location().LogError("Private and/or public key already exist, publicKeyExist={publicKeyExist}, privateKeyExist={privateKeyExist}", publicExist, privateExist);
-            return new SpinResponse(StatusCode.BadRequest, "public and/or private key exist");
+            const string msg = "Cannot create new Key, public key already exist";
+            context.Location().LogError(msg);
+            return new SpinResponse(StatusCode.BadRequest, msg);
         }
 
-        var publicKey = new PrincipalPublicKeyModel
+        var rsaKey = new RsaKeyPair(keyId);
+        IPrincipalPrivateKeyActor privateKeyActor = GrainFactory.GetGrain<IPrincipalPrivateKeyActor>(rsaKey.KeyId);
+
+        if ((await privateKeyActor.Exist(traceId)).StatusCode.IsOk())
+        {
+            const string msg = "Cannot create new key, private key already exist";
+            context.Location().LogError(msg);
+            return new SpinResponse(StatusCode.BadRequest, msg);
+        }
+
+        var publicKey = new PrincipalKeyModel
         {
             KeyId = rsaKey.KeyId,
             OwnerId = request.OwnerId,
@@ -66,7 +82,8 @@ internal class PrincipalKeyActor : Grain
         try
         {
             context.Location().LogInformation("Setting public key for keyId={keyId}", rsaKey.KeyId);
-            await publicKeyActor.Set(publicKey, traceId);
+            _state.State = publicKey;
+            await _state.WriteStateAsync();
         }
         catch (Exception ex)
         {
@@ -82,64 +99,26 @@ internal class PrincipalKeyActor : Grain
         catch (Exception ex)
         {
             context.Location().LogCritical(ex, "Failed to set private actor, trying to reverting, keyId={keyId}", rsaKey.KeyId);
-            await publicKeyActor.Delete(traceId);
+            await _state.ClearStateAsync();
         }
 
         return new SpinResponse(StatusCode.OK);
     }
 
-    public async Task<SpinResponse> Delete(string traceId)
+    public override async Task<SpinResponse> Delete(string traceId)
     {
+        var response = await base.Delete(traceId);
+        if (response.StatusCode.IsError()) return response;
+
         var context = new ScopeContext(traceId, _logger);
         string keyId = this.GetPrimaryKeyString().NotEmpty();
 
-        context.Location().LogInformation("Getting keyId={keyId}", keyId);
-
-        IPrincipalPublicKeyActor publicKeyActor = GrainFactory.GetGrain<IPrincipalPublicKeyActor>(keyId);
-        IPrincipalPrivateKeyActor privateKeyActor = GrainFactory.GetGrain<IPrincipalPrivateKeyActor>(keyId);
-
-        var publicKeyResponse = await publicKeyActor.Delete(traceId);
-        if (publicKeyResponse.StatusCode.IsError())
+        var privateKeyResponse = await GrainFactory.GetGrain<IPrincipalPrivateKeyActor>(keyId).Delete(traceId);
+        if (privateKeyResponse.StatusCode.IsError())
         {
             context.Location().LogWarning("Public key keyId={keyId} does not exist to delete", keyId);
         }
 
-        var privateKeyResponse = await privateKeyActor.Delete(traceId);
-        if (publicKeyResponse.StatusCode.IsError())
-        {
-            context.Location().LogWarning("Public key keyId={keyId} does not exist to delete", keyId);
-        }
-
-        return new SpinResponse(StatusCode.OK);
-    }
-
-    public async Task<SpinResponse<PrincipalKeyModel>> Get(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        string keyId = this.GetPrimaryKeyString().NotEmpty();
-
-        context.Location().LogInformation("Getting keyId={keyId}", keyId);
-
-        IPrincipalPublicKeyActor publicKeyActor = GrainFactory.GetGrain<IPrincipalPublicKeyActor>(keyId);
-        IPrincipalPrivateKeyActor privateKeyActor = GrainFactory.GetGrain<IPrincipalPrivateKeyActor>(keyId);
-
-        var publicKeyResponse = await publicKeyActor.Get(traceId);
-        if (publicKeyResponse.StatusCode.IsError())
-        {
-            context.Location().LogError("Public key keyId={keyId} does not exist", keyId);
-            return new SpinResponse<PrincipalKeyModel>(StatusCode.NotFound, "Public key does not exist");
-        }
-
-        var privateKeyResponse = await privateKeyActor.Get(traceId);
-
-        var response = new PrincipalKeyModel
-        {
-            KeyId = keyId,
-            OwnerId = publicKeyResponse.Return().OwnerId,
-            Name = publicKeyResponse.Return().Name,
-            PrivateKeyExist = privateKeyResponse.StatusCode.IsOk(),
-        };
-
-        return response.ToSpinResponse();
+        return response;
     }
 }

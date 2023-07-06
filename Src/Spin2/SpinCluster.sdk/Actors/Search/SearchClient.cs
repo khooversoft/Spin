@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
+using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -18,7 +19,7 @@ public class SearchClient
     private readonly HttpClient _client;
     public SearchClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option<IReadOnlyList<StorePathItem>>> Query(SearchQuery searchQuery, ScopeContext context)
+    public async Task<Option<SpinResponse<IReadOnlyList<StorePathItem>>>> Query(SearchQuery searchQuery, ScopeContext context)
     {
         searchQuery.NotNull();
 
@@ -36,17 +37,20 @@ public class SearchClient
             .SetPath($"/search?{query}")
             .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
             .GetAsync(context)
-            .GetContent<IReadOnlyList<StorePathItem>>();
+            .GetContent<SpinResponse<IReadOnlyList<StorePathItem>>>();
     }
 
     public async Task<Option<ObjectTable>> Load(SearchQuery searchQuery, ScopeContext context)
     {
         try
         {
-            Option<IReadOnlyList<StorePathItem>> batch = await Query(searchQuery, context);
+            Option<SpinResponse<IReadOnlyList<StorePathItem>>> batch = await Query(searchQuery, context);
             if (batch.IsError()) return batch.ToOption<ObjectTable>();
 
-            ObjectRow[] rows = batch.Return().Select(x => new ObjectRow(new object?[]
+            SpinResponse<IReadOnlyList<StorePathItem>> response = batch.Return();
+            if (response.StatusCode.IsError()) return response.ToOption<ObjectTable>();
+
+            ObjectRow[] rows = response.Return().Select(x => new ObjectRow(new object?[]
                 {
                     x.Name.Split('/').Skip(1).Join('/'),
                     x.LastModified

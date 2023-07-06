@@ -17,10 +17,10 @@ public interface IActorDataBase<T> : IGrainWithStringKey
 public abstract class ActorDataBase<T> : Grain, IActorDataBase<T>
 {
     private readonly IPersistentState<T> _state;
-    private readonly Validator<T> _validator;
+    private readonly IValidator<T> _validator;
     private readonly ILogger _logger;
 
-    public ActorDataBase(IPersistentState<T> state, Validator<T> validator, ILogger logger)
+    public ActorDataBase(IPersistentState<T> state, IValidator<T> validator, ILogger logger)
     {
         _state = state;
         _validator = validator;
@@ -44,7 +44,7 @@ public abstract class ActorDataBase<T> : Grain, IActorDataBase<T>
         return _state.RecordExists switch
         {
             false => Task.FromResult(new SpinResponse<T>(StatusCode.NotFound)),
-            true => Task.FromResult(_state.State.ToSpinResponse()),
+            true => Task.FromResult((SpinResponse<T>)_state.State),
         };
     }
 

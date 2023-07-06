@@ -4,6 +4,7 @@ using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Client;
+using SpinCluster.sdk.Types;
 using SpinPortal.Application;
 using SpinPortal.Pages.Tenant;
 using SpinPortal.Shared;
@@ -68,24 +69,25 @@ public partial class UserEdit
         var request = _model.ConvertTo();
         var requestObjectId = new ObjectId(SpinConstants.Schema.User, Tenant, request.UserId);
 
-        Option<StatusResponse> result = await Client.User.Set(requestObjectId, request, new ScopeContext(Logger));
-        if (result.IsError())
-        {
-            _errorMsg = $"Failed to write, statusCode={result.StatusCode}, error={result.Error}";
-        }
+        //SpinResponse result = await Client.User.Set(requestObjectId, request, new ScopeContext(Logger));
+        //if (result.StatusCode.IsError())
+        //{
+        //    _errorMsg = $"Failed to write user, statusCode={result.StatusCode}, error={result.Error}";
+        //}
 
         NavManager.NavigateTo(_returnAddress, true);
     }
 
     private async Task<UserEditModel> Read()
     {
-        var result = await Client.User.Get(_objectId, new ScopeContext(Logger));
-        if (result.IsError())
-        {
-            _errorMsg = $"Fail to read TenantId={_objectId}";
-            return new UserEditModel();
-        }
+        return null;
+        //Option<SpinResponse<UserModel>> result = await Client.User.Get(_objectId, new ScopeContext(Logger));
+        //if (result.StatusCode.IsError())
+        //{
+        //    _errorMsg = $"Fail to read UserId={_objectId}, statusCode={result.StatusCode}, error={result.Error}";
+        //    return new UserEditModel();
+        //}
 
-        return result.Return().ConvertTo();
+        //return result.Return().Return().ConvertTo();
     }
 }

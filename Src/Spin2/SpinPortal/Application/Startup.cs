@@ -19,6 +19,8 @@ public static class Startup
             .Verify();
 
         builder.Services.AddSingleton(option);
+        builder.Services.AddSingleton<MudThemeService>();
+
         builder.Services.AddScoped<JsRunTimeService>();
 
         builder.Services.AddHttpClient<SpinClusterClient>((services, httpClient) =>

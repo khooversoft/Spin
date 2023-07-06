@@ -24,6 +24,7 @@ using SpinCluster.sdk.Actors.Configuration;
 using Toolbox.Tools;
 using static MudBlazor.CategoryTypes;
 using SpinCluster.sdk.Actors.Search;
+using SpinCluster.sdk.Types;
 
 namespace SpinPortal.Pages;
 
@@ -60,7 +61,7 @@ public partial class DataEditPage
         _title = _dataTypeInfoDict[Schema];
 
         SiloConfigOption siloConfigOption = (await Client.Configuration.Get(new ScopeContext(Logger)))
-            .Assert(x => x.IsOk(), "Failed to get Spin configuration from Silo")
+            .Assert(x => x.StatusCode.IsOk(), "Failed to get Spin configuration from Silo")
             .Return();
 
         _dataControl.Reset();

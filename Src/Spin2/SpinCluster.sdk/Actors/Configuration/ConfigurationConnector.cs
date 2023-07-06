@@ -39,23 +39,20 @@ internal class ConfigurationConnector
 
         app.MapPost("/configuration", async (SiloConfigOption request, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
-            StatusCode statusCode = await Set(request, traceId);
-            return Results.StatusCode((int)statusCode.ToHttpStatusCode());
+            var response = await Set(request, traceId);
+            return response.ToResult();
         });
     }
 
-    public async Task<Option<SiloConfigOption>> Get(string traceId)
+    public async Task<SpinResponse<SiloConfigOption>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
-        IConfigurationActor actor = _client.GetGrain<IConfigurationActor>(_configKey);
-        SpinResponse<SiloConfigOption> response = await actor.Get(context.TraceId);
-
-        if (response.StatusCode.IsError()) return response.StatusCode.ToOption<SiloConfigOption>();
-        return response.Return();
+        var response = await _client.GetGrain<IConfigurationActor>(_configKey).Get(context.TraceId);
+        return response;
     }
 
-    public async Task<StatusCode> Set(SiloConfigOption request, string traceId)
+    public async Task<SpinResponse> Set(SiloConfigOption request, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 

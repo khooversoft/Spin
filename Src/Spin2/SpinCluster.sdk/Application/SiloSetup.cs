@@ -20,10 +20,10 @@ public static class SiloSetup
         services.AddSingleton(option);
 
         services.AddSingleton<IValidator<UserModel>>(UserModelValidator.Validator);
-        services.AddSingleton<IValidator<PrincipalKeyModel>>(PrincipalKeyValidator.Validator);
         services.AddSingleton<IValidator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
         services.AddSingleton<IValidator<SearchQuery>>(SearchQueryValidator.Validator);
         services.AddSingleton<IValidator<TenantModel>>(TenantRegisterValidator.Validator);
+        services.AddSingleton<IValidator<PrincipalKeyModel>>(PrincipalKeyValidator.Validator);
         services.AddSingleton<IValidator<PrincipalKeyRequest>>(PrincipalKeyRequestValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();

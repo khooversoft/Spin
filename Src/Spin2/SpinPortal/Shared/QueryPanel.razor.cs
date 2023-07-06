@@ -12,6 +12,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Table;
 using Toolbox.Types;
+using SpinCluster.sdk.Types;
 
 namespace SpinPortal.Shared;
 
@@ -52,7 +53,7 @@ public partial class QueryPanel
         _initialized = false;
 
         SiloConfigOption siloConfigOption = (await SpinClusterClient.Configuration.Get(new ScopeContext(Logger)))
-            .Assert(x => x.IsOk(), "Failed to get Spin configuration from Silo")
+            .Assert(x => x.StatusCode.IsOk(), "Failed to get Spin configuration from Silo")
             .Return();
 
         _schemas = siloConfigOption.Schemas.Select(x => x.SchemaName).ToArray();

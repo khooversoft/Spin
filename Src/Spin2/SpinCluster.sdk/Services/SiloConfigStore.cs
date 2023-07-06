@@ -45,7 +45,7 @@ public class SiloConfigStore
         Option<Azure.ETag> result = await _datalakeStore.Write(_datalakeLocation.Path, data, true, context);
         if (result.IsError())
         {
-            context.Location().LogCritical("Failed to write silo configuration, , path={path}", _datalakeLocation.Path);
+            context.Location().LogCritical("Failed to write silo configuration, path={path}", _datalakeLocation.Path);
             return StatusCode.BadRequest;
         }
 
