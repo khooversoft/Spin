@@ -6,23 +6,22 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Configuration;
 
-public class SpinConfigurationClient
+public class ConfigurationClient
 {
     private readonly HttpClient _client;
-    public SpinConfigurationClient(HttpClient client) => _client = client.NotNull();
+    public ConfigurationClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<SpinResponse<SiloConfigOption>> Get(ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<SiloConfigOption>> Get(ScopeContext context) => await new RestClient(_client)
         .SetPath("configuration")
         .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
         .GetAsync(context)
-        .GetContent<SpinResponse<SiloConfigOption>>()
-        .UnwrapAsync();
+        .GetContent<SiloConfigOption>();
 
-    public async Task<SpinResponse> Set(SiloConfigOption request, string leaseId, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> Set(SiloConfigOption request, string leaseId, ScopeContext context) => await new RestClient(_client)
         .SetPath("configuration")
         .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
         .SetContent(request)
         .PostAsync(context)
-        .GetContent<SpinResponse>()
+        .GetContent<Option>()
         .UnwrapAsync();
 }

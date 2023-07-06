@@ -17,7 +17,7 @@ public partial class Index
     {
         _errorMessage = null;
 
-        SpinResponse<SiloConfigOption> option = await SpinClusterClient.Configuration.Get(new ScopeContext(Logger));
+        Option<SiloConfigOption> option = await SpinClusterClient.Configuration.Get(new ScopeContext(Logger));
         if (option.StatusCode.IsError())
         {
             _errorMessage = $"Failed to get Spin configuration from server, statusCode={option.StatusCode}";

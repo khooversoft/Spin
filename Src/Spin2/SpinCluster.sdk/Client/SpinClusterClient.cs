@@ -10,7 +10,7 @@ public class SpinClusterClient
 {
     public SpinClusterClient(HttpClient client)
     {
-        Configuration = new SpinConfigurationClient(client);
+        Configuration = new ConfigurationClient(client);
         Lease = new SpinLeaseClient(client);
         Resource = new SpinResourceClient(client);
         Tenant = new TenantClient(client);
@@ -18,7 +18,7 @@ public class SpinClusterClient
         User = new UserClient(client);
     }
 
-    public SpinConfigurationClient Configuration { get; }
+    public ConfigurationClient Configuration { get; }
     public SpinLeaseClient Lease { get; }
     public SpinResourceClient Resource { get; }
     public TenantClient Tenant { get; }

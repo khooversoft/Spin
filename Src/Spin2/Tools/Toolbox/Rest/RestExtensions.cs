@@ -8,8 +8,6 @@ namespace Toolbox.Rest;
 
 public static class RestExtensions
 {
-    private static char[] _trimCharacters = new char[] { '"', '\'' };
-
     public static async Task<Option<T>> GetContent<T>(this Task<RestResponse> httpResponse)
     {
         var response = await httpResponse;
@@ -25,24 +23,21 @@ public static class RestExtensions
     public static async Task<Option> ToOption(this Task<RestResponse> httpResponse)
     {
         var response = await httpResponse;
-        var content = response.GetContent<Option>();
-        if (content.IsError()) return new Option(content.StatusCode, content.Error);
-
-        return content.Return();
+        return new Option(response.StatusCode.ToStatusCode(), TrimError(response.Content));
     }
 
     public static async Task<Option<T>> ToOption<T>(this Task<RestResponse> httpResponse)
     {
         var response = await httpResponse;
         var content = response.GetContent<Option<T>>();
-        if (content.IsError()) return new Option<T>(content.StatusCode, content.Error);
+        if (content.IsError()) return new Option<T>(content.StatusCode, TrimError(content.Error));
 
         return content.Return();
     }
 
     public static Option<T> GetContent<T>(this RestResponse response)
     {
-        if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode(), response.Content?.Trim(_trimCharacters));
+        if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode(), TrimError(response.Content));
 
         return response.Content switch
         {
@@ -82,4 +77,6 @@ public static class RestExtensions
     public static bool IsOk(this RestResponse subject) => subject.StatusCode == HttpStatusCode.OK;
     public static bool IsNotFound(this RestResponse subject) => subject.StatusCode == HttpStatusCode.NotFound;
     public static bool IsError(this RestResponse subject) => !subject.IsOkayAll();
+
+    private static string? TrimError(string? error) => error?.Trim(new char[] { '"', '\'' }).ToNullIfEmpty();
 }
