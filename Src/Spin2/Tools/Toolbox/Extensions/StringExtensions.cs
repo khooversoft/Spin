@@ -180,5 +180,5 @@ public static class StringExtensions
 
     [return: NotNullIfNotNull(nameof(input))]
     public static string? RemoveTrailing(this string? input, char removeTrailingChr) =>
-        input?.Func(x => x.EndsWith(removeTrailingChr) ? x[0..(x.Length-1)] : x);        
+        input?.Func(x => x.EndsWith(removeTrailingChr) ? x[0..(x.Length-1)] : x);         
 }

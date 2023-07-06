@@ -8,6 +8,8 @@ namespace Toolbox.Rest;
 
 public static class RestExtensions
 {
+    private static char[] _trimCharacters = new char[] { '"', '\'' };
+
     public static async Task<Option<T>> GetContent<T>(this Task<RestResponse> httpResponse)
     {
         var response = await httpResponse;
@@ -40,11 +42,12 @@ public static class RestExtensions
 
     public static Option<T> GetContent<T>(this RestResponse response)
     {
-        if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode(), response.Content);
+        if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode(), response.Content?.Trim(_trimCharacters));
 
         return response.Content switch
         {
             null => default,
+            var v when typeof(T) == typeof(string) => new Option<T>((T)(object)v),
             var v => tryDeserialize(v),
         };
 
@@ -52,7 +55,7 @@ public static class RestExtensions
         {
             try
             {
-                return Json.Default.Deserialize<T>(value).NotNull();
+                return Json.Default.Deserialize<T>(value).NotNull().ToOption();
             }
             catch (Exception ex)
             {
