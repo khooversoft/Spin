@@ -83,7 +83,7 @@ public partial class DataEditPage
         }
     }
 
-    private void Add() => NavManager.NavigateTo(PortalConstants.Pages.TenantEditPage(), true);
+    private void Add() => NavManager.NavigateTo($"{Schema}Edit/{Tenant}", true);
     private void Open() => OnOpen(_dataControl.GetSelectedKey());
     private void OnOpen(string key)
     {

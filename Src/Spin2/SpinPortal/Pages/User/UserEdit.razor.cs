@@ -17,7 +17,7 @@ namespace SpinPortal.Pages.User;
 
 public partial class UserEdit
 {
-    [Inject] public ILogger<TenantEdit> Logger { get; set; } = null!;
+    [Inject] public ILogger<UserEdit> Logger { get; set; } = null!;
     [Inject] NavigationManager NavManager { get; set; } = null!;
     [Inject] public SpinClusterClient Client { get; set; } = null!;
 
@@ -80,14 +80,15 @@ public partial class UserEdit
 
     private async Task<UserEditModel> Read()
     {
-        return null;
-        //Option<SpinResponse<UserModel>> result = await Client.User.Get(_objectId, new ScopeContext(Logger));
-        //if (result.StatusCode.IsError())
-        //{
-        //    _errorMsg = $"Fail to read UserId={_objectId}, statusCode={result.StatusCode}, error={result.Error}";
-        //    return new UserEditModel();
-        //}
+        if (_objectId.Path.IsEmpty()) return new UserEditModel();
 
-        //return result.Return().Return().ConvertTo();
+        var result = await Client.User.Get(_objectId, new ScopeContext(Logger));
+        if (result.StatusCode.IsError())
+        {
+            _errorMsg = $"Fail to read User={_objectId}, statusCode={result.StatusCode}, error={result.Error}";
+            return new UserEditModel();
+        }
+
+        return result.Return().ConvertTo();
     }
 }

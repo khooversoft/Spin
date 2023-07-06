@@ -19,7 +19,7 @@ public class SearchClient
     private readonly HttpClient _client;
     public SearchClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option<SpinResponse<IReadOnlyList<StorePathItem>>>> Query(SearchQuery searchQuery, ScopeContext context)
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Query(SearchQuery searchQuery, ScopeContext context)
     {
         searchQuery.NotNull();
 
@@ -37,18 +37,15 @@ public class SearchClient
             .SetPath($"/search?{query}")
             .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
             .GetAsync(context)
-            .GetContent<SpinResponse<IReadOnlyList<StorePathItem>>>();
+            .GetContent<IReadOnlyList<StorePathItem>>();
     }
 
     public async Task<Option<ObjectTable>> Load(SearchQuery searchQuery, ScopeContext context)
     {
         try
         {
-            Option<SpinResponse<IReadOnlyList<StorePathItem>>> batch = await Query(searchQuery, context);
-            if (batch.IsError()) return batch.ToOption<ObjectTable>();
-
-            SpinResponse<IReadOnlyList<StorePathItem>> response = batch.Return();
-            if (response.StatusCode.IsError()) return response.ToOption<ObjectTable>();
+            Option<IReadOnlyList<StorePathItem>> response = await Query(searchQuery, context);
+            if (response.IsError()) return response.ToOption<ObjectTable>();
 
             ObjectRow[] rows = response.Return().Select(x => new ObjectRow(new object?[]
                 {

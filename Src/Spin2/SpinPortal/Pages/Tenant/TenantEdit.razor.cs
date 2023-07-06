@@ -74,7 +74,7 @@ public partial class TenantEdit
 
     private async Task<TenantEditModel> Read()
     {
-        if (_objectId == null) return new TenantEditModel();
+        if (_objectId.Path.IsEmpty()) return new TenantEditModel();
 
         var result = await Client.Tenant.Get(_objectId, new ScopeContext(Logger));
         if (result.StatusCode.IsError())

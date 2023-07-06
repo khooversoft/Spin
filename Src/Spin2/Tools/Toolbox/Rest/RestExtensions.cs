@@ -26,15 +26,6 @@ public static class RestExtensions
         return new Option(response.StatusCode.ToStatusCode(), TrimError(response.Content));
     }
 
-    public static async Task<Option<T>> ToOption<T>(this Task<RestResponse> httpResponse)
-    {
-        var response = await httpResponse;
-        var content = response.GetContent<Option<T>>();
-        if (content.IsError()) return new Option<T>(content.StatusCode, TrimError(content.Error));
-
-        return content.Return();
-    }
-
     public static Option<T> GetContent<T>(this RestResponse response)
     {
         if (response.StatusCode.IsError()) return new Option<T>(response.StatusCode.ToStatusCode(), TrimError(response.Content));

@@ -45,7 +45,11 @@ public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T
     {
         RouteGroupBuilder group = app.MapGroup($"/{_rootPath}");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => (await Get(objectId, traceId)).ToResult());
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        {
+            var response = await Get(objectId, traceId);
+            return response.ToResult();
+        });
 
         group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, T model) =>
         {

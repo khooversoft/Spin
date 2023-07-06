@@ -45,13 +45,8 @@ internal class SearchConnector
                 Recurse = recurse ?? false,
             };
 
-            SpinResponse<IReadOnlyList<StorePathItem>> result = await Search(query, traceId);
-
-            return result.StatusCode.IsOk() switch
-            {
-                true => Results.Ok(result.Return()),
-                false => Results.BadRequest($"StatusCode={result.StatusCode}, error={result.Error}"),
-            };
+            var response = await Search(query, traceId);
+            return response.ToResult();
         });
     }
 

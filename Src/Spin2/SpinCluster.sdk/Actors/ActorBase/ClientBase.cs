@@ -19,7 +19,7 @@ public abstract class ClientBase<T>
     protected private readonly string _rootPath;
     public ClientBase(HttpClient client, string rootPath) => (_client, _rootPath) = (client.NotNull(), rootPath.NotEmpty());
 
-    public virtual async Task<Option<Option>> Delete(ObjectId id, ScopeContext context) => await new RestClient(_client)
+    public virtual async Task<Option> Delete(ObjectId id, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{_rootPath}/{id}")
         .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
         .GetAsync(context)
@@ -29,7 +29,7 @@ public abstract class ClientBase<T>
         .SetPath($"/{_rootPath}/{id}")
         .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
         .GetAsync(context)
-        .ToOption<T>();
+        .GetContent<T>();
 
     public virtual async Task<Option> Set(ObjectId id, T content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{_rootPath}/{id}")
