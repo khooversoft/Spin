@@ -58,37 +58,38 @@ public partial class UserEdit
 
     private async void OnValidSubmit(EditContext context)
     {
-        await AddOrUpdate();
-        StateHasChanged();
+        bool success = await AddOrUpdate();
+        if(success) StateHasChanged();
     }
 
     private void Cancel() { NavManager.NavigateTo(_returnAddress, true); }
 
-    private async Task AddOrUpdate()
+    private async Task<bool> AddOrUpdate()
     {
         var request = _model.ConvertTo();
         var requestObjectId = new ObjectId(SpinConstants.Schema.User, Tenant, request.UserId);
 
-        //SpinResponse result = await Client.User.Set(requestObjectId, request, new ScopeContext(Logger));
-        //if (result.StatusCode.IsError())
-        //{
-        //    _errorMsg = $"Failed to write user, statusCode={result.StatusCode}, error={result.Error}";
-        //}
+        var response = await Client.User.Set(requestObjectId, request, new ScopeContext(Logger));
+        if (response.StatusCode.IsError())
+        {
+            _errorMsg = $"Failed to write, statusCode={response.StatusCode}, error={response.Error}";
+            return false;
+        }
 
         NavManager.NavigateTo(_returnAddress, true);
+        return true;
     }
 
     private async Task<UserEditModel> Read()
     {
         if (_objectId.Path.IsEmpty()) return new UserEditModel();
 
-        var result = await Client.User.Get(_objectId, new ScopeContext(Logger));
-        if (result.StatusCode.IsError())
+        (UserEditModel result, _errorMsg) = await Client.User.Get(_objectId, new ScopeContext(Logger)) switch
         {
-            _errorMsg = $"Fail to read User={_objectId}, statusCode={result.StatusCode}, error={result.Error}";
-            return new UserEditModel();
-        }
+            var v when v.StatusCode.IsError() => (new UserEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
+            var v => (v.Return().ConvertTo(), null),
+        };
 
-        return result.Return().ConvertTo();
+        return result;
     }
 }

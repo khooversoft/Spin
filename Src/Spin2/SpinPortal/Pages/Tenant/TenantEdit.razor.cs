@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Client;
 using SpinCluster.sdk.Types;
+using SpinPortal.Pages.PrincipalKey;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -63,11 +64,11 @@ public partial class TenantEdit
         var request = _model.ConvertTo();
         var requestObjectId = new ObjectId(SpinConstants.Schema.Tenant, SpinConstants.SystemTenant, request.TenantId);
 
-        //Option<SpinResponse> result = await Client.Tenant.Set(requestObjectId, request, new ScopeContext(Logger));
-        //if (result.IsError())
-        //{
-        //    _errorMsg = $"Failed to write, statusCode={result.StatusCode}, error={result.Error}";
-        //}
+        var response = await Client.Tenant.Set(requestObjectId, request, new ScopeContext(Logger));
+        if (response.StatusCode.IsError())
+        {
+            _errorMsg = $"Failed to write, statusCode={response.StatusCode}, error={response.Error}";
+        }
 
         NavManager.NavigateTo(_returnAddress, true);
     }
@@ -76,13 +77,12 @@ public partial class TenantEdit
     {
         if (_objectId.Path.IsEmpty()) return new TenantEditModel();
 
-        var result = await Client.Tenant.Get(_objectId, new ScopeContext(Logger));
-        if (result.StatusCode.IsError())
+        (TenantEditModel result, _errorMsg) = await Client.Tenant.Get(_objectId, new ScopeContext(Logger)) switch
         {
-            _errorMsg = $"Fail to read TenantId={_objectId}, statusCode={result.StatusCode}, error={result.Error}";
-            return new TenantEditModel();
-        }
+            var v when v.StatusCode.IsError() => (new TenantEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
+            var v => (v.Return().ConvertTo(), null),
+        };
 
-        return result.Return().ConvertTo();
+        return result;
     }
 }

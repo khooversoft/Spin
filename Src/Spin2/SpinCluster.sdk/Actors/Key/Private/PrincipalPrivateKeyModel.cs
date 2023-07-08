@@ -21,9 +21,9 @@ public record PrincipalPrivateKeyModel
 }
 
 
-public static class PrincipalPrivateKeyValidator
+public static class PrincipalPrivateKeyModelValidator
 {
-    public static Validator<PrincipalPrivateKeyModel> Validator { get; } = new Validator<PrincipalPrivateKeyModel>()
+    public static IValidator<PrincipalPrivateKeyModel> Validator { get; } = new Validator<PrincipalPrivateKeyModel>()
         .RuleFor(x => x.KeyId).NotEmpty()
         .RuleFor(x => x.OwnerId).NotEmpty()
         .RuleFor(x => x.Name).NotEmpty()

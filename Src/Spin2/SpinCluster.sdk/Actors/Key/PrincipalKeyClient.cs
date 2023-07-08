@@ -13,14 +13,26 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Key;
 
-public class PrincipalKeyClient : ClientBase<PrincipalKeyModel>
+public class PrincipalKeyClient
 {
-    public PrincipalKeyClient(HttpClient client) : base(client, SpinConstants.ApiPath.PrincipalKey) { }
+    private readonly HttpClient _client;
+    public PrincipalKeyClient(HttpClient client) => _client = client;
 
-    public async Task<Option<SpinResponse>> Set(PrincipalKeyRequest content, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{_rootPath}")
+    public async Task<Option> Create(ObjectId id, PrincipalKeyRequest content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.ApiPath.PrincipalKey}/create/{id}")
         .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context)
-        .GetContent<SpinResponse>();
+        .ToOption();
+
+    public Task<Option> Delete(ObjectId id, ScopeContext context) => _client.Delete(SpinConstants.ApiPath.PrincipalKey, id, context);
+    public Task<Option> Exist(ObjectId id, ScopeContext context) => _client.Exist(SpinConstants.ApiPath.PrincipalKey, id, context);
+    public Task<Option<PrincipalKeyModel>> Get(ObjectId id, ScopeContext context) => _client.Get<PrincipalKeyModel>(SpinConstants.ApiPath.PrincipalKey, id, context);
+
+    public async Task<Option> Update(ObjectId id, PrincipalKeyRequest content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.ApiPath.PrincipalKey}/{id}")
+        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .SetContent(content)
+        .PostAsync(context)
+        .ToOption();
 }

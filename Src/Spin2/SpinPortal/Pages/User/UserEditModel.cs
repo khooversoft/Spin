@@ -36,7 +36,7 @@ public static class UserEditModelExtensions
     public static UserEditModel ConvertTo(this UserModel subject) => new UserEditModel
     {
         UserId = subject.UserId,
-        GlobalPrincipleId = subject.GlobalPrincipleId,
+        GlobalPrincipleId = subject.GlobalId,
         DisplayName = subject.DisplayName,
         FirstName = subject.FirstName,
         LastName = subject.LastName,
@@ -57,7 +57,7 @@ public static class UserEditModelExtensions
     public static UserModel ConvertTo(this UserEditModel subject) => new UserModel
     {
         UserId = subject.UserId,
-        GlobalPrincipleId = subject.GlobalPrincipleId,
+        GlobalId = subject.GlobalPrincipleId,
         DisplayName = subject.DisplayName,
         FirstName = subject.FirstName,
         LastName = subject.LastName,

@@ -28,7 +28,7 @@ public class TenantEditModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (!ObjectId.IsPathValid(TenantId))
+        if (!ObjectId.IsNameValid(TenantId))
         {
             yield return new ValidationResult("Tenant Id is not valid, only alpha numeric, [-._]", new[] { nameof(TenantId) });
         }
@@ -41,7 +41,7 @@ public static class TenantEditModelExtensions
     public static TenantEditModel ConvertTo(this TenantModel subject) => new TenantEditModel
     {
         TenantId = subject.TenantId,
-        GlobalPrincipleId = subject.GlobalPrincipleId,
+        GlobalPrincipleId = subject.GlobalId,
         TenantName = subject.TenantName,
         Contact = subject.Contact,
         Email = subject.Email,
@@ -61,7 +61,7 @@ public static class TenantEditModelExtensions
     public static TenantModel ConvertTo(this TenantEditModel subject) => new TenantModel
     {
         TenantId = subject.TenantId,
-        GlobalPrincipleId = subject.GlobalPrincipleId,
+        GlobalId = subject.GlobalPrincipleId,
         TenantName = subject.TenantName,
         Contact = subject.Contact,
         Email = subject.Email,

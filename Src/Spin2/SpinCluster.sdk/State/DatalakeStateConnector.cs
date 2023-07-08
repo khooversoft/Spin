@@ -58,27 +58,13 @@ internal class DatalakeStateConnector : IGrainStorage
 
         string grainPath = GetPath(grainId);
 
-        var objectIdOption = grainPath.ToObjectIdIfValid();
-        if (objectIdOption.IsError())
-        {
-            context.Location().LogError("Invalid ObjectId, id={id}", grainId.ToString());
-            throw new ArgumentException($"Invalid ObjectId, id={grainId}");
-        }
+        var objectIdOption = grainPath.ToObjectIdIfValid(context.Location());
+        if (objectIdOption.IsError()) throw new ArgumentException($"Invalid ObjectId, id={grainId}");
 
-        ObjectId objectId = objectIdOption.Return();
+        ObjectId objectId = objectIdOption.Return().WithExtension(stateName);
+        context.Location().LogInformation("GrainId={grainId} to objectId={objectId}, FilePath={filePath}", grainId.ToString(), objectId, objectId.FilePath);
 
-        string filePath = objectId.Tenant + "/" + objectId.Path;
-        string stateSufix = $".{stateName}";
-
-        filePath = filePath.EndsWith(stateSufix) switch
-        {
-            true => filePath,
-            false => filePath + stateSufix,
-        };
-
-        context.Location().LogInformation("GrainId={grainId} to FilePath={filePath}", grainId.ToString(), filePath);
-
-        return (filePath, objectId.Schema, context);
+        return (objectId.FilePath, objectId.Schema, context);
     }
 
     private static string GetPath(GrainId grainId) => grainId.ToString()

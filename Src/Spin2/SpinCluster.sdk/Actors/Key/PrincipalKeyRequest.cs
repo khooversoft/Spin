@@ -20,8 +20,8 @@ public record PrincipalKeyRequest
 public static class PrincipalKeyRequestValidator
 {
     public static IValidator<PrincipalKeyRequest> Validator { get; } = new Validator<PrincipalKeyRequest>()
-        .RuleFor(x => x.KeyId).NotEmpty()
-        .RuleFor(x => x.OwnerId).NotEmpty()
+        .RuleFor(x => x.KeyId).NotEmpty().ValidName()
+        .RuleFor(x => x.OwnerId).NotEmpty().ValidName()
         .RuleFor(x => x.Name).NotEmpty()
         .Build();
 

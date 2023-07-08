@@ -15,7 +15,7 @@ public class PrincipalPrivateKeyActor : ActorDataBase2<PrincipalPrivateKeyModel>
 {
     public PrincipalPrivateKeyActor(
         [PersistentState(stateName: SpinConstants.Extension.PrincipalPrivateKey, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
-        Validator<PrincipalPrivateKeyModel> validator,
+        IValidator<PrincipalPrivateKeyModel> validator,
         ILogger<PrincipalPrivateKeyActor> logger
         )
         : base(state, validator, logger)

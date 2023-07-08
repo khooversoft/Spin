@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
@@ -82,5 +83,11 @@ public class DatalakeSchemaResources
     {
         true => store.ToOption(),
         false => new Option<IDatalakeStore>(StatusCode.NotFound),
+    };
+
+    public Option<IDatalakeStore> GetStore(string schemaName, ScopeContextLocation location) => GetStore(schemaName) switch
+    {
+        var v when v.IsOk() => v,
+        var v => v.Action(x => location.LogError("Failed to get datalake store for schemaName={schemaName}", schemaName)),
     };
 }

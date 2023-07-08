@@ -4,10 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SpinCluster.sdk.Actors.Search;
-using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
-using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -19,28 +16,8 @@ public abstract class ClientBase<T>
     protected private readonly string _rootPath;
     public ClientBase(HttpClient client, string rootPath) => (_client, _rootPath) = (client.NotNull(), rootPath.NotEmpty());
 
-    public virtual async Task<Option> Delete(ObjectId id, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{_rootPath}/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .ToOption();
-
-    public virtual async Task<Option<T>> Get(ObjectId id, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{_rootPath}/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .GetContent<T>();
-
-    public virtual async Task<Option> Set(ObjectId id, T content, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{_rootPath}/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .SetContent(content)
-        .PostAsync(context)
-        .ToOption();
-
-    public virtual async Task<Option> Exist(ObjectId id, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{_rootPath}/exist/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
-        .ToOption();
+    public Task<Option> Delete(ObjectId id, ScopeContext context) => _client.Delete(_rootPath, id, context);
+    public Task<Option> Exist(ObjectId id, ScopeContext context) => _client.Exist(_rootPath, id, context);
+    public Task<Option<T>> Get(ObjectId id, ScopeContext context) => _client.Get<T>(_rootPath, id, context);
+    public Task<Option> Set(ObjectId id, T content, ScopeContext context) => _client.Set<T>(_rootPath, id, content, context);
 }

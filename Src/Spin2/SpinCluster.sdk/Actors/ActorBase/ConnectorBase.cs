@@ -45,70 +45,11 @@ public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T
     {
         RouteGroupBuilder group = app.MapGroup($"/{_rootPath}");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
-        {
-            var response = await Get(objectId, traceId);
-            return response.ToResult();
-        });
-
-        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, T model) =>
-        {
-            var response = await Set(objectId, traceId, model);
-            return response.ToResult();
-        });
-
-        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
-        {
-            var response = await Delete(objectId, traceId);
-            return response.ToResult();
-        });
-
-        group.MapGet("/exist/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
-        {
-            var response = await Exist(objectId, traceId);
-            return response.ToResult();
-        });
+        group.MapDelete(_logger, async (objectId, context) => await _client.GetGrain<TActor>(objectId).Delete(context.TraceId));
+        group.MapExist(_logger, async (objectId, context) => await _client.GetGrain<TActor>(objectId).Exist(context.TraceId));
+        group.MapGet<T>(_logger, async (objectId, context) => await _client.GetGrain<TActor>(objectId).Get(context.TraceId));
+        group.MapSet<T>(_logger, async (objectId, model, context) => await _client.GetGrain<TActor>(objectId).Set(model, context.TraceId));
 
         return group;
-    }
-
-    private async Task<SpinResponse> Delete(string objectId, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToSpinResponse();
-
-        return await _client.GetGrain<TActor>(objectId).Delete(context.TraceId);
-    }
-
-    private async Task<SpinResponse> Exist(string objectId, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-
-        var option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToSpinResponse();
-
-        return await _client.GetGrain<TActor>(objectId).Exist(context.TraceId);
-    }
-
-    private async Task<SpinResponse<T>> Get(string objectId, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-
-        var option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToSpinResponse<T>();
-
-        return await _client.GetGrain<TActor>(objectId).Get(context.TraceId);
-    }
-
-    private async Task<SpinResponse> Set(string objectId, string traceId, T model)
-    {
-        var context = new ScopeContext(traceId, _logger);
-
-        var option = objectId.ToObjectIdIfValid(context.Location());
-        if (option.IsError()) return option.ToSpinResponse();
-
-        return await _client.GetGrain<TActor>(objectId).Set(model, context.TraceId);
     }
 }

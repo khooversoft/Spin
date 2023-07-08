@@ -21,54 +21,59 @@ public abstract class ActorDataBase2<T> : Grain, IActionOperation<T>
         _logger = logger;
     }
 
-    public virtual async Task<SpinResponse> Delete(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Deleting {typeName}, id={id}", typeof(T).GetTypeName(), this.GetPrimaryKeyString());
+    public virtual Task<SpinResponse> Delete(string traceId) => _state.Delete<T>(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
+    public virtual Task<SpinResponse> Exist(string traceId) => Task.FromResult(new SpinResponse(_state.RecordExists ? StatusCode.OK : StatusCode.NoContent));
+    public virtual Task<SpinResponse<T>> Get(string traceId) => _state.Get<T>(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
+    public virtual Task<SpinResponse> Set(T model, string traceId) => _state.Set(model, this.GetPrimaryKeyString(), _validator, new ScopeContext(traceId, _logger).Location());
 
-        await _state.ClearStateAsync();
-        return new SpinResponse(StatusCode.OK);
-    }
+    //public virtual async Task<SpinResponse> Delete2(string traceId)
+    //{
+    //    var context = new ScopeContext(traceId, _logger);
+    //    context.Location().LogInformation("Deleting {typeName}, id={id}", typeof(T).GetTypeName(), this.GetPrimaryKeyString());
 
-    public virtual async Task<SpinResponse> Exist(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
+    //    await _state.ClearStateAsync();
+    //    return new SpinResponse(StatusCode.OK);
+    //}
 
-        await _state.ReadStateAsync();
-        StatusCode state = _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
-        context.Location().LogInformation("Checking if {typeName} exist, id={id}, statusCode={statusCode}", typeof(T).GetTypeName(), this.GetPrimaryKeyString(), state);
-        return new SpinResponse(state);
-    }
+    //public virtual async Task<SpinResponse> Exist2(string traceId)
+    //{
+    //    var context = new ScopeContext(traceId, _logger);
 
-    public virtual Task<SpinResponse<T>> Get(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Getting {typeName}, id={id}", typeof(T).GetTypeName(), this.GetPrimaryKeyString());
+    //    await _state.ReadStateAsync();
+    //    StatusCode state = _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
+    //    context.Location().LogInformation("Checking if {typeName} exist, id={id}, statusCode={statusCode}", typeof(T).GetTypeName(), this.GetPrimaryKeyString(), state);
+    //    return new SpinResponse(state);
+    //}
 
-        return _state.RecordExists switch
-        {
-            false => Task.FromResult(new SpinResponse<T>(StatusCode.NotFound)),
-            true => Task.FromResult((SpinResponse<T>)_state.State),
-        };
-    }
+    //public virtual Task<SpinResponse<T>> Get2(string traceId)
+    //{
+    //    var context = new ScopeContext(traceId, _logger);
+    //    context.Location().LogInformation("Getting {typeName}, id={id}", typeof(T).GetTypeName(), this.GetPrimaryKeyString());
 
-    public virtual async Task<SpinResponse> Set(T model, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
+    //    return _state.RecordExists switch
+    //    {
+    //        false => Task.FromResult(new SpinResponse<T>(StatusCode.NotFound)),
+    //        true => Task.FromResult((SpinResponse<T>)_state.State),
+    //    };
+    //}
 
-        context.Location().LogInformation("Setting {typeName}, id={id}, model={model}",
-            typeof(T).GetTypeName(), this.GetPrimaryKeyString(), model.ToJsonPascalSafe(new ScopeContext(_logger)));
+    //public virtual async Task<SpinResponse> Set2(T model, string traceId)
+    //{
+    //    var context = new ScopeContext(traceId, _logger);
 
-        ValidatorResult validatorResult = _validator.Validate(model);
-        if (!validatorResult.IsValid)
-        {
-            context.Location().LogError(validatorResult.FormatErrors());
-            return new SpinResponse(StatusCode.BadRequest, validatorResult.FormatErrors());
-        }
+    //    context.Location().LogInformation("Setting {typeName}, id={id}, model={model}",
+    //        typeof(T).GetTypeName(), this.GetPrimaryKeyString(), model.ToJsonPascalSafe(new ScopeContext(_logger)));
 
-        _state.State = model;
-        await _state.WriteStateAsync();
+    //    ValidatorResult validatorResult = _validator.Validate(model);
+    //    if (!validatorResult.IsValid)
+    //    {
+    //        context.Location().LogError(validatorResult.FormatErrors());
+    //        return new SpinResponse(StatusCode.BadRequest, validatorResult.FormatErrors());
+    //    }
 
-        return new SpinResponse(StatusCode.OK);
-    }
+    //    _state.State = model;
+    //    await _state.WriteStateAsync();
+
+    //    return new SpinResponse(StatusCode.OK);
+    //}
 }

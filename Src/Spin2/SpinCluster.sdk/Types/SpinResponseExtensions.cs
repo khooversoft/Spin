@@ -17,28 +17,5 @@ public static class SpinResponseExtensions
         false => throw new ArgumentException("Value is null"),
     };
 
-    public static Option<T> ToOption<T>(this SpinResponse<T> subject) => new Option<T>(subject.Value, subject.StatusCode, subject.Error);
     public static Option<T> ToOption<T>(this ISpinResponseWithValue subject) => new Option<T>((T)subject.ValueObject, subject.StatusCode, subject.Error);
-
-    public static async Task<SpinResponse> UnwrapAsync(this Task<Option<SpinResponse>> subject)
-    {
-        Option<SpinResponse> result = await subject;
-
-        return result.IsError() switch
-        {
-            true => new SpinResponse(result.StatusCode, result.Error),
-            false => result.Return(),
-        };
-    }
-
-    public static async Task<SpinResponse<T>> UnwrapAsync<T>(this Task<Option<SpinResponse<T>>> subject)
-    {
-        Option<SpinResponse<T>> result = await subject;
-
-        return result.IsError() switch
-        {
-            true => new SpinResponse<T>(result.StatusCode, result.Error),
-            false => result.Return(),
-        };
-    }
 }

@@ -16,25 +16,36 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Key;
 
-public class PrincipalKeyConnector : ConnectorBase<PrincipalKeyModel, IPrincipalKeyActor>
+public class PrincipalKeyConnector
 {
+    private readonly IClusterClient _client;
+    private readonly ILogger<PrincipalKeyConnector> _logger;
+
     public PrincipalKeyConnector(IClusterClient client, ILogger<PrincipalKeyConnector> logger)
-        : base(client, "principalKey", logger)
     {
+        _client = client;
+        _logger = logger;
     }
 
-    public override RouteGroupBuilder Setup(IEndpointRouteBuilder app)
+    public RouteGroupBuilder Setup(IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder builder = base.Setup(app);
+        RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.ApiPath.PrincipalKey}");
 
-        builder.MapPost("/create", async (PrincipalKeyRequest model, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => (await Create(model, traceId)).ToResult());
+        group.MapDelete(_logger, async (objectId, context) => await _client.GetGrain<IPrincipalKeyActor>(objectId).Delete(context.TraceId));
+        group.MapExist(_logger, async (objectId, context) => await _client.GetGrain<IPrincipalKeyActor>(objectId).Exist(context.TraceId));
+        group.MapGet<PrincipalKeyModel>(_logger, async (objectId, context) => await _client.GetGrain<IPrincipalKeyActor>(objectId).Get(context.TraceId));
+        group.MapSet<PrincipalKeyRequest>(_logger, async (objectId, model, context) => await _client.GetGrain<IPrincipalKeyActor>(objectId).Update(model, context.TraceId));
 
-        return builder;
-    }
+        group.MapPost("/create/{*objectId}", async (string objectId, PrincipalKeyRequest model, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        {
+            var context = new ScopeContext(traceId, _logger);
+            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            if (option.IsError()) option.ToResult();
 
-    private async Task<SpinResponse> Create(PrincipalKeyRequest model, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        return await _client.GetGrain<IPrincipalKeyActor>(model.KeyId).Create(model, context.TraceId);
+            var response = await _client.GetGrain<IPrincipalKeyActor>(objectId).Create(model, context.TraceId);
+            return response.ToResult();
+        });
+
+        return group;
     }
 }

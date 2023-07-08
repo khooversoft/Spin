@@ -16,7 +16,7 @@ public record UserModel
 
     [Id(0)] public string UserId { get; init; } = null!;
     [Id(1)] public string Version { get; init; } = _version;
-    [Id(2)] public string GlobalPrincipleId { get; init; } = Guid.NewGuid().ToString();
+    [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();
 
     [Id(3)] public string DisplayName { get; init; } = null!;
     [Id(4)] public string FirstName { get; init; } = null!;
@@ -35,9 +35,9 @@ public record UserModel
 public static class UserModelValidator
 {
     public static IValidator<UserModel> Validator { get; } = new Validator<UserModel>()
-        .RuleFor(x => x.UserId).NotEmpty().Must(x => ObjectId.IsValid(x), x => $"{x} is not a valid ObjectId")
+        .RuleFor(x => x.UserId).NotEmpty().ValidName()
         .RuleFor(x => x.Version).NotEmpty()
-        .RuleFor(x => x.GlobalPrincipleId).NotEmpty()
+        .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.DisplayName).NotEmpty()
         .RuleFor(x => x.FirstName).NotEmpty()
         .RuleFor(x => x.LastName).NotEmpty()

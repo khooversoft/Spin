@@ -23,8 +23,8 @@ public record PrincipalKeyModel
 public static class PrincipalKeyValidator
 {
     public static IValidator<PrincipalKeyModel> Validator { get; } = new Validator<PrincipalKeyModel>()
-        .RuleFor(x => x.KeyId).NotEmpty()
-        .RuleFor(x => x.OwnerId).NotEmpty()
+        .RuleFor(x => x.KeyId).ValidName()
+        .RuleFor(x => x.OwnerId).ValidName()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.PublicKey).NotNull()
         .Build();

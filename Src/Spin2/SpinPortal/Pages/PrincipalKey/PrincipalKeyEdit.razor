@@ -1,22 +1,41 @@
-﻿<MudDrawer @bind-Open=Show ClipMode="DrawerClipMode.Docked" Breakpoint="Breakpoint.Sm" Elevation="4" Variant=DrawerVariant.Persistent PreserveOpenState=true Anchor=Anchor.End>
-    <MudDrawerHeader>
-        <MudText Typo="Typo.h6">Settings</MudText>
-    </MudDrawerHeader>
-    <MudDivider DividerType="DividerType.Middle" />
+﻿@page "/principalKeyEdit/{tenant}/{*pageRoute}"
 
-    <MudStack Spacing=2 class="px-4">
-        <MudNavMenu Color="Color.Inherit">
-            <MudSwitch Color="Color.Primary" Class="ma-4" T="bool" Label="Dark Mode" CheckedChanged=SetDarkMode />
-        </MudNavMenu>
-    </MudStack>
-</MudDrawer>
+<MudPaper Elevation="2" Class="nvarbar-panel pt-1">
+    <MudToolBar Dense=true>
+        <MudText>@_title</MudText>
+        <MudDivider DividerType=DividerType.Middle />
 
-@code {
-    public bool Show { get; set; } = true;
-    //[Parameter] public EventCallback<bool> OnSetDark { get; set; }
+        <MudStack Spacing=3 Row=true>
+            <StandardButton Icon="@Icons.Material.Sharp.Cancel" OnClick=Cancel Text="Cancel" />
+        </MudStack>
 
-    private async Task SetDarkMode(bool darkMode)
-    {
-        //await OnSetDark.InvokeAsync(darkMode);
-    }
-}
+    </MudToolBar>
+</MudPaper>
+
+<Message Text=@_errorMsg Severity=Severity.Error />
+
+<EditForm class="mt-2" Model="@_model" OnValidSubmit="OnValidSubmit" style="min-width:400px">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Key ID" HelperText="Max 50 characters, only alpha numeric, [-._]" Disabled=_createMode @bind-Value="_model.KeyId" For="@(() => _model.KeyId)" />
+
+                    <MudTextField Label="Owner" HelperText="Max 100 characters" @bind-Value="@_model.OwnerId" For="@(() => _model.OwnerId)" />
+                    <MudTextField Label="Name" HelperText="Max 100 characters" @bind-Value="@_model.Name" For="@(() => _model.Name)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <StandardButton Class="ml-auto" ButtonType="ButtonType.Submit" Icon="@Icons.Material.Sharp.Check" Color="@Color.Success" Text="@_addOrUpdateButtonText" />
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="5">
+            <MudPaper Class="pa-4 mud-height-full">
+                <MudText Typo="Typo.subtitle2">Properties</MudText>
+                <MudCheckBox Color="Color.Primary" Class="ma-4" T="bool" Label="Has Private Key" @bind-Checked="@_model.PrivateKeyExist" Disabled=true />
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+

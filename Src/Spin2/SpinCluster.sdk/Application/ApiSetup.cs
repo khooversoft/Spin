@@ -19,7 +19,6 @@ public static class ApiSetup
     {
         services.AddSingleton<TenantConnector>();
         services.AddSingleton<UserConnector>();
-        services.AddSingleton<PrincipalKeyConnector>();
         services.AddSingleton<ConfigurationConnector>();
         services.AddSingleton<SearchConnector>();
         services.AddSingleton<PrincipalKeyConnector>();
@@ -31,7 +30,6 @@ public static class ApiSetup
     {
         app.ServiceProvider.GetRequiredService<TenantConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<UserConnector>().Setup(app);
-        app.ServiceProvider.GetRequiredService<PrincipalKeyConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<ConfigurationConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SearchConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<PrincipalKeyConnector>().Setup(app);

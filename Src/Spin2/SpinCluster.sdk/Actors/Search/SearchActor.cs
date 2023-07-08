@@ -13,6 +13,7 @@ namespace SpinCluster.sdk.Actors.Search;
 public interface ISearchActor : IGrainWithStringKey
 {
     Task<SpinResponse<IReadOnlyList<StorePathItem>>> Search(SearchQuery searchQuery, string traceId);
+    Task<SpinResponse> Exist(string objectId, string traceId);
 }
 
 [StatelessWorker]
@@ -39,12 +40,8 @@ public class SearchActor : Grain, ISearchActor
                 return new SpinResponse<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest, v.FormatErrors());
         }
 
-        Option<IDatalakeStore> store = _datalakeResources.GetStore(searchQuery.Schema);
-        if (store.IsError())
-        {
-            context.Location().LogError("Failed to get datalake store for schemaName={schemaName}", searchQuery.Schema);
-            return new SpinResponse<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest, "Failed to get schema");
-        }
+        Option<IDatalakeStore> store = _datalakeResources.GetStore(searchQuery.Schema, context.Location());
+        if (store.IsError()) return store.ToSpinResponse<IReadOnlyList<StorePathItem>>();
 
         Option<QueryResponse<DatalakePathItem>> result = await store.Return().Search(searchQuery.ConvertTo(), context);
         if (result.IsError())
@@ -56,5 +53,18 @@ public class SearchActor : Grain, ISearchActor
         return result.Return().Items
             .Select(x => x.ConvertTo())
             .ToArray();
+    }
+
+    public async Task<SpinResponse> Exist(string objectId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        var objId = ObjectId.CreateIfValid(objectId);
+        if (objId.IsError()) return objId.ToSpinResponse();
+
+        Option<IDatalakeStore> store = _datalakeResources.GetStore(objId.Return().Schema, context.Location());
+        if (store.IsError()) return store.ToSpinResponse();
+
+        StatusCode statusCode = await store.Return().Exist(objId.Return().FilePath, context);
+        return new SpinResponse(statusCode);
     }
 }

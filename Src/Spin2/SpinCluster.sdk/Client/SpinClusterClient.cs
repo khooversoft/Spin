@@ -16,6 +16,7 @@ public class SpinClusterClient
         Tenant = new TenantClient(client);
         Search = new SearchClient(client);
         User = new UserClient(client);
+        PrincipalKey = new PrincipalKeyClient(client);
     }
 
     public ConfigurationClient Configuration { get; }
@@ -24,4 +25,5 @@ public class SpinClusterClient
     public TenantClient Tenant { get; }
     public SearchClient Search { get; }
     public UserClient User { get; }
+    public PrincipalKeyClient PrincipalKey { get; }
 }

@@ -14,7 +14,7 @@ public record TenantModel
 
     [Id(0)] public string TenantId { get; init; } = null!;
     [Id(1)] public string Version { get; init; } = _version;
-    [Id(2)] public string GlobalPrincipleId { get; init; } = Guid.NewGuid().ToString();
+    [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();
     [Id(3)] public string TenantName { get; init; } = null!;
     [Id(4)] public string Contact { get; init; } = null!;
     [Id(5)] public string Email { get; init; } = null!;
@@ -31,8 +31,8 @@ public record TenantModel
 public static class TenantRegisterValidator
 {
     public static IValidator<TenantModel> Validator { get; } = new Validator<TenantModel>()
-        .RuleFor(x => x.TenantId).NotEmpty()
-        .RuleFor(x => x.GlobalPrincipleId).NotEmpty()
+        .RuleFor(x => x.TenantId).NotEmpty().ValidName()
+        .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.Contact).NotEmpty()
         .RuleFor(x => x.Email).NotEmpty()
         .RuleFor(x => x.Phone).NotNull().Must(x => x.Count > 0, _ => "A phone is required")
