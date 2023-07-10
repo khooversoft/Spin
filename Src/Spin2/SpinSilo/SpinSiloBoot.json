@@ -35,6 +35,12 @@
       "AccountName": "devspinstore",
       "ContainerName": "lease",
       "BasePath": "leaseV1"
+    },
+    {
+      "SchemaName": "softBank",
+      "AccountName": "devspinstore",
+      "ContainerName": "softbank",
+      "BasePath": "softBankV1"
     }
   ],
   "Tenants": [

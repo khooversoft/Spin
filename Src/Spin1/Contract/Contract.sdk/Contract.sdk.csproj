@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Actors\**" />
+    <EmbeddedResource Remove="Actors\**" />
+    <None Remove="Actors\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
   </ItemGroup>
 
@@ -16,10 +22,6 @@
     <ProjectReference Include="..\..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.DocumentStore\Toolbox.DocumentStore.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Actors\" />
   </ItemGroup>
 
 </Project>

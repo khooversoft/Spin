@@ -46,29 +46,6 @@ public static class StringExtensions
     }
 
     /// <summary>
-    /// Convert property string ex "property1=value1;property2=value2";
-    /// </summary>
-    /// <param name="subject"></param>
-    /// <param name="propertyDelimiter"></param>
-    /// <param name="valueDelimiter"></param>
-    /// <returns></returns>
-    public static IReadOnlyDictionary<string, string> ToDictionary(this string subject, string propertyDelimiter = ";", string valueDelimiter = "=")
-    {
-        if (subject.IsEmpty()) return new Dictionary<string, string>();
-
-        KeyValuePair<string, string> GetKeyValue(string property)
-        {
-            int index = property.IndexOf(valueDelimiter).Assert(x => x >= 0, $"Syntax error, no {valueDelimiter} for {property}");
-            return new KeyValuePair<string, string>(property[0..index], property[(index + 1)..^0]);
-        }
-
-        return subject
-            .Split(propertyDelimiter, StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => GetKeyValue(x))
-            .ToDictionary(x => x.Key, x => x.Value);
-    }
-
-    /// <summary>
     /// Join vector(s) to string with string delimiter
     /// </summary>
     /// <param name="values">values</param>

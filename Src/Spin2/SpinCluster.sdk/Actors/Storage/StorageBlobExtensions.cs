@@ -34,7 +34,7 @@ public static class StorageBlobExtensions
         return blob.HashBase64 == hashBase64;
     }
 
-    public static T ToObject<T>(this Document document)
+    public static T ToObject<T>(this BlobPackage document)
     {
         return typeof(T) switch
         {

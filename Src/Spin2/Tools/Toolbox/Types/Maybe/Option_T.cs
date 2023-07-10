@@ -63,7 +63,6 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
         (HasValue, StatusCode, Value) = value switch
         {
             null => (false, StatusCode.NoContent, value!),
-            //IOption v => (v.HasValue, v.StatusCode, (T)v.ValueObject),
             _ => (true, StatusCode.OK, value!),
         };
     }

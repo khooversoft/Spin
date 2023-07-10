@@ -49,6 +49,8 @@ app.MapSpinApiInternal();
 
 option.IpAddress.Split(';').ForEach(x => app.Urls.Add(x));
 
+app.MapHealthChecks("/_health");
+
 app.WaitForSpinSilo();
 
 Console.WriteLine("Running");

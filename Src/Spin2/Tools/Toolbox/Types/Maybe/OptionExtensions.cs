@@ -5,16 +5,16 @@ namespace Toolbox.Types;
 
 public static class OptionExtensions
 {
-    public static T Return<T>(this Option<T> subject) => subject.HasValue switch
+    public static T Return<T>(this Option<T> subject, bool throwOnNoValue = false) => subject.HasValue switch
     {
         true => subject.Value,
-        false => default!,
+        false => throwOnNoValue ? throw new ArgumentException("HasValue is false") : default!,
     };
 
-    public static async Task<T> Return<T>(this Task<Option<T>> subject) => (await subject) switch
+    public static async Task<T> Return<T>(this Task<Option<T>> subject, bool throwOnNoValue = false) => (await subject) switch
     {
         var v when v.HasValue => v.Value,
-        _ => default!,
+        _ => throwOnNoValue ? throw new ArgumentException("HasValue is false") : default!,
     };
 
     public static T Return<T>(this Option<T> subject, Func<T> defaultValue) => subject switch

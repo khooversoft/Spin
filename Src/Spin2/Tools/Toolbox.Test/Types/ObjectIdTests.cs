@@ -5,58 +5,32 @@ namespace Toolbox.Test.Types;
 
 public class ObjectIdTests
 {
-    //[Fact]
-    //public void TestTenantId()
-    //{
-    //    const string id = "schema/tenant/path";
-    //    ObjectId.IsValid(id).Should().BeTrue();
-
-    //    var o = new ObjectId(id);
-    //    o.Id.Should().Be(id);
-    //    o.Schema.Should().Be("schema");
-    //    o.Tenant.Should().Be("tenant");
-    //    o.Path.Should().Be("path");
-    //    Enumerable.SequenceEqual(o.Paths, new[] { "path" }).Should().BeTrue();
-    //}
-
-    //[Fact]
-    //public void TestTenantId2Paths()
-    //{
-    //    const string id = "schema/tenant/path1/path2";
-    //    ObjectId.IsValid(id).Should().BeTrue();
-
-    //    var o = new ObjectId(id);
-    //    o.Id.Should().Be(id);
-    //    o.Schema.Should().Be("schema");
-    //    o.Tenant.Should().Be("tenant");
-    //    o.Path.Should().Be("path1/path2");
-    //    Enumerable.SequenceEqual(o.Paths, new[] { "path1", "path2" }).Should().BeTrue();
-    //}
-
     [Fact]
-    public void TestNoTenantSystemId()
+    public void TestTenantId()
     {
-        const string id = "schema/path";
-        ObjectId.IsValid(id).Should().BeFalse();
+        const string id = "schema/tenant/path";
+        ObjectId.IsValid(id).Should().BeTrue();
+
+        var o = ObjectId.Parse(id).Return(throwOnNoValue: true);
+        o.Id.Should().Be(id);
+        o.Schema.Should().Be("schema");
+        o.Tenant.Should().Be("tenant");
+        o.Path.Should().Be("path");
+        Enumerable.SequenceEqual(o.Paths, new[] { "path" }).Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("schema")]
-    [InlineData("schema/")]
-    [InlineData("schema//")]
-    [InlineData("schema/path")]
-    [InlineData("schema///tenant")]
-    [InlineData("path/data#")]
-    [InlineData("path///da&ta")]
-    [InlineData("5path/path2/")]
-    [InlineData(".path/path2")]
-    [InlineData("sche!ma/sch#ema/path/path2")]
-    [InlineData("schema/schema/p%ath/path2")]
-    [InlineData("schema/schema/path/pa*th2")]
-    public void TestNegativePatterns(string input)
+    [Fact]
+    public void TestTenantId2Paths()
     {
-        ObjectId.IsValid(input).Should().BeFalse();
+        const string id = "schema/tenant/path1/path2";
+        ObjectId.IsValid(id).Should().BeTrue();
+
+        var o = ObjectId.Parse(id).Return(throwOnNoValue: true);
+        o.Id.Should().Be(id);
+        o.Schema.Should().Be("schema");
+        o.Tenant.Should().Be("tenant");
+        o.Path.Should().Be("path1/path2");
+        Enumerable.SequenceEqual(o.Paths, new[] { "path1", "path2" }).Should().BeTrue();
     }
 
     [Theory]
@@ -71,6 +45,12 @@ public class ObjectIdTests
     [InlineData("path/.path2/path")]
     [InlineData("d/a/b/c/d")]
     [InlineData("path/.tenant./path2")]
+    [InlineData(".path/path2")]
+    [InlineData("schema/@")]
+    [InlineData("schema/@/")]
+    [InlineData("schema/path")]
+    [InlineData("schema/schema/path/pa*th2")]
+    [InlineData("5path/path2/")]
     public void TestPositivePatterns(string input)
     {
         ObjectId.IsValid(input).Should().BeTrue();
@@ -78,19 +58,21 @@ public class ObjectIdTests
 
     [Theory]
     [InlineData("")]
-    [InlineData("schema//")]
-    [InlineData("schema/@")]
-    [InlineData("schema/@/")]
-    [InlineData("schema///")]
+    [InlineData("schema")]
     [InlineData("schema/")]
+    [InlineData("schema//")]
+    [InlineData("schema///tenant")]
+    [InlineData("path/data#")]
+    [InlineData("path///da&ta")]
+    [InlineData("sche!ma/sch#ema/path/path2")]
+    [InlineData("schema/schema/p%ath/path2")]
+    [InlineData("schema///")]
     [InlineData("path")]
     [InlineData("path//data#")]
-    [InlineData(".path/path2")]
     [InlineData("path//da&ta")]
     [InlineData("path///.path2./")]
-    [InlineData("5path/path2/")]
     [InlineData("-path///path2")]
-    public void TestNegative2Patterns(string input)
+    public void TestNegativePatterns(string input)
     {
         ObjectId.IsValid(input).Should().BeFalse();
     }

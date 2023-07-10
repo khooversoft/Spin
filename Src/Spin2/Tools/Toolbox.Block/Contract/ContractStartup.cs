@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿//using Microsoft.Extensions.DependencyInjection;
 
-namespace Toolbox.Block.Contract;
+//namespace Toolbox.Block.Contract;
 
-public static class ContractStartup
-{
-    public static IServiceCollection AddBlockHost(this IServiceCollection services)
-    {
-        services.AddTransient<ContractHost>();
+//public static class ContractStartup
+//{
+//    public static IServiceCollection AddBlockHost(this IServiceCollection services)
+//    {
+//        services.AddTransient<ContractHost>();
 
-        return services;
-    }
-}
+//        return services;
+//    }
+//}

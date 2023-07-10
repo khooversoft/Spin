@@ -66,7 +66,8 @@ public sealed record ObjectId
         if (objectId.IsEmpty()) return new Option<ObjectId>(StatusCode.BadRequest);
 
         Stack<string> tokenStack = objectId
-            .Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .RemoveTrailing('/')
+            .Split('/')
             .Reverse()
             .ToStack();
 
@@ -84,7 +85,7 @@ public sealed record ObjectId
         return new ObjectId(schema, tenant, paths);
     }
 
-    public static bool IsNameValid(string subject) => subject.All(x => IsCharacterValid(x));
+    public static bool IsNameValid(string subject) => subject.IsNotEmpty() && subject.All(x => IsCharacterValid(x));
 
     public static bool IsCharacterValid(char ch) =>
         char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*';
