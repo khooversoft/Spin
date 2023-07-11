@@ -1,122 +1,121 @@
 ﻿using Toolbox.Tools;
 using Toolbox.Types.MerkleTree;
 
-namespace Toolbox.Block.Container
+namespace Toolbox.Block.Container;
+
+/// <summary>
+/// Block chain container
+/// </summary>
+public class BlockChain
 {
-    /// <summary>
-    /// Block chain container
-    /// </summary>
-    public class BlockChain
+    private readonly List<BlockNode> _blocks;
+    private readonly object _lock = new object();
+    private CurrentDigest? _currentDigest = null;
+
+    public BlockChain()
     {
-        private readonly List<BlockNode> _blocks;
-        private readonly object _lock = new object();
-        private CurrentDigest? _currentDigest = null;
+        _blocks = new List<BlockNode>();
+    }
 
-        public BlockChain()
+    public BlockChain(IEnumerable<BlockNode> blockNodes)
+    {
+        blockNodes.NotNull();
+
+        _blocks = blockNodes.ToList();
+    }
+
+    public IReadOnlyList<BlockNode> Blocks => _blocks;
+
+    /// <summary>
+    /// Get digest of block
+    /// </summary>
+    public string Digest
+    {
+        get
         {
-            _blocks = new List<BlockNode>();
-        }
+            _currentDigest ??= new CurrentDigest(GetDigest(), _blocks.Count);
 
-        public BlockChain(IEnumerable<BlockNode> blockNodes)
-        {
-            blockNodes.NotNull();
-
-            _blocks = blockNodes.ToList();
-        }
-
-        public IReadOnlyList<BlockNode> Blocks => _blocks;
-
-        /// <summary>
-        /// Get digest of block
-        /// </summary>
-        public string Digest
-        {
-            get
+            if (((CurrentDigest)_currentDigest).BlockCount != _blocks.Count)
             {
-                _currentDigest ??= new CurrentDigest(GetDigest(), _blocks.Count);
+                _currentDigest = new CurrentDigest(GetDigest(), _blocks.Count);
+            }
 
-                if (((CurrentDigest)_currentDigest).BlockCount != _blocks.Count)
+            return ((CurrentDigest)_currentDigest).Digest;
+        }
+    }
+
+    /// <summary>
+    /// Add data blocks
+    /// </summary>
+    /// <param name="dataBlocks"></param>
+    public BlockChain Add(params DataBlock[] dataBlocks)
+    {
+        lock (_lock)
+        {
+            foreach (var item in dataBlocks)
+            {
+                if (_blocks.Count == 0)
                 {
-                    _currentDigest = new CurrentDigest(GetDigest(), _blocks.Count);
+                    _blocks.Add(new BlockNode(item));
+                    continue;
                 }
 
-                return ((CurrentDigest)_currentDigest).Digest;
+                BlockNode latestBlock = Blocks[_blocks.Count - 1];
+
+                var newBlock = new BlockNode(item, latestBlock.Index + 1, latestBlock.Digest);
+                _blocks.Add(newBlock);
             }
         }
 
-        /// <summary>
-        /// Add data blocks
-        /// </summary>
-        /// <param name="dataBlocks"></param>
-        public BlockChain Add(params DataBlock[] dataBlocks)
+        return this;
+    }
+
+    public bool IsValid()
+    {
+        lock (_lock)
         {
-            lock (_lock)
+            if (Blocks.Any(x => !x.IsValid())) return false;
+
+            for (int i = 1; i < Blocks.Count; i++)
             {
-                foreach (var item in dataBlocks)
-                {
-                    if (_blocks.Count == 0)
-                    {
-                        _blocks.Add(new BlockNode(item));
-                        continue;
-                    }
+                BlockNode currentBlock = Blocks[i];
+                BlockNode previousBlock = Blocks[i - 1];
 
-                    BlockNode latestBlock = Blocks[_blocks.Count - 1];
-
-                    var newBlock = new BlockNode(item, latestBlock.Index + 1, latestBlock.Digest);
-                    _blocks.Add(newBlock);
-                }
+                if (currentBlock.Digest != currentBlock.Digest) return false;
+                if (currentBlock.PreviousHash != previousBlock.Digest) return false;
             }
 
-            return this;
+            return true;
         }
+    }
 
-        public bool IsValid()
+    public string GetDigest()
+    {
+        lock (_lock)
         {
-            lock (_lock)
-            {
-                if (Blocks.Any(x => !x.IsValid())) return false;
-
-                for (int i = 1; i < Blocks.Count; i++)
-                {
-                    BlockNode currentBlock = Blocks[i];
-                    BlockNode previousBlock = Blocks[i - 1];
-
-                    if (currentBlock.Digest != currentBlock.Digest) return false;
-                    if (currentBlock.PreviousHash != previousBlock.Digest) return false;
-                }
-
-                return true;
-            }
+            return new MerkleTree()
+                .Append(_blocks.Select(x => new MerkleHash(x.GetDigest())).ToArray())
+                .BuildTree()
+                .ToString();
         }
+    }
 
-        public string GetDigest()
+    public static BlockChain operator +(BlockChain self, DataBlock blockData)
+    {
+        self.Add(blockData);
+        return self;
+    }
+
+    private struct CurrentDigest
+    {
+        public CurrentDigest(string digest, int blockCount)
         {
-            lock (_lock)
-            {
-                return new MerkleTree()
-                    .Append(_blocks.Select(x => new MerkleHash(x.GetDigest())).ToArray())
-                    .BuildTree()
-                    .ToString();
-            }
+            Digest = digest;
+            BlockCount = blockCount;
         }
 
-        public static BlockChain operator +(BlockChain self, DataBlock blockData)
-        {
-            self.Add(blockData);
-            return self;
-        }
+        public string Digest { get; }
 
-        private struct CurrentDigest
-        {
-            public CurrentDigest(string digest, int blockCount)
-            {
-                Digest = digest;
-                BlockCount = blockCount;
-            }
-
-            public string Digest { get; }
-
-            public int BlockCount { get; }
-        }
+        public int BlockCount { get; }
     }
 }

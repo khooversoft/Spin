@@ -27,11 +27,8 @@ public record BlockNode
     }
 
     public DataBlock DataBlock { get; init; } = null!;
-
     public int Index { get; init; }
-
     public string? PreviousHash { get; init; }
-
     public string Digest { get; init; } = null!;
 }
 

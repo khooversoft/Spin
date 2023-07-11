@@ -33,7 +33,7 @@ public sealed record BlobPackage
 }
 
 
-public static class StorageBlobValidator
+public static class BlobPackageValidator
 {
     public static IValidator<BlobPackage> Validator { get; } = new Validator<BlobPackage>()
         .RuleFor(x => x.ObjectId).NotEmpty().ValidObjectId()

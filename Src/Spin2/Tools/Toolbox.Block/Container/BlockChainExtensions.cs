@@ -1,8 +1,11 @@
 ﻿using System.IO.Compression;
+using Toolbox.Block.Access;
 using Toolbox.Block.Serialization;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Zip;
+using Toolbox.Types;
 using Toolbox.Types.MerkleTree;
 
 namespace Toolbox.Block.Container;
@@ -64,30 +67,15 @@ public static class BlockChainExtensions
             .Append(blockChain.Blocks.Select(x => x.Digest).ToArray());
     }
 
-    public static byte[] ToZip(this BlockChain blockChain)
+    public static Option<BlockChain> ToBlockChain(this BlobPackage package, ScopeContextLocation location)
     {
-        string json = blockChain.ToBlockChainModel().ToJson();
+        var validationOption = package.Validate(location).ToOption();
+        if (validationOption.IsError()) return validationOption.ToOption<BlockChain>();
 
-        using var writeBuffer = new MemoryStream();
-        using (var writer = new ZipArchive(writeBuffer, ZipArchiveMode.Create, leaveOpen: true))
-        {
-            writer.Write(_zipPath, json);
-        }
-
-        return writeBuffer.ToArray();
-    }
-
-    public static BlockChain ToBlockChain(this byte[] data)
-    {
-        using var readBuffer = new MemoryStream(data);
-
-        using var reader = new ZipArchive(readBuffer, ZipArchiveMode.Read);
-        string readJson = reader.ReadAsString(_zipPath);
-
-        BlockChain result = readJson.ToObject<BlockChainModel>()
-            .NotNull(name: "Cannot deserialize")
+        BlockChain blockChain = package
+            .ToObject<BlockChainModel>()
             .ToBlockChain();
 
-        return result;
+        return blockChain;
     }
 }

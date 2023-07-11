@@ -10,6 +10,8 @@ public record ValidatorResult : IValidateResult
     public IReadOnlyList<IValidateResult> Errors { get; init; } = Array.Empty<IValidateResult>();
 
     public bool IsValid => Errors.Count == 0;
+
+    public Option<T> ToOption<T>() => new Option<T>(IsValid ? StatusCode.OK : StatusCode.BadRequest, this.FormatErrors());
 }
 
 
@@ -54,8 +56,4 @@ public static class ValidationErrorExtensions
         location.LogError(subject.FormatErrors());
         return subject;
     }
-
-    public static Option<T> ToOption<T>(this ValidatorResult subject) => new Option<T>(subject.IsValid ? StatusCode.OK : StatusCode.BadRequest, subject.FormatErrors());
-
-
 }
