@@ -56,7 +56,7 @@ public sealed record ObjectId
         Option<ObjectId> objectId = ObjectId.Parse(id);
         if (objectId.IsError()) return objectId.ToOption<ObjectId>();
 
-        return new ObjectId(objectId.Return());
+        return objectId;
     }
 
     public static bool IsValid(string? id) => ObjectId.Parse(id).HasValue;
@@ -93,8 +93,8 @@ public sealed record ObjectId
 
 public static class ObjectIdExtensions
 {
-    public static ObjectId ToObjectId(this string? subject) => ObjectId.Parse(subject).ThrowOnError().Return();
-    public static ObjectId ToObjectId(this string? subject, string schema, string tenant) => ObjectId.Parse($"{schema}/{tenant}/{subject}").ThrowOnError().Return();
+    public static ObjectId ToObjectId(this string? subject) => ObjectId.Parse(subject).Return(true);
+    public static ObjectId ToObjectId(this string? subject, string schema, string tenant) => ObjectId.Parse($"{schema}/{tenant}/{subject}").Return(true);
     public static Option<ObjectId> ToObjectIdIfValid(this string subject) => ObjectId.CreateIfValid(subject);
 
     public static Option<ObjectId> ToObjectIdIfValid(this string subject, ScopeContextLocation location)

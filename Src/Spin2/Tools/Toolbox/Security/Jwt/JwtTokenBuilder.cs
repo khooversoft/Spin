@@ -11,20 +11,11 @@ namespace Toolbox.Security.Jwt;
 /// </summary>
 public class JwtTokenBuilder
 {
-    public JwtTokenBuilder()
-    {
-    }
-
     public IPrincipalSignature? PrincipleSignature { get; set; }
-
     public IList<Claim> Claims { get; } = new List<Claim>();
-
     public DateTime? NotBefore { get; set; }
-
     public DateTime? Expires { get; set; }
-
     public DateTime? IssuedAt { get; set; }
-
     public string? Digest { get; set; }
 
 
@@ -38,13 +29,9 @@ public class JwtTokenBuilder
 
 
     public JwtTokenBuilder SetPrincipleSignature(IPrincipalSignature orincipleSignature) => this.Action(x => x.PrincipleSignature = orincipleSignature);
-
     public JwtTokenBuilder SetNotBefore(DateTime? notBefore) => this.Action(x => x.NotBefore = notBefore);
-
     public JwtTokenBuilder SetExpires(DateTime? expires) => this.Action(x => x.Expires = expires);
-
     public JwtTokenBuilder SetIssuedAt(DateTime? issuedAt) => this.Action(x => x.IssuedAt = issuedAt);
-
     public JwtTokenBuilder SetDigest(string? digest) => this.Action(x => x.Digest = digest);
 
     public string Build()

@@ -8,10 +8,6 @@ public sealed class MerkleTree
     private readonly List<MerkleNode> _leaves = new List<MerkleNode>();
     private readonly object _lock = new object();
 
-    public MerkleTree()
-    {
-    }
-
     public MerkleNode? RootNode { get; private set; }
 
     public MerkleTree Append(params MerkleNode[] nodes)

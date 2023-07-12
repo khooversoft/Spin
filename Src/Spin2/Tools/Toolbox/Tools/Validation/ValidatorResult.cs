@@ -11,6 +11,7 @@ public record ValidatorResult : IValidateResult
 
     public bool IsValid => Errors.Count == 0;
 
+    public Option ToOption() => new Option(IsValid ? StatusCode.OK : StatusCode.BadRequest, this.FormatErrors());
     public Option<T> ToOption<T>() => new Option<T>(IsValid ? StatusCode.OK : StatusCode.BadRequest, this.FormatErrors());
 }
 

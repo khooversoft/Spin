@@ -3,21 +3,13 @@ using Toolbox.Security.Jwt;
 
 namespace Toolbox.Security.Principal;
 
-public interface IPrincipalSignature
+public interface IPrincipalSignature : ISign, ISignValidate
 {
     public string Kid { get; }
-
     public string Issuer { get; }
-
     public string? Audience { get; }
-
     public string? Subject { get; }
 
-    string Sign(string payloadDigest);
-
-    JwtTokenDetails? ValidateSignature(string jwt);
-
     public SigningCredentials GetSigningCredentials();
-
     public SecurityKey GetSecurityKey();
 }

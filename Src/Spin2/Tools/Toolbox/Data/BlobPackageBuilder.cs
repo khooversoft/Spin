@@ -13,8 +13,6 @@ namespace Toolbox.Data;
 
 public class BlobPackageBuilder
 {
-    private readonly Dictionary<string, string> _tags = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
     public ObjectId? ObjectId { get; set; } = null!;
     public string? TypeName { get; set; } = null!;
     public byte[] Content { get; set; } = Array.Empty<byte>();

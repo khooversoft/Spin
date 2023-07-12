@@ -1,8 +1,9 @@
-﻿namespace Toolbox.Security.Sign
+﻿using Toolbox.Types;
+
+namespace Toolbox.Security.Sign;
+
+public interface ISigningClient
 {
-    public interface ISigningClient
-    {
-        Task<SignRequestResponse> Sign(SignRequest signRequest, CancellationToken token);
-        Task<bool> Validate(ValidateRequest validateRequest, CancellationToken token);
-    }
+    Task<SignResponse> Sign(SignRequest signRequest, CancellationToken token);
+    Task<Option> Validate(ValidateRequest validateRequest, CancellationToken token);
 }

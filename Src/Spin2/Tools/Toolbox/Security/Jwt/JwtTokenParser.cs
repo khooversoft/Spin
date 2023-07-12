@@ -93,10 +93,8 @@ public class JwtTokenParser
     {
         if (token.IsEmpty()) return null;
 
-        JwtSecurityToken jwtToken = new JwtSecurityTokenHandler()
-            .ReadJwtToken(token);
-
-        return jwtToken?.Header.Kid;
+        JwtSecurityToken jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        return jwtToken.Header?.Kid;
     }
 
     /// <summary>
@@ -108,9 +106,7 @@ public class JwtTokenParser
     {
         if (token.IsEmpty()) return null;
 
-        JwtSecurityToken jwtToken = new JwtSecurityTokenHandler()
-            .ReadJwtToken(token);
-
-        return jwtToken?.Issuer;
+        JwtSecurityToken jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        return jwtToken.Issuer;
     }
 }
