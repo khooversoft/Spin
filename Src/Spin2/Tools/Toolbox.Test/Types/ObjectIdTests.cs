@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -31,6 +33,18 @@ public class ObjectIdTests
         o.Tenant.Should().Be("tenant");
         o.Path.Should().Be("path1/path2");
         Enumerable.SequenceEqual(o.Paths, new[] { "path1", "path2" }).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ObjectIdSerialize()
+    {
+        ObjectId id = "schema/tenant/path1/path2".ToObjectId();
+
+        string json = id.ToJson();
+
+        ObjectId readId = json.ToObject<ObjectId>().NotNull();
+
+        (id == readId).Should().BeTrue();
     }
 
     [Theory]

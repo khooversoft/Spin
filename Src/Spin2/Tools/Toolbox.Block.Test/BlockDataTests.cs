@@ -39,14 +39,14 @@ namespace Toolbox.Block.Test
                 .SetPrincipleId(issuer)
                 .Build()
                 .Sign(principleSignature, _context)
-                .Return(true);
+                .Return();
 
-            await data.ValidateDigest(principleSignature, _context).Return(true);
+            await data.ValidateDigest(principleSignature, _context).Return();
 
             string json = data.ToJson();
 
             DataBlock received = Json.Default.Deserialize<DataBlock>(json).NotNull(name: "Json is null");
-            await received.ValidateDigest(principleSignature, _context).Return(true);
+            await received.ValidateDigest(principleSignature, _context).Return();
 
             data.TimeStamp.Should().Be(now.ToUnixDate().TimeStamp);
 
@@ -92,7 +92,7 @@ namespace Toolbox.Block.Test
                 .SetPrincipleId(issuer)
                 .Build()
                 .Sign(principleSignature, _context)
-                .Return(true);
+                .Return();
 
             DataBlock data2 = await new DataBlockBuilder()
                 .SetTimeStamp(now)
@@ -103,7 +103,7 @@ namespace Toolbox.Block.Test
                 .SetPrincipleId(issuer)
                 .Build()
                 .Sign(principleSignature, _context)
-                .Return(true);
+                .Return();
 
             data1.TimeStamp.Should().Be(data2.TimeStamp);
             data1.BlockType.Should().Be(data2.BlockType);

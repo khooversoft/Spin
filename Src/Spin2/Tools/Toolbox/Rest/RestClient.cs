@@ -82,7 +82,7 @@ public class RestClient
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
                 response.StatusCode,
-                requestPayload.Return(),
+                requestPayload.Return(false),
                 (content.ToNullIfEmpty() ?? "<no content>").Truncate(30000)
                 );
 
@@ -101,7 +101,7 @@ public class RestClient
             context.Location().LogCritical("[Restclient-Error] call to {uri} failed, method={method}, request={request}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
-                requestPayload.Return()
+                requestPayload.Return(false)
                 );
 
             var result = new RestResponse

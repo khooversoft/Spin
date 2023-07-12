@@ -2,9 +2,9 @@
 
 namespace SoftBank.sdk;
 
-public class AccountDetail
+public record AccountDetail
 {
-    public ObjectId ObjectId { get; init; } = null!;
-    public ObjectId OwnerId { get; init; } = null!;
+    public string ObjectId { get; init; } = null!;
+    public string OwnerId { get; init; } = null!;
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 }

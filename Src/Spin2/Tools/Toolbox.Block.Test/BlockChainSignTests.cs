@@ -22,10 +22,10 @@ namespace Toolbox.Block.Test
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetObjectId("user/tenant/user@domain.com")
+                .SetObjectId("user/tenant/user@domain.com".ToObjectId())
                 .SetPrincipleId(issuer)
                 .Build(principleSignature, _context)
-                .Return(true);
+                .Return();
 
             Option result = await blockChain.ValidateBlockChain(principleSignature, _context);
             result.StatusCode.IsOk().Should().BeTrue();
@@ -61,13 +61,13 @@ namespace Toolbox.Block.Test
                 .SetPrincipleId(issuer)
                 .Build()
                 .Sign(principleSignature, _context)
-                .Return(true);
+                .Return();
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetObjectId(objectId)
+                .SetObjectId(objectId.ToObjectId())
                 .SetPrincipleId(issuer)
                 .Build(principleSignature, _context)
-                .Return(true);
+                .Return();
 
             blockChain.Add(data);
 
@@ -118,7 +118,7 @@ namespace Toolbox.Block.Test
             BlobPackage blobPackage = blockChain.ToBlobPackage();
             blobPackage.Validate(_context.Location()).ThrowOnError();
 
-            BlockChain readBlockChain = blobPackage.ToBlockChain(_context).Return(true);
+            BlockChain readBlockChain = blobPackage.ToBlockChain(_context).Return();
             string readBlockChainDigest = readBlockChain.GetDigest();
 
             VerifyBlockChain(readBlockChain, payload, payload2);
@@ -130,7 +130,6 @@ namespace Toolbox.Block.Test
             const string issuer = "user@domain.com";
             const string issuer2 = "user2@domain.com";
             const string objectId = $"user/tenant/{issuer}";
-            const string objectId2 = $"user/tenant/{issuer2}";
             var now = UnixDate.UtcNow;
             var date = DateTime.UtcNow;
 
@@ -139,22 +138,22 @@ namespace Toolbox.Block.Test
                 .Add(new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com"));
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetObjectId(objectId)
+                .SetObjectId(objectId.ToObjectId())
                 .SetPrincipleId(issuer)
                 .Build(signCollection, _context)
-                .Return(true);
+                .Return();
 
             var payload = new Payload { Name = "Name1", Value = 2, Price = 10.5f };
             var payloadBlock = await payload
                 .ToDataBlock(issuer, "objectClass")
                 .Sign(signCollection, _context)
-                .Return(true);
+                .Return();
 
             var payload2 = new Payload2 { Last = "Last", Current = date, Author = "test" };
             var payloadBlock2 = await payload2
                 .ToDataBlock(issuer2)
                 .Sign(signCollection, _context)
-                .Return(true);
+                .Return();
 
             blockChain.Add(payloadBlock);
             blockChain.Add(payloadBlock2);

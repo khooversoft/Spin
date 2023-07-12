@@ -27,7 +27,7 @@ public class OptionTests
 
         int? v1 = null;
         Option<int?> o1 = v1.ToOption();
-        o1.Return().Should().BeNull();
+        o1.Return(false).Should().BeNull();
         o1.HasValue.Should().BeFalse();
         o1.StatusCode.Should().Be(StatusCode.NoContent);
         (o1 == Option<int?>.None).Should().BeTrue();
@@ -137,7 +137,7 @@ public class OptionTests
     {
         var v1 = Array.Empty<string>();
         Option<string> v2 = v1.FirstOrDefault().ToOption();
-        v2.Return().Should().BeNull();
+        v2.Return(false).Should().BeNull();
         v2.StatusCode.Should().Be(StatusCode.NoContent);
         (v2 == default).Should().BeTrue();
         (v2 != default).Should().BeFalse();
@@ -183,7 +183,7 @@ public class OptionTests
 
         Option<string> s3 = v4.Where(x => x == "abc").FirstOrDefault().ToOption();
         (s3 == default).Should().BeTrue();
-        s3.Return().Should().Be(default);
+        s3.Return(false).Should().Be(default);
         (s3 == Option<string>.None).Should().BeTrue();
     }
 

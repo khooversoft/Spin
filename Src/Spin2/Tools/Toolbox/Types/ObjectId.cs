@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -12,10 +13,16 @@ public sealed record ObjectId
     private string? _id = null;
     private string? _filePath = null;
 
-    public ObjectId(string schema, string tentant, params string?[] paths)
+    [JsonConstructor]
+    public ObjectId(string schema, string tenant, IReadOnlyList<string> paths)
+        : this(schema, tenant, paths.ToArray())
+    {
+    }
+
+    public ObjectId(string schema, string tenant, params string?[] paths)
     {
         Schema = schema.Assert(x => IsNameValid(x), _syntaxError);
-        Tenant = tentant.Assert(x => IsNameValid(x), _syntaxError);
+        Tenant = tenant.Assert(x => IsNameValid(x), _syntaxError);
 
         Paths = (paths ?? Array.Empty<string>())
             .Where(x => x != null)
@@ -38,9 +45,9 @@ public sealed record ObjectId
     public string Tenant { get; }
     public IReadOnlyList<string> Paths { get; }
 
-    public string Path => _path ?? Paths.Join("/");
-    public string Id => _id ?? $"{Schema}/{Tenant}/{Path}".RemoveTrailing('/');
-    public string FilePath => _filePath ?? Tenant + "/" + Path;
+    [JsonIgnore] public string Path => _path ?? Paths.Join("/");
+    [JsonIgnore] public string Id => _id ?? $"{Schema}/{Tenant}/{Path}".RemoveTrailing('/');
+    [JsonIgnore] public string FilePath => _filePath ?? Tenant + "/" + Path;
 
     public override string ToString() => Id;
     public bool Equals(ObjectId? obj) => obj is ObjectId value &&
@@ -93,8 +100,8 @@ public sealed record ObjectId
 
 public static class ObjectIdExtensions
 {
-    public static ObjectId ToObjectId(this string? subject) => ObjectId.Parse(subject).Return(true);
-    public static ObjectId ToObjectId(this string? subject, string schema, string tenant) => ObjectId.Parse($"{schema}/{tenant}/{subject}").Return(true);
+    public static ObjectId ToObjectId(this string? subject) => ObjectId.Parse(subject).Return();
+    public static ObjectId ToObjectId(this string? subject, string schema, string tenant) => ObjectId.Parse($"{schema}/{tenant}/{subject}").Return();
     public static Option<ObjectId> ToObjectIdIfValid(this string subject) => ObjectId.CreateIfValid(subject);
 
     public static Option<ObjectId> ToObjectIdIfValid(this string subject, ScopeContextLocation location)

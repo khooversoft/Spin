@@ -29,18 +29,18 @@ public class BlockChainStreamTests
         };
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId("user/tenant/user@domain.com")
+            .SetObjectId("user/tenant/user@domain.com".ToObjectId())
             .SetPrincipleId(_owner)
             .Build(_signCollection, _context)
-            .Return(true);
+            .Return();
 
         Option result = await blockChain.ValidateBlockChain(_signCollection, _context);
         result.StatusCode.IsOk().Should().BeTrue();
 
-        BlockStream stream = blockChain.GetStream("ledger");
+        BlockStream<Payload> stream = blockChain.GetStream<Payload>("ledger");
 
         IReadOnlyList<DataBlock> blocks = await payloads
-            .Select(x => stream.ToDataBlock(x, _owner).Sign(_signCollection, _context).Return(true))
+            .Select(x => stream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
             .Func(async x => await Task.WhenAll(x));
 
         blocks.ForEach(stream.Add);
@@ -48,7 +48,7 @@ public class BlockChainStreamTests
 
         await blockChain.ValidateBlockChain(_signCollection, _context).ThrowOnError();
 
-        IReadOnlyList<Payload> blockPayloads = stream.Get<Payload>();
+        IReadOnlyList<Payload> blockPayloads = stream.Get();
         blockPayloads.Count.Should().Be(3);
 
         payloads.SequenceEqual(blockPayloads).Should().BeTrue();

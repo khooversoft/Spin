@@ -7,20 +7,20 @@ namespace Toolbox.Block;
 
 public class BlockChainBuilder
 {
-    public string? ObjectId { get; set; }
+    public ObjectId? ObjectId { get; set; }
     public string? PrincipleId { get; set; }
 
-    public BlockChainBuilder SetObjectId(string objectId) => this.Action(x => ObjectId = objectId);
+    public BlockChainBuilder SetObjectId(ObjectId objectId) => this.Action(x => ObjectId = objectId);
     public BlockChainBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
 
     public async Task<Option<BlockChain>> Build(ISign sign, ScopeContext context)
     {
-        ObjectId.NotEmpty();
+        ObjectId.NotNull();
         PrincipleId.NotEmpty();
         sign.NotNull();
 
         Option<DataBlock> genesisBlock = await DataBlockBuilder
-            .CreateGenesisBlock(ObjectId, PrincipleId)
+            .CreateGenesisBlock(ObjectId.ToString(), PrincipleId)
             .Sign(sign, context);
 
         if (genesisBlock.IsError()) return genesisBlock.ToOption<BlockChain>();

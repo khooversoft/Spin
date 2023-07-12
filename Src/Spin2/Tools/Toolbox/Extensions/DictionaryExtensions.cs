@@ -24,7 +24,7 @@ public static class DictionaryExtensions
 
         return subject
             .Split(propertyDelimiter, StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => GetKeyValue(x).Return(true))
+            .Select(x => GetKeyValue(x).Return())
             .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
 
 

@@ -42,11 +42,13 @@ public static class BlockChainExtensions
         .Select(x => x.DataBlock)
         .ToList();
 
+    public static Option<GenesisBlock> GetGenesisBlock(this BlockChain blockChain) => blockChain
+        .GetTypedBlocks<GenesisBlock>(GenesisBlock.BlockType)
+        .FirstOrDefaultOption();
+
     public static BlobPackage ToBlobPackage(this BlockChain blockChain)
     {
-        GenesisBlock genesisBlock = blockChain.GetTypedBlocks<GenesisBlock>(GenesisBlock.BlockType)
-            .FirstOrDefault()
-            .NotNull(name: "No genesis block");
+        GenesisBlock genesisBlock = blockChain.GetGenesisBlock().Return();
 
         var blob = new BlobPackageBuilder()
             .SetObjectId(genesisBlock.ObjectId.ToObjectId())

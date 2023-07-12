@@ -25,7 +25,7 @@ public class OptionConstructorTests
         option.Error.Should().BeNull();
         option.HasValue.Should().BeFalse();
         option.Value.Should().Be(default);
-        option.Return().Should().Be(default);
+        option.Return(false).Should().Be(default);
 
         var option2 = new Option<string>();
         (option == option2).Should().BeTrue();
@@ -40,7 +40,7 @@ public class OptionConstructorTests
         option.Error.Should().BeNull();
         option.HasValue.Should().BeFalse();
         option.Value.Should().Be(default);
-        option.Return().Should().Be(default);
+        option.Return(false).Should().Be(default);
 
         var option2 = new Option<int>();
         (option == option2).Should().BeTrue();
@@ -79,7 +79,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NoContent);
         option.Error.Should().BeNull();
         option.Value.Should().Be(default);
-        option.Return().Should().Be(default);
+        option.Return(false).Should().Be(default);
 
         var option2 = new Option<int>(false, default);
         (option == option2).Should().BeTrue();
@@ -124,7 +124,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NotFound);
         option.Error.Should().BeNull();
         option.Value.Should().Be(default);
-        option.Return().Should().Be(default);
+        option.Return(false).Should().Be(default);
 
         var option2 = new Option<int>(StatusCode.NotFound);
         (option == option2).Should().BeTrue();
@@ -139,7 +139,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NotFound);
         option.Error.Should().Be("not found");
         option.Value.Should().Be(default);
-        option.Return().Should().Be(default);
+        option.Return(false).Should().Be(default);
 
         var option2 = new Option<int>(StatusCode.NotFound, "not found");
         (option == option2).Should().BeTrue();
@@ -199,7 +199,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NoContent);
         option.Error.Should().BeNull();
         option.Value.Should().Be(default);
-        option.Return().Should().Be(default);
+        option.Return(false).Should().Be(default);
 
         var option2 = new Option<string?>(false, default);
         (option == option2).Should().BeTrue();
@@ -214,7 +214,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NoContent);
         option.Error.Should().BeNull();
         option.Value.Should().BeNull();
-        option.Return().Should().BeNull();
+        option.Return(false).Should().BeNull();
 
         var option2 = new Option<string?>(false, null);
         (option == option2).Should().BeTrue();
@@ -229,7 +229,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NoContent);
         option.Error.Should().BeNull();
         option.Value.Should().Be(default);
-        option.Return().Should().BeNull(default);
+        option.Return(false).Should().BeNull(default);
 
         var option2 = new Option<string>(false, default!);
         (option == option2).Should().BeTrue();
@@ -289,7 +289,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NotFound);
         option.Error.Should().BeNull();
         option.Value.Should().Be(default);
-        option.Return().Should().BeNull(default);
+        option.Return(false).Should().BeNull(default);
 
         var option2 = new Option<string>(StatusCode.NotFound);
         (option == option2).Should().BeTrue();
@@ -304,7 +304,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NotFound);
         option.Error.Should().Be("not found");
         option.Value.Should().Be(default);
-        option.Return().Should().BeNull(default);
+        option.Return(false).Should().BeNull(default);
 
         var option2 = new Option<string>(StatusCode.NotFound, "not found");
         (option == option2).Should().BeTrue();
@@ -334,7 +334,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NotFound);
         option.Error.Should().BeNull();
         option.Value.Should().Be(default);
-        option.Return().Should().BeNull(default);
+        option.Return(false).Should().BeNull(default);
 
         var option2 = new Option<string?>(default, StatusCode.NotFound);
         (option == option2).Should().BeTrue();
@@ -349,7 +349,7 @@ public class OptionConstructorTests
         option.StatusCode.Should().Be(StatusCode.NotFound);
         option.Error.Should().Be("not found really");
         option.Value.Should().Be(default);
-        option.Return().Should().BeNull(default);
+        option.Return(false).Should().BeNull(default);
 
         var option2 = new Option<string>(default!, StatusCode.NotFound, "not found really");
         (option == option2).Should().BeTrue();

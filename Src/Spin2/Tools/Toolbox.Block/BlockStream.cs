@@ -10,7 +10,7 @@ namespace Toolbox.Block;
 /// ObjectType = object type name (serialize / deserialize)
 /// 
 /// </summary>
-public class BlockStream
+public class BlockStream<T> where T : class
 {
     private readonly BlockChain _blockChain;
     private readonly string _streamName;
@@ -26,9 +26,9 @@ public class BlockStream
 
     public void Add(DataBlock value) => _blockChain.Add(value);
 
-    public IReadOnlyList<T> Get<T>() where T : class => _blockChain.GetTypedBlocks<T>(_blockType);
+    public IReadOnlyList<T> Get() => _blockChain.GetTypedBlocks<T>(_blockType);
 
-    public DataBlock ToDataBlock<T>(T subject, string principalId) where T : class
+    public DataBlock CreateDataBlock(T subject, string principalId)
     {
         return subject.ToDataBlock(principalId, _blockType);
     }
@@ -37,5 +37,6 @@ public class BlockStream
 
 public static class BlockStreamExtensions
 {
-    public static BlockStream GetStream(this BlockChain blockChain, string streamName) => new BlockStream(blockChain, streamName);
+    public static BlockStream<T> GetStream<T>(this BlockChain blockChain, string streamName) where T : class =>
+        new BlockStream<T>(blockChain, streamName);
 }
