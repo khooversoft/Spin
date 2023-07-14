@@ -20,6 +20,7 @@ public class SoftBankAccount
         return await _blockChain.ValidateBlockChain(signValidate, context);
     }
 
+    public decimal GetBalance() => GetLedgerStream().Get().Sum(x => x.NaturalAmount);
 
     public static Option<SoftBankAccount> Create(BlobPackage package, ScopeContext context)
     {
