@@ -29,7 +29,7 @@ public static class ValidObjectIdExtensions
 {
     public static Rule<T, string> ValidObjectId<T>(this Rule<T, string> rule, string errorMessage = "valid ObjectId is required")
     {
-        rule.PropertyRule.Validators.Add(new NotEmpty<T>(rule.PropertyRule, errorMessage));
+        rule.PropertyRule.Validators.Add(new ValidObjectId<T>(rule.PropertyRule, errorMessage));
         return rule;
     }
 }

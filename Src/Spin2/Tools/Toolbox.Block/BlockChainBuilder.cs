@@ -20,7 +20,7 @@ public class BlockChainBuilder
         sign.NotNull();
 
         Option<DataBlock> genesisBlock = await DataBlockBuilder
-            .CreateGenesisBlock(ObjectId.ToString(), PrincipleId)
+            .CreateGenesisBlock(ObjectId.ToString(), PrincipleId, context)
             .Sign(sign, context);
 
         if (genesisBlock.IsError()) return genesisBlock.ToOption<BlockChain>();

@@ -13,7 +13,7 @@ public class SoftBankAccount
     public SoftBankAccount(BlockChain blockChain) => _blockChain = blockChain.NotNull();
 
     public BlockScalarStream<AccountDetail> GetAccountDetailStream() => _blockChain.GetScalarStream<AccountDetail>(nameof(AccountDetail));
-    public BlockScalarStream<LedgerItem> GetLedgerStream() => _blockChain.GetScalarStream<LedgerItem>(nameof(LedgerItem));
+    public BlockStream<LedgerItem> GetLedgerStream() => _blockChain.GetStream<LedgerItem>(nameof(LedgerItem));
 
     public async Task<Option> ValidateBlockChain(ISignValidate signValidate, ScopeContext context)
     {

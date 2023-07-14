@@ -29,7 +29,7 @@ public static class ValidFolderExtensions
 {
     public static Rule<T, string> ValidName<T>(this Rule<T, string> rule, string errorMessage = "valid folder is required")
     {
-        rule.PropertyRule.Validators.Add(new NotEmpty<T>(rule.PropertyRule, errorMessage));
+        rule.PropertyRule.Validators.Add(new ValidName<T>(rule.PropertyRule, errorMessage));
         return rule;
     }
 }

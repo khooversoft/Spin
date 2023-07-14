@@ -24,8 +24,8 @@ public static class GenesisBlockValidator
 
     public static IValidator<GenesisBlock> Validator { get; } = new Validator<GenesisBlock>()
         .RuleFor(x => x.Type).NotEmpty()
-        .RuleFor(x => x.ObjectId).NotEmpty().Must(x => ObjectId.IsValid(x), x => ObjectId.Parse(x).Error ?? _noErrorText)
-        .RuleFor(x => x.OwnerPrincipalId).NotEmpty().Must(x => ObjectId.IsValid(x), x => ObjectId.Parse(x).Error ?? _noErrorText)
+        .RuleFor(x => x.ObjectId).ValidObjectId()
+        .RuleFor(x => x.OwnerPrincipalId).NotEmpty()
         .Build();
 
     public static ValidatorResult Validate(this GenesisBlock subject, ScopeContextLocation location) => Validator

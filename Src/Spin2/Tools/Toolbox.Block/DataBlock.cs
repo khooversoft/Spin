@@ -38,7 +38,7 @@ public static class DataBlockValidator
         .RuleFor(x => x.BlockType).NotEmpty()
         .RuleFor(x => x.ClassType).NotNull()
         .RuleFor(x => x.Data).NotNull()
-        .RuleFor(x => x.PrincipleId).ValidObjectId()
+        .RuleFor(x => x.PrincipleId).NotEmpty()
         .RuleFor(x => x.JwtSignature).NotEmpty()
         .RuleFor(x => x.Digest).NotEmpty()
         .RuleForObject(x => x).Must(x => x.CalculateDigest() == x.Digest, _ => "Digest doest not match")

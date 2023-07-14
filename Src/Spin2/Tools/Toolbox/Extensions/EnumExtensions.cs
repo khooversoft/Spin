@@ -32,5 +32,5 @@ public static class EnumExtensions
         };
     }
 
-    public static bool IsValid<T>(this T value) where T : struct, Enum => Enum.IsDefined<T>(value);
+    public static bool IsEnumValid<T>(this T value) where T : struct, Enum => Enum.IsDefined<T>(value);
 }

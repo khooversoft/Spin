@@ -12,6 +12,8 @@ public record TestOption
     public int Value { get; init; }
     public IReadOnlyList<string> ScalarValues { get; init; } = Array.Empty<string>();
     public IReadOnlyList<SubOption> SubOptions { get; init; } = Array.Empty<SubOption>();
+    public string ObjectId { get; init; } = null!;
+    public DateTime DateTime { get; init; }
 }
 
 public record SubOption
@@ -31,13 +33,14 @@ public class ValidationTests
 
         var validations = new Validator<TestOption>();
 
-        validations.RuleFor(x => x.DomainName).NotEmpty();
+        validations.RuleFor(x => x.DomainName).NotEmpty().ValidName();
         validations.RuleFor(x => x.AccountName).NotEmpty();
         validations.RuleFor(x => x.Value).Must(x => x == 1, _ => "must be one");
         validations.RuleFor(x => x.ScalarValues).NotNull();
         validations.RuleForEach(x => x.SubOptions).Validate(subValidation);
         validations.RuleForEach(x => x.ScalarValues).NotEmpty();
         validations.RuleForObject(x => x).Must(x => x.DomainName == "domain", _ => "'domain' is required for DomainName");
+        validations.RuleFor(x => x.ObjectId).NotNull().ValidObjectId();
 
         var option = new TestOption
         {
@@ -46,6 +49,8 @@ public class ValidationTests
             Value = 1,
             ScalarValues = Enumerable.Range(0, 5).Select(x => $"Item {x}").ToArray(),
             SubOptions = Enumerable.Range(0, 3).Select(x => new SubOption { Name = $"{x} name", Value = x }).ToArray(),
+            ObjectId = "schema/tenant",
+            DateTime = DateTime.Now,
         };
 
         var result = validations.Validate(option);
@@ -62,13 +67,14 @@ public class ValidationTests
         subValidation.RuleFor(x => x.Value).Must(x => x >= 0, x => $"{x} must >= 0");
 
         var validations = new Validator<TestOption>()
-            .RuleFor(x => x.DomainName).NotEmpty()
+            .RuleFor(x => x.DomainName).NotEmpty().ValidName()
             .RuleFor(x => x.AccountName).NotEmpty()
             .RuleFor(x => x.Value).Must(x => x == 1, _ => "must be one")
             .RuleFor(x => x.ScalarValues).NotNull()
             .RuleForObject(x => x).Must(x => x.DomainName == "domain", _ => "'domain' is required for DomainName")
             .RuleForEach(x => x.SubOptions).Validate(subValidation)
             .RuleForEach(x => x.ScalarValues).NotEmpty()
+            .RuleFor(x => x.ObjectId).NotNull().ValidObjectId()
             .Build();
 
         var option = new TestOption
@@ -78,6 +84,8 @@ public class ValidationTests
             Value = 1,
             ScalarValues = Enumerable.Range(0, 5).Select(x => $"Item {x}").ToArray(),
             SubOptions = Enumerable.Range(0, 3).Select(x => new SubOption { Name = $"{x} name", Value = x }).ToArray(),
+            ObjectId = "schema/tenant",
+            DateTime = DateTime.Now,
         };
 
         var result = validations.Validate(option);

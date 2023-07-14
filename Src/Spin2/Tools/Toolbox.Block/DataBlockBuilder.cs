@@ -1,6 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Tools.Validation;
 
 namespace Toolbox.Block;
 
@@ -52,13 +53,15 @@ public class DataBlockBuilder
         return dataBlock with { Digest = dataBlock.CalculateDigest() };
     }
 
-    public static DataBlock CreateGenesisBlock(string objectId, string principleId)
+    public static DataBlock CreateGenesisBlock(string objectId, string principleId, ScopeContext context)
     {
         var marker = new GenesisBlock
         {
             ObjectId = objectId,
             OwnerPrincipalId = principleId,
         };
+
+        GenesisBlockValidator.Validate(marker, context.Location()).ThrowOnError();
 
         return new DataBlockBuilder()
             .SetBlockType(GenesisBlock.BlockType)
