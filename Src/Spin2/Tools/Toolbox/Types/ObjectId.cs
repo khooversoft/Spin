@@ -21,15 +21,15 @@ public sealed record ObjectId
 
     public ObjectId(string schema, string tenant, params string?[] paths)
     {
-        Schema = schema.Assert(x => IsNameValid(x), _syntaxError);
-        Tenant = tenant.Assert(x => IsNameValid(x), _syntaxError);
+        Schema = schema.Assert(x => NameId.IsValid(x), _syntaxError);
+        Tenant = tenant.Assert(x => NameId.IsValid(x), _syntaxError);
 
         Paths = (paths ?? Array.Empty<string>())
             .Where(x => x != null)
             .OfType<string>()
             .Join('/')
             .Split('/', StringSplitOptions.RemoveEmptyEntries)
-            .Action(x => x.ForEach(x => x.Assert(x => IsNameValid(x), _syntaxError)));
+            .Action(x => x.ForEach(x => x.Assert(x => NameId.IsValid(x), _syntaxError)));
     }
 
     public const string Syntax = "{schema}/{tenant}[/{path}...] Valid characters are a-z A-Z 0-9 . $ @ - _ *";
@@ -81,21 +81,16 @@ public sealed record ObjectId
         if (tokenStack.Count < 2) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, no schema and tenant");
 
         string schema = tokenStack.Pop();
-        if (!IsNameValid(schema)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, schema has invalid characters");
+        if (!NameId.IsValid(schema)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, schema has invalid characters");
 
         string tenant = tokenStack.Pop();
-        if (!IsNameValid(tenant)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, tenant has invalid characters");
+        if (!NameId.IsValid(tenant)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, tenant has invalid characters");
 
         var paths = tokenStack.ToArray();
-        if (!paths.All(x => IsNameValid(x))) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, one or more of the paths has invalid characters");
+        if (!paths.All(x => NameId.IsValid(x))) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, one or more of the paths has invalid characters");
 
         return new ObjectId(schema, tenant, paths);
     }
-
-    public static bool IsNameValid(string subject) => subject.IsNotEmpty() && subject.All(x => IsCharacterValid(x));
-
-    public static bool IsCharacterValid(char ch) =>
-        char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*';
 }
 
 public static class ObjectIdExtensions

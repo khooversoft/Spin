@@ -37,6 +37,7 @@ public class SimpleTransactions
         {
             ObjectId = _ownerObjectId.ToString(),
             OwnerId = _owner,
+            Name = "Softbank 1",
         };
 
         accountDetail.IsValid(_context.Location()).Should().BeTrue();
@@ -85,6 +86,7 @@ public class SimpleTransactions
         {
             ObjectId = _ownerObjectId.ToString(),
             OwnerId = _owner,
+            Name = "Softbank 1",
         };
 
         accountDetail.IsValid(_context.Location()).Should().BeTrue();

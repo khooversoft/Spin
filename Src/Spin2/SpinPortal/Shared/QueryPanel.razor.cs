@@ -141,7 +141,7 @@ public partial class QueryPanel
         await args.File.OpenReadStream().CopyToAsync(memoryStream);
 
         string fileName = args.File.Name
-            .Select(x => ObjectId.IsCharacterValid(x) ? x : '-')
+            .Select(x => NameId.IsCharacterValid(x) ? x : '-')
             .Func(x => new string(x.ToArray()));
 
         ObjectId id = (_pathObjectId.Schema + "/" + _pathObjectId.Tenant + "/" + fileName).ToObjectId();

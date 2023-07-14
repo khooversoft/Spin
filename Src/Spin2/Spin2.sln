@@ -25,8 +25,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinClusterApi", "SpinClust
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinClusterCmd", "SpinClusterCmd\SpinClusterCmd.csproj", "{61F9851C-D246-48A3-A2F2-242A0913E6A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Orleans", "Tools\Toolbox.Orleans\Toolbox.Orleans\Toolbox.Orleans.csproj", "{0303942B-6AFD-4A72-BE6B-EAA7BE2E516B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinCluster.sdk", "SpinCluster.sdk\SpinCluster.sdk.csproj", "{01B9E062-79A2-4C9B-975B-7C6DCC19C341}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinCluster.sdk.test", "SpinCluster.sdk.test\SpinCluster.sdk.test.csproj", "{00DA8F3C-4B77-4E74-855B-734D6B0C3762}"
@@ -35,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.TestApi", "Tools\To
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftBank.sdk", "SoftBank.sdk\SoftBank.sdk.csproj", "{CC7153FC-9486-4390-87C5-DE9397E897B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftBank.sdk.test", "SoftBank.sdk.test\SoftBank.sdk.test.csproj", "{A710FDAE-F49B-410E-832D-623ABB8B9340}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftBank.sdk.test", "SoftBank.sdk.test\SoftBank.sdk.test.csproj", "{A710FDAE-F49B-410E-832D-623ABB8B9340}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,10 +81,6 @@ Global
 		{61F9851C-D246-48A3-A2F2-242A0913E6A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61F9851C-D246-48A3-A2F2-242A0913E6A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61F9851C-D246-48A3-A2F2-242A0913E6A1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0303942B-6AFD-4A72-BE6B-EAA7BE2E516B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0303942B-6AFD-4A72-BE6B-EAA7BE2E516B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0303942B-6AFD-4A72-BE6B-EAA7BE2E516B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0303942B-6AFD-4A72-BE6B-EAA7BE2E516B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{01B9E062-79A2-4C9B-975B-7C6DCC19C341}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{01B9E062-79A2-4C9B-975B-7C6DCC19C341}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01B9E062-79A2-4C9B-975B-7C6DCC19C341}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -118,7 +112,6 @@ Global
 		{A5E80764-0F93-4859-8F35-EC14868D7A4A} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{8730EF5A-DF50-4F46-956C-6409A30A2D9F} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{1E92660A-C80A-4C4B-84EE-FB8650910156} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
-		{0303942B-6AFD-4A72-BE6B-EAA7BE2E516B} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{3E4D6778-2233-46A6-B305-CFE1D806923D} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

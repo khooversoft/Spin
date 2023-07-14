@@ -16,7 +16,7 @@ public class ValidName<T> : IPropertyValidator<string>
 
     public Option<IValidateResult> Validate(string subject)
     {
-        return ObjectId.IsNameValid(subject) switch
+        return NameId.IsValid(subject) switch
         {
             true => Option<IValidateResult>.None,
             false => _rule.CreateError(_errorMessage),

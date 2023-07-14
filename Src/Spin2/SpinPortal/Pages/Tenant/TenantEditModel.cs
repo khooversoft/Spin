@@ -28,7 +28,7 @@ public class TenantEditModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (!ObjectId.IsNameValid(TenantId))
+        if (!NameId.IsValid(TenantId))
         {
             yield return new ValidationResult("Tenant Id is not valid, only alpha numeric, [-._]", new[] { nameof(TenantId) });
         }

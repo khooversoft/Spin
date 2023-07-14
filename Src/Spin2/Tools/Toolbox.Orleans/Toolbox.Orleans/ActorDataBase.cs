@@ -54,7 +54,7 @@ public abstract class ActorDataBase<T> : Grain, IActorDataBase<T>
         GetScopeContext().Location().LogInformation("Setting {typeName}, id={id}, model={model}",
             typeof(T).GetTypeName(), this.GetPrimaryKeyString(), model.ToJsonPascalSafe(new ScopeContext(_logger)));
 
-        if (!_validator.Validate(model).IsValid(GetScopeContext().Location())) return StatusCode.BadRequest;
+        //if (!_validator.Validate(model).IsValid(GetScopeContext().Location())) return StatusCode.BadRequest;
 
         _state.State = model;
         await _state.WriteStateAsync();
