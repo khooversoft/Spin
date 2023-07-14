@@ -18,6 +18,7 @@ public static class SpinConstants
         public const string PrincipalPrivateKey = "principalPrivateKey";
         public const string Storage = "storage";
         public const string Config = "storage";
+        public const string SoftBank = "softbank";
     }
 
     public static class Extension
@@ -29,6 +30,7 @@ public static class SpinConstants
         public const string PrincipalPrivateKey = Schema.PrincipalPrivateKey + "v1";
         public const string Storage = Schema.Storage + "v1";
         public const string Config = Schema.Config + "v1";
+        public const string SoftBank = Schema.SoftBank + "v1";
     }
 
     public static class Protocol
