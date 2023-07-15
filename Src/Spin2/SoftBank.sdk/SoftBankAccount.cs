@@ -22,6 +22,9 @@ public class SoftBankAccount
 
     public decimal GetBalance() => GetLedgerStream().Get().Sum(x => x.NaturalAmount);
 
+
+    public BlobPackage ToBlobPackage() => _blockChain.ToBlobPackage();
+
     public static Option<SoftBankAccount> Create(BlobPackage package, ScopeContext context)
     {
         Option<BlockChain> blockChain = package.ToBlockChain(context);

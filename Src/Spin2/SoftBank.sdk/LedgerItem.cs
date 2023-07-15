@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -15,13 +10,14 @@ public enum LedgerType
     Debit
 }
 
+//[GenerateSerializer, Immutable]
 public record LedgerItem
 {
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public required string Description { get; init; } = null!;
-    public required LedgerType Type { get; init; }
-    public required decimal Amount { get; init; }
+    /*[Id(0)]*/ public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    /*[Id(1)]*/ public string Id { get; init; } = Guid.NewGuid().ToString();
+    /*[Id(2)]*/ public required string Description { get; init; } = null!;
+    /*[Id(3)]*/ public required LedgerType Type { get; init; }
+    /*[Id(4)]*/ public required decimal Amount { get; init; }
 
     public decimal NaturalAmount => Type.NaturalAmount(Amount);
 }

@@ -1,14 +1,14 @@
-﻿using Toolbox.Block;
-using Toolbox.Tools.Validation;
+﻿using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SoftBank.sdk;
 
+//[GenerateSerializer, Immutable]
 public record AccountDetail
 {
-    public string ObjectId { get; init; } = null!;
-    public string OwnerId { get; init; } = null!;
-    public string Name { get; init; } = null!;
+    /*[Id(0)] */public string ObjectId { get; init; } = null!;
+    /*[Id(0)] */public string OwnerId { get; init; } = null!;
+    /*[Id(0)] */public string Name { get; init; } = null!;
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 }
 

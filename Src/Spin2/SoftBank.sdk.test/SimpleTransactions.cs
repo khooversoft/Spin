@@ -10,20 +10,24 @@ namespace SoftBank.sdk.test;
 public class SimpleTransactions
 {
     private const string _owner = "user@domain.com";
-    private readonly ObjectId _ownerObjectId = $"user/tenant/{_owner}".ToObjectId();
+    private const string _owner2 = "user2@domain.com";
+    private readonly ObjectId _accountObjectId = $"contract/tenant/{_owner}/account1".ToObjectId();
     private readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
+    private readonly PrincipalSignature _ownerSignature2= new PrincipalSignature(_owner2, _owner2, "userBusiness@domain.com");
     private readonly PrincipalSignatureCollection _signCollection;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
     public SimpleTransactions()
     {
-        _signCollection = new PrincipalSignatureCollection().Add(_ownerSignature);
+        _signCollection = new PrincipalSignatureCollection()
+            .Add(_ownerSignature)
+            .Add(_ownerSignature2);
     }
 
     [Fact]
     public async Task ConstructTest()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _ownerObjectId, _signCollection, _context).Return();
+        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
         Option signResult = await softBank.ValidateBlockChain(_signCollection, _context);
         signResult.StatusCode.IsOk().Should().BeTrue();
     }
@@ -31,11 +35,11 @@ public class SimpleTransactions
     [Fact]
     public async Task ConstructWithAccountDetails()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _ownerObjectId, _signCollection, _context).Return();
+        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
 
         var accountDetail = new AccountDetail
         {
-            ObjectId = _ownerObjectId.ToString(),
+            ObjectId = _accountObjectId.ToString(),
             OwnerId = _owner,
             Name = "Softbank 1",
         };
@@ -55,7 +59,7 @@ public class SimpleTransactions
     [Fact]
     public async Task ConstructWithLedgerItems()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _ownerObjectId, _signCollection, _context).Return();
+        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
 
         LedgerItem ledgerItem = new LedgerItem
         {
@@ -80,11 +84,11 @@ public class SimpleTransactions
     [Fact]
     public async Task ConstructAccountWithLedgerItems()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _ownerObjectId, _signCollection, _context).Return();
+        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
 
         var accountDetail = new AccountDetail
         {
-            ObjectId = _ownerObjectId.ToString(),
+            ObjectId = _accountObjectId.ToString(),
             OwnerId = _owner,
             Name = "Softbank 1",
         };
@@ -122,5 +126,66 @@ public class SimpleTransactions
 
         decimal balance = softBank.GetBalance();
         balance.Should().Be(135.15m);
+    }
+
+    [Fact]
+    public async Task ConstructAccountWithLedgerItems2Signers()
+    {
+        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
+
+        var accountDetail = new AccountDetail
+        {
+            ObjectId = _accountObjectId.ToString(),
+            OwnerId = _owner,
+            Name = "Softbank 1",
+        };
+
+        accountDetail.IsValid(_context.Location()).Should().BeTrue();
+
+        BlockScalarStream<AccountDetail> accountDetailStream = softBank.GetAccountDetailStream();
+        accountDetailStream.Add(await accountDetailStream.CreateDataBlock(accountDetail, _owner).Sign(_signCollection, _context).Return());
+
+        Option signResult = await softBank.ValidateBlockChain(_signCollection, _context);
+        signResult.StatusCode.IsOk().Should().BeTrue();
+
+
+        var ledgerItems = new[]
+        {
+            new LedgerItem { Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+        };
+
+        BlockStream<LedgerItem> ledgerStream = softBank.GetLedgerStream();
+        await ledgerItems
+            .Select(x => ledgerStream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
+            .ForEachAsync(async x => ledgerStream.Add(await x));
+
+        signResult = await softBank.ValidateBlockChain(_signCollection, _context);
+        signResult.StatusCode.IsOk().Should().BeTrue();
+
+        var ledgerItems2 = new[]
+        {
+            new LedgerItem { Description = "Ledger 1-2", Type = LedgerType.Credit, Amount = 200.0m },
+            new LedgerItem { Description = "Ledger 2-2", Type = LedgerType.Credit, Amount = 155.15m },
+            new LedgerItem { Description = "Ledger 3-2", Type = LedgerType.Debit, Amount = 40.00m }
+        };
+
+        await ledgerItems2
+            .Select(x => ledgerStream.CreateDataBlock(x, _owner2).Sign(_signCollection, _context).Return())
+            .ForEachAsync(async x => ledgerStream.Add(await x));
+
+        signResult = await softBank.ValidateBlockChain(_signCollection, _context);
+        signResult.StatusCode.IsOk().Should().BeTrue();
+
+        AccountDetail readAccountDetail = accountDetailStream.Get().Return();
+        (accountDetail == readAccountDetail).Should().BeTrue();
+
+        IReadOnlyList<LedgerItem> readLedgerItems = ledgerStream.Get();
+        readLedgerItems.Count.Should().Be(6);
+        Enumerable.SequenceEqual(ledgerItems.Concat(ledgerItems2), readLedgerItems).Should().BeTrue();
+
+        decimal balance = softBank.GetBalance();
+        balance.Should().Be(450.30M);
     }
 }

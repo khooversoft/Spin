@@ -11,15 +11,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Core" Version="1.33.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+        <PackageReference Include="Azure.Core" Version="1.34.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
-        <PackageReference Include="Microsoft.Orleans.Client" Version="7.1.2" />
-        <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.1.2" />
-        <PackageReference Include="Microsoft.Orleans.Server" Version="7.1.2" />
+        <PackageReference Include="Microsoft.Orleans.Client" Version="7.2.1" />
+        <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.2.1" />
+        <PackageReference Include="Microsoft.Orleans.Server" Version="7.2.1" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\SoftBank.sdk\SoftBank.sdk.csproj" />
         <ProjectReference Include="..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
         <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
     </ItemGroup>

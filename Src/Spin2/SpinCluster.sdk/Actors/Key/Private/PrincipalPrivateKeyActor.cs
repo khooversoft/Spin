@@ -2,6 +2,7 @@
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
+using SpinCluster.sdk.Types;
 using Toolbox.Tools.Validation;
 
 namespace SpinCluster.sdk.Actors.Key.Private;
@@ -21,4 +22,9 @@ public class PrincipalPrivateKeyActor : ActorDataBase2<PrincipalPrivateKeyModel>
         : base(state, validator, logger)
     {
     }
+
+    //public async Task<SpinResponse<string>> Sign(string messageDigest, string traceId)
+    //{
+        
+    //}
 }

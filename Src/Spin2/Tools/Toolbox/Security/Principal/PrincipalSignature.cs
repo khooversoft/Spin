@@ -17,11 +17,11 @@ public class PrincipalSignature : PrincipalSignatureBase
         };
     }
 
-    public PrincipalSignature(string kid, string issuer, string? audience, string? subject, PrincipalSignature source, DateTime? expires = null)
-        : base(kid, issuer, audience, subject, expires)
-    {
-        _rsa = source._rsa;
-    }
+    //public PrincipalSignature(string kid, string issuer, string? audience, string? subject, PrincipalSignature source, DateTime? expires = null)
+    //    : base(kid, issuer, audience, subject, expires)
+    //{
+    //    _rsa = source._rsa;
+    //}
 
     public RSAParameters RSAParameters(bool includePrivateKey) => _rsa.ExportParameters(includePrivateKey);
 
