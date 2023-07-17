@@ -2,7 +2,7 @@
 using SpinCluster.sdk.Actors.ActorBase;
 using Toolbox.Data;
 
-namespace Toolbox.Test.Data;
+namespace SpinCluster.sdk.test.Tools;
 
 public class DataObjectTests
 {

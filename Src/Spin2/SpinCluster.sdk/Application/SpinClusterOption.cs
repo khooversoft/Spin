@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Actors.User;
+﻿using Microsoft.Extensions.Configuration;
+using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.Identity;
@@ -11,17 +12,17 @@ namespace SpinCluster.sdk.Application;
 
 public record SpinClusterOption
 {
-    public string ApplicationInsightsConnectionString { get; init; } = null!;
+    public string? ApplicationInsightsConnectionString { get; init; }
     public string BootConnectionString { get; init; } = null!;
-    public ClientSecretOption ClientCredentials { get; init; } = null!;
+    public ClientSecretOption Credentials { get; init; } = null!;
+    public string? UserSecrets { get; init; }
 }
 
 public static class SpinClusterOptionValidator
 {
     public static Validator<SpinClusterOption> Validator { get; } = new Validator<SpinClusterOption>()
-        .RuleFor(x => x.ApplicationInsightsConnectionString).NotEmpty()
         .RuleFor(x => x.BootConnectionString).Must(x => DatalakeLocation.ParseConnectionString(x).IsOk(), x => $"Connection string {x} is not valid")
-        .RuleFor(x => x.ClientCredentials).Validate(ClientSecretOptionValidator.Validator)
+        .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
         .Build();
 
     public static ValidatorResult Validate(this SpinClusterOption subject) => Validator.Validate(subject);
@@ -38,4 +39,26 @@ public static class SpinClusterOptionValidator
 }
 
 
+public static class SpinClusterOptionTool
+{
+    public static SpinClusterOption Read(string appsettingFile = "appsettings.json")
+    {
+        SpinClusterOption option = new ConfigurationBuilder()
+            .AddJsonFile(appsettingFile)
+            .Build()
+            .Bind<SpinClusterOption>();
 
+        option = option.UserSecrets switch
+        {
+            null => option,
+
+            string v => new ConfigurationBuilder()
+                .AddJsonFile(appsettingFile)
+                .AddUserSecrets(v)
+                .Build()
+                .Bind<SpinClusterOption>(),
+        };
+
+        return option.Verify();
+    }
+}

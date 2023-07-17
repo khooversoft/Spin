@@ -11,24 +11,25 @@ public class SiloConfigStore
 {
     private readonly IDatalakeStore _datalakeStore;
     private readonly ILogger<SiloConfigStore> _logger;
-    private readonly DatalakeLocation _datalakeLocation;
 
     public SiloConfigStore(DatalakeLocation datalakeLocation, IDatalakeStore datalakeStore, ILogger<SiloConfigStore> logger)
     {
-        _datalakeLocation = datalakeLocation.NotNull();
+        DatalakeLocation = datalakeLocation.NotNull();
         _datalakeStore = datalakeStore.NotNull();
         _logger = logger.NotNull();
     }
 
+    public DatalakeLocation DatalakeLocation { get; }
+
     public async Task<Option<SiloConfigOption>> Get(ScopeContext context)
     {
         context = context.With(_logger);
-        context.Location().LogInformation("Getting silo configuration, path={path}", _datalakeLocation.Path);
+        context.Location().LogInformation("Getting silo configuration, path={path}", DatalakeLocation.Path);
 
-        Option<DataETag> result = await _datalakeStore.Read(_datalakeLocation.Path, context);
+        Option<DataETag> result = await _datalakeStore.Read(DatalakeLocation.Path, context);
         if (result.IsError())
         {
-            context.Location().LogCritical("Reading datalake file={file} failed", _datalakeLocation.Path);
+            context.Location().LogCritical("Reading datalake file={file} failed", DatalakeLocation.Path);
             return new Option<SiloConfigOption>(StatusCode.NotFound);
         }
 
@@ -38,14 +39,14 @@ public class SiloConfigStore
     public async Task<StatusCode> Set(SiloConfigOption option, ScopeContext context)
     {
         context = context.With(_logger);
-        context.Location().LogInformation("Writting silo configuration, path={path}", _datalakeLocation.Path);
+        context.Location().LogInformation("Writting silo configuration, path={path}", DatalakeLocation.Path);
 
         DataETag data = new DataETag(option.ToBytes());
 
-        Option<Azure.ETag> result = await _datalakeStore.Write(_datalakeLocation.Path, data, true, context);
+        Option<Azure.ETag> result = await _datalakeStore.Write(DatalakeLocation.Path, data, true, context);
         if (result.IsError())
         {
-            context.Location().LogCritical("Failed to write silo configuration, path={path}", _datalakeLocation.Path);
+            context.Location().LogCritical("Failed to write silo configuration, path={path}", DatalakeLocation.Path);
             return StatusCode.BadRequest;
         }
 

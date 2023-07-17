@@ -3,12 +3,12 @@ using Toolbox.Types;
 
 namespace SoftBank.sdk;
 
-//[GenerateSerializer, Immutable]
+[GenerateSerializer, Immutable]
 public record AccountDetail
 {
-    /*[Id(0)] */public string ObjectId { get; init; } = null!;
-    /*[Id(0)] */public string OwnerId { get; init; } = null!;
-    /*[Id(0)] */public string Name { get; init; } = null!;
+    [Id(0)] public string ObjectId { get; init; } = null!;
+    [Id(0)] public string OwnerId { get; init; } = null!;
+    [Id(0)] public string Name { get; init; } = null!;
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 }
 

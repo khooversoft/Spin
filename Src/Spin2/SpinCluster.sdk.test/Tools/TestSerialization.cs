@@ -2,7 +2,7 @@ using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools;
 
-namespace SpinCluster.sdk.test
+namespace SpinCluster.sdk.test.Tools
 {
     public class TestSerialization
     {

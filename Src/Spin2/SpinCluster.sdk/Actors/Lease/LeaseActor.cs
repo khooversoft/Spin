@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
@@ -20,12 +21,18 @@ public class LeaseActor : Grain, ILeaseActor
     private readonly ILogger _logger;
 
     public LeaseActor(
-        [PersistentState(stateName: "leaseV1", storageName: SpinConstants.SpinStateStore)] IPersistentState<LeaseData> state,
+        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<LeaseData> state,
         ILogger<LeaseActor> logger
         )
     {
         _state = state;
         _logger = logger;
+    }
+
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        this.VerifySchema(SpinConstants.Schema.Lease, new ScopeContext(_logger));
+        return base.OnActivateAsync(cancellationToken);
     }
 
     public async Task<SpinResponse<LeaseData>> Acquire(string traceId)

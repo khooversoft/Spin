@@ -2,43 +2,36 @@
   "Schemas": [
     {
       "SchemaName": "user",
-      "AccountName": "devspinstore",
       "ContainerName": "directory",
       "BasePath": "userV1"
     },
     {
       "SchemaName": "principalKey",
-      "AccountName": "devspinstore",
       "ContainerName": "directory",
       "BasePath": "keyV1"
     },
     {
       "SchemaName": "principalPrivateKey",
-      "AccountName": "devspinstore",
       "ContainerName": "directory",
       "BasePath": "keyPrivateV1"
     },
     {
       "SchemaName": "tenant",
-      "AccountName": "devspinstore",
       "ContainerName": "directory",
       "BasePath": "tenantV1"
     },
     {
       "SchemaName": "storage",
-      "AccountName": "devspinstore",
       "ContainerName": "storage",
       "BasePath": "storageV1"
     },
     {
       "SchemaName": "lease",
-      "AccountName": "devspinstore",
       "ContainerName": "lease",
       "BasePath": "leaseV1"
     },
     {
       "SchemaName": "softBank",
-      "AccountName": "devspinstore",
       "ContainerName": "softbank",
       "BasePath": "softBankV1"
     }

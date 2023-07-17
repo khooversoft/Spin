@@ -18,4 +18,5 @@ public static class SpinResponseExtensions
     };
 
     public static Option<T> ToOption<T>(this ISpinResponseWithValue subject) => new Option<T>((T)subject.ValueObject, subject.StatusCode, subject.Error);
+    public static Option<T> ToOption<T>(this ISpinResponse subject) => new Option<T>(subject.StatusCode, subject.Error);
 }

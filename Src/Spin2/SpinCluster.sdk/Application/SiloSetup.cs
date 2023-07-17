@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
@@ -8,7 +9,10 @@ using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Services;
+using SpinCluster.sdk.State;
 using Toolbox.Azure.DataLake;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -16,6 +20,37 @@ namespace SpinCluster.sdk.Application;
 
 public static class SiloSetup
 {
+    public static ISiloBuilder AddSpinCluster(this ISiloBuilder builder, string appsettingFile = "appsettings.json")
+    {
+        builder.NotNull();
+
+        SpinClusterOption option = SpinClusterOptionTool.Read(appsettingFile);
+
+        builder.AddDatalakeGrainStorage(option);
+        builder.AddStartupTask(async (IServiceProvider services, CancellationToken _) => await services.UseSpinCluster());
+
+        builder.ConfigureLogging(logging =>
+        {
+            logging.AddConsole();
+            logging.AddDebug();
+
+            if (option.ApplicationInsightsConnectionString.IsNotEmpty())
+            {
+                logging.AddApplicationInsights(
+                    configureTelemetryConfiguration: (config) => config.ConnectionString = option.ApplicationInsightsConnectionString,
+                    configureApplicationInsightsLoggerOptions: (options) => { }
+                );
+            }
+        });
+
+        builder.ConfigureServices(services =>
+        {
+            services.AddSpinCluster(option);
+        });
+
+        return builder;
+    }
+
     public static IServiceCollection AddSpinCluster(this IServiceCollection services, SpinClusterOption option)
     {
         services.AddSingleton(option);
@@ -29,6 +64,7 @@ public static class SiloSetup
         services.AddSingleton<IValidator<PrincipalPrivateKeyModel>>(PrincipalPrivateKeyModelValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
+        services.AddSingleton<SignValidateService>();
 
         services.AddSingleton<SiloConfigStore>(service =>
         {
@@ -42,7 +78,7 @@ public static class SiloSetup
             {
                 AccountName = datalakeLocation.Account,
                 ContainerName = datalakeLocation.Container,
-                Credentials = clusterOption.ClientCredentials,
+                Credentials = clusterOption.Credentials,
             };
 
             var store = new DatalakeStore(option, loggerFactory.CreateLogger<DatalakeStore>());
@@ -55,11 +91,17 @@ public static class SiloSetup
         return services;
     }
 
-    public static async Task UseSpinCluster(this IHost app)
+    public static Task UseSpinCluster(this IHost app) => UseSpinCluster(app.Services);
+
+    public static async Task UseSpinCluster(this IServiceProvider serviceProvider)
     {
-        DatalakeSchemaResources datalakeResources = app.Services.GetRequiredService<DatalakeSchemaResources>();
-        ILoggerFactory factory = app.Services.GetRequiredService<ILoggerFactory>();
+        serviceProvider.NotNull();
+        Debug.WriteLine($"Here: {nameof(UseSpinCluster)}");
+
+        DatalakeSchemaResources datalakeResources = serviceProvider.GetRequiredService<DatalakeSchemaResources>();
+        ILoggerFactory factory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         await datalakeResources.Startup(new ScopeContext(factory.CreateLogger(nameof(UseSpinCluster))));
+        Debug.WriteLine($"Here - finished: {nameof(UseSpinCluster)}");
     }
 }

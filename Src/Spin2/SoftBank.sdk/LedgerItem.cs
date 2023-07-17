@@ -10,14 +10,14 @@ public enum LedgerType
     Debit
 }
 
-//[GenerateSerializer, Immutable]
+[GenerateSerializer, Immutable]
 public record LedgerItem
 {
-    /*[Id(0)]*/ public DateTime Timestamp { get; init; } = DateTime.UtcNow;
-    /*[Id(1)]*/ public string Id { get; init; } = Guid.NewGuid().ToString();
-    /*[Id(2)]*/ public required string Description { get; init; } = null!;
-    /*[Id(3)]*/ public required LedgerType Type { get; init; }
-    /*[Id(4)]*/ public required decimal Amount { get; init; }
+    [Id(0)] public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    [Id(1)] public string Id { get; init; } = Guid.NewGuid().ToString();
+    [Id(2)] public string Description { get; init; } = null!;
+    [Id(3)] public LedgerType Type { get; init; }
+    [Id(4)] public decimal Amount { get; init; }
 
     public decimal NaturalAmount => Type.NaturalAmount(Amount);
 }

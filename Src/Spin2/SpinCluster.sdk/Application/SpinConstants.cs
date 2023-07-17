@@ -14,6 +14,7 @@ public static class SpinConstants
         public const string Tenant = "tenant";
         public const string User = "user";
         public const string Group = "group";
+        public const string Lease = "lease";
         public const string PrincipalKey = "principalKey";
         public const string PrincipalPrivateKey = "principalPrivateKey";
         public const string Storage = "storage";
@@ -23,14 +24,8 @@ public static class SpinConstants
 
     public static class Extension
     {
-        public const string Tenant = Schema.Tenant + "v1";
-        public const string User = Schema.User + "v1";
-        public const string Group = Schema.Group + "v1";
-        public const string PrincipalKey = Schema.PrincipalKey + "v1";
-        public const string PrincipalPrivateKey = Schema.PrincipalPrivateKey + "v1";
-        public const string Storage = Schema.Storage + "v1";
-        public const string Config = Schema.Config + "v1";
-        public const string SoftBank = Schema.SoftBank + "v1";
+        public const string Json = ".json";
+        public const string PrivateKeyJson = ".pkjson";
     }
 
     public static class Protocol

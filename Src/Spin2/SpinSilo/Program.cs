@@ -6,36 +6,42 @@ using SpinCluster.sdk.Application;
 using SpinCluster.sdk.State;
 using Toolbox.Extensions;
 
-SpinClusterOption option = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
-    .AddUserSecrets("SpinSilo")
-    .Build()
-    .Bind<SpinClusterOption>()
-    .Verify();
+//SpinClusterOption option = new ConfigurationBuilder()
+//    .AddJsonFile("appsettings.json")
+//    .AddUserSecrets("SpinSilo")
+//    .Build()
+//    .Bind<SpinClusterOption>()
+//    .Verify();
 
 IHostBuilder builder = Host.CreateDefaultBuilder(args)
     .UseOrleans(silo =>
     {
-        silo.UseLocalhostClustering()
-            .ConfigureLogging(logging => logging.AddConsole())
-            .AddDatalakeGrainStorage(option);
+        silo.UseLocalhostClustering();
+        silo.AddSpinCluster();
+        //.ConfigureLogging(logging => logging.AddConsole())
+        //.AddDatalakeGrainStorage(option)
+        //.AddStartupTask(async (IServiceProvider services, CancellationToken _) => await services.UseSpinCluster());
+
         //.AddAzureBlobGrainStorage("User", config =>
         //{
         //    config.ConfigureBlobServiceClient(option.StorageAccountConnectionString);
         //});
     })
-    .UseConsoleLifetime()
-    .ConfigureLogging(config =>
-    {
-        config.AddApplicationInsights(
-            configureTelemetryConfiguration: (config) => config.ConnectionString = option.ApplicationInsightsConnectionString,
-            configureApplicationInsightsLoggerOptions: (options) => { }
-        );
-    })
-    .ConfigureServices(services =>
-    {
-        services.AddSpinCluster(option);
-    });
+    .UseConsoleLifetime();
+    //.ConfigureLogging(config =>
+    //{
+    //    if (option.ApplicationInsightsConnectionString.IsNotEmpty())
+    //    {
+    //        config.AddApplicationInsights(
+    //            configureTelemetryConfiguration: (config) => config.ConnectionString = option.ApplicationInsightsConnectionString,
+    //            configureApplicationInsightsLoggerOptions: (options) => { }
+    //        );
+    //    }
+    //})
+    //.ConfigureServices(services =>
+    //{
+    //    services.AddSpinCluster(option);
+    //});
 
 using IHost host = builder.Build();
 

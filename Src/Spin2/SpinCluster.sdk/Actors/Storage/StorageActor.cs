@@ -17,7 +17,7 @@ public class StorageActor : ActorDataBase<StorageBlob>, IStorageActor
     private readonly ILogger<StorageActor> _logger;
 
     public StorageActor(
-        [PersistentState(stateName: SpinConstants.Extension.Storage, storageName: SpinConstants.SpinStateStore)] IPersistentState<StorageBlob> state,
+        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<StorageBlob> state,
         IValidator<StorageBlob> validator,
         ILogger<StorageActor> logger
         )

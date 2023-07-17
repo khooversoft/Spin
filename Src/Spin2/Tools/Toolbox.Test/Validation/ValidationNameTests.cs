@@ -37,8 +37,11 @@ public class ValidationNameTests
         result.Errors.Count().Should().Be(1);
     }
 
-    [Fact]
-    public void NameIsValid()
+    [Theory]
+    [InlineData("name")]
+    [InlineData("signKey@test.com")]
+    [InlineData("abcedefhijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890._$@_*")]
+    public void NameIsValid(string subject)
     {
         IValidator<NameTest> validator = new Validator<NameTest>()
             .RuleFor(x => x.Name).ValidName()
@@ -46,19 +49,10 @@ public class ValidationNameTests
 
         var model = new NameTest
         {
-            Name = "name"
+            Name = subject
         };
 
         ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count().Should().Be(0);
-
-        model = new NameTest
-        {
-            Name = "abcedefhijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890._$@_*",
-        };
-
-        result = validator.Validate(model);
         result.IsValid.Should().BeTrue();
         result.Errors.Count().Should().Be(0);
     }

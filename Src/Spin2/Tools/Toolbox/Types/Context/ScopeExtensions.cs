@@ -94,7 +94,7 @@ public static class ScopeExtensions
         {
             message = ConstructMessage($"[{header}] " + message);
             object[] newObjects = AddContext(args, context);
-            context.Context.Logger.LogInformation(message, newObjects);
+            context.Context.Logger.LogTrace(message, newObjects);
         }
     }
 

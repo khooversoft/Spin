@@ -34,7 +34,7 @@ public class PrincipalSignatureCollection : ISign, ISignValidate
     public async Task<Option<JwtTokenDetails>> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
     {
         string? kid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
-        if (kid.IsEmpty()) return new Option<JwtTokenDetails>(StatusCode.BadRequest, "jwt token does not have kid").LogResult(context.Location());
+        if (kid == null) return new Option<JwtTokenDetails>(StatusCode.BadRequest, "no kid in jwtSignature");
 
         if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option<JwtTokenDetails>(StatusCode.NotFound, "kid not found").LogResult(context.Location());
 

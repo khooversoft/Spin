@@ -3,6 +3,7 @@ using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Tenant;
 
@@ -17,7 +18,7 @@ public class TenantActor : ActorDataBase2<TenantModel>, ITenantActor
     private readonly ILogger<TenantActor> _logger;
 
     public TenantActor(
-        [PersistentState(stateName: SpinConstants.Extension.Tenant, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
+        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
         IValidator<TenantModel> validator,
         ILogger<TenantActor> logger
         )
@@ -25,5 +26,11 @@ public class TenantActor : ActorDataBase2<TenantModel>, ITenantActor
     {
         _state = state;
         _logger = logger;
+    }
+
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        this.VerifySchema(SpinConstants.Schema.Tenant, new ScopeContext(_logger));
+        return base.OnActivateAsync(cancellationToken);
     }
 }

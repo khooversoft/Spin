@@ -14,15 +14,17 @@ public record PrincipalKeyRequest
     [Id(0)] public string KeyId { get; init; } = null!;
     [Id(1)] public string OwnerId { get; init; } = null!;
     [Id(2)] public string Name { get; init; } = null!;
+    [Id(3)] public string Audience { get; init; } = null!;
 }
 
 
 public static class PrincipalKeyRequestValidator
 {
     public static IValidator<PrincipalKeyRequest> Validator { get; } = new Validator<PrincipalKeyRequest>()
-        .RuleFor(x => x.KeyId).NotEmpty().ValidName()
+        .RuleFor(x => x.KeyId).NotEmpty().ValidObjectId()
         .RuleFor(x => x.OwnerId).NotEmpty().ValidName()
         .RuleFor(x => x.Name).NotEmpty()
+        .RuleFor(x => x.Audience).NotEmpty()
         .Build();
 
     public static ValidatorResult Validate(this PrincipalKeyRequest subject, ScopeContextLocation location) => Validator

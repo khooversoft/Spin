@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Search;
@@ -17,9 +18,11 @@ public class DatalakeSchemaResources
     private readonly SiloConfigStore _siloConfigStore;
     private readonly ConcurrentDictionary<string, IDatalakeStore> _datalakeResources = new ConcurrentDictionary<string, IDatalakeStore>(StringComparer.OrdinalIgnoreCase);
     private readonly ILoggerFactory _loggerFactory;
+    private readonly string _instanceId = Guid.NewGuid().ToString();
 
     public DatalakeSchemaResources(SpinClusterOption clusterOption, SiloConfigStore siloConfigStore, ILoggerFactory loggerFactory)
     {
+        Debug.WriteLine($"Constructed: {nameof(DatalakeSchemaResources)}, _instanceId={_instanceId}");
         _clusterOption = clusterOption.NotNull();
         _siloConfigStore = siloConfigStore.NotNull();
         _loggerFactory = loggerFactory.NotNull();
@@ -29,6 +32,8 @@ public class DatalakeSchemaResources
 
     public async Task<StatusCode> Startup(ScopeContext context)
     {
+        Debug.WriteLine($"Here: {nameof(DatalakeSchemaResources)}, _instanceId={_instanceId}");
+
         Option<SiloConfigOption> siloConfigOption = await _siloConfigStore.Get(context);
         if (siloConfigOption.IsError())
         {
@@ -40,14 +45,17 @@ public class DatalakeSchemaResources
         var query = new QueryParameter { Count = 1 };
         var list = new List<Task<bool>>();
 
+        IReadOnlyList<SchemaOption> schemas = siloConfigOption.Return().Schemas;
+        schemas.Assert(x => x.Count > 0, _ => "No schemas are available");
+
         foreach (var schemaOption in siloConfigOption.Return().Schemas)
         {
             var option = new DatalakeOption
             {
-                AccountName = schemaOption.AccountName,
+                AccountName = _siloConfigStore.DatalakeLocation.Account,
                 ContainerName = schemaOption.ContainerName,
                 BasePath = schemaOption.BasePath,
-                Credentials = _clusterOption.ClientCredentials,
+                Credentials = _clusterOption.Credentials,
             };
 
             IDatalakeStore store = new DatalakeStore(option, _loggerFactory.CreateLogger<DatalakeStore>());
@@ -57,6 +65,8 @@ public class DatalakeSchemaResources
 
             list.Add(verifyConnection(store, schemaOption));
         }
+
+        Debug.WriteLine($"Here - completed: {nameof(DatalakeSchemaResources)}, _instanceId={_instanceId}, count={schemas.Count}");
 
         // Verify that the Silo has access to all datalake resources
         var results = await Task.WhenAll(list);
@@ -69,7 +79,7 @@ public class DatalakeSchemaResources
             if (!exist)
             {
                 context.Location().LogCritical("Failed to connect to datalake store schemaOption={schemaOption}, credentials={credentials}",
-                    schemaOption, _clusterOption.ClientCredentials);
+                    schemaOption, _clusterOption.Credentials);
 
                 return false;
             }

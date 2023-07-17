@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -48,5 +49,15 @@ public static class ActorBaseExtensions
         await state.WriteStateAsync();
 
         return new SpinResponse(StatusCode.OK);
+    }
+
+    public static void VerifySchema(this Grain grain, string schema, ScopeContext context)
+    {
+        string actorKey = grain.GetPrimaryKeyString();
+        Option<ObjectId> objectId = ObjectId.CreateIfValid(actorKey).LogResult(context.Location());
+
+        if (objectId.IsError()) throw new ArgumentException($"Invalid object Id, actorKey={actorKey}, error={objectId.Error}");
+
+        objectId.Return().Schema.Assert(x => x == schema, x => $"Invalid schema, {x} does not match {schema}");
     }
 }

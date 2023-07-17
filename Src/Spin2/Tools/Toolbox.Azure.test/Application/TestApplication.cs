@@ -8,12 +8,12 @@ namespace Toolbox.Azure.test.Application;
 internal static class TestApplication
 {
     public static IDatalakeStore GetDatalake(string basePath) =>
-        new DatalakeStore(ReadOption(basePath).Datalake, new NullLogger<DatalakeStore>());
+        new DatalakeStore(ReadOption(basePath), new NullLogger<DatalakeStore>());
 
-    private static AzureTestOption ReadOption(string basePath) => new ConfigurationBuilder()
+    private static DatalakeOption ReadOption(string basePath) => new ConfigurationBuilder()
         .AddJsonFile("TestSettings.json")
         .AddUserSecrets("Toolbox-Azure-test")
         .Build()
-        .Bind<AzureTestOption>()
-        .Func(x => x with { Datalake = x.Datalake with { BasePath = basePath } });
+        .Bind<DatalakeOption>()
+        .Func(x => x with { BasePath = basePath });
 }
