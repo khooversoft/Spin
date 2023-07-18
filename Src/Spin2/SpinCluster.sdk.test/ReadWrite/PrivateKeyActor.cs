@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Orleans.TestingHost;
 using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.test.Application;
 using SpinCluster.sdk.Types;
@@ -16,12 +17,12 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.test.ReadWrite;
 
-public class PublicKeyActor : IClassFixture<ClusterFixture>
+public class PrivateKeyActor : IClassFixture<ClusterFixture>
 {
     private readonly TestCluster _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
-    public PublicKeyActor(ClusterFixture fixture)
+    public PrivateKeyActor(ClusterFixture fixture)
     {
         _cluster = fixture.Cluster;
     }
@@ -30,26 +31,26 @@ public class PublicKeyActor : IClassFixture<ClusterFixture>
     public async Task TestReadWrite()
     {
         string ownerId = "signKey@test.com";
-        string keyId = $"{SpinConstants.Schema.PrincipalKey}/test/TestReadWrite/{ownerId}";
+        string keyId = $"{SpinConstants.Schema.PrincipalPrivateKey}/test/TestReadWrite/{ownerId}";
 
-        IPrincipalKeyActor actor = _cluster.GrainFactory.GetGrain<IPrincipalKeyActor>(keyId);
+        IPrincipalPrivateKeyActor actor = _cluster.GrainFactory.GetGrain<IPrincipalPrivateKeyActor>(keyId);
 
         await actor.Delete(_context.TraceId);
 
         var rsaKey = new RsaKeyPair("key");
-        var request = new PrincipalKeyModel
+        var request = new PrincipalPrivateKeyModel
         {
             KeyId = keyId,
             OwnerId = ownerId,
             Audience = "test.com",
             Name = "test sign key",
-            PublicKey = rsaKey.PublicKey,
+            PrivateKey = rsaKey.PrivateKey,
         };
 
         SpinResponse writeResult = await actor.Set(request, _context.TraceId);
         writeResult.StatusCode.IsOk().Should().BeTrue();
 
-        SpinResponse<PrincipalKeyModel> read = await actor.Get(_context.TraceId);
+        SpinResponse<PrincipalPrivateKeyModel> read = await actor.Get(_context.TraceId);
         read.StatusCode.IsOk().Should().BeTrue();
 
         (request == read.Return()).Should().BeTrue();

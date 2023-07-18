@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Key;
+namespace SpinCluster.sdk.Actors.Signature;
 
 [GenerateSerializer, Immutable]
 public record PrincipalKeyRequest

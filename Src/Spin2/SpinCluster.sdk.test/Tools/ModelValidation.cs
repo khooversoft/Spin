@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.Signature;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.test.Tools;

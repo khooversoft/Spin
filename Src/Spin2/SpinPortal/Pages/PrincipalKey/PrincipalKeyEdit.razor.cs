@@ -75,22 +75,22 @@ public partial class PrincipalKeyEdit
 
     private async Task<bool> AddOrUpdate()
     {
-        var request = _model.ConvertTo();
-        var requestObjectId = new ObjectId(SpinConstants.Schema.PrincipalKey, SpinConstants.SystemTenant, request.KeyId);
+        //var request = _model.ConvertTo();
+        //var requestObjectId = new ObjectId(SpinConstants.Schema.PrincipalKey, SpinConstants.SystemTenant, request.KeyId);
 
-        Option response = _createMode switch
-        {
-            true => await Client.PrincipalKey.Create(requestObjectId, request, new ScopeContext(Logger)),
-            false => await Client.PrincipalKey.Update(requestObjectId, request, new ScopeContext(Logger)),
-        };
+        //Option response = _createMode switch
+        //{
+        //    true => await Client.PrincipalKey.Create(requestObjectId, request, new ScopeContext(Logger)),
+        //    false => await Client.PrincipalKey.Update(requestObjectId, request, new ScopeContext(Logger)),
+        //};
 
-        if (response.StatusCode.IsError())
-        {
-            _errorMsg = $"Failed to update, statusCode={response.StatusCode}, error={response.Error}";
-            return false;
-        }
+        //if (response.StatusCode.IsError())
+        //{
+        //    _errorMsg = $"Failed to update, statusCode={response.StatusCode}, error={response.Error}";
+        //    return false;
+        //}
 
-        NavManager.NavigateTo(_returnAddress, true);
+        //NavManager.NavigateTo(_returnAddress, true);
         return true;
     }
 
@@ -104,12 +104,13 @@ public partial class PrincipalKeyEdit
             PrivateKeyExist = true,
         };
 
-        (PrincipalKeyEditModel result, _errorMsg) = await Client.PrincipalKey.Get(_objectId, new ScopeContext(Logger)) switch
-        {
-            var v when v.StatusCode.IsError() => (new PrincipalKeyEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
-            var v => (v.Return().ConvertTo(), null),
-        };
+        //(PrincipalKeyEditModel result, _errorMsg) = await Client.PrincipalKey.Get(_objectId, new ScopeContext(Logger)) switch
+        //{
+        //    var v when v.StatusCode.IsError() => (new PrincipalKeyEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
+        //    var v => (v.Return().ConvertTo(), null),
+        //};
 
-        return result;
+        //return result;
+        return null;
     }
 }

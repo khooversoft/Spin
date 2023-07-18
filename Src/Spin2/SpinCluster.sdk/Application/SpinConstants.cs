@@ -17,6 +17,7 @@ public static class SpinConstants
         public const string Lease = "lease";
         public const string PrincipalKey = "principalKey";
         public const string PrincipalPrivateKey = "principalPrivateKey";
+        public const string Signature = "signature";
         public const string Storage = "storage";
         public const string Config = "storage";
         public const string SoftBank = "softbank";

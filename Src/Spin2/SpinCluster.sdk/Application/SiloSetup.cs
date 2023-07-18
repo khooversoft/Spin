@@ -4,8 +4,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Key;
-using SpinCluster.sdk.Actors.Key.Private;
+using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Search;
+using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Services;
@@ -62,9 +64,10 @@ public static class SiloSetup
         services.AddSingleton<IValidator<PrincipalKeyModel>>(PrincipalKeyValidator.Validator);
         services.AddSingleton<IValidator<PrincipalKeyRequest>>(PrincipalKeyRequestValidator.Validator);
         services.AddSingleton<IValidator<PrincipalPrivateKeyModel>>(PrincipalPrivateKeyModelValidator.Validator);
+        services.AddSingleton<IValidator<SignRequest>>(SignRequestValidator.Validator);
+        services.AddSingleton<IValidator<ValidateRequest>>(ValidateRequestValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
-        services.AddSingleton<SignValidateService>();
 
         services.AddSingleton<SiloConfigStore>(service =>
         {

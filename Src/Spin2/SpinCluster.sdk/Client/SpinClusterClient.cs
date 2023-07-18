@@ -1,5 +1,5 @@
 ﻿using SpinCluster.sdk.Actors.Configuration;
-using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;

@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.Signature;
 
 namespace SpinPortal.Pages.PrincipalKey;
 
