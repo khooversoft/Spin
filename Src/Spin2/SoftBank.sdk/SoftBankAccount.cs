@@ -1,4 +1,5 @@
-﻿using Toolbox.Block;
+﻿using SoftBank.sdk.Models;
+using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
@@ -43,5 +44,14 @@ public class SoftBankAccount
         if (blockChain.IsError()) return blockChain.ToOption<SoftBankAccount>();
 
         return new SoftBankAccount(blockChain.Return());
+    }
+}
+
+
+public static class SoftBankAccountExtensions
+{
+    public static Option<SoftBankAccount> ToSoftBankAccount(this BlobPackage package, ScopeContext context)
+    {
+        return SoftBankAccount.Create(package, context);
     }
 }

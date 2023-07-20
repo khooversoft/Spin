@@ -4,7 +4,7 @@ using Orleans.TestingHost;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.test.Application;
-using SpinCluster.sdk.Types;
+using Toolbox.Orleans.Types;
 using Toolbox.Security.Jwt;
 using Toolbox.Types;
 

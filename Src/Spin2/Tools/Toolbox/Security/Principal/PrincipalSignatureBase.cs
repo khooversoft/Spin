@@ -50,7 +50,7 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
         return jwt.ToOption().ToTaskResult();
     }
 
-    public Task<Option<JwtTokenDetails>> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
+    public Task<Option> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
     {
         jwtSignature.NotEmpty();
         messageDigest.NotEmpty();
@@ -62,26 +62,26 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
             .Build()
             .Parse(jwtSignature);
 
-            if (details.JwtSecurityToken.Header.Kid.IsEmpty()) return new Option<JwtTokenDetails>(StatusCode.BadRequest, "Missing kid in JWT")
+            if (details.JwtSecurityToken.Header.Kid.IsEmpty()) return new Option(StatusCode.BadRequest, "Missing kid in JWT")
                 .LogResult(context.Location())
                 .ToTaskResult();
 
             details.JwtSecurityToken.Header.Assert(x => x.Kid == Kid, "Kid does not match");
 
-            if (details.Digest.IsEmpty()) return new Option<JwtTokenDetails>(StatusCode.BadRequest, "Missing Digest in JWT")
+            if (details.Digest.IsEmpty()) return new Option(StatusCode.BadRequest, "Missing Digest in JWT")
                 .LogResult(context.Location())
                 .ToTaskResult();
 
-            if (details.Digest != messageDigest) return new Option<JwtTokenDetails>(StatusCode.BadRequest, "Message digest do not match")
+            if (details.Digest != messageDigest) return new Option(StatusCode.BadRequest, "Message digest do not match")
                 .LogResult(context.Location())
                 .ToTaskResult();
 
-            return details.ToOption().ToTaskResult();
+            return new Option(StatusCode.OK).ToTaskResult();
         }
         catch (Exception ex)
         {
             context.Location().LogCritical(ex, "Jwt signature failed to verify, jwtSignature={jwtSignature}", jwtSignature);
-            return new Option<JwtTokenDetails>(StatusCode.BadRequest).ToTaskResult();
+            return new Option(StatusCode.BadRequest).ToTaskResult();
         }
     }
 }

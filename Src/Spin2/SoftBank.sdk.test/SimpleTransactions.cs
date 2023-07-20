@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using SoftBank.sdk.Models;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
@@ -63,6 +64,7 @@ public class SimpleTransactions
 
         LedgerItem ledgerItem = new LedgerItem
         {
+            OwnerId = _owner,
             Description = "Start of account",
             Type = LedgerType.Credit,
             Amount = 100,
@@ -104,9 +106,9 @@ public class SimpleTransactions
 
         var ledgerItems = new[]
         {
-            new LedgerItem { Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
         };
 
         BlockStream<LedgerItem> ledgerStream = softBank.GetLedgerStream();
@@ -151,9 +153,9 @@ public class SimpleTransactions
 
         var ledgerItems = new[]
         {
-            new LedgerItem { Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
         };
 
         BlockStream<LedgerItem> ledgerStream = softBank.GetLedgerStream();
@@ -166,9 +168,9 @@ public class SimpleTransactions
 
         var ledgerItems2 = new[]
         {
-            new LedgerItem { Description = "Ledger 1-2", Type = LedgerType.Credit, Amount = 200.0m },
-            new LedgerItem { Description = "Ledger 2-2", Type = LedgerType.Credit, Amount = 155.15m },
-            new LedgerItem { Description = "Ledger 3-2", Type = LedgerType.Debit, Amount = 40.00m }
+            new LedgerItem { OwnerId = _owner2, Description = "Ledger 1-2", Type = LedgerType.Credit, Amount = 200.0m },
+            new LedgerItem { OwnerId = _owner2, Description = "Ledger 2-2", Type = LedgerType.Credit, Amount = 155.15m },
+            new LedgerItem { OwnerId = _owner2, Description = "Ledger 3-2", Type = LedgerType.Debit, Amount = 40.00m }
         };
 
         await ledgerItems2

@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
-using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Lease;

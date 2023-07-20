@@ -17,10 +17,11 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
+//using SoftBank.sdk.Application;
 
 namespace SpinCluster.sdk.Application;
 
-public static class SiloSetup
+public static class SiloStartup
 {
     public static ISiloBuilder AddSpinCluster(this ISiloBuilder builder, string appsettingFile = "appsettings.json")
     {
@@ -49,6 +50,8 @@ public static class SiloSetup
         {
             services.AddSpinCluster(option);
         });
+
+        //builder.AddSoftBank();
 
         return builder;
     }

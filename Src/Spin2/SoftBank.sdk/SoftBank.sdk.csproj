@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -7,11 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Orleans.Client" Version="7.2.1" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.2.1" />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="7.2.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
     <ProjectReference Include="..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
+    <ProjectReference Include="..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

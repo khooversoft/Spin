@@ -41,12 +41,12 @@ namespace Toolbox.Block.Test
                 .Sign(principleSignature, _context)
                 .Return();
 
-            await data.ValidateDigest(principleSignature, _context).Return();
+            await data.ValidateDigest(principleSignature, _context);
 
             string json = data.ToJson();
 
             DataBlock received = Json.Default.Deserialize<DataBlock>(json).NotNull(name: "Json is null");
-            await received.ValidateDigest(principleSignature, _context).Return();
+            await received.ValidateDigest(principleSignature, _context);
 
             data.TimeStamp.Should().Be(now.ToUnixDate().TimeStamp);
 

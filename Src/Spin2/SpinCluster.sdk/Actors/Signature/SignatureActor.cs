@@ -5,8 +5,8 @@ using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 

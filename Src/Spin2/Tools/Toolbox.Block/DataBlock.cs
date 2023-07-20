@@ -51,10 +51,10 @@ public static class DataBlockValidator
         .Validate(subject)
         .LogResult(location);
 
-    public static async Task<Option<JwtTokenDetails>> ValidateDigest(this DataBlock subject, ISignValidate signValidate, ScopeContext context)
+    public static async Task<Option> ValidateDigest(this DataBlock subject, ISignValidate signValidate, ScopeContext context)
     {
         var valResult = Validator.Validate(subject).LogResult(context.Location()).ToOption<ValidatorResult>();
-        if (valResult.IsError()) return valResult.ToOption<JwtTokenDetails>();
+        if (valResult.IsError()) return valResult.Return().ToOption();
 
         return await signValidate.ValidateDigest(subject.JwtSignature, subject.Digest, context);
     }

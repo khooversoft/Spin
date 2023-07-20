@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using SoftBank.sdk.Models;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -56,9 +57,9 @@ public class StoreAndSerialization
 
         var ledgerItems = new[]
         {
-            new LedgerItem { Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
         };
 
         BlockStream<LedgerItem> ledgerStream = softBank.GetLedgerStream();

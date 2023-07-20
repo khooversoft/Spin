@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Toolbox.Extensions;
 using Toolbox.Security.Jwt;
 using Toolbox.Tools;
@@ -31,12 +26,12 @@ public class PrincipalSignatureCollection : ISign, ISignValidate
         return result;
     }
 
-    public async Task<Option<JwtTokenDetails>> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
+    public async Task<Option> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
     {
         string? kid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
-        if (kid == null) return new Option<JwtTokenDetails>(StatusCode.BadRequest, "no kid in jwtSignature");
+        if (kid == null) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
 
-        if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option<JwtTokenDetails>(StatusCode.NotFound, "kid not found").LogResult(context.Location());
+        if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option(StatusCode.NotFound, "kid not found").LogResult(context.Location());
 
         var result = await principalSignature.ValidateDigest(jwtSignature, messageDigest, context);
         return result;

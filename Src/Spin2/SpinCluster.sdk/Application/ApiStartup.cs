@@ -8,7 +8,7 @@ using SpinClusterApi.Connectors;
 
 namespace SpinCluster.sdk.Application;
 
-public static class ApiSetup
+public static class ApiStartup
 {
     public static IServiceCollection AddSpinApi(this IServiceCollection services)
     {

@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Concurrency;
 using SpinCluster.sdk.Services;
-using SpinCluster.sdk.Types;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;

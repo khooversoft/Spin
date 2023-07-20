@@ -1,9 +1,9 @@
 ﻿using Toolbox.Types;
 
-namespace SpinCluster.sdk.Types;
+namespace Toolbox.Orleans.Types;
 
 [GenerateSerializer, Immutable]
-public record SpinResponse : ISpinResponse
+public record SpinResponse /*: ISpinResponse*/
 {
     public SpinResponse() { }
     public SpinResponse(StatusCode statusCode) => StatusCode = statusCode;
@@ -11,10 +11,12 @@ public record SpinResponse : ISpinResponse
 
     [Id(0)] public StatusCode StatusCode { get; }
     [Id(2)] public string? Error { get; }
+
+    public Option ToOption() => new Option(StatusCode, Error);
 }
 
 [GenerateSerializer, Immutable]
-public record SpinResponse<T> : ISpinResponseWithValue
+public record SpinResponse<T> /*: ISpinResponseWithValue*/
 {
     public SpinResponse() { }
     public SpinResponse(StatusCode statusCode) => StatusCode = statusCode;
@@ -34,4 +36,6 @@ public record SpinResponse<T> : ISpinResponseWithValue
     public object ValueObject => Value!;
 
     public static implicit operator SpinResponse<T>(T value) => new SpinResponse<T>(value);
+
+    public Option<T> ToOption() => new Option<T>((T)ValueObject, StatusCode, Error);
 }

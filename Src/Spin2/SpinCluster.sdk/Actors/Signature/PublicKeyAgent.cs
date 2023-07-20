@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.PrincipalPrivateKey;
-using SpinCluster.sdk.Types;
-using Toolbox.Extensions;
-using Toolbox.Security.Jwt;
-using Toolbox.Types;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
+using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Signature;
 
@@ -63,7 +62,7 @@ internal class PublicKeyAgent
         var signature = model.Return().ToPrincipalSignature(context);
         if (signature.IsError()) return signature.ToSpinResponse();
 
-        Option<JwtTokenDetails> validationResult = await signature.Return().ValidateDigest(jwtSignature, digest, context);
+        Option validationResult = await signature.Return().ValidateDigest(jwtSignature, digest, context);
         return validationResult.ToSpinResponse();
     }
 }

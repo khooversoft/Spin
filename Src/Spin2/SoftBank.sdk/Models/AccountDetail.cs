@@ -1,7 +1,7 @@
 ﻿using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SoftBank.sdk;
+namespace SoftBank.sdk.Models;
 
 [GenerateSerializer, Immutable]
 public record AccountDetail
@@ -25,5 +25,5 @@ public static class AccountDetailValidator
         .Validate(subject)
         .LogResult(location);
 
-    public static bool IsValid(this AccountDetail subject, ScopeContextLocation location) => Validate(subject, location).IsValid;
+    public static bool IsValid(this AccountDetail subject, ScopeContextLocation location) => subject.Validate(location).IsValid;
 }

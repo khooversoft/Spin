@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
-using SpinCluster.sdk.Types;
+using Toolbox.Orleans.Types;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Application;
+namespace Toolbox.Orleans.Types;
 
 public static class ResultExtensions
 {

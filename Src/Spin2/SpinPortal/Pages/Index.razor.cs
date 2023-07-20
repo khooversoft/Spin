@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Client;
-using SpinCluster.sdk.Types;
 using Toolbox.Types;
 
 namespace SpinPortal.Pages;

@@ -27,6 +27,7 @@ public static class SpinConstants
     {
         public const string Json = ".json";
         public const string PrivateKeyJson = ".pkjson";
+        public const string SmartContract = ".sc";
     }
 
     public static class Protocol

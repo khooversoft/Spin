@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
-using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
+using Toolbox.Orleans.Types;
 
-namespace SpinCluster.sdk.Actors.ActorBase;
+namespace Toolbox.Orleans.Types;
 
 public static class ActorBaseExtensions
 {

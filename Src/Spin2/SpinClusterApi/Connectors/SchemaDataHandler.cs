@@ -1,6 +1,6 @@
 ﻿using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Types;
 using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Types;
 

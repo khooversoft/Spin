@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SpinCluster.sdk.Actors.Resource;
 using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Types;
 using SpinClusterApi.Application;
 using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Types;
 

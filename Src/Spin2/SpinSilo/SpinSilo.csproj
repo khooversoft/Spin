@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SoftBank.sdk\SoftBank.sdk.csproj" />
     <ProjectReference Include="..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>

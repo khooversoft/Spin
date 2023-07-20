@@ -2,6 +2,7 @@
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
+using Toolbox.Orleans.Types;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 

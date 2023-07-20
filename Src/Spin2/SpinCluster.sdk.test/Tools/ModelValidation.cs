@@ -24,6 +24,7 @@ public class ModelValidation
         {
             KeyId = keyId,
             OwnerId = ownerId,
+            Audience = "audience",
             Name = "test sign key",
         };
 

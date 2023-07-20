@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Types;
+using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Types;
 

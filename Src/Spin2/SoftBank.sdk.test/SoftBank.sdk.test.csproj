@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+    <PackageReference Include="Microsoft.Orleans.TestingHost" Version="7.2.1" />
     <PackageReference Include="xunit" Version="2.5.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,6 +28,12 @@
     <ProjectReference Include="..\SoftBank.sdk\SoftBank.sdk.csproj" />
     <ProjectReference Include="..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="test-appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
