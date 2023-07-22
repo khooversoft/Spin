@@ -16,50 +16,33 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.SoftBank;
 
-public interface ISoftBankActor : IGrainWithStringKey
-{
-    Task<SpinResponse> Delete(string traceId);
-    Task<SpinResponse> Exist(string traceId);
-    Task<SpinResponse> Add(LedgerItem ledgerItem, string traceId);
-    Task<SpinResponse> Set(AccountDetail accountDetail, string traceId);
-}
-
 public class SoftBankActor : Grain, ISoftBankActor
 {
     private readonly IPersistentState<BlobPackage> _state;
-    private readonly IValidator<BlobPackage> _blobPackageValidator;
     private readonly IValidator<AccountDetail> _accountValidator;
     private readonly ILogger<SoftBankActor> _logger;
     private readonly ISign _sign;
     private readonly IValidator<LedgerItem> _ledgerItemValidator;
-    private CacheObject<SoftBankAccount> _softBankCache = new CacheObject<SoftBankAccount>(TimeSpan.FromMinutes(15));
+    private readonly ISignValidate _signValidate;
     private ScopeContext _actorContext;
 
     public SoftBankActor(
         [PersistentState(stateName: SpinConstants.Extension.SmartContract, storageName: SpinConstants.SpinStateStore)] IPersistentState<BlobPackage> state,
-        IValidator<BlobPackage> blobPackageValidator,
         IValidator<AccountDetail> accountValidator,
         IValidator<LedgerItem> ledgerItemValidator,
         ISign sign,
+        ISignValidate signValidate,
         ILogger<SoftBankActor> logger
         )
     {
         _state = state.NotNull();
-        _blobPackageValidator = blobPackageValidator.NotNull();
         _accountValidator = accountValidator.NotNull();
         _logger = logger.NotNull();
         _sign = sign.NotNull();
         _ledgerItemValidator = ledgerItemValidator.NotNull();
+        _signValidate = signValidate.NotNull();
 
         _actorContext = new ScopeContext(_logger);
-    }
-
-    public override async Task OnActivateAsync(CancellationToken cancellationToken)
-    {
-        _softBankCache.Clear();
-        await GetSoftBankAccount(_actorContext);
-
-        await base.OnActivateAsync(cancellationToken);
     }
 
     public Task<SpinResponse> Delete(string traceId) => _state.Delete(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
@@ -68,75 +51,72 @@ public class SoftBankActor : Grain, ISoftBankActor
     public async Task<SpinResponse> Create(AccountDetail detail, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Creating contract accountDetail={accountDetail}", detail);
+        detail.IsValid(context.Location()).Assert(x => x == true, "Invalid account detail");
 
-        if (_state.RecordExists) return new SpinResponse(StatusCode.BadRequest);
+        if (_state.RecordExists)
+        {
+            context.Location().LogInformation("Cannot create contract, already exist, actorId={actorId}", this.GetPrimaryKeyString());
+            return new SpinResponse(StatusCode.BadRequest, $"Cannot create contract, already exist, actorId={this.GetPrimaryKeyString()}");
+        }
 
         Option<ValidatorResult> validator = _accountValidator.Validate(detail);
         if (validator.IsError()) return validator.Return().ToSpinResponse();
 
         var softBank = await SoftBankAccount.Create(detail.OwnerId, detail.ObjectId.ToObjectId(), _sign, context).Return();
 
-        var accountDetail = new AccountDetail
-        {
-            ObjectId = detail.ObjectId.ToString(),
-            OwnerId = detail.OwnerId,
-            Name = detail.Name,
-        };
+        BlockScalarStream<AccountDetail> stream = softBank.GetAccountDetailStream();
+        var datablock = await stream.CreateDataBlock(detail, detail.OwnerId).Sign(_sign, context);
+        if( datablock.IsError()) return datablock.ToSpinResponse();
+        stream.Add(datablock.Return());
 
-        accountDetail.IsValid(context.Location()).Assert(x => x == true, "Invalid account detail");
-
-        _state.State = softBank.ToBlobPackage();
-        await _state.WriteStateAsync();
-
-        _softBankCache.Set(softBank);
-
-        return new SpinResponse(StatusCode.OK);
+        return await WriteContract(softBank, context);
     }
 
-    public async Task<SpinResponse> Set(AccountDetail accountDetail, string traceId)
+    public async Task<SpinResponse> SetAccountDetail(AccountDetail detail, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Set account detail={accountDetail}", accountDetail);
+        context.Location().LogInformation("Set account detail={accountDetail}", detail);
 
-        Option<ValidatorResult> validator = _accountValidator.Validate(accountDetail, context.Location());
+        Option<ValidatorResult> validator = _accountValidator.Validate(detail, context.Location());
         if (validator.IsError()) return validator.Return().ToSpinResponse();
 
-        Option<SoftBankAccount> softBankAccount = await GetSoftBankAccount(context);
-        if (softBankAccount.IsError()) return softBankAccount.ToSpinResponse();
+        Option<SoftBankAccount> softBank = await ReadContract(context);
+        if (softBank.IsError()) return softBank.ToSpinResponse();
 
-        BlockScalarStream<AccountDetail> stream = softBankAccount.Return().GetAccountDetailStream();
-        Option<DataBlock> blockData = await stream.CreateDataBlock(accountDetail, accountDetail.OwnerId).Sign(_sign, context);
+        BlockScalarStream<AccountDetail> stream = softBank.Return().GetAccountDetailStream();
+        Option<DataBlock> blockData = await stream.CreateDataBlock(detail, detail.OwnerId).Sign(_sign, context);
         if (blockData.IsError()) return blockData.ToSpinResponse();
 
         stream.Add(blockData.Return());
 
-        return new SpinResponse(StatusCode.OK);
+        return await WriteContract(softBank.Return(), context);
     }
 
-    public async Task<SpinResponse> Add(LedgerItem ledgerItem, string traceId)
+    public async Task<SpinResponse> AddLedgerItem(LedgerItem ledgerItem, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         Option<ValidatorResult> validator = _ledgerItemValidator.Validate(ledgerItem, context.Location());
         if (validator.IsError()) return validator.Return().ToSpinResponse();
 
-        Option<SoftBankAccount> softBankAccount = await GetSoftBankAccount(context);
-        if (softBankAccount.IsError()) return softBankAccount.ToSpinResponse();
+        Option<SoftBankAccount> softBank = await ReadContract(context);
+        if (softBank.IsError()) return softBank.ToSpinResponse();
 
-        BlockStream<LedgerItem> stream = softBankAccount.Return().GetLedgerStream();
+        BlockStream<LedgerItem> stream = softBank.Return().GetLedgerStream();
         Option<DataBlock> blockData = await stream.CreateDataBlock(ledgerItem, ledgerItem.OwnerId).Sign(_sign, context);
         if (blockData.IsError()) return blockData.ToSpinResponse();
 
         stream.Add(blockData.Return());
 
-        return new SpinResponse(StatusCode.OK);
+        return await WriteContract(softBank.Return(), context);
     }
 
     public async Task<SpinResponse<AccountDetail>> GetBankDetails(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<SoftBankAccount> softBankAccount = await GetSoftBankAccount(context);
+        Option<SoftBankAccount> softBankAccount = await ReadContract(context);
         if (softBankAccount.IsError()) return softBankAccount.ToSpinResponse<AccountDetail>();
 
         BlockScalarStream<AccountDetail> stream = softBankAccount.Return().GetAccountDetailStream();
@@ -150,7 +130,7 @@ public class SoftBankActor : Grain, ISoftBankActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<SoftBankAccount> softBankAccount = await GetSoftBankAccount(context);
+        Option<SoftBankAccount> softBankAccount = await ReadContract(context);
         if (softBankAccount.IsError()) return softBankAccount.ToSpinResponse<decimal>();
 
         return new SpinResponse<decimal>(softBankAccount.Return().GetBalance());
@@ -160,36 +140,63 @@ public class SoftBankActor : Grain, ISoftBankActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<SoftBankAccount> softBankAccount = await GetSoftBankAccount(context);
-        if (softBankAccount.IsError()) return softBankAccount.ToSpinResponse<IReadOnlyList<LedgerItem>>();
+        Option<SoftBankAccount> softBank = await ReadContract(context);
+        if (softBank.IsError()) return softBank.ToSpinResponse<IReadOnlyList<LedgerItem>>();
 
-        BlockStream<LedgerItem> stream = softBankAccount.Return().GetLedgerStream();
+        BlockStream<LedgerItem> stream = softBank.Return().GetLedgerStream();
         var list = stream.Get();
 
         return new SpinResponse<IReadOnlyList<LedgerItem>>(list);
     }
 
-    private async Task<Option<SoftBankAccount>> GetSoftBankAccount(ScopeContext context)
+    public async Task<SpinResponse> Validate(string traceId)
     {
-        if (_softBankCache.TryGetValue(out SoftBankAccount value)) return value;
+        var context = new ScopeContext(traceId, _logger);
 
+        Option<SoftBankAccount> contract = await ReadContract(context);
+        if (contract.IsError()) return contract.ToSpinResponse();
+
+        Option signResult = await contract.Return().ValidateBlockChain(_signValidate, context);
+        return signResult.ToSpinResponse();
+    }
+
+    private async Task<Option<SoftBankAccount>> ReadContract(ScopeContext context)
+    {
         context.Location().LogInformation("Reading BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
         await _state.ReadStateAsync();
 
-        Option<SoftBankAccount> acct = _state.State.ToSoftBankAccount(_actorContext).LogResult(_actorContext.Location());
-        if (acct.IsError())
+        Option<SoftBankAccount> contract = _state.State.ToSoftBankAccount(_actorContext).LogResult(_actorContext.Location());
+        if (contract.IsError())
         {
             context.Location().LogError("Failed to read/find BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
-            return acct;
+            return contract;
         }
 
-        SoftBankAccount softBankAccount = acct.Return();
-        _softBankCache.Set(softBankAccount);
+        Option signResult = await contract.Return().ValidateBlockChain(_signValidate, context);
+        if (signResult.StatusCode.IsError())
+        {
+            context.Location().LogCritical("Contract actorId={actorId} could not be validated before writing to storage", this.GetPrimaryKeyString());
+            throw new InvalidOperationException($"Contract should not be validated, actorId={this.GetPrimaryKeyString()}");
+        }
 
-        return softBankAccount;
+        return contract;
     }
 
-    private Task<SpinResponse<BlobPackage>> Get(string traceId) => _state.Get<BlobPackage>(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
-    private Task<SpinResponse> Set(BlobPackage model, string traceId) => _state.Set(model, this.GetPrimaryKeyString(), _blobPackageValidator, new ScopeContext(traceId, _logger).Location());
+    private async Task<SpinResponse> WriteContract(SoftBankAccount contract, ScopeContext context)
+    {
+        context.Location().LogInformation("Writing SoftBank acocunt");
+
+        Option signResult = await contract.ValidateBlockChain(_signValidate, context);
+        if (signResult.StatusCode.IsError())
+        {
+            context.Location().LogCritical("Contract actorId={actorId} could not be validated before writing to storage", this.GetPrimaryKeyString());
+            throw new InvalidOperationException($"Contract should not be validated, actorId={this.GetPrimaryKeyString()}");
+        }
+
+        _state.State = contract.ToBlobPackage();
+        await _state.WriteStateAsync();
+
+        return new SpinResponse(StatusCode.OK);
+    }
 
 }

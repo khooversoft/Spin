@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Signature;
+using SpinCluster.sdk.Application;
 using Toolbox.Orleans.Types;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
@@ -20,7 +21,13 @@ public class SignProxy : ISign
 
     public async Task<Option<string>> SignDigest(string kid, string messageDigest, ScopeContext context)
     {
-        ISignatureActor signatureActor = _client.GetGrain<ISignatureActor>(kid);
+        Option<OwnerId> ownerIdResult = OwnerId.CreateIfValid(kid, context);
+        if (ownerIdResult.IsError()) return ownerIdResult.ToOption<string>();
+
+        OwnerId ownerId = ownerIdResult.Return();
+        string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";
+
+        ISignatureActor signatureActor = _client.GetGrain<ISignatureActor>(objectId);
         SpinResponse<string> result = await signatureActor.Sign(messageDigest, context.TraceId);
         return result.ToOption();
     }

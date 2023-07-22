@@ -15,7 +15,7 @@ public class OwnerIdTests
     [InlineData("abcdefghijklmnopqrstuvwxyz-._0123456789@abcdefghijklmnopqrstuvwxyz0123-456789.com")]
     public void TestValidFormats(string ownerId)
     {
-        OwnerId.IsValid(ownerId).StatusCode.Should().Be(StatusCode.OK);
+        OwnerId.IsValid(ownerId).Should().BeTrue();
     }
 
     [Theory]
@@ -30,7 +30,7 @@ public class OwnerIdTests
     [InlineData("<>()*#.domain.com")]
     public void TestInvalidFormats(string ownerId)
     {
-        OwnerId.IsValid(ownerId).StatusCode.Should().Be(StatusCode.BadRequest);
+        OwnerId.IsValid(ownerId).Should().BeFalse();
     }
 
     [Fact]
