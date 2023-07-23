@@ -7,7 +7,7 @@ using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Types;
 
-namespace SoftBank.sdk.test;
+namespace SoftBank.sdk.test.Basic;
 
 public class StoreAndSerialization
 {
@@ -28,7 +28,7 @@ public class StoreAndSerialization
         SoftBankAccount softBankAccount = await CreateAccount();
 
         BlobPackage blob = softBankAccount.ToBlobPackage();
-        BlobPackageValidator.Validate(blob, _context.Location()).IsValid.Should().BeTrue();
+        blob.Validate(_context.Location()).IsValid.Should().BeTrue();
 
         SoftBankAccount readSoftBankAccount = SoftBankAccount.Create(blob, _context).Return();
         Option signResult = await readSoftBankAccount.ValidateBlockChain(_signCollection, _context);
@@ -75,7 +75,7 @@ public class StoreAndSerialization
 
         IReadOnlyList<LedgerItem> readLedgerItems = ledgerStream.Get();
         readLedgerItems.Count.Should().Be(3);
-        Enumerable.SequenceEqual(ledgerItems, readLedgerItems).Should().BeTrue();
+        ledgerItems.SequenceEqual(readLedgerItems).Should().BeTrue();
 
         decimal balance = softBank.GetBalance();
         balance.Should().Be(135.15m);

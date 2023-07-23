@@ -15,14 +15,14 @@ using Toolbox.Block;
 using Toolbox.Orleans.Types;
 using Toolbox.Types;
 
-namespace SoftBank.sdk.test;
+namespace SoftBank.sdk.test.Basic;
 
-public class StandardTransactionsMultiplePrincipals : IClassFixture<ClusterFixture>
+public class MultiplePrincipals : IClassFixture<ClusterFixture>
 {
     private readonly TestCluster _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
-    public StandardTransactionsMultiplePrincipals(ClusterFixture fixture)
+    public MultiplePrincipals(ClusterFixture fixture)
     {
         _cluster = fixture.Cluster;
     }
@@ -82,7 +82,7 @@ public class StandardTransactionsMultiplePrincipals : IClassFixture<ClusterFixtu
         SpinResponse<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(_context.TraceId);
         ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
         ledgerItems.Return().Count.Should().Be(newItems.Length);
-        Enumerable.SequenceEqual(newItems, ledgerItems.Return()).Should().BeTrue();
+        newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
         SpinResponse<decimal> balanceResponse = await softBankActor.GetBalance(_context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
         balanceResponse.Return().Should().Be(170.30m);

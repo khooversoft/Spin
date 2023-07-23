@@ -26,6 +26,10 @@ public class SoftBankAccount
 
     public BlobPackage ToBlobPackage() => _blockChain.ToBlobPackage();
 
+    public async Task TransferFunds(decimal amount, ObjectId toAccount, OwnerId ownerId)
+    {
+    }
+
     public static Option<SoftBankAccount> Create(BlobPackage package, ScopeContext context)
     {
         Option<BlockChain> blockChain = package.ToBlockChain(context);

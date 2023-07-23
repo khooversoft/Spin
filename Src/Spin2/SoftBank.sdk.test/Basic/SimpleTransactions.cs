@@ -6,7 +6,7 @@ using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Types;
 
-namespace SoftBank.sdk.test;
+namespace SoftBank.sdk.test.Basic;
 
 public class SimpleTransactions
 {
@@ -14,7 +14,7 @@ public class SimpleTransactions
     private const string _owner2 = "user2@domain.com";
     private readonly ObjectId _accountObjectId = $"contract/tenant/{_owner}/account1".ToObjectId();
     private readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
-    private readonly PrincipalSignature _ownerSignature2= new PrincipalSignature(_owner2, _owner2, "userBusiness@domain.com");
+    private readonly PrincipalSignature _ownerSignature2 = new PrincipalSignature(_owner2, _owner2, "userBusiness@domain.com");
     private readonly PrincipalSignatureCollection _signCollection;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
@@ -124,7 +124,7 @@ public class SimpleTransactions
 
         IReadOnlyList<LedgerItem> readLedgerItems = ledgerStream.Get();
         readLedgerItems.Count.Should().Be(3);
-        Enumerable.SequenceEqual(ledgerItems, readLedgerItems).Should().BeTrue();
+        ledgerItems.SequenceEqual(readLedgerItems).Should().BeTrue();
 
         decimal balance = softBank.GetBalance();
         balance.Should().Be(135.15m);
@@ -185,7 +185,7 @@ public class SimpleTransactions
 
         IReadOnlyList<LedgerItem> readLedgerItems = ledgerStream.Get();
         readLedgerItems.Count.Should().Be(6);
-        Enumerable.SequenceEqual(ledgerItems.Concat(ledgerItems2), readLedgerItems).Should().BeTrue();
+        ledgerItems.Concat(ledgerItems2).SequenceEqual(readLedgerItems).Should().BeTrue();
 
         decimal balance = softBank.GetBalance();
         balance.Should().Be(450.30M);

@@ -15,7 +15,7 @@ using Toolbox.Block;
 using Toolbox.Orleans.Types;
 using Toolbox.Types;
 
-namespace SoftBank.sdk.test;
+namespace SoftBank.sdk.test.Basic;
 
 public class StandardTransactions : IClassFixture<ClusterFixture>
 {
@@ -43,7 +43,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
 
         await CreateKeys(signatureActor, keyId, ownerId);
 
-        var request = new AccountDetail 
+        var request = new AccountDetail
         {
             ObjectId = objectId,
             OwnerId = ownerId,
@@ -94,7 +94,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
 
         await CreateKeys(signatureActor, keyId, ownerId);
 
-        var request = new AccountDetail 
+        var request = new AccountDetail
         {
             ObjectId = objectId,
             OwnerId = ownerId,
@@ -124,7 +124,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         SpinResponse<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(_context.TraceId);
         ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
         ledgerItems.Return().Count.Should().Be(newItems.Length);
-        Enumerable.SequenceEqual(newItems, ledgerItems.Return()).Should().BeTrue();
+        newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
 
         SpinResponse<decimal> balanceResponse = await softBankActor.GetBalance(_context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
