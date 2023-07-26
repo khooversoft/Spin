@@ -23,10 +23,9 @@ public class SoftBankAccount
 
     public decimal GetBalance() => GetLedgerStream().Get().Sum(x => x.NaturalAmount);
 
-
     public BlobPackage ToBlobPackage() => _blockChain.ToBlobPackage();
 
-    public async Task TransferFunds(decimal amount, ObjectId toAccount, OwnerId ownerId)
+    public async Task TransferFunds(decimal amount, ObjectId toAccount, PrincipalId ownerId)
     {
     }
 
@@ -58,4 +57,16 @@ public static class SoftBankAccountExtensions
     {
         return SoftBankAccount.Create(package, context);
     }
+
+    public static Option<AccountDetail> GetAccountDetail(this SoftBankAccount softbank) => softbank.NotNull()
+        .GetAccountDetailStream()
+        .Get();
+
+    public static Option CanAccess(this SoftBankAccount softbank, SoftBankAccess access, PrincipalId principalId) => softbank.NotNull()
+        .GetAccountDetailStream()
+        .Get() switch
+    {
+        { StatusCode: StatusCode.OK } v => v.Return().CanAccess(access.ToString(), principalId),
+        _ => new Option(StatusCode.Unauthorized),
+    };
 }

@@ -20,8 +20,6 @@ public record GenesisBlock
 
 public static class GenesisBlockValidator
 {
-    private const string _noErrorText = "< no error message >";
-
     public static IValidator<GenesisBlock> Validator { get; } = new Validator<GenesisBlock>()
         .RuleFor(x => x.Type).NotEmpty()
         .RuleFor(x => x.ObjectId).ValidObjectId()

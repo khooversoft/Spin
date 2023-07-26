@@ -16,11 +16,11 @@ public class ValidDateTime<T> : IPropertyValidator<DateTime>
         _errorMessage = errorMessage.NotEmpty();
     }
 
-    public Option<IValidateResult> Validate(DateTime subject)
+    public Option<IValidatorResult> Validate(DateTime subject)
     {
         return subject switch
         {
-            var v when v >= _minRange && v <= _maxRange => Option<IValidateResult>.None,
+            var v when v >= _minRange && v <= _maxRange => Option<IValidatorResult>.None,
             _ => _rule.CreateError(_errorMessage),
         };
     }

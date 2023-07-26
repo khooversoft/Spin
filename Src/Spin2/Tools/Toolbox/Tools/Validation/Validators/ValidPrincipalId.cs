@@ -3,12 +3,12 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class ValidName<T> : IPropertyValidator<string>
+public class ValidPrincipalId<T> : IPropertyValidator<string>
 {
     private readonly IPropertyRule<T, string> _rule;
     private readonly string _errorMessage;
 
-    public ValidName(IPropertyRule<T, string> rule, string errorMessage)
+    public ValidPrincipalId(IPropertyRule<T, string> rule, string errorMessage)
     {
         _rule = rule.NotNull();
         _errorMessage = errorMessage.NotEmpty();
@@ -16,7 +16,7 @@ public class ValidName<T> : IPropertyValidator<string>
 
     public Option<IValidatorResult> Validate(string subject)
     {
-        return NameId.IsValid(subject) switch
+        return PrincipalId.IsValid(subject) switch
         {
             true => Option<IValidatorResult>.None,
             false => _rule.CreateError(_errorMessage),
@@ -25,11 +25,11 @@ public class ValidName<T> : IPropertyValidator<string>
 }
 
 
-public static class ValidFolderExtensions
+public static class ValidOwnerIdExtensions
 {
-    public static Rule<T, string> ValidName<T>(this Rule<T, string> rule, string errorMessage = "valid folder is required")
+    public static Rule<T, string> ValidPrincipalId<T>(this Rule<T, string> rule, string errorMessage = "valid owner id is required")
     {
-        rule.PropertyRule.Validators.Add(new ValidName<T>(rule.PropertyRule, errorMessage));
+        rule.PropertyRule.Validators.Add(new ValidPrincipalId<T>(rule.PropertyRule, errorMessage));
         return rule;
     }
 }

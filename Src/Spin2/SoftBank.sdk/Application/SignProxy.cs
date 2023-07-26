@@ -21,10 +21,10 @@ public class SignProxy : ISign
 
     public async Task<Option<string>> SignDigest(string kid, string messageDigest, ScopeContext context)
     {
-        Option<OwnerId> ownerIdResult = OwnerId.CreateIfValid(kid, context);
+        Option<PrincipalId> ownerIdResult = PrincipalId.CreateIfValid(kid, context);
         if (ownerIdResult.IsError()) return ownerIdResult.ToOption<string>();
 
-        OwnerId ownerId = ownerIdResult.Return();
+        PrincipalId ownerId = ownerIdResult.Return();
         string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";
 
         ISignatureActor signatureActor = _client.GetGrain<ISignatureActor>(objectId);

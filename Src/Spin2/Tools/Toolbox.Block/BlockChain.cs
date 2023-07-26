@@ -1,5 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 using Toolbox.Types.MerkleTree;
 
 namespace Toolbox.Block;
@@ -21,8 +22,11 @@ public class BlockChain
     /// Add data blocks
     /// </summary>
     /// <param name="dataBlocks"></param>
-    public BlockChain Add(params DataBlock[] dataBlocks)
+    public Option Add(params DataBlock[] dataBlocks)
     {
+        var authorized = this.CheckWriteAccess(dataBlocks);
+        if (authorized.StatusCode.IsError()) return authorized;
+
         lock (_lock)
         {
             foreach (var item in dataBlocks)
@@ -42,7 +46,7 @@ public class BlockChain
             }
         }
 
-        return this;
+        return new Option(StatusCode.OK);
     }
 
     public bool IsValid()

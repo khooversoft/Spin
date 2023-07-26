@@ -5,5 +5,5 @@ namespace Toolbox.Tools.Validation;
 
 public interface IPropertyValidator<TProperty>
 {
-    Option<IValidateResult> Validate(TProperty subject);
+    Option<IValidatorResult> Validate(TProperty subject);
 }

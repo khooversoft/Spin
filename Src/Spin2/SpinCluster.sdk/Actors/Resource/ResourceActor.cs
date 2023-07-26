@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Concurrency;
 using SpinCluster.sdk.Actors.Search;
-using SpinCluster.sdk.Application;
+using SpinCluster.sdk.Models;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;

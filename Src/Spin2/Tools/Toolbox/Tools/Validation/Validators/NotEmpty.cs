@@ -14,11 +14,11 @@ public class NotEmpty<T> : IPropertyValidator<string>
         _errorMessage = errorMessage.NotEmpty();
     }
 
-    public Option<IValidateResult> Validate(string subject)
+    public Option<IValidatorResult> Validate(string subject)
     {
         return subject.IsEmpty() switch
         {
-            false => Option<IValidateResult>.None,
+            false => Option<IValidatorResult>.None,
             true => _rule.CreateError(_errorMessage),
         };
     }

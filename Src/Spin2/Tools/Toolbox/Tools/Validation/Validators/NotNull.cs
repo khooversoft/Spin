@@ -13,11 +13,11 @@ public class NotNull<T, TProperty> : IPropertyValidator<TProperty>
         _errorMessage = errorMessage.NotEmpty();
     }
 
-    public Option<IValidateResult> Validate(TProperty subject)
+    public Option<IValidatorResult> Validate(TProperty subject)
     {
         return subject switch
         {
-            not null => Option<IValidateResult>.None,
+            not null => Option<IValidatorResult>.None,
             null => _rule.CreateError(_errorMessage),
         };
     }

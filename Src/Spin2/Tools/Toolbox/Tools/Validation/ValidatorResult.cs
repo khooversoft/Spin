@@ -3,11 +3,11 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public interface IValidateResult { }
+public interface IValidatorResult { }
 
-public record ValidatorResult : IValidateResult
+public record ValidatorResult : IValidatorResult
 {
-    public IReadOnlyList<IValidateResult> Errors { get; init; } = Array.Empty<IValidateResult>();
+    public IReadOnlyList<IValidatorResult> Errors { get; init; } = Array.Empty<IValidatorResult>();
 
     public bool IsValid => Errors.Count == 0;
 
@@ -18,7 +18,7 @@ public record ValidatorResult : IValidateResult
 
 public static class ValidationErrorExtensions
 {
-    public static Option<IValidateResult> CreateError<T, TProperty>(this IPropertyRule<T, TProperty> propertyRule, string message)
+    public static Option<IValidatorResult> CreateError<T, TProperty>(this IPropertyRule<T, TProperty> propertyRule, string message)
     {
         propertyRule.NotNull();
         message.NotEmpty();

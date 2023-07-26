@@ -36,7 +36,7 @@ public static class DataBlockValidator
     public static IValidator<DataBlock> Validator { get; } = new Validator<DataBlock>()
         .RuleFor(x => x.BlockId).NotEmpty()
         .RuleFor(x => x.TimeStamp).Must(x => x > 0, _ => "Invalid timestamp")
-        .RuleFor(x => x.BlockType).NotEmpty()
+        .RuleFor(x => x.BlockType).ValidName()
         .RuleFor(x => x.ClassType).NotNull()
         .RuleFor(x => x.Data).NotNull()
         .RuleFor(x => x.PrincipleId).NotEmpty()

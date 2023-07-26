@@ -12,7 +12,7 @@ public class ValidateLink<T, TProperty> : IPropertyValidator<TProperty>
         _validator = validator.NotNull();
     }
 
-    public Option<IValidateResult> Validate(TProperty subject)
+    public Option<IValidatorResult> Validate(TProperty subject)
     {
         return _validator.Validate(subject);
     }

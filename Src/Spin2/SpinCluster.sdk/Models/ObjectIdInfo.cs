@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Application;
+namespace SpinCluster.sdk.Models;
 
 public readonly record struct ObjectIdInfo
 {

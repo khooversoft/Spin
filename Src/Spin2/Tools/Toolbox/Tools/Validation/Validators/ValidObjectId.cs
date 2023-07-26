@@ -14,11 +14,11 @@ public class ValidObjectId<T> : IPropertyValidator<string>
         _errorMessage = errorMessage.NotEmpty();
     }
 
-    public Option<IValidateResult> Validate(string subject)
+    public Option<IValidatorResult> Validate(string subject)
     {
         return ObjectId.IsValid(subject) switch
         {
-            true => Option<IValidateResult>.None,
+            true => Option<IValidatorResult>.None,
             false => _rule.CreateError(_errorMessage),
         };
     }

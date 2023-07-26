@@ -14,13 +14,13 @@ public class MustFunc<T, TProperty> : IPropertyValidator<TProperty>
         _check = check.NotNull();
     }
 
-    public Option<IValidateResult> Validate(TProperty subject)
+    public Option<IValidatorResult> Validate(TProperty subject)
     {
         var result = _check(subject);
 
         return result.HasValue switch
         {
-            false => result.ToOption<IValidateResult>(),
+            false => result.ToOption<IValidatorResult>(),
             true => _rule.CreateError(result.Return()),
         };
     }
@@ -40,13 +40,13 @@ public class MustTest<T, TProperty> : IPropertyValidator<TProperty>
         _getMsg = getMsg.NotNull();
     }
 
-    public Option<IValidateResult> Validate(TProperty subject)
+    public Option<IValidatorResult> Validate(TProperty subject)
     {
         bool result = _check(subject);
 
         return result switch
         {
-            true => Option<IValidateResult>.None,
+            true => Option<IValidatorResult>.None,
             false => _rule.CreateError(_getMsg(subject)),
         };
     }

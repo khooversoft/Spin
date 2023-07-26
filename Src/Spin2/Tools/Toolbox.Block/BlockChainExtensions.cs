@@ -46,6 +46,35 @@ public static class BlockChainExtensions
         .GetTypedBlocks<GenesisBlock>(GenesisBlock.BlockType)
         .FirstOrDefaultOption();
 
+    public static Option<BlockAcl> GetAclBlock(this BlockChain blockChain) => blockChain
+        .GetTypedBlocks<BlockAcl>(BlockAcl.BlockType)
+        .LastOrDefaultOption();
+
+    public static Option CheckWriteAccess(this BlockChain blockChain, IEnumerable<DataBlock> blocks)
+    {
+        blocks.NotNull();
+
+        Option<BlockAcl> aclOption = blockChain.GetAclBlock();
+        if (aclOption == Option<BlockAcl>.None) return new Option(StatusCode.OK);
+
+        BlockAcl acl = aclOption.Return();
+
+        var errors = blocks
+            .Select(x => acl.HasWriteAccess(new NameId(x.BlockType), new PrincipalId(x.PrincipleId)) switch
+                {
+                    true => (string)null!,
+                    false => $"Principal={x.PrincipleId} is not authorized for write",
+                })
+            .Where(x => x != null)
+            .ToArray();
+
+        return errors.Length switch
+        {
+            0 => new Option(StatusCode.OK),
+            _ => new Option(StatusCode.Unauthorized, errors.Join(",")),
+        };
+    }
+
     public static BlobPackage ToBlobPackage(this BlockChain blockChain)
     {
         GenesisBlock genesisBlock = blockChain.GetGenesisBlock().Return();

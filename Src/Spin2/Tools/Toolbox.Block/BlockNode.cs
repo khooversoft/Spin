@@ -39,8 +39,8 @@ public static class BlockNodeExtensions
     {
         var hashes = new string[]
         {
-                $"{blockNode.Index}-{blockNode.PreviousHash ?? ""}".ToBytes().ToSHA256Hash(),
-                blockNode.DataBlock.CalculateDigest(),
+            $"{blockNode.Index}-{blockNode.PreviousHash ?? ""}".ToBytes().ToSHA256Hash(),
+            blockNode.DataBlock.CalculateDigest(),
         };
 
         return hashes.ToMerkleHash();

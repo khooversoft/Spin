@@ -104,4 +104,16 @@ public class ObjectIdTests
         objectId.Tenant.Should().Be(tenant);
         objectId.Path.Should().Be(path);
     }
+
+    [Fact]
+    public void TestEqual()
+    {
+        var o1 = ObjectId.Parse("schema/tenant/path");
+        var o2 = "schema/tenant/path".ToObjectId();
+        var o3 = "schema2/tenant/path".ToObjectId();
+        (o1 == o2).Should().BeTrue();
+        (o1 != o2).Should().BeFalse();
+        (o1 == o3).Should().BeFalse();
+        (o1 != o3).Should().BeTrue();
+    }
 }

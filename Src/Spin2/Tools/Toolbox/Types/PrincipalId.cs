@@ -11,12 +11,13 @@ using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
-public record OwnerId
+public sealed record PrincipalId
 {
     private ParseDetails _details;
 
-    public OwnerId(string ownerId) => _details = Parse(ownerId).ThrowOnError().Return();
-    public OwnerId(ParseDetails parseDetails) => _details = parseDetails.NotNull();
+    [JsonConstructor]
+    public PrincipalId(string id) => _details = Parse(id).ThrowOnError().Return();
+    public PrincipalId(ParseDetails parseDetails) => _details = parseDetails.NotNull();
 
     public string Id => _details.OwnerId;
     [JsonIgnore] public string Name => _details.Name;
@@ -24,6 +25,9 @@ public record OwnerId
     public override string ToString() => _details.OwnerId;
 
     public static bool IsValid(string subject) => Parse(subject).StatusCode.IsOk();
+
+    public bool Equals(PrincipalId? obj) => obj is PrincipalId document && Id == document.Id;
+    public override int GetHashCode() => HashCode.Combine(Id);
 
     public static Option<ParseDetails> Parse(string ownerId)
     {
@@ -57,20 +61,22 @@ public record OwnerId
         };
     }
 
-    public static Option<OwnerId> CreateIfValid(string ownerId, ScopeContext context)
+    public static Option<PrincipalId> CreateIfValid(string ownerId, ScopeContext context)
     {
         Option<ParseDetails> parseDetails = Parse(ownerId).LogResult(context.Location());
-        if (parseDetails.IsError()) return parseDetails.ToOption<OwnerId>();
+        if (parseDetails.IsError()) return parseDetails.ToOption<PrincipalId>();
 
-        return new OwnerId(parseDetails.Return());
+        return new PrincipalId(parseDetails.Return());
     }
 
     private static bool IsPrefixCharacterValid(char ch) => char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '@' || ch == '_';
     private static bool IsDomainCharacterValid(char ch) => char.IsLetterOrDigit(ch) || ch == '-' || ch == '.';
     private static bool InvalidStartOrEnd(char ch) => ch == '.' || ch == '-' || ch == '_';
 
-    public static bool operator ==(OwnerId left, string right) => left.Id.Equals(right);
-    public static bool operator !=(OwnerId left, string right) => !(left == right);
+    public static bool operator ==(PrincipalId left, string right) => left.Id.Equals(right);
+    public static bool operator !=(PrincipalId left, string right) => !(left == right);
+    public static bool operator ==(string left, PrincipalId right) => left.Equals(right.Id);
+    public static bool operator !=(string left, PrincipalId right) => !(left == right);
 
     public readonly record struct ParseDetails
     {
@@ -83,5 +89,5 @@ public record OwnerId
 
 public static class OwnerIdExtensions
 {
-    public static OwnerId ToOwnerId(this string subject) => new OwnerId(subject);
+    public static PrincipalId ToOwnerId(this string subject) => new PrincipalId(subject);
 }

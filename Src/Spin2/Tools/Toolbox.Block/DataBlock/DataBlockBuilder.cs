@@ -34,8 +34,11 @@ public class DataBlockBuilder
     public DataBlock Build()
     {
         const string msg = "is required";
-        BlockType.NotEmpty(name: msg);
         ClassType.NotEmpty(name: msg);
+
+        BlockType ??= ClassType;
+        BlockType.NotEmpty(name: msg);
+
         BlockId.NotEmpty(name: msg);
         Data.NotEmpty(name: msg);
         PrincipleId.NotEmpty(name: msg);
@@ -53,12 +56,12 @@ public class DataBlockBuilder
         return dataBlock with { Digest = dataBlock.CalculateDigest() };
     }
 
-    public static DataBlock CreateGenesisBlock(string objectId, string principleId, ScopeContext context)
+    public static DataBlock CreateGenesisBlock(string objectId, string principalId, ScopeContext context)
     {
         var marker = new GenesisBlock
         {
             ObjectId = objectId,
-            OwnerPrincipalId = principleId,
+            OwnerPrincipalId = principalId,
         };
 
         GenesisBlockValidator.Validate(marker, context.Location()).ThrowOnError();
@@ -66,7 +69,23 @@ public class DataBlockBuilder
         return new DataBlockBuilder()
             .SetBlockType(GenesisBlock.BlockType)
             .SetData(marker)
-            .SetPrincipleId(principleId)
+            .SetPrincipleId(principalId)
+            .Build();
+    }
+
+    public static DataBlock CreateAclBlock(IEnumerable<BlockAccess> acls, string principalId, ScopeContext context)
+    {
+        var acl = new BlockAcl
+        {
+            Items = acls.ToArray(),
+        };
+
+        BlockAclValidator.Validate(acl, context.Location()).ThrowOnError();
+
+        return new DataBlockBuilder()
+            .SetBlockType(BlockAcl.BlockType)
+            .SetData(acl)
+            .SetPrincipleId(principalId)
             .Build();
     }
 }

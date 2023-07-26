@@ -4,7 +4,7 @@ namespace Toolbox.Tools.Validation;
 
 public interface IPropertyRuleBase<T>
 {
-    Option<IValidateResult> Validate(T value);
+    Option<IValidatorResult> Validate(T value);
 }
 
 public interface IPropertyRule<T, TProperty> : IPropertyRuleBase<T>
@@ -20,7 +20,7 @@ public record PropertyRule<T, TProperty> : IPropertyRule<T, TProperty>
     public Func<T, TProperty> GetValue { get; init; } = null!;
     public IList<IPropertyValidator<TProperty>> Validators { get; init; } = new List<IPropertyValidator<TProperty>>();
 
-    public Option<IValidateResult> Validate(T value)
+    public Option<IValidatorResult> Validate(T value)
     {
         TProperty property = GetValue(value);
 
@@ -38,11 +38,11 @@ public record PropertyCollectionRule<T, TProperty> : IPropertyRule<T, TProperty>
     public Func<T, IEnumerable<TProperty>> GetValue { get; init; } = null!;
     public IList<IPropertyValidator<TProperty>> Validators { get; init; } = new List<IPropertyValidator<TProperty>>();
 
-    public Option<IValidateResult> Validate(T value)
+    public Option<IValidatorResult> Validate(T value)
     {
         IEnumerable<TProperty> properties = GetValue(value);
 
-        var list = new List<IValidateResult>();
+        var list = new List<IValidatorResult>();
 
         foreach (var item in properties)
         {
