@@ -63,14 +63,15 @@ public class SoftBankActor : Grain, ISoftBankActor
         Option<ValidatorResult> validator = _accountValidator.Validate(detail);
         if (validator.IsError()) return validator.Return().ToSpinResponse();
 
-        var softBank = await SoftBankAccount.Create(detail.OwnerId, detail.ObjectId.ToObjectId(), _sign, context).Return();
+        //var softBank = await SoftBankAccount.Create(detail.OwnerId, detail.ObjectId.ToObjectId(), _sign, context).Return();
 
-        BlockScalarStream<AccountDetail> stream = softBank.GetAccountDetailStream();
-        var datablock = await stream.CreateDataBlock(detail, detail.OwnerId).Sign(_sign, context);
-        if( datablock.IsError()) return datablock.ToSpinResponse();
-        stream.Add(datablock.Return());
+        //BlockScalarStream<AccountDetail> stream = softBank.GetAccountDetailStream();
+        //var datablock = await stream.CreateDataBlock(detail, detail.OwnerId).Sign(_sign, context);
+        //if( datablock.IsError()) return datablock.ToSpinResponse();
+        //stream.Add(datablock.Return());
 
-        return await WriteContract(softBank, context);
+        //return await WriteContract(softBank, context);
+        return null;
     }
 
     public async Task<SpinResponse> SetAccountDetail(AccountDetail detail, string traceId)
@@ -165,21 +166,22 @@ public class SoftBankActor : Grain, ISoftBankActor
         context.Location().LogInformation("Reading BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
         await _state.ReadStateAsync();
 
-        Option<SoftBankAccount> contract = _state.State.ToSoftBankAccount(_actorContext).LogResult(_actorContext.Location());
-        if (contract.IsError())
-        {
-            context.Location().LogError("Failed to read/find BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
-            return contract;
-        }
+        //Option<SoftBankAccount> contract = _state.State.ToSoftBankAccount(_actorContext).LogResult(_actorContext.Location());
+        //if (contract.IsError())
+        //{
+        //    context.Location().LogError("Failed to read/find BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
+        //    return contract;
+        //}
 
-        Option signResult = await contract.Return().ValidateBlockChain(_signValidate, context);
-        if (signResult.StatusCode.IsError())
-        {
-            context.Location().LogCritical("Contract actorId={actorId} could not be validated before writing to storage", this.GetPrimaryKeyString());
-            throw new InvalidOperationException($"Contract should not be validated, actorId={this.GetPrimaryKeyString()}");
-        }
+        //Option signResult = await contract.Return().ValidateBlockChain(_signValidate, context);
+        //if (signResult.StatusCode.IsError())
+        //{
+        //    context.Location().LogCritical("Contract actorId={actorId} could not be validated before writing to storage", this.GetPrimaryKeyString());
+        //    throw new InvalidOperationException($"Contract should not be validated, actorId={this.GetPrimaryKeyString()}");
+        //}
 
-        return contract;
+        //return contract;
+        return null;
     }
 
     private async Task<SpinResponse> WriteContract(SoftBankAccount contract, ScopeContext context)
@@ -198,5 +200,4 @@ public class SoftBankActor : Grain, ISoftBankActor
 
         return new SpinResponse(StatusCode.OK);
     }
-
 }

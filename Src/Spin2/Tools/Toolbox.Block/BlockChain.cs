@@ -8,7 +8,7 @@ namespace Toolbox.Block;
 /// <summary>
 /// Block chain container
 /// </summary>
-public class BlockChain
+public sealed class BlockChain
 {
     private readonly List<BlockNode> _blocks;
     private readonly object _lock = new object();
@@ -24,7 +24,7 @@ public class BlockChain
     /// <param name="dataBlocks"></param>
     public Option Add(params DataBlock[] dataBlocks)
     {
-        var authorized = this.CheckWriteAccess(dataBlocks);
+        var authorized = CheckWriteAccess(dataBlocks);
         if (authorized.StatusCode.IsError()) return authorized;
 
         lock (_lock)
@@ -77,6 +77,58 @@ public class BlockChain
                 .BuildTree()
                 .ToString();
         }
+    }
+
+    public IReadOnlyList<T> GetTypedBlocks<T>(string blockType) => GetTypedBlocks(blockType)
+        .Select(x => x.ToObject<T>())
+        .ToArray();
+
+    public IReadOnlyList<DataBlock> GetTypedBlocks(string blockType) => _blocks
+        .Where(x => x.DataBlock.BlockType == blockType)
+        .Select(x => x.DataBlock)
+        .ToList();
+
+    public Option<GenesisBlock> GetGenesisBlock() => GetTypedBlocks<GenesisBlock>(GenesisBlock.BlockType)
+        .FirstOrDefaultOption();
+
+    public Option<BlockAcl> GetAclBlock() => GetTypedBlocks<BlockAcl>(BlockAcl.BlockType)
+        .LastOrDefaultOption();
+
+    public Option CheckWriteAccess(IEnumerable<DataBlock> blocks)
+    {
+        blocks.NotNull();
+
+        if (_blocks.Count == 0) return new Option(StatusCode.OK);
+
+        var dict = blocks.ToDictionary(x => x.PrincipleId, x => x);
+
+        GenesisBlock genesisBlock = GetGenesisBlock().Return();
+        dict.Remove(genesisBlock.OwnerPrincipalId);
+
+        if (dict.Count == 0) return new Option(StatusCode.OK);
+
+        Option<BlockAcl> aclOption = GetAclBlock();
+        if (aclOption == Option<BlockAcl>.None) return new Option(StatusCode.Unauthorized);
+
+        BlockAcl acl = aclOption.Return();
+
+        foreach (var item in dict.ToArray())
+        {
+            if (acl.HasWriteAccess(new NameId(item.Value.BlockType), new PrincipalId(item.Value.PrincipleId)))
+            {
+                dict.Remove(item.Key);
+            }
+        }
+
+        var errors = dict
+            .Select(x => $"PrincipalId={x.Value.PrincipleId} is not authorized")
+            .ToArray();
+
+        return errors.Length switch
+        {
+            0 => new Option(StatusCode.OK),
+            _ => new Option(StatusCode.Unauthorized, errors.Join(",")),
+        };
     }
 
     public static BlockChain operator +(BlockChain self, DataBlock blockData)

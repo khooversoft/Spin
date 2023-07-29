@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.IdentityModel.Tokens;
 using SoftBank.sdk.Models;
 using Toolbox.Block;
 using Toolbox.Extensions;
@@ -17,18 +18,21 @@ public class SimpleTransactions
     private readonly PrincipalSignature _ownerSignature2 = new PrincipalSignature(_owner2, _owner2, "userBusiness@domain.com");
     private readonly PrincipalSignatureCollection _signCollection;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+    private readonly SoftBankFactory _softBankFactory;
 
     public SimpleTransactions()
     {
         _signCollection = new PrincipalSignatureCollection()
             .Add(_ownerSignature)
             .Add(_ownerSignature2);
+
+        _softBankFactory = new SoftBankFactory(_signCollection, _signCollection, NullLoggerFactory.Instance);
     }
 
     [Fact]
     public async Task ConstructTest()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
+        var softBank = await _softBankFactory.Create(_accountObjectId, _owner, _context).Return();
         Option signResult = await softBank.ValidateBlockChain(_signCollection, _context);
         signResult.StatusCode.IsOk().Should().BeTrue();
     }
@@ -36,7 +40,7 @@ public class SimpleTransactions
     [Fact]
     public async Task ConstructWithAccountDetails()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
+        var softBank = await _softBankFactory.Create(_accountObjectId, _owner, _context).Return();
 
         var accountDetail = new AccountDetail
         {
@@ -60,7 +64,7 @@ public class SimpleTransactions
     [Fact]
     public async Task ConstructWithLedgerItems()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
+        var softBank = await _softBankFactory.Create(_accountObjectId, _owner, _context).Return();
 
         LedgerItem ledgerItem = new LedgerItem
         {
@@ -86,7 +90,7 @@ public class SimpleTransactions
     [Fact]
     public async Task ConstructAccountWithLedgerItems()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
+        var softBank = await _softBankFactory.Create(_accountObjectId, _owner, _context).Return();
 
         var accountDetail = new AccountDetail
         {
@@ -133,7 +137,15 @@ public class SimpleTransactions
     [Fact]
     public async Task ConstructAccountWithLedgerItems2Signers()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _accountObjectId, _signCollection, _context).Return();
+        var acl = new BlockAcl
+        {
+            Items = new[]
+            {
+                new BlockAccess {BlockType = "collection:LedgerItem", PrincipalId = _owner2, WriteGrant = true },
+            },
+        };
+
+        var softBank = await _softBankFactory.Create(_accountObjectId, _owner, acl, _context).Return();
 
         var accountDetail = new AccountDetail
         {
@@ -161,7 +173,7 @@ public class SimpleTransactions
         BlockStream<LedgerItem> ledgerStream = softBank.GetLedgerStream();
         await ledgerItems
             .Select(x => ledgerStream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
-            .ForEachAsync(async x => ledgerStream.Add(await x));
+            .ForEachAsync(async x => ledgerStream.Add(await x).ThrowOnError());
 
         signResult = await softBank.ValidateBlockChain(_signCollection, _context);
         signResult.StatusCode.IsOk().Should().BeTrue();
@@ -175,7 +187,7 @@ public class SimpleTransactions
 
         await ledgerItems2
             .Select(x => ledgerStream.CreateDataBlock(x, _owner2).Sign(_signCollection, _context).Return())
-            .ForEachAsync(async x => ledgerStream.Add(await x));
+            .ForEachAsync(async x => ledgerStream.Add(await x).ThrowOnError());
 
         signResult = await softBank.ValidateBlockChain(_signCollection, _context);
         signResult.StatusCode.IsOk().Should().BeTrue();

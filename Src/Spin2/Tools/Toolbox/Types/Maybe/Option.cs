@@ -23,3 +23,4 @@ public readonly struct Option : IEquatable<Option>
     public static bool operator ==(Option left, Option right) => left.Equals(right);
     public static bool operator !=(Option left, Option right) => !(left == right);
 }
+

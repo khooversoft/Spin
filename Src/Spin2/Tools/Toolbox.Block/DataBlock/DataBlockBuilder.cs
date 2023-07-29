@@ -80,7 +80,14 @@ public class DataBlockBuilder
             Items = acls.ToArray(),
         };
 
-        BlockAclValidator.Validate(acl, context.Location()).ThrowOnError();
+        return CreateAclBlock(acl, principalId, context);
+    }
+
+    public static DataBlock CreateAclBlock(BlockAcl acl, string principalId, ScopeContext context)
+    {
+        BlockAclValidator.Validate(acl, context.Location())
+            .LogResult(context.Location())
+            .ThrowOnError();
 
         return new DataBlockBuilder()
             .SetBlockType(BlockAcl.BlockType)

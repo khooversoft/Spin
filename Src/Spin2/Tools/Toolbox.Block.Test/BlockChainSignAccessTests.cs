@@ -107,10 +107,12 @@ public class BlockChainSignAccessTests
     {
         const string issuer = "user@domain.com";
         const string issuer2 = "user2@domain.com";
+        const string issuer3 = "user3@domain.com";
         const string objectId = $"user/tenant/{issuer}";
         var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
+        IPrincipalSignature principleSignature3 = new PrincipalSignature(issuer3, issuer3, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
             .SetObjectId(objectId.ToObjectId())
@@ -129,9 +131,9 @@ public class BlockChainSignAccessTests
             .SetTimeStamp(now)
             .SetData(p1)
             .SetBlockType<Payload1>()
-            .SetPrincipleId(issuer)
+            .SetPrincipleId(issuer3)
             .Build()
-            .Sign(principleSignature, _context)
+            .Sign(principleSignature3, _context)
             .Return();
 
         Option status = blockChain.Add(data);
@@ -153,7 +155,6 @@ public class BlockChainSignAccessTests
             .SetObjectId(objectId.ToObjectId())
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { WriteGrant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
-            .AddAccess(new BlockAccess { WriteGrant = true, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
             .Return();
 
@@ -171,6 +172,9 @@ public class BlockChainSignAccessTests
             .Sign(principleSignature, _context)
             .Return();
 
+        Option status = blockChain.Add(data);
+        status.StatusCode.IsOk().Should().BeTrue();
+
         var p2 = new Payload2
         {
             Description = "description1",
@@ -179,14 +183,14 @@ public class BlockChainSignAccessTests
         var data2 = await new DataBlockBuilder()
             .SetTimeStamp(now)
             .SetData(p2)
-            .SetPrincipleId(issuer)
+            .SetPrincipleId(issuer2)
             .Build()
-            .Sign(principleSignature, _context)
+            .Sign(principleSignature2, _context)
             .Return();
 
-        Option status = blockChain.Add(data2);
-        status.StatusCode.IsOk().Should().BeFalse();
-        blockChain.Blocks.Count.Should().Be(2);
+        Option status2 = blockChain.Add(data2);
+        status2.StatusCode.IsOk().Should().BeFalse();
+        blockChain.Blocks.Count.Should().Be(3);
     }
 
     private record Payload1

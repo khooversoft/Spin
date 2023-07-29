@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SoftBank.sdk.Models;
 
-public enum SoftBankAccess
+public enum SoftBankGrant
 {
     None = 0,
     Read = 1,

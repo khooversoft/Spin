@@ -16,10 +16,13 @@ public class StoreAndSerialization
     private readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
     private readonly PrincipalSignatureCollection _signCollection;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+    private readonly SoftBankFactory _softBankFactory;
 
     public StoreAndSerialization()
     {
         _signCollection = new PrincipalSignatureCollection().Add(_ownerSignature);
+    
+        _softBankFactory = new SoftBankFactory(_signCollection, _signCollection, NullLoggerFactory.Instance);
     }
 
     [Fact]
@@ -30,14 +33,14 @@ public class StoreAndSerialization
         BlobPackage blob = softBankAccount.ToBlobPackage();
         blob.Validate(_context.Location()).IsValid.Should().BeTrue();
 
-        SoftBankAccount readSoftBankAccount = SoftBankAccount.Create(blob, _context).Return();
+        SoftBankAccount readSoftBankAccount = await _softBankFactory.Create(blob, _context).Return();
         Option signResult = await readSoftBankAccount.ValidateBlockChain(_signCollection, _context);
         signResult.StatusCode.IsOk().Should().BeTrue();
     }
 
     private async Task<SoftBankAccount> CreateAccount()
     {
-        var softBank = await SoftBankAccount.Create(_owner, _ownerObjectId, _signCollection, _context).Return();
+        var softBank = await _softBankFactory.Create(_ownerObjectId, _owner, _context).Return();
 
         var accountDetail = new AccountDetail
         {

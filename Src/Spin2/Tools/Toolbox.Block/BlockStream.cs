@@ -24,7 +24,7 @@ public class BlockStream<T> where T : class
         _blockType = $"collection:{_streamName.NotEmpty()}";
     }
 
-    public void Add(DataBlock value) => _blockChain.Add(value);
+    public Option Add(DataBlock value) => _blockChain.Add(value);
 
     public IReadOnlyList<T> Get() => _blockChain.GetTypedBlocks<T>(_blockType);
 

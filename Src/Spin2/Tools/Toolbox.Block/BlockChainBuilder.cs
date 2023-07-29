@@ -9,16 +9,12 @@ public class BlockChainBuilder
 {
     public ObjectId? ObjectId { get; set; }
     public string? PrincipleId { get; set; }
-    public IList<BlockAccess> Access { get; set; } = new List<BlockAccess>();
+    public List<BlockAccess> Access { get; set; } = new List<BlockAccess>();
 
     public BlockChainBuilder SetObjectId(ObjectId objectId) => this.Action(x => ObjectId = objectId);
     public BlockChainBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
+    public BlockChainBuilder AddAccess(BlockAcl? blockAcl) => this.Action(_ => Access.AddRange(blockAcl?.Items ?? Array.Empty<BlockAccess>()));
     public BlockChainBuilder AddAccess(BlockAccess blockAccess) => this.Action(_ => Access.Add(blockAccess));
-    public BlockChainBuilder AddAccess(bool writeGrant, string? claim, PrincipalId principalId)
-    {
-        Access.Add(new BlockAccess { WriteGrant = true, Claim = claim, PrincipalId = principalId.ToString() });
-        return this;
-    }
 
     public async Task<Option<BlockChain>> Build(ISign sign, ScopeContext context)
     {
@@ -41,6 +37,8 @@ public class BlockChainBuilder
             Option<DataBlock> acl = await DataBlockBuilder
                 .CreateAclBlock(Access, PrincipleId, context)
                 .Sign(sign, context);
+
+            if (acl.IsError()) return acl.ToOption<BlockChain>();
 
             blockChain.Add(acl.Return());
         }
