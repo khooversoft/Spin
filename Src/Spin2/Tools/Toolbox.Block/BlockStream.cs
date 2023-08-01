@@ -29,3 +29,14 @@ public class BlockStream<T> : BlockStreamReader<T> where T : class
 
     public DataBlock CreateDataBlock(T subject, string principalId) => subject.ToDataBlock(principalId: principalId, blockType: _blockType);
 }
+
+public class BlockNodeReader
+{
+    protected readonly IReadOnlyList<BlockNode> _blockNodes;
+    public BlockNodeReader(IReadOnlyList<BlockNode> blockNodes) => _blockNodes = blockNodes.NotNull();
+
+    public BlockNode this[int index] => _blockNodes[index];
+    public int Count => _blockNodes.Count;
+
+    public IReadOnlyList<BlockNode> Items => _blockNodes.ToArray();
+}

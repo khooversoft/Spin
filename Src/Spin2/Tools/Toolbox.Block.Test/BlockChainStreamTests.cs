@@ -37,21 +37,21 @@ public class BlockChainStreamTests
         Option result = await blockChain.ValidateBlockChain(_signCollection, _context);
         result.StatusCode.IsOk().Should().BeTrue();
 
-        //BlockStream<Payload> stream = blockChain.GetStream<Payload>("ledger");
+        BlockStream<Payload> stream = blockChain.GetStream<Payload>("ledger", _owner).Return();
 
-        //IReadOnlyList<DataBlock> blocks = await payloads
-        //    .Select(x => stream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
-        //    .Func(async x => await Task.WhenAll(x));
+        IReadOnlyList<DataBlock> blocks = await payloads
+            .Select(x => stream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
+            .Func(async x => await Task.WhenAll(x));
 
-        //blocks.ForEach(x => stream.Add(x));
-        //blockChain.Blocks.Count.Should().Be(4);
+        blocks.ForEach(x => stream.Add(x));
+        blockChain.Count.Should().Be(4);
 
-        //await blockChain.ValidateBlockChain(_signCollection, _context).ThrowOnError();
+        await blockChain.ValidateBlockChain(_signCollection, _context).ThrowOnError();
 
-        //IReadOnlyList<Payload> blockPayloads = stream.Get();
-        //blockPayloads.Count.Should().Be(3);
+        IReadOnlyList<Payload> blockPayloads = stream.List();
+        blockPayloads.Count.Should().Be(3);
 
-        //payloads.SequenceEqual(blockPayloads).Should().BeTrue();
+        payloads.SequenceEqual(blockPayloads).Should().BeTrue();
     }
 
     private record Payload

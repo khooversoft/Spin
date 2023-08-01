@@ -18,7 +18,6 @@ public sealed class BlockChain
     public BlockChain() => _blocks = new List<BlockNode>();
     public BlockChain(IEnumerable<BlockNode> blockNodes) => _blocks = blockNodes.NotNull().ToList();
 
-    //public IReadOnlyList<BlockNode> Blocks => _blocks;
     public int Count => _blocks.Count;
 
     /// <summary>
@@ -97,6 +96,19 @@ public sealed class BlockChain
         {
             false => new Option<BlockStream<T>>(StatusCode.Forbidden),
             true => new BlockStream<T>(_blocks.Where(x => x.DataBlock.BlockType == blockType), this, blockType),
+        };
+    }
+
+    public Option<BlockNodeReader> GetNodeReader(string principalId)
+    {
+        principalId.Assert(x => PrincipalId.IsValid(x), x => $"{x} not valid PrincipalId");
+
+        GenesisBlock genesisBlock = GetGenesisBlock();
+
+        return (genesisBlock.OwnerPrincipalId == principalId) switch
+        {
+            true => new BlockNodeReader(_blocks),
+            false => new Option<BlockNodeReader>(StatusCode.Forbidden),
         };
     }
 
