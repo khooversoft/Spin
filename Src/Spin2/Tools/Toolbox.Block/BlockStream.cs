@@ -3,40 +3,29 @@ using Toolbox.Types;
 
 namespace Toolbox.Block;
 
-/// <summary>
-/// Provides multiple stream capability for block chains.
-/// 
-/// BlockType = resource path : "{streamName}"
-/// ObjectType = object type name (serialize / deserialize)
-/// 
-/// </summary>
-public class BlockStream<T> where T : class
+public class BlockStreamReader<T> where T : class
+{
+    protected readonly IEnumerable<BlockNode> _blockNodes;
+    public BlockStreamReader(IEnumerable<BlockNode> blockNodes) => _blockNodes = blockNodes.NotNull();
+
+    public Option<T> GetLatest() => _blockNodes.Select(x => x.DataBlock.ToObject<T>()).LastOrDefaultOption();
+    public IReadOnlyList<T> List() => _blockNodes.Select(x => x.DataBlock.ToObject<T>()).ToArray();
+}
+
+
+public class BlockStream<T> : BlockStreamReader<T> where T : class
 {
     private readonly BlockChain _blockChain;
-    private readonly string _streamName;
     private readonly string _blockType;
 
-    public BlockStream(BlockChain blockChain, string streamName)
+    public BlockStream(IEnumerable<BlockNode> blockNodes, BlockChain blockChain, string blockType)
+        : base(blockNodes)
     {
         _blockChain = blockChain.NotNull();
-        _streamName = streamName.NotNull();
-
-        _blockType = $"collection:{_streamName.NotEmpty()}";
+        _blockType = NameId.Verify(blockType);
     }
 
     public Option Add(DataBlock value) => _blockChain.Add(value);
 
-    public IReadOnlyList<T> Get() => _blockChain.GetTypedBlocks<T>(_blockType);
-
-    public DataBlock CreateDataBlock(T subject, string principalId)
-    {
-        return subject.ToDataBlock(principalId, _blockType);
-    }
-}
-
-
-public static class BlockStreamExtensions
-{
-    public static BlockStream<T> GetStream<T>(this BlockChain blockChain, string streamName) where T : class =>
-        new BlockStream<T>(blockChain, streamName);
+    public DataBlock CreateDataBlock(T subject, string principalId) => subject.ToDataBlock(principalId: principalId, blockType: _blockType);
 }

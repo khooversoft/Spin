@@ -33,6 +33,7 @@ public static class AccountDetailValidator
         .RuleFor(x => x.OwnerId).ValidName()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.Name).NotEmpty()
+        .RuleFor(x => x.AccessRights).NotNull()
         .Build();
 
     public static ValidatorResult Validate(this AccountDetail subject, ScopeContextLocation location) => Validator

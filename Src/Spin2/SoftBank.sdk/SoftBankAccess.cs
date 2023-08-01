@@ -39,5 +39,5 @@ public class SoftBankAccess
         return _blockChain.Add(aclBlock.Return()).LogResult(context.Location());
     }
 
-    public Option<BlockAcl> GetAccess() => _blockChain.GetAclBlock();
+    //public Option<BlockAcl> GetAccess() => _blockChain.GetAclBlock();
 }

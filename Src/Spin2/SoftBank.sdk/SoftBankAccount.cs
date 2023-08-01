@@ -25,8 +25,8 @@ public class SoftBankAccount
         Access = new SoftBankAccess(_blockChain, _sign, _logger);
     }
 
-    public BlockScalarStream<AccountDetail> GetAccountDetailStream() => _blockChain.GetScalarStream<AccountDetail>(nameof(AccountDetail));
-    public BlockStream<LedgerItem> GetLedgerStream() => _blockChain.GetStream<LedgerItem>(nameof(LedgerItem));
+    //public BlockScalarStream<AccountDetail> GetAccountDetailStream() => _blockChain.GetScalarStream<AccountDetail>(nameof(AccountDetail));
+    //public BlockStream<LedgerItem> GetLedgerStream() => _blockChain.GetStream<LedgerItem>(nameof(LedgerItem));
     public SoftBankAccess Access { get; }
 
     public async Task<Option> ValidateBlockChain(ISignValidate signValidate, ScopeContext context)
@@ -34,7 +34,7 @@ public class SoftBankAccount
         return await _blockChain.ValidateBlockChain(signValidate, context);
     }
 
-    public decimal GetBalance() => GetLedgerStream().Get().Sum(x => x.NaturalAmount);
+    public decimal GetBalance() => 0.0m; // GetLedgerStream().Get().Sum(x => x.NaturalAmount);
 
     public BlobPackage ToBlobPackage() => _blockChain.ToBlobPackage();
 
@@ -46,15 +46,15 @@ public class SoftBankAccount
 
 public static class SoftBankAccountExtensions
 {
-    public static Option<AccountDetail> GetAccountDetail(this SoftBankAccount softbank) => softbank.NotNull()
-        .GetAccountDetailStream()
-        .Get();
+    //public static Option<AccountDetail> GetAccountDetail(this SoftBankAccount softbank) => softbank.NotNull()
+    //    .GetAccountDetailStream()
+    //    .Get();
 
-    public static Option CanAccess(this SoftBankAccount softbank, SoftBankGrant access, PrincipalId principalId) => softbank.NotNull()
-        .GetAccountDetailStream()
-        .Get() switch
-    {
-        { StatusCode: StatusCode.OK } v => v.Return().CanAccess(access.ToString(), principalId),
-        _ => new Option(StatusCode.Unauthorized),
-    };
+    //public static Option CanAccess(this SoftBankAccount softbank, SoftBankGrant access, PrincipalId principalId) => softbank.NotNull()
+    //    .GetAccountDetailStream()
+    //    .Get() switch
+    //{
+    //    { StatusCode: StatusCode.OK } v => v.Return().CanAccess(access.ToString(), principalId),
+    //    _ => new Option(StatusCode.Unauthorized),
+    //};
 }

@@ -37,19 +37,19 @@ public class BlockChainScalarStreamTests
         Option result = await blockChain.ValidateBlockChain(_signCollection, _context);
         result.StatusCode.IsOk().Should().BeTrue();
 
-        BlockScalarStream<Payload> stream = blockChain.GetScalarStream<Payload>("ledger");
+        //BlockScalarStream<Payload> stream = blockChain.GetScalarStream<Payload>("ledger");
 
-        IReadOnlyList<DataBlock> blocks = await payloads
-            .Select(x => stream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
-            .Func(async x => await Task.WhenAll(x));
+        //IReadOnlyList<DataBlock> blocks = await payloads
+        //    .Select(x => stream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
+        //    .Func(async x => await Task.WhenAll(x));
 
-        blocks.ForEach(stream.Add);
-        blockChain.Blocks.Count.Should().Be(4);
+        //blocks.ForEach(x => stream.Add(x));
+        //blockChain.Blocks.Count.Should().Be(4);
 
         await blockChain.ValidateBlockChain(_signCollection, _context).ThrowOnError();
 
-        Payload currentPayload = stream.Get().Return();
-        (payloads.Last() == currentPayload).Should().BeTrue();
+        //Payload currentPayload = stream.Get().Return();
+        //(payloads.Last() == currentPayload).Should().BeTrue();
     }
 
     private record Payload

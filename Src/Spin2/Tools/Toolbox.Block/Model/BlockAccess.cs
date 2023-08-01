@@ -12,31 +12,27 @@ using Toolbox.Types;
 
 namespace Toolbox.Block;
 
-public sealed record BlockAccessRequest
+[Flags]
+public enum BlockGrant
 {
-    public bool WriteGrant { get; init; }
-    public string? Claim { get; init; }
-
-    public bool HasAccess(BlockAccess access)
-    {
-        return access is BlockAccess &&
-            WriteGrant == access.WriteGrant &&
-            Claim == access.Claim;
-    }
+    None = 0x0,
+    Read = 0x1,
+    Write = 0x2,
 }
-
 
 public sealed record BlockAccess
 {
-    public bool WriteGrant { get; init; }
+    public BlockGrant Grant { get; init; } = BlockGrant.None;
     public string? Claim { get; init; }
-    public string BlockType { get; init; } = null!;
-    public string PrincipalId { get; init; } = null!;
+    public required string BlockType { get; init; }
+    public required string PrincipalId { get; init; }
 }
 
 public static class BlockAccessValidator
 {
     public static IValidator<BlockAccess> Validator { get; } = new Validator<BlockAccess>()
+        .RuleFor(x => x.Grant).Must(x => x.IsEnumValid<BlockGrant>(), _ => "Invalid block grant")
+        .RuleFor(x => x.Claim).Must(x => x == null || NameId.IsValid(x), _ => "Invalid claim")
         .RuleFor(x => x.BlockType).ValidName()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .Build();
@@ -50,4 +46,9 @@ public static class BlockAccessValidator
         Validator.Validate(subject, location).ThrowOnError();
         return subject;
     }
+
+    public static bool HasAccess(this BlockAccess subject, BlockGrant grant, string blockType, string principalId) =>
+        subject.Grant.HasFlag(grant) &&
+        subject.BlockType == blockType &&
+        subject.PrincipalId == principalId;
 }

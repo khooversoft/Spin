@@ -35,19 +35,12 @@ public static class BlockAclValidator
         return subject;
     }
 
-    public static bool HasAccess(this BlockAcl subject, BlockAccessRequest request, NameId blockType, PrincipalId principalId)
+    public static bool HasAccess(this BlockAcl subject, BlockGrant grant, string blockType, string principalId)
     {
         subject.NotNull();
-        principalId.NotNull();
+        blockType.NotEmpty();
+        principalId.NotEmpty();
 
-        return subject.Items.Any(x => request.HasAccess(x) && x.BlockType == blockType.ToString() && x.PrincipalId == principalId);
-    }
-
-    public static bool HasWriteAccess(this BlockAcl subject, NameId blockType, PrincipalId principalId)
-    {
-        subject.NotNull();
-        principalId.NotNull();
-
-        return subject.Items.Any(x => x.WriteGrant && x.BlockType == blockType.ToString() && x.PrincipalId == principalId);
+        return subject.Items.Any(x => x.HasAccess(grant, blockType, principalId));
     }
 }

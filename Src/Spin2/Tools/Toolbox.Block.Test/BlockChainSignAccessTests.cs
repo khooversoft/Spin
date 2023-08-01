@@ -27,7 +27,7 @@ public class BlockChainSignAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetObjectId(objectId.ToObjectId())
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { WriteGrant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
+            //.AddAccess(new BlockAccess { Grant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
             .Build(principleSignature, _context)
             .Return();
 
@@ -48,7 +48,7 @@ public class BlockChainSignAccessTests
 
         Option status = blockChain.Add(data);
         status.StatusCode.IsOk().Should().BeTrue();
-        blockChain.Blocks.Count.Should().Be(3);
+        blockChain.Count.Should().Be(3);
     }
     
     [Fact]
@@ -65,8 +65,8 @@ public class BlockChainSignAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetObjectId(objectId.ToObjectId())
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { WriteGrant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
-            .AddAccess(new BlockAccess { WriteGrant = true, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
+            //.AddAccess(new BlockAccess { Grant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
+            //.AddAccess(new BlockAccess { Grant = true, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
             .Return();
 
@@ -99,7 +99,7 @@ public class BlockChainSignAccessTests
 
         Option status = blockChain.Add(data2);
         status.StatusCode.IsOk().Should().BeTrue();
-        blockChain.Blocks.Count.Should().Be(3);
+        blockChain.Count.Should().Be(3);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class BlockChainSignAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetObjectId(objectId.ToObjectId())
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { WriteGrant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer2 })
+            //.AddAccess(new BlockAccess { Grant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
             .Return();
 
@@ -154,7 +154,7 @@ public class BlockChainSignAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetObjectId(objectId.ToObjectId())
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { WriteGrant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
+            //.AddAccess(new BlockAccess { Grant = true, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
             .Build(principleSignature, _context)
             .Return();
 
@@ -190,7 +190,7 @@ public class BlockChainSignAccessTests
 
         Option status2 = blockChain.Add(data2);
         status2.StatusCode.IsOk().Should().BeFalse();
-        blockChain.Blocks.Count.Should().Be(3);
+        blockChain.Count.Should().Be(3);
     }
 
     private record Payload1

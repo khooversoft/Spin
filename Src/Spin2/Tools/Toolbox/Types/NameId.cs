@@ -21,9 +21,16 @@ public readonly record struct NameId
     public string Name { get; }
 
     public override string ToString() => Name;
-  
+
     public static bool IsValid(string subject) => subject.IsNotEmpty() && subject.All(x => IsCharacterValid(x));
 
     public static bool IsCharacterValid(char ch) =>
         char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*' || ch == ':';
+
+    public static bool operator ==(NameId left, string right) => left.Name.Equals(right);
+    public static bool operator !=(NameId left, string right) => !(left == right);
+    public static bool operator ==(string left, NameId right) => left.Equals(right.Name);
+    public static bool operator !=(string left, NameId right) => !(left == right);
+
+    public static string Verify(string id) => id.Action(x => NameId.IsValid(x).Assert($"{x} is not valid name id"));
 }

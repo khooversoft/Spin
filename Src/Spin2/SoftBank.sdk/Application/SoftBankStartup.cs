@@ -26,6 +26,7 @@ public static class SoftBankStartup
 
             services.AddSingleton<ISign, SignProxy>();
             services.AddSingleton<ISignValidate, SignValidationProxy>();
+            services.AddSingleton<SoftBankFactory>();
         });
 
         return builder;

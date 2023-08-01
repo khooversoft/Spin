@@ -12,16 +12,18 @@ namespace SpinCluster.sdk.Models;
 [GenerateSerializer, Immutable]
 public sealed record AccessRight
 {
-    [Id(0)] public string Privilege { get; init; } = null!;
-    [Id(1)] public string PrincipalId { get; init; } = null!;
-    [Id(2)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+    [Id(0)] public bool WriteGrant { get; init; }
+    [Id(1)] public string? Claim { get; init; }
+    [Id(2)] public string BlockType { get; init; } = null!;
+    [Id(3)] public string PrincipalId { get; init; } = null!;    
 
     public bool Equals(AccessRight? obj) => obj is AccessRight document &&
-        Privilege == document.Privilege &&
-        PrincipalId == document.PrincipalId &&
-        CreatedDate == document.CreatedDate;
+        WriteGrant == document.WriteGrant &&
+        Claim == document.Claim &&
+        BlockType == document.BlockType &&
+        PrincipalId == document.PrincipalId;
 
-    public override int GetHashCode() => HashCode.Combine(Privilege, PrincipalId, CreatedDate);
+    public override int GetHashCode() => HashCode.Combine(WriteGrant, Claim, BlockType, PrincipalId);
 }
 
 
@@ -33,7 +35,7 @@ public static class AccessRightExtensions
         privilege.NotEmpty();
         principalId.NotNull();
 
-        return list.Any(x => x.Privilege == privilege && x.PrincipalId == principalId) switch
+        return list.Any(x => x.Claim == privilege && x.PrincipalId == principalId) switch
         {
             true => new Option(StatusCode.OK),
             false => new Option(StatusCode.Unauthorized),
