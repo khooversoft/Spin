@@ -81,7 +81,7 @@ public sealed class BlockChain
         }
     }
 
-    public Option<BlockStreamReader<T>> GetStreamReader<T>(string blockType, string principalId) where T : class
+    public Option<BlockStreamReader<T>> GetStreamReader<T>(BlockType blockType, PrincipalId principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
         {
@@ -90,7 +90,7 @@ public sealed class BlockChain
         };
     }
 
-    public Option<BlockStream<T>> GetStream<T>(string blockType, string principalId) where T : class
+    public Option<BlockStream<T>> GetStream<T>(BlockType blockType, PrincipalId principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
         {
@@ -99,7 +99,7 @@ public sealed class BlockChain
         };
     }
 
-    public Option<BlockNodeReader> GetNodeReader(string principalId)
+    public Option<BlockNodeReader> GetNodeReader(PrincipalId principalId)
     {
         principalId.Assert(x => PrincipalId.IsValid(x), x => $"{x} not valid PrincipalId");
 
@@ -146,11 +146,9 @@ public sealed class BlockChain
         };
     }
 
-    private bool IsAuthorized(BlockGrant grant, string blockType, string principalId)
+    private bool IsAuthorized(BlockGrant grant, BlockType blockType, PrincipalId principalId)
     {
         grant.IsEnumValid<BlockGrant>();
-        blockType.Assert(x => NameId.IsValid(x), x => $"{x} not valid NameId");
-        principalId.Assert(x => PrincipalId.IsValid(x), x => $"{x} not valid PrincipalId");
 
         GenesisBlock genesisBlock = GetGenesisBlock();
         if (genesisBlock.OwnerPrincipalId == principalId) return true;

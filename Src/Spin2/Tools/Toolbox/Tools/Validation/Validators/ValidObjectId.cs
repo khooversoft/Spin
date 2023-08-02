@@ -3,27 +3,13 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class ValidObjectId<T> : IPropertyValidator<string>
+public class ValidObjectId<T> : ValidatorBase<T, string>
 {
-    private readonly IPropertyRule<T, string> _rule;
-    private readonly string _errorMessage;
-
     public ValidObjectId(IPropertyRule<T, string> rule, string errorMessage)
+        : base(rule, errorMessage, x => ObjectId.IsValid(x))
     {
-        _rule = rule.NotNull();
-        _errorMessage = errorMessage.NotEmpty();
-    }
-
-    public Option<IValidatorResult> Validate(string subject)
-    {
-        return ObjectId.IsValid(subject) switch
-        {
-            true => Option<IValidatorResult>.None,
-            false => _rule.CreateError(_errorMessage),
-        };
     }
 }
-
 
 public static class ValidObjectIdExtensions
 {

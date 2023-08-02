@@ -35,11 +35,9 @@ public static class BlockAclValidator
         return subject;
     }
 
-    public static bool HasAccess(this BlockAcl subject, BlockGrant grant, string blockType, string principalId)
+    public static bool HasAccess(this BlockAcl subject, BlockGrant grant, BlockType blockType, PrincipalId principalId)
     {
         subject.NotNull();
-        blockType.NotEmpty();
-        principalId.NotEmpty();
 
         return subject.Items.Any(x => x.HasAccess(grant, blockType, principalId));
     }

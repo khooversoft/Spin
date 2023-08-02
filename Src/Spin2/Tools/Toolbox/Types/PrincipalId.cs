@@ -78,6 +78,9 @@ public sealed record PrincipalId
     public static bool operator ==(string left, PrincipalId right) => left.Equals(right.Id);
     public static bool operator !=(string left, PrincipalId right) => !(left == right);
 
+    public static implicit operator PrincipalId(string subject) => new PrincipalId(subject);
+    public static implicit operator string(PrincipalId subject) => subject.ToString();
+
     public readonly record struct ParseDetails
     {
         public string OwnerId { get; init; }

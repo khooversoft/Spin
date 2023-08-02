@@ -3,25 +3,22 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class ValidDateTime<T> : IPropertyValidator<DateTime>
+public class ValidDateTime<T> : ValidatorBase<T, DateTime>
 {
     private static readonly DateTime _minRange = new DateTime(1900, 1, 1);
     private static readonly DateTime _maxRange = new DateTime(2199, 12, 31);
-    private readonly IPropertyRule<T, DateTime> _rule;
-    private readonly string _errorMessage;
 
     public ValidDateTime(IPropertyRule<T, DateTime> rule, string errorMessage)
+        : base(rule, errorMessage, ValidateSubject)
     {
-        _rule = rule.NotNull();
-        _errorMessage = errorMessage.NotEmpty();
     }
 
-    public Option<IValidatorResult> Validate(DateTime subject)
+    private static bool ValidateSubject(DateTime subject)
     {
         return subject switch
         {
-            var v when v >= _minRange && v <= _maxRange => Option<IValidatorResult>.None,
-            _ => _rule.CreateError(_errorMessage),
+            var v when v >= _minRange && v <= _maxRange => true,
+            _ => false,
         };
     }
 }

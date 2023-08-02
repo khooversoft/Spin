@@ -58,6 +58,9 @@ public sealed record ObjectId
 
     public override int GetHashCode() => HashCode.Combine(Schema, Tenant, Path);
 
+    public static implicit operator ObjectId(string subject) => Parse(subject).Return();
+    public static implicit operator string(ObjectId subject) => subject.ToString();
+
     public static Option<ObjectId> CreateIfValid(string id)
     {
         Option<ObjectId> objectId = ObjectId.Parse(id);

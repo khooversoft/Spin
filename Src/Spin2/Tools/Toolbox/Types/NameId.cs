@@ -13,24 +13,27 @@ public readonly record struct NameId
 {
     public NameId(string name)
     {
-        Name = name.Assert(x => IsValid(x), Syntax);
+        Value = name.Assert(x => IsValid(x), Syntax);
     }
 
     public const string Syntax = "Valid characters are a-z A-Z 0-9 . $ @ - _ *";
 
-    public string Name { get; }
+    public string Value { get; }
 
-    public override string ToString() => Name;
+    public override string ToString() => Value;
 
     public static bool IsValid(string subject) => subject.IsNotEmpty() && subject.All(x => IsCharacterValid(x));
 
     public static bool IsCharacterValid(char ch) =>
         char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*' || ch == ':';
 
-    public static bool operator ==(NameId left, string right) => left.Name.Equals(right);
+    public static bool operator ==(NameId left, string right) => left.Value.Equals(right);
     public static bool operator !=(NameId left, string right) => !(left == right);
-    public static bool operator ==(string left, NameId right) => left.Equals(right.Name);
+    public static bool operator ==(string left, NameId right) => left.Equals(right.Value);
     public static bool operator !=(string left, NameId right) => !(left == right);
+
+    public static implicit operator NameId(string subject) => new NameId(subject);
+    public static implicit operator string(NameId subject) => subject.ToString();
 
     public static string Verify(string id) => id.Action(x => NameId.IsValid(x).Assert($"{x} is not valid name id"));
 }

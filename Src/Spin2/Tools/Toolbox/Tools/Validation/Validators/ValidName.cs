@@ -3,24 +3,11 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class ValidName<T> : IPropertyValidator<string>
+public class ValidName<T> : ValidatorBase<T, string>
 {
-    private readonly IPropertyRule<T, string> _rule;
-    private readonly string _errorMessage;
-
     public ValidName(IPropertyRule<T, string> rule, string errorMessage)
+        : base(rule, errorMessage, x => NameId.IsValid(x))
     {
-        _rule = rule.NotNull();
-        _errorMessage = errorMessage.NotEmpty();
-    }
-
-    public Option<IValidatorResult> Validate(string subject)
-    {
-        return NameId.IsValid(subject) switch
-        {
-            true => Option<IValidatorResult>.None,
-            false => _rule.CreateError(_errorMessage),
-        };
     }
 }
 

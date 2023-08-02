@@ -25,8 +25,9 @@ public class SoftBankAccount
         Access = new SoftBankAccess(_blockChain, _sign, _logger);
     }
 
-    //public BlockScalarStream<AccountDetail> GetAccountDetailStream() => _blockChain.GetScalarStream<AccountDetail>(nameof(AccountDetail));
-    //public BlockStream<LedgerItem> GetLedgerStream() => _blockChain.GetStream<LedgerItem>(nameof(LedgerItem));
+    public Option<BlockStream<AccountDetail>> GetAccountDetailStream(string principalId) => _blockChain.GetStream<AccountDetail>(nameof(AccountDetail), principalId);
+    public Option<BlockStream<LedgerItem>> GetLedgerStream(string principalId) => _blockChain.GetStream<LedgerItem>(nameof(LedgerItem), principalId);
+
     public SoftBankAccess Access { get; }
 
     public async Task<Option> ValidateBlockChain(ISignValidate signValidate, ScopeContext context)

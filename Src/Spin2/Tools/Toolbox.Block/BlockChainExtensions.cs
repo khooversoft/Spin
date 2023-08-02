@@ -12,25 +12,6 @@ namespace Toolbox.Block;
 
 public static class BlockChainExtensions
 {
-    //public static IReadOnlyList<T> GetTypedBlocks<T>(this BlockChain blockChain, string blockType, string principalId) => blockChain
-    //    .GetTypedBlocks(blockType, principalId)
-    //    .Select(x => x.ToObject<T>())
-    //    .ToArray();
-
-    //public static IReadOnlyList<PrincipalDigest> GetPrincipleDigests(this BlockChain blockChain)
-    //{
-    //    blockChain.NotNull();
-
-    //    return blockChain.Blocks
-    //        .Select(x => new PrincipalDigest
-    //        {
-    //            Id = x.DataBlock.BlockId,
-    //            PrincipleId = x.DataBlock.PrincipleId,
-    //            MessageDigest = x.DataBlock.Digest,
-    //            JwtSignature = x.DataBlock.JwtSignature,
-    //        }).ToArray();
-    //}
-
     public static BlobPackage ToBlobPackage(this BlockChain blockChain)
     {
         GenesisBlock genesisBlock = blockChain.GetGenesisBlock();

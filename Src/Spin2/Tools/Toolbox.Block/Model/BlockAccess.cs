@@ -33,7 +33,7 @@ public static class BlockAccessValidator
     public static IValidator<BlockAccess> Validator { get; } = new Validator<BlockAccess>()
         .RuleFor(x => x.Grant).Must(x => x.IsEnumValid<BlockGrant>(), _ => "Invalid block grant")
         .RuleFor(x => x.Claim).Must(x => x == null || NameId.IsValid(x), _ => "Invalid claim")
-        .RuleFor(x => x.BlockType).ValidName()
+        .RuleFor(x => x.BlockType).ValidBlockType()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .Build();
 
@@ -47,7 +47,7 @@ public static class BlockAccessValidator
         return subject;
     }
 
-    public static bool HasAccess(this BlockAccess subject, BlockGrant grant, string blockType, string principalId) =>
+    public static bool HasAccess(this BlockAccess subject, BlockGrant grant, BlockType blockType, PrincipalId principalId) =>
         subject.Grant.HasFlag(grant) &&
         subject.BlockType == blockType &&
         subject.PrincipalId == principalId;

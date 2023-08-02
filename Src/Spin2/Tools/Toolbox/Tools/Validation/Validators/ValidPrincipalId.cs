@@ -3,24 +3,11 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class ValidPrincipalId<T> : IPropertyValidator<string>
+public class ValidPrincipalId<T> : ValidatorBase<T, string>
 {
-    private readonly IPropertyRule<T, string> _rule;
-    private readonly string _errorMessage;
-
     public ValidPrincipalId(IPropertyRule<T, string> rule, string errorMessage)
+        : base(rule, errorMessage, x => PrincipalId.IsValid(x))
     {
-        _rule = rule.NotNull();
-        _errorMessage = errorMessage.NotEmpty();
-    }
-
-    public Option<IValidatorResult> Validate(string subject)
-    {
-        return PrincipalId.IsValid(subject) switch
-        {
-            true => Option<IValidatorResult>.None,
-            false => _rule.CreateError(_errorMessage),
-        };
     }
 }
 

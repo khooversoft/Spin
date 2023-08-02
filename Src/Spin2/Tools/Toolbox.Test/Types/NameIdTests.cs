@@ -35,6 +35,11 @@ public class NameIdTests
 
         (name1 == name2).Should().BeTrue();
         (name1 != name2).Should().BeFalse();
+
+        (name1 == "name1").Should().BeTrue();
+        (name1 != "name1").Should().BeFalse();
+        (name1 == "name1").Should().BeTrue();
+        (name1 != "name1").Should().BeFalse();
     }
 
     [Fact]
@@ -45,5 +50,16 @@ public class NameIdTests
 
         (name1 == name2).Should().BeFalse();
         (name1 != name2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ImplicitAssigment()
+    {
+        NameId b = "name1";
+        (b.Value == "name1").Should().BeTrue();
+        (b == "name1").Should().BeTrue();
+
+        string sb = b;
+        (sb == "name1").Should().BeTrue();
     }
 }

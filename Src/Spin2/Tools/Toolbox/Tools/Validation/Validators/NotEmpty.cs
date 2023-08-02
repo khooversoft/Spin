@@ -3,24 +3,11 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
-public class NotEmpty<T> : IPropertyValidator<string>
+public class NotEmpty<T> : ValidatorBase<T, string>
 {
-    private readonly IPropertyRule<T, string> _rule;
-    private readonly string _errorMessage;
-
     public NotEmpty(IPropertyRule<T, string> rule, string errorMessage)
+        : base(rule, errorMessage, x => x.IsNotEmpty())
     {
-        _rule = rule.NotNull();
-        _errorMessage = errorMessage.NotEmpty();
-    }
-
-    public Option<IValidatorResult> Validate(string subject)
-    {
-        return subject.IsEmpty() switch
-        {
-            false => Option<IValidatorResult>.None,
-            true => _rule.CreateError(_errorMessage),
-        };
     }
 }
 

@@ -74,4 +74,15 @@ public class PrincipalIdTests
         var p2 = json.ToObject<PrincipalId>();
         (p1 == p2).Should().BeTrue();
     }
+
+    [Fact]
+    public void ImplicitAssigment()
+    {
+        PrincipalId b = "name1@domain.com";
+        (b.Id == "name1@domain.com").Should().BeTrue();
+        (b == "name1@domain.com").Should().BeTrue();
+
+        string sb = b;
+        (sb == "name1@domain.com").Should().BeTrue();
+    }
 }

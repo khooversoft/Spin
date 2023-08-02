@@ -23,7 +23,7 @@ public static class GenesisBlockValidator
     public static IValidator<GenesisBlock> Validator { get; } = new Validator<GenesisBlock>()
         .RuleFor(x => x.Type).NotEmpty()
         .RuleFor(x => x.ObjectId).ValidObjectId()
-        .RuleFor(x => x.OwnerPrincipalId).NotEmpty()
+        .RuleFor(x => x.OwnerPrincipalId).ValidPrincipalId()
         .Build();
 
     public static ValidatorResult Validate(this GenesisBlock subject, ScopeContextLocation location) => Validator
