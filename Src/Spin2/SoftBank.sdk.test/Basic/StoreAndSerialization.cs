@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using Toolbox.Block;
 using Toolbox.Data;
@@ -11,9 +13,9 @@ namespace SoftBank.sdk.test.Basic;
 
 public class StoreAndSerialization
 {
-    private const string _owner = "user@domain.com";
-    private readonly ObjectId _ownerObjectId = $"user/tenant/{_owner}".ToObjectId();
-    private readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
+    private static readonly PrincipalId _owner = "user@domain.com";
+    private static readonly ObjectId _ownerObjectId = $"user/tenant/{_owner}".ToObjectId();
+    private static readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
     private readonly PrincipalSignatureCollection _signCollection;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
     private readonly SoftBankFactory _softBankFactory;
@@ -21,8 +23,15 @@ public class StoreAndSerialization
     public StoreAndSerialization()
     {
         _signCollection = new PrincipalSignatureCollection().Add(_ownerSignature);
-    
-        _softBankFactory = new SoftBankFactory(_signCollection, _signCollection, NullLoggerFactory.Instance);
+
+        IServiceProvider service = new ServiceCollection()
+            .AddLogging()
+            .AddSoftBank()
+            .AddSingleton<ISign>(_signCollection)
+            .AddSingleton<ISignValidate>(_signCollection)
+            .BuildServiceProvider();
+
+        _softBankFactory = service.GetRequiredService<SoftBankFactory>();
     }
 
     [Fact]
@@ -34,7 +43,7 @@ public class StoreAndSerialization
         blob.Validate(_context.Location()).IsValid.Should().BeTrue();
 
         SoftBankAccount readSoftBankAccount = await _softBankFactory.Create(blob, _context).Return();
-        Option signResult = await readSoftBankAccount.ValidateBlockChain(_signCollection, _context);
+        Option signResult = await readSoftBankAccount.ValidateBlockChain(_context);
         signResult.StatusCode.IsOk().Should().BeTrue();
     }
 
@@ -51,39 +60,39 @@ public class StoreAndSerialization
 
         accountDetail.IsValid(_context.Location()).Should().BeTrue();
 
-        //BlockScalarStream<AccountDetail> accountDetailStream = softBank.GetAccountDetailStream();
-        //accountDetailStream.Add(await accountDetailStream.CreateDataBlock(accountDetail, _owner).Sign(_signCollection, _context).Return());
+        var addDetailResult = await softBank.AccountDetail.Set(accountDetail, _context);
+        addDetailResult.StatusCode.IsOk().Should().BeTrue();
 
-        //Option signResult = await softBank.ValidateBlockChain(_signCollection, _context);
-        //signResult.StatusCode.IsOk().Should().BeTrue();
+        Option signResult = await softBank.ValidateBlockChain(_context);
+        signResult.StatusCode.IsOk().Should().BeTrue();
 
 
-        //var ledgerItems = new[]
-        //{
-        //    new LedgerItem { OwnerId = _owner, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-        //    new LedgerItem { OwnerId = _owner, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-        //    new LedgerItem { OwnerId = _owner, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
-        //};
+        var ledgerItems = new[]
+        {
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { OwnerId = _owner, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+        };
 
-        //BlockStream<LedgerItem> ledgerStream = softBank.GetLedgerStream();
-        //await ledgerItems
-        //    .Select(x => ledgerStream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
-        //    .ForEachAsync(async x => ledgerStream.Add(await x));
+        foreach (var item in ledgerItems)
+        {
+            var addResult = await softBank.LedgerItems.Add(item, _context);
+            addResult.StatusCode.IsOk().Should().BeTrue();
+        }
 
-        //signResult = await softBank.ValidateBlockChain(_signCollection, _context);
-        //signResult.StatusCode.IsOk().Should().BeTrue();
+        signResult = await softBank.ValidateBlockChain(_context);
+        signResult.StatusCode.IsOk().Should().BeTrue();
 
-        //AccountDetail readAccountDetail = accountDetailStream.Get().Return();
-        //(accountDetail == readAccountDetail).Should().BeTrue();
+        AccountDetail readAccountDetail = softBank.AccountDetail.Get(_owner, _context).Return();
+        (accountDetail == readAccountDetail).Should().BeTrue();
 
-        //IReadOnlyList<LedgerItem> readLedgerItems = ledgerStream.Get();
-        //readLedgerItems.Count.Should().Be(3);
-        //ledgerItems.SequenceEqual(readLedgerItems).Should().BeTrue();
+        BlockReader<LedgerItem> readLedgerItems = softBank.LedgerItems.GetReader(_owner, _context).Return();
+        readLedgerItems.Count.Should().Be(3);
+        ledgerItems.SequenceEqual(readLedgerItems.List()).Should().BeTrue();
 
-        //decimal balance = softBank.GetBalance();
-        //balance.Should().Be(135.15m);
+        decimal balance = softBank.LedgerItems.GetBalance(_owner, _context).Return();
+        balance.Should().Be(135.15m);
 
-        //return softBank;
-        return null;
+        return softBank;
     }
 }

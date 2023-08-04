@@ -40,7 +40,7 @@ public static class OptionExtensions
     public static async Task<Option<T>> UnwrapAsync<T>(this Task<Option<Option<T>>> subject) => (await subject).Unwrap();
 
     public static Option<T> ToOption<T>(this T? value) => new Option<T>(value);
-    public static Option<T> ToOption<T>(this IOption subject) => new Option<T>(subject.StatusCode, subject.Error);
-    public static Option<T> ToOption<T>(this Option subject) => new Option<T>(subject.StatusCode, subject.Error);
-    public static Option ToOptionError<T>(this Option<T> subject) => new Option(subject.StatusCode, subject.Error);
+    public static Option<T> ToOptionStatus<T>(this IOption subject) => new Option<T>(subject.StatusCode, subject.Error);
+    public static Option<T> ToOptionStatus<T>(this Option subject) => new Option<T>(subject.StatusCode, subject.Error);
+    public static Option ToOptionStatus<T>(this Option<T> subject) => new Option(subject.StatusCode, subject.Error);
 }

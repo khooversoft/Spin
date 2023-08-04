@@ -31,7 +31,7 @@ public static class DataBlockExtensions
         DataBlock dataBlock = new DataBlockBuilder()
             .SetBlockType(blockType)
             .SetPrincipleId(principalId)
-            .SetData(subject)
+            .SetContent(subject)
             .Build();
 
         return dataBlock;
@@ -43,7 +43,7 @@ public static class DataBlockExtensions
         sign.NotNull();
 
         Option<string> jwt = await sign.SignDigest(dataBlock.PrincipleId, dataBlock.Digest, context);
-        if (jwt.IsError()) return jwt.ToOption<DataBlock>();
+        if (jwt.IsError()) return jwt.ToOptionStatus<DataBlock>();
 
         return dataBlock with { JwtSignature = jwt.Return() };
     }

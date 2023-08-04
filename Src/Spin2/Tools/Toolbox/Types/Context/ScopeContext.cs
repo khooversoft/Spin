@@ -37,7 +37,7 @@ public readonly record struct ScopeContext
         return new ScopeContextLocation(this, new CodeLocation(function, path, lineNumber));
     }
 
-    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger, Token);
+    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger.NotNull(), Token);
 
     public static implicit operator CancellationToken(ScopeContext context) => context.Token;
 }

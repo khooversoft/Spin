@@ -10,9 +10,9 @@ namespace SpinCluster.sdk.Actors.SoftBank
         Task<SpinResponse> Create(AccountDetail detail, string traceId);
         Task<SpinResponse> Delete(string traceId);
         Task<SpinResponse> Exist(string traceId);
-        Task<SpinResponse<decimal>> GetBalance(string traceId);
-        Task<SpinResponse<AccountDetail>> GetBankDetails(string traceId);
-        Task<SpinResponse<IReadOnlyList<LedgerItem>>> GetLedgerItems(string traceId);
+        Task<SpinResponse<decimal>> GetBalance(string principalId, string traceId);
+        Task<SpinResponse<AccountDetail>> GetBankDetails(string principalId, string traceId);
+        Task<SpinResponse<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId);
         Task<SpinResponse> SetAccountDetail(AccountDetail accountDetail, string traceId);
         Task<SpinResponse> Validate(string traceId);
     }

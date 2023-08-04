@@ -27,7 +27,7 @@ public class BlockChainBuilder
             .CreateGenesisBlock(ObjectId.ToString(), PrincipleId, context)
             .Sign(sign, context);
 
-        if (genesisBlock.IsError()) return genesisBlock.ToOption<BlockChain>();
+        if (genesisBlock.IsError()) return genesisBlock.ToOptionStatus<BlockChain>();
 
         var blockChain = new BlockChain();
         blockChain.Add(genesisBlock.Return()).ThrowOnError();
@@ -38,7 +38,7 @@ public class BlockChainBuilder
                 .CreateAclBlock(Access, PrincipleId, context)
                 .Sign(sign, context);
 
-            if (acl.IsError()) return acl.ToOption<BlockChain>();
+            if (acl.IsError()) return acl.ToOptionStatus<BlockChain>();
 
             blockChain.Add(acl.Return());
         }

@@ -69,7 +69,7 @@ internal class SchemaConnector
         var context = new ScopeContext(traceId, _logger);
 
         var id = ApiTools.TestObjectId(objectId, context.Location());
-        if (id.IsError()) return id.ToOption<string>();
+        if (id.IsError()) return id.ToOptionStatus<string>();
 
         if (!_handlers.TryGetValue(id.Return().Schema, out ISchemaDataHandler? handler))
             return new Option<object>(StatusCode.BadRequest);

@@ -20,10 +20,6 @@ public sealed class BlockChain
 
     public int Count => _blocks.Count;
 
-    /// <summary>
-    /// Add data blocks
-    /// </summary>
-    /// <param name="dataBlocks"></param>
     public Option Add(params DataBlock[] dataBlocks)
     {
         var authorized = CheckWriteAccess(dataBlocks);
@@ -81,34 +77,34 @@ public sealed class BlockChain
         }
     }
 
-    public Option<BlockStreamReader<T>> GetStreamReader<T>(BlockType blockType, PrincipalId principalId) where T : class
+    public Option<BlockReader<T>> GetReader<T>(BlockType blockType, PrincipalId principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
         {
-            false => new Option<BlockStreamReader<T>>(StatusCode.Forbidden),
-            true => new BlockStreamReader<T>(_blocks.Where(x => x.DataBlock.BlockType == blockType))
+            false => new Option<BlockReader<T>>(StatusCode.Forbidden),
+            true => new BlockReader<T>(_blocks.Where(x => x.DataBlock.BlockType == blockType).Select(x => x.DataBlock.ToObject<T>())),
         };
     }
 
-    public Option<BlockStream<T>> GetStream<T>(BlockType blockType, PrincipalId principalId) where T : class
+    public Option<BlockWriter<T>> GetWriter<T>(BlockType blockType, PrincipalId principalId) where T : class
     {
-        return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
+        return IsAuthorized(BlockGrant.Write, blockType, principalId) switch
         {
-            false => new Option<BlockStream<T>>(StatusCode.Forbidden),
-            true => new BlockStream<T>(_blocks.Where(x => x.DataBlock.BlockType == blockType), this, blockType),
+            false => new Option<BlockWriter<T>>(StatusCode.Forbidden),
+            true => new BlockWriter<T>(this, blockType),
         };
     }
 
-    public Option<BlockNodeReader> GetNodeReader(PrincipalId principalId)
+    public Option<BlockReader<BlockNode>> GetNodeReader(PrincipalId principalId)
     {
-        principalId.Assert(x => PrincipalId.IsValid(x), x => $"{x} not valid PrincipalId");
+        principalId.NotNull();
 
         GenesisBlock genesisBlock = GetGenesisBlock();
 
         return (genesisBlock.OwnerPrincipalId == principalId) switch
         {
-            true => new BlockNodeReader(_blocks),
-            false => new Option<BlockNodeReader>(StatusCode.Forbidden),
+            true => new BlockReader<BlockNode>(_blocks),
+            false => new Option<BlockReader<BlockNode>>(StatusCode.Forbidden),
         };
     }
 
@@ -149,6 +145,8 @@ public sealed class BlockChain
     private bool IsAuthorized(BlockGrant grant, BlockType blockType, PrincipalId principalId)
     {
         grant.IsEnumValid<BlockGrant>();
+        blockType.NotNull();
+        principalId.NotNull();
 
         GenesisBlock genesisBlock = GetGenesisBlock();
         if (genesisBlock.OwnerPrincipalId == principalId) return true;
@@ -156,7 +154,7 @@ public sealed class BlockChain
         Option<BlockAcl> aclOption = this.GetAclBlock();
         if (aclOption == Option<BlockAcl>.None) return false;
 
-        bool hasAccess = aclOption.Return().HasAccess(BlockGrant.Write, blockType, principalId);
+        bool hasAccess = aclOption.Return().HasAccess(grant, blockType, principalId);
         return hasAccess;
     }
 
@@ -171,3 +169,4 @@ public sealed class BlockChain
         return self;
     }
 }
+

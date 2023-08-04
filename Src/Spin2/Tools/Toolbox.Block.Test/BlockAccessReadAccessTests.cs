@@ -29,7 +29,6 @@ public class BlockAccessReadAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetObjectId(objectId.ToObjectId())
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
             .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
             .Return();
@@ -38,24 +37,146 @@ public class BlockAccessReadAccessTests
 
         var data = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p1)
+            .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
             .Sign(principleSignature, _context)
             .Return();
 
+        blockChain.Add(data).StatusCode.IsOk().Should().BeTrue();
+
         var p2 = new Payload2 { Description = "description1" };
 
         var data2 = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p2)
+            .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()
             .Sign(principleSignature2, _context)
             .Return();
 
         blockChain.Add(data2).StatusCode.IsOk().Should().BeTrue();
-        blockChain.Count.Should().Be(3);
+        blockChain.Count.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task MultipleNodeWithAccessWriteButNotRead()
+    {
+        const string issuer = "user@domain.com";
+        const string objectId = $"user/tenant/{issuer}";
+        const string issuer2 = "user2@domain.com";
+        var now = DateTime.UtcNow;
+
+        IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
+        IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
+
+        BlockChain blockChain = await new BlockChainBuilder()
+            .SetObjectId(objectId.ToObjectId())
+            .SetPrincipleId(issuer)
+            .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
+            .Build(principleSignature, _context)
+            .Return();
+
+        // Check write access
+        var p1 = new Payload1 { Name = "name1", Last = "last1" };
+
+        var data = await new DataBlockBuilder()
+            .SetTimeStamp(now)
+            .SetContent(p1)
+            .SetPrincipleId(issuer)
+            .Build()
+            .Sign(principleSignature, _context)
+            .Return();
+
+        blockChain.Add(data).StatusCode.IsOk().Should().BeTrue();
+
+        var p2 = new Payload2 { Description = "description1" };
+
+        var data2 = await new DataBlockBuilder()
+            .SetTimeStamp(now)
+            .SetContent(p2)
+            .SetPrincipleId(issuer2)
+            .Build()
+            .Sign(principleSignature2, _context)
+            .Return();
+
+        blockChain.Add(data2).StatusCode.IsOk().Should().BeTrue();
+        blockChain.Count.Should().Be(4);
+
+        // Check read access
+        var stream1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer2);
+        stream1.IsError().Should().BeTrue();
+        var stream2 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer2);
+        stream2.IsError().Should().BeTrue();
+
+        var streamOwner1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer);
+        streamOwner1.IsOk().Should().BeTrue();
+        streamOwner1.Return().List().Count.Should().Be(1);
+
+        var streamOwner2 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer);
+        streamOwner2.IsOk().Should().BeTrue();
+        streamOwner2.Return().List().Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task MultipleNodeWithAccessWriteReadWrite()
+    {
+        const string issuer = "user@domain.com";
+        const string objectId = $"user/tenant/{issuer}";
+        const string issuer2 = "user2@domain.com";
+        var now = DateTime.UtcNow;
+
+        IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
+        IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
+
+        BlockChain blockChain = await new BlockChainBuilder()
+            .SetObjectId(objectId.ToObjectId())
+            .SetPrincipleId(issuer)
+            .AddAccess(new BlockAccess { Grant = BlockGrant.ReadWrite, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
+            .Build(principleSignature, _context)
+            .Return();
+
+        // Check write access
+        var p1 = new Payload1 { Name = "name1", Last = "last1" };
+
+        var data = await new DataBlockBuilder()
+            .SetTimeStamp(now)
+            .SetContent(p1)
+            .SetPrincipleId(issuer)
+            .Build()
+            .Sign(principleSignature, _context)
+            .Return();
+
+        blockChain.Add(data).StatusCode.IsOk().Should().BeTrue();
+
+        var p2 = new Payload2 { Description = "description1" };
+
+        var data2 = await new DataBlockBuilder()
+            .SetTimeStamp(now)
+            .SetContent(p2)
+            .SetPrincipleId(issuer2)
+            .Build()
+            .Sign(principleSignature2, _context)
+            .Return();
+
+        blockChain.Add(data2).StatusCode.IsOk().Should().BeTrue();
+        blockChain.Count.Should().Be(4);
+
+        // Check read access
+        var stream1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer2);
+        stream1.IsError().Should().BeTrue();
+
+        var stream3 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer2);
+        stream3.IsOk().Should().BeTrue();
+        stream3.Return().List().Count.Should().Be(1);
+
+        var streamOwner1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer);
+        streamOwner1.IsOk().Should().BeTrue();
+        streamOwner1.Return().List().Count.Should().Be(1);
+
+        var streamOwner2 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer);
+        streamOwner2.IsOk().Should().BeTrue();
+        streamOwner2.Return().List().Count.Should().Be(1);
     }
 
     private record Payload1

@@ -7,6 +7,7 @@ using FluentAssertions;
 using Orleans.TestingHost;
 using SoftBank.sdk.Models;
 using SpinCluster.sdk.Actors.SoftBank;
+using Toolbox.Block;
 using Toolbox.Orleans.Types;
 using Toolbox.Types;
 
@@ -16,15 +17,18 @@ public record Contract
 {
     private readonly ISoftBankActor _softbank;
 
-    public Contract(TestCluster cluster, string objectId, string ownerId)
+    public Contract(TestCluster cluster, ObjectId objectId, PrincipalId ownerId, params BlockAccess[] access)
     {
         ObjectId = objectId;
         OwnerId = ownerId;
+        Access = access;
+
         _softbank = cluster.GrainFactory.GetGrain<ISoftBankActor>(ObjectId);
     }
 
-    public string ObjectId { get; } = null!;
-    public string OwnerId { get; } = null!;
+    public ObjectId ObjectId { get; }
+    public PrincipalId OwnerId { get; }
+    public BlockAccess[] Access { get; }
 
     public async Task CreateContract(ScopeContext context)
     {
@@ -47,12 +51,5 @@ public record Contract
     {
         var addResponse = await _softbank.AddLedgerItem(ledgerItem, context.TraceId);
         addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
-    }
-
-    public async Task<decimal> GetBalance(ScopeContext context)
-    {
-        var balanceOption = await _softbank.GetBalance(context.TraceId);
-        balanceOption.StatusCode.IsOk().Should().BeTrue();
-        return balanceOption.Return();
     }
 }

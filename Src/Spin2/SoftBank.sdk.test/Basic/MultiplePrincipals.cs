@@ -31,13 +31,13 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
     [Fact]
     public async Task CreateBankAccountAndMultipleLedgerItems()
     {
-        const string ownerId = "owner1@test.com";
-        const string objectId = $"{SpinConstants.Schema.SoftBank}/test.com/StandardTransactionsMultiplePrincipals/{ownerId}";
-        const string keyId = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId}";
-        const string name = "name1";
+        PrincipalId ownerId = "owner1@test.com";
+        ObjectId objectId = $"{SpinConstants.Schema.SoftBank}/test.com/StandardTransactionsMultiplePrincipals/{ownerId}";
+        string keyId = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId}";
+        string name = "name1";
 
-        const string ownerId2 = "owner2@test.com";
-        const string keyId2 = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId2}";
+        PrincipalId ownerId2 = "owner2@test.com";
+        string keyId2 = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId2}";
 
         ISoftBankActor softBankActor = _cluster.GrainFactory.GetGrain<ISoftBankActor>(objectId);
         ISignatureActor signatureActor = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId);
@@ -55,6 +55,10 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
             ObjectId = objectId,
             OwnerId = ownerId,
             Name = name,
+            AccessRights = new[]
+            {
+                new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = ownerId2, Grant = BlockGrant.Write },
+            },
         };
 
         SpinResponse createResult = await softBankActor.Create(request, _context.TraceId);
@@ -75,15 +79,21 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
             addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
         }
 
-        SpinResponse<AccountDetail> accountDetails = await softBankActor.GetBankDetails(_context.TraceId);
+        SpinResponse<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
         accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
         (request == accountDetails.Return()).Should().BeTrue("not equal");
 
-        SpinResponse<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(_context.TraceId);
+        SpinResponse<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
         ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
         ledgerItems.Return().Count.Should().Be(newItems.Length);
         newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
-        SpinResponse<decimal> balanceResponse = await softBankActor.GetBalance(_context.TraceId);
+
+        // Check non-owner
+        var ledgerItems2 = await softBankActor.GetLedgerItems(ownerId2, _context.TraceId);
+        ledgerItems2.StatusCode.IsError().Should().BeTrue();
+
+
+        SpinResponse<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
         balanceResponse.Return().Should().Be(170.30m);
 

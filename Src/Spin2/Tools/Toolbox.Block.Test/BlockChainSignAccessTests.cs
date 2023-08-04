@@ -39,7 +39,7 @@ public class BlockChainSignAccessTests
 
         var data = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p1)
+            .SetContent(p1)
             .SetBlockType<Payload1>()
             .SetPrincipleId(issuer)
             .Build()
@@ -78,7 +78,7 @@ public class BlockChainSignAccessTests
 
         var data = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p1)
+            .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
             .Sign(principleSignature, _context)
@@ -91,7 +91,7 @@ public class BlockChainSignAccessTests
 
         var data2 = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p2)
+            .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()
             .Sign(principleSignature2, _context)
@@ -129,7 +129,7 @@ public class BlockChainSignAccessTests
 
         var data = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p1)
+            .SetContent(p1)
             .SetBlockType<Payload1>()
             .SetPrincipleId(issuer3)
             .Build()
@@ -165,7 +165,7 @@ public class BlockChainSignAccessTests
 
         var data = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p1)
+            .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
             .Sign(principleSignature, _context)
@@ -181,7 +181,7 @@ public class BlockChainSignAccessTests
 
         var data2 = await new DataBlockBuilder()
             .SetTimeStamp(now)
-            .SetData(p2)
+            .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()
             .Sign(principleSignature2, _context)

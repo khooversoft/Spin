@@ -61,13 +61,7 @@ public sealed record ObjectId
     public static implicit operator ObjectId(string subject) => Parse(subject).Return();
     public static implicit operator string(ObjectId subject) => subject.ToString();
 
-    public static Option<ObjectId> CreateIfValid(string id)
-    {
-        Option<ObjectId> objectId = ObjectId.Parse(id);
-        if (objectId.IsError()) return objectId.ToOption<ObjectId>();
-
-        return objectId;
-    }
+    public static Option<ObjectId> CreateIfValid(string id) => ObjectId.Parse(id);
 
     public static bool IsValid(string? id) => ObjectId.Parse(id).HasValue;
 

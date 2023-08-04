@@ -22,7 +22,7 @@ public class DataBlockBuilder
     public DataBlockBuilder SetData(string data) => this.Action(x => Data = data);
     public DataBlockBuilder SetPrincipleId(PrincipalId principleId) => this.Action(x => PrincipleId = principleId);
 
-    public DataBlockBuilder SetData<T>(T data) where T : class
+    public DataBlockBuilder SetContent<T>(T data) where T : class
     {
         data.NotNull();
 
@@ -68,7 +68,7 @@ public class DataBlockBuilder
 
         return new DataBlockBuilder()
             .SetBlockType(GenesisBlock.BlockType)
-            .SetData(marker)
+            .SetContent(marker)
             .SetPrincipleId(principalId)
             .Build();
     }
@@ -91,7 +91,7 @@ public class DataBlockBuilder
 
         return new DataBlockBuilder()
             .SetBlockType(BlockAcl.BlockType)
-            .SetData(acl)
+            .SetContent(acl)
             .SetPrincipleId(principalId)
             .Build();
     }

@@ -19,16 +19,25 @@ public static class SoftBankStartup
     {
         builder.NotNull();
 
-        builder.ConfigureServices(services =>
-        {
-            services.AddSingleton<IValidator<LedgerItem>>(LedgerTypeValidator.Validator);
-            services.AddSingleton<IValidator<AccountDetail>>(AccountDetailValidator.Validator);
-
-            services.AddSingleton<ISign, SignProxy>();
-            services.AddSingleton<ISignValidate, SignValidationProxy>();
-            services.AddSingleton<SoftBankFactory>();
-        });
-
+        builder.ConfigureServices(services => services.AddSoftBank());
         return builder;
+    }
+
+    public static IServiceCollection AddSoftBank(this IServiceCollection services)
+    {
+        services.NotNull();
+
+        services.AddSingleton<IValidator<LedgerItem>>(LedgerTypeValidator.Validator);
+        services.AddSingleton<IValidator<AccountDetail>>(AccountDetailValidator.Validator);
+
+        services.AddSingleton<ISign, SignProxy>();
+        services.AddSingleton<ISignValidate, SignValidationProxy>();
+        services.AddSingleton<SoftBankFactory>();
+
+        services.AddTransient<AccountDetailImpl>();
+        services.AddTransient<AclImpl>();
+        services.AddTransient<LedgerItemImpl>();
+
+        return services;
     }
 }

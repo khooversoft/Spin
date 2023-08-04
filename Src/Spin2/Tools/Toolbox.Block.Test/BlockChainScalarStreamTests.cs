@@ -37,18 +37,19 @@ public class BlockChainScalarStreamTests
         Option result = await blockChain.ValidateBlockChain(_signCollection, _context);
         result.StatusCode.IsOk().Should().BeTrue();
 
-        BlockStream<Payload> stream = blockChain.GetStream<Payload>("ledger", _owner).Return();
+        BlockWriter<Payload> writer = blockChain.GetWriter<Payload>("ledger", _owner).Return();
 
         IReadOnlyList<DataBlock> blocks = await payloads
-            .Select(x => stream.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
+            .Select(x => writer.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
             .Func(async x => await Task.WhenAll(x));
 
-        blocks.ForEach(x => stream.Add(x));
+        blocks.ForEach(x => writer.Add(x));
         blockChain.Count.Should().Be(4);
 
         await blockChain.ValidateBlockChain(_signCollection, _context).ThrowOnError();
 
-        Payload currentPayload = stream.GetLatest().Return();
+        BlockReader<Payload> reader = blockChain.GetReader<Payload>("ledger", _owner).Return();
+        Payload currentPayload = reader.GetLatest().Return();
         (payloads.Last() == currentPayload).Should().BeTrue();
     }
 

@@ -8,6 +8,9 @@ public sealed record BlockAcl
 {
     public static string BlockType { get; } = "acl";
 
+    public BlockAcl() { }
+    public BlockAcl(IEnumerable<BlockAccess> access) => Items = access.NotNull().ToArray();
+
     public IReadOnlyList<BlockAccess> Items { get; init; } = Array.Empty<BlockAccess>();
 
     public bool Equals(BlockAcl? obj)

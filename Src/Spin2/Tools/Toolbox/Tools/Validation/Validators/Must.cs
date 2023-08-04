@@ -20,7 +20,7 @@ public class MustFunc<T, TProperty> : IPropertyValidator<TProperty>
 
         return result.HasValue switch
         {
-            false => result.ToOption<IValidatorResult>(),
+            false => result.ToOptionStatus<IValidatorResult>(),
             true => _rule.CreateError(result.Return()),
         };
     }

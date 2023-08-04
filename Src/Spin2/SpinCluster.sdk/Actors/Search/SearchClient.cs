@@ -39,7 +39,7 @@ public class SearchClient
         try
         {
             Option<IReadOnlyList<StorePathItem>> response = await Query(searchQuery, context);
-            if (response.IsError()) return response.ToOption<ObjectTable>();
+            if (response.IsError()) return response.ToOptionStatus<ObjectTable>();
 
             ObjectRow[] rows = response.Return().Select(x => new ObjectRow(new object?[]
                 {

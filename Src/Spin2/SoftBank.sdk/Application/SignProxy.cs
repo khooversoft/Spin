@@ -22,7 +22,7 @@ public class SignProxy : ISign
     public async Task<Option<string>> SignDigest(string kid, string messageDigest, ScopeContext context)
     {
         Option<PrincipalId> ownerIdResult = PrincipalId.CreateIfValid(kid, context);
-        if (ownerIdResult.IsError()) return ownerIdResult.ToOption<string>();
+        if (ownerIdResult.IsError()) return ownerIdResult.ToOptionStatus<string>();
 
         PrincipalId ownerId = ownerIdResult.Return();
         string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";

@@ -64,7 +64,7 @@ public sealed record PrincipalId
     public static Option<PrincipalId> CreateIfValid(string ownerId, ScopeContext context)
     {
         Option<ParseDetails> parseDetails = Parse(ownerId).LogResult(context.Location());
-        if (parseDetails.IsError()) return parseDetails.ToOption<PrincipalId>();
+        if (parseDetails.IsError()) return parseDetails.ToOptionStatus<PrincipalId>();
 
         return new PrincipalId(parseDetails.Return());
     }

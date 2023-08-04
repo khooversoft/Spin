@@ -21,6 +21,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
+        <ProjectReference Include="..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
         <ProjectReference Include="..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
         <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
     </ItemGroup>

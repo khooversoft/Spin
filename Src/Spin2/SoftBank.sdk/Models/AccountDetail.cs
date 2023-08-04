@@ -1,6 +1,7 @@
 ﻿using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Models;
 using System.Security.Cryptography.X509Certificates;
+using Toolbox.Block;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -13,7 +14,7 @@ public sealed record AccountDetail
     [Id(1)] public string OwnerId { get; init; } = null!;
     [Id(2)] public string Name { get; init; } = null!;
     [Id(3)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(4)] public IReadOnlyList<AccessRight> AccessRights { get; init; } = Array.Empty<AccessRight>();
+    [Id(4)] public IReadOnlyList<BlockAccess> AccessRights { get; init; } = Array.Empty<BlockAccess>();
 
     public bool Equals(AccountDetail? obj) => obj is AccountDetail document &&
         ObjectId == document.ObjectId &&
@@ -30,7 +31,7 @@ public static class AccountDetailValidator
 {
     public static IValidator<AccountDetail> Validator { get; } = new Validator<AccountDetail>()
         .RuleFor(x => x.ObjectId).ValidObjectId()
-        .RuleFor(x => x.OwnerId).ValidName()
+        .RuleFor(x => x.OwnerId).ValidPrincipalId()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.AccessRights).NotNull()
@@ -41,7 +42,4 @@ public static class AccountDetailValidator
         .LogResult(location);
 
     public static bool IsValid(this AccountDetail subject, ScopeContextLocation location) => subject.Validate(location).IsValid;
-
-    public static Option CanAccess(this AccountDetail subject, string privilege, PrincipalId principalId) => subject.AccessRights
-        .CanAccess(privilege, principalId);
 }

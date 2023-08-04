@@ -42,7 +42,7 @@ internal class LeaseConnector
         var context = new ScopeContext(traceId, _logger);
 
         var oObjectId = ApiTools.TestObjectId(objectId, context.Location());
-        if (oObjectId.IsError()) return oObjectId.ToOption<LeaseData>();
+        if (oObjectId.IsError()) return oObjectId.ToOptionStatus<LeaseData>();
 
         ILeaseActor actor = _client.GetGrain<ILeaseActor>(objectId);
         SpinResponse<LeaseData> response = await actor.Acquire(context.TraceId);

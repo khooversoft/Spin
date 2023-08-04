@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -12,26 +13,26 @@ public class SoftBankFactory
 {
     private readonly ISign _sign;
     private readonly ISignValidate _signValidate;
-    private readonly ILoggerFactory _loggerFactory;
+    private readonly IServiceProvider _service;
     private readonly ILogger<SoftBankFactory> _logger;
 
-    public SoftBankFactory(ISign sign, ISignValidate signValidate, ILoggerFactory loggerFactory)
+    public SoftBankFactory(ISign sign, ISignValidate signValidate, IServiceProvider service, ILogger<SoftBankFactory> logger)
     {
         _sign = sign.NotNull();
         _signValidate = signValidate.NotNull();
-        _loggerFactory = loggerFactory.NotNull();
-        _logger = _loggerFactory.CreateLogger<SoftBankFactory>();
+        _service = service.NotNull();
+        _logger = logger.NotNull();
     }
 
-    public Task<Option<SoftBankAccount>> Create(ObjectId objectId, string principalId, ScopeContext context)
+    public Task<Option<SoftBankAccount>> Create(ObjectId objectId, PrincipalId principalId, ScopeContext context)
     {
         return Create(objectId, principalId, null, context);
     }
 
-    public async Task<Option<SoftBankAccount>> Create(ObjectId objectId, string principalId, BlockAcl? blockAcl, ScopeContext context)
+    public async Task<Option<SoftBankAccount>> Create(ObjectId objectId, PrincipalId principalId, BlockAcl? blockAcl, ScopeContext context)
     {
-        principalId.NotEmpty();
         objectId.NotNull();
+        principalId.NotNull();
         context = context.With(_logger);
 
         Option<BlockChain> blockChain = await new BlockChainBuilder()
@@ -41,9 +42,10 @@ public class SoftBankFactory
             .Build(_sign, context)
             .LogResult(context.Location());
 
-        if (blockChain.IsError()) return blockChain.ToOption<SoftBankAccount>();
+        if (blockChain.IsError()) return blockChain.ToOptionStatus<SoftBankAccount>();
 
-        return new SoftBankAccount(blockChain.Return(), _sign, _signValidate, _loggerFactory.CreateLogger<SoftBankAccount>());
+        var softBank = ActivatorUtilities.CreateInstance<SoftBankAccount>(_service, blockChain.Return());
+        return softBank;
     }
 
     public async Task<Option<SoftBankAccount>> Create(BlobPackage package, ScopeContext context)
@@ -51,11 +53,12 @@ public class SoftBankFactory
         context = context.With(_logger);
 
         Option<BlockChain> blockChain = package.ToBlockChain(context);
-        if (blockChain.IsError()) return blockChain.ToOption<SoftBankAccount>();
+        if (blockChain.IsError()) return blockChain.ToOptionStatus<SoftBankAccount>();
 
         Option validationResult = await blockChain.Return().ValidateBlockChain(_signValidate, context).LogResult(context.Location());
-        if (validationResult.StatusCode.IsError()) return validationResult.ToOption<SoftBankAccount>();
+        if (validationResult.StatusCode.IsError()) return validationResult.ToOptionStatus<SoftBankAccount>();
 
-        return new SoftBankAccount(blockChain.Return(), _sign, _signValidate, _loggerFactory.CreateLogger<SoftBankAccount>());
+        var softBank = ActivatorUtilities.CreateInstance<SoftBankAccount>(_service, blockChain.Return());
+        return softBank;
     }
 }

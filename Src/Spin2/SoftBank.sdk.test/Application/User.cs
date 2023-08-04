@@ -15,7 +15,7 @@ public record User
 {
     private ISignatureActor _signatureActor;
 
-    public User(TestCluster cluster, string ownerId, string keyId)
+    public User(TestCluster cluster, PrincipalId ownerId, ObjectId keyId)
     {
         OwnerId = ownerId;
         KeyId = keyId;
@@ -23,8 +23,8 @@ public record User
         _signatureActor = cluster.GrainFactory.GetGrain<ISignatureActor>(KeyId);
     }
 
-    public string OwnerId { get; }
-    public string KeyId { get; }
+    public PrincipalId OwnerId { get; }
+    public ObjectId KeyId { get; }
 
     public async Task Createkey(ScopeContext context)
     {

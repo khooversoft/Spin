@@ -27,7 +27,7 @@ public static class LedgerTypeValidator
 {
     public static IValidator<LedgerItem> Validator { get; } = new Validator<LedgerItem>()
         .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.OwnerId).NotEmpty()
+        .RuleFor(x => x.OwnerId).ValidPrincipalId()
         .RuleFor(x => x.Description).NotEmpty()
         .RuleFor(x => x.Type).Must(x => x.IsEnumValid(), x => $"Enum {x.ToString()} is invalid enum")
         .RuleFor(x => x.Amount).Must(x => x >= 0, x => $"{x} must be greater then or equal 0")

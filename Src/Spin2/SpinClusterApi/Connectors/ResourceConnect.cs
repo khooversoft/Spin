@@ -60,7 +60,7 @@ internal class ResourceConnect
         var context = new ScopeContext(traceId, _logger);
 
         var id = ApiTools.TestObjectId(objectId, context.Location());
-        if (id.IsError()) return id.ToOption<ResourceFile>();
+        if (id.IsError()) return id.ToOptionStatus<ResourceFile>();
 
         IResourceActor actor = _client.GetGrain<IResourceActor>(objectId);
         SpinResponse<ResourceFile> response = await actor.Get(context.TraceId);
