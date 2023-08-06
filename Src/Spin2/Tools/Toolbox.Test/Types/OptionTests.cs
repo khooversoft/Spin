@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -193,5 +194,59 @@ public class OptionTests
         var str = "hello".ToOption();
         var length = str.Bind(x => x.Length);
         length.Return().Should().Be(5);
+    }
+
+    [Fact]
+    public void OptionSerialization()
+    {
+        new Option(StatusCode.OK).Action(x =>
+        {
+            var j1 = x.ToJson();
+            Option o2 = j1.ToObject<Option>();
+            x.StatusCode.Should().Be(StatusCode.OK);
+            x.Error.Should().BeNull();
+        });
+
+        new Option(StatusCode.NotFound, "Record not found").Action(x =>
+        {
+            var j1 = x.ToJson();
+            Option o2 = j1.ToObject<Option>();
+            x.StatusCode.Should().Be(StatusCode.NotFound);
+            x.Error.Should().Be("Record not found");
+        });
+    }
+
+    [Fact]
+    public void Option_T_Serialization()
+    {
+        var r = new Record1
+        {
+            Name = "name1",
+            Value = 10,
+        };
+
+        new Option<Record1>(r, StatusCode.OK).Action(x =>
+        {
+            var j1 = x.ToJson();
+            Option<Record1> o2 = j1.ToObject<Option<Record1>>();
+            x.StatusCode.Should().Be(StatusCode.OK);
+            x.Error.Should().BeNull();
+            (x.Value == r).Should().BeTrue();
+        });
+
+        new Option<Record1>(StatusCode.NotFound, "Record not found").Action(x =>
+        {
+            var j1 = x.ToJson();
+            Option<Record1> o2 = j1.ToObject<Option<Record1>>();
+            x.StatusCode.Should().Be(StatusCode.NotFound);
+            x.Error.Should().Be("Record not found");
+            x.Value.Should().BeNull();
+        });
+    }
+
+    private record Record1
+    {
+        public string Name { get; init; } = null!;
+        public int Value { get; init; }
     }
 }
