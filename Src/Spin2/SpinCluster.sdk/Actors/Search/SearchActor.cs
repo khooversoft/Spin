@@ -12,8 +12,8 @@ namespace SpinCluster.sdk.Actors.Search;
 
 public interface ISearchActor : IGrainWithStringKey
 {
-    Task<SpinResponse<IReadOnlyList<StorePathItem>>> Search(SearchQuery searchQuery, string traceId);
-    Task<SpinResponse> Exist(string objectId, string traceId);
+    Task<Option<IReadOnlyList<StorePathItem>>> Search(SearchQuery searchQuery, string traceId);
+    Task<Option> Exist(string objectId, string traceId);
 }
 
 [StatelessWorker]
@@ -31,23 +31,23 @@ public class SearchActor : Grain, ISearchActor
         _validator = validator;
     }
 
-    public async Task<SpinResponse<IReadOnlyList<StorePathItem>>> Search(SearchQuery searchQuery, string traceId)
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(SearchQuery searchQuery, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         switch (_validator.Validate(searchQuery))
         {
             case var v when !v.IsValid:
-                return new SpinResponse<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest, v.FormatErrors());
+                return new Option<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest, v.FormatErrors());
         }
 
         Option<IDatalakeStore> store = _datalakeResources.GetStore(searchQuery.Schema, context.Location());
-        if (store.IsError()) return store.ToSpinResponse<IReadOnlyList<StorePathItem>>();
+        if (store.IsError()) return store.ToOptionStatus<IReadOnlyList<StorePathItem>>();
 
         Option<QueryResponse<DatalakePathItem>> result = await store.Return().Search(searchQuery.ConvertTo(), context);
         if (result.IsError())
         {
             context.Location().LogError("Failed to search datalake store for searchQuery={searchQuery}", searchQuery);
-            return new SpinResponse<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest);
+            return new Option<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest);
         }
 
         return result.Return().Items
@@ -55,16 +55,16 @@ public class SearchActor : Grain, ISearchActor
             .ToArray();
     }
 
-    public async Task<SpinResponse> Exist(string objectId, string traceId)
+    public async Task<Option> Exist(string objectId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         var objId = ObjectId.CreateIfValid(objectId);
-        if (objId.IsError()) return objId.ToSpinResponse();
+        if (objId.IsError()) return objId.ToOptionStatus();
 
         Option<IDatalakeStore> store = _datalakeResources.GetStore(objId.Return().Schema, context.Location());
-        if (store.IsError()) return store.ToSpinResponse();
+        if (store.IsError()) return store.ToOptionStatus();
 
         StatusCode statusCode = await store.Return().Exist(objId.Return().FilePath, context);
-        return new SpinResponse(statusCode);
+        return new Option(statusCode);
     }
 }

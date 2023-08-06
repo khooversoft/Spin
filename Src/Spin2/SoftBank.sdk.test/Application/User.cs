@@ -38,7 +38,7 @@ public record User
 
         await Delete(context);
 
-        SpinResponse result = await _signatureActor.Create(request, context.TraceId);
+        Option result = await _signatureActor.Create(request, context.TraceId);
         result.StatusCode.IsOk().Should().BeTrue();
     }
 

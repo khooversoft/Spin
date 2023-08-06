@@ -10,7 +10,7 @@ namespace SpinCluster.sdk.Actors.ActorBase;
 public interface IActorDataBase<T> : IGrainWithStringKey
 {
     Task<StatusCode> Delete(string traceId);
-    Task<SpinResponse<T>> Get(string traceId);
+    Task<Option<T>> Get(string traceId);
     Task<StatusCode> Set(T model, string traceId);
 }
 
@@ -36,15 +36,15 @@ public abstract class ActorDataBase<T> : Grain, IActorDataBase<T>
         return StatusCode.OK;
     }
 
-    public virtual Task<SpinResponse<T>> Get(string traceId)
+    public virtual Task<Option<T>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Getting {typeName}, id={id}", typeof(T).GetTypeName(), this.GetPrimaryKeyString());
 
         return _state.RecordExists switch
         {
-            false => Task.FromResult(new SpinResponse<T>(StatusCode.NotFound)),
-            true => Task.FromResult((SpinResponse<T>)_state.State),
+            false => Task.FromResult(new Option<T>(StatusCode.NotFound)),
+            true => Task.FromResult((Option<T>)_state.State),
         };
     }
 

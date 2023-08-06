@@ -23,7 +23,7 @@ internal class TenantListAgent
             Recurse = true,
         };
 
-        SpinResponse<IReadOnlyList<StorePathItem>> tenantList = await _getActor()
+        Option<IReadOnlyList<StorePathItem>> tenantList = await _getActor()
             .Search(searchQuery, context.TraceId);
 
         IReadOnlyList<StorePathItem> customTenants = tenantList.Return();

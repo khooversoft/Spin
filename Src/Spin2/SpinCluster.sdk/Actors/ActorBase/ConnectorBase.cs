@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Toolbox.Orleans.Types;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.ActorBase;
 
 public interface IActionOperation<T> : IGrainWithStringKey
 {
-    Task<SpinResponse> Delete(string traceId);
-    Task<SpinResponse<T>> Get(string traceId);
-    Task<SpinResponse> Set(T model, string traceId);
-    Task<SpinResponse> Exist(string traceId);
+    Task<Option> Delete(string traceId);
+    Task<Option<T>> Get(string traceId);
+    Task<Option> Set(T model, string traceId);
+    Task<Option> Exist(string traceId);
 }
 
 public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T>

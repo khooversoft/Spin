@@ -25,7 +25,7 @@ public class SignValidationProxy : ISignValidate
         if (kid == null) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
 
         ISignatureActor signatureActor = _client.GetGrain<ISignatureActor>(kid);
-        SpinResponse result = await signatureActor.ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId);
-        return result.ToOption();
+        Option result = await signatureActor.ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId);
+        return result;
     }
 }

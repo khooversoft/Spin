@@ -41,7 +41,7 @@ public record Contract
 
         await Delete(context);
 
-        SpinResponse createResult = await _softbank.Create(request, context.TraceId);
+        Option createResult = await _softbank.Create(request, context.TraceId);
         createResult.StatusCode.IsOk().Should().BeTrue(createResult.Error);
     }
 

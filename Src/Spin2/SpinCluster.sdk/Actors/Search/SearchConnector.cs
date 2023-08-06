@@ -49,7 +49,7 @@ internal class SearchConnector
         });
     }
 
-    public async Task<SpinResponse<IReadOnlyList<StorePathItem>>> Search(SearchQuery query, string traceId)
+    public async Task<Option<IReadOnlyList<StorePathItem>>> Search(SearchQuery query, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         return await _client.GetGrain<ISearchActor>(SpinConstants.SchemaSearch).Search(query, context.TraceId);

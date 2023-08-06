@@ -38,12 +38,12 @@ public class SignAndVerify : IClassFixture<ClusterFixture>
         ISignatureActor signatureActor = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId);
         await signatureActor.Delete(_context.TraceId);
 
-        SpinResponse result = await signatureActor.Create(request, _context.TraceId);
+        Option result = await signatureActor.Create(request, _context.TraceId);
         result.StatusCode.IsOk().Should().BeTrue();
 
         string digest = "this is a digest";
 
-        SpinResponse<string> signResponse = await signatureActor.Sign(digest, _context.TraceId);
+        Option<string> signResponse = await signatureActor.Sign(digest, _context.TraceId);
         signResponse.StatusCode.IsOk().Should().BeTrue();
         signResponse.Value.Should().NotBeNull();
 
@@ -51,7 +51,7 @@ public class SignAndVerify : IClassFixture<ClusterFixture>
         string? kid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
         kid.Should().Be(request.KeyId);
 
-        SpinResponse validationResponse = await signatureActor.ValidateJwtSignature(jwtSignature, digest, _context.TraceId);
+        Option validationResponse = await signatureActor.ValidateJwtSignature(jwtSignature, digest, _context.TraceId);
         validationResponse.StatusCode.IsOk().Should().BeTrue();
 
         await signatureActor.Delete(_context.TraceId);

@@ -48,106 +48,106 @@ public class SoftBankActor : Grain, ISoftBankActor
         _softBankFactory = softBankFactory.NotNull();
     }
 
-    public Task<SpinResponse> Delete(string traceId) => _state.Delete(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
-    public Task<SpinResponse> Exist(string traceId) => new SpinResponse(_state.RecordExists ? StatusCode.OK : StatusCode.NoContent).ToTaskResult();
+    public Task<Option> Delete(string traceId) => _state.Delete(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
+    public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NoContent).ToTaskResult();
 
-    public async Task<SpinResponse> Create(AccountDetail detail, string traceId)
+    public async Task<Option> Create(AccountDetail detail, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating contract accountDetail={accountDetail}", detail);
-        if (!detail.IsValid(context.Location())) return new SpinResponse(StatusCode.BadRequest);
+        if (!detail.IsValid(context.Location())) return new Option(StatusCode.BadRequest);
 
         if (_state.RecordExists)
         {
             context.Location().LogInformation("Cannot create contract, already exist, actorId={actorId}", this.GetPrimaryKeyString());
-            return new SpinResponse(StatusCode.BadRequest, $"Cannot create contract, already exist, actorId={this.GetPrimaryKeyString()}");
+            return new Option(StatusCode.BadRequest, $"Cannot create contract, already exist, actorId={this.GetPrimaryKeyString()}");
         }
 
         var acl = new BlockAcl(detail.AccessRights);
         var softBank = await _softBankFactory.Create(detail.ObjectId.ToObjectId(), detail.OwnerId, acl, context).Return();
 
         Option writeResult = await softBank.AccountDetail.Set(detail, context);
-        if (writeResult.StatusCode.IsError()) return writeResult.ToSpinResponse();
+        if (writeResult.StatusCode.IsError()) return writeResult;
 
         return await WriteContract(softBank, context);
     }
 
-    public async Task<SpinResponse> SetAccountDetail(AccountDetail detail, string traceId)
+    public async Task<Option> SetAccountDetail(AccountDetail detail, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set account detail={accountDetail}", detail);
 
         Option<SoftBankAccount> softBank = await ReadContract(context);
-        if (softBank.IsError()) return softBank.ToSpinResponse();
+        if (softBank.IsError()) return softBank.ToOptionStatus();
 
         Option result = await softBank.Return().AccountDetail.Set(detail, context);
-        if (result.StatusCode.IsError()) return result.ToSpinResponse();
+        if (result.StatusCode.IsError()) return result;
 
         return await WriteContract(softBank.Return(), context);
     }
 
-    public async Task<SpinResponse> AddLedgerItem(LedgerItem ledgerItem, string traceId)
+    public async Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         Option<SoftBankAccount> softBank = await ReadContract(context);
-        if (softBank.IsError()) return softBank.ToSpinResponse();
+        if (softBank.IsError()) return softBank.ToOptionStatus();
 
         Option result = await softBank.Return().LedgerItems.Add(ledgerItem, context);
-        if (result.StatusCode.IsError()) return result.ToSpinResponse();
+        if (result.StatusCode.IsError()) return result;
 
         return await WriteContract(softBank.Return(), context);
     }
 
-    public async Task<SpinResponse<AccountDetail>> GetBankDetails(string principalId, string traceId)
+    public async Task<Option<AccountDetail>> GetBankDetails(string principalId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         Option<SoftBankAccount> softBank = await ReadContract(context);
-        if (softBank.IsError()) return softBank.ToSpinResponse<AccountDetail>();
+        if (softBank.IsError()) return softBank.ToOptionStatus<AccountDetail>();
 
         Option<AccountDetail> accountDetail = softBank.Return().AccountDetail.Get(principalId, context);
-        if (accountDetail.IsError()) return accountDetail.ToSpinResponse<AccountDetail>();
+        if (accountDetail.IsError()) return accountDetail;
 
-        return new SpinResponse<AccountDetail>(accountDetail.Return());
+        return new Option<AccountDetail>(accountDetail.Return());
     }
 
-    public async Task<SpinResponse<decimal>> GetBalance(string principalId, string traceId)
+    public async Task<Option<decimal>> GetBalance(string principalId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         Option<SoftBankAccount> softBankAccount = await ReadContract(context);
-        if (softBankAccount.IsError()) return softBankAccount.ToSpinResponse<decimal>();
+        if (softBankAccount.IsError()) return softBankAccount.ToOptionStatus<decimal>();
 
         Option<decimal> balance = softBankAccount.Return().LedgerItems.GetBalance(principalId, context);
-        if (balance.IsError()) return balance.ToSpinResponse<decimal>();
+        if (balance.IsError()) return balance;
 
-        return new SpinResponse<decimal>(balance.Return());
+        return new Option<decimal>(balance.Return());
     }
 
-    public async Task<SpinResponse<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId)
+    public async Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         Option<SoftBankAccount> softBank = await ReadContract(context);
-        if (softBank.IsError()) return softBank.ToSpinResponse<IReadOnlyList<LedgerItem>>();
+        if (softBank.IsError()) return softBank.ToOptionStatus<IReadOnlyList<LedgerItem>>();
 
         Option<BlockReader<LedgerItem>> stream = softBank.Return().LedgerItems.GetReader(principalId, context);
-        if (stream.IsError()) return stream.ToSpinResponse<IReadOnlyList<LedgerItem>>();
+        if (stream.IsError()) return stream.ToOptionStatus<IReadOnlyList<LedgerItem>>();
 
         IReadOnlyList<LedgerItem> list = stream.Return().List();
-        return new SpinResponse<IReadOnlyList<LedgerItem>>(list);
+        return new Option<IReadOnlyList<LedgerItem>>(list);
     }
 
-    public async Task<SpinResponse> Validate(string traceId)
+    public async Task<Option> Validate(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         Option<SoftBankAccount> contract = await ReadContract(context);
-        if (contract.IsError()) return contract.ToSpinResponse();
+        if (contract.IsError()) return contract.ToOptionStatus();
 
         Option signResult = await contract.Return().ValidateBlockChain(context);
-        return signResult.ToSpinResponse();
+        return signResult;
     }
 
     private async Task<Option<SoftBankAccount>> ReadContract(ScopeContext context)
@@ -172,7 +172,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         return contract;
     }
 
-    private async Task<SpinResponse> WriteContract(SoftBankAccount contract, ScopeContext context)
+    private async Task<Option> WriteContract(SoftBankAccount contract, ScopeContext context)
     {
         context.Location().LogInformation("Writing SoftBank acocunt");
 
@@ -186,6 +186,6 @@ public class SoftBankActor : Grain, ISoftBankActor
         _state.State = contract.ToBlobPackage();
         await _state.WriteStateAsync();
 
-        return new SpinResponse(StatusCode.OK);
+        return new Option(StatusCode.OK);
     }
 }

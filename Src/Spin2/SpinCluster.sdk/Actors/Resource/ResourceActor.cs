@@ -15,7 +15,7 @@ namespace SpinCluster.sdk.Actors.Resource;
 public interface IResourceActor : IGrainWithStringKey
 {
     Task<StatusCode> Delete(string traceId);
-    Task<SpinResponse<ResourceFile>> Get(string traceId);
+    Task<Option<ResourceFile>> Get(string traceId);
     Task<StatusCode> Set(ResourceFile model, string traceId);
 }
 
@@ -49,21 +49,21 @@ public class ResourceActor : Grain, IResourceActor
         return await store.Return().Delete(ObjectId.Path, context);
     }
 
-    public virtual async Task<SpinResponse<ResourceFile>> Get(string traceId)
+    public virtual async Task<Option<ResourceFile>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Getting id={id}", this.GetPrimaryKeyString());
 
         Option<ObjectIdInfo> info = ObjectIdInfo.Parse(this.GetPrimaryKeyString(), context);
-        if (info.IsError()) return new SpinResponse<ResourceFile>(info.StatusCode, info.Error);
+        if (info.IsError()) return new Option<ResourceFile>(info.StatusCode, info.Error);
 
         (ObjectId ObjectId, string FilePath) = info.Return();
 
         Option<IDatalakeStore> store = _datalakeResources.GetStore(ObjectId.Schema);
-        if (store.IsError()) return new SpinResponse<ResourceFile>(StatusCode.BadRequest);
+        if (store.IsError()) return new Option<ResourceFile>(StatusCode.BadRequest);
 
         Option<DataETag> fileData = await store.Return().Read(FilePath, context);
-        if (fileData.IsError()) return new SpinResponse<ResourceFile>(StatusCode.BadRequest);
+        if (fileData.IsError()) return new Option<ResourceFile>(StatusCode.BadRequest);
 
         var result = new ResourceFile
         {
@@ -72,7 +72,7 @@ public class ResourceActor : Grain, IResourceActor
             ETag = fileData.Return().ETag?.ToString(),
         };
 
-        return new SpinResponse<ResourceFile>(result);
+        return new Option<ResourceFile>(result);
     }
 
     public virtual async Task<StatusCode> Set(ResourceFile model, string traceId)

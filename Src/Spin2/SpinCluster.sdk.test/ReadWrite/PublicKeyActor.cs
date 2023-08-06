@@ -40,10 +40,10 @@ public class PublicKeyActor : IClassFixture<ClusterFixture>
             PublicKey = rsaKey.PublicKey,
         };
 
-        SpinResponse writeResult = await actor.Set(request, _context.TraceId);
+        Option writeResult = await actor.Set(request, _context.TraceId);
         writeResult.StatusCode.IsOk().Should().BeTrue();
 
-        SpinResponse<PrincipalKeyModel> read = await actor.Get(_context.TraceId);
+        Option<PrincipalKeyModel> read = await actor.Get(_context.TraceId);
         read.StatusCode.IsOk().Should().BeTrue();
 
         (request == read.Return()).Should().BeTrue();

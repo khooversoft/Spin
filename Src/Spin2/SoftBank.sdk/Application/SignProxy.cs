@@ -28,7 +28,7 @@ public class SignProxy : ISign
         string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";
 
         ISignatureActor signatureActor = _client.GetGrain<ISignatureActor>(objectId);
-        SpinResponse<string> result = await signatureActor.Sign(messageDigest, context.TraceId);
-        return result.ToOption();
+        Option<string> result = await signatureActor.Sign(messageDigest, context.TraceId);
+        return result;
     }
 }

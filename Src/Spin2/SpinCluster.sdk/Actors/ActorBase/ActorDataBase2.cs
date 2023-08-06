@@ -20,8 +20,8 @@ public abstract class ActorDataBase2<T> : Grain, IActionOperation<T>
         _logger = logger;
     }
 
-    public virtual Task<SpinResponse> Delete(string traceId) => _state.Delete<T>(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
-    public virtual Task<SpinResponse> Exist(string traceId) => Task.FromResult(new SpinResponse(_state.RecordExists ? StatusCode.OK : StatusCode.NoContent));
-    public virtual Task<SpinResponse<T>> Get(string traceId) => _state.Get<T>(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
-    public virtual Task<SpinResponse> Set(T model, string traceId) => _state.Set(model, this.GetPrimaryKeyString(), _validator, new ScopeContext(traceId, _logger).Location());
+    public virtual Task<Option> Delete(string traceId) => _state.Delete<T>(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
+    public virtual Task<Option> Exist(string traceId) => Task.FromResult(new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NoContent));
+    public virtual Task<Option<T>> Get(string traceId) => _state.Get<T>(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
+    public virtual Task<Option> Set(T model, string traceId) => _state.Set(model, this.GetPrimaryKeyString(), _validator, new ScopeContext(traceId, _logger).Location());
 }

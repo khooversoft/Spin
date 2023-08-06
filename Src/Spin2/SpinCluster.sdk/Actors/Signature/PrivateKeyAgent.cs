@@ -13,49 +13,49 @@ internal class PrivateKeyAgent
     private readonly IPrincipalPrivateKeyActor _privateKeyActor;
     public PrivateKeyAgent(IPrincipalPrivateKeyActor publicKey) => _privateKeyActor = publicKey;
 
-    public async Task<SpinResponse> CheckForCreate(ScopeContext context)
+    public async Task<Option> CheckForCreate(ScopeContext context)
     {
-        SpinResponse publicKeyExist = await _privateKeyActor.Exist(context.TraceId);
+        Option publicKeyExist = await _privateKeyActor.Exist(context.TraceId);
         if (publicKeyExist.StatusCode.IsOk())
         {
             const string msg = "Cannot create new Key, private key already exist";
             context.Location().LogError(msg);
-            return new SpinResponse(StatusCode.BadRequest, msg);
+            return new Option(StatusCode.BadRequest, msg);
         }
 
-        return new SpinResponse(StatusCode.OK);
+        return new Option(StatusCode.OK);
     }
 
-    public async Task<SpinResponse> Delete(ScopeContext context)
+    public async Task<Option> Delete(ScopeContext context)
     {
         var result = await _privateKeyActor.Delete(context.TraceId);
         return result;
     }
 
-    public Task<SpinResponse> Exist(ScopeContext context) => _privateKeyActor.Exist(context.TraceId);
+    public Task<Option> Exist(ScopeContext context) => _privateKeyActor.Exist(context.TraceId);
 
-    public async Task<SpinResponse> Set(PrincipalPrivateKeyModel model, ScopeContext context)
+    public async Task<Option> Set(PrincipalPrivateKeyModel model, ScopeContext context)
     {
         try
         {
             context.Location().LogInformation("Setting public key for keyId={keyId}", model.KeyId);
-            SpinResponse result = await _privateKeyActor.Set(model, context.TraceId);
+            Option result = await _privateKeyActor.Set(model, context.TraceId);
             return result;
         }
         catch (Exception ex)
         {
             context.Location().LogCritical(ex, "Failed to set public actor, keyId={keyId}", model.KeyId);
-            return new SpinResponse(StatusCode.InternalServerError, $"Failed to set public key actor, keyId={model.KeyId}");
+            return new Option(StatusCode.InternalServerError, $"Failed to set public key actor, keyId={model.KeyId}");
         }
     }
 
-    public async Task<SpinResponse<string>> Sign(string messageDigest, ScopeContext context)
+    public async Task<Option<string>> Sign(string messageDigest, ScopeContext context)
     {
-        SpinResponse<PrincipalPrivateKeyModel> modelResponse = await _privateKeyActor.Get(context.TraceId);
+        Option<PrincipalPrivateKeyModel> modelResponse = await _privateKeyActor.Get(context.TraceId);
         if (modelResponse.StatusCode.IsError())
         {
             context.Location().LogError("Priavte key does not exist to create digest signature");
-            return new SpinResponse<string>(modelResponse.StatusCode, modelResponse.Error);
+            return new Option<string>(modelResponse.StatusCode, modelResponse.Error);
         }
 
         PrincipalPrivateKeyModel model = modelResponse.Return();
@@ -72,7 +72,7 @@ internal class PrivateKeyAgent
         if (jwtSignature.IsEmpty())
         {
             context.Location().LogError("Failed to build JWT");
-            return new SpinResponse<string>(StatusCode.BadRequest, "JWT builder failed");
+            return new Option<string>(StatusCode.BadRequest, "JWT builder failed");
         }
 
         return jwtSignature;

@@ -12,8 +12,8 @@ namespace SpinCluster.sdk.Actors.Lease;
 
 public interface IConfigurationActor : IGrainWithStringKey
 {
-    Task<SpinResponse<SiloConfigOption>> Get(string traceId);
-    Task<SpinResponse> Set(SiloConfigOption model, string traceId);
+    Task<Option<SiloConfigOption>> Get(string traceId);
+    Task<Option> Set(SiloConfigOption model, string traceId);
 }
 
 
@@ -35,7 +35,7 @@ public class ConfigurationActor : Grain, IConfigurationActor
         _tenantListAgent = new TenantListAgent(() => GrainFactory.GetGrain<ISearchActor>(SpinConstants.SchemaSearch));
     }
 
-    public virtual async Task<SpinResponse<SiloConfigOption>> Get(string traceId)
+    public virtual async Task<Option<SiloConfigOption>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         Option<SiloConfigOption> soloConfigOption = await _siloConfigurationAgent.Get(context);
@@ -49,13 +49,13 @@ public class ConfigurationActor : Grain, IConfigurationActor
         return mergedConfig;
     }
 
-    public virtual async Task<SpinResponse> Set(SiloConfigOption model, string traceId)
+    public virtual async Task<Option> Set(SiloConfigOption model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Setting id={id}, model={model}", this.GetPrimaryKeyString(), model.ToJsonPascalSafe(new ScopeContext(_logger)));
-        if (!_validator.Validate(model).LogResult(context.Location()).IsValid) return new SpinResponse(StatusCode.BadRequest);
+        if (!_validator.Validate(model).LogResult(context.Location()).IsValid) return new Option(StatusCode.BadRequest);
 
         var statusResult = await _configStore.Set(model, context);
-        return new SpinResponse(statusResult);
+        return new Option(statusResult);
     }
 }

@@ -7,6 +7,7 @@ using SpinCluster.sdk.Application;
 using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Extensions;
 
 namespace SpinCluster.sdk.Actors.Configuration;
 
@@ -37,7 +38,7 @@ internal class ConfigurationConnector
         });
     }
 
-    public async Task<SpinResponse<SiloConfigOption>> Get(string traceId)
+    public async Task<Option<SiloConfigOption>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
@@ -45,7 +46,7 @@ internal class ConfigurationConnector
         return response;
     }
 
-    public async Task<SpinResponse> Set(SiloConfigOption request, string traceId)
+    public async Task<Option> Set(SiloConfigOption request, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 

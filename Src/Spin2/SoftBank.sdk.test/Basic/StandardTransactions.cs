@@ -50,24 +50,24 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
             Name = name,
         };
 
-        SpinResponse createResult = await softBankActor.Create(request, _context.TraceId);
+        Option createResult = await softBankActor.Create(request, _context.TraceId);
         createResult.StatusCode.IsOk().Should().BeTrue(createResult.Error);
 
         var ledgerItem = new LedgerItem { OwnerId = ownerId, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m };
 
-        SpinResponse ledgerItemResponse = await softBankActor.AddLedgerItem(ledgerItem, _context.TraceId);
+        Option ledgerItemResponse = await softBankActor.AddLedgerItem(ledgerItem, _context.TraceId);
         ledgerItemResponse.StatusCode.IsOk().Should().BeTrue();
 
-        SpinResponse<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
+        Option<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
         accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
         (request == accountDetails.Return()).Should().BeTrue("not equal");
 
-        SpinResponse<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
+        Option<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
         ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
         ledgerItems.Return().Count.Should().Be(1);
         (ledgerItems.Return()[0] == ledgerItem).Should().BeTrue();
 
-        SpinResponse<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
+        Option<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
         balanceResponse.Return().Should().Be(100.0m);
 
@@ -101,7 +101,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
             Name = name,
         };
 
-        SpinResponse createResult = await softBankActor.Create(request, _context.TraceId);
+        Option createResult = await softBankActor.Create(request, _context.TraceId);
         createResult.StatusCode.IsOk().Should().BeTrue(createResult.Error);
 
         var newItems = new[]
@@ -117,16 +117,16 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
             addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
         }
 
-        SpinResponse<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
+        Option<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
         accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
         (request == accountDetails.Return()).Should().BeTrue("not equal");
 
-        SpinResponse<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
+        Option<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
         ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
         ledgerItems.Return().Count.Should().Be(newItems.Length);
         newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
 
-        SpinResponse<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
+        Option<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
         balanceResponse.Return().Should().Be(135.15m);
 
@@ -149,7 +149,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
 
         await signatureActor.Delete(_context.TraceId);
 
-        SpinResponse result = await signatureActor.Create(request, _context.TraceId);
+        Option result = await signatureActor.Create(request, _context.TraceId);
         result.StatusCode.IsOk().Should().BeTrue();
     }
 }

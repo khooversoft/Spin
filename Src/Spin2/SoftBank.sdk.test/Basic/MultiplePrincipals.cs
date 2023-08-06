@@ -61,7 +61,7 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
             },
         };
 
-        SpinResponse createResult = await softBankActor.Create(request, _context.TraceId);
+        Option createResult = await softBankActor.Create(request, _context.TraceId);
         createResult.StatusCode.IsOk().Should().BeTrue(createResult.Error);
 
         var newItems = new[]
@@ -79,11 +79,11 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
             addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
         }
 
-        SpinResponse<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
+        Option<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
         accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
         (request == accountDetails.Return()).Should().BeTrue("not equal");
 
-        SpinResponse<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
+        Option<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
         ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
         ledgerItems.Return().Count.Should().Be(newItems.Length);
         newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
@@ -93,7 +93,7 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
         ledgerItems2.StatusCode.IsError().Should().BeTrue();
 
 
-        SpinResponse<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
+        Option<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
         balanceResponse.Return().Should().Be(170.30m);
 
@@ -118,7 +118,7 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
 
         await signatureActor.Delete(_context.TraceId);
 
-        SpinResponse result = await signatureActor.Create(request, _context.TraceId);
+        Option result = await signatureActor.Create(request, _context.TraceId);
         result.StatusCode.IsOk().Should().BeTrue();
     }
 }

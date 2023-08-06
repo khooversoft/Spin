@@ -35,8 +35,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftBank.sdk.test", "SoftBa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftBank.sdk", "SoftBank.sdk\SoftBank.sdk.csproj", "{53614308-3CD6-4D49-8372-0F55E21C2502}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Orleans", "Tools\Toolbox.Orleans\Toolbox.Orleans.csproj", "{3A87818A-5724-4438-81CC-B47E29CB0EE5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,10 +101,6 @@ Global
 		{53614308-3CD6-4D49-8372-0F55E21C2502}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53614308-3CD6-4D49-8372-0F55E21C2502}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53614308-3CD6-4D49-8372-0F55E21C2502}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3A87818A-5724-4438-81CC-B47E29CB0EE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3A87818A-5724-4438-81CC-B47E29CB0EE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3A87818A-5724-4438-81CC-B47E29CB0EE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3A87818A-5724-4438-81CC-B47E29CB0EE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,7 +113,6 @@ Global
 		{8730EF5A-DF50-4F46-956C-6409A30A2D9F} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{1E92660A-C80A-4C4B-84EE-FB8650910156} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{3E4D6778-2233-46A6-B305-CFE1D806923D} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
-		{3A87818A-5724-4438-81CC-B47E29CB0EE5} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C148F5D7-56ED-4D3F-8AAB-8363CB110674}

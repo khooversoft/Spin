@@ -63,7 +63,7 @@ internal class ResourceConnect
         if (id.IsError()) return id.ToOptionStatus<ResourceFile>();
 
         IResourceActor actor = _client.GetGrain<IResourceActor>(objectId);
-        SpinResponse<ResourceFile> response = await actor.Get(context.TraceId);
+        Option<ResourceFile> response = await actor.Get(context.TraceId);
 
         if (response.StatusCode.IsError()) return new Option<ResourceFile>(response.StatusCode);
         return response.Return();

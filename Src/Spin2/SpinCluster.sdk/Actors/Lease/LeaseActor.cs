@@ -9,7 +9,7 @@ namespace SpinCluster.sdk.Actors.Lease;
 
 public interface ILeaseActor : IGrainWithStringKey
 {
-    Task<SpinResponse<LeaseData>> Acquire(string traceId);
+    Task<Option<LeaseData>> Acquire(string traceId);
     Task<StatusCode> Release(string leaseId, string traceId);
 }
 
@@ -34,11 +34,11 @@ public class LeaseActor : Grain, ILeaseActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<SpinResponse<LeaseData>> Acquire(string traceId)
+    public async Task<Option<LeaseData>> Acquire(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
-        if (_state.RecordExists && _state.State.IsLeaseValid()) return new SpinResponse<LeaseData>(StatusCode.Conflict);
+        if (_state.RecordExists && _state.State.IsLeaseValid()) return new Option<LeaseData>(StatusCode.Conflict);
 
         var leaseData = new LeaseData
         {

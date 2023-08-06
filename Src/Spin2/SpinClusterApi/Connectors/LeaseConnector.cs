@@ -45,7 +45,7 @@ internal class LeaseConnector
         if (oObjectId.IsError()) return oObjectId.ToOptionStatus<LeaseData>();
 
         ILeaseActor actor = _client.GetGrain<ILeaseActor>(objectId);
-        SpinResponse<LeaseData> response = await actor.Acquire(context.TraceId);
+        Option<LeaseData> response = await actor.Acquire(context.TraceId);
 
         if (response.StatusCode.IsError()) return new Option<LeaseData>(response.StatusCode);
         return response.Return();

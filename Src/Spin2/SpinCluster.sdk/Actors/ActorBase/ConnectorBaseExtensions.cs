@@ -5,12 +5,13 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
 using Toolbox.Orleans.Types;
 using Toolbox.Types;
+using Toolbox.Extensions;
 
 namespace SpinCluster.sdk.Actors.ActorBase;
 
 public static class ConnectorBaseExtensions
 {
-    public static void MapDelete(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<SpinResponse>> call)
+    public static void MapDelete(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<Option>> call)
     {
         group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
@@ -23,7 +24,7 @@ public static class ConnectorBaseExtensions
         });
     }
 
-    public static void MapExist(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<SpinResponse>> call)
+    public static void MapExist(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<Option>> call)
     {
         group.MapGet("/exist/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
@@ -36,7 +37,7 @@ public static class ConnectorBaseExtensions
         });
     }
 
-    public static void MapGet<T>(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<SpinResponse<T>>> call)
+    public static void MapGet<T>(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<Option<T>>> call)
     {
         group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
         {
@@ -49,7 +50,7 @@ public static class ConnectorBaseExtensions
         });
     }
 
-    public static void MapSet<T>(this RouteGroupBuilder group, ILogger logger, Func<string, T, ScopeContext, Task<SpinResponse>> call)
+    public static void MapSet<T>(this RouteGroupBuilder group, ILogger logger, Func<string, T, ScopeContext, Task<Option>> call)
     {
         group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, T model) =>
         {

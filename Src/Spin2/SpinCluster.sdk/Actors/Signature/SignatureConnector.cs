@@ -8,6 +8,7 @@ using SpinCluster.sdk.Application;
 using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Extensions;
 
 namespace SpinCluster.sdk.Actors.PrincipalKey;
 
@@ -36,7 +37,7 @@ public class SignatureConnector
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
             if (option.IsError()) option.ToResult();
 
-            SpinResponse response = await _client.GetGrain<ISignatureActor>(objectId).Create(model, traceId);
+            Option response = await _client.GetGrain<ISignatureActor>(objectId).Create(model, traceId);
             return response.ToResult();
         });
 
@@ -47,7 +48,7 @@ public class SignatureConnector
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
             if (option.IsError()) option.ToResult();
 
-            SpinResponse<string> response = await _client.GetGrain<ISignatureActor>(objectId).Sign(model.Digest, context.TraceId);
+            Option<string> response = await _client.GetGrain<ISignatureActor>(objectId).Sign(model.Digest, context.TraceId);
             return response.ToResult();
         });
 
@@ -58,7 +59,7 @@ public class SignatureConnector
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
             if (option.IsError()) option.ToResult();
 
-            SpinResponse response = await _client.GetGrain<ISignatureActor>(objectId).ValidateJwtSignature(model.JwtSignature, model.Digest, context.TraceId);
+            Option response = await _client.GetGrain<ISignatureActor>(objectId).ValidateJwtSignature(model.JwtSignature, model.Digest, context.TraceId);
             return response.ToResult();
         });
 

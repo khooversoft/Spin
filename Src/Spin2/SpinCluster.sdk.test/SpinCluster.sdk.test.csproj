@@ -25,7 +25,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
         <ProjectReference Include="..\Tools\Toolbox.Test\Toolbox.Test.csproj" />
         <ProjectReference Include="..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
         <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />

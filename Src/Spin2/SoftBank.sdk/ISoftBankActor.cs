@@ -6,14 +6,14 @@ namespace SpinCluster.sdk.Actors.SoftBank
 {
     public interface ISoftBankActor : IGrainWithStringKey
     {
-        Task<SpinResponse> AddLedgerItem(LedgerItem ledgerItem, string traceId);
-        Task<SpinResponse> Create(AccountDetail detail, string traceId);
-        Task<SpinResponse> Delete(string traceId);
-        Task<SpinResponse> Exist(string traceId);
-        Task<SpinResponse<decimal>> GetBalance(string principalId, string traceId);
-        Task<SpinResponse<AccountDetail>> GetBankDetails(string principalId, string traceId);
-        Task<SpinResponse<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId);
-        Task<SpinResponse> SetAccountDetail(AccountDetail accountDetail, string traceId);
-        Task<SpinResponse> Validate(string traceId);
+        Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId);
+        Task<Option> Create(AccountDetail detail, string traceId);
+        Task<Option> Delete(string traceId);
+        Task<Option> Exist(string traceId);
+        Task<Option<decimal>> GetBalance(string principalId, string traceId);
+        Task<Option<AccountDetail>> GetBankDetails(string principalId, string traceId);
+        Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId);
+        Task<Option> SetAccountDetail(AccountDetail accountDetail, string traceId);
+        Task<Option> Validate(string traceId);
     }
 }

@@ -14,11 +14,11 @@ namespace SpinCluster.sdk.Actors.Signature;
 
 public interface ISignatureActor : IGrainWithStringKey
 {
-    Task<SpinResponse> Create(PrincipalKeyRequest request, string traceId);
-    Task<SpinResponse> Delete(string traceId);
-    Task<SpinResponse> Exist(string traceId);
-    Task<SpinResponse> ValidateJwtSignature(string jwtSignature, string digest, string traceId);
-    Task<SpinResponse<string>> Sign(string messageDigest, string traceId);
+    Task<Option> Create(PrincipalKeyRequest request, string traceId);
+    Task<Option> Delete(string traceId);
+    Task<Option> Exist(string traceId);
+    Task<Option> ValidateJwtSignature(string jwtSignature, string digest, string traceId);
+    Task<Option<string>> Sign(string messageDigest, string traceId);
 }
 
 public class SignatureActor : Grain, ISignatureActor
@@ -52,23 +52,23 @@ public class SignatureActor : Grain, ISignatureActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<SpinResponse> Create(PrincipalKeyRequest request, string traceId)
+    public async Task<Option> Create(PrincipalKeyRequest request, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating principal key, primarykey={primaryKey}, request={request}", this.GetPrimaryKeyString(), request);
 
         var validation = _validator.Validate(request, context.Location());
-        if (!validation.IsValid) return validation.ToSpinResponse();
+        if (!validation.IsValid) return validation.ToOption();
 
         if (request.KeyId != this.GetPrimaryKeyString())
         {
-            return new SpinResponse(StatusCode.BadRequest, $"requst.KeyId={request.KeyId} does not match actor key={this.GetPrimaryKeyString()}");
+            return new Option(StatusCode.BadRequest, $"requst.KeyId={request.KeyId} does not match actor key={this.GetPrimaryKeyString()}");
         }
 
         var publicKeyExist = await _publicKeyAgent.CheckForCreate(context);
         if (publicKeyExist.StatusCode.IsError()) return publicKeyExist;
 
-        SpinResponse privateKeyExist = await _privateKeyAgent.CheckForCreate(context);
+        Option privateKeyExist = await _privateKeyAgent.CheckForCreate(context);
         if (privateKeyExist.StatusCode.IsError()) return privateKeyExist;
 
         var rsaKey = new RsaKeyPair(request.KeyId);
@@ -83,7 +83,7 @@ public class SignatureActor : Grain, ISignatureActor
             PrivateKeyExist = true,
         };
 
-        SpinResponse writePublicKeyResult = await _publicKeyAgent.Set(publicKey, context);
+        Option writePublicKeyResult = await _publicKeyAgent.Set(publicKey, context);
         if (writePublicKeyResult.StatusCode.IsError()) return writePublicKeyResult;
 
         var privateKey = new PrincipalPrivateKeyModel
@@ -98,38 +98,38 @@ public class SignatureActor : Grain, ISignatureActor
         var writePrivateKeyResult = await _privateKeyAgent.Set(privateKey, context);
         if (writePrivateKeyResult.StatusCode.IsError()) return writePrivateKeyResult;
 
-        return new SpinResponse(StatusCode.OK);
+        return new Option(StatusCode.OK);
     }
 
-    public async Task<SpinResponse> Delete(string traceId)
+    public async Task<Option> Delete(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         await _publicKeyAgent.Delete(context);
         await _privateKeyAgent.Delete(context);
 
-        return new SpinResponse(StatusCode.OK);
+        return new Option(StatusCode.OK);
     }
 
-    public async Task<SpinResponse> Exist(string traceId)
+    public async Task<Option> Exist(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
-        SpinResponse publicExist = await _publicKeyAgent.Exist(context);
-        SpinResponse privateExist = await _privateKeyAgent.Exist(context);
+        Option publicExist = await _publicKeyAgent.Exist(context);
+        Option privateExist = await _privateKeyAgent.Exist(context);
 
         return (publicExist.StatusCode, privateExist.StatusCode) switch
         {
-            (StatusCode.OK, StatusCode.OK) => new SpinResponse(StatusCode.OK),
-            _ => new SpinResponse(StatusCode.Conflict),
+            (StatusCode.OK, StatusCode.OK) => new Option(StatusCode.OK),
+            _ => new Option(StatusCode.Conflict),
         };
     }
 
-    public async Task<SpinResponse> ValidateJwtSignature(string jwtSignature, string digest, string traceId)
+    public async Task<Option> ValidateJwtSignature(string jwtSignature, string digest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
-        SpinResponse response = await _publicKeyAgent.ValidateJwtSignature(jwtSignature, digest, context);
+        Option response = await _publicKeyAgent.ValidateJwtSignature(jwtSignature, digest, context);
         if (response.StatusCode.IsError())
         {
             context.Location().LogError("JwtSignature is invalid for {actorId}, error={error}", this.GetPrimaryKeyString(), response.Error);
@@ -138,11 +138,11 @@ public class SignatureActor : Grain, ISignatureActor
         return response;
     }
 
-    public async Task<SpinResponse<string>> Sign(string messageDigest, string traceId)
+    public async Task<Option<string>> Sign(string messageDigest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
-        SpinResponse<string> response = await _privateKeyAgent.Sign(messageDigest, context);
+        Option<string> response = await _privateKeyAgent.Sign(messageDigest, context);
         if (response.StatusCode.IsError())
         {
             context.Location().LogError("Cannot sign messageDigest for {actorId}, error={error}", this.GetPrimaryKeyString(), response.Error);
