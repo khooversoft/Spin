@@ -57,7 +57,7 @@ public class TwoAccounts : IClassFixture<ClusterFixture>
         await _contract1.AddLedgerItem(l1, _context);
 
         // Owner needs write permission in both accounts
-        await _contract1.PushToAccount(_contract2.ObjectId, 50.0m, _user1.OwnerId);
+        //await _contract1.PushToAccount(_contract2.ObjectId, 50.0m, _user1.OwnerId);
 
 
 

@@ -31,12 +31,12 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
     [Fact]
     public async Task CreateBankAccountAndMultipleLedgerItems()
     {
-        PrincipalId ownerId = "owner1@test.com";
-        ObjectId objectId = $"{SpinConstants.Schema.SoftBank}/test.com/StandardTransactionsMultiplePrincipals/{ownerId}";
+        PrincipalId ownerId = "owner10@test.com";
+        ObjectId objectId = $"{SpinConstants.Schema.SoftBank}/test.com/MultiplePrincipals/{ownerId}";
         string keyId = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId}";
         string name = "name1";
 
-        PrincipalId ownerId2 = "owner2@test.com";
+        PrincipalId ownerId2 = "owner20@test.com";
         string keyId2 = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId2}";
 
         ISoftBankActor softBankActor = _cluster.GrainFactory.GetGrain<ISoftBankActor>(objectId);
