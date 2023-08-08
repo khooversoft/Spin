@@ -15,8 +15,6 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
 
 using IHost host = builder.Build();
 
-await host.UseSpinCluster();
-
 Console.WriteLine($"Spin Silo - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 

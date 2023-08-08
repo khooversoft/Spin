@@ -32,19 +32,19 @@ public static class SiloStartup
         builder.AddDatalakeGrainStorage(option);
         builder.AddStartupTask(async (IServiceProvider services, CancellationToken _) => await services.UseSpinCluster());
 
-        builder.ConfigureLogging(logging =>
-        {
-            logging.AddConsole();
-            logging.AddDebug();
+        //builder.ConfigureLogging(logging =>
+        //{
+        //    logging.AddConsole();
+        //    logging.AddDebug();
 
-            if (option.ApplicationInsightsConnectionString.IsNotEmpty())
-            {
-                logging.AddApplicationInsights(
-                    configureTelemetryConfiguration: (config) => config.ConnectionString = option.ApplicationInsightsConnectionString,
-                    configureApplicationInsightsLoggerOptions: (options) => { }
-                );
-            }
-        });
+        //    if (option.AppInsightsConnectionString.IsNotEmpty())
+        //    {
+        //        logging.AddApplicationInsights(
+        //            configureTelemetryConfiguration: (config) => config.ConnectionString = option.AppInsightsConnectionString,
+        //            configureApplicationInsightsLoggerOptions: (options) => { }
+        //        );
+        //    }
+        //});
 
         builder.ConfigureServices(services =>
         {
@@ -102,12 +102,10 @@ public static class SiloStartup
     public static async Task UseSpinCluster(this IServiceProvider serviceProvider)
     {
         serviceProvider.NotNull();
-        Debug.WriteLine($"Here: {nameof(UseSpinCluster)}");
 
         DatalakeSchemaResources datalakeResources = serviceProvider.GetRequiredService<DatalakeSchemaResources>();
         ILoggerFactory factory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         await datalakeResources.Startup(new ScopeContext(factory.CreateLogger(nameof(UseSpinCluster))));
-        Debug.WriteLine($"Here - finished: {nameof(UseSpinCluster)}");
     }
 }

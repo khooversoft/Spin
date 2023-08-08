@@ -19,8 +19,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Azure.test", "Tools
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinPortal", "SpinPortal\SpinPortal.csproj", "{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinSilo", "SpinSilo\SpinSilo.csproj", "{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinClusterApi", "SpinClusterApi\SpinClusterApi.csproj", "{F405BBD4-594A-47EF-BAFE-0179297A04CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinClusterCmd", "SpinClusterCmd\SpinClusterCmd.csproj", "{61F9851C-D246-48A3-A2F2-242A0913E6A1}"
@@ -34,6 +32,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftBank.sdk.test", "SoftBank.sdk.test\SoftBank.sdk.test.csproj", "{A710FDAE-F49B-410E-832D-623ABB8B9340}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftBank.sdk", "SoftBank.sdk\SoftBank.sdk.csproj", "{53614308-3CD6-4D49-8372-0F55E21C2502}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinClusterApi.test", "SpinClusterApi.test\SpinClusterApi.test.csproj", "{147959C5-20C7-43EC-9600-FA7FE7B10B55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,10 +69,6 @@ Global
 		{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{477A8A5A-7FF2-4A2F-81AF-7252A443EAD4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3A6AE53D-6278-4AC0-9D8C-B102ECADAA11}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F405BBD4-594A-47EF-BAFE-0179297A04CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F405BBD4-594A-47EF-BAFE-0179297A04CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F405BBD4-594A-47EF-BAFE-0179297A04CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -101,6 +97,10 @@ Global
 		{53614308-3CD6-4D49-8372-0F55E21C2502}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53614308-3CD6-4D49-8372-0F55E21C2502}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53614308-3CD6-4D49-8372-0F55E21C2502}.Release|Any CPU.Build.0 = Release|Any CPU
+		{147959C5-20C7-43EC-9600-FA7FE7B10B55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{147959C5-20C7-43EC-9600-FA7FE7B10B55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{147959C5-20C7-43EC-9600-FA7FE7B10B55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{147959C5-20C7-43EC-9600-FA7FE7B10B55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

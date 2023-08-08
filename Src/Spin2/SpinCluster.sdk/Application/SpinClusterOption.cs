@@ -12,7 +12,7 @@ namespace SpinCluster.sdk.Application;
 
 public record SpinClusterOption
 {
-    public string? ApplicationInsightsConnectionString { get; init; }
+    public string? AppInsightsConnectionString { get; init; }
     public string BootConnectionString { get; init; } = null!;
     public ClientSecretOption Credentials { get; init; } = null!;
     public string? UserSecrets { get; init; }
