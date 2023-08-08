@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.Azure.Amqp.Framing;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SoftBank.sdk;
 using SoftBank.sdk.Models;
@@ -48,8 +50,30 @@ public class SoftBankActor : Grain, ISoftBankActor
         _softBankFactory = softBankFactory.NotNull();
     }
 
-    public Task<Option> Delete(string traceId) => _state.Delete(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
-    public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NoContent).ToTaskResult();
+    public async Task<Option> Delete(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Deleting SoftBank - actorId={actorId}", this.GetPrimaryKeyString());
+
+        Option<SoftBankAccount> softBank = await ReadContract(context);
+        if (softBank.IsError()) return softBank.ToOptionStatus();
+
+        Option isOwner = softBank.Return().IsOwner(principalId);
+        if (isOwner.StatusCode.IsError()) return isOwner;
+
+        await _state.Delete(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
+        return StatusCode.OK;
+    }
+
+    public Task<Option> Exist(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+
+        StatusCode exist = _state.RecordExists ? StatusCode.OK : StatusCode.NoContent;
+        context.Location().LogInformation("Exist, exist={exist}, actorId={actorId}", exist, this.GetPrimaryKeyString());
+
+        return new Option(exist).ToTaskResult();
+    }
 
     public async Task<Option> Create(AccountDetail detail, string traceId)
     {
@@ -86,6 +110,20 @@ public class SoftBankActor : Grain, ISoftBankActor
         return await WriteContract(softBank.Return(), context);
     }
 
+    public async Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Add BlockAcl={blockAcl}", blockAcl);
+
+        Option<SoftBankAccount> softBank = await ReadContract(context);
+        if (softBank.IsError()) return softBank.ToOptionStatus();
+
+        Option result = await softBank.Return().Acl.Set(blockAcl, principalId, context);
+        if (result.StatusCode.IsError()) return result;
+
+        return await WriteContract(softBank.Return(), context);
+    }
+
     public async Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
@@ -99,7 +137,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         return await WriteContract(softBank.Return(), context);
     }
 
-    public async Task<Option<AccountDetail>> GetBankDetails(string principalId, string traceId)
+    public async Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
@@ -112,17 +150,31 @@ public class SoftBankActor : Grain, ISoftBankActor
         return new Option<AccountDetail>(accountDetail.Return());
     }
 
-    public async Task<Option<decimal>> GetBalance(string principalId, string traceId)
+    public async Task<Option<AccountBalance>> GetBalance(string principalId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
         Option<SoftBankAccount> softBankAccount = await ReadContract(context);
-        if (softBankAccount.IsError()) return softBankAccount.ToOptionStatus<decimal>();
+        if (softBankAccount.IsError()) return softBankAccount.ToOptionStatus<AccountBalance>();
 
         Option<decimal> balance = softBankAccount.Return().LedgerItems.GetBalance(principalId, context);
-        if (balance.IsError()) return balance;
+        if (balance.IsError()) return balance.ToOptionStatus<AccountBalance>();
 
-        return new Option<decimal>(balance.Return());
+        Option<AccountDetail> detailOption = softBankAccount.Return().AccountDetail.Get(principalId, context);
+        if (detailOption.IsError()) return detailOption.ToOptionStatus<AccountBalance>();
+
+        AccountDetail detail = detailOption.Return();
+
+        var result = new AccountBalance
+        {
+            ObjectId = detail.ObjectId,
+            OwnerId = detail.OwnerId,
+            Name = detail.Name,
+            CreatedDate = detail.CreatedDate,
+            Balance = balance.Return(),
+        };
+
+        return new Option<AccountBalance>(result);
     }
 
     public async Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId)
@@ -154,6 +206,7 @@ public class SoftBankActor : Grain, ISoftBankActor
     {
         context.Location().LogInformation("Reading BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
         await _state.ReadStateAsync();
+        if (!_state.RecordExists) return new Option<SoftBankAccount>(StatusCode.NotFound);
 
         Option<SoftBankAccount> contract = await _softBankFactory.Create(_state.State, context).LogResult(_actorContext.Location());
         if (contract.IsError())

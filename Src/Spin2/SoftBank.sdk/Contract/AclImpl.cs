@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Toolbox.Block;
 using Toolbox.Security.Principal;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -10,14 +11,16 @@ namespace SoftBank.sdk;
 public class AclImpl
 {
     private readonly BlockChain _blockChain;
+    private readonly IValidator<BlockAcl> _validator;
     private readonly ISign _sign;
     private readonly ILogger _logger;
 
-    public AclImpl(BlockChain blockChain, ISign sign, ILogger logger)
+    public AclImpl(BlockChain blockChain, IValidator<BlockAcl> validator, ISign sign, ILogger logger)
     {
-        _blockChain = blockChain;
-        _sign = sign;
-        _logger = logger;
+        _blockChain = blockChain.NotNull();
+        _validator = validator.NotNull();
+        _sign = sign.NotNull();
+        _logger = logger.NotNull();
     }
 
     public Option<BlockAcl> Get(PrincipalId principalId, ScopeContext context) => _blockChain
@@ -25,8 +28,13 @@ public class AclImpl
         .LogResult(context.With(_logger).Location())
         .Bind(x => x.GetLatest());
 
-    public async Task<Option> Write(BlockAcl acl, PrincipalId principalId, ScopeContext context)
+    public async Task<Option> Set(BlockAcl acl, PrincipalId principalId, ScopeContext context)
     {
+        context = context.With(_logger);
+
+        Option<ValidatorResult> validator = _validator.Validate(acl, context.Location());
+        if (validator.IsError()) return validator.ToOptionStatus();
+
         var writer = _blockChain.GetWriter<BlockAcl>(principalId).LogResult(context.With(_logger).Location());
         if (writer.IsError()) writer.ToOptionStatus();
 

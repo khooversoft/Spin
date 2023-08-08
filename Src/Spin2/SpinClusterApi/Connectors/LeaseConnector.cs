@@ -23,14 +23,14 @@ internal class LeaseConnector
     {
         var group = app.MapGroup("/lease");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => await Acquire(objectId, traceId) switch
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) => await Acquire(objectId, traceId) switch
         {
             var v when v.IsError() => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
             var v when v.HasValue => Results.Ok(v.Return()),
             var v => Results.BadRequest(v.Return()),
         });
 
-        group.MapDelete("/{leaseId}/{*objectId}", async (string leaseId, string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        group.MapDelete("/{leaseId}/{*objectId}", async (string leaseId, string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             StatusCode statusCode = await Release(objectId, leaseId, traceId);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());

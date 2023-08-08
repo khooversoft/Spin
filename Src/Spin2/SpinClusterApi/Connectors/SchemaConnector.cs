@@ -30,14 +30,14 @@ internal class SchemaConnector
     {
         var group = app.MapGroup("/data");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => await Get(objectId, traceId) switch
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) => await Get(objectId, traceId) switch
         {
             var v when v.IsError() => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
             var v when v.HasValue => Results.Ok(v.Return()),
             var v => Results.BadRequest(v.Return()),
         });
 
-        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, HttpRequest request) =>
+        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, HttpRequest request) =>
         {
             string body = await request.Body.ReadStringStream();
 
@@ -45,7 +45,7 @@ internal class SchemaConnector
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());
         });
 
-        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             StatusCode statusCode = await Delete(objectId, traceId);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());

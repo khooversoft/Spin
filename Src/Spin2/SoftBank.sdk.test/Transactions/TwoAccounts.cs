@@ -30,13 +30,13 @@ public class TwoAccounts : IClassFixture<ClusterFixture>
     {
         _cluster = fixture.Cluster;
 
-        _user1 = new User(_cluster, "owner1@test.com", $"{SpinConstants.Schema.PrincipalKey}/test.com/owner1@test.com");
-        _user2 = new User(_cluster, "owner2@test.com", $"{SpinConstants.Schema.PrincipalKey}/test.com/owner2@test.com");
+        _user1 = new User(_cluster, "owner20@test.com", $"{SpinConstants.Schema.PrincipalKey}/test.com/owner20@test.com");
+        _user2 = new User(_cluster, "owner21@test.com", $"{SpinConstants.Schema.PrincipalKey}/test.com/owner21@test.com");
 
         var user1Access = new BlockAccess { Grant = BlockGrant.Write, BlockType = nameof(LedgerItem), PrincipalId = _user1.OwnerId };
 
-        _contract1 = new Contract(_cluster, $"{SpinConstants.Schema.SoftBank}/company1.com/Account1", _user1.OwnerId);
-        _contract2 = new Contract(_cluster, $"{SpinConstants.Schema.SoftBank}/company1.com/Account2", _user2.OwnerId, user1Access);
+        _contract1 = new Contract(_cluster, $"{SpinConstants.Schema.SoftBank}/company1.com/Account21", _user1.OwnerId);
+        _contract2 = new Contract(_cluster, $"{SpinConstants.Schema.SoftBank}/company1.com/Account22", _user2.OwnerId, user1Access);
     }
 
     [Fact]

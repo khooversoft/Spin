@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Toolbox.Block;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Models;
+namespace SpinCluster.sdk.Serialization;
 
 [GenerateSerializer]
 public struct OptionSerialization

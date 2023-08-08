@@ -31,7 +31,7 @@ public class SignatureConnector
         group.MapExist(_logger, async (objectId, context) => await _client.GetGrain<ISignatureActor>(objectId).Exist(context.TraceId));
 
         // Create
-        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, PrincipalKeyRequest model) =>
+        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, PrincipalKeyRequest model) =>
         {
             var context = new ScopeContext(traceId, _logger);
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
@@ -42,7 +42,7 @@ public class SignatureConnector
         });
 
         // Sign
-        group.MapPost("/sign/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, SignRequest model) =>
+        group.MapPost("/sign/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, SignRequest model) =>
         {
             var context = new ScopeContext(traceId, _logger);
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
@@ -53,7 +53,7 @@ public class SignatureConnector
         });
 
         // Validate
-        group.MapPost("/validate/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, ValidateRequest model) =>
+        group.MapPost("/validate/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, ValidateRequest model) =>
         {
             var context = new ScopeContext(traceId, _logger);
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());

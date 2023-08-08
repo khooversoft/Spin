@@ -12,13 +12,13 @@ public class ConfigurationClient
 
     public async Task<Option<SiloConfigOption>> Get(ScopeContext context) => await new RestClient(_client)
         .SetPath("configuration")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<SiloConfigOption>();
 
     public async Task<Option> Set(SiloConfigOption request, string leaseId, ScopeContext context) => await new RestClient(_client)
         .SetPath("configuration")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(request)
         .PostAsync(context)
         .GetContent<Option>()

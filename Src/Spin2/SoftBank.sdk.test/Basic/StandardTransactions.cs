@@ -38,7 +38,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         ISoftBankActor softBankActor = _cluster.GrainFactory.GetGrain<ISoftBankActor>(objectId);
         ISignatureActor signatureActor = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId);
 
-        await softBankActor.Delete(_context.TraceId);
+        await softBankActor.Delete(ownerId, _context.TraceId);
         await signatureActor.Delete(_context.TraceId);
 
         await CreateKeys(signatureActor, keyId, ownerId);
@@ -58,7 +58,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         Option ledgerItemResponse = await softBankActor.AddLedgerItem(ledgerItem, _context.TraceId);
         ledgerItemResponse.StatusCode.IsOk().Should().BeTrue();
 
-        Option<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
+        Option<AccountDetail> accountDetails = await softBankActor.GetAccountDetail(ownerId, _context.TraceId);
         accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
         (request == accountDetails.Return()).Should().BeTrue("not equal");
 
@@ -67,12 +67,12 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         ledgerItems.Return().Count.Should().Be(1);
         (ledgerItems.Return()[0] == ledgerItem).Should().BeTrue();
 
-        Option<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
+        Option<AccountBalance> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
-        balanceResponse.Return().Should().Be(100.0m);
+        balanceResponse.Return().Balance.Should().Be(100.0m);
 
         // Clean up
-        var deleteResponse = await softBankActor.Delete(_context.TraceId);
+        var deleteResponse = await softBankActor.Delete(ownerId, _context.TraceId);
         var signatureResponse = await signatureActor.Delete(_context.TraceId);
         deleteResponse.StatusCode.IsOk().Should().BeTrue();
         signatureResponse.StatusCode.IsOk().Should().BeTrue();
@@ -89,7 +89,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         ISoftBankActor softBankActor = _cluster.GrainFactory.GetGrain<ISoftBankActor>(objectId);
         ISignatureActor signatureActor = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId);
 
-        await softBankActor.Delete(_context.TraceId);
+        await softBankActor.Delete(ownerId, _context.TraceId);
         await signatureActor.Delete(_context.TraceId);
 
         await CreateKeys(signatureActor, keyId, ownerId);
@@ -117,7 +117,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
             addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
         }
 
-        Option<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
+        Option<AccountDetail> accountDetails = await softBankActor.GetAccountDetail(ownerId, _context.TraceId);
         accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
         (request == accountDetails.Return()).Should().BeTrue("not equal");
 
@@ -126,12 +126,12 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         ledgerItems.Return().Count.Should().Be(newItems.Length);
         newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
 
-        Option<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
+        Option<AccountBalance> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
-        balanceResponse.Return().Should().Be(135.15m);
+        balanceResponse.Return().Balance.Should().Be(135.15m);
 
         // Clean up
-        var deleteResponse = await softBankActor.Delete(_context.TraceId);
+        var deleteResponse = await softBankActor.Delete(ownerId, _context.TraceId);
         var signatureResponse = await signatureActor.Delete(_context.TraceId);
         deleteResponse.StatusCode.IsOk().Should().BeTrue();
         signatureResponse.StatusCode.IsOk().Should().BeTrue();

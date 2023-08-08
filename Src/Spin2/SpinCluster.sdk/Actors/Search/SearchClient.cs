@@ -29,7 +29,7 @@ public class SearchClient
 
         return await new RestClient(_client)
             .SetPath($"/search?{query}")
-            .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+            .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
             .GetAsync(context)
             .GetContent<IReadOnlyList<StorePathItem>>();
     }

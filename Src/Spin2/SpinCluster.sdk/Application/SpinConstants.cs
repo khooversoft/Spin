@@ -30,9 +30,10 @@ public static class SpinConstants
         public const string SmartContract = ".sc";
     }
 
-    public static class Protocol
+    public static class Headers
     {
         public const string TraceId = "spin-trace-id";
+        public const string PrincipalId = "spin-principal-id";
     }
 
     public static class ApiPath

@@ -45,7 +45,7 @@ public record Contract
         createResult.StatusCode.IsOk().Should().BeTrue(createResult.Error);
     }
 
-    public async Task Delete(ScopeContext context) => await _softbank.Delete(context.TraceId);
+    public async Task Delete(ScopeContext context) => await _softbank.Delete(OwnerId, context.TraceId);
 
     public async Task AddLedgerItem(LedgerItem ledgerItem, ScopeContext context)
     {

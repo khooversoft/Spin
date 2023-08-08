@@ -25,13 +25,13 @@ internal class ConfigurationConnector
 
     public void Setup(IEndpointRouteBuilder app)
     {
-        app.MapGet("/configuration", async ([FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        app.MapGet("/configuration", async ([FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var response = await Get(traceId);
             return response.ToResult();
         });
 
-        app.MapPost("/configuration", async (SiloConfigOption request, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        app.MapPost("/configuration", async (SiloConfigOption request, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var response = await Set(request, traceId);
             return response.ToResult();

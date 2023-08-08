@@ -50,6 +50,7 @@ public class SoftBankFactory
 
     public async Task<Option<SoftBankAccount>> Create(BlobPackage package, ScopeContext context)
     {
+        package.NotNull();
         context = context.With(_logger);
 
         Option<BlockChain> blockChain = package.ToBlockChain(context);

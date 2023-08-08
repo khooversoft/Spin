@@ -31,7 +31,7 @@ internal class SearchConnector
             [FromQuery(Name = "index")] int? index,
             [FromQuery(Name = "count")] int? count,
             [FromQuery(Name = "recurse")] bool? recurse,
-            [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId
+            [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
             ) =>
         {
             var query = new SearchQuery

@@ -3,6 +3,7 @@ using SoftBank.sdk.Models;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Security.Principal;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -17,10 +18,10 @@ public class LedgerItemImpl
 
     public LedgerItemImpl(BlockChain blockChain, ISign sign, IValidator<LedgerItem> validator, ILogger logger)
     {
-        _blockChain = blockChain;
-        _sign = sign;
-        _validator = validator;
-        _logger = logger;
+        _blockChain = blockChain.NotNull();
+        _sign = sign.NotNull();
+        _validator = validator.NotNull();
+        _logger = logger.NotNull();
     }
 
     public Option<BlockReader<LedgerItem>> GetReader(PrincipalId principalId, ScopeContext context) => _blockChain

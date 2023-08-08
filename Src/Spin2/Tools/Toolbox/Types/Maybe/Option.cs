@@ -4,8 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace Toolbox.Types;
 
-
-
 public readonly struct Option : IEquatable<Option>
 {
     public Option(StatusCode statusCode) => StatusCode = statusCode;
@@ -22,5 +20,7 @@ public readonly struct Option : IEquatable<Option>
 
     public static bool operator ==(Option left, Option right) => left.Equals(right);
     public static bool operator !=(Option left, Option right) => !(left == right);
+
+    public static implicit operator Option(StatusCode value) => new Option(value);
 }
 

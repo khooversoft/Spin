@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Block;
 
-namespace SpinCluster.sdk.Models;
+namespace SpinCluster.sdk.Serialization;
 
 [GenerateSerializer]
 public struct BlockAccessSerialization

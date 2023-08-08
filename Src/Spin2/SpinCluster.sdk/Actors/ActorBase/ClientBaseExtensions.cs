@@ -6,28 +6,32 @@ namespace SpinCluster.sdk.Actors.ActorBase;
 
 public static class ClientBaseExtensions
 {
-    public static async Task<Option> Delete(this HttpClient client, string rootPath, ObjectId id, ScopeContext context) => await new RestClient(client)
+    public static async Task<Option> Delete(this HttpClient client, string rootPath, ObjectId id, PrincipalId? principalId, ScopeContext context) => await new RestClient(client)
         .SetPath($"/{rootPath}/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
-        .GetAsync(context)
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.PrincipalId, principalId?.ToString())
+        .DeleteAsync(context)
         .ToOption();
 
-    public static async Task<Option<T>> Get<T>(this HttpClient client, string rootPath, ObjectId id, ScopeContext context) => await new RestClient(client)
+    public static async Task<Option<T>> Get<T>(this HttpClient client, string rootPath, ObjectId id, PrincipalId? principalId, ScopeContext context) => await new RestClient(client)
         .SetPath($"/{rootPath}/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.PrincipalId, principalId?.ToString())
         .GetAsync(context)
         .GetContent<T>();
 
-    public static async Task<Option> Set<T>(this HttpClient client, string rootPath, ObjectId id, T content, ScopeContext context) => await new RestClient(client)
+    public static async Task<Option> Set<T>(this HttpClient client, string rootPath, ObjectId id, T content, PrincipalId? principalId, ScopeContext context) => await new RestClient(client)
         .SetPath($"/{rootPath}/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.PrincipalId, principalId?.ToString())
         .SetContent(content)
         .PostAsync(context)
         .ToOption();
 
-    public static async Task<Option> Exist(this HttpClient client, string rootPath, ObjectId id, ScopeContext context) => await new RestClient(client)
+    public static async Task<Option> Exist(this HttpClient client, string rootPath, ObjectId id, PrincipalId? principalId, ScopeContext context) => await new RestClient(client)
         .SetPath($"/{rootPath}/exist/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.PrincipalId, principalId?.ToString())
         .GetAsync(context)
         .ToOption();
 }

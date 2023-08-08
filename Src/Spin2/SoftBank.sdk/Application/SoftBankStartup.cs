@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.Models;
 using SpinCluster.sdk.Application;
+using Toolbox.Block;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -29,6 +30,7 @@ public static class SoftBankStartup
 
         services.AddSingleton<IValidator<LedgerItem>>(LedgerTypeValidator.Validator);
         services.AddSingleton<IValidator<AccountDetail>>(AccountDetailValidator.Validator);
+        services.AddSingleton<IValidator<BlockAcl>>(BlockAclValidator.Validator);
 
         services.AddSingleton<ISign, SignProxy>();
         services.AddSingleton<ISignValidate, SignValidationProxy>();

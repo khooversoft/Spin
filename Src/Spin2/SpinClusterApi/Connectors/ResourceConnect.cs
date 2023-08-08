@@ -24,20 +24,20 @@ internal class ResourceConnect
     {
         var group = app.MapGroup("/resource");
 
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) => await Get(objectId, traceId) switch
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) => await Get(objectId, traceId) switch
         {
             var v when v.IsError() => Results.StatusCode((int)v.StatusCode.ToHttpStatusCode()),
             var v when v.HasValue => Results.Ok(v.Return()),
             var v => Results.BadRequest(v.Return()),
         });
 
-        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, ResourceFile resourceFile) =>
+        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, ResourceFile resourceFile) =>
         {
             StatusCode statusCode = await Set(objectId, traceId, resourceFile);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());
         });
 
-        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             StatusCode statusCode = await Delete(objectId, traceId);
             return Results.StatusCode((int)statusCode.ToHttpStatusCode());

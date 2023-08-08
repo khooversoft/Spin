@@ -41,10 +41,10 @@ public class SoftBankAccount
         return await _blockChain.ValidateBlockChain(signValidate, context);
     }
 
-
     public BlobPackage ToBlobPackage() => _blockChain.ToBlobPackage();
+    public Option IsOwner(PrincipalId principalId) => _blockChain.IsOwner(principalId);
 
-    public async Task TransferFunds(decimal amount, ObjectId toAccount, PrincipalId ownerId)
+    public async Task PushToAccount(decimal amount, ObjectId toAccount, PrincipalId principalId)
     {
     }
 }

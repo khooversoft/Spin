@@ -13,7 +13,7 @@ public static class ConnectorBaseExtensions
 {
     public static void MapDelete(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<Option>> call)
     {
-        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var context = new ScopeContext(traceId, logger);
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
@@ -26,7 +26,7 @@ public static class ConnectorBaseExtensions
 
     public static void MapExist(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<Option>> call)
     {
-        group.MapGet("/exist/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        group.MapGet("/exist/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var context = new ScopeContext(traceId, logger);
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
@@ -39,7 +39,7 @@ public static class ConnectorBaseExtensions
 
     public static void MapGet<T>(this RouteGroupBuilder group, ILogger logger, Func<string, ScopeContext, Task<Option<T>>> call)
     {
-        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId) =>
+        group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var context = new ScopeContext(traceId, logger);
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
@@ -52,7 +52,7 @@ public static class ConnectorBaseExtensions
 
     public static void MapSet<T>(this RouteGroupBuilder group, ILogger logger, Func<string, T, ScopeContext, Task<Option>> call)
     {
-        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Protocol.TraceId)] string traceId, T model) =>
+        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, T model) =>
         {
             var context = new ScopeContext(traceId, logger);
             Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());

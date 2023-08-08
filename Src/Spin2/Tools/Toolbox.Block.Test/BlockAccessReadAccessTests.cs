@@ -73,9 +73,23 @@ public class BlockAccessReadAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetObjectId(objectId.ToObjectId())
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
             .Return();
+
+        var acl = new BlockAcl
+        {
+            Items = new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 }
+                .ToEnumerable()
+                .ToArray(),
+        };
+
+        Option<DataBlock> aclBlock = await DataBlockBuilder
+            .CreateAclBlock(acl, issuer, _context)
+            .Sign(principleSignature, _context);
+
+        aclBlock.StatusCode.IsOk().Should().BeTrue();
+
+        blockChain.Add(aclBlock.Return()).StatusCode.IsOk().Should().BeTrue();
 
         // Check write access
         var p1 = new Payload1 { Name = "name1", Last = "last1" };

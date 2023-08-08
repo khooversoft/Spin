@@ -56,7 +56,12 @@ public class RestClient
     }
 
     public RestClient SetEnsureSuccessStatusCode(bool state) => this.Action(x => x.EnsureSuccessStatusCode = state);
-    public RestClient AddHeader(string header, string value) => this.Action(x => x._headers[header] = value);
+
+    public RestClient AddHeader(string header, string? value)
+    {
+        if (value.IsNotEmpty()) _headers[header] = value!;
+        return this;
+    }
 
     public async Task<RestResponse> SendAsync(HttpRequestMessage requestMessage, ScopeContext context)
     {

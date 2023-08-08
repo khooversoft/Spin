@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Models;
+namespace SpinCluster.sdk.Serialization;
 
 [GenerateSerializer]
 public struct Option_T_Serialization<T>

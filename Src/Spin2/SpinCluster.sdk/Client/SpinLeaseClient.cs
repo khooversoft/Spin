@@ -13,7 +13,7 @@ public class SpinLeaseClient
 
     public async Task<Option<LeaseData>> Acquire(ObjectId id, ScopeContext context) => await new RestClient(_client)
         .SetPath($"lease/{id}")
-        .AddHeader(SpinConstants.Protocol.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<LeaseData>();
 

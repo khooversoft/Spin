@@ -113,6 +113,12 @@ public sealed class BlockChain
         .Select(x => x.DataBlock.ToObject<GenesisBlock>())
         .Last();
 
+    public Option IsOwner(PrincipalId principalId) => GetGenesisBlock() switch
+    {
+        var v when v.OwnerPrincipalId == principalId => new Option(StatusCode.OK),
+        _ => new Option(StatusCode.Forbidden),
+    };
+
     public IReadOnlyList<PrincipalDigest> GetPrincipleDigests()
     {
         return _blocks

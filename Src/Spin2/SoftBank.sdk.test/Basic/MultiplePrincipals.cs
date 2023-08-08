@@ -43,7 +43,7 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
         ISignatureActor signatureActor = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId);
         ISignatureActor signatureActor2 = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId2);
 
-        await softBankActor.Delete(_context.TraceId);
+        await softBankActor.Delete(ownerId, _context.TraceId);
         await signatureActor.Delete(_context.TraceId);
         await signatureActor2.Delete(_context.TraceId);
 
@@ -79,7 +79,7 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
             addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
         }
 
-        Option<AccountDetail> accountDetails = await softBankActor.GetBankDetails(ownerId, _context.TraceId);
+        Option<AccountDetail> accountDetails = await softBankActor.GetAccountDetail(ownerId, _context.TraceId);
         accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
         (request == accountDetails.Return()).Should().BeTrue("not equal");
 
@@ -93,12 +93,12 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
         ledgerItems2.StatusCode.IsError().Should().BeTrue();
 
 
-        Option<decimal> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
+        Option<AccountBalance> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
-        balanceResponse.Return().Should().Be(170.30m);
+        balanceResponse.Return().Balance.Should().Be(170.30m);
 
         // Clean up
-        var deleteResponse = await softBankActor.Delete(_context.TraceId);
+        var deleteResponse = await softBankActor.Delete(ownerId, _context.TraceId);
         var signatureResponse = await signatureActor.Delete(_context.TraceId);
         var signatureResponse2 = await signatureActor2.Delete(_context.TraceId);
         deleteResponse.StatusCode.IsOk().Should().BeTrue();
