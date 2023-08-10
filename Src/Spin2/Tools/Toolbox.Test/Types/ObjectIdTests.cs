@@ -48,23 +48,16 @@ public class ObjectIdTests
     }
 
     [Theory]
+    [InlineData("schema/tenant")]
     [InlineData("schema/tenant/path1")]
+    [InlineData("abcdefghijklmnopqrstuvwxyz-_.$0123456789/abcdefghijklmnopqrstuvwxyz-_.0123456789/path1")]
     [InlineData("s1ch2ema/p3a4th/p5at7h2")]
-    [InlineData("schema/sch@e.ma/pa-th/pa_th2")]
     [InlineData("schema/schema/path/path2")]
     [InlineData("schema/path/path2/")]
     [InlineData("schema/schema/path/path2/")]
     [InlineData("path/tenant/path2/")]
-    [InlineData("path/.tenant/_path")]
-    [InlineData("path/.path2/path")]
     [InlineData("d/a/b/c/d")]
-    [InlineData("path/.tenant./path2")]
-    [InlineData(".path/path2")]
-    [InlineData("schema/@")]
-    [InlineData("schema/@/")]
     [InlineData("schema/path")]
-    [InlineData("schema/schema/path/pa*th2")]
-    [InlineData("5path/path2/")]
     public void TestPositivePatterns(string input)
     {
         ObjectId.IsValid(input).Should().BeTrue();
@@ -86,6 +79,15 @@ public class ObjectIdTests
     [InlineData("path//da&ta")]
     [InlineData("path///.path2./")]
     [InlineData("-path///path2")]
+    [InlineData(".path/path2")]
+    [InlineData("schema/@")]
+    [InlineData("schema/@/")]
+    [InlineData("5path/path2/")]
+    [InlineData("schema/sch@e.ma/pa-th/pa_th2")]
+    [InlineData("schema/schema/path/pa*th2")]
+    [InlineData("path/.path2/path")]
+    [InlineData("path/tenant./path2")]
+    [InlineData("path/tenant/_path")]
     public void TestNegativePatterns(string input)
     {
         ObjectId.IsValid(input).Should().BeFalse();

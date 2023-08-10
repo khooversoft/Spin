@@ -19,10 +19,7 @@ public readonly record struct NameId
 
     public override string ToString() => Value;
 
-    public static bool IsValid(string subject) => subject.IsNotEmpty() && subject.All(x => IsCharacterValid(x));
-
-    public static bool IsCharacterValid(char ch) =>
-        char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*' || ch == ':';
+    public static bool IsValid(string subject) => IdPatterns.IsName(subject);
 
     public static bool operator ==(NameId left, string right) => left.Value.Equals(right);
     public static bool operator !=(NameId left, string right) => !(left == right);

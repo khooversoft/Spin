@@ -62,12 +62,12 @@ public partial class UserEdit
         var request = _model.ConvertTo();
         var requestObjectId = new ObjectId(SpinConstants.Schema.User, Tenant, request.UserId);
 
-        var response = await Client.User.Set(requestObjectId, request, new ScopeContext(Logger));
-        if (response.StatusCode.IsError())
-        {
-            _errorMsg = $"Failed to write, statusCode={response.StatusCode}, error={response.Error}";
-            return false;
-        }
+        //var response = await Client.User.Set(requestObjectId, request, new ScopeContext(Logger));
+        //if (response.StatusCode.IsError())
+        //{
+        //    _errorMsg = $"Failed to write, statusCode={response.StatusCode}, error={response.Error}";
+        //    return false;
+        //}
 
         NavManager.NavigateTo(_returnAddress, true);
         return true;
@@ -77,12 +77,13 @@ public partial class UserEdit
     {
         if (_objectId.Path.IsEmpty()) return new UserEditModel();
 
-        (UserEditModel result, _errorMsg) = await Client.User.Get(_objectId, new ScopeContext(Logger)) switch
-        {
-            var v when v.StatusCode.IsError() => (new UserEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
-            var v => (v.Return().ConvertTo(), null),
-        };
+        //(UserEditModel result, _errorMsg) = await Client.User.Get(_objectId, new ScopeContext(Logger)) switch
+        //{
+        //    var v when v.StatusCode.IsError() => (new UserEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
+        //    var v => (v.Return().ConvertTo(), null),
+        //};
 
-        return result;
+        //return result;
+        return null;
     }
 }

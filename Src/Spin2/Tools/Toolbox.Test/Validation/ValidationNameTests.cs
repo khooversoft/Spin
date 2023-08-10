@@ -39,8 +39,7 @@ public class ValidationNameTests
 
     [Theory]
     [InlineData("name")]
-    [InlineData("signKey@test.com")]
-    [InlineData("abcedefhijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890._$@_*")]
+    [InlineData("abcedefhijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890-$_E")]
     public void NameIsValid(string subject)
     {
         IValidator<NameTest> validator = new Validator<NameTest>()
