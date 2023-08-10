@@ -32,40 +32,43 @@ public class UserConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.User}");
 
-        //group.MapDelete("/{nameId}", Delete);
-        //group.MapGet("/{nameId}", Get);
-        //group.MapPost("/", Set);
+        group.MapDelete("/{nameId}", Delete);
+        group.MapGet("/{nameId}", Get);
+        group.MapPost("/", Set);
 
         return group;
     }
 
-    //private async Task<IResult> Delete(string userEmail, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    //{
-    //    var context = new ScopeContext(traceId, _logger);
-    //    Option<NameId> option = Princi.CreateIfValid(userEmail).LogResult(context.Location());
-    //    if (option.IsError()) option.ToResult();
+    private async Task<IResult> Delete(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
+        if (option.IsError()) option.ToResult();
 
-    //    ObjectId objectId = TenantModel.CreateId(option.Return());
-    //    Option response = await _client.GetObjectGrain<ITenantActor>(objectId).Delete(context.TraceId);
-    //    return response.ToResult();
-    //}
+        ObjectId objectId = UserModel.CreateId(option.Return());
+        Option response = await _client.GetObjectGrain<IUserActor>(objectId).Delete(context.TraceId);
+        return response.ToResult();
+    }
 
-    //public async Task<IResult> Get(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    //{
-    //    var context = new ScopeContext(traceId, _logger);
-    //    Option<NameId> option = nameId.ToNameIdIfValid(context.Location());
-    //    if (option.IsError()) option.ToResult();
+    public async Task<IResult> Get(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
+        if (option.IsError()) option.ToResult();
 
-    //    ObjectId objectId = UserModel.CreateId(option.Return());
-    //    Option<TenantModel> response = await _client.GetObjectGrain<ITenantActor>(objectId).Get(context.TraceId);
-    //    return response.ToResult();
-    //}
+        ObjectId objectId = UserModel.CreateId(option.Return());
+        Option<UserModel> response = await _client.GetObjectGrain<IUserActor>(objectId).Get(context.TraceId);
+        return response.ToResult();
+    }
 
-    //public async Task<IResult> Set(TenantModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    //{
-    //    var context = new ScopeContext(traceId, _logger);
+    public async Task<IResult> Set(UserModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
 
-    //    var response = await _client.GetObjectGrain<ITenantActor>(model.TenantId).Set(model, context.TraceId);
-    //    return response.ToResult();
-    //}
+        Option<ObjectId> option = ObjectId.Create(model.UserId).LogResult(context.Location());
+        if (option.IsError()) option.ToResult();
+
+        var response = await _client.GetObjectGrain<IUserActor>(option.Return()).Set(model, context.TraceId);
+        return response.ToResult();
+    }
 }

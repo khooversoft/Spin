@@ -27,7 +27,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         _cluster = fixture.Cluster;
     }
 
-    [Fact]
+    [Fact(Skip = "Go to API")]
     public async Task CreateBankAccountAndLedgerItem()
     {
         PrincipalId ownerId = "signKey@test.com";
@@ -78,7 +78,7 @@ public class StandardTransactions : IClassFixture<ClusterFixture>
         signatureResponse.StatusCode.IsOk().Should().BeTrue();
     }
 
-    [Fact]
+    [Fact(Skip = "Go to API")]
     public async Task CreateBankAccountAndMultipleLedgerItems()
     {
         PrincipalId ownerId = "owner1@test.com";

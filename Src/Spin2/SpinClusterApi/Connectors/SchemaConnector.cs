@@ -56,7 +56,7 @@ internal class SchemaConnector
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var oObjectId = ApiTools.TestObjectId(objectId, context.Location());
+        var oObjectId = ObjectId.Create(objectId).LogResult(context.Location());
         if (oObjectId.IsError()) return oObjectId.StatusCode;
 
         if (!_handlers.TryGetValue(oObjectId.Return().Schema, out ISchemaDataHandler? handler)) return StatusCode.BadRequest;
@@ -68,7 +68,7 @@ internal class SchemaConnector
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var id = ApiTools.TestObjectId(objectId, context.Location());
+        var id = ObjectId.Create(objectId).LogResult(context.Location());
         if (id.IsError()) return id.ToOptionStatus<string>();
 
         if (!_handlers.TryGetValue(id.Return().Schema, out ISchemaDataHandler? handler))
@@ -81,7 +81,7 @@ internal class SchemaConnector
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var oObjectId = ApiTools.TestObjectId(objectId, context.Location());
+        var oObjectId = ObjectId.Create(objectId).LogResult(context.Location());
         if (oObjectId.IsError()) return oObjectId.StatusCode;
 
         if (!_handlers.TryGetValue(oObjectId.Return().Schema, out ISchemaDataHandler? handler))

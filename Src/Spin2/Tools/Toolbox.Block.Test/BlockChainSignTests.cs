@@ -22,7 +22,7 @@ namespace Toolbox.Block.Test
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetObjectId("user/tenant/user@domain.com".ToObjectId())
+                .SetObjectId("user/tenant/user@domain.com")
                 .SetPrincipleId(issuer)
                 .Build(principleSignature, _context)
                 .Return();
@@ -64,7 +64,7 @@ namespace Toolbox.Block.Test
                 .Return();
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetObjectId(objectId.ToObjectId())
+                .SetObjectId(objectId)
                 .SetPrincipleId(issuer)
                 .Build(principleSignature, _context)
                 .Return();
@@ -140,7 +140,7 @@ namespace Toolbox.Block.Test
                 .Add(new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com"));
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetObjectId(objectId.ToObjectId())
+                .SetObjectId(objectId)
                 .SetPrincipleId(issuer)
                 .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
                 .Build(signCollection, _context)

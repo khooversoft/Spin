@@ -61,11 +61,11 @@ public sealed record ObjectId
     public static implicit operator ObjectId(string subject) => Parse(subject).Return();
     public static implicit operator string(ObjectId subject) => subject.ToString();
 
-    public static Option<ObjectId> CreateIfValid(string id) => ObjectId.Parse(id);
+    public static Option<ObjectId> Create(string id) => ObjectId.Parse(id);
 
     public static bool IsValid(string? id) => ObjectId.Parse(id).IsOk();
 
-    public static Option<ObjectId> Parse(string? objectId)
+    private static Option<ObjectId> Parse(string? objectId)
     {
         if (objectId.IsEmpty()) return new Option<ObjectId>(StatusCode.BadRequest);
 
@@ -92,17 +92,6 @@ public sealed record ObjectId
 
 public static class ObjectIdExtensions
 {
-    public static ObjectId ToObjectId(this string? subject) => ObjectId.Parse(subject).Return();
-    public static ObjectId ToObjectId(this string? subject, string schema, string tenant) => ObjectId.Parse($"{schema}/{tenant}/{subject}").Return();
-    public static Option<ObjectId> ToObjectIdIfValid(this string subject) => ObjectId.CreateIfValid(subject);
-
-    public static Option<ObjectId> ToObjectIdIfValid(this string subject, ScopeContextLocation location)
-    {
-        var option = ObjectId.CreateIfValid(subject);
-        if (option.IsError()) location.LogError("ObjectId is not valid, objectId={objectId}, error={error}", subject, option.Error);
-        return option;
-    }
-
     public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString(subject.ToString());
 
     public static string GetParent(this ObjectId subject) => subject.Paths

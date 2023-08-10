@@ -43,14 +43,14 @@ public static class OptionExtensionTools
     public static bool IsNotFound<T>(this Option<T> subject) => subject.StatusCode.IsNotFound();
 
     public static Option ThrowOnError(this Option option) => option
-        .Assert(x => x.StatusCode.IsOk(), x => $"Option is error, statusCode={x.StatusCode}");
+        .Assert(x => x.StatusCode.IsOk(), x => $"StatusCode={x.StatusCode}, Error={x.Error}");
 
     public static async Task<Option> ThrowOnError(this Task<Option> option) => (await option)
-        .Assert(x => x.StatusCode.IsOk(), x => $"Option is error, statusCode={x.StatusCode}");
+        .Assert(x => x.StatusCode.IsOk(), x => $"StatusCode={x.StatusCode}, Error={x.Error}");
 
     public static Option<T> ThrowOnError<T>(this Option<T> option) => option
-        .Assert(x => x.StatusCode.IsOk(), x => $"Option<T> (T={typeof(T).FullName}) is error, statusCode={x.StatusCode}");
+        .Assert(x => x.StatusCode.IsOk(), x => $"StatusCode={x.StatusCode}, Error={x.Error}");
 
     public static async Task<Option<T>> ThrowOnError<T>(this Task<Option<T>> option) => (await option)
-        .Assert(x => x.StatusCode.IsOk(), x => $"Option<T> (T={typeof(T).FullName}) is error, statusCode={x.StatusCode}");
+        .Assert(x => x.StatusCode.IsOk(), x => $"StatusCode= {x.StatusCode}, Error={x.Error}");
 }

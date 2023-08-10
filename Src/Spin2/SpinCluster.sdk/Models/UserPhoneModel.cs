@@ -1,10 +1,9 @@
 ﻿using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.Tenant;
-using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.User;
+namespace SpinCluster.sdk.Models;
 
 [GenerateSerializer, Immutable]
 public sealed record UserPhoneModel

@@ -22,7 +22,7 @@ public static class PrincipalKeyRequestValidator
 {
     public static IValidator<PrincipalKeyRequest> Validator { get; } = new Validator<PrincipalKeyRequest>()
         .RuleFor(x => x.KeyId).NotEmpty().ValidObjectId()
-        .RuleFor(x => x.OwnerId).NotEmpty().ValidName()
+        .RuleFor(x => x.OwnerId).ValidPrincipalId()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.Audience).NotEmpty()
         .Build();

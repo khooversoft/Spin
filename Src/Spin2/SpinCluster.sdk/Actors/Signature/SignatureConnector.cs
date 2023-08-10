@@ -34,7 +34,7 @@ public class SignatureConnector
         group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, PrincipalKeyRequest model) =>
         {
             var context = new ScopeContext(traceId, _logger);
-            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
             if (option.IsError()) option.ToResult();
 
             Option response = await _client.GetGrain<ISignatureActor>(objectId).Create(model, traceId);
@@ -45,7 +45,7 @@ public class SignatureConnector
         group.MapPost("/sign/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, SignRequest model) =>
         {
             var context = new ScopeContext(traceId, _logger);
-            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
             if (option.IsError()) option.ToResult();
 
             Option<string> response = await _client.GetGrain<ISignatureActor>(objectId).Sign(model.Digest, context.TraceId);
@@ -56,7 +56,7 @@ public class SignatureConnector
         group.MapPost("/validate/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, ValidateRequest model) =>
         {
             var context = new ScopeContext(traceId, _logger);
-            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
             if (option.IsError()) option.ToResult();
 
             Option response = await _client.GetGrain<ISignatureActor>(objectId).ValidateJwtSignature(model.JwtSignature, model.Digest, context.TraceId);

@@ -21,7 +21,7 @@ public class SignProxy : ISign
 
     public async Task<Option<string>> SignDigest(string kid, string messageDigest, ScopeContext context)
     {
-        Option<PrincipalId> ownerIdResult = PrincipalId.CreateIfValid(kid).LogResult(context.Location());
+        Option<PrincipalId> ownerIdResult = PrincipalId.Create(kid).LogResult(context.Location());
         if (ownerIdResult.IsError()) return ownerIdResult.ToOptionStatus<string>();
 
         PrincipalId ownerId = ownerIdResult.Return();

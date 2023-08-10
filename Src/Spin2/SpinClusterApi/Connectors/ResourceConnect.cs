@@ -48,7 +48,7 @@ internal class ResourceConnect
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var oObjectId = ApiTools.TestObjectId(objectId, context.Location());
+        var oObjectId = ObjectId.Create(objectId).LogResult(context.Location());
         if (oObjectId.IsError()) return oObjectId.StatusCode;
 
         IResourceActor actor = _client.GetGrain<IResourceActor>(objectId);
@@ -59,7 +59,7 @@ internal class ResourceConnect
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var id = ApiTools.TestObjectId(objectId, context.Location());
+        var id = ObjectId.Create(objectId).LogResult(context.Location());
         if (id.IsError()) return id.ToOptionStatus<ResourceFile>();
 
         IResourceActor actor = _client.GetGrain<IResourceActor>(objectId);
@@ -73,7 +73,7 @@ internal class ResourceConnect
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var oObjectId = ApiTools.TestObjectId(objectId, context.Location());
+        var oObjectId = ObjectId.Create(objectId).LogResult(context.Location());
         if (oObjectId.IsError()) return oObjectId.StatusCode;
 
         IResourceActor actor = _client.GetGrain<IResourceActor>(objectId);

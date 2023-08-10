@@ -88,7 +88,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         }
 
         var acl = new BlockAcl(detail.AccessRights);
-        var softBank = await _softBankFactory.Create(detail.ObjectId.ToObjectId(), detail.OwnerId, acl, context).Return();
+        var softBank = await _softBankFactory.Create(detail.ObjectId, detail.OwnerId, acl, context).Return();
 
         Option writeResult = await softBank.AccountDetail.Set(detail, context);
         if (writeResult.StatusCode.IsError()) return writeResult;

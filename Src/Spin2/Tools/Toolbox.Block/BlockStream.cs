@@ -27,7 +27,7 @@ public class BlockWriter<T> where T : class
     internal BlockWriter(BlockChain blockChain, string blockType)
     {
         _blockChain = blockChain.NotNull();
-        _blockType = NameId.Verify(blockType);
+        _blockType = NameId.Create(blockType).ThrowOnError().Return();
     }
 
     public Option Add(DataBlock value) => _blockChain.Add(value);

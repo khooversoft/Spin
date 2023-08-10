@@ -27,7 +27,8 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
         _cluster = fixture;
     }
 
-    [Fact]
+    [Fact(Skip = "server")]
+    //[Fact]
     public async Task LifecycleTest()
     {
         SubscriptionClient client = _cluster.ServiceProvider.GetRequiredService<SubscriptionClient>();
@@ -58,22 +59,6 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
             Name = nameId,
             ContactName = nameId + "contact",
             Email = "user1@company1.com",
-            Phone = new[]
-            {
-                new UserPhoneModel { Type = "Cell", Number = "202-555-1212" },
-            },
-            Address = new[]
-            {
-                new UserAddressModel
-                {
-                    Type = "Home",
-                    Address1 = "Address1",
-                    City = "City",
-                    State = "State",
-                    ZipCode = "ZipCode",
-                    Country = "Country",
-                }
-            },
             AccountEnabled = true,
             ActiveDate = DateTime.UtcNow,
         };

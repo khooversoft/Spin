@@ -39,10 +39,10 @@ public class TenantConnector
         return group;
     }
 
-    private async Task<IResult> Delete(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Delete(string tenantId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<NameId> option = nameId.ToNameIdIfValid(context.Location());
+        Option<TenantId> option = TenantId.Create(tenantId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         ObjectId objectId = TenantModel.CreateId(option.Return());
@@ -50,10 +50,10 @@ public class TenantConnector
         return response.ToResult();
     }
 
-    public async Task<IResult> Get(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Get(string tenantId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<NameId> option = nameId.ToNameIdIfValid(context.Location());
+        Option<TenantId> option = TenantId.Create(tenantId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         ObjectId objectId = TenantModel.CreateId(option.Return());
@@ -64,8 +64,10 @@ public class TenantConnector
     public async Task<IResult> Set(TenantModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
+        Option<ObjectId> option = ObjectId.Create(model.TenantId).LogResult(context.Location());
+        if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<ITenantActor>(model.TenantId).Set(model, context.TraceId);
+        var response = await _client.GetObjectGrain<ITenantActor>(option.Return()).Set(model, context.TraceId);
         return response.ToResult();
     }
 }

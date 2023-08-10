@@ -49,13 +49,13 @@ public static class TenantEditModelExtensions
         CreatedDate = subject.CreatedDate.ToUniversalTime(),
         ActiveDate = subject.ActiveDate?.ToUniversalTime(),
 
-        PhoneNumber = subject.Phone.FirstOrDefault()?.Number!,
-        Address1 = subject.Address.FirstOrDefault()?.Address1!,
-        Address2 = subject.Address.FirstOrDefault()?.Address2!,
-        City = subject.Address.FirstOrDefault()?.City!,
-        State = subject.Address.FirstOrDefault()?.State!,
-        ZipCode = subject.Address.FirstOrDefault()?.ZipCode!,
-        Country = subject.Address.FirstOrDefault()?.Country!,
+        //PhoneNumber = subject.Phone.FirstOrDefault()?.Number!,
+        //Address1 = subject.Address.FirstOrDefault()?.Address1!,
+        //Address2 = subject.Address.FirstOrDefault()?.Address2!,
+        //City = subject.Address.FirstOrDefault()?.City!,
+        //State = subject.Address.FirstOrDefault()?.State!,
+        //ZipCode = subject.Address.FirstOrDefault()?.ZipCode!,
+        //Country = subject.Address.FirstOrDefault()?.Country!,
     };
 
     public static TenantModel ConvertTo(this TenantEditModel subject) => new TenantModel
@@ -69,17 +69,17 @@ public static class TenantEditModelExtensions
         CreatedDate = subject.CreatedDate,
         ActiveDate = subject.ActiveDate,
 
-        Phone = new UserPhoneModel { Type = "Default", Number = subject.PhoneNumber }.ToEnumerable().ToArray(),
+        //Phone = new UserPhoneModel { Type = "Default", Number = subject.PhoneNumber }.ToEnumerable().ToArray(),
 
-        Address = new UserAddressModel
-        {
-            Type = "Default",
-            Address1 = subject.Address1,
-            Address2 = subject.Address2,
-            City = subject.City,
-            State = subject.State,
-            ZipCode = subject.ZipCode,
-            Country = subject.Country,
-        }.ToEnumerable().ToArray(),
+        //Address = new UserAddressModel
+        //{
+        //    Type = "Default",
+        //    Address1 = subject.Address1,
+        //    Address2 = subject.Address2,
+        //    City = subject.City,
+        //    State = subject.State,
+        //    ZipCode = subject.ZipCode,
+        //    Country = subject.Country,
+        //}.ToEnumerable().ToArray(),
     };
 }

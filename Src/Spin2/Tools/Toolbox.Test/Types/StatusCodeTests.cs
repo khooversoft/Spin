@@ -40,4 +40,16 @@ public class StatusCodeTests
         optionV2.HasValue.Should().BeFalse();
         optionV2.Value.Should().Be(v2);
     }
+
+    [Fact]
+    public void UsingStatusCodeRequestStatus()
+    {
+        Option option = StatusCode.BadRequest;
+        option.StatusCode.Should().Be(StatusCode.BadRequest);
+        option.Error.Should().BeNull();
+
+        Option<int> option2 = StatusCode.NotFound;
+        option2.StatusCode.Should().Be(StatusCode.NotFound);
+        option2.Error.Should().BeNull();
+    }
 }

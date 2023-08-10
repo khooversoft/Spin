@@ -17,8 +17,8 @@ public sealed record PrincipalId
     private ParseDetails _details;
 
     [JsonConstructor]
-    public PrincipalId(string id) => _details = Parse(id).ThrowOnError().Return();
-    public PrincipalId(ParseDetails parseDetails) => _details = parseDetails.NotNull();
+    public PrincipalId(string id) => _details = ParseDetails.Parse(id).ThrowOnError().Return();
+    private PrincipalId(ParseDetails parseDetails) => _details = parseDetails.NotNull();
 
     public string Id => _details.PrincipalId;
     [JsonIgnore] public string Name => _details.Name;
@@ -30,26 +30,18 @@ public sealed record PrincipalId
 
     public static bool IsValid(string subject) => IdPatterns.IsPrincipalId(subject);
 
-
-    public static Option<ParseDetails> Parse(string principalId)
+    public static Option<PrincipalId> Create(string principalId)
     {
-        if (!IsValid(principalId)) return StatusCode.BadRequest;
+        principalId = Uri.UnescapeDataString(principalId);
 
-        string[] parts = principalId.Split('@').Assert(x => x.Length == 2, "Failed");
-
-        return new ParseDetails
+        return ParseDetails.Parse(principalId) switch
         {
-            PrincipalId = principalId,
-            Name = parts[0],
-            Domain = parts[1],
+            var v when v.IsError() => v.ToOptionStatus<PrincipalId>(),
+            var v => new PrincipalId(v.Return()),
         };
     }
 
-    public static Option<PrincipalId> CreateIfValid(string principalId) => Parse(principalId) switch
-    {
-        var v when v.IsError() => v.ToOptionStatus<PrincipalId>(),
-        var v => new PrincipalId(v.Return()),
-    };
+    public string ToUrlEncoding() => Uri.EscapeDataString(this.ToString());
 
     public static bool operator ==(PrincipalId left, string right) => left.Id.Equals(right);
     public static bool operator !=(PrincipalId left, string right) => !(left == right);
@@ -59,10 +51,30 @@ public sealed record PrincipalId
     public static implicit operator PrincipalId(string subject) => new PrincipalId(subject);
     public static implicit operator string(PrincipalId subject) => subject.ToString();
 
-    public readonly record struct ParseDetails
+    
+    private readonly record struct ParseDetails
     {
         public string PrincipalId { get; init; }
         public string Name { get; init; }
         public string Domain { get; init; }
+
+        public static Option<ParseDetails> Parse(string principalId)
+        {
+            if (!IsValid(principalId)) return StatusCode.BadRequest;
+
+            string[] parts = principalId.Split('@').Assert(x => x.Length == 2, "Failed");
+
+            return new ParseDetails
+            {
+                PrincipalId = principalId,
+                Name = parts[0],
+                Domain = parts[1],
+            };
+        }
     }
+}
+
+public static class PrincipalIdExtensions
+{
+    public static string ToUrlEncoding(this PrincipalId subject) => Uri.EscapeDataString(subject.ToString());
 }

@@ -17,14 +17,14 @@ public class TenantClient
     protected readonly HttpClient _client;
     public TenantClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option> Delete(NameId nameId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Tenant}/{nameId.ToUrlEncoding()}")
+    public async Task<Option> Delete(TenantId tenantId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Tenant}/{tenantId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .DeleteAsync(context)
         .ToOption();
 
-    public async Task<Option<TenantModel>> Get(NameId nameId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Tenant}/{nameId.ToUrlEncoding()}")
+    public async Task<Option<TenantModel>> Get(TenantId tenantId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Tenant}/{tenantId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<TenantModel>();

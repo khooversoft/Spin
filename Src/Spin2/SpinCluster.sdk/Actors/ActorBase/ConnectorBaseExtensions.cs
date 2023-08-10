@@ -16,7 +16,7 @@ public static class ConnectorBaseExtensions
         group.MapDelete("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var context = new ScopeContext(traceId, logger);
-            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
             if (option.IsError()) option.ToResult();
 
             var response = await call(objectId, context);
@@ -29,7 +29,7 @@ public static class ConnectorBaseExtensions
         group.MapGet("/exist/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var context = new ScopeContext(traceId, logger);
-            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
             if (option.IsError()) option.ToResult();
 
             var response = await call(objectId, context);
@@ -42,7 +42,7 @@ public static class ConnectorBaseExtensions
         group.MapGet("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId) =>
         {
             var context = new ScopeContext(traceId, logger);
-            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
             if (option.IsError()) option.ToResult();
 
             var response = await call(objectId, context);
@@ -55,7 +55,7 @@ public static class ConnectorBaseExtensions
         group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, T model) =>
         {
             var context = new ScopeContext(traceId, logger);
-            Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
             if (option.IsError()) option.ToResult();
 
             var response = await call(objectId, model, context);

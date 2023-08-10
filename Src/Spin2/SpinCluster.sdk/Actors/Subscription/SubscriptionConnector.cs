@@ -42,7 +42,7 @@ public class SubscriptionConnector
     private async Task<IResult> Delete(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<NameId> option = nameId.ToNameIdIfValid(context.Location());
+        Option<NameId> option = NameId.Create(nameId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         ObjectId objectId = SubscriptionModel.CreateId(option.Return());
@@ -53,7 +53,7 @@ public class SubscriptionConnector
     public async Task<IResult> Get(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<NameId> option = nameId.ToNameIdIfValid(context.Location());
+        Option<NameId> option = NameId.Create(nameId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         ObjectId objectId = SubscriptionModel.CreateId(option.Return());
@@ -64,8 +64,10 @@ public class SubscriptionConnector
     public async Task<IResult> Set(SubscriptionModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
+        Option<ObjectId> option = ObjectId.Create(model.SubscriptionId).LogResult(context.Location());
+        if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<ISubscriptionActor>(model.SubscriptionId).Set(model, context.TraceId);
+        var response = await _client.GetObjectGrain<ISubscriptionActor>(option.Return()).Set(model, context.TraceId);
         return response.ToResult();
     }
 }

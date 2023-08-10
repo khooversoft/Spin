@@ -1,5 +1,8 @@
-﻿using SpinCluster.sdk.Actors.ActorBase;
+﻿using Microsoft.Azure.Amqp.Framing;
+using System.Numerics;
+using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.Tenant;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
@@ -8,11 +11,18 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.ActorBase;
 
 [GenerateSerializer, Immutable]
-public record DataObject
+public sealed record DataObject
 {
     [Id(0)] public string Key { get; init; } = null!;
     [Id(1)] public string TypeName { get; init; } = null!;
-    [Id(2)] public IReadOnlyList<KeyValuePair<string, string>> Values { get; init; } = null!;
+    [Id(2)] public IReadOnlyList<KeyValuePair<string, string>> Values { get; init; } = Array.Empty<KeyValuePair<string, string>>();
+
+    public bool Equals(DataObject? obj) => obj is DataObject document &&
+        Key == document.Key &&
+        TypeName == document.TypeName &&
+        Values.SequenceEqual(document.Values);
+
+    public override int GetHashCode() => HashCode.Combine(Key, TypeName, Values);
 }
 
 

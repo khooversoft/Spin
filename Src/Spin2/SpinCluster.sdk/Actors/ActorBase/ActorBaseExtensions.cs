@@ -49,7 +49,7 @@ public static class ActorBaseExtensions
     public static void VerifySchema(this Grain grain, string schema, ScopeContext context)
     {
         string actorKey = grain.GetPrimaryKeyString();
-        Option<ObjectId> objectId = ObjectId.CreateIfValid(actorKey).LogResult(context.Location());
+        Option<ObjectId> objectId = ObjectId.Create(actorKey).LogResult(context.Location());
 
         if (objectId.IsError()) throw new ArgumentException($"Invalid object Id, actorKey={actorKey}, error={objectId.Error}");
 

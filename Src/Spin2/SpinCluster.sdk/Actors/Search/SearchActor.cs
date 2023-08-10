@@ -58,7 +58,7 @@ public class SearchActor : Grain, ISearchActor
     public async Task<Option> Exist(string objectId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        var objId = ObjectId.CreateIfValid(objectId);
+        var objId = ObjectId.Create(objectId);
         if (objId.IsError()) return objId.ToOptionStatus();
 
         Option<IDatalakeStore> store = _datalakeResources.GetStore(objId.Return().Schema, context.Location());

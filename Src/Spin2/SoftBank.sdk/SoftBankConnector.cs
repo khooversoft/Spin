@@ -53,20 +53,20 @@ public class SoftBankConnector
     private async Task<IResult> Create(string objectId, AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).Create(model, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> Delete(string objectId, 
+    private async Task<IResult> Delete(string objectId,
         [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId,
         [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
         )
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).Delete(principalId, traceId);
@@ -76,7 +76,7 @@ public class SoftBankConnector
     private async Task<IResult> Exist(string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         var response = await _client.GetGrain<ISoftBankActor>(option.Return()).Exist(traceId);
@@ -89,7 +89,7 @@ public class SoftBankConnector
         )
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         Option<AccountDetail> response = await _client.GetGrain<ISoftBankActor>(option.Return()).GetAccountDetail(principalId, traceId);
@@ -101,7 +101,7 @@ public class SoftBankConnector
         )
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).SetAccountDetail(model, traceId);
@@ -114,7 +114,7 @@ public class SoftBankConnector
         )
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         Option<AccountBalance> response = await _client.GetGrain<ISoftBankActor>(option.Return()).GetBalance(principalId, traceId);
@@ -127,7 +127,7 @@ public class SoftBankConnector
     )
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).SetAcl(model, principalId, traceId);
@@ -140,7 +140,7 @@ public class SoftBankConnector
     )
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         var response = await _client.GetGrain<ISoftBankActor>(option.Return()).GetLedgerItems(principalId, traceId);
@@ -150,7 +150,7 @@ public class SoftBankConnector
     private async Task<IResult> AddLedgerItem(string objectId, LedgerItem model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = objectId.ToObjectIdIfValid(context.Location());
+        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
         var response = await _client.GetGrain<ISoftBankActor>(option.Return()).AddLedgerItem(model, traceId);

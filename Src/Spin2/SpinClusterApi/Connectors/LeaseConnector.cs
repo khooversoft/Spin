@@ -41,7 +41,7 @@ internal class LeaseConnector
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var oObjectId = ApiTools.TestObjectId(objectId, context.Location());
+        var oObjectId = ObjectId.Create(objectId).LogResult(context.Location());
         if (oObjectId.IsError()) return oObjectId.ToOptionStatus<LeaseData>();
 
         ILeaseActor actor = _client.GetGrain<ILeaseActor>(objectId);
@@ -55,7 +55,7 @@ internal class LeaseConnector
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var oObjectId = ApiTools.TestObjectId(objectId, context.Location());
+        var oObjectId = ObjectId.Create(objectId).LogResult(context.Location());
         if (oObjectId.IsError()) return oObjectId.StatusCode;
 
         ILeaseActor actor = _client.GetGrain<ILeaseActor>(objectId);

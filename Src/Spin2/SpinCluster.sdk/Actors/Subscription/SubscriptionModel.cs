@@ -4,6 +4,7 @@ using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
+using SpinCluster.sdk.Models;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -14,18 +15,18 @@ public sealed record SubscriptionModel
 {
     private const string _version = nameof(SubscriptionModel) + "-v1";
 
+    // Id = "schema/$system/{name}"
     [Id(0)] public string SubscriptionId { get; init; } = null!;
     [Id(1)] public string Version { get; init; } = _version;
     [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();
     [Id(3)] public string Name { get; init; } = null!;
     [Id(4)] public string ContactName { get; init; } = null!;
     [Id(5)] public string Email { get; init; } = null!;
-    [Id(6)] public IReadOnlyList<UserPhoneModel> Phone { get; init; } = Array.Empty<UserPhoneModel>();
-    [Id(7)] public IReadOnlyList<UserAddressModel> Address { get; init; } = Array.Empty<UserAddressModel>();
-    [Id(8)] public IReadOnlyList<string> Tenants { get; init; } = Array.Empty<string>();
-    [Id(9)] public bool AccountEnabled { get; init; } = false;
-    [Id(10)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(11)] public DateTime? ActiveDate { get; init; }
+    [Id(6)] public IReadOnlyList<DataObject> DataObjects { get; init; } = Array.Empty<DataObject>();
+    [Id(7)] public IReadOnlyList<string> Tenants { get; init; } = Array.Empty<string>();
+    [Id(8)] public bool AccountEnabled { get; init; } = false;
+    [Id(9)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+    [Id(10)] public DateTime? ActiveDate { get; init; }
 
     public bool IsActive => AccountEnabled && ActiveDate != null;
 
@@ -36,8 +37,7 @@ public sealed record SubscriptionModel
         Name == document.Name &&
         ContactName == document.ContactName &&
         Email == document.Email &&
-        Phone.SequenceEqual(document.Phone) &&
-        Address.SequenceEqual(document.Address) &&
+        DataObjects.SequenceEqual(document.DataObjects) &&
         Tenants.SequenceEqual(document.Tenants) &&
         AccountEnabled == document.AccountEnabled &&
         CreatedDate == document.CreatedDate &&
@@ -53,14 +53,13 @@ public static class SubscriptionModelValidator
 {
     public static IValidator<SubscriptionModel> Validator { get; } = new Validator<SubscriptionModel>()
         .RuleFor(x => x.SubscriptionId).ValidObjectId()
+        .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.Name).ValidName()
         .RuleFor(x => x.ContactName).NotEmpty()
         .RuleFor(x => x.Email).ValidPrincipalId()
-        .RuleFor(x => x.Phone).NotNull()
-        .RuleForEach(x => x.Phone).Validate(UserPhoneModelValidator.Validator)
-        .RuleFor(x => x.Address).NotNull()
-        .RuleForEach(x => x.Address).Validate(UserAddressModelValidator.Validator)
+        .RuleFor(x => x.DataObjects).NotNull()
+        .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
         .RuleFor(x => x.Tenants).NotNull()
         .Build();
 

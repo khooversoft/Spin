@@ -27,7 +27,7 @@ public class BlockAccessReadAccessTests
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
@@ -71,7 +71,7 @@ public class BlockAccessReadAccessTests
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetPrincipleId(issuer)
             .Build(principleSignature, _context)
             .Return();
@@ -144,7 +144,7 @@ public class BlockAccessReadAccessTests
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { Grant = BlockGrant.ReadWrite, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)

@@ -22,7 +22,7 @@ public readonly record struct ObjectIdInfo
 
     public static Option<ObjectIdInfo> Parse(string grainId, ScopeContext context)
     {
-        var objectIdOption = grainId.ToObjectIdIfValid();
+        var objectIdOption = ObjectId.Create(grainId).LogResult(context.Location());
         if (objectIdOption.IsError())
         {
             context.Location().LogError("Invalid GrainId, id={id}", grainId);

@@ -41,8 +41,7 @@ public class SignatureActor : Grain, ISignatureActor
         IPrincipalKeyActor publicKey = GrainFactory.GetGrain<IPrincipalKeyActor>(this.GetPrimaryKeyString());
         _publicKeyAgent = new PublicKeyAgent(publicKey);
 
-        string privateKeyActorId = this.GetPrimaryKeyString()
-            .ToObjectId()
+        string privateKeyActorId = ObjectId.Create(this.GetPrimaryKeyString()).Return()
             .WithSchema(SpinConstants.Schema.PrincipalPrivateKey)
             .ToString();
 

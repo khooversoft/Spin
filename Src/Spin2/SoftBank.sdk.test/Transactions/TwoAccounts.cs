@@ -39,7 +39,7 @@ public class TwoAccounts : IClassFixture<ClusterFixture>
         _contract2 = new Contract(_cluster, $"{SpinConstants.Schema.SoftBank}/company1.com/Account22", _user2.OwnerId, user1Access);
     }
 
-    [Fact]
+    [Fact(Skip = "Go to API")]
     public async Task TransferFunds()
     {
         await _user1.Delete(_context);

@@ -24,12 +24,12 @@ public class SubscriptionActor : Grain, ISubscriptionActor
 {
     private readonly IPersistentState<SubscriptionModel> _state;
     private readonly IValidator<SubscriptionModel> _validator;
-    private readonly ILogger<SubscriptionModel> _logger;
+    private readonly ILogger<SubscriptionActor> _logger;
 
     public SubscriptionActor(
         [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<SubscriptionModel> state,
         IValidator<SubscriptionModel> validator,
-        ILogger<SubscriptionModel> logger
+        ILogger<SubscriptionActor> logger
         )
     {
         _state = state;

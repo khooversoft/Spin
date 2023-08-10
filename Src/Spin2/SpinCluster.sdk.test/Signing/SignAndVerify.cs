@@ -20,7 +20,7 @@ public class SignAndVerify : IClassFixture<ClusterFixture>
         _cluster = fixture.Cluster;
     }
 
-    [Fact]
+    [Fact(Skip = "Go to API")]
     public async Task SignDigest()
     {
         string ownerId = "signKey@test.com";

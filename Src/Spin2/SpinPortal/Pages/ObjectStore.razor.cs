@@ -27,7 +27,7 @@ public partial class ObjectStore
 
         _resolvedPath = ObjectId.IsValid(pageRoute) switch
         {
-            true => pageRoute.ToObjectId() switch
+            true => ObjectId.Create(pageRoute).Return() switch
             {
                 var u when exist(u.Schema, u.Tenant) => u.ToString(),
                 _ => constructDefault(),

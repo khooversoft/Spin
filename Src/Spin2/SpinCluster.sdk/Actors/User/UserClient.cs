@@ -17,20 +17,20 @@ public class UserClient
     protected readonly HttpClient _client;
     public UserClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option> Delete(NameId nameId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.User}/{nameId.ToUrlEncoding()}")
+    public async Task<Option> Delete(PrincipalId principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.User}/{principalId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .DeleteAsync(context)
         .ToOption();
 
-    public async Task<Option<UserModel>> Get(NameId nameId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Tenant}/{nameId.ToUrlEncoding()}")
+    public async Task<Option<UserModel>> Get(PrincipalId principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.User}/{principalId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<UserModel>();
 
     public async Task<Option> Set(UserModel content, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Tenant}")
+        .SetPath($"/{SpinConstants.Schema.User}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context)

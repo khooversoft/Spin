@@ -47,7 +47,7 @@ public partial class QueryPanel
     protected override async Task OnParametersSetAsync()
     {
         Path.NotNull();
-        _pathObjectId = Path.ToObjectId();
+        _pathObjectId = Path;
 
         _initialized = false;
 
@@ -73,7 +73,7 @@ public partial class QueryPanel
 
     private async Task Delete()
     {
-        ObjectId id = GetSelectedKey().ToObjectId();
+        ObjectId id = GetSelectedKey();
 
         StatusCode statusCode = await Client.Resource.Delete(id, new ScopeContext(Logger));
         if (statusCode.IsError())
@@ -102,7 +102,7 @@ public partial class QueryPanel
 
     private async Task OnOpen(string key)
     {
-        ObjectId id = key.ToObjectId();
+        ObjectId id = key;
 
         Option<ResourceFile> document = await Client.Resource.Get(id, new ScopeContext(Logger));
         if (document.IsError())
@@ -143,7 +143,7 @@ public partial class QueryPanel
             //.Select(x => NameId.IsCharacterValid(x) ? x : '-')
             .Func(x => new string(x.ToArray()));
 
-        ObjectId id = (_pathObjectId.Schema + "/" + _pathObjectId.Tenant + "/" + fileName).ToObjectId();
+        ObjectId id = (_pathObjectId.Schema + "/" + _pathObjectId.Tenant + "/" + fileName);
 
         var resourceFile = new ResourceFile
         {
@@ -161,7 +161,7 @@ public partial class QueryPanel
 
     private async Task Download()
     {
-        ObjectId id = GetSelectedKey().ToObjectId();
+        ObjectId id = GetSelectedKey();
 
         Option<ResourceFile> document = await Client.Resource.Get(id, new ScopeContext(Logger));
         if (document.IsError())

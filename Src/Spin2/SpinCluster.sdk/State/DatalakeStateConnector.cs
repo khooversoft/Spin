@@ -58,7 +58,7 @@ internal class DatalakeStateConnector : IGrainStorage
 
         string grainPath = GetPath(grainId);
 
-        var objectIdOption = grainPath.ToObjectIdIfValid(context.Location());
+        var objectIdOption = ObjectId.Create(grainPath).LogResult(context.Location());
         if (objectIdOption.IsError()) throw new ArgumentException($"Invalid ObjectId, id={grainId}");
 
         ObjectId objectId = objectIdOption.Return().WithExtension(stateName);

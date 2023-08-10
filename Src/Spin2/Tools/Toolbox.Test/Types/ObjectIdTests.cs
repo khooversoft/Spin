@@ -13,7 +13,7 @@ public class ObjectIdTests
         const string id = "schema/tenant/path";
         ObjectId.IsValid(id).Should().BeTrue();
 
-        var o = ObjectId.Parse(id).Return(throwOnNoValue: true);
+        var o = ObjectId.Create(id).Return(throwOnNoValue: true);
         o.Id.Should().Be(id);
         o.Schema.Should().Be("schema");
         o.Tenant.Should().Be("tenant");
@@ -27,7 +27,7 @@ public class ObjectIdTests
         const string id = "schema/tenant/path1/path2";
         ObjectId.IsValid(id).Should().BeTrue();
 
-        var o = ObjectId.Parse(id).Return(throwOnNoValue: true);
+        var o = ObjectId.Create(id).Return(throwOnNoValue: true);
         o.Id.Should().Be(id);
         o.Schema.Should().Be("schema");
         o.Tenant.Should().Be("tenant");
@@ -38,7 +38,7 @@ public class ObjectIdTests
     [Fact]
     public void ObjectIdSerialize()
     {
-        ObjectId id = "schema/tenant/path1/path2".ToObjectId();
+        ObjectId id = "schema/tenant/path1/path2";
 
         string json = id.ToJson();
 
@@ -101,7 +101,7 @@ public class ObjectIdTests
     [InlineData("d/t/a/b/c/d", "d", "t", "a/b/c/d")]
     public void TestObjectIdParse(string input, string schema, string tenant, string? path)
     {
-        ObjectId objectId = input.ToObjectId();
+        ObjectId objectId = input;
         objectId.Schema.Should().Be(schema);
         objectId.Tenant.Should().Be(tenant);
         objectId.Path.Should().Be(path);
@@ -110,9 +110,9 @@ public class ObjectIdTests
     [Fact]
     public void TestEqual()
     {
-        var o1 = ObjectId.Parse("schema/tenant/path");
-        var o2 = "schema/tenant/path".ToObjectId();
-        var o3 = "schema2/tenant/path".ToObjectId();
+        ObjectId o1 = ObjectId.Create("schema/tenant/path").Return();
+        ObjectId o2 = "schema/tenant/path";
+        ObjectId o3 = "schema2/tenant/path";
         (o1 == o2).Should().BeTrue();
         (o1 != o2).Should().BeFalse();
         (o1 == o3).Should().BeFalse();

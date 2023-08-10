@@ -33,7 +33,7 @@ public abstract class ConnectorBase<T, TActor> where TActor : IActionOperation<T
         RouteGroupBuilder group = app.MapGroup($"/{_rootPath}");
 
         group.MapDelete(_logger, async (objectId, context) => await _client.GetGrain<TActor>(objectId).Delete(context.TraceId));
-        group.MapExist(_logger, async (objectId, context) => await _client.GetGrain<TActor>(objectId.ToObjectId()).Exist(context.TraceId));
+        group.MapExist(_logger, async (objectId, context) => await _client.GetGrain<TActor>(objectId).Exist(context.TraceId));
         group.MapGet<T>(_logger, async (objectId, context) => await _client.GetGrain<TActor>(objectId).Get(context.TraceId));
         group.MapSet<T>(_logger, async (objectId, model, context) => await _client.GetGrain<TActor>(objectId).Set(model, context.TraceId));
 

@@ -19,7 +19,7 @@ public class BlobBuilderTests
         const string payload = "This is the message";
 
         var builder = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload);
 
         builder.ObjectId!.Id.Should().Be(objectId);
@@ -42,7 +42,7 @@ public class BlobBuilderTests
         const string payload = "This is the message";
 
         var builder = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload);
 
         BlobPackage sourceBlob = builder.Build();
@@ -67,7 +67,7 @@ public class BlobBuilderTests
         const string payload = "This is the message";
 
         BlobPackage blob = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload)
             .Build();
 
@@ -77,7 +77,7 @@ public class BlobBuilderTests
         blob.ToObject<string>().Should().Be(payload);
 
         BlobPackage blob2 = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload)
             .Build()
             .Action(x => x.IsValid(_context.Location()).Should().BeTrue());
@@ -92,7 +92,7 @@ public class BlobBuilderTests
         const string payload = "This is the message";
 
         BlobPackage blob = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload)
             .SetTag("key1", "value1")
             .SetTag("key2")
@@ -103,7 +103,7 @@ public class BlobBuilderTests
         blob.ToObject<string>().Should().Be(payload);
 
         BlobPackage blob2 = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload)
             .SetTag("key2;key1=value1")
             .Build()
@@ -124,7 +124,7 @@ public class BlobBuilderTests
         };
 
         BlobPackage blob = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload)
             .Build();
 
@@ -133,7 +133,7 @@ public class BlobBuilderTests
         blob.ToObject<Payload>().Should().Be(payload);
 
         BlobPackage blob2 = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload)
             .Build()
             .Action(x => x.Validate(_context.Location()).ThrowOnError());
@@ -153,7 +153,7 @@ public class BlobBuilderTests
         };
 
         BlobPackage blob = new BlobPackageBuilder()
-            .SetObjectId(objectId.ToObjectId())
+            .SetObjectId(objectId)
             .SetContent(payload)
             .SetTag("key2=value2;key1=value1")
             .Build();

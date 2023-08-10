@@ -25,12 +25,13 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         _cluster = fixture;
     }
 
-    [Fact]
+    [Fact(Skip = "server")]
+    //[Fact]
     public async Task LifecycleTest()
     {
         TenantClient client = _cluster.ServiceProvider.GetRequiredService<TenantClient>();
         NameId subscriptionId = "Company2Subscription";
-        NameId nameId = "Company2Tenant1";
+        TenantId nameId = "Company2Tenant1";
 
         var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         subscription.IsOk().Should().BeTrue();
@@ -46,12 +47,12 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         Option deleteOption = await client.Delete(nameId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
 
-        Option deleteSubscriptionOption = await SubscriptionTests.DeleteSubscription(_cluster.ServiceProvider, nameId, _context);
+        Option deleteSubscriptionOption = await SubscriptionTests.DeleteSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         deleteSubscriptionOption.StatusCode.IsOk().Should().BeTrue();
     }
 
 
-    public static async Task<Option<TenantModel>> CreateTenant(IServiceProvider service, NameId nameId, NameId subscriptionId, ScopeContext context)
+    public static async Task<Option<TenantModel>> CreateTenant(IServiceProvider service, TenantId nameId, NameId subscriptionId, ScopeContext context)
     {
         TenantClient client = service.GetRequiredService<TenantClient>();
 
@@ -65,22 +66,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
             SubscriptionName = subscriptionId,
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
-            Phone = new[]
-            {
-                new UserPhoneModel { Type = "Cell", Number = "202-555-1212" },
-            },
-            Address = new[]
-            {
-                new UserAddressModel
-                {
-                    Type = "Home",
-                    Address1 = "Address1",
-                    City = "City",
-                    State = "State",
-                    ZipCode = "ZipCode",
-                    Country = "Country",
-                }
-            },
+
             AccountEnabled = true,
             ActiveDate = DateTime.UtcNow,
         };

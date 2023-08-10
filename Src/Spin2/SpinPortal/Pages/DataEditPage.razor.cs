@@ -71,7 +71,7 @@ public partial class DataEditPage
     private void Open() => OnOpen(_dataControl.GetSelectedKey());
     private void OnOpen(string key)
     {
-        ObjectId objectId = key.ToObjectId();
+        ObjectId objectId = key;
         string path = $"{Schema}Edit/{objectId.Tenant}/{objectId.Path}".RemoveTrailing('/');
 
         NavManager.NavigateTo(path, true);

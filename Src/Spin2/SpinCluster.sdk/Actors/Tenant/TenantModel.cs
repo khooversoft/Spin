@@ -5,6 +5,7 @@ using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
+using SpinCluster.sdk.Models;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -15,6 +16,8 @@ public sealed record TenantModel
 {
     private const string _version = nameof(TenantModel) + "-v1";
 
+    // Id = "tenant/$system/{name}"
+    // Name is normal a domain (domain.com)
     [Id(0)] public string TenantId { get; init; } = null!;
     [Id(1)] public string Version { get; init; } = _version;
     [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();
@@ -22,11 +25,10 @@ public sealed record TenantModel
     [Id(4)] public string SubscriptionName { get; init; } = null!;
     [Id(5)] public string ContactName { get; init; } = null!;
     [Id(6)] public string Email { get; init; } = null!;
-    [Id(7)] public IReadOnlyList<UserPhoneModel> Phone { get; init; } = Array.Empty<UserPhoneModel>();
-    [Id(8)] public IReadOnlyList<UserAddressModel> Address { get; init; } = Array.Empty<UserAddressModel>();
-    [Id(9)] public bool AccountEnabled { get; init; } = false;
-    [Id(10)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(11)] public DateTime? ActiveDate { get; init; }
+    [Id(7)] public IReadOnlyList<DataObject> DataObjects { get; init; } = Array.Empty<DataObject>();
+    [Id(8)] public bool AccountEnabled { get; init; } = false;
+    [Id(9)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+    [Id(10)] public DateTime? ActiveDate { get; init; }
 
     public bool IsActive => AccountEnabled && ActiveDate != null;
 
@@ -38,15 +40,14 @@ public sealed record TenantModel
         SubscriptionName == document.SubscriptionName &&
         ContactName == document.ContactName &&
         Email == document.Email &&
-        Phone.SequenceEqual(document.Phone) &&
-        Address.SequenceEqual(document.Address) &&
+        DataObjects.SequenceEqual(document.DataObjects) &&
         AccountEnabled == document.AccountEnabled &&
         CreatedDate == document.CreatedDate &&
         ActiveDate == document.ActiveDate;
 
     public override int GetHashCode() => HashCode.Combine(TenantId, GlobalId, Name, ContactName);
 
-    public static ObjectId CreateId(NameId nameId) => $"{SpinConstants.Schema.Tenant}/$system/{nameId}";
+    public static ObjectId CreateId(TenantId tenantId) => $"{SpinConstants.Schema.Tenant}/$system/{tenantId}";
 }
 
 
@@ -60,10 +61,8 @@ public static class TenantRegisterValidator
         .RuleFor(x => x.SubscriptionName).ValidName()
         .RuleFor(x => x.ContactName).NotEmpty()
         .RuleFor(x => x.Email).ValidPrincipalId()
-        .RuleFor(x => x.Phone).NotNull()
-        .RuleForEach(x => x.Phone).Validate(UserPhoneModelValidator.Validator)
-        .RuleFor(x => x.Address).NotNull()
-        .RuleForEach(x => x.Address).Validate(UserAddressModelValidator.Validator)
+        .RuleFor(x => x.DataObjects).NotNull()
+        .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
         .Build();
 
     public static ValidatorResult Validate(this TenantModel subject, ScopeContextLocation location) => Validator

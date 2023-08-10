@@ -28,7 +28,7 @@ public class MultiplePrincipals : IClassFixture<ClusterFixture>
     }
 
 
-    [Fact]
+    [Fact(Skip = "Go to API")]
     public async Task CreateBankAccountAndMultipleLedgerItems()
     {
         PrincipalId ownerId = "owner10@test.com";

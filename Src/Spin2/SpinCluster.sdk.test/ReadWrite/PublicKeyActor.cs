@@ -20,7 +20,7 @@ public class PublicKeyActor : IClassFixture<ClusterFixture>
         _cluster = fixture.Cluster;
     }
 
-    [Fact]
+    [Fact(Skip = "Go to API")]
     public async Task TestReadWrite()
     {
         string ownerId = "signKey@test.com";

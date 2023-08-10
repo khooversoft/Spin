@@ -27,7 +27,7 @@ public static class BlockChainExtensions
         GenesisBlock genesisBlock = blockChain.GetGenesisBlock();
 
         var blob = new BlobPackageBuilder()
-            .SetObjectId(genesisBlock.ObjectId.ToObjectId())
+            .SetObjectId(genesisBlock.ObjectId)
             .SetContent(blockChain.ToBlockChainModel())
             .Build();
 
