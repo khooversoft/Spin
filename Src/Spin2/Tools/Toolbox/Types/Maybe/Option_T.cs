@@ -92,6 +92,7 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     public static bool operator ==(Option<T> left, Option<T> right) => left.Equals(right);
     public static bool operator !=(Option<T> left, Option<T> right) => !(left == right);
     public static implicit operator Option<T>(T value) => new Option<T>(value);
+    public static implicit operator Option<T>(StatusCode value) => new Option<T>(value);
 
     public static Option<T> None { get; } = default;
 }

@@ -10,12 +10,12 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Configuration;
 
-internal class SiloConfigurationAgent
+internal class SiloConfigurationCache
 {
     private readonly SiloConfigStore _configStore;
     private readonly CacheObject<SiloConfigOption> _cache = new CacheObject<SiloConfigOption>(TimeSpan.FromMinutes(15));
 
-    public SiloConfigurationAgent(SiloConfigStore configStore) => _configStore = configStore.NotNull();
+    public SiloConfigurationCache(SiloConfigStore configStore) => _configStore = configStore.NotNull();
 
     public async Task<Option<SiloConfigOption>> Get(ScopeContext context)
     {

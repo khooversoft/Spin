@@ -62,11 +62,11 @@ public partial class TenantEdit
         var request = _model.ConvertTo();
         var requestObjectId = new ObjectId(SpinConstants.Schema.Tenant, SpinConstants.SystemTenant, request.TenantId);
 
-        var response = await Client.Tenant.Set(requestObjectId, request, new ScopeContext(Logger));
-        if (response.StatusCode.IsError())
-        {
-            _errorMsg = $"Failed to write, statusCode={response.StatusCode}, error={response.Error}";
-        }
+        //var response = await Client.Tenant.Set(requestObjectId, request, new ScopeContext(Logger));
+        //if (response.StatusCode.IsError())
+        //{
+        //    _errorMsg = $"Failed to write, statusCode={response.StatusCode}, error={response.Error}";
+        //}
 
         NavManager.NavigateTo(_returnAddress, true);
     }
@@ -75,12 +75,13 @@ public partial class TenantEdit
     {
         if (_objectId.Path.IsEmpty()) return new TenantEditModel();
 
-        (TenantEditModel result, _errorMsg) = await Client.Tenant.Get(_objectId, new ScopeContext(Logger)) switch
-        {
-            var v when v.StatusCode.IsError() => (new TenantEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
-            var v => (v.Return().ConvertTo(), null),
-        };
+        //(TenantEditModel result, _errorMsg) = await Client.Tenant.Get(_objectId, new ScopeContext(Logger)) switch
+        //{
+        //    var v when v.StatusCode.IsError() => (new TenantEditModel(), $"Fail to read KeyId={_objectId}, statusCode={v.StatusCode}, error={v.Error}"),
+        //    var v => (v.Return().ConvertTo(), null),
+        //};
 
-        return result;
+        //return result;
+        return null!;
     }
 }

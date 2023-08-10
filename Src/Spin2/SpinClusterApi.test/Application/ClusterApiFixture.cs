@@ -1,37 +1,77 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+using SpinCluster.sdk.Actors.Subscription;
+using SpinCluster.sdk.Actors.Tenant;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace SpinClusterApi.test.Application;
 
-public class ClusterApiFixture : IDisposable
+public class ClusterApiFixture
 {
-    private HttpClient? _client;
-    private WebApplicationFactory<Program>? _host;
-
     public ClusterApiFixture()
     {
-        ILogger logger = LoggerFactory.Create(builder =>
-        {
-            builder.AddDebug();
-        }).CreateLogger<Program>();
+        Option = new ConfigurationBuilder()
+            .AddJsonFile("test-appsettings.json")
+            .Build()
+            .Bind<TestOption>()
+            .Verify();
 
-        _host = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
+        ServiceProvider = new ServiceCollection()
+        .AddSingleton(Option)
+        .Action(x =>
+        {
+            x.AddHttpClient("raw", client =>
             {
-                builder.UseEnvironment("Test");
+                client.BaseAddress = new Uri(Option.ClusterApiUri);
             });
+
+            x.AddHttpClient<SubscriptionClient>(client =>
+            {
+                client.BaseAddress = new Uri(Option.ClusterApiUri);
+            });
+            
+            x.AddHttpClient<TenantClient>(client =>
+            {
+                client.BaseAddress = new Uri(Option.ClusterApiUri);
+            });
+        })
+        .BuildServiceProvider();
     }
 
-    public void Dispose() => Interlocked.Exchange(ref _host, null)?.Dispose();
+    public TestOption Option { get; }
 
-    public HttpClient CreateClient() => _host.NotNull().CreateClient();
+    public IServiceProvider ServiceProvider { get; }
+
+    public HttpClient GetClient() => ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient("raw");
+
+    //private HttpClient _client;
+    //private WebApplicationFactory<Program>? _host;
+
+    //public ClusterApiFixture()
+    //{
+    //    ILogger logger = LoggerFactory.Create(builder =>
+    //    {
+    //        builder.AddDebug();
+    //    }).CreateLogger<Program>();
+
+    //    _host = new WebApplicationFactory<Program>()
+    //        .WithWebHostBuilder(builder =>
+    //        {
+    //            builder.UseEnvironment("Test");
+    //        });
+
+    //    _client = _host.CreateClient();
+    //}
+
+    //public void Dispose() => Interlocked.Exchange(ref _host, null)?.Dispose();
+
+    //public HttpClient GetClient() => _client;
+
+    //public TenantClient GetTenantClient() => new TenantClient(_client);
+
+    ////public T GetRequiredService<T>() where T : notnull => _host.NotNull().Services.GetRequiredService<T>();
 }

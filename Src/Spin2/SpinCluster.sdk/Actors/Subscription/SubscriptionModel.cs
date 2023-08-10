@@ -1,72 +1,70 @@
-﻿using Microsoft.Azure.Amqp.Framing;
-using SpinCluster.sdk.Actors.ActorBase;
+﻿using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Key;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Search;
-using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Tenant;
+namespace SpinCluster.sdk.Actors.Subscription;
 
 [GenerateSerializer, Immutable]
-public sealed record TenantModel
+public sealed record SubscriptionModel
 {
-    private const string _version = nameof(TenantModel) + "-v1";
+    private const string _version = nameof(SubscriptionModel) + "-v1";
 
-    [Id(0)] public string TenantId { get; init; } = null!;
+    [Id(0)] public string SubscriptionId { get; init; } = null!;
     [Id(1)] public string Version { get; init; } = _version;
     [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();
     [Id(3)] public string Name { get; init; } = null!;
-    [Id(4)] public string SubscriptionName { get; init; } = null!;
-    [Id(5)] public string ContactName { get; init; } = null!;
-    [Id(6)] public string Email { get; init; } = null!;
-    [Id(7)] public IReadOnlyList<UserPhoneModel> Phone { get; init; } = Array.Empty<UserPhoneModel>();
-    [Id(8)] public IReadOnlyList<UserAddressModel> Address { get; init; } = Array.Empty<UserAddressModel>();
+    [Id(4)] public string ContactName { get; init; } = null!;
+    [Id(5)] public string Email { get; init; } = null!;
+    [Id(6)] public IReadOnlyList<UserPhoneModel> Phone { get; init; } = Array.Empty<UserPhoneModel>();
+    [Id(7)] public IReadOnlyList<UserAddressModel> Address { get; init; } = Array.Empty<UserAddressModel>();
+    [Id(8)] public IReadOnlyList<string> Tenants { get; init; } = Array.Empty<string>();
     [Id(9)] public bool AccountEnabled { get; init; } = false;
     [Id(10)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     [Id(11)] public DateTime? ActiveDate { get; init; }
 
     public bool IsActive => AccountEnabled && ActiveDate != null;
 
-    public bool Equals(TenantModel? obj) => obj is TenantModel document &&
-        TenantId == document.TenantId &&
+    public bool Equals(SubscriptionModel? obj) => obj is SubscriptionModel document &&
+        SubscriptionId == document.SubscriptionId &&
         Version == document.Version &&
         GlobalId == document.GlobalId &&
         Name == document.Name &&
-        SubscriptionName == document.SubscriptionName &&
         ContactName == document.ContactName &&
         Email == document.Email &&
         Phone.SequenceEqual(document.Phone) &&
         Address.SequenceEqual(document.Address) &&
+        Tenants.SequenceEqual(document.Tenants) &&
         AccountEnabled == document.AccountEnabled &&
         CreatedDate == document.CreatedDate &&
         ActiveDate == document.ActiveDate;
 
-    public override int GetHashCode() => HashCode.Combine(TenantId, GlobalId, Name, ContactName);
+    public override int GetHashCode() => HashCode.Combine(SubscriptionId, GlobalId, Name, ContactName);
 
-    public static ObjectId CreateId(NameId nameId) => $"{SpinConstants.Schema.Tenant}/$system/{nameId}";
+    public static ObjectId CreateId(NameId nameId) => $"{SpinConstants.Schema.Subscription}/$system/{nameId}";
 }
 
 
-public static class TenantRegisterValidator
+public static class SubscriptionModelValidator
 {
-    public static IValidator<TenantModel> Validator { get; } = new Validator<TenantModel>()
-        .RuleFor(x => x.TenantId).ValidObjectId()
-        .RuleFor(x => x.Version).NotEmpty()
+    public static IValidator<SubscriptionModel> Validator { get; } = new Validator<SubscriptionModel>()
+        .RuleFor(x => x.SubscriptionId).ValidObjectId()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.Name).ValidName()
-        .RuleFor(x => x.SubscriptionName).ValidName()
         .RuleFor(x => x.ContactName).NotEmpty()
         .RuleFor(x => x.Email).ValidPrincipalId()
         .RuleFor(x => x.Phone).NotNull()
         .RuleForEach(x => x.Phone).Validate(UserPhoneModelValidator.Validator)
         .RuleFor(x => x.Address).NotNull()
         .RuleForEach(x => x.Address).Validate(UserAddressModelValidator.Validator)
+        .RuleFor(x => x.Tenants).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this TenantModel subject, ScopeContextLocation location) => Validator
+    public static ValidatorResult Validate(this SubscriptionModel subject, ScopeContextLocation location) => Validator
         .Validate(subject)
         .LogResult(location);
 }

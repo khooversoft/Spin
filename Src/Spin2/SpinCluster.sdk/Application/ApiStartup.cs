@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using SpinClusterApi.Connectors;
@@ -12,6 +13,7 @@ public static class ApiStartup
 {
     public static IServiceCollection AddSpinApi(this IServiceCollection services)
     {
+        services.AddSingleton<SubscriptionConnector>();
         services.AddSingleton<TenantConnector>();
         services.AddSingleton<UserConnector>();
         services.AddSingleton<ConfigurationConnector>();
@@ -24,6 +26,7 @@ public static class ApiStartup
 
     public static void MapSpinApi(this IEndpointRouteBuilder app)
     {
+        app.ServiceProvider.GetRequiredService<SubscriptionConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<TenantConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<UserConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<ConfigurationConnector>().Setup(app);

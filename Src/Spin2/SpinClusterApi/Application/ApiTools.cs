@@ -1,4 +1,5 @@
-﻿using Toolbox.Types;
+﻿using System.Diagnostics;
+using Toolbox.Types;
 
 namespace SpinClusterApi.Application;
 

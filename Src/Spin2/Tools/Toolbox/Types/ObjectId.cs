@@ -69,7 +69,7 @@ public sealed record ObjectId
     {
         if (objectId.IsEmpty()) return new Option<ObjectId>(StatusCode.BadRequest);
 
-        Stack<string> tokenStack = objectId
+        Stack<string> tokenStack = Uri.UnescapeDataString(objectId)
             .RemoveTrailing('/')
             .Split('/')
             .Reverse()
@@ -104,7 +104,6 @@ public static class ObjectIdExtensions
     }
 
     public static string ToUrlEncoding(this ObjectId subject) => Uri.EscapeDataString(subject.ToString());
-    public static ObjectId FromUrlEncoding(this string id) => Uri.UnescapeDataString(id).ToObjectId();
 
     public static string GetParent(this ObjectId subject) => subject.Paths
         .Take(Math.Max(0, subject.Paths.Count - 2))

@@ -1,47 +1,45 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
-namespace SpinCluster.sdk.Actors.Tenant;
+namespace SpinCluster.sdk.Actors.Subscription;
 
-public interface ITenantActor : IGrainWithStringKey
+public interface ISubscriptionActor : IGrainWithStringKey
 {
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
-    Task<Option<TenantModel>> Get(string traceId);
-    Task<Option> Set(TenantModel model, string traceId);
+    Task<Option<SubscriptionModel>> Get(string traceId);
+    Task<Option> Set(SubscriptionModel model, string traceId);
 }
 
 
-public class TenantActor : Grain, ITenantActor
+public class SubscriptionActor : Grain, ISubscriptionActor
 {
-    private readonly IPersistentState<TenantModel> _state;
-    private readonly IValidator<TenantModel> _validator;
-    private readonly IClusterClient _clusterClient;
-    private readonly ILogger<TenantModel> _logger;
+    private readonly IPersistentState<SubscriptionModel> _state;
+    private readonly IValidator<SubscriptionModel> _validator;
+    private readonly ILogger<SubscriptionModel> _logger;
 
-    public TenantActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
-        IValidator<TenantModel> validator,
-        IClusterClient clusterClient,
-        ILogger<TenantModel> logger
+    public SubscriptionActor(
+        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<SubscriptionModel> state,
+        IValidator<SubscriptionModel> validator,
+        ILogger<SubscriptionModel> logger
         )
     {
         _state = state;
         _validator = validator;
-        _clusterClient = clusterClient;
         _logger = logger;
     }
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.VerifySchema(SpinConstants.Schema.Tenant, new ScopeContext(_logger));
+        this.VerifySchema(SpinConstants.Schema.Subscription, new ScopeContext(_logger));
         return base.OnActivateAsync(cancellationToken);
     }
 
@@ -53,38 +51,30 @@ public class TenantActor : Grain, ITenantActor
         await _state.ClearStateAsync();
         return StatusCode.OK;
     }
+
     public Task<Option> Exist(string _) => new Option(_state.RecordExists && _state.State.IsActive ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
-    public Task<Option<TenantModel>> Get(string traceId)
+    public Task<Option<SubscriptionModel>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Get subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         var option = _state.RecordExists switch
         {
-            true => _state.State.ToOption<TenantModel>(),
-            false => new Option<TenantModel>(StatusCode.NotFound),
+            true => _state.State.ToOption<SubscriptionModel>(),
+            false => new Option<SubscriptionModel>(StatusCode.NotFound),
         };
 
         return option.ToTaskResult();
     }
 
-    public async Task<Option> Set(TenantModel model, string traceId)
+    public async Task<Option> Set(SubscriptionModel model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         ValidatorResult validatorResult = _validator.Validate(model).LogResult(context.Location());
         if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
-
-        Option isSubscriptionActive = await _clusterClient
-            .GetObjectGrain<ISubscriptionActor>(SubscriptionModel.CreateId(model.SubscriptionName))
-            .Exist(traceId);
-
-        if (isSubscriptionActive.StatusCode.IsError())
-        {
-            return new Option(StatusCode.Conflict, $"SubscriptionName={model.SubscriptionName} does not exist");
-        }
 
         _state.State = model;
         await _state.WriteStateAsync();

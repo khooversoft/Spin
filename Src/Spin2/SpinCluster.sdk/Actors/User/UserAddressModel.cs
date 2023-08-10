@@ -7,7 +7,7 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.User;
 
 [GenerateSerializer, Immutable]
-public record UserAddressModel
+public sealed record UserAddressModel
 {
     [Id(0)] public string Type { get; init; } = null!;
     [Id(1)] public string Address1 { get; init; } = null!;

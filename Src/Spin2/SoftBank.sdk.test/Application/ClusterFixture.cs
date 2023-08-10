@@ -22,8 +22,9 @@ public class ClusterFixture : IDisposable
     {
         public void Configure(ISiloBuilder siloBuilder)
         {
-            siloBuilder.AddSpinCluster("test-appsettings.json");
-            siloBuilder.AddSoftBank();
+            throw new NotImplementedException();
+            //siloBuilder.AddSpinCluster("test-appsettings.json");
+            //siloBuilder.AddSoftBank();
         }
     }
 }

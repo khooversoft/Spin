@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.OpenApi.Models;
+using Orleans.Runtime;
 using SoftBank.sdk.Application;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.Application;
@@ -11,12 +12,21 @@ using Toolbox.Extensions;
 Console.WriteLine($"Spin Cluster API - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 
-ApiOption option = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
-    .Build()
-    .Bind<ApiOption>();
+//ApiOption option = new ConfigurationBuilder()
+//    .AddJsonFile("appsettings.json")
+//    .Build()
+//    .Bind<ApiOption
+//    
 
-IHostBuilder builder2 = Host.CreateDefaultBuilder(args)
+ApiOption option = Host.CreateApplicationBuilder(args)
+    .Build()
+    .Func(x => x.Services.GetRequiredService<IConfiguration>().Bind<ApiOption>());
+
+IHostBuilder builder = Host.CreateDefaultBuilder(args)
+    .ConfigureAppConfiguration(builder =>
+    {
+        if (option.UserSecrets.IsNotEmpty()) builder.AddUserSecrets(option.UserSecrets);
+    })
     .ConfigureLogging(logging =>
     {
         logging.AddConsole();
@@ -26,17 +36,17 @@ IHostBuilder builder2 = Host.CreateDefaultBuilder(args)
                 configureApplicationInsightsLoggerOptions: (options) => { }
             );
     })
-    .UseOrleans(silo =>
+    .UseOrleans((context, silo) =>
     {
         silo.UseLocalhostClustering();
-        silo.AddSpinCluster();
+        silo.AddSpinCluster(context);
         //silo.AddSoftBank();
 
     })
     .UseConsoleLifetime()
     .ConfigureWebHostDefaults(webBuilder =>
     {
-        webBuilder.ConfigureServices(services =>
+        webBuilder.ConfigureServices((context, services) =>
         {
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
@@ -78,69 +88,17 @@ IHostBuilder builder2 = Host.CreateDefaultBuilder(args)
         });
     });
 
-var h = builder2.Build();
-await h.RunAsync();
+IHost host = builder.Build();
+IConfiguration config = host.Services.GetRequiredService<IConfiguration>();
+ILogger<Program> logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<Program>();
 
-//var builder = WebApplication.CreateBuilder(args);
+var msg = new[]
+{
+    $"Spin Cluster API - Version {Assembly.GetExecutingAssembly().GetName().Version}",
+    $"Running, environment={config["environment"]}",
+}.Join(Environment.NewLine);
 
-////ApiOption option = new ConfigurationBuilder()
-////    .AddJsonFile("appsettings.json")
-////    .Build()
-////    .Bind<ApiOption>();
+logger.LogInformation(msg);
 
-//builder.Logging
-//    .AddConsole()
-//    .AddDebug()
-//    .AddApplicationInsights(
-//        configureTelemetryConfiguration: (config) => config.ConnectionString = option.AppInsightsConnectionString,
-//        configureApplicationInsightsLoggerOptions: (options) => { }
-//    );
+host.Run();
 
-////builder.Host.UseOrleansClient(silobuilder =>
-////{
-////    silobuilder.UseLocalhostClustering();%
-////});
-
-//builder.Host.UseOrleans(silo =>
-//{
-//    silo.UseLocalhostClustering();
-//    silo.AddSpinCluster();
-//    //silo.AddSoftBank();
-
-//})
-//    .UseConsoleLifetime();
-
-//// Add services to the container.
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-//builder.Services.AddSpinApi();
-//builder.Services.AddSpinApiInternal();
-//builder.Services.AddHealthChecks();
-
-//WebApplication app = builder.Build();
-
-//// Configure the HTTP request pipeline.
-//if (option.UseSwagger)
-//{
-//    Console.WriteLine("Using swagger");
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
-
-//app.UseHttpsRedirection();
-
-//app.MapSpinApi();
-//app.MapSpinApiInternal();
-
-//option.IpAddress.Split(';').ForEach(x => app.Urls.Add(x));
-
-//app.MapHealthChecks("/_health");
-
-//app.WaitForSpinSilo();
-
-//Console.WriteLine("Running");
-//Console.WriteLine();
-
-//await app.RunAsync();

@@ -20,7 +20,7 @@ public static class StringExtensions
     /// </summary>
     /// <param name="subject">subject</param>
     /// <returns>true or false</returns>
-    public static bool IsNotEmpty([NotNullWhen(false)] this string? subject) => !string.IsNullOrWhiteSpace(subject);
+    public static bool IsNotEmpty([NotNullWhen(true)] this string? subject) => !string.IsNullOrWhiteSpace(subject);
 
     /// <summary>
     /// Convert to null if string is "empty"

@@ -8,6 +8,7 @@ using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.Signature;
+using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Services;
@@ -23,28 +24,14 @@ namespace SpinCluster.sdk.Application;
 
 public static class SiloStartup
 {
-    public static ISiloBuilder AddSpinCluster(this ISiloBuilder builder, string appsettingFile = "appsettings.json")
+    public static ISiloBuilder AddSpinCluster(this ISiloBuilder builder, HostBuilderContext hostContext)
     {
         builder.NotNull();
 
-        SpinClusterOption option = SpinClusterOptionTool.Read(appsettingFile);
+        SpinClusterOption option = hostContext.Configuration.Bind<SpinClusterOption>();
 
-        builder.AddDatalakeGrainStorage(option);
+        builder.AddDatalakeGrainStorage();
         builder.AddStartupTask(async (IServiceProvider services, CancellationToken _) => await services.UseSpinCluster());
-
-        //builder.ConfigureLogging(logging =>
-        //{
-        //    logging.AddConsole();
-        //    logging.AddDebug();
-
-        //    if (option.AppInsightsConnectionString.IsNotEmpty())
-        //    {
-        //        logging.AddApplicationInsights(
-        //            configureTelemetryConfiguration: (config) => config.ConnectionString = option.AppInsightsConnectionString,
-        //            configureApplicationInsightsLoggerOptions: (options) => { }
-        //        );
-        //    }
-        //});
 
         builder.ConfigureServices(services =>
         {
@@ -69,6 +56,7 @@ public static class SiloStartup
         services.AddSingleton<IValidator<PrincipalPrivateKeyModel>>(PrincipalPrivateKeyModelValidator.Validator);
         services.AddSingleton<IValidator<SignRequest>>(SignRequestValidator.Validator);
         services.AddSingleton<IValidator<ValidateRequest>>(ValidateRequestValidator.Validator);
+        services.AddSingleton<IValidator<SubscriptionModel>>(SubscriptionModelValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
 

@@ -1,4 +1,5 @@
-﻿using Orleans.TestingHost;
+﻿using Microsoft.Extensions.Hosting;
+using Orleans.TestingHost;
 using SpinCluster.sdk.Application;
 
 namespace SpinCluster.sdk.test.Application;
@@ -21,7 +22,9 @@ public class ClusterFixture : IDisposable
     {
         public void Configure(ISiloBuilder siloBuilder)
         {
-            siloBuilder.AddSpinCluster("test-appsettings.json");
+            throw new NotImplementedException();
+
+            //siloBuilder.AddSpinCluster("test-appsettings.json");
         }
     }
 }

@@ -46,12 +46,12 @@ public static class UserEditModelExtensions
         ActiveDate = subject.ActiveDate?.ToUniversalTime(),
 
         PhoneNumber = subject.Phone.FirstOrDefault()?.Number!,
-        Address1 = subject.Addresses.FirstOrDefault()?.Address1!,
-        Address2 = subject.Addresses.FirstOrDefault()?.Address2!,
-        City = subject.Addresses.FirstOrDefault()?.City!,
-        State = subject.Addresses.FirstOrDefault()?.State!,
-        ZipCode = subject.Addresses.FirstOrDefault()?.ZipCode!,
-        Country = subject.Addresses.FirstOrDefault()?.Country!,
+        Address1 = subject.Address.FirstOrDefault()?.Address1!,
+        Address2 = subject.Address.FirstOrDefault()?.Address2!,
+        City = subject.Address.FirstOrDefault()?.City!,
+        State = subject.Address.FirstOrDefault()?.State!,
+        ZipCode = subject.Address.FirstOrDefault()?.ZipCode!,
+        Country = subject.Address.FirstOrDefault()?.Country!,
     };
 
     public static UserModel ConvertTo(this UserEditModel subject) => new UserModel
@@ -68,7 +68,7 @@ public static class UserEditModelExtensions
 
         Phone = new UserPhoneModel { Type = "Default", Number = subject.PhoneNumber }.ToEnumerable().ToArray(),
 
-        Addresses = new UserAddressModel
+        Address = new UserAddressModel
         {
             Type = "Default",
             Address1 = subject.Address1,

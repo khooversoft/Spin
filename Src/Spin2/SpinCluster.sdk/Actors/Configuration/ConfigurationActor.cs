@@ -22,7 +22,7 @@ public class ConfigurationActor : Grain, IConfigurationActor
     private readonly SiloConfigStore _configStore;
     private readonly IValidator<SiloConfigOption> _validator;
     private readonly ILogger _logger;
-    private readonly SiloConfigurationAgent _siloConfigurationAgent;
+    private readonly SiloConfigurationCache _siloConfigurationAgent;
     private readonly TenantListAgent _tenantListAgent;
 
     public ConfigurationActor(SiloConfigStore configStore, IValidator<SiloConfigOption> validator, ILogger<LeaseActor> logger)
@@ -31,7 +31,7 @@ public class ConfigurationActor : Grain, IConfigurationActor
         _validator = validator;
         _logger = logger;
 
-        _siloConfigurationAgent = new SiloConfigurationAgent(configStore);
+        _siloConfigurationAgent = new SiloConfigurationCache(configStore);
         _tenantListAgent = new TenantListAgent(() => GrainFactory.GetGrain<ISearchActor>(SpinConstants.SchemaSearch));
     }
 

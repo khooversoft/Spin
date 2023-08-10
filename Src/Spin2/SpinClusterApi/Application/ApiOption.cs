@@ -11,6 +11,7 @@ public record ApiOption
     public string AppInsightsConnectionString { get; init; } = null!;
     public bool UseSwagger { get; init; }
     public string IpAddress { get; init; } = null!;
+    public string? UserSecrets { get; init; }
 }
 
 

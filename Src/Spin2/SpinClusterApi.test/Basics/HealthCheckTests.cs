@@ -25,7 +25,7 @@ public class HealthCheckTests : IClassFixture<ClusterApiFixture>
     [Fact]
     public async Task TestHealthCheckApi()
     {
-        RestResponse result = await new RestClient(_cluster.CreateClient())
+        RestResponse result = await new RestClient(_cluster.GetClient())
             .SetPath("_health")
             .GetAsync(_context);
 

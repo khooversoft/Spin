@@ -4,33 +4,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Application;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Tenant;
+namespace SpinCluster.sdk.Actors.Subscription;
 
-public class TenantClient
+public class SubscriptionClient 
 {
     protected readonly HttpClient _client;
-    public TenantClient(HttpClient client) => _client = client.NotNull();
+    public SubscriptionClient(HttpClient client) => _client = client.NotNull();
 
     public async Task<Option> Delete(NameId nameId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Tenant}/{nameId.ToUrlEncoding()}")
+        .SetPath($"/{SpinConstants.Schema.Subscription}/{nameId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .DeleteAsync(context)
         .ToOption();
 
-    public async Task<Option<TenantModel>> Get(NameId nameId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Tenant}/{nameId.ToUrlEncoding()}")
+    public async Task<Option<SubscriptionModel>> Get(NameId nameId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Subscription}/{nameId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
-        .GetContent<TenantModel>();
+        .GetContent<SubscriptionModel>();
 
-    public async Task<Option> Set(TenantModel content, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Tenant}")
+    public async Task<Option> Set(SubscriptionModel content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Subscription}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context)
