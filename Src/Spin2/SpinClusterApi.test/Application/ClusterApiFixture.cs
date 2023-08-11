@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
+using SpinCluster.sdk.Actors.User;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -24,20 +25,10 @@ public class ClusterApiFixture
         .AddSingleton(Option)
         .Action(x =>
         {
-            x.AddHttpClient("raw", client =>
-            {
-                client.BaseAddress = new Uri(Option.ClusterApiUri);
-            });
-
-            x.AddHttpClient<SubscriptionClient>(client =>
-            {
-                client.BaseAddress = new Uri(Option.ClusterApiUri);
-            });
-            
-            x.AddHttpClient<TenantClient>(client =>
-            {
-                client.BaseAddress = new Uri(Option.ClusterApiUri);
-            });
+            x.AddHttpClient("raw", client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<SubscriptionClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<TenantClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
         })
         .BuildServiceProvider();
     }

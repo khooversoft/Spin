@@ -20,7 +20,7 @@ public sealed record UserModel
     [Id(0)] public string UserId { get; init; } = null!;
     [Id(1)] public string Version { get; init; } = _version;
     [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();
-    [Id(3)] public string PrincipalId { get; init; } = null!;
+    [Id(3)] public string PrincipalId { get; init; } = null!;  // Email
     [Id(4)] public string DisplayName { get; init; } = null!;
     [Id(5)] public string FirstName { get; init; } = null!;
     [Id(6)] public string LastName { get; init; } = null!;

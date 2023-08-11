@@ -25,26 +25,26 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         _cluster = fixture;
     }
 
-    [Fact(Skip = "server")]
-    //[Fact]
+    //[Fact(Skip = "server")]
+    [Fact]
     public async Task LifecycleTest()
     {
         TenantClient client = _cluster.ServiceProvider.GetRequiredService<TenantClient>();
         NameId subscriptionId = "Company2Subscription";
-        TenantId nameId = "Company2Tenant1";
+        TenantId tenantId = "Company2Tenant1";
 
         var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         subscription.IsOk().Should().BeTrue();
 
-        var tenant = await CreateTenant(_cluster.ServiceProvider, nameId, subscriptionId, _context);
+        var tenant = await CreateTenant(_cluster.ServiceProvider, tenantId, subscriptionId, _context);
         tenant.IsOk().Should().BeTrue();
 
-        Option<TenantModel> readOption = await client.Get(nameId, _context);
+        Option<TenantModel> readOption = await client.Get(tenantId, _context);
         readOption.IsOk().Should().BeTrue();
 
         (tenant.Return() == readOption.Return()).Should().BeTrue();
 
-        Option deleteOption = await client.Delete(nameId, _context);
+        Option deleteOption = await client.Delete(tenantId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
 
         Option deleteSubscriptionOption = await SubscriptionTests.DeleteSubscription(_cluster.ServiceProvider, subscriptionId, _context);
@@ -75,5 +75,15 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         setOption.StatusCode.IsOk().Should().BeTrue();
 
         return tenant;
+    }
+
+    public static async Task<Option> DeleteTenant(IServiceProvider service, TenantId tenantId, ScopeContext context)
+    {
+        TenantClient client = service.GetRequiredService<TenantClient>();
+
+        Option deleteOption = await client.Delete(tenantId, context);
+        deleteOption.StatusCode.IsOk().Should().BeTrue();
+
+        return StatusCode.OK;
     }
 }

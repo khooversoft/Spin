@@ -27,8 +27,8 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
         _cluster = fixture;
     }
 
-    [Fact(Skip = "server")]
-    //[Fact]
+    //[Fact(Skip = "server")]
+    [Fact]
     public async Task LifecycleTest()
     {
         SubscriptionClient client = _cluster.ServiceProvider.GetRequiredService<SubscriptionClient>();

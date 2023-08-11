@@ -20,7 +20,7 @@ public static class IdPatterns
     public static bool IsTenant(string subject) =>
         subject.IsNotEmpty() &&
         subject.Func(x => x.IndexOf("..") < 0) &&
-        TestStart(subject, char.IsLetter) &&
+        TestStart(subject, x => char.IsLetter(x) || x == '$') &&
         TestMiddle(subject, StandardCharacterTest) &&
         TestEnd(subject, char.IsLetterOrDigit);
 

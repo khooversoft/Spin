@@ -32,8 +32,8 @@ public class UserConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.User}");
 
-        group.MapDelete("/{nameId}", Delete);
-        group.MapGet("/{nameId}", Get);
+        group.MapDelete("/{principalId}", Delete);
+        group.MapGet("/{principalId}", Get);
         group.MapPost("/", Set);
 
         return group;

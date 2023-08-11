@@ -32,8 +32,8 @@ public class TenantConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Tenant}");
 
-        group.MapDelete("/{nameId}", Delete);
-        group.MapGet("/{nameId}", Get);
+        group.MapDelete("/{tenantId}", Delete);
+        group.MapGet("/{tenantId}", Get);
         group.MapPost("/", Set);
 
         return group;

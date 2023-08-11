@@ -67,7 +67,7 @@ public class SubscriptionConnector
         Option<ObjectId> option = ObjectId.Create(model.SubscriptionId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<ISubscriptionActor>(option.Return()).Set(model, context.TraceId);
+        var response = await _client.GetObjectGrain<ISubscriptionActor>(model.SubscriptionId).Set(model, context.TraceId);
         return response.ToResult();
     }
 }

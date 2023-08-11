@@ -22,8 +22,8 @@ public class HealthCheckTests : IClassFixture<ClusterApiFixture>
         _cluster = fixture;
     }
 
-    [Fact(Skip = "server")]
-    //[Fact]
+    //[Fact(Skip = "server")]
+    [Fact]
     public async Task TestHealthCheckApi()
     {
         RestResponse result = await new RestClient(_cluster.GetClient())
