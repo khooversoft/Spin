@@ -75,16 +75,16 @@ public sealed record ObjectId
             .Reverse()
             .ToStack();
 
-        if (tokenStack.Count < 2) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, no schema and tenant");
+        if (tokenStack.Count < 3) return new Option<ObjectId>(StatusCode.BadRequest, "Missing schema, tenant, path(s)");
 
         string schema = tokenStack.Pop();
-        if (!IdPatterns.IsSchema(schema)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, schema has invalid characters");
+        if (!IdPatterns.IsSchema(schema)) return new Option<ObjectId>(StatusCode.BadRequest, "Invalid characters");
 
         string tenant = tokenStack.Pop();
-        if (!IdPatterns.IsTenant(tenant)) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, tenant has invalid characters");
+        if (!IdPatterns.IsTenant(tenant)) return new Option<ObjectId>(StatusCode.BadRequest, "Invalid characters");
 
         var paths = tokenStack.ToArray();
-        if (!paths.All(x => IdPatterns.IsPath(x))) return new Option<ObjectId>(StatusCode.BadRequest, "Syntax error, one or more of the paths has invalid characters");
+        if (!paths.All(x => IdPatterns.IsPath(x))) return new Option<ObjectId>(StatusCode.BadRequest, "Path(s) has invalid characters");
 
         return new ObjectId(schema, tenant, paths);
     }

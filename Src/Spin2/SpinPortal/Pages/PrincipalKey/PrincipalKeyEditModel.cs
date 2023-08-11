@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Signature;
 
@@ -19,7 +18,7 @@ public static class PrincipalKeyModelExtensions
     public static PrincipalKeyEditModel ConvertTo(this PrincipalKeyModel subject) => new PrincipalKeyEditModel
     {
         KeyId = subject.KeyId,
-        OwnerId = subject.OwnerId,
+        OwnerId = subject.PrincipalId,
         Name = subject.Name,
         PrivateKeyExist = subject.PrivateKeyExist,
     };

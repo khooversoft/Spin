@@ -19,6 +19,7 @@ public static class ApiStartup
         services.AddSingleton<ConfigurationConnector>();
         services.AddSingleton<SearchConnector>();
         services.AddSingleton<PrincipalKeyConnector>();
+        services.AddSingleton<PrincipalPrivateKeyConnector>();
         services.AddSingleton<SignatureConnector>();
 
         return services;
@@ -32,6 +33,7 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<ConfigurationConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SearchConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<PrincipalKeyConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<PrincipalPrivateKeyConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SignatureConnector>().Setup(app);
     }
 }

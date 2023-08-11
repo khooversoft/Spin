@@ -1,11 +1,10 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Orleans.TestingHost;
-using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.test.Application;
-using Toolbox.Orleans.Types;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.test.ReadWrite;
@@ -34,7 +33,7 @@ public class PublicKeyActor : IClassFixture<ClusterFixture>
         var request = new PrincipalKeyModel
         {
             KeyId = keyId,
-            OwnerId = ownerId,
+            PrincipalId = ownerId,
             Audience = "test.com",
             Name = "test sign key",
             PublicKey = rsaKey.PublicKey,

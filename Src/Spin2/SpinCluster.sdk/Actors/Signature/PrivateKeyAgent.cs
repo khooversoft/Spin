@@ -60,7 +60,7 @@ internal class PrivateKeyAgent
 
         PrincipalPrivateKeyModel model = modelResponse.Return();
 
-        var signature = PrincipalSignature.CreateFromPrivateKeyOnly(model.PrivateKey, model.KeyId, model.OwnerId, model.Audience);
+        var signature = PrincipalSignature.CreateFromPrivateKeyOnly(model.PrivateKey, model.KeyId, model.PrincipalId, model.Audience);
 
         string jwtSignature = new JwtTokenBuilder()
             .SetDigest(messageDigest)

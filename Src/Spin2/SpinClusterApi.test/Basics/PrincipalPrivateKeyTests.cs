@@ -7,6 +7,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.User;
 using SpinClusterApi.test.Application;
@@ -15,12 +16,12 @@ using Toolbox.Types;
 
 namespace SpinClusterApi.test.Basics;
 
-public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
+public class PrincipalPrivateKeyTests : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
-    public PrincipalKeyTests(ClusterApiFixture fixture)
+    public PrincipalPrivateKeyTests(ClusterApiFixture fixture)
     {
         _cluster = fixture;
     }
@@ -29,28 +30,28 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
     [Fact]
     public async Task LifecycleTest()
     {
-        PrincipalKeyClient client = _cluster.ServiceProvider.GetRequiredService<PrincipalKeyClient>();
+        PrincipalPrivateKeyClient client = _cluster.ServiceProvider.GetRequiredService<PrincipalPrivateKeyClient>();
         PrincipalId principalId = "user1@company3.com";
 
-        Option<PrincipalKeyModel> result = await client.Get(principalId, _context);
+        Option<PrincipalPrivateKeyModel> result = await client.Get(principalId, _context);
         if (result.IsOk()) await client.Delete(principalId, _context);
 
         var rsaKey = new RsaKeyPair("key");
 
-        var model = new PrincipalKeyModel
+        var model = new PrincipalPrivateKeyModel
         {
-            KeyId = PrincipalKeyModel.CreateId(principalId),
+            KeyId = PrincipalPrivateKeyModel.CreateId(principalId),
             PrincipalId = principalId,
             Name = "test",
             Audience = "audience",
-            PublicKey = rsaKey.PublicKey,
+            PrivateKey = rsaKey.PrivateKey,
             AccountEnabled = true,
         };
 
         Option setOption = await client.Set(model, _context);
         setOption.StatusCode.IsOk().Should().BeTrue();
 
-        Option<PrincipalKeyModel> readOption = await client.Get(principalId, _context);
+        Option<PrincipalPrivateKeyModel> readOption = await client.Get(principalId, _context);
         readOption.IsOk().Should().BeTrue();
 
         (model == readOption.Return()).Should().BeTrue();

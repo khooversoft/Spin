@@ -1,4 +1,3 @@
-using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.User;
 using Toolbox.Tools;
 
@@ -47,7 +46,6 @@ namespace SpinCluster.sdk.test.Tools
                 """;
 
             UserModel user = Json.Default.Deserialize<UserModel>(payload).NotNull();
-            string a = user.UserId;
         }
     }
 }

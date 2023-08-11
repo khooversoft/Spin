@@ -1,23 +1,23 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.Subscription;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Extensions;
-using Microsoft.AspNetCore.Builder;
 
 namespace SpinCluster.sdk.Actors.PrincipalKey;
 
-public class PrincipalKeyConnector
+public class PrincipalPrivateKeyConnector
 {
     protected readonly IClusterClient _client;
-    protected readonly ILogger<SubscriptionConnector> _logger;
+    protected readonly ILogger<PrincipalPrivateKeyConnector> _logger;
 
-    public PrincipalKeyConnector(IClusterClient client, ILogger<SubscriptionConnector> logger)
+    public PrincipalPrivateKeyConnector(IClusterClient client, ILogger<PrincipalPrivateKeyConnector> logger)
     {
         _client = client.NotNull();
         _logger = logger.NotNull();
@@ -25,7 +25,7 @@ public class PrincipalKeyConnector
 
     public virtual RouteGroupBuilder Setup(IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.PrincipalKey}");
+        RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.PrincipalPrivateKey}");
 
         group.MapDelete("/{principalId}", Delete);
         group.MapGet("/{principalId}", Get);
@@ -40,8 +40,8 @@ public class PrincipalKeyConnector
         Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = PrincipalKeyModel.CreateId(option.Return());
-        Option response = await _client.GetObjectGrain<IPrincipalKeyActor>(objectId).Delete(context.TraceId);
+        ObjectId objectId = PrincipalPrivateKeyModel.CreateId(option.Return());
+        Option response = await _client.GetObjectGrain<IPrincipalPrivateKeyActor>(objectId).Delete(context.TraceId);
         return response.ToResult();
     }
 
@@ -51,18 +51,18 @@ public class PrincipalKeyConnector
         Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = PrincipalKeyModel.CreateId(option.Return());
-        Option<PrincipalKeyModel> response = await _client.GetObjectGrain<IPrincipalKeyActor>(objectId).Get(context.TraceId);
+        ObjectId objectId = PrincipalPrivateKeyModel.CreateId(option.Return());
+        Option<PrincipalPrivateKeyModel> response = await _client.GetObjectGrain<IPrincipalPrivateKeyActor>(objectId).Get(context.TraceId);
         return response.ToResult();
     }
 
-    public async Task<IResult> Set(PrincipalKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Set(PrincipalPrivateKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         Option<ObjectId> option = ObjectId.Create(model.KeyId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<IPrincipalKeyActor>(option.Return()).Set(model, context.TraceId);
+        var response = await _client.GetObjectGrain<IPrincipalPrivateKeyActor>(option.Return()).Set(model, context.TraceId);
         return response.ToResult();
     }
 }

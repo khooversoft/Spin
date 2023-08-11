@@ -16,8 +16,8 @@ public static class SpinConstants
         public const string User = "user";
         public const string Group = "group";
         public const string Lease = "lease";
-        public const string PrincipalKey = "principalKey";
-        public const string PrincipalPrivateKey = "principalPrivateKey";
+        public const string PrincipalKey = "principal-key";
+        public const string PrincipalPrivateKey = "principal-private-key";
         public const string Signature = "signature";
         public const string Storage = "storage";
         public const string Config = "storage";

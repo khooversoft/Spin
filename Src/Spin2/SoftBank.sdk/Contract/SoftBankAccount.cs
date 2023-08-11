@@ -44,8 +44,8 @@ public class SoftBankAccount
     public BlobPackage ToBlobPackage() => _blockChain.ToBlobPackage();
     public Option IsOwner(PrincipalId principalId) => _blockChain.IsOwner(principalId);
 
-    public async Task PushToAccount(decimal amount, ObjectId toAccount, PrincipalId principalId)
-    {
-    }
+    //public async Task PushToAccount(decimal amount, ObjectId toAccount, PrincipalId principalId)
+    //{
+    //}
 }
 

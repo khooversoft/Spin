@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.Key;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -75,7 +75,7 @@ public class SignatureActor : Grain, ISignatureActor
         var publicKey = new PrincipalKeyModel
         {
             KeyId = rsaKey.KeyId,
-            OwnerId = request.OwnerId,
+            PrincipalId = request.OwnerId,
             Name = request.Name,
             Audience = request.Audience,
             PublicKey = rsaKey.PublicKey,
@@ -88,7 +88,7 @@ public class SignatureActor : Grain, ISignatureActor
         var privateKey = new PrincipalPrivateKeyModel
         {
             KeyId = rsaKey.KeyId,
-            OwnerId = request.OwnerId,
+            PrincipalId = request.OwnerId,
             Name = request.Name,
             Audience = request.Audience,
             PrivateKey = rsaKey.PrivateKey

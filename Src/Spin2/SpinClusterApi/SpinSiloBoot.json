@@ -16,12 +16,12 @@
       "BasePath": "userV1"
     },
     {
-      "SchemaName": "principalKey",
+      "SchemaName": "principal-key",
       "ContainerName": "directory",
       "BasePath": "keyV1"
     },
     {
-      "SchemaName": "principalPrivateKey",
+      "SchemaName": "principal-private-key",
       "ContainerName": "directory",
       "BasePath": "keyPrivateV1"
     },
