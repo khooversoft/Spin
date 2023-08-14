@@ -10,16 +10,14 @@ namespace SpinCluster.sdk.Actors.Signature;
 
 public record SignRequest
 {
-    public string Digest { get; init; } = null!;
+    public string PrincipalId { get; set; } = null!;
+    public string MessageDigest { get; init; } = null!;
 }
 
 public static class SignRequestValidator
 {
     public static IValidator<SignRequest> Validator { get; } = new Validator<SignRequest>()
-        .RuleFor(x => x.Digest).NotEmpty()
+        .RuleFor(x => x.PrincipalId).NotEmpty().ValidPrincipalId()
+        .RuleFor(x => x.MessageDigest).NotEmpty()
         .Build();
-
-    public static ValidatorResult Validate(this SignRequest signRequest, ScopeContextLocation location) => Validator
-        .Validate(signRequest)
-        .LogResult(location);
 }

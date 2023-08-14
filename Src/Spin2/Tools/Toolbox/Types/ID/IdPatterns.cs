@@ -46,6 +46,12 @@ public static class IdPatterns
             var v => IsName(v[0]) && IsTenant(v[1])
         };
 
+    public static bool IsBlockType(string subject) =>
+        subject.IsNotEmpty() &&
+        TestStart(subject, char.IsLetter) &&
+        TestMiddle(subject, StandardCharacterTest) &&
+        TestEnd(subject, char.IsLetterOrDigit);
+
     public static bool TestStart(string subject, Func<char, bool> test) => test(subject[0]);
 
     public static bool TestMiddle(string subject, Func<char, bool> test) => subject switch

@@ -9,7 +9,7 @@ namespace SpinCluster.sdk.Actors.PrincipalPrivateKey;
 [GenerateSerializer, Immutable]
 public sealed record PrincipalPrivateKeyModel
 {
-    // Id = "principal-private-key/tenant/{principalId}/{name}"
+    // Id = "principal-private-key/tenant/{principalId}"
     [Id(0)] public string KeyId { get; init; } = null!;
     [Id(1)] public string PrincipalId { get; init; } = null!;
     [Id(2)] public string Name { get; init; } = null!;
@@ -33,18 +33,17 @@ public sealed record PrincipalPrivateKeyModel
 
     public override int GetHashCode() => HashCode.Combine(KeyId, PrincipalId, Name, Audience);
     public static ObjectId CreateId(PrincipalId principalId) => $"{SpinConstants.Schema.PrincipalPrivateKey}/{principalId.Domain}/{principalId}";
-
 }
 
 
 public static class PrincipalPrivateKeyModelValidator
 {
     public static IValidator<PrincipalPrivateKeyModel> Validator { get; } = new Validator<PrincipalPrivateKeyModel>()
-        .RuleFor(x => x.KeyId).NotEmpty()
-        .RuleFor(x => x.PrincipalId).NotEmpty()
+        .RuleFor(x => x.KeyId).ValidObjectId()
+        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.Audience).NotEmpty()
-        .RuleFor(x => x.PrivateKey).NotNull()
+        .RuleForObject(x => x).Must(x => ObjectId.Create(x.KeyId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
 
     public static ValidatorResult Validate(this PrincipalPrivateKeyModel subject, ScopeContextLocation location) => Validator

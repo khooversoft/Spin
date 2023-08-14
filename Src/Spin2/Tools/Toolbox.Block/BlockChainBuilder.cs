@@ -15,6 +15,7 @@ public class BlockChainBuilder
     public BlockChainBuilder SetPrincipleId(PrincipalId principleId) => this.Action(x => PrincipleId = principleId);
     public BlockChainBuilder AddAccess(BlockAcl? blockAcl) => this.Action(_ => Access.AddRange(blockAcl?.Items ?? Array.Empty<BlockAccess>()));
     public BlockChainBuilder AddAccess(BlockAccess blockAccess) => this.Action(_ => Access.Add(blockAccess));
+    public BlockChainBuilder AddAccess(IEnumerable<BlockAccess> blockAccess) => this.Action(_ => Access.AddRange(blockAccess));
 
     public async Task<Option<BlockChain>> Build(ISign sign, ScopeContext context)
     {

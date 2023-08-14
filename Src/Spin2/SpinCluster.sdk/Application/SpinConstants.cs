@@ -4,6 +4,7 @@ public static class SpinConstants
 {
     public const string SpinStateStore = "spinStateStore";
     public const string SchemaSearch = "schemaSearch";
+    public const string SignValidation = "signvalidation";
     public const string Folder = "folder";
     public const string Open = "open";
     public const string SystemTenant = "$system";
@@ -22,6 +23,7 @@ public static class SpinConstants
         public const string Storage = "storage";
         public const string Config = "storage";
         public const string SoftBank = "softbank";
+        public const string BlockStorage = "blockstorage";
     }
 
     public static class Extension
@@ -29,6 +31,7 @@ public static class SpinConstants
         public const string Json = ".json";
         public const string PrivateKeyJson = ".pkjson";
         public const string SmartContract = ".sc";
+        public const string BlockStorage = ".block";
     }
 
     public static class Headers

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using SpinCluster.sdk.Actors.Storage;
-using SpinCluster.sdk.Application;
+﻿using SpinCluster.sdk.Application;
 using Toolbox.Security.Principal;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
@@ -10,7 +8,7 @@ namespace SpinCluster.sdk.Actors.PrincipalKey;
 [GenerateSerializer, Immutable]
 public sealed record PrincipalKeyModel
 {
-    // Id = "principal-key/tenant/{principalId}/{name}"
+    // Id = "principal-key/tenant/{principalId}"
     [Id(0)] public string KeyId { get; init; } = null!;
     [Id(1)] public string PrincipalId { get; init; } = null!;
     [Id(2)] public string Name { get; init; } = null!;
@@ -40,14 +38,15 @@ public sealed record PrincipalKeyModel
 }
 
 
-public static class PrincipalKeyValidator
+public static class PrincipalKeyModelValidator
 {
     public static IValidator<PrincipalKeyModel> Validator { get; } = new Validator<PrincipalKeyModel>()
-        .RuleFor(x => x.KeyId).ValidObjectId().Must(x => ((ObjectId)x).Paths.Count >= 1, x => $"Missing key name, KeyId={x}")
+        .RuleFor(x => x.KeyId).ValidObjectId()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .RuleFor(x => x.Name).ValidName()
         .RuleFor(x => x.Audience).NotEmpty()
         .RuleFor(x => x.PublicKey).NotNull()
+        .RuleForObject(x => x).Must(x => ObjectId.Create(x.KeyId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
 
     public static ValidatorResult Validate(this PrincipalKeyModel subject, ScopeContextLocation location) => Validator

@@ -18,22 +18,22 @@ public class PrincipalSignatureCollection : ISign, ISignValidate
     public void Clear() => _principalList.Clear();
     public bool Remove(string kid) => _principalList.TryRemove(kid, out var _);
 
-    public async Task<Option<string>> SignDigest(string kid, string messageDigest, ScopeContext context)
+    public async Task<Option<string>> SignDigest(string kid, string messageDigest, string traceId)
     {
         if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option<string>(StatusCode.NotFound, "kid not found");
 
-        var result = await principalSignature.SignDigest(kid, messageDigest, context);
+        var result = await principalSignature.SignDigest(kid, messageDigest, traceId);
         return result;
     }
 
-    public async Task<Option> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
+    public async Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string traceId)
     {
         string? kid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
         if (kid == null) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
 
-        if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option(StatusCode.NotFound, "kid not found").LogResult(context.Location());
+        if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option(StatusCode.NotFound, "kid not found");
 
-        var result = await principalSignature.ValidateDigest(jwtSignature, messageDigest, context);
+        var result = await principalSignature.ValidateDigest(jwtSignature, messageDigest, traceId);
         return result;
     }
 }

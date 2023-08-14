@@ -35,27 +35,50 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
         Option<PrincipalKeyModel> result = await client.Get(principalId, _context);
         if (result.IsOk()) await client.Delete(principalId, _context);
 
-        var rsaKey = new RsaKeyPair("key");
+        (await IsPrivateKeyExist(principalId)).StatusCode.IsError().Should().BeTrue();
 
-        var model = new PrincipalKeyModel
+        var create = new PrincipalKeyCreateModel
         {
             KeyId = PrincipalKeyModel.CreateId(principalId),
             PrincipalId = principalId,
-            Name = "test",
-            Audience = "audience",
-            PublicKey = rsaKey.PublicKey,
+            Name = "user1",
             AccountEnabled = true,
         };
 
-        Option setOption = await client.Set(model, _context);
-        setOption.StatusCode.IsOk().Should().BeTrue();
+        Option createOption = await client.Create(create, _context);
+        createOption.StatusCode.IsOk().Should().BeTrue();
+
+        (await IsPrivateKeyExist(principalId)).StatusCode.IsOk().Should().BeTrue();
 
         Option<PrincipalKeyModel> readOption = await client.Get(principalId, _context);
         readOption.IsOk().Should().BeTrue();
 
-        (model == readOption.Return()).Should().BeTrue();
+        PrincipalKeyModel readModel = readOption.Return();
+        create.KeyId.Should().Be(readModel.KeyId);
+        create.PrincipalId.Should().Be(readModel.PrincipalId);
+        create.Name.Should().Be(readModel.Name);
+        create.AccountEnabled.Should().Be(readModel.AccountEnabled);
+        readModel.Audience.Should().NotBeNullOrEmpty();
+        readModel.PublicKey.Should().NotBeNull();
+        readModel.PublicKey.Length.Should().BeGreaterThan(0);
+
+        Option setOption = await client.Update(readModel, _context);
+        setOption.StatusCode.IsOk().Should().BeTrue();
+
+        Option<PrincipalKeyModel> compareOption = await client.Get(principalId, _context);
+        readOption.IsOk().Should().BeTrue();
+
+        (readModel == compareOption.Return()).Should().BeTrue();
 
         Option deleteOption = await client.Delete(principalId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
+
+        (await IsPrivateKeyExist(principalId)).StatusCode.IsError().Should().BeTrue();
+    }
+
+    private async Task<Option> IsPrivateKeyExist(PrincipalId principalId)
+    {
+        var exist = await _cluster.ServiceProvider.GetRequiredService<PrincipalPrivateKeyClient>().Get(principalId, _context);
+        return exist.ToOptionStatus();
     }
 }

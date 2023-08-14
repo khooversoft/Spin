@@ -60,6 +60,7 @@ public static class UserModelValidator
         .RuleFor(x => x.LastName).NotEmpty()
         .RuleFor(x => x.DataObjects).NotNull()
         .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
+        .RuleForObject(x => x).Must(x => ObjectId.Create(x.UserId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
 
     public static ValidatorResult Validate(this UserModel subject, ScopeContextLocation location) => Validator

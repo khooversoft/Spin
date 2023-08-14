@@ -29,7 +29,8 @@ public class PrincipalKeyConnector
 
         group.MapDelete("/{principalId}", Delete);
         group.MapGet("/{principalId}", Get);
-        group.MapPost("/", Set);
+        group.MapPost("/create", Create);
+        group.MapPost("/", Update);
 
         return group;
     }
@@ -56,13 +57,23 @@ public class PrincipalKeyConnector
         return response.ToResult();
     }
 
-    public async Task<IResult> Set(PrincipalKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Create(PrincipalKeyCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         Option<ObjectId> option = ObjectId.Create(model.KeyId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<IPrincipalKeyActor>(option.Return()).Set(model, context.TraceId);
+        var response = await _client.GetObjectGrain<IPrincipalKeyActor>(option.Return()).Create(model, context.TraceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> Update(PrincipalKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        Option<ObjectId> option = ObjectId.Create(model.KeyId).LogResult(context.Location());
+        if (option.IsError()) option.ToResult();
+
+        var response = await _client.GetObjectGrain<IPrincipalKeyActor>(option.Return()).Update(model, context.TraceId);
         return response.ToResult();
     }
 }

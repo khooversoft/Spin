@@ -25,7 +25,14 @@ public class PrincipalKeyClient
         .GetAsync(context)
         .GetContent<PrincipalKeyModel>();
 
-    public async Task<Option> Set(PrincipalKeyModel content, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> Create(PrincipalKeyCreateModel content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.PrincipalKey}/create")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .SetContent(content)
+        .PostAsync(context)
+        .ToOption();
+
+    public async Task<Option> Update(PrincipalKeyModel content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.PrincipalKey}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)

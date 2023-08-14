@@ -24,3 +24,9 @@ public readonly struct Option : IEquatable<Option>
     public static implicit operator Option(StatusCode value) => new Option(value);
 }
 
+public static class OptionExtensions
+{
+    public static bool IsOk(this Option subject) => subject.StatusCode.IsOk();
+    public static bool IsError(this Option subject) => subject.StatusCode.IsError();
+
+}

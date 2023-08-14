@@ -4,7 +4,7 @@ using Toolbox.Tools.Validation;
 
 namespace Toolbox.Types;
 
-public static class OptionExtensions
+public static class Option_T_Extensions
 {
     public static T Return<T>(this Option<T> subject, bool throwOnNoValue = true, string? error = null) => subject.HasValue switch
     {

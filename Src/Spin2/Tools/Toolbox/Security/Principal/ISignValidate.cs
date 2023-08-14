@@ -5,5 +5,5 @@ namespace Toolbox.Security.Principal;
 
 public interface ISignValidate
 {
-    Task<Option> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context);
+    Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string traceId);
 }

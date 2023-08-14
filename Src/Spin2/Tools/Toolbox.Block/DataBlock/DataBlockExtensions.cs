@@ -42,7 +42,7 @@ public static class DataBlockExtensions
         dataBlock.NotNull();
         sign.NotNull();
 
-        Option<string> jwt = await sign.SignDigest(dataBlock.PrincipleId, dataBlock.Digest, context);
+        Option<string> jwt = await sign.SignDigest(dataBlock.PrincipleId, dataBlock.Digest, context.TraceId);
         if (jwt.IsError()) return jwt.ToOptionStatus<DataBlock>();
 
         return dataBlock with { JwtSignature = jwt.Return() };

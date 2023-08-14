@@ -22,7 +22,7 @@ public class BlockChainScalarStreamTests
     public async Task GivenSingleDocument_ShouldPass()
     {
         var payloads = new[]
-                {
+        {
             new Payload { Name = "Name1", Value = 1, Price = 1.5f },
             new Payload { Name = "Name2", Value = 2, Price = 2.5f },
             new Payload { Name = "Name2-offset", Value = 5, Price = 5.5f },

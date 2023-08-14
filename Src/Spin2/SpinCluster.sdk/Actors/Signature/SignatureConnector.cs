@@ -9,17 +9,29 @@ using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Extensions;
+using System.Reflection;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Toolbox.Tools.Validation;
 
 namespace SpinCluster.sdk.Actors.PrincipalKey;
 
 public class SignatureConnector
 {
-    private readonly IClusterClient _client;
+    private readonly IClusterClient _clusterClient;
     private readonly ILogger<SignatureConnector> _logger;
+    private readonly IValidator<SignRequest> _signValidator;
+    private readonly IValidator<ValidateRequest> _validateValidator;
 
-    public SignatureConnector(IClusterClient client, ILogger<SignatureConnector> logger)
+    public SignatureConnector(
+        IClusterClient client,
+        IValidator<SignRequest> signValidator,
+        IValidator<ValidateRequest> validateValidator,
+        ILogger<SignatureConnector> logger)
     {
-        _client = client.NotNull();
+        _clusterClient = client.NotNull();
+        _signValidator = signValidator.NotNull();
+        _validateValidator = validateValidator.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -27,42 +39,29 @@ public class SignatureConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Signature}");
 
-        group.MapDelete(_logger, async (objectId, context) => await _client.GetGrain<ISignatureActor>(objectId).Delete(context.TraceId));
-        group.MapExist(_logger, async (objectId, context) => await _client.GetGrain<ISignatureActor>(objectId).Exist(context.TraceId));
-
-        // Create
-        group.MapPost("/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, PrincipalKeyRequest model) =>
-        {
-            var context = new ScopeContext(traceId, _logger);
-            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-            if (option.IsError()) option.ToResult();
-
-            Option response = await _client.GetGrain<ISignatureActor>(objectId).Create(model, traceId);
-            return response.ToResult();
-        });
-
-        // Sign
-        group.MapPost("/sign/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, SignRequest model) =>
-        {
-            var context = new ScopeContext(traceId, _logger);
-            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-            if (option.IsError()) option.ToResult();
-
-            Option<string> response = await _client.GetGrain<ISignatureActor>(objectId).Sign(model.Digest, context.TraceId);
-            return response.ToResult();
-        });
-
-        // Validate
-        group.MapPost("/validate/{*objectId}", async (string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId, ValidateRequest model) =>
-        {
-            var context = new ScopeContext(traceId, _logger);
-            Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-            if (option.IsError()) option.ToResult();
-
-            Option response = await _client.GetGrain<ISignatureActor>(objectId).ValidateJwtSignature(model.JwtSignature, model.Digest, context.TraceId);
-            return response.ToResult();
-        });
+        group.MapPost("/sign", Sign);
+        group.MapPost("/validate", Validate);
 
         return group;
+    }
+
+    private async Task<IResult> Sign(SignRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        var validation = _signValidator.Validate(model).LogResult(context.Location());
+        if (!validation.IsValid) return new Option(StatusCode.BadRequest, validation.FormatErrors()).ToResult();
+
+        var result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
+        return result.ToResult();
+    }
+
+    private async Task<IResult> Validate(ValidateRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        var validation = _validateValidator.Validate(model).LogResult(context.Location());
+        if (!validation.IsValid) return new Option(StatusCode.BadRequest, validation.FormatErrors()).ToResult();
+
+        var result = await _clusterClient.GetSignatureActor().ValidateDigest(model.JwtSignature, model.MessageDigest, traceId);
+        return result.ToResult();
     }
 }

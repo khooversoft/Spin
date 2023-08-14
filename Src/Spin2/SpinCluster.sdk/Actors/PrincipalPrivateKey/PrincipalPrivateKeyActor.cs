@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,8 @@ using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
+using Toolbox.Security.Jwt;
+using Toolbox.Security.Principal;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -21,6 +24,7 @@ public interface IPrincipalPrivateKeyActor : IGrainWithStringKey
     Task<Option> Exist(string traceId);
     Task<Option<PrincipalPrivateKeyModel>> Get(string traceId);
     Task<Option> Set(PrincipalPrivateKeyModel model, string traceId);
+    Task<Option<string>> Sign(string messageDigest, string traceId);
 }
 
 public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
@@ -78,9 +82,50 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         ValidatorResult validatorResult = _validator.Validate(model).LogResult(context.Location());
         if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
 
+        if (!this.GetPrimaryKeyString().EqualsIgnoreCase(model.KeyId))
+        {
+            return new Option(StatusCode.BadRequest, $"KeyId {model.KeyId} does not match actor id={this.GetPrimaryKeyString()}");
+        }
+
+        if (_state.RecordExists)
+        {
+            model = model with { PrivateKey = _state.State.PrivateKey };
+        }
+
         _state.State = model;
         await _state.WriteStateAsync();
 
         return new Option(StatusCode.OK);
+    }
+
+    public async Task<Option<string>> Sign(string messageDigest, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Signing with private key, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        await _state.ReadStateAsync();
+        if (!_state.RecordExists) return StatusCode.BadRequest;
+
+        var signature = PrincipalSignature.CreateFromPrivateKeyOnly(
+            _state.State.PrivateKey,
+            _state.State.KeyId,
+            _state.State.PrincipalId,
+            _state.State.Audience
+            );
+
+        string jwtSignature = new JwtTokenBuilder()
+        .SetDigest(messageDigest)
+        .SetExpires(DateTime.Now.AddDays(10))
+        .SetIssuedAt(DateTime.Now)
+        .SetPrincipleSignature(signature)
+        .Build();
+
+        if (jwtSignature.IsEmpty())
+        {
+            context.Location().LogError("Failed to build JWT");
+            return new Option<string>(StatusCode.BadRequest, "JWT builder failed");
+        }
+
+        return jwtSignature;
     }
 }

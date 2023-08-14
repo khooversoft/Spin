@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using SpinCluster.sdk.Actors.Block;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Subscription;
@@ -21,6 +22,7 @@ public static class ApiStartup
         services.AddSingleton<PrincipalKeyConnector>();
         services.AddSingleton<PrincipalPrivateKeyConnector>();
         services.AddSingleton<SignatureConnector>();
+        services.AddSingleton<BlockConnector>();
 
         return services;
     }
@@ -35,5 +37,6 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<PrincipalKeyConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<PrincipalPrivateKeyConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SignatureConnector>().Setup(app);
+        //app.ServiceProvider.GetRequiredService<BlockConnector>().Setup(app);
     }
 }

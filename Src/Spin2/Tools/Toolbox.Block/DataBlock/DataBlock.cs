@@ -56,6 +56,6 @@ public static class DataBlockValidator
         var valResult = Validator.Validate(subject).LogResult(context.Location()).ToOption<ValidatorResult>();
         if (valResult.IsError()) return valResult.Return().ToOption();
 
-        return await signValidate.ValidateDigest(subject.JwtSignature, subject.Digest, context);
+        return await signValidate.ValidateDigest(subject.JwtSignature, subject.Digest, context.TraceId);
     }
 }

@@ -15,26 +15,15 @@ public class SignatureClient
         _client = client;
     }
 
-    public Task<Option> Delete(ObjectId id, ScopeContext context) => _client.Delete(SpinConstants.Schema.Signature, id, null, context);
-
-    public Task<Option> Exist(ObjectId id, ScopeContext context) => _client.Exist(SpinConstants.Schema.Signature, id, null, context);
-
-    public async Task<Option> Create(ObjectId id, PrincipalKeyRequest model, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Signature}/{id}")
-        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .SetContent(model)
-        .PostAsync(context)
-        .ToOption();
-
-    public async Task<Option<string>> Sign(ObjectId id, ValidateRequest model, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Signature}/sign/{id}")
+    public async Task<Option<string>> Sign(SignRequest model, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Signature}/sign")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(model)
         .PostAsync(context)
         .GetContent<string>();
 
-    public async Task<Option> ValidateJwtSignature(ObjectId id, ValidateRequest model, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Signature}/validate/{id}")
+    public async Task<Option> ValidateDigest(ValidateRequest model, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Signature}/validate")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(model)
         .PostAsync(context)

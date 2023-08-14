@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
 using Toolbox.Orleans.Types;
@@ -19,16 +20,17 @@ public class SignProxy : ISign
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<string>> SignDigest(string kid, string messageDigest, ScopeContext context)
+    public async Task<Option<string>> SignDigest(string kid, string messageDigest, string traceId)
     {
+        var context = new ScopeContext(traceId, _logger);
+
         Option<PrincipalId> ownerIdResult = PrincipalId.Create(kid).LogResult(context.Location());
         if (ownerIdResult.IsError()) return ownerIdResult.ToOptionStatus<string>();
 
         PrincipalId ownerId = ownerIdResult.Return();
         string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";
 
-        ISignatureActor signatureActor = _client.GetGrain<ISignatureActor>(objectId);
-        Option<string> result = await signatureActor.Sign(messageDigest, context.TraceId);
+        Option<string> result = await _client.GetSignatureActor().SignDigest(kid, messageDigest, context.TraceId);
         return result;
     }
 }

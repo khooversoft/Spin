@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using System.Reflection;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
@@ -51,10 +55,29 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
+        if (!_state.RecordExists)
+        {
+            await _state.ClearStateAsync();
+            return StatusCode.OK;
+        }
+
+        ObjectId publicKeyId = PrincipalKeyModel.CreateId(_state.State.PrincipalId);
+        await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(publicKeyId).Delete(context.TraceId);
+
         await _state.ClearStateAsync();
         return StatusCode.OK;
     }
-    public Task<Option> Exist(string _) => new Option(_state.RecordExists && _state.State.IsActive ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+
+    public async Task<Option> Exist(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
+
+        var principalKeyId = PrincipalKeyModel.CreateId(_state.State.PrincipalId);
+        var privateKeyExist = await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(principalKeyId).Exist(context.TraceId);
+
+        return privateKeyExist;
+    }
 
     public Task<Option<UserModel>> Get(string traceId)
     {
@@ -78,23 +101,55 @@ public class UserActor : Grain, IUserActor
         ValidatorResult validatorResult = _validator.Validate(model).LogResult(context.Location());
         if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
 
-        string tenantId = PrincipalId.Create(model.PrincipalId).LogResult(context.Location())
-            .Return()
-            .Domain;
+        PrincipalId principalId = model.PrincipalId;
 
-        Option isTenantActive = await _clusterClient
-            .GetObjectGrain<ITenantActor>(TenantModel.CreateId(tenantId))
-            .Exist(traceId);
+        var verifyTenant = await VerifyTenant(principalId, context);
+        if (verifyTenant.StatusCode.IsError()) return verifyTenant;
 
-        if (isTenantActive.StatusCode.IsError())
+        if (!_state.RecordExists)
         {
-            context.Location().LogError("Tenant={tenantId} does not exist, error={error}", tenantId, isTenantActive.Error);
-            return new Option(StatusCode.Conflict, $"Tenant={tenantId}, for principalId={model.PrincipalId} does not exist");
+            var createKeyOption = await CreateKeys(model, context);
+            if (createKeyOption.StatusCode.IsError()) return createKeyOption;
         }
 
         _state.State = model;
         await _state.WriteStateAsync();
 
         return new Option(StatusCode.OK);
+    }
+
+    private async Task<Option> VerifyTenant(PrincipalId principalId, ScopeContext context)
+    {
+        string tenantId = PrincipalId.Create(principalId).LogResult(context.Location())
+            .Return()
+            .Domain;
+
+        Option isTenantActive = await _clusterClient
+            .GetObjectGrain<ITenantActor>(TenantModel.CreateId(tenantId))
+            .Exist(context.TraceId);
+
+        if (isTenantActive.StatusCode.IsError())
+        {
+            context.Location().LogError("Tenant={tenantId} does not exist, error={error}", tenantId, isTenantActive.Error);
+            return new Option(StatusCode.Conflict, $"Tenant={tenantId}, for principalId={principalId} does not exist");
+        }
+
+        return StatusCode.OK;
+    }
+
+    private async Task<Option> CreateKeys(UserModel model, ScopeContext context)
+    {
+        ObjectId keyId = PrincipalKeyModel.CreateId(model.PrincipalId);
+
+        var keyCreate = new PrincipalKeyCreateModel
+        {
+            KeyId = keyId,
+            PrincipalId = model.PrincipalId,
+            Name = "signVerify",
+            AccountEnabled = true,
+        };
+
+        var createOption = await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(keyId).Create(keyCreate, context.TraceId);
+        return createOption;
     }
 }

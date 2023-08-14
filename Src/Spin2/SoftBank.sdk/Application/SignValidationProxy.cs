@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Signature;
+using SpinCluster.sdk.Application;
 using Toolbox.Orleans.Types;
 using Toolbox.Security.Jwt;
 using Toolbox.Security.Principal;
@@ -19,13 +20,14 @@ public class SignValidationProxy : ISignValidate
         _logger = logger.NotNull();
     }
 
-    public async Task<Option> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
+    public async Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string traceId)
     {
+        var context = new ScopeContext(traceId, _logger);
+
         string? kid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
         if (kid == null) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
 
-        ISignatureActor signatureActor = _client.GetGrain<ISignatureActor>(kid);
-        Option result = await signatureActor.ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId);
+        Option result = await _client.GetSignatureActor().ValidateDigest(jwtSignature, messageDigest, context.TraceId);
         return result;
     }
 }

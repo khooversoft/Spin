@@ -6,26 +6,18 @@ using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Block;
 
 public readonly record struct BlockType
 {
-    public BlockType(string name)
-    {
-        Value = name.Assert(x => IsValid(x), Syntax);
-    }
-
-    public const string Syntax = "Valid characters are a-z A-Z 0-9 . $ @ - _ *";
+    public BlockType(string name) => Value = name.Assert(x => IsValid(x), "Syntax error");
 
     public string Value { get; }
-
     public override string ToString() => Value;
 
-    public static bool IsValid(string subject) => subject.IsNotEmpty() && subject.All(x => IsCharacterValid(x));
-
-    public static bool IsCharacterValid(char ch) =>
-        char.IsLetterOrDigit(ch) || ch == '.' || ch == '-' || ch == '$' || ch == '@' || ch == '_' || ch == '*' || ch == ':';
+    public static bool IsValid(string subject) => IdPatterns.IsBlockType(subject);
 
     public static bool operator ==(BlockType left, string right) => left.Value.Equals(right);
     public static bool operator !=(BlockType left, string right) => !(left == right);

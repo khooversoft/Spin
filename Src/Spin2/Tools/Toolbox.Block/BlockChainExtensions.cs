@@ -58,7 +58,7 @@ public static class BlockChainExtensions
         var list = new List<string>();
         foreach (var digest in principleDigests)
         {
-            Option result = await signValidate.ValidateDigest(digest.JwtSignature, digest.MessageDigest, context);
+            Option result = await signValidate.ValidateDigest(digest.JwtSignature, digest.MessageDigest, context.TraceId);
             if (result.StatusCode.IsError())
             {
                 list.Add(result.Error ?? "< no error message >");

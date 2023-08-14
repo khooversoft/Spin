@@ -12,6 +12,7 @@ using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Services;
 using SpinCluster.sdk.State;
 using Toolbox.Azure.DataLake;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -49,12 +50,16 @@ public static class SiloStartup
         services.AddSingleton<IValidator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
         services.AddSingleton<IValidator<SearchQuery>>(SearchQueryValidator.Validator);
         services.AddSingleton<IValidator<TenantModel>>(TenantRegisterValidator.Validator);
-        services.AddSingleton<IValidator<PrincipalKeyModel>>(PrincipalKeyValidator.Validator);
-        services.AddSingleton<IValidator<PrincipalKeyRequest>>(PrincipalKeyRequestValidator.Validator);
+        services.AddSingleton<IValidator<PrincipalKeyCreateModel>>(PrincipalKeyCreateModelValidator.Validator);
+        services.AddSingleton<IValidator<PrincipalKeyModel>>(PrincipalKeyModelValidator.Validator);
+        services.AddSingleton<IValidator<SignRequest>>(SignRequestValidator.Validator);
+        services.AddSingleton<IValidator<ValidateRequest>>(ValidateRequestValidator.Validator);
         services.AddSingleton<IValidator<PrincipalPrivateKeyModel>>(PrincipalPrivateKeyModelValidator.Validator);
         services.AddSingleton<IValidator<SignRequest>>(SignRequestValidator.Validator);
         services.AddSingleton<IValidator<ValidateRequest>>(ValidateRequestValidator.Validator);
         services.AddSingleton<IValidator<SubscriptionModel>>(SubscriptionModelValidator.Validator);
+        services.AddSingleton<IValidator<UserModel>>(UserModelValidator.Validator);
+        services.AddSingleton<IValidator<BlobPackage>>(BlobPackageValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
 

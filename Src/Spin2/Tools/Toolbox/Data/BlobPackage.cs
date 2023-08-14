@@ -21,11 +21,11 @@ public sealed record BlobPackage
     public bool Equals(BlobPackage? obj)
     {
         return obj is BlobPackage otherBlob &&
-               ObjectId == otherBlob.ObjectId &&
-               TypeName == otherBlob.TypeName &&
-               Content.SequenceEqual(otherBlob.Content) &&
-               ETag == otherBlob.ETag &&
-               Tags == otherBlob.Tags;
+            ObjectId == otherBlob.ObjectId &&
+            TypeName == otherBlob.TypeName &&
+            Content.SequenceEqual(otherBlob.Content) &&
+            ETag == otherBlob.ETag &&
+            Tags == otherBlob.Tags;
     }
 
     public override int GetHashCode() => HashCode.Combine(ObjectId, TypeName, Content, ETag, Tags);

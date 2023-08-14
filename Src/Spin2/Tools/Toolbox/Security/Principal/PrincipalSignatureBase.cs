@@ -35,7 +35,7 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
 
     public abstract SecurityKey GetSecurityKey();
 
-    public Task<Option<string>> SignDigest(string kid, string messageDigest, ScopeContext context)
+    public Task<Option<string>> SignDigest(string kid, string messageDigest, string _)
     {
         kid.NotEmpty().Assert(x => x == Kid, "Kid does not match");
         messageDigest.NotEmpty();
@@ -50,7 +50,7 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
         return jwt.ToOption().ToTaskResult();
     }
 
-    public Task<Option> ValidateDigest(string jwtSignature, string messageDigest, ScopeContext context)
+    public Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string _)
     {
         jwtSignature.NotEmpty();
         messageDigest.NotEmpty();
@@ -63,25 +63,22 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
             .Parse(jwtSignature);
 
             if (details.JwtSecurityToken.Header.Kid.IsEmpty()) return new Option(StatusCode.BadRequest, "Missing kid in JWT")
-                .LogResult(context.Location())
                 .ToTaskResult();
 
             details.JwtSecurityToken.Header.Assert(x => x.Kid == Kid, "Kid does not match");
 
             if (details.Digest.IsEmpty()) return new Option(StatusCode.BadRequest, "Missing Digest in JWT")
-                .LogResult(context.Location())
                 .ToTaskResult();
 
             if (details.Digest != messageDigest) return new Option(StatusCode.BadRequest, "Message digest do not match")
-                .LogResult(context.Location())
                 .ToTaskResult();
 
             return new Option(StatusCode.OK).ToTaskResult();
         }
         catch (Exception ex)
         {
-            context.Location().LogCritical(ex, "Jwt signature failed to verify, jwtSignature={jwtSignature}", jwtSignature);
-            return new Option(StatusCode.BadRequest).ToTaskResult();
+            string msg = $"Jwt signature failed to verify, jwtSignature={jwtSignature}, ex={ex}";
+            return new Option(StatusCode.BadRequest, msg).ToTaskResult();
         }
     }
 }
