@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.User;
+using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
 using Toolbox.Types;
 
@@ -32,7 +33,7 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
     public async Task LifecycleTest()
     {
         SubscriptionClient client = _cluster.ServiceProvider.GetRequiredService<SubscriptionClient>();
-        NameId nameId = "Company1Subscription";
+        string nameId = "Company1Subscription";
 
         var subscription = await CreateSubscription(_cluster.ServiceProvider, nameId, _context);
         subscription.IsOk().Should().BeTrue();
@@ -46,7 +47,7 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
         deleteOption.StatusCode.IsOk().Should().BeTrue();
     }
 
-    public static async Task<Option<SubscriptionModel>> CreateSubscription(IServiceProvider service, NameId nameId, ScopeContext context)
+    public static async Task<Option<SubscriptionModel>> CreateSubscription(IServiceProvider service, string nameId, ScopeContext context)
     {
         SubscriptionClient client = service.GetRequiredService<SubscriptionClient>();
 
@@ -55,7 +56,7 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
 
         var subscription = new SubscriptionModel
         {
-            SubscriptionId = SubscriptionModel.CreateId(nameId),
+            SubscriptionId = IdTool.CreateSubscription(nameId),
             Name = nameId,
             ContactName = nameId + "contact",
             Email = "user1@company1.com",

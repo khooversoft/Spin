@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace SpinCluster.sdk.Actors.ActorBase;
+namespace Toolbox.Data;
 
 public class DataObjectBuilder
 {
@@ -12,6 +12,14 @@ public class DataObjectBuilder
     public DataObjectBuilder SetKey(string key) => this.Action(x => x.Key = key);
     public DataObjectBuilder SetTypeName(string typeName) => this.Action(x => x.TypeName = typeName);
     public DataObjectBuilder Add(string key, string value) => this.Action(x => x.Values.Add(new KeyValuePair<string, string>(key, value)));
+
+    public DataObjectBuilder SetContent<T>(T value) where T : class
+    {
+        TypeName = typeof(T).GetTypeName();
+        Values = value.GetConfigurationValues().ToList();
+
+        return this;
+    }
 
     public DataObject Build()
     {

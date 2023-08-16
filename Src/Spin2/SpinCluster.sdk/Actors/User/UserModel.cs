@@ -1,5 +1,4 @@
-﻿using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.Tenant;
+﻿using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using Toolbox.Data;
@@ -26,6 +25,7 @@ public sealed record UserModel
     [Id(8)] public bool AccountEnabled { get; init; } = false;
     [Id(9)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     [Id(10)] public DateTime? ActiveDate { get; init; }
+    [Id(11)] public UserKeyModel UserKey { get; init; } = null!;
 
     public bool IsActive => AccountEnabled && ActiveDate != null;
 
@@ -40,11 +40,10 @@ public sealed record UserModel
         DataObjects.SequenceEqual(document.DataObjects) &&
         AccountEnabled == document.AccountEnabled &&
         CreatedDate == document.CreatedDate &&
-        ActiveDate == document.ActiveDate;
+        ActiveDate == document.ActiveDate &&
+        UserKey == document.UserKey;
 
     public override int GetHashCode() => HashCode.Combine(UserId, GlobalId, DisplayName, DisplayName);
-
-    public static ObjectId CreateId(PrincipalId principalId) => $"{SpinConstants.Schema.User}/{principalId.Domain}/{principalId}";
 }
 
 
@@ -60,10 +59,7 @@ public static class UserModelValidator
         .RuleFor(x => x.LastName).NotEmpty()
         .RuleFor(x => x.DataObjects).NotNull()
         .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
+        .RuleFor(x => x.UserKey).Validate(UserKeyModelValidator.Validator)
         .RuleForObject(x => x).Must(x => ObjectId.Create(x.UserId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
-
-    public static ValidatorResult Validate(this UserModel subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
 }

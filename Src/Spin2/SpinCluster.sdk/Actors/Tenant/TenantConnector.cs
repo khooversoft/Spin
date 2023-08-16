@@ -45,7 +45,7 @@ public class TenantConnector
         Option<TenantId> option = TenantId.Create(tenantId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = TenantModel.CreateId(option.Return());
+        ObjectId objectId = IdTool.CreateTenantId(option.Return());
         Option response = await _client.GetObjectGrain<ITenantActor>(objectId).Delete(context.TraceId);
         return response.ToResult();
     }
@@ -56,7 +56,7 @@ public class TenantConnector
         Option<TenantId> option = TenantId.Create(tenantId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = TenantModel.CreateId(option.Return());
+        ObjectId objectId = IdTool.CreateTenantId(option.Return());
         Option<TenantModel> response = await _client.GetObjectGrain<ITenantActor>(objectId).Get(context.TraceId);
         return response.ToResult();
     }

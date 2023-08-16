@@ -49,7 +49,7 @@ public class ValidationTests
             Value = 1,
             ScalarValues = Enumerable.Range(0, 5).Select(x => $"Item {x}").ToArray(),
             SubOptions = Enumerable.Range(0, 3).Select(x => new SubOption { Name = $"{x} name", Value = x }).ToArray(),
-            ObjectId = "schema/tenant",
+            ObjectId = "schema/tenant/path",
             DateTime = DateTime.Now,
         };
 
@@ -84,7 +84,7 @@ public class ValidationTests
             Value = 1,
             ScalarValues = Enumerable.Range(0, 5).Select(x => $"Item {x}").ToArray(),
             SubOptions = Enumerable.Range(0, 3).Select(x => new SubOption { Name = $"{x} name", Value = x }).ToArray(),
-            ObjectId = "schema/tenant",
+            ObjectId = "schema/tenant/path",
             DateTime = DateTime.Now,
         };
 

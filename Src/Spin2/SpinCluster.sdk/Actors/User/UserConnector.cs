@@ -45,8 +45,8 @@ public class UserConnector
         Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = UserModel.CreateId(option.Return());
-        Option response = await _client.GetObjectGrain<IUserActor>(objectId).Delete(context.TraceId);
+        ObjectId objectId = IdTool.CreateUserId(option.Return());
+        Option response = await _client.GetObjectGrain<IUserActor>(objectId).Delete(context);
         return response.ToResult();
     }
 
@@ -56,8 +56,8 @@ public class UserConnector
         Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = UserModel.CreateId(option.Return());
-        Option<UserModel> response = await _client.GetObjectGrain<IUserActor>(objectId).Get(context.TraceId);
+        ObjectId objectId = IdTool.CreateUserId(option.Return());
+        Option<UserModel> response = await _client.GetObjectGrain<IUserActor>(objectId).Get(context);
         return response.ToResult();
     }
 
@@ -68,7 +68,7 @@ public class UserConnector
         Option<ObjectId> option = ObjectId.Create(model.UserId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<IUserActor>(option.Return()).Set(model, context.TraceId);
+        var response = await _client.GetObjectGrain<IUserActor>(option.Return()).Update(model, context);
         return response.ToResult();
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.User;
+using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -39,7 +40,7 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
 
         var create = new PrincipalKeyCreateModel
         {
-            KeyId = PrincipalKeyModel.CreateId(principalId),
+            KeyId = IdTool.CreatePublicKeyId(principalId),
             PrincipalId = principalId,
             Name = "user1",
             AccountEnabled = true,

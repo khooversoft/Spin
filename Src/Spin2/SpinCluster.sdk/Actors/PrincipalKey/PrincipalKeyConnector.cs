@@ -41,7 +41,7 @@ public class PrincipalKeyConnector
         Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = PrincipalKeyModel.CreateId(option.Return());
+        ObjectId objectId = IdTool.CreatePublicKeyId(option.Return());
         Option response = await _client.GetObjectGrain<IPrincipalKeyActor>(objectId).Delete(context.TraceId);
         return response.ToResult();
     }
@@ -52,7 +52,7 @@ public class PrincipalKeyConnector
         Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        ObjectId objectId = PrincipalKeyModel.CreateId(option.Return());
+        ObjectId objectId = IdTool.CreatePublicKeyId(option.Return());
         Option<PrincipalKeyModel> response = await _client.GetObjectGrain<IPrincipalKeyActor>(objectId).Get(context.TraceId);
         return response.ToResult();
     }

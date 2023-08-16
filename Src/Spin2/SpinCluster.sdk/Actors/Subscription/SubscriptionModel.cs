@@ -1,8 +1,8 @@
-﻿using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.PrincipalPrivateKey;
+﻿using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Models;
+using Toolbox.Data;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -42,8 +42,6 @@ public sealed record SubscriptionModel
         ActiveDate == document.ActiveDate;
 
     public override int GetHashCode() => HashCode.Combine(SubscriptionId, GlobalId, Name, ContactName);
-
-    public static ObjectId CreateId(NameId nameId) => $"{SpinConstants.Schema.Subscription}/$system/{nameId}";
 }
 
 

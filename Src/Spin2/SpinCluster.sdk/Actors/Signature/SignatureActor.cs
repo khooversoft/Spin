@@ -29,18 +29,17 @@ public class SignatureActor : Grain, ISignatureActor
         _logger = logger;
     }
 
-    public override Task OnActivateAsync(CancellationToken cancellationToken)
-    {
-        this.VerifySchema(SpinConstants.Schema.Signature, new ScopeContext(_logger));
-        return base.OnActivateAsync(cancellationToken);
-    }
-
-    public async Task<Option<string>> SignDigest(string kid, string messageDigest, string traceId)
+    public async Task<Option<string>> SignDigest(string principalId, string messageDigest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Signing message digest, kid={kid}", kid);
+        context.Location().LogInformation("Signing message digest, principalId={principalId}", principalId);
 
-        Option<string> signResponse = await _clusterClient.GetObjectGrain<IPrincipalPrivateKeyActor>(kid)
+        var userModel = await _clusterClient.GetUserActor(principalId).Get(context).LogResult(context.Location());
+        if (userModel.IsError()) return userModel.ToOptionStatus<string>();
+
+        ObjectId privateKeyId = userModel.Return().UserKey.PrivateKeyObjectId;
+
+        Option<string> signResponse = await _clusterClient.GetPrivateKeyActor(privateKeyId)
             .Sign(messageDigest, traceId)
             .LogResult(context.Location());
 
@@ -58,17 +57,16 @@ public class SignatureActor : Grain, ISignatureActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        string? kid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
-        if (kid == null) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
+        string? jwtKid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
+        if (jwtKid == null) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
 
-        context.Location().LogInformation("Validating signature message digest, kid={kid}", kid);
+        context.Location().LogInformation("Validating signature message digest, kid={kid}", jwtKid);
 
-        string privateKeyId = ObjectId.Create(kid).Return()
-            .WithSchema(SpinConstants.Schema.PrincipalPrivateKey)
-            .ToString();
+        Option<KeyId> keyId = KeyId.Create(jwtKid);
+        if (keyId.IsError()) return keyId.ToOptionStatus();
 
-        var validationResponse = await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(privateKeyId)
-            .ValidateJwtSignature(jwtSignature, messageDigest, context);
+        var validationResponse = await _clusterClient.GetPublicKeyActor(keyId.Return())
+            .ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId);
 
         if (validationResponse.IsError())
         {

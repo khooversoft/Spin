@@ -14,7 +14,7 @@ public class BlobSerializationTests
     [Fact]
     public void GivenStringDocument_WillRoundTrip()
     {
-        ObjectId objectId = "test/pass";
+        ObjectId objectId = "test/pass/path";
         string payload = "this is the payload";
 
         BlobPackage blob = new BlobPackageBuilder()
@@ -31,7 +31,7 @@ public class BlobSerializationTests
     [Fact]
     public void GivenClassDocument_WillPass()
     {
-        ObjectId objectId = "test/pass";
+        ObjectId objectId = "test/pass/fail";
 
         var payload = new Payload
         {
@@ -56,7 +56,7 @@ public class BlobSerializationTests
     [Fact]
     public void GivenClassDocumentBlob_WillPass()
     {
-        ObjectId objectId = "test/pass";
+        ObjectId objectId = "test/pass/path";
         byte[] payload = "this is a test 123".ToBytes();
 
         BlobPackage blob = new BlobPackageBuilder()
@@ -73,7 +73,7 @@ public class BlobSerializationTests
     [Fact]
     public void GivenDifferentPayloadTypes()
     {
-        ObjectId documentId = "test/pass";
+        ObjectId documentId = "test/pass/failNot";
 
         Action act = () => new BlobPackageBuilder().SetContent("payload".ToBytes());
         act.Should().NotThrow<ArgumentException>();

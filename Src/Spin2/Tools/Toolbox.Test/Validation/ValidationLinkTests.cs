@@ -44,7 +44,7 @@ public class ValidationLinkTests
 
         model = new PrimaryClass
         {
-            Name = "schema/name",
+            Name = "schema/tenant/name",
             SubClass = new SubClass("name1", 5),
         };
 
@@ -68,7 +68,7 @@ public class ValidationLinkTests
 
         var model = new PrimaryClass
         {
-            Name = "schema/name",
+            Name = "schema/tenant/name",
             SubClass = new SubClass("name2", 101),
         };
 

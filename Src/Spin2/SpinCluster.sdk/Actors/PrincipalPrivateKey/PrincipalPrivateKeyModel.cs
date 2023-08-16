@@ -1,4 +1,5 @@
 ﻿using SpinCluster.sdk.Application;
+using Toolbox.Extensions;
 using Toolbox.Security.Principal;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -10,6 +11,7 @@ namespace SpinCluster.sdk.Actors.PrincipalPrivateKey;
 public sealed record PrincipalPrivateKeyModel
 {
     // Id = "principal-private-key/tenant/{principalId}"
+    [Id(0)] public string ObjectId { get; init; } = null!;
     [Id(0)] public string KeyId { get; init; } = null!;
     [Id(1)] public string PrincipalId { get; init; } = null!;
     [Id(2)] public string Name { get; init; } = null!;
@@ -22,6 +24,7 @@ public sealed record PrincipalPrivateKeyModel
     public bool IsActive => AccountEnabled && ActiveDate != null;
 
     public bool Equals(PrincipalPrivateKeyModel? obj) => obj is PrincipalPrivateKeyModel document &&
+        ObjectId == document.ObjectId &&
         KeyId == document.KeyId &&
         PrincipalId == document.PrincipalId &&
         Name == document.Name &&
@@ -32,18 +35,19 @@ public sealed record PrincipalPrivateKeyModel
         ActiveDate == document.ActiveDate;
 
     public override int GetHashCode() => HashCode.Combine(KeyId, PrincipalId, Name, Audience);
-    public static ObjectId CreateId(PrincipalId principalId) => $"{SpinConstants.Schema.PrincipalPrivateKey}/{principalId.Domain}/{principalId}";
 }
 
 
 public static class PrincipalPrivateKeyModelValidator
 {
     public static IValidator<PrincipalPrivateKeyModel> Validator { get; } = new Validator<PrincipalPrivateKeyModel>()
-        .RuleFor(x => x.KeyId).ValidObjectId()
+        .RuleFor(x => x.ObjectId).ValidObjectId()
+        .RuleFor(x => x.KeyId).ValidKeyId()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.Audience).NotEmpty()
-        .RuleForObject(x => x).Must(x => ObjectId.Create(x.KeyId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
+        .RuleForObject(x => x).Must(x => ObjectId.Create(x.ObjectId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match ObjectId")
+        .RuleForObject(x => x).Must(x => KeyId.Create(x.KeyId).Return().GetPrincipalId() == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
 
     public static ValidatorResult Validate(this PrincipalPrivateKeyModel subject, ScopeContextLocation location) => Validator

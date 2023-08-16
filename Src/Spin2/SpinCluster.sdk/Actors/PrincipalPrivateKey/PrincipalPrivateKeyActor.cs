@@ -114,11 +114,11 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
             );
 
         string jwtSignature = new JwtTokenBuilder()
-        .SetDigest(messageDigest)
-        .SetExpires(DateTime.Now.AddDays(10))
-        .SetIssuedAt(DateTime.Now)
-        .SetPrincipleSignature(signature)
-        .Build();
+            .SetDigest(messageDigest)
+            .SetExpires(DateTime.Now.AddDays(10))
+            .SetIssuedAt(DateTime.Now)
+            .SetPrincipleSignature(signature)
+            .Build();
 
         if (jwtSignature.IsEmpty())
         {

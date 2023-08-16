@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
-using SpinCluster.sdk.Actors.Subscription;
-using SpinCluster.sdk.Actors.User;
+using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -40,7 +34,7 @@ public class PrincipalPrivateKeyTests : IClassFixture<ClusterApiFixture>
 
         var model = new PrincipalPrivateKeyModel
         {
-            KeyId = PrincipalPrivateKeyModel.CreateId(principalId),
+            KeyId = IdTool.CreatePrivateKeyId(principalId),
             PrincipalId = principalId,
             Name = "test",
             Audience = "audience",

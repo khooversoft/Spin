@@ -21,7 +21,7 @@ public class BlockTypeTests
 
     [Theory]
     [InlineData("name")]
-    [InlineData("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@$*._-")]
+    [InlineData("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$._-0123456789")]
     public void ValidBlockType(string nameId)
     {
         BlockType.IsValid(nameId).Should().BeTrue();

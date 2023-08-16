@@ -7,12 +7,14 @@ namespace Toolbox.Types;
 
 public readonly record struct ScopeContext
 {
-    [Obsolete("Do not use, logger is required, will throw")]
-    public ScopeContext() { throw new InvalidOperationException(); }
+    private readonly ILogger? _logger;
+
+    [JsonConstructor]
+    public ScopeContext(string traceId) => TraceId = traceId.NotEmpty();
 
     public ScopeContext(ILogger logger, CancellationToken token = default)
     {
-        Logger = logger.NotNull();
+        _logger = logger.NotNull();
         Token = token;
 
         TraceId = Guid.NewGuid().ToString();
@@ -21,19 +23,20 @@ public readonly record struct ScopeContext
     public ScopeContext(string traceId, ILogger logger, CancellationToken token = default)
     {
         traceId.NotEmpty();
-        Logger = logger.NotNull();
+        _logger = logger.NotNull();
         TraceId = traceId;
         Token = token;
     }
 
     public string TraceId { get; }
-    public bool IsCancellationRequested => Token.IsCancellationRequested;
 
+    [JsonIgnore] public bool IsCancellationRequested => Token.IsCancellationRequested;
     [JsonIgnore] public CancellationToken Token { get; init; }
-    [JsonIgnore] public ILogger Logger { get; }
+    [JsonIgnore] public ILogger Logger => _logger.NotNull();
 
     public ScopeContextLocation Location([CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
     {
+        Logger.NotNull();
         return new ScopeContextLocation(this, new CodeLocation(function, path, lineNumber));
     }
 

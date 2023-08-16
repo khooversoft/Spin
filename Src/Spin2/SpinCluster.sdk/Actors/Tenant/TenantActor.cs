@@ -79,8 +79,8 @@ public class TenantActor : Grain, ITenantActor
         if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
 
         Option isSubscriptionActive = await _clusterClient
-            .GetObjectGrain<ISubscriptionActor>(SubscriptionModel.CreateId(model.SubscriptionName))
-            .Exist(traceId);
+            .GetObjectGrain<ISubscriptionActor>(IdTool.CreateSubscriptionId(model.SubscriptionName))
+            .Exist(context);
 
         if (isSubscriptionActive.StatusCode.IsError())
         {

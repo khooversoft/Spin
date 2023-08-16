@@ -1,9 +1,9 @@
-﻿using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.Search;
+﻿using SpinCluster.sdk.Actors.Search;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Models;
+using Toolbox.Data;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -44,8 +44,6 @@ public sealed record TenantModel
         ActiveDate == document.ActiveDate;
 
     public override int GetHashCode() => HashCode.Combine(TenantId, GlobalId, Name, ContactName);
-
-    public static ObjectId CreateId(TenantId tenantId) => $"{SpinConstants.Schema.Tenant}/$system/{tenantId}";
 }
 
 

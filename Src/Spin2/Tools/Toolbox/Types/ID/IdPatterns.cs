@@ -13,7 +13,16 @@ public static class IdPatterns
 
     public static bool IsSchema(string subject) =>
         subject.IsNotEmpty() &&
+        subject.Func(x => x.IndexOf("..") < 0) &&
         TestStart(subject, char.IsLetter) &&
+        TestMiddle(subject, StandardCharacterTest) &&
+        TestEnd(subject, char.IsLetterOrDigit);
+
+    public static bool IsDomain(string subject) =>
+        subject.IsNotEmpty() &&
+        subject.Func(x => x.IndexOf("..") < 0) &&
+        subject.Func(x => x.Count(y => y == '.') <= 1) &&
+        TestStart(subject, x => char.IsLetter(x) || x == '$') &&
         TestMiddle(subject, StandardCharacterTest) &&
         TestEnd(subject, char.IsLetterOrDigit);
 
@@ -43,8 +52,12 @@ public static class IdPatterns
         {
             var v when v.Length != 2 => false,
             var v when v[0].IsEmpty() || v[0].IsEmpty() => false,
-            var v => IsName(v[0]) && IsTenant(v[1])
+            var v => IsName(v[0]) && IsDomain(v[1])
         };
+
+    public static bool IsKeyId(string subject) =>
+        subject.IsNotEmpty() &&
+        subject.Split('/').Func(x => IsPrincipalId(x[0]) && x.Skip(1).All(x => IsPath(x)));
 
     public static bool IsBlockType(string subject) =>
         subject.IsNotEmpty() &&

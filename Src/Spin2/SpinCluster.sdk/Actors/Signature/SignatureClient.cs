@@ -15,12 +15,12 @@ public class SignatureClient
         _client = client;
     }
 
-    public async Task<Option<string>> Sign(SignRequest model, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<SignResponse>> Sign(SignRequest model, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Signature}/sign")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(model)
         .PostAsync(context)
-        .GetContent<string>();
+        .GetContent<SignResponse>();
 
     public async Task<Option> ValidateDigest(ValidateRequest model, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Signature}/validate")

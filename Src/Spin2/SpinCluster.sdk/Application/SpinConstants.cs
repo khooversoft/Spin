@@ -12,6 +12,7 @@ public static class SpinConstants
     public static class Schema
     {
         public const string System = "$system";
+        public const string Kid = "kid";
         public const string Subscription = "subscription";
         public const string Tenant = "tenant";
         public const string User = "user";

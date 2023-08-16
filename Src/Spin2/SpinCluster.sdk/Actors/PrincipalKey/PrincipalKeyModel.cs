@@ -9,19 +9,21 @@ namespace SpinCluster.sdk.Actors.PrincipalKey;
 public sealed record PrincipalKeyModel
 {
     // Id = "principal-key/tenant/{principalId}"
-    [Id(0)] public string KeyId { get; init; } = null!;
-    [Id(1)] public string PrincipalId { get; init; } = null!;
-    [Id(2)] public string Name { get; init; } = null!;
-    [Id(3)] public string Audience { get; init; } = null!;
-    [Id(4)] public byte[] PublicKey { get; init; } = Array.Empty<byte>();
-    [Id(5)] public bool PrivateKeyExist { get; init; }
-    [Id(6)] public bool AccountEnabled { get; init; } = false;
-    [Id(7)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(8)] public DateTime? ActiveDate { get; init; }
+    [Id(0)] public string ObjectId { get; init; } = null!;
+    [Id(1)] public string KeyId { get; init; } = null!;
+    [Id(2)] public string PrincipalId { get; init; } = null!;
+    [Id(3)] public string Name { get; init; } = null!;
+    [Id(4)] public string Audience { get; init; } = null!;
+    [Id(5)] public byte[] PublicKey { get; init; } = Array.Empty<byte>();
+    [Id(6)] public bool PrivateKeyExist { get; init; }
+    [Id(7)] public bool AccountEnabled { get; init; } = false;
+    [Id(8)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+    [Id(9)] public DateTime? ActiveDate { get; init; }
 
     public bool IsActive => AccountEnabled && ActiveDate != null;
 
     public bool Equals(PrincipalKeyModel? obj) => obj is PrincipalKeyModel document &&
+        ObjectId == document.ObjectId &&
         KeyId == document.KeyId &&
         PrincipalId == document.PrincipalId &&
         Name == document.Name &&
@@ -32,30 +34,25 @@ public sealed record PrincipalKeyModel
         CreatedDate == document.CreatedDate &&
         ActiveDate == document.ActiveDate;
 
-    public override int GetHashCode() => HashCode.Combine(KeyId, PrincipalId, Name, Audience, PrivateKeyExist);
-
-    public static ObjectId CreateId(PrincipalId principalId) => $"{SpinConstants.Schema.PrincipalKey}/{principalId.Domain}/{principalId}";
+    public override int GetHashCode() => HashCode.Combine(ObjectId, KeyId, PrincipalId, Name, Audience, PrivateKeyExist);
 }
 
 
 public static class PrincipalKeyModelValidator
 {
     public static IValidator<PrincipalKeyModel> Validator { get; } = new Validator<PrincipalKeyModel>()
-        .RuleFor(x => x.KeyId).ValidObjectId()
+        .RuleFor(x => x.ObjectId).ValidObjectId()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .RuleFor(x => x.Name).ValidName()
         .RuleFor(x => x.Audience).NotEmpty()
         .RuleFor(x => x.PublicKey).NotNull()
-        .RuleForObject(x => x).Must(x => ObjectId.Create(x.KeyId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
+        .RuleForObject(x => x).Must(x => ObjectId.Create(x.ObjectId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
+        .RuleForObject(x => x).Must(x => KeyId.Create(x.KeyId).Return().GetPrincipalId() == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
-
-    public static ValidatorResult Validate(this PrincipalKeyModel subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
 
     public static Option<PrincipalSignature> ToPrincipalSignature(this PrincipalKeyModel subject, ScopeContext context)
     {
-        var validationResult = subject.Validate(context.Location());
+        var validationResult = Validator.Validate(subject).LogResult(context.Location());
         if (!validationResult.IsValid) validationResult.ToOption<PrincipalSignature>();
 
         var signature = PrincipalSignature.CreateFromPublicKeyOnly(subject.PublicKey, subject.KeyId, subject.PrincipalId, subject.Audience);

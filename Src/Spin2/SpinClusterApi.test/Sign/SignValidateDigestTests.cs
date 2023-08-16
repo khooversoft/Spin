@@ -1,39 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.PrincipalKey;
-using SpinCluster.sdk.Actors.Subscription;
-using SpinCluster.sdk.Actors.Tenant;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
+using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.User;
-using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
+using SpinClusterApi.test.Basics;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace SpinClusterApi.test.Basics;
+namespace SpinClusterApi.test.Sign;
 
-public class UserTest : IClassFixture<ClusterApiFixture>
+public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
-    public UserTest(ClusterApiFixture fixture)
-    {
-        _cluster = fixture;
-    }
+    public SignValidateDigestTests(ClusterApiFixture fixture) => _cluster = fixture;
 
     //[Fact(Skip = "server")]
     [Fact]
     public async Task LifecycleTest()
     {
-        UserClient client = _cluster.ServiceProvider.GetRequiredService<UserClient>();
-        NameId subscriptionId = "Company5Subscription";
-        TenantId tenantId = "company5.com";
-        PrincipalId principalId = "user1@company5.com";
+        NameId subscriptionId = "Company6Subscription";
+        TenantId tenantId = "company6.com";
+        PrincipalId principalId = "user1@company6.com";
+
+        await Delete(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
+        await Create(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
+
+        string msg = "this is a message";
+        string messageDigest = msg.ToBytes().ToSHA256Hash();
+
+        SignatureClient signatureClient = _cluster.ServiceProvider.GetRequiredService<SignatureClient>();
+
+        var request = new SignRequest
+        {
+            PrincipalId = principalId,
+            MessageDigest = messageDigest
+        };
+
+        var jwtOption = await signatureClient.Sign(request, _context);
+        jwtOption.IsOk().Should().BeTrue();
+
+        SignResponse response = jwtOption.Return();
+
+        request.PrincipalId.Should().Be(response.Kid);
+        request.MessageDigest.Should().Be(response.MessageDigest);
+        response.JwtSignature.Should().NotBeNullOrEmpty();
+
+        var validationRequest = new ValidateRequest
+        {
+            JwtSignature = response.JwtSignature,
+            MessageDigest = messageDigest
+        };
+
+        var validation = await signatureClient.ValidateDigest(validationRequest, _context);
+        validation.IsOk().Should().BeTrue();
+    }
+
+    private async Task Create(IServiceProvider service, NameId subscriptionId, TenantId tenantId, PrincipalId principalId)
+    {
+        UserClient client = service.GetRequiredService<UserClient>();
 
         var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         subscription.IsOk().Should().BeTrue();
@@ -42,15 +71,18 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         tenant.IsOk().Should().BeTrue();
 
         await VerifyKeys(_cluster.ServiceProvider, principalId, false);
-        var user = await CreateUser(_cluster.ServiceProvider, principalId, _context);
+        var user = await UserTest.CreateUser(_cluster.ServiceProvider, principalId, _context);
         await VerifyKeys(_cluster.ServiceProvider, principalId, true);
 
         Option<UserModel> readOption = await client.Get(principalId, _context);
         readOption.IsOk().Should().BeTrue();
 
         (user.Return() == readOption.Return()).Should().BeTrue();
+    }
 
-        Option deleteOption = await client.Delete(principalId, _context);
+    private async Task Delete(IServiceProvider service, NameId subscriptionId, TenantId tenantId, PrincipalId principalId)
+    {
+        Option deleteOption = await UserTest.DeleteUser(service, principalId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
         await VerifyKeys(_cluster.ServiceProvider, principalId, false);
 
@@ -70,38 +102,5 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         PrincipalPrivateKeyClient publicPrivateKeyClient = service.GetRequiredService<PrincipalPrivateKeyClient>();
         var privateKeyExist = await publicPrivateKeyClient.Get(principalId, _context);
         (privateKeyExist.IsOk() == mustExist).Should().BeTrue();
-    }
-
-    public static async Task<Option<UserModel>> CreateUser(IServiceProvider service, PrincipalId principalId, ScopeContext context)
-    {
-        UserClient client = service.GetRequiredService<UserClient>();
-
-        Option<UserModel> result = await client.Get(principalId, context);
-        if (result.IsOk()) await client.Delete(principalId, context);
-
-        var user = new UserModel
-        {
-            UserId = IdTool.CreateUserId(principalId),
-            PrincipalId = principalId,
-            DisplayName = "User display name",
-            FirstName = "First",
-            LastName = "Last",
-            AccountEnabled = true,
-        };
-
-        Option setOption = await client.Set(user, context);
-        setOption.StatusCode.IsOk().Should().BeTrue();
-
-        return user;
-    }
-
-    public static async Task<Option> DeleteUser(IServiceProvider service, PrincipalId principalId, ScopeContext context)
-    {
-        UserClient client = service.GetRequiredService<UserClient>();
-
-        Option deleteOption = await client.Delete(principalId, context);
-        deleteOption.StatusCode.IsOk().Should().BeTrue();
-
-        return StatusCode.OK;
     }
 }

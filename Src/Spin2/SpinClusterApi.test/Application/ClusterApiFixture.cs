@@ -32,6 +32,7 @@ public class ClusterApiFixture
             x.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<PrincipalKeyClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<PrincipalPrivateKeyClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<SignatureClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
         })
         .BuildServiceProvider();
     }
@@ -41,31 +42,4 @@ public class ClusterApiFixture
     public IServiceProvider ServiceProvider { get; }
 
     public HttpClient GetClient() => ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient("raw");
-
-    //private HttpClient _client;
-    //private WebApplicationFactory<Program>? _host;
-
-    //public ClusterApiFixture()
-    //{
-    //    ILogger logger = LoggerFactory.Create(builder =>
-    //    {
-    //        builder.AddDebug();
-    //    }).CreateLogger<Program>();
-
-    //    _host = new WebApplicationFactory<Program>()
-    //        .WithWebHostBuilder(builder =>
-    //        {
-    //            builder.UseEnvironment("Test");
-    //        });
-
-    //    _client = _host.CreateClient();
-    //}
-
-    //public void Dispose() => Interlocked.Exchange(ref _host, null)?.Dispose();
-
-    //public HttpClient GetClient() => _client;
-
-    //public TenantClient GetTenantClient() => new TenantClient(_client);
-
-    ////public T GetRequiredService<T>() where T : notnull => _host.NotNull().Services.GetRequiredService<T>();
 }

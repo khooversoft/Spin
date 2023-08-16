@@ -51,8 +51,17 @@ public class SignatureConnector
         var validation = _signValidator.Validate(model).LogResult(context.Location());
         if (!validation.IsValid) return new Option(StatusCode.BadRequest, validation.FormatErrors()).ToResult();
 
-        var result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
-        return result.ToResult();
+        Option<string> result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
+        if( result.IsError()) return result.ToResult();
+
+        var response = new SignResponse
+        {
+            Kid = model.PrincipalId,
+            MessageDigest = model.MessageDigest,
+            JwtSignature = result.Return(),
+        }.ToOption();
+
+        return response.ToResult();
     }
 
     private async Task<IResult> Validate(ValidateRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)

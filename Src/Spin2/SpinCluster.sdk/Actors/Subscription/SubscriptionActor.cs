@@ -13,10 +13,10 @@ namespace SpinCluster.sdk.Actors.Subscription;
 
 public interface ISubscriptionActor : IGrainWithStringKey
 {
-    Task<Option> Delete(string traceId);
-    Task<Option> Exist(string traceId);
-    Task<Option<SubscriptionModel>> Get(string traceId);
-    Task<Option> Set(SubscriptionModel model, string traceId);
+    Task<Option> Delete(ScopeContext context);
+    Task<Option> Exist(ScopeContext context);
+    Task<Option<SubscriptionModel>> Get(ScopeContext context);
+    Task<Option> Set(SubscriptionModel model, ScopeContext context);
 }
 
 
@@ -43,20 +43,20 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option> Delete(string traceId)
+    public async Task<Option> Delete(ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
         context.Location().LogInformation("Deleting subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         await _state.ClearStateAsync();
         return StatusCode.OK;
     }
 
-    public Task<Option> Exist(string _) => new Option(_state.RecordExists && _state.State.IsActive ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+    public Task<Option> Exist(ScopeContext _) => new Option(_state.RecordExists && _state.State.IsActive ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
-    public Task<Option<SubscriptionModel>> Get(string traceId)
+    public Task<Option<SubscriptionModel>> Get(ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
         context.Location().LogInformation("Get subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         var option = _state.RecordExists switch
@@ -68,9 +68,9 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         return option.ToTaskResult();
     }
 
-    public async Task<Option> Set(SubscriptionModel model, string traceId)
+    public async Task<Option> Set(SubscriptionModel model, ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         ValidatorResult validatorResult = _validator.Validate(model).LogResult(context.Location());

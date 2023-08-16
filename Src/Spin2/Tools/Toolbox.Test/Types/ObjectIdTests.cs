@@ -48,7 +48,7 @@ public class ObjectIdTests
     }
 
     [Theory]
-    [InlineData("schema/tenant")]
+    [InlineData("schema/tenant/path")]
     [InlineData("schema/tenant/path1")]
     [InlineData("abcdefghijklmnopqrstuvwxyz-_.$0123456789/abcdefghijklmnopqrstuvwxyz-_.0123456789/path1")]
     [InlineData("s1ch2ema/p3a4th/p5at7h2")]
@@ -57,7 +57,6 @@ public class ObjectIdTests
     [InlineData("schema/schema/path/path2/")]
     [InlineData("path/tenant/path2/")]
     [InlineData("d/a/b/c/d")]
-    [InlineData("schema/path")]
     public void TestPositivePatterns(string input)
     {
         ObjectId.IsValid(input).Should().BeTrue();

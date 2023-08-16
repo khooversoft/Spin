@@ -15,4 +15,10 @@ public static class ClusterClientExtensions
         string actorKey = objectId.NotNull().ToString().ToLower();
         return actor.GetGrain<T>(actorKey);
     }
+
+    public static T GetResourceGrain<T>(this IClusterClient actor, ResourceId resourceId) where T : IGrainWithStringKey
+    {
+        string actorKey = resourceId.NotNull().ToString().ToLower();
+        return actor.GetGrain<T>(actorKey);
+    }
 }

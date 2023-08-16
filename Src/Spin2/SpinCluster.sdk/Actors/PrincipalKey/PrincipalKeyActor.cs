@@ -22,7 +22,7 @@ public interface IPrincipalKeyActor : IGrainWithStringKey
     Task<Option<PrincipalKeyModel>> Get(string traceId);
     Task<Option> Create(PrincipalKeyCreateModel model, string traceId);
     Task<Option> Update(PrincipalKeyModel model, string traceId);
-    Task<Option> ValidateJwtSignature(string jwtSignature, string digest, ScopeContext context);
+    Task<Option> ValidateJwtSignature(string jwtSignature, string digest, string traceId);
 }
 
 public class PrincipalKeyActor : Grain, IPrincipalKeyActor
@@ -65,7 +65,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
             return StatusCode.OK;
         }
 
-        ObjectId privateKey = PrincipalPrivateKeyModel.CreateId(_state.State.PrincipalId);
+        ObjectId privateKey = IdTool.CreatePrivateKeyId(_state.State.PrincipalId);
         await _clusterClient.GetObjectGrain<IPrincipalPrivateKeyActor>(privateKey).Delete(context.TraceId);
 
         await _state.ClearStateAsync();
@@ -145,8 +145,9 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         return new Option(StatusCode.OK);
     }
 
-    public async Task<Option> ValidateJwtSignature(string jwtSignature, string digest, ScopeContext context)
+    public async Task<Option> ValidateJwtSignature(string jwtSignature, string digest, string traceId)
     {
+        var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Validating JWT signature");
 
         await _state.ReadStateAsync();
@@ -161,9 +162,11 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
 
     private async Task<Option> CreatePrivateKey(PrincipalKeyCreateModel model, RsaKeyPair rsaKey, ScopeContext context)
     {
+        ObjectId privateKeyId = IdTool.CreatePrivateKeyId((PrincipalId)model.PrincipalId);
+
         var privatePrincipal = new PrincipalPrivateKeyModel
         {
-            KeyId = PrincipalPrivateKeyModel.CreateId(model.PrincipalId),
+            KeyId = model.KeyId,
             PrincipalId = model.PrincipalId,
             Name = model.Name,
             AccountEnabled = model.AccountEnabled,
@@ -171,7 +174,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
             PrivateKey = rsaKey.PrivateKey.ToArray(),
         };
 
-        var privateKeyActor = _clusterClient.GetObjectGrain<IPrincipalPrivateKeyActor>(privatePrincipal.KeyId);
+        var privateKeyActor = _clusterClient.GetObjectGrain<IPrincipalPrivateKeyActor>(privateKeyId);
 
         var existPrivagteKey = await privateKeyActor.Exist(context.TraceId);
         if (existPrivagteKey.StatusCode.IsOk())

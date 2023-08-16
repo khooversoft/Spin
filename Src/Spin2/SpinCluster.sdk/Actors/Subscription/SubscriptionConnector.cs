@@ -42,32 +42,31 @@ public class SubscriptionConnector
     private async Task<IResult> Delete(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<NameId> option = NameId.Create(nameId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
-        ObjectId objectId = SubscriptionModel.CreateId(option.Return());
-        Option response = await _client.GetObjectGrain<ISubscriptionActor>(objectId).Delete(context.TraceId);
+        ResourceId resourceId = IdTool.CreateSubscription(nameId);
+        Option response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Delete(context);
         return response.ToResult();
     }
 
     public async Task<IResult> Get(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<NameId> option = NameId.Create(nameId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
-        ObjectId objectId = SubscriptionModel.CreateId(option.Return());
-        Option<SubscriptionModel> response = await _client.GetObjectGrain<ISubscriptionActor>(objectId).Get(context.TraceId);
+        ResourceId resourceId = IdTool.CreateSubscription(nameId);
+        Option<SubscriptionModel> response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Get(context);
         return response.ToResult();
     }
 
     public async Task<IResult> Set(SubscriptionModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(model.SubscriptionId).LogResult(context.Location());
+
+        Option<ResourceId> option = ResourceId.Create(model.SubscriptionId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<ISubscriptionActor>(model.SubscriptionId).Set(model, context.TraceId);
+        var response = await _client.GetResourceGrain<ISubscriptionActor>(model.SubscriptionId).Set(model, context);
         return response.ToResult();
     }
 }
