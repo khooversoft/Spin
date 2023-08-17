@@ -80,7 +80,7 @@ public class TenantActor : Grain, ITenantActor
 
         Option isSubscriptionActive = await _clusterClient
             .GetObjectGrain<ISubscriptionActor>(IdTool.CreateSubscriptionId(model.SubscriptionName))
-            .Exist(context);
+            .Exist(context.TraceId);
 
         if (isSubscriptionActive.StatusCode.IsError())
         {

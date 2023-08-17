@@ -16,11 +16,13 @@ internal class DatalakeStateConnector : IGrainStorage
     private readonly ConcurrentDictionary<string, DatalakeStateHandler> _stores = new ConcurrentDictionary<string, DatalakeStateHandler>(StringComparer.OrdinalIgnoreCase);
     private readonly DatalakeSchemaResources _datalakeResources;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly DatalakeResourceIdMap _map;
 
-    public DatalakeStateConnector(DatalakeSchemaResources datalakeResources, ILoggerFactory loggerFactory)
+    public DatalakeStateConnector(DatalakeSchemaResources datalakeResources, DatalakeResourceIdMap map, ILoggerFactory loggerFactory)
     {
         _datalakeResources = datalakeResources.NotNull();
         _loggerFactory = loggerFactory.NotNull();
+        _map = map.NotNull();
 
         _logger = _loggerFactory.CreateLogger<DatalakeStateConnector>();
     }
@@ -58,13 +60,12 @@ internal class DatalakeStateConnector : IGrainStorage
 
         string grainPath = GetPath(grainId);
 
-        var objectIdOption = ObjectId.Create(grainPath).LogResult(context.Location());
-        if (objectIdOption.IsError()) throw new ArgumentException($"Invalid ObjectId, id={grainId}");
+        ResourceId resourceId = ResourceId.Create(grainPath).LogResult(context.Location()).Return();
+        var map = _map.MapResource(resourceId, context).LogResult(context.Location()).Return();
 
-        ObjectId objectId = objectIdOption.Return().WithExtension(stateName);
-        context.Location().LogInformation("GrainId={grainId} to objectId={objectId}, FilePath={filePath}", grainId.ToString(), objectId, objectId.FilePath);
+        context.Location().LogInformation("GrainId={grainId} to resourceId={resourceId}, map={map}", grainId.ToString(), resourceId, map);
 
-        return (objectId.FilePath, objectId.Schema, context);
+        return (map.FilePath, map.Schema, context);
     }
 
     private static string GetPath(GrainId grainId) => grainId.ToString()

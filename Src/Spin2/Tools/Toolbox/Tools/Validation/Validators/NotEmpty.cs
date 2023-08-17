@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics.CodeAnalysis;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;

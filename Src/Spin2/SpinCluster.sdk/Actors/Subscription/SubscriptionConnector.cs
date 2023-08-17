@@ -41,21 +41,21 @@ public class SubscriptionConnector
 
     private async Task<IResult> Delete(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
+        nameId = Uri.UnescapeDataString(nameId);
         if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
         ResourceId resourceId = IdTool.CreateSubscription(nameId);
-        Option response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Delete(context);
+        Option response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Delete(traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Get(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
+        nameId = Uri.UnescapeDataString(nameId);
         if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
         ResourceId resourceId = IdTool.CreateSubscription(nameId);
-        Option<SubscriptionModel> response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Get(context);
+        Option<SubscriptionModel> response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Get(traceId);
         return response.ToResult();
     }
 
@@ -66,7 +66,7 @@ public class SubscriptionConnector
         Option<ResourceId> option = ResourceId.Create(model.SubscriptionId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetResourceGrain<ISubscriptionActor>(model.SubscriptionId).Set(model, context);
+        var response = await _client.GetResourceGrain<ISubscriptionActor>(option.Return()).Set(model, traceId);
         return response.ToResult();
     }
 }

@@ -49,10 +49,8 @@ public static class ActorBaseExtensions
     public static void VerifySchema(this Grain grain, string schema, ScopeContext context)
     {
         string actorKey = grain.GetPrimaryKeyString();
-        Option<ObjectId> objectId = ObjectId.Create(actorKey).LogResult(context.Location());
 
-        if (objectId.IsError()) throw new ArgumentException($"Invalid object Id, actorKey={actorKey}, error={objectId.Error}");
-
-        objectId.Return().Schema.Assert(x => x == schema, x => $"Invalid schema, {x} does not match {schema}");
+        ResourceId resourceId = ResourceId.Create(actorKey).LogResult(context.Location()).ThrowOnError().Return();
+        resourceId.Schema.Assert(x => x == schema, x => $"Invalid schema, {x} does not match {schema}");
     }
 }

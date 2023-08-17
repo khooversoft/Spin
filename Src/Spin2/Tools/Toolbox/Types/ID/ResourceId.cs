@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,10 +19,11 @@ namespace Toolbox.Types;
 // user1@company3.com
 // user:user1@company3.com
 // kid:user1@company3.com/path
-// principal-key:user1@company3.com"
-// principal-private-key:user1@company3.com"
+// principal-key:user1@company3.com
+// principal-private-key:user1@company3.com
 // tenant:company3.com
 // subscription:company3.com/subscriptionId
+[DebuggerDisplay("Id={Id}")]
 public readonly record struct ResourceId
 {
     [JsonConstructor]
@@ -83,6 +85,12 @@ public static class ResourceIdValidator
         .RuleFor(x => x.Domain).Must(x => x.IsEmpty() || IdPatterns.IsDomain(x), x => $"{x} not valid domain")
         .RuleFor(x => x.Path).Must(x => x.IsEmpty() || x.Split('/').All(y => IdPatterns.IsPath(y)), x => $"{x} not valid path")
         .Build();
+
+    public static Option<ResourceId> IsValid(this Option<ResourceId> subject) => subject switch
+    {
+        var v when v.IsOk() => v.Return().IsValid(),
+        var v => v,
+    };
 
     public static Option<ResourceId> IsValid(this ResourceId subject) => Validator.Validate(subject) switch
     {

@@ -34,7 +34,7 @@ public class SignatureActor : Grain, ISignatureActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Signing message digest, principalId={principalId}", principalId);
 
-        var userModel = await _clusterClient.GetUserActor(principalId).Get(context).LogResult(context.Location());
+        var userModel = await _clusterClient.GetUserActor(principalId).Get(context.TraceId).LogResult(context.Location());
         if (userModel.IsError()) return userModel.ToOptionStatus<string>();
 
         ObjectId privateKeyId = userModel.Return().UserKey.PrivateKeyObjectId;

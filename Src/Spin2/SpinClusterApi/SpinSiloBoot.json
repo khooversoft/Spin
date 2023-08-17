@@ -25,7 +25,6 @@
       "ContainerName": "directory",
       "BasePath": "keyPrivateV1"
     },
-
     {
       "SchemaName": "storage",
       "ContainerName": "storage",

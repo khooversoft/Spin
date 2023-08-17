@@ -48,7 +48,7 @@ public sealed record SubscriptionModel
 public static class SubscriptionModelValidator
 {
     public static IValidator<SubscriptionModel> Validator { get; } = new Validator<SubscriptionModel>()
-        .RuleFor(x => x.SubscriptionId).ValidObjectId()
+        .RuleFor(x => x.SubscriptionId).ValidResourceId()
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.Name).ValidName()

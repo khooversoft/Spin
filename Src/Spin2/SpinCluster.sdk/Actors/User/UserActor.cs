@@ -18,11 +18,11 @@ namespace SpinCluster.sdk.Actors.User;
 
 public interface IUserActor : IGrainWithStringKey
 {
-    Task<Option> Delete(ScopeContext context);
-    Task<Option> Exist(ScopeContext context);
-    Task<Option<UserModel>> Get(ScopeContext context);
-    Task<Option> Create(UserCreateModel model, ScopeContext context);
-    Task<Option> Update(UserModel model, ScopeContext context);
+    Task<Option> Delete(string traceId);
+    Task<Option> Exist(string traceId);
+    Task<Option<UserModel>> Get(string traceId);
+    Task<Option> Create(UserCreateModel model, string traceId);
+    Task<Option> Update(UserModel model, string traceId);
 }
 
 
@@ -55,9 +55,9 @@ public class UserActor : Grain, IUserActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option> Delete(ScopeContext context)
+    public async Task<Option> Delete(string traceId)
     {
-        context = context.With(_logger);
+        var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         if (!_state.RecordExists)
@@ -73,19 +73,19 @@ public class UserActor : Grain, IUserActor
         return StatusCode.OK;
     }
 
-    public async Task<Option> Exist(ScopeContext context)
+    public async Task<Option> Exist(string traceId)
     {
         if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
 
         var principalKeyId = IdTool.CreatePublicKeyId(_state.State.PrincipalId);
-        var privateKeyExist = await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(principalKeyId).Exist(context.TraceId);
+        var privateKeyExist = await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(principalKeyId).Exist(traceId);
 
         return privateKeyExist;
     }
 
-    public Task<Option<UserModel>> Get(ScopeContext context)
+    public Task<Option<UserModel>> Get(string traceId)
     {
-        context = context.With(_logger);
+        var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Get user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         var option = _state.RecordExists switch
@@ -97,9 +97,9 @@ public class UserActor : Grain, IUserActor
         return option.ToTaskResult();
     }
 
-    public async Task<Option> Create(UserCreateModel model, ScopeContext context)
+    public async Task<Option> Create(UserCreateModel model, string traceId)
     {
-        context = context.With(_logger);
+        var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Create user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         if (!_state.RecordExists) return StatusCode.Conflict;
@@ -132,9 +132,9 @@ public class UserActor : Grain, IUserActor
         return StatusCode.OK;
     }
 
-    public async Task<Option> Update(UserModel model, ScopeContext context)
+    public async Task<Option> Update(UserModel model, string traceId)
     {
-        context = context.With(_logger);
+        var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Update user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         ValidatorResult validatorResult = _updateValidator.Validate(model).LogResult(context.Location());

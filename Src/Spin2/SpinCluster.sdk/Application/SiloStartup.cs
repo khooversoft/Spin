@@ -62,6 +62,7 @@ public static class SiloStartup
         services.AddSingleton<IValidator<BlobPackage>>(BlobPackageValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
+        services.AddSingleton<DatalakeResourceIdMap>();
 
         services.AddSingleton<SiloConfigStore>(service =>
         {

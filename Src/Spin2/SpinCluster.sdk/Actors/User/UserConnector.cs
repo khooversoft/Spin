@@ -46,7 +46,7 @@ public class UserConnector
         if (option.IsError()) option.ToResult();
 
         ObjectId objectId = IdTool.CreateUserId(option.Return());
-        Option response = await _client.GetObjectGrain<IUserActor>(objectId).Delete(context);
+        Option response = await _client.GetObjectGrain<IUserActor>(objectId).Delete(context.TraceId);
         return response.ToResult();
     }
 
@@ -57,18 +57,17 @@ public class UserConnector
         if (option.IsError()) option.ToResult();
 
         ObjectId objectId = IdTool.CreateUserId(option.Return());
-        Option<UserModel> response = await _client.GetObjectGrain<IUserActor>(objectId).Get(context);
+        Option<UserModel> response = await _client.GetObjectGrain<IUserActor>(objectId).Get(context.TraceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Set(UserModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-
         Option<ObjectId> option = ObjectId.Create(model.UserId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<IUserActor>(option.Return()).Update(model, context);
+        var response = await _client.GetObjectGrain<IUserActor>(option.Return()).Update(model, context.TraceId);
         return response.ToResult();
     }
 }

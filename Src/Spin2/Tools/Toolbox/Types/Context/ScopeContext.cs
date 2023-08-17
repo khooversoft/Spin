@@ -1,20 +1,19 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 public readonly record struct ScopeContext
 {
-    private readonly ILogger? _logger;
-
-    [JsonConstructor]
-    public ScopeContext(string traceId) => TraceId = traceId.NotEmpty();
+    [Obsolete("Do not use, logger is required, will throw")]
+    public ScopeContext() { throw new InvalidOperationException(); }
 
     public ScopeContext(ILogger logger, CancellationToken token = default)
     {
-        _logger = logger.NotNull();
+        Logger = logger.NotNull();
         Token = token;
 
         TraceId = Guid.NewGuid().ToString();
@@ -23,7 +22,7 @@ public readonly record struct ScopeContext
     public ScopeContext(string traceId, ILogger logger, CancellationToken token = default)
     {
         traceId.NotEmpty();
-        _logger = logger.NotNull();
+        Logger = logger.NotNull();
         TraceId = traceId;
         Token = token;
     }
@@ -32,7 +31,7 @@ public readonly record struct ScopeContext
 
     [JsonIgnore] public bool IsCancellationRequested => Token.IsCancellationRequested;
     [JsonIgnore] public CancellationToken Token { get; init; }
-    [JsonIgnore] public ILogger Logger => _logger.NotNull();
+    [JsonIgnore] public ILogger Logger { get; }
 
     public ScopeContextLocation Location([CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
     {
