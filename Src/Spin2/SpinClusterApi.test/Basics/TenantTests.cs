@@ -30,8 +30,8 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
     public async Task LifecycleTest()
     {
         TenantClient client = _cluster.ServiceProvider.GetRequiredService<TenantClient>();
-        NameId subscriptionId = "Company2Subscription";
-        TenantId tenantId = "Company2Tenant1";
+        string subscriptionId = "Company2Subscription";
+        string tenantId = "Company2Tenant1";
 
         var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         subscription.IsOk().Should().BeTrue();
@@ -45,14 +45,14 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         (tenant.Return() == readOption.Return()).Should().BeTrue();
 
         Option deleteOption = await client.Delete(tenantId, _context);
-        deleteOption.StatusCode.IsOk().Should().BeTrue();
+        deleteOption.IsOk().Should().BeTrue();
 
         Option deleteSubscriptionOption = await SubscriptionTests.DeleteSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         deleteSubscriptionOption.StatusCode.IsOk().Should().BeTrue();
     }
 
 
-    public static async Task<Option<TenantModel>> CreateTenant(IServiceProvider service, TenantId nameId, NameId subscriptionId, ScopeContext context)
+    public static async Task<Option<TenantModel>> CreateTenant(IServiceProvider service, string nameId, string subscriptionId, ScopeContext context)
     {
         TenantClient client = service.GetRequiredService<TenantClient>();
 
@@ -61,9 +61,9 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
 
         var tenant = new TenantModel
         {
-            TenantId = IdTool.CreateTenantId(nameId),
+            TenantId = IdTool.CreateTenant(nameId),
             Name = nameId,
-            SubscriptionName = subscriptionId,
+            SubscriptionId = IdTool.CreateSubscription(subscriptionId),
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
 
@@ -82,7 +82,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         TenantClient client = service.GetRequiredService<TenantClient>();
 
         Option deleteOption = await client.Delete(tenantId, context);
-        deleteOption.StatusCode.IsOk().Should().BeTrue();
+        deleteOption.IsOk().Should().BeTrue();
 
         return StatusCode.OK;
     }

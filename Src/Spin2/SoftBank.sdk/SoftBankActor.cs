@@ -79,7 +79,9 @@ public class SoftBankActor : Grain, ISoftBankActor
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating contract accountDetail={accountDetail}", detail);
-        if (!detail.IsValid(context.Location())) return new Option(StatusCode.BadRequest);
+
+        var v = detail.Validate().LogResult(context.Location());
+        if (v.IsError()) return v;
 
         if (_state.RecordExists)
         {

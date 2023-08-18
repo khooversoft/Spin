@@ -26,9 +26,7 @@ public static class SearchQueryValidator
         .RuleFor(x => x.Filter).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this SearchQuery subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this SearchQuery subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static QueryParameter ConvertTo(this SearchQuery subject) => new QueryParameter
     {

@@ -72,16 +72,4 @@ public static class ObjectExtensions
     /// <param name="subject">subject</param>
     /// <returns>json</returns>
     public static string ToJsonFormat<T>(this T subject) => Json.Default.SerializeFormat(subject);
-
-    /// <summary>
-    /// Simple cast
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="subject"></param>
-    /// <returns></returns>
-    public static T Cast<T>(this object? subject) => subject switch
-    {
-        null => default!,
-        var v => (T)v,
-    };
 }

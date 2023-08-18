@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
-using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
@@ -67,7 +59,7 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
 
         var option = _state.RecordExists switch
         {
-            true => _state.State.ToOption<PrincipalPrivateKeyModel>(),
+            true => _state.State,
             false => new Option<PrincipalPrivateKeyModel>(StatusCode.NotFound),
         };
 
@@ -79,13 +71,10 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set PrivatePrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        ValidatorResult validatorResult = _validator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
-
-        if (!this.GetPrimaryKeyString().EqualsIgnoreCase(model.KeyId))
-        {
-            return new Option(StatusCode.BadRequest, $"KeyId {model.KeyId} does not match actor id={this.GetPrimaryKeyString()}");
-        }
+        var test = new Option()
+            .Test(() => this.VerifyIdentity(model.KeyId).LogResult(context.Location()))
+            .Test(() => _validator.Validate(model).LogResult(context.Location()).ToOptionStatus());
+        if (test.IsError()) return test;
 
         if (_state.RecordExists)
         {

@@ -22,7 +22,5 @@ public static class ResourceFileValidator
         .RuleFor(x => x.Content).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this ResourceFile subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this ResourceFile subject) => Validator.Validate(subject).ToOptionStatus();
 }

@@ -38,16 +38,6 @@ public static class BlockAccessValidator
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .Build();
 
-    public static ValidatorResult Validate(this BlockAccess subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
-
-    public static BlockAccess Verify(this BlockAccess subject, ScopeContextLocation location)
-    {
-        Validator.Validate(subject, location).ThrowOnError();
-        return subject;
-    }
-
     public static bool HasAccess(this BlockAccess subject, BlockGrant grant, BlockType blockType, PrincipalId principalId) =>
         subject.Grant.HasFlag(grant) &&
         subject.BlockType == blockType &&

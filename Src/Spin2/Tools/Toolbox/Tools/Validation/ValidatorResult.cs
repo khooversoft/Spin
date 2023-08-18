@@ -11,8 +11,7 @@ public record ValidatorResult : IValidatorResult
 
     public bool IsValid => Errors.Count == 0;
 
-    public Option ToOption() => new Option(IsValid ? StatusCode.OK : StatusCode.BadRequest, this.FormatErrors());
-    public Option<T> ToOption<T>() => new Option<T>(IsValid ? StatusCode.OK : StatusCode.BadRequest, this.FormatErrors());
+    public override string ToString() => Errors.NotNull().Select(x => x.ToString()).Join(", ");
 }
 
 
@@ -39,22 +38,4 @@ public static class ValidationErrorExtensions
             var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
         })
         .ToArray();
-
-    public static string FormatErrors(this ValidatorResult subject) => subject.NotNull().GetErrors().FormatErrors();
-
-    public static string FormatErrors(this IReadOnlyList<ValidatorError> subject) => subject
-        .Select(x => x.ToString())
-        .Join(", ");
-
-    public static ValidatorResult ThrowOnError(this ValidatorResult subject) => subject.NotNull()
-        .Assert(x => x.IsValid, x => subject.GetErrors().FormatErrors());
-
-    public static ValidatorResult LogResult(this ValidatorResult subject, ScopeContextLocation location)
-    {
-        location.Context.Logger.NotNull();
-        if (subject.IsValid) return subject;
-
-        location.LogError(subject.FormatErrors());
-        return subject;
-    }
 }

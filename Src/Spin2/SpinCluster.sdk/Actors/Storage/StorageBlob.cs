@@ -1,6 +1,4 @@
-﻿using SpinCluster.sdk.Actors.Search;
-using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -40,7 +38,5 @@ public static class StorageBlobValidator
         .RuleForObject(x => x).Must(x => x.IsHashVerify(), _ => "Blob's hash validation failed")
         .Build();
 
-    public static ValidatorResult Validate(this StorageBlob subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this StorageBlob subject) => Validator.Validate(subject).ToOptionStatus();
 }

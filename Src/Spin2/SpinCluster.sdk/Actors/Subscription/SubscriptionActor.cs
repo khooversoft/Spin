@@ -62,7 +62,7 @@ public class SubscriptionActor : Grain, ISubscriptionActor
 
         var option = _state.RecordExists switch
         {
-            true => _state.State.ToOption<SubscriptionModel>(),
+            true => _state.State,
             false => new Option<SubscriptionModel>(StatusCode.NotFound),
         };
 
@@ -74,8 +74,10 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        ValidatorResult validatorResult = _validator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
+        var test = new Option()
+            .Test(() => this.VerifyIdentity(model.SubscriptionId).LogResult(context.Location()))
+            .Test(() => _validator.Validate(model).LogResult(context.Location()).ToOptionStatus());
+        if (test.IsError()) return test;
 
         _state.State = model;
         await _state.WriteStateAsync();

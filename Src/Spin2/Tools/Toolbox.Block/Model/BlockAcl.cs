@@ -28,15 +28,7 @@ public static class BlockAclValidator
         .RuleForEach(x => x.Items).NotNull().Validate(BlockAccessValidator.Validator)
         .Build();
 
-    public static ValidatorResult Validate(this BlockAcl subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
-
-    public static BlockAcl Verify(this BlockAcl subject, ScopeContextLocation location)
-    {
-        Validator.Validate(subject, location).ThrowOnError();
-        return subject;
-    }
+    public static Option Validate(this BlockAcl subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static bool HasAccess(this BlockAcl subject, BlockGrant grant, BlockType blockType, PrincipalId principalId)
     {

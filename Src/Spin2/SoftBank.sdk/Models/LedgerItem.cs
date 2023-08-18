@@ -33,11 +33,7 @@ public static class LedgerTypeValidator
         .RuleFor(x => x.Amount).Must(x => x >= 0, x => $"{x} must be greater then or equal 0")
         .Build();
 
-    public static ValidatorResult Validate(this LedgerItem subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
-
-    public static bool IsValid(this LedgerItem subject, ScopeContextLocation location) => subject.Validate(location).IsValid;
+    public static Option Validate(this LedgerItem subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static decimal NaturalAmount(this LedgerType type, decimal amount) => type switch
     {

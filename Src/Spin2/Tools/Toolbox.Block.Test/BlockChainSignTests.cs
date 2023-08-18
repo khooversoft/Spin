@@ -118,7 +118,7 @@ namespace Toolbox.Block.Test
             string blockChainDigest = blockChain.GetDigest();
 
             BlobPackage blobPackage = blockChain.ToBlobPackage();
-            blobPackage.Validate(_context.Location()).ThrowOnError();
+            blobPackage.Validate().ThrowOnError();
 
             BlockChain readBlockChain = blobPackage.ToBlockChain(_context).Return();
             string readBlockChainDigest = readBlockChain.GetDigest();
@@ -177,7 +177,7 @@ namespace Toolbox.Block.Test
             var nodes = blockChain.GetNodeReader(issuer).Return();
 
             DataBlock receiveBlock = nodes[2].DataBlock;
-            receiveBlock.Validate(_context.Location()).ThrowOnError();
+            receiveBlock.Validate().ThrowOnError();
             receiveBlock.BlockType.Should().Be("objectClass");
             receiveBlock.ClassType.Should().Be("Payload");
             string payloadJson = payload.ToJson();
@@ -187,7 +187,7 @@ namespace Toolbox.Block.Test
             (payload == p1).Should().BeTrue();
 
             DataBlock receiveBlock2 = nodes[3].DataBlock;
-            receiveBlock2.Validate(_context.Location()).ThrowOnError();
+            receiveBlock2.Validate().ThrowOnError();
             receiveBlock2.BlockType.Should().Be("Payload2");
             receiveBlock2.ClassType.Should().Be("Payload2");
             string payloadJson2 = payload2.ToJson();

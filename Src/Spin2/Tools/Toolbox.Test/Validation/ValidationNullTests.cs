@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Test.Validation;
 
@@ -30,9 +31,9 @@ public class ValidationNullTests
             Value = null!,
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count().Should().Be(1);
+        var result = validator.Validate(model);
+        result.IsError().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
     }
 
     [Fact]
@@ -47,8 +48,8 @@ public class ValidationNullTests
             Value = new ReferenceClass("name"),
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count().Should().Be(0);
+        var result = validator.Validate(model);
+        result.IsOk().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
     }
 }

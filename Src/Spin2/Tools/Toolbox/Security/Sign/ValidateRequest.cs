@@ -20,8 +20,4 @@ public static class ValidateRequestValidator
         .RuleFor(x => x.MessageDigest).NotEmpty()
         .RuleFor(x => x.JwtSignature).NotEmpty()
         .Build();
-
-    public static ValidatorResult Validate(this ValidateRequest subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
 }

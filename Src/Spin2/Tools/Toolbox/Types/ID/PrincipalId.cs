@@ -74,7 +74,7 @@ public sealed record PrincipalId
     }
 }
 
-public static class PrincipalIdExtensions
+public static class PrincipalIdTool
 {
     public static string ToUrlEncoding(this PrincipalId subject) => Uri.EscapeDataString(subject.ToString());
 }

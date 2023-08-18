@@ -32,7 +32,7 @@ public class LedgerItemImpl
     {
         context = context.With(_logger);
 
-        Option<ValidatorResult> validator = _validator.Validate(ledger, context.Location());
+        var validator = _validator.Validate(ledger);
         if (validator.IsError()) return validator.ToOptionStatus();
 
         var writer = _blockChain.GetWriter<LedgerItem>(ledger.OwnerId).LogResult(context.Location());

@@ -23,15 +23,5 @@ public static class SpinClusterOptionValidator
         .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
         .Build();
 
-    public static ValidatorResult Validate(this SpinClusterOption subject) => Validator.Validate(subject);
-
-    public static ValidatorResult Validate(this SpinClusterOption subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
-
-    public static SpinClusterOption Verify(this SpinClusterOption subject)
-    {
-        subject.Validate().Assert(x => x.IsValid, x => $"Option is not valid, errors={x.FormatErrors()}");
-        return subject;
-    }
+    public static Option Validate(this SpinClusterOption subject) => Validator.Validate(subject).ToOptionStatus();
 }

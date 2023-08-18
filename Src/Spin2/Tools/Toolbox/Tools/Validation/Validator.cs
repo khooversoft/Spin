@@ -1,12 +1,13 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 
 public interface IValidator<T>
 {
-    ValidatorResult Validate(T subject);
+    Option<IValidatorResult> Validate(T subject);
 }
 
 public class Validator<T> : IValidator<T>
@@ -70,25 +71,31 @@ public class Validator<T> : IValidator<T>
         };
     }
 
-    public ValidatorResult Validate(T subject)
+    public Option<IValidatorResult> Validate(T subject)
     {
-        return new ValidatorResult
+        var result = new ValidatorResult
         {
             Errors = _rules
-                .SelectMany(x => x.Validate(subject) switch
+            .SelectMany(x => x.Validate(subject) switch
+            {
+                var o when o.HasValue => o.Return() switch
                 {
-                    var o when o.HasValue => o.Return() switch
-                    {
-                        ValidatorError v => new[] { v },
-                        ValidatorResult v => v.GetErrors(),
+                    ValidatorError v => new[] { v },
+                    ValidatorResult v => v.GetErrors(),
 
-                        var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
-                    },
+                    var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
+                },
 
-                    _ => Array.Empty<ValidatorError>(),
+                _ => Array.Empty<ValidatorError>(),
 
-                })
-                .ToArray(),
+            })
+            .ToArray()
+        };
+
+        return result.Errors switch
+        {
+            { Count: 0 } => new Option<IValidatorResult>(result, StatusCode.OK, result.ToString()),
+            var v => new Option<IValidatorResult>(result, StatusCode.BadRequest, result.ToString())
         };
     }
 }
@@ -96,11 +103,6 @@ public class Validator<T> : IValidator<T>
 
 public static class ValidatorExtensions
 {
-    public static ValidatorResult Validate<T>(this IValidator<T> validator, T subject, ScopeContextLocation location)
-    {
-        return validator.Validate(subject).LogResult(location);
-    }
-
     public static Validator<T> Build<T, TProperty>(this Rule<T, TProperty> rule) => rule.Validator;
 
     public static Rule<T, T> RuleForObject<T, TInput>(this Rule<T, TInput> rule, Func<T, T> func)

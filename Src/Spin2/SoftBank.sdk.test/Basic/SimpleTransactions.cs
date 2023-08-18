@@ -58,7 +58,7 @@ public class SimpleTransactions
             Name = "Softbank 1",
         };
 
-        accountDetail.IsValid(_context.Location()).Should().BeTrue();
+        accountDetail.Validate().IsOk().Should().BeTrue();
 
         var detailWrite = await softBank.AccountDetail.Set(accountDetail, _context);
         detailWrite.StatusCode.IsOk().Should().BeTrue();
@@ -84,7 +84,7 @@ public class SimpleTransactions
             Amount = 100,
         };
 
-        ledgerItem.IsValid(_context.Location()).Should().BeTrue();
+        ledgerItem.Validate().IsOk().Should().BeTrue();
 
         var writeResult = await softBank.LedgerItems.Add(ledgerItem, _context);
         writeResult.StatusCode.IsOk().Should().BeTrue();
@@ -111,7 +111,7 @@ public class SimpleTransactions
             Name = "Softbank 1",
         };
 
-        accountDetail.IsValid(_context.Location()).Should().BeTrue();
+        accountDetail.Validate().IsOk().Should().BeTrue();
 
         var detailWrite = await softBank.AccountDetail.Set(accountDetail, _context);
         detailWrite.StatusCode.IsOk().Should().BeTrue();
@@ -163,7 +163,7 @@ public class SimpleTransactions
             Name = "Softbank 1",
         };
 
-        accountDetail.IsValid(_context.Location()).Should().BeTrue();
+        accountDetail.Validate().IsOk().Should().BeTrue();
 
         var detailWrite = await softBank.AccountDetail.Set(accountDetail, _context);
         detailWrite.StatusCode.IsOk().Should().BeTrue();

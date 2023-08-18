@@ -32,7 +32,7 @@ public class BlobBuilderTests
         blob.ETag.Should().NotBeNull();
 
         blob.IsHashVerify().Should().BeTrue();
-        blob.Validate(_context.Location()).ThrowOnError();
+        blob.Validate().ThrowOnError();
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class BlobBuilderTests
         readBlob.ETag.Should().NotBeNull();
 
         readBlob.IsHashVerify().Should().BeTrue();
-        readBlob.Validate(_context.Location()).ThrowOnError();
+        readBlob.Validate().ThrowOnError();
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class BlobBuilderTests
             .Build();
 
         blob.IsHashVerify().Should().BeTrue();
-        blob.Validate(new ScopeContext(NullLogger.Instance).Location()).ThrowOnError();
+        blob.Validate().ThrowOnError();
 
         blob.ToObject<string>().Should().Be(payload);
 
@@ -80,7 +80,7 @@ public class BlobBuilderTests
             .SetObjectId(objectId)
             .SetContent(payload)
             .Build()
-            .Action(x => x.IsValid(_context.Location()).Should().BeTrue());
+            .Action(x => x.Validate().IsOk().Should().BeTrue());
 
         (blob == blob2).Should().BeTrue();
     }
@@ -99,7 +99,7 @@ public class BlobBuilderTests
             .Build();
 
         blob.IsHashVerify().Should().BeTrue();
-        blob.Validate(_context.Location()).IsValid.Should().BeTrue();
+        blob.Validate().IsOk().Should().BeTrue();
         blob.ToObject<string>().Should().Be(payload);
 
         BlobPackage blob2 = new BlobPackageBuilder()
@@ -107,7 +107,7 @@ public class BlobBuilderTests
             .SetContent(payload)
             .SetTag("key2;key1=value1")
             .Build()
-            .Action(x => x.Validate(_context.Location()).ThrowOnError());
+            .Action(x => x.Validate().ThrowOnError());
 
         (blob == blob2).Should().BeTrue();
     }
@@ -129,14 +129,14 @@ public class BlobBuilderTests
             .Build();
 
         blob.IsHashVerify().Should().BeTrue();
-        blob.IsValid(_context.Location()).Should().BeTrue();
+        blob.Validate().IsOk().Should().BeTrue();
         blob.ToObject<Payload>().Should().Be(payload);
 
         BlobPackage blob2 = new BlobPackageBuilder()
             .SetObjectId(objectId)
             .SetContent(payload)
             .Build()
-            .Action(x => x.Validate(_context.Location()).ThrowOnError());
+            .Action(x => x.Validate().ThrowOnError());
 
         (blob == blob2).Should().BeTrue();
     }
@@ -159,7 +159,7 @@ public class BlobBuilderTests
             .Build();
 
         blob.IsHashVerify().Should().BeTrue();
-        blob.IsValid(_context.Location()).Should().BeTrue();
+        blob.Validate().IsOk().Should().BeTrue();
         blob.ToObject<Payload>().Should().Be(payload);
         blob.Tags.Should().Be("key1=value1;key2=value2");
 

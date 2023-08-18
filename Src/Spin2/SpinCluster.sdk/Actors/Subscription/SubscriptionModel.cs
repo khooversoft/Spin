@@ -59,7 +59,5 @@ public static class SubscriptionModelValidator
         .RuleFor(x => x.Tenants).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this SubscriptionModel subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this SubscriptionModel subject) => Validator.Validate(subject).ToOptionStatus();
 }

@@ -23,7 +23,5 @@ public static class SiloConfigOptionValidator
         .RuleForEach(x => x.Tenants).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this SiloConfigOption subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this SiloConfigOption subject) => Validator.Validate(subject).ToOptionStatus();
 }

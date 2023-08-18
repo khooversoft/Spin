@@ -29,10 +29,6 @@ public static class DataObjectValidator
         .RuleForEach(x => x.Values).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this DataObject subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
-
     public static DataObject ToDataObject<T>(this T value, string? key = null) where T : class
     {
         IReadOnlyList<KeyValuePair<string, string>> values = value.GetConfigurationValues();

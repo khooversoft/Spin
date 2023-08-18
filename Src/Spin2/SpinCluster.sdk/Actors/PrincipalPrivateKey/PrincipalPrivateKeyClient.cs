@@ -14,14 +14,14 @@ public class PrincipalPrivateKeyClient
     protected readonly HttpClient _client;
     public PrincipalPrivateKeyClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option> Delete(PrincipalId principalId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.PrincipalPrivateKey}/{principalId.ToUrlEncoding()}")
+    public async Task<Option> Delete(string principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.PrincipalPrivateKey}/{Uri.EscapeDataString(principalId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .DeleteAsync(context)
         .ToOption();
 
-    public async Task<Option<PrincipalPrivateKeyModel>> Get(PrincipalId principalId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.PrincipalPrivateKey}/{principalId.ToUrlEncoding()}")
+    public async Task<Option<PrincipalPrivateKeyModel>> Get(string principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.PrincipalPrivateKey}/{Uri.EscapeDataString(principalId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<PrincipalPrivateKeyModel>();

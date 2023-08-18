@@ -36,8 +36,8 @@ public static class BlockChainExtensions
 
     public static Option<BlockChain> ToBlockChain(this BlobPackage package, ScopeContext context)
     {
-        var validationOption = package.Validate(context.Location()).ToOption<BlockChain>();
-        if (validationOption.IsError()) return validationOption;
+        var validationOption = package.Validate().LogResult(context.Location());
+        if (validationOption.IsError()) return validationOption.ToOptionStatus<BlockChain>();
 
         BlockChain blockChain = package
             .ToObject<BlockChainModel>()

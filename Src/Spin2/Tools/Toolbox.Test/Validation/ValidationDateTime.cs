@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Test.Validation;
 
@@ -27,9 +28,9 @@ public class ValidationDateTime
             Value = default!,
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count().Should().Be(1);
+        var result = validator.Validate(model);
+        result.IsError().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
     }
 
 
@@ -45,9 +46,9 @@ public class ValidationDateTime
             Value = new DateTime(1900, 1, 1).AddDays(-1),
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count().Should().Be(1);
+        var result = validator.Validate(model);
+        result.IsError().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
 
         model = new TimeDateTest
         {
@@ -55,8 +56,8 @@ public class ValidationDateTime
         };
 
         result = validator.Validate(model);
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count().Should().Be(1);
+        result.IsError().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
     }
 
     [Fact]
@@ -71,9 +72,9 @@ public class ValidationDateTime
             Value = new DateTime(1900, 1, 1),
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count().Should().Be(0);
+        var result = validator.Validate(model);
+        result.IsOk().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
 
         model = new TimeDateTest
         {
@@ -81,8 +82,8 @@ public class ValidationDateTime
         };
 
         result = validator.Validate(model);
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count().Should().Be(0);
+        result.IsOk().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
     }
 
     [Fact]
@@ -97,8 +98,8 @@ public class ValidationDateTime
             Value = DateTime.Now,
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count().Should().Be(0);
+        var result = validator.Validate(model);
+        result.IsOk().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
     }
 }

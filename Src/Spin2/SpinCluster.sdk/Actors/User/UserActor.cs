@@ -10,6 +10,7 @@ using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
@@ -66,8 +67,8 @@ public class UserActor : Grain, IUserActor
             return StatusCode.OK;
         }
 
-        ObjectId publicKeyId = IdTool.CreatePublicKeyId(_state.State.PrincipalId);
-        await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(publicKeyId).Delete(context.TraceId);
+        ResourceId resourceId = IdTool.CreatePublicKey(_state.State.PrincipalId);
+        await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(resourceId).Delete(context.TraceId);
 
         await _state.ClearStateAsync();
         return StatusCode.OK;
@@ -77,10 +78,10 @@ public class UserActor : Grain, IUserActor
     {
         if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
 
-        var principalKeyId = IdTool.CreatePublicKeyId(_state.State.PrincipalId);
-        var privateKeyExist = await _clusterClient.GetObjectGrain<IPrincipalKeyActor>(principalKeyId).Exist(traceId);
+        ResourceId resourceId = IdTool.CreatePublicKey(_state.State.PrincipalId);
+        var publicKeyExist = await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(resourceId).Delete(traceId);
 
-        return privateKeyExist;
+        return publicKeyExist;
     }
 
     public Task<Option<UserModel>> Get(string traceId)
@@ -104,13 +105,11 @@ public class UserActor : Grain, IUserActor
 
         if (!_state.RecordExists) return StatusCode.Conflict;
 
-        ValidatorResult validatorResult = _createValidator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
+        var validatorResult = _createValidator.Validate(model).LogResult(context.Location());
+        if (validatorResult.IsError()) return validatorResult.ToOptionStatus();
 
-        PrincipalId principalId = model.PrincipalId;
-
-        var verifyTenant = await VerifyTenant(principalId, context);
-        if (verifyTenant.StatusCode.IsError()) return verifyTenant;
+        var verifyTenant = await VerifyTenant(model.UserId, context);
+        if (verifyTenant.IsError()) return verifyTenant;
 
         var userModel = new UserModel
         {
@@ -120,7 +119,7 @@ public class UserActor : Grain, IUserActor
             FirstName = model.FirstName,
             LastName = model.LastName,
             AccountEnabled = true,
-            UserKey = UserKeyModel.Create(principalId),
+            UserKey = UserKeyModel.Create(model.PrincipalId),
         };
 
         var createOption = await CreateKeys(userModel, context);
@@ -137,18 +136,15 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Update user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        ValidatorResult validatorResult = _updateValidator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
-
-        PrincipalId principalId = model.PrincipalId;
-
-        var verifyTenant = await VerifyTenant(principalId, context);
-        if (verifyTenant.StatusCode.IsError()) return verifyTenant;
+        var test = await (new Option().ToTaskResult())
+            .TestAsync(() => _updateValidator.Validate(model).LogResult(context.Location()).ToOptionStatus())
+            .TestAsync(async () => await VerifyTenant(model.PrincipalId, context));
+        if( test.IsError()) return test;
 
         if (!_state.RecordExists)
         {
             var createKeyOption = await CreateKeys(model, context);
-            if (createKeyOption.StatusCode.IsError()) return createKeyOption;
+            if (createKeyOption.IsError()) return createKeyOption;
         }
 
         _state.State = model;
@@ -157,20 +153,17 @@ public class UserActor : Grain, IUserActor
         return new Option(StatusCode.OK);
     }
 
-    private async Task<Option> VerifyTenant(PrincipalId principalId, ScopeContext context)
+    private async Task<Option> VerifyTenant(string tenantId, ScopeContext context)
     {
-        string tenantId = PrincipalId.Create(principalId).LogResult(context.Location())
-            .Return()
-            .Domain;
+        if (!IdPatterns.IsTenant(tenantId)) return StatusCode.BadRequest;
+        tenantId = IdTool.CreateTenant(tenantId);
 
-        Option isTenantActive = await _clusterClient
-            .GetObjectGrain<ITenantActor>(IdTool.CreateTenantId(tenantId))
-            .Exist(context.TraceId);
+        Option isTenantActive = await _clusterClient.GetResourceGrain<ITenantActor>(tenantId).Exist(context.TraceId);
 
-        if (isTenantActive.StatusCode.IsError())
+        if (isTenantActive.IsError())
         {
             context.Location().LogError("Tenant={tenantId} does not exist, error={error}", tenantId, isTenantActive.Error);
-            return new Option(StatusCode.Conflict, $"Tenant={tenantId}, for principalId={principalId} does not exist");
+            return new Option(StatusCode.Conflict, $"Tenant={tenantId}, for principalId={tenantId} does not exist");
         }
 
         return StatusCode.OK;
@@ -182,10 +175,10 @@ public class UserActor : Grain, IUserActor
 
         var keyCreate = new PrincipalKeyCreateModel
         {
-            KeyId = KeyId.Create(model.PrincipalId).Return(),
+            KeyId = model.UserKey.PublicKeyId,
             PrincipalId = model.PrincipalId,
-            Name = "signVerify",
-            PrivateKeyObjectId = model.UserKey.PrivateKeyObjectId,
+            Name = "sign",
+            PrivateKeyObjectId = model.UserKey.PrivateKeyId,
             AccountEnabled = true,
         };
 

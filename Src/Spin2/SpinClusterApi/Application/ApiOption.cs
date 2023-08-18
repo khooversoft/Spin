@@ -22,7 +22,5 @@ public static class ApiOptionExtensions
         .RuleFor(x => x.IpAddress).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this ApiOption subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this ApiOption subject) => Validator.Validate(subject).ToOptionStatus();
 }

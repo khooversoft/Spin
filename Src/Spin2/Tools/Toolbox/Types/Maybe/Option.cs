@@ -29,4 +29,25 @@ public static class OptionExtensions
     public static bool IsOk(this Option subject) => subject.StatusCode.IsOk();
     public static bool IsError(this Option subject) => subject.StatusCode.IsError();
 
+    public static Option Test(this Option option, Func<Option> test)
+    {
+        if (option.IsError()) return option;
+        return test();
+    }
+
+    public static async Task<Option> TestAsync(this Task<Option> option, Func<Option> test)
+    {
+        var o = await option;
+        if (o.IsError()) return o;
+
+        return test();
+    }
+
+    public static async Task<Option> TestAsync(this Task<Option> option, Func<Task<Option>> test)
+    {
+        var o = await option;
+        if (o.IsError()) return o;
+
+        return await test();
+    }
 }

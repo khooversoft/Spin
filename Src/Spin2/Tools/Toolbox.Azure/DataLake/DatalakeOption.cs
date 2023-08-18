@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Storage.Files.DataLake;
 using Toolbox.Azure.Identity;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -21,15 +22,13 @@ public record DatalakeOption
 
 public static class DatalakeOptionValidator
 {
-    public static Validator<DatalakeOption> Validator { get; } = new Validator<DatalakeOption>()
+    public static IValidator<DatalakeOption> Validator { get; } = new Validator<DatalakeOption>()
         .RuleFor(x => x.AccountName).NotEmpty()
         .RuleFor(x => x.ContainerName).NotEmpty()
         .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
         .Build();
 
-    public static ValidatorResult Validate(this DatalakeOption subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this DatalakeOption subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static DataLakeServiceClient CreateDataLakeServiceClient(this DatalakeOption subject)
     {

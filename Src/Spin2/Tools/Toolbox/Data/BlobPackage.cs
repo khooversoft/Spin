@@ -42,11 +42,7 @@ public static class BlobPackageValidator
         .RuleForObject(x => x).Must(x => x.IsHashVerify(), _ => "Blob's hash validation failed")
         .Build();
 
-    public static bool IsValid(this BlobPackage subject, ScopeContextLocation location) => subject.Validate(location).IsValid;
-
-    public static ValidatorResult Validate(this BlobPackage subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this BlobPackage subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static BlobPackage WithHash(this BlobPackage blob) => blob.NotNull() with { ETag = blob.ComputeHash() };
 

@@ -26,6 +26,7 @@ internal class ResourceIdTool
         public string? User { get; init; }
         public string? Domain { get; init; }
         public string? Path { get; init; }
+        public string? PrincipalId { get; init; }
     };
 
     public static Option<ResourceIdParsed> Parse(string subject)
@@ -69,6 +70,7 @@ internal class ResourceIdTool
             User = tokens[2].Value,
             Domain = tokens[4].Value,
             Path = tokens.Skip(6).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),
+            PrincipalId = $"{tokens[2].Value}@{tokens[4].Value}",
         },
     };
 
@@ -98,6 +100,7 @@ internal class ResourceIdTool
             Id = subject,
             User = tokens[0].Value,
             Domain = tokens[2].Value,
+            PrincipalId = $"{tokens[0].Value}@{tokens[2].Value}",
         },
     };
 

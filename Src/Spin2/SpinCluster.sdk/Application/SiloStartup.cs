@@ -69,7 +69,11 @@ public static class SiloStartup
             SpinClusterOption clusterOption = service.GetRequiredService<SpinClusterOption>();
             var context = new ScopeContext(service.GetRequiredService<ILoggerFactory>().CreateLogger<SiloConfigStore>());
 
-            DatalakeLocation datalakeLocation = DatalakeLocation.ParseConnectionString(clusterOption.BootConnectionString, context.Location()).Return();
+            DatalakeLocation datalakeLocation = DatalakeLocation.ParseConnectionString(clusterOption.BootConnectionString)
+                .LogResult(context.Location())
+                .ThrowOnError()
+                .Return();
+
             var loggerFactory = service.GetRequiredService<ILoggerFactory>();
 
             var option = new DatalakeOption

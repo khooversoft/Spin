@@ -40,7 +40,7 @@ public class StoreAndSerialization
         SoftBankAccount softBankAccount = await CreateAccount();
 
         BlobPackage blob = softBankAccount.ToBlobPackage();
-        blob.Validate(_context.Location()).IsValid.Should().BeTrue();
+        blob.Validate().IsOk().Should().BeTrue();
 
         SoftBankAccount readSoftBankAccount = await _softBankFactory.Create(blob, _context).Return();
         Option signResult = await readSoftBankAccount.ValidateBlockChain(_context);
@@ -58,7 +58,7 @@ public class StoreAndSerialization
             Name = "Softbank 1",
         };
 
-        accountDetail.IsValid(_context.Location()).Should().BeTrue();
+        accountDetail.Validate().IsOk().Should().BeTrue();
 
         var addDetailResult = await softBank.AccountDetail.Set(accountDetail, _context);
         addDetailResult.StatusCode.IsOk().Should().BeTrue();

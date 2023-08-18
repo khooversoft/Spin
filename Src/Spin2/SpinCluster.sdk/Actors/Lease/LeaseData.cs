@@ -15,14 +15,12 @@ public record LeaseData
 
 public static class LeaseDataValidator
 {
-    public static Validator<LeaseData> Validator { get; } = new Validator<LeaseData>()
+    public static IValidator<LeaseData> Validator { get; } = new Validator<LeaseData>()
         .RuleFor(x => x.LeaseId).NotEmpty()
         .RuleFor(x => x.ObjectId).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this LeaseData subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this LeaseData subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static bool IsLeaseValid(this LeaseData data) => data != null && DateTime.UtcNow < data.CreatedDate + data.TimeToLive;
 }

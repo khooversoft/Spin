@@ -39,7 +39,7 @@ public static class IdTool
     public static ResourceId CreateSubscription(string subscriptionId) => $"{SpinConstants.Schema.Subscription}:{subscriptionId}";
 
     // tenant:company3.com
-    public static ResourceId CreateTenant(string tenant) => $"{SpinConstants.Schema.Subscription}:{tenant}";
+    public static ResourceId CreateTenant(string tenant) => $"{SpinConstants.Schema.Tenant}:{tenant}";
 
     // user:user1@company3.com
     public static ResourceId CreateUser(string principalId) => $"{SpinConstants.Schema.User}:{principalId}";

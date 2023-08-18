@@ -19,9 +19,5 @@ public static class SignRequestValidator
         .RuleFor(x => x.PrincipleId).NotEmpty()
         .RuleFor(x => x.MessageDigest).NotEmpty()
         .Build();
-
-    public static ValidatorResult Validate(this SignRequest subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
 }
 

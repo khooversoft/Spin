@@ -22,7 +22,5 @@ public static class BlockCreateModelExtensions
         .RuleForEach(x => x.BlockAccess).Validate(BlockAccessValidator.Validator)
         .Build();
 
-    public static ValidatorResult Validate(this BlockCreateModel subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this BlockCreateModel subject) => Validator.Validate(subject).ToOptionStatus();
 }

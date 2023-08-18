@@ -22,7 +22,7 @@ public class BlobSerializationTests
             .SetContent(payload)
             .Build();
 
-        blob.IsValid(_context.Location()).Should().BeTrue();
+        blob.Validate().IsOk().Should().BeTrue();
         blob.Should().NotBeNull();
         blob.TypeName.Should().Be("String");
         blob.ToObject<string>().Should().Be(payload);
@@ -47,7 +47,7 @@ public class BlobSerializationTests
             .SetContent(payload)
             .Build();
 
-        blob.IsValid(_context.Location()).Should().BeTrue();
+        blob.Validate().IsOk().Should().BeTrue();
         blob.Should().NotBeNull();
         blob.TypeName.Should().Be(typeof(Payload).Name);
         blob.ToObject<Payload>().Should().Be(payload);
@@ -64,7 +64,7 @@ public class BlobSerializationTests
             .SetContent(payload)
             .Build();
 
-        blob.IsValid(_context.Location()).Should().BeTrue();
+        blob.Validate().IsOk().Should().BeTrue();
         blob.Should().NotBeNull();
         blob.TypeName.Should().Be(typeof(byte[]).Name);
         blob.ToObject<byte[]>().NotNull().Func(x => Enumerable.SequenceEqual(x, payload)).Should().BeTrue();

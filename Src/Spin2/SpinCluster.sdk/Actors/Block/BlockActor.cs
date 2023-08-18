@@ -120,13 +120,10 @@ public class BlockActor : Grain/*, IBlockActor*/
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        ValidatorResult validatorResult = _blobPackageValidator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
-
-        if (!this.GetPrimaryKeyString().EqualsIgnoreCase(model.ObjectId))
-        {
-            return new Option(StatusCode.BadRequest, $"ObjectId {model.ObjectId} does not match actor id={this.GetPrimaryKeyString()}");
-        }
+        var test = new Option()
+            .Test(() => _blobPackageValidator.Validate(model).LogResult(context.Location()).ToOptionStatus())
+            .Test(() => this.VerifyIdentity(model.ObjectId));
+        if (test.IsError()) return test;
 
         _state.State = model;
         await _state.WriteStateAsync();

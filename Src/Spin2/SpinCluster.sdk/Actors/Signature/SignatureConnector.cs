@@ -49,7 +49,7 @@ public class SignatureConnector
     {
         var context = new ScopeContext(traceId, _logger);
         var validation = _signValidator.Validate(model).LogResult(context.Location());
-        if (!validation.IsValid) return new Option(StatusCode.BadRequest, validation.FormatErrors()).ToResult();
+        if (validation.IsError()) return Results.BadRequest(validation.Error);
 
         Option<string> result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
         if( result.IsError()) return result.ToResult();
@@ -68,7 +68,7 @@ public class SignatureConnector
     {
         var context = new ScopeContext(traceId, _logger);
         var validation = _validateValidator.Validate(model).LogResult(context.Location());
-        if (!validation.IsValid) return new Option(StatusCode.BadRequest, validation.FormatErrors()).ToResult();
+        if (validation.IsError()) return Results.BadRequest(validation.Error);
 
         var result = await _clusterClient.GetSignatureActor().ValidateDigest(model.JwtSignature, model.MessageDigest, traceId);
         return result.ToResult();

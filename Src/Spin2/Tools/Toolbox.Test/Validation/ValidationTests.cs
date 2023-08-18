@@ -55,8 +55,8 @@ public class ValidationTests
 
         var result = validations.Validate(option);
         result.Should().NotBeNull();
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count.Should().Be(0);
+        result.IsOk().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
     }
 
     [Fact]
@@ -90,8 +90,8 @@ public class ValidationTests
 
         var result = validations.Validate(option);
         result.Should().NotBeNull();
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count.Should().Be(0);
+        result.IsOk().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
     }
 
     [Fact]
@@ -121,8 +121,8 @@ public class ValidationTests
 
         var result = validations.Validate(option);
         result.Should().NotBeNull();
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count.Should().Be(2);
+        result.IsError().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
     }
 
     [Fact]
@@ -141,8 +141,8 @@ public class ValidationTests
 
         var result = validations.Validate(option);
         result.Should().NotBeNull();
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count.Should().Be(2);
+        result.IsError().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
     }
 
     [Fact]
@@ -161,8 +161,8 @@ public class ValidationTests
         {
             var result = validations.Validate(x);
             result.Should().NotBeNull();
-            result.IsValid.Should().BeTrue();
-            result.Errors.Count.Should().Be(0);
+            result.IsOk().Should().BeTrue();
+            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
         });
 
         new TestOption
@@ -173,9 +173,9 @@ public class ValidationTests
         {
             var result = validations.Validate(x);
             result.Should().NotBeNull();
-            result.IsValid.Should().BeFalse();
-            result.Errors.Count.Should().Be(1);
-            result.Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");
+            result.IsError().Should().BeTrue();
+            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
+            result.Return().As<ValidatorResult>().Errors[0].As<ValidatorError>().Message.Should().Be("domain is required");
         });
 
         new TestOption
@@ -186,9 +186,9 @@ public class ValidationTests
         {
             var result = validations.Validate(x);
             result.Should().NotBeNull();
-            result.IsValid.Should().BeFalse();
-            result.Errors.Count.Should().Be(1);
-            result.Errors[0].Cast<ValidatorError>().Message.Should().Be("accountName is required");
+            result.IsError().Should().BeTrue();
+            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
+            result.Return().As<ValidatorResult>().Errors[0].As<ValidatorError>().Message.Should().Be("accountName is required");
         });
 
         new TestOption
@@ -199,10 +199,10 @@ public class ValidationTests
         {
             var result = validations.Validate(x);
             result.Should().NotBeNull();
-            result.IsValid.Should().BeFalse();
-            result.Errors.Count.Should().Be(2);
-            result.Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");
-            result.Errors[1].Cast<ValidatorError>().Message.Should().Be("accountName is required");
+            result.IsError().Should().BeTrue();
+            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
+            result.Return().As<ValidatorResult>().Errors[0].As<ValidatorError>().Message.Should().Be("domain is required");
+            result.Return().As<ValidatorResult>().Errors[1].As<ValidatorError>().Message.Should().Be("accountName is required");
         });
     }
 }

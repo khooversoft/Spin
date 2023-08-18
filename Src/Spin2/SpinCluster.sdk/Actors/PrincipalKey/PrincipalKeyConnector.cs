@@ -9,6 +9,7 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Extensions;
 using Microsoft.AspNetCore.Builder;
+using static Azure.Core.HttpHeader;
 
 namespace SpinCluster.sdk.Actors.PrincipalKey;
 
@@ -37,43 +38,43 @@ public class PrincipalKeyConnector
 
     private async Task<IResult> Delete(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        principalId = Uri.UnescapeDataString(principalId);
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
 
-        ObjectId objectId = IdTool.CreatePublicKeyId(option.Return());
-        Option response = await _client.GetObjectGrain<IPrincipalKeyActor>(objectId).Delete(context.TraceId);
+        ResourceId resourceId = IdTool.CreatePublicKey(principalId);
+        Option response = await _client.GetResourceGrain<IPrincipalKeyActor>(resourceId).Delete(traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Get(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        principalId = Uri.UnescapeDataString(principalId);
+        if (!IdPatterns.IsName(principalId)) return Results.BadRequest();
 
-        ObjectId objectId = IdTool.CreatePublicKeyId(option.Return());
-        Option<PrincipalKeyModel> response = await _client.GetObjectGrain<IPrincipalKeyActor>(objectId).Get(context.TraceId);
+        ResourceId resourceId = IdTool.CreatePublicKey(principalId);
+        Option<PrincipalKeyModel> response = await _client.GetResourceGrain<IPrincipalKeyActor>(resourceId).Get(traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Create(PrincipalKeyCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(model.KeyId).LogResult(context.Location());
+
+        Option<ResourceId> option = ResourceId.Create(model.KeyId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<IPrincipalKeyActor>(option.Return()).Create(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(option.Return()).Create(model, context.TraceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Update(PrincipalKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(model.KeyId).LogResult(context.Location());
+
+        Option<ResourceId> option = ResourceId.Create(model.KeyId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<IPrincipalKeyActor>(option.Return()).Update(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(option.Return()).Update(model, context.TraceId);
         return response.ToResult();
     }
 }

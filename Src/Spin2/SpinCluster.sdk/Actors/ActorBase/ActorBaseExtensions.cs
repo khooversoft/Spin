@@ -5,6 +5,7 @@ using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 using Toolbox.Orleans.Types;
+using System.Reflection;
 
 namespace Toolbox.Orleans.Types;
 
@@ -33,12 +34,8 @@ public static class ActorBaseExtensions
     {
         location.LogInformation("Setting {typeName}, id={id}, model={model}", typeof(T).GetTypeName(), actorKey, model.ToJsonPascalSafe(location.Context));
 
-        ValidatorResult validatorResult = validator.Validate(model);
-        if (!validatorResult.IsValid)
-        {
-            location.LogError(validatorResult.FormatErrors());
-            return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
-        }
+        var validatorResult = validator.Validate(model).LogResult(location);
+        if (validatorResult.IsError()) return validatorResult.ToOptionStatus();
 
         state.State = model;
         await state.WriteStateAsync();
@@ -52,5 +49,17 @@ public static class ActorBaseExtensions
 
         ResourceId resourceId = ResourceId.Create(actorKey).LogResult(context.Location()).ThrowOnError().Return();
         resourceId.Schema.Assert(x => x == schema, x => $"Invalid schema, {x} does not match {schema}");
+    }
+
+    public static Option VerifyIdentity(this Grain grain, string keyToMatch)
+    {
+        string actorKey = grain.GetPrimaryKeyString();
+
+        if (!actorKey.EqualsIgnoreCase(keyToMatch))
+        {
+            return new Option(StatusCode.BadRequest, $"Key {keyToMatch} does not match actor id={actorKey}");
+        }
+
+        return StatusCode.OK;
     }
 }

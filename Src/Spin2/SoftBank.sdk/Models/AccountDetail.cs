@@ -37,9 +37,5 @@ public static class AccountDetailValidator
         .RuleFor(x => x.AccessRights).NotNull()
         .Build();
 
-    public static ValidatorResult Validate(this AccountDetail subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
-
-    public static bool IsValid(this AccountDetail subject, ScopeContextLocation location) => subject.Validate(location).IsValid;
+    public static Option Validate(this AccountDetail subject) => Validator.Validate(subject).ToOptionStatus();
 }

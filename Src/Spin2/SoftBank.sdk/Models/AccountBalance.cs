@@ -27,9 +27,5 @@ public static class AccountBalanceValidator
         .RuleFor(x => x.Name).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this AccountBalance subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
-
-    public static bool IsValid(this AccountBalance subject, ScopeContextLocation location) => subject.Validate(location).IsValid;
+    public static Option Validate(this AccountBalance subject) => Validator.Validate(subject).ToOptionStatus();
 }

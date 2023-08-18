@@ -75,17 +75,17 @@ public class TenantActor : Grain, ITenantActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        ValidatorResult validatorResult = _validator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
+        var v = new Option()
+            .Test(() => this.VerifyIdentity(model.TenantId).LogResult(context.Location()))
+            .Test(() => _validator.Validate(model).ToOptionStatus());
 
-        Option isSubscriptionActive = await _clusterClient
-            .GetObjectGrain<ISubscriptionActor>(IdTool.CreateSubscriptionId(model.SubscriptionName))
-            .Exist(context.TraceId);
+        if (v.IsError()) return v.LogResult(context.Location());
 
-        if (isSubscriptionActive.StatusCode.IsError())
+        Option isSubscriptionActive = await _clusterClient.GetResourceGrain<ISubscriptionActor>(model.SubscriptionId).Exist(context.TraceId);
+        if (isSubscriptionActive.IsError())
         {
-            context.Location().LogError("SubscriptionName={subscriptionName} does not exist, error={error}", model.SubscriptionName, isSubscriptionActive.Error);
-            return new Option(StatusCode.Conflict, $"SubscriptionName={model.SubscriptionName} does not exist");
+            context.Location().LogError("SubscriptionName={subscriptionName} does not exist, error={error}", model.SubscriptionId, isSubscriptionActive.Error);
+            return new Option(StatusCode.Conflict, $"SubscriptionName={model.SubscriptionId} does not exist");
         }
 
         _state.State = model;

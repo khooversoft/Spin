@@ -22,7 +22,5 @@ public static class SchemaOptionValidator
         .RuleFor(x => x.ContainerName).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this SchemaOption subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this SchemaOption subject) => Validator.Validate(subject).ToOptionStatus();
 }

@@ -34,11 +34,8 @@ public class SearchActor : Grain, ISearchActor
     public async Task<Option<IReadOnlyList<StorePathItem>>> Search(SearchQuery searchQuery, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        switch (_validator.Validate(searchQuery))
-        {
-            case var v when !v.IsValid:
-                return new Option<IReadOnlyList<StorePathItem>>(StatusCode.BadRequest, v.FormatErrors());
-        }
+        var validationResult = _validator.Validate(searchQuery).LogResult(context.Location());
+        if(validationResult.IsError()) return validationResult.ToOptionStatus<IReadOnlyList<StorePathItem>>();
 
         Option<IDatalakeStore> store = _datalakeResources.GetStore(searchQuery.Schema, context.Location());
         if (store.IsError()) return store.ToOptionStatus<IReadOnlyList<StorePathItem>>();

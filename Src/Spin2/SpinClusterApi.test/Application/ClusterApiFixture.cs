@@ -9,6 +9,7 @@ using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace SpinClusterApi.test.Application;
 
@@ -19,8 +20,7 @@ public class ClusterApiFixture
         Option = new ConfigurationBuilder()
             .AddJsonFile("test-appsettings.json")
             .Build()
-            .Bind<TestOption>()
-            .Verify();
+            .Bind<TestOption>().Assert(x => x.Validate().IsOk(), "Invalid");
 
         ServiceProvider = new ServiceCollection()
         .AddSingleton(Option)

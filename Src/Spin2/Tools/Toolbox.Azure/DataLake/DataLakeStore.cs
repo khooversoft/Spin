@@ -19,7 +19,7 @@ public class DatalakeStore : IDatalakeStore
 
     public DatalakeStore(DatalakeOption azureStoreOption, ILogger<DatalakeStore> logger)
     {
-        azureStoreOption.Validate(new ScopeContext(logger).Location()).ThrowOnError();
+        azureStoreOption.Validate().ThrowOnError();
         _azureStoreOption = azureStoreOption;
         _logger = logger.NotNull();
 

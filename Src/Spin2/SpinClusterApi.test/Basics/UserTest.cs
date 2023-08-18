@@ -61,7 +61,7 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         deleteSubscriptionOption.StatusCode.IsOk().Should().BeTrue();
     }
 
-    private async Task VerifyKeys(IServiceProvider service, PrincipalId principalId, bool mustExist)
+    private async Task VerifyKeys(IServiceProvider service, string principalId, bool mustExist)
     {
         PrincipalKeyClient publicKeyClient = service.GetRequiredService<PrincipalKeyClient>();
         var publicKeyExist = await publicKeyClient.Get(principalId, _context);
@@ -72,7 +72,7 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         (privateKeyExist.IsOk() == mustExist).Should().BeTrue();
     }
 
-    public static async Task<Option<UserModel>> CreateUser(IServiceProvider service, PrincipalId principalId, ScopeContext context)
+    public static async Task<Option<UserModel>> CreateUser(IServiceProvider service, string principalId, ScopeContext context)
     {
         UserClient client = service.GetRequiredService<UserClient>();
 

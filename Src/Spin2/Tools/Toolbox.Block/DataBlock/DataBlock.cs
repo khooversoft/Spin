@@ -47,14 +47,12 @@ public static class DataBlockValidator
 
     public static void Verify(this DataBlock subject) => Validator.Validate(subject).ThrowOnError();
 
-    public static ValidatorResult Validate(this DataBlock subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this DataBlock subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static async Task<Option> ValidateDigest(this DataBlock subject, ISignValidate signValidate, ScopeContext context)
     {
-        var valResult = Validator.Validate(subject).LogResult(context.Location()).ToOption<ValidatorResult>();
-        if (valResult.IsError()) return valResult.Return().ToOption();
+        var valResult = Validator.Validate(subject).LogResult(context.Location());
+        if (valResult.IsError()) return valResult.ToOptionStatus();
 
         return await signValidate.ValidateDigest(subject.JwtSignature, subject.Digest, context.TraceId);
     }

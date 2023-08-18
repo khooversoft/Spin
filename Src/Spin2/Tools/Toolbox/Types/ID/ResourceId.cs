@@ -39,6 +39,7 @@ public readonly record struct ResourceId
         User = result.User;
         Domain = result.Domain;
         Path = result.Path;
+        PrincipalId = result.PrincipalId;
     }
 
     public string Id { get; }
@@ -46,6 +47,7 @@ public readonly record struct ResourceId
     [JsonIgnore] public string? User { get; }
     [JsonIgnore] public string? Domain { get; }
     [JsonIgnore] public string? Path { get; }
+    [JsonIgnore] public string? PrincipalId { get; }
 
     public override string ToString() => Id;
     public string ToUrlEncoding() => Uri.EscapeDataString(Id);
@@ -70,7 +72,7 @@ public readonly record struct ResourceId
         var resourceId = new ResourceId(result.Return());
 
         var validation = ResourceIdValidator.Validator.Validate(resourceId);
-        if (!validation.IsValid) return new Option<ResourceId>(StatusCode.BadRequest, validation.FormatErrors());
+        if (validation.IsError()) return validation.ToOptionStatus<ResourceId>();
 
         return resourceId;
     }
@@ -84,17 +86,12 @@ public static class ResourceIdValidator
         .RuleFor(x => x.User).Must(x => x.IsEmpty() || IdPatterns.IsName(x), x => $"{x} not valid user")
         .RuleFor(x => x.Domain).Must(x => x.IsEmpty() || IdPatterns.IsDomain(x), x => $"{x} not valid domain")
         .RuleFor(x => x.Path).Must(x => x.IsEmpty() || x.Split('/').All(y => IdPatterns.IsPath(y)), x => $"{x} not valid path")
+        .RuleFor(x => x.PrincipalId).Must(x => x.IsEmpty() || IdPatterns.IsPrincipalId(x), x => $"{x} not valid path")
         .Build();
 
-    public static Option<ResourceId> IsValid(this Option<ResourceId> subject) => subject switch
-    {
-        var v when v.IsOk() => v.Return().IsValid(),
-        var v => v,
-    };
+    public static Option Validate(this ResourceId subject) => Validator.Validate(subject).ToOptionStatus();
 
-    public static Option<ResourceId> IsValid(this ResourceId subject) => Validator.Validate(subject) switch
-    {
-        { IsValid: true } => subject,
-        var v => new Option<ResourceId>(StatusCode.BadRequest, v.FormatErrors()),
-    };
+    private static string GetPath(this ResourceId resourceId) => resourceId.NotNull().Path.IsNotEmpty() ? "/" + resourceId.Path : string.Empty;
+    public static string GetPrinaipalId(this ResourceId resourceId) => $"{resourceId.User}@{resourceId.Domain}";
+    public static string GetKeyId(this ResourceId resourceId) => $"{resourceId.User}@{resourceId.Domain}" + resourceId.GetPath();
 }

@@ -17,7 +17,5 @@ public static class UserPhoneModelValidator
         .RuleFor(x => x.Number).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this UserPhoneModel subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this UserPhoneModel subject) => Validator.Validate(subject).ToOptionStatus();
 }

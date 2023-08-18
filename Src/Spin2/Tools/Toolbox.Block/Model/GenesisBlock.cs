@@ -26,7 +26,5 @@ public static class GenesisBlockValidator
         .RuleFor(x => x.OwnerPrincipalId).ValidPrincipalId()
         .Build();
 
-    public static ValidatorResult Validate(this GenesisBlock subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this GenesisBlock subject) => Validator.Validate(subject).ToOptionStatus();
 }

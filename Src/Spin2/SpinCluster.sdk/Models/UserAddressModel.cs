@@ -27,7 +27,5 @@ public static class UserAddressModelValidator
         .RuleFor(x => x.Country).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this UserAddressModel subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this UserAddressModel subject) => Validator.Validate(subject).ToOptionStatus();
 }

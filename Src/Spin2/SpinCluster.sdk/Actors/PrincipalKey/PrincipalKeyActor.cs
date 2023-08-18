@@ -100,8 +100,8 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating public/private key for keyId={keyId}", model.KeyId);
 
-        ValidatorResult validatorResult = _createValidator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
+        var validatorResult = _createValidator.Validate(model).LogResult(context.Location());
+        if (validatorResult.IsError()) return validatorResult.ToOptionStatus();
 
 
         var rsaKey = new RsaKeyPair(model.KeyId);
@@ -129,15 +129,12 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Update PrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        ValidatorResult validatorResult = _updateValidator.Validate(model).LogResult(context.Location());
-        if (!validatorResult.IsValid) return new Option(StatusCode.BadRequest, validatorResult.FormatErrors());
+        var test = new Option()
+            .Test(() => this.VerifyIdentity(model.KeyId).LogResult(context.Location()))
+            .Test(() => _updateValidator.Validate(model).LogResult(context.Location()).ToOptionStatus())
+            .Test(() => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.BadRequest, "Key must be created first"));
 
-        if (!_state.RecordExists) return new Option(StatusCode.Conflict, "Key must be created");
-
-        if (!this.GetPrimaryKeyString().EqualsIgnoreCase(model.KeyId))
-        {
-            return new Option(StatusCode.BadRequest, $"KeyId {model.KeyId} does not match actor id={this.GetPrimaryKeyString()}");
-        }
+        if (test.IsError()) return test;
 
         _state.State = model;
         await _state.WriteStateAsync();

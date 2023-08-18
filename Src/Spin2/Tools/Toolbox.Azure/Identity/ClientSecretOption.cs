@@ -19,15 +19,13 @@ public record ClientSecretOption
 
 public static class ClientSecretOptionValidator
 {
-    public static Validator<ClientSecretOption> Validator { get; } = new Validator<ClientSecretOption>()
+    public static IValidator<ClientSecretOption> Validator { get; } = new Validator<ClientSecretOption>()
         .RuleFor(x => x.TenantId).NotEmpty()
         .RuleFor(x => x.ClientId).NotEmpty()
         .RuleFor(x => x.ClientSecret).NotEmpty()
         .Build();
 
-    public static ValidatorResult Validate(this ClientSecretOption subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this ClientSecretOption subject) => Validator.Validate(subject).ToOptionStatus();
 
     public static TokenCredential ToTokenCredential(this ClientSecretOption subject) =>
         new ClientSecretCredential(subject.TenantId, subject.ClientId, subject.ClientSecret);

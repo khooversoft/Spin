@@ -50,10 +50,12 @@ public static class PrincipalKeyModelValidator
         .RuleForObject(x => x).Must(x => KeyId.Create(x.KeyId).Return().GetPrincipalId() == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
 
+    public static Option Validate(this PrincipalKeyModel subject) => Validator.Validate(subject).ToOptionStatus();
+
     public static Option<PrincipalSignature> ToPrincipalSignature(this PrincipalKeyModel subject, ScopeContext context)
     {
-        var validationResult = Validator.Validate(subject).LogResult(context.Location());
-        if (!validationResult.IsValid) validationResult.ToOption<PrincipalSignature>();
+        Option<IValidatorResult> validationResult = Validator.Validate(subject).LogResult(context.Location());
+        if (validationResult.IsError()) return validationResult.ToOptionStatus<PrincipalSignature>();
 
         var signature = PrincipalSignature.CreateFromPublicKeyOnly(subject.PublicKey, subject.KeyId, subject.PrincipalId, subject.Audience);
         return signature;

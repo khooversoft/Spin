@@ -37,7 +37,7 @@ public class SignatureActor : Grain, ISignatureActor
         var userModel = await _clusterClient.GetUserActor(principalId).Get(context.TraceId).LogResult(context.Location());
         if (userModel.IsError()) return userModel.ToOptionStatus<string>();
 
-        ObjectId privateKeyId = userModel.Return().UserKey.PrivateKeyObjectId;
+        ObjectId privateKeyId = userModel.Return().UserKey.PrivateKeyId;
 
         Option<string> signResponse = await _clusterClient.GetPrivateKeyActor(privateKeyId)
             .Sign(messageDigest, traceId)

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Toolbox.Test.Types;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Test.Validation;
 
@@ -38,9 +39,9 @@ public class ValidationLinkTests
             SubClass = null!
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count().Should().Be(2);
+        var result = validator.Validate(model);
+        result.IsOk().Should().BeFalse();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
 
         model = new PrimaryClass
         {
@@ -49,8 +50,8 @@ public class ValidationLinkTests
         };
 
         result = validator.Validate(model);
-        result.IsValid.Should().BeFalse();
-        result.Errors.Count().Should().Be(1);
+        result.IsOk().Should().BeFalse();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
     }
 
     [Fact]
@@ -72,8 +73,8 @@ public class ValidationLinkTests
             SubClass = new SubClass("name2", 101),
         };
 
-        ValidatorResult result = validator.Validate(model);
-        result.IsValid.Should().BeTrue();
-        result.Errors.Count().Should().Be(0);
+        var result = validator.Validate(model);
+        result.IsOk().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count.Should().Be(0);
     }
 }

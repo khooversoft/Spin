@@ -64,7 +64,7 @@ public class DataBlockBuilder
             OwnerPrincipalId = principalId,
         };
 
-        GenesisBlockValidator.Validate(marker, context.Location()).ThrowOnError();
+        GenesisBlockValidator.Validate(marker).ThrowOnError();
 
         return new DataBlockBuilder()
             .SetBlockType(GenesisBlock.BlockType)
@@ -85,9 +85,7 @@ public class DataBlockBuilder
 
     public static DataBlock CreateAclBlock(BlockAcl acl, PrincipalId principalId, ScopeContext context)
     {
-        BlockAclValidator.Validate(acl, context.Location())
-            .LogResult(context.Location())
-            .ThrowOnError();
+        acl.Validate().LogResult(context.Location()).ThrowOnError();
 
         return new DataBlockBuilder()
             .SetBlockType(BlockAcl.BlockType)

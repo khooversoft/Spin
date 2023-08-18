@@ -32,7 +32,7 @@ public class AclImpl
     {
         context = context.With(_logger);
 
-        Option<ValidatorResult> validator = _validator.Validate(acl, context.Location());
+        var validator = _validator.Validate(acl).LogResult(context.Location());
         if (validator.IsError()) return validator.ToOptionStatus();
 
         var writer = _blockChain.GetWriter<BlockAcl>(principalId).LogResult(context.With(_logger).Location());

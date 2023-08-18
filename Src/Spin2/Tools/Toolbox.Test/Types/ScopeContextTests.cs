@@ -21,19 +21,4 @@ public class ScopeContextTests
         location.Should().NotBeNull();
         location.Context.TraceId.Should().Be(context.TraceId);
     }
-
-    [Fact]
-    public void SerializationTest()
-    {
-        var context = new ScopeContext(NullLogger.Instance);
-
-        string json = context.ToJson();
-
-        ScopeContext c2 = json.ToObject<ScopeContext>();
-
-        (context.TraceId == c2.TraceId).Should().BeTrue();
-
-        Action testLogger2 = () => c2.Logger.NotNull();
-        testLogger2.Should().Throw<ArgumentNullException>();
-    }
 }

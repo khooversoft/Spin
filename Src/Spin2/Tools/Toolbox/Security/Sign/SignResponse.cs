@@ -27,8 +27,4 @@ public static class SignResponseValidator
         .RuleFor(x => x.MessageDigest).NotEmpty()
         .RuleFor(x => x.JwtSignature).NotEmpty()
         .Build();
-
-    public static ValidatorResult Validate(this SignResponse subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
 }

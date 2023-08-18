@@ -33,7 +33,7 @@ public class AccountDetailImpl
     {
         context = context.With(_logger);
 
-        Option<ValidatorResult> validator = _validator.Validate(detail, context.Location());
+        var validator = _validator.Validate(detail);
         if (validator.IsError()) return validator.ToOptionStatus();
 
         var writer = _blockChain.GetWriter<AccountDetail>(detail.OwnerId).LogResult(context.Location());

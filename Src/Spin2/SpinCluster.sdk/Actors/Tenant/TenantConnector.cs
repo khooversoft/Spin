@@ -14,6 +14,7 @@ using SpinCluster.sdk.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Extensions;
+using static Azure.Core.HttpHeader;
 
 namespace SpinCluster.sdk.Actors.Tenant;
 
@@ -41,33 +42,32 @@ public class TenantConnector
 
     private async Task<IResult> Delete(string tenantId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<TenantId> option = TenantId.Create(tenantId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        tenantId = Uri.UnescapeDataString(tenantId);
+        if (!IdPatterns.IsTenant(tenantId)) return Results.BadRequest();
 
-        ObjectId objectId = IdTool.CreateTenantId(option.Return());
-        Option response = await _client.GetObjectGrain<ITenantActor>(objectId).Delete(context.TraceId);
+        ResourceId resourceId = IdTool.CreateTenant(tenantId);
+        Option response = await _client.GetResourceGrain<ITenantActor>(resourceId).Delete(traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Get(string tenantId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<TenantId> option = TenantId.Create(tenantId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        tenantId = Uri.UnescapeDataString(tenantId);
+        if (!IdPatterns.IsTenant(tenantId)) return Results.BadRequest();
 
-        ObjectId objectId = IdTool.CreateTenantId(option.Return());
-        Option<TenantModel> response = await _client.GetObjectGrain<ITenantActor>(objectId).Get(context.TraceId);
+        ResourceId resourceId = IdTool.CreateTenant(tenantId);
+        Option<TenantModel> response = await _client.GetResourceGrain<ITenantActor>(resourceId).Get(traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Set(TenantModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(model.TenantId).LogResult(context.Location());
+
+        Option<ResourceId> option = ResourceId.Create(model.TenantId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetObjectGrain<ITenantActor>(option.Return()).Set(model, context.TraceId);
+        var response = await _client.GetResourceGrain<ITenantActor>(option.Return()).Set(model, traceId);
         return response.ToResult();
     }
 }

@@ -20,7 +20,7 @@ public sealed record TenantModel
     [Id(1)] public string Version { get; init; } = _version;
     [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();
     [Id(3)] public string Name { get; init; } = null!;
-    [Id(4)] public string SubscriptionName { get; init; } = null!;
+    [Id(4)] public string SubscriptionId { get; init; } = null!;
     [Id(5)] public string ContactName { get; init; } = null!;
     [Id(6)] public string Email { get; init; } = null!;
     [Id(7)] public IReadOnlyList<DataObject> DataObjects { get; init; } = Array.Empty<DataObject>();
@@ -35,7 +35,7 @@ public sealed record TenantModel
         Version == document.Version &&
         GlobalId == document.GlobalId &&
         Name == document.Name &&
-        SubscriptionName == document.SubscriptionName &&
+        SubscriptionId == document.SubscriptionId &&
         ContactName == document.ContactName &&
         Email == document.Email &&
         DataObjects.SequenceEqual(document.DataObjects) &&
@@ -50,18 +50,16 @@ public sealed record TenantModel
 public static class TenantRegisterValidator
 {
     public static IValidator<TenantModel> Validator { get; } = new Validator<TenantModel>()
-        .RuleFor(x => x.TenantId).ValidObjectId()
+        .RuleFor(x => x.TenantId).ValidResourceId()
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.Name).ValidName()
-        .RuleFor(x => x.SubscriptionName).ValidName()
+        .RuleFor(x => x.SubscriptionId).ValidResourceId()
         .RuleFor(x => x.ContactName).NotEmpty()
         .RuleFor(x => x.Email).ValidPrincipalId()
         .RuleFor(x => x.DataObjects).NotNull()
         .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
         .Build();
 
-    public static ValidatorResult Validate(this TenantModel subject, ScopeContextLocation location) => Validator
-        .Validate(subject)
-        .LogResult(location);
+    public static Option Validate(this TenantModel subject) => Validator.Validate(subject).ToOptionStatus();
 }
