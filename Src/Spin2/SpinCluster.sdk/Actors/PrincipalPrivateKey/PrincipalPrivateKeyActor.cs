@@ -22,17 +22,14 @@ public interface IPrincipalPrivateKeyActor : IGrainWithStringKey
 public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
 {
     private readonly IPersistentState<PrincipalPrivateKeyModel> _state;
-    private readonly IValidator<PrincipalPrivateKeyModel> _validator;
     private readonly ILogger<PrincipalPrivateKeyActor> _logger;
 
     public PrincipalPrivateKeyActor(
         [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
-        IValidator<PrincipalPrivateKeyModel> validator,
         ILogger<PrincipalPrivateKeyActor> logger
         )
     {
         _state = state;
-        _validator = validator;
         _logger = logger;
     }
 
@@ -50,6 +47,7 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         await _state.ClearStateAsync();
         return StatusCode.OK;
     }
+
     public Task<Option> Exist(string _) => new Option(_state.RecordExists && _state.State.IsActive ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
     public Task<Option<PrincipalPrivateKeyModel>> Get(string traceId)
@@ -72,8 +70,8 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         context.Location().LogInformation("Set PrivatePrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         var test = new Option()
-            .Test(() => this.VerifyIdentity(model.KeyId).LogResult(context.Location()))
-            .Test(() => _validator.Validate(model).LogResult(context.Location()).ToOptionStatus());
+            .Test(() => this.VerifyIdentity(model.PrincipalPrivateKeyId).LogResult(context.Location()))
+            .Test(() => model.Validate().LogResult(context.Location()));
         if (test.IsError()) return test;
 
         if (_state.RecordExists)

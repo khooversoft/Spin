@@ -60,7 +60,7 @@ internal class DatalakeStateConnector : IGrainStorage
 
         string grainPath = GetPath(grainId);
 
-        ResourceId resourceId = ResourceId.Create(grainPath).LogResult(context.Location()).Return();
+        ResourceId resourceId = ResourceId.Create(grainPath).LogResult(context.Location()).ThrowOnError().Return();
         var map = _map.MapResource(resourceId, context).LogResult(context.Location()).Return();
 
         context.Location().LogInformation("GrainId={grainId} to resourceId={resourceId}, map={map}", grainId.ToString(), resourceId, map);

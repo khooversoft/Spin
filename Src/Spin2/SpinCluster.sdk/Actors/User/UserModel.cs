@@ -62,4 +62,6 @@ public static class UserModelValidator
         .RuleFor(x => x.UserKey).Validate(UserKeyModelValidator.Validator)
         .RuleForObject(x => x).Must(x => ObjectId.Create(x.UserId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
+
+    public static Option Validate(this UserModel subject) => Validator.Validate(subject).ToOptionStatus();
 }

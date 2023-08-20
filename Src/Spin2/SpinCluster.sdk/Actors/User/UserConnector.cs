@@ -34,40 +34,51 @@ public class UserConnector
 
         group.MapDelete("/{principalId}", Delete);
         group.MapGet("/{principalId}", Get);
-        group.MapPost("/", Set);
+        group.MapPost("/create", Create);
+        group.MapPost("/", Update);
 
         return group;
     }
 
     private async Task<IResult> Delete(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        principalId = Uri.UnescapeDataString(principalId);
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
 
-        ObjectId objectId = IdTool.CreateUserId(option.Return());
-        Option response = await _client.GetObjectGrain<IUserActor>(objectId).Delete(context.TraceId);
+        ResourceId resourceId = IdTool.CreateUser(principalId);
+        Option response = await _client.GetUserActor(resourceId).Delete(traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Get(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        principalId = Uri.UnescapeDataString(principalId);
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
 
-        ObjectId objectId = IdTool.CreateUserId(option.Return());
-        Option<UserModel> response = await _client.GetObjectGrain<IUserActor>(objectId).Get(context.TraceId);
+        ResourceId resourceId = IdTool.CreateUser(principalId);
+        Option<UserModel> response = await _client.GetUserActor(resourceId).Get(traceId);
         return response.ToResult();
     }
 
-    public async Task<IResult> Set(UserModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Create(UserCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(_logger);
+        var v = model.Validate().LogResult(context.Location());
+        if (v.IsError()) return Results.BadRequest(v.Error);
+
+        ResourceId resourceId = ResourceId.Create(model.UserId).Return();
+        var response = await _client.GetUserActor(resourceId).Create(model, traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> Update(UserModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(model.UserId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        var v = model.Validate().LogResult(context.Location());
+        if (v.IsError()) return Results.BadRequest(v.Error);
 
-        var response = await _client.GetObjectGrain<IUserActor>(option.Return()).Update(model, context.TraceId);
+        ResourceId resourceId = ResourceId.Create(model.UserId).Return();
+        var response = await _client.GetUserActor(resourceId).Update(model, context.TraceId);
         return response.ToResult();
     }
 }

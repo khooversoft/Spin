@@ -29,22 +29,16 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
 {
     private readonly IPersistentState<PrincipalKeyModel> _state;
     private readonly IClusterClient _clusterClient;
-    private readonly IValidator<PrincipalKeyCreateModel> _createValidator;
-    private readonly IValidator<PrincipalKeyModel> _updateValidator;
     private readonly ILogger<PrincipalKeyActor> _logger;
 
     public PrincipalKeyActor(
         [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalKeyModel> state,
         IClusterClient clusterClient,
-        IValidator<PrincipalKeyCreateModel> createValidator,
-        IValidator<PrincipalKeyModel> updateValidator,
         ILogger<PrincipalKeyActor> logger
         )
     {
         _state = state.NotNull();
         _clusterClient = clusterClient.NotNull();
-        _createValidator = createValidator.NotNull();
-        _updateValidator = updateValidator.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -65,12 +59,17 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
             return StatusCode.OK;
         }
 
-        ObjectId privateKey = IdTool.CreatePrivateKeyId(_state.State.PrincipalId);
-        await _clusterClient.GetObjectGrain<IPrincipalPrivateKeyActor>(privateKey).Delete(context.TraceId);
-
+        string principalPrivateKeyId = _state.State.PrincipalPrivateKeyId;
         await _state.ClearStateAsync();
+
+        Option<ResourceId> privateKey = ResourceId.Create(principalPrivateKeyId);
+        if (privateKey.IsError()) return privateKey.ToOptionStatus();
+
+        await _clusterClient.GetPrivateKeyActor(privateKey.Return()).Delete(context.TraceId);
+
         return StatusCode.OK;
     }
+
     public async Task<Option> Exist(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
@@ -88,7 +87,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
 
         var option = _state.RecordExists switch
         {
-            true => _state.State.ToOption<PrincipalKeyModel>(),
+            true => _state.State,
             false => new Option<PrincipalKeyModel>(StatusCode.NotFound),
         };
 
@@ -100,20 +99,23 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating public/private key for keyId={keyId}", model.KeyId);
 
-        var validatorResult = _createValidator.Validate(model).LogResult(context.Location());
-        if (validatorResult.IsError()) return validatorResult.ToOptionStatus();
-
+        var test = new Option()
+            .Test(() => new Option(_state.RecordExists ? StatusCode.BadRequest : StatusCode.OK, "Principal Key already exist"))
+            .Test(() => model.Validate().LogResult(context.Location()))
+            .Test(() => this.VerifyIdentity(model.PrincipalKeyId));
+        if (test.IsError()) return test;
 
         var rsaKey = new RsaKeyPair(model.KeyId);
 
         var principal = new PrincipalKeyModel
         {
+            PrincipalKeyId = model.PrincipalKeyId,
             KeyId = model.KeyId,
             PrincipalId = model.PrincipalId,
             Name = model.Name,
             Audience = "spin",
-            AccountEnabled = model.AccountEnabled,
-            PrivateKeyExist = true,
+            AccountEnabled = true,
+            PrincipalPrivateKeyId = model.PrincipalPrivateKeyId,
             PublicKey = rsaKey.PublicKey.ToArray(),
         };
 
@@ -130,8 +132,8 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         context.Location().LogInformation("Update PrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         var test = new Option()
-            .Test(() => this.VerifyIdentity(model.KeyId).LogResult(context.Location()))
-            .Test(() => _updateValidator.Validate(model).LogResult(context.Location()).ToOptionStatus())
+            .Test(() => this.VerifyIdentity(model.PrincipalKeyId).LogResult(context.Location()))
+            .Test(() => model.Validate().LogResult(context.Location()))
             .Test(() => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.BadRequest, "Key must be created first"));
 
         if (test.IsError()) return test;
@@ -159,22 +161,21 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
 
     private async Task<Option> CreatePrivateKey(PrincipalKeyCreateModel model, RsaKeyPair rsaKey, ScopeContext context)
     {
-        ObjectId privateKeyId = IdTool.CreatePrivateKeyId((PrincipalId)model.PrincipalId);
-
         var privatePrincipal = new PrincipalPrivateKeyModel
         {
+            PrincipalPrivateKeyId = model.PrincipalPrivateKeyId,
             KeyId = model.KeyId,
             PrincipalId = model.PrincipalId,
             Name = model.Name,
-            AccountEnabled = model.AccountEnabled,
+            AccountEnabled = true,
             Audience = "spin",
             PrivateKey = rsaKey.PrivateKey.ToArray(),
         };
 
-        var privateKeyActor = _clusterClient.GetObjectGrain<IPrincipalPrivateKeyActor>(privateKeyId);
+        var privateKeyActor = _clusterClient.GetPrivateKeyActor(model.PrincipalPrivateKeyId);
 
         var existPrivagteKey = await privateKeyActor.Exist(context.TraceId);
-        if (existPrivagteKey.StatusCode.IsOk())
+        if (existPrivagteKey.IsOk())
         {
             context.Location().LogError("Cannot create because private key exist, keyId={keyId}", privatePrincipal.KeyId);
             return new Option(StatusCode.Conflict, $"Cannot create because private key exist, keyId={privatePrincipal.KeyId}");

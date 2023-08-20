@@ -13,7 +13,6 @@ namespace SpinCluster.sdk.Actors.User;
 [GenerateSerializer, Immutable]
 public sealed record UserCreateModel
 {
-    // Id = "user/tenant/{principalId}"
     [Id(0)] public string UserId { get; init; } = null!;
     [Id(1)] public string PrincipalId { get; init; } = null!;  // Email
     [Id(2)] public string DisplayName { get; init; } = null!;
@@ -31,7 +30,7 @@ public sealed record UserCreateModel
 }
 
 
-public static class CreateUserModelValidator
+public static class UserCreateModelValidator
 {
     public static IValidator<UserCreateModel> Validator { get; } = new Validator<UserCreateModel>()
         .RuleFor(x => x.UserId).ValidResourceId()
@@ -40,4 +39,6 @@ public static class CreateUserModelValidator
         .RuleFor(x => x.FirstName).NotEmpty()
         .RuleFor(x => x.LastName).NotEmpty()
         .Build();
+
+    public static Option Validate(this UserCreateModel model) => Validator.Validate(model).ToOptionStatus();
 }

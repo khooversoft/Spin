@@ -34,7 +34,8 @@ public class PrincipalPrivateKeyTests : IClassFixture<ClusterApiFixture>
 
         var model = new PrincipalPrivateKeyModel
         {
-            KeyId = IdTool.CreatePrivateKeyId(principalId),
+            PrincipalPrivateKeyId = IdTool.CreatePrivateKey(principalId),
+            KeyId = IdTool.CreateKid(principalId),
             PrincipalId = principalId,
             Name = "test",
             Audience = "audience",

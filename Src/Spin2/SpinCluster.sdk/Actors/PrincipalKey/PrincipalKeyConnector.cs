@@ -10,6 +10,7 @@ using Toolbox.Types;
 using Toolbox.Extensions;
 using Microsoft.AspNetCore.Builder;
 using static Azure.Core.HttpHeader;
+using System.IO;
 
 namespace SpinCluster.sdk.Actors.PrincipalKey;
 
@@ -28,42 +29,52 @@ public class PrincipalKeyConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.PrincipalKey}");
 
-        group.MapDelete("/{principalId}", Delete);
-        group.MapGet("/{principalId}", Get);
+        group.MapDelete("/{principalId}/{path?}", Delete);
+        group.MapGet("/{principalId}/{path?}", Get);
         group.MapPost("/create", Create);
         group.MapPost("/", Update);
 
         return group;
     }
 
-    private async Task<IResult> Delete(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Delete(string principalId, string? path, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         principalId = Uri.UnescapeDataString(principalId);
-        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest("Invalid principal");
+        if (path != null)
+        {
+            path = Uri.UnescapeDataString(path);
+            if (!IdPatterns.IsPath(path)) return Results.BadRequest("Invalid path");
+        }
 
-        ResourceId resourceId = IdTool.CreatePublicKey(principalId);
+        ResourceId resourceId = IdTool.CreatePublicKey(principalId, path);
         Option response = await _client.GetResourceGrain<IPrincipalKeyActor>(resourceId).Delete(traceId);
         return response.ToResult();
     }
 
-    public async Task<IResult> Get(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Get(string principalId, string? path, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         principalId = Uri.UnescapeDataString(principalId);
-        if (!IdPatterns.IsName(principalId)) return Results.BadRequest();
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
+        if (path != null)
+        {
+            path = Uri.UnescapeDataString(path);
+            if (!IdPatterns.IsPath(path)) return Results.BadRequest("Invalid path");
+        }
 
-        ResourceId resourceId = IdTool.CreatePublicKey(principalId);
-        Option<PrincipalKeyModel> response = await _client.GetResourceGrain<IPrincipalKeyActor>(resourceId).Get(traceId);
+        ResourceId resourceId = IdTool.CreatePublicKey(principalId, path);
+        Option<PrincipalKeyModel> response = await _client.GetPublicKeyActor(resourceId).Get(traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Create(PrincipalKeyCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
+        var v = model.Validate().LogResult(context.Location());
+        if (v.IsError()) return Results.BadRequest(v.Error);
 
-        Option<ResourceId> option = ResourceId.Create(model.KeyId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(option.Return()).Create(model, context.TraceId);
+        ResourceId resourceId = ResourceId.Create(model.PrincipalKeyId).Return();
+        var response = await _client.GetPublicKeyActor(resourceId).Create(model, context.TraceId);
         return response.ToResult();
     }
 
@@ -71,10 +82,10 @@ public class PrincipalKeyConnector
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<ResourceId> option = ResourceId.Create(model.KeyId).LogResult(context.Location());
+        Option<ResourceId> option = ResourceId.Create(model.PrincipalKeyId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(option.Return()).Update(model, context.TraceId);
+        var response = await _client.GetPublicKeyActor(option.Return()).Update(model, context.TraceId);
         return response.ToResult();
     }
 }

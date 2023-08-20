@@ -30,7 +30,8 @@ public class SignProxy : ISign
         PrincipalId ownerId = ownerIdResult.Return();
         string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";
 
-        Option<string> result = await _client.GetSignatureActor().SignDigest(kid, messageDigest, context.TraceId);
-        return result;
+        //Option<string> result = await _client.GetSignatureActor().SignDigest(kid, messageDigest, context.TraceId);
+        //return result;
+        return default;
     }
 }

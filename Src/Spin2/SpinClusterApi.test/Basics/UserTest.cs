@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -31,15 +32,18 @@ public class UserTest : IClassFixture<ClusterApiFixture>
     public async Task LifecycleTest()
     {
         UserClient client = _cluster.ServiceProvider.GetRequiredService<UserClient>();
-        NameId subscriptionId = "Company5Subscription";
-        TenantId tenantId = "company5.com";
-        PrincipalId principalId = "user1@company5.com";
+        string subscriptionId = "Company5Subscription";
+        string tenantId = "company5.com";
+        string principalId = "user1@company5.com";
 
         var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         subscription.IsOk().Should().BeTrue();
 
         var tenant = await TenantTests.CreateTenant(_cluster.ServiceProvider, tenantId, subscriptionId, _context);
         tenant.IsOk().Should().BeTrue();
+
+        Option<UserModel> userModelOption = await client.Get(principalId, _context);
+        if (userModelOption.IsOk()) await client.Delete(principalId, _context);
 
         await VerifyKeys(_cluster.ServiceProvider, principalId, false);
         var user = await CreateUser(_cluster.ServiceProvider, principalId, _context);
@@ -48,7 +52,13 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         Option<UserModel> readOption = await client.Get(principalId, _context);
         readOption.IsOk().Should().BeTrue();
 
-        (user.Return() == readOption.Return()).Should().BeTrue();
+        UserCreateModel userModel = user.Return();
+        UserModel readUserModel = readOption.Return();
+        userModel.UserId.Should().Be(readUserModel.UserId);
+        userModel.PrincipalId.Should().Be(principalId);
+        userModel.DisplayName.Should().Be(readUserModel.DisplayName);
+        userModel.FirstName.Should().Be(readUserModel.FirstName);
+        userModel.LastName.Should().Be(readUserModel.LastName);
 
         Option deleteOption = await client.Delete(principalId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
@@ -63,34 +73,35 @@ public class UserTest : IClassFixture<ClusterApiFixture>
 
     private async Task VerifyKeys(IServiceProvider service, string principalId, bool mustExist)
     {
+        const string sign = "sign";
+
         PrincipalKeyClient publicKeyClient = service.GetRequiredService<PrincipalKeyClient>();
-        var publicKeyExist = await publicKeyClient.Get(principalId, _context);
+        var publicKeyExist = await publicKeyClient.Get(principalId, sign, _context);
         (publicKeyExist.IsOk() == mustExist).Should().BeTrue();
 
         PrincipalPrivateKeyClient publicPrivateKeyClient = service.GetRequiredService<PrincipalPrivateKeyClient>();
-        var privateKeyExist = await publicPrivateKeyClient.Get(principalId, _context);
+        var privateKeyExist = await publicPrivateKeyClient.Get(principalId, sign, _context);
         (privateKeyExist.IsOk() == mustExist).Should().BeTrue();
     }
 
-    public static async Task<Option<UserModel>> CreateUser(IServiceProvider service, string principalId, ScopeContext context)
+    public static async Task<Option<UserCreateModel>> CreateUser(IServiceProvider service, string principalId, ScopeContext context)
     {
         UserClient client = service.GetRequiredService<UserClient>();
 
         Option<UserModel> result = await client.Get(principalId, context);
         if (result.IsOk()) await client.Delete(principalId, context);
 
-        var user = new UserModel
+        var user = new UserCreateModel
         {
-            UserId = IdTool.CreateUserId(principalId),
+            UserId = IdTool.CreateUser(principalId),
             PrincipalId = principalId,
             DisplayName = "User display name",
             FirstName = "First",
-            LastName = "Last",
-            AccountEnabled = true,
+            LastName = "Last"
         };
 
-        Option setOption = await client.Set(user, context);
-        setOption.StatusCode.IsOk().Should().BeTrue();
+        Option setOption = await client.Create(user, context);
+        setOption.IsOk().Should().BeTrue();
 
         return user;
     }
@@ -100,7 +111,7 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         UserClient client = service.GetRequiredService<UserClient>();
 
         Option deleteOption = await client.Delete(principalId, context);
-        deleteOption.StatusCode.IsOk().Should().BeTrue();
+        deleteOption.IsOk().Should().BeTrue();
 
         return StatusCode.OK;
     }

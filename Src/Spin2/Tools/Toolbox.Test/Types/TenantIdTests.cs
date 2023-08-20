@@ -22,7 +22,6 @@ public class TenantIdTests
     [Theory]
     [InlineData("name")]
     [InlineData("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$_-A")]
-    [InlineData("$system")]
     public void Valid(string nameId)
     {
         TenantId.IsValid(nameId).Should().BeTrue();

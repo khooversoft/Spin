@@ -6,7 +6,7 @@ namespace Toolbox.Tools.Validation;
 public class ValidKeyId<T> : ValidatorBase<T, string>
 {
     public ValidKeyId(IPropertyRule<T, string> rule, string errorMessage)
-        : base(rule, errorMessage, x => KeyId.IsValid(x))
+        : base(rule, errorMessage, x => IdPatterns.IsKeyId(x))
     {
     }
 }

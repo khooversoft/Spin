@@ -40,31 +40,31 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
 
         var create = new PrincipalKeyCreateModel
         {
-            KeyId = IdTool.CreatePublicKeyId(principalId),
+            PrincipalKeyId = IdTool.CreatePublicKey(principalId),
+            PrincipalPrivateKeyId = IdTool.CreatePrivateKey(principalId),
+            KeyId = IdTool.CreateKid(principalId),
             PrincipalId = principalId,
             Name = "user1",
-            AccountEnabled = true,
         };
 
         Option createOption = await client.Create(create, _context);
-        createOption.StatusCode.IsOk().Should().BeTrue();
+        createOption.IsOk().Should().BeTrue(createOption.Error);
 
         (await IsPrivateKeyExist(principalId)).StatusCode.IsOk().Should().BeTrue();
 
         Option<PrincipalKeyModel> readOption = await client.Get(principalId, _context);
-        readOption.IsOk().Should().BeTrue();
+        readOption.IsOk().Should().BeTrue(readOption.Error);
 
         PrincipalKeyModel readModel = readOption.Return();
         create.KeyId.Should().Be(readModel.KeyId);
         create.PrincipalId.Should().Be(readModel.PrincipalId);
         create.Name.Should().Be(readModel.Name);
-        create.AccountEnabled.Should().Be(readModel.AccountEnabled);
         readModel.Audience.Should().NotBeNullOrEmpty();
         readModel.PublicKey.Should().NotBeNull();
         readModel.PublicKey.Length.Should().BeGreaterThan(0);
 
         Option setOption = await client.Update(readModel, _context);
-        setOption.StatusCode.IsOk().Should().BeTrue();
+        setOption.IsOk().Should().BeTrue(setOption.Error);
 
         Option<PrincipalKeyModel> compareOption = await client.Get(principalId, _context);
         readOption.IsOk().Should().BeTrue();
@@ -72,9 +72,9 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
         (readModel == compareOption.Return()).Should().BeTrue();
 
         Option deleteOption = await client.Delete(principalId, _context);
-        deleteOption.StatusCode.IsOk().Should().BeTrue();
+        deleteOption.IsOk().Should().BeTrue(deleteOption.Error);
 
-        (await IsPrivateKeyExist(principalId)).StatusCode.IsError().Should().BeTrue();
+        (await IsPrivateKeyExist(principalId)).IsError().Should().BeTrue();
     }
 
     private async Task<Option> IsPrivateKeyExist(PrincipalId principalId)

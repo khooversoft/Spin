@@ -6,7 +6,7 @@ namespace Toolbox.Tools.Validation;
 public class ValidPrincipalId<T> : ValidatorBase<T, string>
 {
     public ValidPrincipalId(IPropertyRule<T, string> rule, string errorMessage)
-        : base(rule, errorMessage, x => PrincipalId.IsValid(x))
+        : base(rule, errorMessage, x => IdPatterns.IsPrincipalId(x))
     {
     }
 }

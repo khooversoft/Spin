@@ -27,42 +27,51 @@ public class PrincipalPrivateKeyConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.PrincipalPrivateKey}");
 
-        group.MapDelete("/{principalId}", Delete);
-        group.MapGet("/{principalId}", Get);
+        group.MapDelete("/{principalId}/{path?}", Delete);
+        group.MapGet("/{principalId}/{path?}", Get);
         group.MapPost("/", Set);
 
         return group;
     }
 
-    private async Task<IResult> Delete(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Delete(string principalId, string? path, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
+        if (path != null)
+        {
+            path = Uri.UnescapeDataString(path);
+            if (!IdPatterns.IsPath(path)) return Results.BadRequest("Invalid path");
+        }
 
-        ObjectId objectId = IdTool.CreatePrivateKeyId(option.Return());
-        Option response = await _client.GetObjectGrain<IPrincipalPrivateKeyActor>(objectId).Delete(context.TraceId);
+        ResourceId resourceId = IdTool.CreatePrivateKey(principalId, path);
+        Option response = await _client.GetPrivateKeyActor(resourceId).Delete(context.TraceId);
         return response.ToResult();
     }
 
-    public async Task<IResult> Get(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Get(string principalId, string? path, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<PrincipalId> option = PrincipalId.Create(principalId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
+        if (path != null)
+        {
+            path = Uri.UnescapeDataString(path);
+            if (!IdPatterns.IsPath(path)) return Results.BadRequest("Invalid path");
+        }
 
-        ObjectId objectId = IdTool.CreatePrivateKeyId(option.Return());
-        Option<PrincipalPrivateKeyModel> response = await _client.GetObjectGrain<IPrincipalPrivateKeyActor>(objectId).Get(context.TraceId);
+        ResourceId resourceId = IdTool.CreatePrivateKey(principalId, path);
+        Option<PrincipalPrivateKeyModel> response = await _client.GetPrivateKeyActor(resourceId).Get(context.TraceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Set(PrincipalPrivateKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(model.KeyId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        var v = model.Validate().LogResult(context.Location());
+        if (v.IsError()) return Results.BadRequest(v.Error);
 
-        var response = await _client.GetObjectGrain<IPrincipalPrivateKeyActor>(option.Return()).Set(model, context.TraceId);
+        ResourceId resourceId = ResourceId.Create(model.PrincipalPrivateKeyId).Return();
+        var response = await _client.GetPrivateKeyActor(resourceId).Set(model, context.TraceId);
         return response.ToResult();
     }
 }

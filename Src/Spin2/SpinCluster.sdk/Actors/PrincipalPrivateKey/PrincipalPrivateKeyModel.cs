@@ -10,21 +10,20 @@ namespace SpinCluster.sdk.Actors.PrincipalPrivateKey;
 [GenerateSerializer, Immutable]
 public sealed record PrincipalPrivateKeyModel
 {
-    // Id = "principal-private-key/tenant/{principalId}"
-    [Id(0)] public string ObjectId { get; init; } = null!;
-    [Id(0)] public string KeyId { get; init; } = null!;
-    [Id(1)] public string PrincipalId { get; init; } = null!;
-    [Id(2)] public string Name { get; init; } = null!;
-    [Id(3)] public string Audience { get; init; } = null!;
-    [Id(4)] public byte[] PrivateKey { get; init; } = Array.Empty<byte>();
-    [Id(5)] public bool AccountEnabled { get; init; } = false;
-    [Id(6)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(7)] public DateTime? ActiveDate { get; init; }
+    [Id(0)] public string PrincipalPrivateKeyId { get; init; } = null!;
+    [Id(1)] public string KeyId { get; init; } = null!;
+    [Id(2)] public string PrincipalId { get; init; } = null!;
+    [Id(3)] public string Name { get; init; } = null!;
+    [Id(4)] public string Audience { get; init; } = null!;
+    [Id(6)] public byte[] PrivateKey { get; init; } = Array.Empty<byte>();
+    [Id(7)] public bool AccountEnabled { get; init; } = false;
+    [Id(8)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+    [Id(9)] public DateTime? ActiveDate { get; init; }
 
     public bool IsActive => AccountEnabled && ActiveDate != null;
 
     public bool Equals(PrincipalPrivateKeyModel? obj) => obj is PrincipalPrivateKeyModel document &&
-        ObjectId == document.ObjectId &&
+        PrincipalPrivateKeyId == document.PrincipalPrivateKeyId &&
         KeyId == document.KeyId &&
         PrincipalId == document.PrincipalId &&
         Name == document.Name &&
@@ -34,20 +33,19 @@ public sealed record PrincipalPrivateKeyModel
         CreatedDate == document.CreatedDate &&
         ActiveDate == document.ActiveDate;
 
-    public override int GetHashCode() => HashCode.Combine(KeyId, PrincipalId, Name, Audience);
+    public override int GetHashCode() => HashCode.Combine(PrincipalPrivateKeyId, PrincipalId, Name, Audience);
 }
 
 
 public static class PrincipalPrivateKeyModelValidator
 {
     public static IValidator<PrincipalPrivateKeyModel> Validator { get; } = new Validator<PrincipalPrivateKeyModel>()
-        .RuleFor(x => x.ObjectId).ValidObjectId()
+        .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId()
         .RuleFor(x => x.KeyId).ValidKeyId()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.Audience).NotEmpty()
-        .RuleForObject(x => x).Must(x => ObjectId.Create(x.ObjectId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match ObjectId")
-        .RuleForObject(x => x).Must(x => KeyId.Create(x.KeyId).Return().GetPrincipalId() == x.PrincipalId, _ => "PrincipalId does not match KeyId")
+        .RuleFor(x => x.PrivateKey).NotNull()
         .Build();
 
     public static Option Validate(this PrincipalPrivateKeyModel subject) => Validator.Validate(subject).ToOptionStatus();

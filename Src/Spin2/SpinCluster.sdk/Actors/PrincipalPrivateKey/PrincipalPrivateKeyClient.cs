@@ -20,8 +20,20 @@ public class PrincipalPrivateKeyClient
         .DeleteAsync(context)
         .ToOption();
 
+    public async Task<Option> Delete(string principalId, string path, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.PrincipalPrivateKey}/{Uri.EscapeDataString(principalId)}/{Uri.EscapeDataString(path)}")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .DeleteAsync(context)
+        .ToOption();
+
     public async Task<Option<PrincipalPrivateKeyModel>> Get(string principalId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.PrincipalPrivateKey}/{Uri.EscapeDataString(principalId)}")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .GetAsync(context)
+        .GetContent<PrincipalPrivateKeyModel>();
+
+    public async Task<Option<PrincipalPrivateKeyModel>> Get(string principalId, string path, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.PrincipalPrivateKey}/{Uri.EscapeDataString(principalId)}/{Uri.EscapeDataString(path)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<PrincipalPrivateKeyModel>();

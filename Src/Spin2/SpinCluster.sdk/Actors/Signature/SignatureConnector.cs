@@ -51,14 +51,14 @@ public class SignatureConnector
         var validation = _signValidator.Validate(model).LogResult(context.Location());
         if (validation.IsError()) return Results.BadRequest(validation.Error);
 
-        Option<string> result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
-        if( result.IsError()) return result.ToResult();
+        //Option<string> result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
+        //if( result.IsError()) return result.ToResult();
 
         var response = new SignResponse
         {
             Kid = model.PrincipalId,
             MessageDigest = model.MessageDigest,
-            JwtSignature = result.Return(),
+            //JwtSignature = result.Return(),
         }.ToOption();
 
         return response.ToResult();

@@ -12,7 +12,7 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Signature;
 
-public interface ISignatureActor : ISign, ISignValidate, IGrainWithStringKey
+public interface ISignatureActor : ISignValidate, IGrainWithStringKey
 {
 }
 
@@ -29,30 +29,6 @@ public class SignatureActor : Grain, ISignatureActor
         _logger = logger;
     }
 
-    public async Task<Option<string>> SignDigest(string principalId, string messageDigest, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Signing message digest, principalId={principalId}", principalId);
-
-        var userModel = await _clusterClient.GetUserActor(principalId).Get(context.TraceId).LogResult(context.Location());
-        if (userModel.IsError()) return userModel.ToOptionStatus<string>();
-
-        ObjectId privateKeyId = userModel.Return().UserKey.PrivateKeyId;
-
-        Option<string> signResponse = await _clusterClient.GetPrivateKeyActor(privateKeyId)
-            .Sign(messageDigest, traceId)
-            .LogResult(context.Location());
-
-        if (signResponse.IsError())
-        {
-            context.Location().LogError("Failed to sign, actorKey={actorKey}", this.GetPrimaryKeyString());
-            return signResponse;
-        }
-
-        context.Location().LogInformation("Digest signed, actorKey={actorKey}", this.GetPrimaryKeyString());
-        return signResponse;
-    }
-
     public async Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
@@ -65,7 +41,7 @@ public class SignatureActor : Grain, ISignatureActor
         Option<KeyId> keyId = KeyId.Create(jwtKid);
         if (keyId.IsError()) return keyId.ToOptionStatus();
 
-        var validationResponse = await _clusterClient.GetPublicKeyActor(keyId.Return())
+        var validationResponse = await _clusterClient.GetPublicKeyActor(keyId.Return().ToString())
             .ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId);
 
         if (validationResponse.IsError())
