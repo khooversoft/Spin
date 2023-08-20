@@ -11,7 +11,7 @@ public record Contract
 {
     private readonly ISoftBankActor _softbank;
 
-    public Contract(TestCluster cluster, ObjectId objectId, PrincipalId ownerId, params BlockAccess[] access)
+    public Contract(TestCluster cluster, ObjectId objectId, string ownerId, params BlockAccess[] access)
     {
         ObjectId = objectId;
         OwnerId = ownerId;
@@ -21,7 +21,7 @@ public record Contract
     }
 
     public ObjectId ObjectId { get; }
-    public PrincipalId OwnerId { get; }
+    public string OwnerId { get; }
     public BlockAccess[] Access { get; }
 
     public async Task CreateContract(ScopeContext context)

@@ -23,7 +23,7 @@ public class LedgerItemImpl
         _logger = logger.NotNull();
     }
 
-    public Option<BlockReader<LedgerItem>> GetReader(PrincipalId principalId, ScopeContext context) => _blockChain
+    public Option<BlockReader<LedgerItem>> GetReader(string principalId, ScopeContext context) => _blockChain
         .GetReader<LedgerItem>(nameof(LedgerItem), principalId)
         .LogResult(context.With(_logger).Location());
 
@@ -47,7 +47,7 @@ public class LedgerItemImpl
         return add;
     }
 
-    public Option<decimal> GetBalance(PrincipalId principalId, ScopeContext context)
+    public Option<decimal> GetBalance(string principalId, ScopeContext context)
     {
         var stream = GetReader(principalId, context);
         if (stream.IsError()) return stream.ToOptionStatus<decimal>();

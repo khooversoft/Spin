@@ -23,7 +23,7 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
     public async Task LifecycleTest()
     {
         PrincipalKeyClient client = _cluster.ServiceProvider.GetRequiredService<PrincipalKeyClient>();
-        PrincipalId principalId = "user1@company3.com";
+        string principalId = "user1@company3.com";
 
         Option<PrincipalKeyModel> result = await client.Get(principalId, _context);
         if (result.IsOk()) await client.Delete(principalId, _context);
@@ -69,7 +69,7 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
         (await IsPrivateKeyExist(principalId)).IsError().Should().BeTrue();
     }
 
-    private async Task<Option> IsPrivateKeyExist(PrincipalId principalId)
+    private async Task<Option> IsPrivateKeyExist(string principalId)
     {
         var exist = await _cluster.ServiceProvider.GetRequiredService<PrincipalPrivateKeyClient>().Get(principalId, _context);
         return exist.ToOptionStatus();

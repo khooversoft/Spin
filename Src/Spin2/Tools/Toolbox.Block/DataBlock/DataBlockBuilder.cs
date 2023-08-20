@@ -12,7 +12,7 @@ public class DataBlockBuilder
     public string? ClassType { get; set; }
     public string BlockId { get; set; } = Guid.NewGuid().ToString();
     public string? Data { get; set; }
-    public PrincipalId? PrincipleId { get; set; }
+    public string? PrincipleId { get; set; }
 
     public DataBlockBuilder SetTimeStamp(DateTime timestamp) => this.Action(x => x.TimeStamp = timestamp);
     public DataBlockBuilder SetBlockType(BlockType blockType) => this.Action(x => x.BlockType = blockType);
@@ -20,7 +20,7 @@ public class DataBlockBuilder
     public DataBlockBuilder SetObjectClass(string classType) => this.Action(x => x.ClassType = classType);
     public DataBlockBuilder SetBlockId(string blockId) => this.Action(x => x.BlockId = blockId);
     public DataBlockBuilder SetData(string data) => this.Action(x => Data = data);
-    public DataBlockBuilder SetPrincipleId(PrincipalId principleId) => this.Action(x => PrincipleId = principleId);
+    public DataBlockBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
 
     public DataBlockBuilder SetContent<T>(T data) where T : class
     {
@@ -56,7 +56,7 @@ public class DataBlockBuilder
         return dataBlock with { Digest = dataBlock.CalculateDigest() };
     }
 
-    public static DataBlock CreateGenesisBlock(ObjectId objectId, PrincipalId principalId, ScopeContext context)
+    public static DataBlock CreateGenesisBlock(ObjectId objectId, string principalId, ScopeContext context)
     {
         var marker = new GenesisBlock
         {
@@ -73,7 +73,7 @@ public class DataBlockBuilder
             .Build();
     }
 
-    public static DataBlock CreateAclBlock(IEnumerable<BlockAccess> acls, PrincipalId principalId, ScopeContext context)
+    public static DataBlock CreateAclBlock(IEnumerable<BlockAccess> acls, string principalId, ScopeContext context)
     {
         var acl = new BlockAcl
         {
@@ -83,7 +83,7 @@ public class DataBlockBuilder
         return CreateAclBlock(acl, principalId, context);
     }
 
-    public static DataBlock CreateAclBlock(BlockAcl acl, PrincipalId principalId, ScopeContext context)
+    public static DataBlock CreateAclBlock(BlockAcl acl, string principalId, ScopeContext context)
     {
         acl.Validate().LogResult(context.Location()).ThrowOnError();
 

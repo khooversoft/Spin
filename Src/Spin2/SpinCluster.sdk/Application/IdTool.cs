@@ -33,5 +33,7 @@ public static class IdTool
         null => $"{SpinConstants.Schema.PrincipalPrivateKey}:{principalId}",
         var v => $"{SpinConstants.Schema.PrincipalPrivateKey}:{principalId}/{v}",
     };
+
+    public static ResourceId CreateBlockId(string tenant, string path) => $"{SpinConstants.Schema.Block}:{tenant}/{path}";
 }
 

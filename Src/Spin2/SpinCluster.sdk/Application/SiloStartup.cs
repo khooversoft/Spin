@@ -46,7 +46,6 @@ public static class SiloStartup
 
         services.AddSingleton<IValidator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
         services.AddSingleton<IValidator<SearchQuery>>(SearchQueryValidator.Validator);
-        services.AddSingleton<IValidator<BlobPackage>>(BlobPackageValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
         services.AddSingleton<DatalakeResourceIdMap>();

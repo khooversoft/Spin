@@ -70,7 +70,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         return tenant;
     }
 
-    public static async Task<Option> DeleteTenant(IServiceProvider service, TenantId tenantId, ScopeContext context)
+    public static async Task<Option> DeleteTenant(IServiceProvider service, string tenantId, ScopeContext context)
     {
         TenantClient client = service.GetRequiredService<TenantClient>();
 

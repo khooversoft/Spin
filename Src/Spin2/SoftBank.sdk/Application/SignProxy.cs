@@ -21,11 +21,11 @@ public class SignProxy : ISign
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<PrincipalId> ownerIdResult = PrincipalId.Create(kid).LogResult(context.Location());
-        if (ownerIdResult.IsError()) return ownerIdResult.ToOptionStatus<string>();
+        //Option<PrincipalId> ownerIdResult = PrincipalId.Create(kid).LogResult(context.Location());
+        //if (ownerIdResult.IsError()) return ownerIdResult.ToOptionStatus<string>();
 
-        PrincipalId ownerId = ownerIdResult.Return();
-        string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";
+        //PrincipalId ownerId = ownerIdResult.Return();
+        //string objectId = $"{SpinConstants.Schema.PrincipalKey}/{ownerId.Domain}/{ownerId}";
 
         //Option<string> result = await _client.GetSignatureActor().SignDigest(kid, messageDigest, context.TraceId);
         //return result;

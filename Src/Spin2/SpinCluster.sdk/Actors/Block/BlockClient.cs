@@ -12,19 +12,19 @@ public class BlockClient
     public BlockClient(HttpClient client) => _client = client.NotNull();
 
     public async Task<Option> Delete(ObjectId objectId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.BlockStorage}/{objectId.ToUrlEncoding()}")
+        .SetPath($"/{SpinConstants.Schema.Block}/{objectId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .DeleteAsync(context)
         .ToOption();
 
     public async Task<Option<BlobPackage>> Get(ObjectId objectId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.BlockStorage}/{objectId.ToUrlEncoding()}")
+        .SetPath($"/{SpinConstants.Schema.Block}/{objectId.ToUrlEncoding()}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<BlobPackage>();
 
     public async Task<Option> Set(BlobPackage content, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.BlockStorage}")
+        .SetPath($"/{SpinConstants.Schema.Block}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context)

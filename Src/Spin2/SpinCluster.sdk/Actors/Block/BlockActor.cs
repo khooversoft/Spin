@@ -16,7 +16,7 @@ public interface IBlockActor : IGrainWithStringKey
     Task<Option> Exist(string traceId);
     Task<Option> Create(BlockCreateModel blockCreateModel, string traceId);
     Task<Option<DataBlock>> GetLatest(string blockType, string principalId, string traceId);
-    Task<Option<IReadOnlyList<DataBlock>>> List<DataBlock>(string blockType, string principalId);
+    Task<Option<IReadOnlyList<DataBlock>>> List(string blockType, string principalId);
     Task<Option> Append(DataBlock block, string traceId);
 }
 
@@ -24,26 +24,20 @@ public interface IBlockActor : IGrainWithStringKey
 public class BlockActor : Grain/*, IBlockActor*/
 {
     private readonly IPersistentState<BlobPackage> _state;
-    private readonly IValidator<BlobPackage> _blobPackageValidator;
-    private readonly IValidator<BlockCreateModel> _blobCreateModelValidator;
     private readonly ILogger<BlockActor> _logger;
 
     public BlockActor(
         [PersistentState(stateName: SpinConstants.Extension.BlockStorage, storageName: SpinConstants.SpinStateStore)] IPersistentState<BlobPackage> state,
-        IValidator<BlobPackage> blobPackageValidator,
-        IValidator<BlockCreateModel> blobCreateModelValidator,
         ILogger<BlockActor> logger
         )
     {
         _state = state;
-        _blobPackageValidator = blobPackageValidator;
-        _blobCreateModelValidator = blobCreateModelValidator;
         _logger = logger;
     }
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.VerifySchema(SpinConstants.Schema.BlockStorage, new ScopeContext(_logger));
+        this.VerifySchema(SpinConstants.Schema.Block, new ScopeContext(_logger));
         return base.OnActivateAsync(cancellationToken);
     }
 
@@ -52,15 +46,15 @@ public class BlockActor : Grain/*, IBlockActor*/
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists) return StatusCode.NotFound;
-
-        var id = PrincipalId.Create(principalId).LogResult(context.Location());
-        if (id.IsError()) return id.ToOptionStatus();
+        var test = new Option()
+            .Test(() => _state.RecordExists ? StatusCode.OK : StatusCode.BadRequest)
+            .Test(() => IdPatterns.IsPrincipalId(principalId) ? StatusCode.OK : StatusCode.BadRequest);
+        if (test.IsError()) return test;
 
         Option<BlockChain> blockChain = await ReadContract(context).LogResult(context.Location());
         if (blockChain.IsError()) return blockChain.ToOptionStatus();
 
-        if (!blockChain.Return().IsOwner(id.Return()).StatusCode.IsError()) return StatusCode.Forbidden;
+        if (!blockChain.Return().IsOwner(principalId).StatusCode.IsError()) return StatusCode.Forbidden;
 
         context.Location().LogInformation("Deleted BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
         await _state.ClearStateAsync();
@@ -112,7 +106,7 @@ public class BlockActor : Grain/*, IBlockActor*/
         context.Location().LogInformation("Set BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         var test = new Option()
-            .Test(() => _blobPackageValidator.Validate(model).LogResult(context.Location()).ToOptionStatus())
+            .Test(() => model.Validate().LogResult(context.Location()))
             .Test(() => this.VerifyIdentity(model.ObjectId));
         if (test.IsError()) return test;
 

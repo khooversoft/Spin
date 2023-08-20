@@ -23,7 +23,7 @@ public class AccountDetailImpl
         _logger = logger;
     }
 
-    public Option<AccountDetail> Get(PrincipalId principalId, ScopeContext context) => _blockChain
+    public Option<AccountDetail> Get(string principalId, ScopeContext context) => _blockChain
         .GetReader<AccountDetail>(principalId)
         .LogResult(context.With(_logger).Location())
         .Bind(x => x.GetLatest());

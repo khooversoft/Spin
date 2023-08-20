@@ -24,12 +24,12 @@ public class SoftBankFactory
         _logger = logger.NotNull();
     }
 
-    public Task<Option<SoftBankAccount>> Create(ObjectId objectId, PrincipalId principalId, ScopeContext context)
+    public Task<Option<SoftBankAccount>> Create(ObjectId objectId, string principalId, ScopeContext context)
     {
         return Create(objectId, principalId, null, context);
     }
 
-    public async Task<Option<SoftBankAccount>> Create(ObjectId objectId, PrincipalId principalId, BlockAcl? blockAcl, ScopeContext context)
+    public async Task<Option<SoftBankAccount>> Create(ObjectId objectId, string principalId, BlockAcl? blockAcl, ScopeContext context)
     {
         objectId.NotNull();
         principalId.NotNull();

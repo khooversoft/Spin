@@ -26,8 +26,8 @@ public class BlockStorageTests : IClassFixture<ClusterApiFixture>
     public async Task LifecycleTest()
     {
         BlockClient client = _cluster.ServiceProvider.GetRequiredService<BlockClient>();
-        PrincipalId principalId = "user11@test.com";
-        ObjectId objectId = $"{SpinConstants.Schema.BlockStorage}/test.com/sc/testblock";
+        string principalId = "user11@test.com";
+        ObjectId objectId = $"{SpinConstants.Schema.Block}/test.com/sc/testblock";
         IPrincipalSignature principleSignature = new PrincipalSignature(principalId, principalId, "userBusiness@domain.com");
 
         var subscription = await CreateBlock(_cluster.ServiceProvider, objectId, principalId, principleSignature, _context);
@@ -42,7 +42,7 @@ public class BlockStorageTests : IClassFixture<ClusterApiFixture>
         deleteOption.StatusCode.IsOk().Should().BeTrue();
     }
 
-    public static async Task<Option<BlobPackage>> CreateBlock(IServiceProvider service, ObjectId objectId, PrincipalId principalId, ISign sign, ScopeContext context)
+    public static async Task<Option<BlobPackage>> CreateBlock(IServiceProvider service, ObjectId objectId, string principalId, ISign sign, ScopeContext context)
     {
         BlockClient client = service.GetRequiredService<BlockClient>();
 

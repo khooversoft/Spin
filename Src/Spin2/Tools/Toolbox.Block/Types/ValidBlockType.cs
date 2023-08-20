@@ -1,11 +1,12 @@
 ﻿using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Block;
 
 public class ValidBlockType<T> : ValidatorBase<T, string>
 {
     public ValidBlockType(IPropertyRule<T, string> rule, string errorMessage)
-        : base(rule, errorMessage, x => BlockType.IsValid(x))
+        : base(rule, errorMessage, x => IdPatterns.IsBlockType(x))
     {
     }
 }

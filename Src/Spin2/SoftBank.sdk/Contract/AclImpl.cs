@@ -23,12 +23,12 @@ public class AclImpl
         _logger = logger.NotNull();
     }
 
-    public Option<BlockAcl> Get(PrincipalId principalId, ScopeContext context) => _blockChain
+    public Option<BlockAcl> Get(string principalId, ScopeContext context) => _blockChain
         .GetReader<BlockAcl>(principalId)
         .LogResult(context.With(_logger).Location())
         .Bind(x => x.GetLatest());
 
-    public async Task<Option> Set(BlockAcl acl, PrincipalId principalId, ScopeContext context)
+    public async Task<Option> Set(BlockAcl acl, string principalId, ScopeContext context)
     {
         context = context.With(_logger);
 

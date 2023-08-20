@@ -8,11 +8,11 @@ namespace Toolbox.Block;
 public class BlockChainBuilder
 {
     public ObjectId? ObjectId { get; set; }
-    public PrincipalId? PrincipleId { get; set; }
+    public string? PrincipleId { get; set; }
     public List<BlockAccess> Access { get; set; } = new List<BlockAccess>();
 
     public BlockChainBuilder SetObjectId(ObjectId objectId) => this.Action(x => ObjectId = objectId);
-    public BlockChainBuilder SetPrincipleId(PrincipalId principleId) => this.Action(x => PrincipleId = principleId);
+    public BlockChainBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
     public BlockChainBuilder AddAccess(BlockAcl? blockAcl) => this.Action(_ => Access.AddRange(blockAcl?.Items ?? Array.Empty<BlockAccess>()));
     public BlockChainBuilder AddAccess(BlockAccess blockAccess) => this.Action(_ => Access.Add(blockAccess));
     public BlockChainBuilder AddAccess(IEnumerable<BlockAccess> blockAccess) => this.Action(_ => Access.AddRange(blockAccess));

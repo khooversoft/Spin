@@ -60,7 +60,7 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
         return subscription;
     }
 
-    public static async Task<Option> DeleteSubscription(IServiceProvider service, NameId nameId, ScopeContext context)
+    public static async Task<Option> DeleteSubscription(IServiceProvider service, string nameId, ScopeContext context)
     {
         SubscriptionClient client = service.GetRequiredService<SubscriptionClient>();
 

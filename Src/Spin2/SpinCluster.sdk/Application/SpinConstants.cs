@@ -24,7 +24,7 @@ public static class SpinConstants
         public const string Storage = "storage";
         public const string Config = "storage";
         public const string SoftBank = "softbank";
-        public const string BlockStorage = "blockstorage";
+        public const string Block = "block";
     }
 
     public static class Extension

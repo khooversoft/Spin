@@ -10,12 +10,12 @@ namespace Toolbox.Block;
 
 public static class BlockChainExtensions
 {
-    public static Option<BlockReader<T>> GetReader<T>(this BlockChain blockChain, PrincipalId principalId) where T : class
+    public static Option<BlockReader<T>> GetReader<T>(this BlockChain blockChain, string principalId) where T : class
     {
         return blockChain.NotNull().GetReader<T>(typeof(T).Name, principalId);
     }
 
-    public static Option<BlockWriter<T>> GetWriter<T>(this BlockChain blockChain, PrincipalId principalId) where T : class
+    public static Option<BlockWriter<T>> GetWriter<T>(this BlockChain blockChain, string principalId) where T : class
     {
         return blockChain.NotNull().GetWriter<T>(typeof(T).Name, principalId);
     }

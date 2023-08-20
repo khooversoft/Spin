@@ -58,6 +58,15 @@ public static class IdPatterns
         TestMiddle(subject, StandardCharacterTest) &&
         TestEnd(subject, char.IsLetterOrDigit);
 
+    public static bool IsBlockId(string? subject) =>
+    subject.IsNotEmpty() &&
+    subject.Split(':') switch
+    {
+        var s when s.Length != 2 => false,
+        var s when s[0] != "block" => false,
+        var s => s.Last().Split('/').Func(x => IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
+    };
+
     public static bool TestStart(string subject, Func<char, bool> test) => test(subject[0]);
 
     public static bool TestMiddle(string subject, Func<char, bool> test) => subject switch

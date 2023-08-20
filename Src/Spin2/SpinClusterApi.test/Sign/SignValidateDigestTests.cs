@@ -71,7 +71,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         badValidation.IsError().Should().BeTrue();
     }
 
-    private async Task Create(IServiceProvider service, NameId subscriptionId, TenantId tenantId, PrincipalId principalId)
+    private async Task Create(IServiceProvider service, string subscriptionId, string tenantId, string principalId)
     {
         UserClient client = service.GetRequiredService<UserClient>();
 
@@ -87,7 +87,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         readOption.IsOk().Should().BeTrue();
     }
 
-    private async Task Delete(IServiceProvider service, NameId subscriptionId, TenantId tenantId, PrincipalId principalId)
+    private async Task Delete(IServiceProvider service, string subscriptionId, string tenantId, string principalId)
     {
         Option deleteOption = await UserTest.DeleteUser(service, principalId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
@@ -100,7 +100,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         deleteSubscriptionOption.StatusCode.IsOk().Should().BeTrue();
     }
 
-    private async Task VerifyKeys(IServiceProvider service, PrincipalId principalId, bool mustExist)
+    private async Task VerifyKeys(IServiceProvider service, string principalId, bool mustExist)
     {
         PrincipalKeyClient publicKeyClient = service.GetRequiredService<PrincipalKeyClient>();
         var publicKeyExist = await publicKeyClient.Get(principalId, _context);

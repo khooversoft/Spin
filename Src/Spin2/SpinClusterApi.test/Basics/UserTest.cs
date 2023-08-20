@@ -98,7 +98,7 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         return user;
     }
 
-    public static async Task<Option> DeleteUser(IServiceProvider service, PrincipalId principalId, ScopeContext context)
+    public static async Task<Option> DeleteUser(IServiceProvider service, string principalId, ScopeContext context)
     {
         UserClient client = service.GetRequiredService<UserClient>();
 

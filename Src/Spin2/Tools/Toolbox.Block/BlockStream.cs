@@ -21,8 +21,10 @@ public class BlockWriter<T> where T : class
 
     internal BlockWriter(BlockChain blockChain, string blockType)
     {
+        IdPatterns.IsBlockType(blockType).Assert(x => x == true, "Invalid blocktype");
+
         _blockChain = blockChain.NotNull();
-        _blockType = NameId.Create(blockType).ThrowOnError().Return();
+        _blockType = blockType;
     }
 
     public Option Add(DataBlock value) => _blockChain.Add(value);

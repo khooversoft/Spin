@@ -25,7 +25,7 @@ public class PrincipalPrivateKeyTests : IClassFixture<ClusterApiFixture>
     public async Task LifecycleTest()
     {
         PrincipalPrivateKeyClient client = _cluster.ServiceProvider.GetRequiredService<PrincipalPrivateKeyClient>();
-        PrincipalId principalId = "user1@company4.com";
+        string principalId = "user1@company4.com";
 
         Option<PrincipalPrivateKeyModel> result = await client.Get(principalId, _context);
         if (result.IsOk()) await client.Delete(principalId, _context);

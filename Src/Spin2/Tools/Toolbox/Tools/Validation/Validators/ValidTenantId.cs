@@ -5,7 +5,7 @@ namespace Toolbox.Tools.Validation;
 public class ValidTenantId<T> : ValidatorBase<T, string>
 {
     public ValidTenantId(IPropertyRule<T, string> rule, string errorMessage)
-        : base(rule, errorMessage, x => TenantId.IsValid(x))
+        : base(rule, errorMessage, x => IdPatterns.IsTenant(x))
     {
     }
 }

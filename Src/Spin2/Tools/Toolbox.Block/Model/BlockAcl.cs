@@ -30,7 +30,7 @@ public static class BlockAclValidator
 
     public static Option Validate(this BlockAcl subject) => Validator.Validate(subject).ToOptionStatus();
 
-    public static bool HasAccess(this BlockAcl subject, BlockGrant grant, BlockType blockType, PrincipalId principalId)
+    public static bool HasAccess(this BlockAcl subject, BlockGrant grant, BlockType blockType, string principalId)
     {
         subject.NotNull();
 

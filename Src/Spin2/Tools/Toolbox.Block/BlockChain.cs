@@ -76,7 +76,7 @@ public sealed class BlockChain
         }
     }
 
-    public Option<BlockReader<T>> GetReader<T>(BlockType blockType, PrincipalId principalId) where T : class
+    public Option<BlockReader<T>> GetReader<T>(BlockType blockType, string principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
         {
@@ -85,7 +85,7 @@ public sealed class BlockChain
         };
     }
 
-    public Option<BlockWriter<T>> GetWriter<T>(BlockType blockType, PrincipalId principalId) where T : class
+    public Option<BlockWriter<T>> GetWriter<T>(BlockType blockType, string principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Write, blockType, principalId) switch
         {
@@ -94,7 +94,7 @@ public sealed class BlockChain
         };
     }
 
-    public Option<BlockReader<BlockNode>> GetNodeReader(PrincipalId principalId)
+    public Option<BlockReader<BlockNode>> GetNodeReader(string principalId)
     {
         principalId.NotNull();
 
@@ -112,7 +112,7 @@ public sealed class BlockChain
         .Select(x => x.DataBlock.ToObject<GenesisBlock>())
         .Last();
 
-    public Option IsOwner(PrincipalId principalId) => GetGenesisBlock() switch
+    public Option IsOwner(string principalId) => GetGenesisBlock() switch
     {
         var v when v.OwnerPrincipalId == principalId => new Option(StatusCode.OK),
         _ => new Option(StatusCode.Forbidden),
@@ -147,7 +147,7 @@ public sealed class BlockChain
         };
     }
 
-    private bool IsAuthorized(BlockGrant grant, BlockType blockType, PrincipalId principalId)
+    private bool IsAuthorized(BlockGrant grant, BlockType blockType, string principalId)
     {
         grant.IsEnumValid<BlockGrant>();
         blockType.NotNull();

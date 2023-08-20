@@ -5,7 +5,7 @@ namespace Toolbox.Tools.Validation;
 public class ValidName<T> : ValidatorBase<T, string>
 {
     public ValidName(IPropertyRule<T, string> rule, string errorMessage)
-        : base(rule, errorMessage, x => NameId.IsValid(x))
+        : base(rule, errorMessage, x => IdPatterns.IsName(x))
     {
     }
 }

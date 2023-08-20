@@ -13,7 +13,7 @@ namespace SoftBank.sdk.test.Basic;
 
 public class StoreAndSerialization
 {
-    private static readonly PrincipalId _owner = "user@domain.com";
+    private static readonly string _owner = "user@domain.com";
     private static readonly ObjectId _ownerObjectId = $"user/tenant/{_owner}";
     private static readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
     private readonly PrincipalSignatureCollection _signCollection;

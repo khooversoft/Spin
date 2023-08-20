@@ -12,8 +12,8 @@ namespace SoftBank.sdk.test.Basic;
 
 public class SimpleTransactions
 {
-    private static readonly PrincipalId _owner = "user@domain.com";
-    private static readonly PrincipalId _owner2 = "user2@domain.com";
+    private static readonly string _owner = "user@domain.com";
+    private static readonly string _owner2 = "user2@domain.com";
     private static readonly ObjectId _accountObjectId = $"contract/tenant/{_owner}/account1";
     private static readonly PrincipalSignature _ownerSignature = new PrincipalSignature(_owner, _owner, "userBusiness@domain.com");
     private static readonly PrincipalSignature _ownerSignature2 = new PrincipalSignature(_owner2, _owner2, "userBusiness@domain.com");
