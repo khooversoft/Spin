@@ -24,7 +24,7 @@ public class ConfigurationActor : Grain, IConfigurationActor
     private readonly SiloConfigurationCache _siloConfigurationAgent;
     private readonly TenantListAgent _tenantListAgent;
 
-    public ConfigurationActor(SiloConfigStore configStore, IValidator<SiloConfigOption> validator, ILogger<LeaseActor> logger)
+    public ConfigurationActor(SiloConfigStore configStore, IValidator<SiloConfigOption> validator, ILogger<ConfigurationActor> logger)
     {
         _configStore = configStore;
         _validator = validator;
