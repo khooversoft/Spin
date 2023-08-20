@@ -26,7 +26,7 @@ public static class BlockChainExtensions
 
         var blob = new BlobPackageBuilder()
             .SetObjectId(genesisBlock.ObjectId)
-            .SetContent(blockChain.ToBlockChainModel())
+            .SetContent(blockChain)
             .Build();
 
         return blob;
@@ -37,10 +37,7 @@ public static class BlockChainExtensions
         var validationOption = package.Validate().LogResult(context.Location());
         if (validationOption.IsError()) return validationOption.ToOptionStatus<BlockChain>();
 
-        BlockChain blockChain = package
-            .ToObject<BlockChainModel>()
-            .ToBlockChain();
-
+        BlockChain blockChain = package.ToObject<BlockChain>();
         return blockChain;
     }
 

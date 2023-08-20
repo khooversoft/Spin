@@ -8,7 +8,7 @@ namespace Toolbox.Block;
 public record DataBlock
 {
     public string BlockId { get; init; } = Guid.NewGuid().ToString();
-    public long TimeStamp { get; init; } = UnixDate.UtcNow;
+    public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 
     // Stream name or name of the block type
     public string BlockType { get; init; } = null!;
@@ -34,7 +34,7 @@ public static class DataBlockValidator
 {
     public static IValidator<DataBlock> Validator { get; } = new Validator<DataBlock>()
         .RuleFor(x => x.BlockId).NotEmpty()
-        .RuleFor(x => x.TimeStamp).Must(x => x > 0, _ => "Invalid timestamp")
+        .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.BlockType).ValidBlockType()
         .RuleFor(x => x.ClassType).NotNull()
         .RuleFor(x => x.Data).NotNull()

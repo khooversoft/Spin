@@ -123,7 +123,7 @@ public class BlockActor : Grain/*, IBlockActor*/
         await _state.ReadStateAsync();
         if (!_state.RecordExists) return new Option<BlockChain>(StatusCode.NotFound);
 
-        BlockChain blockChain = _state.State.ToObject<BlockChainModel>().ToBlockChain();
+        //BlockChain blockChain = _state.State;
 
         //Option signResult = await contract.Return().ValidateBlockChain(context);
         //if (signResult.StatusCode.IsError())
@@ -132,7 +132,7 @@ public class BlockActor : Grain/*, IBlockActor*/
         //    throw new InvalidOperationException($"Contract should not be validated, actorId={this.GetPrimaryKeyString()}");
         //}
 
-        return blockChain;
+        return default!;
     }
 
     private async Task<Option> WriteContract(BlockChain blockChain, ScopeContext context)

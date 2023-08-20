@@ -38,7 +38,6 @@ namespace Toolbox.Block.Test
         {
             const string issuer = "user@domain.com";
             const string objectId = $"user/tenant/{issuer}";
-            var now = DateTime.UtcNow;
 
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
@@ -53,7 +52,6 @@ namespace Toolbox.Block.Test
             string payloadJson = dataPayload.ToJson();
 
             DataBlock data = await new DataBlockBuilder()
-                .SetTimeStamp(now)
                 .SetBlockId("blockId")
                 .SetBlockType("blockType")
                 .SetObjectClass("blockClass")

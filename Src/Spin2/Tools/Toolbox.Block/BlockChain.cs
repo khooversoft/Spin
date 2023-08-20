@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Text.Json.Serialization;
+using Toolbox.Extensions;
 using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -15,9 +16,13 @@ public sealed class BlockChain
     private readonly object _lock = new object();
 
     public BlockChain() => _blocks = new List<BlockNode>();
-    public BlockChain(IEnumerable<BlockNode> blockNodes) => _blocks = blockNodes.NotNull().ToList();
+
+    [JsonConstructor]
+    public BlockChain(IEnumerable<BlockNode> blocks) => _blocks = blocks.NotNull().ToList();
 
     public int Count => _blocks.Count;
+
+    public IEnumerable<BlockNode> Blocks => _blocks;
 
     public Option Add(params DataBlock[] dataBlocks)
     {
@@ -76,7 +81,7 @@ public sealed class BlockChain
         }
     }
 
-    public Option<BlockReader<T>> GetReader<T>(BlockType blockType, string principalId) where T : class
+    public Option<BlockReader<T>> GetReader<T>(string blockType, string principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
         {
@@ -85,7 +90,7 @@ public sealed class BlockChain
         };
     }
 
-    public Option<BlockWriter<T>> GetWriter<T>(BlockType blockType, string principalId) where T : class
+    public Option<BlockWriter<T>> GetWriter<T>(string blockType, string principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Write, blockType, principalId) switch
         {
@@ -130,11 +135,6 @@ public sealed class BlockChain
             }).ToArray();
     }
 
-    public BlockChainModel ToBlockChainModel() => new BlockChainModel
-    {
-        Blocks = _blocks.ToArray(),
-    };
-
     private Option CheckWriteAccess(IEnumerable<DataBlock> blocks)
     {
         blocks.NotNull();
@@ -147,7 +147,7 @@ public sealed class BlockChain
         };
     }
 
-    private bool IsAuthorized(BlockGrant grant, BlockType blockType, string principalId)
+    private bool IsAuthorized(BlockGrant grant, string blockType, string principalId)
     {
         grant.IsEnumValid<BlockGrant>();
         blockType.NotNull();

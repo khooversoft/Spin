@@ -15,7 +15,6 @@ namespace Toolbox.Block.Test
         public async Task BlockCreateWithPayloadAndSerialized()
         {
             const string issuer = "user@domain.com";
-            var now = DateTime.UtcNow;
 
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "test.com");
 
@@ -30,7 +29,6 @@ namespace Toolbox.Block.Test
             string payloadJson = dataPayload.ToJson();
 
             DataBlock data = await new DataBlockBuilder()
-                .SetTimeStamp(now)
                 .SetBlockId("blockId")
                 .SetBlockType("blockType")
                 .SetObjectClass("blockClass")
@@ -46,8 +44,6 @@ namespace Toolbox.Block.Test
 
             DataBlock received = Json.Default.Deserialize<DataBlock>(json).NotNull(name: "Json is null");
             await received.ValidateDigest(principleSignature, _context);
-
-            data.TimeStamp.Should().Be(now.ToUnixDate().TimeStamp);
 
             received.BlockType.Should().Be("blockType");
             received.ClassType.Should().Be("blockClass");
@@ -68,7 +64,7 @@ namespace Toolbox.Block.Test
         public async Task TwoIdenticalBlockCreatedAreEqual()
         {
             const string issuer = "user@domain.com";
-            var now = DateTime.UtcNow;
+            DateTime now = DateTime.UtcNow;
 
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
@@ -83,35 +79,36 @@ namespace Toolbox.Block.Test
             string payloadJson = dataPayload.ToJson();
 
             DataBlock data1 = await new DataBlockBuilder()
-                .SetTimeStamp(now)
                 .SetBlockId("blockId")
                 .SetBlockType("blockType")
                 .SetObjectClass("blockClass")
                 .SetData(payloadJson)
                 .SetPrincipleId(issuer)
                 .Build()
+                .Func(x => x with { CreatedDate = now })
+                .Func(x => x with { Digest = x.CalculateDigest() })
                 .Sign(principleSignature, _context)
                 .Return();
 
             DataBlock data2 = await new DataBlockBuilder()
-                .SetTimeStamp(now)
                 .SetBlockId("blockId")
                 .SetBlockType("blockType")
                 .SetObjectClass("blockClass")
                 .SetData(payloadJson)
                 .SetPrincipleId(issuer)
                 .Build()
+                .Func(x => x with { CreatedDate = now })
+                .Func(x => x with { Digest = x.CalculateDigest() })
                 .Sign(principleSignature, _context)
                 .Return();
 
-            data1.TimeStamp.Should().Be(data2.TimeStamp);
             data1.BlockType.Should().Be(data2.BlockType);
             data1.ClassType.Should().Be(data2.ClassType);
             data1.Data.Should().Be(data2.Data);
-            //data1.JwtSignature.Should().Be(data2.JwtSignature);
+            data1.JwtSignature.Should().Be(data2.JwtSignature);
             data1.Digest.Should().Be(data2.Digest);
 
-            //(data1 == data2).Should().BeTrue();
+            (data1 == data2).Should().BeTrue();
         }
     }
 }

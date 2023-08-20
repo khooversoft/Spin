@@ -15,7 +15,6 @@ public class BlockChainSignAccessTests
     {
         const string issuer = "user@domain.com";
         const string objectId = $"user/tenant/{issuer}";
-        var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
@@ -33,7 +32,6 @@ public class BlockChainSignAccessTests
         };
 
         var data = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p1)
             .SetBlockType<Payload1>()
             .SetPrincipleId(issuer)
@@ -52,7 +50,6 @@ public class BlockChainSignAccessTests
         const string issuer = "user@domain.com";
         const string objectId = $"user/tenant/{issuer}";
         const string issuer2 = "user2@domain.com";
-        var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
@@ -72,7 +69,6 @@ public class BlockChainSignAccessTests
         };
 
         var data = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
@@ -85,7 +81,6 @@ public class BlockChainSignAccessTests
         };
 
         var data2 = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()
@@ -104,7 +99,6 @@ public class BlockChainSignAccessTests
         const string issuer2 = "user2@domain.com";
         const string issuer3 = "user3@domain.com";
         const string objectId = $"user/tenant/{issuer}";
-        var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature3 = new PrincipalSignature(issuer3, issuer3, "userBusiness@domain.com");
@@ -123,7 +117,6 @@ public class BlockChainSignAccessTests
         };
 
         var data = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p1)
             .SetBlockType<Payload1>()
             .SetPrincipleId(issuer3)
@@ -141,7 +134,6 @@ public class BlockChainSignAccessTests
         const string issuer = "user@domain.com";
         const string objectId = $"user/tenant/{issuer}";
         const string issuer2 = "user2@domain.com";
-        var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
@@ -159,7 +151,6 @@ public class BlockChainSignAccessTests
         };
 
         var data = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
@@ -175,7 +166,6 @@ public class BlockChainSignAccessTests
         };
 
         var data2 = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()

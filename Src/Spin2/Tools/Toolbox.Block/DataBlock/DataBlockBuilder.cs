@@ -7,15 +7,13 @@ namespace Toolbox.Block;
 
 public class DataBlockBuilder
 {
-    public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
-    public BlockType? BlockType { get; set; }
+    public string? BlockType { get; set; }
     public string? ClassType { get; set; }
     public string BlockId { get; set; } = Guid.NewGuid().ToString();
     public string? Data { get; set; }
     public string? PrincipleId { get; set; }
 
-    public DataBlockBuilder SetTimeStamp(DateTime timestamp) => this.Action(x => x.TimeStamp = timestamp);
-    public DataBlockBuilder SetBlockType(BlockType blockType) => this.Action(x => x.BlockType = blockType);
+    public DataBlockBuilder SetBlockType(string blockType) => this.Action(x => x.BlockType = blockType);
     public DataBlockBuilder SetBlockType<T>() => this.Action(x => x.BlockType = typeof(T).GetTypeName());
     public DataBlockBuilder SetObjectClass(string classType) => this.Action(x => x.ClassType = classType);
     public DataBlockBuilder SetBlockId(string blockId) => this.Action(x => x.BlockId = blockId);
@@ -37,7 +35,7 @@ public class DataBlockBuilder
         ClassType.NotEmpty(name: msg);
 
         BlockType ??= ClassType;
-        BlockType.NotNull(name: msg);
+        BlockType.Assert(x => IdPatterns.IsBlockType(x), msg);
 
         BlockId.NotEmpty(name: msg);
         Data.NotEmpty(name: msg);
@@ -45,7 +43,6 @@ public class DataBlockBuilder
 
         var dataBlock = new DataBlock
         {
-            TimeStamp = TimeStamp.ToUnixDate(),
             BlockType = BlockType,
             ClassType = ClassType,
             BlockId = BlockId,

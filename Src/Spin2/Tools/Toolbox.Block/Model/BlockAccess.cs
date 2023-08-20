@@ -30,7 +30,7 @@ public static class BlockAccessValidator
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .Build();
 
-    public static bool HasAccess(this BlockAccess subject, BlockGrant grant, BlockType blockType, string principalId) =>
+    public static bool HasAccess(this BlockAccess subject, BlockGrant grant, string blockType, string principalId) =>
         subject.Grant.HasFlag(grant) &&
         subject.BlockType == blockType &&
         subject.PrincipalId == principalId;

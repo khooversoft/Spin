@@ -16,7 +16,6 @@ public class BlockAccessReadAccessTests
         const string issuer = "user@domain.com";
         const string objectId = $"user/tenant/{issuer}";
         const string issuer2 = "user2@domain.com";
-        var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
@@ -31,7 +30,6 @@ public class BlockAccessReadAccessTests
         var p1 = new Payload1 { Name = "name1", Last = "last1" };
 
         var data = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
@@ -43,7 +41,6 @@ public class BlockAccessReadAccessTests
         var p2 = new Payload2 { Description = "description1" };
 
         var data2 = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()
@@ -60,7 +57,6 @@ public class BlockAccessReadAccessTests
         const string issuer = "user@domain.com";
         const string objectId = $"user/tenant/{issuer}";
         const string issuer2 = "user2@domain.com";
-        var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
@@ -90,7 +86,6 @@ public class BlockAccessReadAccessTests
         var p1 = new Payload1 { Name = "name1", Last = "last1" };
 
         var data = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
@@ -102,7 +97,6 @@ public class BlockAccessReadAccessTests
         var p2 = new Payload2 { Description = "description1" };
 
         var data2 = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()
@@ -133,7 +127,6 @@ public class BlockAccessReadAccessTests
         const string issuer = "user@domain.com";
         const string objectId = $"user/tenant/{issuer}";
         const string issuer2 = "user2@domain.com";
-        var now = DateTime.UtcNow;
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
@@ -149,7 +142,6 @@ public class BlockAccessReadAccessTests
         var p1 = new Payload1 { Name = "name1", Last = "last1" };
 
         var data = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p1)
             .SetPrincipleId(issuer)
             .Build()
@@ -161,7 +153,6 @@ public class BlockAccessReadAccessTests
         var p2 = new Payload2 { Description = "description1" };
 
         var data2 = await new DataBlockBuilder()
-            .SetTimeStamp(now)
             .SetContent(p2)
             .SetPrincipleId(issuer2)
             .Build()
