@@ -30,6 +30,7 @@ public class UserConnector
         group.MapGet("/{principalId}", Get);
         group.MapPost("/create", Create);
         group.MapPost("/", Update);
+        group.MapPost("/sign", Sign);
 
         return group;
     }
@@ -58,7 +59,7 @@ public class UserConnector
     {
         var context = new ScopeContext(_logger);
         var v = model.Validate().LogResult(context.Location());
-        if (v.IsError()) return Results.BadRequest(v.Error);
+        if (v.IsError()) return v.ToResult();
 
         ResourceId resourceId = ResourceId.Create(model.UserId).Return();
         var response = await _client.GetUserActor(resourceId).Create(model, traceId);
@@ -69,10 +70,21 @@ public class UserConnector
     {
         var context = new ScopeContext(traceId, _logger);
         var v = model.Validate().LogResult(context.Location());
-        if (v.IsError()) return Results.BadRequest(v.Error);
+        if (v.IsError()) return v.ToResult();
 
         ResourceId resourceId = ResourceId.Create(model.UserId).Return();
         var response = await _client.GetUserActor(resourceId).Update(model, context.TraceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> Sign(SignRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        var v = model.Validate().LogResult(context.Location());
+        if (v.IsError()) return v.ToResult();
+
+        ResourceId resourceId = IdTool.CreateUserId(model.PrincipalId);
+        var response = await _client.GetUserActor(resourceId).SignDigest(model.MessageDigest, context.TraceId);
         return response.ToResult();
     }
 }

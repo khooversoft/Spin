@@ -21,17 +21,14 @@ public interface ISubscriptionActor : IGrainWithStringKey
 public class SubscriptionActor : Grain, ISubscriptionActor
 {
     private readonly IPersistentState<SubscriptionModel> _state;
-    private readonly IValidator<SubscriptionModel> _validator;
     private readonly ILogger<SubscriptionActor> _logger;
 
     public SubscriptionActor(
         [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<SubscriptionModel> state,
-        IValidator<SubscriptionModel> validator,
         ILogger<SubscriptionActor> logger
         )
     {
         _state = state.NotNull();
-        _validator = validator.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -73,7 +70,7 @@ public class SubscriptionActor : Grain, ISubscriptionActor
 
         var test = new Option()
             .Test(() => this.VerifyIdentity(model.SubscriptionId).LogResult(context.Location()))
-            .Test(() => _validator.Validate(model).LogResult(context.Location()).ToOptionStatus());
+            .Test(() => model.Validate().LogResult(context.Location()));
         if (test.IsError()) return test;
 
         _state.State = model;

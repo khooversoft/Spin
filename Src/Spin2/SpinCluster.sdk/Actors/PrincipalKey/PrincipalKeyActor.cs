@@ -70,7 +70,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
 
         if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
 
-        var privateKeyExist = await _clusterClient.GetObjectGrain<IPrincipalPrivateKeyActor>(_state.State.KeyId).Exist(context.TraceId);
+        var privateKeyExist = await _clusterClient.GetPrivateKeyActor(_state.State.PrincipalPrivateKeyId).Exist(context.TraceId);
         return privateKeyExist;
     }
 

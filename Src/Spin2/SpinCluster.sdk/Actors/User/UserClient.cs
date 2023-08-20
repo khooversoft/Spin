@@ -35,4 +35,11 @@ public class UserClient
         .SetContent(content)
         .PostAsync(context)
         .ToOption();
+
+    public async Task<Option<SignResponse>> Sign(SignRequest content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.User}/sign")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .SetContent(content)
+        .PostAsync(context)
+        .GetContent<SignResponse>();
 }

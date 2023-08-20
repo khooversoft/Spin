@@ -15,7 +15,7 @@ public interface IUserActor : IGrainWithStringKey
     Task<Option<UserModel>> Get(string traceId);
     Task<Option> Create(UserCreateModel model, string traceId);
     Task<Option> Update(UserModel model, string traceId);
-    Task<Option<string>> SignDigest(string messageDigest, string traceId);
+    Task<Option<SignResponse>> SignDigest(string messageDigest, string traceId);
 }
 
 
@@ -138,7 +138,7 @@ public class UserActor : Grain, IUserActor
         return new Option(StatusCode.OK);
     }
 
-    public async Task<Option<string>> SignDigest(string messageDigest, string traceId)
+    public async Task<Option<SignResponse>> SignDigest(string messageDigest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Signing message digest, actorKey={actorKey}", this.GetPrimaryKeyString());
@@ -154,11 +154,19 @@ public class UserActor : Grain, IUserActor
         if (signResponse.IsError())
         {
             context.Location().LogError("Failed to sign, actorKey={actorKey}", this.GetPrimaryKeyString());
-            return signResponse;
+            return signResponse.ToOptionStatus<SignResponse>();
         }
 
         context.Location().LogInformation("Digest signed, actorKey={actorKey}", this.GetPrimaryKeyString());
-        return signResponse;
+
+        var response = new SignResponse
+        {
+            Kid = _state.State.UserKey.KeyId,
+            MessageDigest = messageDigest,
+            JwtSignature = signResponse.Return()
+        };
+
+        return response;
     }
 
     private async Task<Option> VerifyTenant(string userId, ScopeContext context)

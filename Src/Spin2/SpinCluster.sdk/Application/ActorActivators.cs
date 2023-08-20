@@ -18,7 +18,7 @@ public static class ActorActivators
         .GetResourceGrain<ITenantActor>(resourceId);
 
     public static ISignatureActor GetSignatureActor(this IClusterClient clusterClient) => clusterClient.NotNull()
-        .GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation);
+        .GetGrain<ISignatureActor>(SpinConstants.SignValidation);
 
     public static IUserActor GetUserActor(this IClusterClient clusterClient, ResourceId principalId) => clusterClient.NotNull()
         .GetResourceGrain<IUserActor>(principalId);

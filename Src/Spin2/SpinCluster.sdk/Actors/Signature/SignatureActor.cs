@@ -30,24 +30,30 @@ public class SignatureActor : Grain, ISignatureActor
         var context = new ScopeContext(traceId, _logger);
 
         string? jwtKid = JwtTokenParser.GetKidFromJwtToken(jwtSignature);
-        if (jwtKid == null) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
+        if (jwtKid == null || !IdPatterns.IsKeyId(jwtKid)) return new Option(StatusCode.BadRequest, "no kid in jwtSignature");
 
         context.Location().LogInformation("Validating signature message digest, kid={kid}", jwtKid);
 
-        Option<KeyId> keyId = KeyId.Create(jwtKid);
-        if (keyId.IsError()) return keyId.ToOptionStatus();
+        Option<ResourceId> resourceIdOption = ResourceId.Create(jwtKid);
+        if (resourceIdOption.IsError()) return resourceIdOption.ToOptionStatus();
 
-        var validationResponse = await _clusterClient.GetPublicKeyActor(keyId.Return().ToString())
-            .ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId);
+        ResourceId resourceId = resourceIdOption.Return();
+        if (!IdPatterns.IsPrincipalId(resourceId.PrincipalId)) return new Option(StatusCode.BadRequest, "Invalid principal");
 
-        if (validationResponse.IsError())
+        ResourceId publicKeyId = IdTool.CreatePublicKeyId(resourceId.PrincipalId!, resourceId.Path);
+
+        Option response = await _clusterClient.GetPublicKeyActor(publicKeyId)
+            .ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId)
+            .LogResult(context.Location());
+
+        if (response.IsError())
         {
             context.Location().LogError("Failed to validated signature, actorKey={actorKey}", this.GetPrimaryKeyString());
-            return validationResponse;
+            return response;
         }
 
         context.Location().LogInformation("Digest signature validated, actorKey={actorKey}", this.GetPrimaryKeyString());
-        return validationResponse;
+        return response;
     }
 }
 

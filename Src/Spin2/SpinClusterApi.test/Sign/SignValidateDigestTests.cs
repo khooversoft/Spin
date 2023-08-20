@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.User;
+using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
 using SpinClusterApi.test.Basics;
 using Toolbox.Extensions;
@@ -22,9 +23,9 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
     [Fact]
     public async Task LifecycleTest()
     {
-        NameId subscriptionId = "Company6Subscription";
-        TenantId tenantId = "company6.com";
-        PrincipalId principalId = "user1@company6.com";
+        string subscriptionId = "Company6Subscription";
+        string tenantId = "company6.com";
+        string principalId = "user1@company6.com";
 
         await Delete(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
         await Create(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
@@ -32,22 +33,24 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         string msg = "this is a message";
         string messageDigest = msg.ToBytes().ToSHA256Hash();
 
-        SignatureClient signatureClient = _cluster.ServiceProvider.GetRequiredService<SignatureClient>();
+        UserClient userClient = _cluster.ServiceProvider.GetRequiredService<UserClient>();
 
-        var request = new SignRequest
+        var signRequest = new SignRequest
         {
             PrincipalId = principalId,
-            MessageDigest = messageDigest
+            MessageDigest = messageDigest,
         };
 
-        var jwtOption = await signatureClient.Sign(request, _context);
+        Option<SignResponse> jwtOption = await userClient.Sign(signRequest, _context);
         jwtOption.IsOk().Should().BeTrue();
+        jwtOption.Return().Should().NotBeNull();
 
         SignResponse response = jwtOption.Return();
-
-        request.PrincipalId.Should().Be(response.Kid);
-        request.MessageDigest.Should().Be(response.MessageDigest);
+        response.Kid.Should().Be(IdTool.CreateKid(principalId, "sign"));
+        response.MessageDigest.Should().Be(messageDigest);
         response.JwtSignature.Should().NotBeNullOrEmpty();
+
+        SignatureClient signatureClient = _cluster.ServiceProvider.GetRequiredService<SignatureClient>();
 
         var validationRequest = new ValidateRequest
         {
@@ -57,6 +60,15 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
 
         var validation = await signatureClient.ValidateDigest(validationRequest, _context);
         validation.IsOk().Should().BeTrue();
+
+        var badValidationRequest = new ValidateRequest
+        {
+            JwtSignature = response.JwtSignature,
+            MessageDigest = messageDigest + ".",
+        };
+
+        var badValidation = await signatureClient.ValidateDigest(badValidationRequest, _context);
+        badValidation.IsError().Should().BeTrue();
     }
 
     private async Task Create(IServiceProvider service, NameId subscriptionId, TenantId tenantId, PrincipalId principalId)
@@ -69,14 +81,10 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         var tenant = await TenantTests.CreateTenant(_cluster.ServiceProvider, tenantId, subscriptionId, _context);
         tenant.IsOk().Should().BeTrue();
 
-        await VerifyKeys(_cluster.ServiceProvider, principalId, false);
         var user = await UserTest.CreateUser(_cluster.ServiceProvider, principalId, _context);
-        await VerifyKeys(_cluster.ServiceProvider, principalId, true);
 
         Option<UserModel> readOption = await client.Get(principalId, _context);
         readOption.IsOk().Should().BeTrue();
-
-        //(user.Return() == readOption.Return()).Should().BeTrue();
     }
 
     private async Task Delete(IServiceProvider service, NameId subscriptionId, TenantId tenantId, PrincipalId principalId)

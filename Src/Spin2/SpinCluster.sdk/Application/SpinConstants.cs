@@ -4,7 +4,7 @@ public static class SpinConstants
 {
     public const string SpinStateStore = "spinStateStore";
     public const string SchemaSearch = "schemaSearch";
-    public const string SignValidation = "signvalidation";
+    public const string SignValidation = "signValidation";
     public const string Folder = "folder";
     public const string Open = "open";
     public const string SystemTenant = "$system";

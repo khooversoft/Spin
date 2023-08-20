@@ -21,19 +21,16 @@ public interface ITenantActor : IGrainWithStringKey
 public class TenantActor : Grain, ITenantActor
 {
     private readonly IPersistentState<TenantModel> _state;
-    private readonly IValidator<TenantModel> _validator;
     private readonly IClusterClient _clusterClient;
     private readonly ILogger<TenantActor> _logger;
 
     public TenantActor(
         [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
-        IValidator<TenantModel> validator,
         IClusterClient clusterClient,
         ILogger<TenantActor> logger
         )
     {
         _state = state;
-        _validator = validator;
         _clusterClient = clusterClient;
         _logger = logger;
     }
@@ -76,7 +73,7 @@ public class TenantActor : Grain, ITenantActor
 
         var v = new Option()
             .Test(() => this.VerifyIdentity(model.TenantId).LogResult(context.Location()))
-            .Test(() => _validator.Validate(model).ToOptionStatus());
+            .Test(() => model.Validate());
 
         if (v.IsError()) return v.LogResult(context.Location());
 

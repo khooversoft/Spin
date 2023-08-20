@@ -1,4 +1,5 @@
 ﻿using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Signature;
 
@@ -15,4 +16,6 @@ public static class ValidateRequestValidator
         .RuleFor(x => x.JwtSignature).NotEmpty()
         .RuleFor(x => x.MessageDigest).NotEmpty()
         .Build();
+
+    public static Option Validate(this ValidateRequest subject) => Validator.Validate(subject).ToOptionStatus();
 }

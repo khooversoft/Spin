@@ -1,4 +1,5 @@
 ﻿using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.User;
 
@@ -14,4 +15,6 @@ public static class SignRequestValidator
         .RuleFor(x => x.PrincipalId).NotEmpty().ValidPrincipalId()
         .RuleFor(x => x.MessageDigest).NotEmpty()
         .Build();
+
+    public static Option Validate(this SignRequest signRequest) => Validator.Validate(signRequest).ToOptionStatus();
 }

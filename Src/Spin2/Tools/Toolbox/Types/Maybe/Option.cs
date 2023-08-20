@@ -1,7 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace Toolbox.Types;
 
+[DebuggerDisplay("StatusCode={StatusCode}, Error={Error}")]
 public readonly struct Option : IEquatable<Option>
 {
     public Option(StatusCode statusCode) => StatusCode = statusCode;

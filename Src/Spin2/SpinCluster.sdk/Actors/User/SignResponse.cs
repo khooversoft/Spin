@@ -2,11 +2,12 @@
 
 namespace SpinCluster.sdk.Actors.User;
 
+[GenerateSerializer, Immutable]
 public record SignResponse
 {
-    public string Kid { get; set; } = null!;
-    public string MessageDigest { get; init; } = null!;
-    public string JwtSignature { get; init; } = null!;
+    [Id(0)] public string Kid { get; set; } = null!;
+    [Id(1)] public string MessageDigest { get; init; } = null!;
+    [Id(2)] public string JwtSignature { get; init; } = null!;
 }
 
 public static class SignResponseValidator

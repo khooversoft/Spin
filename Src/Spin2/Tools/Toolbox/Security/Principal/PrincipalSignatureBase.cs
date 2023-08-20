@@ -57,20 +57,29 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
         try
         {
             var details = new JwtTokenParserBuilder()
-            .SetPrincipleSignature(this)
-            .Build()
-            .Parse(jwtSignature);
+                .SetPrincipleSignature(this)
+                .Build()
+                .Parse(jwtSignature);
 
-            if (details.JwtSecurityToken.Header.Kid.IsEmpty()) return new Option(StatusCode.BadRequest, "Missing kid in JWT")
-                .ToTaskResult();
+            if (details.JwtSecurityToken.Header.Kid.IsEmpty())
+            {
+                return new Option(StatusCode.BadRequest, "Missing kid in JWT").ToTaskResult();
+            }
 
-            details.JwtSecurityToken.Header.Assert(x => x.Kid == Kid, "Kid does not match");
+            if (details.JwtSecurityToken.Header.Kid != Kid)
+            {
+                return new Option(StatusCode.BadRequest, "Kid does not match").ToTaskResult();
+            }
 
-            if (details.Digest.IsEmpty()) return new Option(StatusCode.BadRequest, "Missing Digest in JWT")
-                .ToTaskResult();
+            if (details.Digest.IsEmpty())
+            {
+                return new Option(StatusCode.BadRequest, "Missing Digest in JWT").ToTaskResult();
+            }
 
-            if (details.Digest != messageDigest) return new Option(StatusCode.BadRequest, "Message digest do not match")
-                .ToTaskResult();
+            if (details.Digest != messageDigest)
+            {
+                return new Option(StatusCode.BadRequest, "Message digest do not match digest in JWT").ToTaskResult();
+            }
 
             return new Option(StatusCode.OK).ToTaskResult();
         }
