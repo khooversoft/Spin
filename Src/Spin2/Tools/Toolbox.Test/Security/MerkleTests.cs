@@ -1,7 +1,5 @@
-using FluentAssertions;
-using System.Collections.Generic;
 using System.Text;
-using Xunit;
+using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Types.MerkleTree;
 

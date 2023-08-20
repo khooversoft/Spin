@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Block;
-using Toolbox.Types;
+﻿using Toolbox.Block;
 
 namespace SpinCluster.sdk.Serialization;
 
@@ -13,7 +7,7 @@ public struct DataBlockSerialization
     public string BlockId;
     public long TimeStamp;
     public string BlockType;
-    public string ClassType;        
+    public string ClassType;
     public string Data;
     public string PrincipleId;
     public string JwtSignature;

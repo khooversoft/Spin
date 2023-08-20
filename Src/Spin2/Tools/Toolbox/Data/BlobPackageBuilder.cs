@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -23,8 +16,8 @@ public class BlobPackageBuilder
     public BlobPackageBuilder SetTypeName(string? typeName) => this.Action(x => x.TypeName = typeName);
 
     public BlobPackageBuilder SetTag(string? tags) => this.Action(x => x.Tags.Set(tags));
-    public BlobPackageBuilder SetTag(string key, string? value) => this.Action(x => x.Tags.Set(key, value));        
-    
+    public BlobPackageBuilder SetTag(string key, string? value) => this.Action(x => x.Tags.Set(key, value));
+
     public BlobPackageBuilder SetContent<T>(T value) where T : class
     {
         value.NotNull();

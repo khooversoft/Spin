@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SpinCluster.sdk.Actors.ActorBase;
-using SpinCluster.sdk.Actors.Tenant;
-using SpinCluster.sdk.Application;
+﻿using SpinCluster.sdk.Application;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -35,7 +28,7 @@ public class UserClient
         .SetContent(content)
         .PostAsync(context)
         .ToOption();
-    
+
     public async Task<Option> Update(UserModel content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.User}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)

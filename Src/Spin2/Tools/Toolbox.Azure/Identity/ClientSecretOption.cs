@@ -1,6 +1,5 @@
 ﻿using Azure.Core;
 using Azure.Identity;
-using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;

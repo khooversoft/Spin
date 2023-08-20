@@ -1,5 +1,4 @@
-﻿using SpinCluster.sdk.Actors.User;
-using Toolbox.Tools.Validation;
+﻿using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Configuration;

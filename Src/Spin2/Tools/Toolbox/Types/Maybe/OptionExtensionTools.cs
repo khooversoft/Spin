@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -43,7 +37,7 @@ public static class OptionExtensionTools
     public static bool IsError<T>(this Option<T> subject) => subject.StatusCode.IsError();
     public static bool IsNotFound<T>(this Option<T> subject) => subject.StatusCode.IsNotFound();
 
-    public static Option ThrowOnError( this Option option,
+    public static Option ThrowOnError(this Option option,
         [CallerMemberName] string function = "",
         [CallerFilePath] string path = "",
         [CallerLineNumber] int lineNumber = 0,
@@ -73,5 +67,5 @@ public static class OptionExtensionTools
         [CallerLineNumber] int lineNumber = 0,
         [CallerArgumentExpression("option")] string name = ""
         ) => (await option)
-        .Assert(x => x.StatusCode.IsOk(), x => $"StatusCode= {x.StatusCode}, Error={x.Error}", function:function, path:path, lineNumber:lineNumber, name:name);
+        .Assert(x => x.StatusCode.IsOk(), x => $"StatusCode= {x.StatusCode}, Error={x.Error}", function: function, path: path, lineNumber: lineNumber, name: name);
 }

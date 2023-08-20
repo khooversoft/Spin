@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
-using Toolbox.Tokenizer.Token;
+﻿using System.Text.Json.Serialization;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -51,7 +42,7 @@ public sealed record PrincipalId
     public static implicit operator PrincipalId(string subject) => new PrincipalId(subject);
     public static implicit operator string(PrincipalId subject) => subject.ToString();
 
-    
+
     private readonly record struct ParseDetails
     {
         public string PrincipalId { get; init; }

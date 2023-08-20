@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 
 namespace Toolbox.Tools;
 

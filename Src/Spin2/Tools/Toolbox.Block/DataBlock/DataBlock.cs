@@ -1,5 +1,4 @@
-﻿using Toolbox.Security.Jwt;
-using Toolbox.Security.Principal;
+﻿using Toolbox.Security.Principal;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;

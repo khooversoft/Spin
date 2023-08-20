@@ -1,8 +1,4 @@
-﻿using System.Net;
-using Toolbox.Tools;
-using Toolbox.Tools.Validation;
-
-namespace Toolbox.Types;
+﻿namespace Toolbox.Types;
 
 public static class Option_T_Extensions
 {

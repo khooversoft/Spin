@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Resources;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -28,7 +22,7 @@ public class ResourceIdIdTests
 
         result.Return().ToString().Should().Be(id);
     }
-    
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

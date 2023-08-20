@@ -1,5 +1,4 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using Toolbox.Security.Jwt;
 
 namespace Toolbox.Security.Principal;
 

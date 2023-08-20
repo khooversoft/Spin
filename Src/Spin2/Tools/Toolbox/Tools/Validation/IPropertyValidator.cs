@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Types;
+﻿using Toolbox.Types;
 
 namespace Toolbox.Tools.Validation;
 

@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using Microsoft.AspNetCore.Builder;
 using Toolbox.Types;
 
 namespace Toolbox.TestApi;

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 
 namespace Toolbox.Block.Test;
 
@@ -36,7 +31,7 @@ public class BlockAccessTests
         (v1 == v2).Should().BeTrue();
         (v1 != v2).Should().BeFalse();
     }
-    
+
     [Theory]
     [InlineData(BlockGrant.None, "blockType", "principlayId", BlockGrant.Write, "blockType", "principlayId")]
     [InlineData(BlockGrant.Read, "blockType2", "principlayId2", BlockGrant.None, "blockType2", "principlayId2")]

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
@@ -17,11 +12,11 @@ public static class OptionLoggingExtensions
         location.LogError("Option = IsError, statusCode={statusCode}, error={error}", subject.StatusCode, subject.Error);
         return subject;
     }
-    
+
     public static async Task<Option> LogResult(this Task<Option> subject, ScopeContextLocation location)
     {
         location.Context.Logger.NotNull();
-        
+
         Option option = await subject;
         if (option.StatusCode.IsOk()) return option;
 

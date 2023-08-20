@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -27,7 +21,7 @@ public class Tags : Dictionary<string, string?>
     {
         false => this.ToString(),
         true => this.OrderBy(x => x.Key).Select(x => x.Value.IsEmpty() ? x.Key : $"{x.Key}={x.Value}").Join(';'),
-    };    
+    };
 
     public override bool Equals(object? obj) => Equals(obj as Tags);
     public bool Equals(Tags? other) => other is not null &&

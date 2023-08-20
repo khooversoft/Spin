@@ -1,5 +1,4 @@
-﻿using Toolbox.Security.Jwt;
-using Toolbox.Types;
+﻿using Toolbox.Types;
 
 namespace Toolbox.Security.Principal;
 

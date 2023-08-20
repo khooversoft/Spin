@@ -1,6 +1,4 @@
-﻿using Toolbox.Types;
-
-namespace Toolbox.Tools.Validation;
+﻿namespace Toolbox.Tools.Validation;
 
 public class NotNull<T, TProperty> : ValidatorBase<T, TProperty>
 {

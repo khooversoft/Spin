@@ -3,7 +3,6 @@ using Orleans.Concurrency;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
-using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
@@ -35,7 +34,7 @@ public class SearchActor : Grain, ISearchActor
     {
         var context = new ScopeContext(traceId, _logger);
         var validationResult = _validator.Validate(searchQuery).LogResult(context.Location());
-        if(validationResult.IsError()) return validationResult.ToOptionStatus<IReadOnlyList<StorePathItem>>();
+        if (validationResult.IsError()) return validationResult.ToOptionStatus<IReadOnlyList<StorePathItem>>();
 
         Option<IDatalakeStore> store = _datalakeResources.GetStore(searchQuery.Schema, context.Location());
         if (store.IsError()) return store.ToOptionStatus<IReadOnlyList<StorePathItem>>();

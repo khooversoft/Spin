@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.IdentityModel.Tokens;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using Toolbox.Block;

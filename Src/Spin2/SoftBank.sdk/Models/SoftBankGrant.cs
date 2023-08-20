@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SpinCluster.sdk.Models;
-
-namespace SoftBank.sdk.Models;
+﻿namespace SoftBank.sdk.Models;
 
 public enum SoftBankGrant
 {

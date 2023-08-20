@@ -1,19 +1,10 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
-using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.PrincipalKey;
-using SpinCluster.sdk.Actors.PrincipalPrivateKey;
-using SpinCluster.sdk.Actors.Subscription;
-using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
-using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 using Toolbox.Types;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace SpinCluster.sdk.Actors.User;
 
@@ -117,7 +108,7 @@ public class UserActor : Grain, IUserActor
         };
 
         var createOption = await CreateKeys(userModel, context);
-        if( createOption.IsError()) return createOption;
+        if (createOption.IsError()) return createOption;
 
         _state.State = userModel;
         await _state.WriteStateAsync();
@@ -133,7 +124,7 @@ public class UserActor : Grain, IUserActor
         var test = await new Option().ToTaskResult()
             .TestAsync(() => model.Validate().LogResult(context.Location()))
             .TestAsync(async () => await VerifyTenant(model.UserId, context));
-        if( test.IsError()) return test;
+        if (test.IsError()) return test;
 
         if (!_state.RecordExists)
         {
@@ -152,7 +143,7 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Signing message digest, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists) return StatusCode.Conflict;
+        if (!_state.RecordExists) return StatusCode.BadRequest;
 
         ResourceId privateKeyId = _state.State.UserKey.PrivateKeyId;
 

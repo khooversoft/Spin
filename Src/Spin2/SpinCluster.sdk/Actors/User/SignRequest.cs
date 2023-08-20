@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tools.Validation;
-using Toolbox.Types;
+﻿using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Actors.Signature;
+namespace SpinCluster.sdk.Actors.User;
 
 public record SignRequest
 {

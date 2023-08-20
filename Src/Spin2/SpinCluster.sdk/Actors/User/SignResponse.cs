@@ -1,6 +1,6 @@
 ﻿using Toolbox.Tools.Validation;
 
-namespace SpinCluster.sdk.Actors.Signature;
+namespace SpinCluster.sdk.Actors.User;
 
 public record SignResponse
 {
