@@ -45,7 +45,7 @@ public class UserConnector
         principalId = Uri.UnescapeDataString(principalId);
         if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateUser(principalId);
+        ResourceId resourceId = IdTool.CreateUserId(principalId);
         Option response = await _client.GetUserActor(resourceId).Delete(traceId);
         return response.ToResult();
     }
@@ -55,7 +55,7 @@ public class UserConnector
         principalId = Uri.UnescapeDataString(principalId);
         if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateUser(principalId);
+        ResourceId resourceId = IdTool.CreateUserId(principalId);
         Option<UserModel> response = await _client.GetUserActor(resourceId).Get(traceId);
         return response.ToResult();
     }

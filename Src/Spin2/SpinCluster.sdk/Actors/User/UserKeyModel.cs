@@ -37,8 +37,8 @@ public sealed record UserKeyModel
         var userKeyModel = new UserKeyModel
         {
             KeyId = IdTool.CreateKid(principalId, sign),
-            PublicKeyId = IdTool.CreatePublicKey(principalId, sign),
-            PrivateKeyId = IdTool.CreatePrivateKey(principalId, sign),
+            PublicKeyId = IdTool.CreatePublicKeyId(principalId, sign),
+            PrivateKeyId = IdTool.CreatePrivateKeyId(principalId, sign),
         };
 
         return userKeyModel;

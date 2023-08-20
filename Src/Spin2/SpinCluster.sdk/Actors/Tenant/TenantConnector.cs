@@ -45,7 +45,7 @@ public class TenantConnector
         tenantId = Uri.UnescapeDataString(tenantId);
         if (!IdPatterns.IsTenant(tenantId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateTenant(tenantId);
+        ResourceId resourceId = IdTool.CreateTenantId(tenantId);
         Option response = await _client.GetResourceGrain<ITenantActor>(resourceId).Delete(traceId);
         return response.ToResult();
     }
@@ -55,7 +55,7 @@ public class TenantConnector
         tenantId = Uri.UnescapeDataString(tenantId);
         if (!IdPatterns.IsTenant(tenantId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateTenant(tenantId);
+        ResourceId resourceId = IdTool.CreateTenantId(tenantId);
         Option<TenantModel> response = await _client.GetResourceGrain<ITenantActor>(resourceId).Get(traceId);
         return response.ToResult();
     }

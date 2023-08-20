@@ -44,7 +44,7 @@ public class SubscriptionConnector
         nameId = Uri.UnescapeDataString(nameId);
         if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateSubscription(nameId);
+        ResourceId resourceId = IdTool.CreateSubscriptionId(nameId);
         Option response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Delete(traceId);
         return response.ToResult();
     }
@@ -54,7 +54,7 @@ public class SubscriptionConnector
         nameId = Uri.UnescapeDataString(nameId);
         if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateSubscription(nameId);
+        ResourceId resourceId = IdTool.CreateSubscriptionId(nameId);
         Option<SubscriptionModel> response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Get(traceId);
         return response.ToResult();
     }

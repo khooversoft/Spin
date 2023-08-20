@@ -44,7 +44,7 @@ public class PrincipalPrivateKeyConnector
             if (!IdPatterns.IsPath(path)) return Results.BadRequest("Invalid path");
         }
 
-        ResourceId resourceId = IdTool.CreatePrivateKey(principalId, path);
+        ResourceId resourceId = IdTool.CreatePrivateKeyId(principalId, path);
         Option response = await _client.GetPrivateKeyActor(resourceId).Delete(context.TraceId);
         return response.ToResult();
     }
@@ -59,7 +59,7 @@ public class PrincipalPrivateKeyConnector
             if (!IdPatterns.IsPath(path)) return Results.BadRequest("Invalid path");
         }
 
-        ResourceId resourceId = IdTool.CreatePrivateKey(principalId, path);
+        ResourceId resourceId = IdTool.CreatePrivateKeyId(principalId, path);
         Option<PrincipalPrivateKeyModel> response = await _client.GetPrivateKeyActor(resourceId).Get(context.TraceId);
         return response.ToResult();
     }

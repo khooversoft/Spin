@@ -56,7 +56,7 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
 
         var subscription = new SubscriptionModel
         {
-            SubscriptionId = IdTool.CreateSubscription(nameId),
+            SubscriptionId = IdTool.CreateSubscriptionId(nameId),
             Name = nameId,
             ContactName = nameId + "contact",
             Email = "user1@company1.com",

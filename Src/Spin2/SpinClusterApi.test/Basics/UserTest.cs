@@ -93,7 +93,7 @@ public class UserTest : IClassFixture<ClusterApiFixture>
 
         var user = new UserCreateModel
         {
-            UserId = IdTool.CreateUser(principalId),
+            UserId = IdTool.CreateUserId(principalId),
             PrincipalId = principalId,
             DisplayName = "User display name",
             FirstName = "First",

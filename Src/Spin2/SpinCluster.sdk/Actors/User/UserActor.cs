@@ -74,7 +74,7 @@ public class UserActor : Grain, IUserActor
     {
         if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
 
-        ResourceId resourceId = IdTool.CreatePublicKey(_state.State.PrincipalId);
+        ResourceId resourceId = IdTool.CreatePublicKeyId(_state.State.PrincipalId);
         var publicKeyExist = await _clusterClient.GetPublicKeyActor(resourceId).Delete(traceId);
 
         return publicKeyExist;
@@ -178,7 +178,7 @@ public class UserActor : Grain, IUserActor
         string tenantId = user.Return().Domain!;
         if (!IdPatterns.IsTenant(tenantId)) return StatusCode.BadRequest;
 
-        var id = IdTool.CreateTenant(tenantId);
+        var id = IdTool.CreateTenantId(tenantId);
         Option isTenantActive = await _clusterClient.GetTenantActor(id).Exist(context.TraceId);
 
         if (isTenantActive.IsError())
