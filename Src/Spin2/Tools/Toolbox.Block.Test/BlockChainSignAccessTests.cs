@@ -19,7 +19,7 @@ public class BlockChainSignAccessTests
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId)
+            .SetDocumentId(objectId)
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
             .Build(principleSignature, _context)
@@ -55,7 +55,7 @@ public class BlockChainSignAccessTests
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId)
+            .SetDocumentId(objectId)
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
             .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
@@ -104,7 +104,7 @@ public class BlockChainSignAccessTests
         IPrincipalSignature principleSignature3 = new PrincipalSignature(issuer3, issuer3, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId)
+            .SetDocumentId(objectId)
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
@@ -139,7 +139,7 @@ public class BlockChainSignAccessTests
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId)
+            .SetDocumentId(objectId)
             .SetPrincipleId(issuer)
             .Build(principleSignature, _context)
             .Return();

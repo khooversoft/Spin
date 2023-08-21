@@ -81,6 +81,15 @@ public sealed class BlockChain
         }
     }
 
+    public Option<BlockReader<DataBlock>> GetReader(string blockType, string principalId)
+    {
+        return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
+        {
+            false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
+            true => new BlockReader<DataBlock>(_blocks.Where(x => x.DataBlock.BlockType == blockType).Select(x => x.DataBlock)),
+        };
+    }
+
     public Option<BlockReader<T>> GetReader<T>(string blockType, string principalId) where T : class
     {
         return IsAuthorized(BlockGrant.Read, blockType, principalId) switch

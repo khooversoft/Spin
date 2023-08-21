@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Actors.PrincipalKey;
+﻿using SpinCluster.sdk.Actors.Block;
+using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.Subscription;
@@ -28,4 +29,7 @@ public static class ActorActivators
 
     public static IPrincipalPrivateKeyActor GetPrivateKeyActor(this IClusterClient clusterClient, ResourceId keyId) => clusterClient.NotNull()
         .GetResourceGrain<IPrincipalPrivateKeyActor>(keyId);
+
+    public static IContractActor GetContractActor(this IClusterClient clusterClient, ResourceId keyId) => clusterClient.NotNull()
+        .GetResourceGrain<IContractActor>(keyId);
 }

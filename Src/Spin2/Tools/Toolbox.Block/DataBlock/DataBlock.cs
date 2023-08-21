@@ -41,7 +41,7 @@ public static class DataBlockValidator
         .RuleFor(x => x.PrincipleId).ValidPrincipalId()
         .RuleFor(x => x.JwtSignature).NotEmpty()
         .RuleFor(x => x.Digest).NotEmpty()
-        .RuleForObject(x => x).Must(x => x.CalculateDigest() == x.Digest, _ => "Digest doest not match")
+        .RuleForObject(x => x).Must(x => x.CalculateDigest() == x.Digest, _ => "Digest validation failed")
         .Build();
 
     public static void Verify(this DataBlock subject) => Validator.Validate(subject).ThrowOnError();

@@ -7,11 +7,11 @@ namespace Toolbox.Block;
 
 public class BlockChainBuilder
 {
-    public ObjectId? ObjectId { get; set; }
+    public ResourceId? DocumentId { get; set; }
     public string? PrincipleId { get; set; }
     public List<BlockAccess> Access { get; set; } = new List<BlockAccess>();
 
-    public BlockChainBuilder SetObjectId(ObjectId objectId) => this.Action(x => ObjectId = objectId);
+    public BlockChainBuilder SetDocumentId(ResourceId resourceId) => this.Action(x => DocumentId = resourceId);
     public BlockChainBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
     public BlockChainBuilder AddAccess(BlockAcl? blockAcl) => this.Action(_ => Access.AddRange(blockAcl?.Items ?? Array.Empty<BlockAccess>()));
     public BlockChainBuilder AddAccess(BlockAccess blockAccess) => this.Action(_ => Access.Add(blockAccess));
@@ -19,13 +19,13 @@ public class BlockChainBuilder
 
     public async Task<Option<BlockChain>> Build(ISign sign, ScopeContext context)
     {
-        ObjectId.NotNull();
+        DocumentId.NotNull();
         PrincipleId.NotNull();
         Access.NotNull();
         sign.NotNull();
 
         Option<DataBlock> genesisBlock = await DataBlockBuilder
-            .CreateGenesisBlock(ObjectId.ToString(), PrincipleId, context)
+            .CreateGenesisBlock(DocumentId, PrincipleId, context)
             .Sign(sign, context);
 
         if (genesisBlock.IsError()) return genesisBlock.ToOptionStatus<BlockChain>();

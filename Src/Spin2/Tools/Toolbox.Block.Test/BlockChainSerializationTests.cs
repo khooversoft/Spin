@@ -27,7 +27,7 @@ public class BlockChainSerializationTests
     public async Task BlockChainSerializationRoundTrip()
     {
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId("user/tenant/user@domain.com")
+            .SetDocumentId("user/tenant/user@domain.com")
             .SetPrincipleId(_owner)
             .Build(_signCollection, _context)
             .Return();

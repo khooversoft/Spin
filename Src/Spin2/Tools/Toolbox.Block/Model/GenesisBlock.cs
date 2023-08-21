@@ -8,7 +8,7 @@ public record GenesisBlock
     public static string BlockType { get; } = "genesis";
 
     public string Type { get; init; } = BlockType;
-    public string ObjectId { get; init; } = null!;
+    public string DocumentId { get; init; } = null!;
     public string OwnerPrincipalId { get; init; } = null!;
 }
 
@@ -17,7 +17,7 @@ public static class GenesisBlockValidator
 {
     public static IValidator<GenesisBlock> Validator { get; } = new Validator<GenesisBlock>()
         .RuleFor(x => x.Type).NotEmpty()
-        .RuleFor(x => x.ObjectId).ValidObjectId()
+        .RuleFor(x => x.DocumentId).ValidResourceId()
         .RuleFor(x => x.OwnerPrincipalId).ValidPrincipalId()
         .Build();
 

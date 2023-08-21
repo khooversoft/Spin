@@ -22,7 +22,7 @@ public static class ApiStartup
         services.AddSingleton<PrincipalKeyConnector>();
         services.AddSingleton<PrincipalPrivateKeyConnector>();
         services.AddSingleton<SignatureConnector>();
-        services.AddSingleton<BlockConnector>();
+        services.AddSingleton<ContractConnector>();
 
         return services;
     }

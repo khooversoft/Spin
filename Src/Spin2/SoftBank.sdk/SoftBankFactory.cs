@@ -29,14 +29,14 @@ public class SoftBankFactory
         return Create(objectId, principalId, null, context);
     }
 
-    public async Task<Option<SoftBankAccount>> Create(ObjectId objectId, string principalId, BlockAcl? blockAcl, ScopeContext context)
+    public async Task<Option<SoftBankAccount>> Create(string documentId, string principalId, BlockAcl? blockAcl, ScopeContext context)
     {
-        objectId.NotNull();
+        documentId.NotEmpty();
         principalId.NotNull();
         context = context.With(_logger);
 
         Option<BlockChain> blockChain = await new BlockChainBuilder()
-            .SetObjectId(objectId)
+            .SetDocumentId(documentId)
             .SetPrincipleId(principalId)
             .AddAccess(blockAcl)
             .Build(_sign, context)

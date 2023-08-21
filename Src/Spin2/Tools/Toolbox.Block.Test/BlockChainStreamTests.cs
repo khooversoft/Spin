@@ -29,7 +29,7 @@ public class BlockChainStreamTests
         };
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetObjectId("user/tenant/user@domain.com")
+            .SetDocumentId("user/tenant/user@domain.com")
             .SetPrincipleId(_owner)
             .Build(_signCollection, _context)
             .Return();

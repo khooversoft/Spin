@@ -53,11 +53,11 @@ public class DataBlockBuilder
         return dataBlock with { Digest = dataBlock.CalculateDigest() };
     }
 
-    public static DataBlock CreateGenesisBlock(ObjectId objectId, string principalId, ScopeContext context)
+    public static DataBlock CreateGenesisBlock(string documentId, string principalId, ScopeContext context)
     {
         var marker = new GenesisBlock
         {
-            ObjectId = objectId,
+            DocumentId = documentId,
             OwnerPrincipalId = principalId,
         };
 
