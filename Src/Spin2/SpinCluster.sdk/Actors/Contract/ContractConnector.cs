@@ -3,15 +3,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Application;
+using Toolbox.Block;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Extensions;
-using Toolbox.Block;
-using Azure.Storage.Blobs.Models;
-using System.Reflection.Metadata;
 
-namespace SpinCluster.sdk.Actors.Block;
+namespace SpinCluster.sdk.Actors.Contract;
 
 public class ContractConnector
 {
@@ -73,8 +72,8 @@ public class ContractConnector
     }
 
     private async Task<IResult> GetLatest(
-        string documentId, 
-        string blockType, 
+        string documentId,
+        string blockType,
         [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
         [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
         )

@@ -1,12 +1,10 @@
-﻿using System.Reflection.Metadata;
-using SpinCluster.sdk.Application;
+﻿using SpinCluster.sdk.Application;
 using Toolbox.Block;
-using Toolbox.Data;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Block;
+namespace SpinCluster.sdk.Actors.Contract;
 
 public class ContractClient
 {

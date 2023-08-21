@@ -64,7 +64,7 @@ public static partial class IdPatterns
     {
         var s when s.Length != 2 => false,
         var s when s[0] != "contract" => false,
-        var s => s.Last().Split('/').Func(x => IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
+        var s => s.Last().Split('/').Func(x => x.Length > 1 && IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
     };
 
     public static bool TestStart(string subject, Func<char, bool> test) => test(subject[0]);

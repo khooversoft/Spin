@@ -81,12 +81,21 @@ public sealed class BlockChain
         }
     }
 
+    public Option<BlockReader<DataBlock>> GetReader(string principalId)
+    {
+        return IsOwner(principalId).IsOk() switch
+        {
+            true => new BlockReader<DataBlock>(_blocks.Select(x => x.DataBlock)),
+            false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
+        };
+    }
+
     public Option<BlockReader<DataBlock>> GetReader(string blockType, string principalId)
     {
         return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
         {
-            false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
             true => new BlockReader<DataBlock>(_blocks.Where(x => x.DataBlock.BlockType == blockType).Select(x => x.DataBlock)),
+            false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
         };
     }
 
@@ -105,19 +114,6 @@ public sealed class BlockChain
         {
             false => new Option<BlockWriter<T>>(StatusCode.Forbidden),
             true => new BlockWriter<T>(this, blockType),
-        };
-    }
-
-    public Option<BlockReader<BlockNode>> GetNodeReader(string principalId)
-    {
-        principalId.NotNull();
-
-        GenesisBlock genesisBlock = GetGenesisBlock();
-
-        return (genesisBlock.OwnerPrincipalId == principalId) switch
-        {
-            true => new BlockReader<BlockNode>(_blocks),
-            false => new Option<BlockReader<BlockNode>>(StatusCode.Forbidden),
         };
     }
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using SpinCluster.sdk.Actors.Block;
 using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;

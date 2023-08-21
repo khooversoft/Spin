@@ -10,7 +10,7 @@ using SpinClusterApi.test.Basics;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace SpinClusterApi.test.Sign;
+namespace SpinClusterApi.test.Contract;
 
 public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
 {

@@ -3,6 +3,7 @@ using System.Reflection;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Data;
@@ -12,7 +13,7 @@ using Toolbox.Security.Principal;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Block;
+namespace SpinCluster.sdk.Actors.Contract;
 
 public interface IContractActor : IGrainWithStringKey
 {
@@ -122,6 +123,28 @@ public class ContractActor : Grain, IContractActor
         var test = new Option()
             .Test(() => _state.RecordExists)
             .Test(() => IdPatterns.IsBlockType(blockType))
+            .Test(() => IdPatterns.IsPrincipalId(principalId));
+        if (test.IsError()) return test.ToOptionStatus<IReadOnlyList<DataBlock>>();
+
+        Option<BlockChain> readBlockChain = await ReadContract(context);
+        if (readBlockChain.IsError()) return readBlockChain.ToOptionStatus<IReadOnlyList<DataBlock>>();
+
+        BlockChain blockChain = readBlockChain.Return();
+        Option<BlockReader<DataBlock>> stream = blockChain.GetReader(blockType, principalId);
+        if (stream.IsError()) return stream.ToOptionStatus<IReadOnlyList<DataBlock>>();
+
+        IReadOnlyList<DataBlock> list = stream.Return().List();
+        return list.ToOption();
+    }
+
+    public async Task<Option<IReadOnlyList<DataBlock>>> List(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Getting all blocks, actorKey={actorKey}, principalId={principalId}",
+            this.GetPrimaryKeyString(), principalId);
+
+        var test = new Option()
+            .Test(() => _state.RecordExists)
             .Test(() => IdPatterns.IsPrincipalId(principalId));
         if (test.IsError()) return test.ToOptionStatus<IReadOnlyList<DataBlock>>();
 

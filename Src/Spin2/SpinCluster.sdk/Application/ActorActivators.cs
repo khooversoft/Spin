@@ -1,4 +1,4 @@
-﻿using SpinCluster.sdk.Actors.Block;
+﻿using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Signature;

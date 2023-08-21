@@ -1,8 +1,9 @@
-﻿using Toolbox.Block;
+﻿using SpinCluster.sdk.Actors.Contract;
+using Toolbox.Block;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Block;
+namespace SpinCluster.sdk.Actors.Contract;
 
 [GenerateSerializer, Immutable]
 public record ContractCreateModel
