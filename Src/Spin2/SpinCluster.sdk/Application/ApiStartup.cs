@@ -37,6 +37,6 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<PrincipalKeyConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<PrincipalPrivateKeyConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SignatureConnector>().Setup(app);
-        //app.ServiceProvider.GetRequiredService<BlockConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<ContractConnector>().Setup(app);
     }
 }

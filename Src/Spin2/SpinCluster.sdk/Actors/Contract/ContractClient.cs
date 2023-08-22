@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Application;
+﻿using System.Reflection.Metadata;
+using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -31,18 +32,11 @@ public class ContractClient
         .PostAsync(context)
         .ToOption();
 
-    public async Task<Option<DataBlock>> GetLatest(string documentId, string blockType, string principalId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Contract}/{Uri.EscapeDataString(documentId)}/latest/{Uri.EscapeDataString(blockType)}")
+    public async Task<Option<IReadOnlyList<DataBlock>>> Query(ContractQuery content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Contract}/query")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
-        .GetAsync(context)
-        .GetContent<DataBlock>();
-
-    public async Task<Option<IReadOnlyList<DataBlock>>> List(string documentId, string blockType, string principalId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Contract}/{Uri.EscapeDataString(documentId)}/list/{Uri.EscapeDataString(blockType)}")
-        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
-        .GetAsync(context)
+        .SetContent(content)
+        .PostAsync(context)
         .GetContent<IReadOnlyList<DataBlock>>();
 
     public async Task<Option> Append(string documentId, DataBlock content, ScopeContext context) => await new RestClient(_client)

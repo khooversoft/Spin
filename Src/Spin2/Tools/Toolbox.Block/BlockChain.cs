@@ -81,41 +81,41 @@ public sealed class BlockChain
         }
     }
 
-    public Option<BlockReader<DataBlock>> GetReader(string principalId)
-    {
-        return IsOwner(principalId).IsOk() switch
-        {
-            true => new BlockReader<DataBlock>(_blocks.Select(x => x.DataBlock)),
-            false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
-        };
-    }
+    //public Option<BlockReader<DataBlock>> GetReader(string principalId)
+    //{
+    //    return IsOwner(principalId).IsOk() switch
+    //    {
+    //        true => new BlockReader<DataBlock>(_blocks.Select(x => x.DataBlock)),
+    //        false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
+    //    };
+    //}
 
-    public Option<BlockReader<DataBlock>> GetReader(string blockType, string principalId)
-    {
-        return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
-        {
-            true => new BlockReader<DataBlock>(_blocks.Where(x => x.DataBlock.BlockType == blockType).Select(x => x.DataBlock)),
-            false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
-        };
-    }
+    //public Option<BlockReader<DataBlock>> GetReader(string blockType, string principalId)
+    //{
+    //    return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
+    //    {
+    //        true => new BlockReader<DataBlock>(_blocks.Where(x => x.DataBlock.BlockType == blockType).Select(x => x.DataBlock)),
+    //        false => new Option<BlockReader<DataBlock>>(StatusCode.Forbidden),
+    //    };
+    //}
 
-    public Option<BlockReader<T>> GetReader<T>(string blockType, string principalId) where T : class
-    {
-        return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
-        {
-            false => new Option<BlockReader<T>>(StatusCode.Forbidden),
-            true => new BlockReader<T>(_blocks.Where(x => x.DataBlock.BlockType == blockType).Select(x => x.DataBlock.ToObject<T>())),
-        };
-    }
+    //public Option<BlockReader<T>> GetReader<T>(string blockType, string principalId) where T : class
+    //{
+    //    return IsAuthorized(BlockGrant.Read, blockType, principalId) switch
+    //    {
+    //        false => new Option<BlockReader<T>>(StatusCode.Forbidden),
+    //        true => new BlockReader<T>(_blocks.Where(x => x.DataBlock.BlockType == blockType).Select(x => x.DataBlock.ToObject<T>())),
+    //    };
+    //}
 
-    public Option<BlockWriter<T>> GetWriter<T>(string blockType, string principalId) where T : class
-    {
-        return IsAuthorized(BlockGrant.Write, blockType, principalId) switch
-        {
-            false => new Option<BlockWriter<T>>(StatusCode.Forbidden),
-            true => new BlockWriter<T>(this, blockType),
-        };
-    }
+    //public Option<BlockWriter<T>> GetWriter<T>(string blockType, string principalId) where T : class
+    //{
+    //    return IsAuthorized(BlockGrant.Write, blockType, principalId) switch
+    //    {
+    //        false => new Option<BlockWriter<T>>(StatusCode.Forbidden),
+    //        true => new BlockWriter<T>(this, blockType),
+    //    };
+    //}
 
     public GenesisBlock GetGenesisBlock() => _blocks
         .Where(x => x.DataBlock.BlockType == GenesisBlock.BlockType)
@@ -145,27 +145,27 @@ public sealed class BlockChain
         blocks.NotNull();
         if (_blocks.Count == 0) return new Option(StatusCode.OK);
 
-        return blocks.All(x => IsAuthorized(BlockGrant.Write, x.BlockType, x.PrincipleId)) switch
+        return blocks.All(x => IsAuthorized(BlockGrant.Write, x.BlockType, x.PrincipleId).IsOk()) switch
         {
             true => new Option(StatusCode.OK),
             false => new Option(StatusCode.Unauthorized),
         };
     }
 
-    private bool IsAuthorized(BlockGrant grant, string blockType, string principalId)
+    public Option IsAuthorized(BlockGrant grant, string blockType, string principalId)
     {
         grant.IsEnumValid<BlockGrant>();
         blockType.NotNull();
         principalId.NotNull();
 
         GenesisBlock genesisBlock = GetGenesisBlock();
-        if (genesisBlock.OwnerPrincipalId == principalId) return true;
+        if (genesisBlock.OwnerPrincipalId == principalId) return StatusCode.OK;
 
         Option<BlockAcl> aclOption = this.GetAclBlock();
-        if (aclOption == Option<BlockAcl>.None) return false;
+        if (aclOption == Option<BlockAcl>.None) return StatusCode.Forbidden;
 
         bool hasAccess = aclOption.Return().HasAccess(grant, blockType, principalId);
-        return hasAccess;
+        return hasAccess ? StatusCode.OK : StatusCode.Forbidden;
     }
 
     private Option<BlockAcl> GetAclBlock() => _blocks

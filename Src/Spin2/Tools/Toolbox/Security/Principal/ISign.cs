@@ -4,5 +4,5 @@ namespace Toolbox.Security.Principal;
 
 public interface ISign
 {
-    Task<Option<string>> SignDigest(string kid, string messageDigest, string traceId);
+    Task<Option<string>> SignDigest(string principalId, string messageDigest, string traceId);
 }

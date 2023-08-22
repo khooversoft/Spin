@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Linq;
+using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
@@ -107,18 +108,18 @@ public class BlockAccessReadAccessTests
         blockChain.Count.Should().Be(4);
 
         // Check read access
-        var stream1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer2);
+        var stream1 = blockChain.IsAuthorized(BlockGrant.Read, nameof(Payload1), issuer2);
         stream1.IsError().Should().BeTrue();
-        var stream2 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer2);
+        var stream2 = blockChain.IsAuthorized(BlockGrant.Read, nameof(Payload2), issuer2);
         stream2.IsError().Should().BeTrue();
 
-        var streamOwner1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer);
+        var streamOwner1 = blockChain.Filter<Payload1>(issuer);
         streamOwner1.IsOk().Should().BeTrue();
-        streamOwner1.Return().List().Count.Should().Be(1);
+        streamOwner1.Return().ToList().Count.Should().Be(1);
 
-        var streamOwner2 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer);
+        var streamOwner2 = blockChain.Filter<Payload2>(issuer);
         streamOwner2.IsOk().Should().BeTrue();
-        streamOwner2.Return().List().Count.Should().Be(1);
+        streamOwner2.Return().ToList().Count.Should().Be(1);
     }
 
     [Fact]
@@ -163,20 +164,20 @@ public class BlockAccessReadAccessTests
         blockChain.Count.Should().Be(4);
 
         // Check read access
-        var stream1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer2);
+        var stream1 = blockChain.Filter<Payload1>(issuer2);
         stream1.IsError().Should().BeTrue();
 
-        var stream3 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer2);
+        var stream3 = blockChain.Filter<Payload2>(issuer2);
         stream3.IsOk().Should().BeTrue();
-        stream3.Return().List().Count.Should().Be(1);
+        stream3.Return().ToList().Count.Should().Be(1);
 
-        var streamOwner1 = blockChain.GetReader<Payload1>(nameof(Payload1), issuer);
+        var streamOwner1 = blockChain.Filter<Payload1>(issuer);
         streamOwner1.IsOk().Should().BeTrue();
-        streamOwner1.Return().List().Count.Should().Be(1);
+        streamOwner1.Return().ToList().Count.Should().Be(1);
 
-        var streamOwner2 = blockChain.GetReader<Payload2>(nameof(Payload2), issuer);
+        var streamOwner2 = blockChain.Filter<Payload2>(issuer);
         streamOwner2.IsOk().Should().BeTrue();
-        streamOwner2.Return().List().Count.Should().Be(1);
+        streamOwner2.Return().ToList().Count.Should().Be(1);
     }
 
     private record Payload1

@@ -13,7 +13,7 @@ public sealed record UserModel
 {
     private const string _version = nameof(UserModel) + "-v1";
 
-    // Id = "user/tenant/{principalId}"
+    // Id = "user:{principalId}"
     [Id(0)] public string UserId { get; init; } = null!;
     [Id(1)] public string Version { get; init; } = _version;
     [Id(2)] public string GlobalId { get; init; } = Guid.NewGuid().ToString();

@@ -36,6 +36,11 @@
       "BasePath": "leaseV1"
     },
     {
+      "SchemaName": "contract",
+      "ContainerName": "contract",
+      "BasePath": "contractV1"
+    },
+    {
       "SchemaName": "softBank",
       "ContainerName": "softbank",
       "BasePath": "softBankV1"

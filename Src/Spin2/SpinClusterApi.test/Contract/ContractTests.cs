@@ -21,16 +21,25 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+    private readonly SetupTools _setupTools;
 
-    public ContractTests(ClusterApiFixture fixture) => _cluster = fixture;
+    public ContractTests(ClusterApiFixture fixture)
+    {
+        _cluster = fixture;
+        _setupTools = new SetupTools(_cluster, _context);
+    }
 
     //[Fact(Skip = "server")]
     [Fact]
     public async Task LifecycleTest()
     {
-        string contractId = "contract:company7.com/contract1";
-        string blockType = "customBlock";
+        string subscriptionId = "Company7Subscription";
+        string tenantId = "company7.com";
         string principalId = "user1@company7.com";
+        string contractId = "contract:company7.com/contract1";
+
+        await _setupTools.DeleteUser(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
+        await _setupTools.CreateUser(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
 
         ContractClient contractClient = _cluster.ServiceProvider.GetRequiredService<ContractClient>();
 
@@ -46,9 +55,16 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
         var createOption = await contractClient.Create(createModel, _context);
         createOption.IsOk().Should().BeTrue();
 
+        var query = new ContractQuery
+        {
+            DocumentId = contractId,
+            PrincipalId = principalId,
+        };
 
+        var blocks = await contractClient.Query(query, _context);
+        blocks.IsOk().Should().BeTrue();
+        blocks.Return().Count.Should().Be(1);
 
-
-
+        await contractClient.Delete(contractId, principalId, _context).ThrowOnError();
     }
 }

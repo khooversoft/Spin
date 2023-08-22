@@ -21,6 +21,8 @@ public class BlockChainScalarStreamTests
     [Fact]
     public async Task GivenSingleDocument_ShouldPass()
     {
+        const string blockType = "ledger";
+
         var payloads = new[]
         {
             new Payload { Name = "Name1", Value = 1, Price = 1.5f },
@@ -37,19 +39,21 @@ public class BlockChainScalarStreamTests
         Option result = await blockChain.ValidateBlockChain(_signCollection, _context);
         result.StatusCode.IsOk().Should().BeTrue();
 
-        BlockWriter<Payload> writer = blockChain.GetWriter<Payload>("ledger", _owner).Return();
-
         IReadOnlyList<DataBlock> blocks = await payloads
-            .Select(x => writer.CreateDataBlock(x, _owner).Sign(_signCollection, _context).Return())
+            .Select(x => x.ToDataBlock(_owner, blockType).Sign(_signCollection, _context).Return())
             .Func(async x => await Task.WhenAll(x));
 
-        blocks.ForEach(x => writer.Add(x));
+        blockChain.Add(blocks.ToArray());
         blockChain.Count.Should().Be(4);
 
         await blockChain.ValidateBlockChain(_signCollection, _context).ThrowOnError();
 
-        BlockReader<Payload> reader = blockChain.GetReader<Payload>("ledger", _owner).Return();
-        Payload currentPayload = reader.GetLatest().Return();
+        Option<IEnumerable<DataBlock>> listOption = blockChain.Filter(_owner, blockType);
+        listOption.IsOk().Should().BeTrue();
+
+        IReadOnlyList<Payload> blockPayloads = listOption.Return().Select(x => x.ToObject<Payload>()).ToArray();
+        Payload currentPayload = blockPayloads.Last();
+
         (payloads.Last() == currentPayload).Should().BeTrue();
     }
 

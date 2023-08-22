@@ -75,9 +75,11 @@ namespace Toolbox.Block.Test
             // Get payload of data block
             blockChain.Count.Should().Be(2);
 
-            var nodes = blockChain.GetNodeReader(issuer).Return();
+            var blocksOption = blockChain.Filter(issuer);
+            blocksOption.IsOk().Should().BeTrue();
+            IReadOnlyList<DataBlock> blocks = blocksOption.Return().ToArray();
 
-            DataBlock genesis = nodes[0].DataBlock;
+            DataBlock genesis = blocks[0];
             var genesisBlock = new GenesisBlock
             {
                 DocumentId = objectId,
@@ -89,7 +91,7 @@ namespace Toolbox.Block.Test
             genesis.Data.Should().Be(genesisBlock.ToJson());
             genesis.PrincipleId.Should().Be(issuer);
 
-            DataBlock receiveBlock = nodes[1].DataBlock;
+            DataBlock receiveBlock = blocks[1];
             receiveBlock.BlockType.Should().Be("blockType");
             receiveBlock.ClassType.Should().Be("blockClass");
             receiveBlock.Data.Should().NotBeNullOrEmpty();
@@ -172,9 +174,9 @@ namespace Toolbox.Block.Test
             // Get payload of data block
             blockChain.Count.Should().Be(4);
 
-            var nodes = blockChain.GetNodeReader(issuer).Return();
+            var blocks = blockChain.Filter(issuer).Return().ToList();
 
-            DataBlock receiveBlock = nodes[2].DataBlock;
+            DataBlock receiveBlock = blocks[2];
             receiveBlock.Validate().ThrowOnError();
             receiveBlock.BlockType.Should().Be("objectClass");
             receiveBlock.ClassType.Should().Be("Payload");
@@ -184,7 +186,7 @@ namespace Toolbox.Block.Test
             Payload p1 = receiveBlock.Data.ToObject<Payload>().NotNull(name: "payload failed");
             (payload == p1).Should().BeTrue();
 
-            DataBlock receiveBlock2 = nodes[3].DataBlock;
+            DataBlock receiveBlock2 = blocks[3];
             receiveBlock2.Validate().ThrowOnError();
             receiveBlock2.BlockType.Should().Be("Payload2");
             receiveBlock2.ClassType.Should().Be("Payload2");

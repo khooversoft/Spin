@@ -27,11 +27,11 @@ public static class SoftBankStartup
 
         services.AddSingleton<ISign, SignProxy>();
         services.AddSingleton<ISignValidate, SignValidationProxy>();
-        services.AddSingleton<SoftBankFactory>();
+        //services.AddSingleton<SoftBankFactory>();
 
-        services.AddTransient<AccountDetailImpl>();
-        services.AddTransient<AclImpl>();
-        services.AddTransient<LedgerItemImpl>();
+        //services.AddTransient<AccountDetailImpl>();
+        //services.AddTransient<AclImpl>();
+        //services.AddTransient<LedgerItemImpl>();
 
         return services;
     }

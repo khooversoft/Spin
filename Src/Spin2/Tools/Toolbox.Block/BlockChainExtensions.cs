@@ -10,15 +10,39 @@ namespace Toolbox.Block;
 
 public static class BlockChainExtensions
 {
-    public static Option<BlockReader<T>> GetReader<T>(this BlockChain blockChain, string principalId) where T : class
+    public static Option<IEnumerable<DataBlock>> Filter(this BlockChain blockChain, string principalId, string? blockType = null)
     {
-        return blockChain.NotNull().GetReader<T>(typeof(T).Name, principalId);
+        blockChain.NotNull();
+
+        bool authorized = blockType switch
+        {
+            string v => blockChain.IsAuthorized(BlockGrant.Read, v, principalId).IsOk(),
+            _ => blockChain.IsOwner(principalId).IsOk(),
+        };
+
+        if (!authorized) return StatusCode.Forbidden;
+
+        IEnumerable<DataBlock> filter = blockChain.Blocks
+            .Select(x => x.DataBlock)
+            .Where(x => blockType == null || x.BlockType == blockType);
+
+        return filter.ToOption();
     }
 
-    public static Option<BlockWriter<T>> GetWriter<T>(this BlockChain blockChain, string principalId) where T : class
+    public static Option<IEnumerable<DataBlock>> Filter<T>(this BlockChain blockChain, string principalId)
     {
-        return blockChain.NotNull().GetWriter<T>(typeof(T).Name, principalId);
+        return blockChain.Filter(principalId, typeof(T).Name);
     }
+
+    //public static Option<BlockReader<T>> GetReader<T>(this BlockChain blockChain, string principalId) where T : class
+    //{
+    //    return blockChain.NotNull().GetReader<T>(typeof(T).Name, principalId);
+    //}
+
+    //public static Option<BlockWriter<T>> GetWriter<T>(this BlockChain blockChain, string principalId) where T : class
+    //{
+    //    return blockChain.NotNull().GetWriter<T>(typeof(T).Name, principalId);
+    //}
 
     public static BlobPackage ToBlobPackage(this BlockChain blockChain)
     {

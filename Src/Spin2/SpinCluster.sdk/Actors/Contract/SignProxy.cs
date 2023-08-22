@@ -17,7 +17,7 @@ public class SignProxy : ISign
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<string>> SignDigest(string kid, string messageDigest, string traceId)
+    public Task<Option<string>> SignDigest(string kid, string messageDigest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
 
@@ -29,6 +29,6 @@ public class SignProxy : ISign
 
         //Option<string> result = await _client.GetSignatureActor().SignDigest(kid, messageDigest, context.TraceId);
         //return result;
-        return default;
+        return Task.FromResult(new Option<string>(kid));
     }
 }

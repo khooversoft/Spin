@@ -29,9 +29,8 @@ public class ContractConnector
 
         group.MapDelete("/{documentId}", Delete);
         group.MapGet("/{documentId}/exist", Exist);
-        group.MapPost("/{documentId}/create", Create);
-        group.MapGet("/{documentId}/latest/{blockType}", GetLatest);
-        group.MapGet("/{documentId}/list/{blockType}", List);
+        group.MapPost("/create", Create);
+        group.MapPost("/query", Query);
         group.MapPost("/{documentId}/append", Append);
 
         return group;
@@ -39,18 +38,13 @@ public class ContractConnector
 
     private async Task<IResult> Delete(
         string documentId,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
+        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
         )
     {
         documentId = Uri.UnescapeDataString(documentId);
+        if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest();
 
-        var test = new Option()
-            .Test(() => IdPatterns.IsContractId(documentId))
-            .Test(() => IdPatterns.IsPrincipalId(principalId));
-        if (test.IsError()) return test.ToResult();
-
-        Option response = await _client.GetContractActor(documentId).Delete(principalId, traceId);
+        Option response = await _client.GetContractActor(documentId).Delete(traceId);
         return response.ToResult();
     }
 
@@ -71,37 +65,12 @@ public class ContractConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> GetLatest(
-        string documentId,
-        string blockType,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
-        )
+    private async Task<IResult> Query(ContractQuery model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var test = new Option()
-            .Test(() => IdPatterns.IsContractId(documentId))
-            .Test(() => IdPatterns.IsPrincipalId(principalId))
-            .Test(() => IdPatterns.IsBlockType(blockType));
-        if (test.IsError()) return test.ToResult();
+        var v = model.Validate();
+        if (v.IsError()) return v.ToResult();
 
-        Option<DataBlock> response = await _client.GetContractActor(documentId).GetLatest(blockType, principalId, traceId);
-        return response.ToResult();
-    }
-
-    private async Task<IResult> List(
-        string documentId,
-        string blockType,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
-        )
-    {
-        var test = new Option()
-            .Test(() => IdPatterns.IsContractId(documentId))
-            .Test(() => IdPatterns.IsPrincipalId(principalId))
-            .Test(() => IdPatterns.IsBlockType(blockType));
-        if (test.IsError()) return test.ToResult();
-
-        Option<IReadOnlyList<DataBlock>> response = await _client.GetContractActor(documentId).List(blockType, principalId, traceId);
+        Option<IReadOnlyList<DataBlock>> response = await _client.GetContractActor(model.DocumentId).Query(model, traceId);
         return response.ToResult();
     }
 

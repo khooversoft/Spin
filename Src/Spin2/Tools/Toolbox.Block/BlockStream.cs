@@ -1,33 +1,33 @@
-﻿using Toolbox.Block;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using Toolbox.Block;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-public class BlockReader<T> where T : class
-{
-    protected readonly IEnumerable<T> _blockNodes;
-    internal BlockReader(IEnumerable<T> blockNodes) => _blockNodes = blockNodes.NotNull();
+//public class BlockReader<T> where T : class
+//{
+//    protected readonly IEnumerable<T> _blockNodes;
+//    internal BlockReader(IEnumerable<T> blockNodes) => _blockNodes = blockNodes.NotNull();
 
-    public T this[int index] => _blockNodes.ToArray()[index];
-    public int Count => _blockNodes.Count();
-    public Option<T> GetLatest() => _blockNodes.LastOrDefaultOption();
-    public IReadOnlyList<T> List() => _blockNodes.ToArray();
-}
+//    public T this[int index] => _blockNodes.ToArray()[index];
+//    public int Count => _blockNodes.Count();
+//    public Option<T> GetLatest() => _blockNodes.LastOrDefaultOption();
+//    public IReadOnlyList<T> List() => _blockNodes.ToArray();
+//}
 
 
-public class BlockWriter<T> where T : class
-{
-    private readonly BlockChain _blockChain;
-    private readonly string _blockType;
+//public class BlockWriter<T> where T : class
+//{
+//    private readonly BlockChain _blockChain;
+//    private readonly string _blockType;
 
-    internal BlockWriter(BlockChain blockChain, string blockType)
-    {
-        IdPatterns.IsBlockType(blockType).Assert(x => x == true, "Invalid blocktype");
+//    internal BlockWriter(BlockChain blockChain, string blockType)
+//    {
+//        IdPatterns.IsBlockType(blockType).Assert(x => x == true, "Invalid blocktype");
 
-        _blockChain = blockChain.NotNull();
-        _blockType = blockType;
-    }
+//        _blockChain = blockChain.NotNull();
+//        _blockType = blockType;
+//    }
 
-    public Option Add(DataBlock value) => _blockChain.Add(value);
+//    public Option Add(DataBlock value) => _blockChain.Add(value);
 
-    public DataBlock CreateDataBlock(T subject, string principalId) => subject.ToDataBlock(principalId: principalId, blockType: _blockType);
-}
+//    public DataBlock CreateDataBlock(T subject, string principalId) => subject.ToDataBlock(principalId: principalId, blockType: _blockType);
+//}
