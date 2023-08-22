@@ -1,22 +1,48 @@
-﻿using SpinCluster.sdk.Actors.Signature;
-using SpinCluster.sdk.Actors.User;
+﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
 using Toolbox.Rest;
+using Toolbox.Security.Principal;
+using Toolbox.Security.Sign;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.PrincipalKey;
 
-public class SignatureClient
+public class SignatureClient : ISign
 {
     private readonly HttpClient _client;
+    private readonly ILogger<SignatureClient> _logger;
 
-    public SignatureClient(HttpClient client)
+    public SignatureClient(HttpClient client, ILogger<SignatureClient> logger)
     {
-        _client = client;
+        _client = client.NotNull();
+        _logger = logger.NotNull();
     }
 
-    public async Task<Option> ValidateDigest(ValidateRequest model, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Signature}")
+
+    public async Task<Option<SignResponse>> SignDigest(string principalId, string messageDigest, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+
+        var request = new SignRequest
+        {
+            PrincipalId = principalId,
+            MessageDigest = messageDigest,
+        };
+
+        return await SignDigest(request, context);
+    }
+
+    public async Task<Option<SignResponse>> SignDigest(SignRequest model, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Signature}/sign")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .SetContent(model)
+        .PostAsync(context)
+        .GetContent<SignResponse>();
+
+
+    public async Task<Option> ValidateDigest(SignValidateRequest model, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Signature}/validate")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(model)
         .PostAsync(context)

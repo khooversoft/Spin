@@ -8,6 +8,7 @@ using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
 using SpinClusterApi.test.Basics;
 using Toolbox.Extensions;
+using Toolbox.Security.Sign;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Contract;
@@ -57,7 +58,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
 
         SignatureClient signatureClient = _cluster.ServiceProvider.GetRequiredService<SignatureClient>();
 
-        var validationRequest = new ValidateRequest
+        var validationRequest = new SignValidateRequest
         {
             JwtSignature = response.JwtSignature,
             MessageDigest = messageDigest
@@ -66,7 +67,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         var validation = await signatureClient.ValidateDigest(validationRequest, _context);
         validation.IsOk().Should().BeTrue();
 
-        var badValidationRequest = new ValidateRequest
+        var badValidationRequest = new SignValidateRequest
         {
             JwtSignature = response.JwtSignature,
             MessageDigest = messageDigest + ".",

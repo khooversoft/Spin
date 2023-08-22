@@ -1,8 +1,9 @@
-﻿using Toolbox.Types;
+﻿using Toolbox.Security.Sign;
+using Toolbox.Types;
 
 namespace Toolbox.Security.Principal;
 
 public interface ISign
 {
-    Task<Option<string>> SignDigest(string principalId, string messageDigest, string traceId);
+    Task<Option<SignResponse>> SignDigest(string principalId, string messageDigest, string traceId);
 }

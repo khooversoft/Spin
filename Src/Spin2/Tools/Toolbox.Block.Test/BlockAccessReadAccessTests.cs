@@ -15,14 +15,14 @@ public class BlockAccessReadAccessTests
     public async Task MultipleNodeWithAccessWrites()
     {
         const string issuer = "user@domain.com";
-        const string objectId = $"user/tenant/{issuer}";
+        const string documentId = $"contract:domain.com/{issuer}";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetDocumentId(objectId)
+            .SetDocumentId(documentId)
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
@@ -56,14 +56,14 @@ public class BlockAccessReadAccessTests
     public async Task MultipleNodeWithAccessWriteButNotRead()
     {
         const string issuer = "user@domain.com";
-        const string objectId = $"user/tenant/{issuer}";
+        const string documentId = $"contract:domain.com/{issuer}";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetDocumentId(objectId)
+            .SetDocumentId(documentId)
             .SetPrincipleId(issuer)
             .Build(principleSignature, _context)
             .Return();
@@ -126,14 +126,14 @@ public class BlockAccessReadAccessTests
     public async Task MultipleNodeWithAccessWriteReadWrite()
     {
         const string issuer = "user@domain.com";
-        const string objectId = $"user/tenant/{issuer}";
+        const string documentId = $"contract:domain.com/{issuer}";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature2 = new PrincipalSignature(issuer2, issuer2, "userBusiness@domain.com");
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetDocumentId(objectId)
+            .SetDocumentId(documentId)
             .SetPrincipleId(issuer)
             .AddAccess(new BlockAccess { Grant = BlockGrant.ReadWrite, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)

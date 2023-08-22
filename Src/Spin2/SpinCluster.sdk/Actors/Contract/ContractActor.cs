@@ -1,19 +1,15 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using Azure.Storage.Blobs.Models;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
-using Toolbox.Security.Principal;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
-using SpinCluster.sdk.Actors.Signature;
 
 namespace SpinCluster.sdk.Actors.Contract;
 
@@ -24,6 +20,7 @@ public interface IContractActor : IGrainWithStringKey
     Task<Option> Create(ContractCreateModel blockCreateModel, string traceId);
     Task<Option<IReadOnlyList<DataBlock>>> Query(ContractQuery model, string traceId);
     Task<Option> Append(DataBlock block, string traceId);
+    Task<Option<ContractPropertyModel>> GetProperties(string principalId, string traceId);
 }
 
 public class ContractActor : Grain, IContractActor
@@ -138,10 +135,35 @@ public class ContractActor : Grain, IContractActor
 
         BlockChain blockChain = readBlockChain.Return();
         var addOption = blockChain.Add(block);
-        if( addOption.IsError() ) return addOption;
+        if (addOption.IsError()) return addOption;
 
         var writeOption = await WriteContract(blockChain, context);
         return writeOption;
+    }
+
+    public async Task<Option<ContractPropertyModel>> GetProperties(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("GetProperties, actorKey={actorKey}, principalId={principalId}", this.GetPrimaryKeyString(), principalId);
+
+        var read = await ReadContract(context);
+        if (read.IsError()) return read.ToOptionStatus<ContractPropertyModel>();
+
+        if (_state.State.IsOwner(principalId).IsError()) return StatusCode.Forbidden;
+
+
+        GenesisBlock genesis = _state.State.GetGenesisBlock();
+        Option<BlockAcl> acl = _state.State.GetAclBlock(principalId);
+
+        var response = new ContractPropertyModel
+        {
+            DocumentId = genesis.DocumentId,
+            OwnerPrincipalId = genesis.OwnerPrincipalId,
+            BlockAcl = acl.HasValue ? acl.Value.Items.ToArray() : Array.Empty<BlockAccess>(),
+            BlockCount = _state.State.Count,
+        };
+
+        return response;
     }
 
     private async Task<Option<BlockChain>> ReadContract(ScopeContext context)
@@ -179,14 +201,4 @@ public class ContractActor : Grain, IContractActor
 
         return result;
     }
-
-    //private async Task<Option> IsOwner(string principalId, ScopeContext context)
-    //{
-    //    Option<BlockChain> blockChain = await ReadContract(context);
-    //    if (blockChain.IsError()) return blockChain.ToOptionStatus();
-
-    //    if (blockChain.Return().IsOwner(principalId).IsError()) return StatusCode.Forbidden;
-
-    //    return StatusCode.OK;
-    //}
 }

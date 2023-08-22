@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
-using SpinCluster.sdk.Actors.User;
-using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
-using SpinClusterApi.test.Basics;
+using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -44,7 +37,7 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
         ContractClient contractClient = _cluster.ServiceProvider.GetRequiredService<ContractClient>();
 
         var existOption = await contractClient.Exist(contractId, _context);
-        if (existOption.IsOk()) await contractClient.Delete(contractId, principalId, _context).ThrowOnError();
+        if (existOption.IsOk()) await contractClient.Delete(contractId, _context).ThrowOnError();
 
         var createModel = new ContractCreateModel
         {
@@ -65,6 +58,49 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
         blocks.IsOk().Should().BeTrue();
         blocks.Return().Count.Should().Be(1);
 
-        await contractClient.Delete(contractId, principalId, _context).ThrowOnError();
+        // Add blocks
+        const string blockType = "ledger";
+
+        var payloads = new[]
+        {
+            new Payload { Name = "Name1", Value = 1, Price = 1.5f },
+            new Payload { Name = "Name2", Value = 2, Price = 2.5f },
+            new Payload { Name = "Name2-offset", Value = 5, Price = 5.5f },
+        };
+
+        SignatureClient signatureClient = _cluster.ServiceProvider.GetRequiredService<SignatureClient>();
+
+        foreach (var payloadBlock in payloads)
+        {
+            var signedBlockOption = await payloadBlock.ToDataBlock(principalId, blockType).Sign(signatureClient, _context);
+            signedBlockOption.IsOk().Should().BeTrue();
+
+            DataBlock signedBlock = signedBlockOption.Return();
+            var writeResponse = await contractClient.Append(contractId, signedBlock, _context);
+            writeResponse.IsOk().Should().BeTrue();
+        }
+
+        var blocks2 = await contractClient.Query(query, _context);
+        blocks2.IsOk().Should().BeTrue();
+        blocks2.Return().Count.Should().Be(4);
+
+        var properties = await contractClient.GetProperties(contractId, principalId, _context);
+        properties.IsOk().Should().BeTrue();
+
+        ContractPropertyModel propertyModel = properties.Return();
+        propertyModel.DocumentId.Should().Be(contractId);
+        propertyModel.OwnerPrincipalId.Should().Be(principalId);
+        propertyModel.BlockAcl.Should().NotBeNull();
+        propertyModel.BlockAcl.Count.Should().Be(0);
+        propertyModel.BlockCount.Should().Be(4);
+
+        await contractClient.Delete(contractId, _context).ThrowOnError();
+    }
+
+    private record Payload
+    {
+        public string? Name { get; set; }
+        public int Value { get; set; }
+        public float Price { get; set; }
     }
 }

@@ -12,10 +12,9 @@ public class ContractClient
     protected readonly HttpClient _client;
     public ContractClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option> Delete(string documentId, string principalId, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> Delete(string documentId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Contract}/{Uri.EscapeDataString(documentId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
         .DeleteAsync(context)
         .ToOption();
 
@@ -46,4 +45,10 @@ public class ContractClient
         .PostAsync(context)
         .ToOption();
 
+    public async Task<Option<ContractPropertyModel>> GetProperties(string documentId, string principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Contract}/{Uri.EscapeDataString(documentId)}/property")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
+        .GetAsync(context)
+        .GetContent<ContractPropertyModel>();
 }

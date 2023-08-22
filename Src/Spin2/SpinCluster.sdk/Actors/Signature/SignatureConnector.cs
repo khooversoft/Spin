@@ -7,6 +7,7 @@ using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
@@ -30,12 +31,23 @@ public class SignatureConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Signature}");
 
-        group.MapPost("/", Validate);
+        group.MapPost("/sign", Sign);
+        group.MapPost("/validate", Validate);
 
         return group;
     }
 
-    private async Task<IResult> Validate(ValidateRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Sign(SignRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        var validation = model.Validate().LogResult(context.Location());
+        if (validation.IsError()) return validation.ToResult();
+
+        var result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
+        return result.ToResult();
+    }
+
+    private async Task<IResult> Validate(SignValidateRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         var validation = model.Validate().LogResult(context.Location());

@@ -3,7 +3,7 @@
 namespace SpinCluster.sdk.Serialization;
 
 [GenerateSerializer]
-public struct BlockAccessSerialization
+public struct BlockAccess_Surrogate
 {
     [Id(0)] public BlockGrant Grant;
     [Id(1)] public string? Claim;
@@ -13,9 +13,9 @@ public struct BlockAccessSerialization
 
 
 [RegisterConverter]
-public sealed class BlockAccessSerializationConverter : IConverter<BlockAccess, BlockAccessSerialization>
+public sealed class BlockAccess_SurrogateConverter : IConverter<BlockAccess, BlockAccess_Surrogate>
 {
-    public BlockAccess ConvertFromSurrogate(in BlockAccessSerialization surrogate) => new BlockAccess
+    public BlockAccess ConvertFromSurrogate(in BlockAccess_Surrogate surrogate) => new BlockAccess
     {
         Grant = surrogate.Grant,
         Claim = surrogate.Claim,
@@ -23,7 +23,7 @@ public sealed class BlockAccessSerializationConverter : IConverter<BlockAccess, 
         PrincipalId = surrogate.PrincipalId,
     };
 
-    public BlockAccessSerialization ConvertToSurrogate(in BlockAccess value) => new BlockAccessSerialization
+    public BlockAccess_Surrogate ConvertToSurrogate(in BlockAccess value) => new BlockAccess_Surrogate
     {
         Grant = value.Grant,
         Claim = value.Claim,

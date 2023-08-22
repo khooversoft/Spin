@@ -32,6 +32,7 @@ public class ContractConnector
         group.MapPost("/create", Create);
         group.MapPost("/query", Query);
         group.MapPost("/{documentId}/append", Append);
+        group.MapGet("/{documentId}/property", Property);
 
         return group;
     }
@@ -76,12 +77,31 @@ public class ContractConnector
 
     private async Task<IResult> Append(string documentId, DataBlock content, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
+        documentId = Uri.UnescapeDataString(documentId);
+
         var test = new Option()
             .Test(() => IdPatterns.IsContractId(documentId))
             .Test(() => content.Validate());
         if (test.IsError()) return test.ToResult();
 
         Option response = await _client.GetContractActor(documentId).Append(content, traceId);
+        return response.ToResult();
+    }
+
+    private async Task<IResult> Property(
+        string documentId,
+        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
+        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
+        )
+    {
+        documentId = Uri.UnescapeDataString(documentId);
+
+        var test = new Option()
+            .Test(() => IdPatterns.IsContractId(documentId))
+            .Test(() => IdPatterns.IsPrincipalId(principalId));
+        if (test.IsError()) return test.ToResult();
+
+        Option<ContractPropertyModel> response = await _client.GetContractActor(documentId).GetProperties(principalId, traceId);
         return response.ToResult();
     }
 }

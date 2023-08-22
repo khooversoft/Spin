@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Toolbox.Extensions;
 using Toolbox.Security.Jwt;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -18,9 +19,9 @@ public class PrincipalSignatureCollection : ISign, ISignValidate
     public void Clear() => _principalList.Clear();
     public bool Remove(string kid) => _principalList.TryRemove(kid, out var _);
 
-    public async Task<Option<string>> SignDigest(string kid, string messageDigest, string traceId)
+    public async Task<Option<SignResponse>> SignDigest(string kid, string messageDigest, string traceId)
     {
-        if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option<string>(StatusCode.NotFound, "kid not found");
+        if (!_principalList.TryGetValue(kid, out var principalSignature)) return new Option<SignResponse>(StatusCode.NotFound, "kid not found");
 
         var result = await principalSignature.SignDigest(kid, messageDigest, traceId);
         return result;

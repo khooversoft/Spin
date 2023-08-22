@@ -1,6 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using Toolbox.Extensions;
 using Toolbox.Security.Jwt;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -34,9 +35,9 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
 
     public abstract SecurityKey GetSecurityKey();
 
-    public Task<Option<string>> SignDigest(string kid, string messageDigest, string _)
+    public Task<Option<SignResponse>> SignDigest(string principalId, string messageDigest, string _)
     {
-        kid.NotEmpty().Assert(x => x == Kid, "Kid does not match");
+        principalId.NotEmpty().Assert(x => x == Kid, "Kid does not match");
         messageDigest.NotEmpty();
 
         string jwt = new JwtTokenBuilder()
@@ -46,7 +47,15 @@ public abstract class PrincipalSignatureBase : IPrincipalSignature
             .SetPrincipleSignature(this)
             .Build();
 
-        return jwt.ToOption().ToTaskResult();
+        var response = new SignResponse
+        {
+            PrincipleId = principalId,
+            Kid = Kid,
+            MessageDigest = messageDigest,
+            JwtSignature = jwt,
+        };
+
+        return response.ToOption().ToTaskResult();
     }
 
     public Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string _)

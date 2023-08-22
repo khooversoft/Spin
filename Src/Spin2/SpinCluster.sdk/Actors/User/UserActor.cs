@@ -4,6 +4,7 @@ using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
+using Toolbox.Security.Sign;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.User;
@@ -161,7 +162,7 @@ public class UserActor : Grain, IUserActor
 
         var response = new SignResponse
         {
-            UserId = _state.State.UserId,
+            PrincipleId = _state.State.UserId,
             Kid = _state.State.UserKey.KeyId,
             MessageDigest = messageDigest,
             JwtSignature = signResponse.Return()

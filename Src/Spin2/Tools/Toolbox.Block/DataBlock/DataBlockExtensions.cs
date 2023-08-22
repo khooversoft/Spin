@@ -1,6 +1,7 @@
 ﻿using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Security.Principal;
+using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Types.MerkleTree;
@@ -42,10 +43,10 @@ public static class DataBlockExtensions
         dataBlock.NotNull();
         sign.NotNull();
 
-        Option<string> jwt = await sign.SignDigest(dataBlock.PrincipleId, dataBlock.Digest, context.TraceId);
+        Option<SignResponse> jwt = await sign.SignDigest(dataBlock.PrincipleId, dataBlock.Digest, context.TraceId);
         if (jwt.IsError()) return jwt.ToOptionStatus<DataBlock>();
 
-        return dataBlock with { JwtSignature = jwt.Return() };
+        return dataBlock with { JwtSignature = jwt.Return().JwtSignature };
     }
 
     public static T ToObject<T>(this DataBlock dataBlock)

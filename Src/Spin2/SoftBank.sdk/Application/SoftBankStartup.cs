@@ -25,8 +25,8 @@ public static class SoftBankStartup
         services.AddSingleton<IValidator<AccountDetail>>(AccountDetailValidator.Validator);
         services.AddSingleton<IValidator<BlockAcl>>(BlockAclValidator.Validator);
 
-        services.AddSingleton<ISign, SignProxy>();
-        services.AddSingleton<ISignValidate, SignValidationProxy>();
+        //services.AddSingleton<ISign, SignProxy>();
+        //services.AddSingleton<ISignValidate, SignValidationProxy>();
         //services.AddSingleton<SoftBankFactory>();
 
         //services.AddTransient<AccountDetailImpl>();

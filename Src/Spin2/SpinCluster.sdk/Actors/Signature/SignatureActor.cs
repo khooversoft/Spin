@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Concurrency;
-using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Security.Jwt;
 using Toolbox.Security.Principal;
+using Toolbox.Security.Sign;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Signature;
@@ -26,7 +26,7 @@ public class SignatureActor : Grain, ISignatureActor
         _logger = logger;
     }
 
-    public async Task<Option<string>> SignDigest(string principalId, string messageDigest, string traceId)
+    public async Task<Option<SignResponse>> SignDigest(string principalId, string messageDigest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("SignDigest, principalId={principalId}", principalId);
@@ -35,9 +35,9 @@ public class SignatureActor : Grain, ISignatureActor
         ResourceId UserId = IdTool.CreateUserId(principalId);
 
         Option<SignResponse> result = await _clusterClient.GetUserActor(UserId).SignDigest(messageDigest, traceId);
-        if (result.IsError()) return new Option<string>(result.StatusCode, "Failed to sign messageDigest, " + result.Error);
+        if (result.IsError()) return new Option<SignResponse>(result.StatusCode, "Failed to sign messageDigest, " + result.Error);
 
-        return result.Return().JwtSignature;
+        return result.Return();
     }
 
     public async Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string traceId)

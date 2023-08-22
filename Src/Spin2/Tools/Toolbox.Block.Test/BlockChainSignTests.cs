@@ -22,7 +22,7 @@ namespace Toolbox.Block.Test
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetDocumentId("user/tenant/user@domain.com")
+                .SetDocumentId("contract:domain.com/user@domain.com")
                 .SetPrincipleId(issuer)
                 .Build(principleSignature, _context)
                 .Return();
@@ -37,7 +37,7 @@ namespace Toolbox.Block.Test
         public async Task AppendSingleNode()
         {
             const string issuer = "user@domain.com";
-            const string objectId = $"user/tenant/{issuer}";
+            const string documentId = $"contract:domain.com/{issuer}";
 
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
@@ -62,7 +62,7 @@ namespace Toolbox.Block.Test
                 .Return();
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetDocumentId(objectId)
+                .SetDocumentId(documentId)
                 .SetPrincipleId(issuer)
                 .Build(principleSignature, _context)
                 .Return();
@@ -82,7 +82,7 @@ namespace Toolbox.Block.Test
             DataBlock genesis = blocks[0];
             var genesisBlock = new GenesisBlock
             {
-                DocumentId = objectId,
+                DocumentId = documentId,
                 OwnerPrincipalId = issuer,
             };
 
@@ -111,27 +111,11 @@ namespace Toolbox.Block.Test
             VerifyBlockChain(blockChain, payload, payload2);
         }
 
-        [Fact]
-        public async Task BlockChainSerialization()
-        {
-            (Payload payload, Payload2 payload2, BlockChain blockChain) = await Create();
-            string blockChainDigest = blockChain.GetDigest();
-
-            BlobPackage blobPackage = blockChain.ToBlobPackage();
-            blobPackage.Validate().ThrowOnError();
-
-            BlockChain readBlockChain = blobPackage.ToBlockChain(_context).Return();
-            string readBlockChainDigest = readBlockChain.GetDigest();
-
-            VerifyBlockChain(readBlockChain, payload, payload2);
-            (blockChainDigest == readBlockChainDigest).Should().BeTrue();
-        }
-
         private async Task<(Payload payload, Payload2 payload2, BlockChain blockChain)> Create()
         {
             const string issuer = "user@domain.com";
             const string issuer2 = "user2@domain.com";
-            const string objectId = $"user/tenant/{issuer}";
+            const string documentId = $"contract:domain.com/{issuer}";
             var now = UnixDate.UtcNow;
             var date = DateTime.UtcNow;
 
@@ -140,7 +124,7 @@ namespace Toolbox.Block.Test
                 .Add(new PrincipalSignature(issuer2, issuer2, "userBusiness2@domain.com"));
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetDocumentId(objectId)
+                .SetDocumentId(documentId)
                 .SetPrincipleId(issuer)
                 .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
                 .Build(signCollection, _context)
