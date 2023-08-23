@@ -31,8 +31,8 @@ public class ContractClient
         .PostAsync(context)
         .ToOption();
 
-    public async Task<Option<IReadOnlyList<DataBlock>>> Query(ContractQuery content, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Contract}/query")
+    public async Task<Option<IReadOnlyList<DataBlock>>> Query(string documentId, ContractQuery content, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Contract}/{Uri.EscapeDataString(documentId)}/query")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context)

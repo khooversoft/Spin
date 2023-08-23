@@ -30,7 +30,7 @@ public class ContractConnector
         group.MapDelete("/{documentId}", Delete);
         group.MapGet("/{documentId}/exist", Exist);
         group.MapPost("/create", Create);
-        group.MapPost("/query", Query);
+        group.MapPost("/{documentId}/query", Query);
         group.MapPost("/{documentId}/append", Append);
         group.MapGet("/{documentId}/property", Property);
 
@@ -66,12 +66,16 @@ public class ContractConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> Query(ContractQuery model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Query(string documentId, ContractQuery model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var v = model.Validate();
-        if (v.IsError()) return v.ToResult();
+        documentId = Uri.UnescapeDataString(documentId);
 
-        Option<IReadOnlyList<DataBlock>> response = await _client.GetContractActor(model.DocumentId).Query(model, traceId);
+        var test = new Option()
+            .Test(() => IdPatterns.IsContractId(documentId))
+            .Test(() => model.Validate());
+        if (test.IsError()) return test.ToResult();
+
+        Option<IReadOnlyList<DataBlock>> response = await _client.GetContractActor(documentId).Query(model, traceId);
         return response.ToResult();
     }
 

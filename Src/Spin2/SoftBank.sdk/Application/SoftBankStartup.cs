@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using SoftBank.sdk.Models;
-using Toolbox.Block;
-using Toolbox.Security.Principal;
+﻿using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using SpinCluster.sdk.Actors.SoftBank;
 using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 
 namespace SoftBank.sdk.Application;
 
@@ -21,18 +19,13 @@ public static class SoftBankStartup
     {
         services.NotNull();
 
-        services.AddSingleton<IValidator<LedgerItem>>(LedgerTypeValidator.Validator);
-        services.AddSingleton<IValidator<AccountDetail>>(AccountDetailValidator.Validator);
-        services.AddSingleton<IValidator<BlockAcl>>(BlockAclValidator.Validator);
-
-        //services.AddSingleton<ISign, SignProxy>();
-        //services.AddSingleton<ISignValidate, SignValidationProxy>();
-        //services.AddSingleton<SoftBankFactory>();
-
-        //services.AddTransient<AccountDetailImpl>();
-        //services.AddTransient<AclImpl>();
-        //services.AddTransient<LedgerItemImpl>();
+        services.AddSingleton<SoftBankConnector>();
 
         return services;
+    }
+
+    public static void MapSoftBank(this IEndpointRouteBuilder app)
+    {
+        app.ServiceProvider.GetRequiredService<SoftBankConnector>().Setup(app);
     }
 }

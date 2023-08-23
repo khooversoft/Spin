@@ -15,7 +15,6 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
-//using SoftBank.sdk.Application;
 
 namespace SpinCluster.sdk.Application;
 
@@ -35,17 +34,12 @@ public static class SiloStartup
             services.AddSpinCluster(option);
         });
 
-        //builder.AddSoftBank();
-
         return builder;
     }
 
     public static IServiceCollection AddSpinCluster(this IServiceCollection services, SpinClusterOption option)
     {
         services.AddSingleton(option);
-
-        services.AddSingleton<IValidator<SiloConfigOption>>(SiloConfigOptionValidator.Validator);
-        services.AddSingleton<IValidator<SearchQuery>>(SearchQueryValidator.Validator);
 
         services.AddSingleton<DatalakeSchemaResources>();
         services.AddSingleton<DatalakeResourceIdMap>();
@@ -73,7 +67,6 @@ public static class SiloStartup
 
             return new SiloConfigStore(datalakeLocation, store, loggerFactory.CreateLogger<SiloConfigStore>());
         });
-
 
 
         return services;

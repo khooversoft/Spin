@@ -1,244 +1,220 @@
-﻿//using Microsoft.Extensions.Logging;
-//using Orleans.Runtime;
-//using SoftBank.sdk;
-//using SoftBank.sdk.Models;
-//using SpinCluster.sdk.Actors.ActorBase;
-//using SpinCluster.sdk.Application;
-//using Toolbox.Block;
-//using Toolbox.Data;
-//using Toolbox.Extensions;
-//using Toolbox.Orleans.Types;
-//using Toolbox.Security.Principal;
-//using Toolbox.Tools;
-//using Toolbox.Tools.Validation;
-//using Toolbox.Types;
+﻿using System.Diagnostics;
+using System.Diagnostics.Contracts;
+using Microsoft.Azure.Amqp.Framing;
+using Microsoft.Extensions.Logging;
+using Orleans.Runtime;
+using SoftBank.sdk;
+using SoftBank.sdk.Application;
+using SoftBank.sdk.Models;
+using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Signature;
+using SpinCluster.sdk.Application;
+using Toolbox.Block;
+using Toolbox.Data;
+using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
+using Toolbox.Security.Principal;
+using Toolbox.Tools;
+using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 
-//namespace SpinCluster.sdk.Actors.SoftBank;
+namespace SpinCluster.sdk.Actors.SoftBank;
 
-//public class SoftBankActor : Grain, ISoftBankActor
-//{
-//    private readonly IPersistentState<BlobPackage> _state;
-//    private readonly IValidator<AccountDetail> _accountValidator;
-//    private readonly ILogger<SoftBankActor> _logger;
-//    private readonly ISign _sign;
-//    private readonly IValidator<LedgerItem> _ledgerItemValidator;
-//    private readonly ISignValidate _signValidate;
-//    private readonly SoftBankFactory _softBankFactory;
-//    private ScopeContext _actorContext;
+public interface ISoftBankActor : IGrainWithStringKey
+{
+    Task<Option> Delete(string traceId);
+    Task<Option> Exist(string traceId);
+    Task<Option> Create(AccountDetail detail, string traceId);
+    Task<Option> SetAccountDetail(AccountDetail detail, string traceId);
+    Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId);
+    Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId);
+    Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId);
+    Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId);
+    Task<Option<AccountBalance>> GetBalance(string principalId, string traceId);
+}
 
-//    public SoftBankActor(
-//        [PersistentState(stateName: SpinConstants.Extension.SmartContract, storageName: SpinConstants.SpinStateStore)] IPersistentState<BlobPackage> state,
-//        IValidator<AccountDetail> accountValidator,
-//        IValidator<LedgerItem> ledgerItemValidator,
-//        ISign sign,
-//        ISignValidate signValidate,
-//        SoftBankFactory softBankFactory,
-//        ILogger<SoftBankActor> logger
-//        )
-//    {
-//        _state = state.NotNull();
-//        _accountValidator = accountValidator.NotNull();
-//        _logger = logger.NotNull();
-//        _sign = sign.NotNull();
-//        _ledgerItemValidator = ledgerItemValidator.NotNull();
-//        _signValidate = signValidate.NotNull();
+// ActorKey = "softbank:company3.com/accountId"
+// ContractId = "contract:company3.com/softbank/accountId"
+public class SoftBankActor : Grain, ISoftBankActor
+{
+    private readonly ILogger<SoftBankActor> _logger;
+    private readonly IClusterClient _clusterClient;
 
-//        _actorContext = new ScopeContext(_logger);
-//        _softBankFactory = softBankFactory.NotNull();
-//    }
+    public SoftBankActor(IClusterClient clusterClient, ILogger<SoftBankActor> logger)
+    {
+        _logger = logger.NotNull();
+        _clusterClient = clusterClient;
+    }
 
-//    public async Task<Option> Delete(string principalId, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
-//        context.Location().LogInformation("Deleting SoftBank - actorId={actorId}", this.GetPrimaryKeyString());
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        this.VerifySchema("softbank", new ScopeContext(_logger));
+        return base.OnActivateAsync(cancellationToken);
+    }
 
-//        Option<SoftBankAccount> softBank = await ReadContract(context);
-//        if (softBank.IsError()) return softBank.ToOptionStatus();
+    public async Task<Option> Delete(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Deleting SoftBank - actorId={actorId}", this.GetPrimaryKeyString());
 
-//        Option isOwner = softBank.Return().IsOwner(principalId);
-//        if (isOwner.StatusCode.IsError()) return isOwner;
+        var result = await GetContractorActor().Delete(traceId);
+        return result;
+    }
 
-//        await _state.Delete(this.GetPrimaryKeyString(), new ScopeContext(traceId, _logger).Location());
-//        return StatusCode.OK;
-//    }
+    public async Task<Option> Exist(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
 
-//    public Task<Option> Exist(string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
+        var result = await GetContractorActor().Exist(traceId);
+        return result;
+    }
 
-//        StatusCode exist = _state.RecordExists ? StatusCode.OK : StatusCode.NoContent;
-//        context.Location().LogInformation("Exist, exist={exist}, actorId={actorId}", exist, this.GetPrimaryKeyString());
+    public async Task<Option> Create(AccountDetail detail, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Creating contract accountDetail={accountDetail}", detail);
 
-//        return new Option(exist).ToTaskResult();
-//    }
+        var v = detail.Validate().LogResult(context.Location());
+        if (v.IsError()) return v;
 
-//    public async Task<Option> Create(AccountDetail detail, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
-//        context.Location().LogInformation("Creating contract accountDetail={accountDetail}", detail);
+        IContractActor contract = GetContractorActor();
 
-//        var v = detail.Validate().LogResult(context.Location());
-//        if (v.IsError()) return v;
+        var createContractRequest = new ContractCreateModel
+        {
+            DocumentId = detail.DocumentId,
+            PrincipalId = detail.OwnerId,
+        };
 
-//        if (_state.RecordExists)
-//        {
-//            context.Location().LogInformation("Cannot create contract, already exist, actorId={actorId}", this.GetPrimaryKeyString());
-//            return new Option(StatusCode.BadRequest, $"Cannot create contract, already exist, actorId={this.GetPrimaryKeyString()}");
-//        }
+        var createOption = await contract.Create(createContractRequest, context.TraceId);
+        if( createOption.IsError()) return createOption;
 
-//        var acl = new BlockAcl(detail.AccessRights);
-//        var softBank = await _softBankFactory.Create(detail.ObjectId, detail.OwnerId, acl, context).Return();
+        return await Append(detail, detail.OwnerId, context);
+    }
 
-//        Option writeResult = await softBank.AccountDetail.Set(detail, context);
-//        if (writeResult.StatusCode.IsError()) return writeResult;
+    public async Task<Option> SetAccountDetail(AccountDetail detail, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Set account detail={accountDetail}", detail);
 
-//        return await WriteContract(softBank, context);
-//    }
+        var v = detail.Validate().LogResult(context.Location());
+        if (v.IsError()) return v;
 
-//    public async Task<Option> SetAccountDetail(AccountDetail detail, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
-//        context.Location().LogInformation("Set account detail={accountDetail}", detail);
+        return await Append(detail, detail.OwnerId, context);
+    }
 
-//        Option<SoftBankAccount> softBank = await ReadContract(context);
-//        if (softBank.IsError()) return softBank.ToOptionStatus();
+    public async Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Add BlockAcl={blockAcl}", blockAcl);
 
-//        Option result = await softBank.Return().AccountDetail.Set(detail, context);
-//        if (result.StatusCode.IsError()) return result;
+        var v = blockAcl.Validate().LogResult(context.Location());
+        if (v.IsError()) return v;
 
-//        return await WriteContract(softBank.Return(), context);
-//    }
+        return await Append(blockAcl, principalId, context);
+    }
 
-//    public async Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
-//        context.Location().LogInformation("Add BlockAcl={blockAcl}", blockAcl);
+    public async Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Add Ledger item ledgerItem={ledgerItem}", ledgerItem);
 
-//        Option<SoftBankAccount> softBank = await ReadContract(context);
-//        if (softBank.IsError()) return softBank.ToOptionStatus();
+        var v = ledgerItem.Validate().LogResult(context.Location());
+        if (v.IsError()) return v;
 
-//        Option result = await softBank.Return().Acl.Set(blockAcl, principalId, context);
-//        if (result.StatusCode.IsError()) return result;
+        return await Append(ledgerItem, ledgerItem.OwnerId, context);
+    }
 
-//        return await WriteContract(softBank.Return(), context);
-//    }
+    public async Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Getting account detail, principalId={principalId}", principalId);
+        if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
 
-//    public async Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
+        IContractActor contract = GetContractorActor();
 
-//        Option<SoftBankAccount> softBank = await ReadContract(context);
-//        if (softBank.IsError()) return softBank.ToOptionStatus();
+        var query = new ContractQuery
+        {
+            PrincipalId = principalId,
+            BlockType = typeof(AccountDetail).GetTypeName(),
+            LatestOnly = true,
+        };
 
-//        Option result = await softBank.Return().LedgerItems.Add(ledgerItem, context);
-//        if (result.StatusCode.IsError()) return result;
+        Option<IReadOnlyList<DataBlock>> queryOption = await contract.Query(query, context.TraceId);
+        if (queryOption.IsError()) return queryOption.ToOptionStatus<AccountDetail>();
 
-//        return await WriteContract(softBank.Return(), context);
-//    }
+        IReadOnlyList<AccountDetail> list = queryOption.Return()
+            .Select(x => x.ToObject<AccountDetail>())
+            .ToArray();
 
-//    public async Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
+        if (list.Count != 1) return StatusCode.NotFound;
 
-//        Option<SoftBankAccount> softBank = await ReadContract(context);
-//        if (softBank.IsError()) return softBank.ToOptionStatus<AccountDetail>();
+        AccountDetail accountDetail = list.First();
+        return accountDetail;
+    }
 
-//        Option<AccountDetail> accountDetail = softBank.Return().AccountDetail.Get(principalId, context);
-//        if (accountDetail.IsError()) return accountDetail;
+    public async Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Getting leger items, principalId={principalId}", principalId);
+        if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
 
-//        return new Option<AccountDetail>(accountDetail.Return());
-//    }
+        IContractActor contract = GetContractorActor();
 
-//    public async Task<Option<AccountBalance>> GetBalance(string principalId, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
+        var query = new ContractQuery
+        {
+            PrincipalId = principalId,
+            BlockType = typeof(AccountDetail).GetTypeName(),
+        };
 
-//        Option<SoftBankAccount> softBankAccount = await ReadContract(context);
-//        if (softBankAccount.IsError()) return softBankAccount.ToOptionStatus<AccountBalance>();
+        Option<IReadOnlyList<DataBlock>> queryOption = await contract.Query(query, context.TraceId);
+        if (queryOption.IsError()) return queryOption.ToOptionStatus<IReadOnlyList<LedgerItem>>();
 
-//        Option<decimal> balance = softBankAccount.Return().LedgerItems.GetBalance(principalId, context);
-//        if (balance.IsError()) return balance.ToOptionStatus<AccountBalance>();
+        IReadOnlyList<LedgerItem> list = queryOption.Return()
+            .Select(x => x.ToObject<LedgerItem>())
+            .ToArray();
 
-//        Option<AccountDetail> detailOption = softBankAccount.Return().AccountDetail.Get(principalId, context);
-//        if (detailOption.IsError()) return detailOption.ToOptionStatus<AccountBalance>();
+        return list.ToOption();
+    }
 
-//        AccountDetail detail = detailOption.Return();
+    public async Task<Option<AccountBalance>> GetBalance(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Getting leger balance, principalId={principalId}", principalId);
+        if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
 
-//        var result = new AccountBalance
-//        {
-//            ObjectId = detail.ObjectId,
-//            OwnerId = detail.OwnerId,
-//            Name = detail.Name,
-//            CreatedDate = detail.CreatedDate,
-//            Balance = balance.Return(),
-//        };
+        var listOption = await GetLedgerItems(principalId, traceId);
+        if (listOption.IsError()) return listOption.ToOptionStatus<AccountBalance>();
 
-//        return new Option<AccountBalance>(result);
-//    }
+        decimal balance = listOption.Return().Sum(x => x.GetNaturalAmount());
 
-//    public async Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
+        var response = new AccountBalance
+        {
+            DocumentId = this.GetPrimaryKeyString(),
+            Balance = balance,
+        };
 
-//        Option<SoftBankAccount> softBank = await ReadContract(context);
-//        if (softBank.IsError()) return softBank.ToOptionStatus<IReadOnlyList<LedgerItem>>();
+        return response;
+    }
 
-//        Option<BlockReader<LedgerItem>> stream = softBank.Return().LedgerItems.GetReader(principalId, context);
-//        if (stream.IsError()) return stream.ToOptionStatus<IReadOnlyList<LedgerItem>>();
+    private IContractActor GetContractorActor()
+    {
+        ResourceId storageKey = this.GetPrimaryKeyString().ToSoftBankStorageId();
+        return _clusterClient.GetContractActor(storageKey);
+    }
 
-//        IReadOnlyList<LedgerItem> list = stream.Return().List();
-//        return new Option<IReadOnlyList<LedgerItem>>(list);
-//    }
+    private async Task<Option> Append<T>(T value, string principalId, ScopeContext context) where T : class
+    {
+        IContractActor contract = GetContractorActor();
+        ISignatureActor signatureActor = _clusterClient.GetSignatureActor();
 
-//    public async Task<Option> Validate(string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
+        var dataBlock = await value.ToDataBlock(principalId).Sign(signatureActor, context);
+        if (dataBlock.IsError()) return dataBlock.ToOptionStatus();
 
-//        Option<SoftBankAccount> contract = await ReadContract(context);
-//        if (contract.IsError()) return contract.ToOptionStatus();
+        var appendResult = await contract.Append(dataBlock.Return(), context.TraceId);
+        if (appendResult.IsError()) return appendResult;
 
-//        Option signResult = await contract.Return().ValidateBlockChain(context);
-//        return signResult;
-//    }
-
-//    private async Task<Option<SoftBankAccount>> ReadContract(ScopeContext context)
-//    {
-//        context.Location().LogInformation("Reading BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
-//        await _state.ReadStateAsync();
-//        if (!_state.RecordExists) return new Option<SoftBankAccount>(StatusCode.NotFound);
-
-//        Option<SoftBankAccount> contract = await _softBankFactory.Create(_state.State, context).LogResult(_actorContext.Location());
-//        if (contract.IsError())
-//        {
-//            context.Location().LogError("Failed to read/find BLOB for SoftBankAccount, actorKey={actorKey}", this.GetPrimaryKeyString());
-//            return contract;
-//        }
-
-//        Option signResult = await contract.Return().ValidateBlockChain(context);
-//        if (signResult.StatusCode.IsError())
-//        {
-//            context.Location().LogCritical("Contract actorId={actorId} could not be validated before writing to storage", this.GetPrimaryKeyString());
-//            throw new InvalidOperationException($"Contract should not be validated, actorId={this.GetPrimaryKeyString()}");
-//        }
-
-//        return contract;
-//    }
-
-//    private async Task<Option> WriteContract(SoftBankAccount contract, ScopeContext context)
-//    {
-//        context.Location().LogInformation("Writing SoftBank acocunt");
-
-//        Option signResult = await contract.ValidateBlockChain(context);
-//        if (signResult.StatusCode.IsError())
-//        {
-//            context.Location().LogCritical("Contract actorId={actorId} could not be validated before writing to storage", this.GetPrimaryKeyString());
-//            throw new InvalidOperationException($"Contract should not be validated, actorId={this.GetPrimaryKeyString()}");
-//        }
-
-//        _state.State = contract.ToBlobPackage();
-//        await _state.WriteStateAsync();
-
-//        return new Option(StatusCode.OK);
-//    }
-//}
+        return StatusCode.OK;
+    }
+}

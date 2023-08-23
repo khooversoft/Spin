@@ -13,7 +13,7 @@
 //    private readonly BlockChain _blockChain;
 //    private readonly ILogger<SoftBankAccount> _logger;
 //    private readonly AccountDetailImpl _accountDetailImpl;
-//    //private readonly LedgerItemImpl _ledgerItemImpl;
+//    private readonly LedgerItemImpl _ledgerItemImpl;
 //    private readonly AclImpl _aclImpl;
 //    private readonly IServiceProvider _service;
 
@@ -29,7 +29,7 @@
 //    }
 
 //    public AccountDetailImpl AccountDetail => _accountDetailImpl;
-//    //public LedgerItemImpl LedgerItems => _ledgerItemImpl;
+//    public LedgerItemImpl LedgerItems => _ledgerItemImpl;
 //    public AclImpl Acl => _aclImpl;
 
 
@@ -39,7 +39,6 @@
 //        return await _blockChain.ValidateBlockChain(signValidate, context);
 //    }
 
-//    public BlobPackage ToBlobPackage() => _blockChain.ToBlobPackage();
 //    public Option IsOwner(string principalId) => _blockChain.IsOwner(principalId);
 
 //    //public async Task PushToAccount(decimal amount, ObjectId toAccount, PrincipalId principalId)

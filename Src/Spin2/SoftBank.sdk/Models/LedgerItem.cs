@@ -42,4 +42,6 @@ public static class LedgerTypeValidator
 
         _ => throw new ArgumentException($"Invalid type={type}")
     };
+
+    public static decimal GetNaturalAmount(this LedgerItem subject) => subject.Type.NaturalAmount(subject.Amount);
 }

@@ -1,28 +1,28 @@
-﻿using Orleans.TestingHost;
+﻿//using Orleans.TestingHost;
 
-namespace SoftBank.sdk.test.Application;
+//namespace SoftBank.sdk.test.Application;
 
-public class ClusterFixture : IDisposable
-{
-    public ClusterFixture()
-    {
-        var builder = new TestClusterBuilder();
-        builder.AddSiloBuilderConfigurator<TestSiloConfigurations>();
-        Cluster = builder.Build();
-        Cluster.Deploy();
-    }
+//public class ClusterFixture : IDisposable
+//{
+//    public ClusterFixture()
+//    {
+//        var builder = new TestClusterBuilder();
+//        builder.AddSiloBuilderConfigurator<TestSiloConfigurations>();
+//        Cluster = builder.Build();
+//        Cluster.Deploy();
+//    }
 
-    public void Dispose() => Cluster.StopAllSilos();
+//    public void Dispose() => Cluster.StopAllSilos();
 
-    public TestCluster Cluster { get; }
+//    public TestCluster Cluster { get; }
 
-    private class TestSiloConfigurations : ISiloConfigurator
-    {
-        public void Configure(ISiloBuilder siloBuilder)
-        {
-            throw new NotImplementedException();
-            //siloBuilder.AddSpinCluster("test-appsettings.json");
-            //siloBuilder.AddSoftBank();
-        }
-    }
-}
+//    private class TestSiloConfigurations : ISiloConfigurator
+//    {
+//        public void Configure(ISiloBuilder siloBuilder)
+//        {
+//            throw new NotImplementedException();
+//            //siloBuilder.AddSpinCluster("test-appsettings.json");
+//            //siloBuilder.AddSoftBank();
+//        }
+//    }
+//}

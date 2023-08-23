@@ -19,15 +19,13 @@ public interface IConfigurationActor : IGrainWithStringKey
 public class ConfigurationActor : Grain, IConfigurationActor
 {
     private readonly SiloConfigStore _configStore;
-    private readonly IValidator<SiloConfigOption> _validator;
     private readonly ILogger _logger;
     private readonly SiloConfigurationCache _siloConfigurationAgent;
     private readonly TenantListAgent _tenantListAgent;
 
-    public ConfigurationActor(SiloConfigStore configStore, IValidator<SiloConfigOption> validator, ILogger<ConfigurationActor> logger)
+    public ConfigurationActor(SiloConfigStore configStore, ILogger<ConfigurationActor> logger)
     {
         _configStore = configStore;
-        _validator = validator;
         _logger = logger;
 
         _siloConfigurationAgent = new SiloConfigurationCache(configStore);
@@ -53,8 +51,8 @@ public class ConfigurationActor : Grain, IConfigurationActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Setting id={id}, model={model}", this.GetPrimaryKeyString(), model.ToJsonPascalSafe(new ScopeContext(_logger)));
 
-        var v = _validator.Validate(model).LogResult(context.Location());
-        if (v.IsError()) return v.ToOptionStatus();
+        var v = model.Validate().LogResult(context.Location());
+        if (v.IsError()) return v;
 
         var statusResult = await _configStore.Set(model, context);
         return new Option(statusResult);

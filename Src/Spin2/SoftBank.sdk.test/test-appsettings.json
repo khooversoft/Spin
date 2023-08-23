@@ -1,9 +1,3 @@
 {
-  "BootConnectionString": "Account=testspinstore;container=directory;path=configV1/$system/SpinSiloBoot.json",
-  "UserSecrets": "Toolbox-Azure-test",
-
-  "Credentials": {
-    "TenantId": "33470f72-2b3b-4a0b-837d-4ba9ba499d69",
-    "ClientId": "61ea128f-dc55-4653-9ad7-048853d2cc7c"
-  }
+  "ClusterApiUri": "https://localhost:5050"
 }

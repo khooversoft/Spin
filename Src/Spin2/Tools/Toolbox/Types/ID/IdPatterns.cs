@@ -2,7 +2,7 @@
 
 namespace Toolbox.Types;
 
-public static partial class IdPatterns
+public static class IdPatterns
 {
     public static bool StandardCharacterTest(char x) => char.IsLetterOrDigit(x) || x == '-' || x == '_' || x == '.' || x == '$';
 

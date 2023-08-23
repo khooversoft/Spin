@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.Application;
 using Toolbox.Extensions;
+using SoftBank.sdk.Application;
 
 [assembly: InternalsVisibleTo("SpinClusterApi.test")]
 
@@ -37,8 +38,7 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
     {
         silo.UseLocalhostClustering();
         silo.AddSpinCluster(context);
-        //silo.AddSoftBank();
-
+        silo.AddSoftBank();
     })
     .UseConsoleLifetime()
     .ConfigureWebHostDefaults(webBuilder =>
@@ -73,15 +73,8 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
 
                 config.MapSpinApi();
                 config.MapSpinApiInternal();
+                config.MapSoftBank();
             });
-            //app.MapHealthChecks("/_health");
-
-            //app.MapSpinApi();
-            //app.MapSpinApiInternal();
-
-            //option.IpAddress.Split(';').ForEach(x => app.Urls.Add(x));
-
-            //app.MapHealthChecks("/_health");
         });
     });
 

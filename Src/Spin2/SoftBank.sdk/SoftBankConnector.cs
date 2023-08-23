@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Reflection;
+using System.Reflection.Metadata;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -26,128 +28,96 @@ public class SoftBankConnector
 
     public virtual void Setup(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup($"/{SpinConstants.Schema.SoftBank}");
+        var group = app.MapGroup($"/softbank");
 
-        group.MapPost("{*objectId}", Create);
-        group.MapDelete("{*objectId}", Delete);
-        group.MapGet("exist/{*objectId}", Exist);
-        group.MapGet("accountDetail/{*objectId}", GetAccountDetail);
-        group.MapPost("accountDetail/{*objectId}", SetAccountDetail);
-        group.MapGet("balance/{*objectId}", GetBalance);
-        group.MapPost("acl/{*objectId}", SetAcl);
-        group.MapGet("ledgerItem/{*objectId}", GetLedgerItems);
-        group.MapPost("ledgerItem/{*objectId}", AddLedgerItem);
-
-        app.MapGroup($"/{SpinConstants.Schema.SoftBank}/ledgerItem").Action(x =>
-        {
-            x.MapPost("{*objectId}", AddLedgerItem);
-        });
+        group.MapDelete("/{accountId}", Delete);
+        group.MapGet("/{accountId}/exist", Exist);
+        group.MapPost("/{accountId}/create", Create);
+        group.MapPost("/{accountId}/accountdetail", SetAccountDetail);
+        group.MapPost("/{accountId}/acl", SetAcl);
+        group.MapPost("/{accountId}/ledgerItem", AddLedgerItem);
+        group.MapGet("/{accountId}/accountDetail", GetAccountDetail);
+        group.MapGet("/{accountId}/ledgerItem", GetLedgerItems);
     }
 
-    private async Task<IResult> Create(string objectId, AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Delete(string accountId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
 
-        Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).Create(model, traceId);
+        Option response = await _client.GetResourceGrain<ISoftBankActor>(accountId).Delete(traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> Delete(string objectId,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
+    private async Task<IResult> Exist(string accountId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+
+        var response = await _client.GetGrain<ISoftBankActor>(accountId).Exist(traceId);
+        return response.ToResult();
+    }
+
+    private async Task<IResult> Create(string accountId, AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+
+        Option response = await _client.GetGrain<ISoftBankActor>(accountId).Create(model, traceId);
+        return response.ToResult();
+    }
+
+    private async Task<IResult> SetAccountDetail(string accountId, AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+
+        Option response = await _client.GetGrain<ISoftBankActor>(accountId).SetAccountDetail(model, traceId);
+        return response.ToResult();
+    }
+
+    private async Task<IResult> SetAcl(string accountId, BlockAcl model,
+        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
+        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
         )
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
 
-        Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).Delete(principalId, traceId);
+        Option response = await _client.GetGrain<ISoftBankActor>(accountId).SetAcl(model, principalId, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> Exist(string objectId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> AddLedgerItem(string accountId, LedgerItem model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
 
-        var response = await _client.GetGrain<ISoftBankActor>(option.Return()).Exist(traceId);
+        Option response = await _client.GetGrain<ISoftBankActor>(accountId).AddLedgerItem(model, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> GetAccountDetail(string objectId,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
+    public async Task<IResult> GetAccountDetail(string accountId,
+        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
+        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
         )
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
 
-        Option<AccountDetail> response = await _client.GetGrain<ISoftBankActor>(option.Return()).GetAccountDetail(principalId, traceId);
+        Option<AccountDetail> response = await _client.GetGrain<ISoftBankActor>(accountId).GetAccountDetail(principalId, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> SetAccountDetail(string objectId, AccountDetail model,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
+    public async Task<IResult> GetLedgerItems(string accountId,
+        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
+        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
         )
     {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
 
-        Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).SetAccountDetail(model, traceId);
-        return response.ToResult();
-    }
-
-    private async Task<IResult> GetBalance(string objectId,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
-        )
-    {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        Option<AccountBalance> response = await _client.GetGrain<ISoftBankActor>(option.Return()).GetBalance(principalId, traceId);
-        return response.ToResult();
-    }
-
-    private async Task<IResult> SetAcl(string objectId, BlockAcl model,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
-    )
-    {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        Option response = await _client.GetGrain<ISoftBankActor>(option.Return()).SetAcl(model, principalId, traceId);
-        return response.ToResult();
-    }
-
-    private async Task<IResult> GetLedgerItems(string objectId,
-        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
-    )
-    {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        var response = await _client.GetGrain<ISoftBankActor>(option.Return()).GetLedgerItems(principalId, traceId);
-        return response.ToResult();
-    }
-
-    private async Task<IResult> AddLedgerItem(string objectId, LedgerItem model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        Option<ObjectId> option = ObjectId.Create(objectId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        var response = await _client.GetGrain<ISoftBankActor>(option.Return()).AddLedgerItem(model, traceId);
+        Option<IReadOnlyList<LedgerItem>> response = await _client.GetGrain<ISoftBankActor>(accountId).GetLedgerItems(principalId, traceId);
         return response.ToResult();
     }
 }

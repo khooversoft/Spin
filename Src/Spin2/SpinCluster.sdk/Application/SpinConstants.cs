@@ -23,7 +23,6 @@ public static class SpinConstants
         public const string Signature = "signature";
         public const string Storage = "storage";
         public const string Config = "storage";
-        public const string SoftBank = "softbank";
         public const string Contract = "contract";
     }
 

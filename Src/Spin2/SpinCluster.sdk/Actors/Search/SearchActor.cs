@@ -21,19 +21,17 @@ public class SearchActor : Grain, ISearchActor
 {
     private readonly DatalakeSchemaResources _datalakeResources;
     private readonly ILogger<SearchActor> _logger;
-    private readonly IValidator<SearchQuery> _validator;
 
-    public SearchActor(DatalakeSchemaResources datalakeResources, IValidator<SearchQuery> validator, ILogger<SearchActor> logger)
+    public SearchActor(DatalakeSchemaResources datalakeResources, ILogger<SearchActor> logger)
     {
         _datalakeResources = datalakeResources.NotNull();
         _logger = logger.NotNull();
-        _validator = validator;
     }
 
     public async Task<Option<IReadOnlyList<StorePathItem>>> Search(SearchQuery searchQuery, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        var validationResult = _validator.Validate(searchQuery).LogResult(context.Location());
+        var validationResult = searchQuery.Validate().LogResult(context.Location());
         if (validationResult.IsError()) return validationResult.ToOptionStatus<IReadOnlyList<StorePathItem>>();
 
         Option<IDatalakeStore> store = _datalakeResources.GetStore(searchQuery.Schema, context.Location());

@@ -50,11 +50,10 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
 
         var query = new ContractQuery
         {
-            DocumentId = contractId,
             PrincipalId = principalId,
         };
 
-        var blocks = await contractClient.Query(query, _context);
+        var blocks = await contractClient.Query(contractId, query, _context);
         blocks.IsOk().Should().BeTrue();
         blocks.Return().Count.Should().Be(1);
 
@@ -80,7 +79,7 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
             writeResponse.IsOk().Should().BeTrue();
         }
 
-        var blocks2 = await contractClient.Query(query, _context);
+        var blocks2 = await contractClient.Query(contractId, query, _context);
         blocks2.IsOk().Should().BeTrue();
         blocks2.Return().Count.Should().Be(4);
 
