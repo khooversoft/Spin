@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.Application;
@@ -21,10 +16,10 @@ public static class IdSoftbank
 
     public static ResourceId CreateSoftBankId(string domain, string accountId) => $"softbank:{domain}/{accountId}";
 
-    public static ResourceId ToSoftBankStorageId(this string softbankId) => ResourceId.Create(softbankId)
+    public static ResourceId ToSoftBankContractId(this string softbankId) => ResourceId.Create(softbankId)
         .ThrowOnError()
         .Return()
-        .ToSoftBankStorageId();
+        .ToSoftBankContractId();
 
-    public static ResourceId ToSoftBankStorageId(this ResourceId softbankId) => $"contract:{softbankId.Domain}/softbank/{softbankId.Path}";
+    public static ResourceId ToSoftBankContractId(this ResourceId softbankId) => $"contract:{softbankId.Domain}/softbank/{softbankId.Path}";
 }

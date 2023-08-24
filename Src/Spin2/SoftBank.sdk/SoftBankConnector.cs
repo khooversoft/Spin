@@ -1,10 +1,9 @@
-﻿using System.Reflection;
-using System.Reflection.Metadata;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Application;
@@ -32,7 +31,7 @@ public class SoftBankConnector
 
         group.MapDelete("/{accountId}", Delete);
         group.MapGet("/{accountId}/exist", Exist);
-        group.MapPost("/{accountId}/create", Create);
+        group.MapPost("/create", Create);
         group.MapPost("/{accountId}/accountdetail", SetAccountDetail);
         group.MapPost("/{accountId}/acl", SetAcl);
         group.MapPost("/{accountId}/ledgerItem", AddLedgerItem);
@@ -43,7 +42,7 @@ public class SoftBankConnector
     private async Task<IResult> Delete(string accountId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         Option response = await _client.GetResourceGrain<ISoftBankActor>(accountId).Delete(traceId);
         return response.ToResult();
@@ -52,25 +51,25 @@ public class SoftBankConnector
     private async Task<IResult> Exist(string accountId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         var response = await _client.GetGrain<ISoftBankActor>(accountId).Exist(traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> Create(string accountId, AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Create(AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        var v = model.Validate();
+        if (v.IsError()) return v.ToResult();
 
-        Option response = await _client.GetGrain<ISoftBankActor>(accountId).Create(model, traceId);
+        Option response = await _client.GetGrain<ISoftBankActor>(model.DocumentId).Create(model, traceId);
         return response.ToResult();
     }
 
     private async Task<IResult> SetAccountDetail(string accountId, AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         Option response = await _client.GetGrain<ISoftBankActor>(accountId).SetAccountDetail(model, traceId);
         return response.ToResult();
@@ -82,7 +81,7 @@ public class SoftBankConnector
         )
     {
         accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         Option response = await _client.GetGrain<ISoftBankActor>(accountId).SetAcl(model, principalId, traceId);
         return response.ToResult();
@@ -91,7 +90,7 @@ public class SoftBankConnector
     private async Task<IResult> AddLedgerItem(string accountId, LedgerItem model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         Option response = await _client.GetGrain<ISoftBankActor>(accountId).AddLedgerItem(model, traceId);
         return response.ToResult();
@@ -103,7 +102,7 @@ public class SoftBankConnector
         )
     {
         accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         Option<AccountDetail> response = await _client.GetGrain<ISoftBankActor>(accountId).GetAccountDetail(principalId, traceId);
         return response.ToResult();
@@ -115,7 +114,7 @@ public class SoftBankConnector
         )
     {
         accountId = Uri.UnescapeDataString(accountId);
-        if (!IdPatterns.IsContractId(accountId)) return Results.BadRequest();
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         Option<IReadOnlyList<LedgerItem>> response = await _client.GetGrain<ISoftBankActor>(accountId).GetLedgerItems(principalId, traceId);
         return response.ToResult();

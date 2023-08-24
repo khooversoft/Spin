@@ -1,4 +1,6 @@
-﻿using Toolbox.Extensions;
+﻿using Toolbox.Block;
+using Toolbox.Extensions;
+using Toolbox.Security.Principal;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -6,8 +8,8 @@ namespace SoftBank.sdk.Models;
 
 public enum LedgerType
 {
-    Credit,
-    Debit
+    Credit = 1,
+    Debit = 2,
 }
 
 [GenerateSerializer, Immutable]

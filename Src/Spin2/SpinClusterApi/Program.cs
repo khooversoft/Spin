@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using SoftBank.sdk.Application;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.Application;
 using Toolbox.Extensions;
-using SoftBank.sdk.Application;
 
 [assembly: InternalsVisibleTo("SpinClusterApi.test")]
 

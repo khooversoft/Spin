@@ -1,6 +1,7 @@
 ﻿using Toolbox.Block;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
+using SoftBank.sdk.Application;
 
 namespace SoftBank.sdk.Models;
 
@@ -27,7 +28,7 @@ public sealed record AccountDetail
 public static class AccountDetailValidator
 {
     public static IValidator<AccountDetail> Validator { get; } = new Validator<AccountDetail>()
-        .RuleFor(x => x.DocumentId).ValidContractId()
+        .RuleFor(x => x.DocumentId).ValidSoftBankId()
         .RuleFor(x => x.OwnerId).ValidPrincipalId()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.Name).NotEmpty()

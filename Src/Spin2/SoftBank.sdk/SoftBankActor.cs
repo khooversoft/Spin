@@ -1,12 +1,6 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using Microsoft.Azure.Amqp.Framing;
-using Microsoft.Extensions.Logging;
-using Orleans.Runtime;
-using SoftBank.sdk;
+﻿using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
-using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
@@ -14,7 +8,6 @@ using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Orleans.Types;
-using Toolbox.Security.Principal;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
@@ -83,12 +76,12 @@ public class SoftBankActor : Grain, ISoftBankActor
 
         var createContractRequest = new ContractCreateModel
         {
-            DocumentId = detail.DocumentId,
+            DocumentId = GetSoftBankContractId(),
             PrincipalId = detail.OwnerId,
         };
 
         var createOption = await contract.Create(createContractRequest, context.TraceId);
-        if( createOption.IsError()) return createOption;
+        if (createOption.IsError()) return createOption;
 
         return await Append(detail, detail.OwnerId, context);
     }
@@ -165,7 +158,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         var query = new ContractQuery
         {
             PrincipalId = principalId,
-            BlockType = typeof(AccountDetail).GetTypeName(),
+            BlockType = typeof(LedgerItem).GetTypeName(),
         };
 
         Option<IReadOnlyList<DataBlock>> queryOption = await contract.Query(query, context.TraceId);
@@ -198,11 +191,9 @@ public class SoftBankActor : Grain, ISoftBankActor
         return response;
     }
 
-    private IContractActor GetContractorActor()
-    {
-        ResourceId storageKey = this.GetPrimaryKeyString().ToSoftBankStorageId();
-        return _clusterClient.GetContractActor(storageKey);
-    }
+    private ResourceId GetSoftBankContractId() => this.GetPrimaryKeyString().ToSoftBankContractId();
+
+    private IContractActor GetContractorActor() => _clusterClient.GetContractActor(GetSoftBankContractId());
 
     private async Task<Option> Append<T>(T value, string principalId, ScopeContext context) where T : class
     {

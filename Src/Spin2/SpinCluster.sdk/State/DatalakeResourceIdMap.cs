@@ -21,7 +21,7 @@ public class DatalakeResourceIdMap
             { Schema: SpinConstants.Schema.User } v when IsUser(v) => new Map(v.Schema, BuildPath(v)),
             { Schema: SpinConstants.Schema.PrincipalKey } v when IsUser(v) => new Map(v.Schema, BuildPath(v)),
             { Schema: SpinConstants.Schema.PrincipalPrivateKey } v when IsUser(v) => new Map(v.Schema, BuildPath(v)),
-            { Schema: SpinConstants.Schema.Contract} v when IdPatterns.IsContractId(v) => new Map(v.Schema, $"{resourceId.Domain}/{resourceId.Path}.json"),
+            { Schema: SpinConstants.Schema.Contract } v when IdPatterns.IsContractId(v) => new Map(v.Schema, $"{resourceId.Domain}/{resourceId.Path}.json"),
 
             _ => StatusCode.BadRequest,
         };

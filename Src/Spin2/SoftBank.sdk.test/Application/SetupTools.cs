@@ -1,7 +1,10 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.Subscription;
+using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
+using SpinCluster.sdk.Application;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.test.Application;
@@ -21,13 +24,13 @@ public class SetupTools
     {
         UserClient client = service.GetRequiredService<UserClient>();
 
-        var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
+        var subscription = await CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         subscription.IsOk().Should().BeTrue();
 
-        var tenant = await TenantTests.CreateTenant(_cluster.ServiceProvider, tenantId, subscriptionId, _context);
+        var tenant = await CreateTenant(_cluster.ServiceProvider, tenantId, subscriptionId, _context);
         tenant.IsOk().Should().BeTrue();
 
-        var user = await UserTest.CreateUser(_cluster.ServiceProvider, principalId, _context);
+        var user = await CreateUser(_cluster.ServiceProvider, principalId, _context);
 
         Option<UserModel> readOption = await client.Get(principalId, _context);
         readOption.IsOk().Should().BeTrue();
@@ -35,25 +38,113 @@ public class SetupTools
 
     public async Task DeleteUser(IServiceProvider service, string subscriptionId, string tenantId, string principalId)
     {
-        Option deleteOption = await UserTest.DeleteUser(service, principalId, _context);
+        Option deleteOption = await DeleteUser(service, principalId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
-        await VerifyKeys(_cluster.ServiceProvider, principalId, false);
 
-        Option deleteTenantOption = await TenantTests.DeleteTenant(_cluster.ServiceProvider, tenantId, _context);
+        Option deleteTenantOption = await DeleteTenant(_cluster.ServiceProvider, tenantId, _context);
         deleteTenantOption.StatusCode.IsOk().Should().BeTrue();
 
-        Option deleteSubscriptionOption = await SubscriptionTests.DeleteSubscription(_cluster.ServiceProvider, subscriptionId, _context);
+        Option deleteSubscriptionOption = await DeleteSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         deleteSubscriptionOption.StatusCode.IsOk().Should().BeTrue();
     }
 
-    public async Task VerifyKeys(IServiceProvider service, string principalId, bool mustExist)
+    public static async Task<Option<SubscriptionModel>> CreateSubscription(IServiceProvider service, string nameId, ScopeContext context)
     {
-        PrincipalKeyClient publicKeyClient = service.GetRequiredService<PrincipalKeyClient>();
-        var publicKeyExist = await publicKeyClient.Get(principalId, _context);
-        (publicKeyExist.IsOk() == mustExist).Should().BeTrue();
+        SubscriptionClient client = service.GetRequiredService<SubscriptionClient>();
 
-        PrincipalPrivateKeyClient publicPrivateKeyClient = service.GetRequiredService<PrincipalPrivateKeyClient>();
-        var privateKeyExist = await publicPrivateKeyClient.Get(principalId, _context);
-        (privateKeyExist.IsOk() == mustExist).Should().BeTrue();
+        Option<SubscriptionModel> result = await client.Get(nameId, context);
+        if (result.IsOk()) await client.Delete(nameId, context);
+
+        var subscription = new SubscriptionModel
+        {
+            SubscriptionId = IdTool.CreateSubscriptionId(nameId),
+            Name = nameId,
+            ContactName = nameId + "contact",
+            Email = "user1@company1.com",
+            AccountEnabled = true,
+            ActiveDate = DateTime.UtcNow,
+        };
+
+        Option setOption = await client.Set(subscription, context);
+        setOption.StatusCode.IsOk().Should().BeTrue();
+
+        return subscription;
+    }
+
+    public static async Task<Option> DeleteSubscription(IServiceProvider service, string nameId, ScopeContext context)
+    {
+        SubscriptionClient client = service.GetRequiredService<SubscriptionClient>();
+
+        Option deleteOption = await client.Delete(nameId, context);
+        deleteOption.StatusCode.IsOk().Should().BeTrue();
+
+        return StatusCode.OK;
+    }
+
+    public static async Task<Option<TenantModel>> CreateTenant(IServiceProvider service, string nameId, string subscriptionId, ScopeContext context)
+    {
+        TenantClient client = service.GetRequiredService<TenantClient>();
+
+        Option<TenantModel> result = await client.Get(nameId, context);
+        if (result.IsOk()) await client.Delete(nameId, context);
+
+        var tenant = new TenantModel
+        {
+            TenantId = IdTool.CreateTenantId(nameId),
+            Name = nameId,
+            SubscriptionId = IdTool.CreateSubscriptionId(subscriptionId),
+            ContactName = nameId + "contact",
+            Email = "user1@company2.com",
+
+            AccountEnabled = true,
+            ActiveDate = DateTime.UtcNow,
+        };
+
+        Option setOption = await client.Set(tenant, context);
+        setOption.StatusCode.IsOk().Should().BeTrue();
+
+        return tenant;
+    }
+
+    public static async Task<Option> DeleteTenant(IServiceProvider service, string tenantId, ScopeContext context)
+    {
+        TenantClient client = service.GetRequiredService<TenantClient>();
+
+        Option deleteOption = await client.Delete(tenantId, context);
+        deleteOption.IsOk().Should().BeTrue();
+
+        return StatusCode.OK;
+    }
+
+    public static async Task<Option<UserCreateModel>> CreateUser(IServiceProvider service, string principalId, ScopeContext context)
+    {
+        UserClient client = service.GetRequiredService<UserClient>();
+
+        Option<UserModel> result = await client.Get(principalId, context);
+        if (result.IsOk()) await client.Delete(principalId, context);
+
+        var user = new UserCreateModel
+        {
+            UserId = IdTool.CreateUserId(principalId),
+            PrincipalId = principalId,
+            DisplayName = "User display name",
+            FirstName = "First",
+            LastName = "Last"
+        };
+
+        Option setOption = await client.Create(user, context);
+        setOption.IsOk().Should().BeTrue();
+
+        return user;
+    }
+
+    public static async Task<Option> DeleteUser(IServiceProvider service, string principalId, ScopeContext context)
+    {
+        UserClient client = service.GetRequiredService<UserClient>();
+
+        Option deleteOption = await client.Delete(principalId, context);
+        deleteOption.IsOk().Should().BeTrue();
+
+        return StatusCode.OK;
     }
 }
