@@ -44,7 +44,6 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
     public async Task ConstructWithLedgerItems()
     {
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
-
         await CreateBankAccount();
 
         LedgerItem ledgerItem = new LedgerItem
@@ -68,49 +67,35 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
         await DeleteBankAccount();
     }
 
-    //[Fact]
-    //public async Task ConstructAccountWithLedgerItems()
-    //{
-    //    var softBank = await _softBankFactory.Create(_accountObjectId, _owner, _context).Return();
+    [Fact]
+    public async Task ConstructAccountWithLedgerItems()
+    {
+        SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+        await CreateBankAccount();
 
-    //    var accountDetail = new AccountDetail
-    //    {
-    //        ObjectId = _accountObjectId.ToString(),
-    //        OwnerId = _owner,
-    //        Name = "Softbank 1",
-    //    };
+        var ledgerItems = new[]
+        {
+            new LedgerItem { OwnerId = _principalId, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { OwnerId = _principalId, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { OwnerId = _principalId, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+        };
 
-    //    accountDetail.Validate().IsOk().Should().BeTrue();
+        foreach (var ledgerItem in ledgerItems)
+        {
+            var writeResponse = await softBankClient.AddLedgerItem(_accountId, ledgerItem, _context);
+            writeResponse.IsOk().Should().BeTrue();
+        }
 
-    //    var detailWrite = await softBank.AccountDetail.Set(accountDetail, _context);
-    //    detailWrite.StatusCode.IsOk().Should().BeTrue();
+        Option<IReadOnlyList<LedgerItem>> ledgerItemsOption = await softBankClient.GetLedgerItems(_accountId, _principalId, _context);
+        ledgerItemsOption.IsOk().Should().BeTrue();
+        ledgerItemsOption.Return().Count().Should().Be(3);
 
-    //    Option signResult = await softBank.ValidateBlockChain(_context);
-    //    signResult.StatusCode.IsOk().Should().BeTrue();
+        var balanceResponse = await softBankClient.GetBalance(_accountId, _principalId, _context);
+        balanceResponse.IsOk().Should().BeTrue();
+        balanceResponse.Return().Balance.Should().Be(135.15m);
 
-
-    //    var ledgerItems = new[]
-    //    {
-    //        new LedgerItem { OwnerId = _owner, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-    //        new LedgerItem { OwnerId = _owner, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-    //        new LedgerItem { OwnerId = _owner, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
-    //    };
-
-    //    await ledgerItems.ForEachAsync(async x => await softBank.LedgerItems.Add(x, _context).ThrowOnError());
-
-    //    signResult = await softBank.ValidateBlockChain(_context);
-    //    signResult.StatusCode.IsOk().Should().BeTrue();
-
-    //    AccountDetail readAccountDetail = softBank.AccountDetail.Get(_owner, _context).Return();
-    //    (accountDetail == readAccountDetail).Should().BeTrue();
-
-    //    IReadOnlyList<LedgerItem> readLedgerItems = softBank.LedgerItems.GetReader(_owner, _context).Return().List();
-    //    readLedgerItems.Count.Should().Be(3);
-    //    ledgerItems.SequenceEqual(readLedgerItems).Should().BeTrue();
-
-    //    decimal balance = softBank.LedgerItems.GetBalance(_owner, _context).Return();
-    //    balance.Should().Be(135.15m);
-    //}
+        await DeleteBankAccount();
+    }
 
     //[Fact]
     //public async Task ConstructAccountWithLedgerItems2Signers()

@@ -74,7 +74,7 @@ public class DataBlockBuilder
     {
         var acl = new BlockAcl
         {
-            Items = acls.ToArray(),
+            AccessRights = acls.ToArray(),
         };
 
         return CreateAclBlock(acl, principalId, context);

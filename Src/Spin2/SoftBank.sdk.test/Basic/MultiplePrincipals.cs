@@ -1,124 +1,184 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using FluentAssertions;
-//using Microsoft.Extensions.Logging.Abstractions;
-//using Orleans.TestingHost;
-//using SoftBank.sdk.Models;
-//using SoftBank.sdk.test.Application;
-//using SpinCluster.sdk.Actors.Signature;
-//using SpinCluster.sdk.Actors.SoftBank;
-//using SpinCluster.sdk.Application;
-//using Toolbox.Block;
-//using Toolbox.Orleans.Types;
-//using Toolbox.Types;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Identity.Client;
+using Orleans.TestingHost;
+using SoftBank.sdk.Models;
+using SoftBank.sdk.test.Application;
+using SpinCluster.sdk.Actors.Signature;
+using SpinCluster.sdk.Actors.SoftBank;
+using SpinCluster.sdk.Application;
+using Toolbox.Block;
+using Toolbox.Extensions;
+using Toolbox.Orleans.Types;
+using Toolbox.Types;
 
-//namespace SoftBank.sdk.test.Basic;
+namespace SoftBank.sdk.test.Basic;
 
-//public class MultiplePrincipals : IClassFixture<ClusterFixture>
-//{
-//    private readonly TestCluster _cluster;
-//    private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
+{
+    private record Config(string Sub, string Tenant, string PrincipalId, string AccountId);
 
-//    public MultiplePrincipals(ClusterFixture fixture)
-//    {
-//        _cluster = fixture.Cluster;
-//    }
+    private readonly ClusterApiFixture _cluster;
+    private readonly SetupTools _setupTools;
+    private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
+    private Config[] _config = new[]
+    {
+        new Config("Company9Subscription", "company9.com", "user1@company9.com", "softbank:company9.com/account1"),
+        new Config("Company10Subscription", "company10.com", "user2@company10.com", "softbank:company10.com/account2"),
+    };
 
-//    [Fact(Skip = "Go to API")]
-//    public async Task CreateBankAccountAndMultipleLedgerItems()
-//    {
-//        PrincipalId ownerId = "owner10@test.com";
-//        ObjectId objectId = $"{SpinConstants.Schema.SoftBank}/test.com/MultiplePrincipals/{ownerId}";
-//        string keyId = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId}";
-//        string name = "name1";
+    public MultiplePrincipals(ClusterApiFixture fixture)
+    {
+        _cluster = fixture;
+        _setupTools = new SetupTools(_cluster, _context);
+    }
 
-//        PrincipalId ownerId2 = "owner20@test.com";
-//        string keyId2 = $"{SpinConstants.Schema.PrincipalKey}/test.com/{ownerId2}";
+    private string GetAccountId() => _config[0].AccountId;
+    private string GetOwnerId() => _config[0].PrincipalId;
+    private string GetOwnerId2() => _config[1].PrincipalId;
 
-//        ISoftBankActor softBankActor = _cluster.GrainFactory.GetGrain<ISoftBankActor>(objectId);
-//        ISignatureActor signatureActor = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId);
-//        ISignatureActor signatureActor2 = _cluster.GrainFactory.GetGrain<ISignatureActor>(keyId2);
-
-//        await softBankActor.Delete(ownerId, _context.TraceId);
-//        await signatureActor.Delete(_context.TraceId);
-//        await signatureActor2.Delete(_context.TraceId);
-
-//        await CreateKeys(signatureActor, keyId, ownerId);
-//        await CreateKeys(signatureActor2, keyId2, ownerId2);
-
-//        var request = new AccountDetail
-//        {
-//            ObjectId = objectId,
-//            OwnerId = ownerId,
-//            Name = name,
-//            AccessRights = new[]
-//            {
-//                new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = ownerId2, Grant = BlockGrant.Write },
-//            },
-//        };
-
-//        Option createResult = await softBankActor.Create(request, _context.TraceId);
-//        createResult.StatusCode.IsOk().Should().BeTrue(createResult.Error);
-
-//        var newItems = new[]
-//{
-//            new LedgerItem { OwnerId = ownerId, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-//            new LedgerItem { OwnerId = ownerId, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-//            new LedgerItem { OwnerId = ownerId2, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
-//            new LedgerItem { OwnerId = ownerId, Description = "Ledger 4", Type = LedgerType.Credit, Amount = 55.15m },
-//            new LedgerItem { OwnerId = ownerId2, Description = "Ledger 5", Type = LedgerType.Debit, Amount = 20.00m },
-//        };
-
-//        foreach (var item in newItems)
-//        {
-//            var addResponse = await softBankActor.AddLedgerItem(item, _context.TraceId);
-//            addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
-//        }
-
-//        Option<AccountDetail> accountDetails = await softBankActor.GetAccountDetail(ownerId, _context.TraceId);
-//        accountDetails.StatusCode.IsOk().Should().BeTrue(accountDetails.Error);
-//        (request == accountDetails.Return()).Should().BeTrue("not equal");
-
-//        Option<IReadOnlyList<LedgerItem>> ledgerItems = await softBankActor.GetLedgerItems(ownerId, _context.TraceId);
-//        ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
-//        ledgerItems.Return().Count.Should().Be(newItems.Length);
-//        newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
-
-//        // Check non-owner
-//        var ledgerItems2 = await softBankActor.GetLedgerItems(ownerId2, _context.TraceId);
-//        ledgerItems2.StatusCode.IsError().Should().BeTrue();
+    [Fact]
+    public async Task MultipleLedgerItems()
+    {
+        SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
 
 
-//        Option<AccountBalance> balanceResponse = await softBankActor.GetBalance(ownerId, _context.TraceId);
-//        balanceResponse.StatusCode.IsOk().Should().BeTrue();
-//        balanceResponse.Return().Balance.Should().Be(170.30m);
+        await DeleteAccounts();
+        await CreateAccounts();
 
-//        // Clean up
-//        var deleteResponse = await softBankActor.Delete(ownerId, _context.TraceId);
-//        var signatureResponse = await signatureActor.Delete(_context.TraceId);
-//        var signatureResponse2 = await signatureActor2.Delete(_context.TraceId);
-//        deleteResponse.StatusCode.IsOk().Should().BeTrue();
-//        signatureResponse.StatusCode.IsOk().Should().BeTrue();
-//        signatureResponse2.StatusCode.IsOk().Should().BeTrue();
-//    }
+        var newItems = new[]
+{
+            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
+            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 4", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { OwnerId = GetOwnerId2(), Description = "Ledger 5", Type = LedgerType.Debit, Amount = 20.00m },
+        };
 
-//    private async Task CreateKeys(ISignatureActor signatureActor, string keyId, string ownerId)
-//    {
-//        var request = new PrincipalKeyRequest
-//        {
-//            KeyId = keyId,
-//            OwnerId = ownerId,
-//            Audience = "test.com",
-//            Name = "test sign key",
-//        };
+        foreach (var item in newItems)
+        {
+            var addResponse = await softBankClient.AddLedgerItem(GetAccountId(), item, _context);
+            addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
+        }
 
-//        await signatureActor.Delete(_context.TraceId);
+        Option<IReadOnlyList<LedgerItem>> ledgerItems = await softBankClient.GetLedgerItems(GetAccountId(), GetOwnerId(), _context);
+        ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
+        ledgerItems.Return().Count.Should().Be(newItems.Length);
+        newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
 
-//        Option result = await signatureActor.Create(request, _context.TraceId);
-//        result.StatusCode.IsOk().Should().BeTrue();
-//    }
-//}
+        // Check non-owner
+        var ledgerItems2 = await softBankClient.GetLedgerItems(GetAccountId(), GetOwnerId2(), _context);
+        ledgerItems2.IsError().Should().BeTrue();
+
+        Option<AccountBalance> balanceResponse = await softBankClient.GetBalance(GetAccountId(), GetOwnerId(), _context);
+        balanceResponse.StatusCode.IsOk().Should().BeTrue();
+        balanceResponse.Return().Balance.Should().Be(170.30m);
+
+        // Clean up
+        await DeleteAccounts();
+    }
+
+    [Fact]
+    public async Task TestUnauthorizedUserWriteAccess()
+    {
+        SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+
+        await DeleteAccounts();
+        await CreateAccounts();
+
+        var blockAcl = new BlockAcl
+        {
+            AccessRights = new[]
+            {
+                new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId(), Grant = BlockGrant.Write },
+            },
+        };
+
+        var aclOption = await softBankClient.SetAcl(GetAccountId(), blockAcl, GetOwnerId(), _context);
+        aclOption.IsOk().Should().BeTrue();
+
+        var newItems = new[]
+{
+            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
+        };
+
+        foreach (var item in newItems.WithIndex())
+        {
+            var addResponse = await softBankClient.AddLedgerItem(GetAccountId(), item.Item, _context);
+
+            switch (item.Index)
+            {
+                case 0:
+                    addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
+                    break;
+                case 1:
+                    addResponse.StatusCode.IsError().Should().BeTrue(addResponse.Error);
+                    break;
+            }
+        }
+
+        // Clean up
+        await DeleteAccounts();
+    }
+
+    private async Task DeleteAccounts()
+    {
+        foreach (var item in _config)
+        {
+            await _setupTools.DeleteUser(_cluster.ServiceProvider, item.Sub, item.Tenant, item.PrincipalId);
+            await DeleteBankAccount(item.AccountId);
+        }
+    }
+
+    private async Task CreateAccounts()
+    {
+        foreach (var item in _config)
+        {
+            await _setupTools.CreateUser(_cluster.ServiceProvider, item.Sub, item.Tenant, item.PrincipalId);
+            await CreateBankAccount(item.AccountId, item.PrincipalId);
+        }
+    }
+
+    private async Task CreateBankAccount(string accountId, string principalId)
+    {
+        SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+
+        var existOption = await softBankClient.Exist(accountId, _context);
+        if (existOption.IsOk()) await softBankClient.Delete(accountId, _context);
+
+        var createRequest = new AccountDetail
+        {
+            DocumentId = accountId,
+            OwnerId = principalId,
+            Name = "test account",
+            AccessRights = new[]
+            {
+                new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId2(), Grant = BlockGrant.Write },
+            },
+        };
+
+        var createOption = await softBankClient.Create(createRequest, _context);
+        createOption.IsOk().Should().BeTrue();
+
+        var readAccountDetailOption = await softBankClient.GetAccountDetail(accountId, principalId, _context);
+        readAccountDetailOption.IsOk().Should().BeTrue();
+
+        var readAccountDetail = readAccountDetailOption.Return();
+        (createRequest = readAccountDetail).Should().NotBeNull();
+    }
+
+    private async Task DeleteBankAccount(string accountId)
+    {
+        SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+
+        var deleteOption = await softBankClient.Delete(accountId, _context);
+    }
+}

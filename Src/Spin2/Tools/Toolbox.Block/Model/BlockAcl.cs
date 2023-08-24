@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -6,26 +7,26 @@ namespace Toolbox.Block;
 
 public sealed record BlockAcl
 {
-    public static string BlockType { get; } = "acl";
+    public static string BlockType { get; } = typeof(BlockAcl).GetTypeName();
 
     public BlockAcl() { }
-    public BlockAcl(IEnumerable<BlockAccess> access) => Items = access.NotNull().ToArray();
+    public BlockAcl(IEnumerable<BlockAccess> access) => AccessRights = access.NotNull().ToArray();
 
-    public IReadOnlyList<BlockAccess> Items { get; init; } = Array.Empty<BlockAccess>();
+    public IReadOnlyList<BlockAccess> AccessRights { get; init; } = Array.Empty<BlockAccess>();
 
     public bool Equals(BlockAcl? obj)
     {
-        return obj is BlockAcl document && Items.SequenceEqual(document.Items);
+        return obj is BlockAcl document && AccessRights.SequenceEqual(document.AccessRights);
     }
 
-    public override int GetHashCode() => HashCode.Combine(Items);
+    public override int GetHashCode() => HashCode.Combine(AccessRights);
 }
 
 
 public static class BlockAclValidator
 {
     public static IValidator<BlockAcl> Validator { get; } = new Validator<BlockAcl>()
-        .RuleForEach(x => x.Items).NotNull().Validate(BlockAccessValidator.Validator)
+        .RuleForEach(x => x.AccessRights).NotNull().Validate(BlockAccessValidator.Validator)
         .Build();
 
     public static Option Validate(this BlockAcl subject) => Validator.Validate(subject).ToOptionStatus();
@@ -34,6 +35,6 @@ public static class BlockAclValidator
     {
         subject.NotNull();
 
-        return subject.Items.Any(x => x.HasAccess(grant, blockType, principalId));
+        return subject.AccessRights.Any(x => x.HasAccess(grant, blockType, principalId));
     }
 }

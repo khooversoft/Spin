@@ -37,6 +37,7 @@ public class SoftBankConnector
         group.MapPost("/{accountId}/ledgerItem", AddLedgerItem);
         group.MapGet("/{accountId}/accountDetail", GetAccountDetail);
         group.MapGet("/{accountId}/ledgerItem", GetLedgerItems);
+        group.MapGet("/{accountId}/balance", GetBalance);
     }
 
     private async Task<IResult> Delete(string accountId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
@@ -117,6 +118,18 @@ public class SoftBankConnector
         if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
         Option<IReadOnlyList<LedgerItem>> response = await _client.GetGrain<ISoftBankActor>(accountId).GetLedgerItems(principalId, traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> GetBalance(string accountId,
+        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
+        [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
+        )
+    {
+        accountId = Uri.UnescapeDataString(accountId);
+        if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
+
+        Option<AccountBalance> response = await _client.GetGrain<ISoftBankActor>(accountId).GetBalance(principalId, traceId);
         return response.ToResult();
     }
 }

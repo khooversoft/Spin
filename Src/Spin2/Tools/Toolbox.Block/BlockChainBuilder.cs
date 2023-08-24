@@ -13,7 +13,7 @@ public class BlockChainBuilder
 
     public BlockChainBuilder SetDocumentId(ResourceId resourceId) => this.Action(x => DocumentId = resourceId);
     public BlockChainBuilder SetPrincipleId(string principleId) => this.Action(x => PrincipleId = principleId);
-    public BlockChainBuilder AddAccess(BlockAcl? blockAcl) => this.Action(_ => Access.AddRange(blockAcl?.Items ?? Array.Empty<BlockAccess>()));
+    public BlockChainBuilder AddAccess(BlockAcl? blockAcl) => this.Action(_ => Access.AddRange(blockAcl?.AccessRights ?? Array.Empty<BlockAccess>()));
     public BlockChainBuilder AddAccess(BlockAccess blockAccess) => this.Action(_ => Access.Add(blockAccess));
     public BlockChainBuilder AddAccess(IEnumerable<BlockAccess> blockAccess) => this.Action(_ => Access.AddRange(blockAccess));
 

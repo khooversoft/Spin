@@ -69,7 +69,7 @@ public class BlockAccessReadAccessTests
 
         var acl = new BlockAcl
         {
-            Items = new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 }
+            AccessRights = new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 }
                 .ToEnumerable()
                 .ToArray(),
         };

@@ -78,6 +78,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         {
             DocumentId = GetSoftBankContractId(),
             PrincipalId = detail.OwnerId,
+            BlockAccess = detail.AccessRights.ToArray(),
         };
 
         var createOption = await contract.Create(createContractRequest, context.TraceId);

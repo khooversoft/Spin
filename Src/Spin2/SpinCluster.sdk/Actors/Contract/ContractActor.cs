@@ -159,7 +159,7 @@ public class ContractActor : Grain, IContractActor
         {
             DocumentId = genesis.DocumentId,
             OwnerPrincipalId = genesis.OwnerPrincipalId,
-            BlockAcl = acl.HasValue ? acl.Value.Items.ToArray() : Array.Empty<BlockAccess>(),
+            BlockAcl = acl.HasValue ? acl.Value.AccessRights.ToArray() : Array.Empty<BlockAccess>(),
             BlockCount = _state.State.Count,
         };
 

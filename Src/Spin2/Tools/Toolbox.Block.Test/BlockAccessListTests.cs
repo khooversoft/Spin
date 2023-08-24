@@ -19,12 +19,12 @@ public class BlockAccessListTests
     {
         var a1 = new BlockAcl
         {
-            Items = new BlockAccess { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new BlockAccess { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
         };
 
         var a2 = new BlockAcl
         {
-            Items = new BlockAccess { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new BlockAccess { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
         };
 
         (a1 == a2).Should().BeTrue();
@@ -36,12 +36,12 @@ public class BlockAccessListTests
     {
         var a1 = new BlockAcl
         {
-            Items = new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
         };
 
         var a2 = new BlockAcl
         {
-            Items = new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user2@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user2@domain.com" }.ToEnumerable().ToArray(),
         };
 
         (a1 == a2).Should().BeFalse();
@@ -53,7 +53,7 @@ public class BlockAccessListTests
     {
         var a1 = new BlockAcl
         {
-            Items = new[]
+            AccessRights = new[]
             {
                 new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
                 new BlockAccess { Grant = BlockGrant.Write, Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
@@ -62,7 +62,7 @@ public class BlockAccessListTests
 
         var a2 = new BlockAcl
         {
-            Items = new[]
+            AccessRights = new[]
             {
                 new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
                 new BlockAccess { Grant = BlockGrant.Write, Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
@@ -78,7 +78,7 @@ public class BlockAccessListTests
     {
         var a1 = new BlockAcl
         {
-            Items = new[]
+            AccessRights = new[]
             {
                 new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
                 new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
@@ -87,7 +87,7 @@ public class BlockAccessListTests
 
         var a2 = new BlockAcl
         {
-            Items = new[]
+            AccessRights = new[]
             {
                 new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
                 new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
@@ -103,7 +103,7 @@ public class BlockAccessListTests
     {
         var a1 = new BlockAcl
         {
-            Items = new[]
+            AccessRights = new[]
             {
                 new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
                 new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
@@ -112,7 +112,7 @@ public class BlockAccessListTests
 
         var a2 = new BlockAcl
         {
-            Items = new[]
+            AccessRights = new[]
             {
                 new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
                 new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },

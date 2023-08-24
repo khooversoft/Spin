@@ -68,4 +68,11 @@ public class SoftBankClient
         .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
         .GetAsync(context)
         .GetContent<IReadOnlyList<LedgerItem>>();
+
+    public async Task<Option<AccountBalance>> GetBalance(string accountId, string principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{_schema}/{Uri.EscapeDataString(accountId)}/balance")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
+        .GetAsync(context)
+        .GetContent<AccountBalance>();
 }

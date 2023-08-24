@@ -14,11 +14,11 @@ public sealed class BlockAclSerializationConverter : IConverter<BlockAcl, BlockA
 {
     public BlockAcl ConvertFromSurrogate(in BlockAclSerialization surrogate) => new BlockAcl
     {
-        Items = surrogate.Items.ToArray(),
+        AccessRights = surrogate.Items.ToArray(),
     };
 
     public BlockAclSerialization ConvertToSurrogate(in BlockAcl value) => new BlockAclSerialization
     {
-        Items = value.Items.ToArray(),
+        Items = value.AccessRights.ToArray(),
     };
 }
