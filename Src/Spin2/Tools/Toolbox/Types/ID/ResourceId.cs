@@ -32,6 +32,7 @@ public readonly record struct ResourceId
         Domain = result.Domain;
         Path = result.Path;
         PrincipalId = result.PrincipalId;
+        AccountId = result.AccountId;
     }
 
     public string Id { get; }
@@ -40,6 +41,7 @@ public readonly record struct ResourceId
     [JsonIgnore] public string? Domain { get; }
     [JsonIgnore] public string? Path { get; }
     [JsonIgnore] public string? PrincipalId { get; }
+    [JsonIgnore] public string? AccountId { get; }
 
     public override string ToString() => Id;
     public string ToUrlEncoding() => Uri.EscapeDataString(Id);
@@ -78,7 +80,8 @@ public static class ResourceIdValidator
         .RuleFor(x => x.User).Must(x => x.IsEmpty() || IdPatterns.IsName(x), x => $"{x} not valid user")
         .RuleFor(x => x.Domain).Must(x => x.IsEmpty() || IdPatterns.IsDomain(x), x => $"{x} not valid domain")
         .RuleFor(x => x.Path).Must(x => x.IsEmpty() || x.Split('/').All(y => IdPatterns.IsPath(y)), x => $"{x} not valid path")
-        .RuleFor(x => x.PrincipalId).Must(x => x.IsEmpty() || IdPatterns.IsPrincipalId(x), x => $"{x} not valid path")
+        .RuleFor(x => x.PrincipalId).Must(x => x.IsEmpty() || IdPatterns.IsPrincipalId(x), x => $"{x} not valid principal ID")
+        .RuleFor(x => x.AccountId).Must(x => x.IsEmpty() || IdPatterns.IsAccountId(x), x => $"{x} not valid account ID")
         .Build();
 
     public static Option Validate(this ResourceId subject) => Validator.Validate(subject).ToOptionStatus();

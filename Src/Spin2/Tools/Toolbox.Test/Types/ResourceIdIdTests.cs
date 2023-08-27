@@ -54,6 +54,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("subscription1");
         resourceId.Path.Should().BeNull();
         resourceId.PrincipalId.Should().BeNull();
+        resourceId.AccountId.Should().BeNull();
         resourceId.ToString().Should().Be(id);
     }
 
@@ -73,6 +74,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("company3.com");
         resourceId.Path.Should().BeNull();
         resourceId.PrincipalId.Should().Be("user1@company3.com");
+        resourceId.AccountId.Should().BeNull();
         resourceId.ToString().Should().Be(id);
     }
 
@@ -101,6 +103,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("company3.com");
         resourceId.Path.Should().BeNull();
         resourceId.PrincipalId.Should().Be("user1@company3.com");
+        resourceId.AccountId.Should().BeNull();
         resourceId.ToString().Should().Be(id);
     }
 
@@ -120,6 +123,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("company3.com");
         resourceId.Path.Should().Be("path");
         resourceId.PrincipalId.Should().Be("user1@company3.com");
+        resourceId.AccountId.Should().Be("company3.com/path");
         resourceId.ToString().Should().Be(id);
     }
 
@@ -139,6 +143,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("company3.com");
         resourceId.Path.Should().Be("path1/path2");
         resourceId.PrincipalId.Should().Be("user1@company3.com");
+        resourceId.AccountId.Should().Be("company3.com/path1/path2");
         resourceId.ToString().Should().Be(id);
     }
 
@@ -158,6 +163,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("company3.com");
         resourceId.Path.Should().BeNull();
         resourceId.PrincipalId.Should().BeNull();
+        resourceId.AccountId.Should().BeNull();
         resourceId.ToString().Should().Be(id);
     }
 
@@ -177,6 +183,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("company3.com");
         resourceId.Path.Should().Be("path");
         resourceId.PrincipalId.Should().BeNull();
+        resourceId.AccountId.Should().Be("company3.com/path");
         resourceId.ToString().Should().Be(id);
     }
 
@@ -196,6 +203,7 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be("company3.com");
         resourceId.Path.Should().Be("path1/path2");
         resourceId.PrincipalId.Should().BeNull();
+        resourceId.AccountId.Should().Be("company3.com/path1/path2");
         resourceId.ToString().Should().Be(id);
     }
 
@@ -214,6 +222,7 @@ public class ResourceIdIdTests
         result.User.Should().Be(result2.User);
         result.Domain.Should().Be(result2.Domain);
         result.PrincipalId.Should().BeNull();
+        result.AccountId.Should().Be("company3.com/path1/path2");
         result.Path.Should().Be(result2.Path);
     }
 
@@ -232,6 +241,7 @@ public class ResourceIdIdTests
         result.User.Should().Be(result2.User);
         result.Domain.Should().Be(result2.Domain);
         result.PrincipalId.Should().Be("user1@company3.com");
+        result.AccountId.Should().BeNull();
         result.Path.Should().Be(result2.Path);
     }
 
@@ -252,6 +262,7 @@ public class ResourceIdIdTests
         result.User.Should().Be(result2.User);
         result.Domain.Should().Be(result2.Domain);
         result.Path.Should().Be(result2.Path);
+        result.AccountId.Should().Be("company3.com/path1/path2");
         result.PrincipalId.Should().BeNull();
     }
 }

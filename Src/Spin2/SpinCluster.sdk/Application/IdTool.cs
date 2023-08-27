@@ -35,5 +35,7 @@ public static class IdTool
     };
 
     public static ResourceId CreateContractId(string domain, string path) => $"{SpinConstants.Schema.Contract}:{domain}/{path}";
+
+    public static ResourceId CreateLeaseId(string domain, string path) => $"{SpinConstants.Schema.Lease}:{domain}/{path}";
 }
 

@@ -107,9 +107,9 @@ public class BlockAccessReadAccessTests
         blockChain.Count.Should().Be(4);
 
         // Check read access
-        var stream1 = blockChain.IsAuthorized(BlockGrant.Read, nameof(Payload1), issuer2);
+        var stream1 = blockChain.HasAccess(issuer2, BlockGrant.Read, nameof(Payload1));
         stream1.IsError().Should().BeTrue();
-        var stream2 = blockChain.IsAuthorized(BlockGrant.Read, nameof(Payload2), issuer2);
+        var stream2 = blockChain.HasAccess(issuer2, BlockGrant.Read, nameof(Payload2));
         stream2.IsError().Should().BeTrue();
 
         var streamOwner1 = blockChain.Filter<Payload1>(issuer);

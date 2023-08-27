@@ -14,8 +14,8 @@ public static class BlockChainExtensions
 
         bool authorized = blockType switch
         {
-            string v => blockChain.IsAuthorized(BlockGrant.Read, v, principalId).IsOk(),
-            _ => blockChain.IsOwner(principalId).IsOk(),
+            string v => blockChain.HasAccess(principalId, BlockGrant.Read, v).IsOk(),
+            _ => blockChain.HasAccess(principalId, BlockGrant.Owner).IsOk(),
         };
 
         if (!authorized) return StatusCode.Forbidden;

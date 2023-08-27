@@ -8,7 +8,6 @@ using SoftBank.sdk.Models;
 using SoftBank.sdk.test.Application;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
-using SpinCluster.sdk.Actors.SoftBank;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Types;

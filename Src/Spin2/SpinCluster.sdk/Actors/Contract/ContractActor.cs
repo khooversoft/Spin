@@ -1,12 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
@@ -21,6 +22,7 @@ public interface IContractActor : IGrainWithStringKey
     Task<Option<IReadOnlyList<DataBlock>>> Query(ContractQuery model, string traceId);
     Task<Option> Append(DataBlock block, string traceId);
     Task<Option<ContractPropertyModel>> GetProperties(string principalId, string traceId);
+    Task<Option> HasAccess(string principalId, BlockGrant grant, string traceId);
 }
 
 public class ContractActor : Grain, IContractActor
@@ -127,7 +129,7 @@ public class ContractActor : Grain, IContractActor
         var test = new Option()
             .Test(() => _state.RecordExists)
             .Test(() => block.Validate())
-            .Test(() => _state.State.IsAuthorized(BlockGrant.Write, block.BlockType, block.PrincipleId));
+            .Test(() => _state.State.HasAccess(block.PrincipleId, BlockGrant.Write, block.BlockType));
         if (test.IsError()) return test;
 
         Option<BlockChain> readBlockChain = await ReadContract(context);
@@ -149,8 +151,7 @@ public class ContractActor : Grain, IContractActor
         var read = await ReadContract(context);
         if (read.IsError()) return read.ToOptionStatus<ContractPropertyModel>();
 
-        if (_state.State.IsOwner(principalId).IsError()) return StatusCode.Forbidden;
-
+        if (_state.State.HasAccess(principalId, BlockGrant.Owner).IsError()) return StatusCode.Forbidden;
 
         GenesisBlock genesis = _state.State.GetGenesisBlock();
         Option<BlockAcl> acl = _state.State.GetAclBlock(principalId);
@@ -164,6 +165,18 @@ public class ContractActor : Grain, IContractActor
         };
 
         return response;
+    }
+
+    public async Task<Option> HasAccess(string principalId, BlockGrant grant, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("HasAccess, actorKey={actorKey}, principalId={principalId}", this.GetPrimaryKeyString(), principalId);
+
+        var read = await ReadContract(context);
+        if (read.IsError()) return read.ToOptionStatus();
+
+        var result = _state.State.HasAccess(principalId, grant);
+        return result;
     }
 
     private async Task<Option<BlockChain>> ReadContract(ScopeContext context)

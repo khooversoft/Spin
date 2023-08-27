@@ -31,10 +31,13 @@ public static class BlockAclValidator
 
     public static Option Validate(this BlockAcl subject) => Validator.Validate(subject).ToOptionStatus();
 
-    public static bool HasAccess(this BlockAcl subject, BlockGrant grant, string blockType, string principalId)
-    {
-        subject.NotNull();
-
-        return subject.AccessRights.Any(x => x.HasAccess(grant, blockType, principalId));
-    }
+    public static Option HasAccess(this BlockAcl subject, string principalId, BlockGrant grant, string blockType) => subject
+        .NotNull()
+        .AccessRights.Any(x => x.HasAccess(principalId, grant, blockType))
+        .ToOptionStatus();
+    
+    public static Option HasAccess(this BlockAcl subject, string principalId, BlockGrant grant) => subject
+        .NotNull()
+        .AccessRights.Any(x => x.HasAccess(principalId, grant))
+        .ToOptionStatus();
 }

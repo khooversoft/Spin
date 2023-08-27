@@ -23,6 +23,7 @@ public static class ApiStartup
         services.AddSingleton<PrincipalPrivateKeyConnector>();
         services.AddSingleton<SignatureConnector>();
         services.AddSingleton<ContractConnector>();
+        services.AddSingleton<LeaseConnector>();
 
         return services;
     }
@@ -38,5 +39,6 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<PrincipalPrivateKeyConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SignatureConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<ContractConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<LeaseConnector>().Setup(app);
     }
 }

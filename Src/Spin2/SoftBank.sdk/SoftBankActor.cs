@@ -1,32 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
+using SoftBank.sdk;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
+using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Orleans.Types;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 
-namespace SpinCluster.sdk.Actors.SoftBank;
-
-public interface ISoftBankActor : IGrainWithStringKey
-{
-    Task<Option> Delete(string traceId);
-    Task<Option> Exist(string traceId);
-    Task<Option> Create(AccountDetail detail, string traceId);
-    Task<Option> SetAccountDetail(AccountDetail detail, string traceId);
-    Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId);
-    Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId);
-    Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId);
-    Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId);
-    Task<Option<AccountBalance>> GetBalance(string principalId, string traceId);
-}
+namespace SoftBank.sdk;
 
 // ActorKey = "softbank:company3.com/accountId"
 // ContractId = "contract:company3.com/softbank/accountId"
@@ -34,11 +23,14 @@ public class SoftBankActor : Grain, ISoftBankActor
 {
     private readonly ILogger<SoftBankActor> _logger;
     private readonly IClusterClient _clusterClient;
+    private readonly SoftBankManagement _mgmt;
 
     public SoftBankActor(IClusterClient clusterClient, ILogger<SoftBankActor> logger)
     {
         _logger = logger.NotNull();
-        _clusterClient = clusterClient;
+        _clusterClient = clusterClient.NotNull();
+
+        _mgmt = new SoftBankManagement(this, _logger);
     }
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
@@ -47,12 +39,12 @@ public class SoftBankActor : Grain, ISoftBankActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option> Delete(string traceId)
+    public async Task<Option> Delete(string traceId) => 
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting SoftBank - actorId={actorId}", this.GetPrimaryKeyString());
 
-        var result = await GetContractorActor().Delete(traceId);
+        var result = await GetContractActor().Delete(traceId);
         return result;
     }
 
@@ -60,7 +52,7 @@ public class SoftBankActor : Grain, ISoftBankActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        var result = await GetContractorActor().Exist(traceId);
+        var result = await GetContractActor().Exist(traceId);
         return result;
     }
 
@@ -72,7 +64,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         var v = detail.Validate().LogResult(context.Location());
         if (v.IsError()) return v;
 
-        IContractActor contract = GetContractorActor();
+        IContractActor contract = GetContractActor();
 
         var createContractRequest = new ContractCreateModel
         {
@@ -126,7 +118,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         context.Location().LogInformation("Getting account detail, principalId={principalId}", principalId);
         if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
 
-        IContractActor contract = GetContractorActor();
+        IContractActor contract = GetContractActor();
 
         var query = new ContractQuery
         {
@@ -154,7 +146,7 @@ public class SoftBankActor : Grain, ISoftBankActor
         context.Location().LogInformation("Getting leger items, principalId={principalId}", principalId);
         if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
 
-        IContractActor contract = GetContractorActor();
+        IContractActor contract = GetContractActor();
 
         var query = new ContractQuery
         {
@@ -192,13 +184,65 @@ public class SoftBankActor : Grain, ISoftBankActor
         return response;
     }
 
-    private ResourceId GetSoftBankContractId() => this.GetPrimaryKeyString().ToSoftBankContractId();
-
-    private IContractActor GetContractorActor() => _clusterClient.GetContractActor(GetSoftBankContractId());
-
-    private async Task<Option> Append<T>(T value, string principalId, ScopeContext context) where T : class
+    public async Task<Option<AmountReserved>> Reserve(string principalId, decimal amount, string traceId)
     {
-        IContractActor contract = GetContractorActor();
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Reserve funds for trx, principalId={principalId}", principalId);
+
+        var test = new Option()
+            .Test(() => IdPatterns.IsPrincipalId(principalId))
+            .Test(() => amount > 0 ? StatusCode.OK : new Option(StatusCode.BadRequest, "Amount must be positive"));
+        if (test.IsError()) return test.ToOptionStatus<AmountReserved>();
+
+        IContractActor contract = GetContractActor();
+        var isOwner = await contract.HasAccess(principalId, BlockGrant.Owner, traceId);
+        if (isOwner.IsError()) return isOwner.ToOptionStatus<AmountReserved>();
+
+        // Verify money is available
+        AccountBalance balance = await GetBalance(principalId, traceId).Return();
+        if (balance.Balance < amount) return new Option<AmountReserved>(StatusCode.BadRequest, "No funds");
+
+        ILeaseActor leaseActor = GetLeaseActor();
+
+        var request = CreateLeaseRequest(amount);
+        var acquire = await leaseActor.Acquire(request, context.TraceId);
+        if( acquire.IsError()) return acquire.ToOptionStatus<AmountReserved>();
+
+        var reserved = new AmountReserved
+        {
+            LeaseKey = request.LeaseKey,
+            AccountId = this.GetPrimaryKeyString(),
+            PrincipalId = principalId,
+            Amount = amount,
+            GoodTo = DateTime.UtcNow + request.TimeToLive,
+        };
+
+        return reserved;
+    }
+
+    public async Task<Option> ReleaseReserve(string leaseKey, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Release reserve funds for trx, leaseKey={leaseKey}", leaseKey);
+        
+        ILeaseActor leaseActor = GetLeaseActor();
+        var releaseResponse = await leaseActor.Release(leaseKey, context.TraceId);
+
+        return releaseResponse;
+    }
+
+    internal ResourceId GetSoftBankContractId() => this.GetPrimaryKeyString().ToSoftBankContractId();
+
+    internal IContractActor GetContractActor() => _clusterClient.GetContractActor(GetSoftBankContractId());
+
+    private ILeaseActor GetLeaseActor() => ResourceId.Create(this.GetPrimaryKeyString()).ThrowOnError()
+        .Bind(x => IdTool.CreateLeaseId(x.Domain.NotNull(), "softbank/" + x.Path.NotNull()))
+        .Bind(x => _clusterClient.GetLeaseActor(x))
+        .Return();
+
+    internal async Task<Option> Append<T>(T value, string principalId, ScopeContext context) where T : class
+    {
+        IContractActor contract = GetContractActor();
         ISignatureActor signatureActor = _clusterClient.GetSignatureActor();
 
         var dataBlock = await value.ToDataBlock(principalId).Sign(signatureActor, context);
@@ -209,4 +253,16 @@ public class SoftBankActor : Grain, ISoftBankActor
 
         return StatusCode.OK;
     }
+
+    private sealed record ReserveLease
+    {
+        public static string BuildLeaseKey(decimal amount) => $"ReserveAmount/{Guid.NewGuid()}";
+        public decimal Amount { get; init; }
+    }
+
+    private static LeaseCreate CreateLeaseRequest(decimal amount) => new LeaseCreate
+    {
+        LeaseKey = ReserveLease.BuildLeaseKey(amount),
+        Payload = new ReserveLease { Amount = amount }.ToJson(),
+    };
 }

@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
@@ -43,6 +44,13 @@ public static class IdPatterns
             }
         };
 
+
+    public static bool IsBlockType(string? subject) =>
+        subject.IsNotEmpty() &&
+        TestStart(subject, char.IsLetter) &&
+        TestMiddle(subject, StandardCharacterTest) &&
+        TestEnd(subject, char.IsLetterOrDigit);
+
     public static bool IsKeyId(string? subject) =>
         subject.IsNotEmpty() &&
         subject.Split(':') switch
@@ -52,20 +60,24 @@ public static class IdPatterns
             var s => s.Last().Split('/').Func(x => IsPrincipalId(x[0]) && x.Skip(1).All(x => IsPath(x)))
         };
 
-    public static bool IsBlockType(string? subject) =>
-        subject.IsNotEmpty() &&
-        TestStart(subject, char.IsLetter) &&
-        TestMiddle(subject, StandardCharacterTest) &&
-        TestEnd(subject, char.IsLetterOrDigit);
+    public static bool IsContractId(string? subject) => IsSchemaDomainMatch(subject, "contract");
+    public static bool IsLeaseId(string? subject) => IsSchemaDomainMatch(subject, "lease");
 
-    public static bool IsContractId(string? subject) =>
-    subject.IsNotEmpty() &&
-    subject.Split(':') switch
-    {
-        var s when s.Length != 2 => false,
-        var s when s[0] != "contract" => false,
-        var s => s.Last().Split('/').Func(x => x.Length > 1 && IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
-    };
+    public static bool IsAccountId(string? subject) =>
+        subject.IsNotEmpty() &&
+        subject.Split(':') switch
+        {
+            var s => s.Last().Split('/').Func(x => x.Length > 1 && IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
+        };
+
+    public static bool IsSchemaDomainMatch(string? subject, string schema) =>
+        subject.IsNotEmpty() &&
+        subject.Split(':') switch
+        {
+            var s when s.Length != 2 => false,
+            var s when s[0] != schema.NotEmpty() => false,
+            var s => s.Last().Split('/').Func(x => x.Length > 1 && IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
+        };
 
     public static bool TestStart(string subject, Func<char, bool> test) => test(subject[0]);
 

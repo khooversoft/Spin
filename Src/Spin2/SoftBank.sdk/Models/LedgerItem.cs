@@ -21,6 +21,7 @@ public record LedgerItem
     [Id(3)] public string Description { get; init; } = null!;
     [Id(4)] public LedgerType Type { get; init; }
     [Id(5)] public decimal Amount { get; init; }
+    [Id(6)] public string? Tags { get; init; }
 
     public decimal NaturalAmount => Type.NaturalAmount(Amount);
 }

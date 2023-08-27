@@ -5,7 +5,7 @@ using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.SoftBank;
+namespace SoftBank.sdk;
 
 public class SoftBankClient
 {

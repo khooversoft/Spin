@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using SoftBank.sdk;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SpinCluster.sdk.Actors.ActorBase;
@@ -12,7 +13,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.SoftBank;
+namespace SoftBank.sdk;
 
 public class SoftBankConnector
 {

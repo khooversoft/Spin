@@ -1,78 +1,123 @@
-﻿//using Microsoft.Extensions.Logging;
-//using Orleans.Runtime;
-//using SpinCluster.sdk.Application;
-//using Toolbox.Extensions;
-//using Toolbox.Orleans.Types;
-//using Toolbox.Types;
+﻿using Microsoft.Extensions.Logging;
+using Orleans.Runtime;
+using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Application;
+using Toolbox.Extensions;
+using Toolbox.Types;
 
-//namespace SpinCluster.sdk.Actors.Lease;
+namespace SpinCluster.sdk.Actors.Lease;
 
-//public interface ILeaseActor : IGrainWithStringKey
-//{
-//    Task<Option<LeaseData>> Acquire(string traceId);
-//    Task<StatusCode> Release(string leaseId, string traceId);
-//}
+public interface ILeaseActor : IGrainWithStringKey
+{
+    Task<Option<LeaseData>> Acquire(LeaseCreate model, string traceId);
+    Task<Option> IsLeaseValid(string leaseKey, string traceId);
+    Task<Option<IReadOnlyList<LeaseData>>> List(string traceId);
+    Task<Option> Release(string leaseKey, string traceId);
+}
 
 
-//public class LeaseActor : Grain, ILeaseActor
-//{
-//    private readonly IPersistentState<LeaseData> _state;
-//    private readonly ILogger _logger;
+public class LeaseActor : Grain, ILeaseActor
+{
+    private readonly IPersistentState<LeaseDataCollection> _state;
+    private readonly ILogger _logger;
 
-//    public LeaseActor(
-//        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<LeaseData> state,
-//        ILogger<LeaseActor> logger
-//        )
-//    {
-//        _state = state;
-//        _logger = logger;
-//    }
+    public LeaseActor(
+        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<LeaseDataCollection> state,
+        ILogger<LeaseActor> logger
+        )
+    {
+        _state = state;
+        _logger = logger;
+    }
 
-//    public override Task OnActivateAsync(CancellationToken cancellationToken)
-//    {
-//        this.VerifySchema(SpinConstants.Schema.Lease, new ScopeContext(_logger));
-//        return base.OnActivateAsync(cancellationToken);
-//    }
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        this.VerifySchema(SpinConstants.Schema.Lease, new ScopeContext(_logger));
+        return base.OnActivateAsync(cancellationToken);
+    }
 
-//    public async Task<Option<LeaseData>> Acquire(string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
+    public async Task<Option<LeaseData>> Acquire(LeaseCreate model, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        var v = model.Validate();
+        if (v.IsError()) return v.ToOptionStatus<LeaseData>();
 
-//        if (_state.RecordExists && _state.State.IsLeaseValid()) return new Option<LeaseData>(StatusCode.Conflict);
+        _state.State = _state.RecordExists ? _state.State : new LeaseDataCollection();
 
-//        var leaseData = new LeaseData
-//        {
-//            LeaseId = Guid.NewGuid().ToString(),
-//            ObjectId = this.GetPrimaryKeyString(),
-//        };
+        if (_state.State.LeaseData.TryGetValue(model.LeaseKey, out LeaseData? readLeaseData))
+        {
+            if (readLeaseData.IsLeaseValid()) return StatusCode.Conflict;
+        }
 
-//        _state.State = leaseData;
-//        await _state.WriteStateAsync();
+        var leaseData = new LeaseData
+        {
+            LeaseKey = model.LeaseKey,
+            AccountId = this.GetPrimaryKeyString(),
+            Payload = model.Payload,
+            TimeToLive = model.TimeToLive,
+        };
 
-//        context.Location().LogInformation("Acquiring lease for id={id}, leaseId={leaseId}, leaseData={leaseData}",
-//            this.GetPrimaryKeyString(), leaseData.LeaseId, leaseData.ToJsonPascalSafe(context));
+        _state.State.LeaseData[model.LeaseKey] = leaseData;
+        await _state.WriteStateAsync();
 
-//        return leaseData;
-//    }
+        context.Location().LogInformation("Acquiring lease for actorKey={actorKey}, leaseId={leaseId}, leaseKey={leaseKey}",
+            this.GetPrimaryKeyString(), leaseData.LeaseId, leaseData.LeaseKey);
 
-//    public async Task<StatusCode> Release(string leaseId, string traceId)
-//    {
-//        var context = new ScopeContext(traceId, _logger);
-//        context.Location().LogInformation("Releasing lease request for id={id}, leaseId={leaseId}", this.GetPrimaryKeyString(), leaseId);
+        return leaseData;
+    }
 
-//        if (!_state.RecordExists) return StatusCode.NotFound;
+    public async Task<Option> Release(string leaseKey, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Releasing lease request for id={id}, leaseKey={leaseKey}", this.GetPrimaryKeyString(), leaseKey);
 
-//        if (!_state.State.IsLeaseValid())
-//        {
-//            await _state.ClearStateAsync();
-//            return StatusCode.NotFound;
-//        }
+        var test = new Option()
+            .Test(() => _state.RecordExists)
+            .Test(() => _state.State.LeaseData.Remove(leaseKey));
+        if (test.IsError()) return StatusCode.NotFound;
 
-//        if (_state.State.LeaseId != leaseId) return StatusCode.Conflict;
+        await _state.WriteStateAsync();
+        return StatusCode.OK;
+    }
 
-//        context.Location().LogInformation("Releasing lease for id={id}, leaseId={leaseId}", this.GetPrimaryKeyString(), leaseId);
-//        await _state.ClearStateAsync();
+    public Task<Option> IsLeaseValid(string leaseKey, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Releasing lease request for id={id}, leaseKey={leaseKey}", this.GetPrimaryKeyString(), leaseKey);
 
-//        return StatusCode.OK;
-//    }
-//}
+        Option option = _state.RecordExists switch
+        {
+            false => StatusCode.NotFound,
+            true => _state.State.LeaseData.TryGetValue(leaseKey, out LeaseData? readLeaseData) switch
+            {
+                false => StatusCode.NotFound,
+                true => readLeaseData.IsLeaseValid() switch
+                {
+                    true => StatusCode.OK,
+                    false => StatusCode.Conflict,
+                }
+            }
+        };
+
+        return option.ToTaskResult();
+    }
+
+    public Task<Option<IReadOnlyList<LeaseData>>> List(string traceId)
+    {
+        Option<IReadOnlyList<LeaseData>> response = _state.RecordExists switch
+        {
+            false => Array.Empty<LeaseData>(),
+
+            true => _state.State.LeaseData.Values
+                .Where(x => x.IsLeaseValid())
+                .ToArray(),
+        };
+
+        return response.ToTaskResult();
+    }
+
+    public class LeaseDataCollection
+    {
+        public IDictionary<string, LeaseData> LeaseData { get; set; } = new Dictionary<string, LeaseData>();
+    };
+}

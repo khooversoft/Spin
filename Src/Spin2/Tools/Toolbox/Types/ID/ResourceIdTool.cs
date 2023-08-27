@@ -21,6 +21,7 @@ internal class ResourceIdTool
         public string? Domain { get; init; }
         public string? Path { get; init; }
         public string? PrincipalId { get; init; }
+        public string? AccountId { get; init; }
     };
 
     public static Option<ResourceIdParsed> Parse(string subject)
@@ -65,7 +66,7 @@ internal class ResourceIdTool
             Domain = tokens[4].Value,
             Path = tokens.Skip(6).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),
             PrincipalId = $"{tokens[2].Value}@{tokens[4].Value}",
-        },
+        }.Func(x => x.Path.IsNotEmpty() ? x with { AccountId = $"{x.Domain}/{x.Path}" } : x),
     };
 
     private static Option<ResourceIdParsed> WithNoUserAndPaths(string subject, IReadOnlyList<IToken> tokens) => HasPattern(tokens, noUserPattern, true) switch
@@ -80,7 +81,7 @@ internal class ResourceIdTool
             Schema = tokens[0].Value,
             Domain = tokens[2].Value,
             Path = tokens.Skip(4).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),
-        },
+        }.Func(x => x.Path.IsNotEmpty() ? x with { AccountId = $"{x.Domain}/{x.Path}" } : x),
     };
 
     private static Option<ResourceIdParsed> UserAndDomain(string subject, IReadOnlyList<IToken> tokens) => HasPattern(tokens, onlyUserPattern, false) switch

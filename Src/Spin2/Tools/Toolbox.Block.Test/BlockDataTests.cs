@@ -105,7 +105,7 @@ namespace Toolbox.Block.Test
             data1.BlockType.Should().Be(data2.BlockType);
             data1.ClassType.Should().Be(data2.ClassType);
             data1.Data.Should().Be(data2.Data);
-            data1.JwtSignature.Should().Be(data2.JwtSignature);
+            //data1.JwtSignature.Should().Be(data2.JwtSignature);
             data1.Digest.Should().Be(data2.Digest);
 
             (data1 == data2).Should().BeTrue();

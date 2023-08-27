@@ -48,7 +48,7 @@ public sealed class BlockChain
             }
         }
 
-        return new Option(StatusCode.OK);
+        return StatusCode.OK;
     }
 
     public bool IsValid()
@@ -86,12 +86,6 @@ public sealed class BlockChain
         .Select(x => x.DataBlock.ToObject<GenesisBlock>())
         .Last();
 
-    public Option IsOwner(string principalId) => GetGenesisBlock() switch
-    {
-        var v when v.OwnerPrincipalId == principalId => new Option(StatusCode.OK),
-        _ => new Option(StatusCode.Forbidden),
-    };
-
     public IReadOnlyList<PrincipalDigest> GetPrincipleDigests()
     {
         return _blocks
@@ -104,39 +98,51 @@ public sealed class BlockChain
             }).ToArray();
     }
 
-    public Option IsAuthorized(BlockGrant grant, string blockType, string principalId)
-    {
-        grant.IsEnumValid<BlockGrant>();
-        blockType.NotNull();
-        principalId.NotNull();
-
-        GenesisBlock genesisBlock = GetGenesisBlock();
-        if (genesisBlock.OwnerPrincipalId == principalId) return StatusCode.OK;
-
-        Option<BlockAcl> aclOption = this.GetAclBlock();
-        if (aclOption == Option<BlockAcl>.None) return StatusCode.Forbidden;
-
-        bool hasAccess = aclOption.Return().HasAccess(grant, blockType, principalId);
-        return hasAccess ? StatusCode.OK : StatusCode.Forbidden;
-    }
-
     public Option<BlockAcl> GetAclBlock(string principalId)
     {
-        var isOwner = IsOwner(principalId);
-        if (isOwner.IsError()) return isOwner.ToOptionStatus<BlockAcl>();
+        var isOwner = HasAccess(principalId, BlockGrant.Owner);
+        if (isOwner.IsOk()) return GetAclBlock();
 
-        return GetAclBlock();
+        var aclOption = GetAclBlock();
+        if (aclOption.IsNoContent()) return StatusCode.NotFound;
+        if (aclOption.Return().HasAccess(principalId, BlockGrant.Owner).IsError()) return StatusCode.Forbidden;
+
+        return aclOption;
+    }
+
+    public Option HasAccess(string principalId, BlockGrant grant)
+    {
+        var genesisBlock = GetGenesisBlock();
+        if (genesisBlock.OwnerPrincipalId == principalId) return StatusCode.OK;
+
+        var aclOption = GetAclBlock();
+        if (aclOption.IsNoContent()) return StatusCode.Forbidden;
+
+        var result = aclOption.Return().HasAccess(principalId, grant);
+        return result;
+    }
+
+    public Option HasAccess(string principalId, BlockGrant grant, string blockType)
+    {
+        var genesisBlock = GetGenesisBlock();
+        if (genesisBlock.OwnerPrincipalId == principalId) return StatusCode.OK;
+
+        var aclOption = GetAclBlock();
+        if (aclOption.IsNoContent()) return StatusCode.Forbidden;
+
+        var result = aclOption.Return().HasAccess(principalId, grant, blockType);
+        return result;
     }
 
     private Option CheckWriteAccess(IEnumerable<DataBlock> blocks)
     {
         blocks.NotNull();
-        if (_blocks.Count == 0) return new Option(StatusCode.OK);
+        if (_blocks.Count == 0) return StatusCode.OK;
 
-        return blocks.All(x => IsAuthorized(BlockGrant.Write, x.BlockType, x.PrincipleId).IsOk()) switch
+        return blocks.All(x => HasAccess(x.PrincipleId, BlockGrant.Write, x.BlockType).IsOk()) switch
         {
-            true => new Option(StatusCode.OK),
-            false => new Option(StatusCode.Unauthorized),
+            true => StatusCode.OK,
+            false => StatusCode.Unauthorized,
         };
     }
 

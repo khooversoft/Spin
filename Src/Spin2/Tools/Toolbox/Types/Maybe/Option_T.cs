@@ -24,7 +24,7 @@ public interface IOption
 /// 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-[DebuggerDisplay("HasValue={HasValue}, Value={Value}, StatusCode={StatusCode}")]
+[DebuggerDisplay("StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}")]
 public readonly struct Option<T> : IOption, IEquatable<Option<T>>
 {
     [SetsRequiredMembers()]

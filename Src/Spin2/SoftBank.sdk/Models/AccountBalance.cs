@@ -8,6 +8,7 @@ public sealed record AccountBalance
 {
     [Id(0)] public string DocumentId { get; init; } = null!;
     [Id(1)] public decimal Balance { get; init; }
+    [Id(2)] public decimal LedgerBalance { get; init; }
 }
 
 

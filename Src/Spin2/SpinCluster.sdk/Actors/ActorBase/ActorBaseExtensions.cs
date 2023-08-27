@@ -5,7 +5,7 @@ using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace Toolbox.Orleans.Types;
+namespace SpinCluster.sdk.Actors.ActorBase;
 
 public static class ActorBaseExtensions
 {

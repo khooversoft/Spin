@@ -37,10 +37,7 @@ public class ContractConnector
         return group;
     }
 
-    private async Task<IResult> Delete(
-        string documentId,
-        [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId
-        )
+    private async Task<IResult> Delete(string documentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         documentId = Uri.UnescapeDataString(documentId);
         if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest();
