@@ -100,17 +100,17 @@ public sealed class BlockChain
 
     public Option<BlockAcl> GetAclBlock(string principalId)
     {
-        var isOwner = HasAccess(principalId, BlockGrant.Owner);
+        var isOwner = HasAccess(principalId, BlockRoleGrant.Owner);
         if (isOwner.IsOk()) return GetAclBlock();
 
         var aclOption = GetAclBlock();
         if (aclOption.IsNoContent()) return StatusCode.NotFound;
-        if (aclOption.Return().HasAccess(principalId, BlockGrant.Owner).IsError()) return StatusCode.Forbidden;
+        if (aclOption.Return().HasAccess(principalId, BlockRoleGrant.Owner).IsError()) return StatusCode.Forbidden;
 
         return aclOption;
     }
 
-    public Option HasAccess(string principalId, BlockGrant grant)
+    public Option HasAccess(string principalId, BlockRoleGrant grant)
     {
         var genesisBlock = GetGenesisBlock();
         if (genesisBlock.OwnerPrincipalId == principalId) return StatusCode.OK;
@@ -124,8 +124,8 @@ public sealed class BlockChain
 
     public Option HasAccess(string principalId, BlockGrant grant, string blockType)
     {
-        var genesisBlock = GetGenesisBlock();
-        if (genesisBlock.OwnerPrincipalId == principalId) return StatusCode.OK;
+        var hasOwnerAccess = HasAccess(principalId, BlockRoleGrant.Owner);
+        if (hasOwnerAccess.IsOk()) return StatusCode.OK;
 
         var aclOption = GetAclBlock();
         if (aclOption.IsNoContent()) return StatusCode.Forbidden;

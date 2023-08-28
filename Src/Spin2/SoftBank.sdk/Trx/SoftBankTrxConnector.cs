@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.Logging;
+using SoftBank.sdk.Application;
+using SoftBank.sdk.Models;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Application;
-using static Microsoft.Azure.Amqp.Serialization.SerializableType;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Microsoft.AspNetCore.Builder;
 
 namespace SoftBank.sdk.Trx;
 
@@ -31,19 +27,21 @@ public class SoftBankTrxConnector
 
     public virtual RouteGroupBuilder Setup(IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Lease}");
+        RouteGroupBuilder group = app.MapGroup($"/{IdSoftbank.SoftBankTrxSchema}");
 
-        group.MapPost("/{leaseId}", Acquire);
+        group.MapPost("/", Request);
 
         return group;
     }
 
-    private async Task<IResult> Acquire(string leaseId, LeaseCreate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Request(TrxRequest request, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        leaseId = Uri.UnescapeDataString(leaseId);
-        if (!IdPatterns.IsLeaseId(leaseId)) return Results.BadRequest();
+        var v = request.Validate();
+        if (v.IsError()) return v.ToResult();
 
-        Option<LeaseData> response = await _client.GetLeaseActor(leaseId).Acquire(model, traceId);
+        ResourceId trxActorKey = ((ResourceId)request.SourceAccountID).ToSoftBankTrxId();
+        Option<TrxResponse> response = await _client.GetResourceGrain<ISoftBankTrxActor>(trxActorKey).Request(request, traceId);
+
         return response.ToResult();
     }
 }

@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tools.Validation;
+﻿using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.Models;
 
+[GenerateSerializer, Immutable]
 public record AmountReserved
 {
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string LeaseKey { get; init; } = null!;
-    public string AccountId { get; init; } = null!;
-    public string PrincipalId { get; init; } = null!;
-    public decimal Amount { get; init; }
-    public DateTime GoodTo { get; init; }
+    [Id(0)] public string Id { get; init; } = Guid.NewGuid().ToString();
+    [Id(1)] public string LeaseKey { get; init; } = null!;
+    [Id(2)] public string AccountId { get; init; } = null!;
+    [Id(3)] public string PrincipalId { get; init; } = null!;
+    [Id(4)] public decimal Amount { get; init; }
+    [Id(5)] public DateTime GoodTo { get; init; }
 }
 
 

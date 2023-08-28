@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
+using SoftBank.sdk.SoftBank;
 using SpinCluster.sdk.Actors.ActorBase;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -61,10 +56,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
         };
     }
 
-    public async Task<Option<TrxResponse>> ProcessAsSource(TrxRequest request, ScopeContext context)
+    private async Task<Option<TrxResponse>> ProcessAsSource(TrxRequest request, ScopeContext context)
     {
-        var v = request.Validate();
-        if (v.IsError()) return v.ToOptionStatus<TrxResponse>();
         context.Location().LogInformation("ProcessAsSource, requestId={requestId}, type={type}", request.Id, request.Type);
 
         AmountReserved? amountReserved = null;
@@ -99,8 +92,7 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             }.Join(';'),
         };
 
-        ISoftBankActor sourceAccount = _clusterClient.GetSoftBankActor(request.SourceAccountID);
-        var update = await sourceAccount.AddLedgerItem(ledgerItem, context.TraceId);
+        var update = await _clusterClient.GetSoftBankActor(request.SourceAccountID).AddLedgerItem(ledgerItem, context.TraceId);
         if (update.IsError())
         {
             context.Location().LogCritical("Failed to add ledger item");
@@ -109,14 +101,16 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
 
         if (amountReserved != null) await ReleaseReservce(amountReserved, context);
 
-        TrxResponse trxResponse = trxResponseOption.Return() with { SourceLedgerItemId = ledgerItem.Id };
+        TrxResponse trxResponse = trxResponseOption.Return() with
+        {
+            Status = TrxStatusCode.Completed,
+            SourceLedgerItemId = ledgerItem.Id
+        };
         return trxResponse;
     }
 
-    public async Task<Option<TrxResponse>> ProcessAsDestination(TrxRequest request, ScopeContext context)
+    private async Task<Option<TrxResponse>> ProcessAsDestination(TrxRequest request, ScopeContext context)
     {
-        var v = request.Validate();
-        if (v.IsError()) return v.ToOptionStatus<TrxResponse>();
         context.Location().LogInformation("ProcessAsDestination, requestId={requestId}, type={type}", request.Id, request.Type);
 
         AmountReserved? amountReserved = null;
@@ -128,16 +122,14 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             amountReserved = reserveAmountOption.Return();
         }
 
-        if (amountReserved != null) await ReleaseReservce(amountReserved, context);
-
         var ledgerItem = new LedgerItem
         {
             OwnerId = request.PrincipalId,
             Description = request.Description,
             Type = request.Type switch
             {
-                TrxType.Push => LedgerType.Debit,
-                TrxType.Pull => LedgerType.Credit,
+                TrxType.Push => LedgerType.Credit,
+                TrxType.Pull => LedgerType.Debit,
                 _ => throw new UnreachableException(),
             },
             Amount = request.Amount,
@@ -150,8 +142,7 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             }.Join(';'),
         };
 
-        ISoftBankActor sourceAccount = _clusterClient.GetSoftBankActor(request.SourceAccountID);
-        var update = await sourceAccount.AddLedgerItem(ledgerItem, context.TraceId);
+        var update = await _clusterClient.GetSoftBankActor(request.DestinationAccountId).AddLedgerItem(ledgerItem, context.TraceId);
         if (update.IsError())
         {
             context.Location().LogCritical("Failed to add ledger item");

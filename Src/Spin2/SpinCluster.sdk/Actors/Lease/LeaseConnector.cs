@@ -2,12 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Application;
-using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -54,7 +51,7 @@ public class LeaseConnector
         var test = new Option()
             .Test(() => IdPatterns.IsLeaseId(leaseId))
             .Test(() => IdPatterns.IsName(leaseKey));
-        if( test.IsError()) return Results.BadRequest();
+        if (test.IsError()) return Results.BadRequest();
 
         Option response = await _client.GetLeaseActor(leaseId).Release(leaseKey, traceId);
         return response.ToResult();
@@ -77,7 +74,7 @@ public class LeaseConnector
     private async Task<IResult> List(string leaseId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         leaseId = Uri.UnescapeDataString(leaseId);
-        if( !IdPatterns.IsLeaseId(leaseId) ) return Results.BadRequest();
+        if (!IdPatterns.IsLeaseId(leaseId)) return Results.BadRequest();
 
         Option<IReadOnlyList<LeaseData>> response = await _client.GetLeaseActor(leaseId).List(traceId);
         return response.ToResult();

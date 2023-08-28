@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
+using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.test.Application;
 using Toolbox.Block;
 using Toolbox.Extensions;
@@ -37,7 +38,6 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
     public async Task MultipleLedgerItems()
     {
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
-
 
         await DeleteAccounts();
         await CreateAccounts();
@@ -122,7 +122,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
     {
         foreach (var item in _config)
         {
-            await _setupTools.DeleteUser(_cluster.ServiceProvider, item.Sub, item.Tenant, item.PrincipalId);
+            await _setupTools.DeleteUser(item.Sub, item.Tenant, item.PrincipalId);
             await DeleteBankAccount(item.AccountId);
         }
     }
@@ -131,7 +131,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
     {
         foreach (var item in _config)
         {
-            await _setupTools.CreateUser(_cluster.ServiceProvider, item.Sub, item.Tenant, item.PrincipalId);
+            await _setupTools.CreateUser(item.Sub, item.Tenant, item.PrincipalId);
             await CreateBankAccount(item.AccountId, item.PrincipalId);
         }
     }

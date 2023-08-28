@@ -86,7 +86,5 @@ public static class ResourceIdValidator
 
     public static Option Validate(this ResourceId subject) => Validator.Validate(subject).ToOptionStatus();
 
-    private static string GetPath(this ResourceId resourceId) => resourceId.NotNull().Path.IsNotEmpty() ? "/" + resourceId.Path : string.Empty;
-    public static string GetPrinaipalId(this ResourceId resourceId) => $"{resourceId.User}@{resourceId.Domain}";
-    public static string GetKeyId(this ResourceId resourceId) => $"{resourceId.User}@{resourceId.Domain}" + resourceId.GetPath();
+    public static string GetKeyId(this ResourceId resourceId) => $"{resourceId.User}@{resourceId.Domain}" + resourceId.Path;
 }

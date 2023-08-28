@@ -13,12 +13,8 @@ public sealed record BlockAcl
     public BlockAcl(IEnumerable<BlockAccess> access) => AccessRights = access.NotNull().ToArray();
 
     public IReadOnlyList<BlockAccess> AccessRights { get; init; } = Array.Empty<BlockAccess>();
-
-    public bool Equals(BlockAcl? obj)
-    {
-        return obj is BlockAcl document && AccessRights.SequenceEqual(document.AccessRights);
-    }
-
+    public IReadOnlyList<BlockRoleAccess> RoleAccess { get; init; } = Array.Empty<BlockRoleAccess>();
+    public bool Equals(BlockAcl? obj) => obj is BlockAcl document && AccessRights.SequenceEqual(document.AccessRights);
     public override int GetHashCode() => HashCode.Combine(AccessRights);
 }
 
@@ -34,10 +30,10 @@ public static class BlockAclValidator
     public static Option HasAccess(this BlockAcl subject, string principalId, BlockGrant grant, string blockType) => subject
         .NotNull()
         .AccessRights.Any(x => x.HasAccess(principalId, grant, blockType))
-        .ToOptionStatus();
-    
-    public static Option HasAccess(this BlockAcl subject, string principalId, BlockGrant grant) => subject
+        .ToOptionStatus(StatusCode.NotFound);
+
+    public static Option HasAccess(this BlockAcl subject, string principalId, BlockRoleGrant grant) => subject
         .NotNull()
-        .AccessRights.Any(x => x.HasAccess(principalId, grant))
-        .ToOptionStatus();
+        .RoleAccess.Any(x => x.HasAccess(principalId, grant))
+        .ToOptionStatus(StatusCode.NotFound);
 }

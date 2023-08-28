@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using SoftBank.sdk;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SpinCluster.sdk.Actors.ActorBase;
@@ -13,7 +12,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SoftBank.sdk;
+namespace SoftBank.sdk.SoftBank;
 
 public class SoftBankConnector
 {
@@ -28,7 +27,7 @@ public class SoftBankConnector
 
     public virtual void Setup(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup($"/softbank");
+        var group = app.MapGroup($"/{IdSoftbank.SoftBankSchema}");
 
         group.MapDelete("/{accountId}", Delete);
         group.MapGet("/{accountId}/exist", Exist);

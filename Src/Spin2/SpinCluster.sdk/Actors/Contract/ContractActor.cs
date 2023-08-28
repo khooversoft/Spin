@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.ActorBase;
 using SpinCluster.sdk.Actors.Contract;
@@ -22,7 +21,8 @@ public interface IContractActor : IGrainWithStringKey
     Task<Option<IReadOnlyList<DataBlock>>> Query(ContractQuery model, string traceId);
     Task<Option> Append(DataBlock block, string traceId);
     Task<Option<ContractPropertyModel>> GetProperties(string principalId, string traceId);
-    Task<Option> HasAccess(string principalId, BlockGrant grant, string traceId);
+    Task<Option> HasAccess(string principalId, BlockRoleGrant grant, string traceId);
+    Task<Option> HasAccess(string principalId, BlockGrant grant, string blockType, string traceId);
 }
 
 public class ContractActor : Grain, IContractActor
@@ -60,7 +60,11 @@ public class ContractActor : Grain, IContractActor
         return StatusCode.OK;
     }
 
-    public Task<Option> Exist(string _) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+    public async Task<Option> Exist(string traceId)
+    {
+        await _state.ReadStateAsync();
+        return _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
+    }
 
     public async Task<Option> Create(ContractCreateModel model, string traceId)
     {
@@ -147,11 +151,12 @@ public class ContractActor : Grain, IContractActor
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("GetProperties, actorKey={actorKey}, principalId={principalId}", this.GetPrimaryKeyString(), principalId);
+        if (!_state.RecordExists) return StatusCode.BadRequest;
 
         var read = await ReadContract(context);
         if (read.IsError()) return read.ToOptionStatus<ContractPropertyModel>();
 
-        if (_state.State.HasAccess(principalId, BlockGrant.Owner).IsError()) return StatusCode.Forbidden;
+        if (_state.State.HasAccess(principalId, BlockRoleGrant.Owner).IsError()) return StatusCode.Forbidden;
 
         GenesisBlock genesis = _state.State.GetGenesisBlock();
         Option<BlockAcl> acl = _state.State.GetAclBlock(principalId);
@@ -167,15 +172,34 @@ public class ContractActor : Grain, IContractActor
         return response;
     }
 
-    public async Task<Option> HasAccess(string principalId, BlockGrant grant, string traceId)
+    public async Task<Option> HasAccess(string principalId, BlockRoleGrant grant, string traceId)
     {
+        if (!_state.RecordExists) return StatusCode.BadRequest;
+
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("HasAccess, actorKey={actorKey}, principalId={principalId}", this.GetPrimaryKeyString(), principalId);
+        context.Location().LogInformation("HasRoleAccess, actorKey={actorKey}, principalId={principalId}, grant={grant}",
+            this.GetPrimaryKeyString(), principalId, grant);
 
         var read = await ReadContract(context);
         if (read.IsError()) return read.ToOptionStatus();
 
         var result = _state.State.HasAccess(principalId, grant);
+        return result;
+
+    }
+
+    public async Task<Option> HasAccess(string principalId, BlockGrant grant, string blockType, string traceId)
+    {
+        if (!_state.RecordExists) return StatusCode.BadRequest;
+
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("HasAccess, actorKey={actorKey}, principalId={principalId}, grant={grant}, blockType={blockType}",
+            this.GetPrimaryKeyString(), principalId, grant, blockType);
+
+        var read = await ReadContract(context);
+        if (read.IsError()) return read.ToOptionStatus();
+
+        var result = _state.State.HasAccess(principalId, grant, blockType);
         return result;
     }
 

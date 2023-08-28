@@ -1,4 +1,5 @@
-﻿using SoftBank.sdk.Trx;
+﻿using SoftBank.sdk.SoftBank;
+using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools;
 using Toolbox.Types;

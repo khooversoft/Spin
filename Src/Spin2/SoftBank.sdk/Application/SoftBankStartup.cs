@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using SoftBank.sdk.SoftBank;
+using SoftBank.sdk.Trx;
 using Toolbox.Tools;
 
 namespace SoftBank.sdk.Application;
@@ -19,6 +21,7 @@ public static class SoftBankStartup
         services.NotNull();
 
         services.AddSingleton<SoftBankConnector>();
+        services.AddSingleton<SoftBankTrxConnector>();
 
         return services;
     }
@@ -26,5 +29,6 @@ public static class SoftBankStartup
     public static void MapSoftBank(this IEndpointRouteBuilder app)
     {
         app.ServiceProvider.GetRequiredService<SoftBankConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<SoftBankTrxConnector>().Setup(app);
     }
 }

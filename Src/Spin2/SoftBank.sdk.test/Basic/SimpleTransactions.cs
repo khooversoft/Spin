@@ -1,14 +1,9 @@
-using System.Diagnostics.Contracts;
-using System.Reflection.Metadata;
-using Azure.Storage.Blobs.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
+using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.test.Application;
-using SpinCluster.sdk.Actors.Contract;
-using SpinCluster.sdk.Actors.PrincipalKey;
-using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -96,74 +91,11 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
         await DeleteBankAccount();
     }
 
-    //[Fact]
-    //public async Task ConstructAccountWithLedgerItems2Signers()
-    //{
-    //    var acl = new BlockAcl
-    //    {
-    //        Items = new BlockAccess[]
-    //        {
-    //            new BlockAccess {BlockType = nameof(LedgerItem), PrincipalId = _owner2, Grant = BlockGrant.Write },
-    //        },
-    //    };
-
-    //    var softBank = await _softBankFactory.Create(_accountObjectId, _owner, acl, _context).Return();
-
-    //    var accountDetail = new AccountDetail
-    //    {
-    //        ObjectId = _accountObjectId.ToString(),
-    //        OwnerId = _owner,
-    //        Name = "Softbank 1",
-    //    };
-
-    //    accountDetail.Validate().IsOk().Should().BeTrue();
-
-    //    var detailWrite = await softBank.AccountDetail.Set(accountDetail, _context);
-    //    detailWrite.StatusCode.IsOk().Should().BeTrue();
-
-    //    Option signResult = await softBank.ValidateBlockChain(_context);
-    //    signResult.StatusCode.IsOk().Should().BeTrue();
-
-
-    //    var ledgerItems = new[]
-    //    {
-    //        new LedgerItem { OwnerId = _owner, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-    //        new LedgerItem { OwnerId = _owner, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-    //        new LedgerItem { OwnerId = _owner, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
-    //    };
-
-    //    await ledgerItems.ForEachAsync(async x => await softBank.LedgerItems.Add(x, _context).ThrowOnError());
-
-    //    signResult = await softBank.ValidateBlockChain(_context);
-    //    signResult.StatusCode.IsOk().Should().BeTrue();
-
-    //    var ledgerItems2 = new[]
-    //    {
-    //        new LedgerItem { OwnerId = _owner2, Description = "Ledger 1-2", Type = LedgerType.Credit, Amount = 200.0m },
-    //        new LedgerItem { OwnerId = _owner2, Description = "Ledger 2-2", Type = LedgerType.Credit, Amount = 155.15m },
-    //        new LedgerItem { OwnerId = _owner2, Description = "Ledger 3-2", Type = LedgerType.Debit, Amount = 40.00m }
-    //    };
-
-    //    await ledgerItems2.ForEachAsync(async x => await softBank.LedgerItems.Add(x, _context).ThrowOnError());
-
-    //    signResult = await softBank.ValidateBlockChain(_context);
-    //    signResult.StatusCode.IsOk().Should().BeTrue();
-
-    //    AccountDetail readAccountDetail = softBank.AccountDetail.Get(_owner, _context).Return();
-    //    (accountDetail == readAccountDetail).Should().BeTrue();
-
-    //    IReadOnlyList<LedgerItem> readLedgerItems = softBank.LedgerItems.GetReader(_owner, _context).Return().List();
-    //    readLedgerItems.Count.Should().Be(6);
-    //    ledgerItems.Concat(ledgerItems2).SequenceEqual(readLedgerItems).Should().BeTrue();
-
-    //    decimal balance = softBank.LedgerItems.GetBalance(_owner, _context).Return();
-    //    balance.Should().Be(450.30M);
-    //}
 
     private async Task CreateBankAccount()
     {
-        await _setupTools.DeleteUser(_cluster.ServiceProvider, _subscriptionId, _tenantId, _principalId);
-        await _setupTools.CreateUser(_cluster.ServiceProvider, _subscriptionId, _tenantId, _principalId);
+        await _setupTools.DeleteUser(_subscriptionId, _tenantId, _principalId);
+        await _setupTools.CreateUser(_subscriptionId, _tenantId, _principalId);
 
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
 

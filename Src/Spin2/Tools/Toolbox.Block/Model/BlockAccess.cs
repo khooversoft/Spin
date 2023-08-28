@@ -12,7 +12,6 @@ public enum BlockGrant
     Read = 0x1,
     Write = 0x2,
     ReadWrite = Read | Write,
-    Owner = 0x100,
 }
 
 public sealed record BlockAccess
@@ -36,8 +35,4 @@ public static class BlockAccessValidator
         subject.Grant.HasFlag(grant) &&
         subject.PrincipalId == principalId.Assert(x => IdPatterns.IsPrincipalId(x), "Invalid principalId") &&
         subject.BlockType == blockType.Assert(x => IdPatterns.IsBlockType(x), "Invalid block type");
-
-    public static bool HasAccess(this BlockAccess subject, string principalId, BlockGrant grant) =>
-        subject.Grant.HasFlag(grant) &&
-        subject.PrincipalId == principalId.Assert(x => IdPatterns.IsPrincipalId(x), "Invalid principalId");
 }

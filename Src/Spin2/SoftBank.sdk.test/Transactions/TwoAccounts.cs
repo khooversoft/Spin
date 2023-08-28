@@ -1,66 +1,156 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using FluentAssertions;
-//using Microsoft.Extensions.Logging.Abstractions;
-//using Orleans.TestingHost;
-//using SoftBank.sdk.Models;
-//using SoftBank.sdk.test.Application;
-//using SpinCluster.sdk.Actors.Signature;
-//using SpinCluster.sdk.Actors.SoftBank;
-//using SpinCluster.sdk.Application;
-//using Toolbox.Block;
-//using Toolbox.Orleans.Types;
-//using Toolbox.Types;
+﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using SoftBank.sdk.Models;
+using SoftBank.sdk.SoftBank;
+using SoftBank.sdk.test.Application;
+using SoftBank.sdk.Trx;
+using Toolbox.Types;
 
-//namespace SoftBank.sdk.test.Transactions;
+namespace SoftBank.sdk.test.Transactions;
 
-//public class TwoAccounts : IClassFixture<ClusterFixture>
-//{
-//    private readonly TestCluster _cluster;
-//    private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
-//    private readonly User _user1;
-//    private readonly User _user2;
-//    private readonly Contract _contract1;
-//    private readonly Contract _contract2;
+public class TwoAccounts : IClassFixture<ClusterApiFixture>
+{
+    private readonly ClusterApiFixture _cluster;
+    private readonly SetupTools _setupTools;
+    private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
-//    public TwoAccounts(ClusterFixture fixture)
-//    {
-//        _cluster = fixture.Cluster;
+    private readonly SetupBuilder _builder = new SetupBuilder()
+        .AddSubscription("Company20Subscription")
+        .AddSubscription("Company21Subscription")
+        .AddTenant("Company20Subscription", "company20.com")
+        .AddTenant("Company21Subscription", "company21.com")
+        .AddUser("user1@company20.com")
+        .AddUser("user2@company21.com")
+        .AddAccount("softbank:company20.com/account1", "user1@company20.com")
+        .AddAccount("softbank:company21.com/account2", "user2@company21.com", "user1@company20.com");
 
-//        _user1 = new User(_cluster, "owner20@test.com", $"{SpinConstants.Schema.PrincipalKey}/test.com/owner20@test.com");
-//        _user2 = new User(_cluster, "owner21@test.com", $"{SpinConstants.Schema.PrincipalKey}/test.com/owner21@test.com");
+    public TwoAccounts(ClusterApiFixture fixture)
+    {
+        _cluster = fixture;
+        _setupTools = new SetupTools(_cluster, _context);
+    }
 
-//        var user1Access = new BlockAccess { Grant = BlockGrant.Write, BlockType = nameof(LedgerItem), PrincipalId = _user1.OwnerId };
+    private AccountInfo GetAccount1() => _builder.Accounts[0];
+    private AccountInfo GetAccount2() => _builder.Accounts[1];
 
-//        _contract1 = new Contract(_cluster, $"{SpinConstants.Schema.SoftBank}/company1.com/Account21", _user1.OwnerId);
-//        _contract2 = new Contract(_cluster, $"{SpinConstants.Schema.SoftBank}/company1.com/Account22", _user2.OwnerId, user1Access);
-//    }
+    [Fact]
+    public async Task PushTransferBetweenTwoAccount()
+    {
+        await _builder.Build(_cluster.ServiceProvider, _context);
 
-//    [Fact(Skip = "Go to API")]
-//    public async Task TransferFunds()
-//    {
-//        await _user1.Delete(_context);
-//        await _user2.Delete(_context);
-//        await _contract1.Delete(_context);
-//        await _contract2.Delete(_context);
+        await AddLedgerToAccount(GetAccount1(), 100, 55.15m);
+        var accountBalance1 = await GetBalance(GetAccount1());
+        accountBalance1.Should().Be(155.15m);
+        await VerifyLedgers(GetAccount1(), 100, 55.15m);
 
-//        await _user1.Createkey(_context);
-//        await _user2.Createkey(_context);
+        await AddLedgerToAccount(GetAccount2(), 100);
+        var accountBalance2 = await GetBalance(GetAccount2());
+        accountBalance2.Should().Be(100);
+        await VerifyLedgers(GetAccount2(), 100);
 
-//        await _contract1.CreateContract(_context);
-//        await _contract2.CreateContract(_context);
+        await Transfer(TrxType.Push, 50.45m, GetAccount1(), GetAccount2());
 
-//        var l1 = new LedgerItem { OwnerId = _user1.OwnerId, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m };
-//        await _contract1.AddLedgerItem(l1, _context);
+        accountBalance1 = await GetBalance(GetAccount1());
+        accountBalance1.Should().Be(104.7m);
+        await VerifyLedgers(GetAccount1(), 100, 55.15m, -50.45m);
 
-//        // Owner needs write permission in both accounts
-//        //await _contract1.PushToAccount(_contract2.ObjectId, 50.0m, _user1.OwnerId);
+        accountBalance2 = await GetBalance(GetAccount2());
+        accountBalance2.Should().Be(150.45m);
+        await VerifyLedgers(GetAccount2(), 100, 50.45m);
+    }
 
+    [Fact]
+    public async Task PullTransferBetweenTwoAccount()
+    {
+        await _builder.Build(_cluster.ServiceProvider, _context);
 
+        await AddLedgerToAccount(GetAccount1(), 200, 55.15m, -25.00m);
+        var accountBalance1 = await GetBalance(GetAccount1());
+        accountBalance1.Should().Be(230.15m);
+        await VerifyLedgers(GetAccount1(), 200, 55.15m, -25.00m);
 
-//    }
+        await AddLedgerToAccount(GetAccount2(), 100, -75, 105.55m);
+        var accountBalance2 = await GetBalance(GetAccount2());
+        accountBalance2.Should().Be(130.55m);
+        await VerifyLedgers(GetAccount2(), 100, -75, 105.55m);
 
-//}
+        await Transfer(TrxType.Pull, 12.00m, GetAccount1(), GetAccount2());
+
+        accountBalance1 = await GetBalance(GetAccount1());
+        accountBalance1.Should().Be(242.15m);
+        await VerifyLedgers(GetAccount1(), 200, 55.15m, -25.00m, 12);
+
+        accountBalance2 = await GetBalance(GetAccount2());
+        accountBalance2.Should().Be(118.55m);
+        await VerifyLedgers(GetAccount2(), 100, -75, 105.55m, -12);
+    }
+
+    private async Task AddLedgerToAccount(AccountInfo config, params decimal[] amounts)
+    {
+        SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+
+        foreach (var amount in amounts)
+        {
+            var ledger = new LedgerItem
+            {
+                OwnerId = config.PrincipalId,
+                Description = "Ledger-" + Guid.NewGuid().ToString(),
+                Type = amount > 0 ? LedgerType.Credit : LedgerType.Debit,
+                Amount = Math.Abs(amount),
+            };
+
+            var addResponse = await softBankClient.AddLedgerItem(config.AccountId, ledger, _context);
+            addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
+        }
+    }
+
+    private async Task Transfer(TrxType type, decimal amount, AccountInfo from, AccountInfo to)
+    {
+        SoftBankTrxClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankTrxClient>();
+
+        var request = new TrxRequest
+        {
+            PrincipalId = from.PrincipalId,
+            SourceAccountID = from.AccountId,
+            DestinationAccountId = to.AccountId,
+            Description = "test",
+            Type = type,
+            Amount = amount,
+        };
+
+        Option<TrxResponse> result = await client.Request(request, _context);
+        result.IsOk().Should().BeTrue();
+
+        TrxResponse trxResponse = result.Return();
+        trxResponse.Request.Should().Be(request);
+        trxResponse.Status.Should().Be(TrxStatusCode.Completed);
+        trxResponse.Amount.Should().Be(amount);
+        trxResponse.Error.Should().BeNull();
+        trxResponse.SourceLedgerItemId.Should().NotBeNullOrEmpty();
+        trxResponse.DestinationLedgerItemId.Should().NotBeNullOrEmpty();
+    }
+
+    private async Task<decimal> GetBalance(AccountInfo config)
+    {
+        SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+        var balanceResult = await softBankClient.GetBalance(config.AccountId, config.PrincipalId, _context);
+        balanceResult.IsOk().Should().BeTrue();
+
+        AccountBalance result = balanceResult.Return();
+        result.DocumentId.Should().Be(config.AccountId);
+        return result.Balance;
+    }
+
+    private async Task VerifyLedgers(AccountInfo config, params decimal[] amounts)
+    {
+        SoftBankClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+
+        var response = await client.GetLedgerItems(config.AccountId, config.PrincipalId, _context);
+        response.IsOk().Should().BeTrue();
+
+        IReadOnlyList<LedgerItem> ledgerItems = response.Return();
+        var ledgerAmounts = ledgerItems.Select(x => x.NaturalAmount).ToArray();
+        amounts.SequenceEqual(ledgerAmounts).Should().BeTrue();
+    }
+}

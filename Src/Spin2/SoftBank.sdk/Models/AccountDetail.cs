@@ -1,7 +1,7 @@
-﻿using Toolbox.Block;
+﻿using SoftBank.sdk.Application;
+using Toolbox.Block;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
-using SoftBank.sdk.Application;
 
 namespace SoftBank.sdk.Models;
 
@@ -13,13 +13,15 @@ public sealed record AccountDetail
     [Id(2)] public string Name { get; init; } = null!;
     [Id(3)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     [Id(4)] public IReadOnlyList<BlockAccess> AccessRights { get; init; } = Array.Empty<BlockAccess>();
+    [Id(5)] public IReadOnlyList<BlockRoleAccess> RoleRights { get; init; } = Array.Empty<BlockRoleAccess>();
 
     public bool Equals(AccountDetail? obj) => obj is AccountDetail document &&
         DocumentId == document.DocumentId &&
         OwnerId == document.OwnerId &&
         Name == document.Name &&
         CreatedDate == document.CreatedDate &&
-        AccessRights.SequenceEqual(document.AccessRights);
+        AccessRights.SequenceEqual(document.AccessRights) &&
+        RoleRights.SequenceEqual(document.RoleRights);
 
     public override int GetHashCode() => HashCode.Combine(DocumentId, OwnerId, Name, CreatedDate);
 }
@@ -33,6 +35,7 @@ public static class AccountDetailValidator
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.AccessRights).NotNull()
+        .RuleFor(x => x.RoleRights).NotNull()
         .Build();
 
     public static Option Validate(this AccountDetail subject) => Validator.Validate(subject).ToOptionStatus();

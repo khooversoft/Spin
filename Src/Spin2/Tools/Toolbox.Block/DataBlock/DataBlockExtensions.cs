@@ -26,7 +26,7 @@ public static class DataBlockExtensions
     public static DataBlock ToDataBlock<T>(this T subject, string principalId, string? blockType = null) where T : class
     {
         subject.NotNull();
-        principalId.NotEmpty();
+        principalId.Assert(IdPatterns.IsPrincipalId, x => $"{x} not valid principalId");
         blockType ??= typeof(T).GetTypeName();
 
         DataBlock dataBlock = new DataBlockBuilder()

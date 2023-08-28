@@ -70,11 +70,15 @@ public class DataBlockBuilder
             .Build();
     }
 
-    public static DataBlock CreateAclBlock(IEnumerable<BlockAccess> acls, string principalId, ScopeContext context)
+    public static DataBlock CreateAclBlock(IEnumerable<BlockAccess> acls, IEnumerable<BlockRoleAccess> roles, string principalId, ScopeContext context)
     {
+        acls.NotNull();
+        roles.NotNull();
+
         var acl = new BlockAcl
         {
             AccessRights = acls.ToArray(),
+            RoleAccess = roles.ToArray(),
         };
 
         return CreateAclBlock(acl, principalId, context);

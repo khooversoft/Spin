@@ -1,18 +1,15 @@
-﻿using Toolbox.Extensions;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.Application;
 
 public static class IdSoftbank
 {
-    public static bool IsSoftBankId(string? subject) =>
-    subject.IsNotEmpty() &&
-    subject.Split(':') switch
-    {
-        var s when s.Length != 2 => false,
-        var s when s[0] != "softbank" => false,
-        var s => s.Last().Split('/').Func(x => x.Length > 1 && IdPatterns.IsDomain(x[0]) && x.Skip(1).All(x => IdPatterns.IsPath(x)))
-    };
+    public const string SoftBankSchema = "softbank";
+    public const string SoftBankTrxSchema = "softbank-trx";
+
+    public static bool IsSoftBankId(string? subject) => IdPatterns.IsSchemaDomainMatch(subject, SoftBankSchema);
+    public static bool IsSoftBankTrxId(string? subject) => IdPatterns.IsSchemaDomainMatch(subject, SoftBankTrxSchema);
 
     public static ResourceId CreateSoftBankId(string domain, string accountId) => $"softbank:{domain}/{accountId}";
 
@@ -22,4 +19,10 @@ public static class IdSoftbank
         .ToSoftBankContractId();
 
     public static ResourceId ToSoftBankContractId(this ResourceId softbankId) => $"contract:{softbankId.Domain}/softbank/{softbankId.Path}";
+
+    public static ResourceId ToSoftBankTrxId(this ResourceId softbankId)
+    {
+        softbankId.Assert(x => IsSoftBankId(x), x => $"{x} not a valid softbank Id");
+        return $"{SoftBankTrxSchema}:{softbankId.Domain}/{softbankId.Path}";
+    }
 }

@@ -11,6 +11,7 @@ public record ContractCreateModel
     [Id(0)] public string DocumentId { get; init; } = null!;
     [Id(1)] public string PrincipalId { get; init; } = null!;
     [Id(2)] public IReadOnlyList<BlockAccess> BlockAccess { get; init; } = Array.Empty<BlockAccess>();
+    [Id(3)] public IReadOnlyList<BlockRoleAccess> RoleRights { get; init; } = Array.Empty<BlockRoleAccess>();
 }
 
 
@@ -21,6 +22,8 @@ public static class BlockCreateModelExtensions
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .RuleFor(x => x.BlockAccess).NotNull()
         .RuleForEach(x => x.BlockAccess).Validate(BlockAccessValidator.Validator)
+        .RuleFor(x => x.RoleRights).NotNull()
+        .RuleForEach(x => x.RoleRights).Validate(BlockRoleAccessValidator.Validator)
         .Build();
 
     public static Option Validate(this ContractCreateModel subject) => Validator.Validate(subject).ToOptionStatus();
