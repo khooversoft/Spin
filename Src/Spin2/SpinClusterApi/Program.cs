@@ -49,7 +49,6 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
             services.AddSwaggerGen();
 
             services.AddSpinApi();
-            services.AddSpinApiInternal();
             services.AddHealthChecks();
         });
 
@@ -72,7 +71,6 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
                 config.MapHealthChecks("/_health");
 
                 config.MapSpinApi();
-                config.MapSpinApiInternal();
                 config.MapSoftBank();
             });
         });

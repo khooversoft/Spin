@@ -42,7 +42,7 @@ public static class UserKeyModelValidator
 {
     public static IValidator<UserKeyModel> Validator { get; } = new Validator<UserKeyModel>()
         .RuleFor(x => x.KeyId).ValidKeyId()
-        .RuleFor(x => x.PublicKeyId).ValidObjectId()
-        .RuleFor(x => x.PrivateKeyId).ValidObjectId()
+        .RuleFor(x => x.PublicKeyId).ValidKeyId()
+        .RuleFor(x => x.PrivateKeyId).ValidKeyId()
         .Build();
 }

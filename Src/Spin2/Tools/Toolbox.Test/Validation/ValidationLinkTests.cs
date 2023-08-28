@@ -23,7 +23,7 @@ public class ValidationLinkTests
             .Build();
 
         IValidator<PrimaryClass> validator = new Validator<PrimaryClass>()
-            .RuleFor(x => x.Name).ValidObjectId()
+            .RuleFor(x => x.Name).ValidResourceId()
             .RuleFor(x => x.SubClass).Validate(subClassValidator)
             .Build();
 
@@ -39,7 +39,7 @@ public class ValidationLinkTests
 
         model = new PrimaryClass
         {
-            Name = "schema/tenant/name",
+            Name = "schema:tenant/name",
             SubClass = new SubClass("name1", 5),
         };
 
@@ -57,13 +57,13 @@ public class ValidationLinkTests
             .Build();
 
         IValidator<PrimaryClass> validator = new Validator<PrimaryClass>()
-            .RuleFor(x => x.Name).ValidObjectId()
+            .RuleFor(x => x.Name).ValidResourceId()
             .RuleFor(x => x.SubClass).Validate(subClassValidator)
             .Build();
 
         var model = new PrimaryClass
         {
-            Name = "schema/tenant/name",
+            Name = "schema:tenant/name",
             SubClass = new SubClass("name2", 101),
         };
 

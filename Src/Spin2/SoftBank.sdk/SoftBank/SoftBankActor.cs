@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
-using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;

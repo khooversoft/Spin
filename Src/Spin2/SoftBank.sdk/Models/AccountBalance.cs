@@ -15,7 +15,7 @@ public sealed record AccountBalance
 public static class AccountBalanceValidator
 {
     public static IValidator<AccountBalance> Validator { get; } = new Validator<AccountBalance>()
-        .RuleFor(x => x.DocumentId).ValidObjectId()
+        .RuleFor(x => x.DocumentId).ValidAccountId()
         .Build();
 
     public static Option Validate(this AccountBalance subject) => Validator.Validate(subject).ToOptionStatus();

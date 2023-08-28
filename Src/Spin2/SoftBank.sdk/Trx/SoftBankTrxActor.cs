@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
-using SpinCluster.sdk.Actors.ActorBase;
+using SpinCluster.sdk.Actors;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;

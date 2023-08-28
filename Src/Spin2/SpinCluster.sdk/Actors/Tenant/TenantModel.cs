@@ -1,5 +1,4 @@
-﻿using SpinCluster.sdk.Actors.Search;
-using SpinCluster.sdk.Actors.Subscription;
+﻿using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Models;

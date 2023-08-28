@@ -50,7 +50,7 @@ public sealed record UserModel
 public static class UserModelValidator
 {
     public static IValidator<UserModel> Validator { get; } = new Validator<UserModel>()
-        .RuleFor(x => x.UserId).ValidObjectId()
+        .RuleFor(x => x.UserId).ValidAccountId()
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
@@ -60,7 +60,6 @@ public static class UserModelValidator
         .RuleFor(x => x.DataObjects).NotNull()
         .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
         .RuleFor(x => x.UserKey).Validate(UserKeyModelValidator.Validator)
-        .RuleForObject(x => x).Must(x => ObjectId.Create(x.UserId).Return().Path == x.PrincipalId, _ => "PrincipalId does not match KeyId")
         .Build();
 
     public static Option Validate(this UserModel subject) => Validator.Validate(subject).ToOptionStatus();
