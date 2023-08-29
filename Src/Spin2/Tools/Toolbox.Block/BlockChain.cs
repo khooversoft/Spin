@@ -98,7 +98,7 @@ public sealed class BlockChain
             }).ToArray();
     }
 
-    public Option<BlockAcl> GetAclBlock(string principalId)
+    public Option<AclBlock> GetAclBlock(string principalId)
     {
         var isOwner = HasAccess(principalId, BlockRoleGrant.Owner);
         if (isOwner.IsOk()) return GetAclBlock();
@@ -146,9 +146,9 @@ public sealed class BlockChain
         };
     }
 
-    private Option<BlockAcl> GetAclBlock() => _blocks
-        .Where(x => x.DataBlock.BlockType == BlockAcl.BlockType)
-        .Select(x => x.DataBlock.ToObject<BlockAcl>())
+    private Option<AclBlock> GetAclBlock() => _blocks
+        .Where(x => x.DataBlock.BlockType == AclBlock.BlockType)
+        .Select(x => x.DataBlock.ToObject<AclBlock>())
         .LastOrDefaultOption();
 
     public static BlockChain operator +(BlockChain self, DataBlock blockData)

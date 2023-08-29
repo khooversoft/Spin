@@ -8,7 +8,7 @@ public struct ContractPropertyModel_Surrogate
 {
     [Id(0)] public string DocumentId;
     [Id(1)] public string OwnerPrincipalId;
-    [Id(2)] public IReadOnlyList<BlockAccess> BlockAcl;
+    [Id(2)] public IReadOnlyList<AccessBlock> BlockAcl;
     [Id(3)] public int BlockCount;
 }
 

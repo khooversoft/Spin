@@ -21,7 +21,7 @@ public class BlockChainSignAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetDocumentId(documentId)
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
+            .AddAccess(new AccessBlock { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
             .Build(principleSignature, _context)
             .Return();
 
@@ -57,8 +57,8 @@ public class BlockChainSignAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetDocumentId(documentId)
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
-            .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
+            .AddAccess(new AccessBlock { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer })
+            .AddAccess(new AccessBlock { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
             .Return();
 
@@ -106,7 +106,7 @@ public class BlockChainSignAccessTests
         BlockChain blockChain = await new BlockChainBuilder()
             .SetDocumentId(documentId)
             .SetPrincipleId(issuer)
-            .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer2 })
+            .AddAccess(new AccessBlock { Grant = BlockGrant.Write, BlockType = typeof(Payload1).GetTypeName(), PrincipalId = issuer2 })
             .Build(principleSignature, _context)
             .Return();
 

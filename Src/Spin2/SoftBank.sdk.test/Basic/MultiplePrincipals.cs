@@ -82,11 +82,11 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
         await DeleteAccounts();
         await CreateAccounts();
 
-        var blockAcl = new BlockAcl
+        var blockAcl = new AclBlock
         {
             AccessRights = new[]
             {
-                new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId(), Grant = BlockGrant.Write },
+                new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId(), Grant = BlockGrant.Write },
             },
         };
 
@@ -150,7 +150,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
             Name = "test account",
             AccessRights = new[]
             {
-                new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId2(), Grant = BlockGrant.Write },
+                new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId2(), Grant = BlockGrant.Write },
             },
         };
 

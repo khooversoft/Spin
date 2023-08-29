@@ -13,9 +13,9 @@ public struct BlockAccess_Surrogate
 
 
 [RegisterConverter]
-public sealed class BlockAccess_SurrogateConverter : IConverter<BlockAccess, BlockAccess_Surrogate>
+public sealed class BlockAccess_SurrogateConverter : IConverter<AccessBlock, BlockAccess_Surrogate>
 {
-    public BlockAccess ConvertFromSurrogate(in BlockAccess_Surrogate surrogate) => new BlockAccess
+    public AccessBlock ConvertFromSurrogate(in BlockAccess_Surrogate surrogate) => new AccessBlock
     {
         Grant = surrogate.Grant,
         Claim = surrogate.Claim,
@@ -23,7 +23,7 @@ public sealed class BlockAccess_SurrogateConverter : IConverter<BlockAccess, Blo
         PrincipalId = surrogate.PrincipalId,
     };
 
-    public BlockAccess_Surrogate ConvertToSurrogate(in BlockAccess value) => new BlockAccess_Surrogate
+    public BlockAccess_Surrogate ConvertToSurrogate(in AccessBlock value) => new BlockAccess_Surrogate
     {
         Grant = value.Grant,
         Claim = value.Claim,

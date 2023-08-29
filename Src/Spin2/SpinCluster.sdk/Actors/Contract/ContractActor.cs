@@ -157,13 +157,13 @@ public class ContractActor : Grain, IContractActor
         if (_state.State.HasAccess(principalId, BlockRoleGrant.Owner).IsError()) return StatusCode.Forbidden;
 
         GenesisBlock genesis = _state.State.GetGenesisBlock();
-        Option<BlockAcl> acl = _state.State.GetAclBlock(principalId);
+        Option<AclBlock> acl = _state.State.GetAclBlock(principalId);
 
         var response = new ContractPropertyModel
         {
             DocumentId = genesis.DocumentId,
             OwnerPrincipalId = genesis.OwnerPrincipalId,
-            BlockAcl = acl.HasValue ? acl.Value.AccessRights.ToArray() : Array.Empty<BlockAccess>(),
+            BlockAcl = acl.HasValue ? acl.Value.AccessRights.ToArray() : Array.Empty<AccessBlock>(),
             BlockCount = _state.State.Count,
         };
 

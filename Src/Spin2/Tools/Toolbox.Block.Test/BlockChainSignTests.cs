@@ -125,7 +125,7 @@ namespace Toolbox.Block.Test
             BlockChain blockChain = await new BlockChainBuilder()
                 .SetDocumentId(documentId)
                 .SetPrincipleId(issuer)
-                .AddAccess(new BlockAccess { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
+                .AddAccess(new AccessBlock { Grant = BlockGrant.Write, BlockType = typeof(Payload2).GetTypeName(), PrincipalId = issuer2 })
                 .Build(signCollection, _context)
                 .Return();
 

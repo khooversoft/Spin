@@ -44,7 +44,6 @@ public static class IdPatterns
             }
         };
 
-
     public static bool IsBlockType(string? subject) =>
         subject.IsNotEmpty() &&
         TestStart(subject, char.IsLetter) &&
@@ -69,6 +68,10 @@ public static class IdPatterns
         {
             var s => s.Last().Split('/').Func(x => x.Length > 1 && IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
         };
+
+    public static bool IsTags(string? subject) =>
+        subject.IsNotEmpty() &&
+        subject.Split(';').All(x => IsName(x));
 
     public static bool IsSchemaDomainMatch(string? subject, string schema) =>
         subject.IsNotEmpty() &&

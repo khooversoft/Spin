@@ -1,4 +1,4 @@
-Schema - Actors
+# Schema - Actors
 
 1. Subscription
 1. Tenant
@@ -12,18 +12,16 @@ Schema - Actors
  
 
 Next...
-
-1. Confirm Actor (contract, message, deposit, etc...)
-1. Message Actor (send secure message)
+1. Confirm UI (contract, message, deposit, etc...)
+1. Message UI (send secure message)
 1. Credit card actor to providers ??
 1. Finance smart contract
-    1. Host Process
-    1. Contract EXE
+    - Host Process
+    - Contract EXE
 
 
-Scenario...
+# Scenario...
 Rent a house for a year
-
 - Total amount / number of months
 - Down payment
 - Security deposit
@@ -31,12 +29,12 @@ Rent a house for a year
 
 Flow...
 - User fills out form - (start SmartC, @state=started)
-    - Upload driver license
+    1. Upload driver license
 - Owner approves form and provides bank info for payment
 - User fills out contract and signs
-    - Connects with bank account for payment
-    - TrxPush deposit and security to owner
-    - Sign contract
+    1. Connects with bank account for payment
+    1. TrxPush deposit and security to owner
+    1. Sign contract
 - User ack's keys and access - @state=active
 - (future: message + pictures)
 - Owner and User ACK start
@@ -46,5 +44,5 @@ Flow...
 - SmartC provides financial and ledger info for reporting
 
 
-Ship Require
-DatalakeResourceIdMap - how to manage schema to storage map, currently hardcoded
+Ship Require Features...
+- DatalakeResourceIdMap - how to manage schema to storage map, currently hardcoded

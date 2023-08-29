@@ -75,7 +75,7 @@ public class SoftBankConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> SetAcl(string accountId, BlockAcl model,
+    private async Task<IResult> SetAcl(string accountId, AclBlock model,
         [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId,
         [FromHeader(Name = SpinConstants.Headers.PrincipalId)] string principalId
         )

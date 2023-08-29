@@ -70,12 +70,12 @@ public class DataBlockBuilder
             .Build();
     }
 
-    public static DataBlock CreateAclBlock(IEnumerable<BlockAccess> acls, IEnumerable<BlockRoleAccess> roles, string principalId, ScopeContext context)
+    public static DataBlock CreateAclBlock(IEnumerable<AccessBlock> acls, IEnumerable<RoleAccessBlock> roles, string principalId, ScopeContext context)
     {
         acls.NotNull();
         roles.NotNull();
 
-        var acl = new BlockAcl
+        var acl = new AclBlock
         {
             AccessRights = acls.ToArray(),
             RoleAccess = roles.ToArray(),
@@ -84,12 +84,12 @@ public class DataBlockBuilder
         return CreateAclBlock(acl, principalId, context);
     }
 
-    public static DataBlock CreateAclBlock(BlockAcl acl, string principalId, ScopeContext context)
+    public static DataBlock CreateAclBlock(AclBlock acl, string principalId, ScopeContext context)
     {
         acl.Validate().LogResult(context.Location()).ThrowOnError();
 
         return new DataBlockBuilder()
-            .SetBlockType(BlockAcl.BlockType)
+            .SetBlockType(AclBlock.BlockType)
             .SetContent(acl)
             .SetPrincipleId(principalId)
             .Build();

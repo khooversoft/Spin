@@ -6,6 +6,6 @@ public record ContractPropertyModel
 {
     public string DocumentId { get; init; } = null!;
     public string OwnerPrincipalId { get; init; } = null!;
-    public IReadOnlyList<BlockAccess> BlockAcl { get; init; } = Array.Empty<BlockAccess>();
+    public IReadOnlyList<AccessBlock> BlockAcl { get; init; } = Array.Empty<AccessBlock>();
     public int BlockCount { get; init; }
 }

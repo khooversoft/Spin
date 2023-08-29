@@ -12,7 +12,7 @@ public enum BlockRoleGrant
     Owner = 0x1,
 }
 
-public sealed record BlockRoleAccess
+public sealed record RoleAccessBlock
 {
     public BlockRoleGrant Grant { get; init; } = BlockRoleGrant.None;
     public string? Claim { get; init; }
@@ -21,13 +21,13 @@ public sealed record BlockRoleAccess
 
 public static class BlockRoleAccessValidator
 {
-    public static IValidator<BlockRoleAccess> Validator { get; } = new Validator<BlockRoleAccess>()
+    public static IValidator<RoleAccessBlock> Validator { get; } = new Validator<RoleAccessBlock>()
         .RuleFor(x => x.Grant).Must(x => x.IsEnumValid<BlockRoleGrant>(), _ => "Invalid block grant")
         .RuleFor(x => x.Claim).Must(x => x.IsEmpty() || IdPatterns.IsName(x), _ => "Invalid claim")
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .Build();
 
-    public static bool HasAccess(this BlockRoleAccess subject, string principalId, BlockRoleGrant grant) =>
+    public static bool HasAccess(this RoleAccessBlock subject, string principalId, BlockRoleGrant grant) =>
         subject.Grant.HasFlag(grant) &&
         subject.PrincipalId == principalId.Assert(x => IdPatterns.IsPrincipalId(x), "Invalid principalId");
 }

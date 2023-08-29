@@ -52,7 +52,7 @@ internal class SoftBank_Management
         return await _parent.Append(detail, detail.OwnerId, context);
     }
 
-    public async Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId)
+    public async Task<Option> SetAcl(AclBlock blockAcl, string principalId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Add BlockAcl={blockAcl}", blockAcl);

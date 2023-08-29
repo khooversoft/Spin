@@ -10,8 +10,8 @@ public record ContractCreateModel
 {
     [Id(0)] public string DocumentId { get; init; } = null!;
     [Id(1)] public string PrincipalId { get; init; } = null!;
-    [Id(2)] public IReadOnlyList<BlockAccess> BlockAccess { get; init; } = Array.Empty<BlockAccess>();
-    [Id(3)] public IReadOnlyList<BlockRoleAccess> RoleRights { get; init; } = Array.Empty<BlockRoleAccess>();
+    [Id(2)] public IReadOnlyList<AccessBlock> BlockAccess { get; init; } = Array.Empty<AccessBlock>();
+    [Id(3)] public IReadOnlyList<RoleAccessBlock> RoleRights { get; init; } = Array.Empty<RoleAccessBlock>();
 }
 
 

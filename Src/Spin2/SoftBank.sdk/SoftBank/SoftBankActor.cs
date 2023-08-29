@@ -19,7 +19,7 @@ public interface ISoftBankActor : IGrainWithStringKey
     Task<Option> Exist(string traceId);
     Task<Option> Create(AccountDetail detail, string traceId);
     Task<Option> SetAccountDetail(AccountDetail detail, string traceId);
-    Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId);
+    Task<Option> SetAcl(AclBlock blockAcl, string principalId, string traceId);
     Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId);
     Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId);
     Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId);
@@ -59,7 +59,7 @@ public class SoftBankActor : Grain, ISoftBankActor
     public Task<Option> Delete(string traceId) => _mgmt.Delete(traceId);
     public Task<Option> Exist(string traceId) => _mgmt.Exist(traceId);
     public Task<Option> Create(AccountDetail detail, string traceId) => _mgmt.Create(detail, traceId);
-    public Task<Option> SetAcl(BlockAcl blockAcl, string principalId, string traceId) => _mgmt.SetAcl(blockAcl, principalId, traceId);
+    public Task<Option> SetAcl(AclBlock blockAcl, string principalId, string traceId) => _mgmt.SetAcl(blockAcl, principalId, traceId);
 
     public Task<Option> SetAccountDetail(AccountDetail detail, string traceId) => _detail.SetAccountDetail(detail, traceId);
     public Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId) => _detail.GetAccountDetail(principalId, traceId);

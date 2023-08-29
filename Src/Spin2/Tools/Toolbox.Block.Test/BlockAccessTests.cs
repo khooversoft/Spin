@@ -26,8 +26,8 @@ public class BlockAccessTests
     [InlineData(BlockGrant.Write, "blockType3", "principlayId3", BlockGrant.Write, "blockType3", "principlayId3")]
     public void TestEqual(BlockGrant grant, string blockType, string principalId, BlockGrant grant2, string blockType2, string principalId2)
     {
-        var v1 = new BlockAccess { Grant = grant, BlockType = blockType, PrincipalId = principalId };
-        var v2 = new BlockAccess { Grant = grant2, BlockType = blockType2, PrincipalId = principalId2 };
+        var v1 = new AccessBlock { Grant = grant, BlockType = blockType, PrincipalId = principalId };
+        var v2 = new AccessBlock { Grant = grant2, BlockType = blockType2, PrincipalId = principalId2 };
         (v1 == v2).Should().BeTrue();
         (v1 != v2).Should().BeFalse();
     }
@@ -38,8 +38,8 @@ public class BlockAccessTests
     [InlineData(BlockGrant.Write, "blockType3", "principlayId3", BlockGrant.Read, "blockType3", "principlayId3")]
     public void TestNotEqual(BlockGrant grant, string blockType, string principalId, BlockGrant grant2, string blockType2, string principalId2)
     {
-        var v1 = new BlockAccess { Grant = grant, BlockType = blockType, PrincipalId = principalId };
-        var v2 = new BlockAccess { Grant = grant2, BlockType = blockType2, PrincipalId = principalId2 };
+        var v1 = new AccessBlock { Grant = grant, BlockType = blockType, PrincipalId = principalId };
+        var v2 = new AccessBlock { Grant = grant2, BlockType = blockType2, PrincipalId = principalId2 };
         (v1 == v2).Should().BeFalse();
         (v1 != v2).Should().BeTrue();
     }

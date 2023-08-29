@@ -170,7 +170,7 @@ internal class SetupBuilder
                 OwnerId = item.PrincipalId,
                 Name = "test account",
                 AccessRights = item.WriteAccess
-                    .Select(x => new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.ReadWrite })
+                    .Select(x => new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.ReadWrite })
                     .ToArray(),
             };
 

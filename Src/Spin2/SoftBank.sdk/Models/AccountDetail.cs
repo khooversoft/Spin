@@ -12,8 +12,8 @@ public sealed record AccountDetail
     [Id(1)] public string OwnerId { get; init; } = null!;
     [Id(2)] public string Name { get; init; } = null!;
     [Id(3)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(4)] public IReadOnlyList<BlockAccess> AccessRights { get; init; } = Array.Empty<BlockAccess>();
-    [Id(5)] public IReadOnlyList<BlockRoleAccess> RoleRights { get; init; } = Array.Empty<BlockRoleAccess>();
+    [Id(4)] public IReadOnlyList<AccessBlock> AccessRights { get; init; } = Array.Empty<AccessBlock>();
+    [Id(5)] public IReadOnlyList<RoleAccessBlock> RoleRights { get; init; } = Array.Empty<RoleAccessBlock>();
 
     public bool Equals(AccountDetail? obj) => obj is AccountDetail document &&
         DocumentId == document.DocumentId &&

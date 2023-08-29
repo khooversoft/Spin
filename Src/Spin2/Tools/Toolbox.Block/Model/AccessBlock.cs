@@ -14,7 +14,7 @@ public enum BlockGrant
     ReadWrite = Read | Write,
 }
 
-public sealed record BlockAccess
+public sealed record AccessBlock
 {
     public BlockGrant Grant { get; init; } = BlockGrant.None;
     public string? Claim { get; init; }
@@ -24,14 +24,14 @@ public sealed record BlockAccess
 
 public static class BlockAccessValidator
 {
-    public static IValidator<BlockAccess> Validator { get; } = new Validator<BlockAccess>()
+    public static IValidator<AccessBlock> Validator { get; } = new Validator<AccessBlock>()
         .RuleFor(x => x.Grant).Must(x => x.IsEnumValid<BlockGrant>(), _ => "Invalid block grant")
         .RuleFor(x => x.Claim).Must(x => x.IsEmpty() || IdPatterns.IsName(x), _ => "Invalid claim")
         .RuleFor(x => x.BlockType).ValidBlockType()
         .RuleFor(x => x.PrincipalId).ValidPrincipalId()
         .Build();
 
-    public static bool HasAccess(this BlockAccess subject, string principalId, BlockGrant grant, string blockType) =>
+    public static bool HasAccess(this AccessBlock subject, string principalId, BlockGrant grant, string blockType) =>
         subject.Grant.HasFlag(grant) &&
         subject.PrincipalId == principalId.Assert(x => IdPatterns.IsPrincipalId(x), "Invalid principalId") &&
         subject.BlockType == blockType.Assert(x => IdPatterns.IsBlockType(x), "Invalid block type");

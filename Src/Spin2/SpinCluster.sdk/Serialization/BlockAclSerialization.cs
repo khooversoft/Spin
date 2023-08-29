@@ -5,19 +5,19 @@ namespace SpinCluster.sdk.Serialization;
 [GenerateSerializer]
 public struct BlockAclSerialization
 {
-    [Id(0)] public IReadOnlyList<BlockAccess> Items;
+    [Id(0)] public IReadOnlyList<AccessBlock> Items;
 }
 
 
 [RegisterConverter]
-public sealed class BlockAclSerializationConverter : IConverter<BlockAcl, BlockAclSerialization>
+public sealed class BlockAclSerializationConverter : IConverter<AclBlock, BlockAclSerialization>
 {
-    public BlockAcl ConvertFromSurrogate(in BlockAclSerialization surrogate) => new BlockAcl
+    public AclBlock ConvertFromSurrogate(in BlockAclSerialization surrogate) => new AclBlock
     {
         AccessRights = surrogate.Items.ToArray(),
     };
 
-    public BlockAclSerialization ConvertToSurrogate(in BlockAcl value) => new BlockAclSerialization
+    public BlockAclSerialization ConvertToSurrogate(in AclBlock value) => new BlockAclSerialization
     {
         Items = value.AccessRights.ToArray(),
     };

@@ -11,7 +11,6 @@ public static class SpinConstants
 
     public static class Schema
     {
-        public const string System = "$system";
         public const string Kid = "kid";
         public const string Subscription = "subscription";
         public const string Tenant = "tenant";
@@ -22,15 +21,12 @@ public static class SpinConstants
         public const string PrincipalPrivateKey = "principal-private-key";
         public const string Signature = "signature";
         public const string Storage = "storage";
-        public const string Config = "storage";
         public const string Contract = "contract";
     }
 
     public static class Extension
     {
         public const string Json = ".json";
-        public const string PrivateKeyJson = ".pkjson";
-        public const string SmartContract = ".sc";
         public const string BlockStorage = ".block";
     }
 

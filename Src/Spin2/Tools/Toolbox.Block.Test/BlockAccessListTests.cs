@@ -8,8 +8,8 @@ public class BlockAccessListTests
     [Fact]
     public void EmptyEqual()
     {
-        var a1 = new BlockAcl();
-        var a2 = new BlockAcl();
+        var a1 = new AclBlock();
+        var a2 = new AclBlock();
         (a1 == a2).Should().BeTrue();
         (a1 != a2).Should().BeFalse();
     }
@@ -17,14 +17,14 @@ public class BlockAccessListTests
     [Fact]
     public void EqualSingle()
     {
-        var a1 = new BlockAcl
+        var a1 = new AclBlock
         {
-            AccessRights = new BlockAccess { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new AccessBlock { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
         };
 
-        var a2 = new BlockAcl
+        var a2 = new AclBlock
         {
-            AccessRights = new BlockAccess { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new AccessBlock { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
         };
 
         (a1 == a2).Should().BeTrue();
@@ -34,14 +34,14 @@ public class BlockAccessListTests
     [Fact]
     public void NotEqualSingle()
     {
-        var a1 = new BlockAcl
+        var a1 = new AclBlock
         {
-            AccessRights = new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new AccessBlock { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
         };
 
-        var a2 = new BlockAcl
+        var a2 = new AclBlock
         {
-            AccessRights = new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user2@domain.com" }.ToEnumerable().ToArray(),
+            AccessRights = new AccessBlock { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user2@domain.com" }.ToEnumerable().ToArray(),
         };
 
         (a1 == a2).Should().BeFalse();
@@ -51,21 +51,21 @@ public class BlockAccessListTests
     [Fact]
     public void EqualDouble()
     {
-        var a1 = new BlockAcl
+        var a1 = new AclBlock
         {
             AccessRights = new[]
             {
-                new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
-                new BlockAccess { Grant = BlockGrant.Write, Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Grant = BlockGrant.Write, Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
             },
         };
 
-        var a2 = new BlockAcl
+        var a2 = new AclBlock
         {
             AccessRights = new[]
             {
-                new BlockAccess { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
-                new BlockAccess { Grant = BlockGrant.Write, Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Grant = BlockGrant.Write, Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
             },
         };
 
@@ -76,21 +76,21 @@ public class BlockAccessListTests
     [Fact]
     public void NotEqualDoubleDifferentOrder()
     {
-        var a1 = new BlockAcl
+        var a1 = new AclBlock
         {
             AccessRights = new[]
             {
-                new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
-                new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
             },
         };
 
-        var a2 = new BlockAcl
+        var a2 = new AclBlock
         {
             AccessRights = new[]
             {
-                new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
-                new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
             },
         };
 
@@ -101,22 +101,22 @@ public class BlockAccessListTests
     [Fact]
     public void NotEqualDoubleDifferentQuantity()
     {
-        var a1 = new BlockAcl
+        var a1 = new AclBlock
         {
             AccessRights = new[]
             {
-                new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
-                new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
             },
         };
 
-        var a2 = new BlockAcl
+        var a2 = new AclBlock
         {
             AccessRights = new[]
             {
-                new BlockAccess { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
-                new BlockAccess { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
-                new BlockAccess { Claim = "write.details", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "write.ledger", BlockType = "blockType", PrincipalId = "user1@domain.com" },
+                new AccessBlock { Claim = "write.details", BlockType = "blockType", PrincipalId = "user1@domain.com" },
             },
         };
 

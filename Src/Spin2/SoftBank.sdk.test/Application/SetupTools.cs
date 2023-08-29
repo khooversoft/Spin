@@ -132,7 +132,7 @@ public class SetupTools
             OwnerId = principalId,
             Name = "test account",
             AccessRights = writeAccessPrincipalIds
-                .Select(x => new BlockAccess { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.Write })
+                .Select(x => new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.Write })
                 .ToArray(),
         };
 

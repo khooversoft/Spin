@@ -39,7 +39,7 @@ public class SoftBankClient
         .PostAsync(context)
         .ToOption();
 
-    public async Task<Option> SetAcl(string accountId, BlockAcl content, string principalId, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> SetAcl(string accountId, AclBlock content, string principalId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{IdSoftbank.SoftBankSchema}/{Uri.EscapeDataString(accountId)}/acl")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
