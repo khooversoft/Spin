@@ -49,7 +49,7 @@ public sealed record TenantModel
 public static class TenantRegisterValidator
 {
     public static IValidator<TenantModel> Validator { get; } = new Validator<TenantModel>()
-        .RuleFor(x => x.TenantId).ValidResourceId()
+        .RuleFor(x => x.TenantId).ValidDomain()
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.Name).ValidName()

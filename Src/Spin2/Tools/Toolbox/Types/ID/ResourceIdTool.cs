@@ -1,39 +1,46 @@
-﻿using Toolbox.Extensions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
+using Toolbox.Extensions;
 using Toolbox.Tokenizer;
 using Toolbox.Tokenizer.Token;
 
 namespace Toolbox.Types.ID;
 
-// user:user1@company3.com
-// kid:user1@company3.com/path
-// principal-key:user1@company3.com"
-// principal-private-key:user1@company3.com"
-// tenant:company3.com
-// subscription:$system/subscriptionId
-// user1@company3.com
+
 internal class ResourceIdTool
 {
-    public readonly record struct ResourceIdParsed
+    private enum TokenType
     {
-        public string Id { get; init; }
-        public string? Schema { get; init; }
-        public string? User { get; init; }
-        public string? Domain { get; init; }
-        public string? Path { get; init; }
-        public string? PrincipalId { get; init; }
-        public string? AccountId { get; init; }
-    };
-
-    public static Option<ResourceIdParsed> Parse(string subject)
-    {
-        var details = InternalParse(subject);
-        if (details.IsError()) return details;
-
-        ResourceIdParsed result = details.Return();
-        return result;
+        None,
+        Syntax,
+        Schema,
+        SystemName,
+        User,
+        Domain,
+        Path,
+        Colon,
+        AtSign,
     }
 
-    private static Option<ResourceIdParsed> InternalParse(string subject)
+    private readonly record struct TokenResult
+    {
+        public TokenType Type { get; init; }
+        public string? Value { get; init; }
+        public static TokenResult None { get; } = new TokenResult { Type = TokenType.None };
+    }
+
+    private readonly record struct Test
+    {
+        public Func<IToken, TokenResult>[] Pattern { get; init; }
+        public Func<IReadOnlyList<IToken>, bool> PostTest { get; init; }
+        public Func<string, TokenResult[], IReadOnlyList<IToken>, ResourceId> Build { get; init; }
+    }
+
+    public static Option<ResourceId> Parse(string subject)
     {
         if (subject.IsEmpty()) return StatusCode.BadRequest;
 
@@ -42,88 +49,140 @@ internal class ResourceIdTool
             .Add(":", "@", "/")
             .Parse(Uri.UnescapeDataString(subject));
 
-        Option<ResourceIdParsed> result = new[]
+        var tests = new[]
         {
-            WithUserAndPaths(subject, tokens),
-            WithNoUserAndPaths(subject, tokens),
-            UserAndDomain(subject, tokens),
-        }.FirstOrDefault(x => x.IsOk(), new Option<ResourceIdParsed>(StatusCode.BadRequest));
+            SystemTest,
+            TenantTest,
+            PrincipalTest,
+            OwnedTest,
+            AccountTest
+        };
+
+        Option<ResourceId> result = tests
+            .Select(x => isMatch(tokens, subject, x))
+            .SkipWhile(x => x.IsError())
+            .FirstOrDefault(StatusCode.NotFound);
 
         return result;
+
+        Option<ResourceId> isMatch(IReadOnlyList<IToken> tokens, string id, Test test)
+        {
+            TokenResult[] result = test.Pattern.Zip(tokens).Select(x => x.First(x.Second)).ToArray();
+            if (result.Any(x => x == TokenResult.None)) return StatusCode.NotFound;
+
+            if (!test.PostTest(tokens)) return StatusCode.NotFound;
+
+            return test.Build(id, result, tokens);
+        }
     }
 
-    private static Option<ResourceIdParsed> WithUserAndPaths(string subject, IReadOnlyList<IToken> tokens) => HasPattern(tokens, hasUserPattern, true) switch
+    // {schema}:{systemName}
+    private static Test SystemTest = new Test
     {
-        false => StatusCode.BadRequest,
-
-        // kid:user1@company3.com/path
-        // 0  12    34           56
-        true => new ResourceIdParsed
+        Pattern = new Func<IToken, TokenResult>[]
         {
-            Id = subject,
-            Schema = tokens[0].Value,
-            User = tokens[2].Value,
-            Domain = tokens[4].Value,
-            Path = tokens.Skip(6).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),
-            PrincipalId = $"{tokens[2].Value}@{tokens[4].Value}",
-        }.Func(x => x.Path.IsNotEmpty() ? x with { AccountId = $"{x.Domain}/{x.Path}" } : x),
-    };
-
-    private static Option<ResourceIdParsed> WithNoUserAndPaths(string subject, IReadOnlyList<IToken> tokens) => HasPattern(tokens, noUserPattern, true) switch
-    {
-        false => StatusCode.BadRequest,
-
-        // subscription:company3.com/subscriptionId
-        // 0           12           34
-        true => new ResourceIdParsed
+            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
+            x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.SystemName, Value = x.Value } : TokenResult.None,
+        },
+        PostTest = x => x.Count == 3,
+        Build = (id, r, tokens) => new ResourceId
         {
-            Id = subject,
-            Schema = tokens[0].Value,
-            Domain = tokens[2].Value,
-            Path = tokens.Skip(4).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),
-        }.Func(x => x.Path.IsNotEmpty() ? x with { AccountId = $"{x.Domain}/{x.Path}" } : x),
-    };
-
-    private static Option<ResourceIdParsed> UserAndDomain(string subject, IReadOnlyList<IToken> tokens) => HasPattern(tokens, onlyUserPattern, false) switch
-    {
-        false => StatusCode.BadRequest,
-
-        // user1@company3.com
-        // 0    12
-        true => new ResourceIdParsed
-        {
-            Id = subject,
-            User = tokens[0].Value,
-            Domain = tokens[2].Value,
-            PrincipalId = $"{tokens[0].Value}@{tokens[2].Value}",
+            Id = id,
+            Type = ResourceType.System,
+            Schema = r.First(x => x.Type == TokenType.Schema).Value,
+            SystemName = r.First(x => x.Type == TokenType.SystemName).Value,
         },
     };
 
-    private static bool HasPattern(IReadOnlyList<IToken> tokens, Func<IToken, bool>[] tests, bool allowPath) =>
-        (allowPath ? tokens.Count >= tests.Length : tokens.Count == tests.Length) &&
-        tests.Zip(tokens).All(x => x.First(x.Second));
-
-    private static Func<IToken, bool>[] hasUserPattern = new Func<IToken, bool>[]
+    // {schema}:{domain}
+    private static Test TenantTest = new Test
     {
-        x => x.Value.IsNotEmpty(),      // Schema
-        x => x.Value == ":",
-        x => x.Value.IsNotEmpty(),      // User
-        x => x.Value == "@",
-        x => x.Value.IsNotEmpty(),      // Domain
+        Pattern = new Func<IToken, TokenResult>[]
+        {
+            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
+            x => IdPatterns.IsDomain(x.Value) ? new TokenResult { Type = TokenType.Domain, Value = x.Value } : TokenResult.None,
+        },
+        PostTest = x => x.Count == 3,
+        Build = (id, r, tokens) => new ResourceId
+        {
+            Id = id,
+            Type = ResourceType.Tenant,
+            Schema = r.First(x => x.Type == TokenType.Schema).Value,
+            Domain = r.First(x => x.Type == TokenType.Domain).Value,
+        },
     };
 
-    private static Func<IToken, bool>[] noUserPattern = new Func<IToken, bool>[]
+    // {user}@{domain}
+    private static Test PrincipalTest = new Test
     {
-        x => x.Value.IsNotEmpty(),      // Schema
-        x => x.Value == ":",
-        x => x.Value.IsNotEmpty(),      // Domain
+        Pattern = new Func<IToken, TokenResult>[]
+        {
+            x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.User, Value = x.Value } : TokenResult.None,
+            x => x.Value == "@" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
+            x => IdPatterns.IsDomain(x.Value) ? new TokenResult { Type = TokenType.Domain, Value = x.Value } : TokenResult.None,
+        },
+        PostTest = x => x.Count == 3,
+        Build = (id, r, tokens) => new ResourceId
+        {
+            Id = id,
+            Type = ResourceType.Principal,
+            User = r.First(x => x.Type == TokenType.User).Value,
+            Domain = r.First(x => x.Type == TokenType.Domain).Value,
+        }.Func(x => x with
+        {
+            PrincipalId = $"{x.User}@{x.Domain}"
+        }),
     };
 
-    private static Func<IToken, bool>[] onlyUserPattern = new Func<IToken, bool>[]
+    // {schema}:{user}@{domain}/{path}[/{path}...}]
+    private static Test OwnedTest = new Test
     {
-        x => x.Value.IsNotEmpty(),      // User
-        x => x.Value == "@",
-        x => x.Value.IsNotEmpty(),      // Domain
+        Pattern = new Func<IToken, TokenResult>[]
+        {
+            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
+            x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.User, Value = x.Value } : TokenResult.None,
+            x => x.Value == "@" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
+            x => IdPatterns.IsDomain(x.Value) ? new TokenResult { Type = TokenType.Domain, Value = x.Value } : TokenResult.None,
+        },
+        PostTest = x => x.Count > 6 && x.Skip(6).All(y => y.Value == "/" || IdPatterns.IsPath(y.Value)),
+        Build = (id, r, tokens) => new ResourceId
+        {
+            Id = id,
+            Type = ResourceType.Owned,
+            Schema = r.First(x => x.Type == TokenType.Schema).Value,
+            User = r.First(x => x.Type == TokenType.User).Value,
+            Domain = r.First(x => x.Type == TokenType.Domain).Value,
+            Path = tokens.Skip(6).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),
+        }.Func(x => x with
+        {
+            PrincipalId = $"{x.User}@{x.Domain}",
+            AccountId = $"{x.Domain}/{x.Path}"
+        }),
+    };
+
+    // {schema}:{domain}/{path}[/{path}...}]
+    private static Test AccountTest = new Test
+    {
+        Pattern = new Func<IToken, TokenResult>[]
+        {
+            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
+            x => IdPatterns.IsDomain(x.Value) ? new TokenResult { Type = TokenType.Domain, Value = x.Value } : TokenResult.None,
+        },
+        PostTest = x => x.Count > 3 && x.Skip(4).All(y => y.Value == "/" || IdPatterns.IsPath(y.Value)),
+        Build = (id, r, tokens) => new ResourceId
+        {
+            Id = id,
+            Type = ResourceType.Account,
+            Schema = r.First(x => x.Type == TokenType.Schema).Value,
+            Domain = r.First(x => x.Type == TokenType.Domain).Value,
+            Path = tokens.Skip(4).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),
+        }.Func(x => x with
+        {
+            AccountId = $"{x.Domain}/{x.Path}"
+        }),
     };
 }
-

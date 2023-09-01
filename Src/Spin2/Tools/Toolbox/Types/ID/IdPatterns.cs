@@ -5,22 +5,22 @@ namespace Toolbox.Types;
 
 public static class IdPatterns
 {
-    public static bool StandardCharacterTest(char x) => char.IsLetterOrDigit(x) || x == '-' || x == '_' || x == '.' || x == '$';
+    public static bool StandardCharacterTest(char x) => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '$';
 
     public static bool IsSchema(string? subject) => IsName(subject);
-    public static bool IsTenant(string? subject) => IsName(subject);
+    public static bool IsBlockType(string? subject) => IsName(subject);
 
     public static bool IsDomain(string? subject) =>
         subject.IsNotEmpty() &&
         subject.Func(x => x.IndexOf("..") < 0) &&
-        subject.Func(x => x.Count(y => y == '.') <= 1) &&
+        subject.Func(x => x.Count(y => y == '.') >= 1) &&
         TestStart(subject, x => char.IsLetter(x) || x == '$') &&
         TestMiddle(subject, StandardCharacterTest) &&
         TestEnd(subject, char.IsLetterOrDigit);
 
     public static bool IsName(string? subject) =>
         subject.IsNotEmpty() &&
-        subject.Func(x => x.IndexOf("..") < 0) &&
+        subject.Func(x => x.IndexOf(".") < 0) &&
         TestStart(subject, char.IsLetter) &&
         TestMiddle(subject, StandardCharacterTest) &&
         TestEnd(subject, char.IsLetterOrDigit);
@@ -44,12 +44,6 @@ public static class IdPatterns
             }
         };
 
-    public static bool IsBlockType(string? subject) =>
-        subject.IsNotEmpty() &&
-        TestStart(subject, char.IsLetter) &&
-        TestMiddle(subject, StandardCharacterTest) &&
-        TestEnd(subject, char.IsLetterOrDigit);
-
     public static bool IsKeyId(string? subject) =>
         subject.IsNotEmpty() &&
         subject.Split(':') switch
@@ -66,6 +60,7 @@ public static class IdPatterns
         subject.IsNotEmpty() &&
         subject.Split(':') switch
         {
+            var s when s.Length > 2 => false,
             var s => s.Last().Split('/').Func(x => x.Length > 1 && IsDomain(x[0]) && x.Skip(1).All(x => IsPath(x)))
         };
 

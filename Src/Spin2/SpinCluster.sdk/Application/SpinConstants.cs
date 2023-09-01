@@ -5,6 +5,7 @@ public static class SpinConstants
     public const string SpinStateStore = "spinStateStore";
     public const string SchemaSearch = "schemaSearch";
     public const string SignValidation = "signValidation";
+    public const string Directory = "directory";
     public const string Folder = "folder";
     public const string Open = "open";
     public const string SystemTenant = "$system";
@@ -22,6 +23,7 @@ public static class SpinConstants
         public const string Signature = "signature";
         public const string Storage = "storage";
         public const string Contract = "contract";
+        public const string Directory = "directory";
     }
 
     public static class Extension

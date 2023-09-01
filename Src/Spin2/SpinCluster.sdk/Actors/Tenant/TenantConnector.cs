@@ -35,7 +35,7 @@ public class TenantConnector
     private async Task<IResult> Delete(string tenantId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         tenantId = Uri.UnescapeDataString(tenantId);
-        if (!IdPatterns.IsTenant(tenantId)) return Results.BadRequest();
+        if (!IdPatterns.IsDomain(tenantId)) return Results.BadRequest();
 
         ResourceId resourceId = IdTool.CreateTenantId(tenantId);
         Option response = await _client.GetResourceGrain<ITenantActor>(resourceId).Delete(traceId);
@@ -45,7 +45,7 @@ public class TenantConnector
     public async Task<IResult> Get(string tenantId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         tenantId = Uri.UnescapeDataString(tenantId);
-        if (!IdPatterns.IsTenant(tenantId)) return Results.BadRequest();
+        if (!IdPatterns.IsDomain(tenantId)) return Results.BadRequest();
 
         ResourceId resourceId = IdTool.CreateTenantId(tenantId);
         Option<TenantModel> response = await _client.GetResourceGrain<ITenantActor>(resourceId).Get(traceId);

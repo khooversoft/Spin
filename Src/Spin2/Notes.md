@@ -12,12 +12,16 @@
  
 
 Next...
-1. Confirm UI (contract, message, deposit, etc...)
-1. Message UI (send secure message)
-1. Credit card actor to providers ??
 1. Finance smart contract
     - Host Process
     - Contract EXE
+1. Security - hook up to Azure Active Directory, MFA enabled
+1. Security - used User JWT ticket for "Principal ID"
+1. UI subscriptions, tenant, users, soft bank
+1. Create SmartC
+1. Confirm UI (contract, message, deposit, etc...)
+1. Message UI (send secure message)
+1. Credit card actor to providers ??  (SoftBank=Credit card provider)
 
 
 # Scenario...

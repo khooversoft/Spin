@@ -1,0 +1,7 @@
+{
+  "TenantId": "Company1_Tenant1",
+  "Name": "Tenant1",
+  "SubscriptionId": "subscription/Company1",
+  "ContactName": "Admin for Tenant1",
+  "Email": "user1@company2.com"
+}

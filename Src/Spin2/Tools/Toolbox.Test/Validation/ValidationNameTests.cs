@@ -35,7 +35,7 @@ public class ValidationNameTests
 
     [Theory]
     [InlineData("name")]
-    [InlineData("abcedefhijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890-$_E")]
+    [InlineData("abcedefhijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890-$E")]
     public void NameIsValid(string subject)
     {
         IValidator<NameTest> validator = new Validator<NameTest>()

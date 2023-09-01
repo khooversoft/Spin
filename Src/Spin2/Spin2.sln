@@ -35,10 +35,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftBank.sdk", "SoftBank.sd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinClusterApi.test", "SpinClusterApi.test\SpinClusterApi.test.csproj", "{147959C5-20C7-43EC-9600-FA7FE7B10B55}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9CB07323-2EC2-47D9-8214-EEDECAD888F5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{9CB07323-2EC2-47D9-8214-EEDECAD888F5}"
 	ProjectSection(SolutionItems) = preProject
 		Notes.md = Notes.md
 		schema.md = schema.md
+		SmartC.md = SmartC.md
+		SpinClusterCmd.md = SpinClusterCmd.md
 	EndProjectSection
 EndProject
 Global

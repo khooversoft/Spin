@@ -36,4 +36,7 @@ public static class ActorActivators
 
     public static ILeaseActor GetLeaseActor(this IClusterClient clusterClient, ResourceId keyId) => clusterClient.NotNull()
         .GetResourceGrain<ILeaseActor>(keyId);
+
+    //public static IDirectoryActor GetDirectoryActor(this IClusterClient clusterClient) => clusterClient.NotNull()
+    //    .GetResourceGrain<IDirectoryActor>(SpinConstants.SignValidation);
 }

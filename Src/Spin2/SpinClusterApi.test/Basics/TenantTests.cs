@@ -24,7 +24,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
     {
         TenantClient client = _cluster.ServiceProvider.GetRequiredService<TenantClient>();
         string subscriptionId = "Company2Subscription";
-        string tenantId = "Company2Tenant1";
+        string tenantId = "company2.com";
 
         var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
         subscription.IsOk().Should().BeTrue();
@@ -65,7 +65,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         };
 
         Option setOption = await client.Set(tenant, context);
-        setOption.StatusCode.IsOk().Should().BeTrue();
+        setOption.StatusCode.IsOk().Should().BeTrue(setOption.Error);
 
         return tenant;
     }

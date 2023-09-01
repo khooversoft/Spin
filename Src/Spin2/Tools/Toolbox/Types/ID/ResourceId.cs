@@ -7,14 +7,19 @@ using Toolbox.Types.ID;
 
 namespace Toolbox.Types;
 
+public enum ResourceType
+{
+    System = 1,     // subscription:{subscriptionName}
+    Tenant,         // tenant:{domain}
+    Principal,      // {user}@{domain}
+    Owned,          // {schema}:{user}@{domain}/{path}[/{path}...}]
+                    //      principal-key:{user}@{domain}/{path}[/{path}...}]
+                    //      kid:{user}@{domain}/{path}[/{path}...}]
+                    //      signature:{user}@{domain}/{path}[/{path}...}]
+    Account,        // {schema}:{domain}/{path}[/{path}...}]
+}
 
-// user1@company3.com
-// user:user1@company3.com
-// kid:user1@company3.com/path
-// principal-key:user1@company3.com
-// principal-private-key:user1@company3.com
-// tenant:company3.com
-// subscription:company3.com/subscriptionId
+
 [DebuggerDisplay("Id={Id}")]
 public readonly record struct ResourceId
 {
@@ -24,24 +29,28 @@ public readonly record struct ResourceId
     {
     }
 
-    private ResourceId(ResourceIdTool.ResourceIdParsed result)
+    public ResourceId(ResourceId resourceId)
     {
-        Id = result.Id;
-        Schema = result.Schema;
-        User = result.User;
-        Domain = result.Domain;
-        Path = result.Path;
-        PrincipalId = result.PrincipalId;
-        AccountId = result.AccountId;
+        Id = resourceId.Id;
+        Type = resourceId.Type;
+        Schema = resourceId.Schema;
+        SystemName = resourceId.SystemName;
+        User = resourceId.User;
+        Domain = resourceId.Domain;
+        Path = resourceId.Path;
+        PrincipalId = resourceId.PrincipalId;
+        AccountId = resourceId.AccountId;
     }
 
-    public string Id { get; }
-    [JsonIgnore] public string? Schema { get; }
-    [JsonIgnore] public string? User { get; }
-    [JsonIgnore] public string? Domain { get; }
-    [JsonIgnore] public string? Path { get; }
-    [JsonIgnore] public string? PrincipalId { get; }
-    [JsonIgnore] public string? AccountId { get; }
+    public string Id { get; init; }
+    [JsonIgnore] public ResourceType Type { get; init; }
+    [JsonIgnore] public string? Schema { get; init; }
+    [JsonIgnore] public string? SystemName { get; init; }
+    [JsonIgnore] public string? User { get; init; }
+    [JsonIgnore] public string? Domain { get; init; }
+    [JsonIgnore] public string? Path { get; init; }
+    [JsonIgnore] public string? PrincipalId { get; init; }
+    [JsonIgnore] public string? AccountId { get; init; }
 
     public override string ToString() => Id;
     public string ToUrlEncoding() => Uri.EscapeDataString(Id);
@@ -58,33 +67,10 @@ public readonly record struct ResourceId
 
     public static bool IsValid(string id) => ResourceIdTool.Parse(id).IsOk();
 
-    public static Option<ResourceId> Create(string id)
-    {
-        var result = ResourceIdTool.Parse(id);
-        if (result.IsError()) return result.ToOptionStatus<ResourceId>();
-
-        var resourceId = new ResourceId(result.Return());
-
-        var validation = ResourceIdValidator.Validator.Validate(resourceId);
-        if (validation.IsError()) return validation.ToOptionStatus<ResourceId>();
-
-        return resourceId;
-    }
+    public static Option<ResourceId> Create(string id) => ResourceIdTool.Parse(id);
 }
 
 public static class ResourceIdValidator
 {
-    public static IValidator<ResourceId> Validator { get; } = new Validator<ResourceId>()
-        .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.Schema).Must(x => x.IsEmpty() || IdPatterns.IsSchema(x), x => $"{x} not valid schema")
-        .RuleFor(x => x.User).Must(x => x.IsEmpty() || IdPatterns.IsName(x), x => $"{x} not valid user")
-        .RuleFor(x => x.Domain).Must(x => x.IsEmpty() || IdPatterns.IsDomain(x), x => $"{x} not valid domain")
-        .RuleFor(x => x.Path).Must(x => x.IsEmpty() || x.Split('/').All(y => IdPatterns.IsPath(y)), x => $"{x} not valid path")
-        .RuleFor(x => x.PrincipalId).Must(x => x.IsEmpty() || IdPatterns.IsPrincipalId(x), x => $"{x} not valid principal ID")
-        .RuleFor(x => x.AccountId).Must(x => x.IsEmpty() || IdPatterns.IsAccountId(x), x => $"{x} not valid account ID")
-        .Build();
-
-    public static Option Validate(this ResourceId subject) => Validator.Validate(subject).ToOptionStatus();
-
     public static string GetKeyId(this ResourceId resourceId) => $"{resourceId.User}@{resourceId.Domain}" + resourceId.Path;
 }

@@ -176,7 +176,7 @@ public class UserActor : Grain, IUserActor
         if (user.IsError()) return user.ToOptionStatus();
 
         string tenantId = user.Return().Domain!;
-        if (!IdPatterns.IsTenant(tenantId)) return StatusCode.BadRequest;
+        if (!IdPatterns.IsDomain(tenantId)) return StatusCode.BadRequest;
 
         var id = IdTool.CreateTenantId(tenantId);
         Option isTenantActive = await _clusterClient.GetTenantActor(id).Exist(context.TraceId);

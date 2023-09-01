@@ -20,14 +20,17 @@ public class SubscriptionActor : Grain, ISubscriptionActor
 {
     private readonly IPersistentState<SubscriptionModel> _state;
     private readonly ILogger<SubscriptionActor> _logger;
+    private readonly IClusterClient _clusterClient;
 
     public SubscriptionActor(
         [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<SubscriptionModel> state,
+        IClusterClient clusterClient,
         ILogger<SubscriptionActor> logger
         )
     {
         _state = state.NotNull();
         _logger = logger.NotNull();
+        _clusterClient = clusterClient;
     }
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)

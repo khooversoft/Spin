@@ -6,7 +6,7 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.Contract;
 
 [GenerateSerializer, Immutable]
-public record ContractCreateModel
+public sealed record ContractCreateModel
 {
     [Id(0)] public string DocumentId { get; init; } = null!;
     [Id(1)] public string PrincipalId { get; init; } = null!;

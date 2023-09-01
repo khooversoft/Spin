@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SpinClusterCmd;
 using SpinClusterCmd.Application;
-using SpinClusterCmd.Commands;
 using Toolbox.Extensions;
 
 try
@@ -35,11 +34,7 @@ async Task<int> Run(IServiceProvider service, string[] args)
     {
         var rc = new RootCommand()
         {
-            service.GetRequiredService<UserCommand>(),
-            service.GetRequiredService<KeyCommand>(),
-            service.GetRequiredService<StorageCommand>(),
-            service.GetRequiredService<LeaseCommand>(),
-            service.GetRequiredService<SearchCommand>(),
+            //service.GetRequiredService<DirectoryCommand>(),
         };
 
         return await rc.InvokeAsync(args);

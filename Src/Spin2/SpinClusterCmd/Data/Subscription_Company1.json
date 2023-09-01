@@ -1,0 +1,8 @@
+{
+  "SubscriptionId": "subscription/Company1",
+  "Name": "Company 1",
+  "ContactName": "Admin for Company1",
+  "Email": "admin@company1.com",
+  "AccountEnabled": true,
+  "ActiveDate": "2023-08-01"
+}
