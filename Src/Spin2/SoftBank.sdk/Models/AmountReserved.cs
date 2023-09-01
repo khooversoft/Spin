@@ -21,7 +21,7 @@ public static class AmountReservedValidator
         .RuleFor(x => x.Id).NotEmpty()
         .RuleFor(x => x.LeaseKey).NotEmpty()
         .RuleFor(x => x.AccountId).ValidAccountId()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.Amount).Must(x => x > 0, _ => "Amount must be greater then zero")
         .RuleFor(x => x.GoodTo).ValidDateTime()
         .Build();

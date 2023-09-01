@@ -41,8 +41,8 @@ public sealed record UserKeyModel
 public static class UserKeyModelValidator
 {
     public static IValidator<UserKeyModel> Validator { get; } = new Validator<UserKeyModel>()
-        .RuleFor(x => x.KeyId).ValidKeyId()
-        .RuleFor(x => x.PublicKeyId).ValidKeyId()
-        .RuleFor(x => x.PrivateKeyId).ValidKeyId()
+        .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned, "kid")
+        .RuleFor(x => x.PublicKeyId).ValidResourceId(ResourceType.Owned, "kid")
+        .RuleFor(x => x.PrivateKeyId).ValidResourceId(ResourceType.Owned, "kid")
         .Build();
 }

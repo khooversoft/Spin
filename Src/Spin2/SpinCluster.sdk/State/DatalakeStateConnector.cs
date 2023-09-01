@@ -61,10 +61,16 @@ internal class DatalakeStateConnector : IGrainStorage
         string grainPath = GetPath(grainId);
 
         ResourceId resourceId = ResourceId.Create(grainPath).LogResult(context.Location()).ThrowOnError().Return();
-        var map = _map.MapResource(resourceId, context).LogResult(context.Location()).Return();
+        Option<DatalakeResourceIdMap.Map> mapOption = _map.MapResource(resourceId, context).LogResult(context.Location());
+        if (mapOption.IsError())
+        {
+            context.Location().LogCritical("Failed to map schemato storage resource for resourceId={resourceId}", resourceId);
+            throw new InvalidOperationException($"Failed to map schemato storage resource for resourceId={resourceId}");
+        }
 
-        context.Location().LogInformation("GrainId={grainId} to resourceId={resourceId}, map={map}", grainId.ToString(), resourceId, map);
+        context.Location().LogInformation("GrainId={grainId} to resourceId={resourceId}, map={map}", grainId.ToString(), resourceId, mapOption);
 
+        DatalakeResourceIdMap.Map map = mapOption.Return();
         return (map.FilePath, map.Schema, context);
     }
 

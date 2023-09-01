@@ -18,8 +18,8 @@ public sealed record ContractCreateModel
 public static class BlockCreateModelExtensions
 {
     public static IValidator<ContractCreateModel> Validator { get; } = new Validator<ContractCreateModel>()
-        .RuleFor(x => x.DocumentId).ValidContractId()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.DocumentId).ValidResourceId(ResourceType.Account)
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.BlockAccess).NotNull()
         .RuleForEach(x => x.BlockAccess).Validate(BlockAccessValidator.Validator)
         .RuleFor(x => x.RoleRights).NotNull()

@@ -11,7 +11,6 @@ public class IdPatternsTests
     public void IsNameOk(string subject)
     {
         IdPatterns.IsName(subject).Should().BeTrue();
-        IdPatterns.IsSchema(subject).Should().BeTrue();
     }
 
     [Theory]
@@ -22,7 +21,6 @@ public class IdPatternsTests
     public void IsNameError(string subject)
     {
         IdPatterns.IsName(subject).Should().BeFalse();
-        IdPatterns.IsSchema(subject).Should().BeFalse();
     }
 
     [Theory]

@@ -81,7 +81,7 @@ internal class ResourceIdTool
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
-            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
             x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
             x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.SystemName, Value = x.Value } : TokenResult.None,
         },
@@ -100,7 +100,7 @@ internal class ResourceIdTool
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
-            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
             x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
             x => IdPatterns.IsDomain(x.Value) ? new TokenResult { Type = TokenType.Domain, Value = x.Value } : TokenResult.None,
         },
@@ -136,18 +136,18 @@ internal class ResourceIdTool
         }),
     };
 
-    // {schema}:{user}@{domain}/{path}[/{path}...}]
+    // {schema}:{user}@{domain}[/{path}...}]
     private static Test OwnedTest = new Test
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
-            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
             x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
             x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.User, Value = x.Value } : TokenResult.None,
             x => x.Value == "@" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
             x => IdPatterns.IsDomain(x.Value) ? new TokenResult { Type = TokenType.Domain, Value = x.Value } : TokenResult.None,
         },
-        PostTest = x => x.Count > 6 && x.Skip(6).All(y => y.Value == "/" || IdPatterns.IsPath(y.Value)),
+        PostTest = x => x.Count >= 5 && x.Skip(6).All(y => y.Value == "/" || IdPatterns.IsPath(y.Value)),
         Build = (id, r, tokens) => new ResourceId
         {
             Id = id,
@@ -159,7 +159,7 @@ internal class ResourceIdTool
         }.Func(x => x with
         {
             PrincipalId = $"{x.User}@{x.Domain}",
-            AccountId = $"{x.Domain}/{x.Path}"
+            AccountId = x.Path.IsNotEmpty() ? $"{x.Domain}/{x.Path}" : null,
         }),
     };
 
@@ -168,7 +168,7 @@ internal class ResourceIdTool
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
-            x => IdPatterns.IsSchema(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
+            x => IdPatterns.IsName(x.Value) ? new TokenResult { Type = TokenType.Schema, Value = x.Value } : TokenResult.None,
             x => x.Value == ":" ? new TokenResult { Type = TokenType.Syntax } : TokenResult.None,
             x => IdPatterns.IsDomain(x.Value) ? new TokenResult { Type = TokenType.Domain, Value = x.Value } : TokenResult.None,
         },

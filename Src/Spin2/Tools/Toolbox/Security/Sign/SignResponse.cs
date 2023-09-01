@@ -17,8 +17,8 @@ public static class SignResponseValidator
 {
     public static IValidator<SignResponse> Validator { get; } = new Validator<SignResponse>()
         .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.PrincipleId).ValidPrincipalId()
-        .RuleFor(x => x.Kid).ValidKeyId()
+        .RuleFor(x => x.PrincipleId).ValidResourceId(ResourceType.Principal)
+        .RuleFor(x => x.Kid).ValidResourceId(ResourceType.Owned, "kid")
         .RuleFor(x => x.MessageDigest).NotEmpty()
         .RuleFor(x => x.JwtSignature).NotEmpty()
         .Build();

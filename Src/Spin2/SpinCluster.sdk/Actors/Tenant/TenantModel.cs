@@ -49,13 +49,13 @@ public sealed record TenantModel
 public static class TenantRegisterValidator
 {
     public static IValidator<TenantModel> Validator { get; } = new Validator<TenantModel>()
-        .RuleFor(x => x.TenantId).ValidDomain()
+        .RuleFor(x => x.TenantId).ValidResourceId(ResourceType.Tenant)
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
-        .RuleFor(x => x.Name).ValidName()
-        .RuleFor(x => x.SubscriptionId).ValidResourceId()
+        .RuleFor(x => x.Name).NotEmpty()
+        .RuleFor(x => x.SubscriptionId).ValidResourceId(ResourceType.System)
         .RuleFor(x => x.ContactName).NotEmpty()
-        .RuleFor(x => x.Email).ValidPrincipalId()
+        .RuleFor(x => x.Email).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.DataObjects).NotNull()
         .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
         .Build();

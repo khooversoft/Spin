@@ -35,7 +35,7 @@ public class DataBlockBuilder
         ClassType.NotEmpty(name: msg);
 
         BlockType ??= ClassType;
-        BlockType.Assert(x => IdPatterns.IsBlockType(x), msg);
+        BlockType.Assert(x => IdPatterns.IsName(x), msg);
 
         BlockId.NotEmpty(name: msg);
         Data.NotEmpty(name: msg);

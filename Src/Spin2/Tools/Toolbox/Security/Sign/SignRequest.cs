@@ -16,7 +16,7 @@ public static class SignRequestValidator
 {
     public static IValidator<SignRequest> Validator { get; } = new Validator<SignRequest>()
         .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.MessageDigest).NotEmpty()
         .Build();
 

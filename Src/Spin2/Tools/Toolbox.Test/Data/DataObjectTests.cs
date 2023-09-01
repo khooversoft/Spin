@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Toolbox.Data;
 
-namespace SpinCluster.sdk.test.Tools;
+namespace Toolbox.Test.Data;
 
 public class DataObjectTests
 {

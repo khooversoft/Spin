@@ -14,7 +14,7 @@ public class BlockChainSignAccessTests
     public async Task SingleNodeWithAccessWrites()
     {
         const string issuer = "user@domain.com";
-        const string documentId = $"contract:domain.com/{issuer}";
+        const string documentId = "contract:domain.com/contract1";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
@@ -48,7 +48,7 @@ public class BlockChainSignAccessTests
     public async Task MultipleNodeWithAccessWrites()
     {
         const string issuer = "user@domain.com";
-        const string documentId = $"contract:domain.com/{issuer}";
+        const string documentId = "contract:domain.com/contract1";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
@@ -98,7 +98,7 @@ public class BlockChainSignAccessTests
         const string issuer = "user@domain.com";
         const string issuer2 = "user2@domain.com";
         const string issuer3 = "user3@domain.com";
-        const string documentId = $"contract:domain.com/{issuer}";
+        const string documentId = "contract:domain.com/contract1";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
         IPrincipalSignature principleSignature3 = new PrincipalSignature(issuer3, issuer3, "userBusiness@domain.com");
@@ -132,7 +132,7 @@ public class BlockChainSignAccessTests
     public async Task MultipleNodeWithAccessWritesFailed()
     {
         const string issuer = "user@domain.com";
-        const string documentId = $"contract:domain.com/{issuer}";
+        const string documentId = "contract:domain.com/contract1";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");

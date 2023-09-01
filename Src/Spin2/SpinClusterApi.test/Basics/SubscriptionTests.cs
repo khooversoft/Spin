@@ -65,7 +65,7 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
         SubscriptionClient client = service.GetRequiredService<SubscriptionClient>();
 
         Option deleteOption = await client.Delete(nameId, context);
-        deleteOption.StatusCode.IsOk().Should().BeTrue();
+        deleteOption.StatusCode.IsOk().Should().BeTrue(deleteOption.Error);
 
         return StatusCode.OK;
     }

@@ -45,8 +45,9 @@ public class ResourceIdIdTests
     }
 
     [Theory]
-    [InlineData("user@domain.com")]
-    public void ValidPrincipal(string id)
+    [InlineData("userId@domain.com", "userId", "domain.com", "userId@domain.com")]
+    [InlineData("user1@domain7.com", "user1", "domain7.com", "user1@domain7.com")]
+    public void ValidPrincipal(string id, string user, string domain, string principalId)
     {
         var result = ResourceId.Create(id);
         result.IsOk().Should().BeTrue(result.Error);
@@ -55,11 +56,11 @@ public class ResourceIdIdTests
         resourceId.ToString().Should().Be(id);
         resourceId.Type.Should().Be(ResourceType.Principal);
         resourceId.Schema.Should().BeNull();
-        resourceId.User.Should().Be("user");
+        resourceId.User.Should().Be(user);
         resourceId.SystemName.Should().BeNull();
-        resourceId.Domain.Should().Be("domain.com");
+        resourceId.Domain.Should().Be(domain);
         resourceId.Path.Should().BeNull();
-        resourceId.PrincipalId.Should().Be("user@domain.com");
+        resourceId.PrincipalId.Should().Be(principalId);
         resourceId.AccountId.Should().BeNull();
     }
 
@@ -67,7 +68,9 @@ public class ResourceIdIdTests
     [InlineData("principal-key:user@domain.com/path", "principal-key", "user", "domain.com", "path")]
     [InlineData("principal-key:user@domain.com/path/path2", "principal-key", "user", "domain.com", "path/path2")]
     [InlineData("kid:user1@domain.com/path/path2/path3", "kid", "user1", "domain.com", "path/path2/path3")]
-    public void ValidOwned(string id, string schema, string user, string domain, string path)
+    [InlineData("user:userId@domain.com", "user", "userId", "domain.com", null)]
+    [InlineData("user:userId@company7.com", "user", "userId", "company7.com", null)]
+    public void ValidOwned(string id, string schema, string user, string domain, string? path)
     {
         var result = ResourceId.Create(id);
         result.IsOk().Should().BeTrue(result.Error);
@@ -81,12 +84,13 @@ public class ResourceIdIdTests
         resourceId.Domain.Should().Be(domain);
         resourceId.Path.Should().Be(path);
         resourceId.PrincipalId.Should().Be($"{user}@{domain}");
-        resourceId.AccountId.Should().Be($"{domain}/{path}");
+        resourceId.AccountId.Should().Be(path != null ? $"{domain}/{path}" : null);
     }
 
     [Theory]
     [InlineData("contract:domain.com/path", "contract", "domain.com", "path")]
     [InlineData("contract:domain.com/path/path2", "contract", "domain.com", "path/path2")]
+    [InlineData("contract:domain.com/contract1", "contract", "domain.com", "contract1")]
     public void ValidAccount(string id, string schema, string domain, string path)
     {
         var result = ResourceId.Create(id);
@@ -118,6 +122,7 @@ public class ResourceIdIdTests
     [InlineData("user:us&er1@company3.com")] // Invalid character '&'
     [InlineData("principal-key:-user1@company3.com")] // Invalid start with '-'
     [InlineData("principal-key:user1@2company3.com")] // Invalid start with number, 2
+    [InlineData("contract:domain.com/user@domain.com")] // Invalid start with number, 2
     public void InvalidResourceId(string id)
     {
         var result = ResourceId.Create(id);

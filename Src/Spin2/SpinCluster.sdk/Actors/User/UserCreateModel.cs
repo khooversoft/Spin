@@ -26,8 +26,8 @@ public sealed record UserCreateModel
 public static class UserCreateModelValidator
 {
     public static IValidator<UserCreateModel> Validator { get; } = new Validator<UserCreateModel>()
-        .RuleFor(x => x.UserId).ValidResourceId()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.UserId).ValidResourceId(ResourceType.Owned)
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.DisplayName).NotEmpty()
         .RuleFor(x => x.FirstName).NotEmpty()
         .RuleFor(x => x.LastName).NotEmpty()

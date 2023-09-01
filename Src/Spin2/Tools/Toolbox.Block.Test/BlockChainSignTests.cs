@@ -21,7 +21,7 @@ namespace Toolbox.Block.Test
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
             BlockChain blockChain = await new BlockChainBuilder()
-                .SetDocumentId("contract:domain.com/user@domain.com")
+                .SetDocumentId("contract:domain.com/contract1")
                 .SetPrincipleId(issuer)
                 .Build(principleSignature, _context)
                 .Return();
@@ -36,7 +36,7 @@ namespace Toolbox.Block.Test
         public async Task AppendSingleNode()
         {
             const string issuer = "user@domain.com";
-            const string documentId = $"contract:domain.com/{issuer}";
+            const string documentId = "contract:domain.com/contract1";
 
             IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
 
@@ -114,7 +114,7 @@ namespace Toolbox.Block.Test
         {
             const string issuer = "user@domain.com";
             const string issuer2 = "user2@domain.com";
-            const string documentId = $"contract:domain.com/{issuer}";
+            const string documentId = "contract:domain.com/contract1";
             var now = UnixDate.UtcNow;
             var date = DateTime.UtcNow;
 

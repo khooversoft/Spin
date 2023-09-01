@@ -7,9 +7,6 @@ public static class IdPatterns
 {
     public static bool StandardCharacterTest(char x) => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '$';
 
-    public static bool IsSchema(string? subject) => IsName(subject);
-    public static bool IsBlockType(string? subject) => IsName(subject);
-
     public static bool IsDomain(string? subject) =>
         subject.IsNotEmpty() &&
         subject.Func(x => x.IndexOf("..") < 0) &&

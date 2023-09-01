@@ -14,7 +14,7 @@ public class BlockAccessReadAccessTests
     public async Task MultipleNodeWithAccessWrites()
     {
         const string issuer = "user@domain.com";
-        const string documentId = $"contract:domain.com/{issuer}";
+        const string documentId = "contract:domain.com/contract1";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
@@ -55,7 +55,7 @@ public class BlockAccessReadAccessTests
     public async Task MultipleNodeWithAccessWriteButNotRead()
     {
         const string issuer = "user@domain.com";
-        const string documentId = $"contract:domain.com/{issuer}";
+        const string documentId = "contract:domain.com/contract1";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");
@@ -125,7 +125,7 @@ public class BlockAccessReadAccessTests
     public async Task MultipleNodeWithAccessWriteReadWrite()
     {
         const string issuer = "user@domain.com";
-        const string documentId = $"contract:domain.com/{issuer}";
+        const string documentId = "contract:domain.com/contract1";
         const string issuer2 = "user2@domain.com";
 
         IPrincipalSignature principleSignature = new PrincipalSignature(issuer, issuer, "userBusiness@domain.com");

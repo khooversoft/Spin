@@ -31,7 +31,7 @@ public class BlockChainScalarStreamTests
         };
 
         BlockChain blockChain = await new BlockChainBuilder()
-            .SetDocumentId("contrat:user@domain.com/contract1")
+            .SetDocumentId("contract:domain.com/contract1")
             .SetPrincipleId(_owner)
             .Build(_signCollection, _context)
             .Return();

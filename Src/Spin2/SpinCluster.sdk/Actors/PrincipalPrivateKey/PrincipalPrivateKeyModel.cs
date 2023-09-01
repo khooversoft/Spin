@@ -38,9 +38,9 @@ public sealed record PrincipalPrivateKeyModel
 public static class PrincipalPrivateKeyModelValidator
 {
     public static IValidator<PrincipalPrivateKeyModel> Validator { get; } = new Validator<PrincipalPrivateKeyModel>()
-        .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId()
-        .RuleFor(x => x.KeyId).ValidKeyId()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId(ResourceType.Owned)
+        .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned, "kid")
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.Audience).NotEmpty()
         .RuleFor(x => x.PrivateKey).NotNull()

@@ -3,7 +3,7 @@ using FluentAssertions;
 using Toolbox.Security.Jwt;
 using Toolbox.Security.Principal;
 
-namespace SpinCluster.sdk.test.Tools;
+namespace Toolbox.Test.Security;
 
 public class RsaTests
 {

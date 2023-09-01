@@ -25,10 +25,10 @@ public sealed record PrincipalKeyCreateModel
 public static class PrincipalKeyCreateModelValidator
 {
     public static IValidator<PrincipalKeyCreateModel> Validator { get; } = new Validator<PrincipalKeyCreateModel>()
-        .RuleFor(x => x.KeyId).ValidResourceId()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned)
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.Name).ValidName()
-        .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId()
+        .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId(ResourceType.Owned)
         .Build();
 
     public static Option Validate(this PrincipalKeyCreateModel subject) => Validator.Validate(subject).ToOptionStatus();

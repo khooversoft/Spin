@@ -39,13 +39,13 @@ public sealed record PrincipalKeyModel
 public static class PrincipalKeyModelValidator
 {
     public static IValidator<PrincipalKeyModel> Validator { get; } = new Validator<PrincipalKeyModel>()
-        .RuleFor(x => x.PrincipalKeyId).ValidResourceId()
-        .RuleFor(x => x.KeyId).ValidKeyId()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.PrincipalKeyId).ValidResourceId(ResourceType.Owned)
+        .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned, "kid")
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.Name).ValidName()
         .RuleFor(x => x.Audience).NotEmpty()
         .RuleFor(x => x.PublicKey).NotNull()
-        .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId()
+        .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId(ResourceType.Owned)
         .Build();
 
     public static Option Validate(this PrincipalKeyModel subject) => Validator.Validate(subject).ToOptionStatus();

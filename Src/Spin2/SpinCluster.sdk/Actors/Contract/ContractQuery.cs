@@ -15,8 +15,8 @@ public record ContractQuery
 public static class ContractQueryExtensions
 {
     public static IValidator<ContractQuery> Validator { get; } = new Validator<ContractQuery>()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
-        .RuleFor(x => x.BlockType).Must(x => x.IsEmpty() || IdPatterns.IsBlockType(x), _ => "Invalid block type")
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
+        .RuleFor(x => x.BlockType).Must(x => x.IsEmpty() || IdPatterns.IsName(x), _ => "Invalid block type")
         .Build();
 
     public static Option Validate(this ContractQuery subject) => Validator.Validate(subject).ToOptionStatus();

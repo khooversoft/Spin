@@ -27,12 +27,12 @@ public static class BlockAccessValidator
     public static IValidator<AccessBlock> Validator { get; } = new Validator<AccessBlock>()
         .RuleFor(x => x.Grant).Must(x => x.IsEnumValid<BlockGrant>(), _ => "Invalid block grant")
         .RuleFor(x => x.Claim).Must(x => x.IsEmpty() || IdPatterns.IsName(x), _ => "Invalid claim")
-        .RuleFor(x => x.BlockType).ValidBlockType()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.BlockType).ValidName()
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .Build();
 
     public static bool HasAccess(this AccessBlock subject, string principalId, BlockGrant grant, string blockType) =>
         subject.Grant.HasFlag(grant) &&
         subject.PrincipalId == principalId.Assert(x => IdPatterns.IsPrincipalId(x), "Invalid principalId") &&
-        subject.BlockType == blockType.Assert(x => IdPatterns.IsBlockType(x), "Invalid block type");
+        subject.BlockType == blockType.Assert(x => IdPatterns.IsName(x), "Invalid block type");
 }

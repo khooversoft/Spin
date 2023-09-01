@@ -17,8 +17,8 @@ public static class GenesisBlockValidator
 {
     public static IValidator<GenesisBlock> Validator { get; } = new Validator<GenesisBlock>()
         .RuleFor(x => x.Type).NotEmpty()
-        .RuleFor(x => x.DocumentId).ValidResourceId()
-        .RuleFor(x => x.OwnerPrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.DocumentId).ValidResourceId(ResourceType.Account)
+        .RuleFor(x => x.OwnerPrincipalId).ValidResourceId(ResourceType.Principal)
         .Build();
 
     public static Option Validate(this GenesisBlock subject) => Validator.Validate(subject).ToOptionStatus();

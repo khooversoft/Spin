@@ -24,7 +24,7 @@ public static class BlockRoleAccessValidator
     public static IValidator<RoleAccessBlock> Validator { get; } = new Validator<RoleAccessBlock>()
         .RuleFor(x => x.Grant).Must(x => x.IsEnumValid<BlockRoleGrant>(), _ => "Invalid block grant")
         .RuleFor(x => x.Claim).Must(x => x.IsEmpty() || IdPatterns.IsName(x), _ => "Invalid claim")
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .Build();
 
     public static bool HasAccess(this RoleAccessBlock subject, string principalId, BlockRoleGrant grant) =>

@@ -41,7 +41,7 @@ public static class TrxRequestValidator
 {
     public static IValidator<TrxRequest> Validator { get; } = new Validator<TrxRequest>()
         .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.PrincipalId).ValidPrincipalId()
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.SourceAccountID).ValidAccountId()
         .RuleFor(x => x.DestinationAccountId).ValidAccountId()
         .RuleFor(x => x.Description).NotEmpty()

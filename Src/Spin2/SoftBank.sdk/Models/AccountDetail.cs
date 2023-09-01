@@ -31,7 +31,7 @@ public static class AccountDetailValidator
 {
     public static IValidator<AccountDetail> Validator { get; } = new Validator<AccountDetail>()
         .RuleFor(x => x.DocumentId).ValidSoftBankId()
-        .RuleFor(x => x.OwnerId).ValidPrincipalId()
+        .RuleFor(x => x.OwnerId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.AccessRights).NotNull()
