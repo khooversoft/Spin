@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SpinAgent": {
+      "commandName": "Project",
+      "commandLineArgs": "run"
+    }
+  }
+}

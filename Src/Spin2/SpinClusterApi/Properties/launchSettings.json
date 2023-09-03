@@ -13,6 +13,7 @@
     },
     "https": {
       "commandName": "Project",
+      "commandLineArgs": "run",
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",

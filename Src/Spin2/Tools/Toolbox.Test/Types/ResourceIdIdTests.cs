@@ -7,8 +7,9 @@ namespace Toolbox.Test.Types;
 public class ResourceIdIdTests
 {
     [Theory]
-    [InlineData("subscription:name")]
-    public void ValidSubscription(string id)
+    [InlineData("subscription:name", "subscription", "name")]
+    [InlineData("agent:LocalAgent", "agent", "LocalAgent")]
+    public void ValidSubscription(string id, string schema, string systemName)
     {
         var result = ResourceId.Create(id);
         result.IsOk().Should().BeTrue(result.Error);
@@ -16,9 +17,9 @@ public class ResourceIdIdTests
         ResourceId resourceId = result.Return();
         resourceId.ToString().Should().Be(id);
         resourceId.Type.Should().Be(ResourceType.System);
-        resourceId.Schema.Should().Be("subscription");
+        resourceId.Schema.Should().Be(schema);
         resourceId.User.Should().BeNull();
-        resourceId.SystemName.Should().Be("name");
+        resourceId.SystemName.Should().Be(systemName);
         resourceId.Domain.Should().BeNull();
         resourceId.Path.Should().BeNull();
         resourceId.PrincipalId.Should().BeNull();
