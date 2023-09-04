@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -82,7 +83,7 @@ public class RestClient
             string content = await response.Content.ReadAsStringAsync();
 
             context.Location().Log(
-                response.IsSuccessStatusCode ? LogLevel.Information : LogLevel.Error,
+                setLogLevel(response),
                 "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request} response={response}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
@@ -118,6 +119,18 @@ public class RestClient
 
             return result;
         }
+
+        LogLevel setLogLevel(HttpResponseMessage response) => response.StatusCode switch
+        {
+            HttpStatusCode.OK => LogLevel.Information,
+            HttpStatusCode.NoContent => LogLevel.Information,
+            HttpStatusCode.Created => LogLevel.Information,
+            HttpStatusCode.Accepted => LogLevel.Information,
+
+            HttpStatusCode.NotFound => LogLevel.Warning,
+
+            _ => LogLevel.Error,
+        };
     }
 
     public Task<RestResponse> GetAsync(ScopeContext context) => SendAsync(BuildRequestMessage(HttpMethod.Get), context);

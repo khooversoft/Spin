@@ -25,11 +25,10 @@ public static class ScopeExtensions
         (message, args) = option switch
         {
             var v when v.IsOk() => (message, args),
-            var v when v.Error.IsEmpty() => (message, args),
 
             var v => (
                     message == null ? fmt : message += ", " + fmt,
-                    args.Concat(new object?[] { v.StatusCode, v.Error }).ToArray()
+                    args.Concat(new object?[] { v.StatusCode, v.Error ?? "< no error >" }).ToArray()
                 ),
         };
 

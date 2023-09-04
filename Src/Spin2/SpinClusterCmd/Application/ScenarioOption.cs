@@ -82,7 +82,7 @@ internal record AccountOption
     public string AccountId { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string PrincipalId { get; init; } = null!;
-    public string WriteAccess { get; init; } = null!;
+    public string? WriteAccess { get; init; } = null!;
 
     public static IValidator<AccountOption> Validator { get; } = new Validator<AccountOption>()
         .RuleFor(x => x.AccountId).ValidAccountId()

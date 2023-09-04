@@ -181,7 +181,7 @@ internal class SetupBuilder
                 DocumentId = item.AccountId,
                 OwnerId = item.PrincipalId,
                 Name = item.Name,
-                AccessRights = item.WriteAccess.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                AccessRights = (item.WriteAccess ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.ReadWrite })
                     .ToArray(),
             };
