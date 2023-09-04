@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
+using Toolbox.Types.Context;
 
 namespace Toolbox.Types;
 
@@ -35,7 +36,13 @@ public readonly record struct ScopeContext
     public ScopeContextLocation Location([CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
     {
         Logger.NotNull();
-        return new ScopeContextLocation(this, new CodeLocation(function, path, lineNumber));
+        return new ScopeContextLocation(this, new CodeLocation(function, path, lineNumber), LoggingFormatter.LoggingFormatterLocation);
+    }
+
+    public ScopeContextLocation Trace()
+    {
+        Logger.NotNull();
+        return new ScopeContextLocation(this, new CodeLocation(), LoggingFormatter.LoggingTrace);
     }
 
     public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger.NotNull(), Token);

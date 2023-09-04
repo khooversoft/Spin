@@ -50,7 +50,7 @@ public class UserActor : Grain, IUserActor
         if (!_state.RecordExists)
         {
             await _state.ClearStateAsync();
-            return StatusCode.OK;
+            return StatusCode.NotFound;
         }
 
         string publicKeyId = _state.State.UserKey.PublicKeyId;

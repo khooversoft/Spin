@@ -50,7 +50,12 @@ public class ContractActor : Grain, IContractActor
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
-        if (!_state.RecordExists) return StatusCode.BadRequest;
+
+        if (!_state.RecordExists)
+        {
+            await _state.ClearStateAsync();
+            return StatusCode.NotFound;
+        }
 
         context.Location().LogInformation("Deleted block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
         await _state.ClearStateAsync();

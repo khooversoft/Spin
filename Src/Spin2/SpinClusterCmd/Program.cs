@@ -3,8 +3,13 @@ using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SpinClusterCmd;
+using SoftBank.sdk.SoftBank;
+using SpinCluster.sdk.Actors.Subscription;
+using SpinCluster.sdk.Actors.Tenant;
+using SpinCluster.sdk.Actors.User;
+using SpinClusterCmd.Activities;
 using SpinClusterCmd.Application;
+using SpinClusterCmd.Commands;
 using Toolbox.Extensions;
 
 try
@@ -34,7 +39,7 @@ async Task<int> Run(IServiceProvider service, string[] args)
     {
         var rc = new RootCommand()
         {
-            //service.GetRequiredService<DirectoryCommand>(),
+            service.GetRequiredService<LoadScenarioCommand>(),
         };
 
         return await rc.InvokeAsync(args);
@@ -48,9 +53,18 @@ async Task<int> Run(IServiceProvider service, string[] args)
 
 ServiceProvider BuildContainer(CmdOption option)
 {
-    var serviceCollection = new ServiceCollection()
-        .AddApplication(option)
-        .AddLogging(config => config.AddConsole());
+    var service = new ServiceCollection();
 
-    return serviceCollection.BuildServiceProvider();
+    service.AddSingleton(option);
+    service.AddSingleton<LoadScenarioCommand>();
+    service.AddSingleton<LoadScenario>();
+
+    service.AddHttpClient<SoftBankClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<TenantClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SubscriptionClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+
+    service.AddLogging(config => config.AddConsole());
+
+    return service.BuildServiceProvider();
 }

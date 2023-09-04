@@ -7,14 +7,14 @@ namespace SpinClusterCmd.Application;
 
 internal record CmdOption
 {
-    public string ClusterApi { get; init; } = null!;
+    public string ClusterApiUri { get; init; } = null!;
 }
 
 
 internal static class CmdOptionExtensions
 {
     public static Validator<CmdOption> Validator { get; } = new Validator<CmdOption>()
-        .RuleFor(x => x.ClusterApi).NotEmpty()
+        .RuleFor(x => x.ClusterApiUri).NotEmpty()
         .Build();
 
     public static Option Validate(this CmdOption option) => Validator.Validate(option).ToOptionStatus();

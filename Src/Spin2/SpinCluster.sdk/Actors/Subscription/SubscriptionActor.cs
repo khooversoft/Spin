@@ -44,6 +44,12 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
+        if (!_state.RecordExists)
+        {
+            await _state.ClearStateAsync();
+            return StatusCode.NotFound;
+        }
+
         await _state.ClearStateAsync();
         return StatusCode.OK;
     }

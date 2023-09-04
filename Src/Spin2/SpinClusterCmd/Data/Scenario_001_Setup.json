@@ -1,0 +1,55 @@
+{
+  "Subscriptions": [
+    {
+      "Name": "Company30Subscription",
+      "ContactName": "Company 30 contact name",
+      "Email": "admin@company30.com"
+    },
+    {
+      "Name": "Company31Subscription",
+      "ContactName": "Company 31 contact name",
+      "Email": "admin@company31.com"
+    }
+  ],
+  "Tenants": [
+    {
+      "Subscription": "Company30Subscription",
+      "Domain": "company30.com",
+      "ContactName": "Admin",
+      "Email": "admin@company30.com"
+    },
+    {
+      "Subscription": "Company31Subscription",
+      "Domain": "company31.com",
+      "ContactName": "Admin",
+      "Email": "admin@company31.com"
+    }
+  ],
+  "Users": [
+    {
+      "UserId": "user1@company30.com",
+      "DisplayName": "User 1",
+      "FirstName": "user1first",
+      "LastName": "user1last"
+    },
+    {
+      "UserId": "user2@company31.com",
+      "DisplayName": "User 2",
+      "FirstName": "user2first",
+      "LastName": "user2last"
+    }
+  ],
+  "Accounts": [
+    {
+      "AccountId": "softbank:company30.com/account1",
+      "Name": "Company 30 account1",
+      "PrincipalId": "user1@company30.com"
+    },
+    {
+      "AccountId": "softbank:company31.com/account2",
+      "Name": "Company 31 account2",
+      "PrincipalId": "user2@company31.com",
+      "WriteAccess": "user1@company30.com"
+    }
+  ]
+}

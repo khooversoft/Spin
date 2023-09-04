@@ -50,7 +50,7 @@ public class SetupTools
         SubscriptionClient client = _cluster.ServiceProvider.GetRequiredService<SubscriptionClient>();
 
         Option deleteOption = await client.Delete(nameId, context);
-        deleteOption.StatusCode.IsOk().Should().BeTrue();
+        (deleteOption.IsOk() || deleteOption.IsNotFound()).Should().BeTrue();
 
         return StatusCode.OK;
     }
@@ -75,7 +75,7 @@ public class SetupTools
         };
 
         Option setOption = await client.Set(tenant, context);
-        setOption.StatusCode.IsOk().Should().BeTrue();
+        setOption.IsOk().Should().BeTrue();
 
         return tenant;
     }
@@ -85,7 +85,7 @@ public class SetupTools
         TenantClient client = _cluster.ServiceProvider.GetRequiredService<TenantClient>();
 
         Option deleteOption = await client.Delete(tenantId, context);
-        deleteOption.IsOk().Should().BeTrue();
+        (deleteOption.IsOk() || deleteOption.IsNotFound()).Should().BeTrue();
 
         return StatusCode.OK;
     }
@@ -180,7 +180,7 @@ public class SetupTools
         UserClient client = _cluster.ServiceProvider.GetRequiredService<UserClient>();
 
         Option deleteOption = await client.Delete(principalId, context);
-        deleteOption.IsOk().Should().BeTrue();
+        (deleteOption.IsOk() || deleteOption.IsNotFound()).Should().BeTrue();
 
         return StatusCode.OK;
     }

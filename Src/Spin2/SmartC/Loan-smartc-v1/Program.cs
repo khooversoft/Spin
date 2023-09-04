@@ -7,23 +7,29 @@ using System.CommandLine;
 using System.Linq;
 using System.Reflection;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 
 try
 {
     Console.WriteLine($"Loan-smartc-v1 CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}");
     Console.WriteLine();
 
+    (string[] ConfigArgs, string[] CommandLineArgs) = ArgumentTool.Split(args);
+
+
     AppOption option = new ConfigurationBuilder()
         .AddJsonFile("appsettings.json", true)
-        .AddCommandLine(args)
+        .AddEnvironmentVariables("SPIN_SMARTC_")
+        .AddCommandLine(ConfigArgs)
         .Build()
         .Bind<AppOption>()
         .Verify();
 
     using var serviceProvider = BuildContainer();
 
-    int statusCode = await Run(serviceProvider, args);
+    int statusCode = await Run(serviceProvider, CommandLineArgs);
     Console.WriteLine($"StatusCode: {statusCode}");
+
     return statusCode;
 }
 catch (ArgumentException ex)

@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
-using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Loan_smartc_v1.Application;
+namespace Toolbox.Tools;
 
-internal class AbortSignal
+public class AbortSignal
 {
     private readonly ILogger<AbortSignal> _logger;
     private CancellationTokenSource? _tokenSource;

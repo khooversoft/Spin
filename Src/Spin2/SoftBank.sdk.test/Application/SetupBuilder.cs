@@ -13,8 +13,8 @@ using Toolbox.Types;
 
 namespace SoftBank.sdk.test.Application;
 
-public record TenantInfo(string Subscription, string Tenant);
-public record AccountInfo(string AccountId, string PrincipalId, string[] WriteAccess);
+internal record TenantInfo(string Subscription, string Tenant);
+internal record AccountInfo(string AccountId, string PrincipalId, string[] WriteAccess);
 
 internal class SetupBuilder
 {

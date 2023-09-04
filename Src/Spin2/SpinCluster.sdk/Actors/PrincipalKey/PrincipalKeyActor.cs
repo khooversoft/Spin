@@ -49,7 +49,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         if (!_state.RecordExists)
         {
             await _state.ClearStateAsync();
-            return StatusCode.OK;
+            return StatusCode.NotFound;
         }
 
         string principalPrivateKeyId = _state.State.PrincipalPrivateKeyId;
