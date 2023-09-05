@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Loan-smartc-v1": {
+      "commandName": "Project",
+      "commandLineArgs": "run"
+    }
+  }
+}

@@ -39,6 +39,6 @@ public static class Option_T_Extensions
     public static Option<T> ToOptionStatus<T>(this IOption subject) => new Option<T>(subject.StatusCode, subject.Error);
     public static Option<T> ToOptionStatus<T>(this Option subject) => new Option<T>(subject.StatusCode, subject.Error);
     public static Option ToOptionStatus<T>(this Option<T> subject) => new Option(subject.StatusCode, subject.Error);
-    public static Option ToOptionStatus(this bool subject, StatusCode falseStatusCode = StatusCode.BadRequest) =>
-        new Option(subject ? StatusCode.OK : falseStatusCode);
+    public static Option ToOptionStatus(this bool subject, StatusCode falseStatusCode = StatusCode.BadRequest, string? error = null) =>
+        new Option(subject ? StatusCode.OK : falseStatusCode, subject ? null : error);
 }

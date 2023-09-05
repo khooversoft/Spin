@@ -42,10 +42,10 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
 
         Direction dir = IsSourceOrDestination(request);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => request.Validate())
             .Test(() => dir != Direction.Invalid ? StatusCode.OK : new Option(StatusCode.BadRequest, "Request is invalid based on actor key"));
-        if (test.IsError()) return test.ToOptionStatus<TrxResponse>();
+        if (test.IsError()) return test.Option.ToOptionStatus<TrxResponse>();
 
         return dir switch
         {
@@ -207,8 +207,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             .GetSoftBankActor(accountId)
             .Reserve(request.PrincipalId, request.Amount, context.TraceId);
 
-        var test = new Option().Test(() => reserveAmount.IsOk()).Test(() => request.Validate());
-        if (test.IsError()) return test.ToOptionStatus<AmountReserved>();
+        var test = new OptionTest().Test(() => reserveAmount.IsOk()).Test(() => request.Validate());
+        if (test.IsError()) return test.Option.ToOptionStatus<AmountReserved>();
 
         context.Location().LogInformation("Lease acquired, actorKey={actorKey}, accountId={accountId}, leaseKey={leaseKey}",
             this.GetPrimaryKeyString(), accountId, reserveAmount.Return().LeaseKey);

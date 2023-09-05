@@ -37,7 +37,7 @@ internal class SetupBuilder
         foreach (var item in _option.Accounts)
         {
             await client.Delete(item.AccountId, context);
-            context.Location().LogInformation("Account deleted: {accountId}", item.AccountId);
+            context.Trace().LogInformation("Account deleted: {accountId}", item.AccountId);
         }
     }
 
@@ -48,7 +48,7 @@ internal class SetupBuilder
         foreach (var user in _option.Users)
         {
             await client.Delete(user.UserId, context);
-            context.Location().LogInformation("User deleted: {user}", user.UserId);
+            context.Trace().LogInformation("User deleted: {user}", user.UserId);
         }
     }
 
@@ -59,7 +59,7 @@ internal class SetupBuilder
         foreach (var item in _option.Tenants)
         {
             await client.Delete(item.Domain, context);
-            context.Location().LogInformation("Tenant deleted: {domains}", item.Domain);
+            context.Trace().LogInformation("Tenant deleted: {domains}", item.Domain);
         }
     }
 
@@ -70,7 +70,7 @@ internal class SetupBuilder
         foreach (var item in _option.Subscriptions)
         {
             await client.Delete(item.Name, context);
-           context.Location().LogInformation("Subscription deleted: {name}", item.Name);
+            context.Trace().LogInformation("Subscription deleted: {name}", item.Name);
         }
     }
 
@@ -78,7 +78,7 @@ internal class SetupBuilder
     {
         SubscriptionClient client = services.GetRequiredService<SubscriptionClient>();
 
-        var test = new Option();
+        var test = new OptionTest();
 
         foreach (var item in _option.Subscriptions)
         {
@@ -97,7 +97,7 @@ internal class SetupBuilder
 
             Option setOption = await client.Set(subscription, context);
 
-            context.Location().LogStatus(setOption, "Creating Subscription name={name}", item.Name);
+            context.Trace().LogStatus(setOption, "Creating Subscription name={name}", item.Name);
             test.Test(() => setOption);
         }
 
@@ -108,7 +108,7 @@ internal class SetupBuilder
     {
         TenantClient client = services.GetRequiredService<TenantClient>();
 
-        var test = new Option();
+        var test = new OptionTest();
 
         foreach (var item in _option.Tenants)
         {
@@ -129,7 +129,7 @@ internal class SetupBuilder
 
             Option setOption = await client.Set(tenant, context);
 
-            context.Location().LogStatus(setOption, "Creating Tenant domain={domain}", item.Domain);
+            context.Trace().LogStatus(setOption, "Creating Tenant domain={domain}", item.Domain);
             test.Test(() => setOption);
         }
 
@@ -140,7 +140,7 @@ internal class SetupBuilder
     {
         UserClient client = services.GetRequiredService<UserClient>();
 
-        var test = new Option();
+        var test = new OptionTest();
 
         foreach (var item in _option.Users)
         {
@@ -158,7 +158,7 @@ internal class SetupBuilder
 
             Option setOption = await client.Create(user, context);
 
-            context.Location().LogStatus(setOption, "Creating User userId={userId}", item.UserId);
+            context.Trace().LogStatus(setOption, "Creating User userId={userId}", item.UserId);
             test.Test(() => setOption);
         }
 
@@ -169,27 +169,41 @@ internal class SetupBuilder
     {
         SoftBankClient softBankClient = services.GetRequiredService<SoftBankClient>();
 
-        var test = new Option();
+        var test = new OptionTest();
 
-        foreach (var item in _option.Accounts)
+        foreach (var account in _option.Accounts)
         {
-            var existOption = await softBankClient.Exist(item.AccountId, context);
-            if (existOption.IsOk()) await softBankClient.Delete(item.AccountId, context);
+            var existOption = await softBankClient.Exist(account.AccountId, context);
+            if (existOption.IsOk()) await softBankClient.Delete(account.AccountId, context);
 
             var createRequest = new AccountDetail
             {
-                DocumentId = item.AccountId,
-                OwnerId = item.PrincipalId,
-                Name = item.Name,
-                AccessRights = (item.WriteAccess ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries)
+                DocumentId = account.AccountId,
+                OwnerId = account.PrincipalId,
+                Name = account.Name,
+                AccessRights = (account.WriteAccess ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.ReadWrite })
                     .ToArray(),
             };
 
             var createOption = await softBankClient.Create(createRequest, context);
-
-            context.Location().LogStatus(createOption, "Creating Account accountId={accountId}", item.AccountId);
+            context.Trace().LogStatus(createOption, "Creating Account accountId={accountId}", account.AccountId);
             test.Test(() => createOption);
+
+            foreach (var ledgerItem in account.LedgerItems)
+            {
+                var ledger = new LedgerItem
+                {
+                    OwnerId = ledgerItem.OwnerId,
+                    Description = "Ledger-" + Guid.NewGuid().ToString(),
+                    Type = ledgerItem.Amount > 0 ? LedgerType.Credit : LedgerType.Debit,
+                    Amount = Math.Abs(ledgerItem.Amount),
+                };
+
+                var addResponse = await softBankClient.AddLedgerItem(account.AccountId, ledger, context);
+                context.Trace().LogStatus(addResponse, "Add ledger item accountId={accountId}, amount={amount}", account.AccountId, ledger.Amount);
+                test.Test(() => addResponse);
+            }
         }
 
         return test;

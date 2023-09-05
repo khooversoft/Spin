@@ -25,7 +25,6 @@ internal class LoadScenario
     public async Task Load(string jsonFile)
     {
         var context = new ScopeContext(_logger);
-
         context.Trace().LogInformation("Processing file {file}", jsonFile);
 
         if (!File.Exists(jsonFile))

@@ -90,9 +90,9 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Create user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = await new Option().ToTaskResult()
-            .TestAsync(() => _state.RecordExists ? StatusCode.Conflict : StatusCode.OK)
-            .TestAsync(() => model.Validate().LogResult(context.Location()))
+        var test = await new OptionTest()
+            .Test(() => _state.RecordExists ? StatusCode.Conflict : StatusCode.OK)
+            .Test(() => model.Validate().LogResult(context.Location()))
             .TestAsync(async () => await VerifyTenant(model.UserId, context));
         if (test.IsError()) return test;
 
@@ -121,8 +121,8 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Update user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = await new Option().ToTaskResult()
-            .TestAsync(() => model.Validate().LogResult(context.Location()))
+        var test = await new OptionTest()
+            .Test(() => model.Validate().LogResult(context.Location()))
             .TestAsync(async () => await VerifyTenant(model.UserId, context));
         if (test.IsError()) return test;
 

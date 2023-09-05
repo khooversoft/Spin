@@ -74,7 +74,7 @@ public class ContractActor : Grain, IContractActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => !_state.RecordExists)
             .Test(() => model.Validate().LogResult(context.Location()));
         if (test.IsError()) return test;
@@ -101,10 +101,10 @@ public class ContractActor : Grain, IContractActor
         context.Location().LogInformation("Query, actorKey={actorKey}, blockType={blockType}, principalId={principalId}",
             this.GetPrimaryKeyString(), model.BlockType, model.PrincipalId);
 
-        var test = new Option()
-            .Test(() => _state.RecordExists)
+        var test = new OptionTest()
+            .Test(() => _state.RecordExists.ToOptionStatus(StatusCode.NotFound))
             .Test(() => model.Validate());
-        if (test.IsError()) return test.ToOptionStatus<IReadOnlyList<DataBlock>>();
+        if (test.IsError()) return test.Option.ToOptionStatus<IReadOnlyList<DataBlock>>();
 
         Option<BlockChain> readBlockChain = await ReadContract(context);
         if (readBlockChain.IsError()) return readBlockChain.ToOptionStatus<IReadOnlyList<DataBlock>>();
@@ -133,7 +133,7 @@ public class ContractActor : Grain, IContractActor
         context.Location().LogInformation("Append, actorKey={actorKey}, blockId={blockId}, blockType={blockType}, principalId={principalId}",
             this.GetPrimaryKeyString(), block.BlockId, block.BlockType, block.PrincipleId);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => _state.RecordExists)
             .Test(() => block.Validate())
             .Test(() => _state.State.HasAccess(block.PrincipleId, BlockGrant.Write, block.BlockType));

@@ -2,7 +2,7 @@
   "profiles": {
     "SpinClusterCmd": {
       "commandName": "Project",
-      "commandLineArgs": "load D:\\Sources\\Spin\\Src\\Spin2\\SpinClusterCmd\\Data\\Scenario_001_Setup.json"
+      "commandLineArgs": "dump contract:softbank:company31.com/account2 user2@company31.com"
     }
   }
 }

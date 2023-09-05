@@ -70,7 +70,7 @@ public class LeaseActor : Grain, ILeaseActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Releasing lease request for id={id}, leaseKey={leaseKey}", this.GetPrimaryKeyString(), leaseKey);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => _state.RecordExists)
             .Test(() => _state.State.LeaseData.Remove(leaseKey));
         if (test.IsError()) return StatusCode.NotFound;

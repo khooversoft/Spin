@@ -75,7 +75,7 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => this.VerifyIdentity(model.SubscriptionId).LogResult(context.Location()))
             .Test(() => model.Validate().LogResult(context.Location()));
         if (test.IsError()) return test;

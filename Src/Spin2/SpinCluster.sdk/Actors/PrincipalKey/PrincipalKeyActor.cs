@@ -92,7 +92,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating public/private key for keyId={keyId}", model.KeyId);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => new Option(_state.RecordExists ? StatusCode.BadRequest : StatusCode.OK, "Principal Key already exist"))
             .Test(() => model.Validate().LogResult(context.Location()))
             .Test(() => this.VerifyIdentity(model.PrincipalKeyId));
@@ -124,7 +124,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Update PrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => this.VerifyIdentity(model.PrincipalKeyId).LogResult(context.Location()))
             .Test(() => model.Validate().LogResult(context.Location()))
             .Test(() => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.BadRequest, "Key must be created first"));

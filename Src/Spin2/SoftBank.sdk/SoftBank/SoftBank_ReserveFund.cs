@@ -27,10 +27,10 @@ internal class SoftBank_ReserveFund
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Reserve funds for trx, principalId={principalId}", principalId);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => IdPatterns.IsPrincipalId(principalId))
             .Test(() => amount > 0 ? StatusCode.OK : new Option(StatusCode.BadRequest, "Amount must be positive"));
-        if (test.IsError()) return test.ToOptionStatus<AmountReserved>();
+        if (test.IsError()) return test.Option.ToOptionStatus<AmountReserved>();
 
         var hasAccess = await _parent.GetContractActor().HasAccess(principalId, BlockGrant.Write, typeof(LedgerItem).GetTypeName(), traceId);
         if (hasAccess.IsError()) return hasAccess.ToOptionStatus<AmountReserved>();

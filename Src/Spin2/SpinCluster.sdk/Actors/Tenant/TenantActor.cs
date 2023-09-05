@@ -75,11 +75,10 @@ public class TenantActor : Grain, ITenantActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var v = new Option()
+        var v = new OptionTest()
             .Test(() => this.VerifyIdentity(model.TenantId).LogResult(context.Location()))
             .Test(() => model.Validate());
-
-        if (v.IsError()) return v.LogResult(context.Location());
+        if (v.IsError()) return v.Option.LogResult(context.Location());
 
         Option isSubscriptionActive = await _clusterClient.GetResourceGrain<ISubscriptionActor>(model.SubscriptionId).Exist(context.TraceId);
         if (isSubscriptionActive.IsError())

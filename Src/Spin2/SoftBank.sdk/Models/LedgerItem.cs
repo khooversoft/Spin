@@ -24,7 +24,7 @@ public record LedgerItem
     public decimal NaturalAmount => Type.NaturalAmount(Amount);
 }
 
-public static class LedgerTypeValidator
+public static class LedgerItemValidator
 {
     public static IValidator<LedgerItem> Validator { get; } = new Validator<LedgerItem>()
         .RuleFor(x => x.Id).NotEmpty()

@@ -48,7 +48,7 @@ public class LeaseConnector
         leaseId = Uri.UnescapeDataString(leaseId);
         leaseKey = Uri.UnescapeDataString(leaseKey);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => IdPatterns.IsLeaseId(leaseId))
             .Test(() => IdPatterns.IsName(leaseKey));
         if (test.IsError()) return Results.BadRequest();
@@ -62,7 +62,7 @@ public class LeaseConnector
         leaseId = Uri.UnescapeDataString(leaseId);
         leaseKey = Uri.UnescapeDataString(leaseKey);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => IdPatterns.IsLeaseId(leaseId))
             .Test(() => IdPatterns.IsName(leaseKey));
         if (test.IsError()) return Results.BadRequest();

@@ -1,11 +1,10 @@
-﻿using Loan_smartc_v1.Application;
+﻿using System.CommandLine;
+using System.Reflection;
+using Loan_smartc_v1.Application;
 using Loan_smartc_v1.Commands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.CommandLine;
-using System.Linq;
-using System.Reflection;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -15,7 +14,6 @@ try
     Console.WriteLine();
 
     (string[] ConfigArgs, string[] CommandLineArgs) = ArgumentTool.Split(args);
-
 
     AppOption option = new ConfigurationBuilder()
         .AddJsonFile("appsettings.json", true)

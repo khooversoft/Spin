@@ -10,12 +10,6 @@ using Toolbox.Extensions;
 Console.WriteLine($"Spin Cluster API - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 
-//ApiOption option = new ConfigurationBuilder()
-//    .AddJsonFile("appsettings.json")
-//    .Build()
-//    .Bind<ApiOption
-//    
-
 ApiOption option = Host.CreateApplicationBuilder(args)
     .Build()
     .Func(x => x.Services.GetRequiredService<IConfiguration>().Bind<ApiOption>());

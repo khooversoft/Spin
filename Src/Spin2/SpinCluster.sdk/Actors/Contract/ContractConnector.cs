@@ -67,10 +67,10 @@ public class ContractConnector
     {
         documentId = Uri.UnescapeDataString(documentId);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => IdPatterns.IsContractId(documentId))
             .Test(() => model.Validate());
-        if (test.IsError()) return test.ToResult();
+        if (test.IsError()) return test.Option.ToResult();
 
         Option<IReadOnlyList<DataBlock>> response = await _client.GetContractActor(documentId).Query(model, traceId);
         return response.ToResult();
@@ -80,10 +80,10 @@ public class ContractConnector
     {
         documentId = Uri.UnescapeDataString(documentId);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => IdPatterns.IsContractId(documentId))
             .Test(() => content.Validate());
-        if (test.IsError()) return test.ToResult();
+        if (test.IsError()) return test.Option.ToResult();
 
         Option response = await _client.GetContractActor(documentId).Append(content, traceId);
         return response.ToResult();
@@ -97,10 +97,10 @@ public class ContractConnector
     {
         documentId = Uri.UnescapeDataString(documentId);
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => IdPatterns.IsContractId(documentId))
             .Test(() => IdPatterns.IsPrincipalId(principalId));
-        if (test.IsError()) return test.ToResult();
+        if (test.IsError()) return test.Option.ToResult();
 
         Option<ContractPropertyModel> response = await _client.GetContractActor(documentId).GetProperties(principalId, traceId);
         return response.ToResult();

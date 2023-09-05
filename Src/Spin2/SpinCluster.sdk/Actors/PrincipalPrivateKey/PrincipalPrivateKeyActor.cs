@@ -73,7 +73,7 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set PrivatePrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new Option()
+        var test = new OptionTest()
             .Test(() => this.VerifyIdentity(model.PrincipalPrivateKeyId).LogResult(context.Location()))
             .Test(() => model.Validate().LogResult(context.Location()));
         if (test.IsError()) return test;
