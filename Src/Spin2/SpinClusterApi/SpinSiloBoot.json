@@ -1,49 +1,19 @@
 {
   "Schemas": [
     {
-      "SchemaName": "subscription",
+      "SchemaName": "subscription;tenant;scheduler;user;principal-key",
       "ContainerName": "directory",
-      "BasePath": "subscriptionV1"
-    },
-    {
-      "SchemaName": "tenant",
-      "ContainerName": "directory",
-      "BasePath": "tenantV1"
-    },
-    {
-      "SchemaName": "user",
-      "ContainerName": "directory",
-      "BasePath": "userV1"
-    },
-    {
-      "SchemaName": "principal-key",
-      "ContainerName": "directory",
-      "BasePath": "keyV1"
+      "BasePath": "$systemV1"
     },
     {
       "SchemaName": "principal-private-key",
-      "ContainerName": "directory",
+      "ContainerName": "vault",
       "BasePath": "keyPrivateV1"
     },
     {
-      "SchemaName": "storage",
+      "SchemaName": "$default",
       "ContainerName": "storage",
-      "BasePath": "storageV1"
-    },
-    {
-      "SchemaName": "lease",
-      "ContainerName": "lease",
-      "BasePath": "leaseV1"
-    },
-    {
-      "SchemaName": "contract",
-      "ContainerName": "contract",
-      "BasePath": "contractV1"
-    },
-    {
-      "SchemaName": "softBank",
-      "ContainerName": "softbank",
-      "BasePath": "softBankV1"
+      "BasePath": "v1"
     }
   ],
   "Tenants": [

@@ -1,12 +1,15 @@
 ﻿using System.CommandLine;
 using System.Reflection;
+using Loan_smartc_v1.Activitites;
 using Loan_smartc_v1.Application;
 using Loan_smartc_v1.Commands;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Actors.Contract;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 try
 {
@@ -23,7 +26,7 @@ try
         .Bind<AppOption>()
         .Verify();
 
-    using var serviceProvider = BuildContainer();
+    using var serviceProvider = BuildContainer(option);
 
     int statusCode = await Run(serviceProvider, CommandLineArgs);
     Console.WriteLine($"StatusCode: {statusCode}");
@@ -59,14 +62,20 @@ async Task<int> Run(IServiceProvider service, string[] args)
     }
 }
 
-ServiceProvider BuildContainer()
+ServiceProvider BuildContainer(AppOption option)
 {
-    var serviceCollection = new ServiceCollection();
+    var service = new ServiceCollection();
+    service.AddLogging(config => config.AddConsole());
+    service.AddSingleton(option);
 
-    serviceCollection.AddLogging(config => config.AddConsole());
-    serviceCollection.AddSingleton<RunCommand>();
-    serviceCollection.AddSingleton<AbortSignal>();
+    service.AddSingleton<RunCommand>();
+    service.AddSingleton<CreateCommand>();
 
-    return serviceCollection.BuildServiceProvider();
+    service.AddSingleton<AbortSignal>();
+    service.AddSingleton<CreateContract>();
+
+    service.AddHttpClient<ContractClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+
+    return service.BuildServiceProvider();
 }
 

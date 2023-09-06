@@ -33,7 +33,26 @@ public class SiloConfigStore
             return new Option<SiloConfigOption>(StatusCode.NotFound);
         }
 
-        return result.Return().Data.ToObject<SiloConfigOption>().NotNull();
+        var siloConfigOption = result.Return().Data.ToObject<SiloConfigOption>().NotNull();
+
+        var expanded = siloConfigOption with
+        {
+            Schemas = siloConfigOption.Schemas
+                .SelectMany(
+                    x => x.SchemaName.Split(';'),
+                    (o, i) => new SchemaOption
+                    {
+                        SchemaName = i,
+                        ContainerName = o.ContainerName,
+                        BasePath = o.BasePath,
+                    }
+                ).ToArray(),
+        };
+
+        var v = expanded.Validate();
+        if (v.IsError()) return v.ToOptionStatus<SiloConfigOption>();
+
+        return expanded;
     }
 
     public async Task<StatusCode> Set(SiloConfigOption option, ScopeContext context)

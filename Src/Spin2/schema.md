@@ -21,9 +21,16 @@ Examples...
 - principal-key:user1@company5.net/sign
 - principal-private-key:user1@company5.net/sign
 - contract:company3.com/path
-- softbank:company3.com/contractId
-- contract:company3.com/softbank/accountId
+- softbank:company3.com/accountId
+- contract:company3.com/softbank/contractId
 - attachment:company3.com/softbank/accountId  (note: same as contract domain/path...)
+- smartc:domain.com/packageId
+
+System...
+- subscription:{name}
+- tenant:{domain}
+- system:scheduler
+- agent:{name}
 
 Wellknown schemas...
 - "contract:" - The API for the block chain storage.  These block chains by any SmartC service provider.
@@ -35,3 +42,6 @@ Wellknown schemas...
 - "tenant:" - Manages tenants
 - "user:" - Identifies a user in the directory
 - "attachment:" - Service for attaching data to block chain contracts.  These are wellknown block types.
+
+
+

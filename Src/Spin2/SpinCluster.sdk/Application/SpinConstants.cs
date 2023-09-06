@@ -6,6 +6,8 @@ public static class SpinConstants
     public const string SchemaSearch = "schemaSearch";
     public const string SignValidation = "signValidation";
     public const string Directory = "directory";
+    public const string Scheduler = "system:scheduler";
+
     public const string Folder = "folder";
     public const string Open = "open";
     public const string SystemTenant = "$system";
@@ -24,6 +26,9 @@ public static class SpinConstants
         public const string Storage = "storage";
         public const string Contract = "contract";
         public const string Directory = "directory";
+        public const string Scheduler = "scheduler";
+        public const string Agent = "agent";
+        public const string Smartc = "smartc";
     }
 
     public static class Extension

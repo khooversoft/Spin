@@ -9,14 +9,15 @@ namespace Toolbox.Types;
 
 public enum ResourceType
 {
-    System = 1,     // subscription:{subscriptionName}
-    Tenant,         // tenant:{domain}
-    Principal,      // {user}@{domain}
-    Owned,          // {schema}:{user}@{domain}/{path}[/{path}...}]
+    System = 1,     // subscription:{subscriptionName}                                  {schema}:{name}
+                    // agent:{agentId}                                                  {schema}:{name}
+    Tenant,         // tenant:{domain}                                                  {schema}:{domain}
+    Principal,      // {user}@{domain}                                                  {schema}@{domain}
+    Owned,          // {schema}:{user}@{domain}/{path}[/{path}...}]                     {schema}:{name}@{domain}[/{path}]
                     //      principal-key:{user}@{domain}/{path}[/{path}...}]
                     //      kid:{user}@{domain}/{path}[/{path}...}]
                     //      signature:{user}@{domain}/{path}[/{path}...}]
-    Account,        // {schema}:{domain}/{path}[/{path}...}]
+    DomainOwned,    // {schema}:{domain}/{path}[/{path}...}]                            {schema}:{domain}/{path}[/{path}]
 }
 
 
@@ -65,7 +66,19 @@ public readonly record struct ResourceId
     public static implicit operator ResourceId(string subject) => new ResourceId(subject);
     public static implicit operator string(ResourceId subject) => subject.ToString();
 
-    public static bool IsValid(string id) => ResourceIdTool.Parse(id).IsOk();
+    public static bool IsValid(string id, ResourceType? type = null, string? schema = null) => ResourceIdTool.Parse(id) switch
+    {
+        { StatusCode: StatusCode.OK } v => v.Return() switch
+        {
+            var r when type != null && r.Type != type => false,
+            var r when schema != null && r.Schema != schema => false,
+
+            _ => true,
+        },
+
+        _ => false,
+    };
+
 
     public static Option<ResourceId> Create(string id) => ResourceIdTool.Parse(id);
 }

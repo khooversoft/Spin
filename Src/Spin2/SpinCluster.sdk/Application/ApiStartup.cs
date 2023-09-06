@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
@@ -20,6 +22,8 @@ public static class ApiStartup
         services.AddSingleton<SignatureConnector>();
         services.AddSingleton<ContractConnector>();
         services.AddSingleton<LeaseConnector>();
+        services.AddSingleton<AgentConnector>();
+        services.AddSingleton<SmartcConnector>();
 
         return services;
     }
@@ -34,5 +38,7 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<SignatureConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<ContractConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<LeaseConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<AgentConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<SmartcConnector>().Setup(app);
     }
 }

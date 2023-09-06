@@ -7,7 +7,7 @@ namespace Loan_smartc_v1.Application;
 
 internal record AppOption
 {
-    public string ClusterApi { get; init; } = null!;
+    public string ClusterApiUri { get; init; } = null!;
     public string AccountId { get; init; } = null!;
     public string BearerToken { get; init; } = null!;
     public string TransactionId { get; init; } = null!;
@@ -17,7 +17,7 @@ internal record AppOption
 internal static class CmdOptionExtensions
 {
     public static Validator<AppOption> Validator { get; } = new Validator<AppOption>()
-        .RuleFor(x => x.ClusterApi).NotEmpty()
+        .RuleFor(x => x.ClusterApiUri).NotEmpty()
         .RuleFor(x => x.AccountId).ValidAccountId()
         .RuleFor(x => x.BearerToken).NotEmpty()
         .RuleFor(x => x.TransactionId).NotEmpty()

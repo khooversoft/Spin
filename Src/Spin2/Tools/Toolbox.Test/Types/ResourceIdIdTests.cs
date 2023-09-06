@@ -99,7 +99,7 @@ public class ResourceIdIdTests
 
         ResourceId resourceId = result.Return();
         resourceId.ToString().Should().Be(id);
-        resourceId.Type.Should().Be(ResourceType.Account);
+        resourceId.Type.Should().Be(ResourceType.DomainOwned);
         resourceId.Schema.Should().Be(schema);
         resourceId.User.Should().BeNull();
         resourceId.SystemName.Should().BeNull();

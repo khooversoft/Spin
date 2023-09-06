@@ -5,20 +5,9 @@ namespace Toolbox.Tools.Validation;
 public class ValidResourceId<T> : ValidatorBase<T, string>
 {
     public ValidResourceId(IPropertyRule<T, string> rule, ResourceType type, string? schema, string errorMessage)
-        : base(rule, errorMessage, x => isValid(x, type, schema))
+        : base(rule, errorMessage, x => ResourceId.IsValid(x, type, schema))
     {
     }
-
-    private static bool isValid(string value, ResourceType type, string? schema) => ResourceId.Create(value) switch
-    {
-        { StatusCode: StatusCode.OK } v => v.Return() switch
-        {
-            var r when r.Type == type && (schema == null || r.Schema == schema) => true,
-            _ => false,
-        },
-
-        _ => false,
-    };
 }
 
 public static class ValidResourceIdExtensions

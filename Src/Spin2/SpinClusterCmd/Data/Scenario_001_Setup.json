@@ -68,4 +68,14 @@
       ]
     }
   ]
+  "Agents": [
+    {
+      "AgentId": "agent:localAgent"
+    }
+  ],
+  "SmartcItems": [
+    {
+      "SmartcId": "smartc:company30.com/package1"
+    }
+  ]
 }

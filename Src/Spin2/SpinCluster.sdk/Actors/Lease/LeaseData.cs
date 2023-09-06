@@ -18,7 +18,7 @@ public record LeaseData
 public static class LeaseDataValidator
 {
     public static IValidator<LeaseData> Validator { get; } = new Validator<LeaseData>()
-        .RuleFor(x => x.LeaseId).ValidResourceId(ResourceType.Account)
+        .RuleFor(x => x.LeaseId).ValidResourceId(ResourceType.DomainOwned)
         .RuleFor(x => x.AccountId).ValidAccountId()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.TimeToLive).Must(x => x.Seconds > 0, _ => "Invalid time to live")

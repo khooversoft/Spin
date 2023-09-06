@@ -23,7 +23,7 @@ public class ValidationLinkTests
             .Build();
 
         IValidator<PrimaryClass> validator = new Validator<PrimaryClass>()
-            .RuleFor(x => x.Name).ValidResourceId(ResourceType.Account)
+            .RuleFor(x => x.Name).ValidResourceId(ResourceType.DomainOwned)
             .RuleFor(x => x.SubClass).Validate(subClassValidator)
             .Build();
 
@@ -57,7 +57,7 @@ public class ValidationLinkTests
             .Build();
 
         IValidator<PrimaryClass> validator = new Validator<PrimaryClass>()
-            .RuleFor(x => x.Name).ValidResourceId(ResourceType.Account)
+            .RuleFor(x => x.Name).ValidResourceId(ResourceType.DomainOwned)
             .RuleFor(x => x.SubClass).Validate(subClassValidator)
             .Build();
 

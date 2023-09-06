@@ -20,7 +20,6 @@ public class SubscriptionActor : Grain, ISubscriptionActor
 {
     private readonly IPersistentState<SubscriptionModel> _state;
     private readonly ILogger<SubscriptionActor> _logger;
-    private readonly IClusterClient _clusterClient;
 
     public SubscriptionActor(
         [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<SubscriptionModel> state,
@@ -30,7 +29,6 @@ public class SubscriptionActor : Grain, ISubscriptionActor
     {
         _state = state.NotNull();
         _logger = logger.NotNull();
-        _clusterClient = clusterClient;
     }
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
@@ -54,7 +52,11 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         return StatusCode.OK;
     }
 
-    public Task<Option> Exist(string _) => new Option(_state.RecordExists && _state.State.IsActive ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+    public async Task<Option> Exist(string traceId)
+    {
+        await _state.ReadStateAsync();
+        return _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
+    }
 
     public Task<Option<SubscriptionModel>> Get(string traceId)
     {

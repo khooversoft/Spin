@@ -18,6 +18,8 @@ internal record ScenarioOption
     public IReadOnlyList<TenantOption> Tenants { get; init; } = Array.Empty<TenantOption>();
     public IReadOnlyList<UserOption> Users { get; init; } = Array.Empty<UserOption>();
     public IReadOnlyList<AccountOption> Accounts { get; init; } = Array.Empty<AccountOption>();
+    public IReadOnlyList<AgentOption> Agents { get; init; } = Array.Empty<AgentOption>();
+    public IReadOnlyList<SmartcOption> SmartcItems { get; init; } = Array.Empty<SmartcOption>();
 
     public static IValidator<ScenarioOption> Validator { get; } = new Validator<ScenarioOption>()
         .RuleFor(x => x.Subscriptions).NotNull()
@@ -26,6 +28,8 @@ internal record ScenarioOption
         .RuleFor(x => x.Users).NotNull()
         .RuleForEach(x => x.Users).Validate(UserOption.Validator)
         .RuleForEach(x => x.Accounts).Validate(AccountOption.Validator)
+        .RuleForEach(x => x.Agents).Validate(AgentOption.Validator)
+        .RuleForEach(x => x.SmartcItems).Validate(SmartcOption.Validator)
         .Build();
 
 }
@@ -95,3 +99,20 @@ internal record AccountOption
         .Build();
 }
 
+internal record AgentOption
+{
+    public string AgentId { get; init; } = null!;
+
+    public static IValidator<AgentOption> Validator { get; } = new Validator<AgentOption>()
+        .RuleFor(x => x.AgentId).ValidResourceId(ResourceType.System, "agent")
+        .Build();
+}
+
+internal record SmartcOption
+{
+    public string SmartcId { get; init; } = null!;
+
+    public static IValidator<SmartcOption> Validator { get; } = new Validator<SmartcOption>()
+        .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.System, "smartc")
+        .Build();
+}

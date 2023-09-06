@@ -15,11 +15,11 @@ public static class ResourceIdExtensions
     {
         string path = resourceId.Type switch
         {
-            ResourceType.System => $"$system/{resourceId.SystemName}",
-            ResourceType.Tenant => $"$system/{resourceId.Domain}",
-            ResourceType.Principal => $"{resourceId.Domain}/{resourceId.User}@{resourceId.Domain}",
-            ResourceType.Owned => $"{resourceId.Domain}/{resourceId.User}@{resourceId.Domain}/{resourceId.Path}",
-            ResourceType.Account => $"{resourceId.Domain}/{resourceId.Path}",
+            ResourceType.System => $"{resourceId.Schema}/{resourceId.SystemName}",
+            ResourceType.Tenant => $"{resourceId.Schema}/{resourceId.Domain}",
+            ResourceType.Principal => $"user/{resourceId.Domain}/{resourceId.User}@{resourceId.Domain}",
+            ResourceType.Owned => $"{resourceId.Schema}/{resourceId.Domain}/{resourceId.User}@{resourceId.Domain}/{resourceId.Path}",
+            ResourceType.DomainOwned => $"{resourceId.Schema}/{resourceId.Domain}/{resourceId.Path}",
             _ => throw new UnreachableException()
         };
 

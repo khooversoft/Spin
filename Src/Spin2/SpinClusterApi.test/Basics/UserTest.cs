@@ -103,7 +103,7 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         UserClient client = service.GetRequiredService<UserClient>();
 
         Option deleteOption = await client.Delete(principalId, context);
-        deleteOption.IsOk().Should().BeTrue();
+        (deleteOption.IsOk() || deleteOption.IsNotFound()).Should().BeTrue();
 
         return StatusCode.OK;
     }

@@ -2,6 +2,7 @@
 using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
+using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
@@ -37,6 +38,6 @@ public static class ActorActivators
     public static ILeaseActor GetLeaseActor(this IClusterClient clusterClient, ResourceId keyId) => clusterClient.NotNull()
         .GetResourceGrain<ILeaseActor>(keyId);
 
-    //public static IDirectoryActor GetDirectoryActor(this IClusterClient clusterClient) => clusterClient.NotNull()
-    //    .GetResourceGrain<IDirectoryActor>(SpinConstants.SignValidation);
+    public static ISchedulerActor GetSchedulerActor(this IClusterClient clusterClient) => clusterClient.NotNull()
+        .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler);
 }

@@ -176,7 +176,7 @@ internal class ResourceIdTool
         Build = (id, r, tokens) => new ResourceId
         {
             Id = id,
-            Type = ResourceType.Account,
+            Type = ResourceType.DomainOwned,
             Schema = r.First(x => x.Type == TokenType.Schema).Value,
             Domain = r.First(x => x.Type == TokenType.Domain).Value,
             Path = tokens.Skip(4).Aggregate(string.Empty, (a, x) => a + x).ToNullIfEmpty(),

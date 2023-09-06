@@ -14,13 +14,6 @@ public static class EnumExtensions
         return (T)enumValue!;
     }
 
-    public static bool IsValid<T>(this string value) where T : Enum
-    {
-        value.NotEmpty();
-
-        return Enum.IsDefined(typeof(T), value);
-    }
-
     public static string? FindEnumValue<T>(this string value, bool caseInsensitive = false) where T : Enum
     {
         value.NotEmpty();

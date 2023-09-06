@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
+using SpinCluster.sdk.Actors.Agent;
+using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
@@ -23,11 +25,15 @@ internal class SetupBuilder
         await DeleteAllUsers(services, context);
         await DeleteAllTenants(services, context);
         await DeleteAllSubscriptions(services, context);
+        await DeleteAgents(services, context);
+        await DeleteSmartcItems(services, context);
 
         await CreateAllSubscriptions(services, context);
         await CreateAllTenants(services, context);
         await CreateAllUsers(services, context);
         await CreateAllAccounts(services, context);
+        await CreateAgent(services, context);
+        await CreateSmartc(services, context);
     }
 
     private async Task DeleteAllAccounts(IServiceProvider services, ScopeContext context)
@@ -71,6 +77,28 @@ internal class SetupBuilder
         {
             await client.Delete(item.Name, context);
             context.Trace().LogInformation("Subscription deleted: {name}", item.Name);
+        }
+    }
+
+    private async Task DeleteAgents(IServiceProvider services, ScopeContext context)
+    {
+        AgentClient client = services.GetRequiredService<AgentClient>();
+
+        foreach (var item in _option.Agents)
+        {
+            await client.Delete(item.AgentId, context);
+            context.Trace().LogInformation("Agent deleted: {agentId}", item.AgentId);
+        }
+    }
+
+    private async Task DeleteSmartcItems(IServiceProvider services, ScopeContext context)
+    {
+        SmartcClient client = services.GetRequiredService<SmartcClient>();
+
+        foreach (var item in _option.SmartcItems)
+        {
+            await client.Delete(item.SmartcId, context);
+            context.Trace().LogInformation("SmartC deleted: {smartcId}", item.SmartcId);
         }
     }
 
@@ -204,6 +232,58 @@ internal class SetupBuilder
                 context.Trace().LogStatus(addResponse, "Add ledger item accountId={accountId}, amount={amount}", account.AccountId, ledger.Amount);
                 test.Test(() => addResponse);
             }
+        }
+
+        return test;
+    }
+
+    private async Task<Option> CreateAgent(IServiceProvider services, ScopeContext context)
+    {
+        AgentClient client = services.GetRequiredService<AgentClient>();
+
+        var test = new OptionTest();
+
+        foreach (var item in _option.Agents)
+        {
+            Option<AgentModel> result = await client.Get(item.AgentId, context);
+            if (result.IsOk()) await client.Delete(item.AgentId, context);
+
+            var model = new AgentModel
+            {
+                AgentId = item.AgentId,
+                Enabled = true
+            };
+
+            Option setOption = await client.Set(model, context);
+
+            context.Trace().LogStatus(setOption, "Creating Agent agentId={agentId}", item.AgentId);
+            test.Test(() => setOption);
+        }
+
+        return test;
+    }
+
+    private async Task<Option> CreateSmartc(IServiceProvider services, ScopeContext context)
+    {
+        SmartcClient client = services.GetRequiredService<SmartcClient>();
+
+        var test = new OptionTest();
+
+        foreach (var item in _option.SmartcItems)
+        {
+            Option<SmartcModel> result = await client.Get(item.SmartcId, context);
+            if (result.IsOk()) await client.Delete(item.SmartcId, context);
+
+            var model = new SmartcModel
+            {
+                SmartcId = item.SmartcId,
+                Enabled = true
+            };
+
+            Option setOption = await client.Set(model, context);
+
+            context.Trace().LogStatus(setOption, "Creating Tenant smartcId={smartcId}", item.SmartcId);
+            test.Test(() => setOption);
         }
 
         return test;

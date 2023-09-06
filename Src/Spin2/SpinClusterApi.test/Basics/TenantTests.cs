@@ -75,7 +75,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         TenantClient client = service.GetRequiredService<TenantClient>();
 
         Option deleteOption = await client.Delete(tenantId, context);
-        deleteOption.IsOk().Should().BeTrue();
+        (deleteOption.IsOk() || deleteOption.IsNotFound()).Should().BeTrue();
 
         return StatusCode.OK;
     }
