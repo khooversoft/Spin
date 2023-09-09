@@ -39,7 +39,7 @@ public class SoftBankTrxConnector
         var v = request.Validate();
         if (v.IsError()) return v.ToResult();
 
-        ResourceId trxActorKey = ((ResourceId)request.SourceAccountID).ToSoftBankTrxId();
+        ResourceId trxActorKey = ((ResourceId)request.AccountID).ToSoftBankTrxId();
         Option<TrxResponse> response = await _client.GetResourceGrain<ISoftBankTrxActor>(trxActorKey).Request(request, traceId);
 
         return response.ToResult();

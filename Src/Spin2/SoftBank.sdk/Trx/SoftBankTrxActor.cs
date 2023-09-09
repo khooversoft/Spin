@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
@@ -74,6 +75,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
 
         var ledgerItem = new LedgerItem
         {
+            AccountId = request.AccountID,
+            PartyAccountId = request.PartyAccountId,
             OwnerId = request.PrincipalId,
             Description = request.Description,
             Type = request.Type switch
@@ -88,15 +91,15 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
                 "trxPush",
                 $"Request:Id={request.Id}",
                 $"Request:Description={request.Description}",
-                $"DestinationAccountId={request.DestinationAccountId}",
+                $"DestinationAccountId={request.PartyAccountId}",
             }.Join(';'),
         };
 
-        var update = await _clusterClient.GetSoftBankActor(request.SourceAccountID).AddLedgerItem(ledgerItem, context.TraceId);
+        var update = await _clusterClient.GetSoftBankActor(request.AccountID).AddLedgerItem(ledgerItem, context.TraceId);
         if (update.IsError())
         {
             context.Location().LogCritical("Failed to add ledger item");
-            return StatusCode.InternalServerError;
+            return update.ToOptionStatus<TrxResponse>();
         }
 
         if (amountReserved != null) await ReleaseReservce(amountReserved, context);
@@ -124,6 +127,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
 
         var ledgerItem = new LedgerItem
         {
+            AccountId = request.PartyAccountId,
+            PartyAccountId = request.AccountID,
             OwnerId = request.PrincipalId,
             Description = request.Description,
             Type = request.Type switch
@@ -138,15 +143,15 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
                 "trxPush",
                 $"Request:Id={request.Id}",
                 $"Request:Description={request.Description}",
-                $"DestinationAccountId={request.DestinationAccountId}",
+                $"DestinationAccountId={request.PartyAccountId}",
             }.Join(';'),
         };
 
-        var update = await _clusterClient.GetSoftBankActor(request.DestinationAccountId).AddLedgerItem(ledgerItem, context.TraceId);
+        var update = await _clusterClient.GetSoftBankActor(request.PartyAccountId).AddLedgerItem(ledgerItem, context.TraceId);
         if (update.IsError())
         {
             context.Location().LogCritical("Failed to add ledger item");
-            return StatusCode.InternalServerError;
+            return update.ToOptionStatus<TrxResponse>();
         }
 
         if (amountReserved != null) await ReleaseReservce(amountReserved, context);
@@ -164,8 +169,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
     private Direction IsSourceOrDestination(TrxRequest request)
     {
         var actorId = (ResourceId)this.GetPrimaryKeyString();
-        var sourceId = (ResourceId)request.SourceAccountID;
-        var destinationId = (ResourceId)request.DestinationAccountId;
+        var sourceId = (ResourceId)request.AccountID;
+        var destinationId = (ResourceId)request.PartyAccountId;
 
         return (actorId.AccountId == sourceId.AccountId, actorId.AccountId == destinationId.AccountId) switch
         {
@@ -179,13 +184,13 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
         _clusterClient.GetSoftBankTrxActor($"softbank-trx:{desinationAccountId.AccountId}");
 
     private async Task<Option<TrxResponse>> Forward(TrxRequest request, ScopeContext context) =>
-        await GetDesinationTrxActor(request.DestinationAccountId).Request(request, context.TraceId);
+        await GetDesinationTrxActor(request.PartyAccountId).Request(request, context.TraceId);
 
     private async Task<Option<AmountReserved>> ReserveFromSource(TrxRequest request, ScopeContext context) =>
-        await Reserve(request, request.SourceAccountID, context);
+        await Reserve(request, request.AccountID, context);
 
     private async Task<Option<AmountReserved>> ReserveFromDestination(TrxRequest request, ScopeContext context) =>
-        await Reserve(request, request.DestinationAccountId, context);
+        await Reserve(request, request.PartyAccountId, context);
 
     private async Task<Option> ReleaseReservce(AmountReserved amountReserved, ScopeContext context)
     {

@@ -17,7 +17,7 @@ public record LedgerItem
     [Id(0)] public DateTime Timestamp { get; init; } = DateTime.UtcNow;
     [Id(1)] public string Id { get; init; } = Guid.NewGuid().ToString();
     [Id(2)] public string AccountId { get; init; } = null!;
-    [Id(3)] public string? FromAccountId { get; init; }
+    [Id(3)] public string? PartyAccountId { get; init; }
     [Id(4)] public string OwnerId { get; init; } = null!;
     [Id(5)] public string Description { get; init; } = null!;
     [Id(6)] public LedgerType Type { get; init; }
@@ -30,7 +30,7 @@ public record LedgerItem
         .RuleFor(x => x.Id).NotEmpty()
         .RuleFor(x => x.AccountId).ValidResourceId(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
         .RuleFor(x => x.OwnerId).ValidResourceId(ResourceType.Principal)
-        .RuleFor(x => x.FromAccountId).ValidResourceIdOption(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
+        .RuleFor(x => x.PartyAccountId).ValidResourceIdOption(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
         .RuleFor(x => x.Description).NotEmpty()
         .RuleFor(x => x.Type).Must(x => x.IsEnumValid(), x => $"Enum {x} is invalid enum")
         .RuleFor(x => x.Amount).Must(x => x >= 0, x => $"{x} must be greater then or equal 0")

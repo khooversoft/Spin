@@ -133,15 +133,15 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         var request = new TrxRequest
         {
             PrincipalId = from.OwnerId,
-            SourceAccountID = from.AccountId,
-            DestinationAccountId = to.AccountId,
+            AccountID = from.AccountId,
+            PartyAccountId = to.AccountId,
             Description = "test",
             Type = type,
             Amount = amount,
         };
 
         Option<TrxResponse> result = await client.Request(request, _context);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().Should().BeTrue(result.StatusCode.ToString());
 
         TrxResponse trxResponse = result.Return();
         trxResponse.Request.Should().Be(request);
