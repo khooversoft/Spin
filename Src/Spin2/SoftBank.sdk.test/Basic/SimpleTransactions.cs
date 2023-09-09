@@ -42,6 +42,7 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
 
         LedgerItem ledgerItem = new LedgerItem
         {
+            AccountId = _accountId,
             OwnerId = _principalId,
             Description = "Start of account",
             Type = LedgerType.Credit,
@@ -69,9 +70,9 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
 
         var ledgerItems = new[]
         {
-            new LedgerItem { OwnerId = _principalId, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { OwnerId = _principalId, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { OwnerId = _principalId, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+            new LedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
         };
 
         foreach (var ledgerItem in ledgerItems)
@@ -104,7 +105,7 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
 
         var createRequest = new AccountDetail
         {
-            DocumentId = _accountId,
+            AccountId = _accountId,
             OwnerId = _principalId,
             Name = "test account"
         };

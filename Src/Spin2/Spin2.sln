@@ -39,13 +39,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{9CB07323-2
 		schema.md = schema.md
 		SmartC.md = SmartC.md
 		SpinClusterCmd.md = SpinClusterCmd.md
+		WorkSchedule.md = WorkSchedule.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinAgent", "SpinAgent\SpinAgent.csproj", "{2A8570D5-81E4-4559-AB96-1EBB2E156E36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinAgent", "SpinAgent\SpinAgent.csproj", "{2A8570D5-81E4-4559-AB96-1EBB2E156E36}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SmartC", "SmartC", "{FC04D7BE-5DFD-4B25-B0DE-1C17F14B8CD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loan-smartc-v1", "SmartC\Loan-smartc-v1\Loan-smartc-v1.csproj", "{E8ED14F4-1706-4FDF-8029-A983402256CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Loan-smartc-v1", "SmartC\Loan-smartc-v1\Loan-smartc-v1.csproj", "{E8ED14F4-1706-4FDF-8029-A983402256CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinTestTools.sdk", "SpinTestTools.sdk\SpinTestTools.sdk.csproj", "{CE858565-4B52-430D-A57F-9278861C0798}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -117,6 +120,10 @@ Global
 		{E8ED14F4-1706-4FDF-8029-A983402256CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8ED14F4-1706-4FDF-8029-A983402256CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8ED14F4-1706-4FDF-8029-A983402256CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE858565-4B52-430D-A57F-9278861C0798}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE858565-4B52-430D-A57F-9278861C0798}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE858565-4B52-430D-A57F-9278861C0798}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE858565-4B52-430D-A57F-9278861C0798}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

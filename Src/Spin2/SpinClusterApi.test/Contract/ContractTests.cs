@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinClusterApi.test.Application;
+using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Types;
@@ -15,6 +16,37 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
     private readonly SetupTools _setupTools;
+    private const string _setup = """
+        {
+            "Subscriptions": [
+              {
+                "SubscriptionId": "subscription:Company7Subscription",
+                "Name": "Company7Subscription",
+                "ContactName": "Company 7 contact name",
+                "Email": "admin@company7.com"
+              }
+            ],
+            "Tenants": [
+              {
+                "TenantId": "tenant:company7.com",
+                "Subscription": "Tenant 7",
+                "Domain": "company7.com",
+                "SubscriptionId": "subscription:Company7Subscription",
+                "ContactName": "Admin",
+                "Email": "admin@company7.com"
+              }
+            ],
+            "Users": [
+              {
+                "UserId": "user:user1@company7.com",
+                "PrincipalId": "user1@company7.com",
+                "DisplayName": "User 7",
+                "FirstName": "user1first",
+                "LastName": "user1last"
+              }
+            ]
+        }
+        """;
 
     public ContractTests(ClusterApiFixture fixture)
     {
@@ -26,13 +58,19 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
     [Fact]
     public async Task LifecycleTest()
     {
-        string subscriptionId = "Company7Subscription";
-        string tenantId = "company7.com";
         string principalId = "user1@company7.com";
         string contractId = "contract:company7.com/contract1";
 
-        await _setupTools.DeleteUser(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
-        await _setupTools.CreateUser(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
+        ObjectBuilderOption option = ObjectBuilderOptionTool.ReadFromJson(_setup);
+        option.Validate().IsOk().Should().BeTrue();
+
+        var objectBuild = new TestObjectBuilder()
+            .SetService(_cluster.ServiceProvider)
+            .SetOption(option)
+            .AddStandard();
+
+        var buildResult = await objectBuild.Build(_context);
+        buildResult.IsOk().Should().BeTrue();
 
         ContractClient contractClient = _cluster.ServiceProvider.GetRequiredService<ContractClient>();
 
@@ -94,6 +132,8 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
         propertyModel.BlockCount.Should().Be(4);
 
         await contractClient.Delete(contractId, _context).ThrowOnError();
+
+        await objectBuild.DeleteAll(_context);
     }
 
     private record Payload

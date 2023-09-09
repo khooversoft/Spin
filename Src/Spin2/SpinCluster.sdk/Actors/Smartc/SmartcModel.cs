@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SpinCluster.sdk.Models;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -15,9 +11,11 @@ public record SmartcModel
     [Id(0)] public string SmartcId { get; init; } = null!;
     [Id(1)] public DateTime Registered { get; init; } = DateTime.UtcNow;
     [Id(2)] public bool Enabled { get; init; }
+    [Id(3)] public AgentAssignmentModel? Assignment { get; init; }
 
     public static IValidator<SmartcModel> Validator { get; } = new Validator<SmartcModel>()
         .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
+        .RuleFor(x => x.Assignment).ValidateOption(AgentAssignmentModel.Validator)
         .Build();
 }
 

@@ -11,14 +11,14 @@ public class UserClient
     protected readonly HttpClient _client;
     public UserClient(HttpClient client) => _client = client.NotNull();
 
-    public async Task<Option> Delete(string principalId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.User}/{Uri.EscapeDataString(principalId)}")
+    public async Task<Option> Delete(string userId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.User}/{Uri.EscapeDataString(userId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .DeleteAsync(context)
         .ToOption();
 
-    public async Task<Option<UserModel>> Get(string principalId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.User}/{Uri.EscapeDataString(principalId)}")
+    public async Task<Option<UserModel>> Get(string userId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.User}/{Uri.EscapeDataString(userId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
         .GetContent<UserModel>();

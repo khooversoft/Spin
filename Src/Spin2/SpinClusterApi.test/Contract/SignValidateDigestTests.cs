@@ -5,6 +5,7 @@ using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
+using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Extensions;
 using Toolbox.Security.Sign;
 using Toolbox.Types;
@@ -15,24 +16,59 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
-    private readonly SetupTools _setupTools;
+    private const string _setup = """
+        {
+            "Subscriptions": [
+              {
+                "SubscriptionId": "subscription:Company6Subscription",
+                "Name": "Company6Subscription",
+                "ContactName": "Company 6 contact name",
+                "Email": "admin@company6.com"
+              }
+            ],
+            "Tenants": [
+              {
+                "TenantId": "tenant:company6.com",
+                "Subscription": "Tenant 6",
+                "Domain": "company6.com",
+                "SubscriptionId": "subscription:Company6Subscription",
+                "ContactName": "Admin",
+                "Email": "admin@company6.com"
+              }
+            ],
+            "Users": [
+              {
+                "UserId": "user:user1@company6.com",
+                "PrincipalId": "user1@company6.com",
+                "DisplayName": "User 6",
+                "FirstName": "user1first",
+                "LastName": "user1last"
+              }
+            ]
+        }
+        """;
 
     public SignValidateDigestTests(ClusterApiFixture fixture)
     {
         _cluster = fixture;
-        _setupTools = new SetupTools(_cluster, _context);
     }
 
     //[Fact(Skip = "server")]
     [Fact]
     public async Task LifecycleTest()
     {
-        string subscriptionId = "Company6Subscription";
-        string tenantId = "company6.com";
         string principalId = "user1@company6.com";
 
-        await _setupTools.DeleteUser(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
-        await _setupTools.CreateUser(_cluster.ServiceProvider, subscriptionId, tenantId, principalId);
+        ObjectBuilderOption option = ObjectBuilderOptionTool.ReadFromJson(_setup);
+        option.Validate().IsOk().Should().BeTrue();
+
+        var objectBuild = new TestObjectBuilder()
+            .SetService(_cluster.ServiceProvider)
+            .SetOption(option)
+            .AddStandard();
+
+        var buildResult = await objectBuild.Build(_context);
+        buildResult.IsOk().Should().BeTrue();
 
         string msg = "this is a message";
         string messageDigest = msg.ToBytes().ToSHA256Hash();
@@ -73,5 +109,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
 
         var badValidation = await signatureClient.ValidateDigest(badValidationRequest, _context);
         badValidation.IsError().Should().BeTrue();
+
+        await objectBuild.DeleteAll(_context);
     }
 }

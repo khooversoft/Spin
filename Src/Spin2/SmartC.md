@@ -69,7 +69,6 @@ Notes...
 |                           |                                                                     |
 | --auth {jwt}              | jwt ticket, used for bearer token for all API calls to the cluster  |
 | --contractId {contractId} | Contract ID                                                         |
-| --userId                  | User's ID                                                           |
 | --clusterUrl              | Spin Cluster agent scheduler's URL address.                         |
 
 Notes...

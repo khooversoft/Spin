@@ -5,6 +5,7 @@ using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
+using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Basics;
@@ -13,6 +14,28 @@ public class UserTest : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+    private const string _setup = """
+        {
+            "Subscriptions": [
+              {
+                "SubscriptionId": "subscription:Company5Subscription",
+                "Name": "Company5Subscription",
+                "ContactName": "Company 55 contact name",
+                "Email": "admin@company55.com"
+              }
+            ],
+            "Tenants": [
+              {
+                "TenantId": "tenant:company5.com",
+                "Subscription": "Tenant 5",
+                "Domain": "company5.com",
+                "SubscriptionId": "subscription:Company5Subscription",
+                "ContactName": "Admin",
+                "Email": "admin@company5.com"
+              }
+            ]
+        }
+        """;
 
     public UserTest(ClusterApiFixture fixture)
     {
@@ -24,24 +47,28 @@ public class UserTest : IClassFixture<ClusterApiFixture>
     public async Task LifecycleTest()
     {
         UserClient client = _cluster.ServiceProvider.GetRequiredService<UserClient>();
-        string subscriptionId = "Company5Subscription";
-        string tenantId = "company5.com";
         string principalId = "user1@company5.com";
 
-        var subscription = await SubscriptionTests.CreateSubscription(_cluster.ServiceProvider, subscriptionId, _context);
-        subscription.IsOk().Should().BeTrue();
+        ObjectBuilderOption option = ObjectBuilderOptionTool.ReadFromJson(_setup);
+        option.Validate().IsOk().Should().BeTrue();
 
-        var tenant = await TenantTests.CreateTenant(_cluster.ServiceProvider, tenantId, subscriptionId, _context);
-        tenant.IsOk().Should().BeTrue();
+        var objectBuild = new TestObjectBuilder()
+            .SetService(_cluster.ServiceProvider)
+            .SetOption(option)
+            .AddStandard();
 
-        Option<UserModel> userModelOption = await client.Get(principalId, _context);
-        if (userModelOption.IsOk()) await client.Delete(principalId, _context);
+        var buildResult = await objectBuild.Build(_context);
+        buildResult.IsOk().Should().BeTrue();
+
+        string userId = "user:" + principalId;
+        Option<UserModel> userModelOption = await client.Get(userId, _context);
+        if (userModelOption.IsOk()) await client.Delete(userId, _context);
 
         await VerifyKeys(_cluster.ServiceProvider, principalId, false);
         var user = await CreateUser(_cluster.ServiceProvider, principalId, _context);
         await VerifyKeys(_cluster.ServiceProvider, principalId, true);
 
-        Option<UserModel> readOption = await client.Get(principalId, _context);
+        Option<UserModel> readOption = await client.Get(userId, _context);
         readOption.IsOk().Should().BeTrue();
 
         UserCreateModel userModel = user.Return();
@@ -52,15 +79,11 @@ public class UserTest : IClassFixture<ClusterApiFixture>
         userModel.FirstName.Should().Be(readUserModel.FirstName);
         userModel.LastName.Should().Be(readUserModel.LastName);
 
-        Option deleteOption = await client.Delete(principalId, _context);
+        Option deleteOption = await client.Delete(userId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
         await VerifyKeys(_cluster.ServiceProvider, principalId, false);
 
-        Option deleteTenantOption = await TenantTests.DeleteTenant(_cluster.ServiceProvider, tenantId, _context);
-        deleteTenantOption.StatusCode.IsOk().Should().BeTrue();
-
-        Option deleteSubscriptionOption = await SubscriptionTests.DeleteSubscription(_cluster.ServiceProvider, subscriptionId, _context);
-        deleteSubscriptionOption.StatusCode.IsOk().Should().BeTrue();
+        await objectBuild.DeleteAll(_context);
     }
 
     private async Task VerifyKeys(IServiceProvider service, string principalId, bool mustExist)
@@ -102,7 +125,7 @@ public class UserTest : IClassFixture<ClusterApiFixture>
     {
         UserClient client = service.GetRequiredService<UserClient>();
 
-        Option deleteOption = await client.Delete(principalId, context);
+        Option deleteOption = await client.Delete("user:" + principalId, context);
         (deleteOption.IsOk() || deleteOption.IsNotFound()).Should().BeTrue();
 
         return StatusCode.OK;

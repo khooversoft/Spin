@@ -18,7 +18,7 @@ public interface IUserActor : IGrainWithStringKey
     Task<Option<SignResponse>> SignDigest(string messageDigest, string traceId);
 }
 
-
+// actor key: user:{user}@{domain}
 public class UserActor : Grain, IUserActor
 {
     private readonly IPersistentState<UserModel> _state;

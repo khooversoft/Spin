@@ -20,18 +20,18 @@ public sealed record UserCreateModel
         LastName == document.LastName;
 
     public override int GetHashCode() => HashCode.Combine(UserId, PrincipalId, DisplayName, FirstName, LastName);
-}
 
-
-public static class UserCreateModelValidator
-{
     public static IValidator<UserCreateModel> Validator { get; } = new Validator<UserCreateModel>()
-        .RuleFor(x => x.UserId).ValidResourceId(ResourceType.Owned)
+        .RuleFor(x => x.UserId).ValidResourceId(ResourceType.Owned, "user")
         .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.DisplayName).NotEmpty()
         .RuleFor(x => x.FirstName).NotEmpty()
         .RuleFor(x => x.LastName).NotEmpty()
         .Build();
+}
 
-    public static Option Validate(this UserCreateModel model) => Validator.Validate(model).ToOptionStatus();
+
+public static class UserCreateModelValidator
+{
+    public static Option Validate(this UserCreateModel model) => UserCreateModel.Validator.Validate(model).ToOptionStatus();
 }

@@ -7,7 +7,17 @@ public static class OptionExtensionTools
 {
     public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source)
     {
-        foreach (T element in source) return new Option<T>(element);
+        foreach (T element in source) return element;
+        return Option<T>.None;
+    }
+
+    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        foreach (T element in source)
+        {
+            if (predicate(element)) return element;
+        }
+
         return Option<T>.None;
     }
 

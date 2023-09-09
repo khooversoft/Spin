@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Application;
+using SpinCluster.sdk.Models;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -26,28 +26,58 @@ public class AgentConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Agent}");
 
-        group.MapDelete("/{nameId}", Delete);
-        group.MapGet("/{nameId}", Get);
+        group.MapDelete("/{agentId}", Delete);
+        group.MapGet("/{agentId}/exist", Exist);
+        group.MapGet("/{agentId}", Get);
+        group.MapGet("/{agentId}/assignment", GetAssignment);
+        group.MapGet("/{agentId}/isActive", IsActive);
         group.MapPost("/", Set);
 
         return group;
     }
 
-    private async Task<IResult> Delete(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Delete(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        nameId = Uri.UnescapeDataString(nameId);
-        if( !ResourceId.IsValid(nameId, ResourceType.System, "agent") ) return Results.BadRequest();
+        agentId = Uri.UnescapeDataString(agentId);
+        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
 
-        Option response = await _client.GetResourceGrain<IAgentActor>(nameId).Delete(traceId);
+        Option response = await _client.GetResourceGrain<IAgentActor>(agentId).Delete(traceId);
         return response.ToResult();
     }
 
-    public async Task<IResult> Get(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Exist(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        nameId = Uri.UnescapeDataString(nameId);
-        if( !ResourceId.IsValid(nameId, ResourceType.System, "agent") ) return Results.BadRequest();
+        agentId = Uri.UnescapeDataString(agentId);
+        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
 
-        Option<AgentModel> response = await _client.GetResourceGrain<IAgentActor>(nameId).Get(traceId);
+        Option response = await _client.GetResourceGrain<IAgentActor>(agentId).Exist(traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> Get(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        agentId = Uri.UnescapeDataString(agentId);
+        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
+
+        Option<AgentModel> response = await _client.GetResourceGrain<IAgentActor>(agentId).Get(traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> GetAssignment(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        agentId = Uri.UnescapeDataString(agentId);
+        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
+
+        Option<AgentAssignmentModel> response = await _client.GetResourceGrain<IAgentActor>(agentId).GetAssignment(traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> IsActive(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        agentId = Uri.UnescapeDataString(agentId);
+        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
+
+        Option response = await _client.GetResourceGrain<IAgentActor>(agentId).IsActive(traceId);
         return response.ToResult();
     }
 
@@ -55,7 +85,7 @@ public class AgentConnector
     {
         var context = new ScopeContext(traceId, _logger);
         var v = model.Validate();
-        if( v.IsError() ) return Results.BadRequest(v.Error);
+        if (v.IsError()) return Results.BadRequest(v.Error);
 
         var response = await _client.GetResourceGrain<IAgentActor>(model.AgentId).Set(model, traceId);
         return response.ToResult();

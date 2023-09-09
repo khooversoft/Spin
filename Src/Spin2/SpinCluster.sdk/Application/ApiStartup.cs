@@ -24,6 +24,7 @@ public static class ApiStartup
         services.AddSingleton<LeaseConnector>();
         services.AddSingleton<AgentConnector>();
         services.AddSingleton<SmartcConnector>();
+        services.AddSingleton<ScheduleConnection>();
 
         return services;
     }
@@ -40,5 +41,6 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<LeaseConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<AgentConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SmartcConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<ScheduleConnection>().Setup(app);
     }
 }

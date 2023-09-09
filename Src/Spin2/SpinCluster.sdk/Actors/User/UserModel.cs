@@ -21,7 +21,6 @@ public sealed record UserModel
     [Id(4)] public string DisplayName { get; init; } = null!;
     [Id(5)] public string FirstName { get; init; } = null!;
     [Id(6)] public string LastName { get; init; } = null!;
-    [Id(7)] public IReadOnlyList<DataObject> DataObjects { get; init; } = Array.Empty<DataObject>();
     [Id(8)] public bool AccountEnabled { get; init; } = false;
     [Id(9)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     [Id(10)] public DateTime? ActiveDate { get; init; }
@@ -37,7 +36,6 @@ public sealed record UserModel
         DisplayName == document.DisplayName &&
         FirstName == document.FirstName &&
         LastName == document.LastName &&
-        DataObjects.SequenceEqual(document.DataObjects) &&
         AccountEnabled == document.AccountEnabled &&
         CreatedDate == document.CreatedDate &&
         ActiveDate == document.ActiveDate &&
@@ -50,16 +48,14 @@ public sealed record UserModel
 public static class UserModelValidator
 {
     public static IValidator<UserModel> Validator { get; } = new Validator<UserModel>()
-        .RuleFor(x => x.UserId).ValidAccountId()
+        .RuleFor(x => x.UserId).ValidResourceId(ResourceType.Owned, "user")
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.DisplayName).NotEmpty()
         .RuleFor(x => x.FirstName).NotEmpty()
         .RuleFor(x => x.LastName).NotEmpty()
-        .RuleFor(x => x.DataObjects).NotNull()
-        .RuleForEach(x => x.DataObjects).Validate(DataObjectValidator.Validator)
-        .RuleFor(x => x.UserKey).Validate(UserKeyModelValidator.Validator)
+        .RuleFor(x => x.UserKey).Validate(UserKeyModel.Validator)
         .Build();
 
     public static Option Validate(this UserModel subject) => Validator.Validate(subject).ToOptionStatus();

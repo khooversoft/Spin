@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.CommandLine;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Agent;
 using Toolbox.Tools;
@@ -39,7 +34,7 @@ internal class AgentCommand : Command
             var model = new AgentModel
             {
                 AgentId = agentId,
-                Enabled = true ,
+                Enabled = true,
             };
 
             Toolbox.Types.Option response = await _client.Set(model, context);

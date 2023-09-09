@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using Loan_smartc_v1.Application;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;

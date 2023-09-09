@@ -11,6 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Schedule\ScheduleSetup.json" />
       <None Remove="test-appsettings.json" />
     </ItemGroup>
 
@@ -20,6 +21,10 @@
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Schedule\ScheduleSetup.json" />
     </ItemGroup>
 
     <ItemGroup>
@@ -41,6 +46,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\SpinClusterApi\SpinClusterApi.csproj" />
+        <ProjectReference Include="..\SpinTestTools.sdk\SpinTestTools.sdk.csproj" />
         <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
     </ItemGroup>
 

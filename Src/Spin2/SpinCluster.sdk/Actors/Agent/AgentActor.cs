@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.Contract;
-using SpinCluster.sdk.Actors.Subscription;
+using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
-using Toolbox.Block;
+using SpinCluster.sdk.Models;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -20,20 +15,25 @@ public interface IAgentActor : IGrainWithStringKey
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
     Task<Option<AgentModel>> Get(string traceId);
+    Task<Option> IsActive(string traceId);
     Task<Option> Set(AgentModel model, string traceId);
+    Task<Option<AgentAssignmentModel>> GetAssignment(string traceId);
 }
 
 public class AgentActor : Grain, IAgentActor
 {
     private readonly IPersistentState<AgentModel> _state;
     private readonly ILogger<ContractActor> _logger;
+    private readonly IClusterClient _clusterClient;
 
     public AgentActor(
         [PersistentState(stateName: "default", storageName: SpinConstants.SpinStateStore)] IPersistentState<AgentModel> state,
+        IClusterClient clusterClient,
         ILogger<ContractActor> logger
         )
     {
         _state = state.NotNull();
+        _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -78,6 +78,42 @@ public class AgentActor : Grain, IAgentActor
         };
 
         return option.ToTaskResult();
+    }
+
+    public async Task<Option<AgentAssignmentModel>> GetAssignment(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Get assignment, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        Option<ScheduleWorkModel> assignOption = await _clusterClient
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .AssignWork(this.GetPrimaryKeyString(), context.TraceId);
+
+        if (assignOption.IsError()) return assignOption.ToOptionStatus<AgentAssignmentModel>();
+
+        var model = new AgentAssignmentModel
+        {
+            AgentId = this.GetPrimaryKeyString(),
+            WorkId = this.GetPrimaryKeyString(),
+            SmartcId = assignOption.Return().SmartcId,
+            Command = assignOption.Return().Command,
+        };
+
+        var smartcOption = await _clusterClient
+            .GetResourceGrain<ISmartcActor>(assignOption.Return().SmartcId)
+            .SetAssignment(model, context.TraceId);
+
+        if (smartcOption.IsError()) return smartcOption.ToOptionStatus<AgentAssignmentModel>();
+
+        return model;
+    }
+
+    public async Task<Option> IsActive(string traceId)
+    {
+        await _state.ReadStateAsync();
+        if (!_state.RecordExists) return StatusCode.NotFound;
+
+        return _state.State.Enabled ? StatusCode.OK : StatusCode.Unauthorized;
     }
 
     public async Task<Option> Set(AgentModel model, string traceId)

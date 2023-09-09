@@ -118,7 +118,7 @@ internal class SetupBuilder
             var tenant = new TenantModel
             {
                 TenantId = IdTool.CreateTenantId(item.Tenant),
-                Name = item.Tenant,
+                Domain = item.Tenant,
                 SubscriptionId = IdTool.CreateSubscriptionId(item.Subscription),
                 ContactName = item.Tenant + "contact",
                 Email = "user1@company2.com",
@@ -166,7 +166,7 @@ internal class SetupBuilder
 
             var createRequest = new AccountDetail
             {
-                DocumentId = item.AccountId,
+                AccountId = item.AccountId,
                 OwnerId = item.PrincipalId,
                 Name = "test account",
                 AccessRights = item.WriteAccess

@@ -55,7 +55,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         var tenant = new TenantModel
         {
             TenantId = IdTool.CreateTenantId(nameId),
-            Name = nameId,
+            Domain = nameId,
             SubscriptionId = IdTool.CreateSubscriptionId(subscriptionId),
             ContactName = nameId + "contact",
             Email = "user1@company2.com",

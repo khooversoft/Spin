@@ -5,7 +5,7 @@ namespace Toolbox.Types;
 [DebuggerDisplay("StatusCode={Option.StatusCode}, Error={Option.Error}")]
 public class OptionTest
 {
-    public Option Option { get; set; }
+    public Option Option { get; set; } = StatusCode.OK;
 
     public StatusCode StatusCode => Option.StatusCode;
     public string? Error => Option.Error;

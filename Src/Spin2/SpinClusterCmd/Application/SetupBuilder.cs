@@ -9,7 +9,6 @@ using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Application;
@@ -146,7 +145,7 @@ internal class SetupBuilder
             var tenant = new TenantModel
             {
                 TenantId = IdTool.CreateTenantId(item.Domain),
-                Name = item.Domain,
+                Domain = item.Domain,
                 SubscriptionId = IdTool.CreateSubscriptionId(item.Subscription),
                 ContactName = item.ContactName,
                 Email = item.Email,
@@ -206,7 +205,7 @@ internal class SetupBuilder
 
             var createRequest = new AccountDetail
             {
-                DocumentId = account.AccountId,
+                AccountId = account.AccountId,
                 OwnerId = account.PrincipalId,
                 Name = account.Name,
                 AccessRights = (account.WriteAccess ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries)

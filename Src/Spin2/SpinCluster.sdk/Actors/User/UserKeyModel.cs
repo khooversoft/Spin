@@ -36,13 +36,15 @@ public sealed record UserKeyModel
 
         return userKeyModel;
     }
-}
 
-public static class UserKeyModelValidator
-{
     public static IValidator<UserKeyModel> Validator { get; } = new Validator<UserKeyModel>()
         .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned, "kid")
         .RuleFor(x => x.PublicKeyId).ValidResourceId(ResourceType.Owned, "kid")
         .RuleFor(x => x.PrivateKeyId).ValidResourceId(ResourceType.Owned, "kid")
         .Build();
+}
+
+public static class UserKeyModelValidator
+{
+    public static Option Validate(this UserKeyModel subject) => UserKeyModel.Validator.Validate(subject).ToOptionStatus();
 }

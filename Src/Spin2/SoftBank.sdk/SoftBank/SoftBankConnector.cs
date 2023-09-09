@@ -62,7 +62,7 @@ public class SoftBankConnector
         var v = model.Validate();
         if (v.IsError()) return v.ToResult();
 
-        Option response = await _client.GetGrain<ISoftBankActor>(model.DocumentId).Create(model, traceId);
+        Option response = await _client.GetGrain<ISoftBankActor>(model.AccountId).Create(model, traceId);
         return response.ToResult();
     }
 

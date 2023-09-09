@@ -26,8 +26,8 @@ public class UserConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.User}");
 
-        group.MapDelete("/{principalId}", Delete);
-        group.MapGet("/{principalId}", Get);
+        group.MapDelete("/{userId}", Delete);
+        group.MapGet("/{userId}", Get);
         group.MapPost("/create", Create);
         group.MapPost("/", Update);
         group.MapPost("/sign", Sign);
@@ -35,23 +35,21 @@ public class UserConnector
         return group;
     }
 
-    private async Task<IResult> Delete(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Delete(string userId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        principalId = Uri.UnescapeDataString(principalId);
-        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
+        userId = Uri.UnescapeDataString(userId);
+        if (!ResourceId.IsValid(userId, ResourceType.Owned, "user")) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateUserId(principalId);
-        Option response = await _client.GetUserActor(resourceId).Delete(traceId);
+        Option response = await _client.GetUserActor(userId).Delete(traceId);
         return response.ToResult();
     }
 
-    public async Task<IResult> Get(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> Get(string userId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        principalId = Uri.UnescapeDataString(principalId);
-        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
+        userId = Uri.UnescapeDataString(userId);
+        if (!ResourceId.IsValid(userId, ResourceType.Owned, "user")) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateUserId(principalId);
-        Option<UserModel> response = await _client.GetUserActor(resourceId).Get(traceId);
+        Option<UserModel> response = await _client.GetUserActor(userId).Get(traceId);
         return response.ToResult();
     }
 

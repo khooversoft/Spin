@@ -6,6 +6,7 @@ using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.test.Application;
 using SoftBank.sdk.Trx;
 using Toolbox.Types;
+using SpinTestTools.sdk.ObjectBuilder;
 
 namespace SoftBank.sdk.test.Transactions;
 
@@ -15,7 +16,7 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
     private readonly SetupTools _setupTools;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
-    private readonly SetupBuilder _builder = new SetupBuilder()
+    private readonly ObjectBuilderOption _option = new ObjectOptionBuilder()
         .AddSubscription("Company20Subscription")
         .AddSubscription("Company21Subscription")
         .AddTenant("Company20Subscription", "company20.com")
@@ -23,21 +24,30 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         .AddUser("user1@company20.com")
         .AddUser("user2@company21.com")
         .AddAccount("softbank:company20.com/account1", "user1@company20.com")
-        .AddAccount("softbank:company21.com/account2", "user2@company21.com", "user1@company20.com");
+        .AddAccount("softbank:company21.com/account2", "user2@company21.com", "user1@company20.com")
+        .Build();
 
     public TwoAccounts(ClusterApiFixture fixture)
     {
         _cluster = fixture;
         _setupTools = new SetupTools(_cluster, _context);
+
+        _option.Validate().ThrowOnError();
     }
 
-    private AccountInfo GetAccount1() => _builder.Accounts[0];
-    private AccountInfo GetAccount2() => _builder.Accounts[1];
+    private AccountDetail GetAccount1() => _option.Accounts[0];
+    private AccountDetail GetAccount2() => _option.Accounts[1];
 
     [Fact]
     public async Task PushTransferBetweenTwoAccount()
     {
-        await _builder.Build(_cluster.ServiceProvider, _context);
+        var objectBuild = new TestObjectBuilder()
+            .SetService(_cluster.ServiceProvider)
+            .SetOption(_option)
+            .AddStandard();
+
+        var buildResult = await objectBuild.Build(_context);
+        buildResult.IsOk().Should().BeTrue();
 
         await AddLedgerToAccount(GetAccount1(), 100, 55.15m);
         var accountBalance1 = await GetBalance(GetAccount1());
@@ -58,12 +68,20 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         accountBalance2 = await GetBalance(GetAccount2());
         accountBalance2.Should().Be(150.45m);
         await VerifyLedgers(GetAccount2(), 100, 50.45m);
+
+        await objectBuild.DeleteAll(_context);
     }
 
     [Fact]
     public async Task PullTransferBetweenTwoAccount()
     {
-        await _builder.Build(_cluster.ServiceProvider, _context);
+        var objectBuild = new TestObjectBuilder()
+            .SetService(_cluster.ServiceProvider)
+            .SetOption(_option)
+            .AddStandard();
+
+        var buildResult = await objectBuild.Build(_context);
+        buildResult.IsOk().Should().BeTrue();
 
         await AddLedgerToAccount(GetAccount1(), 200, 55.15m, -25.00m);
         var accountBalance1 = await GetBalance(GetAccount1());
@@ -84,9 +102,11 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         accountBalance2 = await GetBalance(GetAccount2());
         accountBalance2.Should().Be(118.55m);
         await VerifyLedgers(GetAccount2(), 100, -75, 105.55m, -12);
+
+        await objectBuild.DeleteAll(_context);
     }
 
-    private async Task AddLedgerToAccount(AccountInfo config, params decimal[] amounts)
+    private async Task AddLedgerToAccount(AccountDetail config, params decimal[] amounts)
     {
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
 
@@ -94,7 +114,8 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         {
             var ledger = new LedgerItem
             {
-                OwnerId = config.PrincipalId,
+                AccountId = config.AccountId,
+                OwnerId = config.OwnerId,
                 Description = "Ledger-" + Guid.NewGuid().ToString(),
                 Type = amount > 0 ? LedgerType.Credit : LedgerType.Debit,
                 Amount = Math.Abs(amount),
@@ -105,13 +126,13 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         }
     }
 
-    private async Task Transfer(TrxType type, decimal amount, AccountInfo from, AccountInfo to)
+    private async Task Transfer(TrxType type, decimal amount, AccountDetail from, AccountDetail to)
     {
         SoftBankTrxClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankTrxClient>();
 
         var request = new TrxRequest
         {
-            PrincipalId = from.PrincipalId,
+            PrincipalId = from.OwnerId,
             SourceAccountID = from.AccountId,
             DestinationAccountId = to.AccountId,
             Description = "test",
@@ -131,10 +152,10 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         trxResponse.DestinationLedgerItemId.Should().NotBeNullOrEmpty();
     }
 
-    private async Task<decimal> GetBalance(AccountInfo config)
+    private async Task<decimal> GetBalance(AccountDetail config)
     {
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
-        var balanceResult = await softBankClient.GetBalance(config.AccountId, config.PrincipalId, _context);
+        var balanceResult = await softBankClient.GetBalance(config.AccountId, config.OwnerId, _context);
         balanceResult.IsOk().Should().BeTrue();
 
         AccountBalance result = balanceResult.Return();
@@ -142,11 +163,11 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         return result.Balance;
     }
 
-    private async Task VerifyLedgers(AccountInfo config, params decimal[] amounts)
+    private async Task VerifyLedgers(AccountDetail config, params decimal[] amounts)
     {
         SoftBankClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
 
-        var response = await client.GetLedgerItems(config.AccountId, config.PrincipalId, _context);
+        var response = await client.GetLedgerItems(config.AccountId, config.OwnerId, _context);
         response.IsOk().Should().BeTrue();
 
         IReadOnlyList<LedgerItem> ledgerItems = response.Return();

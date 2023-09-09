@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;

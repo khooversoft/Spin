@@ -65,7 +65,7 @@ public class SetupTools
         var tenant = new TenantModel
         {
             TenantId = IdTool.CreateTenantId(nameId),
-            Name = nameId,
+            Domain = nameId,
             SubscriptionId = IdTool.CreateSubscriptionId(subscriptionId),
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
@@ -100,15 +100,17 @@ public class SetupTools
         var tenant = await CreateTenant(tenantId, subscriptionId, _context);
         tenant.IsOk().Should().BeTrue();
 
+        string userId = "user:" + principalId;
         var user = await CreateUser(principalId, _context);
 
-        Option<UserModel> readOption = await client.Get(principalId, _context);
+        Option<UserModel> readOption = await client.Get(userId, _context);
         readOption.IsOk().Should().BeTrue();
     }
 
     public async Task DeleteUser(string subscriptionId, string tenantId, string principalId)
     {
-        Option deleteOption = await DeleteUser(principalId, _context);
+        string userId = "user:" + principalId;
+        Option deleteOption = await DeleteUser(userId, _context);
         deleteOption.StatusCode.IsOk().Should().BeTrue();
 
         Option deleteTenantOption = await DeleteTenant(tenantId, _context);
@@ -128,7 +130,7 @@ public class SetupTools
 
         var createRequest = new AccountDetail
         {
-            DocumentId = accountId,
+            AccountId = accountId,
             OwnerId = principalId,
             Name = "test account",
             AccessRights = writeAccessPrincipalIds

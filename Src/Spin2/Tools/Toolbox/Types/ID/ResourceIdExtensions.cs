@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
@@ -24,7 +18,7 @@ public static class ResourceIdExtensions
         };
 
         path = path.TrimEnd('/');
-        string directory = path.Split('/').Func(x => x.Take(x.Length-1).Join('/'));
+        string directory = path.Split('/').Func(x => x.Take(x.Length - 1).Join('/'));
 
         string filePath = directory + "/" + path.Replace('/', '_') + ".json";
         return filePath;

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using SoftBank.sdk.Models;
+﻿using SoftBank.sdk.Models;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -95,7 +89,7 @@ internal record AccountOption
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.PrincipalId).NotEmpty()
         .RuleFor(x => x.WriteAccess).Must(x => x.IsEmpty() || x.Split(';').All(y => IdPatterns.IsPrincipalId(y)), x => $"Not valid principalIds: {x}")
-        .RuleForEach(x => x.LedgerItems).Validate(LedgerItemValidator.Validator)
+        .RuleForEach(x => x.LedgerItems).Validate(LedgerItem.Validator)
         .Build();
 }
 

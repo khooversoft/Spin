@@ -18,6 +18,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
     private readonly SetupTools _setupTools;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
+
     private Config[] _config = new[]
     {
         new Config("Company9Subscription", "company9.com", "user1@company9.com", "softbank:company9.com/account1"),
@@ -44,11 +45,11 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
 
         var newItems = new[]
 {
-            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
-            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 4", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { OwnerId = GetOwnerId2(), Description = "Ledger 5", Type = LedgerType.Debit, Amount = 20.00m },
+            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
+            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 4", Type = LedgerType.Credit, Amount = 55.15m },
+            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 5", Type = LedgerType.Debit, Amount = 20.00m },
         };
 
         foreach (var item in newItems)
@@ -95,8 +96,8 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
 
         var newItems = new[]
 {
-            new LedgerItem { OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
+            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
+            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
         };
 
         foreach (var item in newItems.WithIndex())
@@ -145,7 +146,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
 
         var createRequest = new AccountDetail
         {
-            DocumentId = accountId,
+            AccountId = accountId,
             OwnerId = principalId,
             Name = "test account",
             AccessRights = new[]

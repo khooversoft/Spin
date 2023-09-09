@@ -1,14 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.CommandLine;
+using System.Reflection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SpinAgent.Activities;
 using SpinAgent.Application;
 using SpinAgent.Commands;
-using System.CommandLine;
-using System.Reflection;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Local;
 
 try
 {
