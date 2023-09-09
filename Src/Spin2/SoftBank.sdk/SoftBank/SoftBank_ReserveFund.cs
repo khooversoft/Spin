@@ -70,7 +70,7 @@ internal class SoftBank_ReserveFund
 
     internal ILeaseActor GetLeaseActor() => ResourceId.Create(_parent.GetPrimaryKeyString()).ThrowOnError()
         .Bind(x => IdTool.CreateLeaseId(x.Domain.NotNull(), "softbank/" + x.Path.NotNull()))
-        .Bind(x => _clusterClient.GetLeaseActor(x))
+        .Bind(x => _clusterClient.GetResourceGrain<ILeaseActor>(x))
         .Return();
 
     private static LeaseCreate CreateLeaseRequest(decimal amount) => new LeaseCreate

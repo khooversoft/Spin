@@ -72,12 +72,12 @@ public class SoftBankActor : Grain, ISoftBankActor
     public Task<Option> ReleaseReserve(string leaseKey, string traceId) => _reserve.ReleaseReserve(leaseKey, traceId);
 
     internal ResourceId GetSoftBankContractId() => this.GetPrimaryKeyString().ToSoftBankContractId();
-    internal IContractActor GetContractActor() => _clusterClient.GetContractActor(GetSoftBankContractId());
+    internal IContractActor GetContractActor() => _clusterClient.GetResourceGrain<IContractActor>(GetSoftBankContractId());
 
     internal async Task<Option> Append<T>(T value, string principalId, ScopeContext context) where T : class
     {
         IContractActor contract = GetContractActor();
-        ISignatureActor signatureActor = _clusterClient.GetSignatureActor();
+        ISignatureActor signatureActor = _clusterClient.GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation);
 
         var dataBlock = await value.ToDataBlock(principalId).Sign(signatureActor, context);
         if (dataBlock.IsError()) return dataBlock.ToOptionStatus();

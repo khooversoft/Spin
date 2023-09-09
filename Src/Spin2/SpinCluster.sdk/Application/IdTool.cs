@@ -34,10 +34,6 @@ public static class IdTool
         var v => $"{SpinConstants.Schema.PrincipalPrivateKey}:{principalId}/{v}",
     };
 
-    public static ResourceId CreateContractId(string domain, string path) => $"{SpinConstants.Schema.Contract}:{domain}/{path}";
-
     public static ResourceId CreateLeaseId(string domain, string path) => $"{SpinConstants.Schema.Lease}:{domain}/{path}";
-    public static ResourceId CreateAgentId(string agentId) => $"{SpinConstants.Schema.Agent}:{agentId}";
-    public static ResourceId CreateSmartcId(string smartcId) => $"{SpinConstants.Schema.Smartc}:{smartcId}";
 }
 

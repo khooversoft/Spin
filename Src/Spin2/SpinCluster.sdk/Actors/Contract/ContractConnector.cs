@@ -42,7 +42,7 @@ public class ContractConnector
         documentId = Uri.UnescapeDataString(documentId);
         if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest();
 
-        Option response = await _client.GetContractActor(documentId).Delete(traceId);
+        Option response = await _client.GetResourceGrain<IContractActor>(documentId).Delete(traceId);
         return response.ToResult();
     }
 
@@ -51,7 +51,7 @@ public class ContractConnector
         documentId = Uri.UnescapeDataString(documentId);
         if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest();
 
-        Option response = await _client.GetContractActor(documentId).Exist(traceId);
+        Option response = await _client.GetResourceGrain<IContractActor>(documentId).Exist(traceId);
         return response.ToResult();
     }
 
@@ -59,7 +59,7 @@ public class ContractConnector
     {
         if (model.Validate().IsError()) return Results.BadRequest();
 
-        Option response = await _client.GetContractActor(model.DocumentId).Create(model, traceId);
+        Option response = await _client.GetResourceGrain<IContractActor>(model.DocumentId).Create(model, traceId);
         return response.ToResult();
     }
 
@@ -72,7 +72,7 @@ public class ContractConnector
             .Test(() => model.Validate());
         if (test.IsError()) return test.Option.ToResult();
 
-        Option<IReadOnlyList<DataBlock>> response = await _client.GetContractActor(documentId).Query(model, traceId);
+        Option<IReadOnlyList<DataBlock>> response = await _client.GetResourceGrain<IContractActor>(documentId).Query(model, traceId);
         return response.ToResult();
     }
 
@@ -85,7 +85,7 @@ public class ContractConnector
             .Test(() => content.Validate());
         if (test.IsError()) return test.Option.ToResult();
 
-        Option response = await _client.GetContractActor(documentId).Append(content, traceId);
+        Option response = await _client.GetResourceGrain<IContractActor>(documentId).Append(content, traceId);
         return response.ToResult();
     }
 
@@ -102,7 +102,7 @@ public class ContractConnector
             .Test(() => IdPatterns.IsPrincipalId(principalId));
         if (test.IsError()) return test.Option.ToResult();
 
-        Option<ContractPropertyModel> response = await _client.GetContractActor(documentId).GetProperties(principalId, traceId);
+        Option<ContractPropertyModel> response = await _client.GetResourceGrain<IContractActor>(documentId).GetProperties(principalId, traceId);
         return response.ToResult();
     }
 }

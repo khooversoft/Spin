@@ -39,7 +39,7 @@ public class LeaseConnector
         leaseId = Uri.UnescapeDataString(leaseId);
         if (!IdPatterns.IsLeaseId(leaseId)) return Results.BadRequest();
 
-        Option<LeaseData> response = await _client.GetLeaseActor(leaseId).Acquire(model, traceId);
+        Option<LeaseData> response = await _client.GetResourceGrain<ILeaseActor>(leaseId).Acquire(model, traceId);
         return response.ToResult();
     }
 
@@ -53,7 +53,7 @@ public class LeaseConnector
             .Test(() => IdPatterns.IsName(leaseKey));
         if (test.IsError()) return Results.BadRequest();
 
-        Option response = await _client.GetLeaseActor(leaseId).Release(leaseKey, traceId);
+        Option response = await _client.GetResourceGrain<ILeaseActor>(leaseId).Release(leaseKey, traceId);
         return response.ToResult();
     }
 
@@ -67,7 +67,7 @@ public class LeaseConnector
             .Test(() => IdPatterns.IsName(leaseKey));
         if (test.IsError()) return Results.BadRequest();
 
-        Option response = await _client.GetLeaseActor(leaseId).IsLeaseValid(leaseKey, traceId);
+        Option response = await _client.GetResourceGrain<ILeaseActor>(leaseId).IsLeaseValid(leaseKey, traceId);
         return response.ToResult();
     }
 
@@ -76,7 +76,7 @@ public class LeaseConnector
         leaseId = Uri.UnescapeDataString(leaseId);
         if (!IdPatterns.IsLeaseId(leaseId)) return Results.BadRequest();
 
-        Option<IReadOnlyList<LeaseData>> response = await _client.GetLeaseActor(leaseId).List(traceId);
+        Option<IReadOnlyList<LeaseData>> response = await _client.GetResourceGrain<ILeaseActor>(leaseId).List(traceId);
         return response.ToResult();
     }
 }

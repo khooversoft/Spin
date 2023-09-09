@@ -40,7 +40,7 @@ public class UserConnector
         userId = Uri.UnescapeDataString(userId);
         if (!ResourceId.IsValid(userId, ResourceType.Owned, "user")) return Results.BadRequest();
 
-        Option response = await _client.GetUserActor(userId).Delete(traceId);
+        Option response = await _client.GetResourceGrain<IUserActor>(userId).Delete(traceId);
         return response.ToResult();
     }
 
@@ -49,7 +49,7 @@ public class UserConnector
         userId = Uri.UnescapeDataString(userId);
         if (!ResourceId.IsValid(userId, ResourceType.Owned, "user")) return Results.BadRequest();
 
-        Option<UserModel> response = await _client.GetUserActor(userId).Get(traceId);
+        Option<UserModel> response = await _client.GetResourceGrain<IUserActor>(userId).Get(traceId);
         return response.ToResult();
     }
 
@@ -60,7 +60,7 @@ public class UserConnector
         if (v.IsError()) return v.ToResult();
 
         ResourceId resourceId = ResourceId.Create(model.UserId).Return();
-        var response = await _client.GetUserActor(resourceId).Create(model, traceId);
+        var response = await _client.GetResourceGrain<IUserActor>(resourceId).Create(model, traceId);
         return response.ToResult();
     }
 
@@ -71,7 +71,7 @@ public class UserConnector
         if (v.IsError()) return v.ToResult();
 
         ResourceId resourceId = ResourceId.Create(model.UserId).Return();
-        var response = await _client.GetUserActor(resourceId).Update(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IUserActor>(resourceId).Update(model, context.TraceId);
         return response.ToResult();
     }
 
@@ -82,7 +82,7 @@ public class UserConnector
         if (v.IsError()) return v.ToResult();
 
         ResourceId resourceId = IdTool.CreateUserId(model.PrincipalId);
-        var response = await _client.GetUserActor(resourceId).SignDigest(model.MessageDigest, context.TraceId);
+        var response = await _client.GetResourceGrain<IUserActor>(resourceId).SignDigest(model.MessageDigest, context.TraceId);
         return response.ToResult();
     }
 }

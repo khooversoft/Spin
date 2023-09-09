@@ -60,7 +60,7 @@ public class PrincipalKeyConnector
         }
 
         ResourceId resourceId = IdTool.CreatePublicKeyId(principalId, path);
-        Option<PrincipalKeyModel> response = await _client.GetPublicKeyActor(resourceId).Get(traceId);
+        Option<PrincipalKeyModel> response = await _client.GetResourceGrain<IPrincipalKeyActor>(resourceId).Get(traceId);
         return response.ToResult();
     }
 
@@ -71,7 +71,7 @@ public class PrincipalKeyConnector
         if (v.IsError()) return Results.BadRequest(v.Error);
 
         ResourceId resourceId = ResourceId.Create(model.PrincipalKeyId).Return();
-        var response = await _client.GetPublicKeyActor(resourceId).Create(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(resourceId).Create(model, context.TraceId);
         return response.ToResult();
     }
 
@@ -82,7 +82,7 @@ public class PrincipalKeyConnector
         Option<ResourceId> option = ResourceId.Create(model.PrincipalKeyId).LogResult(context.Location());
         if (option.IsError()) option.ToResult();
 
-        var response = await _client.GetPublicKeyActor(option.Return()).Update(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(option.Return()).Update(model, context.TraceId);
         return response.ToResult();
     }
 }

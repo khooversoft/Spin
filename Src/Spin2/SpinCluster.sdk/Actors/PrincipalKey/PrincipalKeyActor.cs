@@ -58,7 +58,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         Option<ResourceId> privateKey = ResourceId.Create(principalPrivateKeyId);
         if (privateKey.IsError()) return privateKey.ToOptionStatus();
 
-        await _clusterClient.GetPrivateKeyActor(privateKey.Return()).Delete(context.TraceId);
+        await _clusterClient.GetResourceGrain<IPrincipalPrivateKeyActor>(privateKey.Return()).Delete(context.TraceId);
 
         return StatusCode.OK;
     }
@@ -69,7 +69,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
 
         if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
 
-        var privateKeyExist = await _clusterClient.GetPrivateKeyActor(_state.State.PrincipalPrivateKeyId).Exist(context.TraceId);
+        var privateKeyExist = await _clusterClient.GetResourceGrain<IPrincipalPrivateKeyActor>(_state.State.PrincipalPrivateKeyId).Exist(context.TraceId);
         return privateKeyExist;
     }
 
@@ -165,7 +165,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
             PrivateKey = rsaKey.PrivateKey.ToArray(),
         };
 
-        var privateKeyActor = _clusterClient.GetPrivateKeyActor(model.PrincipalPrivateKeyId);
+        var privateKeyActor = _clusterClient.GetResourceGrain<IPrincipalPrivateKeyActor>(model.PrincipalPrivateKeyId);
 
         var existPrivagteKey = await privateKeyActor.Exist(context.TraceId);
         if (existPrivagteKey.IsOk())

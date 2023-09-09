@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
+using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Security.Sign;
@@ -56,7 +58,7 @@ public class UserActor : Grain, IUserActor
         string publicKeyId = _state.State.UserKey.PublicKeyId;
         await _state.ClearStateAsync();
 
-        await _clusterClient.GetPublicKeyActor(publicKeyId).Delete(context.TraceId);
+        await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(publicKeyId).Delete(context.TraceId);
 
         return StatusCode.OK;
     }
@@ -66,7 +68,7 @@ public class UserActor : Grain, IUserActor
         if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
 
         ResourceId resourceId = IdTool.CreatePublicKeyId(_state.State.PrincipalId);
-        var publicKeyExist = await _clusterClient.GetPublicKeyActor(resourceId).Delete(traceId);
+        var publicKeyExist = await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(resourceId).Delete(traceId);
 
         return publicKeyExist;
     }
@@ -147,7 +149,7 @@ public class UserActor : Grain, IUserActor
 
         ResourceId privateKeyId = _state.State.UserKey.PrivateKeyId;
 
-        Option<string> signResponse = await _clusterClient.GetPrivateKeyActor(privateKeyId)
+        Option<string> signResponse = await _clusterClient.GetResourceGrain<IPrincipalPrivateKeyActor>(privateKeyId)
             .Sign(messageDigest, traceId)
             .LogResult(context.Location());
 
@@ -179,7 +181,7 @@ public class UserActor : Grain, IUserActor
         if (!IdPatterns.IsDomain(tenantId)) return StatusCode.BadRequest;
 
         var id = IdTool.CreateTenantId(tenantId);
-        Option isTenantActive = await _clusterClient.GetTenantActor(id).Exist(context.TraceId);
+        Option isTenantActive = await _clusterClient.GetResourceGrain<ITenantActor>(id).Exist(context.TraceId);
 
         if (isTenantActive.IsError())
         {
@@ -201,7 +203,7 @@ public class UserActor : Grain, IUserActor
             PrincipalPrivateKeyId = model.UserKey.PrivateKeyId,
         };
 
-        var createOption = await _clusterClient.GetPublicKeyActor(keyCreate.PrincipalKeyId).Create(keyCreate, context.TraceId);
+        var createOption = await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(keyCreate.PrincipalKeyId).Create(keyCreate, context.TraceId);
         return createOption;
     }
 }

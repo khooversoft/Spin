@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
@@ -42,7 +43,10 @@ public class SignatureConnector
         var validation = model.Validate().LogResult(context.Location());
         if (validation.IsError()) return validation.ToResult();
 
-        var result = await _clusterClient.GetSignatureActor().SignDigest(model.PrincipalId, model.MessageDigest, traceId);
+        var result = await _clusterClient
+            .GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation)
+            .SignDigest(model.PrincipalId, model.MessageDigest, traceId);
+
         return result.ToResult();
     }
 
@@ -52,7 +56,10 @@ public class SignatureConnector
         var validation = model.Validate().LogResult(context.Location());
         if (validation.IsError()) return validation.ToResult();
 
-        var result = await _clusterClient.GetSignatureActor().ValidateDigest(model.JwtSignature, model.MessageDigest, traceId);
+        var result = await _clusterClient
+            .GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation)
+            .ValidateDigest(model.JwtSignature, model.MessageDigest, traceId);
+
         return result.ToResult();
     }
 }

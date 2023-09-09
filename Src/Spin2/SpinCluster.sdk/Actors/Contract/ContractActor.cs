@@ -79,7 +79,7 @@ public class ContractActor : Grain, IContractActor
             .Test(() => model.Validate().LogResult(context.Location()));
         if (test.IsError()) return test;
 
-        ISignatureActor signature = _clusterClient.GetSignatureActor();
+        ISignatureActor signature = _clusterClient.GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation);
 
         Option<BlockChain> blockChain = await new BlockChainBuilder()
             .SetDocumentId(model.DocumentId)
@@ -236,7 +236,7 @@ public class ContractActor : Grain, IContractActor
     {
         context.Location().LogInformation("Verifying signatures in block chain");
 
-        ISignatureActor signature = _clusterClient.GetSignatureActor();
+        ISignatureActor signature = _clusterClient.GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation);
         var result = await blockChain.ValidateBlockChain(signature, context).LogResult(context.Location());
 
         return result;

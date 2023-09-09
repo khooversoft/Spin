@@ -44,7 +44,7 @@ public class PrincipalPrivateKeyConnector
         }
 
         ResourceId resourceId = IdTool.CreatePrivateKeyId(principalId, path);
-        Option response = await _client.GetPrivateKeyActor(resourceId).Delete(context.TraceId);
+        Option response = await _client.GetResourceGrain<IPrincipalPrivateKeyActor>(resourceId).Delete(context.TraceId);
         return response.ToResult();
     }
 
@@ -59,7 +59,7 @@ public class PrincipalPrivateKeyConnector
         }
 
         ResourceId resourceId = IdTool.CreatePrivateKeyId(principalId, path);
-        Option<PrincipalPrivateKeyModel> response = await _client.GetPrivateKeyActor(resourceId).Get(context.TraceId);
+        Option<PrincipalPrivateKeyModel> response = await _client.GetResourceGrain<IPrincipalPrivateKeyActor>(resourceId).Get(context.TraceId);
         return response.ToResult();
     }
 
@@ -70,7 +70,7 @@ public class PrincipalPrivateKeyConnector
         if (v.IsError()) return Results.BadRequest(v.Error);
 
         ResourceId resourceId = ResourceId.Create(model.PrincipalPrivateKeyId).Return();
-        var response = await _client.GetPrivateKeyActor(resourceId).Set(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IPrincipalPrivateKeyActor>(resourceId).Set(model, context.TraceId);
         return response.ToResult();
     }
 }

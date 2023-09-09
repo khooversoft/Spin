@@ -3,9 +3,7 @@
 public static class SpinConstants
 {
     public const string SpinStateStore = "spinStateStore";
-    public const string SchemaSearch = "schemaSearch";
-    public const string SignValidation = "signValidation";
-    public const string Directory = "directory";
+    public const string SignValidation = "system:signValidation";
     public const string Scheduler = "system:scheduler";
 
     public const string Folder = "folder";

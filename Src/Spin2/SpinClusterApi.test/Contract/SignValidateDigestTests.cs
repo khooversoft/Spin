@@ -99,7 +99,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         };
 
         var validation = await signatureClient.ValidateDigest(validationRequest, _context);
-        validation.IsOk().Should().BeTrue();
+        validation.IsOk().Should().BeTrue(validation.StatusCode.ToString());
 
         var badValidationRequest = new SignValidateRequest
         {
