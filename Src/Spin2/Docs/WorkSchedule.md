@@ -11,8 +11,6 @@ The basic flow for a SmartC to get executed is...
 1. SmartC tells it's actor the results of its operation.
 
 
-SmartC's Actor key is "smartc-exe:domain/contractId"
-
 Notes:
 1. Agent actor controls the work for it's running agent, including setup details in SmartC's actor.
 1. SmartC only communicates with its Actor

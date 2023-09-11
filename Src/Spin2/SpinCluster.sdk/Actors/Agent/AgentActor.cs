@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Data;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Smartc;
@@ -85,18 +86,27 @@ public class AgentActor : Grain, IAgentActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Get assignment, actorKey={actorKey}", this.GetPrimaryKeyString());
 
+        var test = new OptionTest()
+            .Test(() => _state.RecordExists)
+            .Test(() => _state.State.IsActive)
+            .Build(StatusCode.ServiceUnavailable, $"Agent {this.GetPrimaryKeyString()} not enabled");
+        if (test.IsError()) return test.Option.ToOptionStatus<AgentAssignmentModel>();
+
         Option<ScheduleWorkModel> assignOption = await _clusterClient
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .AssignWork(this.GetPrimaryKeyString(), context.TraceId);
 
         if (assignOption.IsError()) return assignOption.ToOptionStatus<AgentAssignmentModel>();
 
+        ScheduleWorkModel scheduleWorkModel = assignOption.Return();
+
         var model = new AgentAssignmentModel
         {
             AgentId = this.GetPrimaryKeyString(),
-            WorkId = this.GetPrimaryKeyString(),
-            SmartcId = assignOption.Return().SmartcId,
-            Command = assignOption.Return().Command,
+            WorkId = scheduleWorkModel.WorkId,
+            SmartcId = scheduleWorkModel.SmartcId,
+            CommandType = scheduleWorkModel.CommandType,
+            Command = scheduleWorkModel.Command,
         };
 
         var smartcOption = await _clusterClient

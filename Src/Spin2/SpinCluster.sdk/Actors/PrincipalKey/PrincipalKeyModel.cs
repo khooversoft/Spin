@@ -14,11 +14,10 @@ public sealed record PrincipalKeyModel
     [Id(4)] public string Audience { get; init; } = null!;
     [Id(5)] public byte[] PublicKey { get; init; } = Array.Empty<byte>();
     [Id(6)] public string PrincipalPrivateKeyId { get; init; } = null!;
-    [Id(7)] public bool AccountEnabled { get; init; } = false;
+    [Id(7)] public bool Enabled { get; init; }
     [Id(8)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(9)] public DateTime? ActiveDate { get; init; }
 
-    public bool IsActive => AccountEnabled && ActiveDate != null;
+    public bool IsActive => Enabled;
 
     public bool Equals(PrincipalKeyModel? obj) => obj is PrincipalKeyModel document &&
         PrincipalKeyId == document.PrincipalKeyId &&
@@ -28,9 +27,8 @@ public sealed record PrincipalKeyModel
         Audience == document.Audience &&
         PublicKey.SequenceEqual(document.PublicKey) &&
         PrincipalPrivateKeyId == document.PrincipalPrivateKeyId &&
-        AccountEnabled == document.AccountEnabled &&
-        CreatedDate == document.CreatedDate &&
-        ActiveDate == document.ActiveDate;
+        Enabled == document.Enabled &&
+        CreatedDate == document.CreatedDate;
 
     public override int GetHashCode() => HashCode.Combine(KeyId, KeyId, PrincipalId, Name, Audience, PrincipalPrivateKeyId);
 }

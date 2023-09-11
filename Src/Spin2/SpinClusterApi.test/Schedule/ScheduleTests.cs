@@ -19,42 +19,48 @@ namespace SpinClusterApi.test.Schedule;
 
 public class ScheduleTests : IClassFixture<ClusterApiFixture>
 {
-    private const string _agentId = "agent:testAgent";
+    private const string _agentId = "agent:test-agent";
+    private const string _smartcId = "smartc:company30.com/contract";
 
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
 
     public ScheduleTests(ClusterApiFixture fixture) => _cluster = fixture;
 
-    //[Fact]
-    //public async Task SingleScheduleWithAgentAndSmartC()
-    //{
-    //    ObjectBuilderOption option = ObjectBuilderOptionTool
-    //        .ReadFromResource(typeof(ScheduleTests), "SpinClusterApi.test.Schedule.ScheduleSetup.json");
+    [Fact]
+    public async Task SingleScheduleWithAgentAndSmartC()
+    {
+        ObjectBuilderOption option = ObjectBuilderOptionTool
+            .ReadFromResource(typeof(ScheduleTests), "SpinClusterApi.test.Schedule.ScheduleSetup.json");
 
-    //    await BuildData(option);
-    //    await ScheduleWork(option);
+        await BuildData(option);
+        await ScheduleWork(option);
 
-    //    AgentAssignmentModel assignment = await Agent_AskForWork();
-    //    await SmartcRunning(option, assignment.SmartcId);
-    //}
+        AgentAssignmentModel assignment = await Agent_AskForWork();
+        await SmartcRunning(option, assignment.SmartcId);
+    }
 
     private async Task BuildData(ObjectBuilderOption option)
     {
-        await new TestObjectBuilder()
+        Option result = await new TestObjectBuilder()
             .SetOption(option)
             .SetService(_cluster.ServiceProvider)
             .AddStandard()
             .Build(_context);
+
+        result.IsOk().Should().BeTrue(result.Error);
     }
 
     private async Task ScheduleWork(ObjectBuilderOption option)
     {
         ScheduleClient client = _cluster.ServiceProvider.GetRequiredService<ScheduleClient>();
 
+        var clearOption = await client.Clear("admin@domain.com", _context);
+        clearOption.IsOk().Should().BeTrue();
+
         var work = new ScheduleWorkModel
         {
-            SmartcId = option.Accounts.First().AccountId,
+            SmartcId = _smartcId,
             SourceId = "test",
             Command = "ping",
         };
@@ -73,27 +79,27 @@ public class ScheduleTests : IClassFixture<ClusterApiFixture>
         return agentResponseOption.Return();
     }
 
-    private async Task SmartcRunning(ObjectBuilderOption option, string contractId)
+    private async Task SmartcRunning(ObjectBuilderOption option, string smartcId)
     {
         SmartcClient client = _cluster.ServiceProvider.GetRequiredService<SmartcClient>();
 
         // Get assignment
-        Option<AgentAssignmentModel> modelOption = await client.GetAssignment(contractId, _context);
-        modelOption.IsError().Should().BeTrue();
+        Option<AgentAssignmentModel> modelOption = await client.GetAssignment(smartcId, _context);
+        modelOption.IsOk().Should().BeTrue();
 
         AgentAssignmentModel assignment = modelOption.Return();
         assignment.Should().NotBeNull();
 
         assignment!.AgentId.Should().Be(_agentId);
         assignment.WorkId.Should().NotBeNullOrEmpty();
-        assignment.SmartcId.Should().Be(contractId);
+        assignment.SmartcId.Should().Be(smartcId);
         assignment.CommandType.Should().Be("args");
         assignment.Command.Should().Be("ping");
 
         // Set run state
         var model = new SmartcRunResultModel
         {
-            SmartcId = option.Accounts.First().AccountId,
+            SmartcId = _smartcId,
             StatusCode = StatusCode.OK,
             Message = "completed",
         };

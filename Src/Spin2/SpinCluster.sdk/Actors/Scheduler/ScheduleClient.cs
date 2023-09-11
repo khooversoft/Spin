@@ -16,6 +16,12 @@ public class ScheduleClient
         .GetAsync(context)
         .ToOption();
 
+    public async Task<Option> Clear(string principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(principalId)}/clear")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .DeleteAsync(context)
+        .ToOption();
+
     public async Task<Option> CompletedWork(string workId, RunResultModel runResult, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(workId)}/completed")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)

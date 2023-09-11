@@ -11,6 +11,8 @@ public record AgentModel
     [Id(1)] public DateTime Registered { get; init; } = DateTime.UtcNow;
     [Id(2)] public bool Enabled { get; init; }
 
+    public bool IsActive => Enabled;
+
     public static IValidator<AgentModel> Validator { get; } = new Validator<AgentModel>()
         .RuleFor(x => x.AgentId).ValidResourceId(ResourceType.System, "agent")
         .Build();

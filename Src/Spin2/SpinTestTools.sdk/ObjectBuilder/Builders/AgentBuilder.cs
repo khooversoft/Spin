@@ -12,16 +12,11 @@ public class AgentBuilder : IObjectBuilder
 
         var test = new OptionTest();
 
-        foreach (var item in option.Agents)
+        foreach (var model in option.Agents)
         {
-            var model = item with
-            {
-                Enabled = true,
-            };
-
             Option setOption = await client.Set(model, context);
 
-            context.Trace().LogStatus(setOption, "Creating Agent agentId={agentId}", item.AgentId);
+            context.Trace().LogStatus(setOption, "Creating Agent agentId={agentId}", model.AgentId);
             test.Test(() => setOption);
         }
 

@@ -40,7 +40,7 @@ public class PrincipalPrivateKeyTests : IClassFixture<ClusterApiFixture>
             Name = "test",
             Audience = "audience",
             PrivateKey = rsaKey.PrivateKey,
-            AccountEnabled = true,
+            Enabled = true,
         };
 
         Option setOption = await client.Set(model, _context);

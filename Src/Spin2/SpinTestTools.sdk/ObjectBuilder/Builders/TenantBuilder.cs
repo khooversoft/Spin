@@ -12,17 +12,11 @@ public class TenantBuilder : IObjectBuilder
 
         var test = new OptionTest();
 
-        foreach (var item in option.Tenants)
+        foreach (var tenant in option.Tenants)
         {
-            var tenant = item with
-            {
-                AccountEnabled = true,
-                ActiveDate = DateTime.UtcNow,
-            };
+            Option setOption = await client.Set((TenantModel)tenant, context);
 
-            Option setOption = await client.Set(tenant, context);
-
-            context.Trace().LogStatus(setOption, "Creating Tenant domain={domain}", item.Domain);
+            context.Trace().LogStatus(setOption, "Creating Tenant domain={domain}", tenant.Domain);
             test.Test(() => setOption);
         }
 

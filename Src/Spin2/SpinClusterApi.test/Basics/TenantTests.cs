@@ -60,8 +60,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
 
-            AccountEnabled = true,
-            ActiveDate = DateTime.UtcNow,
+            Enabled = true,
         };
 
         Option setOption = await client.Set(tenant, context);

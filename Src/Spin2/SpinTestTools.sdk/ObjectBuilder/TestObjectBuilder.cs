@@ -67,6 +67,7 @@ public class TestObjectBuilder
         foreach (var item in Builders.Reverse())
         {
             await test.TestAsync(async () => await item.Delete(Service, Option, context));
+            test.Assert(x => x.Option.IsOk(), $"Could not delete {item}");
         }
 
         return test;
@@ -81,6 +82,7 @@ public class TestObjectBuilder
         foreach (var item in Builders)
         {
             await test.TestAsync(async () => await item.Create(Service, Option, context));
+            test.Assert(x => x.Option.IsOk(), $"Could not create {item}");
         }
 
         return test;

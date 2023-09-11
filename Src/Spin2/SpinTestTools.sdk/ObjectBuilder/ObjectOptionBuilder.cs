@@ -39,7 +39,8 @@ public class ObjectOptionBuilder
                 SubscriptionId = "subscription:" + x,
                 Name = x,
                 ContactName = x + " contract",
-                Email = "user1@domain.com"
+                Email = "user1@domain.com",
+                Enabled = true,
             }).ToList(),
 
             Tenants = Tenants.Select(x => new TenantModel
@@ -49,6 +50,7 @@ public class ObjectOptionBuilder
                 SubscriptionId = "subscription:" + x.Subscription,
                 ContactName = "contact name",
                 Email = "user@" + x.Tenant,
+                Enabled = true,
 
             }).ToList(),
 

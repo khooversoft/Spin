@@ -26,7 +26,7 @@ public class SmartcConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Smartc}");
 
-        group.MapPost("/completed", SetAssignment);
+        group.MapPost("/completed", CompletedWork);
         group.MapDelete("/{smartcId}", Delete);
         group.MapGet("/{smartcId}/exist", Exist);
         group.MapGet("/{smartcId}", Get);

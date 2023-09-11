@@ -35,8 +35,7 @@ public class SetupTools
             Name = nameId,
             ContactName = nameId + "contact",
             Email = "user1@company1.com",
-            AccountEnabled = true,
-            ActiveDate = DateTime.UtcNow,
+            Enabled = true,
         };
 
         Option setOption = await client.Set(subscription, context);
@@ -70,8 +69,7 @@ public class SetupTools
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
 
-            AccountEnabled = true,
-            ActiveDate = DateTime.UtcNow,
+            Enabled = true,
         };
 
         Option setOption = await client.Set(tenant, context);

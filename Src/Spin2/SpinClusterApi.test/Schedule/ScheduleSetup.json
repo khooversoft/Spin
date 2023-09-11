@@ -4,29 +4,33 @@
       "SubscriptionId": "subscription:Company40Subscription",
       "Name": "Company40Subscription",
       "ContactName": "Company 40 contact name",
-      "Email": "admin@company40.com"
+      "Email": "admin@company40.com",
+      "Enabled": true
     },
     {
       "SubscriptionId": "subscription:Company41Subscription",
       "Name": "Company41Subscription",
       "ContactName": "Company 41 contact name",
-      "Email": "admin@company41.com"
+      "Email": "admin@company41.com",
+      "Enabled": true
     }
   ],
   "Tenants": [
     {
       "TenantId": "tenant:company40.com",
-      "Subscription": "Company40Subscription",
+      "SubscriptionId": "subscription:Company40Subscription",
       "Domain": "company40.com",
       "ContactName": "Admin",
-      "Email": "admin@company40.com"
+      "Email": "admin@company40.com",
+      "Enabled": true
     },
     {
       "TenantId": "tenant:company41.com",
-      "Subscription": "Company41Subscription",
+      "SubscriptionId": "subscription:Company41Subscription",
       "Domain": "company41.com",
       "ContactName": "Admin",
-      "Email": "admin@company41.com"
+      "Email": "admin@company41.com",
+      "Enabled": true
     }
   ],
   "Users": [
@@ -49,12 +53,12 @@
     {
       "AccountId": "softbank:company40.com/account1",
       "Name": "Company 40 account1",
-      "PrincipalId": "user1@company40.com"
+      "OwnerId": "user1@company40.com"
     },
     {
       "AccountId": "softbank:company41.com/account2",
       "Name": "Company 41 account2",
-      "PrincipalId": "user2@company41.com",
+      "OwnerId": "user2@company41.com",
       "AccessRights": [
         {
           "Grant": "ReadWrite",
@@ -73,7 +77,7 @@
       "Amount": 100.00
     },
     {
-      "AccountId": "softbank:company41.com/account1",
+      "AccountId": "softbank:company41.com/account2",
       "OwnerId": "user2@company41.com",
       "Description": "Initial deposit",
       "Type": "Credit",
@@ -82,12 +86,16 @@
   ],
   "Agents": [
     {
-      "AgentId": "agent:testAgent"
+      "AgentId": "agent:test-agent",
+      "Enabled": true
     }
   ],
   "SmartcItems": [
     {
-      "SmartcId": "smartc:company30.com/package1"
+      "SmartcId": "smartc:company30.com/contract",
+      "SmartcExeId": "smartc-exe:company30.com/package1V1",
+      "ContractId": "contract:company30.com/loan/contract1",
+      "Enabled": true
     }
   ]
 }

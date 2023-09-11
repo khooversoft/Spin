@@ -16,11 +16,10 @@ public sealed record SubscriptionModel
     [Id(4)] public string ContactName { get; init; } = null!;
     [Id(5)] public string Email { get; init; } = null!;
     [Id(7)] public IReadOnlyList<string> Tenants { get; init; } = Array.Empty<string>();
-    [Id(8)] public bool AccountEnabled { get; init; } = false;
+    [Id(8)] public bool Enabled { get; init; }
     [Id(9)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(10)] public DateTime? ActiveDate { get; init; }
 
-    public bool IsActive => AccountEnabled && ActiveDate != null;
+    public bool IsActive => Enabled;
 
     public bool Equals(SubscriptionModel? obj) => obj is SubscriptionModel document &&
         SubscriptionId == document.SubscriptionId &&
@@ -30,13 +29,13 @@ public sealed record SubscriptionModel
         ContactName == document.ContactName &&
         Email == document.Email &&
         Tenants.SequenceEqual(document.Tenants) &&
-        AccountEnabled == document.AccountEnabled &&
-        CreatedDate == document.CreatedDate &&
-        ActiveDate == document.ActiveDate;
+        Enabled == document.Enabled &&
+        CreatedDate == document.CreatedDate;
 
     public override int GetHashCode() => HashCode.Combine(SubscriptionId, GlobalId, Name, ContactName);
+
     public static IValidator<SubscriptionModel> Validator { get; } = new Validator<SubscriptionModel>()
-        .RuleFor(x => x.SubscriptionId).ValidResourceId(ResourceType.System)
+        .RuleFor(x => x.SubscriptionId).ValidResourceId(ResourceType.System, "subscription")
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
         .RuleFor(x => x.Name).ValidName()

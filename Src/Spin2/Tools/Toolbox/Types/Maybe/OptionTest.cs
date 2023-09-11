@@ -1,14 +1,29 @@
 ﻿using System.Diagnostics;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 [DebuggerDisplay("StatusCode={Option.StatusCode}, Error={Option.Error}")]
 public class OptionTest
 {
-    public Option Option { get; set; } = StatusCode.OK;
+    public Option Option { get; private set; } = StatusCode.OK;
 
     public StatusCode StatusCode => Option.StatusCode;
     public string? Error => Option.Error;
+
+    public OptionTest Build(StatusCode? errorCode = null, string? errorMessage = null)
+    {
+        if (errorMessage != null && Option.IsError())
+        {
+            Option = new Option(
+                errorCode ?? Option.StatusCode, 
+                Option.Error.IsEmpty() ? errorMessage : errorMessage + ", " + Option.Error
+                );
+        }
+
+        return this;
+    }
 
     public OptionTest Test(Func<bool> test)
     {

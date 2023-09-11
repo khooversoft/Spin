@@ -25,9 +25,10 @@ public class ScheduleConnection
 
     public virtual RouteGroupBuilder Setup(IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Contract}");
+        RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Scheduler}");
 
         group.MapGet("/{agentId}/assign", AssignWork);
+        group.MapDelete("/{principalId}/clear", Clear);
         group.MapPost("/{workId}/completed", CompletedWork);
         group.MapPost("enqueue", EnqueueSchedule);
         group.MapGet("/detail", GetDetail);
@@ -43,6 +44,17 @@ public class ScheduleConnection
         var response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .AssignWork(agentId, traceId);
+
+        return response.ToResult();
+    }
+
+    private async Task<IResult> Clear(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        if (principalId.IsEmpty()) return Results.BadRequest();
+
+        var response = await _client
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .Clear(principalId, traceId);
 
         return response.ToResult();
     }

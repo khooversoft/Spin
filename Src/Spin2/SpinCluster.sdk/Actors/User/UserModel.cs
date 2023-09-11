@@ -23,10 +23,9 @@ public sealed record UserModel
     [Id(6)] public string LastName { get; init; } = null!;
     [Id(8)] public bool AccountEnabled { get; init; } = false;
     [Id(9)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(10)] public DateTime? ActiveDate { get; init; }
-    [Id(11)] public UserKeyModel UserKey { get; init; } = null!;
+    [Id(10)] public UserKeyModel UserKey { get; init; } = null!;
 
-    public bool IsActive => AccountEnabled && ActiveDate != null;
+    public bool IsActive => AccountEnabled;
 
     public bool Equals(UserModel? obj) => obj is UserModel document &&
         UserId == document.UserId &&
@@ -38,7 +37,6 @@ public sealed record UserModel
         LastName == document.LastName &&
         AccountEnabled == document.AccountEnabled &&
         CreatedDate == document.CreatedDate &&
-        ActiveDate == document.ActiveDate &&
         UserKey == document.UserKey;
 
     public override int GetHashCode() => HashCode.Combine(UserId, GlobalId, DisplayName, DisplayName);

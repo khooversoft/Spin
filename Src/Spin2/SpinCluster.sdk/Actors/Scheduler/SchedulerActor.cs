@@ -15,6 +15,7 @@ namespace SpinCluster.sdk.Actors.Smartc;
 public interface ISchedulerActor : IGrainWithStringKey
 {
     Task<Option<ScheduleWorkModel>> AssignWork(string agentId, string traceId);
+    Task<Option> Clear(string principalId, string traceId);
     Task<Option> CompletedWork(string workId, RunResultModel runResult, string traceId);
     Task<Option> EnqueueSchedule(ScheduleWorkModel work, string traceId);
     Task<Option<ScheduleWorkModel>> GetDetail(string workId, string traceId);
@@ -44,7 +45,7 @@ public class SchedulerActor : Grain, ISchedulerActor
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.VerifySchema(SpinConstants.Schema.Scheduler, new ScopeContext(_logger));
+        this.GetPrimaryKeyString().Assert(x => x == SpinConstants.Scheduler, x => $"Actor key {x} is invalid, must match {SpinConstants.Scheduler}");
         if (_state.RecordExists) Validate();
 
         return base.OnActivateAsync(cancellationToken);
@@ -59,8 +60,8 @@ public class SchedulerActor : Grain, ISchedulerActor
         await CleanQueue(context);
 
         // Verify agent is registered and active
-        Option agentLookup = await _clusterClient.GetResourceGrain<IAgentActor>(agentId).IsActive(context.TraceId);
-        if (agentLookup.IsError()) return agentLookup.ToOptionStatus<ScheduleWorkModel>();
+        //Option agentLookup = await _clusterClient.GetResourceGrain<IAgentActor>(agentId).IsActive(context.TraceId);
+        //if (agentLookup.IsError()) return agentLookup.ToOptionStatus<ScheduleWorkModel>();
 
         // Is there any work?
         Option<(ScheduleWorkModel Item, int Index)> work = _state.State
@@ -80,6 +81,20 @@ public class SchedulerActor : Grain, ISchedulerActor
         };
 
         await ValidateAndWrite();
+        return mod;
+    }
+
+    public async Task<Option> Clear(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Clear queue, actorKey={actorKey}", this.GetPrimaryKeyString());
+        if (!ResourceId.IsValid(principalId, ResourceType.Principal)) return StatusCode.BadRequest;
+
+        if (!_state.RecordExists) return StatusCode.OK;
+
+        _state.State = new SchedulesModel();
+        await _state.WriteStateAsync();
+
         return StatusCode.OK;
     }
 

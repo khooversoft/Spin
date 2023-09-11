@@ -180,7 +180,7 @@ public class UserActor : Grain, IUserActor
         string tenantId = user.Return().Domain!;
         if (!IdPatterns.IsDomain(tenantId)) return StatusCode.BadRequest;
 
-        var id = IdTool.CreateTenantId(tenantId);
+        var id = $"{SpinConstants.Schema.Tenant}:{tenantId}";
         Option isTenantActive = await _clusterClient.GetResourceGrain<ITenantActor>(id).Exist(context.TraceId);
 
         if (isTenantActive.IsError())

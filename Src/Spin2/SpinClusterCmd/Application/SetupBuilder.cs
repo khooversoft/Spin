@@ -118,8 +118,7 @@ internal class SetupBuilder
                 Name = item.Name,
                 ContactName = item.ContactName,
                 Email = item.Email,
-                AccountEnabled = true,
-                ActiveDate = DateTime.UtcNow,
+                Enabled = true,
             };
 
             Option setOption = await client.Set(subscription, context);
@@ -150,8 +149,7 @@ internal class SetupBuilder
                 ContactName = item.ContactName,
                 Email = item.Email,
 
-                AccountEnabled = true,
-                ActiveDate = DateTime.UtcNow,
+                Enabled = true,
             };
 
             Option setOption = await client.Set(tenant, context);

@@ -35,13 +35,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinClusterApi.test", "Spin
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{9CB07323-2EC2-47D9-8214-EEDECAD888F5}"
 	ProjectSection(SolutionItems) = preProject
-		Docs\Components.md = Docs\Components.md
-		Docs\Notes.md = Docs\Notes.md
-		Docs\schema.md = Docs\schema.md
-		Docs\Smartc.md = Docs\Smartc.md
-		Docs\Spin2.sln = Docs\Spin2.sln
-		Docs\SpinClusterCmd.md = Docs\SpinClusterCmd.md
-		Docs\WorkSchedule.md = Docs\WorkSchedule.md
+		Notes.md = Notes.md
+		schema.md = schema.md
+		SmartC.md = SmartC.md
+		SpinClusterCmd.md = SpinClusterCmd.md
+		WorkSchedule.md = WorkSchedule.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinAgent", "SpinAgent\SpinAgent.csproj", "{2A8570D5-81E4-4559-AB96-1EBB2E156E36}"
@@ -50,7 +48,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SmartC", "SmartC", "{FC04D7
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Loan-smartc-v1", "SmartC\Loan-smartc-v1\Loan-smartc-v1.csproj", "{E8ED14F4-1706-4FDF-8029-A983402256CF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinTestTools.sdk", "SpinTestTools.sdk\SpinTestTools.sdk.csproj", "{CE858565-4B52-430D-A57F-9278861C0798}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinTestTools.sdk", "SpinTestTools.sdk\SpinTestTools.sdk.csproj", "{CE858565-4B52-430D-A57F-9278861C0798}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

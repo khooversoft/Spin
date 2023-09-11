@@ -13,10 +13,10 @@ public class AgentAssignmentModel
     [Id(4)] public string Command { get; init; } = null!;
 
     public static IValidator<AgentAssignmentModel> Validator { get; } = new Validator<AgentAssignmentModel>()
-        //.RuleFor(x => x.AgentId).ValidResourceId(ResourceType.System, "agent")
-        //.RuleFor(x => x.WorkId).NotEmpty()
-        //.RuleFor(x => x.AgentId).ValidResourceId(ResourceType.DomainOwned, "smartc")
-        //.RuleFor(x => x.CommandType).NotEmpty()
+        .RuleFor(x => x.AgentId).ValidResourceId(ResourceType.System, "agent")
+        .RuleFor(x => x.WorkId).NotEmpty()
+        .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
+        .RuleFor(x => x.CommandType).NotEmpty()
         .RuleFor(x => x.Command).NotEmpty()
         .Build();
 }

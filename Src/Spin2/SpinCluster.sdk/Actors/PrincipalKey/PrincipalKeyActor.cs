@@ -107,7 +107,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
             PrincipalId = model.PrincipalId,
             Name = model.Name,
             Audience = "spin",
-            AccountEnabled = true,
+            Enabled = true,
             PrincipalPrivateKeyId = model.PrincipalPrivateKeyId,
             PublicKey = rsaKey.PublicKey.ToArray(),
         };
@@ -160,7 +160,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
             KeyId = model.KeyId,
             PrincipalId = model.PrincipalId,
             Name = model.Name,
-            AccountEnabled = true,
+            Enabled = true,
             Audience = "spin",
             PrivateKey = rsaKey.PrivateKey.ToArray(),
         };

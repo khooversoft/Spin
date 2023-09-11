@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpinCluster.sdk.Actors.Smartc;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;
@@ -12,16 +13,12 @@ public class SmartcBuilder : IObjectBuilder
 
         var test = new OptionTest();
 
-        foreach (var item in option.SmartcItems)
+        foreach (var model in option.SmartcItems)
         {
-            var model = item with
-            {
-                Enabled = true
-            };
-
             Option setOption = await client.Set(model, context);
+            setOption.Assert(x => x.IsOk(), x => $"Set failed for {x}");
 
-            context.Trace().LogStatus(setOption, "Creating Tenant smartcId={smartcId}", item.SmartcId);
+            context.Trace().LogStatus(setOption, "Creating Tenant smartcId={smartcId}", model.SmartcId);
             test.Test(() => setOption);
         }
 

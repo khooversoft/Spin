@@ -12,17 +12,11 @@ public class SubscriptionBuilder : IObjectBuilder
 
         var test = new OptionTest();
 
-        foreach (var item in option.Subscriptions)
+        foreach (var subscription in option.Subscriptions)
         {
-            SubscriptionModel subscription = item with
-            {
-                AccountEnabled = true,
-                ActiveDate = DateTime.UtcNow,
-            };
-
             Option setOption = await client.Set(subscription, context);
 
-            context.Trace().LogStatus(setOption, "Creating Subscription name={name}", item.Name);
+            context.Trace().LogStatus(setOption, "Creating Subscription name={name}", subscription.Name);
             test.Test(() => setOption);
         }
 
