@@ -17,7 +17,7 @@ public class OptionTest
         if (errorMessage != null && Option.IsError())
         {
             Option = new Option(
-                errorCode ?? Option.StatusCode, 
+                errorCode ?? Option.StatusCode,
                 Option.Error.IsEmpty() ? errorMessage : errorMessage + ", " + Option.Error
                 );
         }
@@ -25,11 +25,16 @@ public class OptionTest
         return this;
     }
 
-    public OptionTest Test(Func<bool> test)
+    public OptionTest Test(Func<bool> test, StatusCode failedStatusCode = StatusCode.BadRequest, string? error = null)
     {
         if (Option.IsError()) return this;
 
-        Option = test() ? StatusCode.OK : StatusCode.BadRequest;
+        Option = test() switch
+        {
+            true => StatusCode.OK,
+            false => new Option(failedStatusCode, error),
+        };
+
         return this;
     }
 

@@ -1,0 +1,7 @@
+{
+  "smartcId": "smartc:company30.com/contract",
+  "sourceId": "source1",
+  "command": "ping",
+  "clearPrincipal": "admin@spindomain.com",
+  "clear": true
+}

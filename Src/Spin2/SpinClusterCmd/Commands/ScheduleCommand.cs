@@ -1,0 +1,33 @@
+﻿using System;
+using System.Collections.Generic;
+using System.CommandLine;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SpinClusterCmd.Activities;
+
+namespace SpinClusterCmd.Commands;
+
+internal class ScheduleCommand : Command
+{
+    private readonly EnqueueCommand _enqueueCommand;
+
+    public ScheduleCommand(EnqueueCommand enqueueCommand) : base("schedule", "Create, clear, dump schedule queues")
+    {
+        _enqueueCommand = enqueueCommand;
+
+        AddCommand(Create());
+    }
+
+    private Command Create()
+    {
+        var jsonFile = new Argument<string>("file", "Json file command details");
+
+        var cmd = new Command("create", "Create schedule");
+
+        cmd.AddArgument(jsonFile);
+        cmd.SetHandler(_enqueueCommand.Enqueue, jsonFile);
+
+        return cmd;
+    }
+}

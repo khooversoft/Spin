@@ -1,39 +1,49 @@
 {
   "Subscriptions": [
     {
+      "SubscriptionId": "subscription:Company30Subscription",
       "Name": "Company30Subscription",
       "ContactName": "Company 30 contact name",
-      "Email": "admin@company30.com"
+      "Email": "admin@company30.com",
+      "Enabled": true
     },
     {
+      "SubscriptionId": "subscription:Company31Subscription",
       "Name": "Company31Subscription",
       "ContactName": "Company 31 contact name",
-      "Email": "admin@company31.com"
+      "Email": "admin@company31.com",
+      "Enabled": true
     }
   ],
   "Tenants": [
     {
-      "Subscription": "Company30Subscription",
+      "TenantId": "tenant:company30.com",
+      "SubscriptionId": "subscription:Company30Subscription",
       "Domain": "company30.com",
       "ContactName": "Admin",
-      "Email": "admin@company30.com"
+      "Email": "admin@company30.com",
+      "Enabled": true
     },
     {
-      "Subscription": "Company31Subscription",
+      "TenantId": "tenant:company31.com",
+      "SubscriptionId": "subscription:Company31Subscription",
       "Domain": "company31.com",
       "ContactName": "Admin",
-      "Email": "admin@company31.com"
+      "Email": "admin@company31.com",
+      "Enabled": true
     }
   ],
   "Users": [
     {
-      "UserId": "user1@company30.com",
+      "UserId": "user:user1@company30.com",
+      "PrincipalId": "user1@company30.com",
       "DisplayName": "User 1",
       "FirstName": "user1first",
       "LastName": "user1last"
     },
     {
-      "UserId": "user2@company31.com",
+      "UserId": "user:user2@company31.com",
+      "PrincipalId": "user1@company31.com",
       "DisplayName": "User 2",
       "FirstName": "user2first",
       "LastName": "user2last"
@@ -43,39 +53,49 @@
     {
       "AccountId": "softbank:company30.com/account1",
       "Name": "Company 30 account1",
-      "PrincipalId": "user1@company30.com",
-      "LedgerItems": [
-        {
-          "OwnerId": "user1@company30.com",
-          "Description": "Initial deposit",
-          "Type": "Credit",
-          "Amount": 100.00
-        }
-      ]
+      "OwnerId": "user1@company30.com"
     },
     {
       "AccountId": "softbank:company31.com/account2",
       "Name": "Company 31 account2",
-      "PrincipalId": "user2@company31.com",
-      "WriteAccess": "user1@company30.com",
-      "LedgerItems": [
+      "OwnerId": "user2@company31.com",
+      "AccessRights": [
         {
-          "OwnerId": "user2@company31.com",
-          "Description": "Initial deposit",
-          "Type": "Credit",
-          "Amount": 200.00
+          "Grant": "ReadWrite",
+          "BlockType": "LedgerItem",
+          "PrincipalId": "user1@company30.com"
         }
       ]
     }
-  ]
+  ],
+  "LedgerItems": [
+    {
+      "AccountId": "softbank:company30.com/account1",
+      "OwnerId": "user1@company30.com",
+      "Description": "Initial deposit",
+      "Type": "Credit",
+      "Amount": 100.00
+    },
+    {
+      "AccountId": "softbank:company31.com/account2",
+      "OwnerId": "user2@company31.com",
+      "Description": "Initial deposit",
+      "Type": "Credit",
+      "Amount": 200.00
+    }
+  ],
   "Agents": [
     {
-      "AgentId": "agent:localAgent"
+      "AgentId": "agent:local-agent",
+      "Enabled": true
     }
   ],
   "SmartcItems": [
     {
-      "SmartcId": "smartc:company30.com/package1"
+      "SmartcId": "smartc:company30.com/contract",
+      "SmartcExeId": "smartc-exe:company30.com/package1V1",
+      "ContractId": "contract:company30.com/loan/contract1",
+      "Enabled": true
     }
   ]
 }

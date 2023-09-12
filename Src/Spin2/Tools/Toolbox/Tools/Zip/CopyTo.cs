@@ -3,9 +3,9 @@
 namespace Toolbox.Tools.Zip;
 
 [DebuggerDisplay("Source={Source}, Destination={Destination}")]
-public record CopyTo
+public readonly record struct CopyTo
 {
-    public string Source { get; init; } = null!;
+    public string Source { get; init; }
 
-    public string Destination { get; init; } = null!;
+    public string Destination { get; init; }
 }

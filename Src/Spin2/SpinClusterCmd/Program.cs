@@ -47,9 +47,10 @@ async Task<int> Run(IServiceProvider service, string[] args)
     {
         var rc = new RootCommand()
         {
-            service.GetRequiredService<LoadScenarioCommand>(),
-            service.GetRequiredService<DumpContractCommand>(),
             service.GetRequiredService<AgentCommand>(),
+            service.GetRequiredService<DumpContractCommand>(),
+            service.GetRequiredService<LoadScenarioCommand>(),
+            service.GetRequiredService<ScheduleCommand>(),
             service.GetRequiredService<SmartcCommand>(),
         };
 
@@ -67,21 +68,27 @@ ServiceProvider BuildContainer(CmdOption option)
     var service = new ServiceCollection();
 
     service.AddSingleton(option);
-    service.AddSingleton<LoadScenarioCommand>();
-    service.AddSingleton<DumpContractCommand>();
+
     service.AddSingleton<AgentCommand>();
+    service.AddSingleton<DumpContractCommand>();
+    service.AddSingleton<LoadScenarioCommand>();
+    service.AddSingleton<ScheduleCommand>();
     service.AddSingleton<SmartcCommand>();
 
-    service.AddSingleton<LoadScenario>();
+    service.AddSingleton<AgentRegistration>();
     service.AddSingleton<DumpContract>();
+    service.AddSingleton<EnqueueCommand>();
+    service.AddSingleton<LoadScenario>();
+    service.AddSingleton<SmartcPackage>();
+    service.AddSingleton<SmartcRegistration>();
 
-    service.AddHttpClient<SoftBankClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
-    service.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
-    service.AddHttpClient<TenantClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
-    service.AddHttpClient<SubscriptionClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
-    service.AddHttpClient<ContractClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<AgentClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<ContractClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SoftBankClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SubscriptionClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<TenantClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
 
     service.AddLogging(config => config.AddConsole());
 

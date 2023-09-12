@@ -4,6 +4,7 @@ using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Smartc;
+using SpinCluster.sdk.Actors.Storage;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
@@ -25,6 +26,7 @@ public static class ApiStartup
         services.AddSingleton<AgentConnector>();
         services.AddSingleton<SmartcConnector>();
         services.AddSingleton<ScheduleConnection>();
+        services.AddSingleton<StorageConnection>();
 
         return services;
     }
@@ -42,5 +44,6 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<AgentConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SmartcConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<ScheduleConnection>().Setup(app);
+        app.ServiceProvider.GetRequiredService<StorageConnection>().Setup(app);
     }
 }

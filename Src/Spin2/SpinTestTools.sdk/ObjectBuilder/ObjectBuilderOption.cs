@@ -57,7 +57,7 @@ public static class ObjectBuilderOptionTool
     {
         ObjectBuilderOption option = json.ToObject<ObjectBuilderOption>().NotNull();
 
-        var v = option.Validate().ThrowOnError();
+        option.Validate().ThrowOnError();
         return option;
     }
 

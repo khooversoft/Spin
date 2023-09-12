@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinClusterCmd.Application;
+using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -22,30 +23,22 @@ internal class LoadScenario
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Processing file {file}", jsonFile);
 
-        if (!File.Exists(jsonFile))
-        {
-            context.Trace().LogError("File {file} does not exist", jsonFile);
-            return;
-        }
-
-        string json = File.ReadAllText(jsonFile);
-        ScenarioOption? option = json.ToObject<ScenarioOption>();
-        if (option == null)
-        {
-            context.Trace().LogError("Cannot parse {file}", jsonFile);
-            return;
-        }
-        var v = option.Validate();
-        if (v.IsError())
-        {
-            context.Trace().LogError("Option is not valid, error={error}", v.Error);
-            return;
-        }
+        var readResult = CmdTools.LoadJson<ObjectBuilderOption>(jsonFile, ObjectBuilderOption.Validator, context);
+        if (readResult.IsError()) return;
 
         context.Trace().LogInformation("Starting load");
 
-        SetupBuilder builder = new SetupBuilder(option);
-        await builder.Build(_service, context);
+        Option result = await new TestObjectBuilder()
+            .SetOption(readResult.Return())
+            .SetService(_service)
+            .AddStandard()
+            .Build(context);
+
+        if (result.IsError())
+        {
+            context.Trace().LogError("Failed to load data, error={error}", result.Error);
+            return;
+        }
 
         context.Trace().LogInformation("Completed load");
     }

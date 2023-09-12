@@ -10,7 +10,6 @@ internal class LoadScenarioCommand : Command
         var jsonFile = new Argument<string>("file", "Json file with scenario details");
 
         this.AddArgument(jsonFile);
-
         this.SetHandler(loadScenario.Load, jsonFile);
     }
 }

@@ -62,7 +62,7 @@ public class DatalakeSchemaResources
 
             _datalakeResources[schemaOption.SchemaName] = store;
 
-            list.Add(verifyConnection(store, schemaOption));
+            list.Add(VerifyConnection(store, schemaOption, context));
         }
 
         Debug.WriteLine($"Here - completed: {nameof(DatalakeSchemaResources)}, _instanceId={_instanceId}, count={schemas.Count}");
@@ -70,27 +70,26 @@ public class DatalakeSchemaResources
         // Verify that the Silo has access to all datalake resources
         var results = await Task.WhenAll(list);
         return results.All(x => x) ? StatusCode.OK : StatusCode.BadRequest;
-
-
-        async Task<bool> verifyConnection(IDatalakeStore store, SchemaOption schemaOption)
-        {
-            bool exist = await store.TestConnection(context);
-            if (!exist)
-            {
-                context.Location().LogCritical("Failed to connect to datalake store schemaOption={schemaOption}, credentials={credentials}",
-                    schemaOption, _clusterOption.Credentials);
-
-                return false;
-            }
-
-            context.Location().LogInformation("Connected to datalake store schemaOption={schemaOption}", schemaOption);
-            return true;
-        }
     }
 
     public Option<IDatalakeStore> GetStore(string schemaName) => _datalakeResources.TryGetValue(schemaName, out var store) switch
     {
         true => store.ToOption(),
-        false => new Option<IDatalakeStore>(StatusCode.NotFound),
+        false => StatusCode.NotFound,
     };
+
+    private async Task<bool> VerifyConnection(IDatalakeStore store, SchemaOption schemaOption, ScopeContext context)
+    {
+        bool exist = await store.TestConnection(context);
+        if (!exist)
+        {
+            context.Location().LogCritical("Failed to connect to datalake store schemaOption={schemaOption}, credentials={credentials}",
+                schemaOption, _clusterOption.Credentials);
+
+            return false;
+        }
+
+        context.Location().LogInformation("Connected to datalake store schemaOption={schemaOption}", schemaOption);
+        return true;
+    }
 }

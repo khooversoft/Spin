@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Agent;
+using SpinClusterCmd.Activities;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -8,13 +9,11 @@ namespace SpinClusterCmd.Commands;
 
 internal class AgentCommand : Command
 {
-    private readonly AgentClient _client;
-    private readonly ILogger<AgentCommand> _logger;
+    private readonly AgentRegistration _agentRegistration;
 
-    public AgentCommand(AgentClient client, ILogger<AgentCommand> logger) : base("agent", "Agent commands")
+    public AgentCommand(AgentRegistration agentRegistration) : base("agent", "Agent commands")
     {
-        _client = client.NotNull();
-        _logger = logger.NotNull();
+        _agentRegistration = agentRegistration.NotNull();
 
         AddCommand(Register());
         AddCommand(Remove());
@@ -23,24 +22,10 @@ internal class AgentCommand : Command
     private Command Register()
     {
         var cmd = new Command("register", "Register agent");
-        Argument<string> idArgument = new Argument<string>("agentId", "Agent's ID to register, ex: agent:{agentName}");
+        Argument<string> agentIdArg = new Argument<string>("agentId", "Agent's ID to register, ex: agent:{agentName}");
 
-        cmd.AddArgument(idArgument);
-
-        cmd.SetHandler(async (agentId) =>
-        {
-            var context = new ScopeContext(_logger);
-
-            var model = new AgentModel
-            {
-                AgentId = agentId,
-                Enabled = true,
-            };
-
-            Toolbox.Types.Option response = await _client.Set(model, context);
-            context.Trace().LogStatus(response, "Creating/Updating agent, agentId={agentId}", agentId);
-
-        }, idArgument);
+        cmd.AddArgument(agentIdArg);
+        cmd.SetHandler(_agentRegistration.Register, agentIdArg);
 
         return cmd;
     }
@@ -51,15 +36,7 @@ internal class AgentCommand : Command
         Argument<string> agentId = new Argument<string>("agentId", "Agent's ID to remove, ex: agent:{agentName}");
 
         cmd.AddArgument(agentId);
-
-        cmd.SetHandler(async (agentId) =>
-        {
-            var context = new ScopeContext(_logger);
-
-            Toolbox.Types.Option response = await _client.Delete(agentId, context);
-            context.Trace().LogStatus(response, "Deleted agent, agentId={agentId}", agentId);
-
-        }, agentId);
+        cmd.SetHandler(_agentRegistration.Remove, agentId);
 
         return cmd;
     }
