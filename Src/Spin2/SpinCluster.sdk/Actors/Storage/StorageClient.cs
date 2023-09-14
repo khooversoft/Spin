@@ -30,11 +30,11 @@ public class StorageClient
         .DeleteAsync(context)
         .ToOption();
 
-    public async Task<Option<AgentModel>> Get(string storageId, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<StorageBlob>> Get(string storageId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Storage}/{Uri.EscapeDataString(storageId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context)
-        .GetContent<AgentModel>();
+        .GetContent<StorageBlob>();
 
     public async Task<Option> Set(StorageBlob content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Storage}")

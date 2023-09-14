@@ -12,6 +12,7 @@ namespace SpinCluster.sdk.Services;
 
 public class DatalakeSchemaResources
 {
+    private const string _defaultSchema = "$default";
     private readonly SpinClusterOption _clusterOption;
     private readonly ILogger<DatalakeSchemaResources> _logger;
     private readonly SiloConfigStore _siloConfigStore;
@@ -75,7 +76,11 @@ public class DatalakeSchemaResources
     public Option<IDatalakeStore> GetStore(string schemaName) => _datalakeResources.TryGetValue(schemaName, out var store) switch
     {
         true => store.ToOption(),
-        false => StatusCode.NotFound,
+        false => _datalakeResources.TryGetValue(_defaultSchema, out var store2) switch
+        {
+            true => store2.ToOption(),
+            false => StatusCode.NotFound,
+        },
     };
 
     private async Task<bool> VerifyConnection(IDatalakeStore store, SchemaOption schemaOption, ScopeContext context)

@@ -89,7 +89,7 @@ public class RestClient
                 requestMessage.Method,
                 response.StatusCode,
                 requestPayload.Return(false),
-                (content.ToNullIfEmpty() ?? "<no content>").Truncate(30000)
+                (content.ToNullIfEmpty() ?? "<no content>").Truncate(1000)
                 );
 
             var result = new RestResponse

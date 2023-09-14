@@ -7,6 +7,7 @@ using SoftBank.sdk.SoftBank;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Smartc;
+using SpinCluster.sdk.Actors.Storage;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Actors.User;
@@ -52,6 +53,7 @@ async Task<int> Run(IServiceProvider service, string[] args)
             service.GetRequiredService<LoadScenarioCommand>(),
             service.GetRequiredService<ScheduleCommand>(),
             service.GetRequiredService<SmartcCommand>(),
+            service.GetRequiredService<PackageCommand>(),
         };
 
         return await rc.InvokeAsync(args);
@@ -74,6 +76,7 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddSingleton<LoadScenarioCommand>();
     service.AddSingleton<ScheduleCommand>();
     service.AddSingleton<SmartcCommand>();
+    service.AddSingleton<PackageCommand>();
 
     service.AddSingleton<AgentRegistration>();
     service.AddSingleton<DumpContract>();
@@ -81,6 +84,7 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddSingleton<LoadScenario>();
     service.AddSingleton<SmartcPackage>();
     service.AddSingleton<SmartcRegistration>();
+    service.AddSingleton<SmartcPackage>();
 
     service.AddHttpClient<AgentClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<ContractClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
@@ -89,6 +93,8 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddHttpClient<SubscriptionClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<TenantClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<ScheduleClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<StorageClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
 
     service.AddLogging(config => config.AddConsole());
 

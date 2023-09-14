@@ -23,11 +23,13 @@ public static class ZipExtractExtension
         {
             if (token.IsCancellationRequested) break;
 
-            monitor?.Invoke(new FileActionProgress(zipFiles.Length, ++fileCount));
+            string toFile = Path.Combine(toFolder, zipFile.FilePath
+                .Assert(x => !x.StartsWith("\\"), $"Invalid zip file path {zipFile.FilePath}"));
 
-            Path.Combine(toFolder, zipFile.FilePath
-                .Assert(x => !x.StartsWith("\\"), $"Invalid zip file path {zipFile.FilePath}"))
-                .Action(x => zipFile.ExtractToFile(x));
+            var copyTo = new CopyTo { Source = zipFile.FilePath, Destination = toFile };
+
+            monitor?.Invoke(new FileActionProgress(zipFiles.Length, ++fileCount, copyTo));
+            zipFile.ExtractToFile(toFile);
         }
     }
 
@@ -42,7 +44,7 @@ public static class ZipExtractExtension
 
             zipArchive.CreateEntryFromFile(file.Source, file.Destination);
 
-            monitor?.Invoke(new FileActionProgress(files.Length, ++fileCount));
+            monitor?.Invoke(new FileActionProgress(files.Length, ++fileCount, file));
         }
     }
 

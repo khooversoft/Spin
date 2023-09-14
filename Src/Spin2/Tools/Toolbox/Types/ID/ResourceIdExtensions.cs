@@ -20,7 +20,12 @@ public static class ResourceIdExtensions
         path = path.TrimEnd('/');
         string directory = path.Split('/').Func(x => x.Take(x.Length - 1).Join('/'));
 
-        string filePath = directory + "/" + path.Replace('/', '_') + ".json";
+        string filePath = directory + "/" + path.Replace('/', '_');
         return filePath;
+    }
+
+    public static string BuildPathWithExtension(this ResourceId resourceId, string extension = ".json")
+    {
+        return resourceId.BuildPath() + extension;
     }
 }

@@ -16,7 +16,7 @@ public class ResourceIdPathTests
     public void TestToPath(string resourceId, string shouldBePath)
     {
         ResourceId id = resourceId;
-        string filePath = id.BuildPath();
+        string filePath = id.BuildPathWithExtension();
         filePath.Should().Be(shouldBePath, resourceId);
     }
 }

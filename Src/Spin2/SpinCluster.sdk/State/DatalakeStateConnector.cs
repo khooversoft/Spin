@@ -81,18 +81,12 @@ internal class DatalakeStateConnector : IGrainStorage
 
     private DatalakeStateHandler GetGrainStorageBySchema(string schemaName, ScopeContext context)
     {
-        const string defaultSchema = "$default";
-
         context = context.With(_logger);
         context.Location().LogInformation("Requesting store for schema={schema}", schemaName);
 
         return _stores.GetOrAdd(schemaName, x =>
         {
-            Option<IDatalakeStore> store = _datalakeResources.GetStore(x) switch
-            {
-                var v when v.IsOk() => v,
-                _ => _datalakeResources.GetStore(defaultSchema),
-            };
+            Option<IDatalakeStore> store = _datalakeResources.GetStore(x);
 
             if (store.IsError())
             {

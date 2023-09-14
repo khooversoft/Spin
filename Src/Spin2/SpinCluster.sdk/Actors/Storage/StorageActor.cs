@@ -51,7 +51,7 @@ public class StorageActor : Grain, IStorageActor
         if (schemaOption.IsError()) return schemaOption.ToOptionStatus();
 
         IDatalakeStore store = schemaOption.Return();
-        (string filePath, _) = VerifyAndGetDetails();
+        string filePath = VerifyAndGetDetails();
 
         var result = await store.Delete(filePath, context);
         if (result.IsError())
@@ -74,7 +74,7 @@ public class StorageActor : Grain, IStorageActor
         if (schemaOption.IsError()) return schemaOption.ToOptionStatus();
 
         IDatalakeStore store = schemaOption.Return();
-        (string filePath, _) = VerifyAndGetDetails();
+        string filePath = VerifyAndGetDetails();
 
         var result = await store.Exist(filePath, context);
         return result;
@@ -89,7 +89,7 @@ public class StorageActor : Grain, IStorageActor
         if (schemaOption.IsError()) return schemaOption.ToOptionStatus<StorageBlob>();
 
         IDatalakeStore store = schemaOption.Return();
-        (string filePath, _) = VerifyAndGetDetails();
+        string filePath = VerifyAndGetDetails();
 
         var result = await store.Read(filePath, context);
         if (result.IsError())
@@ -103,9 +103,8 @@ public class StorageActor : Grain, IStorageActor
 
         var blob = new StorageBlobBuilder()
             .SetStorageId(this.GetPrimaryKeyString())
-            .SetPath(filePath)
             .SetETag(dataETag.ETag?.ToString())
-            .SetData(dataETag.Data)
+            .SetContent(dataETag.Data)
             .Build();
 
         return blob;
@@ -123,7 +122,7 @@ public class StorageActor : Grain, IStorageActor
         if (schemaOption.IsError()) return schemaOption.ToOptionStatus();
 
         IDatalakeStore store = schemaOption.Return();
-        (string filePath, _) = VerifyAndGetDetails();
+        string filePath = VerifyAndGetDetails();
 
         var dataEtag = blob.ETag switch
         {
@@ -159,17 +158,12 @@ public class StorageActor : Grain, IStorageActor
         return schemaOption;
     }
 
-    private (string FilePath, string Schema) VerifyAndGetDetails()
+    private string VerifyAndGetDetails()
     {
         string actorKey = this.GetPrimaryKeyString();
         ResourceId resourceId = ResourceId.Create(actorKey).Return();
         string filePath = resourceId.BuildPath();
 
-        return (filePath, resourceId.Schema.NotNull());
+        return filePath;
     }
-
-    private static string GetPath(GrainId grainId) => grainId.ToString()
-        .Split('/', StringSplitOptions.RemoveEmptyEntries)
-        .Skip(1)
-        .Join("/");
 }

@@ -14,10 +14,7 @@ public static class ScopeExtensions
         context.Context.Logger.Log(logLevel, message, newObjects);
     }
 
-    //  ?? Array.Empty<object?>()).Append(v.Error)
-    //  == null ? "error={error}" : message += ", error={error}"
-
-    public static void LogStatus(this ScopeContextLocation context, Option option, string? message, params object?[] args)
+    public static void LogStatus(this ScopeContextLocation context, Option option, string message, params object?[] args)
     {
         const string fmt = "statusCode={statusCode}, error={error}";
 
@@ -119,26 +116,4 @@ public static class ScopeExtensions
             context.Context.Logger.LogTrace(message, newObjects);
         }
     }
-
-    //private static string ConstructMessage(string? message) => message switch
-    //{
-    //    null => string.Empty,
-    //    string v => v + ", ",
-    //} +
-    //"traceId={traceId}, " +
-    //"callerFunction={callerFunction}, " +
-    //"callerFilePath={callerFilePath}, " +
-    //"callerLineNumber={callerLineNumber}";
-
-    //private static object[] AddContext(object?[] args, ScopeContextLocation context) => (object[])(args ?? Array.Empty<object?>())
-    //    .Select(x => (x?.GetType().IsClass == true) switch
-    //    {
-    //        true => x.ToJsonPascalSafe(context.Context),
-    //        false => x
-    //    })
-    //    .Append(context.Context.TraceId)
-    //    .Append(context.Location.CallerFunction)
-    //    .Append(context.Location.CallerFilePath)
-    //    .Append(context.Location.CallerLineNumber)
-    //    .ToArray();
 }

@@ -1,5 +1,5 @@
 {
-  "SmartcExeId": "smartc-exe:company30.com/load-smartc-v1.smartcz",
-  "SourceFolder": "D:\\Sources\\Spin\\Src\\Spin2\\SmartC\\Loan-smartc-v1\\bin\\Debug\\net7.0",
-  "WorkingFolder": "D:\\Work\\PackageWorking"
+  "SmartcExeId": "smartc-exe:company30.com/loan-smartc-v1.smartcz",
+  "SmartcPackageFile": "C:\\Work\\PackageWorking\\loan-smartc-v1.smartcz",
+  "SourceFolder": "C:\\Sources\\Spin\\Src\\Spin2\\SmartC\\loan-smartc-v1\\bin\\Debug\\net7.0"
 }

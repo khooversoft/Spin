@@ -14,7 +14,7 @@ public class DatalakeResourceIdMap
         context = context.With(_logger);
         context.Location().LogInformation("Mapping resourceId={resourceId}", resourceId.ToString());
 
-        var map = new Map(resourceId.Schema.NotEmpty(), resourceId.BuildPath());
+        var map = new Map(resourceId.Schema.NotEmpty(), resourceId.BuildPathWithExtension());
 
         context.Location().LogInformation("Mapped resourceId={resourceId} to map={map}", resourceId.ToString(), map);
         return map;
