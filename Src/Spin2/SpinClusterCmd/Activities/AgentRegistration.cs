@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Agent;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -41,5 +36,9 @@ internal class AgentRegistration
 
         Option response = await _client.Delete(agentId, context);
         context.Trace().LogStatus(response, "Deleted agent, agentId={agentId}", agentId);
+    }
+
+    public async Task Get(string agentId)
+    {
     }
 }

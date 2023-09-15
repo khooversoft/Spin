@@ -50,7 +50,7 @@ internal class EnqueueCommand
         };
 
         var queueResult = await _client.EnqueueSchedule(work, context).LogResult(context.Location());
-        if( queueResult.IsError()) return;
+        if (queueResult.IsError()) return;
 
         context.Trace().LogInformation("Queued command, workId={workId}", work.WorkId);
     }

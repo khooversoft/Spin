@@ -1,5 +1,4 @@
 ﻿using System.IO.Compression;
-using Toolbox.Extensions;
 
 namespace Toolbox.Tools.Zip;
 

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
 using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;

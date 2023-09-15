@@ -5,8 +5,8 @@ using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.test.Application;
 using SoftBank.sdk.Trx;
-using Toolbox.Types;
 using SpinTestTools.sdk.ObjectBuilder;
+using Toolbox.Types;
 
 namespace SoftBank.sdk.test.Transactions;
 

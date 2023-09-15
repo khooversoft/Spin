@@ -1,9 +1,6 @@
 ﻿using System.CommandLine;
-using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Smartc;
 using SpinClusterCmd.Activities;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace SpinClusterCmd.Commands;
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SpinTestTools.sdk.ObjectBuilder;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
@@ -33,6 +27,7 @@ internal static class CmdTools
             context.Trace().LogError("Cannot parse {file}", jsonFile);
             return StatusCode.BadRequest;
         }
+
         var v = validator.Validate(obj);
         if (v.IsError())
         {

@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Smartc;
