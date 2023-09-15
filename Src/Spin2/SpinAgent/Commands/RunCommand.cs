@@ -8,10 +8,10 @@ namespace SpinAgent.Commands;
 
 internal class RunCommand : Command
 {
-    private readonly CommandMonitor _monitor;
+    private readonly WorkMonitor _monitor;
     private readonly ILogger<RunCommand> _logger;
 
-    public RunCommand(CommandMonitor monitor, ILogger<RunCommand> logger)
+    public RunCommand(WorkMonitor monitor, ILogger<RunCommand> logger)
         : base("run", "Start the agent and process requests")
     {
         _monitor = monitor.NotNull();

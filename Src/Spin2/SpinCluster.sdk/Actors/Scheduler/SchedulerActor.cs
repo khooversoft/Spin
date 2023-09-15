@@ -3,6 +3,7 @@ using Orleans.Concurrency;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Extensions;
@@ -14,10 +15,10 @@ namespace SpinCluster.sdk.Actors.Smartc;
 
 public interface ISchedulerActor : IGrainWithStringKey
 {
+    Task<Option> AddSchedule(ScheduleCreateModel work, string traceId);
     Task<Option<ScheduleWorkModel>> AssignWork(string agentId, string traceId);
     Task<Option> Clear(string principalId, string traceId);
     Task<Option> CompletedWork(string workId, RunResultModel runResult, string traceId);
-    Task<Option> EnqueueSchedule(ScheduleWorkModel work, string traceId);
     Task<Option<ScheduleWorkModel>> GetDetail(string workId, string traceId);
     Task<Option<SchedulesModel>> GetSchedules(string traceId);
 }
@@ -49,6 +50,21 @@ public class SchedulerActor : Grain, ISchedulerActor
         if (_state.RecordExists) Validate();
 
         return base.OnActivateAsync(cancellationToken);
+    }
+
+    public async Task<Option> AddSchedule(ScheduleCreateModel work, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Schedule work, actorKey={actorKey}, work={work}", this.GetPrimaryKeyString(), work);
+
+        var v = work.Validate().LogResult(context.Location());
+        if (v.IsError()) return v;
+
+        _state.State = _state.RecordExists ? _state.State : new SchedulesModel();
+        _state.State.WorkItems.Add(work.ConvertTo());
+
+        await ValidateAndWrite();
+        return StatusCode.OK;
     }
 
     public async Task<Option<ScheduleWorkModel>> AssignWork(string agentId, string traceId)
@@ -129,21 +145,6 @@ public class SchedulerActor : Grain, ISchedulerActor
         _state.State.CompletedItems.Add(removed);
         await ValidateAndWrite();
 
-        return StatusCode.OK;
-    }
-
-    public async Task<Option> EnqueueSchedule(ScheduleWorkModel work, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Schedule work, actorKey={actorKey}, work={work}", this.GetPrimaryKeyString(), work);
-
-        var v = work.Validate().LogResult(context.Location());
-        if (v.IsError()) return v;
-
-        _state.State = _state.RecordExists ? _state.State : new SchedulesModel();
-        _state.State.WorkItems.Add(work);
-
-        await ValidateAndWrite();
         return StatusCode.OK;
     }
 

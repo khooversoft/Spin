@@ -111,5 +111,9 @@ namespace Toolbox.Extensions
                 .ComputeHash(inputBytes.ToArray())
                 .Func(Convert.ToBase64String);
         }
+
+        public static string ToSHA256HexHash(this IEnumerable<byte> subject) => subject
+            .ToHash()
+            .ToHex();
     }
 }

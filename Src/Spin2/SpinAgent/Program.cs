@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using SpinAgent.Activities;
 using SpinAgent.Application;
 using SpinAgent.Commands;
+using SpinCluster.sdk.Actors.Smartc;
+using SpinCluster.sdk.Actors.Storage;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -62,16 +64,30 @@ async Task<int> Run(IServiceProvider service, string[] args)
 
 ServiceProvider BuildContainer(AgentOption option)
 {
-    var serviceCollection = new ServiceCollection();
+    var service = new ServiceCollection();
 
-    serviceCollection.AddLogging(config => config.AddConsole());
+    service.AddLogging(config => config.AddConsole());
 
-    serviceCollection.AddSingleton(option);
-    serviceCollection.AddSingleton<AbortSignal>();
-    serviceCollection.AddSingleton<RunCommand>();
+    service.AddSingleton(option);
+    service.AddSingleton<AbortSignal>();
+    service.AddSingleton<RunCommand>();
 
-    serviceCollection.AddSingleton<CommandMonitor>();
-    serviceCollection.AddSingleton<RunSmartC>();
+    service.AddSingleton<WorkMonitor>();
+    service.AddSingleton<RunSmartC>();
 
-    return serviceCollection.BuildServiceProvider();
+    service.AddHttpClient<ScheduleClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<StorageClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+
+    service.AddLogging(config =>
+    {
+        config.AddConsole();
+        config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Smartc.ScheduleClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Storage.StorageClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Smartc.SmartcClient", LogLevel.Warning);
+    });
+
+
+    return service.BuildServiceProvider();
 }

@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Application;
+﻿using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Application;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -8,24 +9,30 @@ namespace SpinCluster.sdk.Actors.Tenant;
 public class TenantClient
 {
     protected readonly HttpClient _client;
-    public TenantClient(HttpClient client) => _client = client.NotNull();
+    private readonly ILogger<TenantClient> _logger;
+
+    public TenantClient(HttpClient client, ILogger<TenantClient> logger)
+    {
+        _client = client.NotNull();
+        _logger = logger;
+    }
 
     public async Task<Option> Delete(string tenantId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Tenant}/{Uri.EscapeDataString(tenantId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .DeleteAsync(context)
+        .DeleteAsync(context.With(_logger))
         .ToOption();
 
     public async Task<Option<TenantModel>> Get(string tenantId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Tenant}/{Uri.EscapeDataString(tenantId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context)
+        .GetAsync(context.With(_logger))
         .GetContent<TenantModel>();
 
     public async Task<Option> Set(TenantModel content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Tenant}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
-        .PostAsync(context)
+        .PostAsync(context.With(_logger))
         .ToOption();
 }

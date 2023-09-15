@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.Agent;
+using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Models;
 using SpinClusterApi.test.Application;
@@ -58,14 +59,14 @@ public class ScheduleTests : IClassFixture<ClusterApiFixture>
         var clearOption = await client.Clear("admin@domain.com", _context);
         clearOption.IsOk().Should().BeTrue();
 
-        var work = new ScheduleWorkModel
+        var work = new ScheduleCreateModel
         {
             SmartcId = _smartcId,
             SourceId = "test",
             Command = "ping",
         };
 
-        var queueResult = await client.EnqueueSchedule(work, _context);
+        var queueResult = await client.AddSchedule(work, _context);
         queueResult.IsOk().Should().BeTrue();
     }
 

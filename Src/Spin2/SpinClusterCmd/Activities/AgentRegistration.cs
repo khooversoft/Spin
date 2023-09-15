@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Agent;
+using SpinClusterCmd.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -16,18 +18,17 @@ internal class AgentRegistration
         _logger = logger.NotNull();
     }
 
-    public async Task Register(string agentId)
+    public async Task Register(string jsonFile)
     {
         var context = new ScopeContext(_logger);
 
-        var model = new AgentModel
-        {
-            AgentId = agentId,
-            Enabled = true,
-        };
+        var readResult = CmdTools.LoadJson<AgentModel>(jsonFile, AgentModel.Validator, context);
+        if (readResult.IsError()) return;
+
+        AgentModel model = readResult.Return();
 
         Option response = await _client.Set(model, context);
-        context.Trace().LogStatus(response, "Creating/Updating agent, agentId={agentId}", agentId);
+        context.Trace().LogStatus(response, "Creating/Updating agent, model={model}", model);
     }
 
     public async Task Remove(string agentId)
@@ -40,5 +41,21 @@ internal class AgentRegistration
 
     public async Task Get(string agentId)
     {
+        var context = new ScopeContext(_logger);
+
+        var readOption = await _client.Get(agentId, context).LogResult(context.Trace());
+        if (readOption.IsError())
+        {
+            context.Trace().LogError("Cannot get details on agentId={agentId}", agentId);
+            return;
+        }
+
+        string result = readOption.Return()
+            .GetConfigurationValues()
+            .Select(x => $" - {x.Key}={x.Value}")
+            .Prepend($"Configuration...")
+            .Join(Environment.NewLine) + Environment.NewLine;
+
+        context.Trace().LogInformation(result);
     }
 }

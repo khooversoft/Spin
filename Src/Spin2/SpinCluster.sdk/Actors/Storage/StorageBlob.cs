@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Validation;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Storage;
@@ -28,4 +29,6 @@ public sealed record StorageBlob
 public static class StorageBlobExtensions
 {
     public static Option Validate(this StorageBlob subject) => StorageBlob.Validator.Validate(subject).ToOptionStatus();
+
+    public static string GetHashOfContent(this StorageBlob subject) => "x" + subject.Content.ToSHA256HexHash();
 }

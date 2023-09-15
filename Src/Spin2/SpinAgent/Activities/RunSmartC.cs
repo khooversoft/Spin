@@ -28,12 +28,12 @@ internal class RunSmartC
         using CancellationTokenSource tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_abortSignal.GetToken());
         context = new ScopeContext(context.TraceId, _logger, tokenSource.Token);
 
-        context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", _agentOption.CommandLine);
+        //context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", _agentOption.CommandLine);
 
         try
         {
             var result = await new LocalProcessBuilder()
-                .SetCommandLine(_agentOption.CommandLine)
+                //.SetCommandLine(_agentOption.CommandLine)
                 .SetCaptureOutput(x => _output.Post(x))
                 .Build()
                 .Run(context);

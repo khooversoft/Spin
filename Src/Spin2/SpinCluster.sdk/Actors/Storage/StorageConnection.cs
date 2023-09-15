@@ -28,6 +28,7 @@ public class StorageConnection
         group.MapDelete("/{storageId}", Delete);
         group.MapGet("/{storageId}/exist", Exist);
         group.MapGet("/{storageId}", Get);
+        group.MapGet("/{storageId}/info", GetInfo);
         group.MapPost("/", Set);
 
         return group;
@@ -47,7 +48,10 @@ public class StorageConnection
         storageId = Uri.UnescapeDataString(storageId);
         if (!ResourceId.IsValid(storageId, ResourceType.DomainOwned)) return Results.BadRequest();
 
-        Option response = await _client.GetResourceGrain<IStorageActor>(storageId).Exist(traceId);
+        Option response = await _client
+            .GetResourceGrain<IStorageActor>(storageId)
+            .Exist(traceId);
+
         return response.ToResult();
     }
 
@@ -56,7 +60,22 @@ public class StorageConnection
         storageId = Uri.UnescapeDataString(storageId);
         if (!ResourceId.IsValid(storageId, ResourceType.DomainOwned)) return Results.BadRequest();
 
-        Option<StorageBlob> response = await _client.GetResourceGrain<IStorageActor>(storageId).Get(traceId);
+        Option<StorageBlob> response = await _client
+            .GetResourceGrain<IStorageActor>(storageId)
+            .Get(traceId);
+
+        return response.ToResult();
+    }
+
+    public async Task<IResult> GetInfo(string storageId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        storageId = Uri.UnescapeDataString(storageId);
+        if (!ResourceId.IsValid(storageId, ResourceType.DomainOwned)) return Results.BadRequest();
+
+        Option<StorageBlobInfo> response = await _client
+            .GetResourceGrain<IStorageActor>(storageId)
+            .GetInfo(traceId);
+
         return response.ToResult();
     }
 
@@ -66,7 +85,10 @@ public class StorageConnection
         var v = model.Validate();
         if (v.IsError()) return Results.BadRequest(v.Error);
 
-        var response = await _client.GetResourceGrain<IStorageActor>(model.StorageId).Set(model, traceId);
+        var response = await _client
+            .GetResourceGrain<IStorageActor>(model.StorageId)
+            .Set(model, traceId);
+
         return response.ToResult();
     }
 }

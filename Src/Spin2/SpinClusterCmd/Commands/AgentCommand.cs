@@ -14,12 +14,13 @@ internal class AgentCommand : Command
 
         AddCommand(Register());
         AddCommand(Remove());
+        AddCommand(Get());
     }
 
     private Command Register()
     {
         var cmd = new Command("register", "Register agent");
-        Argument<string> agentIdArg = new Argument<string>("agentId", "Agent's ID to register, ex: agent:{agentName}");
+        Argument<string> agentIdArg = new Argument<string>("jsonFile", "Json file with agent details");
 
         cmd.AddArgument(agentIdArg);
         cmd.SetHandler(_agentRegistration.Register, agentIdArg);
@@ -34,6 +35,17 @@ internal class AgentCommand : Command
 
         cmd.AddArgument(agentId);
         cmd.SetHandler(_agentRegistration.Remove, agentId);
+
+        return cmd;
+    }
+
+    private Command Get()
+    {
+        var cmd = new Command("get", "Get agent's registration");
+        Argument<string> agentId = new Argument<string>("agentId", "Agent's ID to get, ex: agent:{agentName}");
+
+        cmd.AddArgument(agentId);
+        cmd.SetHandler(_agentRegistration.Get, agentId);
 
         return cmd;
     }

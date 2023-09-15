@@ -1,5 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -26,19 +25,13 @@ public sealed record ScheduleWorkModel
         .RuleFor(x => x.SourceId).ValidName()
         .RuleFor(x => x.CommandType).Must(x => x == "args" || x.StartsWith("json:"), x => $"{x} is not valid, must be 'args' or 'json:{{type}}'")
         .RuleFor(x => x.Command).NotEmpty()
-        .RuleFor(x => x.Assigned).Must(
-            x => x == null || AssignedModel.Validator.Validate(x).IsOk(),
-            x => AssignedModel.Validator.Validate(x.NotNull()).Error ?? "< no error >"
-            )
-        .RuleFor(x => x.RunResult).Must(
-            x => x == null || RunResultModel.Validator.Validate(x).IsOk(),
-            x => RunResultModel.Validator.Validate(x.NotNull()).Error ?? "< no error >"
-            )
+        .RuleFor(x => x.Assigned).ValidateOption(AssignedModel.Validator)
+        .RuleFor(x => x.RunResult).ValidateOption(RunResultModel.Validator)
         .Build();
 }
 
 
 public static class ScheduleWorkModelExtensions
 {
-    public static Option Validate(this ScheduleWorkModel work) => ScheduleWorkModel.Validator.Validate(work).ToOptionStatus();
+    public static Option Validate(this ScheduleWorkModel subject) => ScheduleWorkModel.Validator.Validate(subject).ToOptionStatus();
 }

@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Application;
+﻿using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Models;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -9,43 +10,49 @@ namespace SpinCluster.sdk.Actors.Smartc;
 public class SmartcClient
 {
     protected readonly HttpClient _client;
-    public SmartcClient(HttpClient client) => _client = client.NotNull();
+    private readonly ILogger<SmartcClient> _logger;
+
+    public SmartcClient(HttpClient client, ILogger<SmartcClient> logger)
+    {
+        _client = client.NotNull();
+        _logger = logger.NotNull();
+    }
 
     public async Task<Option> CompletedWork(SmartcRunResultModel content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}/completed")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
-        .PostAsync(context)
+        .PostAsync(context.With(_logger))
         .ToOption();
 
     public async Task<Option> Delete(string smartcId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}/{Uri.EscapeDataString(smartcId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .DeleteAsync(context)
+        .DeleteAsync(context.With(_logger))
         .ToOption();
 
     public async Task<Option<SmartcModel>> Get(string smartcId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}/{Uri.EscapeDataString(smartcId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context)
+        .GetAsync(context.With(_logger))
         .GetContent<SmartcModel>();
 
     public async Task<Option<AgentAssignmentModel>> GetAssignment(string smartcId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}/{Uri.EscapeDataString(smartcId)}/assignment")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context)
+        .GetAsync(context.With(_logger))
         .GetContent<AgentAssignmentModel>();
 
     public async Task<Option> Exist(string smartcId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}/{Uri.EscapeDataString(smartcId)}/exist")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context)
+        .GetAsync(context.With(_logger))
         .ToOption();
 
     public async Task<Option> Set(SmartcModel content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
-        .PostAsync(context)
+        .PostAsync(context.With(_logger))
         .ToOption();
 }

@@ -80,7 +80,7 @@ ServiceProvider BuildContainer(CmdOption option)
 
     service.AddSingleton<AgentRegistration>();
     service.AddSingleton<DumpContract>();
-    service.AddSingleton<EnqueueCommand>();
+    service.AddSingleton<Schedule>();
     service.AddSingleton<LoadScenario>();
     service.AddSingleton<SmartcPackage>();
     service.AddSingleton<SmartcRegistration>();
@@ -96,7 +96,18 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddHttpClient<ScheduleClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<StorageClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
 
-    service.AddLogging(config => config.AddConsole());
+    service.AddLogging(config =>
+    {
+        config.AddConsole();
+        config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Agent.AgentClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Tenant.TenantClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Smartc.SmartcClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.User.UserClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Subscription.SubscriptionClient", LogLevel.Warning);
+        config.AddFilter("SoftBank.sdk.SoftBank.SoftBankClient", LogLevel.Warning);
+        config.AddFilter("SpinCluster.sdk.Actors.Smartc.ScheduleClient", LogLevel.Warning);
+    });
 
     return service.BuildServiceProvider();
 }

@@ -37,7 +37,7 @@ public class SignatureClient : ISign
         .SetPath($"/{SpinConstants.Schema.Signature}/sign")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(model)
-        .PostAsync(context)
+        .PostAsync(context.With(_logger))
         .GetContent<SignResponse>();
 
 
@@ -45,6 +45,6 @@ public class SignatureClient : ISign
         .SetPath($"/{SpinConstants.Schema.Signature}/validate")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(model)
-        .PostAsync(context)
+        .PostAsync(context.With(_logger))
         .ToOption();
 }

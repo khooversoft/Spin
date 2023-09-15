@@ -2,7 +2,7 @@
   "profiles": {
     "SpinClusterCmd": {
       "commandName": "Project",
-      "commandLineArgs": "package download C:\\Sources\\Spin\\Src\\Spin2\\SpinClusterCmd\\Data\\Load-smartc-v1-package.json"
+      "commandLineArgs": "load C:\\Sources\\Spin\\Src\\Spin2\\SpinClusterCmd\\Data\\Scenario_001_Setup.json"
     }
   }
 }
