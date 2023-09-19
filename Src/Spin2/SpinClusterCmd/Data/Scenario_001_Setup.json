@@ -88,13 +88,13 @@
     {
       "AgentId": "agent:local-agent",
       "Enabled": true,
-      "WorkingFolder": "C:\\Work\\SpinAgent"
+      "WorkingFolder": "C:\\Work\\SpinAgent\\smartc-cache"
     }
   ],
   "SmartcItems": [
     {
       "SmartcId": "smartc:company30.com/loan-contract",
-      "SmartcExeId": "smartc-exe:company30.com/package1V1",
+      "SmartcExeId": "smartc-exe:company30.com/loan-smartc-v1.smartcz",
       "ContractId": "contract:company30.com/loan/contract1",
       "Enabled": true
     }

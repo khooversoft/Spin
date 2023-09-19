@@ -58,7 +58,7 @@ internal class Schedule
     public async Task Get()
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Clearing schedule queue");
+        context.Trace().LogInformation("Getting schedules");
 
         var scheduleModel = await _client
             .GetSchedules(context)

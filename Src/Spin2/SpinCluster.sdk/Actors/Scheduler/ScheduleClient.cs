@@ -18,10 +18,17 @@ public class ScheduleClient
         _logger = logger.NotNull();
     }
 
-    public async Task<Option> AddSchedule(ScheduleCreateModel work, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> AddRunResult(RunResultModel model, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Scheduler}/runResult")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .SetContent(model)
+        .PostAsync(context.With(_logger))
+        .ToOption();
+
+    public async Task<Option> AddSchedule(ScheduleCreateModel model, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Scheduler}/enqueue")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .SetContent(work)
+        .SetContent(model)
         .PostAsync(context.With(_logger))
         .ToOption();
 
@@ -37,18 +44,18 @@ public class ScheduleClient
         .DeleteAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option> CompletedWork(string workId, RunResultModel runResult, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(workId)}/completed")
+    public async Task<Option> CompletedWork(AssignedCompleted completed, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Scheduler}/completed")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .SetContent(runResult)
+        .SetContent(completed)
         .PostAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option<SchedulesModel>> GetDetail(string workId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Scheduler}/detail")
+    public async Task<Option<ScheduleWorkModel>> GetDetail(string workId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(workId)}/detail")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context.With(_logger))
-        .GetContent<SchedulesModel>();
+        .GetContent<ScheduleWorkModel>();
 
     public async Task<Option<SchedulesModel>> GetSchedules(ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Scheduler}/schedules")

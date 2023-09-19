@@ -22,6 +22,7 @@ public readonly struct Option : IEquatable<Option>
     public static bool operator !=(Option left, Option right) => !(left == right);
 
     public static implicit operator Option(StatusCode value) => new Option(value);
+    public static implicit operator Option((StatusCode StatusCode, string Error) value) => new Option(value.StatusCode, value.Error);
 }
 
 public static class OptionExtensions

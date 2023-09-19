@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using SpinAgent.Activities;
 using SpinAgent.Application;
 using SpinAgent.Commands;
+using SpinAgent.Services;
+using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
 using Toolbox.Extensions;
@@ -41,6 +43,8 @@ catch (ArgumentException ex)
 
 async Task<int> Run(IServiceProvider service, string[] args)
 {
+    await service.GetRequiredService<AgentConfiguration>().Startup();
+
     try
     {
         AbortSignal abortSignal = service.GetRequiredService<AbortSignal>();
@@ -75,9 +79,13 @@ ServiceProvider BuildContainer(AgentOption option)
     service.AddSingleton<WorkMonitor>();
     service.AddSingleton<RunSmartC>();
 
+    service.AddSingleton<AgentConfiguration>();
+    service.AddSingleton<PackageManagement>();
+
     service.AddHttpClient<ScheduleClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<StorageClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<AgentClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
 
     service.AddLogging(config =>
     {

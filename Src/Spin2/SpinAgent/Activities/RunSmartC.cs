@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
 using SpinAgent.Application;
+using SpinCluster.sdk.Actors.Smartc;
 using Toolbox.Tools;
 using Toolbox.Tools.Local;
 using Toolbox.Types;
@@ -10,31 +11,33 @@ namespace SpinAgent.Activities;
 internal class RunSmartC
 {
     private readonly ILogger<RunSmartC> _logger;
-    private readonly ActionBlock<string> _output;
-    private readonly AgentOption _agentOption;
     private readonly AbortSignal _abortSignal;
 
-    public RunSmartC(AgentOption agentOption, AbortSignal abortSignal, ILogger<RunSmartC> logger)
+    public RunSmartC(AbortSignal abortSignal, ILogger<RunSmartC> logger)
     {
-        _agentOption = agentOption.NotNull();
         _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
-
-        _output = new ActionBlock<string>(OutputSync);
     }
 
-    public async Task<Option> Run(ScopeContext context)
+    public async Task<Option> Run(string location, ScheduleWorkModel scheduleWorkModel, ScopeContext context)
     {
+        location.NotEmpty();
+        scheduleWorkModel.NotNull();
+        context = context.With(_logger);
+
         using CancellationTokenSource tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_abortSignal.GetToken());
         context = new ScopeContext(context.TraceId, _logger, tokenSource.Token);
 
-        //context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", _agentOption.CommandLine);
+        var actionBlock = new ActionBlock<string>(x => context.Trace().LogInformation("[localHost] {line}", x));
+
+        string arg = location + (location.Last() != '/' ? "/" : string.Empty) + scheduleWorkModel.Command;
+        context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", scheduleWorkModel.Command);
 
         try
         {
             var result = await new LocalProcessBuilder()
-                //.SetCommandLine(_agentOption.CommandLine)
-                .SetCaptureOutput(x => _output.Post(x))
+                .SetCommandLine(scheduleWorkModel.Command)
+                .SetCaptureOutput(x => actionBlock.Post(x))
                 .Build()
                 .Run(context);
 
@@ -45,10 +48,5 @@ internal class RunSmartC
             context.Location().LogCritical(ex, "Local process failed");
             return StatusCode.InternalServerError;
         }
-    }
-
-    private void OutputSync(string line)
-    {
-        Console.WriteLine(line);
     }
 }

@@ -28,14 +28,27 @@ public class ScheduleConnection
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Scheduler}");
 
+        group.MapPost("runResult", AddResult);
         group.MapPost("enqueue", AddSchedule);
         group.MapGet("/{agentId}/assign", AssignWork);
         group.MapDelete("/{principalId}/clear", Clear);
-        group.MapPost("/{workId}/completed", CompletedWork);
+        group.MapPost("/completed", CompletedWork);
         group.MapGet("/detail", GetDetail);
         group.MapGet("/schedules", GetSchedules);
 
         return group;
+    }
+
+    private async Task<IResult> AddResult(RunResultModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        var v = model.Validate();
+        if (v.IsError()) return Results.BadRequest(v.Error);
+
+        Option response = await _client
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .AddRunResult(model, traceId);
+
+        return response.ToResult();
     }
 
     private async Task<IResult> AddSchedule(ScheduleCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
@@ -43,7 +56,7 @@ public class ScheduleConnection
         var v = model.Validate();
         if (v.IsError()) return Results.BadRequest(v.Error);
 
-        var response = await _client
+        Option response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .AddSchedule(model, traceId);
 
@@ -65,26 +78,21 @@ public class ScheduleConnection
     {
         if (principalId.IsEmpty()) return Results.BadRequest();
 
-        var response = await _client
+        Option response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .Clear(principalId, traceId);
 
         return response.ToResult();
     }
 
-    private async Task<IResult> CompletedWork(string workId, RunResultModel runResult, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> CompletedWork(AssignedCompleted completed, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        workId = Uri.UnescapeDataString(workId);
+        var v = completed.Validate();
+        if (v.IsError()) return v.ToResult();
 
-        var test = new OptionTest()
-            .Test(workId.IsNotEmpty)
-            .Test(runResult.Validate);
-
-        if (test.IsError()) return Results.BadRequest(test.Error);
-
-        var response = await _client
+        Option response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .CompletedWork(workId, runResult, traceId);
+            .CompletedWork(completed, traceId);
 
         return response.ToResult();
     }
@@ -93,7 +101,7 @@ public class ScheduleConnection
     {
         workId = Uri.UnescapeDataString(workId);
 
-        var response = await _client
+        Option<ScheduleWorkModel> response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .GetDetail(workId, traceId);
 
@@ -102,7 +110,7 @@ public class ScheduleConnection
 
     private async Task<IResult> GetSchedules([FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var response = await _client
+        Option<SchedulesModel> response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .GetSchedules(traceId);
 

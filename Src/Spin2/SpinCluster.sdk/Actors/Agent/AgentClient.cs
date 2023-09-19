@@ -36,12 +36,6 @@ public class AgentClient
         .GetAsync(context.With(_logger))
         .GetContent<AgentModel>();
 
-    public async Task<Option<AgentAssignmentModel>> GetAssignment(string agentId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Agent}/{Uri.EscapeDataString(agentId)}/assignment")
-        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context.With(_logger))
-        .GetContent<AgentAssignmentModel>();
-
     public async Task<Option> IsActive(string agentId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Agent}/{Uri.EscapeDataString(agentId)}/isActive")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)

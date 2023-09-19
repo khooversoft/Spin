@@ -17,12 +17,12 @@ internal class RunCommand : Command
         _monitor = monitor.NotNull();
         _logger = logger.NotNull();
 
-        this.SetHandler(() =>
+        this.SetHandler(async () =>
         {
             var context = new ScopeContext(logger);
 
             _logger.LogInformation("Agent is running");
-            Task.WaitAll(monitor.Run(context));
+            await monitor.Run(context);
 
             _logger.LogInformation("Agent has stopped");
         });

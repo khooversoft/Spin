@@ -14,15 +14,15 @@ public record SmartcModel
     [Id(3)] public string ContractId { get; init; } = null!;
     [Id(4)] public bool Enabled { get; init; }
     [Id(5)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(6)] public AgentAssignmentModel? Assignment { get; init; }
 
     public bool IsActive => Enabled;
 
     public static IValidator<SmartcModel> Validator { get; } = new Validator<SmartcModel>()
         .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
-        .RuleFor(x => x.Assignment).ValidateOption(AgentAssignmentModel.Validator)
+        .RuleFor(x => x.Registered).ValidDateTime()
         .RuleFor(x => x.SmartcExeId).ValidResourceId(ResourceType.DomainOwned, "smartc-exe")
         .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, "contract")
+        .RuleFor(x => x.CreatedDate).ValidDateTime()
         .Build();
 }
 

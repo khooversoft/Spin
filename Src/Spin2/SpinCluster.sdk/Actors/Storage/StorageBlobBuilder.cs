@@ -49,6 +49,7 @@ public class StorageBlobBuilder
             StorageId = StorageId,
             Content = Content,
             ETag = ETag,
+            BlobHash = Content.ToSHA256HexHash(),
         };
     }
 }

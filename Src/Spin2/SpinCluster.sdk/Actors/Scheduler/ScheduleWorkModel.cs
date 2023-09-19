@@ -1,4 +1,6 @@
-﻿using Toolbox.Tools;
+﻿using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Models;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -17,7 +19,7 @@ public sealed record ScheduleWorkModel
     [Id(6)] public string CommandType { get; init; } = "args";
     [Id(7)] public string Command { get; init; } = null!;
     [Id(8)] public AssignedModel? Assigned { get; init; }
-    [Id(9)] public RunResultModel? RunResult { get; init; }
+    [Id(9)] public IReadOnlyList<RunResultModel> RunResults { get; init; } = Array.Empty<RunResultModel>();
 
     public static IValidator<ScheduleWorkModel> Validator { get; } = new Validator<ScheduleWorkModel>()
         .RuleFor(x => x.WorkId).NotEmpty()
@@ -26,7 +28,7 @@ public sealed record ScheduleWorkModel
         .RuleFor(x => x.CommandType).Must(x => x == "args" || x.StartsWith("json:"), x => $"{x} is not valid, must be 'args' or 'json:{{type}}'")
         .RuleFor(x => x.Command).NotEmpty()
         .RuleFor(x => x.Assigned).ValidateOption(AssignedModel.Validator)
-        .RuleFor(x => x.RunResult).ValidateOption(RunResultModel.Validator)
+        .RuleForEach(x => x.RunResults).Validate(RunResultModel.Validator)
         .Build();
 }
 

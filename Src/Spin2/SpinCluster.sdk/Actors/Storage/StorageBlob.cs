@@ -10,6 +10,7 @@ public sealed record StorageBlob
     [Id(0)] public string StorageId { get; init; } = null!;
     [Id(1)] public byte[] Content { get; init; } = null!;
     [Id(2)] public string? ETag { get; init; }
+    [Id(3)] public string BlobHash { get; init; } = null!;
 
     public bool Equals(StorageBlob? obj)
     {
@@ -23,6 +24,7 @@ public sealed record StorageBlob
     public static IValidator<StorageBlob> Validator { get; } = new Validator<StorageBlob>()
         .RuleFor(x => x.StorageId).ValidResourceId(ResourceType.DomainOwned)
         .RuleFor(x => x.Content).NotNull()
+        .RuleFor(x => x.BlobHash).NotEmpty()
         .Build();
 }
 

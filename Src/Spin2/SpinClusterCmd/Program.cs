@@ -32,6 +32,8 @@ try
         .Bind<CmdOption>()
         .Verify();
 
+    Console.WriteLine($"Configuration: {option}");
+
     using var serviceProvider = BuildContainer(option);
 
     return await Run(serviceProvider, CommandLineArgs);

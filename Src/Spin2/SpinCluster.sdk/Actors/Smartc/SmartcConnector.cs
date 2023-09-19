@@ -26,24 +26,12 @@ public class SmartcConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Smartc}");
 
-        group.MapPost("/completed", CompletedWork);
         group.MapDelete("/{smartcId}", Delete);
         group.MapGet("/{smartcId}/exist", Exist);
         group.MapGet("/{smartcId}", Get);
-        group.MapGet("/{smartcId}/assignment", GetAssignment);
         group.MapPost("/", Set);
-        group.MapPost("/setAssignment", SetAssignment);
 
         return group;
-    }
-
-    private async Task<IResult> CompletedWork(SmartcRunResultModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        var v = model.Validate();
-        if (v.IsError()) return Results.BadRequest(v.Error);
-
-        var response = await _client.GetResourceGrain<ISmartcActor>(model.SmartcId).CompletedWork(model, traceId);
-        return response.ToResult();
     }
 
     private async Task<IResult> Delete(string smartcId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
@@ -73,30 +61,12 @@ public class SmartcConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> GetAssignment(string smartcId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        smartcId = Uri.UnescapeDataString(smartcId);
-        if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, "smartc")) return Results.BadRequest();
-
-        Option<AgentAssignmentModel> response = await _client.GetResourceGrain<ISmartcActor>(smartcId).GetAssignment(traceId);
-        return response.ToResult();
-    }
-
     private async Task<IResult> Set(SmartcModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var v = model.Validate();
         if (v.IsError()) return Results.BadRequest(v.Error);
 
         var response = await _client.GetResourceGrain<ISmartcActor>(model.SmartcId).Set(model, traceId);
-        return response.ToResult();
-    }
-
-    private async Task<IResult> SetAssignment(AgentAssignmentModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        var v = model.Validate();
-        if (v.IsError()) return Results.BadRequest(v.Error);
-
-        var response = await _client.GetResourceGrain<ISmartcActor>(model.SmartcId).SetAssignment(model, traceId);
         return response.ToResult();
     }
 }

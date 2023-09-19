@@ -29,7 +29,6 @@ public class AgentConnector
         group.MapDelete("/{agentId}", Delete);
         group.MapGet("/{agentId}/exist", Exist);
         group.MapGet("/{agentId}", Get);
-        group.MapGet("/{agentId}/assignment", GetAssignment);
         group.MapGet("/{agentId}/isActive", IsActive);
         group.MapPost("/", Set);
 
@@ -60,15 +59,6 @@ public class AgentConnector
         if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
 
         Option<AgentModel> response = await _client.GetResourceGrain<IAgentActor>(agentId).Get(traceId);
-        return response.ToResult();
-    }
-
-    public async Task<IResult> GetAssignment(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        agentId = Uri.UnescapeDataString(agentId);
-        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
-
-        Option<AgentAssignmentModel> response = await _client.GetResourceGrain<IAgentActor>(agentId).GetAssignment(traceId);
         return response.ToResult();
     }
 

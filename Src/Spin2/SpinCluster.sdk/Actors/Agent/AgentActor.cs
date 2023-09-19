@@ -17,7 +17,6 @@ public interface IAgentActor : IGrainWithStringKey
     Task<Option<AgentModel>> Get(string traceId);
     Task<Option> IsActive(string traceId);
     Task<Option> Set(AgentModel model, string traceId);
-    Task<Option<AgentAssignmentModel>> GetAssignment(string traceId);
 }
 
 public class AgentActor : Grain, IAgentActor
@@ -78,43 +77,6 @@ public class AgentActor : Grain, IAgentActor
         };
 
         return option.ToTaskResult();
-    }
-
-    public async Task<Option<AgentAssignmentModel>> GetAssignment(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Get assignment, actorKey={actorKey}", this.GetPrimaryKeyString());
-
-        var test = new OptionTest()
-            .Test(() => _state.RecordExists)
-            .Test(() => _state.State.IsActive)
-            .Build(StatusCode.ServiceUnavailable, $"Agent {this.GetPrimaryKeyString()} not enabled");
-        if (test.IsError()) return test.Option.ToOptionStatus<AgentAssignmentModel>();
-
-        Option<ScheduleWorkModel> assignOption = await _clusterClient
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .AssignWork(this.GetPrimaryKeyString(), context.TraceId);
-
-        if (assignOption.IsError()) return assignOption.ToOptionStatus<AgentAssignmentModel>();
-
-        ScheduleWorkModel scheduleWorkModel = assignOption.Return();
-
-        var model = new AgentAssignmentModel
-        {
-            AgentId = this.GetPrimaryKeyString(),
-            WorkId = scheduleWorkModel.WorkId,
-            SmartcId = scheduleWorkModel.SmartcId,
-            CommandType = scheduleWorkModel.CommandType,
-            Command = scheduleWorkModel.Command,
-        };
-
-        var smartcOption = await _clusterClient
-            .GetResourceGrain<ISmartcActor>(assignOption.Return().SmartcId)
-            .SetAssignment(model, context.TraceId);
-
-        if (smartcOption.IsError()) return smartcOption.ToOptionStatus<AgentAssignmentModel>();
-
-        return model;
     }
 
     public async Task<Option> IsActive(string traceId)
