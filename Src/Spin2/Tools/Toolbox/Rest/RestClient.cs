@@ -74,7 +74,7 @@ public class RestClient
             "[RestClient-Calling] {uri}, method={method}, request={request}",
             requestMessage.RequestUri?.ToString() ?? "<no uri>",
             requestMessage.Method,
-            requestPayload
+            requestPayload.Return(false).Truncate(100)
             );
 
         try
@@ -89,7 +89,7 @@ public class RestClient
                 requestMessage.Method,
                 response.StatusCode,
                 requestPayload.Return(false),
-                (content.ToNullIfEmpty() ?? "<no content>").Truncate(1000)
+                (content.ToNullIfEmpty() ?? "<no content>").Truncate(100)
                 );
 
             var result = new RestResponse

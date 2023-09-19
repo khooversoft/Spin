@@ -35,12 +35,6 @@ public class StorageClient
         .GetAsync(context.With(_logger))
         .GetContent<StorageBlob>();
 
-    public async Task<Option<StorageBlobInfo>> GetInfo(string storageId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Storage}/{Uri.EscapeDataString(storageId)}/info")
-        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context.With(_logger))
-        .GetContent<StorageBlobInfo>();
-
     public async Task<Option> Set(StorageBlob content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Storage}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)

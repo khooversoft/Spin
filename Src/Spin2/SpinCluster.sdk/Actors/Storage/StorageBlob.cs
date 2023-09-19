@@ -32,5 +32,10 @@ public static class StorageBlobExtensions
 {
     public static Option Validate(this StorageBlob subject) => StorageBlob.Validator.Validate(subject).ToOptionStatus();
 
-    public static string GetHashOfContent(this StorageBlob subject) => "x" + subject.Content.ToSHA256HexHash();
+    public static string CalculateHash(this StorageBlob subject)
+    {
+        string h1 = (subject.StorageId + subject.ETag).ToBytes().ToSHA256HexHash();
+        string h2 = subject.Content.ToSHA256HexHash();
+        return h1 + h2;
+    }
 }

@@ -63,7 +63,7 @@ public static class ZipExtractExtension
         public void ExtractToFile(string filePath)
         {
             filePath.NotEmpty();
-
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
             ZipArchiveEntry.ExtractToFile(filePath, true);
         }
     }

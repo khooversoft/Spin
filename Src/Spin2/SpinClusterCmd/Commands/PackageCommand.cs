@@ -12,7 +12,6 @@ internal class PackageCommand : Command
         _smartcPackage = smartcPackage;
 
         AddCommand(Create());
-        AddCommand(Upload());
         AddCommand(Download());
     }
 
@@ -24,18 +23,7 @@ internal class PackageCommand : Command
         var cmd = new Command("create", "Create SmartC package");
         cmd.AddArgument(jsonFile);
         cmd.AddOption(verboseOption);
-        cmd.SetHandler(_smartcPackage.Create, jsonFile, verboseOption);
-
-        return cmd;
-    }
-
-    private Command Upload()
-    {
-        var jsonFile = new Argument<string>("jsonFile", "Json file with package details");
-
-        var cmd = new Command("upload", "Upload SmartC package");
-        cmd.AddArgument(jsonFile);
-        cmd.SetHandler(_smartcPackage.Upload, jsonFile);
+        cmd.SetHandler(_smartcPackage.CreateAndUpload, jsonFile, verboseOption);
 
         return cmd;
     }

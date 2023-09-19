@@ -28,7 +28,6 @@ public class StorageConnection
         group.MapDelete("/{storageId}", Delete);
         group.MapGet("/{storageId}/exist", Exist);
         group.MapGet("/{storageId}", Get);
-        group.MapGet("/{storageId}/info", GetInfo);
         group.MapPost("/", Set);
 
         return group;
@@ -63,18 +62,6 @@ public class StorageConnection
         Option<StorageBlob> response = await _client
             .GetResourceGrain<IStorageActor>(storageId)
             .Get(traceId);
-
-        return response.ToResult();
-    }
-
-    public async Task<IResult> GetInfo(string storageId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        storageId = Uri.UnescapeDataString(storageId);
-        if (!ResourceId.IsValid(storageId, ResourceType.DomainOwned)) return Results.BadRequest();
-
-        Option<StorageBlobInfo> response = await _client
-            .GetResourceGrain<IStorageActor>(storageId)
-            .GetInfo(traceId);
 
         return response.ToResult();
     }

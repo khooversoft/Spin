@@ -44,12 +44,13 @@ public class StorageBlobBuilder
         StorageId.NotEmpty(name: msg);
         Content.NotNull(name: msg);
 
-        return new StorageBlob
+        var blob = new StorageBlob
         {
             StorageId = StorageId,
             Content = Content,
             ETag = ETag,
-            BlobHash = Content.ToSHA256HexHash(),
         };
+
+        return blob with { BlobHash = blob.CalculateHash() };
     }
 }

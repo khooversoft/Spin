@@ -24,7 +24,7 @@ internal class PackageManagement
     private readonly AbortSignal _abortSignal;
 
     public PackageManagement(
-        AgentConfiguration agentConfiguration, 
+        AgentConfiguration agentConfiguration,
         SmartcClient smartcClient,
         StorageClient storageClient,
         AbortSignal abortSignal,
@@ -51,41 +51,47 @@ internal class PackageManagement
 
         SmartcModel smartcModel = smartcModelOption.Return();
 
-        var checkCacheResult = await CheckCache(smartcModel.SmartcExeId, context);
+        var checkCacheResult = await CheckCache(smartcModel, context);
         if (checkCacheResult.IsOk()) return checkCacheResult;
 
         return await DownloadAndExpand(smartcModel.SmartcExeId, context);
     }
 
-    private async Task<Option<string>> CheckCache(string smartcExeId, ScopeContext context)
+    private async Task<Option<string>> CheckCache(SmartcModel smartcModel, ScopeContext context)
     {
-        Option<StorageBlobInfo> blobInfoOption = await _storageClient
-            .GetInfo(smartcExeId, context)
-            .LogResult(context.Trace());
-
-        if (blobInfoOption.IsError())
-        {
-            context.Trace().LogError("Cannot get blob info for smartcExeId={smartcExeId}", smartcExeId);
-            return blobInfoOption.ToOptionStatus<string>();
-        }
-
         AgentModel agentModel = _agentConfiguration.Get(context);
 
-        string packageFolder = Path.Combine(agentModel.WorkingFolder, blobInfoOption.Return().BlobHash);
+        string packageFolder = Path.Combine(agentModel.WorkingFolder, smartcModel.BlobHash);
 
-        Option<string> result = Directory.Exists(packageFolder) switch
-        {
-            true => packageFolder,
-            false => StatusCode.NotFound,
-        };
+        if (!Directory.Exists(packageFolder)) return StatusCode.NotFound;
 
-        if (result.IsOk())
+        var tasks = smartcModel.PackageFiles.Select(x => checkHash(x));
+        var results = await Task.WhenAll(tasks);
+
+        if (results.All(x => x.IsOk())) return packageFolder;
+
+        context.Trace().LogError("Package file's hash did not verify, deleting folder for refresh");
+
+        Directory.Delete(packageFolder);
+        return StatusCode.NotFound;
+
+
+        async Task<Option> checkHash(PackageFile packageFile)
         {
-            context.Trace().LogInformation("Package is in cache, smartcExeId={smartcExeId}, packageFolder={packageFolder}",
-                smartcExeId, packageFolder);
+            var path = Path.Combine(packageFolder, packageFile.File);
+            if (!File.Exists(path)) return StatusCode.NotFound;
+
+            byte[] bytes = await File.ReadAllBytesAsync(path);
+            string fileHash = bytes.ToSHA256HexHash();
+
+            var option = packageFile.FileHash == fileHash ? StatusCode.OK : StatusCode.Conflict;
+            if (option.IsError())
+            {
+                context.Trace().LogError("File {file} hash does not match recorded package details, smartcId={smartcId}", path, smartcModel.SmartcId);
+            }
+
+            return option;
         }
-
-        return result;
     }
 
     private async Task<Option<string>> DownloadAndExpand(string smartcExeId, ScopeContext context)
@@ -103,7 +109,6 @@ internal class PackageManagement
         AgentModel agentModel = _agentConfiguration.Get(context);
 
         string packageFolder = Path.Combine(agentModel.WorkingFolder, blob.Content.ToSHA256HexHash());
-        if (Directory.Exists(packageFolder)) throw new InvalidOperationException("Directory should not exist");
         Directory.CreateDirectory(packageFolder);
 
         using (var memoryBuffer = new MemoryStream(blob.Content))
@@ -112,7 +117,7 @@ internal class PackageManagement
             read.ExtractToFolder(packageFolder, _abortSignal.GetToken(), null);
         }
 
-        context.Trace().LogInformation("Extracted SmartC package smartcExeId={smartcExeId} to folder={folder}", packageFolder);
+        context.Trace().LogInformation("Extracted SmartC package smartcExeId={smartcExeId} to folder={folder}", smartcExeId, packageFolder);
         return packageFolder;
     }
 

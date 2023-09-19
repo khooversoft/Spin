@@ -18,23 +18,19 @@ public interface ISmartcActor : IGrainWithStringKey
     Task<Option> Exist(string traceId);
     Task<Option<SmartcModel>> Get(string traceId);
     Task<Option> Set(SmartcModel model, string traceId);
-
 }
 
 public class SmartcActor : Grain, ISmartcActor
 {
     private readonly IPersistentState<SmartcModel> _state;
     private readonly ILogger<ContractActor> _logger;
-    private readonly IClusterClient _clusterClient;
 
     public SmartcActor(
         [PersistentState(stateName: "default", storageName: SpinConstants.SpinStateStore)] IPersistentState<SmartcModel> state,
-        IClusterClient clusterClient,
         ILogger<ContractActor> logger
         )
     {
         _state = state.NotNull();
-        _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();
     }
 

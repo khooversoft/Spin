@@ -13,7 +13,6 @@ public interface IStorageActor : IGrainWithStringKey
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
     Task<Option<StorageBlob>> Get(string traceId);
-    Task<Option<StorageBlobInfo>> GetInfo(string traceId);
     Task<Option> Set(StorageBlob blob, string traceId);
 }
 
@@ -104,23 +103,6 @@ public class StorageActor : Grain, IStorageActor
             .Build();
 
         return blob;
-    }
-
-    public async Task<Option<StorageBlobInfo>> GetInfo(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Getting info, actorKey={actorKey}", this.GetPrimaryKeyString());
-
-        var blobOption = await Get(context.TraceId);
-        if (blobOption.IsError()) return blobOption.ToOptionStatus<StorageBlobInfo>();
-
-        var result = new StorageBlobInfo
-        {
-            StorageId = this.GetPrimaryKeyString(),
-            BlobHash = blobOption.Return().Content.ToSHA256HexHash(),
-        };
-
-        return result;
     }
 
     public async Task<Option> Set(StorageBlob blob, string traceId)
