@@ -18,9 +18,9 @@ internal class RunSmartC
         _logger = logger.NotNull();
     }
 
-    public async Task<Option> Run(string location, ScheduleWorkModel scheduleWorkModel, ScopeContext context)
+    public async Task<Option> Run(string folder, ScheduleWorkModel scheduleWorkModel, ScopeContext context)
     {
-        location.NotEmpty();
+        folder.NotEmpty();
         scheduleWorkModel.NotNull();
         context = context.With(_logger);
 
@@ -29,13 +29,13 @@ internal class RunSmartC
 
         var actionBlock = new ActionBlock<string>(x => context.Trace().LogInformation("[localHost] {line}", x));
 
-        string arg = location + (location.Last() != '/' ? "/" : string.Empty) + scheduleWorkModel.Command;
+        string arg = folder + " " + scheduleWorkModel.Command;
         context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", scheduleWorkModel.Command);
 
         try
         {
             var result = await new LocalProcessBuilder()
-                .SetCommandLine(scheduleWorkModel.Command)
+                .SetCommandLine(arg)
                 .SetCaptureOutput(x => actionBlock.Post(x))
                 .Build()
                 .Run(context);

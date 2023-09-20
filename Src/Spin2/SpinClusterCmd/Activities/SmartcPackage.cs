@@ -146,6 +146,7 @@ internal class SmartcPackage
             SmartcId = option.SmartcId,
             SmartcExeId = option.SmartcExeId,
             ContractId = option.ContractId,
+            Executable = option.Executable,
             Enabled = option.Enabled,
             PackageFiles = packageFiles,
             BlobHash = blobHash,
@@ -187,6 +188,7 @@ internal class SmartcPackage
         public string SmartcExeId { get; init; } = null!;
         public string SourceFolder { get; init; } = null!;
         public string ContractId { get; init; } = null!;
+        public string Executable { get; init; } = null!;
         public bool Enabled { get; init; }
         public string SmartcPackageFile { get; init; } = null!;
 
@@ -195,6 +197,7 @@ internal class SmartcPackage
             .RuleFor(x => x.SmartcExeId).ValidResourceId(ResourceType.DomainOwned, "smartc-exe")
             .RuleFor(x => x.SourceFolder).NotEmpty()
             .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, "contract")
+            .RuleFor(x => x.Executable).NotEmpty()
             .Build();
     }
 }

@@ -43,12 +43,15 @@ internal class PackageManagement
         WorkContext workContext = workContextModel.Return();
 
         var checkCacheResult = await CheckCache(workContext, context);
-        if (checkCacheResult.IsOk()) return checkCacheResult.ToOptionStatus<string>(); ;
+        if (checkCacheResult.IsOk()) return workContext.Executable;
 
         var downloadOption = await DownloadAndExpand(workContext, context);
         if (downloadOption.IsError()) return downloadOption.ToOptionStatus<string>();
 
-        return workContext.PackageFolder;
+        var result = await CheckCacheFiles(workContext, context);
+        if (result.IsError()) return result.ToOptionStatus<string>();
+
+        return workContext.Executable;
     }
 
     private async Task<Option<WorkContext>> Setup(string smartcId, ScopeContext context)
@@ -63,12 +66,14 @@ internal class PackageManagement
 
         var model = smartcModelOption.Return();
         var agent = _agentConfiguration.Get(context);
+        var folder = Path.Combine(agent.WorkingFolder, model.BlobHash);
 
         return new WorkContext
         {
             SmartcModel = model,
             AgentModel = agent,
-            PackageFolder = Path.Combine(agent.WorkingFolder, model.BlobHash)
+            PackageFolder = folder,
+            Executable = Path.Combine(folder, model.Executable),
         };
     }
 
@@ -77,7 +82,7 @@ internal class PackageManagement
         if (!Directory.Exists(workContext.PackageFolder)) return StatusCode.NotFound;
 
         var result = await CheckCacheFiles(workContext, context);
-        if (result.IsError()) return result;
+        if (result.IsOk()) return result;
 
         Directory.Delete(workContext.PackageFolder);
         return StatusCode.NotFound;
@@ -121,19 +126,31 @@ internal class PackageManagement
             .Select(x => (packageFile: x, file: Path.Combine(workContext.PackageFolder, x.File)))
             .ToArray();
 
+        if (localFiles.Length != workContext.SmartcModel.PackageFiles.Count)
+        {
+            context.Trace().LogError("Count mistmatch, filesCount={filesCount}, packageFileCount={packageFileCount}",
+                localFiles.Length, workContext.SmartcModel.PackageFiles.Count);
+
+            return StatusCode.Conflict;
+        }
+
         // Get file hashes
-        Option<IReadOnlyList<FileTool.FileHash>> fileHashes = await FileTool.GetFileHashes(localFiles.Select(x => x.file).ToArray(), context);
-        if (fileHashes.IsError())
+        Option<IReadOnlyList<FileTool.FileHash>> fileHashesOption = await FileTool.GetFileHashes(localFiles.Select(x => x.file).ToArray(), context);
+        if (fileHashesOption.IsError())
         {
             context.Trace().LogError("Package file's hash violations detected, deleting folder for refresh, smartcExeId={smartcExeId}",
                 workContext.SmartcModel.SmartcExeId);
 
-            return fileHashes.ToOptionStatus();
+            return fileHashesOption.ToOptionStatus();
         }
 
-        // Checking hashes against recorded violations 
-        var hashViolations = fileHashes.Return()
-            .Zip(workContext.SmartcModel.PackageFiles)
+        IReadOnlyList<FileTool.FileHash> fileHashes = fileHashesOption.Return()
+            .Select(x => new FileTool.FileHash { File = x.File[(workContext.PackageFolder.Length + 1)..], Hash = x.Hash })
+            .ToArray();
+
+        // Checking hashes against recorded violations
+        var hashViolations = fileHashes.OrderBy(x => x.File)
+            .Zip(workContext.SmartcModel.PackageFiles.OrderBy(x => x.File))
             .Where(x => x.First.File != x.Second.File || x.First.Hash != x.Second.FileHash)
             .ToArray();
 
@@ -159,5 +176,6 @@ internal class PackageManagement
         public SmartcModel SmartcModel { get; init; } = null!;
         public AgentModel AgentModel { get; init; } = null!;
         public string PackageFolder { get; init; } = null!;
+        public string Executable { get; init; } = null!;
     }
 }

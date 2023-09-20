@@ -12,10 +12,11 @@ public sealed record SmartcModel
     [Id(1)] public DateTime Registered { get; init; } = DateTime.UtcNow;
     [Id(2)] public string SmartcExeId { get; init; } = null!;
     [Id(3)] public string ContractId { get; init; } = null!;
-    [Id(4)] public bool Enabled { get; init; }
-    [Id(5)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    [Id(6)] public string BlobHash { get; init; } = null!;
-    [Id(7)] public IReadOnlyList<PackageFile> PackageFiles { get; init; } = Array.Empty<PackageFile>();
+    [Id(4)] public string Executable { get; init; } = null!;
+    [Id(5)] public bool Enabled { get; init; }
+    [Id(6)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+    [Id(7)] public string BlobHash { get; init; } = null!;
+    [Id(8)] public IReadOnlyList<PackageFile> PackageFiles { get; init; } = Array.Empty<PackageFile>();
 
     public bool IsActive => Enabled;
 
@@ -23,7 +24,8 @@ public sealed record SmartcModel
         SmartcId == document.SmartcId &&
         Registered == document.Registered &&
         SmartcExeId == document.SmartcExeId &&
-        SmartcId == document.SmartcId &&
+        ContractId == document.ContractId &&
+        Executable == document.Executable &&
         Enabled == document.Enabled &&
         CreatedDate == document.CreatedDate &&
         BlobHash == document.BlobHash &&
@@ -37,6 +39,7 @@ public sealed record SmartcModel
         .RuleFor(x => x.Registered).ValidDateTime()
         .RuleFor(x => x.SmartcExeId).ValidResourceId(ResourceType.DomainOwned, "smartc-exe")
         .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, "contract")
+        .RuleFor(x => x.Executable).NotEmpty()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.BlobHash).NotEmpty()
         .RuleFor(x => x.PackageFiles).Must(x => x.Count > 0, _ => "PackageFiles is empty")
