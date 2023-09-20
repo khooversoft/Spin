@@ -31,7 +31,8 @@ public class UserTest : IClassFixture<ClusterApiFixture>
                 "Domain": "company5.com",
                 "SubscriptionId": "subscription:Company5Subscription",
                 "ContactName": "Admin",
-                "Email": "admin@company5.com"
+                "Email": "admin@company5.com",
+                "Enabled": true
               }
             ]
         }

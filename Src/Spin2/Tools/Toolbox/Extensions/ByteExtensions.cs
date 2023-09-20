@@ -45,13 +45,6 @@ namespace Toolbox.Extensions
         }
 
         /// <summary>
-        /// Calculate hash of bytes
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        public static byte[] ToHash(this IEnumerable<byte> bytes) => MD5.Create().ComputeHash(bytes.NotNull().ToArray());
-
-        /// <summary>
         /// Convert object to bytes
         /// </summary>
         /// <typeparam name="T">type</typeparam>
@@ -99,20 +92,18 @@ namespace Toolbox.Extensions
         }
 
         /// <summary>
-        /// Convert bytes to SHA256 hash
+        /// Calculate hash of bytes
         /// </summary>
-        /// <param name="inputBytes">input bytes</param>
-        /// <returns>hash as base 64</returns>
-        public static string ToSHA256Hash(this IEnumerable<byte> inputBytes)
-        {
-            inputBytes.NotNull();
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static byte[] ToHash(this IEnumerable<byte> bytes) => SHA256.Create().ComputeHash(bytes.NotNull().ToArray());
 
-            return SHA256.Create()
-                .ComputeHash(inputBytes.ToArray())
-                .Func(Convert.ToBase64String);
-        }
-
-        public static string ToSHA256HexHash(this IEnumerable<byte> subject) => subject
+        /// <summary>
+        /// Calculate hash of bytes and return string of hex values
+        /// </summary>
+        /// <param name="subject"></param>
+        /// <returns></returns>
+        public static string ToHexHash(this IEnumerable<byte> subject) => subject
             .ToHash()
             .ToHex();
     }

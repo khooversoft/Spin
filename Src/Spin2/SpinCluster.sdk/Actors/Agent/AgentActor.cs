@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Actors.Contract;
-using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Models;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;

@@ -16,12 +16,12 @@ internal class RunCommand : Command
         _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
 
-        this.SetHandler(() =>
+        this.SetHandler(async () =>
         {
             var context = new ScopeContext(logger);
 
             _logger.LogInformation("Contract is running");
-            Task.WaitAll(Run());
+            await Run();
 
             _logger.LogInformation("Contract has stopped");
         });

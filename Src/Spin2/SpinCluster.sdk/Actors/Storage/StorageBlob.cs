@@ -34,8 +34,8 @@ public static class StorageBlobExtensions
 
     public static string CalculateHash(this StorageBlob subject)
     {
-        string h1 = (subject.StorageId + subject.ETag).ToBytes().ToSHA256HexHash();
-        string h2 = subject.Content.ToSHA256HexHash();
-        return h1 + h2;
+        string h1 = (subject.StorageId + subject.ETag).ToBytes().ToHexHash();
+        string h2 = subject.Content.ToHexHash();
+        return (h1 + h2).ToBytes().ToHexHash();
     }
 }

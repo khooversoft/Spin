@@ -33,8 +33,10 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
                 "Domain": "company6.com",
                 "SubscriptionId": "subscription:Company6Subscription",
                 "ContactName": "Admin",
-                "Email": "admin@company6.com"
+                "Email": "admin@company6.com",
+                "Enabled": true
               }
+        
             ],
             "Users": [
               {
@@ -71,7 +73,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         buildResult.IsOk().Should().BeTrue();
 
         string msg = "this is a message";
-        string messageDigest = msg.ToBytes().ToSHA256Hash();
+        string messageDigest = msg.ToBytes().ToHexHash();
 
         UserClient userClient = _cluster.ServiceProvider.GetRequiredService<UserClient>();
 

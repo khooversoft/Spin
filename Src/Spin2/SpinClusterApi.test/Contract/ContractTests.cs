@@ -33,7 +33,8 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
                 "Domain": "company7.com",
                 "SubscriptionId": "subscription:Company7Subscription",
                 "ContactName": "Admin",
-                "Email": "admin@company7.com"
+                "Email": "admin@company7.com",
+                "Enabled": true
               }
             ],
             "Users": [

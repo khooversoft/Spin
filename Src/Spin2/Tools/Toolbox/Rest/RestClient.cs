@@ -68,14 +68,21 @@ public class RestClient
     {
         var ls = context.Location().LogEntryExit();
 
-        Option<string> requestPayload = await requestMessage.GetContent();
+        string? requestPayload = (await requestMessage.GetContent()).Return(false);
 
         context.Location().LogTrace(
             "[RestClient-Calling] {uri}, method={method}, request={request}",
             requestMessage.RequestUri?.ToString() ?? "<no uri>",
             requestMessage.Method,
-            requestPayload.Return(false).Truncate(100)
+            requestPayload
             );
+
+        requestPayload = requestPayload switch
+        {
+            null => null,
+            { Length: <= 100 } => requestPayload,
+            _ => requestPayload.Truncate(100) + "...",
+        };
 
         try
         {
@@ -84,12 +91,20 @@ public class RestClient
 
             context.Location().Log(
                 setLogLevel(response),
-                "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request} response={response}",
+                "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request}, response={response}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
                 response.StatusCode,
-                requestPayload.Return(false),
+                requestPayload,
                 (content.ToNullIfEmpty() ?? "<no content>").Truncate(100)
+                );
+
+            context.Location().LogTrace(
+                "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, response={response}",
+                requestMessage.RequestUri?.ToString(),
+                requestMessage.Method,
+                response.StatusCode,
+                (content.ToNullIfEmpty() ?? "<no content>")
                 );
 
             var result = new RestResponse
@@ -107,7 +122,7 @@ public class RestClient
             context.Location().LogCritical("[Restclient-Error] call to {uri} failed, method={method}, request={request}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
-                requestPayload.Return(false)
+                requestPayload
                 );
 
             var result = new RestResponse

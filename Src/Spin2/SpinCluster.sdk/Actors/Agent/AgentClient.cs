@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
-using SpinCluster.sdk.Models;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;

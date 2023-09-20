@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinClusterApi.test.Application;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Basics;
@@ -29,7 +30,13 @@ public class SmartcTests : IClassFixture<ClusterApiFixture>
         var model = new SmartcModel
         {
             SmartcId = smartcId,
+            SmartcExeId = "smartc-exe:domain.com/package",
+            ContractId = "contract:company.com/loan/contract1",
+            BlobHash = "blobHash",
             Enabled = true,
+            PackageFiles = new PackageFile { File = "file", FileHash = "hash" }
+                .ToEnumerable()
+                .ToArray()
         };
 
         Option setResult = await client.Set(model, _context);

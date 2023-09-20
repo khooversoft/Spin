@@ -90,7 +90,13 @@ internal class SmartcPackage
             .Select(x => new CopyTo { Source = x, Destination = "bin\\" + x[(option.SourceFolder.Length + 1)..] })
             .ToArray();
 
-        IReadOnlyList<PackageFile> packageFiles = await GetFileHashes(copy, verbose, context);
+        Option<IReadOnlyList<FileTool.FileHash>> fileHashes = await FileTool.GetFileHashes(copy.Select(x => x.Source).ToArray(), context);
+        if (fileHashes.IsError()) return fileHashes.ToOptionStatus<IReadOnlyList<PackageFile>>();
+        if (verbose) hashDump(fileHashes.Return());
+
+        IReadOnlyList<PackageFile> packageFiles = fileHashes.Return()
+            .Join(copy, x => x.File, x => x.Source, (o, i) => new PackageFile { File = i.Destination, FileHash = o.Hash })
+            .ToArray();
 
         using (var stream = new FileStream(option.SmartcPackageFile, FileMode.Create))
         {
@@ -107,6 +113,11 @@ internal class SmartcPackage
 
         void dump(CopyTo[] copyTo) => copyTo
             .Select(x => $"  Adding to package: {x.Source} -> {x.Destination}")
+            .Join(Environment.NewLine)
+            .Action(x => context.Trace().LogInformation(x));
+
+        void hashDump(IEnumerable<FileTool.FileHash> files) => files
+            .Select(x => $"  File hashes: {x.File} -> {x.Hash}")
             .Join(Environment.NewLine)
             .Action(x => context.Trace().LogInformation(x));
     }
@@ -135,7 +146,7 @@ internal class SmartcPackage
             SmartcId = option.SmartcId,
             SmartcExeId = option.SmartcExeId,
             ContractId = option.ContractId,
-            Enabled= option.Enabled,
+            Enabled = option.Enabled,
             PackageFiles = packageFiles,
             BlobHash = blobHash,
         };
@@ -168,29 +179,6 @@ internal class SmartcPackage
         if (folder == null) return;
 
         Directory.CreateDirectory(folder);
-    }
-
-    private async Task<IReadOnlyList<PackageFile>> GetFileHashes(IEnumerable<CopyTo> files, bool verbose, ScopeContext context)
-    {
-        context.Trace().LogInformation("Calculating hash for all files in package");
-
-        var tasks = files.Select(x => calculateHash(x));
-        PackageFile[] results = await Task.WhenAll(tasks);
-
-        if (verbose)
-        {
-            string line = results.Select(x => $"File={x.File}, hash={x.FileHash}").Join(Environment.NewLine);
-            context.Trace().LogInformation("File hashes: details={details}", line);
-        }
-
-        return results;
-
-        async Task<PackageFile> calculateHash(CopyTo copyTo)
-        {
-            byte[] bytes = await File.ReadAllBytesAsync(copyTo.Source);
-            string fileHash = bytes.ToSHA256HexHash();
-            return new PackageFile { File = copyTo.Destination, FileHash = fileHash };
-        }
     }
 
     private record PackageOption

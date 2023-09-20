@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO.Compression;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Smartc;
@@ -42,83 +37,127 @@ internal class PackageManagement
         context = context.With(_logger);
         context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", smartcId);
 
+        var workContextModel = await Setup(smartcId, context);
+        if (workContextModel.IsError()) return workContextModel.ToOptionStatus<string>();
+
+        WorkContext workContext = workContextModel.Return();
+
+        var checkCacheResult = await CheckCache(workContext, context);
+        if (checkCacheResult.IsOk()) return checkCacheResult.ToOptionStatus<string>(); ;
+
+        var downloadOption = await DownloadAndExpand(workContext, context);
+        if (downloadOption.IsError()) return downloadOption.ToOptionStatus<string>();
+
+        return workContext.PackageFolder;
+    }
+
+    private async Task<Option<WorkContext>> Setup(string smartcId, ScopeContext context)
+    {
+
         var smartcModelOption = await _smartcClient.Get(smartcId, context).LogResult(context.Trace());
         if (smartcModelOption.IsError())
         {
             context.Trace().LogError("Cannot find smartcId={smartcId}", smartcId);
-            return smartcModelOption.ToOptionStatus<string>();
+            return smartcModelOption.ToOptionStatus<WorkContext>();
         }
 
-        SmartcModel smartcModel = smartcModelOption.Return();
+        var model = smartcModelOption.Return();
+        var agent = _agentConfiguration.Get(context);
 
-        var checkCacheResult = await CheckCache(smartcModel, context);
-        if (checkCacheResult.IsOk()) return checkCacheResult;
-
-        return await DownloadAndExpand(smartcModel.SmartcExeId, context);
-    }
-
-    private async Task<Option<string>> CheckCache(SmartcModel smartcModel, ScopeContext context)
-    {
-        AgentModel agentModel = _agentConfiguration.Get(context);
-
-        string packageFolder = Path.Combine(agentModel.WorkingFolder, smartcModel.BlobHash);
-
-        if (!Directory.Exists(packageFolder)) return StatusCode.NotFound;
-
-        var tasks = smartcModel.PackageFiles.Select(x => checkHash(x));
-        var results = await Task.WhenAll(tasks);
-
-        if (results.All(x => x.IsOk())) return packageFolder;
-
-        context.Trace().LogError("Package file's hash did not verify, deleting folder for refresh");
-
-        Directory.Delete(packageFolder);
-        return StatusCode.NotFound;
-
-
-        async Task<Option> checkHash(PackageFile packageFile)
+        return new WorkContext
         {
-            var path = Path.Combine(packageFolder, packageFile.File);
-            if (!File.Exists(path)) return StatusCode.NotFound;
-
-            byte[] bytes = await File.ReadAllBytesAsync(path);
-            string fileHash = bytes.ToSHA256HexHash();
-
-            var option = packageFile.FileHash == fileHash ? StatusCode.OK : StatusCode.Conflict;
-            if (option.IsError())
-            {
-                context.Trace().LogError("File {file} hash does not match recorded package details, smartcId={smartcId}", path, smartcModel.SmartcId);
-            }
-
-            return option;
-        }
+            SmartcModel = model,
+            AgentModel = agent,
+            PackageFolder = Path.Combine(agent.WorkingFolder, model.BlobHash)
+        };
     }
 
-    private async Task<Option<string>> DownloadAndExpand(string smartcExeId, ScopeContext context)
+    private async Task<Option> CheckCache(WorkContext workContext, ScopeContext context)
     {
-        context.Trace().LogInformation("Downloading and unpacking smartcExeId={smartcExeId}", smartcExeId);
+        if (!Directory.Exists(workContext.PackageFolder)) return StatusCode.NotFound;
 
-        var blobPackageOption = await _storageClient.Get(smartcExeId, context);
+        var result = await CheckCacheFiles(workContext, context);
+        if (result.IsError()) return result;
+
+        Directory.Delete(workContext.PackageFolder);
+        return StatusCode.NotFound;
+    }
+
+    private async Task<Option> DownloadAndExpand(WorkContext workContext, ScopeContext context)
+    {
+        context.Trace().LogInformation("Downloading and unpacking smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
+
+        var blobPackageOption = await _storageClient.Get(workContext.SmartcModel.SmartcExeId, context);
         if (blobPackageOption.IsError())
         {
-            context.Trace().LogError("Cannot download blob package for smartcExeId={smartcExeId}", smartcExeId);
+            context.Trace().LogError("Cannot download blob package for smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
             return StatusCode.NotFound;
         }
 
         StorageBlob blob = blobPackageOption.Return();
-        AgentModel agentModel = _agentConfiguration.Get(context);
+        if (blob.BlobHash != blob.CalculateHash())
+        {
+            context.Trace().LogCritical("SmartC package's blobs hash is invalid, smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
+            return StatusCode.Conflict;
+        }
 
-        string packageFolder = Path.Combine(agentModel.WorkingFolder, blob.Content.ToSHA256HexHash());
-        Directory.CreateDirectory(packageFolder);
+        Directory.CreateDirectory(workContext.PackageFolder);
 
         using (var memoryBuffer = new MemoryStream(blob.Content))
         {
             using var read = new ZipArchive(memoryBuffer, ZipArchiveMode.Read, leaveOpen: true);
-            read.ExtractToFolder(packageFolder, _abortSignal.GetToken(), null);
+            read.ExtractToFolder(workContext.PackageFolder, _abortSignal.GetToken(), null);
         }
 
-        context.Trace().LogInformation("Extracted SmartC package smartcExeId={smartcExeId} to folder={folder}", smartcExeId, packageFolder);
-        return packageFolder;
+        context.Trace().LogInformation("Extracted SmartC package smartcExeId={smartcExeId} to folder={folder}",
+            workContext.SmartcModel.SmartcExeId, workContext.PackageFolder);
+
+        return StatusCode.OK;
     }
 
+    private async Task<Option> CheckCacheFiles(WorkContext workContext, ScopeContext context)
+    {
+        var localFiles = workContext.SmartcModel.PackageFiles
+            .Select(x => (packageFile: x, file: Path.Combine(workContext.PackageFolder, x.File)))
+            .ToArray();
+
+        // Get file hashes
+        Option<IReadOnlyList<FileTool.FileHash>> fileHashes = await FileTool.GetFileHashes(localFiles.Select(x => x.file).ToArray(), context);
+        if (fileHashes.IsError())
+        {
+            context.Trace().LogError("Package file's hash violations detected, deleting folder for refresh, smartcExeId={smartcExeId}",
+                workContext.SmartcModel.SmartcExeId);
+
+            return fileHashes.ToOptionStatus();
+        }
+
+        // Checking hashes against recorded violations 
+        var hashViolations = fileHashes.Return()
+            .Zip(workContext.SmartcModel.PackageFiles)
+            .Where(x => x.First.File != x.Second.File || x.First.Hash != x.Second.FileHash)
+            .ToArray();
+
+        if (hashViolations.Length > 0) return (StatusCode.Conflict, "File violations detected");
+
+        var allFiles = Directory.EnumerateFiles(workContext.PackageFolder, "*.*", SearchOption.AllDirectories)
+            .Except(localFiles.Select(x => x.file))
+            .ToArray();
+
+        if (allFiles.Length > 0)
+        {
+            context.Trace().LogError("There are more files then recorded for package, count={count}, files={files}, smartcExeId={smartcExeId}",
+                allFiles.Length, allFiles.Join(';'), workContext.SmartcModel.SmartcExeId);
+
+            return StatusCode.Conflict;
+        }
+
+        return StatusCode.OK;
+    }
+
+    private sealed record WorkContext
+    {
+        public SmartcModel SmartcModel { get; init; } = null!;
+        public AgentModel AgentModel { get; init; } = null!;
+        public string PackageFolder { get; init; } = null!;
+    }
 }

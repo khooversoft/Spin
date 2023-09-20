@@ -1,14 +1,9 @@
-﻿using System.IO.Compression;
-using Microsoft.Azure.Amqp.Framing;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SpinAgent.Application;
 using SpinAgent.Services;
-using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Smartc;
-using SpinCluster.sdk.Actors.Storage;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Zip;
 using Toolbox.Types;
 
 namespace SpinAgent.Activities;

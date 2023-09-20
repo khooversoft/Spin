@@ -9,9 +9,11 @@ public static class MerkleTreeExtensions
     {
         hashes.NotNull();
 
-        return new MerkleTree()
+        var bytes = new MerkleTree()
             .Append(hashes.ToArray())
-            .BuildTree().Value.ToArray()
-            .Func(Convert.ToBase64String);
+            .BuildTree()
+            .Value;
+
+        return bytes.ToHex();
     }
 }

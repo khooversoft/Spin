@@ -16,8 +16,8 @@ public static class DataBlockExtensions
 
         var hashes = new string[]
         {
-                $"{dataBlock.CreatedDate.ToString("o")}-{dataBlock.BlockType}-{dataBlock.BlockId}-{dataBlock.PrincipleId}".ToBytes().ToSHA256Hash(),
-                dataBlock.Data.ToBytes().ToSHA256Hash(),
+            $"{dataBlock.CreatedDate.ToString("o")}-{dataBlock.BlockType}-{dataBlock.BlockId}-{dataBlock.PrincipleId}".ToBytes().ToHexHash(),
+            dataBlock.Data.ToBytes().ToHexHash(),
         };
 
         return hashes.ToMerkleHash();

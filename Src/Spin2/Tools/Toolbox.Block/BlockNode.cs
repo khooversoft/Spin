@@ -39,7 +39,7 @@ public static class BlockNodeExtensions
     {
         var hashes = new string[]
         {
-            $"{blockNode.Index}-{blockNode.PreviousHash ?? ""}".ToBytes().ToSHA256Hash(),
+            $"{blockNode.Index}-{blockNode.PreviousHash ?? ""}".ToBytes().ToHexHash(),
             blockNode.DataBlock.CalculateDigest(),
         };
 

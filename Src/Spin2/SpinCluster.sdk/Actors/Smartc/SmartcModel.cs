@@ -19,6 +19,19 @@ public sealed record SmartcModel
 
     public bool IsActive => Enabled;
 
+    public bool Equals(SmartcModel? obj) => obj is SmartcModel document &&
+        SmartcId == document.SmartcId &&
+        Registered == document.Registered &&
+        SmartcExeId == document.SmartcExeId &&
+        SmartcId == document.SmartcId &&
+        Enabled == document.Enabled &&
+        CreatedDate == document.CreatedDate &&
+        BlobHash == document.BlobHash &&
+        PackageFiles.SequenceEqual(document.PackageFiles);
+
+    public override int GetHashCode() => HashCode.Combine(SmartcId, Registered, SmartcExeId);
+
+
     public static IValidator<SmartcModel> Validator { get; } = new Validator<SmartcModel>()
         .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
         .RuleFor(x => x.Registered).ValidDateTime()
@@ -26,6 +39,7 @@ public sealed record SmartcModel
         .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, "contract")
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.BlobHash).NotEmpty()
+        .RuleFor(x => x.PackageFiles).Must(x => x.Count > 0, _ => "PackageFiles is empty")
         .RuleForEach(x => x.PackageFiles).Validate(PackageFile.Validator)
         .Build();
 }
