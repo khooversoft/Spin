@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LoanContract.sdk.Application;
+﻿using LoanContract.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;

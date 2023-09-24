@@ -59,8 +59,6 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
             SubscriptionId = IdTool.CreateSubscriptionId(subscriptionId),
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
-
-            Enabled = true,
         };
 
         Option setOption = await client.Set(tenant, context);

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.sdk.Actors.Domain;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
-using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Security.Sign;
@@ -42,6 +42,37 @@ public class UserActor : Grain, IUserActor
     {
         this.VerifySchema(SpinConstants.Schema.User, new ScopeContext(_logger));
         return base.OnActivateAsync(cancellationToken);
+    }
+
+    public async Task<Option> Create(UserCreateModel model, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Create user, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        var test = await new OptionTest()
+            .Test(() => _state.RecordExists ? StatusCode.Conflict : StatusCode.OK)
+            .Test(() => model.Validate().LogResult(context.Location()))
+            .TestAsync(async () => await VerifyDomain(model.UserId, context));
+        if (test.IsError()) return test;
+
+        var userModel = new UserModel
+        {
+            UserId = model.UserId,
+            PrincipalId = model.PrincipalId,
+            DisplayName = model.DisplayName,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            AccountEnabled = true,
+            UserKey = UserKeyModel.Create(model.PrincipalId),
+        };
+
+        var createOption = await CreateKeys(userModel, context);
+        if (createOption.IsError()) return createOption;
+
+        _state.State = userModel;
+        await _state.WriteStateAsync();
+
+        return StatusCode.OK;
     }
 
     public async Task<Option> Delete(string traceId)
@@ -87,36 +118,6 @@ public class UserActor : Grain, IUserActor
         return option.ToTaskResult();
     }
 
-    public async Task<Option> Create(UserCreateModel model, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Create user, actorKey={actorKey}", this.GetPrimaryKeyString());
-
-        var test = await new OptionTest()
-            .Test(() => _state.RecordExists ? StatusCode.Conflict : StatusCode.OK)
-            .Test(() => model.Validate().LogResult(context.Location()))
-            .TestAsync(async () => await VerifyTenant(model.UserId, context));
-        if (test.IsError()) return test;
-
-        var userModel = new UserModel
-        {
-            UserId = model.UserId,
-            PrincipalId = model.PrincipalId,
-            DisplayName = model.DisplayName,
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            AccountEnabled = true,
-            UserKey = UserKeyModel.Create(model.PrincipalId),
-        };
-
-        var createOption = await CreateKeys(userModel, context);
-        if (createOption.IsError()) return createOption;
-
-        _state.State = userModel;
-        await _state.WriteStateAsync();
-
-        return StatusCode.OK;
-    }
 
     public async Task<Option> Update(UserModel model, string traceId)
     {
@@ -125,7 +126,7 @@ public class UserActor : Grain, IUserActor
 
         var test = await new OptionTest()
             .Test(() => model.Validate().LogResult(context.Location()))
-            .TestAsync(async () => await VerifyTenant(model.UserId, context));
+            .TestAsync(async () => await VerifyDomain(model.UserId, context));
         if (test.IsError()) return test;
 
         if (!_state.RecordExists)
@@ -172,21 +173,21 @@ public class UserActor : Grain, IUserActor
         return response;
     }
 
-    private async Task<Option> VerifyTenant(string userId, ScopeContext context)
+    private async Task<Option> VerifyDomain(string userId, ScopeContext context)
     {
         Option<ResourceId> user = ResourceId.Create(userId);
         if (user.IsError()) return user.ToOptionStatus();
 
-        string tenantId = user.Return().Domain!;
-        if (!IdPatterns.IsDomain(tenantId)) return StatusCode.BadRequest;
+        string domain = user.Return().Domain!;
+        if (!IdPatterns.IsDomain(domain)) return StatusCode.BadRequest;
 
-        var id = $"{SpinConstants.Schema.Tenant}:{tenantId}";
-        Option isTenantActive = await _clusterClient.GetResourceGrain<ITenantActor>(id).Exist(context.TraceId);
-
-        if (isTenantActive.IsError())
+        var domainDetail = await _clusterClient
+            .GetResourceGrain<IDomainActor>(SpinConstants.DomainActorKey)
+            .GetDetails(domain, context.TraceId);
+        if (domainDetail.IsError())
         {
-            context.Location().LogError("Tenant={tenantId} does not exist, error={error}", userId, isTenantActive.Error);
-            return new Option(StatusCode.Conflict, $"Tenant={userId}, for principalId={userId} does not exist");
+            context.Location().LogError("Domain={domain} for userId={userId} is not a tenant or valid external domain", userId, domain);
+            return new Option(StatusCode.Conflict, $"Domain={domain}, for principalId={userId} is not valid");
         }
 
         return StatusCode.OK;

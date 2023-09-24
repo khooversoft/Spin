@@ -54,7 +54,7 @@ public class TenantActor : Grain, ITenantActor
         return StatusCode.OK;
     }
 
-    public Task<Option> Exist(string _) => new Option(_state.RecordExists && _state.State.IsActive ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+    public Task<Option> Exist(string _) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
     public Task<Option<TenantModel>> Get(string traceId)
     {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
@@ -17,7 +12,9 @@ public interface IConfigActor : IGrainWithStringKey
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
     Task<Option<ConfigModel>> Get(string traceId);
+    Task<Option> RemoveProperty(RemovePropertyModel model, string traceId);
     Task<Option> Set(ConfigModel model, string traceId);
+    Task<Option> SetProperty(SetPropertyModel model, string traceId);
 }
 
 public class ConfigActor : Grain, IConfigActor
@@ -74,19 +71,70 @@ public class ConfigActor : Grain, IConfigActor
         return option.ToTaskResult();
     }
 
+    public async Task<Option> RemoveProperty(RemovePropertyModel model, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Remove config, model={model}, actorKey={actorKey}", model, this.GetPrimaryKeyString());
+
+        var test = new OptionTest()
+            .Test(() => this.VerifyIdentity(model.ConfigId))
+            .Test(() => _state.RecordExists, error: "No keyed configuration record present")
+            .Test(() => model.Validate());
+        if (test.IsError()) return test.Option.LogResult(context.Location());
+
+        var dict = _state.State.Properties.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+        var removed = dict.Remove(model.Key);
+        if (!removed) return StatusCode.NotFound;
+
+        var update = _state.State with
+        {
+            Properties = dict
+        };
+
+        _state.State = update;
+        await _state.WriteStateAsync();
+
+        return StatusCode.OK;
+    }
+
     public async Task<Option> Set(ConfigModel model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Set config, actorKey={actorKey}", this.GetPrimaryKeyString());
+        context.Location().LogInformation("Set config, model={model}, actorKey={actorKey}", model, this.GetPrimaryKeyString());
 
-        var v = new OptionTest()
-            .Test(() => this.VerifyIdentity(model.ConfigId).LogResult(context.Location()))
+        var test = new OptionTest()
+            .Test(() => this.VerifyIdentity(model.ConfigId))
             .Test(() => model.Validate());
-        if (v.IsError()) return v.Option.LogResult(context.Location());
+        if (test.IsError()) return test.Option.LogResult(context.Location());
 
         _state.State = model;
         await _state.WriteStateAsync();
 
         return new Option(StatusCode.OK);
+    }
+
+    public async Task<Option> SetProperty(SetPropertyModel model, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Adding property, model={model}, actorKey={actorKey}", model, this.GetPrimaryKeyString());
+
+        var test = new OptionTest()
+            .Test(() => this.VerifyIdentity(model.ConfigId))
+            .Test(() => _state.RecordExists, error: "No keyed configuration record present")
+            .Test(() => model.Validate());
+        if (test.IsError()) return test.Option.LogResult(context.Location());
+
+        var dict = _state.State.Properties.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+        dict[model.Key] = model.Value;
+
+        var update = _state.State with
+        {
+            Properties = dict
+        };
+
+        _state.State = update;
+        await _state.WriteStateAsync();
+
+        return StatusCode.OK;
     }
 }

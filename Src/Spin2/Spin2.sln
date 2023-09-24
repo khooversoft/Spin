@@ -36,6 +36,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{9CB07323-2EC2-47D9-8214-EEDECAD888F5}"
 	ProjectSection(SolutionItems) = preProject
 		Docs\Components.md = Docs\Components.md
+		Config.md = Config.md
 		Docs\Notes.md = Docs\Notes.md
 		Docs\schema.md = Docs\schema.md
 		Docs\Smartc.md = Docs\Smartc.md
@@ -57,7 +58,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Finance", "Tools\To
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Finance.test", "Tools\Toolbox.Finance.test\Toolbox.Finance.test.csproj", "{6B70261D-70A8-41D6-9ABE-0615A461CBE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoanContract.sdk.test", "SmartC\LoanContract.sdk.test\LoanContract.sdk.test.csproj", "{B744A47B-568A-457A-A095-2245A9F973ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoanContract.sdk.test", "SmartC\LoanContract.sdk.test\LoanContract.sdk.test.csproj", "{B744A47B-568A-457A-A095-2245A9F973ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

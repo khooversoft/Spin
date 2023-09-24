@@ -5,6 +5,7 @@ using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Domain;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Scheduler;
@@ -47,6 +48,7 @@ public class ClusterApiFixture
             x.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<ScheduleClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<SoftBankClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<DomainClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
         })
         .BuildServiceProvider();
     }

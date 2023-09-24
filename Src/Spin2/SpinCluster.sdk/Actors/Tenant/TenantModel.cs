@@ -17,10 +17,7 @@ public sealed record TenantModel
     [Id(4)] public string SubscriptionId { get; init; } = null!;
     [Id(5)] public string ContactName { get; init; } = null!;
     [Id(6)] public string Email { get; init; } = null!;
-    [Id(8)] public bool Enabled { get; init; }
     [Id(9)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-
-    public bool IsActive => Enabled;
 
     public bool Equals(TenantModel? obj) => obj is TenantModel document &&
         TenantId == document.TenantId &&
@@ -30,7 +27,6 @@ public sealed record TenantModel
         SubscriptionId == document.SubscriptionId &&
         ContactName == document.ContactName &&
         Email == document.Email &&
-        Enabled == document.Enabled &&
         CreatedDate == document.CreatedDate;
 
     public override int GetHashCode() => HashCode.Combine(TenantId, GlobalId, Domain, ContactName);

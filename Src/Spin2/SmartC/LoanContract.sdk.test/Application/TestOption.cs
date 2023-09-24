@@ -1,5 +1,4 @@
-﻿using LoanContract.sdk.test.Application;
-using Toolbox.Tools.Validation;
+﻿using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace LoanContract.sdk.test.Application;

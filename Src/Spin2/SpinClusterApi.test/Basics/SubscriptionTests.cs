@@ -50,7 +50,6 @@ public class SubscriptionTests : IClassFixture<ClusterApiFixture>
             Name = nameId,
             ContactName = nameId + "contact",
             Email = "user1@company1.com",
-            Enabled = true,
         };
 
         Option setOption = await client.Set(subscription, context);

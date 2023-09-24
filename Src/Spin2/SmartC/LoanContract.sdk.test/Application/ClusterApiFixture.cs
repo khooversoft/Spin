@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LoanContract.sdk.Contract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.SoftBank;
@@ -19,7 +15,6 @@ using SpinCluster.sdk.Actors.User;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using LoanContract.sdk.Contract;
 
 namespace LoanContract.sdk.test.Application;
 

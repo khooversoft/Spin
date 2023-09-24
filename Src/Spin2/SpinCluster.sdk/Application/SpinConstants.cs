@@ -2,11 +2,10 @@
 
 public static class SpinConstants
 {
-    public const string ValidDomainList = "spinconfig:validDomain";
-
     public const string SpinStateStore = "spinStateStore";
     public const string SignValidation = "system:signValidation";
     public const string Scheduler = "system:scheduler";
+    public const string DomainActorKey = "system:domain";
 
     public const string Folder = "folder";
     public const string Open = "open";
@@ -15,6 +14,7 @@ public static class SpinConstants
     public static class Schema
     {
         public const string Config = "spinconfig";
+        public const string Domain = "domain";
         public const string Kid = "kid";
         public const string Subscription = "subscription";
         public const string Tenant = "tenant";
@@ -30,6 +30,11 @@ public static class SpinConstants
         public const string Scheduler = "scheduler";
         public const string Agent = "agent";
         public const string Smartc = "smartc";
+    }
+
+    public static class ConfigKeys
+    {
+        public const string ValidDomainActorKey = "spinconfig:validDomain";
     }
 
     public static class Extension

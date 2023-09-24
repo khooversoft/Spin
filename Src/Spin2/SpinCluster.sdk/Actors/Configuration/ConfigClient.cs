@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -36,10 +35,25 @@ public class ConfigClient
         .GetAsync(context.With(_logger))
         .GetContent<ConfigModel>();
 
+    public async Task<Option> RemoveProperty(RemovePropertyModel model, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Config}/removeProperty")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .SetContent(model)
+        .PostAsync(context.With(_logger))
+        .ToOption();
+
     public async Task<Option> Set(ConfigModel configId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Config}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(configId)
         .PostAsync(context.With(_logger))
         .ToOption();
+
+    public async Task<Option> SetProperty(SetPropertyModel model, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Config}/setProperty")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .SetContent(model)
+        .PostAsync(context.With(_logger))
+        .ToOption();
+
 }

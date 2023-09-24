@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -29,7 +28,9 @@ public class ConfigConnector
         group.MapDelete("/{configId}", Delete);
         group.MapGet("/{configId}/exist", Exist);
         group.MapGet("/{configId}", Get);
+        group.MapPost("/removeProperty", RemoveProperty);
         group.MapPost("/", Set);
+        group.MapPost("/setProperty", SetProperty);
 
         return group;
     }
@@ -61,11 +62,27 @@ public class ConfigConnector
         return response.ToResult();
     }
 
+    public async Task<IResult> RemoveProperty(RemovePropertyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
+
+        var response = await _client.GetResourceGrain<IConfigActor>(model.ConfigId).RemoveProperty(model, traceId);
+        return response.ToResult();
+    }
+
     public async Task<IResult> Set(ConfigModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         var response = await _client.GetResourceGrain<IConfigActor>(model.ConfigId).Set(model, traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> SetProperty(SetPropertyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
+
+        var response = await _client.GetResourceGrain<IConfigActor>(model.ConfigId).SetProperty(model, traceId);
         return response.ToResult();
     }
 }

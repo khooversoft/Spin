@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.Configuration;
@@ -12,6 +7,7 @@ using Toolbox.Types;
 
 namespace SpinClusterApi.test.Basics;
 
+[Collection("config-Test")]
 public class ConfigTests : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
@@ -30,6 +26,7 @@ public class ConfigTests : IClassFixture<ClusterApiFixture>
         string configId = "spinconfig:test-config-1";
 
         var existOption = await client.Exist(configId, _context);
+        (existOption.IsOk() || existOption.IsNotFound()).Should().BeTrue();
         if (existOption.IsOk()) await client.Delete(configId, _context);
 
         var model = new ConfigModel

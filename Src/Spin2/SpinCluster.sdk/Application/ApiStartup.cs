@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Domain;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
@@ -29,6 +30,7 @@ public static class ApiStartup
         services.AddSingleton<ScheduleConnection>();
         services.AddSingleton<StorageConnection>();
         services.AddSingleton<ConfigConnector>();
+        services.AddSingleton<DomainConnector>();
 
         return services;
     }
@@ -48,5 +50,6 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<ScheduleConnection>().Setup(app);
         app.ServiceProvider.GetRequiredService<StorageConnection>().Setup(app);
         app.ServiceProvider.GetRequiredService<ConfigConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<DomainConnector>().Setup(app);
     }
 }

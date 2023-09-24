@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Actors.Agent;
+using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.Smartc;
@@ -37,6 +38,7 @@ public class ClusterApiFixture
             x.AddHttpClient<SoftBankTrxClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<AgentClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<ConfigClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
         })
         .BuildServiceProvider();
     }
