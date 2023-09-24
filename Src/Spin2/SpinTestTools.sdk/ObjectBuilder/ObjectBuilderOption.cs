@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using SoftBank.sdk.Models;
 using SpinCluster.sdk.Actors.Agent;
+using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;
@@ -14,6 +15,7 @@ namespace SpinTestTools.sdk.ObjectBuilder;
 
 public record ObjectBuilderOption
 {
+    public List<ConfigModel> Configs { get; init; } = new List<ConfigModel>();
     public List<SubscriptionModel> Subscriptions { get; init; } = new List<SubscriptionModel>();
     public List<TenantModel> Tenants { get; init; } = new List<TenantModel>();
     public List<UserCreateModel> Users { get; init; } = new List<UserCreateModel>();
@@ -23,6 +25,7 @@ public record ObjectBuilderOption
     public List<SmartcModel> SmartcItems { get; init; } = new List<SmartcModel>();
 
     public static IValidator<ObjectBuilderOption> Validator { get; } = new Validator<ObjectBuilderOption>()
+        .RuleForEach(x => x.Configs).Validate(ConfigModel.Validator)
         .RuleForEach(x => x.Subscriptions).Validate(SubscriptionModel.Validator)
         .RuleForEach(x => x.Tenants).Validate(TenantModel.Validator)
         .RuleForEach(x => x.Users).Validate(UserCreateModel.Validator)

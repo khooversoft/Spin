@@ -39,6 +39,7 @@ public class TestObjectBuilder
     {
         new IObjectBuilder[]
         {
+            new ConfigBuilder(),
             new SubscriptionBuilder(),
             new TenantBuilder(),
             new UserBuilder(),

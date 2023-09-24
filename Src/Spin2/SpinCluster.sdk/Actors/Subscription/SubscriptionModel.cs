@@ -38,7 +38,7 @@ public sealed record SubscriptionModel
         .RuleFor(x => x.SubscriptionId).ValidResourceId(ResourceType.System, "subscription")
         .RuleFor(x => x.Version).NotEmpty()
         .RuleFor(x => x.GlobalId).NotEmpty()
-        .RuleFor(x => x.Name).ValidName()
+        .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.ContactName).NotEmpty()
         .RuleFor(x => x.Email).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.Tenants).NotNull()
