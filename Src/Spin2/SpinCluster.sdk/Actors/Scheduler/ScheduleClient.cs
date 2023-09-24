@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Smartc;
+namespace SpinCluster.sdk.Actors.Scheduler;
 
 public class ScheduleClient
 {

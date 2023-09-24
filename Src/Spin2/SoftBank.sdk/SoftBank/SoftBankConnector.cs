@@ -57,7 +57,7 @@ public class SoftBankConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> Create(AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Create(SbAccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var v = model.Validate();
         if (v.IsError()) return v.ToResult();
@@ -66,7 +66,7 @@ public class SoftBankConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> SetAccountDetail(string accountId, AccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> SetAccountDetail(string accountId, SbAccountDetail model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         accountId = Uri.UnescapeDataString(accountId);
         if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
@@ -87,7 +87,7 @@ public class SoftBankConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> AddLedgerItem(string accountId, LedgerItem model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> AddLedgerItem(string accountId, SbLedgerItem model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         accountId = Uri.UnescapeDataString(accountId);
         if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
@@ -104,7 +104,7 @@ public class SoftBankConnector
         accountId = Uri.UnescapeDataString(accountId);
         if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
-        Option<AccountDetail> response = await _client.GetResourceGrain<ISoftBankActor>(accountId).GetAccountDetail(principalId, traceId);
+        Option<SbAccountDetail> response = await _client.GetResourceGrain<ISoftBankActor>(accountId).GetAccountDetail(principalId, traceId);
         return response.ToResult();
     }
 
@@ -116,7 +116,7 @@ public class SoftBankConnector
         accountId = Uri.UnescapeDataString(accountId);
         if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
-        Option<IReadOnlyList<LedgerItem>> response = await _client.GetResourceGrain<ISoftBankActor>(accountId).GetLedgerItems(principalId, traceId);
+        Option<IReadOnlyList<SbLedgerItem>> response = await _client.GetResourceGrain<ISoftBankActor>(accountId).GetLedgerItems(principalId, traceId);
         return response.ToResult();
     }
 
@@ -128,7 +128,7 @@ public class SoftBankConnector
         accountId = Uri.UnescapeDataString(accountId);
         if (!IdSoftbank.IsSoftBankId(accountId)) return Results.BadRequest();
 
-        Option<AccountBalance> response = await _client.GetResourceGrain<ISoftBankActor>(accountId).GetBalance(principalId, traceId);
+        Option<SbAccountBalance> response = await _client.GetResourceGrain<ISoftBankActor>(accountId).GetBalance(principalId, traceId);
         return response.ToResult();
     }
 }

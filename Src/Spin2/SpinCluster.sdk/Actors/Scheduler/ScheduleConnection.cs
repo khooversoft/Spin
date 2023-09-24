@@ -53,8 +53,7 @@ public class ScheduleConnection
 
     private async Task<IResult> AddSchedule(ScheduleCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var v = model.Validate();
-        if (v.IsError()) return Results.BadRequest(v.Error);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
@@ -85,14 +84,13 @@ public class ScheduleConnection
         return response.ToResult();
     }
 
-    private async Task<IResult> CompletedWork(AssignedCompleted completed, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> CompletedWork(AssignedCompleted model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var v = completed.Validate();
-        if (v.IsError()) return v.ToResult();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .CompletedWork(completed, traceId);
+            .CompletedWork(model, traceId);
 
         return response.ToResult();
     }

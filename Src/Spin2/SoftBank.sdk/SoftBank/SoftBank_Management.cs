@@ -28,7 +28,7 @@ internal class SoftBank_Management
 
     public async Task<Option> Exist(string traceId) => await _parent.GetContractActor().Exist(traceId);
 
-    public async Task<Option> Create(AccountDetail detail, string traceId)
+    public async Task<Option> Create(SbAccountDetail detail, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating contract accountDetail={accountDetail}", detail);

@@ -34,4 +34,10 @@ public sealed record UserCreateModel
 public static class UserCreateModelValidator
 {
     public static Option Validate(this UserCreateModel model) => UserCreateModel.Validator.Validate(model).ToOptionStatus();
+
+    public static bool Validate(this UserCreateModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

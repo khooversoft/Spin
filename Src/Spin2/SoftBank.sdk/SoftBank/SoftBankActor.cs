@@ -17,14 +17,14 @@ public interface ISoftBankActor : IGrainWithStringKey
 {
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
-    Task<Option> Create(AccountDetail detail, string traceId);
-    Task<Option> SetAccountDetail(AccountDetail detail, string traceId);
+    Task<Option> Create(SbAccountDetail detail, string traceId);
+    Task<Option> SetAccountDetail(SbAccountDetail detail, string traceId);
     Task<Option> SetAcl(AclBlock blockAcl, string principalId, string traceId);
-    Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId);
-    Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId);
-    Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId);
-    Task<Option<AccountBalance>> GetBalance(string principalId, string traceId);
-    Task<Option<AmountReserved>> Reserve(string principalId, decimal amount, string traceId);
+    Task<Option> AddLedgerItem(SbLedgerItem ledgerItem, string traceId);
+    Task<Option<SbAccountDetail>> GetAccountDetail(string principalId, string traceId);
+    Task<Option<IReadOnlyList<SbLedgerItem>>> GetLedgerItems(string principalId, string traceId);
+    Task<Option<SbAccountBalance>> GetBalance(string principalId, string traceId);
+    Task<Option<SbAmountReserved>> Reserve(string principalId, decimal amount, string traceId);
     Task<Option> ReleaseReserve(string leaseKey, string traceId);
 }
 
@@ -58,17 +58,17 @@ public class SoftBankActor : Grain, ISoftBankActor
 
     public Task<Option> Delete(string traceId) => _mgmt.Delete(traceId);
     public Task<Option> Exist(string traceId) => _mgmt.Exist(traceId);
-    public Task<Option> Create(AccountDetail detail, string traceId) => _mgmt.Create(detail, traceId);
+    public Task<Option> Create(SbAccountDetail detail, string traceId) => _mgmt.Create(detail, traceId);
     public Task<Option> SetAcl(AclBlock blockAcl, string principalId, string traceId) => _mgmt.SetAcl(blockAcl, principalId, traceId);
 
-    public Task<Option> SetAccountDetail(AccountDetail detail, string traceId) => _detail.SetAccountDetail(detail, traceId);
-    public Task<Option<AccountDetail>> GetAccountDetail(string principalId, string traceId) => _detail.GetAccountDetail(principalId, traceId);
+    public Task<Option> SetAccountDetail(SbAccountDetail detail, string traceId) => _detail.SetAccountDetail(detail, traceId);
+    public Task<Option<SbAccountDetail>> GetAccountDetail(string principalId, string traceId) => _detail.GetAccountDetail(principalId, traceId);
 
-    public Task<Option> AddLedgerItem(LedgerItem ledgerItem, string traceId) => _ledger.AddLedgerItem(ledgerItem, traceId);
-    public Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string principalId, string traceId) => _ledger.GetLedgerItems(principalId, traceId);
-    public Task<Option<AccountBalance>> GetBalance(string principalId, string traceId) => _ledger.GetBalance(principalId, traceId);
+    public Task<Option> AddLedgerItem(SbLedgerItem ledgerItem, string traceId) => _ledger.AddLedgerItem(ledgerItem, traceId);
+    public Task<Option<IReadOnlyList<SbLedgerItem>>> GetLedgerItems(string principalId, string traceId) => _ledger.GetLedgerItems(principalId, traceId);
+    public Task<Option<SbAccountBalance>> GetBalance(string principalId, string traceId) => _ledger.GetBalance(principalId, traceId);
 
-    public Task<Option<AmountReserved>> Reserve(string principalId, decimal amount, string traceId) => _reserve.Reserve(principalId, amount, traceId);
+    public Task<Option<SbAmountReserved>> Reserve(string principalId, decimal amount, string traceId) => _reserve.Reserve(principalId, amount, traceId);
     public Task<Option> ReleaseReserve(string leaseKey, string traceId) => _reserve.ReleaseReserve(leaseKey, traceId);
 
     internal ResourceId GetSoftBankContractId() => this.GetPrimaryKeyString().ToSoftBankContractId();

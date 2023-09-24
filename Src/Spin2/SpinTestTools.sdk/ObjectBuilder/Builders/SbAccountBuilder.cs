@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;
 
-public class AccountBuilder : IObjectBuilder
+public class SbAccountBuilder : IObjectBuilder
 {
     public async Task<Option> Create(IServiceProvider service, ObjectBuilderOption option, ScopeContext context)
     {
@@ -12,7 +12,7 @@ public class AccountBuilder : IObjectBuilder
 
         var test = new OptionTest();
 
-        foreach (var account in option.Accounts)
+        foreach (var account in option.SbAccounts)
         {
             var createOption = await softBankClient.Create(account, context);
 
@@ -27,7 +27,7 @@ public class AccountBuilder : IObjectBuilder
     {
         SoftBankClient client = service.GetRequiredService<SoftBankClient>();
 
-        foreach (var item in option.Accounts)
+        foreach (var item in option.SbAccounts)
         {
             await client.Delete(item.AccountId, context);
             context.Trace().LogInformation("Account deleted: {accountId}", item.AccountId);

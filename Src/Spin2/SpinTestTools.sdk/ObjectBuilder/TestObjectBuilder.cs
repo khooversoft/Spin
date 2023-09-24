@@ -13,13 +13,27 @@ public interface IObjectBuilder
 
 public class TestObjectBuilder
 {
-    public ObjectBuilderOption Option { get; set; } = null!;
+    public ObjectBuilderOption? Option { get; set; } = null!;
     public IServiceProvider Service { get; set; } = null!;
+    public string? Json { get; set; }
     public IList<IObjectBuilder> Builders { get; } = new List<IObjectBuilder>();
 
     public TestObjectBuilder SetService(IServiceProvider service) => this.Action(x => Service = service);
-    public TestObjectBuilder SetOption(ObjectBuilderOption option) => this.Action(x => Option = option);
     public TestObjectBuilder Add(params IObjectBuilder[] builders) => this.Action(x => builders.ForEach(x => Builders.Add(x)));
+
+    public TestObjectBuilder SetOption(ObjectBuilderOption option)
+    {
+        Option = option.NotNull();
+        Json = null;
+        return this;
+    }
+
+    public TestObjectBuilder SetJson(string json)
+    {
+        Json = json.NotEmpty();
+        Option = null;
+        return this;
+    }
 
     public TestObjectBuilder AddStandard()
     {
@@ -28,7 +42,7 @@ public class TestObjectBuilder
             new SubscriptionBuilder(),
             new TenantBuilder(),
             new UserBuilder(),
-            new AccountBuilder(),
+            new SbAccountBuilder(),
             new LedgerItemBuilder(),
             new AgentBuilder(),
             new SmartcBuilder(),
@@ -39,6 +53,12 @@ public class TestObjectBuilder
 
     public async Task<Option> Build(ScopeContext context)
     {
+        if (Json.IsNotEmpty())
+        {
+            Option = ObjectBuilderOptionTool.ReadFromJson(Json.NotEmpty());
+            if (!Option.Validate(out var v)) return v;
+        }
+
         Verify();
 
         var test = new OptionTest();
@@ -66,7 +86,7 @@ public class TestObjectBuilder
 
         foreach (var item in Builders.Reverse())
         {
-            await test.TestAsync(async () => await item.Delete(Service, Option, context));
+            await test.TestAsync(async () => await item.Delete(Service, Option.NotNull(), context));
             test.Assert(x => x.Option.IsOk(), $"Could not delete {item}");
         }
 
@@ -81,7 +101,7 @@ public class TestObjectBuilder
 
         foreach (var item in Builders)
         {
-            await test.TestAsync(async () => await item.Create(Service, Option, context));
+            await test.TestAsync(async () => await item.Create(Service, Option.NotNull(), context));
             test.Assert(x => x.Option.IsOk(), $"Could not create {item}");
         }
 

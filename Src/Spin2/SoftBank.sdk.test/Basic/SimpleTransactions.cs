@@ -40,23 +40,23 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
         await CreateBankAccount();
 
-        LedgerItem ledgerItem = new LedgerItem
+        SbLedgerItem ledgerItem = new SbLedgerItem
         {
             AccountId = _accountId,
             OwnerId = _principalId,
             Description = "Start of account",
-            Type = LedgerType.Credit,
+            Type = SbLedgerType.Credit,
             Amount = 100,
         };
 
         var writeResponse = await softBankClient.AddLedgerItem(_accountId, ledgerItem, _context);
         writeResponse.IsOk().Should().BeTrue();
 
-        Option<IReadOnlyList<LedgerItem>> ledgerItemsOption = await softBankClient.GetLedgerItems(_accountId, _principalId, _context);
+        Option<IReadOnlyList<SbLedgerItem>> ledgerItemsOption = await softBankClient.GetLedgerItems(_accountId, _principalId, _context);
         ledgerItemsOption.IsOk().Should().BeTrue();
         ledgerItemsOption.Return().Count().Should().Be(1);
 
-        LedgerItem readLedgerItem = ledgerItemsOption.Return()[0];
+        SbLedgerItem readLedgerItem = ledgerItemsOption.Return()[0];
         (ledgerItem == readLedgerItem).Should().BeTrue();
 
         await DeleteBankAccount();
@@ -70,9 +70,9 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
 
         var ledgerItems = new[]
         {
-            new LedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m }
+            new SbLedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 1", Type = SbLedgerType.Credit, Amount = 100.0m },
+            new SbLedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 2", Type = SbLedgerType.Credit, Amount = 55.15m },
+            new SbLedgerItem { AccountId =_accountId, OwnerId = _principalId, Description = "Ledger 3", Type = SbLedgerType.Debit, Amount = 20.00m }
         };
 
         foreach (var ledgerItem in ledgerItems)
@@ -81,7 +81,7 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
             writeResponse.IsOk().Should().BeTrue();
         }
 
-        Option<IReadOnlyList<LedgerItem>> ledgerItemsOption = await softBankClient.GetLedgerItems(_accountId, _principalId, _context);
+        Option<IReadOnlyList<SbLedgerItem>> ledgerItemsOption = await softBankClient.GetLedgerItems(_accountId, _principalId, _context);
         ledgerItemsOption.IsOk().Should().BeTrue();
         ledgerItemsOption.Return().Count().Should().Be(3);
 
@@ -103,7 +103,7 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
         var existOption = await softBankClient.Exist(_accountId, _context);
         if (existOption.IsOk()) await softBankClient.Delete(_accountId, _context);
 
-        var createRequest = new AccountDetail
+        var createRequest = new SbAccountDetail
         {
             AccountId = _accountId,
             OwnerId = _principalId,

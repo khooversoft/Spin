@@ -6,7 +6,7 @@ using Toolbox.Types;
 namespace SoftBank.sdk.Models;
 
 [GenerateSerializer, Immutable]
-public sealed record AccountDetail
+public sealed record SbAccountDetail
 {
     [Id(0)] public string AccountId { get; init; } = null!;
     [Id(1)] public string OwnerId { get; init; } = null!;
@@ -15,7 +15,7 @@ public sealed record AccountDetail
     [Id(4)] public IReadOnlyList<AccessBlock> AccessRights { get; init; } = Array.Empty<AccessBlock>();
     [Id(5)] public IReadOnlyList<RoleAccessBlock> RoleRights { get; init; } = Array.Empty<RoleAccessBlock>();
 
-    public bool Equals(AccountDetail? obj) => obj is AccountDetail document &&
+    public bool Equals(SbAccountDetail? obj) => obj is SbAccountDetail document &&
         AccountId == document.AccountId &&
         OwnerId == document.OwnerId &&
         Name == document.Name &&
@@ -25,7 +25,7 @@ public sealed record AccountDetail
 
     public override int GetHashCode() => HashCode.Combine(AccountId, OwnerId, Name, CreatedDate);
 
-    public static IValidator<AccountDetail> Validator { get; } = new Validator<AccountDetail>()
+    public static IValidator<SbAccountDetail> Validator { get; } = new Validator<SbAccountDetail>()
         .RuleFor(x => x.AccountId).ValidResourceId(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
         .RuleFor(x => x.OwnerId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.CreatedDate).ValidDateTime()
@@ -38,5 +38,5 @@ public sealed record AccountDetail
 
 public static class AccountDetailValidator
 {
-    public static Option Validate(this AccountDetail subject) => AccountDetail.Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this SbAccountDetail subject) => SbAccountDetail.Validator.Validate(subject).ToOptionStatus();
 }

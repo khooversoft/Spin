@@ -30,11 +30,7 @@ public sealed record PrincipalPrivateKeyModel
         CreatedDate == document.CreatedDate;
 
     public override int GetHashCode() => HashCode.Combine(PrincipalPrivateKeyId, PrincipalId, Name, Audience);
-}
 
-
-public static class PrincipalPrivateKeyModelValidator
-{
     public static IValidator<PrincipalPrivateKeyModel> Validator { get; } = new Validator<PrincipalPrivateKeyModel>()
         .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId(ResourceType.Owned)
         .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned, "kid")
@@ -43,8 +39,18 @@ public static class PrincipalPrivateKeyModelValidator
         .RuleFor(x => x.Audience).NotEmpty()
         .RuleFor(x => x.PrivateKey).NotNull()
         .Build();
+}
 
-    public static Option Validate(this PrincipalPrivateKeyModel subject) => Validator.Validate(subject).ToOptionStatus();
+
+public static class PrincipalPrivateKeyModelValidator
+{
+    public static Option Validate(this PrincipalPrivateKeyModel subject) => PrincipalPrivateKeyModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this PrincipalPrivateKeyModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 
     public static PrincipalSignature ToPrincipalSignature(this PrincipalPrivateKeyModel subject, ScopeContext context)
     {

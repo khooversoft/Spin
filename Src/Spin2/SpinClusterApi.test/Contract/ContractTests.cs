@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.Signature;
 using SpinClusterApi.test.Application;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Block;
@@ -15,7 +16,6 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
     private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
-    private readonly SetupTools _setupTools;
     private const string _setup = """
         {
             "Subscriptions": [
@@ -52,7 +52,6 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
     public ContractTests(ClusterApiFixture fixture)
     {
         _cluster = fixture;
-        _setupTools = new SetupTools(_cluster, _context);
     }
 
     //[Fact(Skip = "server")]

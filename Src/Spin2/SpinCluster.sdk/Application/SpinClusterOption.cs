@@ -12,14 +12,19 @@ public record SpinClusterOption
 {
     public string BootConnectionString { get; init; } = null!;
     public ClientSecretOption Credentials { get; init; } = null!;
+
+    public static Validator<SpinClusterOption> Validator { get; } = new Validator<SpinClusterOption>()
+        .RuleFor(x => x.BootConnectionString).Must(x => DatalakeLocation.ParseConnectionString(x).IsOk(), x => $"Connection string {x} is not valid")
+        .RuleFor(x => x.Credentials).Validate(ClientSecretOption.Validator)
+        .Build();
 }
 
 public static class SpinClusterOptionValidator
 {
-    public static Validator<SpinClusterOption> Validator { get; } = new Validator<SpinClusterOption>()
-        .RuleFor(x => x.BootConnectionString).Must(x => DatalakeLocation.ParseConnectionString(x).IsOk(), x => $"Connection string {x} is not valid")
-        .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
-        .Build();
-
-    public static Option Validate(this SpinClusterOption subject) => Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this SpinClusterOption subject) => SpinClusterOption.Validator.Validate(subject).ToOptionStatus();
+    public static bool Validate(this SpinClusterOption subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

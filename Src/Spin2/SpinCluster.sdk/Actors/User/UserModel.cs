@@ -39,11 +39,7 @@ public sealed record UserModel
         UserKey == document.UserKey;
 
     public override int GetHashCode() => HashCode.Combine(UserId, GlobalId, DisplayName, DisplayName);
-}
 
-
-public static class UserModelValidator
-{
     public static IValidator<UserModel> Validator { get; } = new Validator<UserModel>()
         .RuleFor(x => x.UserId).ValidResourceId(ResourceType.Owned, "user")
         .RuleFor(x => x.Version).NotEmpty()
@@ -54,6 +50,16 @@ public static class UserModelValidator
         .RuleFor(x => x.LastName).NotEmpty()
         .RuleFor(x => x.UserKey).Validate(UserKeyModel.Validator)
         .Build();
+}
 
-    public static Option Validate(this UserModel subject) => Validator.Validate(subject).ToOptionStatus();
+
+public static class UserModelValidator
+{
+    public static Option Validate(this UserModel subject) => UserModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this UserModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

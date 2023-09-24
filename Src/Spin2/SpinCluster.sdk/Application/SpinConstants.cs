@@ -2,6 +2,8 @@
 
 public static class SpinConstants
 {
+    public const string ValidDomainList = "spinconfig:validDomain";
+
     public const string SpinStateStore = "spinStateStore";
     public const string SignValidation = "system:signValidation";
     public const string Scheduler = "system:scheduler";
@@ -12,6 +14,7 @@ public static class SpinConstants
 
     public static class Schema
     {
+        public const string Config = "spinconfig";
         public const string Kid = "kid";
         public const string Subscription = "subscription";
         public const string Tenant = "tenant";

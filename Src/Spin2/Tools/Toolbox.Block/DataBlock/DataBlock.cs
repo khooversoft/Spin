@@ -27,11 +27,7 @@ public record DataBlock
 
     // Hash of data block except JwtSignature
     public string Digest { get; init; } = null!;
-}
 
-
-public static class DataBlockValidator
-{
     public static IValidator<DataBlock> Validator { get; } = new Validator<DataBlock>()
         .RuleFor(x => x.BlockId).NotEmpty()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
@@ -43,14 +39,25 @@ public static class DataBlockValidator
         .RuleFor(x => x.Digest).NotEmpty()
         .RuleForObject(x => x).Must(x => x.CalculateDigest() == x.Digest, _ => "Digest validation failed")
         .Build();
+}
 
-    public static void Verify(this DataBlock subject) => Validator.Validate(subject).ThrowOnError();
 
-    public static Option Validate(this DataBlock subject) => Validator.Validate(subject).ToOptionStatus();
+public static class DataBlockValidator
+{
+
+    public static void Verify(this DataBlock subject) => DataBlock.Validator.Validate(subject).ThrowOnError();
+
+    public static Option Validate(this DataBlock subject) => DataBlock.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this DataBlock subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 
     public static async Task<Option> ValidateDigest(this DataBlock subject, ISignValidate signValidate, ScopeContext context)
     {
-        var valResult = Validator.Validate(subject).LogResult(context.Location());
+        var valResult = DataBlock.Validator.Validate(subject).LogResult(context.Location());
         if (valResult.IsError()) return valResult.ToOptionStatus();
 
         return await signValidate.ValidateDigest(subject.JwtSignature, subject.Digest, context.TraceId);

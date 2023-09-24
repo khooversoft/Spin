@@ -22,7 +22,7 @@ internal class SoftBank_ReserveFund
         _logger = logger;
     }
 
-    public async Task<Option<AmountReserved>> Reserve(string principalId, decimal amount, string traceId)
+    public async Task<Option<SbAmountReserved>> Reserve(string principalId, decimal amount, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Reserve funds for trx, principalId={principalId}", principalId);
@@ -30,22 +30,22 @@ internal class SoftBank_ReserveFund
         var test = new OptionTest()
             .Test(() => IdPatterns.IsPrincipalId(principalId))
             .Test(() => amount > 0 ? StatusCode.OK : new Option(StatusCode.BadRequest, "Amount must be positive"));
-        if (test.IsError()) return test.Option.ToOptionStatus<AmountReserved>();
+        if (test.IsError()) return test.Option.ToOptionStatus<SbAmountReserved>();
 
-        var hasAccess = await _parent.GetContractActor().HasAccess(principalId, BlockGrant.Write, typeof(LedgerItem).GetTypeName(), traceId);
-        if (hasAccess.IsError()) return hasAccess.ToOptionStatus<AmountReserved>();
+        var hasAccess = await _parent.GetContractActor().HasAccess(principalId, BlockGrant.Write, typeof(SbLedgerItem).GetTypeName(), traceId);
+        if (hasAccess.IsError()) return hasAccess.ToOptionStatus<SbAmountReserved>();
 
         // Verify money is available
-        AccountBalance balance = await _parent.GetBalance(principalId, traceId).Return();
-        if (balance.Balance < amount) return new Option<AmountReserved>(StatusCode.BadRequest, "No funds");
+        SbAccountBalance balance = await _parent.GetBalance(principalId, traceId).Return();
+        if (balance.Balance < amount) return new Option<SbAmountReserved>(StatusCode.BadRequest, "No funds");
 
         ILeaseActor leaseActor = GetLeaseActor();
 
         var request = CreateLeaseRequest(amount);
         var acquire = await leaseActor.Acquire(request, context.TraceId);
-        if (acquire.IsError()) return acquire.ToOptionStatus<AmountReserved>();
+        if (acquire.IsError()) return acquire.ToOptionStatus<SbAmountReserved>();
 
-        var reserved = new AmountReserved
+        var reserved = new SbAmountReserved
         {
             LeaseKey = request.LeaseKey,
             AccountId = _parent.GetPrimaryKeyString(),

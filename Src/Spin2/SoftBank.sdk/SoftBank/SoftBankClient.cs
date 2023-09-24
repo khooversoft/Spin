@@ -32,14 +32,14 @@ public class SoftBankClient
         .GetAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option> Create(AccountDetail content, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> Create(SbAccountDetail content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{IdSoftbank.SoftBankSchema}/create")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option> SetAccountDetail(AccountDetail content, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> SetAccountDetail(SbAccountDetail content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{IdSoftbank.SoftBankSchema}/accountdetail")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
@@ -54,31 +54,31 @@ public class SoftBankClient
         .PostAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option> AddLedgerItem(string accountId, LedgerItem content, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> AddLedgerItem(string accountId, SbLedgerItem content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{IdSoftbank.SoftBankSchema}/{Uri.EscapeDataString(accountId)}/ledgerItem")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(content)
         .PostAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option<AccountDetail>> GetAccountDetail(string accountId, string principalId, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<SbAccountDetail>> GetAccountDetail(string accountId, string principalId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{IdSoftbank.SoftBankSchema}/{Uri.EscapeDataString(accountId)}/accountDetail")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
         .GetAsync(context.With(_logger))
-        .GetContent<AccountDetail>();
+        .GetContent<SbAccountDetail>();
 
-    public async Task<Option<IReadOnlyList<LedgerItem>>> GetLedgerItems(string accountId, string principalId, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<IReadOnlyList<SbLedgerItem>>> GetLedgerItems(string accountId, string principalId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{IdSoftbank.SoftBankSchema}/{Uri.EscapeDataString(accountId)}/ledgerItem")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
         .GetAsync(context.With(_logger))
-        .GetContent<IReadOnlyList<LedgerItem>>();
+        .GetContent<IReadOnlyList<SbLedgerItem>>();
 
-    public async Task<Option<AccountBalance>> GetBalance(string accountId, string principalId, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<SbAccountBalance>> GetBalance(string accountId, string principalId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{IdSoftbank.SoftBankSchema}/{Uri.EscapeDataString(accountId)}/balance")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .AddHeader(SpinConstants.Headers.PrincipalId, principalId)
         .GetAsync(context.With(_logger))
-        .GetContent<AccountBalance>();
+        .GetContent<SbAccountBalance>();
 }

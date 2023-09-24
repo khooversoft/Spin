@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
 using Toolbox.Types;

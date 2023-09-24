@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SoftBank.sdk.SoftBank;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
 using SpinCluster.sdk.Actors.Subscription;

@@ -68,6 +68,8 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     public string? Error { get; }
     object IOption.ValueObject => Value!;
 
+    public override string ToString() => $"StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}";
+
     public override bool Equals(object? obj) =>
         obj is Option<T> maybe &&
         HasValue == maybe.HasValue &&

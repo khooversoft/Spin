@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Application;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.PrincipalKey;
+namespace SpinCluster.sdk.Actors.PrincipalPrivateKey;
 
 public class PrincipalPrivateKeyClient
 {

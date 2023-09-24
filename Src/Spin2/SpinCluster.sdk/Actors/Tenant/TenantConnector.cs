@@ -54,12 +54,9 @@ public class TenantConnector
 
     public async Task<IResult> Set(TenantModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        Option<ResourceId> option = ResourceId.Create(model.TenantId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        var response = await _client.GetResourceGrain<ITenantActor>(option.Return()).Set(model, traceId);
+        var response = await _client.GetResourceGrain<ITenantActor>(model.TenantId).Set(model, traceId);
         return response.ToResult();
     }
 }

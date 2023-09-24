@@ -60,11 +60,11 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
     {
         context.Location().LogInformation("ProcessAsSource, requestId={requestId}, type={type}", request.Id, request.Type);
 
-        AmountReserved? amountReserved = null;
+        SbAmountReserved? amountReserved = null;
 
         if (request.Type == TrxType.Push)
         {
-            Option<AmountReserved> reserveAmountOption = await ReserveFromSource(request, context);
+            Option<SbAmountReserved> reserveAmountOption = await ReserveFromSource(request, context);
             if (reserveAmountOption.IsError()) return reserveAmountOption.ToOptionStatus<TrxResponse>();
             amountReserved = reserveAmountOption.Return();
         }
@@ -72,7 +72,7 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
         var trxResponseOption = await Forward(request, context);
         if (trxResponseOption.IsError()) return trxResponseOption;
 
-        var ledgerItem = new LedgerItem
+        var ledgerItem = new SbLedgerItem
         {
             AccountId = request.AccountID,
             PartyAccountId = request.PartyAccountId,
@@ -80,8 +80,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             Description = request.Description,
             Type = request.Type switch
             {
-                TrxType.Push => LedgerType.Debit,
-                TrxType.Pull => LedgerType.Credit,
+                TrxType.Push => SbLedgerType.Debit,
+                TrxType.Pull => SbLedgerType.Credit,
                 _ => throw new UnreachableException(),
             },
             Amount = request.Amount,
@@ -115,16 +115,16 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
     {
         context.Location().LogInformation("ProcessAsDestination, requestId={requestId}, type={type}", request.Id, request.Type);
 
-        AmountReserved? amountReserved = null;
+        SbAmountReserved? amountReserved = null;
 
         if (request.Type == TrxType.Pull)
         {
-            Option<AmountReserved> reserveAmountOption = await ReserveFromDestination(request, context);
+            Option<SbAmountReserved> reserveAmountOption = await ReserveFromDestination(request, context);
             if (reserveAmountOption.IsError()) return reserveAmountOption.ToOptionStatus<TrxResponse>();
             amountReserved = reserveAmountOption.Return();
         }
 
-        var ledgerItem = new LedgerItem
+        var ledgerItem = new SbLedgerItem
         {
             AccountId = request.PartyAccountId,
             PartyAccountId = request.AccountID,
@@ -132,8 +132,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             Description = request.Description,
             Type = request.Type switch
             {
-                TrxType.Push => LedgerType.Credit,
-                TrxType.Pull => LedgerType.Debit,
+                TrxType.Push => SbLedgerType.Credit,
+                TrxType.Pull => SbLedgerType.Debit,
                 _ => throw new UnreachableException(),
             },
             Amount = request.Amount,
@@ -185,13 +185,13 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
     private async Task<Option<TrxResponse>> Forward(TrxRequest request, ScopeContext context) =>
         await GetDesinationTrxActor(request.PartyAccountId).Request(request, context.TraceId);
 
-    private async Task<Option<AmountReserved>> ReserveFromSource(TrxRequest request, ScopeContext context) =>
+    private async Task<Option<SbAmountReserved>> ReserveFromSource(TrxRequest request, ScopeContext context) =>
         await Reserve(request, request.AccountID, context);
 
-    private async Task<Option<AmountReserved>> ReserveFromDestination(TrxRequest request, ScopeContext context) =>
+    private async Task<Option<SbAmountReserved>> ReserveFromDestination(TrxRequest request, ScopeContext context) =>
         await Reserve(request, request.PartyAccountId, context);
 
-    private async Task<Option> ReleaseReservce(AmountReserved amountReserved, ScopeContext context)
+    private async Task<Option> ReleaseReservce(SbAmountReserved amountReserved, ScopeContext context)
     {
         context.Location().LogInformation("Releasing reserveration, accountId={accountId}, leaseKey={leaseKey}",
             amountReserved.AccountId, amountReserved.LeaseKey);
@@ -203,16 +203,16 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
         return response;
     }
 
-    private async Task<Option<AmountReserved>> Reserve(TrxRequest request, string accountId, ScopeContext context)
+    private async Task<Option<SbAmountReserved>> Reserve(TrxRequest request, string accountId, ScopeContext context)
     {
         context.Location().LogInformation("Reserving funds, requestId={requestId}, accountId={accountId}", request.Id, accountId);
 
-        Option<AmountReserved> reserveAmount = await _clusterClient
+        Option<SbAmountReserved> reserveAmount = await _clusterClient
             .GetSoftBankActor(accountId)
             .Reserve(request.PrincipalId, request.Amount, context.TraceId);
 
         var test = new OptionTest().Test(() => reserveAmount.IsOk()).Test(() => request.Validate());
-        if (test.IsError()) return test.Option.ToOptionStatus<AmountReserved>();
+        if (test.IsError()) return test.Option.ToOptionStatus<SbAmountReserved>();
 
         context.Location().LogInformation("Lease acquired, actorKey={actorKey}, accountId={accountId}, leaseKey={leaseKey}",
             this.GetPrimaryKeyString(), accountId, reserveAmount.Return().LeaseKey);

@@ -45,11 +45,11 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
 
         var newItems = new[]
 {
-            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 2", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
-            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 4", Type = LedgerType.Credit, Amount = 55.15m },
-            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 5", Type = LedgerType.Debit, Amount = 20.00m },
+            new SbLedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 1", Type = SbLedgerType.Credit, Amount = 100.0m },
+            new SbLedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 2", Type = SbLedgerType.Credit, Amount = 55.15m },
+            new SbLedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = SbLedgerType.Debit, Amount = 20.00m },
+            new SbLedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 4", Type = SbLedgerType.Credit, Amount = 55.15m },
+            new SbLedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 5", Type = SbLedgerType.Debit, Amount = 20.00m },
         };
 
         foreach (var item in newItems)
@@ -58,7 +58,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
             addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
         }
 
-        Option<IReadOnlyList<LedgerItem>> ledgerItems = await softBankClient.GetLedgerItems(GetAccountId(), GetOwnerId(), _context);
+        Option<IReadOnlyList<SbLedgerItem>> ledgerItems = await softBankClient.GetLedgerItems(GetAccountId(), GetOwnerId(), _context);
         ledgerItems.StatusCode.IsOk().Should().BeTrue(ledgerItems.Error);
         ledgerItems.Return().Count.Should().Be(newItems.Length);
         newItems.SequenceEqual(ledgerItems.Return()).Should().BeTrue();
@@ -67,7 +67,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
         var ledgerItems2 = await softBankClient.GetLedgerItems(GetAccountId(), GetOwnerId2(), _context);
         ledgerItems2.IsError().Should().BeTrue();
 
-        Option<AccountBalance> balanceResponse = await softBankClient.GetBalance(GetAccountId(), GetOwnerId(), _context);
+        Option<SbAccountBalance> balanceResponse = await softBankClient.GetBalance(GetAccountId(), GetOwnerId(), _context);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
         balanceResponse.Return().Balance.Should().Be(170.30m);
 
@@ -87,7 +87,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
         {
             AccessRights = new[]
             {
-                new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId(), Grant = BlockGrant.Write },
+                new AccessBlock { BlockType = nameof(SbLedgerItem), PrincipalId = GetOwnerId(), Grant = BlockGrant.Write },
             },
         };
 
@@ -96,8 +96,8 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
 
         var newItems = new[]
 {
-            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 1", Type = LedgerType.Credit, Amount = 100.0m },
-            new LedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = LedgerType.Debit, Amount = 20.00m },
+            new SbLedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId(), Description = "Ledger 1", Type = SbLedgerType.Credit, Amount = 100.0m },
+            new SbLedgerItem { AccountId = GetAccountId(), OwnerId = GetOwnerId2(), Description = "Ledger 3", Type = SbLedgerType.Debit, Amount = 20.00m },
         };
 
         foreach (var item in newItems.WithIndex())
@@ -144,14 +144,14 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
         var existOption = await softBankClient.Exist(accountId, _context);
         if (existOption.IsOk()) await softBankClient.Delete(accountId, _context);
 
-        var createRequest = new AccountDetail
+        var createRequest = new SbAccountDetail
         {
             AccountId = accountId,
             OwnerId = principalId,
             Name = "test account",
             AccessRights = new[]
             {
-                new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = GetOwnerId2(), Grant = BlockGrant.Write },
+                new AccessBlock { BlockType = nameof(SbLedgerItem), PrincipalId = GetOwnerId2(), Grant = BlockGrant.Write },
             },
         };
 

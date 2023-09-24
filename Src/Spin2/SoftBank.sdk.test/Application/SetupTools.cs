@@ -126,13 +126,13 @@ public class SetupTools
         var existOption = await softBankClient.Exist(accountId, _context);
         if (existOption.IsOk()) await softBankClient.Delete(accountId, _context);
 
-        var createRequest = new AccountDetail
+        var createRequest = new SbAccountDetail
         {
             AccountId = accountId,
             OwnerId = principalId,
             Name = "test account",
             AccessRights = writeAccessPrincipalIds
-                .Select(x => new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.Write })
+                .Select(x => new AccessBlock { BlockType = nameof(SbLedgerItem), PrincipalId = x, Grant = BlockGrant.Write })
                 .ToArray(),
         };
 

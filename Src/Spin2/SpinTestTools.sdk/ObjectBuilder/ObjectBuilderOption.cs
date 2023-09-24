@@ -17,8 +17,8 @@ public record ObjectBuilderOption
     public List<SubscriptionModel> Subscriptions { get; init; } = new List<SubscriptionModel>();
     public List<TenantModel> Tenants { get; init; } = new List<TenantModel>();
     public List<UserCreateModel> Users { get; init; } = new List<UserCreateModel>();
-    public List<AccountDetail> Accounts { get; init; } = new List<AccountDetail>();
-    public List<LedgerItem> LedgerItems { get; init; } = new List<LedgerItem>();
+    public List<SbAccountDetail> SbAccounts { get; init; } = new List<SbAccountDetail>();
+    public List<SbLedgerItem> LedgerItems { get; init; } = new List<SbLedgerItem>();
     public List<AgentModel> Agents { get; init; } = new List<AgentModel>();
     public List<SmartcModel> SmartcItems { get; init; } = new List<SmartcModel>();
 
@@ -26,8 +26,8 @@ public record ObjectBuilderOption
         .RuleForEach(x => x.Subscriptions).Validate(SubscriptionModel.Validator)
         .RuleForEach(x => x.Tenants).Validate(TenantModel.Validator)
         .RuleForEach(x => x.Users).Validate(UserCreateModel.Validator)
-        .RuleForEach(x => x.Accounts).Validate(AccountDetail.Validator)
-        .RuleForEach(x => x.LedgerItems).Validate(LedgerItem.Validator)
+        .RuleForEach(x => x.SbAccounts).Validate(SbAccountDetail.Validator)
+        .RuleForEach(x => x.LedgerItems).Validate(SbLedgerItem.Validator)
         .RuleForEach(x => x.Agents).Validate(AgentModel.Validator)
         .RuleForEach(x => x.SmartcItems).Validate(SmartcModel.Validator)
         .Build();
@@ -61,4 +61,10 @@ public static class ObjectBuilderOptionTool
     }
 
     public static Option Validate(this ObjectBuilderOption subject) => ObjectBuilderOption.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this ObjectBuilderOption subject, out Option status)
+    {
+        status = subject.Validate();
+        return status.IsOk();
+    }
 }

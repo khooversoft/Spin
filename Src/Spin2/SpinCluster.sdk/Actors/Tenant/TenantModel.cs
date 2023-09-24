@@ -50,4 +50,10 @@ public sealed record TenantModel
 public static class TenantModelValidator
 {
     public static Option Validate(this TenantModel subject) => TenantModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this TenantModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

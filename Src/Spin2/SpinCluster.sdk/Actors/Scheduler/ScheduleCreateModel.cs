@@ -17,18 +17,24 @@ public sealed record ScheduleCreateModel
     [Id(7)] public string Command { get; init; } = null!;
 
     public static IValidator<ScheduleCreateModel> Validator { get; } = new Validator<ScheduleCreateModel>()
-    .RuleFor(x => x.WorkId).NotEmpty()
-    .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
-    .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
-    .RuleFor(x => x.SourceId).ValidName()
-    .RuleFor(x => x.CommandType).Must(x => x == "args" || x.StartsWith("json:"), x => $"{x} is not valid, must be 'args' or 'json:{{type}}'")
-    .RuleFor(x => x.Command).NotEmpty()
-    .Build();
+        .RuleFor(x => x.WorkId).NotEmpty()
+        .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
+        .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
+        .RuleFor(x => x.SourceId).ValidName()
+        .RuleFor(x => x.CommandType).Must(x => x == "args" || x.StartsWith("json:"), x => $"{x} is not valid, must be 'args' or 'json:{{type}}'")
+        .RuleFor(x => x.Command).NotEmpty()
+        .Build();
 }
 
 public static class ScheduleCreateModelExtensions
 {
     public static Option Validate(this ScheduleCreateModel subject) => ScheduleCreateModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this ScheduleCreateModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 
     public static ScheduleWorkModel ConvertTo(this ScheduleCreateModel subject) => new ScheduleWorkModel
     {

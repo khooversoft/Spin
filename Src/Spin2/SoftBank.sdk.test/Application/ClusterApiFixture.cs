@@ -4,7 +4,7 @@ using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
-using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinCluster.sdk.Actors.Tenant;

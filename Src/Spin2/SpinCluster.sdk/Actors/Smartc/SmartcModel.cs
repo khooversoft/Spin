@@ -33,7 +33,6 @@ public sealed record SmartcModel
 
     public override int GetHashCode() => HashCode.Combine(SmartcId, Registered, SmartcExeId);
 
-
     public static IValidator<SmartcModel> Validator { get; } = new Validator<SmartcModel>()
         .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
         .RuleFor(x => x.Registered).ValidDateTime()
@@ -60,7 +59,20 @@ public sealed record PackageFile
 
 public static class SmartcModelExtensions
 {
-    public static Option Validate(this SmartcModel model) => SmartcModel.Validator.Validate(model).ToOptionStatus();
-    public static Option Validate(this PackageFile model) => PackageFile.Validator.Validate(model).ToOptionStatus();
+    public static Option Validate(this SmartcModel subject) => SmartcModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this SmartcModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
+
+    public static Option Validate(this PackageFile subject) => PackageFile.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this PackageFile subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }
 

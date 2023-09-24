@@ -23,17 +23,17 @@ public class SmartcClient
         .DeleteAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option<SmartcModel>> Get(string smartcId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Smartc}/{Uri.EscapeDataString(smartcId)}")
-        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context.With(_logger))
-        .GetContent<SmartcModel>();
-
     public async Task<Option> Exist(string smartcId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}/{Uri.EscapeDataString(smartcId)}/exist")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context.With(_logger))
         .ToOption();
+
+    public async Task<Option<SmartcModel>> Get(string smartcId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Smartc}/{Uri.EscapeDataString(smartcId)}")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .GetAsync(context.With(_logger))
+        .GetContent<SmartcModel>();
 
     public async Task<Option> Set(SmartcModel content, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Smartc}")

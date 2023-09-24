@@ -55,34 +55,26 @@ public class UserConnector
 
     public async Task<IResult> Create(UserCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(_logger);
-        var v = model.Validate().LogResult(context.Location());
-        if (v.IsError()) return v.ToResult();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        ResourceId resourceId = ResourceId.Create(model.UserId).Return();
-        var response = await _client.GetResourceGrain<IUserActor>(resourceId).Create(model, traceId);
+        var response = await _client.GetResourceGrain<IUserActor>(model.UserId).Create(model, traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Update(UserModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        var v = model.Validate().LogResult(context.Location());
-        if (v.IsError()) return v.ToResult();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        ResourceId resourceId = ResourceId.Create(model.UserId).Return();
-        var response = await _client.GetResourceGrain<IUserActor>(resourceId).Update(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IUserActor>(model.UserId).Update(model, traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Sign(SignRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        var v = model.Validate().LogResult(context.Location());
-        if (v.IsError()) return v.ToResult();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        ResourceId resourceId = IdTool.CreateUserId(model.PrincipalId);
-        var response = await _client.GetResourceGrain<IUserActor>(resourceId).SignDigest(model.MessageDigest, context.TraceId);
+        string id = $"{SpinConstants.Schema.User}:{model.PrincipalId}";
+        var response = await _client.GetResourceGrain<IUserActor>(id).SignDigest(model.MessageDigest, traceId);
         return response.ToResult();
     }
 }

@@ -38,8 +38,14 @@ public static class SiloStartup
 
         services.AddSingleton<SiloConfigStore>(service =>
         {
-            SpinClusterOption clusterOption = service.GetRequiredService<SpinClusterOption>();
             var context = new ScopeContext(service.GetRequiredService<ILoggerFactory>().CreateLogger<SiloConfigStore>());
+
+            SpinClusterOption clusterOption = service.GetRequiredService<SpinClusterOption>();
+            if (!clusterOption.Validate(out Option v))
+            {
+                context.Location().LogError("SpinClusterOption is invalid, errors={errors}", v.Error);
+                throw new ArgumentException($"SpinClusterOption is invalid, errors={v.Error}");
+            }
 
             DatalakeLocation datalakeLocation = DatalakeLocation.ParseConnectionString(clusterOption.BootConnectionString)
                 .LogResult(context.Location())

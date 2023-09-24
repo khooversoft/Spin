@@ -73,8 +73,7 @@ public class AgentConnector
     public async Task<IResult> Set(AgentModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        var v = model.Validate();
-        if (v.IsError()) return Results.BadRequest(v.Error);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         var response = await _client.GetResourceGrain<IAgentActor>(model.AgentId).Set(model, traceId);
         return response.ToResult();

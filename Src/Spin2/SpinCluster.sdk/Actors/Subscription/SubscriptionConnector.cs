@@ -54,12 +54,9 @@ public class SubscriptionConnector
 
     public async Task<IResult> Set(SubscriptionModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        Option<ResourceId> option = ResourceId.Create(model.SubscriptionId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        var response = await _client.GetResourceGrain<ISubscriptionActor>(option.Return()).Set(model, traceId);
+        var response = await _client.GetResourceGrain<ISubscriptionActor>(model.SubscriptionId).Set(model, traceId);
         return response.ToResult();
     }
 }

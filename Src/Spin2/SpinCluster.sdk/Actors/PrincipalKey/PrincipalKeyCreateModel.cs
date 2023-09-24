@@ -19,18 +19,24 @@ public sealed record PrincipalKeyCreateModel
         PrincipalPrivateKeyId == document.PrincipalPrivateKeyId;
 
     public override int GetHashCode() => HashCode.Combine(KeyId, PrincipalId, Name);
-}
 
-
-public static class PrincipalKeyCreateModelValidator
-{
     public static IValidator<PrincipalKeyCreateModel> Validator { get; } = new Validator<PrincipalKeyCreateModel>()
         .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned)
         .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.Name).ValidName()
         .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId(ResourceType.Owned)
         .Build();
+}
 
-    public static Option Validate(this PrincipalKeyCreateModel subject) => Validator.Validate(subject).ToOptionStatus();
+
+public static class PrincipalKeyCreateModelValidator
+{
+    public static Option Validate(this PrincipalKeyCreateModel subject) => PrincipalKeyCreateModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this PrincipalKeyCreateModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }
 

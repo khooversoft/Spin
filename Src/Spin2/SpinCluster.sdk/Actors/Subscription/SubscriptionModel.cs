@@ -49,4 +49,10 @@ public sealed record SubscriptionModel
 public static class SubscriptionModelValidator
 {
     public static Option Validate(this SubscriptionModel subject) => SubscriptionModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this SubscriptionModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

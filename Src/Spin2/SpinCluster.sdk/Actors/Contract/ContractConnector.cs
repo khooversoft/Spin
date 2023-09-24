@@ -58,6 +58,7 @@ public class ContractConnector
     private async Task<IResult> Create(ContractCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (model.Validate().IsError()) return Results.BadRequest();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client.GetResourceGrain<IContractActor>(model.DocumentId).Create(model, traceId);
         return response.ToResult();

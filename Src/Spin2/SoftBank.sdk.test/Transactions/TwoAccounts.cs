@@ -35,8 +35,8 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         _option.Validate().ThrowOnError();
     }
 
-    private AccountDetail GetAccount1() => _option.Accounts[0];
-    private AccountDetail GetAccount2() => _option.Accounts[1];
+    private SbAccountDetail GetAccount1() => _option.SbAccounts[0];
+    private SbAccountDetail GetAccount2() => _option.SbAccounts[1];
 
     [Fact]
     public async Task PushTransferBetweenTwoAccount()
@@ -106,18 +106,18 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         await objectBuild.DeleteAll(_context);
     }
 
-    private async Task AddLedgerToAccount(AccountDetail config, params decimal[] amounts)
+    private async Task AddLedgerToAccount(SbAccountDetail config, params decimal[] amounts)
     {
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
 
         foreach (var amount in amounts)
         {
-            var ledger = new LedgerItem
+            var ledger = new SbLedgerItem
             {
                 AccountId = config.AccountId,
                 OwnerId = config.OwnerId,
                 Description = "Ledger-" + Guid.NewGuid().ToString(),
-                Type = amount > 0 ? LedgerType.Credit : LedgerType.Debit,
+                Type = amount > 0 ? SbLedgerType.Credit : SbLedgerType.Debit,
                 Amount = Math.Abs(amount),
             };
 
@@ -126,7 +126,7 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         }
     }
 
-    private async Task Transfer(TrxType type, decimal amount, AccountDetail from, AccountDetail to)
+    private async Task Transfer(TrxType type, decimal amount, SbAccountDetail from, SbAccountDetail to)
     {
         SoftBankTrxClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankTrxClient>();
 
@@ -152,25 +152,25 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         trxResponse.DestinationLedgerItemId.Should().NotBeNullOrEmpty();
     }
 
-    private async Task<decimal> GetBalance(AccountDetail config)
+    private async Task<decimal> GetBalance(SbAccountDetail config)
     {
         SoftBankClient softBankClient = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
         var balanceResult = await softBankClient.GetBalance(config.AccountId, config.OwnerId, _context);
         balanceResult.IsOk().Should().BeTrue();
 
-        AccountBalance result = balanceResult.Return();
+        SbAccountBalance result = balanceResult.Return();
         result.DocumentId.Should().Be(config.AccountId);
         return result.Balance;
     }
 
-    private async Task VerifyLedgers(AccountDetail config, params decimal[] amounts)
+    private async Task VerifyLedgers(SbAccountDetail config, params decimal[] amounts)
     {
         SoftBankClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
 
         var response = await client.GetLedgerItems(config.AccountId, config.OwnerId, _context);
         response.IsOk().Should().BeTrue();
 
-        IReadOnlyList<LedgerItem> ledgerItems = response.Return();
+        IReadOnlyList<SbLedgerItem> ledgerItems = response.Return();
         var ledgerAmounts = ledgerItems.Select(x => x.NaturalAmount).ToArray();
         amounts.SequenceEqual(ledgerAmounts).Should().BeTrue();
     }

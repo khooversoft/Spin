@@ -14,6 +14,8 @@ public readonly struct Option : IEquatable<Option>
     public StatusCode StatusCode { get; }
     public string? Error { get; }
 
+    public override string ToString() => $"StatusCode={StatusCode}, Error={Error}";
+
     public override bool Equals(object? obj) => obj is Option option && Equals(option);
     public bool Equals(Option other) => StatusCode == other.StatusCode && Error == other.Error;
     public override int GetHashCode() => HashCode.Combine(StatusCode, Error);

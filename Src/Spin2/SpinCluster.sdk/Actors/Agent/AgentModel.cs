@@ -24,4 +24,10 @@ public record AgentModel
 public static class AgentModelExtensions
 {
     public static Option Validate(this AgentModel model) => AgentModel.Validator.Validate(model).ToOptionStatus();
+
+    public static bool Validate(this AgentModel model, out Option result)
+    {
+        result = model.Validate();
+        return result.IsOk();
+    }
 }

@@ -1,7 +1,7 @@
 {
   "Schemas": [
     {
-      "SchemaName": "subscription;tenant;scheduler;user;principal-key",
+      "SchemaName": "subscription;tenant;scheduler;user;principal-key;spinconfig",
       "ContainerName": "directory",
       "BasePath": "$systemV1"
     },

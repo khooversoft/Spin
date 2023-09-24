@@ -57,13 +57,13 @@ public class ObjectOptionBuilder
                 LastName = "lastName",
             }).ToList(),
 
-            Accounts = Accounts.Select(x => new AccountDetail
+            SbAccounts = Accounts.Select(x => new SbAccountDetail
             {
                 AccountId = x.AccountId,
                 OwnerId = x.PrincipalId,
                 Name = "test account",
                 AccessRights = x.WriteAccess
-                    .Select(x => new AccessBlock { BlockType = nameof(LedgerItem), PrincipalId = x, Grant = BlockGrant.ReadWrite })
+                    .Select(x => new AccessBlock { BlockType = nameof(SbLedgerItem), PrincipalId = x, Grant = BlockGrant.ReadWrite })
                     .ToArray(),
             }).ToList(),
         };

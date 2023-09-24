@@ -66,8 +66,7 @@ public class PrincipalPrivateKeyConnector
     public async Task<IResult> Set(PrincipalPrivateKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        var v = model.Validate().LogResult(context.Location());
-        if (v.IsError()) return Results.BadRequest(v.Error);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         ResourceId resourceId = ResourceId.Create(model.PrincipalPrivateKeyId).Return();
         var response = await _client.GetResourceGrain<IPrincipalPrivateKeyActor>(resourceId).Set(model, context.TraceId);

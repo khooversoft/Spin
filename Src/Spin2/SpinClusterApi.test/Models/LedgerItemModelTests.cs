@@ -9,12 +9,12 @@ public class LedgerItemModelTests
     [Fact]
     public void TestLedgerItemValidation()
     {
-        var model = new LedgerItem
+        var model = new SbLedgerItem
         {
             AccountId = "softbank:company9.com/account1",
             OwnerId = "user1@company9.com",
             Description = "Ledger 1",
-            Type = LedgerType.Credit,
+            Type = SbLedgerType.Credit,
             Amount = 100.0m
         };
 

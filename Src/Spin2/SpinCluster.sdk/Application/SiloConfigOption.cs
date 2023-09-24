@@ -1,10 +1,11 @@
 ﻿using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.User;
+using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Services;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Configuration;
+namespace SpinCluster.sdk.Application;
 
 [GenerateSerializer, Immutable]
 public record SiloConfigOption
@@ -18,7 +19,7 @@ public static class SiloConfigOptionValidator
 {
     public static IValidator<SiloConfigOption> Validator { get; } = new Validator<SiloConfigOption>()
         .RuleFor(x => x.Schemas).NotNull().Must(x => x.Count > 0, _ => "Schemas is empty")
-        .RuleForEach(x => x.Schemas).Validate(SchemaOptionValidator.Validator)
+        .RuleForEach(x => x.Schemas).Validate(SchemaOption.Validator)
         .RuleFor(x => x.Tenants).NotNull().Must(x => x.Count > 0, _ => "Tenants is empty")
         .RuleForEach(x => x.Tenants).NotEmpty()
         .Build();

@@ -6,9 +6,9 @@ using Toolbox.Security.Sign;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.PrincipalKey;
+namespace SpinCluster.sdk.Actors.Signature;
 
-public class SignatureClient : ISign
+public class SignatureClient : ISign, ISignValidate
 {
     private readonly HttpClient _client;
     private readonly ILogger<SignatureClient> _logger;
@@ -47,4 +47,17 @@ public class SignatureClient : ISign
         .SetContent(model)
         .PostAsync(context.With(_logger))
         .ToOption();
+
+    public Task<Option> ValidateDigest(string jwtSignature, string messageDigest, string traceId)
+    {
+        var context = new ScopeContext(_logger);
+
+        var request = new SignValidateRequest
+        {
+            JwtSignature = jwtSignature,
+            MessageDigest = messageDigest,
+        };
+
+        return ValidateDigest(request, context);
+    }
 }

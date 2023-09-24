@@ -15,18 +15,18 @@ public record DatalakeOption
     public ClientSecretOption Credentials { get; init; } = null!;
 
     public override string ToString() => $"AccountName={AccountName}, ContainerName={ContainerName}, BasePath={BasePath}, Credentials={Credentials}";
+
+    public static IValidator<DatalakeOption> Validator { get; } = new Validator<DatalakeOption>()
+        .RuleFor(x => x.AccountName).NotEmpty()
+        .RuleFor(x => x.ContainerName).NotEmpty()
+        .RuleFor(x => x.Credentials).Validate(ClientSecretOption.Validator)
+        .Build();
 }
 
 
 public static class DatalakeOptionValidator
 {
-    public static IValidator<DatalakeOption> Validator { get; } = new Validator<DatalakeOption>()
-        .RuleFor(x => x.AccountName).NotEmpty()
-        .RuleFor(x => x.ContainerName).NotEmpty()
-        .RuleFor(x => x.Credentials).Validate(ClientSecretOptionValidator.Validator)
-        .Build();
-
-    public static Option Validate(this DatalakeOption subject) => Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this DatalakeOption subject) => DatalakeOption.Validator.Validate(subject).ToOptionStatus();
 
     public static DataLakeServiceClient CreateDataLakeServiceClient(this DatalakeOption subject)
     {

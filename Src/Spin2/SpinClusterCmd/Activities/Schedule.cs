@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Scheduler;
-using SpinCluster.sdk.Actors.Smartc;
 using SpinClusterCmd.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;

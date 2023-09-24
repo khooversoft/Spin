@@ -1,0 +1,104 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"languageName":"csharp","name":"csharp"}]}}
+
+#!csharp
+
+double principal = 10000; // The loan amount
+double apr = 0.05; // The annual percentage rate
+int numberOfPayments = 12; // The total number of payments
+int paymentsPerYear = 12; // The number of payments per year
+
+double monthlyInterestRate = apr / paymentsPerYear;
+double discountFactor = (Math.Pow(1 + monthlyInterestRate, numberOfPayments) - 1) / (monthlyInterestRate * Math.Pow(1 + monthlyInterestRate, numberOfPayments));
+double monthlyPayment = principal / discountFactor;
+
+Console.WriteLine($"The monthly payment for the loan is: {monthlyPayment:C2}, total={(monthlyPayment * numberOfPayments):C2}");
+
+#!csharp
+
+double principal = 10000; // The loan amount
+double apr = 5.0; // The annual percentage rate
+int numberOfPayments = 12; // The total number of payments
+int paymentsPerYear = 12; // The number of payments per year
+
+double weeklyInterestRate = apr / (100 * paymentsPerYear);
+double discountFactor = (Math.Pow(1 + weeklyInterestRate, numberOfPayments) - 1) / (weeklyInterestRate * Math.Pow(1 + weeklyInterestRate, numberOfPayments));
+double weeklyPayment = principal / discountFactor;
+
+Console.WriteLine($"The weekly payment for the loan is: {weeklyPayment:C2}");
+
+#!csharp
+
+double principal = 10000; // The loan amount
+double apr = 5.0; // The annual percentage rate
+double monthlyPayment = 856.07;
+int paymentsPerYear = 12; // The number of payments per year
+
+double monthlyInterestRate = apr / (100 * paymentsPerYear);
+Console.WriteLine($"monthlyInterestRate={monthlyInterestRate}");
+
+double totalInterestCharge = 0.0;
+double totalPrincipal = 0.0;
+
+Console.WriteLine();
+for(int i = 0; i < 12; i++)
+{
+    double interestCharge = monthlyInterestRate * principal;
+    double payment = monthlyPayment;
+    double toPrincipal = payment - interestCharge;
+
+    principal -= toPrincipal;
+    totalInterestCharge += interestCharge;
+    totalPrincipal += toPrincipal;
+
+    Console.WriteLine($"interestCharge={interestCharge:0.00}, payment={payment:0.00}, toPrincipal={toPrincipal:0.00}, principal={principal:0.00}");
+}
+
+Console.WriteLine();
+Console.WriteLine($"totalInterestCharge={totalInterestCharge:0.00}, totalPrincipal={totalPrincipal:0.00}");
+
+#!csharp
+
+double principal = 10000.00; // The original principal balance
+// double apr = 5.0; // The annual percentage rate
+// double interestRate = apr / 100; // Convert APR to decimal interest rate
+double interestRate = 0.05;
+
+// Calculate the interest charge for a specific number of days
+int numberOfDays = 30; // The number of days since the past payment
+double dailyInterestRate = interestRate / 365; // Convert annual interest rate to daily rate
+double interestCharge = principal * dailyInterestRate * numberOfDays;
+
+Console.WriteLine($"The interest charge for {numberOfDays} days is: {interestCharge:C2}");
+
+#!csharp
+
+double principal = 10000; // The loan amount
+double apr = 0.05; // The annual percentage rate
+double monthlyPayment = 856.07;
+
+double dailyInterestRate = apr / 365;
+Console.WriteLine($"monthlyInterestRate={monthlyInterestRate}");
+
+double totalInterestCharge = 0.0;
+double totalPrincipal = 0.0;
+int numberOfDays;
+
+Console.WriteLine();
+for(int i = 0; i < 12; i++)
+{
+    numberOfDays = DateTime.DaysInMonth(2023, i + 1);
+    double interestCharge = principal * dailyInterestRate * numberOfDays;
+    double payment = monthlyPayment;
+    double toPrincipal = payment - interestCharge;
+
+    principal -= toPrincipal;
+    totalInterestCharge += interestCharge;
+    totalPrincipal += toPrincipal;
+
+    Console.WriteLine($"interestCharge={interestCharge:0.00}, payment={payment:0.00}, toPrincipal={toPrincipal:0.00}, principal={principal:0.00}");
+}
+
+Console.WriteLine();
+Console.WriteLine($"totalInterestCharge={totalInterestCharge:0.00}, totalPrincipal={totalPrincipal:0.00}");

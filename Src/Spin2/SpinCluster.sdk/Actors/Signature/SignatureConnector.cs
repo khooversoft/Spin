@@ -39,9 +39,7 @@ public class SignatureConnector
 
     private async Task<IResult> Sign(SignRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        var validation = model.Validate().LogResult(context.Location());
-        if (validation.IsError()) return validation.ToResult();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         var result = await _clusterClient
             .GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation)
@@ -52,9 +50,7 @@ public class SignatureConnector
 
     private async Task<IResult> Validate(SignValidateRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        var validation = model.Validate().LogResult(context.Location());
-        if (validation.IsError()) return validation.ToResult();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         var result = await _clusterClient
             .GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation)

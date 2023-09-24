@@ -31,11 +31,7 @@ public sealed record PrincipalKeyModel
         CreatedDate == document.CreatedDate;
 
     public override int GetHashCode() => HashCode.Combine(KeyId, KeyId, PrincipalId, Name, Audience, PrincipalPrivateKeyId);
-}
 
-
-public static class PrincipalKeyModelValidator
-{
     public static IValidator<PrincipalKeyModel> Validator { get; } = new Validator<PrincipalKeyModel>()
         .RuleFor(x => x.PrincipalKeyId).ValidResourceId(ResourceType.Owned)
         .RuleFor(x => x.KeyId).ValidResourceId(ResourceType.Owned, "kid")
@@ -45,12 +41,22 @@ public static class PrincipalKeyModelValidator
         .RuleFor(x => x.PublicKey).NotNull()
         .RuleFor(x => x.PrincipalPrivateKeyId).ValidResourceId(ResourceType.Owned)
         .Build();
+}
 
-    public static Option Validate(this PrincipalKeyModel subject) => Validator.Validate(subject).ToOptionStatus();
+
+public static class PrincipalKeyModelValidator
+{
+    public static Option Validate(this PrincipalKeyModel subject) => PrincipalKeyModel.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this PrincipalKeyModel subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 
     public static Option<PrincipalSignature> ToPrincipalSignature(this PrincipalKeyModel subject, ScopeContext context)
     {
-        Option<IValidatorResult> validationResult = Validator.Validate(subject).LogResult(context.Location());
+        Option<IValidatorResult> validationResult = PrincipalKeyModel.Validator.Validate(subject).LogResult(context.Location());
         if (validationResult.IsError()) return validationResult.ToOptionStatus<PrincipalSignature>();
 
         var signature = PrincipalSignature.CreateFromPublicKeyOnly(subject.PublicKey, subject.KeyId, subject.PrincipalId, subject.Audience);

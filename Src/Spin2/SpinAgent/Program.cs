@@ -8,6 +8,7 @@ using SpinAgent.Application;
 using SpinAgent.Commands;
 using SpinAgent.Services;
 using SpinCluster.sdk.Actors.Agent;
+using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
 using Toolbox.Extensions;

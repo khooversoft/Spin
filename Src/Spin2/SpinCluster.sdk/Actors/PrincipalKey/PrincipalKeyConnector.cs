@@ -38,6 +38,7 @@ public class PrincipalKeyConnector
     {
         principalId = Uri.UnescapeDataString(principalId);
         if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest("Invalid principal");
+
         if (path != null)
         {
             path = Uri.UnescapeDataString(path);
@@ -53,6 +54,7 @@ public class PrincipalKeyConnector
     {
         principalId = Uri.UnescapeDataString(principalId);
         if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest();
+
         if (path != null)
         {
             path = Uri.UnescapeDataString(path);
@@ -66,23 +68,17 @@ public class PrincipalKeyConnector
 
     public async Task<IResult> Create(PrincipalKeyCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        var v = model.Validate().LogResult(context.Location());
-        if (v.IsError()) return Results.BadRequest(v.Error);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        ResourceId resourceId = ResourceId.Create(model.PrincipalKeyId).Return();
-        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(resourceId).Create(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(model.PrincipalKeyId).Create(model, traceId);
         return response.ToResult();
     }
 
     public async Task<IResult> Update(PrincipalKeyModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        Option<ResourceId> option = ResourceId.Create(model.PrincipalKeyId).LogResult(context.Location());
-        if (option.IsError()) option.ToResult();
-
-        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(option.Return()).Update(model, context.TraceId);
+        var response = await _client.GetResourceGrain<IPrincipalKeyActor>(model.PrincipalKeyId).Update(model, traceId);
         return response.ToResult();
     }
 }

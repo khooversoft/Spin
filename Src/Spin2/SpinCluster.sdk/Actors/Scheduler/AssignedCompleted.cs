@@ -24,4 +24,10 @@ public sealed record AssignedCompleted
 public static class AssignedCompletedExtensions
 {
     public static Option Validate(this AssignedCompleted subject) => AssignedCompleted.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this AssignedCompleted subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

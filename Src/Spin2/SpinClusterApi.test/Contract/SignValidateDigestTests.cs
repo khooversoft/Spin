@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Actors.User;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
@@ -84,7 +85,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         };
 
         Option<SignResponse> jwtOption = await userClient.Sign(signRequest, _context);
-        jwtOption.IsOk().Should().BeTrue();
+        jwtOption.IsOk().Should().BeTrue(jwtOption.ToString());
         jwtOption.Return().Should().NotBeNull();
 
         SignResponse response = jwtOption.Return();

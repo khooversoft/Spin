@@ -4,7 +4,7 @@ using Toolbox.Types;
 namespace SoftBank.sdk.Models;
 
 [GenerateSerializer, Immutable]
-public record AmountReserved
+public record SbAmountReserved
 {
     [Id(0)] public string Id { get; init; } = Guid.NewGuid().ToString();
     [Id(1)] public string LeaseKey { get; init; } = null!;
@@ -17,7 +17,7 @@ public record AmountReserved
 
 public static class AmountReservedValidator
 {
-    public static IValidator<AmountReserved> Validator { get; } = new Validator<AmountReserved>()
+    public static IValidator<SbAmountReserved> Validator { get; } = new Validator<SbAmountReserved>()
         .RuleFor(x => x.Id).NotEmpty()
         .RuleFor(x => x.LeaseKey).NotEmpty()
         .RuleFor(x => x.AccountId).ValidAccountId()
@@ -26,5 +26,5 @@ public static class AmountReservedValidator
         .RuleFor(x => x.GoodTo).ValidDateTime()
         .Build();
 
-    public static Option Validate(this AmountReserved subject) => Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this SbAmountReserved subject) => Validator.Validate(subject).ToOptionStatus();
 }

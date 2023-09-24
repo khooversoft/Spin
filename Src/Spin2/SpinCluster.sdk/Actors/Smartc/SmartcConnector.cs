@@ -36,7 +36,7 @@ public class SmartcConnector
     private async Task<IResult> Delete(string smartcId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         smartcId = Uri.UnescapeDataString(smartcId);
-        if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, "smartc")) return Results.BadRequest();
+        if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, SpinConstants.Schema.Smartc)) return Results.BadRequest();
 
         Option response = await _client.GetResourceGrain<ISmartcActor>(smartcId).Delete(traceId);
         return response.ToResult();
@@ -45,7 +45,7 @@ public class SmartcConnector
     private async Task<IResult> Exist(string smartcId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         smartcId = Uri.UnescapeDataString(smartcId);
-        if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, "smartc")) return Results.BadRequest();
+        if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, SpinConstants.Schema.Smartc)) return Results.BadRequest();
 
         Option response = await _client.GetResourceGrain<ISmartcActor>(smartcId).Exist(traceId);
         return response.ToResult();
@@ -54,7 +54,7 @@ public class SmartcConnector
     private async Task<IResult> Get(string smartcId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         smartcId = Uri.UnescapeDataString(smartcId);
-        if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, "smartc")) return Results.BadRequest();
+        if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, SpinConstants.Schema.Smartc)) return Results.BadRequest();
 
         Option<SmartcModel> response = await _client.GetResourceGrain<ISmartcActor>(smartcId).Get(traceId);
         return response.ToResult();
@@ -62,8 +62,7 @@ public class SmartcConnector
 
     private async Task<IResult> Set(SmartcModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var v = model.Validate();
-        if (v.IsError()) return Results.BadRequest(v.Error);
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         var response = await _client.GetResourceGrain<ISmartcActor>(model.SmartcId).Set(model, traceId);
         return response.ToResult();
