@@ -56,7 +56,7 @@ public class TenantTests : IClassFixture<ClusterApiFixture>
         {
             TenantId = IdTool.CreateTenantId(nameId),
             Domain = nameId,
-            SubscriptionId = IdTool.CreateSubscriptionId(subscriptionId),
+            SubscriptionId = $"{SpinConstants.Schema.Subscription}:{subscriptionId}",
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
         };

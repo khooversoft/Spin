@@ -23,6 +23,12 @@ public class SubscriptionClient
         .DeleteAsync(context.With(_logger))
         .ToOption();
 
+    public async Task<Option> Exist(string nameId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Subscription}/{Uri.EscapeDataString(nameId)}/exist")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .GetAsync(context.With(_logger))
+        .ToOption();
+
     public async Task<Option<SubscriptionModel>> Get(string nameId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Subscription}/{Uri.EscapeDataString(nameId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)

@@ -29,7 +29,7 @@ internal class SoftBank_ReserveFund
 
         var test = new OptionTest()
             .Test(() => IdPatterns.IsPrincipalId(principalId))
-            .Test(() => amount > 0 ? StatusCode.OK : new Option(StatusCode.BadRequest, "Amount must be positive"));
+            .Test(() => amount > 0 ? StatusCode.OK : (StatusCode.BadRequest, "Amount must be positive"));
         if (test.IsError()) return test.Option.ToOptionStatus<SbAmountReserved>();
 
         var hasAccess = await _parent.GetContractActor().HasAccess(principalId, BlockGrant.Write, typeof(SbLedgerItem).GetTypeName(), traceId);
@@ -39,10 +39,8 @@ internal class SoftBank_ReserveFund
         SbAccountBalance balance = await _parent.GetBalance(principalId, traceId).Return();
         if (balance.PrincipalBalance < amount) return new Option<SbAmountReserved>(StatusCode.BadRequest, "No funds");
 
-        ILeaseActor leaseActor = GetLeaseActor();
-
         var request = CreateLeaseRequest(amount);
-        var acquire = await leaseActor.Acquire(request, context.TraceId);
+        var acquire = await _clusterClient.GetLeaseActor().Acquire(request, context.TraceId);
         if (acquire.IsError()) return acquire.ToOptionStatus<SbAmountReserved>();
 
         var reserved = new SbAmountReserved
@@ -62,26 +60,25 @@ internal class SoftBank_ReserveFund
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Release reserve funds for trx, leaseKey={leaseKey}", leaseKey);
 
-        ILeaseActor leaseActor = GetLeaseActor();
-        var releaseResponse = await leaseActor.Release(leaseKey, context.TraceId);
-
+        var releaseResponse = await _clusterClient.GetLeaseActor().Release(leaseKey, context.TraceId);
         return releaseResponse;
     }
 
-    internal ILeaseActor GetLeaseActor() => ResourceId.Create(_parent.GetPrimaryKeyString()).ThrowOnError()
-        .Bind(x => IdTool.CreateLeaseId(x.Domain.NotNull(), "softbank/" + x.Path.NotNull()))
-        .Bind(x => _clusterClient.GetResourceGrain<ILeaseActor>(x))
-        .Return();
-
-    private static LeaseCreate CreateLeaseRequest(decimal amount) => new LeaseCreate
+    private LeaseCreate CreateLeaseRequest(decimal amount) => new LeaseCreate
     {
-        LeaseKey = ReserveLease.BuildLeaseKey(amount),
+        LeaseKey = BuildLeaseKey(),
         Payload = new ReserveLease { Amount = amount }.ToJson(),
     };
 
+    private string BuildLeaseKey() => new[]
+    {
+        "softbank",
+        _parent.GetPrimaryKeyString(),
+        $"ReserveAmount/{Guid.NewGuid()}"
+    }.Join('/');
+
     internal sealed record ReserveLease
     {
-        public static string BuildLeaseKey(decimal amount) => $"ReserveAmount/{Guid.NewGuid()}";
         public decimal Amount { get; init; }
     }
 }

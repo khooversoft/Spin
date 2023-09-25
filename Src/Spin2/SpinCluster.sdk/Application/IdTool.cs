@@ -4,9 +4,6 @@ namespace SpinCluster.sdk.Application;
 
 public static class IdTool
 {
-    // Systems
-    public static ResourceId CreateSubscriptionId(string subscriptionId) => $"{SpinConstants.Schema.Subscription}:{subscriptionId}";
-
     // tenant:company3.com
     public static ResourceId CreateTenantId(string tenant) => $"{SpinConstants.Schema.Tenant}:{tenant}";
 
@@ -33,7 +30,5 @@ public static class IdTool
         null => $"{SpinConstants.Schema.PrincipalPrivateKey}:{principalId}",
         var v => $"{SpinConstants.Schema.PrincipalPrivateKey}:{principalId}/{v}",
     };
-
-    public static ResourceId CreateLeaseId(string domain, string path) => $"{SpinConstants.Schema.Lease}:{domain}/{path}";
 }
 

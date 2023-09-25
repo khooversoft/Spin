@@ -21,16 +21,13 @@ public class AgentActor : Grain, IAgentActor
 {
     private readonly IPersistentState<AgentModel> _state;
     private readonly ILogger<ContractActor> _logger;
-    private readonly IClusterClient _clusterClient;
 
     public AgentActor(
         [PersistentState(stateName: "default", storageName: SpinConstants.SpinStateStore)] IPersistentState<AgentModel> state,
-        IClusterClient clusterClient,
         ILogger<ContractActor> logger
         )
     {
         _state = state.NotNull();
-        _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();
     }
 

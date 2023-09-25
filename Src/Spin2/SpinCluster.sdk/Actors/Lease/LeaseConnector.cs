@@ -26,57 +26,52 @@ public class LeaseConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Lease}");
 
-        group.MapPost("/{leaseId}", Acquire);
-        group.MapDelete("/{leaseId}/{leaseKey}", Release);
-        group.MapGet("/{leaseId}/isValid/{leaseKey}", IsValid);
-        group.MapGet("/{leaseId}/list", List);
+        group.MapPost("/", Acquire);
+        group.MapGet("/{leaseKey}", Get);
+        group.MapGet("/{leaseKey}/isValid", IsValid);
+        group.MapGet("/list", List);
+        group.MapDelete("/{leaseKey}", Release);
 
         return group;
     }
 
-    private async Task<IResult> Acquire(string leaseId, LeaseCreate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Acquire(LeaseCreate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        leaseId = Uri.UnescapeDataString(leaseId);
-        if (!IdPatterns.IsLeaseId(leaseId)) return Results.BadRequest();
+        if (!model.Validate(out var v)) return v.ToResult();
 
-        Option<LeaseData> response = await _client.GetResourceGrain<ILeaseActor>(leaseId).Acquire(model, traceId);
+        Option<LeaseData> response = await _client.GetLeaseActor().Acquire(model, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> Release(string leaseId, string leaseKey, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Get(string leaseKey, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        leaseId = Uri.UnescapeDataString(leaseId);
+        if (!IdPatterns.IsName(leaseKey)) return Results.BadRequest("Invalid leaseKey");
+
+        Option<LeaseData> response = await _client.GetLeaseActor().Get(leaseKey, traceId);
+        return response.ToResult();
+    }
+
+    private async Task<IResult> IsValid(string leaseKey, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
         leaseKey = Uri.UnescapeDataString(leaseKey);
+        if (!IdPatterns.IsName(leaseKey)) return Results.BadRequest("Invalid leaseKey");
 
-        var test = new OptionTest()
-            .Test(() => IdPatterns.IsLeaseId(leaseId))
-            .Test(() => IdPatterns.IsName(leaseKey));
-        if (test.IsError()) return Results.BadRequest();
-
-        Option response = await _client.GetResourceGrain<ILeaseActor>(leaseId).Release(leaseKey, traceId);
+        Option response = await _client.GetLeaseActor().IsLeaseValid(leaseKey, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> IsValid(string leaseId, string leaseKey, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> List([FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        leaseId = Uri.UnescapeDataString(leaseId);
+        Option<IReadOnlyList<LeaseData>> response = await _client.GetLeaseActor().List(traceId);
+        return response.ToResult();
+    }
+
+    private async Task<IResult> Release(string leaseKey, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
         leaseKey = Uri.UnescapeDataString(leaseKey);
+        if (!IdPatterns.IsName(leaseKey)) return Results.BadRequest();
 
-        var test = new OptionTest()
-            .Test(() => IdPatterns.IsLeaseId(leaseId))
-            .Test(() => IdPatterns.IsName(leaseKey));
-        if (test.IsError()) return Results.BadRequest();
-
-        Option response = await _client.GetResourceGrain<ILeaseActor>(leaseId).IsLeaseValid(leaseKey, traceId);
-        return response.ToResult();
-    }
-
-    private async Task<IResult> List(string leaseId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        leaseId = Uri.UnescapeDataString(leaseId);
-        if (!IdPatterns.IsLeaseId(leaseId)) return Results.BadRequest();
-
-        Option<IReadOnlyList<LeaseData>> response = await _client.GetResourceGrain<ILeaseActor>(leaseId).List(traceId);
+        Option response = await _client.GetLeaseActor().Release(leaseKey, traceId);
         return response.ToResult();
     }
 }

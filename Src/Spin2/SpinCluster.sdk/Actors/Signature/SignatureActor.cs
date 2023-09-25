@@ -34,10 +34,11 @@ public class SignatureActor : Grain, ISignatureActor
         context.Location().LogInformation("SignDigest, principalId={principalId}", principalId);
 
         if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
-        ResourceId UserId = IdTool.CreateUserId(principalId);
+
+        string userId = $"{SpinConstants.Schema.User}:{principalId}";
 
         Option<SignResponse> result = await _clusterClient
-            .GetResourceGrain<IUserActor>(UserId)
+            .GetResourceGrain<IUserActor>(userId)
             .SignDigest(messageDigest, traceId);
 
         if (result.IsError()) return new Option<SignResponse>(result.StatusCode, "Failed to sign messageDigest, " + result.Error);
@@ -77,4 +78,3 @@ public class SignatureActor : Grain, ISignatureActor
         return response;
     }
 }
-

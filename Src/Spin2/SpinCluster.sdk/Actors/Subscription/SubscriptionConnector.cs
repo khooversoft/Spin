@@ -26,6 +26,7 @@ public class SubscriptionConnector
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Subscription}");
 
         group.MapDelete("/{nameId}", Delete);
+        group.MapGet("/{agentId}/exist", Exist);
         group.MapGet("/{nameId}", Get);
         group.MapPost("/", Set);
 
@@ -37,8 +38,18 @@ public class SubscriptionConnector
         nameId = Uri.UnescapeDataString(nameId);
         if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateSubscriptionId(nameId);
-        Option response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Delete(traceId);
+        string id = $"{SpinConstants.Schema.Subscription}:{nameId}";
+        Option response = await _client.GetResourceGrain<ISubscriptionActor>(id).Delete(traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> Exist(string nameId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        nameId = Uri.UnescapeDataString(nameId);
+        if (!ResourceId.IsValid(nameId, ResourceType.System, "agent")) return Results.BadRequest();
+
+        string id = $"{SpinConstants.Schema.Subscription}:{nameId}";
+        Option response = await _client.GetResourceGrain<ISubscriptionActor>(id).Exist(traceId);
         return response.ToResult();
     }
 
@@ -47,8 +58,8 @@ public class SubscriptionConnector
         nameId = Uri.UnescapeDataString(nameId);
         if (!IdPatterns.IsName(nameId)) return Results.BadRequest();
 
-        ResourceId resourceId = IdTool.CreateSubscriptionId(nameId);
-        Option<SubscriptionModel> response = await _client.GetResourceGrain<ISubscriptionActor>(resourceId).Get(traceId);
+        string id = $"{SpinConstants.Schema.Subscription}:{nameId}";
+        Option<SubscriptionModel> response = await _client.GetResourceGrain<ISubscriptionActor>(id).Get(traceId);
         return response.ToResult();
     }
 

@@ -5,7 +5,7 @@ using SpinCluster.sdk.Application;
 
 namespace SpinCluster.sdk.State;
 
-public static class DatalakeStateExtensions
+public static class DatalakeStateStartup
 {
     public static ISiloBuilder AddDatalakeGrainStorage(this ISiloBuilder builder) =>
         builder.ConfigureServices(services =>

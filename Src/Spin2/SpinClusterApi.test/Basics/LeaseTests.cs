@@ -27,27 +27,23 @@ public class LeaseTests : IClassFixture<ClusterApiFixture>
         const string leaseKey = "key1";
         LeaseClient client = _cluster.ServiceProvider.GetRequiredService<LeaseClient>();
 
-        ResourceId leaseId = IdTool.CreateLeaseId("domain10.com", "softbank/account1");
-
         var leaseCreate = new LeaseCreate(leaseKey);
-        Option<LeaseData> acquireResponse = await client.Acquire(leaseId, leaseCreate, _context);
+        Option<LeaseData> acquireResponse = await client.Acquire(leaseCreate, _context);
         acquireResponse.IsOk().Should().BeTrue();
 
         LeaseData leaseData = acquireResponse.Return();
-        leaseData.LeaseId.Should().NotBeNullOrWhiteSpace();
-        leaseData.AccountId.Should().Be(leaseId);
         leaseData.LeaseKey.Should().Be(leaseKey);
         leaseData.Payload.Should().BeNull();
 
-        var isValidResponse = await client.IsValid(leaseId, leaseKey, _context);
+        var isValidResponse = await client.Get(leaseKey, _context);
         isValidResponse.IsOk().Should().BeTrue();
 
-        var listResponse = await client.List(leaseId, _context);
+        var listResponse = await client.List(_context);
         listResponse.IsOk().Should().BeTrue();
         listResponse.Return().Count().Should().Be(1);
         (leaseData == listResponse.Return().First()).Should().BeTrue();
 
-        Option releaseResponse = await client.Release(leaseId, leaseKey, _context);
+        Option releaseResponse = await client.Release(leaseKey, _context);
         releaseResponse.IsOk().Should().BeTrue();
     }
 }

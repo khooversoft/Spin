@@ -6,6 +6,7 @@ public static class SpinConstants
     public const string SignValidation = "system:signValidation";
     public const string Scheduler = "system:scheduler";
     public const string DomainActorKey = "system:domain";
+    public const string LeaseActorKey = "system:lease";
 
     public const string Folder = "folder";
     public const string Open = "open";

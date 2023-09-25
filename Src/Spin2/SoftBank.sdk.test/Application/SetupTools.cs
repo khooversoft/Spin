@@ -31,7 +31,7 @@ public class SetupTools
 
         var subscription = new SubscriptionModel
         {
-            SubscriptionId = IdTool.CreateSubscriptionId(nameId),
+            SubscriptionId = $"{SpinConstants.Schema.Subscription}:{nameId}",
             Name = nameId,
             ContactName = nameId + "contact",
             Email = "user1@company1.com",
@@ -64,7 +64,7 @@ public class SetupTools
         {
             TenantId = IdTool.CreateTenantId(nameId),
             Domain = nameId,
-            SubscriptionId = IdTool.CreateSubscriptionId(subscriptionId),
+            SubscriptionId = $"{SpinConstants.Schema.Subscription}:{nameId}",
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
         };

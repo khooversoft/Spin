@@ -18,9 +18,15 @@ public class LeaseCreate
 public static class LeaseDataCreateValidator
 {
     public static IValidator<LeaseCreate> Validator { get; } = new Validator<LeaseCreate>()
-        .RuleFor(x => x.LeaseKey).NotEmpty()
+        .RuleFor(x => x.LeaseKey).ValidName()
         .RuleFor(x => x.TimeToLive).Must(x => x.Seconds > 0, _ => "Invalid time to live")
         .Build();
 
     public static Option Validate(this LeaseCreate subject) => Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this LeaseCreate subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }
