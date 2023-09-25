@@ -160,7 +160,7 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
 
         SbAccountBalance result = balanceResult.Return();
         result.DocumentId.Should().Be(config.AccountId);
-        return result.Balance;
+        return result.PrincipalBalance;
     }
 
     private async Task VerifyLedgers(SbAccountDetail config, params decimal[] amounts)

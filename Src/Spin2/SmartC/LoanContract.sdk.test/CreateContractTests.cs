@@ -4,6 +4,8 @@ using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using SoftBank.sdk.Models;
+using SoftBank.sdk.SoftBank;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Finance.Finance;
 using Toolbox.Types;
@@ -54,8 +56,8 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
                 "LastName": "user1last"
               },
               {
-                "UserId": "user:user1@outlook.com",
-                "PrincipalId": "user1@outlook.com",
+                "UserId": "user:user2@outlook.com",
+                "PrincipalId": "user2@outlook.com",
                 "DisplayName": "External user 1",
                 "FirstName": "user1first",
                 "LastName": "user1last"
@@ -63,16 +65,32 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
             ],
            "SbAccounts": [
               {
-                "AccountId": "softbank:user1@rental.com/primary",
+                "AccountId": "softbank:rental.com/user1-account/primary",
                 "OwnerId": "user1@rental.com",
                 "Name": "User1"
               },
               {
-                "AccountId": "softbank:user1@outlook.com/primary",
-                "OwnerId": "user1@outlook.com",
-                "Name": "User1 outlook.com"
+                "AccountId": "softbank:outlook.com/user2-account/primary",
+                "OwnerId": "user2@outlook.com",
+                "Name": "User2 outlook.com"
               }
-            ]
+            ],
+          "LedgerItems": [
+            {
+              "AccountId": "softbank:rental.com/user1-account/primary",
+              "OwnerId": "user1@rental.com",
+              "Description": "Initial deposit",
+              "Type": "Credit",
+              "Amount": 100.00
+            },
+            {
+              "AccountId": "softbank:outlook.com/user2-account/primary",
+              "OwnerId": "user2@outlook.com",
+              "Description": "Initial deposit",
+              "Type": "Credit",
+              "Amount": 2000.00
+            }
+          ]
         }
         """;
 
@@ -81,7 +99,7 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
         _cluster = fixture;
     }
 
-    //[Fact]
+    [Fact]
     public async Task LifecycleTest()
     {
         var manager = _cluster.ServiceProvider.GetRequiredService<LoanContractManager>();
@@ -96,6 +114,33 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
 
         const string contractId = "contract:rental.com/loan/loanToUser1";
         const string ownerId = "user1@rental.com";
+
+        var startDate = new DateTime(2023, 1, 1);
+
+        await CreateAccount(startDate, contractId, ownerId);
+        await CheckSoftBank("softbank:rental.com/user1-account/primary", "user1@rental.com", 100.00m);
+        await CheckSoftBank("softbank:outlook.com/user2-account/primary", "user2@outlook.com", 2000.00m);
+
+        for (int i = 0; i < 12; i++)
+        {
+            DateTime postedDate = startDate.AddMonths(i + 1);
+            var postOption = await manager.PostInterestCharge(contractId, ownerId, postedDate, _context);
+            postOption.IsOk().Should().BeTrue();
+
+            var reportOption = await manager.GetReport(contractId, ownerId, _context);
+            reportOption.IsOk().Should().BeTrue();
+
+            LoanReportModel loanReportModel = reportOption.Return();
+            loanReportModel.LedgerItems.Should().NotBeNull();
+            loanReportModel.LedgerItems.Count.Should().Be(i + 1);
+        }
+    }
+
+    private async Task CreateAccount(DateTime startDate, string contractId, string ownerId)
+    {
+        var manager = _cluster.ServiceProvider.GetRequiredService<LoanContractManager>();
+
+        await manager.Delete(contractId, _context);
 
         var createRequest = new LoanAccountDetail
         {
@@ -121,17 +166,36 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
         {
             ContractId = contractId,
             OwnerId = "user1@rental.com",
-            FirstPaymentDate = DateTime.UtcNow,
+            OwnerSoftBankId = "softbank:rental.com/user1-account/primary",
+            FirstPaymentDate = startDate,
             PrincipalAmount = 10_000.00m,
             Payment = payment,
             APR = terms.APR,
             NumberPayments = terms.NumberPayments,
             PaymentsPerYear = terms.PaymentsPerYear,
+            PartyPrincipalId = "user2@outlook.com",
+            PartySoftBankId = "softbank:outlook.com/user2-account/primary",
         };
 
         var loanDetailOption = await manager.SetLoanDetail(loanDetail, _context);
         loanDetailOption.IsOk().Should().BeTrue();
 
+        var reportOption = await manager.GetReport(contractId, ownerId, _context);
+        reportOption.IsOk().Should().BeTrue();
 
+        LoanReportModel loanReportModel = reportOption.Return();
+        loanReportModel.Should().NotBeNull();
+        loanReportModel.LoanDetail.Should().NotBeNull();
+        (loanDetail == loanReportModel.LoanDetail).Should().BeTrue();
+    }
+
+    private async Task CheckSoftBank(string accountId, string ownerId, decimal balance)
+    {
+        SoftBankClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
+
+        Option<SbAccountBalance> balanceOption = await client.GetBalance(accountId, ownerId, _context);
+        balanceOption.IsOk().Should().BeTrue();
+
+        (balance == balanceOption.Return().PrincipalBalance).Should().BeTrue();
     }
 }

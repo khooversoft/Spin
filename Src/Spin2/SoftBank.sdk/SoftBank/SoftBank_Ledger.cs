@@ -67,7 +67,7 @@ internal class SoftBank_Ledger
         var response = new SbAccountBalance
         {
             DocumentId = _parent.GetPrimaryKeyString(),
-            Balance = balance,
+            PrincipalBalance = balance,
         };
 
         return response;

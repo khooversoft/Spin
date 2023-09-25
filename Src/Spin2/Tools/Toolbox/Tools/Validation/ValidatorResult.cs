@@ -24,6 +24,7 @@ public static class ValidationErrorExtensions
 
         return new ValidatorError
         {
+            TypeName = typeof(T).GetTypeName(),
             Name = propertyRule.Name,
             Message = message,
         };

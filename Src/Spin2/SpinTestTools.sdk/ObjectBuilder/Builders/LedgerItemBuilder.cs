@@ -11,11 +11,11 @@ public class LedgerItemBuilder : IObjectBuilder
     {
         var test = new OptionTest();
 
-        SoftBankClient softBankClient = service.GetRequiredService<SoftBankClient>();
+        var client = new Lazy<SoftBankClient>(() => service.GetRequiredService<SoftBankClient>());
 
         foreach (var ledgerItem in option.LedgerItems)
         {
-            var addResponse = await softBankClient.AddLedgerItem(ledgerItem.AccountId, ledgerItem, context);
+            var addResponse = await client.Value.AddLedgerItem(ledgerItem.AccountId, ledgerItem, context);
             context.Trace().LogStatus(addResponse, "Add ledger item accountId={accountId}, amount={amount}", ledgerItem.AccountId, ledgerItem.Amount);
             test.Test(() => addResponse);
         }

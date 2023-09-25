@@ -1,5 +1,6 @@
 ﻿using LoanContract.sdk.Application;
 using SoftBank.sdk.Application;
+using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -17,13 +18,13 @@ public sealed record LoanDetail
     public double APR { get; init; }
     public int NumberPayments { get; init; }
     public int PaymentsPerYear { get; init; }
-    public string PartnerPrincipalId { get; init; } = null!;
-    public string PartnerSoftBankId { get; init; } = null!;
+    public string PartyPrincipalId { get; init; } = null!;
+    public string PartySoftBankId { get; init; } = null!;
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 
     public static IValidator<LoanDetail> Validator { get; } = new Validator<LoanDetail>()
         .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, LoanConstants.Schema)
+        .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, SpinConstants.Schema.Contract)
         .RuleFor(x => x.OwnerId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.OwnerSoftBankId).ValidResourceId(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
         .RuleFor(x => x.FirstPaymentDate).ValidDateTime()
@@ -32,8 +33,8 @@ public sealed record LoanDetail
         .RuleFor(x => x.APR).Must(x => x > 0.0, x => $"{x} must be greater then 0.0")
         .RuleFor(x => x.NumberPayments).Must(x => x > 0, x => $"{x} must be greater then 0")
         .RuleFor(x => x.PaymentsPerYear).Must(x => x > 0, x => $"{x} must be greater then 0")
-        .RuleFor(x => x.PartnerPrincipalId).ValidResourceId(ResourceType.Principal)
-        .RuleFor(x => x.PartnerSoftBankId).ValidResourceId(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
+        .RuleFor(x => x.PartyPrincipalId).ValidResourceId(ResourceType.Principal)
+        .RuleFor(x => x.PartySoftBankId).ValidResourceId(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .Build();
 }

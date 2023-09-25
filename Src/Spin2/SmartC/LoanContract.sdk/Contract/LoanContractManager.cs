@@ -34,7 +34,7 @@ public class LoanContractManager
         return await Append(ledgerItem, ledgerItem.ContractId, ledgerItem.OwnerId, context);
     }
 
-    public async Task<Option> CalculateInterest(string contractId, string principalId, DateTime postedDate, ScopeContext context)
+    public async Task<Option> PostInterestCharge(string contractId, string principalId, DateTime postedDate, ScopeContext context)
     {
         context = context.With(_logger);
         context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
@@ -48,13 +48,14 @@ public class LoanContractManager
         {
             Principal = report.GetPrincipalAmount(),
             APR = report.LoanDetail.APR,
-            NumberOfDays = (int)Math.Round((postedDate - report.LedgerItems.Max(x => x.Timestamp)).TotalDays, 0, MidpointRounding.AwayFromZero),
+            NumberOfDays = (int)Math.Round(calculateNumberOfDays(report), 0, MidpointRounding.AwayFromZero),
         };
 
         decimal interestCharge = AmortizedLoanTool.CalculateInterestCharge(detail);
 
         var ledgerItem = new LoanLedgerItem
         {
+            Timestamp = postedDate,
             ContractId = contractId,
             OwnerId = principalId,
             Description = "Interest charge",
@@ -64,11 +65,18 @@ public class LoanContractManager
         };
 
         return await AddLedgerItem(ledgerItem, context);
+
+        double calculateNumberOfDays(LoanReportModel report) => report.LedgerItems switch
+        {
+            { Count: 0 } => (postedDate - report.LoanDetail.FirstPaymentDate).TotalDays,
+            var v => (postedDate - v.Max(x => x.Timestamp)).TotalDays,
+        };
     }
 
     public async Task<Option> Create(LoanAccountDetail detail, ScopeContext context)
     {
         context = context.With(_logger);
+        if (!detail.Validate(out Option v)) return v;
         context.Location().LogInformation("Calculating interest, contractId={contractId}", detail.ContractId);
 
         var createContractRequest = new ContractCreateModel
@@ -118,6 +126,8 @@ public class LoanContractManager
     public async Task<Option> SetLoanDetail(LoanDetail loanDetail, ScopeContext context)
     {
         context = context.With(_logger);
+        if (!loanDetail.Validate(out Option v)) return v;
+
         context.Location().LogInformation("Set loan detail, contractId={contractId}", loanDetail);
 
         return await Append(loanDetail, loanDetail.ContractId, loanDetail.OwnerId, context);

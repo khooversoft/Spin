@@ -87,7 +87,7 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
 
         var balanceResponse = await softBankClient.GetBalance(_accountId, _principalId, _context);
         balanceResponse.IsOk().Should().BeTrue();
-        balanceResponse.Return().Balance.Should().Be(135.15m);
+        balanceResponse.Return().PrincipalBalance.Should().Be(135.15m);
 
         await DeleteBankAccount();
     }

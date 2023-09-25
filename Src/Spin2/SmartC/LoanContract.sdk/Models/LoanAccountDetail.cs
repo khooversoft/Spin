@@ -1,4 +1,5 @@
 ﻿using LoanContract.sdk.Application;
+using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
@@ -25,11 +26,23 @@ public sealed record LoanAccountDetail
     public override int GetHashCode() => HashCode.Combine(ContractId, OwnerId, Name, CreatedDate);
 
     public static IValidator<LoanAccountDetail> Validator { get; } = new Validator<LoanAccountDetail>()
-        .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, LoanConstants.Schema)
+        .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, SpinConstants.Schema.Contract)
         .RuleFor(x => x.OwnerId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.AccessRights).NotNull()
         .RuleFor(x => x.RoleRights).NotNull()
         .Build();
+}
+
+
+public static class LoanAccountDetailExtensions
+{
+    public static Option Validate(this LoanAccountDetail subject) => LoanAccountDetail.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this LoanAccountDetail subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

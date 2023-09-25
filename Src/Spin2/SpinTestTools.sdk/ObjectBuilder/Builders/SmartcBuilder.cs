@@ -9,13 +9,13 @@ public class SmartcBuilder : IObjectBuilder
 {
     public async Task<Option> Create(IServiceProvider service, ObjectBuilderOption option, ScopeContext context)
     {
-        SmartcClient client = service.GetRequiredService<SmartcClient>();
+        var client = new Lazy<SmartcClient>(() => service.GetRequiredService<SmartcClient>());
 
         var test = new OptionTest();
 
         foreach (var model in option.SmartcItems)
         {
-            Option setOption = await client.Set(model, context);
+            Option setOption = await client.Value.Set(model, context);
             setOption.Assert(x => x.IsOk(), x => $"Set failed for {x}");
 
             context.Trace().LogStatus(setOption, "Creating Tenant smartcId={smartcId}", model.SmartcId);
@@ -27,11 +27,11 @@ public class SmartcBuilder : IObjectBuilder
 
     public async Task<Option> Delete(IServiceProvider service, ObjectBuilderOption option, ScopeContext context)
     {
-        SmartcClient client = service.GetRequiredService<SmartcClient>();
+        var client = new Lazy<SmartcClient>(() => service.GetRequiredService<SmartcClient>());
 
         foreach (var item in option.SmartcItems)
         {
-            await client.Delete(item.SmartcId, context);
+            await client.Value.Delete(item.SmartcId, context);
             context.Trace().LogInformation("SmartC deleted: {smartcId}", item.SmartcId);
         }
 

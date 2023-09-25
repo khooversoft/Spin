@@ -36,7 +36,10 @@ public class SignatureActor : Grain, ISignatureActor
         if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
         ResourceId UserId = IdTool.CreateUserId(principalId);
 
-        Option<SignResponse> result = await _clusterClient.GetResourceGrain<IUserActor>(UserId).SignDigest(messageDigest, traceId);
+        Option<SignResponse> result = await _clusterClient
+            .GetResourceGrain<IUserActor>(UserId)
+            .SignDigest(messageDigest, traceId);
+
         if (result.IsError()) return new Option<SignResponse>(result.StatusCode, "Failed to sign messageDigest, " + result.Error);
 
         return result.Return();

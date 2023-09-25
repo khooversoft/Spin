@@ -1,4 +1,5 @@
 ﻿using LoanContract.sdk.Application;
+using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -32,7 +33,7 @@ public record LoanLedgerItem
 
     public static IValidator<LoanLedgerItem> Validator { get; } = new Validator<LoanLedgerItem>()
         .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, LoanConstants.Schema)
+        .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, SpinConstants.Schema.Contract)
         .RuleFor(x => x.Description).NotEmpty()
         .RuleFor(x => x.Type).ValidEnum()
         .RuleFor(x => x.TrxType).ValidEnum()

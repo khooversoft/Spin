@@ -8,13 +8,13 @@ public class SubscriptionBuilder : IObjectBuilder
 {
     public async Task<Option> Create(IServiceProvider service, ObjectBuilderOption option, ScopeContext context)
     {
-        var client = service.GetRequiredService<SubscriptionClient>();
+        var client = new Lazy<SubscriptionClient>(() => service.GetRequiredService<SubscriptionClient>());
 
         var test = new OptionTest();
 
         foreach (var subscription in option.Subscriptions)
         {
-            Option setOption = await client.Set(subscription, context);
+            Option setOption = await client.Value.Set(subscription, context);
 
             context.Trace().LogStatus(setOption, "Creating Subscription name={name}", subscription.Name);
             test.Test(() => setOption);
@@ -25,11 +25,11 @@ public class SubscriptionBuilder : IObjectBuilder
 
     public async Task<Option> Delete(IServiceProvider service, ObjectBuilderOption option, ScopeContext context)
     {
-        SubscriptionClient client = service.GetRequiredService<SubscriptionClient>();
+        var client = new Lazy<SubscriptionClient>(() => service.GetRequiredService<SubscriptionClient>());
 
         foreach (var item in option.Subscriptions)
         {
-            await client.Delete(item.Name, context);
+            await client.Value.Delete(item.Name, context);
             context.Trace().LogInformation("Subscription deleted: {name}", item.Name);
         }
 

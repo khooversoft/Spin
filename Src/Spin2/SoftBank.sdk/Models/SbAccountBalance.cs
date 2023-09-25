@@ -7,8 +7,7 @@ namespace SoftBank.sdk.Models;
 public sealed record SbAccountBalance
 {
     [Id(0)] public string DocumentId { get; init; } = null!;
-    [Id(1)] public decimal Balance { get; init; }
-    [Id(2)] public decimal LedgerBalance { get; init; }
+    [Id(1)] public decimal PrincipalBalance { get; init; }
 }
 
 

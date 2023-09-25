@@ -69,7 +69,7 @@ public class MultiplePrincipals : IClassFixture<ClusterApiFixture>
 
         Option<SbAccountBalance> balanceResponse = await softBankClient.GetBalance(GetAccountId(), GetOwnerId(), _context);
         balanceResponse.StatusCode.IsOk().Should().BeTrue();
-        balanceResponse.Return().Balance.Should().Be(170.30m);
+        balanceResponse.Return().PrincipalBalance.Should().Be(170.30m);
 
         // Clean up
         await DeleteAccounts();

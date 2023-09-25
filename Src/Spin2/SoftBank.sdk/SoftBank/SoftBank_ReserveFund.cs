@@ -37,7 +37,7 @@ internal class SoftBank_ReserveFund
 
         // Verify money is available
         SbAccountBalance balance = await _parent.GetBalance(principalId, traceId).Return();
-        if (balance.Balance < amount) return new Option<SbAmountReserved>(StatusCode.BadRequest, "No funds");
+        if (balance.PrincipalBalance < amount) return new Option<SbAmountReserved>(StatusCode.BadRequest, "No funds");
 
         ILeaseActor leaseActor = GetLeaseActor();
 

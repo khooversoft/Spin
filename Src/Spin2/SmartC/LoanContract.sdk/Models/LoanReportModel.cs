@@ -6,7 +6,7 @@ public sealed record LoanReportModel
     public LoanDetail LoanDetail { get; init; } = null!;
     public IReadOnlyList<LoanLedgerItem> LedgerItems { get; init; } = null!;
 
-    public decimal GetPrincipalAmount() => LedgerItems
+    public decimal GetPrincipalAmount() => LoanDetail.PrincipalAmount - LedgerItems
         .Select(x => x.NaturalAmount())
-        .Sum(x => x) - LoanDetail.PrincipalAmount;
+        .Sum(x => x);
 }
