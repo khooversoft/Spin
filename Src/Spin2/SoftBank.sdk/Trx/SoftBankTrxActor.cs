@@ -39,20 +39,14 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
     public async Task<Option<TrxResponse>> Request(TrxRequest request, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
+        if (!request.Validate(out var v)) return v.ToOptionStatus<TrxResponse>();
 
-        Direction dir = IsSourceOrDestination(request);
-
-        var test = new OptionTest()
-            .Test(() => request.Validate())
-            .Test(() => dir != Direction.Invalid ? StatusCode.OK : new Option(StatusCode.BadRequest, "Request is invalid based on actor key"));
-        if (test.IsError()) return test.Option.ToOptionStatus<TrxResponse>();
-
-        return dir switch
+        return IsSourceOrDestination(request) switch
         {
             Direction.IsSource => await ProcessAsSource(request, context),
             Direction.IsDestination => await ProcessAsDestination(request, context),
 
-            _ => StatusCode.BadRequest,
+            _ => (StatusCode.BadRequest, "Request is invalid based on actor key"),
         };
     }
 
@@ -206,13 +200,14 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
     private async Task<Option<SbAmountReserved>> Reserve(TrxRequest request, string accountId, ScopeContext context)
     {
         context.Location().LogInformation("Reserving funds, requestId={requestId}, accountId={accountId}", request.Id, accountId);
+        if (!request.Validate(out var v)) return v.ToOptionStatus<SbAmountReserved>();
+        if (!IdPatterns.IsAccountId(accountId)) return new Option<SbAmountReserved>(StatusCode.BadRequest, "Invalid accountId");
 
         Option<SbAmountReserved> reserveAmount = await _clusterClient
             .GetSoftBankActor(accountId)
             .Reserve(request.PrincipalId, request.Amount, context.TraceId);
 
-        var test = new OptionTest().Test(() => reserveAmount.IsOk()).Test(() => request.Validate());
-        if (test.IsError()) return test.Option.ToOptionStatus<SbAmountReserved>();
+        if (reserveAmount.IsError()) return reserveAmount;
 
         context.Location().LogInformation("Lease acquired, actorKey={actorKey}, accountId={accountId}, leaseKey={leaseKey}",
             this.GetPrimaryKeyString(), accountId, reserveAmount.Return().LeaseKey);

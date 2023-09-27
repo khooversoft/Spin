@@ -57,7 +57,7 @@ internal class Lease
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Listing valid leases");
 
-        Option<IReadOnlyList<LeaseData>> response = await _client.List(context);
+        Option<IReadOnlyList<LeaseData>> response = await _client.List(QueryParameter.Default, context);
         if (response.IsError())
         {
             context.Trace().LogError("Failed to get lease details");

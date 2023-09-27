@@ -3,6 +3,7 @@ using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SpinCluster.sdk.Actors;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
@@ -18,14 +19,19 @@ public interface ISoftBankActor : IGrainWithStringKey
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
     Task<Option> Create(SbAccountDetail detail, string traceId);
+
     Task<Option> SetAccountDetail(SbAccountDetail detail, string traceId);
     Task<Option> SetAcl(AclBlock blockAcl, string principalId, string traceId);
+
     Task<Option> AddLedgerItem(SbLedgerItem ledgerItem, string traceId);
     Task<Option<SbAccountDetail>> GetAccountDetail(string principalId, string traceId);
     Task<Option<IReadOnlyList<SbLedgerItem>>> GetLedgerItems(string principalId, string traceId);
     Task<Option<SbAccountBalance>> GetBalance(string principalId, string traceId);
+
+    Task<Option<SbAccountBalance>> GetReserveBalance(string leaseKey, string traceId);
     Task<Option<SbAmountReserved>> Reserve(string principalId, decimal amount, string traceId);
     Task<Option> ReleaseReserve(string leaseKey, string traceId);
+    Task<Option<IReadOnlyList<LeaseData>>> GetActiveReservations(string principalId, string traceId);
 }
 
 // ActorKey = "softbank:company3.com/accountId"
@@ -70,6 +76,8 @@ public class SoftBankActor : Grain, ISoftBankActor
 
     public Task<Option<SbAmountReserved>> Reserve(string principalId, decimal amount, string traceId) => _reserve.Reserve(principalId, amount, traceId);
     public Task<Option> ReleaseReserve(string leaseKey, string traceId) => _reserve.ReleaseReserve(leaseKey, traceId);
+    public Task<Option<SbAccountBalance>> GetReserveBalance(string principalId, string traceId) => _reserve.GetReserveBalance(principalId, traceId);
+    public Task<Option<IReadOnlyList<LeaseData>>> GetActiveReservations(string principalId, string traceId) => _reserve.GetActiveReservations(principalId, traceId);
 
     internal ResourceId GetSoftBankContractId() => this.GetPrimaryKeyString().ToSoftBankContractId();
     internal IContractActor GetContractActor() => _clusterClient.GetResourceGrain<IContractActor>(GetSoftBankContractId());

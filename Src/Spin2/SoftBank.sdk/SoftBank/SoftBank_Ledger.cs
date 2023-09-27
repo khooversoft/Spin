@@ -62,12 +62,14 @@ internal class SoftBank_Ledger
         var listOption = await GetLedgerItems(principalId, traceId);
         if (listOption.IsError()) return listOption.ToOptionStatus<SbAccountBalance>();
 
-        decimal balance = listOption.Return().Sum(x => x.GetNaturalAmount());
+        var leaseDataOption = await _parent.GetReserveBalance(principalId, traceId);
+        if (leaseDataOption.IsError()) return leaseDataOption;
 
         var response = new SbAccountBalance
         {
             DocumentId = _parent.GetPrimaryKeyString(),
-            PrincipalBalance = balance,
+            PrincipalBalance = listOption.Return().Sum(x => x.GetNaturalAmount()),
+            ReserveBalance = leaseDataOption.Return().ReserveBalance,
         };
 
         return response;

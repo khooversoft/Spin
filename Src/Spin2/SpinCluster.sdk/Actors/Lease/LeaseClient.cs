@@ -18,12 +18,12 @@ public class LeaseClient
         _logger = logger;
     }
 
-    public async Task<Option<LeaseData>> Acquire(LeaseCreate model, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option> Acquire(LeaseData model, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Lease}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(model)
         .PostAsync(context.With(_logger))
-        .GetContent<LeaseData>();
+        .ToOption();
 
     public async Task<Option<LeaseData>> Get(string leaseKey, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Lease}/{Uri.EscapeDataString(leaseKey)}")
@@ -37,10 +37,11 @@ public class LeaseClient
         .GetAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option<IReadOnlyList<LeaseData>>> List(ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<IReadOnlyList<LeaseData>>> List(QueryParameter query, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Lease}/list")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
-        .GetAsync(context.With(_logger))
+        .SetContent(query)
+        .PostAsync(context.With(_logger))
         .GetContent<IReadOnlyList<LeaseData>>();
 
     public async Task<Option> Release(string leaseKey, ScopeContext context) => await new RestClient(_client)

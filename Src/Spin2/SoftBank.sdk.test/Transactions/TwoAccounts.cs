@@ -122,7 +122,7 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
             };
 
             var addResponse = await softBankClient.AddLedgerItem(config.AccountId, ledger, _context);
-            addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.Error);
+            addResponse.StatusCode.IsOk().Should().BeTrue(addResponse.ToString());
         }
     }
 
@@ -141,7 +141,7 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         };
 
         Option<TrxResponse> result = await client.Request(request, _context);
-        result.IsOk().Should().BeTrue(result.StatusCode.ToString());
+        result.IsOk().Should().BeTrue(result.ToString());
 
         TrxResponse trxResponse = result.Return();
         trxResponse.Request.Should().Be(request);

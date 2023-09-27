@@ -9,11 +9,18 @@ namespace SpinCluster.sdk.Actors.Lease;
 
 public interface ILeaseActor : IGrainWithStringKey
 {
-    Task<Option<LeaseData>> Acquire(LeaseCreate model, string traceId);
+    Task<Option> Acquire(LeaseData lease, string traceId);
     Task<Option<LeaseData>> Get(string leaseKey, string traceId);
     Task<Option> IsLeaseValid(string leaseKey, string traceId);
-    Task<Option<IReadOnlyList<LeaseData>>> List(string traceId);
+    Task<Option<IReadOnlyList<LeaseData>>> List(QueryParameter query, string traceId);
     Task<Option> Release(string leaseKey, string traceId);
+}
+
+public static class LeaseActorExtensions
+{
+    public static ILeaseActor GetLeaseActor(this IClusterClient clusterClient) => clusterClient
+        .GetResourceGrain<ILeaseActor>(SpinConstants
+        .LeaseActorKey);
 }
 
 
@@ -37,33 +44,26 @@ public class LeaseActor : Grain, ILeaseActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option<LeaseData>> Acquire(LeaseCreate model, string traceId)
+    public async Task<Option> Acquire(LeaseData leaseData, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        if (!model.Validate(out var v)) return v.ToOptionStatus<LeaseData>();
-        context.Location().LogInformation("Acquire lease, model={model}", model);
+        if (!leaseData.Validate(out var v)) return v;
+        context.Location().LogInformation("Acquire lease, model={model}", leaseData);
 
         _state.State = _state.RecordExists ? _state.State : new LeaseDataCollection();
-
-        var leaseData = new LeaseData
-        {
-            LeaseKey = model.LeaseKey,
-            Payload = model.Payload,
-            TimeToLive = model.TimeToLive,
-        };
 
         var addOption = _state.State.TryAdd(leaseData);
         if (addOption.IsError())
         {
-            context.Location().LogError("Lease is already active for leaseKey={leaseKey}", model.LeaseKey);
-            return addOption.ToOptionStatus<LeaseData>();
+            context.Location().LogError("Lease is already active for leaseKey={leaseKey}", leaseData.LeaseKey);
+            return addOption;
         }
 
         _state.State.Cleanup();
         await _state.WriteStateAsync();
 
         context.Location().LogInformation("Acquiring lease for actorKey={actorKey}, leaseKey={leaseKey}", this.GetPrimaryKeyString(), leaseData.LeaseKey);
-        return leaseData;
+        return StatusCode.OK;
     }
 
     public async Task<Option<LeaseData>> Get(string leaseKey, string traceId)
@@ -91,16 +91,26 @@ public class LeaseActor : Grain, ILeaseActor
         return getOption.ToOptionStatus();
     }
 
-    public async Task<Option<IReadOnlyList<LeaseData>>> List(string _)
+    public async Task<Option<IReadOnlyList<LeaseData>>> List(QueryParameter query, string traceId)
     {
         if (!_state.RecordExists) return StatusCode.NotFound;
         if (_state.State.Cleanup()) await _state.WriteStateAsync();
 
         var response = _state.State.Leases.Values
-            .Where(x => x.IsActive())
+            .Skip(query.Index)
+            .Where(x => x.IsActive() && isMatch(query.Filter, x.Reference))
+            .Take(query.Count)
             .ToArray();
 
         return response;
+
+        bool isMatch(string? filter, string? reference) => (filter, reference) switch
+        {
+            (null, null) => true,
+            (null, string) v => true,
+            (string, null) v => false,
+            (string f, string r) v => f == r,
+        };
     }
 
     public async Task<Option> Release(string leaseKey, string traceId)
@@ -114,6 +124,6 @@ public class LeaseActor : Grain, ILeaseActor
         bool removed = _state.State.Remove(leaseKey);
 
         if (cleaned || removed) await _state.WriteStateAsync();
-        return StatusCode.OK;
+        return removed ? StatusCode.OK : StatusCode.NotFound;
     }
 }

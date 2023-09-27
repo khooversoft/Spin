@@ -68,7 +68,7 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     public string? Error { get; }
     object IOption.ValueObject => Value!;
 
-    public override string ToString() => $"StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}";
+    public override string ToString() => $"StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}, Error='{Error}'";
 
     public override bool Equals(object? obj) =>
         obj is Option<T> maybe &&
@@ -90,6 +90,7 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     public static bool operator !=(Option<T> left, Option<T> right) => !(left == right);
     public static implicit operator Option<T>(T value) => new Option<T>(value);
     public static implicit operator Option<T>(StatusCode value) => new Option<T>(value);
+    public static implicit operator Option<T>((StatusCode StatusCode, string Error) value) => new Option<T>(value.StatusCode, value.Error);
 
     public static Option<T> None { get; } = default;
 }

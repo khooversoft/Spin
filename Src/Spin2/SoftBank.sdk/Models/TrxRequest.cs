@@ -45,9 +45,15 @@ public static class TrxRequestValidator
         .RuleFor(x => x.AccountID).ValidAccountId()
         .RuleFor(x => x.PartyAccountId).ValidAccountId()
         .RuleFor(x => x.Description).NotEmpty()
-        .RuleFor(x => x.Type).Must(x => x.IsEnumValid(), x => $"Enum {x.ToString()} is invalid enum")
+        .RuleFor(x => x.Type).ValidEnum()
         .RuleFor(x => x.Amount).Must(x => x > 0.0m, x => $"Amount {x} is invalid enum")
         .Build();
 
     public static Option Validate(this TrxRequest request) => Validator.Validate(request).ToOptionStatus();
+
+    public static bool Validate(this TrxRequest request, out Option result)
+    {
+        result = request.Validate();
+        return result.IsOk();
+    }
 }

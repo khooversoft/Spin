@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Validation;
+﻿using SpinCluster.sdk.Application;
+using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Tenant;
@@ -26,7 +27,7 @@ public sealed record TenantModel
     public static IValidator<TenantModel> Validator { get; } = new Validator<TenantModel>()
         .RuleFor(x => x.TenantId).ValidResourceId(ResourceType.Tenant)
         .RuleFor(x => x.Domain).Must(x => IdPatterns.IsDomain(x), x => $"{x} not valid domain")
-        .RuleFor(x => x.SubscriptionId).ValidResourceId(ResourceType.System, "subscription")
+        .RuleFor(x => x.SubscriptionId).ValidResourceId(ResourceType.System, SpinConstants.Schema.Subscription)
         .RuleFor(x => x.ContactName).NotEmpty()
         .RuleFor(x => x.Email).ValidResourceId(ResourceType.Principal)
         .Build();

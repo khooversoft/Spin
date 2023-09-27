@@ -64,13 +64,13 @@ public class SetupTools
         {
             TenantId = IdTool.CreateTenantId(nameId),
             Domain = nameId,
-            SubscriptionId = $"{SpinConstants.Schema.Subscription}:{nameId}",
+            SubscriptionId = $"{SpinConstants.Schema.Subscription}:{subscriptionId}",
             ContactName = nameId + "contact",
             Email = "user1@company2.com",
         };
 
         Option setOption = await client.Set(tenant, context);
-        setOption.IsOk().Should().BeTrue();
+        setOption.IsOk().Should().BeTrue(setOption.ToString());
 
         return tenant;
     }

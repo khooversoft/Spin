@@ -22,22 +22,53 @@ internal class SoftBank_ReserveFund
         _logger = logger;
     }
 
+    public async Task<Option<IReadOnlyList<LeaseData>>> GetActiveReservations(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        if (!IdPatterns.IsPrincipalId(principalId)) return new(StatusCode.BadRequest, "Invalid principalId");
+        context.Location().LogInformation("Getting activce leases for trx, principalId={principalId}", principalId);
+
+        var query = new QueryParameter { Filter = _parent.GetPrimaryKeyString() };
+        var listOption = await _clusterClient.GetLeaseActor().List(query, context.TraceId);
+        return listOption;
+    }
+
+    public async Task<Option<SbAccountBalance>> GetReserveBalance(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Reserve funds for trx, principalId={principalId}", principalId);
+        if (!IdPatterns.IsPrincipalId(principalId)) return new(StatusCode.BadRequest, "Invalid principalId");
+
+        var leaseDataOption = await GetActiveReservations(principalId, context.TraceId);
+        if (leaseDataOption.IsError()) return leaseDataOption.ToOptionStatus<SbAccountBalance>();
+
+        var reserveTotal = leaseDataOption.Return()
+            .Where(x => x.Payload != null)
+            .Select(x => x.Payload.NotNull().ToObject<ReserveLease>().NotNull())
+            .Sum(x => x.Amount);
+
+        var response = new SbAccountBalance
+        {
+            DocumentId = _parent.GetPrimaryKeyString(),
+            ReserveBalance = reserveTotal,
+        };
+
+        return response;
+    }
+
     public async Task<Option<SbAmountReserved>> Reserve(string principalId, decimal amount, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Reserve funds for trx, principalId={principalId}", principalId);
-
-        var test = new OptionTest()
-            .Test(() => IdPatterns.IsPrincipalId(principalId))
-            .Test(() => amount > 0 ? StatusCode.OK : (StatusCode.BadRequest, "Amount must be positive"));
-        if (test.IsError()) return test.Option.ToOptionStatus<SbAmountReserved>();
+        if (!IdPatterns.IsPrincipalId(principalId)) return new(StatusCode.BadRequest, "Invalid principalId");
+        if (amount <= 0) return new(StatusCode.BadRequest, "Amount is lessthan zero");
 
         var hasAccess = await _parent.GetContractActor().HasAccess(principalId, BlockGrant.Write, typeof(SbLedgerItem).GetTypeName(), traceId);
         if (hasAccess.IsError()) return hasAccess.ToOptionStatus<SbAmountReserved>();
 
         // Verify money is available
         SbAccountBalance balance = await _parent.GetBalance(principalId, traceId).Return();
-        if (balance.PrincipalBalance < amount) return new Option<SbAmountReserved>(StatusCode.BadRequest, "No funds");
+        if (balance.PrincipalBalance < amount) return new(StatusCode.BadRequest, "No funds");
 
         var request = CreateLeaseRequest(amount);
         var acquire = await _clusterClient.GetLeaseActor().Acquire(request, context.TraceId);
@@ -64,18 +95,17 @@ internal class SoftBank_ReserveFund
         return releaseResponse;
     }
 
-    private LeaseCreate CreateLeaseRequest(decimal amount) => new LeaseCreate
+    private LeaseData CreateLeaseRequest(decimal amount) => new LeaseData
     {
-        LeaseKey = BuildLeaseKey(),
+        LeaseKey = new[]
+        {
+            "softbank",
+            _parent.GetPrimaryKeyString(),
+            $"ReserveAmount/{Guid.NewGuid()}"
+        }.Join('/'),
         Payload = new ReserveLease { Amount = amount }.ToJson(),
+        Reference = _parent.GetPrimaryKeyString(),
     };
-
-    private string BuildLeaseKey() => new[]
-    {
-        "softbank",
-        _parent.GetPrimaryKeyString(),
-        $"ReserveAmount/{Guid.NewGuid()}"
-    }.Join('/');
 
     internal sealed record ReserveLease
     {

@@ -28,6 +28,7 @@ public class ContractActor : Grain, IContractActor
     private readonly IPersistentState<BlockChain> _state;
     private readonly IClusterClient _clusterClient;
     private readonly ILogger<ContractActor> _logger;
+    private bool _blockVerified = false;
 
     public ContractActor(
         [PersistentState(stateName: SpinConstants.Extension.BlockStorage, storageName: SpinConstants.SpinStateStore)] IPersistentState<BlockChain> state,
@@ -91,7 +92,6 @@ public class ContractActor : Grain, IContractActor
         if (blockChain.IsError()) return blockChain.ToOptionStatus();
 
         await WriteContract(blockChain.Return(), context);
-
         return StatusCode.OK;
     }
 
@@ -104,18 +104,21 @@ public class ContractActor : Grain, IContractActor
         var test = new OptionTest()
             .Test(() => _state.RecordExists.ToOptionStatus(StatusCode.NotFound))
             .Test(() => model.Validate());
+
         if (test.IsError()) return test.Option.ToOptionStatus<IReadOnlyList<DataBlock>>();
 
-        Option<BlockChain> readBlockChain = await ReadContract(context);
-        if (readBlockChain.IsError()) return readBlockChain.ToOptionStatus<IReadOnlyList<DataBlock>>();
+        //Option<BlockChain> readBlockChain = await ReadContract(context);
+        //if (readBlockChain.IsError()) return readBlockChain.ToOptionStatus<IReadOnlyList<DataBlock>>();
 
-        BlockChain blockChain = readBlockChain.Return();
+        //BlockChain blockChain = readBlockChain.Return();
 
+        await VerifyBlock();
         Option<IEnumerable<DataBlock>> stream = model.BlockType switch
         {
-            string v => blockChain.Filter(model.PrincipalId, v),
-            _ => blockChain.Filter(model.PrincipalId),
+            string v => _state.State.Filter(model.PrincipalId, v),
+            _ => _state.State.Filter(model.PrincipalId),
         };
+
         if (stream.IsError()) return stream.ToOptionStatus<IReadOnlyList<DataBlock>>();
 
         IReadOnlyList<DataBlock> result = model.LatestOnly switch
@@ -139,14 +142,15 @@ public class ContractActor : Grain, IContractActor
             .Test(() => _state.State.HasAccess(block.PrincipleId, BlockGrant.Write, block.BlockType));
         if (test.IsError()) return test;
 
-        Option<BlockChain> readBlockChain = await ReadContract(context);
-        if (readBlockChain.IsError()) return readBlockChain.ToOptionStatus();
+        //Option<BlockChain> readBlockChain = await ReadContract(context);
+        //if (readBlockChain.IsError()) return readBlockChain.ToOptionStatus();
 
-        BlockChain blockChain = readBlockChain.Return();
-        var addOption = blockChain.Add(block);
+        await VerifyBlock();
+
+        var addOption = _state.State.Add(block);
         if (addOption.IsError()) return addOption;
 
-        var writeOption = await WriteContract(blockChain, context);
+        var writeOption = await WriteContract(_state.State, context);
         return writeOption;
     }
 
@@ -154,12 +158,14 @@ public class ContractActor : Grain, IContractActor
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("GetProperties, actorKey={actorKey}, principalId={principalId}", this.GetPrimaryKeyString(), principalId);
-        if (!_state.RecordExists) return StatusCode.BadRequest;
+        if (!_state.RecordExists) return new Option<ContractPropertyModel>(StatusCode.BadRequest);
 
-        var read = await ReadContract(context);
-        if (read.IsError()) return read.ToOptionStatus<ContractPropertyModel>();
+        //var read = await ReadContract(context);
+        //if (read.IsError()) return read.ToOptionStatus<ContractPropertyModel>();
 
-        if (_state.State.HasAccess(principalId, BlockRoleGrant.Owner).IsError()) return StatusCode.Forbidden;
+        await VerifyBlock();
+
+        if (_state.State.HasAccess(principalId, BlockRoleGrant.Owner).IsError()) return new Option<ContractPropertyModel>(StatusCode.Forbidden);
 
         GenesisBlock genesis = _state.State.GetGenesisBlock();
         Option<AclBlock> acl = _state.State.GetAclBlock(principalId);
@@ -172,7 +178,7 @@ public class ContractActor : Grain, IContractActor
             BlockCount = _state.State.Count,
         };
 
-        return response;
+        return response.ToOption();
     }
 
     public async Task<Option> HasAccess(string principalId, BlockRoleGrant grant, string traceId)
@@ -183,8 +189,10 @@ public class ContractActor : Grain, IContractActor
         context.Location().LogInformation("HasRoleAccess, actorKey={actorKey}, principalId={principalId}, grant={grant}",
             this.GetPrimaryKeyString(), principalId, grant);
 
-        var read = await ReadContract(context);
-        if (read.IsError()) return read.ToOptionStatus();
+        //var read = await ReadContract(context);
+        //if (read.IsError()) return read.ToOptionStatus();
+
+        await VerifyBlock();
 
         var result = _state.State.HasAccess(principalId, grant);
         return result;
@@ -199,37 +207,54 @@ public class ContractActor : Grain, IContractActor
         context.Location().LogInformation("HasAccess, actorKey={actorKey}, principalId={principalId}, grant={grant}, blockType={blockType}",
             this.GetPrimaryKeyString(), principalId, grant, blockType);
 
-        var read = await ReadContract(context);
-        if (read.IsError()) return read.ToOptionStatus();
+        //var read = await ReadContract(context);
+        //if (read.IsError()) return read.ToOptionStatus();
+
+        await VerifyBlock();
 
         var result = _state.State.HasAccess(principalId, grant, blockType);
         return result;
     }
 
-    private async Task<Option<BlockChain>> ReadContract(ScopeContext context)
-    {
-        context.Location().LogInformation("Reading block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
+    //private async Task<Option<BlockChain>> ReadContract(ScopeContext context)
+    //{
+    //    context.Location().LogInformation("Reading block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        await _state.ReadStateAsync();
-        if (!_state.RecordExists) return new Option<BlockChain>(StatusCode.NotFound);
+    //    await _state.ReadStateAsync();
+    //    if (!_state.RecordExists) return new Option<BlockChain>(StatusCode.NotFound);
 
-        var v = await ValidateBlock(_state.State, context);
-        if (v.IsError()) return v.ToOptionStatus<BlockChain>();
+    //    var v = await ValidateBlock(_state.State, context);
+    //    if (v.IsError()) return v.ToOptionStatus<BlockChain>();
 
-        return _state.State;
-    }
+    //    return _state.State;
+    //}
 
     private async Task<Option> WriteContract(BlockChain blockChain, ScopeContext context)
     {
         context.Location().LogInformation("Writing block chain");
 
+        _blockVerified = false;
+
         var v = await ValidateBlock(blockChain, context);
         if (v.IsError()) return v;
+
+        _blockVerified = true;
 
         _state.State = blockChain;
         await _state.WriteStateAsync();
 
         return new Option(StatusCode.OK);
+    }
+
+    private async Task VerifyBlock()
+    {
+        if (_state.RecordExists && _blockVerified)
+        {
+            var context = new ScopeContext(_logger);
+            (await ValidateBlock(_state.State, context)).Assert(x => x.IsOk(), _ => $"Cannot validate block chain, actorKey={this.GetPrimaryKeyString()}");
+
+            _blockVerified = true;
+        }
     }
 
     private async Task<Option> ValidateBlock(BlockChain blockChain, ScopeContext context)

@@ -29,17 +29,17 @@ public class LeaseConnector
         group.MapPost("/", Acquire);
         group.MapGet("/{leaseKey}", Get);
         group.MapGet("/{leaseKey}/isValid", IsValid);
-        group.MapGet("/list", List);
+        group.MapPost("/list", List);
         group.MapDelete("/{leaseKey}", Release);
 
         return group;
     }
 
-    private async Task<IResult> Acquire(LeaseCreate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Acquire(LeaseData model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (!model.Validate(out var v)) return v.ToResult();
 
-        Option<LeaseData> response = await _client.GetLeaseActor().Acquire(model, traceId);
+        Option response = await _client.GetLeaseActor().Acquire(model, traceId);
         return response.ToResult();
     }
 
@@ -60,9 +60,9 @@ public class LeaseConnector
         return response.ToResult();
     }
 
-    private async Task<IResult> List([FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> List(QueryParameter query, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option<IReadOnlyList<LeaseData>> response = await _client.GetLeaseActor().List(traceId);
+        Option<IReadOnlyList<LeaseData>> response = await _client.GetLeaseActor().List(query, traceId);
         return response.ToResult();
     }
 

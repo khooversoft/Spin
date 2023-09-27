@@ -36,11 +36,13 @@ public class SoftBankTrxConnector
 
     private async Task<IResult> Request(TrxRequest request, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        var v = request.Validate();
-        if (v.IsError()) return v.ToResult();
+        if (!request.Validate(out var v)) return v.ToResult();
 
         ResourceId trxActorKey = ((ResourceId)request.AccountID).ToSoftBankTrxId();
-        Option<TrxResponse> response = await _client.GetResourceGrain<ISoftBankTrxActor>(trxActorKey).Request(request, traceId);
+
+        Option<TrxResponse> response = await _client
+            .GetResourceGrain<ISoftBankTrxActor>(trxActorKey)
+            .Request(request, traceId);
 
         return response.ToResult();
     }
