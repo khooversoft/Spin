@@ -31,7 +31,6 @@ internal static class CmdTools
         var v = validator.Validate(obj);
         if (v.IsError())
         {
-            v.LogResult(context.Location());
             context.Trace().LogError("Option is not valid, error={error}", v.Error);
             return v.ToOptionStatus<T>();
         }

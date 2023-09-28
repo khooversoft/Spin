@@ -33,8 +33,7 @@ internal class SoftBank_Management
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating contract accountDetail={accountDetail}", detail);
 
-        var v = detail.Validate().LogResult(context.Location());
-        if (v.IsError()) return v;
+        if (!detail.Validate(out var v)) return v;
 
         IContractActor contract = _parent.GetContractActor();
 
@@ -57,8 +56,7 @@ internal class SoftBank_Management
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Add BlockAcl={blockAcl}", blockAcl);
 
-        var v = blockAcl.Validate().LogResult(context.Location());
-        if (v.IsError()) return v;
+        if (!blockAcl.Validate(out var v)) return v;
 
         return await _parent.Append(blockAcl, principalId, context);
     }

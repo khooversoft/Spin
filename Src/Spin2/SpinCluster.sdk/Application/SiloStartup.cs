@@ -48,7 +48,6 @@ public static class SiloStartup
             }
 
             DatalakeLocation datalakeLocation = DatalakeLocation.ParseConnectionString(clusterOption.BootConnectionString)
-                .LogResult(context.Location())
                 .ThrowOnError()
                 .Return();
 

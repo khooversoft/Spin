@@ -69,7 +69,7 @@ internal class SmartcPackage
         if (optionOption.IsError()) return;
         PackageOption option = optionOption.Return();
 
-        var blobOption = await _storageClient.Get(option.SmartcExeId, context).LogResult(context.Trace());
+        var blobOption = await _storageClient.Get(option.SmartcExeId, context);
         if (blobOption.IsError()) return;
 
         StorageBlob blob = blobOption.Return();

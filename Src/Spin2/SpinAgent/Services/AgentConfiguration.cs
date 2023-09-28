@@ -42,9 +42,7 @@ internal class AgentConfiguration
     {
         context = context.With(_logger);
 
-        var agentModelOption = await _agentClient
-            .Get(_option.AgentId, context)
-            .LogResult(context.Trace());
+        var agentModelOption = await _agentClient.Get(_option.AgentId, context);
 
         if (agentModelOption.IsError() || agentModelOption.Return().Validate().IsError())
         {

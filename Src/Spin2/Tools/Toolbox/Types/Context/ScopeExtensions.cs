@@ -102,7 +102,7 @@ public static class ScopeExtensions
     {
         log("ScopeEnter", message, args);
 
-        var sw = Stopwatch.StartNew();
+        //var sw = Stopwatch.StartNew();
 
         return new FinalizeScope<ScopeContextLocation>(context, x =>
         {

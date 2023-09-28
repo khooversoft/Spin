@@ -52,11 +52,7 @@ public class ContractActor : Grain, IContractActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         context.Location().LogInformation("Deleted block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
         await _state.ClearStateAsync();
@@ -75,10 +71,8 @@ public class ContractActor : Grain, IContractActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new OptionTest()
-            .Test(() => !_state.RecordExists)
-            .Test(() => model.Validate().LogResult(context.Location()));
-        if (test.IsError()) return test;
+        if (_state.RecordExists) return StatusCode.Conflict;
+        if (!model.Validate(out var v)) return v;
 
         ISignatureActor signature = _clusterClient.GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation);
 
@@ -86,8 +80,7 @@ public class ContractActor : Grain, IContractActor
             .SetDocumentId(model.DocumentId)
             .SetPrincipleId(model.PrincipalId)
             .AddAccess(model.BlockAccess)
-            .Build(signature, context)
-            .LogResult(context.Location());
+            .Build(signature, context);
 
         if (blockChain.IsError()) return blockChain.ToOptionStatus();
 
@@ -101,11 +94,8 @@ public class ContractActor : Grain, IContractActor
         context.Location().LogInformation("Query, actorKey={actorKey}, blockType={blockType}, principalId={principalId}",
             this.GetPrimaryKeyString(), model.BlockType, model.PrincipalId);
 
-        var test = new OptionTest()
-            .Test(() => _state.RecordExists.ToOptionStatus(StatusCode.NotFound))
-            .Test(() => model.Validate());
-
-        if (test.IsError()) return test.Option.ToOptionStatus<IReadOnlyList<DataBlock>>();
+        if (!_state.RecordExists) return StatusCode.NotFound;
+        if (!model.Validate(out var v1)) return v1.ToOptionStatus<IReadOnlyList<DataBlock>>();
 
         //Option<BlockChain> readBlockChain = await ReadContract(context);
         //if (readBlockChain.IsError()) return readBlockChain.ToOptionStatus<IReadOnlyList<DataBlock>>();
@@ -262,7 +252,7 @@ public class ContractActor : Grain, IContractActor
         context.Location().LogInformation("Verifying signatures in block chain");
 
         ISignatureActor signature = _clusterClient.GetResourceGrain<ISignatureActor>(SpinConstants.SignValidation);
-        var result = await blockChain.ValidateBlockChain(signature, context).LogResult(context.Location());
+        var result = await blockChain.ValidateBlockChain(signature, context);
 
         return result;
     }

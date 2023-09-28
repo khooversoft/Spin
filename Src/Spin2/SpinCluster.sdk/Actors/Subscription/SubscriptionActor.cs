@@ -42,20 +42,15 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         await _state.ClearStateAsync();
         return StatusCode.OK;
     }
 
-    public async Task<Option> Exist(string traceId)
+    public Task<Option> Exist(string traceId)
     {
-        await _state.ReadStateAsync();
-        return _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
+        return new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
     }
 
     public Task<Option<SubscriptionModel>> Get(string traceId)
@@ -77,10 +72,8 @@ public class SubscriptionActor : Grain, ISubscriptionActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new OptionTest()
-            .Test(() => this.VerifyIdentity(model.SubscriptionId).LogResult(context.Location()))
-            .Test(() => model.Validate().LogResult(context.Location()));
-        if (test.IsError()) return test;
+        if (!this.VerifyIdentity(model.SubscriptionId, out var v)) return v;
+        if (!model.Validate(out var v2)) return v2;
 
         _state.State = model;
         await _state.WriteStateAsync();

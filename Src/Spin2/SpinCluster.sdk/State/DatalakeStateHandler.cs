@@ -1,4 +1,6 @@
-﻿using Azure;
+﻿using System.Diagnostics;
+using Azure;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
@@ -12,12 +14,14 @@ public class DatalakeStateHandler
     private readonly string _storageName;
     private readonly IDatalakeStore _datalakeStore;
     private readonly ILogger<DatalakeStateHandler> _logger;
+    private readonly TelemetryClient _telemetryClient;
 
-    public DatalakeStateHandler(string storageName, IDatalakeStore datalakeStore, ILogger<DatalakeStateHandler> logger)
+    public DatalakeStateHandler(string storageName, IDatalakeStore datalakeStore, TelemetryClient telemetryClient, ILogger<DatalakeStateHandler> logger)
     {
         _storageName = storageName.NotEmpty();
         _datalakeStore = datalakeStore.NotNull();
         _logger = logger.NotNull();
+        _telemetryClient = telemetryClient;
     }
 
     public async Task ClearStateAsync<T>(string filePath, IGrainState<T> grainState, ScopeContext context)
@@ -25,12 +29,16 @@ public class DatalakeStateHandler
         context = context.With(_logger);
         context.Location().LogInformation("Clearing state for filePath={filePath}", filePath);
 
-        var result = await _datalakeStore.Delete(filePath, context);
-        if (result.IsError())
+        Stopwatch sw = Stopwatch.StartNew();
+        using var perf = new FinalizeScope<ScopeContext>(context, x =>
         {
-            context.Location().LogError("Failed to delete state file on datalake, storageName={storageName}, filePath={filePath}",
-                _storageName, filePath);
-        }
+            sw.Stop();
+            context.Location().LogTrace("ClearStateAsync: filePath={filePath}, ms={ms}", filePath, sw.ElapsedMilliseconds);
+            _telemetryClient.TrackMetric("DatalakeStateHandler_ClearStateAsync", sw.ElapsedMilliseconds);
+        });
+
+        var result = await _datalakeStore.Delete(filePath, context);
+        if (result.IsError()) return;
 
         ResetState(grainState);
     }
@@ -40,12 +48,17 @@ public class DatalakeStateHandler
         context = context.With(_logger);
         context.Location().LogInformation("Reading state for filePath={filePath}", filePath);
 
+        Stopwatch sw = Stopwatch.StartNew();
+        using var perf = new FinalizeScope<ScopeContext>(context, x =>
+        {
+            sw.Stop();
+            context.Location().LogTrace("ReadStateAsync: filePath={filePath}, ms={ms}", filePath, sw.ElapsedMilliseconds);
+            _telemetryClient.TrackMetric("DatalakeStateHandler_ReadStateAsync", sw.ElapsedMilliseconds);
+        });
+
         var result = await _datalakeStore.Read(filePath, context);
         if (result.IsError())
         {
-            context.Location().LogWarning("Failed to read state file, storageName={storageName}, filePath={filePath}",
-                _storageName, filePath);
-
             ResetState(grainState);
             return;
         }
@@ -66,12 +79,21 @@ public class DatalakeStateHandler
 
         grainState.RecordExists = true;
         grainState.ETag = result.Return().ETag.ToString();
+        context.Location().LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
     }
 
     public async Task WriteStateAsync<T>(string filePath, IGrainState<T> grainState, ScopeContext context)
     {
         context = context.With(_logger);
         context.Location().LogInformation("Writing state for filePath={filePath}", filePath);
+
+        Stopwatch sw = Stopwatch.StartNew();
+        using var perf = new FinalizeScope<ScopeContext>(context, x =>
+        {
+            sw.Stop();
+            context.Location().LogTrace("WriteStateAsync: filePath={filePath}, ms={ms}", filePath, sw.ElapsedMilliseconds);
+            _telemetryClient.TrackMetric("DatalakeStateHandler_WriteStateAsync", sw.ElapsedMilliseconds);
+        });
 
         byte[] data = grainState.State
             .ToJsonSafe(context.Location())
@@ -100,14 +122,4 @@ public class DatalakeStateHandler
         grainState.RecordExists = false;
         grainState.ETag = null;
     }
-
-    //public void Participate(ISiloLifecycle lifecycle) =>
-    //lifecycle.Subscribe(
-    //    observerName: OptionFormattingUtilities.Name<DatalakeStorage>(_storageName),
-    //    stage: ServiceLifecycleStage.ApplicationServices,
-    //    onStart: (ct) =>
-    //    {
-    //        Console.WriteLine("Participating");
-    //        return Task.CompletedTask;
-    //    });
 }

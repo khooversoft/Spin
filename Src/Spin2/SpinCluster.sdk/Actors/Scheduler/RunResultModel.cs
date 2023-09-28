@@ -29,4 +29,10 @@ public sealed record RunResultModel
 public static class RunResultModelExtensions
 {
     public static Option Validate(this RunResultModel work) => RunResultModel.Validator.Validate(work).ToOptionStatus();
+
+    public static bool Validate(this RunResultModel work, out Option result)
+    {
+        result = work.Validate();
+        return result.IsOk();
+    }
 }

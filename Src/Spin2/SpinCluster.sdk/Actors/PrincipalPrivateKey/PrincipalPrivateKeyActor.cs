@@ -42,11 +42,7 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting PrivatePrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         await _state.ClearStateAsync();
         return StatusCode.OK;
@@ -72,11 +68,8 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set PrivatePrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
-
-        var test = new OptionTest()
-            .Test(() => this.VerifyIdentity(model.PrincipalPrivateKeyId).LogResult(context.Location()))
-            .Test(() => model.Validate().LogResult(context.Location()));
-        if (test.IsError()) return test;
+        if (!this.VerifyIdentity(model.PrincipalPrivateKeyId, out var v)) return v;
+        if (!model.Validate(out var v1)) return v1;
 
         if (_state.RecordExists)
         {
@@ -89,13 +82,12 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         return new Option(StatusCode.OK);
     }
 
-    public async Task<Option<string>> Sign(string messageDigest, string traceId)
+    public Task<Option<string>> Sign(string messageDigest, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Signing with private key, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        await _state.ReadStateAsync();
-        if (!_state.RecordExists) return StatusCode.BadRequest;
+        if (!_state.RecordExists) return new Option<string>(StatusCode.NotFound).ToTaskResult();
 
         var signature = PrincipalSignature.CreateFromPrivateKeyOnly(
             _state.State.PrivateKey,
@@ -114,9 +106,9 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
         if (jwtSignature.IsEmpty())
         {
             context.Location().LogError("Failed to build JWT");
-            return new Option<string>(StatusCode.BadRequest, "JWT builder failed");
+            return new Option<string>(StatusCode.Conflict, "JWT builder failed").ToTaskResult();
         }
 
-        return jwtSignature;
+        return jwtSignature.ToOption().ToTaskResult();
     }
 }

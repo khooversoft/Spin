@@ -44,11 +44,7 @@ public class TenantActor : Grain, ITenantActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         await _state.ClearStateAsync();
         return StatusCode.OK;
@@ -75,10 +71,8 @@ public class TenantActor : Grain, ITenantActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set subscription, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var v = new OptionTest()
-            .Test(() => this.VerifyIdentity(model.TenantId).LogResult(context.Location()))
-            .Test(() => model.Validate());
-        if (v.IsError()) return v.Option.LogResult(context.Location());
+        if (!this.VerifyIdentity(model.TenantId, out var v)) return v;
+        if (!model.Validate(out var v2)) return v2;
 
         Option isSubscriptionActive = await _clusterClient.GetResourceGrain<ISubscriptionActor>(model.SubscriptionId).Exist(context.TraceId);
         if (isSubscriptionActive.IsError())

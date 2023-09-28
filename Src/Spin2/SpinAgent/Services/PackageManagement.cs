@@ -57,7 +57,7 @@ internal class PackageManagement
     private async Task<Option<WorkContext>> Setup(string smartcId, ScopeContext context)
     {
 
-        var smartcModelOption = await _smartcClient.Get(smartcId, context).LogResult(context.Trace());
+        var smartcModelOption = await _smartcClient.Get(smartcId, context);
         if (smartcModelOption.IsError())
         {
             context.Trace().LogError("Cannot find smartcId={smartcId}", smartcId);

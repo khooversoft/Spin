@@ -65,8 +65,7 @@ public class SignatureActor : Grain, ISignatureActor
         ResourceId publicKeyId = IdTool.CreatePublicKeyId(resourceId.PrincipalId!, resourceId.Path);
 
         Option response = await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(publicKeyId)
-            .ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId)
-            .LogResult(context.Location());
+            .ValidateJwtSignature(jwtSignature, messageDigest, context.TraceId);
 
         if (response.IsError())
         {

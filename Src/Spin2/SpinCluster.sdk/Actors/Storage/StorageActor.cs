@@ -110,8 +110,7 @@ public class StorageActor : Grain, IStorageActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Exist storage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var v = blob.Validate();
-        if (v.IsError()) return v;
+        if (!blob.Validate(out var v)) return v;
 
         var schemaOption = GetStore(context);
         if (schemaOption.IsError()) return schemaOption.ToOptionStatus();

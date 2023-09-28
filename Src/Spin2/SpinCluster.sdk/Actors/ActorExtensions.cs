@@ -10,7 +10,7 @@ public static class ActorExtensions
     {
         string actorKey = grain.GetPrimaryKeyString();
 
-        ResourceId resourceId = ResourceId.Create(actorKey).LogResult(context.Location()).ThrowOnError().Return();
+        ResourceId resourceId = ResourceId.Create(actorKey).ThrowOnError().Return();
         resourceId.Schema.Assert(x => x == schema, x => $"Invalid schema, {x} does not match {schema}");
     }
 
@@ -24,5 +24,11 @@ public static class ActorExtensions
         }
 
         return StatusCode.OK;
+    }
+
+    public static bool VerifyIdentity(this Grain grain, string keyToMatch, out Option result)
+    {
+        result = grain.VerifyIdentity(keyToMatch);
+        return result.IsOk();
     }
 }

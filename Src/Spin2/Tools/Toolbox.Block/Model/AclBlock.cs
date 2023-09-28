@@ -27,6 +27,12 @@ public static class AclBlockValidator
 
     public static Option Validate(this AclBlock subject) => Validator.Validate(subject).ToOptionStatus();
 
+    public static bool Validate(this AclBlock subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
+
     public static Option HasAccess(this AclBlock subject, string principalId, BlockGrant grant, string blockType) => subject
         .NotNull()
         .AccessRights.Any(x => x.HasAccess(principalId, grant, blockType))

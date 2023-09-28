@@ -57,7 +57,7 @@ public static class DataBlockValidator
 
     public static async Task<Option> ValidateDigest(this DataBlock subject, ISignValidate signValidate, ScopeContext context)
     {
-        var valResult = DataBlock.Validator.Validate(subject).LogResult(context.Location());
+        var valResult = DataBlock.Validator.Validate(subject);
         if (valResult.IsError()) return valResult.ToOptionStatus();
 
         return await signValidate.ValidateDigest(subject.JwtSignature, subject.Digest, context.TraceId);

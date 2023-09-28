@@ -43,7 +43,7 @@ internal class AgentRegistration
     {
         var context = new ScopeContext(_logger);
 
-        var readOption = await _client.Get(agentId, context).LogResult(context.Trace());
+        var readOption = await _client.Get(agentId, context);
         if (readOption.IsError())
         {
             context.Trace().LogError("Cannot get details on agentId={agentId}", agentId);

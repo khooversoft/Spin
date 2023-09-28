@@ -56,7 +56,7 @@ public static class PrincipalKeyModelValidator
 
     public static Option<PrincipalSignature> ToPrincipalSignature(this PrincipalKeyModel subject, ScopeContext context)
     {
-        Option<IValidatorResult> validationResult = PrincipalKeyModel.Validator.Validate(subject).LogResult(context.Location());
+        Option<IValidatorResult> validationResult = PrincipalKeyModel.Validator.Validate(subject);
         if (validationResult.IsError()) return validationResult.ToOptionStatus<PrincipalSignature>();
 
         var signature = PrincipalSignature.CreateFromPublicKeyOnly(subject.PublicKey, subject.KeyId, subject.PrincipalId, subject.Audience);

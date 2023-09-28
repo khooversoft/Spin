@@ -23,8 +23,7 @@ internal class SoftBank_Ledger
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Add Ledger item ledgerItem={ledgerItem}", ledgerItem);
 
-        var v = ledgerItem.Validate().LogResult(context.Location());
-        if (v.IsError()) return v;
+        if (!ledgerItem.Validate(out var v)) return v;
 
         return await _parent.Append(ledgerItem, ledgerItem.OwnerId, context);
     }

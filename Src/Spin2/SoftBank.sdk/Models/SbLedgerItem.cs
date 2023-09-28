@@ -40,6 +40,12 @@ public static class LedgerItemValidator
 {
     public static Option Validate(this SbLedgerItem subject) => SbLedgerItem.Validator.Validate(subject).ToOptionStatus();
 
+    public static bool Validate(this SbLedgerItem subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
+
     public static decimal NaturalAmount(this SbLedgerType type, decimal amount) => type switch
     {
         SbLedgerType.Credit => Math.Abs(amount),

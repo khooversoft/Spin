@@ -41,6 +41,7 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
         {
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+            services.AddApplicationInsightsTelemetry();
 
             services.AddSpinApi();
             services.AddHealthChecks();
@@ -77,10 +78,13 @@ ILogger<Program> logger = host.Services.GetRequiredService<ILoggerFactory>().Cre
 var msg = new[]
 {
     $"Spin Cluster API - Version {Assembly.GetExecutingAssembly().GetName().Version}",
-    $"Running, environment={config["environment"]}",
+    $"Running environment={config["environment"]}",
+    "",
+    "Starting server"
 }.Join(Environment.NewLine);
 
 logger.LogInformation(msg);
+Console.WriteLine(msg);
 
 host.Run();
 

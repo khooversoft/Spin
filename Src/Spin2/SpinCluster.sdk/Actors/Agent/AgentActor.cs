@@ -42,11 +42,7 @@ public class AgentActor : Grain, IAgentActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting agent, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         context.Location().LogInformation("Deleted agent, actorKey={actorKey}", this.GetPrimaryKeyString());
         await _state.ClearStateAsync();
@@ -54,11 +50,7 @@ public class AgentActor : Grain, IAgentActor
         return StatusCode.OK;
     }
 
-    public async Task<Option> Exist(string traceId)
-    {
-        await _state.ReadStateAsync();
-        return _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
-    }
+    public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
     public Task<Option<AgentModel>> Get(string traceId)
     {
@@ -74,12 +66,19 @@ public class AgentActor : Grain, IAgentActor
         return option.ToTaskResult();
     }
 
-    public async Task<Option> IsActive(string traceId)
+    public Task<Option> IsActive(string traceId)
     {
-        await _state.ReadStateAsync();
-        if (!_state.RecordExists) return StatusCode.NotFound;
+        Option status = _state.RecordExists switch
+        {
+            true => _state.State.Enabled switch
+            {
+                true => StatusCode.OK,
+                false => StatusCode.Unauthorized,
+            },
+            false => StatusCode.NotFound,
+        };
 
-        return _state.State.Enabled ? StatusCode.OK : StatusCode.Unauthorized;
+        return status.ToTaskResult();
     }
 
     public async Task<Option> Set(AgentModel model, string traceId)
@@ -87,10 +86,8 @@ public class AgentActor : Grain, IAgentActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set agent, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new OptionTest()
-            .Test(() => this.VerifyIdentity(model.AgentId).LogResult(context.Location()))
-            .Test(() => model.Validate().LogResult(context.Location()));
-        if (test.IsError()) return test;
+        if (!this.VerifyIdentity(model.AgentId, out var v)) return v;
+        if (!model.Validate(out var v2)) return v2;
 
         _state.State = model;
         await _state.WriteStateAsync();

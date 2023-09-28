@@ -39,4 +39,10 @@ public sealed record SbAccountDetail
 public static class AccountDetailValidator
 {
     public static Option Validate(this SbAccountDetail subject) => SbAccountDetail.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this SbAccountDetail subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

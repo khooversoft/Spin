@@ -54,7 +54,7 @@ public static class PrincipalPrivateKeyModelValidator
 
     public static PrincipalSignature ToPrincipalSignature(this PrincipalPrivateKeyModel subject, ScopeContext context)
     {
-        subject.Validate().LogResult(context.Location()).ThrowOnError();
+        subject.Validate().ThrowOnError();
 
         var signature = PrincipalSignature.CreateFromPrivateKeyOnly(subject.PrivateKey, subject.KeyId, subject.PrincipalId, subject.Audience);
         return signature;

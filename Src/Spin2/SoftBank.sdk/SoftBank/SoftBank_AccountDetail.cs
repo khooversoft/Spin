@@ -23,8 +23,7 @@ internal class SoftBank_AccountDetail
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Set account detail={accountDetail}", detail);
 
-        var v = detail.Validate().LogResult(context.Location());
-        if (v.IsError()) return v;
+        if (!detail.Validate(out var v)) return v;
 
         return await _parent.Append(detail, detail.OwnerId, context);
     }

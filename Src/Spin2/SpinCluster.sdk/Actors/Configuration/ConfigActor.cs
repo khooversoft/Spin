@@ -45,11 +45,7 @@ public class ConfigActor : Grain, IConfigActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting config, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
+        if (!_state.RecordExists)return StatusCode.NotFound;
 
         await _state.ClearStateAsync();
         return StatusCode.OK;
@@ -80,7 +76,7 @@ public class ConfigActor : Grain, IConfigActor
             .Test(() => this.VerifyIdentity(model.ConfigId))
             .Test(() => _state.RecordExists, error: "No keyed configuration record present")
             .Test(() => model.Validate());
-        if (test.IsError()) return test.Option.LogResult(context.Location());
+        if (test.IsError()) return test.Option;
 
         var dict = _state.State.Properties.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
         var removed = dict.Remove(model.Key);
@@ -105,7 +101,7 @@ public class ConfigActor : Grain, IConfigActor
         var test = new OptionTest()
             .Test(() => this.VerifyIdentity(model.ConfigId))
             .Test(() => model.Validate());
-        if (test.IsError()) return test.Option.LogResult(context.Location());
+        if (test.IsError()) return test.Option;
 
         _state.State = model;
         await _state.WriteStateAsync();
@@ -122,7 +118,7 @@ public class ConfigActor : Grain, IConfigActor
             .Test(() => this.VerifyIdentity(model.ConfigId))
             .Test(() => _state.RecordExists, error: "No keyed configuration record present")
             .Test(() => model.Validate());
-        if (test.IsError()) return test.Option.LogResult(context.Location());
+        if (test.IsError()) return test.Option;
 
         var dict = _state.State.Properties.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
         dict[model.Key] = model.Value;

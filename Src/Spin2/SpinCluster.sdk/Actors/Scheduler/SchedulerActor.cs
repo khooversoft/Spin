@@ -58,10 +58,8 @@ public class SchedulerActor : Grain, ISchedulerActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Add run result, actorKey={actorKey}, runResult={runResult}", this.GetPrimaryKeyString(), runResult);
 
-        var test = new OptionTest()
-            .Test(() => _state.RecordExists ? StatusCode.OK : (StatusCode.NotFound, "No schedules exist"))
-            .Test(runResult.Validate);
-        if (test.IsError()) return test.Option.LogResult(context.Location());
+        if (!_state.RecordExists) return (StatusCode.NotFound, "No schedules exist");
+        if (!runResult.Validate(out var v)) return v;
 
         var result = _state.State.AddRunResult(runResult, context);
         if (result.IsError()) return result;
@@ -75,8 +73,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Schedule work, actorKey={actorKey}, work={work}", this.GetPrimaryKeyString(), work);
 
-        var v = work.Validate().LogResult(context.Location());
-        if (v.IsError()) return v;
+        if (!work.Validate(out var v)) return v;
 
         _state.State = _state.RecordExists ? _state.State : new SchedulesModel();
         _state.State.WorkItems.Add(work.ConvertTo());
@@ -142,7 +139,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         var test = new OptionTest()
             .Test(() => _state.RecordExists ? StatusCode.OK : new Option(StatusCode.NotFound, "No schedules exist"))
             .Test(completed.Validate);
-        if (test.IsError()) return test.Option.LogResult(context.Location());
+        if (test.IsError()) return test.Option;
 
         var result = _state.State.CompleteWork(completed, context);
         if (result.IsError()) return result;

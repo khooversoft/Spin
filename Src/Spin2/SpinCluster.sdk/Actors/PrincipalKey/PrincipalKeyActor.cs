@@ -46,11 +46,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting PrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         string principalPrivateKeyId = _state.State.PrincipalPrivateKeyId;
         await _state.ClearStateAsync();
@@ -92,11 +88,9 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating public/private key for keyId={keyId}", model.KeyId);
 
-        var test = new OptionTest()
-            .Test(() => new Option(_state.RecordExists ? StatusCode.BadRequest : StatusCode.OK, "Principal Key already exist"))
-            .Test(() => model.Validate().LogResult(context.Location()))
-            .Test(() => this.VerifyIdentity(model.PrincipalKeyId));
-        if (test.IsError()) return test;
+        if (_state.RecordExists) return StatusCode.NotFound;
+        if (!this.VerifyIdentity(model.PrincipalKeyId, out var v)) return v;
+        if (!model.Validate(out var v2)) return v2;
 
         var rsaKey = new RsaKeyPair(model.KeyId);
 
@@ -124,12 +118,9 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Update PrincipalKey, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = new OptionTest()
-            .Test(() => this.VerifyIdentity(model.PrincipalKeyId).LogResult(context.Location()))
-            .Test(() => model.Validate().LogResult(context.Location()))
-            .Test(() => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.BadRequest, "Key must be created first"));
-
-        if (test.IsError()) return test;
+        if (!_state.RecordExists) return StatusCode.NotFound;
+        if (!this.VerifyIdentity(model.PrincipalKeyId, out var v)) return v;
+        if (!model.Validate(out var v2)) return v2;
 
         _state.State = model;
         await _state.WriteStateAsync();
@@ -142,8 +133,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Validating JWT signature");
 
-        await _state.ReadStateAsync();
-        if (!_state.RecordExists) return StatusCode.BadRequest;
+        if (!_state.RecordExists) return (StatusCode.NotFound, "Public key does not exit");
 
         var signature = _state.State.ToPrincipalSignature(context);
         if (signature.IsError()) return signature.ToOptionStatus();

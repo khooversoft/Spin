@@ -30,7 +30,7 @@ internal class Schedule
         ScheduleCreateModel model = readResult.Return();
 
         context.Trace().LogInformation("Adding schedule, model={model}", model);
-        var queueResult = await _client.AddSchedule(model, context).LogResult(context.Location());
+        var queueResult = await _client.AddSchedule(model, context);
         if (queueResult.IsError()) return;
 
         context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
@@ -41,9 +41,7 @@ internal class Schedule
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Clearing schedule queue");
 
-        var clearOption = await _client
-            .Clear(principalId, context)
-            .LogResult(context.Location());
+        var clearOption = await _client.Clear(principalId, context);
 
         if (clearOption.IsError())
         {
@@ -57,9 +55,7 @@ internal class Schedule
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Getting schedules");
 
-        var scheduleModel = await _client
-            .GetSchedules(context)
-            .LogResult(context.Location());
+        var scheduleModel = await _client.GetSchedules(context);
 
         if (scheduleModel.IsError())
         {

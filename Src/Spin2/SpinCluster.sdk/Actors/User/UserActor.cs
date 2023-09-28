@@ -44,16 +44,30 @@ public class UserActor : Grain, IUserActor
         return base.OnActivateAsync(cancellationToken);
     }
 
+    public async Task<Option> Delete(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Deleting user, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        if (!_state.RecordExists) return StatusCode.NotFound;
+
+        string publicKeyId = _state.State.UserKey.PublicKeyId;
+        await _state.ClearStateAsync();
+
+        await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(publicKeyId).Delete(context.TraceId);
+        return StatusCode.OK;
+    }
+
     public async Task<Option> Create(UserCreateModel model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Create user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = await new OptionTest()
-            .Test(() => _state.RecordExists ? StatusCode.Conflict : StatusCode.OK)
-            .Test(() => model.Validate().LogResult(context.Location()))
-            .TestAsync(async () => await VerifyDomain(model.UserId, context));
-        if (test.IsError()) return test;
+        if (_state.RecordExists) return (StatusCode.Conflict, "Record already exist");
+        if (!model.Validate(out var v)) return v;
+
+        var v2 = await VerifyDomain(model.UserId, context);
+        if (v2.IsError()) return v2;
 
         var userModel = new UserModel
         {
@@ -75,34 +89,7 @@ public class UserActor : Grain, IUserActor
         return StatusCode.OK;
     }
 
-    public async Task<Option> Delete(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Deleting user, actorKey={actorKey}", this.GetPrimaryKeyString());
-
-        if (!_state.RecordExists)
-        {
-            await _state.ClearStateAsync();
-            return StatusCode.NotFound;
-        }
-
-        string publicKeyId = _state.State.UserKey.PublicKeyId;
-        await _state.ClearStateAsync();
-
-        await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(publicKeyId).Delete(context.TraceId);
-
-        return StatusCode.OK;
-    }
-
-    public async Task<Option> Exist(string traceId)
-    {
-        if (!_state.RecordExists || !_state.State.IsActive) return StatusCode.NotFound;
-
-        ResourceId resourceId = IdTool.CreatePublicKeyId(_state.State.PrincipalId);
-        var publicKeyExist = await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(resourceId).Delete(traceId);
-
-        return publicKeyExist;
-    }
+    public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
     public Task<Option<UserModel>> Get(string traceId)
     {
@@ -124,10 +111,9 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Update user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        var test = await new OptionTest()
-            .Test(() => model.Validate().LogResult(context.Location()))
-            .TestAsync(async () => await VerifyDomain(model.UserId, context));
-        if (test.IsError()) return test;
+        if (!model.Validate(out var v)) return v;
+        var v2 = await VerifyDomain(model.UserId, context);
+        if (v2.IsError()) return v2;
 
         if (!_state.RecordExists)
         {
@@ -138,7 +124,7 @@ public class UserActor : Grain, IUserActor
         _state.State = model;
         await _state.WriteStateAsync();
 
-        return new Option(StatusCode.OK);
+        return StatusCode.OK;
     }
 
     public async Task<Option<SignResponse>> SignDigest(string messageDigest, string traceId)
@@ -150,9 +136,9 @@ public class UserActor : Grain, IUserActor
 
         ResourceId privateKeyId = _state.State.UserKey.PrivateKeyId;
 
-        Option<string> signResponse = await _clusterClient.GetResourceGrain<IPrincipalPrivateKeyActor>(privateKeyId)
-            .Sign(messageDigest, traceId)
-            .LogResult(context.Location());
+        Option<string> signResponse = await _clusterClient
+            .GetResourceGrain<IPrincipalPrivateKeyActor>(privateKeyId)
+            .Sign(messageDigest, traceId);
 
         if (signResponse.IsError())
         {
@@ -184,6 +170,7 @@ public class UserActor : Grain, IUserActor
         var domainDetail = await _clusterClient
             .GetResourceGrain<IDomainActor>(SpinConstants.DomainActorKey)
             .GetDetails(domain, context.TraceId);
+
         if (domainDetail.IsError())
         {
             context.Location().LogError("Domain={domain} for userId={userId} is not a tenant or valid external domain", userId, domain);

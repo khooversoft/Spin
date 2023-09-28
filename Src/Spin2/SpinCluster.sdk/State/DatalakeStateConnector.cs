@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Orleans.Storage;
@@ -17,14 +18,16 @@ internal class DatalakeStateConnector : IGrainStorage
     private readonly DatalakeSchemaResources _datalakeResources;
     private readonly ILoggerFactory _loggerFactory;
     private readonly DatalakeResourceIdMap _map;
+    private readonly TelemetryClient _telemetryClient;
 
-    public DatalakeStateConnector(DatalakeSchemaResources datalakeResources, DatalakeResourceIdMap map, ILoggerFactory loggerFactory)
+    public DatalakeStateConnector(DatalakeSchemaResources datalakeResources, DatalakeResourceIdMap map, TelemetryClient telemetryClient, ILoggerFactory loggerFactory)
     {
         _datalakeResources = datalakeResources.NotNull();
         _loggerFactory = loggerFactory.NotNull();
         _map = map.NotNull();
 
         _logger = _loggerFactory.CreateLogger<DatalakeStateConnector>();
+        _telemetryClient = telemetryClient;
     }
 
     public async Task ClearStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)
@@ -60,8 +63,8 @@ internal class DatalakeStateConnector : IGrainStorage
 
         string grainPath = GetPath(grainId);
 
-        ResourceId resourceId = ResourceId.Create(grainPath).LogResult(context.Location()).ThrowOnError().Return();
-        Option<DatalakeResourceIdMap.Map> mapOption = _map.MapResource(resourceId, context).LogResult(context.Location());
+        ResourceId resourceId = ResourceId.Create(grainPath).ThrowOnError().Return();
+        Option<DatalakeResourceIdMap.Map> mapOption = _map.MapResource(resourceId, context);
         if (mapOption.IsError())
         {
             context.Location().LogCritical("Failed to map schemato storage resource for resourceId={resourceId}", resourceId);
@@ -94,7 +97,7 @@ internal class DatalakeStateConnector : IGrainStorage
                 throw new ArgumentException($"Failed to get datalake connection to schemaName={schemaName}", schemaName);
             }
 
-            return new DatalakeStateHandler(schemaName, store.Return(), _loggerFactory.CreateLogger<DatalakeStateHandler>());
+            return new DatalakeStateHandler(schemaName, store.Return(), _telemetryClient, _loggerFactory.CreateLogger<DatalakeStateHandler>());
         });
     }
 }

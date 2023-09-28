@@ -82,6 +82,8 @@ public class DatalakeStore : IDatalakeStore
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
             Response<bool> response = await file.DeleteIfExistsAsync(cancellationToken: context);
 
+            if (!response.Value) context.Location().LogInformation("File path={path} does not exist", path);
+
             return response.Value ? StatusCode.OK : StatusCode.NotFound;
         }
         catch (Exception ex)
@@ -160,12 +162,12 @@ public class DatalakeStore : IDatalakeStore
             using MemoryStream memory = new MemoryStream();
             await response.Value.Content.CopyToAsync(memory);
 
-            context.Location().LogTrace("Read file {path}", path);
+            context.Location().LogInformation("Read file {path}", path);
             return new DataETag(memory.ToArray(), response.Value.Properties.ETag).ToOption();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
-            context.Location().LogWarning("File not found {path}", path);
+            context.Location().LogInformation("File not found {path}", path);
             return new Option<DataETag>(StatusCode.NotFound);
         }
         catch (Exception ex)
@@ -303,7 +305,7 @@ public class DatalakeStore : IDatalakeStore
         catch (Exception ex)
         {
             context.Location().LogError(ex, "Failed to upload {path}", path);
-            return new Option<ETag>(StatusCode.NotFound);
+            return new Option<ETag>(StatusCode.InternalServerError);
         }
     }
 

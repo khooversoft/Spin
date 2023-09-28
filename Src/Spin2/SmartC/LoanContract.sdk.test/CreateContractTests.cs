@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Diagnostics;
+using FluentAssertions;
 using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
@@ -121,6 +122,7 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
         await CheckSoftBank("softbank:rental.com/user1-account/primary", "user1@rental.com", 100.00m);
         await CheckSoftBank("softbank:outlook.com/user2-account/primary", "user2@outlook.com", 2000.00m);
 
+        var sw = Stopwatch.StartNew();
         for (int i = 0; i < 12; i++)
         {
             DateTime postedDate = startDate.AddMonths(i + 1);
@@ -134,6 +136,9 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
             loanReportModel.LedgerItems.Should().NotBeNull();
             loanReportModel.LedgerItems.Count.Should().Be(i + 1);
         }
+
+        sw.Stop();
+        var duration = sw.Elapsed;
     }
 
     private async Task CreateAccount(DateTime startDate, string contractId, string ownerId)
