@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using SoftBank.sdk.Application;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.Application;
+using Toolbox.Azure.Extensions;
 using Toolbox.Extensions;
 
 [assembly: InternalsVisibleTo("SpinClusterApi.test")]
@@ -41,9 +42,10 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
         {
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-            services.AddApplicationInsightsTelemetry();
+            services.AddApplicationInsightsTelemetry(config => config.EnableAdaptiveSampling = false);
 
             services.AddSpinApi();
+            services.AddMetricApplicationInsight();
             services.AddHealthChecks();
         });
 

@@ -45,7 +45,7 @@ public class ConfigActor : Grain, IConfigActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting config, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists)return StatusCode.NotFound;
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         await _state.ClearStateAsync();
         return StatusCode.OK;

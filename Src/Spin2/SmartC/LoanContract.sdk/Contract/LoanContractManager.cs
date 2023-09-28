@@ -107,17 +107,35 @@ public class LoanContractManager
         context = context.With(_logger);
         context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
 
-        var loanDetailOption = await GetLoanDetail(contractId, principalId, context);
+        var query = new ContractQuery
+        {
+            PrincipalId = principalId,
+            BlockTypes = new[]
+            {
+                new QueryBlockType { BlockType = typeof(LoanDetail).GetTypeName(), LatestOnly = true },
+                new QueryBlockType { BlockType = typeof(LoanLedgerItem).GetTypeName(), LatestOnly = false },
+            }.ToArray(),
+        };
+
+        Option<ContractQueryResponse> data = await _contractClient.Query(contractId, query, context);
+        if (data.IsError()) return data.ToOptionStatus<LoanReportModel>();
+
+        var loanDetailOption = data.Return().GetSingle<LoanDetail>();
         if (loanDetailOption.IsError()) return loanDetailOption.ToOptionStatus<LoanReportModel>();
 
-        var ledgerItemsOption = await GetLedgerItems(contractId, principalId, context);
-        if (ledgerItemsOption.IsError()) return ledgerItemsOption.ToOptionStatus<LoanReportModel>();
+        IReadOnlyList<LoanLedgerItem> ledgerItems = data.Return().GetItems<LoanLedgerItem>();
+
+        //var loanDetailOption = await GetLoanDetail(contractId, principalId, context);
+        //if (loanDetailOption.IsError()) return loanDetailOption.ToOptionStatus<LoanReportModel>();
+
+        //var ledgerItemsOption = await GetLedgerItems(contractId, principalId, context);
+        //if (ledgerItemsOption.IsError()) return ledgerItemsOption.ToOptionStatus<LoanReportModel>();
 
         var result = new LoanReportModel
         {
             ContractId = contractId,
             LoanDetail = loanDetailOption.Return(),
-            LedgerItems = ledgerItemsOption.Return(),
+            LedgerItems = ledgerItems,
         };
 
         return result;
@@ -142,42 +160,5 @@ public class LoanContractManager
         if (appendResult.IsError()) return appendResult;
 
         return StatusCode.OK;
-    }
-
-    private async Task<Option<LoanDetail>> GetLoanDetail(string contractId, string principalId, ScopeContext context)
-    {
-        var query = ContractQuery.CreateQuery<LoanDetail>(principalId, true);
-
-        Option<IReadOnlyList<DataBlock>> loanDetail = await _contractClient.Query(contractId, query, context);
-        if (loanDetail.IsError()) return loanDetail.ToOptionStatus<LoanDetail>();
-        loanDetail.Return().Assert(x => x.Count == 1, x => "return row count is invalid");
-
-        LoanDetail model = loanDetail.Return().First().ToObject<LoanDetail>();
-
-        var v = model.Validate();
-        if (v.IsError()) return v.ToOptionStatus<LoanDetail>();
-
-        return model;
-    }
-
-    private async Task<Option<IReadOnlyList<LoanLedgerItem>>> GetLedgerItems(string contractId, string principalId, ScopeContext context)
-    {
-        var query = ContractQuery.CreateQuery<LoanLedgerItem>(principalId, false);
-
-        Option<IReadOnlyList<DataBlock>> data = await _contractClient.Query(contractId, query, context);
-        if (data.IsError()) return data.ToOptionStatus<IReadOnlyList<LoanLedgerItem>>();
-
-        var ledgerItems = data.Return()
-            .Select(x => x.ToObject<LoanLedgerItem>())
-            .ToArray();
-
-        var v = ledgerItems
-            .Select(x => x.Validate())
-            .SkipWhile(x => x.IsOk())
-            .FirstOrDefault(StatusCode.OK);
-
-        if (v.IsError()) return v.ToOptionStatus<IReadOnlyList<LoanLedgerItem>>();
-
-        return ledgerItems;
     }
 }

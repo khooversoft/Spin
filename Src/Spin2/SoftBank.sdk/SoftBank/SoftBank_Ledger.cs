@@ -36,18 +36,12 @@ internal class SoftBank_Ledger
 
         IContractActor contract = _parent.GetContractActor();
 
-        var query = new ContractQuery
-        {
-            PrincipalId = principalId,
-            BlockType = typeof(SbLedgerItem).GetTypeName(),
-        };
+        var query = ContractQuery.CreateQuery<SbLedgerItem>(principalId);
 
-        Option<IReadOnlyList<DataBlock>> queryOption = await contract.Query(query, context.TraceId);
+        Option<ContractQueryResponse> queryOption = await contract.Query(query, context.TraceId);
         if (queryOption.IsError()) return queryOption.ToOptionStatus<IReadOnlyList<SbLedgerItem>>();
 
-        IReadOnlyList<SbLedgerItem> list = queryOption.Return()
-            .Select(x => x.ToObject<SbLedgerItem>())
-            .ToArray();
+        IReadOnlyList<SbLedgerItem> list = queryOption.Return().GetItems<SbLedgerItem>();
 
         return list.ToOption();
     }

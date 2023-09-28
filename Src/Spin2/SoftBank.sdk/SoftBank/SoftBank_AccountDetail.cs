@@ -36,23 +36,14 @@ internal class SoftBank_AccountDetail
 
         IContractActor contract = _parent.GetContractActor();
 
-        var query = new ContractQuery
-        {
-            PrincipalId = principalId,
-            BlockType = typeof(SbAccountDetail).GetTypeName(),
-            LatestOnly = true,
-        };
+        var query = ContractQuery.CreateQuery<SbAccountDetail>(principalId, true);
 
-        Option<IReadOnlyList<DataBlock>> queryOption = await contract.Query(query, context.TraceId);
+        Option<ContractQueryResponse> queryOption = await contract.Query(query, context.TraceId);
         if (queryOption.IsError()) return queryOption.ToOptionStatus<SbAccountDetail>();
 
-        IReadOnlyList<SbAccountDetail> list = queryOption.Return()
-            .Select(x => x.ToObject<SbAccountDetail>())
-            .ToArray();
+        Option<SbAccountDetail> response = queryOption.Return().GetSingle<SbAccountDetail>();
+        if (response.IsNoContent()) return StatusCode.NotFound;
 
-        if (list.Count != 1) return StatusCode.NotFound;
-
-        SbAccountDetail accountDetail = list.First();
-        return accountDetail;
+        return response.Return();
     }
 }

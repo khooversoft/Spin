@@ -57,7 +57,6 @@ public class ContractConnector
 
     private async Task<IResult> Create(ContractCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        if (model.Validate().IsError()) return Results.BadRequest();
         if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client.GetResourceGrain<IContractActor>(model.DocumentId).Create(model, traceId);
@@ -67,26 +66,20 @@ public class ContractConnector
     private async Task<IResult> Query(string documentId, ContractQuery model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         documentId = Uri.UnescapeDataString(documentId);
+        if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        var test = new OptionTest()
-            .Test(() => IdPatterns.IsContractId(documentId))
-            .Test(() => model.Validate());
-        if (test.IsError()) return test.Option.ToResult();
-
-        Option<IReadOnlyList<DataBlock>> response = await _client.GetResourceGrain<IContractActor>(documentId).Query(model, traceId);
+        Option<ContractQueryResponse> response = await _client.GetResourceGrain<IContractActor>(documentId).Query(model, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> Append(string documentId, DataBlock content, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Append(string documentId, DataBlock model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         documentId = Uri.UnescapeDataString(documentId);
+        if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest();
+        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        var test = new OptionTest()
-            .Test(() => IdPatterns.IsContractId(documentId))
-            .Test(() => content.Validate());
-        if (test.IsError()) return test.Option.ToResult();
-
-        Option response = await _client.GetResourceGrain<IContractActor>(documentId).Append(content, traceId);
+        Option response = await _client.GetResourceGrain<IContractActor>(documentId).Append(model, traceId);
         return response.ToResult();
     }
 
@@ -97,11 +90,8 @@ public class ContractConnector
         )
     {
         documentId = Uri.UnescapeDataString(documentId);
-
-        var test = new OptionTest()
-            .Test(() => IdPatterns.IsContractId(documentId))
-            .Test(() => IdPatterns.IsPrincipalId(principalId));
-        if (test.IsError()) return test.Option.ToResult();
+        if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest("Invalid documentId");
+        if (!IdPatterns.IsPrincipalId(principalId)) return Results.BadRequest("Invalid principalId");
 
         Option<ContractPropertyModel> response = await _client.GetResourceGrain<IContractActor>(documentId).GetProperties(principalId, traceId);
         return response.ToResult();

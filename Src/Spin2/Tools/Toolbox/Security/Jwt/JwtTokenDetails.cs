@@ -17,8 +17,8 @@ public class JwtTokenDetails
 
         JwtSecurityToken = jwtSecurityToken;
 
-        NotBefore = ConvertTo(jwtSecurityToken?.Payload?.Nbf);
-        ExpiresDate = ConvertTo(jwtSecurityToken?.Payload?.Exp);
+        NotBefore = ConvertTo(jwtSecurityToken?.Payload?.NotBefore);
+        ExpiresDate = ConvertTo(jwtSecurityToken?.Payload?.Expiration);
 
         Digest = jwtSecurityToken!.Claims
             .Where(x => x.Type == JwtStandardClaimNames.DigestName)
@@ -90,5 +90,5 @@ public class JwtTokenDetails
     /// </summary>
     public IReadOnlyList<Claim> Claims { get; }
 
-    private DateTime? ConvertTo(int? value) => value == null ? null : new UnixDate((long)value).DateTime;
+    private DateTime? ConvertTo(long? value) => value == null ? null : new UnixDate((long)value).DateTime;
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Contract;
-using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -41,9 +40,9 @@ internal class DumpContract
         context.Trace().LogTrace("Dumping contract {contractId}", contractId);
         if (result.IsError()) return;
 
-        IReadOnlyList<DataBlock> list = result.Return();
+        ContractQueryResponse response = result.Return();
 
-        foreach (var item in list)
+        foreach (var item in response.Items)
         {
             string line = item.GetConfigurationValues()
                 .Select(x => x switch

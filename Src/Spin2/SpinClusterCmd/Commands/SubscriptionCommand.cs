@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.CommandLine;
 using SpinClusterCmd.Activities;
 
 namespace SpinClusterCmd.Commands;
@@ -13,7 +8,7 @@ internal class SubscriptionCommand : Command
     private readonly Subscription _subscription;
 
     public SubscriptionCommand(Subscription subscription) : base("subscription", "Subscription management")
-{
+    {
         _subscription = subscription;
 
         AddCommand(Delete());

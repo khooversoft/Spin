@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinClusterCmd.Application;
 using Toolbox.Extensions;
@@ -18,7 +13,7 @@ internal class Tenant
     private readonly ILogger<Tenant> _logger;
 
     public Tenant(TenantClient client, ILogger<Tenant> logger)
-{
+    {
         _client = client.NotNull();
         _logger = logger.NotNull();
     }

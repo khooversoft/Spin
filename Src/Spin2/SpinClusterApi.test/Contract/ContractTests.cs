@@ -92,8 +92,8 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
         };
 
         var blocks = await contractClient.Query(contractId, query, _context);
-        blocks.IsOk().Should().BeTrue();
-        blocks.Return().Count.Should().Be(1);
+        blocks.IsOk().Should().BeTrue(blocks.ToString());
+        blocks.Return().Items.Count.Should().Be(1);
 
         // Add blocks
         const string blockType = "ledger";
@@ -119,7 +119,8 @@ public class ContractTests : IClassFixture<ClusterApiFixture>
 
         var blocks2 = await contractClient.Query(contractId, query, _context);
         blocks2.IsOk().Should().BeTrue();
-        blocks2.Return().Count.Should().Be(4);
+        blocks2.Return().Items.Count.Should().Be(2);
+        blocks2.Return().Items.Select(x => x.DataBlocks.Count).Sum().Should().Be(4);
 
         var properties = await contractClient.GetProperties(contractId, principalId, _context);
         properties.IsOk().Should().BeTrue();

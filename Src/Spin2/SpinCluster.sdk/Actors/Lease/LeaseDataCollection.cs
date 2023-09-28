@@ -28,7 +28,7 @@ public class LeaseDataCollection
     };
 
     public bool Remove(string leaseKey) => Leases.Remove(leaseKey);
-  
+
     public Option TryAdd(LeaseData leaseData)
     {
         if (Leases.TryGetValue(leaseData.LeaseKey, out var v) && !v.IsActive()) return (StatusCode.Conflict, "Lease key is already active");

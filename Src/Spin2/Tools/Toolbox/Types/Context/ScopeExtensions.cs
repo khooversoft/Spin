@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
+﻿using Microsoft.Extensions.Logging;
 
 namespace Toolbox.Types;
 
@@ -98,22 +96,23 @@ public static class ScopeExtensions
         context.Context.Logger.LogTrace(message, newObjects);
     }
 
-    public static IDisposable LogEntryExit(this ScopeContextLocation context, string? message = null, params object?[] args)
-    {
-        log("ScopeEnter", message, args);
 
-        //var sw = Stopwatch.StartNew();
+    //public static IDisposable LogEntryExit(this ScopeContextLocation context, string? message = null, params object?[] args)
+    //{
+    //    log("ScopeEnter", message, args);
 
-        return new FinalizeScope<ScopeContextLocation>(context, x =>
-        {
-            log("ScopeExit", message, args);
-        });
+    //    //var sw = Stopwatch.StartNew();
 
-        void log(string header, string? message, object?[] args)
-        {
-            message = context.Formatter.ConstructMessage($"[{header}] " + message);
-            object[] newObjects = context.Formatter.AddContext(args, context);
-            context.Context.Logger.LogTrace(message, newObjects);
-        }
-    }
+    //    return new FinalizeScope<ScopeContextLocation>(context, x =>
+    //    {
+    //        log("ScopeExit", message, args);
+    //    });
+
+    //    void log(string header, string? message, object?[] args)
+    //    {
+    //        message = context.Formatter.ConstructMessage($"[{header}] " + message);
+    //        object[] newObjects = context.Formatter.AddContext(args, context);
+    //        context.Context.Logger.LogTrace(message, newObjects);
+    //    }
+    //}
 }

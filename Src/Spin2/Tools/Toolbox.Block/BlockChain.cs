@@ -122,6 +122,7 @@ public sealed class BlockChain
         return result;
     }
 
+
     public Option HasAccess(string principalId, BlockGrant grant, string blockType)
     {
         var hasOwnerAccess = HasAccess(principalId, BlockRoleGrant.Owner);

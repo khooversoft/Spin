@@ -14,15 +14,22 @@ public static class BlockChainExtensions
 
         bool authorized = blockType switch
         {
-            string v => blockChain.HasAccess(principalId, BlockGrant.Read, v).IsOk(),
+            string v => v.Split(';').All(x => blockChain.HasAccess(principalId, BlockGrant.Read, x).IsOk()),
             _ => blockChain.HasAccess(principalId, BlockRoleGrant.Owner).IsOk(),
         };
 
         if (!authorized) return StatusCode.Forbidden;
 
-        IEnumerable<DataBlock> filter = blockChain.Blocks
-            .Select(x => x.DataBlock)
-            .Where(x => blockType == null || x.BlockType == blockType);
+        IEnumerable<DataBlock> filter = blockType switch
+        {
+            string v => v.Split(';')
+                .Join(blockChain.Blocks, x => x, x => x.DataBlock.BlockType, (o, i) => i.DataBlock)
+                .ToArray(),
+
+            null => blockChain.Blocks
+                .Select(x => x.DataBlock)
+                .ToArray()
+        };
 
         return filter.ToOption();
     }
@@ -56,5 +63,17 @@ public static class BlockChainExtensions
             0 => new Option(StatusCode.OK),
             _ => new Option(StatusCode.Conflict, list.Join(", ")),
         };
+    }
+
+    public static bool HasAccess(this BlockChain subject, string principalId, BlockGrant grant, string blockType, out Option result)
+    {
+        result = subject.HasAccess(principalId, grant, blockType);
+        return result.IsOk();
+    }
+
+    public static bool HasAccess(this BlockChain subject, string principalId, BlockRoleGrant grant, out Option result)
+    {
+        result = subject.HasAccess(principalId, grant);
+        return result.IsOk();
     }
 }
