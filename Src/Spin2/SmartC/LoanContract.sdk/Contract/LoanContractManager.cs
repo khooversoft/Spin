@@ -1,5 +1,7 @@
 ﻿using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
+using SoftBank.sdk.Models;
+using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.Signature;
@@ -16,11 +18,13 @@ public class LoanContractManager
     private readonly ContractClient _contractClient;
     private readonly ILogger<LoanContractManager> _logger;
     private readonly SignatureClient _signatureClient;
+    private readonly SoftBankTrxClient _softBankTrxClient;
 
-    public LoanContractManager(ContractClient contractClient, SignatureClient signatureClient, ILogger<LoanContractManager> logger)
+    public LoanContractManager(ContractClient contractClient, SignatureClient signatureClient, SoftBankTrxClient softBankTrxClient, ILogger<LoanContractManager> logger)
     {
         _contractClient = contractClient.NotNull();
         _signatureClient = signatureClient.NotNull();
+        _softBankTrxClient = softBankTrxClient.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -33,46 +37,6 @@ public class LoanContractManager
 
         return await Append(ledgerItem, ledgerItem.ContractId, ledgerItem.OwnerId, context);
     }
-
-    public async Task<Option> PostInterestCharge(string contractId, string principalId, DateTime postedDate, ScopeContext context)
-    {
-        context = context.With(_logger);
-        context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
-
-        var reportOption = await GetReport(contractId, principalId, context);
-        if (reportOption.IsError()) return reportOption.ToOptionStatus();
-
-        LoanReportModel report = reportOption.Return();
-
-        var detail = new InterestChargeDetail
-        {
-            Principal = report.GetPrincipalAmount(),
-            APR = report.LoanDetail.APR,
-            NumberOfDays = (int)Math.Round(calculateNumberOfDays(report), 0, MidpointRounding.AwayFromZero),
-        };
-
-        decimal interestCharge = AmortizedLoanTool.CalculateInterestCharge(detail);
-
-        var ledgerItem = new LoanLedgerItem
-        {
-            Timestamp = postedDate,
-            ContractId = contractId,
-            OwnerId = principalId,
-            Description = "Interest charge",
-            Type = LoanLedgerType.Debit,
-            TrxType = LoanTrxType.InterestCharge,
-            Amount = interestCharge,
-        };
-
-        return await AddLedgerItem(ledgerItem, context);
-
-        double calculateNumberOfDays(LoanReportModel report) => report.LedgerItems switch
-        {
-            { Count: 0 } => (postedDate - report.LoanDetail.FirstPaymentDate).TotalDays,
-            var v => (postedDate - v.Max(x => x.Timestamp)).TotalDays,
-        };
-    }
-
     public async Task<Option> Create(LoanAccountDetail detail, ScopeContext context)
     {
         context = context.With(_logger);
@@ -107,15 +71,11 @@ public class LoanContractManager
         context = context.With(_logger);
         context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
 
-        var query = new ContractQuery
-        {
-            PrincipalId = principalId,
-            BlockTypes = new[]
-            {
-                new QueryBlockType { BlockType = typeof(LoanDetail).GetTypeName(), LatestOnly = true },
-                new QueryBlockType { BlockType = typeof(LoanLedgerItem).GetTypeName(), LatestOnly = false },
-            }.ToArray(),
-        };
+        var query = new ContractQueryBuilder()
+            .SetPrincipalId(principalId)
+            .Add<LoanDetail>(true)
+            .Add<LoanLedgerItem>(false)
+            .Build();
 
         Option<ContractQueryResponse> data = await _contractClient.Query(contractId, query, context);
         if (data.IsError()) return data.ToOptionStatus<LoanReportModel>();
@@ -123,22 +83,117 @@ public class LoanContractManager
         var loanDetailOption = data.Return().GetSingle<LoanDetail>();
         if (loanDetailOption.IsError()) return loanDetailOption.ToOptionStatus<LoanReportModel>();
 
-        IReadOnlyList<LoanLedgerItem> ledgerItems = data.Return().GetItems<LoanLedgerItem>();
-
-        //var loanDetailOption = await GetLoanDetail(contractId, principalId, context);
-        //if (loanDetailOption.IsError()) return loanDetailOption.ToOptionStatus<LoanReportModel>();
-
-        //var ledgerItemsOption = await GetLedgerItems(contractId, principalId, context);
-        //if (ledgerItemsOption.IsError()) return ledgerItemsOption.ToOptionStatus<LoanReportModel>();
-
         var result = new LoanReportModel
         {
             ContractId = contractId,
             LoanDetail = loanDetailOption.Return(),
-            LedgerItems = ledgerItems,
+            LedgerItems = data.Return().GetItems<LoanLedgerItem>(),
         };
 
+        result = result with { BalanceItems = result.BuildBalance() };
         return result;
+    }
+
+    public async Task<Option> PostInterestCharge(string contractId, string principalId, DateTime postedDate, ScopeContext context)
+    {
+        context = context.With(_logger);
+        context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
+
+        var reportOption = await GetReport(contractId, principalId, context);
+        if (reportOption.IsError()) return reportOption.ToOptionStatus();
+        LoanReportModel report = reportOption.Return();
+
+        int numberOfDays = report.NumberOfDays(LoanTrxType.InterestCharge, postedDate);
+        if (numberOfDays <= 0) return StatusCode.OK;
+
+        var detail = new InterestChargeDetail
+        {
+            Principal = report.GetPrincipalAmount(),
+            APR = report.LoanDetail.APR,
+            NumberOfDays = numberOfDays,
+        };
+
+        decimal interestCharge = AmortizedLoanTool.CalculateInterestCharge(detail);
+
+        var ledgerItem = new LoanLedgerItem
+        {
+            PostedDate = postedDate,
+            ContractId = contractId,
+            OwnerId = principalId,
+            Description = "Interest charge",
+            Type = LoanLedgerType.Debit,
+            TrxType = LoanTrxType.InterestCharge,
+            Amount = interestCharge,
+        };
+        ledgerItem.Validate().ThrowOnError("Invalid loan ledger");
+
+        return await AddLedgerItem(ledgerItem, context);
+    }
+
+    public async Task<Option> MakePayment(string contractId, string principalId, DateTime postedDate, decimal paymentAmount, string reference, ScopeContext context)
+    {
+        paymentAmount.Assert(x => x >= 0.0m, x => $"{x} not valid");
+        context = context.With(_logger);
+        context.Location().LogInformation("Posting payment, contractId={contractId}, postedDate={postedDate}", contractId, postedDate);
+
+        var interestOption = await PostInterestCharge(contractId, principalId, postedDate, context);
+        if (interestOption.IsError()) return interestOption;
+
+        var reportOption = await GetReport(contractId, principalId, context);
+        if (reportOption.IsError()) return reportOption.ToOptionStatus();
+        LoanReportModel report = reportOption.Return();
+
+        var trxRequest = new TrxRequest
+        {
+            PrincipalId = principalId,
+            AccountID = report.LoanDetail.OwnerSoftBankId,
+            PartyAccountId = report.LoanDetail.PartySoftBankId,
+            Description = "Manager payment",
+            Type = TrxType.Pull,
+            Amount = paymentAmount,
+            Tags = new Tags().Set(nameof(reference), reference).ToString(),
+        };
+        trxRequest.Validate().ThrowOnError("TrxRequest not valid");
+
+        Option<TrxResponse> trxResponse = await _softBankTrxClient.Request(trxRequest, context);
+        if (trxResponse.IsError())
+        {
+            context.Location().LogError("Failed to make payment, contractId={contractId}, postedDate={postedDate}, trxResponse={trxResponse}, statusCode={statusCode}, error={error}",
+                contractId, postedDate, trxResponse.Return(), trxResponse.StatusCode, trxResponse.Error);
+
+            return trxResponse.ToOptionStatus();
+        }
+
+        return await PostPayment(contractId, principalId, postedDate, paymentAmount, reference, context);
+    }
+
+    private async Task<Option> PostPayment(string contractId, string principalId, DateTime postedDate, decimal paymentAmount, string reference, ScopeContext context)
+    {
+        context = context.With(_logger);
+        context.Location().LogInformation("Posting payment, contractId={contractId}", contractId);
+
+        var ledgerItem = new LoanLedgerItem
+        {
+            PostedDate = postedDate,
+            ContractId = contractId,
+            OwnerId = principalId,
+            Description = "Payment",
+            Type = LoanLedgerType.Credit,
+            TrxType = LoanTrxType.Payment,
+            Amount = paymentAmount,
+            Tags = new Tags().Set(nameof(reference), reference).ToString(),
+        };
+        ledgerItem.Validate().ThrowOnError("Invalid loan ledger");
+
+        var addOption = await AddLedgerItem(ledgerItem, context);
+        if (addOption.IsError())
+        {
+            context.Location().LogError("Failed to post payment, contractId={contractId}, postedDate={postedDate}", contractId, postedDate);
+            return addOption;
+        }
+
+        context.Location().LogInformation("Posted payment, contractId={contractId}, postedDate={postedDate}", contractId, postedDate);
+        return StatusCode.OK;
     }
 
     public async Task<Option> SetLoanDetail(LoanDetail loanDetail, ScopeContext context)

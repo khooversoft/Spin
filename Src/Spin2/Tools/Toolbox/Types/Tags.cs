@@ -32,14 +32,5 @@ public class Tags : Dictionary<string, string?>
     public static bool operator ==(Tags? left, Tags? right) => EqualityComparer<Tags>.Default.Equals(left, right);
     public static bool operator !=(Tags? left, Tags? right) => !(left == right);
 
-    public static Tags Parse(string? subject)
-    {
-        var newTags = new Tags();
-        if (subject.IsEmpty()) return newTags;
-
-        var keyValuePairs = subject.ToDictionary();
-        keyValuePairs.ForEach(x => newTags[x.Key] = x.Value);
-
-        return newTags;
-    }
+    public static Tags Parse(string? subject) => new Tags().Set(subject);
 }

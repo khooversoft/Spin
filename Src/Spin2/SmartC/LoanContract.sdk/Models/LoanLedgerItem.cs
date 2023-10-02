@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Application;
+﻿using System.Diagnostics;
+using SpinCluster.sdk.Application;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -14,12 +15,14 @@ public enum LoanTrxType
 {
     Payment = 1,
     InterestCharge = 2,
+    PrincipalCharge = 3,
 }
 
+[DebuggerDisplay("Type={Type}, TrxType={TrxType}, Amount={Amount}, Description={Description}")]
 public record LoanLedgerItem
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime PostedDate { get; init; } = DateTime.UtcNow;
     public string ContractId { get; init; } = null!;
     public string OwnerId { get; init; } = null!;
     public string Description { get; init; } = null!;
@@ -27,18 +30,23 @@ public record LoanLedgerItem
     public LoanTrxType TrxType { get; init; }
     public decimal Amount { get; init; }
     public string? Tags { get; init; }
+    public DateTime CreateDate { get; init; } = DateTime.UtcNow;
 
     public decimal NaturalAmount => Type.NaturalAmount(Amount);
 
     public static IValidator<LoanLedgerItem> Validator { get; } = new Validator<LoanLedgerItem>()
         .RuleFor(x => x.Id).NotEmpty()
+        .RuleFor(x => x.PostedDate).ValidDateTime()
         .RuleFor(x => x.ContractId).ValidResourceId(ResourceType.DomainOwned, SpinConstants.Schema.Contract)
+        .RuleFor(x => x.OwnerId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.Description).NotEmpty()
         .RuleFor(x => x.Type).ValidEnum()
         .RuleFor(x => x.TrxType).ValidEnum()
         .RuleFor(x => x.Amount).Must(x => x >= 0, x => $"{x} must be greater then or equal 0")
+        .RuleFor(x => x.CreateDate).ValidDateTime()
         .Build();
 }
+
 
 public static class LedgerItemModelExtensions
 {

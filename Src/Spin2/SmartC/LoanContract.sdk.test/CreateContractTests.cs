@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using FluentAssertions;
+﻿using FluentAssertions;
 using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
@@ -8,11 +7,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SpinTestTools.sdk.ObjectBuilder;
+using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
 using Toolbox.Types;
 
 namespace LoanContract.sdk.test;
 
+[Collection("config-Test")]
 public class CreateContractTests : IClassFixture<ClusterApiFixture>
 {
     private readonly ClusterApiFixture _cluster;
@@ -122,7 +123,6 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
         await CheckSoftBank("softbank:rental.com/user1-account/primary", "user1@rental.com", 100.00m);
         await CheckSoftBank("softbank:outlook.com/user2-account/primary", "user2@outlook.com", 2000.00m);
 
-        var sw = Stopwatch.StartNew();
         for (int i = 0; i < 12; i++)
         {
             DateTime postedDate = startDate.AddMonths(i + 1);
@@ -137,8 +137,24 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
             loanReportModel.LedgerItems.Count.Should().Be(i + 1);
         }
 
-        sw.Stop();
-        var duration = sw.Elapsed;
+        LoanReportModel finalReport = await manager.GetReport(contractId, ownerId, _context).Return();
+        finalReport.LedgerItems.Count.Should().Be(12);
+
+        var testSet = new decimal[]
+        {
+            -42.47m, -38.52m, -42.81m, -41.60m, -43.17m, -41.95m,
+            -43.53m, -43.71m, -42.48m, -44.08m, -42.84m, -44.45m,
+        };
+
+        finalReport.LedgerItems.WithIndex().ForEach(x =>
+        {
+            x.Item.ContractId.Should().Be(contractId);
+            x.Item.OwnerId.Should().Be(ownerId);
+            x.Item.Description.Should().Be("Interest charge");
+            x.Item.Type.Should().Be(LoanLedgerType.Debit);
+            x.Item.TrxType.Should().Be(LoanTrxType.InterestCharge);
+            x.Item.NaturalAmount.Should().Be(testSet[x.Index]);
+        });
     }
 
     private async Task CreateAccount(DateTime startDate, string contractId, string ownerId)

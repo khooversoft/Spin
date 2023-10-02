@@ -19,7 +19,6 @@ public record LeaseData
         .RuleFor(x => x.LeaseKey).NotEmpty()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.TimeToLive).Must(x => x.TotalSeconds > 0, _ => "Invalid time to live")
-        .RuleFor(x => x.Tags).ValidTags()
         .Build();
 }
 

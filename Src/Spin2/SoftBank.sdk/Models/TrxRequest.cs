@@ -35,6 +35,7 @@ public sealed record TrxRequest
     [Id(5)] public string Description { get; init; } = null!;
     [Id(6)] public TrxType Type { get; init; }
     [Id(7)] public decimal Amount { get; set; }
+    [Id(8)] public string? Tags { get; init; }
 }
 
 public static class TrxRequestValidator

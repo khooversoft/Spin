@@ -23,7 +23,6 @@ public static class FileBlockValidator
         .RuleFor(x => x.FileId).NotEmpty()
         .RuleFor(x => x.FileType).ValidName()
         .RuleFor(x => x.Content).NotNull("No content").Must(x => x.Length > 0, _ => "Size error")
-        .RuleFor(x => x.Tags).ValidTags()
         .Build();
 }
 

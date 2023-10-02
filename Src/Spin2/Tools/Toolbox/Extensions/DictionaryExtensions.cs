@@ -18,10 +18,8 @@ public static class DictionaryExtensions
 
         return subject
             .Split(propertyDelimiter, StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => GetKeyValue(x).Return())
+            .Select(x => GetKeyValue(x, valueDelimiter).Return())
             .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
-
-
     }
 
     public static string ToDictionaryString(this IEnumerable<KeyValuePair<string, string?>> values) => (values ?? Array.Empty<KeyValuePair<string, string?>>())

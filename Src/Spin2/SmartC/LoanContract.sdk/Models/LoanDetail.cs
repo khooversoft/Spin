@@ -32,6 +32,7 @@ public sealed record LoanDetail
         .RuleFor(x => x.APR).Must(x => x > 0.0, x => $"{x} must be greater then 0.0")
         .RuleFor(x => x.NumberPayments).Must(x => x > 0, x => $"{x} must be greater then 0")
         .RuleFor(x => x.PaymentsPerYear).Must(x => x > 0, x => $"{x} must be greater then 0")
+        .RuleFor(x => x.PaymentsPerYear).Must(x => x <= 365, x => $"{x} cannot be greater then 365")
         .RuleFor(x => x.PartyPrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.PartySoftBankId).ValidResourceId(ResourceType.DomainOwned, SoftBankConstants.Schema.SoftBankSchema)
         .RuleFor(x => x.CreatedDate).ValidDateTime()
