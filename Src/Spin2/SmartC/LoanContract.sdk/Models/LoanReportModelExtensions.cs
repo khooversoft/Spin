@@ -1,6 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Finance.Finance;
-using Toolbox.Types;
+﻿using Toolbox.Finance.Finance;
 
 namespace LoanContract.sdk.Models;
 

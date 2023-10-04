@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 
 namespace SpinCluster.sdk.Serialization;
 
@@ -26,7 +21,7 @@ public sealed class DataObjectSet_SurrogateConverter : IConverter<DataObjectSet,
 
     public DataObjectSet_Surrogate ConvertToSurrogate(in DataObjectSet value) => new DataObjectSet_Surrogate
     {
-        Items  = value.Items
+        Items = value.Items
             ?.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase) ??
             new Dictionary<string, DataObject>(StringComparer.OrdinalIgnoreCase)
     };

@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Extensions;
 
 namespace SpinCluster.sdk.Actors.ScheduleWork;
 
@@ -75,7 +70,7 @@ public class ScheduleWorkConnection
     private async Task<IResult> Delete(string workId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         workId = Uri.UnescapeDataString(workId);
-        if( !ResourceId.IsValid(workId, ResourceType.System, SpinConstants.Schema.ScheduleWork)) Results.BadRequest("Invalid workId");
+        if (!ResourceId.IsValid(workId, ResourceType.System, SpinConstants.Schema.ScheduleWork)) Results.BadRequest("Invalid workId");
 
         Option response = await _client
             .GetResourceGrain<IScheduleWorkActor>(workId)
@@ -87,7 +82,7 @@ public class ScheduleWorkConnection
     private async Task<IResult> Get(string workId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         workId = Uri.UnescapeDataString(workId);
-        if( !ResourceId.IsValid(workId, ResourceType.System, SpinConstants.Schema.ScheduleWork)) Results.BadRequest("Invalid workId");
+        if (!ResourceId.IsValid(workId, ResourceType.System, SpinConstants.Schema.ScheduleWork)) Results.BadRequest("Invalid workId");
 
         Option<ScheduleWorkModel> response = await _client
             .GetResourceGrain<IScheduleWorkActor>(workId)

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
