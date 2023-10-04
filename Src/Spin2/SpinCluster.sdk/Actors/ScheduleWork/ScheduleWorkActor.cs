@@ -1,0 +1,206 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Orleans.Runtime;
+using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Application;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace SpinCluster.sdk.Actors.ScheduleWork;
+
+public interface IScheduleWorkActor : IGrainWithStringKey
+{
+    Task<Option> AddRunResult(RunResultModel runResult, string traceId);
+    Task<Option<WorkAssignedModel>> Assign(string agentId, string traceId);
+    Task<Option> CompletedWork(AssignedCompleted completed, string traceId);
+    Task<Option> Create(ScheduleCreateModel work, string traceId);
+    Task<Option> Delete(string traceId);
+    Task<Option> Exist(string traceId);
+    Task<Option<ScheduleWorkModel>> Get(string traceId);
+}
+
+
+public class ScheduleWorkActor : Grain, IScheduleWorkActor
+{
+    private readonly IPersistentState<ScheduleWorkModel> _state;
+    private readonly IClusterClient _clusterClient;
+    private readonly ILogger<ScheduleWorkActor> _logger;
+
+    public ScheduleWorkActor(
+        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<ScheduleWorkModel> state,
+        IClusterClient clusterClient,
+        ILogger<ScheduleWorkActor> logger
+        )
+    {
+        _state = state.NotNull();
+        _clusterClient = clusterClient.NotNull();
+        _logger = logger.NotNull();
+    }
+
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        this.VerifySchema(SpinConstants.Schema.ScheduleWork, new ScopeContext(_logger));
+
+        ValidateActorKey();
+        ValidateModel();
+
+        return base.OnActivateAsync(cancellationToken);
+    }
+
+    public async Task<Option> AddRunResult(RunResultModel runResult, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Add run result, actorKey={actorKey}, runResult={runResult}", this.GetPrimaryKeyString(), runResult);
+
+        if (!_state.RecordExists) return (StatusCode.NotFound, "No schedules exist");
+        if (_state.State.WorkId.ToLower() != this.GetPrimaryKeyString())
+        {
+            return (StatusCode.Conflict, $"WorkId={_state.State.WorkId} does not match actorKey={this.GetPrimaryKeyString()}");
+        }
+
+        if (!runResult.Validate(out var v)) return v;
+
+        _state.State = _state.State with
+        {
+            RunResults = (_state.State.RunResults ?? Array.Empty<RunResultModel>())
+                .Append(runResult)
+                .ToArray(),
+        };
+
+        await ValidateAndWrite();
+        return StatusCode.OK;
+    }
+
+    // Not REST published, all calls should be from ScheduleActor
+    public async Task<Option<WorkAssignedModel>> Assign(string agentId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Assigned to agent, actorKey={actorKey}, agentId={agentId}", this.GetPrimaryKeyString(), agentId);
+
+        if (!_state.RecordExists) return (StatusCode.NotFound, "No schedules exist");
+
+        Option stateOption = _state.State.GetState() switch
+        {
+            ScheduleWorkState.Assigned => (StatusCode.Conflict, $"actorKey={this.GetPrimaryKeyString()} already assigned"),
+            ScheduleWorkState.Completed => (StatusCode.ServiceUnavailable, $"actorKey={this.GetPrimaryKeyString()} already completed"),
+            _ => StatusCode.OK,
+        };
+
+        if (stateOption.IsError()) return stateOption.ToOptionStatus<WorkAssignedModel>();
+
+        _state.State = _state.State with
+        {
+            Assigned = new AssignedModel { AgentId = agentId },
+        };
+
+        await ValidateAndWrite();
+
+        var result = new WorkAssignedModel
+        {
+            WorkId = _state.State.WorkId,
+            SmartcId = _state.State.SmartcId,
+            CommandType = _state.State.CommandType,
+            Command = _state.State.Command,
+        };
+
+        return result;
+    }
+
+    public async Task<Option> CompletedWork(AssignedCompleted completed, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Complete scheduled work, actorKey={actorKey}, runResult={runResult}", this.GetPrimaryKeyString(), completed);
+
+        if (!_state.RecordExists) return (StatusCode.NotFound, "No schedules exist");
+        if (!completed.Validate(out var v)) return v;
+        if (_state.State.Assigned == null) return (StatusCode.Conflict, "Not assigned");
+
+        _state.State = _state.State with
+        {
+            Assigned = _state.State.Assigned.NotNull() with
+            {
+                AssignedCompleted = completed,
+            }
+        };
+
+        await ValidateAndWrite();
+
+        // Remove queue in schedule
+        await _clusterClient
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .Completed(completed, context.TraceId);
+
+        return StatusCode.OK;
+    }
+
+    public async Task<Option> Create(ScheduleCreateModel model, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Create schedule work, actorKey={actorKey}, work={work}", this.GetPrimaryKeyString(), model);
+
+        if (_state.RecordExists) return (StatusCode.Conflict, $"Work workId={model.WorkId} already exist");
+        if (!this.VerifyIdentity(model.WorkId, out var v)) return v;
+        if (!model.Validate(out var v2)) return v2;
+
+        _state.State = model.ConvertTo();
+        await _state.WriteStateAsync();
+
+        return StatusCode.OK;
+    }
+
+    public async Task<Option> Delete(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Deleting schedule work, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        if (!_state.RecordExists) return StatusCode.NotFound;
+
+        await _state.ClearStateAsync();
+        return StatusCode.OK;
+    }
+
+    public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+
+    public Task<Option<ScheduleWorkModel>> Get(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Get schedule work, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        var option = _state.RecordExists switch
+        {
+            true => _state.State,
+            false => new Option<ScheduleWorkModel>(StatusCode.NotFound),
+        };
+
+        return option.ToTaskResult();
+    }
+
+    private async Task ValidateAndWrite()
+    {
+        _state.State.Assert(x => x != null, "State is not set");
+        ValidateModel();
+        await _state.WriteStateAsync();
+    }
+
+    private void ValidateActorKey()
+    {
+        string actorKey = this.GetPrimaryKeyString();
+        var result = ResourceId.IsValid(actorKey, ResourceType.System, SpinConstants.Schema.ScheduleWork);
+        result.Assert(x => x == true, x => $"Invalid type and/or schema, {x} does not match schedulework:{{workId}}");
+    }
+
+    private void ValidateModel()
+    {
+        if (!_state.RecordExists) return;
+        if (_state.State.Validate(out var v)) return;
+
+        var context = new ScopeContext(_logger);
+        context.Location().LogStatus(v, "ScheduleModel is not valid on read");
+        throw new InvalidOperationException($"ScheduleModel is not valid on read, error={v.Error}");
+    }
+}

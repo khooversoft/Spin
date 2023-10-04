@@ -4,6 +4,8 @@ using Orleans.Runtime;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Actors.ScheduleWork;
+using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Extensions;
@@ -11,16 +13,14 @@ using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Smartc;
+namespace SpinCluster.sdk.Actors.Scheduler;
 
 public interface ISchedulerActor : IGrainWithStringKey
 {
-    Task<Option> AddRunResult(RunResultModel runResult, string traceId);
-    Task<Option> AddSchedule(ScheduleCreateModel work, string traceId);
-    Task<Option<ScheduleWorkModel>> AssignWork(string agentId, string traceId);
+    Task<Option> CreateSchedule(ScheduleCreateModel work, string traceId);
+    Task<Option<WorkAssignedModel>> AssignWork(string agentId, string traceId);
     Task<Option> Clear(string principalId, string traceId);
-    Task<Option> CompletedWork(AssignedCompleted runResult, string traceId);
-    Task<Option<ScheduleWorkModel>> GetDetail(string workId, string traceId);
+    Task<Option> Completed(AssignedCompleted model, string traceId);
     Task<Option<SchedulesModel>> GetSchedules(string traceId);
 }
 
@@ -53,22 +53,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option> AddRunResult(RunResultModel runResult, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Add run result, actorKey={actorKey}, runResult={runResult}", this.GetPrimaryKeyString(), runResult);
-
-        if (!_state.RecordExists) return (StatusCode.NotFound, "No schedules exist");
-        if (!runResult.Validate(out var v)) return v;
-
-        var result = _state.State.AddRunResult(runResult, context);
-        if (result.IsError()) return result;
-
-        await ValidateAndWrite();
-        return StatusCode.OK;
-    }
-
-    public async Task<Option> AddSchedule(ScheduleCreateModel work, string traceId)
+    public async Task<Option> CreateSchedule(ScheduleCreateModel work, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Schedule work, actorKey={actorKey}, work={work}", this.GetPrimaryKeyString(), work);
@@ -76,44 +61,68 @@ public class SchedulerActor : Grain, ISchedulerActor
         if (!work.Validate(out var v)) return v;
 
         _state.State = _state.RecordExists ? _state.State : new SchedulesModel();
-        _state.State.WorkItems.Add(work.ConvertTo());
 
+        _state.State.Active.Add(new ScheduleEntry { WorkId = work.WorkId });
         await ValidateAndWrite();
-        return StatusCode.OK;
+
+        var createOption = await _clusterClient
+            .GetResourceGrain<IScheduleWorkActor>(work.WorkId)
+            .Create(work, context.TraceId);
+
+        return createOption;
     }
 
-    public async Task<Option<ScheduleWorkModel>> AssignWork(string agentId, string traceId)
+    public async Task<Option<WorkAssignedModel>> AssignWork(string agentId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Get work, actorKey={actorKey}", this.GetPrimaryKeyString());
         if (!_state.RecordExists) return StatusCode.NotFound;
 
-        await CleanQueue(context);
-
         // Verify agent is registered and active
         Option agentLookup = await _clusterClient.GetResourceGrain<IAgentActor>(agentId).IsActive(context.TraceId);
-        if (agentLookup.IsError()) return agentLookup.ToOptionStatus<ScheduleWorkModel>();
+        if (agentLookup.IsError()) return new Option<WorkAssignedModel>(agentLookup.StatusCode, $"agentId={agentId}, " + agentLookup.Error);
 
-        // Is there any work?
-        int index = _state.State
-            .WorkItems
-            .WithIndex()
-            .Where(x => x.Item.Assigned == null)
-            .Select(x => x.Index)
-            .FirstOrDefault(-1);
-
-        if (index == -1) return StatusCode.NotFound;
-
-        _state.State.WorkItems[index] = _state.State.WorkItems[index] with
+        while (true)
         {
-            Assigned = new AssignedModel
-            {
-                AgentId = agentId,
-            },
-        };
+            // Is there any work?
+            int index = _state.State
+                .Active
+                .WithIndex()
+                .Where(x => x.Item.IsAssignable())
+                .Select(x => x.Index)
+                .FirstOrDefault(-1);
 
-        await ValidateAndWrite();
-        return _state.State.WorkItems[index];
+            if (index == -1) return StatusCode.NotFound;
+
+            var assignedOption = await _clusterClient
+                .GetResourceGrain<IScheduleWorkActor>(_state.State.Active[index].WorkId)
+                .Assign(agentId, context.TraceId);
+
+            switch (assignedOption)
+            {
+                case { StatusCode: StatusCode.OK }:
+                    break;
+
+                case { StatusCode: StatusCode.Conflict }:
+                    _state.State.Active[index] = _state.State.Active[index] with { AssignedDate = DateTime.UtcNow };
+                    context.Location().LogInformation("Updating index with active work item, workId={workId}", _state.State.Active[index].WorkId);
+                    await ValidateAndWrite();
+                    continue;
+
+                default:
+                    context.Location().LogError("Removing index that was completed or not found, workId={workId}", _state.State.Active[index].WorkId);
+                    _state.State.Active.RemoveAt(index);
+                    await ValidateAndWrite();
+                    continue;
+            }
+
+            context.Location().LogInformation("Asigning agentId={agentId} to workId={workId}", agentId, _state.State.Active[index].WorkId);
+
+            _state.State.Active[index] = _state.State.Active[index] with { AssignedDate = DateTime.UtcNow };
+
+            await ValidateAndWrite();
+            return assignedOption;
+        }
     }
 
     public async Task<Option> Clear(string principalId, string traceId)
@@ -124,39 +133,45 @@ public class SchedulerActor : Grain, ISchedulerActor
 
         if (!_state.RecordExists) return StatusCode.OK;
 
+        var save = _state.State;
+
         _state.State = new SchedulesModel();
         await _state.WriteStateAsync();
 
+        foreach (var item in save.Active)
+        {
+            var removeOption = await _clusterClient
+                .GetResourceGrain<IScheduleWorkActor>(item.WorkId)
+                .Delete(context.TraceId);
+
+            if (removeOption.IsOk()) context.Location().LogInformation("Cleared worked item workId={workId}", item.WorkId);
+        }
+
         return StatusCode.OK;
     }
 
-    public async Task<Option> CompletedWork(AssignedCompleted completed, string traceId)
+    public async Task<Option> Completed(AssignedCompleted model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Complete scheduled work, actorKey={actorKey}, runResult={runResult}",
-            this.GetPrimaryKeyString(), completed);
+        if (!model.Validate(out var v)) return v;
+        if (!_state.RecordExists) return StatusCode.NotFound;
+        context.Location().LogInformation("Marking work completed, model={model}", model);
 
-        var test = new OptionTest()
-            .Test(() => _state.RecordExists ? StatusCode.OK : new Option(StatusCode.NotFound, "No schedules exist"))
-            .Test(completed.Validate);
-        if (test.IsError()) return test.Option;
+        _state.State.CompletedItems.Add(model);
 
-        var result = _state.State.CompleteWork(completed, context);
-        if (result.IsError()) return result;
+        int index = _state.State.Active
+            .WithIndex()
+            .Where(x => x.Item.WorkId == model.WorkId)
+            .Select(x => x.Index)
+            .FirstOrDefault(-1);
 
-        await ValidateAndWrite();
+        if (index >= 0)
+        {
+            _state.State.Active.RemoveAt(index);
+        }
+
+        await _state.WriteStateAsync();
         return StatusCode.OK;
-    }
-
-    public Task<Option<ScheduleWorkModel>> GetDetail(string workId, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        if (!_state.RecordExists) return new Option<ScheduleWorkModel>(StatusCode.NotFound).ToTaskResult();
-
-        ScheduleWorkModel? scheduleWork = _state.State.WorkItems.FirstOrDefault(x => x.WorkId == workId);
-        if (scheduleWork == null) return new Option<ScheduleWorkModel>(StatusCode.NotFound).ToTaskResult();
-
-        return new Option<ScheduleWorkModel>(scheduleWork).ToTaskResult();
     }
 
     public Task<Option<SchedulesModel>> GetSchedules(string traceId)
@@ -165,29 +180,6 @@ public class SchedulerActor : Grain, ISchedulerActor
         if (!_state.RecordExists) return new Option<SchedulesModel>(StatusCode.NotFound).ToTaskResult();
 
         return _state.State.ToOption().ToTaskResult();
-    }
-
-    private async Task CleanQueue(ScopeContext context)
-    {
-        _state.State.Assert(x => x != null, "State is not set");
-
-        var retireList = _state.State.WorkItems
-            .Where(x => x.Assigned != null && !x.Assigned.IsAssignable())
-            .ToArray();
-
-        if (retireList.Length == 0) return;
-
-        context.Location().LogInformation("Retiring {number} of work items, workIds={workIds}", retireList.Length, retireList.Select(x => x.WorkId).Join(';'));
-
-        _state.State = _state.State with
-        {
-            WorkItems = _state.State.WorkItems
-                .Where(x => !retireList.Any(y => x.WorkId == y.WorkId))
-                .ToList(),
-            CompletedItems = _state.State.CompletedItems.Concat(retireList).ToList(),
-        };
-
-        await ValidateAndWrite();
     }
 
     private async Task ValidateAndWrite()
@@ -200,6 +192,8 @@ public class SchedulerActor : Grain, ISchedulerActor
 
     private void Validate()
     {
+        if (!_state.RecordExists) return;
+
         var v = _state.State.Validate();
         if (v.IsError()) throw new InvalidOperationException($"ScheduleModel is not valid on read, error={v.Error}");
     }

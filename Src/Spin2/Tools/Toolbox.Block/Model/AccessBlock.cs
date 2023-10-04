@@ -20,6 +20,14 @@ public sealed record AccessBlock
     public string? Claim { get; init; }
     public required string BlockType { get; init; }
     public required string PrincipalId { get; init; }
+
+    public bool Equals(AccessBlock? obj) => obj is AccessBlock document &&
+        Grant == document.Grant &&
+        Claim.ToNullIfEmpty() == document.Claim.ToNullIfEmpty() &&
+        BlockType == document.BlockType &&
+        PrincipalId == document.PrincipalId;
+
+    public override int GetHashCode() => HashCode.Combine(Grant, Claim, BlockType, PrincipalId);
 }
 
 public static class BlockAccessValidator

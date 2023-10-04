@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Smartc;
+using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using Toolbox.Tools;
 using Toolbox.Tools.Local;
 using Toolbox.Types;
@@ -18,10 +19,10 @@ internal class RunSmartC
         _logger = logger.NotNull();
     }
 
-    public async Task<Option> Run(string folder, ScheduleWorkModel scheduleWorkModel, ScopeContext context)
+    public async Task<Option> Run(string folder, WorkAssignedModel workAssignedModel, ScopeContext context)
     {
         folder.NotEmpty();
-        scheduleWorkModel.NotNull();
+        workAssignedModel.NotNull();
         context = context.With(_logger);
 
         using CancellationTokenSource tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_abortSignal.GetToken());
@@ -29,8 +30,8 @@ internal class RunSmartC
 
         var actionBlock = new ActionBlock<string>(x => context.Trace().LogInformation("[localHost] {line}", x));
 
-        string arg = folder + " " + scheduleWorkModel.Command;
-        context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", scheduleWorkModel.Command);
+        string arg = folder + " " + workAssignedModel.Command;
+        context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", workAssignedModel.Command);
 
         try
         {

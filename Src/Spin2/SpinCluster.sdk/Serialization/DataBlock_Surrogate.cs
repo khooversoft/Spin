@@ -3,7 +3,7 @@
 namespace SpinCluster.sdk.Serialization;
 
 [GenerateSerializer]
-public struct DataBlockSerialization
+public struct DataBlock_Surrogate
 {
     [Id(0)] public string BlockId;
     [Id(1)] public DateTime CreatedDate;
@@ -17,9 +17,9 @@ public struct DataBlockSerialization
 
 
 [RegisterConverter]
-public sealed class DataBlockSerializationConverter : IConverter<DataBlock, DataBlockSerialization>
+public sealed class DataBlock_SurrogateConverter : IConverter<DataBlock, DataBlock_Surrogate>
 {
-    public DataBlock ConvertFromSurrogate(in DataBlockSerialization surrogate) => new DataBlock
+    public DataBlock ConvertFromSurrogate(in DataBlock_Surrogate surrogate) => new DataBlock
     {
         BlockId = surrogate.BlockId,
         CreatedDate = surrogate.CreatedDate,
@@ -31,7 +31,7 @@ public sealed class DataBlockSerializationConverter : IConverter<DataBlock, Data
         Digest = surrogate.Digest,
     };
 
-    public DataBlockSerialization ConvertToSurrogate(in DataBlock value) => new DataBlockSerialization
+    public DataBlock_Surrogate ConvertToSurrogate(in DataBlock value) => new DataBlock_Surrogate
     {
         BlockId = value.BlockId,
         CreatedDate = value.CreatedDate,

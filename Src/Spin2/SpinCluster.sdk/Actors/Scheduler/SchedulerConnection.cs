@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Extensions;
@@ -13,12 +14,12 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Smartc;
 
-public class ScheduleConnection
+public class SchedulerConnection
 {
     protected readonly IClusterClient _client;
     protected readonly ILogger<ContractConnector> _logger;
 
-    public ScheduleConnection(IClusterClient client, ILogger<ContractConnector> logger)
+    public SchedulerConnection(IClusterClient client, ILogger<ContractConnector> logger)
     {
         _client = client.NotNull();
         _logger = logger.NotNull();
@@ -28,36 +29,21 @@ public class ScheduleConnection
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Scheduler}");
 
-        group.MapPost("runResult", AddResult);
-        group.MapPost("enqueue", AddSchedule);
+        group.MapPost("create", CreateSchedule);
         group.MapGet("/{agentId}/assign", AssignWork);
         group.MapDelete("/{principalId}/clear", Clear);
-        group.MapPost("/completed", CompletedWork);
-        group.MapGet("/detail", GetDetail);
         group.MapGet("/schedules", GetSchedules);
 
         return group;
     }
 
-    private async Task<IResult> AddResult(RunResultModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        var v = model.Validate();
-        if (v.IsError()) return Results.BadRequest(v.Error);
-
-        Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .AddRunResult(model, traceId);
-
-        return response.ToResult();
-    }
-
-    private async Task<IResult> AddSchedule(ScheduleCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> CreateSchedule(ScheduleCreateModel model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .AddSchedule(model, traceId);
+            .CreateSchedule(model, traceId);
 
         return response.ToResult();
     }
@@ -66,7 +52,7 @@ public class ScheduleConnection
     {
         if (agentId.IsEmpty()) return Results.BadRequest();
 
-        Option<ScheduleWorkModel> response = await _client
+        Option<WorkAssignedModel> response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .AssignWork(agentId, traceId);
 
@@ -80,28 +66,6 @@ public class ScheduleConnection
         Option response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
             .Clear(principalId, traceId);
-
-        return response.ToResult();
-    }
-
-    private async Task<IResult> CompletedWork(AssignedCompleted model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
-
-        Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .CompletedWork(model, traceId);
-
-        return response.ToResult();
-    }
-
-    public async Task<IResult> GetDetail(string workId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        workId = Uri.UnescapeDataString(workId);
-
-        Option<ScheduleWorkModel> response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .GetDetail(workId, traceId);
 
         return response.ToResult();
     }

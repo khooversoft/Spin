@@ -37,7 +37,7 @@ public class AgentConnector
     private async Task<IResult> Delete(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         agentId = Uri.UnescapeDataString(agentId);
-        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
+        if (!ResourceId.IsValid(agentId, ResourceType.System, SpinConstants.Schema.Agent)) return Results.BadRequest();
 
         Option response = await _client.GetResourceGrain<IAgentActor>(agentId).Delete(traceId);
         return response.ToResult();
@@ -46,7 +46,7 @@ public class AgentConnector
     public async Task<IResult> Exist(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         agentId = Uri.UnescapeDataString(agentId);
-        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
+        if (!ResourceId.IsValid(agentId, ResourceType.System, SpinConstants.Schema.Agent)) return Results.BadRequest();
 
         Option response = await _client.GetResourceGrain<IAgentActor>(agentId).Exist(traceId);
         return response.ToResult();
@@ -55,7 +55,7 @@ public class AgentConnector
     public async Task<IResult> Get(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         agentId = Uri.UnescapeDataString(agentId);
-        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
+        if (!ResourceId.IsValid(agentId, ResourceType.System, SpinConstants.Schema.Agent)) return Results.BadRequest();
 
         Option<AgentModel> response = await _client.GetResourceGrain<IAgentActor>(agentId).Get(traceId);
         return response.ToResult();
@@ -64,7 +64,7 @@ public class AgentConnector
     public async Task<IResult> IsActive(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         agentId = Uri.UnescapeDataString(agentId);
-        if (!ResourceId.IsValid(agentId, ResourceType.System, "agent")) return Results.BadRequest();
+        if (!ResourceId.IsValid(agentId, ResourceType.System, SpinConstants.Schema.Agent)) return Results.BadRequest();
 
         Option response = await _client.GetResourceGrain<IAgentActor>(agentId).IsActive(traceId);
         return response.ToResult();

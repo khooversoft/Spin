@@ -139,7 +139,7 @@ public class DomainActor : Grain, IDomainActor
 
         if (configModel.IsError())
         {
-            context.Location().LogError("Configuration actorKey={actorKey} does not exist",
+            context.Location().LogWarning("Configuration actorKey={actorKey} does not exist",
                 SpinConstants.ConfigKeys.ValidDomainActorKey);
 
             return configModel;

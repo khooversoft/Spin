@@ -80,7 +80,6 @@ ILogger<Program> logger = host.Services.GetRequiredService<ILoggerFactory>().Cre
 
 var msg = new[]
 {
-    $"Spin Cluster API - Version {Assembly.GetExecutingAssembly().GetName().Version}",
     $"Running environment={config["environment"]}",
     "",
     "Starting server"

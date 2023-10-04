@@ -52,24 +52,6 @@ public static class EnumerableExtensions
     }
 
     /// <summary>
-    /// Execute 'action' on each item
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="subjects"></param>
-    /// <param name="action"></param>
-    /// <returns></returns>
-    public static async Task ForEachAsync<T>(this IEnumerable<T> subjects, Func<T, Task> action)
-    {
-        subjects.NotNull();
-        action.NotNull();
-
-        foreach (var item in subjects)
-        {
-            await action(item);
-        }
-    }
-
-    /// <summary>
     /// Covert enumerable to stack, null will return empty stack
     /// </summary>
     /// <typeparam name="T"></typeparam>

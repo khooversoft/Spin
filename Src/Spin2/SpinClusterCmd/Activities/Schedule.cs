@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinClusterCmd.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -10,10 +11,10 @@ namespace SpinClusterCmd.Activities;
 
 internal class Schedule
 {
-    private readonly ScheduleClient _client;
+    private readonly SchedulerClient _client;
     private readonly ILogger<Schedule> _logger;
 
-    public Schedule(ScheduleClient client, ILogger<Schedule> logger)
+    public Schedule(SchedulerClient client, ILogger<Schedule> logger)
     {
         _client = client.NotNull();
         _logger = logger.NotNull();
@@ -30,8 +31,12 @@ internal class Schedule
         ScheduleCreateModel model = readResult.Return();
 
         context.Trace().LogInformation("Adding schedule, model={model}", model);
-        var queueResult = await _client.AddSchedule(model, context);
-        if (queueResult.IsError()) return;
+        var queueResult = await _client.CreateSchedule(model, context);
+        if (queueResult.IsError())
+        {
+            context.Trace().LogStatus(queueResult, "Failed to add scehdule, model={model}", model);
+            return;
+        }
 
         context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
     }
@@ -42,10 +47,9 @@ internal class Schedule
         context.Trace().LogInformation("Clearing schedule queue");
 
         var clearOption = await _client.Clear(principalId, context);
-
         if (clearOption.IsError())
         {
-            context.Trace().LogError("Failed to clear schedule queue");
+            context.Trace().LogStatus(clearOption, "Failed to clear schedule queue");
             return;
         }
     }
@@ -56,10 +60,9 @@ internal class Schedule
         context.Trace().LogInformation("Getting schedules");
 
         var scheduleModel = await _client.GetSchedules(context);
-
         if (scheduleModel.IsError())
         {
-            context.Trace().LogError("Failed to get schedule");
+            context.Trace().LogStatus(scheduleModel.ToOptionStatus(), "Failed to get schedule");
             return;
         }
 

@@ -104,7 +104,7 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<SubscriptionClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<TenantClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
-    service.AddHttpClient<ScheduleClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SchedulerClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<StorageClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
 

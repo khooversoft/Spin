@@ -1,7 +1,7 @@
 ﻿using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Smartc;
+namespace SpinCluster.sdk.Actors.ScheduleWork;
 
 [GenerateSerializer, Immutable]
 public sealed record AssignedCompleted

@@ -2,7 +2,7 @@
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Scheduler;
+namespace SpinCluster.sdk.Actors.ScheduleWork;
 
 [GenerateSerializer, Immutable]
 public sealed record RunResultModel

@@ -7,30 +7,32 @@ public class DataObjectBuilder
 {
     public string? Key { get; set; }
     public string TypeName { get; set; } = ".property";
-    public IList<KeyValuePair<string, string>> Values { get; set; } = new List<KeyValuePair<string, string>>();
+    public IDictionary<string, string> Values { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     public DataObjectBuilder SetKey(string key) => this.Action(x => x.Key = key);
     public DataObjectBuilder SetTypeName(string typeName) => this.Action(x => x.TypeName = typeName);
-    public DataObjectBuilder Add(string key, string value) => this.Action(x => x.Values.Add(new KeyValuePair<string, string>(key, value)));
+    public DataObjectBuilder Add(string key, string value) => this.Action(x => x.Values.Add(key, value));
 
     public DataObjectBuilder SetContent<T>(T value) where T : class
     {
         TypeName = typeof(T).GetTypeName();
-        Values = value.GetConfigurationValues().ToList();
+
+        var values = value.GetConfigurationValues();
+        values.ForEach(x => Values[x.Key] = x.Value);
 
         return this;
     }
 
     public DataObject Build()
     {
-        Key.NotEmpty();
         TypeName.NotEmpty();
+        Key ??= TypeName;
 
         return new DataObject
         {
             Key = Key.NotEmpty(),
             TypeName = TypeName.NotEmpty(),
-            Values = Values.ToArray(),
+            Values = Values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
         };
     }
 }

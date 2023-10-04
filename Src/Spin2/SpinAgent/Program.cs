@@ -9,6 +9,7 @@ using SpinAgent.Commands;
 using SpinAgent.Services;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
 using Toolbox.Extensions;
@@ -83,7 +84,8 @@ ServiceProvider BuildContainer(AgentOption option)
     service.AddSingleton<AgentConfiguration>();
     service.AddSingleton<PackageManagement>();
 
-    service.AddHttpClient<ScheduleClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SchedulerClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<ScheduleWorkClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<StorageClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<AgentClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
@@ -92,9 +94,11 @@ ServiceProvider BuildContainer(AgentOption option)
     {
         config.AddConsole();
         config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Smartc.ScheduleClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Storage.StorageClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Smartc.SmartcClient", LogLevel.Warning);
+        config.AddFilter(typeof(SchedulerClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(StorageClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(SmartcClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(SchedulerClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(ScheduleWorkClient).FullName, LogLevel.Warning);
     });
 
 

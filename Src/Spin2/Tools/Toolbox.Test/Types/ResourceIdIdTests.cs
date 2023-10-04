@@ -172,4 +172,27 @@ public class ResourceIdIdTests
         result.AccountId.Should().Be("company3.com/path1/path2");
         result.PrincipalId.Should().BeNull();
     }
+
+    [Fact]
+    public void WorkIdTest()
+    {
+        const string schema = "schedulerwork";
+        string systemName = "WKID-" + Guid.NewGuid().ToString();
+
+        var id = $"{schema}:{systemName}";
+        ResourceId.IsValid(id, ResourceType.System, schema).Should().BeTrue();
+
+        Option<ResourceId> resourceIdOption = ResourceId.Create(id);
+        resourceIdOption.IsOk().Should().BeTrue();
+
+        ResourceId resourceId = resourceIdOption.Return();
+        resourceId.Id.Should().Be(id);
+        resourceId.Schema.Should().Be(schema);
+        resourceId.SystemName.Should().Be(systemName);
+        resourceId.User.Should().BeNull();
+        resourceId.Domain.Should().BeNull();
+        resourceId.Path.Should().BeNull();
+        resourceId.PrincipalId.Should().BeNull();
+        resourceId.AccountId.Should().BeNull();
+    }
 }

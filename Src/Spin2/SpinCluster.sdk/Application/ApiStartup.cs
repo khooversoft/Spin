@@ -5,6 +5,7 @@ using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Domain;
 using SpinCluster.sdk.Actors.PrincipalKey;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
 using SpinCluster.sdk.Actors.Subscription;
@@ -27,10 +28,11 @@ public static class ApiStartup
         services.AddSingleton<LeaseConnector>();
         services.AddSingleton<AgentConnector>();
         services.AddSingleton<SmartcConnector>();
-        services.AddSingleton<ScheduleConnection>();
+        services.AddSingleton<SchedulerConnection>();
         services.AddSingleton<StorageConnection>();
         services.AddSingleton<ConfigConnector>();
         services.AddSingleton<DomainConnector>();
+        services.AddSingleton<ScheduleWorkConnection>();
 
         return services;
     }
@@ -47,9 +49,10 @@ public static class ApiStartup
         app.ServiceProvider.GetRequiredService<LeaseConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<AgentConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<SmartcConnector>().Setup(app);
-        app.ServiceProvider.GetRequiredService<ScheduleConnection>().Setup(app);
+        app.ServiceProvider.GetRequiredService<SchedulerConnection>().Setup(app);
         app.ServiceProvider.GetRequiredService<StorageConnection>().Setup(app);
         app.ServiceProvider.GetRequiredService<ConfigConnector>().Setup(app);
         app.ServiceProvider.GetRequiredService<DomainConnector>().Setup(app);
+        app.ServiceProvider.GetRequiredService<ScheduleWorkConnection>().Setup(app);
     }
 }

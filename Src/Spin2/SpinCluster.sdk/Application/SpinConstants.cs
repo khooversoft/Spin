@@ -29,6 +29,7 @@ public static class SpinConstants
         public const string Contract = "contract";
         public const string Directory = "directory";
         public const string Scheduler = "scheduler";
+        public const string ScheduleWork = "schedulework";
         public const string Agent = "agent";
         public const string Smartc = "smartc";
     }

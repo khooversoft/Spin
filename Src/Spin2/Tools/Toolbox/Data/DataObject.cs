@@ -1,6 +1,7 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace Toolbox.Data;
 
@@ -8,7 +9,7 @@ public sealed record DataObject
 {
     public string Key { get; init; } = null!;
     public string TypeName { get; init; } = null!;
-    public IReadOnlyList<KeyValuePair<string, string>> Values { get; init; } = Array.Empty<KeyValuePair<string, string>>();
+    public IReadOnlyDictionary<string, string> Values { get; init; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     public bool Equals(DataObject? obj) => obj is DataObject document &&
         Key == document.Key &&
@@ -16,17 +17,24 @@ public sealed record DataObject
         Values.SequenceEqual(document.Values);
 
     public override int GetHashCode() => HashCode.Combine(Key, TypeName, Values);
+
+    public static Validator<DataObject> Validator { get; } = new Validator<DataObject>()
+        .RuleFor(x => x.Key).NotEmpty()
+        .RuleFor(x => x.TypeName).NotEmpty()
+        .RuleFor(x => x.Values).NotNull()
+        .Build();
 }
 
 
 public static class DataObjectValidator
 {
-    public static Validator<DataObject> Validator { get; } = new Validator<DataObject>()
-        .RuleFor(x => x.Key).NotEmpty()
-        .RuleFor(x => x.TypeName).NotEmpty()
-        .RuleFor(x => x.Values).NotNull()
-        .RuleForEach(x => x.Values).NotNull()
-        .Build();
+    public static Option Validate(this DataObject subject) => DataObject.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this DataObject subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 
     public static DataObject ToDataObject<T>(this T value, string? key = null) where T : class
     {
@@ -36,7 +44,7 @@ public static class DataObjectValidator
         {
             Key = key ?? typeof(T).GetTypeName(),
             TypeName = typeof(T).GetTypeName(),
-            Values = values.ToArray(),
+            Values = values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
         };
     }
 

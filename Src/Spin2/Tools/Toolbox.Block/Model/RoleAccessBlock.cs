@@ -17,6 +17,13 @@ public sealed record RoleAccessBlock
     public BlockRoleGrant Grant { get; init; } = BlockRoleGrant.None;
     public string? Claim { get; init; }
     public required string PrincipalId { get; init; }
+
+    public bool Equals(RoleAccessBlock? obj) => obj is RoleAccessBlock document &&
+        Grant == document.Grant &&
+        Claim.ToNullIfEmpty() == document.Claim.ToNullIfEmpty() &&
+        PrincipalId == document.PrincipalId;
+
+    public override int GetHashCode() => HashCode.Combine(Grant, Claim, PrincipalId);
 }
 
 public static class BlockRoleAccessValidator

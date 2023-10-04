@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Smartc;
 
-// smartc:{name}
+// smartc:{domain}/{path}[/{path}...]
 [GenerateSerializer, Immutable]
 public sealed record SmartcModel
 {

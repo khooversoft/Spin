@@ -2,7 +2,7 @@
 using SpinAgent.Application;
 using SpinAgent.Services;
 using SpinCluster.sdk.Actors.Scheduler;
-using SpinCluster.sdk.Actors.Smartc;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -13,22 +13,25 @@ internal class WorkMonitor
 {
     private readonly ILogger<WorkMonitor> _logger;
     private readonly RunSmartC _runSmartC;
-    private readonly ScheduleClient _scheduleClient;
+    private readonly SchedulerClient _scheduleClient;
     private readonly AbortSignal _abortSignal;
     private readonly AgentOption _option;
     private readonly PackageManagement _packageManagement;
+    private readonly ScheduleWorkClient _scheduleWorkClient;
 
     public WorkMonitor(
         RunSmartC runSmartC,
         PackageManagement packageManagement,
-        ScheduleClient scheduleClient,
+        SchedulerClient scheduleClient,
+        ScheduleWorkClient scheduleWorkClient,
         AbortSignal abortSignal,
         AgentOption option,
         ILogger<WorkMonitor> logger)
     {
         _runSmartC = runSmartC.NotNull();
-        _scheduleClient = scheduleClient.NotNull();
         _packageManagement = packageManagement.NotNull();
+        _scheduleClient = scheduleClient.NotNull();
+        _scheduleWorkClient = scheduleWorkClient.NotNull();
         _abortSignal = abortSignal.NotNull();
         _option = option.NotNull();
         _logger = logger.NotNull();
@@ -43,7 +46,7 @@ internal class WorkMonitor
             var workScheduleOption = await LookForWork(context);
             if (workScheduleOption.IsError()) return;
 
-            ScheduleWorkModel workSchedule = workScheduleOption.Return();
+            WorkAssignedModel workSchedule = workScheduleOption.Return();
 
             var unpackPackageLocation = await UnpackPackage(workSchedule, context);
             if (unpackPackageLocation.IsError())
@@ -58,7 +61,7 @@ internal class WorkMonitor
         }
     }
 
-    private async Task<Option<ScheduleWorkModel>> LookForWork(ScopeContext context)
+    private async Task<Option<WorkAssignedModel>> LookForWork(ScopeContext context)
     {
         while (!_abortSignal.GetToken().IsCancellationRequested)
         {
@@ -71,7 +74,7 @@ internal class WorkMonitor
         return StatusCode.ServiceUnavailable;
     }
 
-    private async Task<Option<string>> UnpackPackage(ScheduleWorkModel workSchedule, ScopeContext context)
+    private async Task<Option<string>> UnpackPackage(WorkAssignedModel workSchedule, ScopeContext context)
     {
         context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", workSchedule.SmartcId);
 
@@ -95,7 +98,7 @@ internal class WorkMonitor
             Message = statusCode.IsOk() ? message ?? "Completed" : message ?? "< no message >",
         };
 
-        var updateOption = await _scheduleClient.CompletedWork(completeStatus, context);
+        var updateOption = await _scheduleWorkClient.CompletedWork(completeStatus, context);
         if (updateOption.IsError())
         {
             context.Location().LogError("Could not update complete work status on schedule, model={model}", completeStatus);
