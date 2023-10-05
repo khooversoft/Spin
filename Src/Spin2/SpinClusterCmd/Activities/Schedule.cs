@@ -30,15 +30,15 @@ internal class Schedule
 
         ScheduleCreateModel model = readResult.Return().ConvertTo();
 
-        //context.Trace().LogInformation("Adding schedule, model={model}", model);
-        //var queueResult = await _client.CreateSchedule(model, context);
-        //if (queueResult.IsError())
-        //{
-        //    context.Trace().LogStatus(queueResult, "Failed to add scehdule, model={model}", model);
-        //    return;
-        //}
+        context.Trace().LogInformation("Adding schedule, model={model}", model);
+        var queueResult = await _client.CreateSchedule(model, context);
+        if (queueResult.IsError())
+        {
+            context.Trace().LogStatus(queueResult, "Failed to add scehdule, model={model}", model);
+            return;
+        }
 
-        //context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
+        context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
     }
 
     public async Task Clear(string principalId)

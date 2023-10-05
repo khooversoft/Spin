@@ -1,0 +1,1 @@
+& .\bin\Debug\net7.0\SpinClusterCmd.exe load D:\Sources\Spin\Src\Spin2\SpinClusterCmd\Data\Scenario_001_Setup.json

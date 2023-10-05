@@ -45,7 +45,7 @@
       "LastName": "user2last"
     }
   ],
-  "Accounts": [
+  "SbAccounts": [
     {
       "AccountId": "softbank:company30.com/account1",
       "Name": "Company 30 account1",
@@ -86,5 +86,5 @@
       "Enabled": true,
       "WorkingFolder": "C:\\Work\\SpinAgent\\smartc-cache"
     }
-  ]  
+  ]
 }

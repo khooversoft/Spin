@@ -87,4 +87,10 @@ var msg = new[]
 logger.LogInformation(msg);
 Console.WriteLine(msg);
 
+Console.CancelKeyPress += (s, e) =>
+{
+    Console.WriteLine();
+    Console.WriteLine("Shutting silo down...");
+};
+
 host.Run();

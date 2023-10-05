@@ -51,10 +51,16 @@ public class UserActor : Grain, IUserActor
 
         if (!_state.RecordExists) return StatusCode.NotFound;
 
-        string publicKeyId = _state.State.UserKey.PublicKeyId;
+        string? publicKeyId = _state.State.UserKey?.PublicKeyId;
         await _state.ClearStateAsync();
 
-        await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(publicKeyId).Delete(context.TraceId);
+        if (publicKeyId != null)
+        {
+            await _clusterClient
+                .GetResourceGrain<IPrincipalKeyActor>(publicKeyId)
+                .Delete(context.TraceId);
+        }
+
         return StatusCode.OK;
     }
 

@@ -2,7 +2,7 @@
   "profiles": {
     "SpinClusterCmd": {
       "commandName": "Project",
-      "commandLineArgs": "schedule add D:\\Sources\\Spin\\Src\\Spin2\\SpinClusterCmd\\Data\\CreateLoan-Command.json"
+      "commandLineArgs": "schedule load D:\\Sources\\Spin\\Src\\Spin2\\SpinClusterCmd\\Data\\Scenario_001_Setup.json"
     }
   }
 }
