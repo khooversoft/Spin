@@ -25,20 +25,20 @@ internal class Schedule
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Processing file {file}", jsonFile);
 
-        var readResult = CmdTools.LoadJson<ScheduleCreateModel>(jsonFile, ScheduleCreateModel.Validator, context);
+        var readResult = CmdTools.LoadJson<ScheduleCommandModel>(jsonFile, ScheduleCommandModel.Validator, context);
         if (readResult.IsError()) return;
 
-        ScheduleCreateModel model = readResult.Return();
+        ScheduleCreateModel model = readResult.Return().ConvertTo();
 
-        context.Trace().LogInformation("Adding schedule, model={model}", model);
-        var queueResult = await _client.CreateSchedule(model, context);
-        if (queueResult.IsError())
-        {
-            context.Trace().LogStatus(queueResult, "Failed to add scehdule, model={model}", model);
-            return;
-        }
+        //context.Trace().LogInformation("Adding schedule, model={model}", model);
+        //var queueResult = await _client.CreateSchedule(model, context);
+        //if (queueResult.IsError())
+        //{
+        //    context.Trace().LogStatus(queueResult, "Failed to add scehdule, model={model}", model);
+        //    return;
+        //}
 
-        context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
+        //context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
     }
 
     public async Task Clear(string principalId)

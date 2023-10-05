@@ -1,0 +1,9 @@
+{
+  "smartcId": "smartc:company30.com/loan-contract",
+  "principalId": "admin@spindomain.com",
+  "sourceId": "source1",
+  "command": "close",
+  "Payload": {
+    "PostedDate": "2003-01-01"
+  }
+}

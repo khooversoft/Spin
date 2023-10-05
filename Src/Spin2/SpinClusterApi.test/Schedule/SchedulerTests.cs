@@ -8,6 +8,7 @@ using SpinClusterApi.test.Application;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Schedule;
@@ -39,6 +40,28 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         await Setup();
 
         (string workId, CreatePayload payload) = await CreateSchedule();
+        await VerifyWork(workId, payload, false);
+
+        await AssignToAgent(workId);
+        await VerifyWork(workId, payload, true);
+        await AddRunResult(workId);
+
+        await Complete(workId);
+
+        SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
+        await schedulerClient.Clear("admin@domain.com", _context);
+
+        ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
+        Option deleteResponse = await workClient.Delete(workId, _context);
+        deleteResponse.IsOk().Should().BeTrue(deleteResponse.ToString());
+    }
+
+    [Fact]
+    public async Task SingleScheduleLifecycleTest2()
+    {
+        await Setup();
+
+        (string workId, CreatePayload payload) = await CreateScheduleFromJson();
         await VerifyWork(workId, payload, false);
 
         await AssignToAgent(workId);
@@ -93,13 +116,22 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
             }
         };
 
+        var payload2 = new Model2
+        {
+            Name = "name1",
+            Age = 10,
+        };
+
         var request = new ScheduleCreateModel
         {
             SmartcId = _smartcId,
             PrincipalId = _principalId,
             SourceId = _sourceId,
             Command = _command,
-            Payloads = new DataObjectSetBuilder().Add(payload1).Build(),
+            Payloads = new DataObjectSetBuilder()
+                .Add(payload1)
+                .Add(payload2)
+                .Build(),
         };
 
         Option response = await schedulerClient.CreateSchedule(request, _context);
@@ -112,6 +144,77 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         schedulesModel.Active[0].WorkId.Should().Be(request.WorkId);
         schedulesModel.Active[0].AssignedDate.Should().BeNull();
         schedulesModel.CompletedItems.Count.Should().Be(0);
+
+        return (request.WorkId, payload1);
+    }
+
+    private async Task<(string workId, CreatePayload payload)> CreateScheduleFromJson()
+    {
+        SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
+
+        string json = """
+            {
+              "smartcId": "smartc:company30.com/contract1",
+              "principalId": "user1@company30.com",
+              "sourceId": "source1",
+              "command": "create",
+              "payloads": {
+                "CreatePayLoad": {
+                  "ContractId": "contract:company30.com/contract1",
+                  "OwnerId": "user1@company30.com",
+                  "Name": "name",
+                  "CreatedDate": "2012-01-01",
+                  "AccessRights": [
+                    {
+                      "BlockType": "blockType1",
+                      "Grant": "ReadWrite",
+                      "PrincipalId": "user1@company30.com"
+                    },
+                    {
+                      "BlockType": "blockType2",
+                      "Grant": "ReadWrite",
+                      "PrincipalId": "user1@company30.com"
+                    }
+                  ],
+                  "RoleRights": [
+                    {
+                      "Grant": "Owner",
+                      "PrincipalId": "user1@company30.com"
+                    }
+                  ]
+                },
+                "LoanDetail": {
+                  "ContractId": "contract:rental2.com/loan/loanToUser1",
+                  "OwnerId": "user1@rental2.com",
+                  "OwnerSoftBankId": "softbank:rental2.com/user1-account/primary",
+                  "FirstPaymentDate": "2023-01-01",
+                  "PrincipalAmount": 10000.00,
+                  "Payment": 856.07,
+                  "APR": 0.05,
+                  "NumberPayments": 12,
+                  "PaymentsPerYear": 12,
+                  "PartyPrincipalId": "user4@outlook.com",
+                  "PartySoftBankId": "softbank:outlook.com/user4-account/primary"
+                }
+              }
+            }
+            """;
+
+        ScheduleCommandModel command = Json.Default.Deserialize<ScheduleCommandModel>(json).NotNull();
+        ScheduleCreateModel request = command.ConvertTo();
+
+        Option response = await schedulerClient.CreateSchedule(request, _context);
+        response.IsOk().Should().BeTrue(response.ToString());
+
+        Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
+        SchedulesModel schedulesModel = schedulesOption.Return();
+        schedulesModel.Active.Count.Should().Be(1);
+        schedulesModel.Active[0].WorkId.Should().Be(request.WorkId);
+        schedulesModel.Active[0].AssignedDate.Should().BeNull();
+        schedulesModel.CompletedItems.Count.Should().Be(0);
+
+        CreatePayload payload1 = request.Payloads.GetObject<CreatePayload>();
 
         return (request.WorkId, payload1);
     }
@@ -129,13 +232,13 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         workModel.SourceId.Should().Be(_sourceId);
         workModel.CommandType.Should().Be("args");
         workModel.Command.Should().Be(_command);
-        workModel.Payloads.Items.Count.Should().Be(1);
-        workModel.Payloads.Items.ContainsKey(typeof(CreatePayload).GetTypeName()).Should().BeTrue();
+        workModel.Payloads.Count.Should().Be(2);
+        workModel.Payloads.ContainsKey(typeof(CreatePayload).GetTypeName()).Should().BeTrue();
         workModel.RunResults.Count.Should().Be(0);
 
-        DataObject dataObject = workModel.Payloads.Items[typeof(CreatePayload).GetTypeName()];
+        DataObject dataObject = workModel.Payloads[typeof(CreatePayload).GetTypeName()];
         CreatePayload readPayload = dataObject.ToObject<CreatePayload>();
-        payload.Should().Be(readPayload);
+        (payload == readPayload).Should().BeTrue();
 
         readPayload = workModel.Payloads.GetObject<CreatePayload>();
         payload.Should().Be(readPayload);
@@ -187,8 +290,8 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         workModel.SourceId.Should().Be(_sourceId);
         workModel.CommandType.Should().Be("args");
         workModel.Command.Should().Be(_command);
-        workModel.Payloads.Items.Count.Should().Be(1);
-        workModel.Payloads.Items.ContainsKey(typeof(CreatePayload).GetTypeName()).Should().BeTrue();
+        workModel.Payloads.Count.Should().Be(2);
+        workModel.Payloads.ContainsKey(typeof(CreatePayload).GetTypeName()).Should().BeTrue();
         workModel.RunResults.Count.Should().Be(0);
 
         workModel.Assigned.Should().NotBeNull();
@@ -286,16 +389,28 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         public IReadOnlyList<AccessBlock> AccessRights { get; init; } = Array.Empty<AccessBlock>();
         public IReadOnlyList<RoleAccessBlock> RoleRights { get; init; } = Array.Empty<RoleAccessBlock>();
 
-        public bool Equals(CreatePayload? obj) => obj is CreatePayload document &&
-            ContractId == document.ContractId &&
-            OwnerId == document.OwnerId &&
-            Name == document.Name &&
-            CreatedDate.ToUniversalTime() == document.CreatedDate.ToUniversalTime() &&
-            AccessRights.Count == document.AccessRights.Count &&
-            AccessRights.OrderBy(x => x.ToString()).Zip(document.AccessRights.OrderBy(x => x.ToString())).All(x => x.First == x.Second) &&
-            RoleRights.Count == document.RoleRights.Count &&
-            RoleRights.OrderBy(x => x.ToString()).Zip(document.RoleRights.OrderBy(x => x.ToString())).All(x => x.First == x.Second);
+        public bool Equals(CreatePayload? obj)
+        {
+            if (obj is not CreatePayload document) return false;
+
+            var v2 = ContractId == document.ContractId;
+            var v3 = OwnerId == document.OwnerId;
+            var v4 = Name == document.Name;
+            var v5 = CreatedDate.ToUniversalTime() == document.CreatedDate.ToUniversalTime();
+            var v6 = AccessRights.Count == document.AccessRights.Count;
+            var v7 = AccessRights.OrderBy(x => x.ToString()).Zip(document.AccessRights.OrderBy(x => x.ToString())).All(x => x.First == x.Second);
+            var v8 = RoleRights.Count == document.RoleRights.Count;
+            var v9 = RoleRights.OrderBy(x => x.ToString()).Zip(document.RoleRights.OrderBy(x => x.ToString())).All(x => x.First == x.Second);
+
+            return v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9;
+        }
 
         public override int GetHashCode() => HashCode.Combine(ContractId, OwnerId, Name, CreatedDate);
+    }
+
+    private sealed record Model2
+    {
+        public string Name { get; init; } = null!;
+        public int Age { get; init; }
     }
 }

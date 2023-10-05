@@ -6,33 +6,33 @@ namespace Toolbox.Data;
 public class DataObjectBuilder
 {
     public string? Key { get; set; }
-    public string TypeName { get; set; } = ".property";
-    public IDictionary<string, string> Values { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public string? TypeName { get; set; }
+    public string? JsonData { get; set; }
 
     public DataObjectBuilder SetKey(string key) => this.Action(x => x.Key = key);
     public DataObjectBuilder SetTypeName(string typeName) => this.Action(x => x.TypeName = typeName);
-    public DataObjectBuilder Add(string key, string value) => this.Action(x => x.Values.Add(key, value));
 
     public DataObjectBuilder SetContent<T>(T value) where T : class
     {
         TypeName = typeof(T).GetTypeName();
-
-        var values = value.GetConfigurationValues();
-        values.ForEach(x => Values[x.Key] = x.Value);
-
+        JsonData = value.ToJson();
+    
         return this;
     }
 
     public DataObject Build()
     {
         TypeName.NotEmpty();
+        JsonData.NotEmpty();
+
         Key ??= TypeName;
+        Key.NotEmpty();
 
         return new DataObject
         {
-            Key = Key.NotEmpty(),
-            TypeName = TypeName.NotEmpty(),
-            Values = Values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
+            Key = Key,
+            TypeName = TypeName,
+            JsonData = JsonData,
         };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -9,19 +10,21 @@ public sealed record DataObject
 {
     public string Key { get; init; } = null!;
     public string TypeName { get; init; } = null!;
-    public IReadOnlyDictionary<string, string> Values { get; init; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public string JsonData { get; init; } = null!;
+    public string? Tags { get; init; }
 
     public bool Equals(DataObject? obj) => obj is DataObject document &&
         Key == document.Key &&
         TypeName == document.TypeName &&
-        Values.SequenceEqual(document.Values);
+        JsonData == document.JsonData &&
+        Tags == document.Tags;
 
-    public override int GetHashCode() => HashCode.Combine(Key, TypeName, Values);
+    public override int GetHashCode() => HashCode.Combine(Key, TypeName, JsonData);
 
     public static Validator<DataObject> Validator { get; } = new Validator<DataObject>()
         .RuleFor(x => x.Key).NotEmpty()
         .RuleFor(x => x.TypeName).NotEmpty()
-        .RuleFor(x => x.Values).NotNull()
+        .RuleFor(x => x.JsonData).NotNull()
         .Build();
 }
 
@@ -38,22 +41,20 @@ public static class DataObjectValidator
 
     public static DataObject ToDataObject<T>(this T value, string? key = null) where T : class
     {
-        IReadOnlyList<KeyValuePair<string, string>> values = value.GetConfigurationValues();
-
         return new DataObject
         {
             Key = key ?? typeof(T).GetTypeName(),
             TypeName = typeof(T).GetTypeName(),
-            Values = values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
+            JsonData = value.ToJson(),
         };
     }
 
-    public static T ToObject<T>(this DataObject dataObject) where T : new()
+    public static T ToObject<T>(this DataObject dataObject)
     {
         return dataObject switch
         {
-            var v when typeof(T) == typeof(string) => (T)(object)v.Values.First().Value,
-            var v => v.Values.ToObject<T>(),
+            var v when typeof(T) == typeof(string) => (T)(object)v.JsonData,
+            var v => v.JsonData.ToObject<T>().NotNull(),
         };
     }
 }

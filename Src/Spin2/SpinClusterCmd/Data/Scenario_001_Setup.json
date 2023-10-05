@@ -4,15 +4,13 @@
       "SubscriptionId": "subscription:Company30Subscription",
       "Name": "Company30Subscription",
       "ContactName": "Company 30 contact name",
-      "Email": "admin@company30.com",
-      "Enabled": true
+      "Email": "admin@company30.com"
     },
     {
       "SubscriptionId": "subscription:Company31Subscription",
       "Name": "Company31Subscription",
       "ContactName": "Company 31 contact name",
-      "Email": "admin@company31.com",
-      "Enabled": true
+      "Email": "admin@company31.com"
     }
   ],
   "Tenants": [
@@ -21,16 +19,14 @@
       "SubscriptionId": "subscription:Company30Subscription",
       "Domain": "company30.com",
       "ContactName": "Admin",
-      "Email": "admin@company30.com",
-      "Enabled": true
+      "Email": "admin@company30.com"
     },
     {
       "TenantId": "tenant:company31.com",
       "SubscriptionId": "subscription:Company31Subscription",
       "Domain": "company31.com",
       "ContactName": "Admin",
-      "Email": "admin@company31.com",
-      "Enabled": true
+      "Email": "admin@company31.com"
     }
   ],
   "Users": [
@@ -74,14 +70,14 @@
       "OwnerId": "user1@company30.com",
       "Description": "Initial deposit",
       "Type": "Credit",
-      "Amount": 100.00
+      "Amount": 100000.00
     },
     {
       "AccountId": "softbank:company31.com/account2",
       "OwnerId": "user2@company31.com",
       "Description": "Initial deposit",
       "Type": "Credit",
-      "Amount": 200.00
+      "Amount": 200000.00
     }
   ],
   "Agents": [
@@ -90,13 +86,5 @@
       "Enabled": true,
       "WorkingFolder": "C:\\Work\\SpinAgent\\smartc-cache"
     }
-  ],
-  "SmartcItems": [
-    {
-      "SmartcId": "smartc:company30.com/loan-contract",
-      "SmartcExeId": "smartc-exe:company30.com/loan-smartc-v1.smartcz",
-      "ContractId": "contract:company30.com/loan/contract1",
-      "Enabled": true
-    }
-  ]
+  ]  
 }

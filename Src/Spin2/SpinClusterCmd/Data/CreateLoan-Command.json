@@ -1,0 +1,43 @@
+{
+  "smartcId": "smartc:company30.com/loan-contract",
+  "principalId": "admin@spindomain.com",
+  "sourceId": "source1",
+  "command": "create",
+  "payloads": {
+    "CreatePayLoad": {
+      "Name": "name",
+      "OwnerId": "user1@company30.com",
+      "AccessRights": [
+        {
+          "BlockType": "blockType1",
+          "Grant": "ReadWrite",
+          "PrincipalId": "user1@company30.com"
+        },
+        {
+          "BlockType": "blockType2",
+          "Grant": "ReadWrite",
+          "PrincipalId": "user1@company30.com"
+        }
+      ],
+      "RoleRights": [
+        {
+          "Grant": "Owner",
+          "PrincipalId": "user1@company30.com"
+        }
+      ]
+    },
+    "LoanDetail": {
+      "ContractId": "contract:rental2.com/loan/loanToUser1",
+      "OwnerId": "user1@rental2.com",
+      "OwnerSoftBankId": "softbank:rental2.com/user1-account/primary",
+      "FirstPaymentDate": "2023-01-01",
+      "PrincipalAmount": 10000.00,
+      "Payment": 856.07,
+      "APR": 0.05,
+      "NumberPayments": 12,
+      "PaymentsPerYear": 12,
+      "PartyPrincipalId": "user4@outlook.com",
+      "PartySoftBankId": "softbank:outlook.com/user4-account/primary"
+    }
+  }
+}

@@ -55,7 +55,7 @@ async Task<int> Run(IServiceProvider service, string[] args)
             service.GetRequiredService<AgentCommand>(),
             service.GetRequiredService<DumpContractCommand>(),
             service.GetRequiredService<LoadScenarioCommand>(),
-            service.GetRequiredService<ScheduleCommand>(),
+            service.GetRequiredService<SpinClusterCmd.Commands.ScheduleCommand>(),
             service.GetRequiredService<SmartcCommand>(),
             service.GetRequiredService<PackageCommand>(),
         };
@@ -81,7 +81,7 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddSingleton<LeaseCommand>();
     service.AddSingleton<LoadScenarioCommand>();
     service.AddSingleton<PackageCommand>();
-    service.AddSingleton<ScheduleCommand>();
+    service.AddSingleton<SpinClusterCmd.Commands.ScheduleCommand>();
     service.AddSingleton<SmartcCommand>();
     service.AddSingleton<SubscriptionCommand>();
     service.AddSingleton<TenantCommand>();

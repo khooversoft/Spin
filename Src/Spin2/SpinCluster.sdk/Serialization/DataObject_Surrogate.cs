@@ -7,7 +7,8 @@ public struct DataObject_Surrogate
 {
     public string Key;
     public string TypeName;
-    public IDictionary<string, string> Values;
+    public string JsonData;
+    public string? Tags;
 }
 
 
@@ -18,13 +19,15 @@ public sealed class DataObject_SurrogateConverter : IConverter<DataObject, DataO
     {
         Key = surrogate.Key,
         TypeName = surrogate.TypeName,
-        Values = surrogate.Values?.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, string>(),
+        JsonData = surrogate.JsonData,
+        Tags = surrogate.Tags,
     };
 
     public DataObject_Surrogate ConvertToSurrogate(in DataObject value) => new DataObject_Surrogate
     {
         Key = value.Key,
         TypeName = value.TypeName,
-        Values = value.Values?.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, string>(),
+        JsonData = value.JsonData,
+        Tags = value.Tags,
     };
 }

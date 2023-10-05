@@ -1,33 +1,62 @@
-﻿using Toolbox.Extensions;
+﻿using System.Text.Json;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class DataObjectSet
+public class DataObjectSet : Dictionary<string, DataObject>
 {
-    public IReadOnlyDictionary<string, DataObject> Items { get; init; } = new Dictionary<string, DataObject>(StringComparer.OrdinalIgnoreCase);
+    public DataObjectSet() : base(StringComparer.OrdinalIgnoreCase) { }
+
+    public DataObjectSet(IEnumerable<KeyValuePair<string, DataObject>> copyFrom)
+        : base(copyFrom, StringComparer.OrdinalIgnoreCase)
+    {
+    }
+
+    public DataObjectSet(IReadOnlyDictionary<string, object>? fromJsonParse)
+        : base(StringComparer.OrdinalIgnoreCase)
+    {
+        fromJsonParse.NotNull();
+
+        foreach (var item in fromJsonParse)
+        {
+            this[item.Key] = new DataObject
+            {
+                Key = item.Key,
+                TypeName = item.Key,
+                JsonData = item.Value switch
+                {
+                    JsonElement v => v.ToJson(),
+                    var v => v.ToString().NotEmpty(),
+                }
+            };
+        }
+    }
 
     public static IValidator<DataObjectSet> Validator { get; } = new Validator<DataObjectSet>()
-        .RuleFor(x => x.Items).NotNull()
-        .RuleForEach(x => x.Items).Must(x => x.Key.IsNotEmpty() && x.Value.Validate().IsOk(), _ => "Invalid")
+        .RuleForEach(x => x.Keys).Must(x => x.IsNotEmpty(), _ => "Invalid")
+        .RuleForEach(x => x.Values).Must(x => x.Validate().IsOk(), _ => "Invalid")
         .Build();
 }
 
 
 public static class DataObjectSetExtensions
 {
-    public static T GetObject<T>(this DataObjectSet subject, string? key = null) where T : new()
+    public static Option Validate(this DataObjectSet subject) => DataObjectSet.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this DataObjectSet subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
+
+    public static T GetObject<T>(this DataObjectSet subject, string? key = null)
     {
         key ??= typeof(T).GetTypeName();
-        subject.Items.TryGetValue(key, out var dataObject).Assert(x => x == true, $"key={key} does not exist");
+        subject.TryGetValue(key, out var dataObject).Assert(x => x == true, $"key={key} does not exist");
 
         return dataObject!.ToObject<T>();
     }
-
-    public static DataObjectSet Clone(this DataObjectSet subject) => new DataObjectSet
-    {
-        Items = subject.Items.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
-    };
 }

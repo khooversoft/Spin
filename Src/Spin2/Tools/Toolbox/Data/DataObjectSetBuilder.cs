@@ -27,11 +27,5 @@ public class DataObjectSetBuilder
         return this;
     }
 
-    public DataObjectSet Build()
-    {
-        return new DataObjectSet
-        {
-            Items = Items.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase),
-        };
-    }
+    public DataObjectSet Build() => new DataObjectSet(Items);
 }

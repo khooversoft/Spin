@@ -7,21 +7,14 @@ namespace Toolbox.Test.Data;
 
 public class DataObjectTests
 {
-    [Fact]
-    public void DataObjectSimpleBuilder()
-    {
-        var d = new DataObjectBuilder()
-            .SetKey("key")
-            .SetTypeName("type")
-            .Add("enable", "true")
-            .Build();
 
-        d.Should().NotBeNull();
-        d.Key.Should().Be("key");
-        d.TypeName.Should().Be("type");
-        d.Values.Should().NotBeNull();
-        d.Values.Count.Should().Be(1);
-        d.Values["enable"].Should().Be("true");
+    [Fact]
+    public void EmptyDataObjectSetValidation()
+    {
+        DataObjectSet model = new DataObjectSetBuilder().Build();
+
+        Option v = model.Validate();
+        v.IsOk().Should().BeTrue();
     }
 
     [Fact]
@@ -33,17 +26,18 @@ public class DataObjectTests
             Value = "value",
         };
 
-        var d = t.ToDataObject();
+        DataObject d = t.ToDataObject();
         d.Should().NotBeNull();
         d.Key.Should().Be("TestClass");
         d.TypeName.Should().Be("TestClass");
-        d.Values.Should().NotBeNull();
-        d.Values.Count.Should().Be(2);
-        d.Values["Name"].Should().Be("test");
-        d.Values["Value"].Should().Be("value");
+        d.JsonData.Should().NotBeNullOrEmpty();
 
-        var t2 = d.ToObject<TestClass>();
-        (t == t2).Should().BeTrue();
+        TestClass rt = d.ToObject<TestClass>();
+        rt.Should().NotBeNull();
+        rt.Name.Should().Be("test");
+        rt.Value.Should().Be("value");
+
+        (t == rt).Should().BeTrue();
     }
 
     [Fact]
@@ -66,7 +60,7 @@ public class DataObjectTests
             .Add(t2)
             .Build();
 
-        set.Items.Count.Should().Be(2);
+        set.Count.Should().Be(2);
 
         Option<TestClass> rt1 = set.GetObject<TestClass>();
         rt1.IsOk().Should().BeTrue();
@@ -82,7 +76,7 @@ public class DataObjectTests
 
         DataObjectSet? read = json.ToObject<DataObjectSet>();
         read.Should().NotBeNull();
-        read!.Items.Count.Should().Be(2);
+        read!.Count.Should().Be(2);
 
         Option<TestClass> r_rt1 = read.GetObject<TestClass>();
         r_rt1.IsOk().Should().BeTrue();

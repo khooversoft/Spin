@@ -26,7 +26,8 @@ public sealed record ScheduleCreateModel
         .RuleFor(x => x.SourceId).ValidName()
         .RuleFor(x => x.CommandType).Must(x => x == "args" || x.StartsWith("json:"), x => $"{x} is not valid, must be 'args' or 'json:{{type}}'")
         .RuleFor(x => x.Command).NotEmpty()
-        .RuleFor(x => x.Payloads).NotNull().Validate(DataObjectSet.Validator)
+        .RuleFor(x => x.Payloads).NotNull()
+        .RuleFor(x => x.Payloads).Validate(DataObjectSet.Validator)
         .Build();
 }
 
@@ -49,6 +50,6 @@ public static class ScheduleCreateModelExtensions
         SourceId = subject.SourceId,
         CommandType = subject.CommandType,
         Command = subject.Command,
-        Payloads = subject.Payloads.Clone(),
+        Payloads = new DataObjectSet(subject.Payloads),
     };
 }
