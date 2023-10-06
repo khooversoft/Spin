@@ -59,4 +59,15 @@ public static class DataObjectSetExtensions
 
         return dataObject!.ToObject<T>();
     }
+
+    public static bool TryGetObject<T>(this DataObjectSet subject, out T value, string? key = null)
+    {
+        value = default!;
+
+        key ??= typeof(T).GetTypeName();
+        if (!subject.TryGetValue(key, out var dataObject)) return false;
+
+        value = dataObject!.ToObject<T>();
+        return true;
+    }
 }

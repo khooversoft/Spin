@@ -8,6 +8,7 @@ using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
 using SpinCluster.sdk.Actors.Subscription;
@@ -55,9 +56,10 @@ async Task<int> Run(IServiceProvider service, string[] args)
             service.GetRequiredService<AgentCommand>(),
             service.GetRequiredService<DumpContractCommand>(),
             service.GetRequiredService<LoadScenarioCommand>(),
-            service.GetRequiredService<SpinClusterCmd.Commands.ScheduleCommand>(),
+            service.GetRequiredService<ScheduleCommand>(),
             service.GetRequiredService<SmartcCommand>(),
             service.GetRequiredService<PackageCommand>(),
+            service.GetRequiredService<WorkCommand>(),
         };
 
         return await rc.InvokeAsync(args);
@@ -81,10 +83,11 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddSingleton<LeaseCommand>();
     service.AddSingleton<LoadScenarioCommand>();
     service.AddSingleton<PackageCommand>();
-    service.AddSingleton<SpinClusterCmd.Commands.ScheduleCommand>();
+    service.AddSingleton<ScheduleCommand>();
     service.AddSingleton<SmartcCommand>();
     service.AddSingleton<SubscriptionCommand>();
     service.AddSingleton<TenantCommand>();
+    service.AddSingleton<WorkCommand>();
 
     service.AddSingleton<AgentRegistration>();
     service.AddSingleton<Configuration>();
@@ -96,6 +99,7 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddSingleton<SmartcRegistration>();
     service.AddSingleton<Subscription>();
     service.AddSingleton<Tenant>();
+    service.AddSingleton<ScheduleWork>();
 
     service.AddHttpClient<AgentClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<ConfigClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
@@ -107,19 +111,21 @@ ServiceProvider BuildContainer(CmdOption option)
     service.AddHttpClient<SchedulerClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<StorageClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
     service.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<ScheduleWorkClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
 
     service.AddLogging(config =>
     {
         config.AddConsole();
         config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Agent.AgentClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Tenant.TenantClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Smartc.SmartcClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.User.UserClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Subscription.SubscriptionClient", LogLevel.Warning);
-        config.AddFilter("SoftBank.sdk.SoftBank.SoftBankClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Smartc.ScheduleClient", LogLevel.Warning);
-        config.AddFilter("SpinCluster.sdk.Actors.Configuration.ConfigClient", LogLevel.Warning);
+        config.AddFilter(typeof(AgentClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(TenantClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(SmartcClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(UserClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(SubscriptionClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(SoftBankClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(ConfigClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(SchedulerClient).FullName, LogLevel.Warning);
+        config.AddFilter(typeof(ScheduleWorkClient).FullName, LogLevel.Warning);
     });
 
     return service.BuildServiceProvider();

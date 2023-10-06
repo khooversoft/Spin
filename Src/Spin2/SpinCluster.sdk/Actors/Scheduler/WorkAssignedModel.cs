@@ -1,5 +1,6 @@
 ﻿using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Application;
+using Toolbox.Data;
 using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
@@ -10,14 +11,15 @@ public sealed record WorkAssignedModel
 {
     [Id(0)] public string WorkId { get; init; } = null!;
     [Id(1)] public string SmartcId { get; init; } = null!;
-    [Id(2)] public string CommandType { get; init; } = null!;
     [Id(3)] public string Command { get; init; } = null!;
+    [Id(4)] public DataObjectSet Payloads { get; init; } = new DataObjectSet();
+    [Id(5)] public string? Tags { get; init; }
 
     public static IValidator<WorkAssignedModel> Validator { get; } = new Validator<WorkAssignedModel>()
         .RuleFor(x => x.WorkId).ValidResourceId(ResourceType.System, SpinConstants.Schema.ScheduleWork)
         .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
-        .RuleFor(x => x.CommandType).Must(x => x == "args" || x.StartsWith("json:"), x => $"{x} is not valid, must be 'args' or 'json:{{type}}'")
         .RuleFor(x => x.Command).NotEmpty()
+        .RuleFor(x => x.Payloads).NotNull().Validate(DataObjectSet.Validator)
         .Build();
 }
 
@@ -36,7 +38,8 @@ public static class WorkAssignedModelExternal
     {
         WorkId = subject.WorkId,
         SmartcId = subject.SmartcId,
-        CommandType = subject.CommandType,
         Command = subject.Command,
+        Payloads = new DataObjectSet(subject.Payloads),
+        Tags = subject.Tags,
     };
 }

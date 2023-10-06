@@ -19,9 +19,9 @@ public sealed record ScheduleCommandModel
     public DateTime? ValidTo { get; init; }
     public DateTime? ExecuteAfter { get; init; }
     public string SourceId { get; init; } = null!;
-    public string CommandType { get; init; } = "args";
     public string Command { get; init; } = null!;
     public IReadOnlyDictionary<string, object>? Payloads { get; init; }
+    public string? Tags { get; init; }
 
 
     public static IValidator<ScheduleCommandModel> Validator { get; } = new Validator<ScheduleCommandModel>()
@@ -29,7 +29,6 @@ public sealed record ScheduleCommandModel
         .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
         .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.SourceId).ValidName()
-        .RuleFor(x => x.CommandType).Must(x => x == "args" || x.StartsWith("json:"), x => $"{x} is not valid, must be 'args' or 'json:{{type}}'")
         .RuleFor(x => x.Command).NotEmpty()
         .RuleFor(x => x.Payloads).NotNull()
         .Build();
@@ -53,8 +52,8 @@ public static class ScheduleCommandModelExtensions
         ValidTo = subject.ValidTo,
         ExecuteAfter = subject.ExecuteAfter,
         SourceId = subject.SourceId,
-        CommandType = subject.CommandType,
         Command = subject.Command,
         Payloads = new DataObjectSet(subject.Payloads),
+        Tags = subject.Tags,
     };
 }

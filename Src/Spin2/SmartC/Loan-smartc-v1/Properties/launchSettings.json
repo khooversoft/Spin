@@ -2,7 +2,7 @@
   "profiles": {
     "Loan-smartc-v1": {
       "commandName": "Project",
-      "commandLineArgs": "run"
+      "commandLineArgs": "create --workId schedulework:WKID-20ef8df2-cb56-4610-a4ee-f6592bcbe4e6"
     }
   }
 }

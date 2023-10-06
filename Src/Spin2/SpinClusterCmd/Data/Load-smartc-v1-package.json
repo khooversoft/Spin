@@ -4,5 +4,5 @@
   "SmartcExeId": "smartc-exe:company30.com/loan-smartc-v1.smartcz",
   "Executable": "bin\\Loan-smartc-v1.exe",
   "Enabled": true,
-  "SourceFolder": "C:\\Sources\\Spin\\Src\\Spin2\\SmartC\\loan-smartc-v1\\bin\\Debug\\net7.0"
+  "SourceFolder": "D:\\Sources\\Spin\\Src\\Spin2\\SmartC\\loan-smartc-v1\\bin\\Debug\\net7.0"
 }

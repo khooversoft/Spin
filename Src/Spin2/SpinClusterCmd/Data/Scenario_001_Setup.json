@@ -39,7 +39,7 @@
     },
     {
       "UserId": "user:user2@company31.com",
-      "PrincipalId": "user1@company31.com",
+      "PrincipalId": "user2@company31.com",
       "DisplayName": "User 2",
       "FirstName": "user2first",
       "LastName": "user2last"
@@ -84,7 +84,7 @@
     {
       "AgentId": "agent:local-agent",
       "Enabled": true,
-      "WorkingFolder": "C:\\Work\\SpinAgent\\smartc-cache"
+      "WorkingFolder": "D:\\Work\\SpinAgent\\smartc-cache"
     }
   ]
 }

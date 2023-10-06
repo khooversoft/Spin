@@ -16,9 +16,9 @@ namespace LoanContract.sdk.Contract;
 public class LoanContractManager
 {
     private readonly ContractClient _contractClient;
-    private readonly ILogger<LoanContractManager> _logger;
     private readonly SignatureClient _signatureClient;
     private readonly SoftBankTrxClient _softBankTrxClient;
+    private readonly ILogger<LoanContractManager> _logger;
 
     public LoanContractManager(ContractClient contractClient, SignatureClient signatureClient, SoftBankTrxClient softBankTrxClient, ILogger<LoanContractManager> logger)
     {

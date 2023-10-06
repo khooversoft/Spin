@@ -230,7 +230,6 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         workModel.WorkId.Should().Be(workId);
         workModel.SmartcId.Should().Be(_smartcId);
         workModel.SourceId.Should().Be(_sourceId);
-        workModel.CommandType.Should().Be("args");
         workModel.Command.Should().Be(_command);
         workModel.Payloads.Count.Should().Be(2);
         workModel.Payloads.ContainsKey(typeof(CreatePayload).GetTypeName()).Should().BeTrue();
@@ -267,7 +266,6 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         WorkAssignedModel model = assignedOption.Return();
         model.WorkId.Should().Be(workId);
         model.SmartcId.Should().Be(_smartcId);
-        model.CommandType.Should().Be("args");
         model.Command.Should().Be(_command);
 
         var noAssignOption = await schedulerClient.AssignWork(_agentId, _context);
@@ -288,7 +286,6 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         workModel.WorkId.Should().Be(workId);
         workModel.SmartcId.Should().Be(_smartcId);
         workModel.SourceId.Should().Be(_sourceId);
-        workModel.CommandType.Should().Be("args");
         workModel.Command.Should().Be(_command);
         workModel.Payloads.Count.Should().Be(2);
         workModel.Payloads.ContainsKey(typeof(CreatePayload).GetTypeName()).Should().BeTrue();
@@ -321,7 +318,6 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         model.WorkId.Should().Be(workId);
         model.SmartcId.Should().Be(_smartcId);
         model.SourceId.Should().Be(_sourceId);
-        model.CommandType.Should().Be("args");
         model.Command.Should().Be(_command);
 
         model.Assigned.Should().NotBeNull();
@@ -356,7 +352,6 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         model.WorkId.Should().Be(workId);
         model.SmartcId.Should().Be(_smartcId);
         model.SourceId.Should().Be(_sourceId);
-        model.CommandType.Should().Be("args");
         model.Command.Should().Be(_command);
 
         model.GetState().Should().Be(ScheduleWorkState.Completed);

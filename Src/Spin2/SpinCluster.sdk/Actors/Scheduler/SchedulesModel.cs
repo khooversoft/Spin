@@ -28,6 +28,8 @@ public sealed record ScheduleEntry
     [Id(2)] public TimeSpan TimeToLive { get; init; } = TimeSpan.FromMinutes(30);
     [Id(3)] public DateTime? AssignedDate { get; init; }
 
+    public bool IsActive => !IsAssignable();
+
     public bool IsAssignable() => AssignedDate == null || DateTime.UtcNow > (AssignedDate + TimeToLive);
 
     public static IValidator<ScheduleEntry> Validator { get; } = new Validator<ScheduleEntry>()

@@ -177,7 +177,7 @@ public class SchedulerActor : Grain, ISchedulerActor
     public Task<Option<SchedulesModel>> GetSchedules(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        if (!_state.RecordExists) return new Option<SchedulesModel>(StatusCode.NotFound).ToTaskResult();
+        if (!_state.RecordExists) return new SchedulesModel().ToOption().ToTaskResult();
 
         return _state.State.ToOption().ToTaskResult();
     }

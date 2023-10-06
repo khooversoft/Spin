@@ -17,6 +17,7 @@ public interface IScheduleWorkActor : IGrainWithStringKey
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
     Task<Option<ScheduleWorkModel>> Get(string traceId);
+    Task<Option> ReleaseAssign(string traceId);
 }
 
 
@@ -95,15 +96,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
 
         await ValidateAndWrite();
 
-        var result = new WorkAssignedModel
-        {
-            WorkId = _state.State.WorkId,
-            SmartcId = _state.State.SmartcId,
-            CommandType = _state.State.CommandType,
-            Command = _state.State.Command,
-        };
-
-        return result;
+        return _state.State.ConvertTo();
     }
 
     public async Task<Option> CompletedWork(AssignedCompleted completed, string traceId)
@@ -173,6 +166,19 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         };
 
         return option.ToTaskResult();
+    }
+
+    public async Task<Option> ReleaseAssign(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Release assingment to agent, actorKey={actorKey}, agentId={agentId}", this.GetPrimaryKeyString());
+
+        if (!_state.RecordExists) return (StatusCode.NotFound, "No schedules exist");
+        if (_state.State.GetState() == ScheduleWorkState.Completed) return (StatusCode.ServiceUnavailable, $"actorKey={this.GetPrimaryKeyString()} already completed");
+
+        _state.State = _state.State with { Assigned = null };
+        await _state.WriteStateAsync();
+        return StatusCode.OK;
     }
 
     private async Task ValidateAndWrite()

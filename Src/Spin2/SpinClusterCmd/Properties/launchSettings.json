@@ -2,7 +2,7 @@
   "profiles": {
     "SpinClusterCmd": {
       "commandName": "Project",
-      "commandLineArgs": "schedule load D:\\Sources\\Spin\\Src\\Spin2\\SpinClusterCmd\\Data\\Scenario_001_Setup.json"
+      "commandLineArgs": "work get schedulework:WKID-9a8bf61d-e0b4-4c99-98da-ddca139a988f"
     }
   }
 }

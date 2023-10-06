@@ -17,6 +17,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
         <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+        <ProjectReference Include="..\LoanContract.sdk\LoanContract.sdk.csproj" />
     </ItemGroup>
 
     <ItemGroup>

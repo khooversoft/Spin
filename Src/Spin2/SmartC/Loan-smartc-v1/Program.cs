@@ -3,10 +3,14 @@ using System.Reflection;
 using Loan_smartc_v1.Activitites;
 using Loan_smartc_v1.Application;
 using Loan_smartc_v1.Commands;
+using LoanContract.sdk.Contract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.ScheduleWork;
+using SpinCluster.sdk.Actors.Signature;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -48,6 +52,7 @@ async Task<int> Run(IServiceProvider service, string[] args)
         var rc = new RootCommand()
         {
             service.GetRequiredService<RunCommand>(),
+            service.GetRequiredService<CreateCommand>(),
         };
 
         await rc.InvokeAsync(args);
@@ -73,7 +78,12 @@ ServiceProvider BuildContainer(AppOption option)
     service.AddSingleton<AbortSignal>();
     service.AddSingleton<CreateContract>();
 
+    service.AddSingleton<LoanContractManager>();
+
     service.AddHttpClient<ContractClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<ScheduleWorkClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SignatureClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
+    service.AddHttpClient<SoftBankTrxClient>(client => client.BaseAddress = new Uri(option.ClusterApiUri));
 
     return service.BuildServiceProvider();
 }

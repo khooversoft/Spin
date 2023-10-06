@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Scheduler;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Local;
 using Toolbox.Types;
@@ -29,13 +30,19 @@ internal class RunSmartC
 
         var actionBlock = new ActionBlock<string>(x => context.Trace().LogInformation("[localHost] {line}", x));
 
-        string arg = folder + " " + workAssignedModel.Command;
-        context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", workAssignedModel.Command);
+        string args = new string[]
+        {
+            folder,
+            workAssignedModel.Command,
+            $"--workId {workAssignedModel.WorkId}",
+        }.Join(' ');
+
+        context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", args);
 
         try
         {
             var result = await new LocalProcessBuilder()
-                .SetCommandLine(arg)
+                .SetCommandLine(args)
                 .SetCaptureOutput(x => actionBlock.Post(x))
                 .Build()
                 .Run(context);
