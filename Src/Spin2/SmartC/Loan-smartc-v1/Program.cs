@@ -53,6 +53,7 @@ async Task<int> Run(IServiceProvider service, string[] args)
         {
             service.GetRequiredService<RunCommand>(),
             service.GetRequiredService<CreateCommand>(),
+            service.GetRequiredService<PaymentCommand>(),
         };
 
         await rc.InvokeAsync(args);
@@ -74,9 +75,11 @@ ServiceProvider BuildContainer(AppOption option)
 
     service.AddSingleton<RunCommand>();
     service.AddSingleton<CreateCommand>();
+    service.AddSingleton<PaymentCommand>();
 
     service.AddSingleton<AbortSignal>();
     service.AddSingleton<CreateContract>();
+    service.AddSingleton<Payment>();
 
     service.AddSingleton<LoanContractManager>();
 

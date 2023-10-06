@@ -4,7 +4,11 @@
   "sourceId": "source1",
   "command": "makePayment",
   "Payload": {
-    "PostedDate": "2000-01-01",
-    "Payment": 43
+    "LoanPaymentRequest": {
+      "PostedDate": "2000-01-01",
+      "principalId": "admin@spindomain.com",
+      "PaymentAmount": 856.07,
+      "Reference": "payment test"
+    }
   }
 }

@@ -94,16 +94,58 @@ public class LoanContractManager
         return result;
     }
 
-    public async Task<Option> PostInterestCharge(string contractId, string principalId, DateTime postedDate, ScopeContext context)
+    public async Task<Option> MakePayment(LoanPaymentRequest model, ScopeContext context)
     {
+        if (!model.Validate(out var v)) return v;
         context = context.With(_logger);
-        context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
+        context.Location().LogInformation("Posting payment, contractId={contractId}, postedDate={postedDate}",
+            model.ContractId, model.PostedDate);
 
-        var reportOption = await GetReport(contractId, principalId, context);
+        var interestOption = await PostInterestCharge(model, context);
+        if (interestOption.IsError()) return interestOption;
+
+        var reportOption = await GetReport(model.ContractId, model.PrincipalId, context);
         if (reportOption.IsError()) return reportOption.ToOptionStatus();
         LoanReportModel report = reportOption.Return();
 
-        int numberOfDays = report.NumberOfDays(LoanTrxType.InterestCharge, postedDate);
+        var trxRequest = new TrxRequest
+        {
+            PrincipalId = model.PrincipalId,
+            AccountID = report.LoanDetail.OwnerSoftBankId,
+            PartyAccountId = report.LoanDetail.PartySoftBankId,
+            Description = "Manager payment",
+            Type = TrxType.Pull,
+            Amount = model.PaymentAmount,
+            Tags = model.Tags,
+        };
+
+        trxRequest.Validate().ThrowOnError("TrxRequest not valid");
+
+        Option<TrxResponse> trxResponse = await _softBankTrxClient.Request(trxRequest, context);
+        if (trxResponse.IsError())
+        {
+            context.Location().LogStatus(
+                trxResponse.ToOptionStatus(),
+                "Failed to make payment, model={model}, trxResponse={trxResponse}", model, trxResponse.Return()
+                );
+
+            return trxResponse.ToOptionStatus();
+        }
+
+        return await PostPayment(model, context);
+    }
+
+    public async Task<Option> PostInterestCharge(LoanPaymentRequest model, ScopeContext context)
+    {
+        if (!model.Validate(out var v)) return v;
+        context = context.With(_logger);
+        context.Location().LogInformation("Calculating interest, model={model}", model);
+
+        var reportOption = await GetReport(model.ContractId, model.PrincipalId, context);
+        if (reportOption.IsError()) return reportOption.ToOptionStatus();
+        LoanReportModel report = reportOption.Return();
+
+        int numberOfDays = report.NumberOfDays(LoanTrxType.InterestCharge, model.PostedDate);
         if (numberOfDays <= 0) return StatusCode.OK;
 
         var detail = new InterestChargeDetail
@@ -117,82 +159,49 @@ public class LoanContractManager
 
         var ledgerItem = new LoanLedgerItem
         {
-            PostedDate = postedDate,
-            ContractId = contractId,
-            OwnerId = principalId,
-            Description = "Interest charge",
+            PostedDate = model.PostedDate,
+            ContractId = model.ContractId,
+            OwnerId = model.PrincipalId,
+            Description = "model charge",
             Type = LoanLedgerType.Debit,
             TrxType = LoanTrxType.InterestCharge,
             Amount = interestCharge,
         };
+
         ledgerItem.Validate().ThrowOnError("Invalid loan ledger");
 
         return await AddLedgerItem(ledgerItem, context);
     }
 
-    public async Task<Option> MakePayment(string contractId, string principalId, DateTime postedDate, decimal paymentAmount, string reference, ScopeContext context)
-    {
-        paymentAmount.Assert(x => x >= 0.0m, x => $"{x} not valid");
-        context = context.With(_logger);
-        context.Location().LogInformation("Posting payment, contractId={contractId}, postedDate={postedDate}", contractId, postedDate);
-
-        var interestOption = await PostInterestCharge(contractId, principalId, postedDate, context);
-        if (interestOption.IsError()) return interestOption;
-
-        var reportOption = await GetReport(contractId, principalId, context);
-        if (reportOption.IsError()) return reportOption.ToOptionStatus();
-        LoanReportModel report = reportOption.Return();
-
-        var trxRequest = new TrxRequest
-        {
-            PrincipalId = principalId,
-            AccountID = report.LoanDetail.OwnerSoftBankId,
-            PartyAccountId = report.LoanDetail.PartySoftBankId,
-            Description = "Manager payment",
-            Type = TrxType.Pull,
-            Amount = paymentAmount,
-            Tags = new Tags().Set(nameof(reference), reference).ToString(),
-        };
-        trxRequest.Validate().ThrowOnError("TrxRequest not valid");
-
-        Option<TrxResponse> trxResponse = await _softBankTrxClient.Request(trxRequest, context);
-        if (trxResponse.IsError())
-        {
-            context.Location().LogError("Failed to make payment, contractId={contractId}, postedDate={postedDate}, trxResponse={trxResponse}, statusCode={statusCode}, error={error}",
-                contractId, postedDate, trxResponse.Return(), trxResponse.StatusCode, trxResponse.Error);
-
-            return trxResponse.ToOptionStatus();
-        }
-
-        return await PostPayment(contractId, principalId, postedDate, paymentAmount, reference, context);
-    }
-
-    private async Task<Option> PostPayment(string contractId, string principalId, DateTime postedDate, decimal paymentAmount, string reference, ScopeContext context)
+    private async Task<Option> PostPayment(LoanPaymentRequest model, ScopeContext context)
     {
         context = context.With(_logger);
-        context.Location().LogInformation("Posting payment, contractId={contractId}", contractId);
+        context.Location().LogInformation("Posting payment, model={model}", model);
 
         var ledgerItem = new LoanLedgerItem
         {
-            PostedDate = postedDate,
-            ContractId = contractId,
-            OwnerId = principalId,
+            PostedDate = model.PostedDate,
+            ContractId = model.ContractId,
+            OwnerId = model.PrincipalId,
             Description = "Payment",
             Type = LoanLedgerType.Credit,
             TrxType = LoanTrxType.Payment,
-            Amount = paymentAmount,
-            Tags = new Tags().Set(nameof(reference), reference).ToString(),
+            Amount = model.PaymentAmount,
+            Tags = model.Tags,
         };
+
         ledgerItem.Validate().ThrowOnError("Invalid loan ledger");
 
         var addOption = await AddLedgerItem(ledgerItem, context);
         if (addOption.IsError())
         {
-            context.Location().LogError("Failed to post payment, contractId={contractId}, postedDate={postedDate}", contractId, postedDate);
+            context.Location().LogError("Failed to post payment, contractId={contractId}, postedDate={postedDate}",
+                model.ContractId, model.PostedDate);
             return addOption;
         }
 
-        context.Location().LogInformation("Posted payment, contractId={contractId}, postedDate={postedDate}", contractId, postedDate);
+        context.Location().LogInformation("Posted payment, contractId={contractId}, postedDate={postedDate}",
+            model.ContractId, model.PostedDate);
         return StatusCode.OK;
     }
 
