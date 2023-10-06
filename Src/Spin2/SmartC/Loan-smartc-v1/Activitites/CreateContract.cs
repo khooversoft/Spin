@@ -51,7 +51,13 @@ internal class CreateContract
         var createResponse = await _manager.Create(loanAccountDetail, context);
         if (createResponse.IsError())
         {
-            context.Location().LogError("Failed to create loan contract, loanAccountDetail={loanAccountDetail}", loanAccountDetail);
+            context.Location().LogStatus(createResponse, "Failed to create loan contract, loanAccountDetail={loanAccountDetail}", loanAccountDetail);
+        }
+
+        var loanDetailResponse = await _manager.SetLoanDetail(loanDetail, context);
+        if (loanDetailResponse.IsError())
+        {
+            context.Location().LogStatus(loanDetailResponse, "Failed to set create loan contract, loanDetail={loanDetail}", loanDetail);
         }
 
         var response = new RunResultModel
