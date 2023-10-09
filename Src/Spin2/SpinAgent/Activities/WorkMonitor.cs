@@ -3,13 +3,14 @@ using SpinAgent.Application;
 using SpinAgent.Services;
 using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Actors.ScheduleWork;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinAgent.Activities;
 
-internal class WorkMonitor
+internal class WorkMonitor : ICommandRoute
 {
     private readonly ILogger<WorkMonitor> _logger;
     private readonly RunSmartC _runSmartC;
@@ -37,9 +38,14 @@ internal class WorkMonitor
         _logger = logger.NotNull();
     }
 
-    public async Task Run(ScopeContext context)
+    public CommandSymbol CommandSymbol() => new CommandSymbol("run", "Start the agent and process requests").Action(x =>
     {
-        context = context.With(_logger);
+        x.SetHandler(Run);
+    });
+
+    public async Task Run()
+    {
+        var context = new ScopeContext(_logger);
 
         while (!_abortSignal.GetToken().IsCancellationRequested)
         {

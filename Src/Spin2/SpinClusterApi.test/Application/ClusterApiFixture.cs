@@ -6,6 +6,7 @@ using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Domain;
+using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Scheduler;

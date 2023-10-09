@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Application;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Actors.Contract;
+namespace SpinCluster.sdk.Actors.Lease;
 
 public class LeaseClient
 {

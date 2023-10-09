@@ -1,15 +1,16 @@
-﻿using LoanContract.sdk.Models;
+﻿using LoanContract.sdk.Contract;
+using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.ScheduleWork;
+using Toolbox.CommandRouter;
+using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Data;
-using LoanContract.sdk.Contract;
 
 namespace Loan_smartc_v1.Activitites;
 
-internal class CreateContract
+internal class CreateContract : ICommandRoute
 {
     private readonly ScheduleWorkClient _client;
     private readonly LoanContractManager _manager;
@@ -21,6 +22,12 @@ internal class CreateContract
         _manager = manager.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("create", "Create contract").Action(x =>
+    {
+        var workId = x.AddOption<string>("--workId", "WorkId to execute");
+        x.SetHandler(Create, workId);
+    });
 
     public async Task Create(string workId)
     {
@@ -36,17 +43,12 @@ internal class CreateContract
 
         ScheduleWorkModel workSchedule = workOption.Return();
 
-        if (!workSchedule.Payloads.TryGetObject<LoanAccountDetail>(out var loanAccountDetail))
-        {
-            context.Location().LogError("[Abort] LoanAccountDetail not in payload");
-            return;
-        }
+        var extractResult = workOption.Return()
+            .Extract(_logger)
+            .TryGetObject<LoanAccountDetail>(out var loanAccountDetail)
+            .TryGetObject<LoanDetail>(out var loanDetail);
 
-        if (!workSchedule.Payloads.TryGetObject<LoanDetail>(out var loanDetail))
-        {
-            context.Location().LogError("[Abort] LoanAccountDetail not in payload");
-            return;
-        }
+        if (extractResult.Option.IsError()) return;
 
         var createResponse = await _manager.Create(loanAccountDetail, context);
         if (createResponse.IsError())

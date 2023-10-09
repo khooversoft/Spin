@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Subscription;
 using SpinClusterCmd.Application;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class Subscription
+internal class Subscription : ICommandRoute
 {
     private readonly SubscriptionClient _client;
     private readonly ILogger<Subscription> _logger;
@@ -17,6 +18,25 @@ internal class Subscription
         _client = client.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("subscription", "Subscription management")
+    {
+        new CommandSymbol("delete", "Delete a subscription").Action(command =>
+        {
+            var nameId = command.AddArgument<string>("nameId", "Name of subscription");
+            command.SetHandler(Delete, nameId);
+        }),
+        new CommandSymbol("get", "Get subscription details").Action(command =>
+        {
+            var nameId = command.AddArgument<string>("nameId", "Name of subscription");
+            command.SetHandler(Get, nameId);
+        }),
+        new CommandSymbol("set", "Create or update subscription details").Action(command =>
+        {
+            var jsonFile = command.AddArgument<string>("jsonFile", "Json with subscription details");
+            command.SetHandler(Set, jsonFile);
+        }),
+    };
 
     public async Task Delete(string nameId)
     {

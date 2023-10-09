@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Contract;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class DumpContract
+internal class DumpContract : ICommandRoute
 {
     private readonly ILogger<DumpContract> _logger;
     private readonly ContractClient _client;
@@ -16,6 +17,14 @@ internal class DumpContract
         _client = client.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("dump", "Dump contract").Action(x =>
+    {
+        var contractId = x.AddArgument<string>("contractId", "Contract ID to dump");
+        var principalId = x.AddArgument<string>("principalId", "Principal ID (ex. user@domain.com) that has rights to query contract");
+
+        x.SetHandler(Dump, contractId, principalId);
+    });
 
     public async Task Dump(string contractId, string principalId)
     {

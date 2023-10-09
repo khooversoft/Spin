@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinClusterCmd.Application;
 using SpinTestTools.sdk.ObjectBuilder;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class LoadScenario
+internal class LoadScenario : ICommandRoute
 {
     private readonly IServiceProvider _service;
     private readonly ILogger<LoadScenario> _logger;
@@ -17,6 +18,13 @@ internal class LoadScenario
         _service = service.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("load", "Load scenario").Action(x =>
+    {
+        var jsonFile = x.AddArgument<string>("file", "Json file with scenario details");
+
+        x.SetHandler(Load, jsonFile);
+    });
 
     public async Task Load(string jsonFile)
     {

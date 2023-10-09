@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Lease;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class Lease
+internal class Lease : ICommandRoute
 {
     private readonly LeaseClient _client;
     private readonly ILogger<Lease> _logger;
@@ -16,6 +16,30 @@ internal class Lease
         _client = client;
         _logger = logger;
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("lease", "Cluster lease resource management")
+    {
+        new CommandSymbol("get", "Get lease details").Action(x =>
+        {
+            var leaseKey = x.AddArgument<string>("leaseKey", "Lease key to get");
+            x.SetHandler(Get, leaseKey);
+        }),
+        new CommandSymbol("isValid", "Is lease valid").Action(x =>
+        {
+            var leaseKey = x.AddArgument<string>("leaseKey", "Lease key to get");
+
+            x.SetHandler(IsValid, leaseKey);
+        }),
+        new CommandSymbol("list", "List active leases").Action(x =>
+        {
+            x.SetHandler(List);
+        }),
+        new CommandSymbol("release", "Release an active lease").Action(x =>
+        {
+            var leaseKey = x.AddArgument<string>("leaseKey", "Lease key to get");
+            x.SetHandler(Release, leaseKey);
+        }),
+    };
 
     public async Task Get(string leaseKey)
     {

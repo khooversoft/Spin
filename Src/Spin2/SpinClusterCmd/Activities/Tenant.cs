@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinClusterCmd.Application;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class Tenant
+internal class Tenant : ICommandRoute
 {
     private readonly TenantClient _client;
     private readonly ILogger<Tenant> _logger;
@@ -18,6 +19,24 @@ internal class Tenant
         _logger = logger.NotNull();
     }
 
+    public CommandSymbol CommandSymbol() => new CommandSymbol("tenant", "Tenant management")
+    {
+        new CommandSymbol("delete", "Delete a Tenant").Action(command =>
+        {
+            var tenantId = command.AddArgument<string>("tenantId", "Id of Tenant");
+            command.SetHandler(Delete, tenantId);
+        }),
+        new CommandSymbol("get", "Get Tenant details").Action(command =>
+        {
+            var tenantId = command.AddArgument<string>("tenantId", "Id of Tenant");
+            command.SetHandler(Get, tenantId);
+        }),
+        new CommandSymbol("set", "Create or update Tenant details").Action(command =>
+        {
+            var jsonFile = command.AddArgument<string>("jsonFile", "Json with Tenant details");
+            command.SetHandler(Set, jsonFile);
+        }),
+    };
 
     public async Task Delete(string tenantId)
     {

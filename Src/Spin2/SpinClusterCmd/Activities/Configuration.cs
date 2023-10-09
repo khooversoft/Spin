@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinClusterCmd.Application;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class Configuration
+internal class Configuration : ICommandRoute
 {
     private readonly ConfigClient _client;
     private readonly ILogger<Configuration> _logger;
@@ -17,6 +18,35 @@ internal class Configuration
         _client = client.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("config", "Configuration")
+    {
+        new CommandSymbol("create", "Create SmartC package").Action(x =>
+        {
+            var jsonFile = x.AddArgument<string>("jsonFile", "Json file with package details");
+            x.SetHandler(Create, jsonFile);
+        }),
+        new CommandSymbol("set", "Set property in configuration").Action(x =>
+        {
+            var configId = x.AddArgument<string>("configId", "Configuration ID, ex: config:{name}");
+            var key = x.AddArgument<string>("key", "Key of property");
+            var value = x.AddArgument<string>("value", "Value of property");
+
+            x.SetHandler(SetProperty, configId, key, value);
+        }),
+        new CommandSymbol("remove", "Remove property in configuration").Action(x =>
+        {
+            var configId = x.AddArgument<string>("configId", "Configuration ID, ex: config:{name}");
+            var key = x.AddArgument<string>("key", "Key of property");
+
+            x.SetHandler(RemoveProperty, configId, key);
+        }),
+        new CommandSymbol("Get", "Get properties in configuration").Action(x =>
+        {
+            var configId = x.AddArgument<string>("configId", "Configuration ID, ex: config:{name}");
+            x.SetHandler(Get, configId);
+        }),
+    };
 
     public async Task Create(string jsonFile)
     {

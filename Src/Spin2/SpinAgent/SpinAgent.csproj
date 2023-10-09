@@ -9,11 +9,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
+    <ProjectReference Include="..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

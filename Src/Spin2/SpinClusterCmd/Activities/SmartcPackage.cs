@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Actors.Storage;
 using SpinClusterCmd.Application;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -11,7 +12,7 @@ using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class SmartcPackage
+internal class SmartcPackage : ICommandRoute
 {
     private readonly StorageClient _storageClient;
     private readonly SmartcClient _smartcClient;
@@ -25,6 +26,22 @@ internal class SmartcPackage
         _smartcClient = smartcClient.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("package", "Create or expand SmartC package")
+    {
+        new CommandSymbol("create", "Create SmartC package").Action(command =>
+        {
+            var jsonFile = command.AddArgument<string>("jsonFile", "Json file with package details");
+            var verboseOption = command.AddOption<bool>("--verbose", "List all files being packaged");
+
+            command.SetHandler(CreateAndUpload, jsonFile,verboseOption);
+        }),
+        new CommandSymbol("download", "Upload SmartC package").Action(command =>
+        {
+            var jsonFile = command.AddArgument<string>("jsonFile", "Json file with package details");
+            command.SetHandler(Download, jsonFile);
+        }),
+    };
 
     public async Task CreateAndUpload(string jsonFile, bool verbose)
     {

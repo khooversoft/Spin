@@ -138,16 +138,16 @@ public class CreateContractWithPayments : IClassFixture<ClusterApiFixture>
         for (int i = 0; i < 12; i++)
         {
             DateTime postedDate = startDate.AddMonths(i + 1);
-            
+
             var paymentRequest = new LoanPaymentRequest
             {
                 ContractId = contractId,
-                PrincipalId= ownerId,
+                PrincipalId = ownerId,
                 PostedDate = postedDate,
                 PaymentAmount = payment,
                 Tags = $"r{i}",
             };
-            
+
             var postOption = await manager.MakePayment(paymentRequest, _context);
             postOption.IsOk().Should().BeTrue();
 

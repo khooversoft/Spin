@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Agent;
 using SpinClusterCmd.Application;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class AgentRegistration
+internal class AgentRegistration : ICommandRoute
 {
     private readonly AgentClient _client;
     private readonly ILogger<AgentRegistration> _logger;
@@ -16,6 +17,45 @@ internal class AgentRegistration
     {
         _client = client.NotNull();
         _logger = logger.NotNull();
+    }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("agent", "Agent commands")
+    {
+        new CommandSymbol("register", "Register agent").Action(x =>
+        {
+            var jsonFile = x.AddArgument<string>("jsonFile", "Json file with agent details");
+            x.SetHandler(Register, jsonFile);
+        }),
+        new CommandSymbol("get", "Get agent details").Action(x =>
+        {
+            var agentId = x.AddArgument<string>("agentId", "Agent's ID to remove, ex: agent:{agentName}");
+            x.SetHandler(Get, agentId);
+        }),
+        new CommandSymbol("remove", "Remove a agent from the registery").Action(x =>
+        {
+            var agentId = x.AddArgument<string>("agentId", "Agent's ID to remove, ex: agent:{agentName}");
+            x.SetHandler(Register, agentId);
+        }),
+    };
+
+    public async Task Get(string agentId)
+    {
+        var context = new ScopeContext(_logger);
+
+        var readOption = await _client.Get(agentId, context);
+        if (readOption.IsError())
+        {
+            context.Trace().LogError("Cannot get details on agentId={agentId}", agentId);
+            return;
+        }
+
+        string result = readOption.Return()
+            .GetConfigurationValues()
+            .Select(x => $" - {x.Key}={x.Value}")
+            .Prepend($"Configuration...")
+            .Join(Environment.NewLine) + Environment.NewLine;
+
+        context.Trace().LogInformation(result);
     }
 
     public async Task Register(string jsonFile)
@@ -37,25 +77,5 @@ internal class AgentRegistration
 
         Option response = await _client.Delete(agentId, context);
         context.Trace().LogStatus(response, "Deleted agent, agentId={agentId}", agentId);
-    }
-
-    public async Task Get(string agentId)
-    {
-        var context = new ScopeContext(_logger);
-
-        var readOption = await _client.Get(agentId, context);
-        if (readOption.IsError())
-        {
-            context.Trace().LogError("Cannot get details on agentId={agentId}", agentId);
-            return;
-        }
-
-        string result = readOption.Return()
-            .GetConfigurationValues()
-            .Select(x => $" - {x.Key}={x.Value}")
-            .Prepend($"Configuration...")
-            .Join(Environment.NewLine) + Environment.NewLine;
-
-        context.Trace().LogInformation(result);
     }
 }

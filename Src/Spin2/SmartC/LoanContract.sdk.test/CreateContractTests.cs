@@ -129,7 +129,7 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
 
             var paymentRequest = new LoanPaymentRequest
             {
-                ContractId= contractId,
+                ContractId = contractId,
                 PrincipalId = ownerId,
                 PostedDate = postedDate,
             };

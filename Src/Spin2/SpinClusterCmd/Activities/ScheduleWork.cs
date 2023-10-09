@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.ScheduleWork;
+using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class ScheduleWork
+internal class ScheduleWork : ICommandRoute
 {
     private readonly ScheduleWorkClient _client;
     private readonly ILogger<ScheduleWork> _logger;
@@ -16,6 +17,25 @@ internal class ScheduleWork
         _client = client.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("work", "Schedule work items")
+    {
+        new CommandSymbol("delete", "Delete schedule work").Action(command =>
+        {
+            var workId = command.AddArgument<string>("workId", "WorkId ex. 'schedulework:WKID-9a8bf61d-e0b4-4c99-98da-ddca139a988f'}");
+            command.SetHandler(Delete, workId);
+        }),
+        new CommandSymbol("get", "Get schedules").Action(command =>
+        {
+            var workId = command.AddArgument<string>("workId", "WorkId ex. 'schedulework:WKID-9a8bf61d-e0b4-4c99-98da-ddca139a988f'}");
+            command.SetHandler(Get, workId);
+        }),
+        new CommandSymbol("release", "Release assignment of work").Action(command =>
+        {
+            var workId = command.AddArgument<string>("workId", "WorkId ex. 'schedulework:WKID-9a8bf61d-e0b4-4c99-98da-ddca139a988f'}");
+            command.SetHandler(ReleaseAssign, workId);
+        }),
+    };
 
     public async Task Delete(string workId)
     {

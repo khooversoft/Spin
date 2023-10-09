@@ -16,7 +16,7 @@ public class DataObjectBuilder
     {
         TypeName = typeof(T).GetTypeName();
         JsonData = value.ToJson();
-    
+
         return this;
     }
 

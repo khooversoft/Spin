@@ -5,6 +5,7 @@ using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Actors.Scheduler;

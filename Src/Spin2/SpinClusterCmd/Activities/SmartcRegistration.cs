@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Smartc;
+using Toolbox.CommandRouter;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
 
-internal class SmartcRegistration
+internal class SmartcRegistration : ICommandRoute
 {
     private readonly SmartcClient _client;
     private readonly ILogger<SmartcRegistration> _logger;
@@ -15,6 +17,20 @@ internal class SmartcRegistration
         _client = client.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("smartc", "SmartC package registration")
+    {
+        new CommandSymbol("register", "Register SmartC").Action(command =>
+        {
+            var smartcId = command.AddArgument<string>("smartcId", "SmartC's ID to register, ex: smartc:{domain}/{package}");
+            command.SetHandler(Register, smartcId);
+        }),
+        new CommandSymbol("remove", "Remove registered agent").Action(command =>
+        {
+            var smartcId = command.AddArgument<string>("smartcId", "SmartC's ID to register, ex: smartc:{domain}/{package}");
+            command.SetHandler(Remove, smartcId);
+        }),
+    };
 
     public async Task Register(string smartcId)
     {

@@ -6,7 +6,7 @@ using Toolbox.Tools;
 
 namespace SoftBank.sdk.Application;
 
-public static class SoftBankStartup
+public static class SoftBankApiStartup
 {
     public static ISiloBuilder AddSoftBank(this ISiloBuilder builder)
     {

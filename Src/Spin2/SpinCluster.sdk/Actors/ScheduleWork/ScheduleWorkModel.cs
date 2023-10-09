@@ -1,4 +1,5 @@
-﻿using SpinCluster.sdk.Actors.ScheduleWork;
+﻿using Microsoft.Extensions.Logging;
+using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Models;
@@ -61,4 +62,42 @@ public static class ScheduleWorkModelExtensions
         { Assigned: not null } v => v.Assigned.GetState(),
         _ => ScheduleWorkState.Available,
     };
+
+    public static ExtractScope Extract(this ScheduleWorkModel subject, ILogger logger)
+    {
+        return new ExtractScope
+        {
+            Logger = logger.NotNull(),
+            Model = subject.NotNull(),
+            Option = StatusCode.OK,
+        };
+    }
+
+    public static ExtractScope TryGetObject<T>(this ExtractScope subject, out T result)
+    {
+        result = default!;
+        if (subject.Option.IsError()) return subject;
+
+        subject = subject with
+        {
+            Option = subject.Model.Payloads.TryGetObject<T>(out result) ?
+                StatusCode.OK :
+                (StatusCode.NotFound, $"Type {typeof(T).GetTypeName()} not found in payload"
+                ),
+        };
+
+        if (subject.Option.IsError())
+        {
+            new ScopeContext(subject.Logger).Location().LogError(subject.Option.Error);
+        }
+
+        return subject;
+    }
+
+    public readonly record struct ExtractScope
+    {
+        public ILogger Logger { get; init; }
+        public ScheduleWorkModel Model { get; init; }
+        public Option Option { get; init; }
+    }
 }
