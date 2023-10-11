@@ -22,14 +22,3 @@ public record GraphNode<TKey> : IGraphNode<TKey>
     public TKey Key { get; init; }
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = _default;
 }
-
-
-public class GraphNodeIndex<TKey, TNode> : Dictionary<TKey, TNode>
-    where TKey : notnull
-    where TNode : IGraphNode<TKey>
-{
-    public GraphNodeIndex(IEqualityComparer<TKey>? equalityComparer = null)
-        : base(equalityComparer.ComparerFor())
-    {
-    }
-}

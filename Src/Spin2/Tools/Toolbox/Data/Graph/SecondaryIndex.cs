@@ -35,11 +35,27 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
     {
         lock (_lock)
         {
-            var referenceKeys = _index.Remove(key);
+            IReadOnlyList<TPrimaryKey> referenceKeys = _index.Remove(key);
 
             foreach (var refKey in referenceKeys)
             {
                 _reverseLookup.Remove(refKey, key);
+            }
+        }
+
+        return true;
+    }
+
+    public bool RemovePrimaryKey(TPrimaryKey primaryKey)
+    {
+        lock (_lock)
+        {
+            IReadOnlyList<TKey> keys = _reverseLookup.Remove(primaryKey);
+            if (keys.Count == 0) return false;
+
+            foreach (var key in keys)
+            {
+                _index.Remove(key, primaryKey);
             }
         }
 

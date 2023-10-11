@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -21,60 +20,24 @@ public record GraphEdge<TKey> : IGraphEdge<TKey>
     {
         FromNodeKey = fromNodeKey.NotNull();
         ToNodeKey = toNodeKey.NotNull();
+
         Tags = tags != null ? new Tags().Set(tags) : _default;
+        this.Verify();
     }
 
     public Guid Key { get; } = Guid.NewGuid();
     public TKey FromNodeKey { get; init; }
     public TKey ToNodeKey { get; init; }
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = _default;
-
 }
 
 
-
-//public class GraphEdgeIndex<TKey> : Dictionary<TKey, HashSet<Guid>>
-//    where TKey : notnull
-//{
-//    private readonly Dictionary<Guid, HashSet<TKey>> _reverseLookup;
-
-//    public GraphEdgeIndex(IEqualityComparer<TKey>? equalityComparer = null)
-//        : base(equalityComparer.ComparerFor())
-//    {
-//        _reverseLookup = new Dictionary<Guid, HashSet<TKey>>();
-//    }
-
-//    public new HashSet<Guid> this[TKey key]
-//    {
-//        get => base[key];
-//        set
-//        {
-//            var hashset = base[key];
-//        }
-//    }
-
-//    public void Add(TKey key, HashSet<Guid> value)
-//    {
-//        throw new NotImplementedException();
-//    }
-
-//    public void Add(KeyValuePair<TKey, HashSet<Guid>> item)
-//    {
-//        throw new NotImplementedException();
-//    }
-
-//    public void Clear()
-//    {
-//        throw new NotImplementedException();
-//    }
-
-//    public bool Remove(TKey key)
-//    {
-//        throw new NotImplementedException();
-//    }
-
-//    public bool Remove(KeyValuePair<TKey, HashSet<Guid>> item)
-//    {
-//        throw new NotImplementedException();
-//    }
-//}
+public static class GraghEdgeExtensions
+{
+    public static void Verify<TKey>(this IGraphEdge<TKey> subject)
+    {
+        subject.NotNull();
+        var keyCompare = ComparerTool.ComparerFor<TKey>(null);
+        keyCompare.Equals(subject.FromNodeKey, subject.ToNodeKey).Assert(x => !x, "From and to keys cannot be the same");
+    }
+}

@@ -11,77 +11,39 @@ public class GraphMap<TKey, TNode, TEdge> : IEnumerable<IGraphCommon>
     where TNode : IGraphNode<TKey>
     where TEdge : IGraphEdge<TKey>
 {
-    private readonly Dictionary<TKey, TNode> _nodes;
-    private readonly Dictionary<Guid, TEdge> _edges;
+    private readonly GraphNodeIndex<TKey, TNode> _nodes;
+    private readonly GraphEdgeIndex<TKey, TEdge> _edges;
+    private readonly object _lock = new object();
 
-    public GraphMap(IEqualityComparer<TKey>? equalityComparer = null)
+    public GraphMap(IEqualityComparer<TKey>? keyComparer = null)
     {
-        KeyCompare = equalityComparer ??
-            (typeof(TKey) == typeof(string) ? (IEqualityComparer<TKey>)StringComparer.OrdinalIgnoreCase : EqualityComparer<TKey>.Default);
+        _edges = new GraphEdgeIndex<TKey, TEdge>(_lock);
+        _nodes = new GraphNodeIndex<TKey, TNode>(_lock, x => _edges.Remove(x.Key), keyComparer);
 
-        _nodes = new Dictionary<TKey, TNode>(KeyCompare);
-        _edges = new Dictionary<Guid, TEdge>();
-    }
-
-    public GraphMap(GraphMap<TKey, TNode, TEdge> graphMap) : this()
-    {
-        graphMap.NotNull();
-
-        graphMap.Nodes.Values.ForEach(x => Add(x));
-        graphMap.Edges.Values.ForEach(x => Add(x));
+        KeyCompare = keyComparer.ComparerFor();
     }
 
     public IEqualityComparer<TKey> KeyCompare { get; }
+    public GraphNodeIndex<TKey, TNode> Nodes => _nodes;
+    public GraphEdgeIndex<TKey, TEdge> Edges => _edges;
 
-    public IReadOnlyDictionary<TKey, TNode> Nodes => _nodes;
-
-    public IReadOnlyDictionary<Guid, TEdge> Edges => _edges;
-
-    public GraphMap<TKey, TNode, TEdge> Add(TNode node)
+    public GraphMap<TKey, TNode, TEdge> Add(IGraphCommon element)
     {
-        node.NotNull();
-
-        _nodes[node.Key] = node;
-        return this;
-    }
-
-    public GraphMap<TKey, TNode, TEdge> Add(TEdge edge)
-    {
-        edge
-            .NotNull()
-            .Assert(x => !KeyCompare.Equals(edge.FromNodeKey, edge.ToNodeKey), "From and to keys cannot be the same");
-
-        _edges.Add(edge.Key, edge);
-        return this;
-    }
-
-    public GraphMap<TKey, TNode, TEdge> RemoveNode(TKey nodeKey)
-    {
-        _edges.Values
-            .Where(x => KeyCompare.Equals(x.FromNodeKey, nodeKey) || KeyCompare.Equals(x.ToNodeKey, nodeKey))
-            .Select(x => x.Key)
-            .ToList()
-            .ForEach(x => _edges.Remove(x));
-
-        _nodes.Remove(nodeKey);
+        switch (element)
+        {
+            case TNode node: _nodes.Add(node); break;
+            case TEdge edge: _edges.Add(edge); break;
+            default: throw new ArgumentException("Unknown element");
+        }
 
         return this;
     }
 
-    public GraphMap<TKey, TNode, TEdge> RemoveEdge(TKey fromNodeKey, TKey toNodeKey)
+    public IEnumerator<IGraphCommon> GetEnumerator()
     {
-        _edges.Values
-            .Where(x => KeyCompare.Equals(x.FromNodeKey, fromNodeKey) == true && KeyCompare.Equals(x.ToNodeKey, toNodeKey))
-            .Select(x => x.Key)
-            .ForEach(x => _edges.Remove(x));
-
-        return this;
+        foreach (var item in Nodes.OfType<IGraphCommon>()) yield return item;
+        foreach (var item in Edges.OfType<IGraphCommon>()) yield return item;
     }
-
-    public IEnumerator<IGraphCommon> GetEnumerator() => Nodes.Values.OfType<IGraphCommon>()
-        .Concat(Edges.Values.OfType<IGraphCommon>())
-        .ToList()
-        .GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
