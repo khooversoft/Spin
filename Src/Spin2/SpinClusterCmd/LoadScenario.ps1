@@ -1,9 +1,9 @@
 param(
-    [ValidateSet('reset', 'package', 'create')]
+    [ValidateSet('load', 'package', 'create', 'payment')]
     [string] $Cmd
 )
 
-if( $cmd -eq 'reset')
+if( $cmd -eq 'load')
 {
     & .\bin\Debug\net7.0\SpinClusterCmd.exe load D:\Sources\Spin\Src\Spin2\SpinClusterCmd\Data\Scenario_001_Setup.json
     exit;
@@ -18,5 +18,12 @@ if( $cmd -eq 'package')
 if( $cmd -eq 'create')
 {
     & .\bin\Debug\net7.0\SpinClusterCmd.exe schedule add D:\Sources\Spin\Src\Spin2\SpinClusterCmd\Data\CreateLoan-Command.json
+    exit;
+}
+
+
+if( $cmd -eq 'payment')
+{
+    & .\bin\Debug\net7.0\SpinClusterCmd.exe schedule add D:\Sources\Spin\Src\Spin2\SpinClusterCmd\Data\MakePayment-Command.json
     exit;
 }

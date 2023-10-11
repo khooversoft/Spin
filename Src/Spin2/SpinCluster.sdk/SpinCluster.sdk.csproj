@@ -25,4 +25,8 @@
         <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Actors\Graph\" />
+    </ItemGroup>
+
 </Project>

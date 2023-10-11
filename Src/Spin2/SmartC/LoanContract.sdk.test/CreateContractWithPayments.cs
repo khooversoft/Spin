@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
+using SpinCluster.sdk.Actors.Contract;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
@@ -191,8 +192,9 @@ public class CreateContractWithPayments : IClassFixture<ClusterApiFixture>
     private async Task CreateAccount(DateTime startDate, string contractId, string ownerId)
     {
         var manager = _cluster.ServiceProvider.GetRequiredService<LoanContractManager>();
+        var contractClient = _cluster.ServiceProvider.GetRequiredService<ContractClient>();
 
-        await manager.Delete(contractId, _context);
+        await contractClient.Delete(contractId, _context);
 
         var createRequest = new LoanAccountDetail
         {

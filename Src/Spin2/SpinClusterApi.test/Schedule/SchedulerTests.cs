@@ -140,9 +140,9 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesModel schedulesModel = schedulesOption.Return();
-        schedulesModel.Active.Count.Should().Be(1);
-        schedulesModel.Active[0].WorkId.Should().Be(request.WorkId);
-        schedulesModel.Active[0].AssignedDate.Should().BeNull();
+        schedulesModel.ActiveItems.Count.Should().Be(1);
+        schedulesModel.ActiveItems.Values.First().WorkId.Should().Be(request.WorkId);
+        schedulesModel.ActiveItems.Values.First().AssignedDate.Should().BeNull();
         schedulesModel.CompletedItems.Count.Should().Be(0);
 
         return (request.WorkId, payload1);
@@ -209,9 +209,9 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesModel schedulesModel = schedulesOption.Return();
-        schedulesModel.Active.Count.Should().Be(1);
-        schedulesModel.Active[0].WorkId.Should().Be(request.WorkId);
-        schedulesModel.Active[0].AssignedDate.Should().BeNull();
+        schedulesModel.ActiveItems.Count.Should().Be(1);
+        schedulesModel.ActiveItems.Values.First().WorkId.Should().Be(request.WorkId);
+        schedulesModel.ActiveItems.Values.First().AssignedDate.Should().BeNull();
         schedulesModel.CompletedItems.Count.Should().Be(0);
 
         CreatePayload payload1 = request.Payloads.GetObject<CreatePayload>();
@@ -274,9 +274,9 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesModel schedulesModel = schedulesOption.Return();
-        schedulesModel.Active.Count.Should().Be(1);
-        schedulesModel.Active[0].WorkId.Should().Be(workId);
-        schedulesModel.Active[0].AssignedDate.Should().NotBeNull();
+        schedulesModel.ActiveItems.Count.Should().Be(1);
+        schedulesModel.ActiveItems.Values.First().WorkId.Should().Be(workId);
+        schedulesModel.ActiveItems.Values.First().AssignedDate.Should().NotBeNull();
         schedulesModel.CompletedItems.Count.Should().Be(0);
 
         var workModelOption = await workClient.Get(model.WorkId, _context);
@@ -367,12 +367,12 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesModel schedulesModel = schedulesOption.Return();
-        schedulesModel.Active.Count.Should().Be(0);
+        schedulesModel.ActiveItems.Count.Should().Be(0);
         schedulesModel.CompletedItems.Count.Should().Be(1);
-        schedulesModel.CompletedItems[0].AgentId.Should().Be(_agentId);
-        schedulesModel.CompletedItems[0].WorkId.Should().Be(workId);
-        schedulesModel.CompletedItems[0].StatusCode.Should().Be(StatusCode.OK);
-        schedulesModel.CompletedItems[0].Message.Should().Be("completed");
+        schedulesModel.CompletedItems.Values.First().AgentId.Should().Be(_agentId);
+        schedulesModel.CompletedItems.Values.First().WorkId.Should().Be(workId);
+        schedulesModel.CompletedItems.Values.First().StatusCode.Should().Be(StatusCode.OK);
+        schedulesModel.CompletedItems.Values.First().Message.Should().Be("completed");
     }
 
     private sealed record CreatePayload

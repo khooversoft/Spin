@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Application;
 using SpinCluster.sdk.Application;
 using SpinClusterCmd.Activities;
@@ -17,6 +18,7 @@ var state = await new CommandRouterBuilder()
     .ConfigureAppConfiguration((config, service) => service.AddSingleton(config.Build().Bind<CmdOption>().Verify()))
     .AddCommand<AgentRegistration>()
     .AddCommand<Configuration>()
+    .AddCommand<Contract>()
     .AddCommand<Lease>()
     .AddCommand<LoadScenario>()
     .AddCommand<Schedule>()
@@ -28,9 +30,9 @@ var state = await new CommandRouterBuilder()
     .AddCommand<User>()
     .ConfigureService(x =>
     {
-        x.AddSpinClusterClients();
-        x.AddSpinClusterAdminClients();
-        x.AddSoftBankClients();
+        x.AddSpinClusterClients(LogLevel.Warning);
+        x.AddSpinClusterAdminClients(LogLevel.Warning);
+        x.AddSoftBankClients(LogLevel.Warning);
     })
     .Build()
     .Run();

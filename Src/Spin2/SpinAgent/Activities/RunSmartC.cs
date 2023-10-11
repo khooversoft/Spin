@@ -19,7 +19,7 @@ internal class RunSmartC
         _logger = logger.NotNull();
     }
 
-    public async Task<Option> Run(string folder, WorkAssignedModel workAssignedModel, ScopeContext context)
+    public async Task<Option> Run(string folder, WorkAssignedModel workAssignedModel, bool whatIf, ScopeContext context)
     {
         folder.NotEmpty();
         workAssignedModel.NotNull();
@@ -38,6 +38,12 @@ internal class RunSmartC
         }.Join(' ');
 
         context.Location().LogInformation("Starting SmartC, commandLine={commandLine}", args);
+
+        if (whatIf)
+        {
+            context.Location().LogInformation("[whatIf] skipping running SmartC");
+            return StatusCode.OK;
+        }
 
         try
         {

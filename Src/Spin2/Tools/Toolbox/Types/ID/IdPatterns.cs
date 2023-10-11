@@ -51,7 +51,6 @@ public static class IdPatterns
         };
 
     public static bool IsContractId(string? subject) => IsSchemaDomainMatch(subject, "contract");
-    public static bool IsLeaseId(string? subject) => IsSchemaDomainMatch(subject, "lease");
 
     public static bool IsAccountId(string? subject) =>
         subject.IsNotEmpty() &&

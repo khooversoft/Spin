@@ -41,39 +41,51 @@ internal class CreateContract : ICommandRoute
             return;
         }
 
-        ScheduleWorkModel workSchedule = workOption.Return();
+        Option resultOption = StatusCode.OK;
 
-        var extractResult = workOption.Return()
-            .Extract(_logger)
-            .TryGetObject<LoanAccountDetail>(out var loanAccountDetail)
-            .TryGetObject<LoanDetail>(out var loanDetail);
-
-        if (extractResult.Option.IsError()) return;
-
-        var createResponse = await _manager.Create(loanAccountDetail, context);
-        if (createResponse.IsError())
+        try
         {
-            context.Location().LogStatus(createResponse, "Failed to create loan contract, loanAccountDetail={loanAccountDetail}", loanAccountDetail);
+            var extractResult = workOption.Return()
+                .Extract(_logger)
+                .TryGetObject<LoanAccountDetail>(out var loanAccountDetail)
+                .TryGetObject<LoanDetail>(out var loanDetail);
+
+            if (extractResult.Option.IsError())
+            {
+                resultOption = extractResult.Option;
+                return;
+            }
+
+            var createResponse = await _manager.Create(loanAccountDetail, context);
+            if (createResponse.IsError())
+            {
+                context.Location().LogStatus(createResponse, "Failed to create loan contract, loanAccountDetail={loanAccountDetail}", loanAccountDetail);
+                resultOption = createResponse;
+                return;
+            }
+
+            var loanDetailResponse = await _manager.SetLoanDetail(loanDetail, context);
+            if (loanDetailResponse.IsError())
+            {
+                context.Location().LogStatus(loanDetailResponse, "Failed to set create loan contract, loanDetail={loanDetail}", loanDetail);
+                resultOption = loanDetailResponse;
+                return;
+            }
         }
-
-        var loanDetailResponse = await _manager.SetLoanDetail(loanDetail, context);
-        if (loanDetailResponse.IsError())
+        finally
         {
-            context.Location().LogStatus(loanDetailResponse, "Failed to set create loan contract, loanDetail={loanDetail}", loanDetail);
-        }
+            var response = new RunResultModel
+            {
+                WorkId = workId,
+                StatusCode = resultOption.StatusCode,
+                Message = resultOption.StatusCode.IsOk() ? "Created contract" : $"Failed to create contract, error={resultOption.Error}",
+            };
 
-        var response = new RunResultModel
-        {
-            WorkId = workId,
-            StatusCode = createResponse.StatusCode,
-            Message = createResponse.Error,
-        };
-
-        var writeRunResult = await _client.AddRunResult(response, context);
-        if (writeRunResult.IsError())
-        {
-            context.Location().LogError("Failed to write 'RunResult' to loan contract, loanAccountDetail={loanAccountDetail}", loanAccountDetail);
-            return;
+            var writeRunResult = await _client.AddRunResult(response, context);
+            if (writeRunResult.IsError())
+            {
+                context.Location().LogError("Failed to write 'RunResult' to loan contract, work={work}", workOption.Return());
+            }
         }
     }
 }

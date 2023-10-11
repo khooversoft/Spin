@@ -20,8 +20,10 @@ var state = await new CommandRouterBuilder()
     .AddCommand<WorkMonitor>()
     .ConfigureService(x =>
     {
+        x.AddSingleton<RunSmartC>();
         x.AddSingleton<AgentConfiguration>();
         x.AddSingleton<PackageManagement>();
+        x.AddSpinClusterClients(LogLevel.Warning);
         x.AddSpinClusterAdminClients(LogLevel.Warning);
     })
     .Build()

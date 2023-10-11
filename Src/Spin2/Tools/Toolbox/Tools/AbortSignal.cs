@@ -19,7 +19,7 @@ public class AbortSignal
     public void StartTracking()
     {
         var context = new ScopeContext(_logger);
-        context.Location().LogInformation("Starting to track abort signals");
+        context.Location().LogTrace("Starting to track abort signals");
 
         _tokenSource = new CancellationTokenSource();
         Console.CancelKeyPress += Console_CancelKeyPress;
@@ -28,7 +28,7 @@ public class AbortSignal
     public void StopTracking()
     {
         var context = new ScopeContext(_logger);
-        context.Location().LogInformation("Stoping tracking of abort signals");
+        context.Location().LogTrace("Stoping tracking of abort signals");
 
         Console.CancelKeyPress -= Console_CancelKeyPress;
     }

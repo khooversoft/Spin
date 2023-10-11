@@ -85,12 +85,32 @@ internal class Schedule : ICommandRoute
             return;
         }
 
-        string result = scheduleModel.Return()
-            .GetConfigurationValues()
-            .Select(x => $" - {x.Key}={x.Value}")
-            .Prepend($"Schedules...")
-            .Join(Environment.NewLine) + Environment.NewLine;
+        SchedulesModel model = scheduleModel.Return();
 
-        context.Trace().LogInformation(result);
+        var lines = new string[][]
+        {
+            new [] { "Active schedules..." },
+            dumpValues(model.ActiveItems.Values),
+            new [] { "Assigned work..." },
+            dumpValues(model.AssignedItems.Values),
+            new [] { "Completed wpork..." },
+            dumpValues(model.CompletedItems.Values),
+            new [] { string.Empty },
+
+        };
+
+        string[] dumpValues<T>(ICollection<T> values) => values switch
+        {
+            { Count: 0 } => new[] { "  No items" },
+            var v => v.Select((x, i) => $"  ({i}) {fixUp(x)}").ToArray(),
+        };
+
+        string fixUp<T>(T value) => value?.ToString()?.Replace("{", string.Empty).Replace("}", string.Empty).Trim() ?? "<no data>";
+
+        string line = lines
+            .SelectMany(x => x)
+            .Join(Environment.NewLine);
+
+        context.Trace().LogInformation(line);
     }
 }

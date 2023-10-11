@@ -50,8 +50,8 @@ public class ScheduleWorkClient
         .GetAsync(context.With(_logger))
         .GetContent<ScheduleWorkModel>();
 
-    public async Task<Option> ReleaseAssign(string workId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.ScheduleWork}/{Uri.EscapeDataString(workId)}/release")
+    public async Task<Option> ReleaseAssign(string workId, bool force, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.ScheduleWork}/{Uri.EscapeDataString(workId)}/release/{force}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .PostAsync(context.With(_logger))
         .ToOption();

@@ -5,11 +5,11 @@ namespace Toolbox.Types;
 
 public class Tags : Dictionary<string, string?>
 {
-    public Tags Set(string? subject)
+    public Tags Set(string? tags)
     {
-        if (subject.IsEmpty()) return this;
+        if (tags.IsEmpty()) return this;
 
-        var keyValuePairs = subject.ToDictionary();
+        var keyValuePairs = tags.ToDictionary();
         keyValuePairs.ForEach(x => this[x.Key] = x.Value);
         return this;
     }

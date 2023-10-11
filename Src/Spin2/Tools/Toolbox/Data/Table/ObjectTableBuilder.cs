@@ -1,6 +1,7 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 
-namespace Toolbox.Tools.Table;
+namespace Toolbox.Data;
 
 public class ObjectTableBuilder
 {

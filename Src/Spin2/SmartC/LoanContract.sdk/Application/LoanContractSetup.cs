@@ -8,7 +8,7 @@ public static class LoanContractSetup
 {
     public static IServiceCollection AddLoanContract(this IServiceCollection services)
     {
-        services.AddClusterHttpClient<LoanContractManager>();
+        services.AddSingleton<LoanContractManager>();
 
         return services;
     }

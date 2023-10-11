@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
+using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Tools.Table;
 
 namespace Toolbox.Test.Tools;
 

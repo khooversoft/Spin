@@ -12,6 +12,8 @@ public sealed record AssignedCompleted
     [Id(3)] public StatusCode StatusCode { get; init; }
     [Id(4)] public string Message { get; init; } = null!;
 
+    public override string ToString() => $"AgentId={AgentId}, WorkId={WorkId}, Date={Date}, StatusCode={StatusCode}, Message={Message}";
+
     public static IValidator<AssignedCompleted> Validator { get; } = new Validator<AssignedCompleted>()
         .RuleFor(x => x.AgentId).ValidResourceId(ResourceType.System, "agent")
         .RuleFor(x => x.WorkId).NotEmpty()

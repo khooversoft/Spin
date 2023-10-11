@@ -30,7 +30,7 @@ public class ScheduleWorkConnection
         group.MapPost("/create", Create);
         group.MapDelete("/{workId}", Delete);
         group.MapGet("/{workId}", Get);
-        group.MapPost("/{workId}/release", Release);
+        group.MapPost("/{workId}/release/{force?}", ReleaseAssign);
 
         return group;
     }
@@ -92,14 +92,14 @@ public class ScheduleWorkConnection
         return response.ToResult();
     }
 
-    private async Task<IResult> Release(string workId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> ReleaseAssign(string workId, bool? force, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         workId = Uri.UnescapeDataString(workId);
         if (!ResourceId.IsValid(workId, ResourceType.System, SpinConstants.Schema.ScheduleWork)) Results.BadRequest("Invalid workId");
 
         Option response = await _client
             .GetResourceGrain<IScheduleWorkActor>(workId)
-            .ReleaseAssign(traceId);
+            .ReleaseAssign(force ?? false, traceId);
 
         return response.ToResult();
     }

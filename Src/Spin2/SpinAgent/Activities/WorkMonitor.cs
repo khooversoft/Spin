@@ -40,10 +40,11 @@ internal class WorkMonitor : ICommandRoute
 
     public CommandSymbol CommandSymbol() => new CommandSymbol("run", "Start the agent and process requests").Action(x =>
     {
-        x.SetHandler(Run);
+        var whatIf = x.AddOption<bool>("--whatIf", "Execute but will not run SmartC");
+        x.SetHandler(Run, whatIf);
     });
 
-    public async Task Run()
+    public async Task Run(bool whatIf)
     {
         var context = new ScopeContext(_logger);
 
@@ -61,7 +62,7 @@ internal class WorkMonitor : ICommandRoute
                 continue;
             }
 
-            var runResult = await _runSmartC.Run(unpackPackageLocation.Return(), workSchedule, context);
+            var runResult = await _runSmartC.Run(unpackPackageLocation.Return(), workSchedule, whatIf, context);
 
             await UpdateWorkStatus(workSchedule.WorkId, runResult.StatusCode, runResult.Error, context);
         }

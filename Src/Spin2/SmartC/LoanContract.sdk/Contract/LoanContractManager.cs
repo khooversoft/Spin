@@ -57,15 +57,6 @@ public class LoanContractManager
         return await Append(detail, detail.ContractId, detail.OwnerId, context);
     }
 
-    public async Task<Option> Delete(string contractId, ScopeContext context)
-    {
-        context = context.With(_logger);
-        context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
-
-        var option = await _contractClient.Delete(contractId, context);
-        return option;
-    }
-
     public async Task<Option<LoanReportModel>> GetReport(string contractId, string principalId, ScopeContext context)
     {
         context = context.With(_logger);

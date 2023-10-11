@@ -60,7 +60,7 @@ public class CommandRouterHost
             abortSignal?.StopTracking();
             int state = abortSignal?.GetToken().IsCancellationRequested == true ? 1 : 0;
 
-            context.Trace().LogInformation("Command completed, state={state}", state);
+            context.Trace().LogTrace("Command completed, state={state}", state);
             return state;
         }
         catch (Exception ex)

@@ -1,4 +1,6 @@
-﻿namespace Toolbox.Tools.Table;
+﻿using Toolbox.Tools;
+
+namespace Toolbox.Data;
 
 public class TableHeader
 {

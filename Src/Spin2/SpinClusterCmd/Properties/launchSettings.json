@@ -2,7 +2,7 @@
   "profiles": {
     "SpinClusterCmd": {
       "commandName": "Project",
-      "commandLineArgs": "agent get agentId"
+      "commandLineArgs": "schedule get"
     }
   }
 }

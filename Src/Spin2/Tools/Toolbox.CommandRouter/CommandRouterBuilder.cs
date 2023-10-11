@@ -19,7 +19,11 @@ public class CommandRouterBuilder
             .AddJsonFile("appsettings.json", false);
 
         _serviceCollection = new ServiceCollection()
-            .AddLogging(config => config.AddConsole())
+            .AddLogging(config =>
+            {
+                config.AddConsole();
+                config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+            })
             .AddSingleton<AbortSignal>();
     }
 

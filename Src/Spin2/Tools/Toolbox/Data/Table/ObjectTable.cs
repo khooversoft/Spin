@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Tools.Table;
+﻿namespace Toolbox.Data;
 
 public class ObjectTable
 {

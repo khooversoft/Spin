@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -91,7 +93,7 @@ public class TagsTests
     }
 
     [Fact]
-    public void TagsStageTags()
+    public void TagsUsingTags()
     {
         var tags = new Tags();
         tags.Set("key2");
@@ -116,5 +118,26 @@ public class TagsTests
         tags4.Count.Should().Be(2);
         (tags == tags4).Should().BeTrue();
         (tags.ToString(true) == tags4.ToString(true)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TagSerialization()
+    {
+        var tags = new Tags()
+            .Set("key2")
+            .Set("key1=value1");
+
+        string json = tags.ToJson();
+
+        Tags? readTags = json.ToObject<Tags>();
+        readTags.Should().NotBeNull();
+
+        (tags == readTags).Should().BeTrue();
+
+        IReadOnlyDictionary<string, string?>? r2 = json.ToObject<IReadOnlyDictionary<string, string?>>();
+        r2.Should().NotBeNull();
+        r2!.ContainsKey("key2").Should().BeTrue();
+        r2.ContainsKey("key1").Should().BeTrue();
+        r2["key1"].Should().Be("value1");
     }
 }

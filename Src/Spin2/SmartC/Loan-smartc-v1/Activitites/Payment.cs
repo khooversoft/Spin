@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using LoanContract.sdk.Contract;
+﻿using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.ScheduleWork;
@@ -42,36 +41,47 @@ internal class Payment : ICommandRoute
             return;
         }
 
-        ScheduleWorkModel workSchedule = workOption.Return();
+        Option resultOption = StatusCode.OK;
 
-        if (!workSchedule.Payloads.TryGetObject<LoanPaymentRequest>(out var loanPaymentRequest))
+        try
         {
-            context.Location().LogError("[Abort] LoanAccountDetail not in payload");
-            return;
+            var extractResult = workOption.Return()
+                .Extract(_logger)
+                .TryGetObject<LoanPaymentRequest>(out var loanPaymentRequest);
+
+            if (extractResult.Option.IsError())
+            {
+                resultOption = extractResult.Option;
+                return;
+            }
+
+            var makePaymentResponse = await _manager.MakePayment(loanPaymentRequest, context);
+            if (makePaymentResponse.IsError())
+            {
+                context.Location().LogStatus(
+                    makePaymentResponse,
+                    "Failed to create make payment on loan contract, loanPaymentRequest={loanPaymentRequest}",
+                    loanPaymentRequest
+                    );
+
+                resultOption = makePaymentResponse;
+                return;
+            }
         }
-
-        var makePaymentResponse = await _manager.MakePayment(loanPaymentRequest, context);
-        if (makePaymentResponse.IsError())
+        finally
         {
-            context.Location().LogStatus(
-                makePaymentResponse,
-                "Failed to create make payment on loan contract, loanPaymentRequest={loanPaymentRequest}",
-                loanPaymentRequest
-                );
-        }
+            var response = new RunResultModel
+            {
+                WorkId = workId,
+                StatusCode = resultOption.StatusCode,
+                Message = resultOption.StatusCode.IsOk() ? "Created contract" : $"Failed to post payment to contract, error={resultOption.Error}",
+            };
 
-        var response = new RunResultModel
-        {
-            WorkId = workId,
-            StatusCode = makePaymentResponse.StatusCode,
-            Message = makePaymentResponse.Error,
-        };
-
-        var writeRunResult = await _client.AddRunResult(response, context);
-        if (writeRunResult.IsError())
-        {
-            context.Location().LogError("Failed to write 'RunResult' to loan contract, loanPaymentRequest={loanPaymentRequest}", loanPaymentRequest);
-            return;
+            var writeRunResult = await _client.AddRunResult(response, context);
+            if (writeRunResult.IsError())
+            {
+                context.Location().LogError("Failed to write 'RunResult' to loan contract for payment, work={work}", workOption.Return());
+            }
         }
     }
 }

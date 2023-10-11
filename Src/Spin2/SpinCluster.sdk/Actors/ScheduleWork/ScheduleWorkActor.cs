@@ -17,7 +17,7 @@ public interface IScheduleWorkActor : IGrainWithStringKey
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
     Task<Option<ScheduleWorkModel>> Get(string traceId);
-    Task<Option> ReleaseAssign(string traceId);
+    Task<Option> ReleaseAssign(bool force, string traceId);
 }
 
 
@@ -121,7 +121,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         // Remove queue in schedule
         await _clusterClient
             .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
-            .Completed(completed, context.TraceId);
+            .InternalCompleted(completed, context.TraceId);
 
         return StatusCode.OK;
     }
@@ -168,17 +168,22 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         return option.ToTaskResult();
     }
 
-    public async Task<Option> ReleaseAssign(string traceId)
+    public async Task<Option> ReleaseAssign(bool force, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Release assingment to agent, actorKey={actorKey}, agentId={agentId}", this.GetPrimaryKeyString());
+        context.Location().LogInformation("Release assingment to agent, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         if (!_state.RecordExists) return (StatusCode.NotFound, "No schedules exist");
-        if (_state.State.GetState() == ScheduleWorkState.Completed) return (StatusCode.ServiceUnavailable, $"actorKey={this.GetPrimaryKeyString()} already completed");
+        if (!force && _state.State.GetState() == ScheduleWorkState.Completed) return (StatusCode.Conflict, $"actorKey={this.GetPrimaryKeyString()} already completed");
 
         _state.State = _state.State with { Assigned = null };
         await _state.WriteStateAsync();
-        return StatusCode.OK;
+
+        var resetOption = await _clusterClient
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .ResetWork(this.GetPrimaryKeyString(), context.TraceId);
+
+        return resetOption;
     }
 
     private async Task ValidateAndWrite()
