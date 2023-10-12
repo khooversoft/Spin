@@ -32,7 +32,8 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         {
             lock (_lock)
             {
-                ValidateNodes(value);
+                if (!ValidateNodes(value, out var option)) option.ThrowOnError("Invalid edge");
+
                 Remove(value.Key);
                 Add(value);
             }
@@ -41,17 +42,19 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
     public int Count => _index.Count;
 
-    public void Add(TEdge edge)
+    public Option Add(TEdge edge)
     {
-        edge.Verify();
+        if (!edge.IsValid(out var v1)) return v1;
 
         lock (_lock)
         {
-            ValidateNodes(edge);
+            if (!ValidateNodes(edge, out var v2)) return v2;
+            if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
 
-            _index.Add(edge.Key, edge);
             _edgesFrom.Set(edge.FromNodeKey, edge.Key);
             _edgesTo.Set(edge.ToNodeKey, edge.Key);
+
+            return StatusCode.OK;
         }
     }
 
@@ -128,10 +131,22 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
     public IEnumerator<TEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private void ValidateNodes(TEdge edge)
+    private bool ValidateNodes(TEdge edge, out Option result)
     {
-        _isNodeExist(edge.FromNodeKey).Assert(x => x == true, $"Cannot add edge, FromNodeKey={edge.FromNodeKey} does not exist");
-        _isNodeExist(edge.ToNodeKey).Assert(x => x == true, $"Cannot add edge, ToNodeKey={edge.ToNodeKey} does not exist");
+        if (!_isNodeExist(edge.FromNodeKey))
+        {
+            result = (StatusCode.NotFound, $"Cannot add edge, FromNodeKey={edge.FromNodeKey} does not exist");
+            return false;
+        }
+
+        if (!_isNodeExist(edge.ToNodeKey))
+        {
+            result = (StatusCode.NotFound, $"Cannot add edge, ToNodeKey={edge.ToNodeKey} does not exist");
+            return false;
+        }
+
+        result = StatusCode.OK;
+        return true;
     }
 
     private (IReadOnlyList<Guid> from, IReadOnlyList<Guid> to) GetEdges(EdgeDirection direction, TKey fromNode, TKey toNode)

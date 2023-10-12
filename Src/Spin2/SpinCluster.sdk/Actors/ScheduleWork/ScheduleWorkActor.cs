@@ -120,7 +120,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
 
         // Remove queue in schedule
         await _clusterClient
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
             .InternalCompleted(completed, context.TraceId);
 
         return StatusCode.OK;
@@ -180,7 +180,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         await _state.WriteStateAsync();
 
         var resetOption = await _clusterClient
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
             .ResetWork(this.GetPrimaryKeyString(), context.TraceId);
 
         return resetOption;

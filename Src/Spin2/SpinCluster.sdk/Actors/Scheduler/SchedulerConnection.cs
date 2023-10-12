@@ -42,7 +42,7 @@ public class SchedulerConnection
         if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
             .CreateSchedule(model, traceId);
 
         return response.ToResult();
@@ -53,7 +53,7 @@ public class SchedulerConnection
         if (agentId.IsEmpty()) return Results.BadRequest();
 
         Option<WorkAssignedModel> response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
             .AssignWork(agentId, traceId);
 
         return response.ToResult();
@@ -64,7 +64,7 @@ public class SchedulerConnection
         if (principalId.IsEmpty()) return Results.BadRequest();
 
         Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
             .Clear(principalId, traceId);
 
         return response.ToResult();
@@ -73,7 +73,7 @@ public class SchedulerConnection
     private async Task<IResult> GetSchedules([FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         Option<SchedulesModel> response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.Scheduler)
+            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
             .GetSchedules(traceId);
 
         return response.ToResult();

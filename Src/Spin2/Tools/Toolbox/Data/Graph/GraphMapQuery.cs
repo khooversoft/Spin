@@ -3,22 +3,22 @@ using Toolbox.Tools;
 
 namespace Toolbox.Data;
 
+public readonly record struct QueryContext<T> where T : notnull
+{
+    [SetsRequiredMembers]
+    public QueryContext() { }
+
+    public GraphMap<T> Map { get; init; } = null!;
+    public IReadOnlyList<GraphNode<T>> Nodes { get; init; } = Array.Empty<GraphNode<T>>();
+    public IReadOnlyList<GraphEdge<T>> Edges { get; init; } = Array.Empty<GraphEdge<T>>();
+}
+
 
 // var v = g.Query.Nodes(x => x.{node}).HasEdge(x => x.{edge}).Nodes()
 // var v = g.Query.Nodes(x => x.{node}).HasEdge(x => x.{edge}).Edges()
 // var v = g.Query.Edges(x => x.{edge}).HasNode(x => x.{node}).Edges()
 public static class GraphMapQuery
 {
-    public readonly record struct QueryContext<T> where T : notnull
-    {
-        [SetsRequiredMembers]
-        public QueryContext() { }
-
-        public GraphMap<T> Map { get; init; } = null!;
-        public IReadOnlyList<GraphNode<T>> Nodes { get; init; } = Array.Empty<GraphNode<T>>();
-        public IReadOnlyList<GraphEdge<T>> Edges { get; init; } = Array.Empty<GraphEdge<T>>();
-    }
-
     public static QueryContext<T> Query<T>(this GraphMap<T> subject) where T : notnull => new QueryContext<T> { Map = subject.NotNull() };
 
     public static QueryContext<T> Nodes<T>(this QueryContext<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
@@ -53,11 +53,11 @@ public static class GraphMapQuery
         predicate.NotNull();
 
         var selectedNodes = subject.Edges
-                .SelectMany(x => new T[] { x.FromNodeKey, x.ToNodeKey })
-                .Distinct()
-                .Select(x => subject.Map.Nodes[x])
-                .Where(x => predicate?.Invoke(x) ?? true)
-                .ToArray();
+            .SelectMany(x => new T[] { x.FromNodeKey, x.ToNodeKey })
+            .Distinct()
+            .Select(x => subject.Map.Nodes[x])
+            .Where(x => predicate?.Invoke(x) ?? true)
+            .ToArray();
 
         var selectedEdges = selectedNodes
             .SelectMany(x => subject.Map.Edges.Get(x.Key))

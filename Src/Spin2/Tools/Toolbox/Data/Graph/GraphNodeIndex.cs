@@ -35,11 +35,15 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
 
     public int Count => _index.Count;
 
-    public void Add(TNode node)
+    public Option Add(TNode node)
     {
         lock (_lock)
         {
-            _index.Add(node.Key, node);
+            return _index.TryAdd(node.Key, node) switch
+            {
+                true => StatusCode.OK,
+                false => (StatusCode.Conflict, $"Node key={node.Key} already exist"),
+            };
         }
     }
 

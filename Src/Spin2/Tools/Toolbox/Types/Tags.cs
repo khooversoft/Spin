@@ -5,6 +5,9 @@ namespace Toolbox.Types;
 
 public class Tags : Dictionary<string, string?>
 {
+    public Tags() : base(StringComparer.OrdinalIgnoreCase) { }
+    public Tags(IEnumerable<KeyValuePair<string, string?>> values) : base(values, StringComparer.OrdinalIgnoreCase) { }
+
     public Tags Set(string? tags)
     {
         if (tags.IsEmpty()) return this;
@@ -16,7 +19,11 @@ public class Tags : Dictionary<string, string?>
 
     public Tags Set(string key, string? value) => this.Action(x => this[key.NotEmpty()] = value);
 
-    public bool Has(string key) => ContainsKey(key);
+    public bool Has(string? key) => key switch
+    {
+        string v => ContainsKey(v),
+        _ => false,
+    };
 
     public bool Has(string key, string value)
     {

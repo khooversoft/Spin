@@ -24,6 +24,27 @@ public class GraphMapSerializationTests
     [Fact]
     public void SingleNodeMap()
     {
+        new GraphMap()
+        {
+            new GraphNode<string>("Node1"),
+        }.Action(x =>
+        {
+            var json = x.ToJson();
+
+            var mapResult = GraphMap.FromJson<string>(json).NotNull();
+            mapResult.Should().NotBeNull();
+            mapResult.Count().Should().Be(1);
+            mapResult.Edges.Count.Should().Be(0);
+
+            mapResult.Nodes.Count.Should().Be(1);
+            mapResult.Nodes.First().Action(y =>
+            {
+                y.Key.Should().Be("Node1");
+                y.Tags.Should().NotBeNull();
+                y.Tags.Count.Should().Be(0);
+            });
+        });
+
         new GraphMap<string>()
         {
             new GraphNode<string>("Node1"),
@@ -42,6 +63,29 @@ public class GraphMapSerializationTests
                 y.Key.Should().Be("Node1");
                 y.Tags.Should().NotBeNull();
                 y.Tags.Count.Should().Be(0);
+            });
+        });
+
+        new GraphMap()
+        {
+            new GraphNode<string>("Node1", "t1;t2=v2"),
+        }.Action(x =>
+        {
+            var json = x.ToJson();
+
+            var mapResult = GraphMap.FromJson<string>(json).NotNull();
+            mapResult.Should().NotBeNull();
+            mapResult.Count().Should().Be(1);
+            mapResult.Edges.Count.Should().Be(0);
+
+            mapResult.Nodes.Count.Should().Be(1);
+            mapResult.Nodes.First().Action(y =>
+            {
+                y.Key.Should().Be("Node1");
+                y.Tags.Should().NotBeNull();
+                y.Tags.Count.Should().Be(2);
+                y.Tags["t1"].Should().BeNull();
+                y.Tags["t2"].Should().Be("v2");
             });
         });
 

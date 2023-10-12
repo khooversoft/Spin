@@ -4,9 +4,10 @@ public static class SpinConstants
 {
     public const string SpinStateStore = "spinStateStore";
     public const string SignValidation = "system:signValidation";
-    public const string Scheduler = "system:scheduler";
+    public const string SchedulerActoryKey = "system:scheduler";
     public const string DomainActorKey = "system:domain";
     public const string LeaseActorKey = "system:lease";
+    public const string DirectoryActorKey = "system:directory";
 
     public const string Folder = "folder";
     public const string Open = "open";

@@ -54,9 +54,24 @@ public static class GraghEdgeExtensions
     public static void Verify<TKey>(this IGraphEdge<TKey> subject)
     {
         subject.NotNull();
-        subject.Direction.IsEnumValid().Assert(x => x, "Invalid direction");
+        var option = subject.IsValid();
+        if (option.IsError()) throw new ArgumentException(option.Error);
+    }
+
+    public static Option IsValid<TKey>(this IGraphEdge<TKey> subject)
+    {
+        subject.NotNull();
+        if (!subject.Direction.IsEnumValid()) return (StatusCode.BadRequest, "Invalid direction");
 
         var keyCompare = ComparerTool.ComparerFor<TKey>(null);
-        keyCompare.Equals(subject.FromNodeKey, subject.ToNodeKey).Assert(x => !x, "From and to keys cannot be the same");
+        if (keyCompare.Equals(subject.FromNodeKey, subject.ToNodeKey)) return (StatusCode.BadRequest, "From and to keys cannot be the same");
+
+        return StatusCode.OK;
+    }
+
+    public static bool IsValid<TKey>(this IGraphEdge<TKey> subject, out Option result)
+    {
+        result = subject.IsValid();
+        return result.IsOk();
     }
 }

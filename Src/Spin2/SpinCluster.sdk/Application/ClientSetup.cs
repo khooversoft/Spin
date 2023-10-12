@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Configuration;
 using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.sdk.Actors.Directory;
 using SpinCluster.sdk.Actors.Domain;
 using SpinCluster.sdk.Actors.Lease;
 using SpinCluster.sdk.Actors.PrincipalKey;
@@ -70,6 +71,7 @@ public static class ClientSetup
         services.AddClusterHttpClient<SubscriptionClient>();
         services.AddClusterHttpClient<TenantClient>();
         services.AddClusterHttpClient<UserClient>();
+        services.AddClusterHttpClient<DirectoryClient>();
 
         if (logLevel != null)
         {
@@ -86,6 +88,7 @@ public static class ClientSetup
                 config.AddFilter(typeof(SubscriptionClient).FullName, (LogLevel)logLevel);
                 config.AddFilter(typeof(TenantClient).FullName, (LogLevel)logLevel);
                 config.AddFilter(typeof(UserClient).FullName, (LogLevel)logLevel);
+                config.AddFilter(typeof(DirectoryClient).FullName, (LogLevel)logLevel);
             });
         }
 

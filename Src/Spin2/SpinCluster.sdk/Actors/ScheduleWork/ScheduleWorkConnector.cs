@@ -10,12 +10,12 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.ScheduleWork;
 
-public class ScheduleWorkConnection
+public class ScheduleWorkConnector
 {
     protected readonly IClusterClient _client;
-    protected readonly ILogger<ScheduleWorkConnection> _logger;
+    protected readonly ILogger<ScheduleWorkConnector> _logger;
 
-    public ScheduleWorkConnection(IClusterClient client, ILogger<ScheduleWorkConnection> logger)
+    public ScheduleWorkConnector(IClusterClient client, ILogger<ScheduleWorkConnector> logger)
     {
         _client = client.NotNull();
         _logger = logger.NotNull();

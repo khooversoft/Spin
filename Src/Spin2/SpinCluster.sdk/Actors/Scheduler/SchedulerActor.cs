@@ -44,7 +44,7 @@ public class SchedulerActor : Grain, ISchedulerActor
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.GetPrimaryKeyString().Assert(x => x == SpinConstants.Scheduler, x => $"Actor key {x} is invalid, must match {SpinConstants.Scheduler}");
+        this.GetPrimaryKeyString().Assert(x => x == SpinConstants.SchedulerActoryKey, x => $"Actor key {x} is invalid, must match {SpinConstants.SchedulerActoryKey}");
 
         if (_state.RecordExists)
         {
