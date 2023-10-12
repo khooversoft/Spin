@@ -27,7 +27,7 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
         {
             lock (_lock)
             {
-                Remove(value.Key);
+                Remove(key);
                 Add(value);
             }
         }

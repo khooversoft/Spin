@@ -6,6 +6,19 @@ namespace Toolbox.Data;
 
 public interface IGraphCommon { }
 
+
+public class GraphMap<T> : GraphMap<T, GraphNode<T>, GraphEdge<T>>
+    where T : notnull
+{
+    public GraphMap() { }
+
+    public GraphMap(IEnumerable<GraphNode<T>> nodes, IEnumerable<GraphEdge<T>> edges, IEqualityComparer<T>? keyComparer = null)
+        : base(nodes, edges, keyComparer)
+    {
+    }
+}
+
+
 public class GraphMap<TKey, TNode, TEdge> : IEnumerable<IGraphCommon>
     where TKey : notnull
     where TNode : IGraphNode<TKey>
@@ -21,6 +34,13 @@ public class GraphMap<TKey, TNode, TEdge> : IEnumerable<IGraphCommon>
         _nodes = new GraphNodeIndex<TKey, TNode>(_lock, x => _edges.Remove(x.Key), keyComparer);
 
         KeyCompare = keyComparer.ComparerFor();
+    }
+
+    public GraphMap(IEnumerable<TNode> nodes, IEnumerable<TEdge> edges, IEqualityComparer<TKey>? keyComparer = null)
+        : this(keyComparer)
+    {
+        nodes.NotNull().ForEach(Nodes.Add);
+        edges.NotNull().ForEach(Edges.Add);
     }
 
     public IEqualityComparer<TKey> KeyCompare { get; }
