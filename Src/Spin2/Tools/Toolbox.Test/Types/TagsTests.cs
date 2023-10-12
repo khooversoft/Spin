@@ -27,17 +27,27 @@ public class TagsTests
     }
 
     [Fact]
-    public void TagsSingle()
+    public void TagsSingleAndNotEqual()
     {
         var tags = new Tags().Set("key1");
         tags.Count.Should().Be(1);
         tags.ContainsKey("key1").Should().BeTrue();
         tags["key1"].Should().BeNull();
+        tags.Has("key1").Should().BeTrue();
+        tags.Has("key1", "value").Should().BeFalse();
+        tags.Has("fake").Should().BeFalse();
+        tags.Has("key1", "fake1").Should().BeFalse();
 
         var tags2 = new Tags().Set("key1=value1");
         tags2.Count.Should().Be(1);
         tags2.ContainsKey("key1").Should().BeTrue();
         tags2["key1"].Should().Be("value1");
+        tags2.Has("key1").Should().BeTrue();
+        tags2.Has("key1", "value1").Should().BeTrue();
+        tags2.Has("fake").Should().BeFalse();
+        tags2.Has("key1", "fake1").Should().BeFalse();
+
+        (tags != tags2).Should().BeTrue();
     }
 
     [Fact]
@@ -129,10 +139,15 @@ public class TagsTests
 
         string json = tags.ToJson();
 
-        Tags? readTags = json.ToObject<Tags>();
+        Tags readTags = json.ToObject<Tags>().NotNull();
         readTags.Should().NotBeNull();
 
         (tags == readTags).Should().BeTrue();
+
+        readTags.Has("key2").Should().BeTrue();
+        readTags.Has("key1", "value1").Should().BeTrue();
+        readTags.Has("key1", "fake").Should().BeFalse();
+        readTags.Has("fake").Should().BeFalse();
 
         IReadOnlyDictionary<string, string?>? r2 = json.ToObject<IReadOnlyDictionary<string, string?>>();
         r2.Should().NotBeNull();

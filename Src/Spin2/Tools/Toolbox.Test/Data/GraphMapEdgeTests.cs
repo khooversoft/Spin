@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Toolbox.Data;
+using Toolbox.Extensions;
 
 namespace Toolbox.Test.Data;
 
@@ -108,5 +109,15 @@ public class GraphMapEdgeTests
 
         map.Should().BeNull();
         test1.Should().Throw<ArgumentException>();
+
+        Action test2 = () => new GraphMap<string, IGraphNode<string>, IGraphEdge<string>>()
+        {
+            new GraphNode<string>("Node1"),
+            new GraphNode<string>("Node2"),
+            new GraphEdge<string>("Node1", "Node2"),
+            new GraphEdge<string>("Node1", "Node3"),
+        };
+
+        test2.Should().Throw<ArgumentException>();
     }
 }

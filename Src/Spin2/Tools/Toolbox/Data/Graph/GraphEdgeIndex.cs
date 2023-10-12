@@ -13,10 +13,13 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
     private readonly SecondaryIndex<TKey, Guid> _edgesFrom;
     private readonly SecondaryIndex<TKey, Guid> _edgesTo;
     private readonly object _lock;
+    private readonly Func<TKey, bool> _isNodeExist;
 
-    public GraphEdgeIndex(object syncLock, IEqualityComparer<TKey>? keyComparer = null)
+    public GraphEdgeIndex(object syncLock, Func<TKey, bool> isNodeExist, IEqualityComparer<TKey>? keyComparer = null)
     {
         _lock = syncLock.NotNull();
+        _isNodeExist = isNodeExist.NotNull();
+
         _index = new Dictionary<Guid, TEdge>();
         _edgesFrom = new SecondaryIndex<TKey, Guid>(keyComparer);
         _edgesTo = new SecondaryIndex<TKey, Guid>(keyComparer);
@@ -29,6 +32,7 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         {
             lock (_lock)
             {
+                ValidateNodes(value);
                 Remove(value.Key);
                 Add(value);
             }
@@ -43,6 +47,8 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
         lock (_lock)
         {
+            ValidateNodes(edge);
+
             _index.Add(edge.Key, edge);
             _edgesFrom.Set(edge.FromNodeKey, edge.Key);
             _edgesTo.Set(edge.ToNodeKey, edge.Key);
@@ -51,27 +57,23 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
     public bool ContainsKey(Guid edgeKey) => _index.ContainsKey(edgeKey);
 
-    public IReadOnlyList<TEdge> Get(TKey nodeKey)
+    public IReadOnlyList<TEdge> Get(TKey nodeKey, EdgeDirection direction = EdgeDirection.Both)
     {
         lock (_lock)
         {
-            var from = _edgesFrom.Lookup(nodeKey);
-            var to = _edgesTo.Lookup(nodeKey);
-
-            var result = from.Concat(to).Select(x => _index[x]).ToArray();
+            (IReadOnlyList<Guid> from, IReadOnlyList<Guid> to) = GetEdges(direction, nodeKey, nodeKey);
+            var result = from.Concat(to).Distinct().Select(x => _index[x]).ToArray();
             return result;
         }
     }
 
-    public IReadOnlyList<TEdge> Get(TKey fromKey, TKey toKey)
+    public IReadOnlyList<TEdge> Get(TKey fromKey, TKey toKey, EdgeDirection direction = EdgeDirection.Both)
     {
         lock (_lock)
         {
-            var from = _edgesFrom.Lookup(fromKey);
-            var to = _edgesTo.Lookup(toKey);
+            (IReadOnlyList<Guid> from, IReadOnlyList<Guid> to) = GetEdges(direction, fromKey, toKey);
 
-            var keys = from.Intersect(to).ToArray();
-
+            var keys = from.Intersect(to).Distinct().ToArray();
             var result = keys.Select(x => _index[x]).ToArray();
             return result;
         }
@@ -97,7 +99,7 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
             var from = _edgesFrom.Lookup(nodeKey);
             var to = _edgesTo.Lookup(nodeKey);
 
-            var keys = from.Concat(to).ToArray();
+            var keys = from.Concat(to).Distinct().ToArray();
             if (keys.Length == 0) return false;
 
             keys.ForEach(x => Remove(x).Assert(x => x == true, $"{x} failed to remove"));
@@ -123,7 +125,22 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
     public bool TryGetValue(Guid key, out TEdge? value) => _index.TryGetValue(key, out value);
 
-
     public IEnumerator<TEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private void ValidateNodes(TEdge edge)
+    {
+        _isNodeExist(edge.FromNodeKey).Assert(x => x == true, $"Cannot add edge, FromNodeKey={edge.FromNodeKey} does not exist");
+        _isNodeExist(edge.ToNodeKey).Assert(x => x == true, $"Cannot add edge, ToNodeKey={edge.ToNodeKey} does not exist");
+    }
+
+    private (IReadOnlyList<Guid> from, IReadOnlyList<Guid> to) GetEdges(EdgeDirection direction, TKey fromNode, TKey toNode)
+    {
+        return direction switch
+        {
+            EdgeDirection.Both => (_edgesFrom.Lookup(fromNode), _edgesTo.Lookup(toNode)),
+            EdgeDirection.Directed => (_edgesFrom.Lookup(fromNode), Array.Empty<Guid>()),
+            _ => throw new InvalidOperationException($"Invalid direction, {direction}")
+        };
+    }
 }

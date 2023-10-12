@@ -16,18 +16,32 @@ public class Tags : Dictionary<string, string?>
 
     public Tags Set(string key, string? value) => this.Action(x => this[key.NotEmpty()] = value);
 
-    public override string ToString() => this.Select(x => x.Value.IsEmpty() ? x.Key : $"{x.Key}={x.Value}").Join(';');
+    public bool Has(string key) => ContainsKey(key);
+
+    public bool Has(string key, string value)
+    {
+        return TryGetValue(key, out var readValue) switch
+        {
+            false => false,
+            true => value == readValue,
+        };
+    }
+
+    public override string ToString() => this
+        .Select(x => x.Value.IsEmpty() ? x.Key : $"{x.Key}={x.Value}")
+        .Join(';');
+
     public string ToString(bool order) => order switch
     {
         false => this.ToString(),
         true => this.OrderBy(x => x.Key).Select(x => x.Value.IsEmpty() ? x.Key : $"{x.Key}={x.Value}").Join(';'),
     };
 
-    public override bool Equals(object? obj) => Equals(obj as Tags);
     public bool Equals(Tags? other) => other is not null &&
         this.Count == other.Count &&
         this.All(x => other.TryGetValue(x.Key, out var subject) && x.Value == subject);
 
+    public override bool Equals(object? obj) => Equals(obj as Tags);
     public override int GetHashCode() => HashCode.Combine(this);
     public static bool operator ==(Tags? left, Tags? right) => EqualityComparer<Tags>.Default.Equals(left, right);
     public static bool operator !=(Tags? left, Tags? right) => !(left == right);

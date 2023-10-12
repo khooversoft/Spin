@@ -17,8 +17,7 @@ internal class GraphSerialization<T>
 
 public static class GraphMap
 {
-    public static string ToJson<T>(this GraphMap<T> subject)
-    where T : notnull
+    public static string ToJson<T>(this GraphMap<T> subject) where T : notnull
     {
         var temp = new GraphSerialization<T>
         {

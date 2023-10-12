@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Data;
@@ -36,11 +37,9 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         lock (_lock)
         {
             IReadOnlyList<TPrimaryKey> referenceKeys = _index.Remove(key);
+            if (referenceKeys.Count == 0) return false;
 
-            foreach (var refKey in referenceKeys)
-            {
-                _reverseLookup.Remove(refKey, key);
-            }
+            referenceKeys.ForEach(x => _reverseLookup.Remove(x, key));
         }
 
         return true;
@@ -53,10 +52,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             IReadOnlyList<TKey> keys = _reverseLookup.Remove(primaryKey);
             if (keys.Count == 0) return false;
 
-            foreach (var key in keys)
-            {
-                _index.Remove(key, primaryKey);
-            }
+            keys.ForEach(x => _index.Remove(x, primaryKey));
         }
 
         return true;
@@ -69,7 +65,15 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             bool removed1 = _index.Remove(key, primaryKey);
             bool removed2 = _reverseLookup.Remove(primaryKey, key);
 
-            return removed1 && removed2;
+            var state = (removed1, removed2) switch
+            {
+                (false, false) => false,
+                (true, true) => true,
+
+                _ => throw new InvalidOperationException($"Unbalanced indexes, index={removed1}, reverse={removed2}"),
+            };
+
+            return state;
         }
     }
 

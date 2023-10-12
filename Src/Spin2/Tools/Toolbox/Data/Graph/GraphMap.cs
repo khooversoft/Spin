@@ -30,8 +30,8 @@ public class GraphMap<TKey, TNode, TEdge> : IEnumerable<IGraphCommon>
 
     public GraphMap(IEqualityComparer<TKey>? keyComparer = null)
     {
-        _edges = new GraphEdgeIndex<TKey, TEdge>(_lock);
-        _nodes = new GraphNodeIndex<TKey, TNode>(_lock, x => _edges.Remove(x.Key), keyComparer);
+        _nodes = new GraphNodeIndex<TKey, TNode>(_lock, x => _edges.NotNull().Remove(x.Key), keyComparer);
+        _edges = new GraphEdgeIndex<TKey, TEdge>(_lock, x => _nodes.NotNull().ContainsKey(x));
 
         KeyCompare = keyComparer.ComparerFor();
     }

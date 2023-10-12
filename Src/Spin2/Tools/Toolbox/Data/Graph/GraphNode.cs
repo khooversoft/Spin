@@ -7,26 +7,24 @@ namespace Toolbox.Data;
 public interface IGraphNode<TKey> : IGraphCommon
 {
     TKey Key { get; }
-    IReadOnlyDictionary<string, string?> Tags { get; }
+    Tags Tags { get; }
 }
 
 public record GraphNode<TKey> : IGraphNode<TKey>
 {
-    private static IReadOnlyDictionary<string, string?> _default() => new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-
     public GraphNode(TKey key, string? tags = null)
     {
         Key = key.NotNull();
-        Tags = tags != null ? new Tags().Set(tags) : _default();
+        Tags = new Tags().Set(tags);
     }
 
     [JsonConstructor]
-    public GraphNode(TKey key, IReadOnlyDictionary<string, string?> tags)
+    public GraphNode(TKey key, Tags tags)
     {
         Key = key.NotNull();
-        Tags = tags.ToDictionary(x => x.Key, x => x.Value);
+        Tags = tags;
     }
 
     public TKey Key { get; init; }
-    public IReadOnlyDictionary<string, string?> Tags { get; init; } = _default();
+    public Tags Tags { get; init; } = new Tags();
 }
