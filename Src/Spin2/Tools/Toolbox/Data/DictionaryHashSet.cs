@@ -26,8 +26,15 @@ public class DictionaryHashSet<TKey, TReferenceKey> : IEnumerable<KeyValuePair<T
     }
 
     public int Count => _index.Count;
-
     public IReadOnlyList<TReferenceKey> this[TKey key] => Get(key);
+
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _index.Clear();
+        }
+    }
 
     public IReadOnlyList<TReferenceKey> Get(TKey key)
     {

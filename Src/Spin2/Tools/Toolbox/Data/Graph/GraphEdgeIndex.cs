@@ -12,6 +12,7 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
     private readonly Dictionary<Guid, TEdge> _index;
     private readonly SecondaryIndex<TKey, Guid> _edgesFrom;
     private readonly SecondaryIndex<TKey, Guid> _edgesTo;
+    private readonly HashSet<TEdge> _masterList = new HashSet<TEdge>(new GraphEdgeComparer<TKey, TEdge>());
     private readonly object _lock;
     private readonly Func<TKey, bool> _isNodeExist;
 
@@ -50,6 +51,7 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         {
             if (!ValidateNodes(edge, out var v2)) return v2;
             if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
+            if (!_masterList.Add(edge)) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
 
             _edgesFrom.Set(edge.FromNodeKey, edge.Key);
             _edgesTo.Set(edge.ToNodeKey, edge.Key);
@@ -58,6 +60,16 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         }
     }
 
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _index.Clear();
+            _edgesFrom.Clear();
+            _edgesTo.Clear();
+            _masterList.Clear();
+        }
+    }
     public bool ContainsKey(Guid edgeKey) => _index.ContainsKey(edgeKey);
 
     public IReadOnlyList<TEdge> Get(TKey nodeKey, EdgeDirection direction = EdgeDirection.Both)
@@ -76,9 +88,19 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         {
             (IReadOnlyList<Guid> from, IReadOnlyList<Guid> to) = GetEdges(direction, fromKey, toKey);
 
-            var keys = from.Intersect(to).Distinct().ToArray();
-            var result = keys.Select(x => _index[x]).ToArray();
-            return result;
+            switch (direction)
+            {
+                case EdgeDirection.Both:
+                    var keys = from.Intersect(to).Distinct().ToArray();
+                    var result = keys.Select(x => _index[x]).ToArray();
+                    return result;
+
+                case EdgeDirection.Directed:
+                    return from.Select(x => _index[x]).ToArray();
+
+                default:
+                    throw new ArgumentException($"Unknown direction={direction}");
+            }
         }
     }
 
@@ -88,6 +110,7 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         {
             if (!_index.Remove(edgeKey, out var nodeValue)) return false;
 
+            _masterList.Remove(nodeValue);
             _edgesFrom.RemovePrimaryKey(nodeValue.Key);
             _edgesTo.RemovePrimaryKey(nodeValue.Key);
 

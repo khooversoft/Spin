@@ -5,19 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Toolbox.Data;
+using Toolbox.Extensions;
 
 namespace Toolbox.Test.Data;
 
 public class GraphMapNodeTests
 {
     [Fact]
-    public void EmptyNodeTest()
+    public void EmptyNode()
     {
         var map = new GraphMap<string, IGraphNode<string>, IGraphEdge<string>>();
     }
 
     [Fact]
-    public void NodeTest()
+    public void Node()
     {
         var e1 = new GraphNode<string>("n1");
         e1.Should().NotBeNull();
@@ -25,7 +26,7 @@ public class GraphMapNodeTests
     }
 
     [Fact]
-    public void OneNodeTest()
+    public void OneNode()
     {
         var map = new GraphMap<string, IGraphNode<string>, IGraphEdge<string>>()
         {
@@ -38,7 +39,7 @@ public class GraphMapNodeTests
     }
 
     [Fact]
-    public void TwoNodesTest()
+    public void TwoNodes()
     {
         var map = new GraphMap<string, GraphNode<string>, GraphEdge<string>>()
         {
@@ -53,7 +54,36 @@ public class GraphMapNodeTests
     }
 
     [Fact]
-    public void TwoNodesSameKeyFailureTest()
+    public void Scale()
+    {
+        const int count = 100;
+        const string sampleKey = "Node_10";
+        var map = new GraphMap<string, GraphNode<string>, GraphEdge<string>>();
+
+        Enumerable.Range(0, count).ForEach(x => map.Add(new GraphNode<string>($"Node_{x}")));
+        map.Nodes.Count.Should().Be(count);
+        map.Edges.Count.Should().Be(0);
+
+        IGraphNode<string> node = map.Nodes[sampleKey];
+        node.Should().NotBeNull();
+        node.Key.Should().Be(sampleKey);
+        map.Nodes.TryGetValue(sampleKey, out var _).Should().BeTrue();
+
+        map.Nodes.Remove(sampleKey);
+        map.Nodes.TryGetValue(sampleKey, out var _).Should().BeFalse();
+        map.Nodes.Count.Should().Be(count - 1);
+        map.Edges.Count.Should().Be(0);
+
+        var action = () =>
+        {
+            IGraphNode<string> node = map.Nodes[sampleKey];
+        };
+
+        action.Should().Throw<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public void TwoNodesSameKeyShouldFail()
     {
         GraphMap<string, IGraphNode<string>, IGraphEdge<string>> map = null!;
 

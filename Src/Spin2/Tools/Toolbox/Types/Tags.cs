@@ -49,7 +49,7 @@ public class Tags : Dictionary<string, string?>
         this.All(x => other.TryGetValue(x.Key, out var subject) && x.Value == subject);
 
     public override bool Equals(object? obj) => Equals(obj as Tags);
-    public override int GetHashCode() => HashCode.Combine(this);
+    public override int GetHashCode() => base.GetHashCode();
     public static bool operator ==(Tags? left, Tags? right) => EqualityComparer<Tags>.Default.Equals(left, right);
     public static bool operator !=(Tags? left, Tags? right) => !(left == right);
 

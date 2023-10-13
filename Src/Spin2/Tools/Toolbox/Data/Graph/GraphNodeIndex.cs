@@ -49,6 +49,14 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
 
     public bool ContainsKey(TKey key) => _index.ContainsKey(key);
 
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _index.Clear();
+        }
+    }
+
     public Option<TNode> Get(TKey nodeKey) => _index.TryGetValue(nodeKey, out var value) switch
     {
         true => value,

@@ -21,15 +21,13 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
     public int Count => _index.Count;
     public IReadOnlyList<TPrimaryKey> this[TKey key] => _index.Get(key);
 
-    public SecondaryIndex<TKey, TPrimaryKey> Set(TKey key, TPrimaryKey primaryKey)
+    public void Clear()
     {
         lock (_lock)
         {
-            _index.Set(key, primaryKey);
-            _reverseLookup.Set(primaryKey, key);
+            _index.Clear();
+            _reverseLookup.Clear();
         }
-
-        return this;
     }
 
     public bool Remove(TKey key)
@@ -75,6 +73,17 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
 
             return state;
         }
+    }
+
+    public SecondaryIndex<TKey, TPrimaryKey> Set(TKey key, TPrimaryKey primaryKey)
+    {
+        lock (_lock)
+        {
+            _index.Set(key, primaryKey);
+            _reverseLookup.Set(primaryKey, key);
+        }
+
+        return this;
     }
 
     public IReadOnlyList<TPrimaryKey> Lookup(TKey key) => _index.Get(key);
