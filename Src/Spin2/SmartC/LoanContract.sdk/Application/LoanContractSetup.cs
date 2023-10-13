@@ -1,6 +1,5 @@
 ﻿using LoanContract.sdk.Contract;
 using Microsoft.Extensions.DependencyInjection;
-using SpinCluster.sdk.Application;
 
 namespace LoanContract.sdk.Application;
 
