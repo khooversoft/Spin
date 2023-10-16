@@ -23,7 +23,7 @@ public class TenantActor : Grain, ITenantActor
     private readonly ILogger<TenantActor> _logger;
 
     public TenantActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<TenantModel> state,
         IClusterClient clusterClient,
         ILogger<TenantActor> logger
         )

@@ -72,7 +72,7 @@ internal class Contract : ICommandRoute
 
         foreach (var item in response.Items)
         {
-            string line = item.GetConfigurationValues()
+            string line = item.ToDictionary()
                 .Select(x => x switch
                 {
                     { Key: "JwtSignature" } => new KeyValuePair<string, string>(x.Key, "..."),

@@ -8,6 +8,7 @@ public interface IGraphNode<TKey> : IGraphCommon
 {
     TKey Key { get; }
     Tags Tags { get; }
+    DateTime CreatedDate { get; }
 }
 
 public record GraphNode<TKey> : IGraphNode<TKey>
@@ -19,12 +20,14 @@ public record GraphNode<TKey> : IGraphNode<TKey>
     }
 
     [JsonConstructor]
-    public GraphNode(TKey key, Tags tags)
+    public GraphNode(TKey key, Tags tags, DateTime createdDate)
     {
         Key = key.NotNull();
         Tags = tags;
+        CreatedDate = createdDate;
     }
 
     public TKey Key { get; init; }
     public Tags Tags { get; init; } = new Tags();
+    public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 }

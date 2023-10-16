@@ -23,7 +23,7 @@ public class PrincipalPrivateKeyActor : Grain, IPrincipalPrivateKeyActor
     private readonly ILogger<PrincipalPrivateKeyActor> _logger;
 
     public PrincipalPrivateKeyActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalPrivateKeyModel> state,
         ILogger<PrincipalPrivateKeyActor> logger
         )
     {

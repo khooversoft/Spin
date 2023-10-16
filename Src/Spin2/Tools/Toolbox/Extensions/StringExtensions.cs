@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using Toolbox.Tools;
 
 namespace Toolbox.Extensions;
@@ -134,7 +135,12 @@ public static class StringExtensions
         string v => value[0..count] + "..." + value[^count..],
     };
 
-
+    /// <summary>
+    /// Remove duplicate character from string
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="removeDuplicateChr"></param>
+    /// <returns></returns>
     public static string? RemoveDuplicates(this string? input, char removeDuplicateChr)
     {
         if (input.IsEmpty()) return input;
@@ -155,7 +161,45 @@ public static class StringExtensions
         return outputSpan.Slice(0, outputIndex).ToString();
     }
 
+    /// <summary>
+    /// Remove trailing characters like '/'
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="removeTrailingChr"></param>
+    /// <returns></returns>
     [return: NotNullIfNotNull(nameof(input))]
-    public static string? RemoveTrailing(this string? input, char removeTrailingChr) =>
-        input?.Func(x => x.EndsWith(removeTrailingChr) ? x[0..(x.Length - 1)] : x);
+    public static string? RemoveTrailing(this string? input, char removeTrailingChr)
+    {
+        if (input.IsEmpty()) return input;
+
+        input = input.EndsWith(removeTrailingChr) ? input[0..(input.Length - 1)] : input;
+        return input;
+    }
+
+    /// <summary>
+    /// Match input against wilcard pattern
+    /// </summary>
+    /// <param name="pattern"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public static bool Match(this string? input, string? pattern)
+    {
+        if (input.IsEmpty() || pattern.IsEmpty()) return false;
+
+        var builder = new StringBuilder("^");
+
+        foreach (Char c in pattern)
+        {
+            switch (c)
+            {
+                case '*': builder.Append(".*"); break;
+                case '?': builder.Append('.'); break;
+                default: builder.Append("[" + c + "]"); break;
+            }
+        }
+
+        builder.Append('$');
+
+        return new Regex(builder.ToString(), RegexOptions.IgnoreCase).IsMatch(input);
+    }
 }

@@ -25,7 +25,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
     private readonly ILogger<PrincipalKeyActor> _logger;
 
     public PrincipalKeyActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalKeyModel> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<PrincipalKeyModel> state,
         IClusterClient clusterClient,
         ILogger<PrincipalKeyActor> logger
         )

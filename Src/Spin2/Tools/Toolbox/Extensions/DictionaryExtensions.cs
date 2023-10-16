@@ -1,4 +1,8 @@
-﻿using Toolbox.Types;
+﻿using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Extensions;
 
@@ -12,7 +16,7 @@ public static class DictionaryExtensions
     /// <param name="propertyDelimiter"></param>
     /// <param name="valueDelimiter"></param>
     /// <returns></returns>
-    public static IReadOnlyDictionary<string, string?> ToDictionary(this string? subject, string propertyDelimiter = ";", string valueDelimiter = "=")
+    public static IReadOnlyDictionary<string, string?> ToDictionaryFromString(this string? subject, string propertyDelimiter = ";", string valueDelimiter = "=")
     {
         if (subject.IsEmpty()) return new Dictionary<string, string?>();
 
@@ -21,10 +25,6 @@ public static class DictionaryExtensions
             .Select(x => GetKeyValue(x, valueDelimiter).Return())
             .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
     }
-
-    public static string ToDictionaryString(this IEnumerable<KeyValuePair<string, string?>> values) => (values ?? Array.Empty<KeyValuePair<string, string?>>())
-        .Select(x => x.Value switch { null => x.Key, _ => $"{x.Key}={x.Value}" })
-        .Join(';');
 
     public static Option<KeyValuePair<string, string?>> GetKeyValue(this string subject, string valueDelimiter = "=")
     {
@@ -35,5 +35,45 @@ public static class DictionaryExtensions
             -1 => new KeyValuePair<string, string?>(subject, null),
             var index => new KeyValuePair<string, string?>(subject[0..index].Trim(), subject[(index + 1)..^0].Trim()),
         };
+    }
+
+    public static IReadOnlyList<KeyValuePair<string, string>> ToDictionary<T>(this T subject) where T : class
+    {
+        subject.NotNull();
+
+        string json = JsonSerializer.Serialize(subject).NotEmpty(name: "Serialization failed");
+
+        byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        using MemoryStream stream = new MemoryStream(byteArray);
+
+        IConfiguration config = new ConfigurationBuilder()
+            .AddJsonStream(stream)
+            .Build();
+
+        return config
+            .AsEnumerable()
+            .Where(x => x.Value != null)
+            .OfType<KeyValuePair<string, string>>()
+            .OrderBy(x => x.Key)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="values"></param>
+    /// <returns></returns>
+    public static T ToObject<T>(this IEnumerable<KeyValuePair<string, string>> values) where T : new()
+    {
+        values.NotNull();
+        var dict = values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+        T result = new ConfigurationBuilder()
+            .AddInMemoryCollection(values!)
+            .Build()
+            .Bind<T>();
+
+        return result;
     }
 }

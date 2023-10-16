@@ -54,7 +54,7 @@ internal class Lease : ICommandRoute
         }
 
         string result = response.Return()
-            .GetConfigurationValues()
+            .ToDictionary()
             .Select(x => $" - {x.Key}={x.Value}")
             .Prepend($"Lease detail...")
             .Join(Environment.NewLine) + Environment.NewLine;
@@ -86,7 +86,7 @@ internal class Lease : ICommandRoute
         foreach (var item in response.Return())
         {
             string result = item
-                .GetConfigurationValues()
+                .ToDictionary()
                 .Select(x => $" - {x.Key}={x.Value}")
                 .Prepend($"Lease detail...")
                 .Join(Environment.NewLine) + Environment.NewLine;

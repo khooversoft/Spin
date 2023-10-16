@@ -30,9 +30,11 @@ namespace Toolbox.Configuration
 
         public IConfigurationProvider Build(IConfigurationBuilder builder)
         {
-            Resolver = !_secretId.IsEmpty()
-                ? new PropertyResolver(PropertySecret.ReadFromSecret(_secretId).Properties)
-                : new PropertyResolver(_values!);
+            Resolver = _secretId.IsNotEmpty() switch
+            {
+                true => new PropertyResolver(PropertySecret.ReadFromSecret(_secretId).Properties),
+                false => new PropertyResolver(_values!),
+            };
 
             return new PropertyResolverProvider(this);
         }

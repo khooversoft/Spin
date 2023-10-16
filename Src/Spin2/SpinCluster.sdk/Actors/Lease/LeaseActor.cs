@@ -30,7 +30,7 @@ public class LeaseActor : Grain, ILeaseActor
     private readonly ILogger _logger;
 
     public LeaseActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<LeaseDataCollection> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<LeaseDataCollection> state,
         ILogger<LeaseActor> logger
         )
     {

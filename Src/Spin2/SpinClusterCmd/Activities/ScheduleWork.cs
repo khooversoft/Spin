@@ -64,7 +64,7 @@ internal class ScheduleWork : ICommandRoute
         }
 
         string result = scheduleWorkModel.Return()
-            .GetConfigurationValues()
+            .ToDictionary()
             .Select(x => $" - {x.Key}={x.Value}".Replace("{", "{{").Replace("}", "}}"))
             .Prepend($"Schedule work...")
             .Join(Environment.NewLine) + Environment.NewLine;

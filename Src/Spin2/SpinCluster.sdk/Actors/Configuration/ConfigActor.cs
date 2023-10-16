@@ -24,7 +24,7 @@ public class ConfigActor : Grain, IConfigActor
     private readonly ILogger<ConfigActor> _logger;
 
     public ConfigActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<ConfigModel> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<ConfigModel> state,
         IClusterClient clusterClient,
         ILogger<ConfigActor> logger
         )

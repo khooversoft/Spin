@@ -72,7 +72,7 @@ public class SchedulerConnection
 
     private async Task<IResult> GetSchedules([FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option<SchedulesModel> response = await _client
+        Option<SchedulesResponseModel> response = await _client
             .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
             .GetSchedules(traceId);
 

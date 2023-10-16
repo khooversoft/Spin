@@ -11,17 +11,29 @@ public class GraphMapEdgeTests
     {
         var e1 = new GraphEdge<string>("fk", "tk");
         e1.Should().NotBeNull();
-        e1.ToNodeKey.Should().Be("tk");
-        e1.FromNodeKey.Should().Be("fk");
+        e1.ToKey.Should().Be("tk");
+        e1.FromKey.Should().Be("fk");
+        e1.EdgeType.Should().Be("default");
+
+        var json = e1.ToJson();
+        json.Should().NotBeNullOrEmpty();
+        var r1 = json.ToObject<GraphEdge<string>>();
+        (e1 == r1).Should().BeTrue();
+
+        e1 = e1 with { EdgeType = "non-standard" };
+        e1.ToKey.Should().Be("tk");
+        e1.FromKey.Should().Be("fk");
+        e1.EdgeType.Should().Be("non-standard");
     }
 
     [Fact]
     public void EdgeWithTags()
     {
-        var e1 = new GraphEdge<string>("fk", "tk", "t1;t2=v2");
+        var e1 = new GraphEdge<string>("fk", "tk", tags: "t1;t2=v2");
         e1.Should().NotBeNull();
-        e1.ToNodeKey.Should().Be("tk");
-        e1.FromNodeKey.Should().Be("fk");
+        e1.ToKey.Should().Be("tk");
+        e1.FromKey.Should().Be("fk");
+        e1.EdgeType.Should().Be("default");
         e1.Tags.Should().NotBeNull();
         e1.Tags.ContainsKey("t1").Should().BeTrue();
         e1.Tags["t1"].Should().BeNull();
@@ -32,7 +44,7 @@ public class GraphMapEdgeTests
     [Fact]
     public void NodeWithTags()
     {
-        var e1 = new GraphNode<string>("n1", "t1;t2=v2");
+        var e1 = new GraphNode<string>("n1", tags: "t1;t2=v2");
         e1.Should().NotBeNull();
         e1.Key.Should().Be("n1");
         e1.Tags.Should().NotBeNull();
@@ -56,8 +68,8 @@ public class GraphMapEdgeTests
         map.Nodes.ContainsKey("Node1").Should().BeTrue();
         map.Nodes.ContainsKey("Node2").Should().BeTrue();
         map.Edges.Count.Should().Be(1);
-        map.Edges.First().FromNodeKey.Should().Be("Node1");
-        map.Edges.First().ToNodeKey.Should().Be("Node2");
+        map.Edges.First().FromKey.Should().Be("Node1");
+        map.Edges.First().ToKey.Should().Be("Node2");
     }
 
     [Fact]
@@ -83,7 +95,7 @@ public class GraphMapEdgeTests
         }.OrderBy(x => x.Item1)
         .ToArray();
 
-        var inSet = map.Edges.Select(x => (x.FromNodeKey, x.ToNodeKey)).OrderBy(x => x.FromNodeKey).ToArray();
+        var inSet = map.Edges.Select(x => (x.FromKey, x.ToKey)).OrderBy(x => x.FromKey).ToArray();
         inSet.SequenceEqual(shouldBe).Should().BeTrue();
     }
 
@@ -177,24 +189,32 @@ public class GraphMapEdgeTests
         e1.Equals(e2).Should().BeFalse();
         comparer.Equals(e1, e2).Should().BeTrue();
 
+        e1 = new GraphEdge<string>("n1", "n2", "edgeType");
+        e2 = new GraphEdge<string>("n1", "n2", "edgeType");
+        comparer.Equals(e1, e2).Should().BeTrue();
+
+        e1 = new GraphEdge<string>("n1", "n2", "edgeType");
+        e2 = new GraphEdge<string>("n1", "n2", "edgeType1");
+        comparer.Equals(e1, e2).Should().BeFalse();
+
         e1 = new GraphEdge<string>("n1", "n2");
         e2 = new GraphEdge<string>("n1", "n3");
         comparer.Equals(e1, e2).Should().BeFalse();
 
-        e1 = new GraphEdge<string>("n1", "n2", "t1");
-        e2 = new GraphEdge<string>("n1", "n2", "t1");
+        e1 = new GraphEdge<string>("n1", "n2", tags: "t1");
+        e2 = new GraphEdge<string>("n1", "n2", tags: "t1");
         comparer.Equals(e1, e2).Should().BeTrue();
 
-        e1 = new GraphEdge<string>("n1", "n2", "t1");
-        e2 = new GraphEdge<string>("n1", "n2", "t2");
-        comparer.Equals(e1, e2).Should().BeFalse();
-
-        e1 = new GraphEdge<string>("n1", "n2", "t1;t2=v2");
-        e2 = new GraphEdge<string>("n1", "n2", "t1;t2=v2");
+        e1 = new GraphEdge<string>("n1", "n2", tags: "t1");
+        e2 = new GraphEdge<string>("n1", "n2", tags: "t2");
         comparer.Equals(e1, e2).Should().BeTrue();
 
-        e1 = new GraphEdge<string>("n1", "n2", "t1;t2=v2");
-        e2 = new GraphEdge<string>("n1", "n2", "t1;t2=v3");
+        e1 = new GraphEdge<string>("n1", "n2", "edgeType", tags: "t1;t2=v2");
+        e2 = new GraphEdge<string>("n1", "n2", "edgeType", tags: "t1;t2=v2");
+        comparer.Equals(e1, e2).Should().BeTrue();
+
+        e1 = new GraphEdge<string>("n1", "n2", "edgeType", tags: "t1;t2=v2");
+        e2 = new GraphEdge<string>("n1", "n2", "edgeType2", tags: "t1;t2=v2");
         comparer.Equals(e1, e2).Should().BeFalse();
     }
 
@@ -211,19 +231,19 @@ public class GraphMapEdgeTests
         h1.Add(e1).Should().BeFalse();
         h1.Count.Should().Be(1);
 
-        e1 = new GraphEdge<string>("n1", "n2", "t1");
+        e1 = new GraphEdge<string>("n1", "n2", edgeType: "t1");
         h1.Add(e1).Should().BeTrue();
         h1.Count.Should().Be(2);
 
-        e1 = new GraphEdge<string>("n1", "n2", "t1");
+        e1 = new GraphEdge<string>("n1", "n2", edgeType: "t1");
         h1.Add(e1).Should().BeFalse();
         h1.Count.Should().Be(2);
 
-        e1 = new GraphEdge<string>("n1", "n2", "t1;t2=v2");
+        e1 = new GraphEdge<string>("n1", "n2", edgeType: "t1;t2=v2");
         h1.Add(e1).Should().BeTrue();
         h1.Count.Should().Be(3);
 
-        e1 = new GraphEdge<string>("n1", "n2", "t1;t2=v2");
+        e1 = new GraphEdge<string>("n1", "n2", edgeType: "t1;t2=v2");
         h1.Add(e1).Should().BeFalse();
         h1.Count.Should().Be(3);
     }

@@ -31,7 +31,7 @@ public class ContractActor : Grain, IContractActor
     private bool _blockVerified = false;
 
     public ContractActor(
-        [PersistentState(stateName: SpinConstants.Extension.BlockStorage, storageName: SpinConstants.SpinStateStore)] IPersistentState<BlockChain> state,
+        [PersistentState(stateName: SpinConstants.Ext.BlockStorage, storageName: SpinConstants.SpinStateStore)] IPersistentState<BlockChain> state,
         IClusterClient clusterClient,
         ILogger<ContractActor> logger
         )

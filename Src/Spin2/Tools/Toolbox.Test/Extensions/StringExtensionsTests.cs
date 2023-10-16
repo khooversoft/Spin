@@ -19,4 +19,21 @@ public class StringExtensionsTests
         string? result = subject.RemoveTrailing(ch);
         result.Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData(null, "dkd", false)]
+    [InlineData("test", null, false)]
+    [InlineData("", "dkd", false)]
+    [InlineData("test", "test", true)]
+    [InlineData("test:value", "test:value", true)]
+    [InlineData("test", "Test", true)]
+    [InlineData("test:value", "test:*", true)]
+    [InlineData("test:value", "tEst:*", true)]
+    [InlineData("test:value", "test?*", true)]
+    [InlineData("test:value", "*:value", true)]
+    public void TestWildcardTest(string? input, string? pattern, bool expected)
+    {
+        bool result = input.Match(pattern);
+        result.Should().Be(expected);
+    }
 }

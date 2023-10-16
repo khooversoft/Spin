@@ -18,6 +18,10 @@ public class GraphMapNodeTests
         var e1 = new GraphNode<string>("n1");
         e1.Should().NotBeNull();
         e1.Key.Should().Be("n1");
+
+        string json = e1.ToJson();
+        var r1 = json.ToObject<GraphNode<string>>();
+        (e1 == r1).Should().BeTrue();
     }
 
     [Fact]

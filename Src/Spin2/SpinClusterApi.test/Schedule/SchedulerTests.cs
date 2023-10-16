@@ -137,12 +137,11 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         Option response = await schedulerClient.CreateSchedule(request, _context);
         response.IsOk().Should().BeTrue(response.ToString());
 
-        Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
-        SchedulesModel schedulesModel = schedulesOption.Return();
+        SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(1);
         schedulesModel.ActiveItems.Values.First().WorkId.Should().Be(request.WorkId);
-        schedulesModel.ActiveItems.Values.First().AssignedDate.Should().BeNull();
         schedulesModel.CompletedItems.Count.Should().Be(0);
 
         return (request.WorkId, payload1);
@@ -206,12 +205,11 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         Option response = await schedulerClient.CreateSchedule(request, _context);
         response.IsOk().Should().BeTrue(response.ToString());
 
-        Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
-        SchedulesModel schedulesModel = schedulesOption.Return();
+        SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(1);
         schedulesModel.ActiveItems.Values.First().WorkId.Should().Be(request.WorkId);
-        schedulesModel.ActiveItems.Values.First().AssignedDate.Should().BeNull();
         schedulesModel.CompletedItems.Count.Should().Be(0);
 
         CreatePayload payload1 = request.Payloads.GetObject<CreatePayload>();
@@ -271,12 +269,11 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         var noAssignOption = await schedulerClient.AssignWork(_agentId, _context);
         noAssignOption.IsError().Should().BeTrue();
 
-        Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
-        SchedulesModel schedulesModel = schedulesOption.Return();
+        SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(1);
         schedulesModel.ActiveItems.Values.First().WorkId.Should().Be(workId);
-        schedulesModel.ActiveItems.Values.First().AssignedDate.Should().NotBeNull();
         schedulesModel.CompletedItems.Count.Should().Be(0);
 
         var workModelOption = await workClient.Get(model.WorkId, _context);
@@ -364,15 +361,12 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         model.Assigned.AssignedCompleted.Message.Should().Be("completed");
         model.RunResults.Count.Should().Be(1);
 
-        Option<SchedulesModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
-        SchedulesModel schedulesModel = schedulesOption.Return();
+        SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(0);
         schedulesModel.CompletedItems.Count.Should().Be(1);
-        schedulesModel.CompletedItems.Values.First().AgentId.Should().Be(_agentId);
         schedulesModel.CompletedItems.Values.First().WorkId.Should().Be(workId);
-        schedulesModel.CompletedItems.Values.First().StatusCode.Should().Be(StatusCode.OK);
-        schedulesModel.CompletedItems.Values.First().Message.Should().Be("completed");
     }
 
     private sealed record CreatePayload

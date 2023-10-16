@@ -23,6 +23,18 @@ public static class EnumerableAsyncExtensions
         }
     }
 
+    public static async Task<IEnumerable<TO>> SelectAsync<TO, T>(this IEnumerable<T> subject, Func<T, Task<TO>> func)
+    {
+        var response = new List<TO>();
+
+        foreach (var item in subject)
+        {
+            response.Add(await func(item));
+        }
+
+        return response;
+    }
+
     public static async Task<IEnumerable<TO>> SelectAsync<TO, T>(this Task<IEnumerable<T>> subject, Func<T, Task<TO>> func)
     {
         IEnumerable<T> list = await subject;
@@ -50,7 +62,7 @@ public static class EnumerableAsyncExtensions
         return response;
     }
 
-    public static async Task<IReadOnlyList<T>> ToReadOnlyList<T>(this Task<IEnumerable<T>> subject)
+    public static async Task<IReadOnlyList<T>> ToReadOnlyListAsync<T>(this Task<IEnumerable<T>> subject)
     {
         IEnumerable<T> list = await subject;
         return list.ToArray();

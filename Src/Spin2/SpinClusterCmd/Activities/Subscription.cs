@@ -60,7 +60,7 @@ internal class Subscription : ICommandRoute
         }
 
         var result = response.Return()
-            .GetConfigurationValues()
+            .ToDictionary()
             .Select(x => $" - {x.Key}={x.Value}")
             .Prepend($"Subscription...")
             .Join(Environment.NewLine) + Environment.NewLine;

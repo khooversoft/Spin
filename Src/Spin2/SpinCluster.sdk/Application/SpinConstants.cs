@@ -9,9 +9,9 @@ public static class SpinConstants
     public const string LeaseActorKey = "system:lease";
     public const string DirectoryActorKey = "system:directory";
 
-    public const string Folder = "folder";
-    public const string Open = "open";
-    public const string SystemTenant = "$system";
+    //public const string Folder = "folder";
+    //public const string Open = "open";
+    //public const string SystemTenant = "$system";
 
     public static class Schema
     {
@@ -21,7 +21,6 @@ public static class SpinConstants
         public const string Subscription = "subscription";
         public const string Tenant = "tenant";
         public const string User = "user";
-        public const string Group = "group";
         public const string Lease = "lease";
         public const string PrincipalKey = "principal-key";
         public const string PrincipalPrivateKey = "principal-private-key";
@@ -40,7 +39,7 @@ public static class SpinConstants
         public const string ValidDomainActorKey = "spinconfig:validDomain";
     }
 
-    public static class Extension
+    public static class Ext
     {
         public const string Json = ".json";
         public const string BlockStorage = ".block";
@@ -52,8 +51,8 @@ public static class SpinConstants
         public const string PrincipalId = "spin-principal-id";
     }
 
-    public static class ApiPath
+    public static class Dir
     {
-        public const string PrincipalKey = "principalKey";
+        public const string ScheduleWork = "system:schedule-work";
     }
 }

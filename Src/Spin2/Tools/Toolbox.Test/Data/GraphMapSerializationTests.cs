@@ -68,7 +68,7 @@ public class GraphMapSerializationTests
 
         new GraphMap()
         {
-            new GraphNode<string>("Node1", "t1;t2=v2"),
+            new GraphNode<string>("Node1", tags: "t1;t2=v2"),
         }.Action(x =>
         {
             var json = x.ToJson();
@@ -91,7 +91,7 @@ public class GraphMapSerializationTests
 
         new GraphMap<string>()
         {
-            new GraphNode<string>("Node1", "t1;t2=v2"),
+            new GraphNode<string>("Node1", tags: "t1;t2=v2"),
         }.Action(x =>
         {
             var json = x.ToJson();
@@ -156,7 +156,7 @@ public class GraphMapSerializationTests
             graphNode.Tags.Should().NotBeNull();
         });
 
-        new GraphNode<string>("node1", "t1;t2=v2").Action(x =>
+        new GraphNode<string>("node1", tags: "t1;t2=v2").Action(x =>
         {
             string json = x.ToJson();
 
@@ -179,19 +179,19 @@ public class GraphMapSerializationTests
 
             var graphEdge = json.ToObject<GraphEdge<string>>();
             graphEdge.Should().NotBeNull();
-            graphEdge!.FromNodeKey.Should().Be("node1");
-            graphEdge!.ToNodeKey.Should().Be("node2");
+            graphEdge!.FromKey.Should().Be("node1");
+            graphEdge!.ToKey.Should().Be("node2");
             graphEdge.Tags.Should().NotBeNull();
         });
 
-        new GraphEdge<string>("node1", "node2", "t1;t2=v2").Action(x =>
+        new GraphEdge<string>("node1", "node2", tags: "t1;t2=v2").Action(x =>
         {
             string json = x.ToJson();
 
             var graphEdge = json.ToObject<GraphEdge<string>>();
             graphEdge.Should().NotBeNull();
-            graphEdge!.FromNodeKey.Should().Be("node1");
-            graphEdge!.ToNodeKey.Should().Be("node2");
+            graphEdge!.FromKey.Should().Be("node1");
+            graphEdge!.ToKey.Should().Be("node2");
             graphEdge.Tags.Should().NotBeNull();
             graphEdge.Tags.Count.Should().Be(2);
             graphEdge.Tags["t1"].Should().BeNull();

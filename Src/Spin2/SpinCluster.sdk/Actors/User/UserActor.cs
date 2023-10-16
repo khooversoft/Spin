@@ -28,7 +28,7 @@ public class UserActor : Grain, IUserActor
     private readonly ILogger<UserActor> _logger;
 
     public UserActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<UserModel> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<UserModel> state,
         IClusterClient clusterClient,
         ILogger<UserActor> logger
         )

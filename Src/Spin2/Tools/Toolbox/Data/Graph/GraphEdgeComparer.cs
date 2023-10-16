@@ -10,10 +10,10 @@ public sealed class GraphEdgeComparer<TKey, TEdge> : IEqualityComparer<TEdge>
     {
         if (x == null || y == null) return true;
 
-        return x.FromNodeKey.Equals(y.FromNodeKey) &&
-            x.ToNodeKey.Equals(y.ToNodeKey) &&
-            x.Tags.Equals(y.Tags);
+        return GraphEdgeTool.IsKeysEqual(x.FromKey, y.FromKey) &&
+            GraphEdgeTool.IsKeysEqual(x.ToKey, y.ToKey) &&
+            x.EdgeType.Equals(y.EdgeType, StringComparison.OrdinalIgnoreCase);
     }
 
-    public int GetHashCode([DisallowNull] TEdge obj) => HashCode.Combine(obj.FromNodeKey, obj.ToNodeKey);
+    public int GetHashCode([DisallowNull] TEdge obj) => HashCode.Combine(obj.FromKey, obj.ToKey);
 }

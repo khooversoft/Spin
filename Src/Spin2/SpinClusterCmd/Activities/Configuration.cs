@@ -102,7 +102,7 @@ internal class Configuration : ICommandRoute
         }
 
         string result = response.Return()
-            .GetConfigurationValues()
+            .ToDictionary()
             .Select(x => $" - {x.Key}={x.Value}")
             .Prepend($"Configuration...")
             .Join(Environment.NewLine) + Environment.NewLine;

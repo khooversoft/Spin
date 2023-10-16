@@ -50,7 +50,7 @@ internal class AgentRegistration : ICommandRoute
         }
 
         string result = readOption.Return()
-            .GetConfigurationValues()
+            .ToDictionary()
             .Select(x => $" - {x.Key}={x.Value}")
             .Prepend($"Configuration...")
             .Join(Environment.NewLine) + Environment.NewLine;

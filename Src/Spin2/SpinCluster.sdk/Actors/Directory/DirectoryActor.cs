@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using SpinCluster.sdk.Application;
 using Toolbox.Data;
@@ -13,27 +14,25 @@ public interface IDirectoryActor : IGrainWithStringKey
 {
     Task<Option> AddEdge(DirectoryEdge edge, string traceId);
     Task<Option> AddNode(DirectoryNode node, string traceId);
-    Task<Option<DirectoryResponse>> Lookup(DirectorySearch search, string traceId);
-    Task<Option> RemoveEdge(string nodeKey, string traceId);
-    Task<Option> RemoveEdge(DirectoryEdge edge, string traceId);
-    Task<Option> RemoveNode(string nodeKey, string traceId);
+    Task Clear(string traceId);
+    Task<Option<DirectoryResponse>> Query(DirectoryQuery search, string traceId);
+    Task<Option<DirectoryResponse>> Remove(DirectoryQuery search, string traceId);
+    Task<Option> Update(DirectoryEdgeUpdate node, string traceId);
+    Task<Option> Update(DirectoryNodeUpdate node, string traceId);
 }
 
 public class DirectoryActor : Grain, IDirectoryActor
 {
-    private readonly IClusterClient _clusterClient;
     private readonly ILogger<DirectoryActor> _logger;
     private readonly IPersistentState<GraphSerialization> _state;
     private GraphMap _map = new GraphMap();
 
     public DirectoryActor(
-        [PersistentState(stateName: SpinConstants.Extension.BlockStorage, storageName: SpinConstants.SpinStateStore)] IPersistentState<GraphSerialization> state,
-        IClusterClient clusterClient,
+        [PersistentState(stateName: SpinConstants.Ext.BlockStorage, storageName: SpinConstants.SpinStateStore)] IPersistentState<GraphSerialization> state,
         ILogger<DirectoryActor> logger
         )
     {
         _state = state.NotNull();
-        _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -42,17 +41,22 @@ public class DirectoryActor : Grain, IDirectoryActor
         this.GetPrimaryKeyString()
             .Assert(x => x == SpinConstants.DirectoryActorKey, x => $"Actor key {x} is invalid, must = {SpinConstants.DirectoryActorKey}");
 
+        switch (_state.RecordExists)
+        {
+            case true: await ReadGraphFromStorage(); break;
+            case false: await SetGraphToStorage(); break;
+        }
+
         if (_state.RecordExists) await ReadGraphFromStorage();
         await base.OnActivateAsync(cancellationToken);
     }
-
 
     public async Task<Option> AddEdge(DirectoryEdge edge, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Adding edge, edge={edge}", edge);
 
-        var option = _map.Edges.Add(new GraphEdge<string>(edge.FromKey, edge.ToKey, edge.Tags));
+        var option = _map.Edges.Add(new GraphEdge<string>(edge.FromKey, edge.ToKey, tags: edge.Tags));
         if (option.IsError()) return option;
 
         await SetGraphToStorage();
@@ -71,70 +75,85 @@ public class DirectoryActor : Grain, IDirectoryActor
         return StatusCode.OK;
     }
 
-    public Task<Option<DirectoryResponse>> Lookup(DirectorySearch search, string traceId)
+    public async Task Clear(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Clearing graph");
+
+        _map.Clear();
+        await SetGraphToStorage();
+    }
+
+    public Task<Option<DirectoryResponse>> Query(DirectoryQuery search, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Lookup edge, search={search}", search);
 
-        IReadOnlyList<GraphNode<string>> nodeQuery = search.NodeKey switch
+        IReadOnlyList<GraphNode<string>> nodeQuery = (search.NodeKey, search.MatchNodeTags) switch
         {
-            null => Array.Empty<GraphNode<string>>(),
-            var v => _map.Query()
-                .Nodes(x => x.Key == v && x.Tags.Has(search.NodeTags))
-                .HasEdge(x => x.Tags.Has(search.EdgeTags)).Nodes,
+            (null, null) => Array.Empty<GraphNode<string>>(),
+            _ => _map.Query().Nodes(search.IsMatch).Nodes,
         };
 
-        IReadOnlyList<GraphEdge<string>> edgeQuery = (search.FromKey, search.ToKey) switch
+        IReadOnlyList<GraphEdge<string>> edgeQuery = (search.FromKey, search.ToKey, search.MatchEdgeTags) switch
         {
-            (string FromKey, string ToKey) v => _map.Query()
-                .Edges(x => x.FromNodeKey == v.FromKey && x.ToNodeKey == v.ToKey && x.Tags.Has(search.EdgeTags))
-                .HasNode(x => x.Tags.Has(search.NodeKey))
-                .Edges,
-
-            _ => Array.Empty<GraphEdge<string>>(),
+            (null, null, null) => Array.Empty<GraphEdge<string>>(),
+            _ => _map.Query().Edges(search.IsMatch).Edges,
         };
 
         var result = new DirectoryResponse
         {
-            Nodes = nodeQuery.Select(x => new DirectoryNode(x.Key, x.Tags.ToString())).ToArray(),
-            Edges = edgeQuery.Select(x => new DirectoryEdge(x.FromNodeKey, x.ToNodeKey, x.Tags.ToString())).ToArray(),
+            Nodes = nodeQuery.Select(x => x.ConvertTo()).ToArray(),
+            Edges = edgeQuery.Select(x => x.ConvertTo()).ToArray(),
         };
 
         return result.ToOption().ToTaskResult();
     }
 
-    public async Task<Option> RemoveEdge(string nodeKey, string traceId)
+    public async Task<Option<DirectoryResponse>> Remove(DirectoryQuery search, string traceId)
     {
+        if (search.IsQueryEmpty()) return StatusCode.BadRequest;
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Removing edge, nodeKey={nodeKey}", nodeKey);
 
-        bool state = _map.Edges.Remove(nodeKey);
-        if (state) await SetGraphToStorage();
+        Option<DirectoryResponse> result = await Query(search, traceId);
+        if (result.IsError()) return result;
+        DirectoryResponse response = result.Return();
+        if (response.Nodes.Count + response.Edges.Count == 0) return StatusCode.NotFound;
 
-        return (state ? StatusCode.OK : StatusCode.NotFound);
+        context.Location().LogInformation("Removing nodes/edges, directoryResponse={directoryResponse}", result);
+
+        response.Nodes.ForEach(x => _map.Nodes.Remove(x.Key));
+        response.Edges.ForEach(x => _map.Edges.Remove(x.Key));
+
+        await SetGraphToStorage();
+        return response;
     }
 
-    public async Task<Option> RemoveEdge(DirectoryEdge edge, string traceId)
+    public Task<Option> Update(DirectoryEdgeUpdate model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        if (!edge.Validate(out var v)) return v;
-        context.Location().LogInformation("Removing edge, edge={edge}", edge);
+        context.Location().LogInformation("Updating edge, model={model}", model);
 
-        var states = _map.Edges.Remove(edge.FromKey, edge.ToKey);
-        if (states.Count > 0) await SetGraphToStorage();
+        _map.Edges.Update(model.ConvertTo(), x => x with
+        {
+            EdgeType = model.UpdateEdgeType ?? x.EdgeType,
+            Tags = x.Tags.Set(model.UpdateTags)
+        });
 
-        return (states.Count > 0 ? StatusCode.OK : StatusCode.NotFound);
+        return new Option(StatusCode.OK).ToTaskResult();
     }
 
-    public async Task<Option> RemoveNode(string nodeKey, string traceId)
+    public Task<Option> Update(DirectoryNodeUpdate model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Removing node, nodeKey={nodeKey}", nodeKey);
+        context.Location().LogInformation("Updating node, model={model}", model);
 
-        bool state = _map.Nodes.Remove(nodeKey);
-        if (state) await SetGraphToStorage();
+        _map.Nodes.Update(model.ConvertTo(), x => x with
+        {
+            Tags = x.Tags.Set(model.UpdateTags)
+        });
 
-        return (state ? StatusCode.OK : StatusCode.NotFound);
+        return new Option(StatusCode.OK).ToTaskResult();
     }
 
     private async Task ReadGraphFromStorage(bool forceRead = false)

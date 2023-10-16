@@ -53,7 +53,7 @@ public static class GraphMapQuery
         predicate.NotNull();
 
         var selectedNodes = subject.Edges
-            .SelectMany(x => new T[] { x.FromNodeKey, x.ToNodeKey })
+            .SelectMany(x => new T[] { x.FromKey, x.ToKey })
             .Distinct()
             .Select(x => subject.Map.Nodes[x])
             .Where(x => predicate?.Invoke(x) ?? true)
@@ -83,7 +83,7 @@ public static class GraphMapQuery
             .ToArray();
 
         var selectedNodes = selectedEdges
-            .Select(x => x.FromNodeKey)
+            .Select(x => x.FromKey)
             .Distinct()
             .Select(x => subject.Map.Nodes[x])
             .ToArray();

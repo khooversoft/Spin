@@ -37,9 +37,9 @@ public class SchedulerClient
         .DeleteAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option<SchedulesModel>> GetSchedules(ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<SchedulesResponseModel>> GetSchedules(ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Scheduler}/schedules")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context.With(_logger))
-        .GetContent<SchedulesModel>();
+        .GetContent<SchedulesResponseModel>();
 }

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Text.Json.Serialization;
+using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -37,6 +38,7 @@ public class TagsTests
         tags.Has("key1", "value").Should().BeFalse();
         tags.Has("fake").Should().BeFalse();
         tags.Has("key1", "fake1").Should().BeFalse();
+        tags.Has(null).Should().BeFalse();
 
         var tags2 = new Tags().Set("key1=value1");
         tags2.Count.Should().Be(1);
@@ -154,5 +156,89 @@ public class TagsTests
         r2!.ContainsKey("key2").Should().BeTrue();
         r2.ContainsKey("key1").Should().BeTrue();
         r2["key1"].Should().Be("value1");
+    }
+
+    internal enum ScheduleEdgeWorkState
+    {
+        None,
+        Active,
+        Completed,
+        Failed
+    }
+
+    internal sealed record SimpleWorkTag
+    {
+        public ScheduleEdgeWorkState State { get; init; }
+    }
+
+    [Fact]
+    public void TasSerializationWithStateObject()
+    {
+        var data = new SimpleWorkTag
+        {
+            State = ScheduleEdgeWorkState.Completed,
+        };
+
+        Tags tags = Tags.Create(data);
+        tags.Should().NotBeNull();
+        tags.ToString().Should().Be("State=2");
+
+        var readData = tags.ToObject<SimpleWorkTag>();
+        (data == readData).Should().BeTrue();
+    }
+
+
+    internal sealed record HiddenWorkTag
+    {
+        [JsonIgnore] public ScheduleEdgeWorkState StateValue { get; init; }
+
+        public string State
+        {
+            get => StateValue.ToString();
+            init => StateValue = (ScheduleEdgeWorkState)Enum.Parse(typeof(ScheduleEdgeWorkState), value);
+        }
+    }
+
+    [Fact]
+    public void TasSerializationWithHiddenObject()
+    {
+        var data = new HiddenWorkTag
+        {
+            StateValue = ScheduleEdgeWorkState.Completed,
+        };
+
+        Tags tags = Tags.Create(data);
+        tags.Should().NotBeNull();
+        tags.ToString().Should().Be("State=Completed");
+
+        var readData = tags.ToObject<HiddenWorkTag>();
+        (data == readData).Should().BeTrue();
+    }
+
+    internal sealed record ScheduleWorkTags
+    {
+        public bool Running { get; init; }
+        public string Name { get; init; } = null!;
+        public string StateName { get => State.ToString(); init => State = (ScheduleEdgeWorkState)Enum.Parse(typeof(ScheduleEdgeWorkState), StateName); }
+        public ScheduleEdgeWorkState State { get; init; }
+    }
+
+
+    [Fact]
+    public void TasSerializationWithObject()
+    {
+        var data = new ScheduleWorkTags
+        {
+            Running = true,
+            Name = "name1",
+            State = ScheduleEdgeWorkState.Completed,
+        };
+
+        Tags tags = Tags.Create(data);
+        tags.Should().NotBeNull();
+        tags.ToString().Should().Be("Name=name1;Running=True;State=2;StateName=Completed");
+
+        var readData = tags.ToObject<ScheduleWorkTags>();
+        (data == readData).Should().BeTrue();
     }
 }

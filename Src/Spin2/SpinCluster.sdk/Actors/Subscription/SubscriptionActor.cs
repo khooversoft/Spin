@@ -22,7 +22,7 @@ public class SubscriptionActor : Grain, ISubscriptionActor
     private readonly ILogger<SubscriptionActor> _logger;
 
     public SubscriptionActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<SubscriptionModel> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<SubscriptionModel> state,
         IClusterClient clusterClient,
         ILogger<SubscriptionActor> logger
         )

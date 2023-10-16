@@ -27,10 +27,10 @@ public class DirectoryConnector
 
         group.MapPost("/addEdge", AddEdge);
         group.MapPost("/addNode", AddNode);
-        group.MapPost("/search", Lookup);
-        group.MapDelete("/{nodeKey}/edge", RemoveEdgeByNode);
-        group.MapDelete("/edge", RemoveEdge);
-        group.MapDelete("/{nodeKey}/node", RemoveNode);
+        group.MapPost("/query", Query);
+        group.MapPost("/remove", Remove);
+        group.MapPost("/updateEdge", SetTagsForEdge);
+        group.MapPost("/updateNode", SetTagsForNode);
 
         return group;
     }
@@ -39,7 +39,7 @@ public class DirectoryConnector
     {
         if (!edge.Validate(out var v)) return v.ToResult();
 
-        Option result = await _client.GetResourceGrain<IDirectoryActor>(SpinConstants.DirectoryActorKey).AddEdge(edge, traceId);
+        Option result = await _client.GetDirectoryActor().AddEdge(edge, traceId);
         return result.ToResult();
     }
 
@@ -47,33 +47,31 @@ public class DirectoryConnector
     {
         if (!node.Validate(out var v)) return v.ToResult();
 
-        Option result = await _client.GetResourceGrain<IDirectoryActor>(SpinConstants.DirectoryActorKey).AddNode(node, traceId);
+        Option result = await _client.GetDirectoryActor().AddNode(node, traceId);
         return result.ToResult();
     }
 
-    private async Task<IResult> Lookup(DirectorySearch search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Query(DirectoryQuery search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option<DirectoryResponse> result = await _client.GetResourceGrain<IDirectoryActor>(SpinConstants.DirectoryActorKey).Lookup(search, traceId);
+        Option<DirectoryResponse> result = await _client.GetDirectoryActor().Query(search, traceId);
         return result.ToResult();
     }
 
-    private async Task<IResult> RemoveEdgeByNode(string nodeKey, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Remove(DirectoryQuery search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        nodeKey = Uri.UnescapeDataString(nodeKey);
-        Option result = await _client.GetResourceGrain<IDirectoryActor>(SpinConstants.DirectoryActorKey).RemoveEdge(nodeKey, traceId);
+        Option<DirectoryResponse> result = await _client.GetDirectoryActor().Remove(search, traceId);
         return result.ToResult();
     }
 
-    private async Task<IResult> RemoveEdge(DirectoryEdge edge, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> SetTagsForEdge(DirectoryEdgeUpdate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option result = await _client.GetResourceGrain<IDirectoryActor>(SpinConstants.DirectoryActorKey).RemoveEdge(edge, traceId);
+        Option result = await _client.GetDirectoryActor().Update(model, traceId);
         return result.ToResult();
     }
 
-    private async Task<IResult> RemoveNode(string nodeKey, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    public async Task<IResult> SetTagsForNode(DirectoryNodeUpdate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        nodeKey = Uri.UnescapeDataString(nodeKey);
-        Option result = await _client.GetResourceGrain<IDirectoryActor>(SpinConstants.DirectoryActorKey).RemoveNode(nodeKey, traceId);
+        Option result = await _client.GetDirectoryActor().Update(model, traceId);
         return result.ToResult();
     }
 }

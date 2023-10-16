@@ -60,7 +60,7 @@ internal class Tenant : ICommandRoute
         }
 
         var result = response.Return()
-            .GetConfigurationValues()
+            .ToDictionary()
             .Select(x => $" - {x.Key}={x.Value}")
             .Prepend($"Tenant...")
             .Join(Environment.NewLine) + Environment.NewLine;

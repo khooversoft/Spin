@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.sdk.Actors.Directory;
 using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
@@ -28,7 +29,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
     private readonly ILogger<ScheduleWorkActor> _logger;
 
     public ScheduleWorkActor(
-        [PersistentState(stateName: SpinConstants.Extension.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<ScheduleWorkModel> state,
+        [PersistentState(stateName: SpinConstants.Ext.Json, storageName: SpinConstants.SpinStateStore)] IPersistentState<ScheduleWorkModel> state,
         IClusterClient clusterClient,
         ILogger<ScheduleWorkActor> logger
         )
@@ -110,6 +111,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
 
         _state.State = _state.State with
         {
+
             Assigned = _state.State.Assigned.NotNull() with
             {
                 AssignedCompleted = completed,
@@ -118,11 +120,8 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
 
         await ValidateAndWrite();
 
-        // Remove queue in schedule
-        await _clusterClient
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
-            .InternalCompleted(completed, context.TraceId);
-
+        var moveOption = await _clusterClient.GetDirectoryActor().ChangeScheduleState(this.GetPrimaryKeyString(), ScheduleEdgeType.Completed, context.TraceId);
+        if (moveOption.IsError()) context.Location().LogStatus(moveOption, "Failed to change directory's state");
         return StatusCode.OK;
     }
 
@@ -138,6 +137,9 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         _state.State = model.ConvertTo();
         await _state.WriteStateAsync();
 
+        var dirOption = await _clusterClient.GetDirectoryActor().AddSchedule(model.WorkId, model.Tags, context.TraceId);
+        if (dirOption.IsError()) return dirOption;
+
         return StatusCode.OK;
     }
 
@@ -148,7 +150,12 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
 
         if (!_state.RecordExists) return StatusCode.NotFound;
 
+        ScheduleWorkModel save = _state.State;
         await _state.ClearStateAsync();
+
+        var dirOption = await _clusterClient.GetDirectoryActor().RemoveSchedule(save.WorkId, context.TraceId);
+        if (dirOption.IsError()) return dirOption;
+
         return StatusCode.OK;
     }
 
@@ -179,11 +186,8 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         _state.State = _state.State with { Assigned = null };
         await _state.WriteStateAsync();
 
-        var resetOption = await _clusterClient
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
-            .ResetWork(this.GetPrimaryKeyString(), context.TraceId);
-
-        return resetOption;
+        var dirOption = await _clusterClient.GetDirectoryActor().ChangeScheduleState(_state.State.WorkId, ScheduleEdgeType.Active, context.TraceId);
+        return dirOption;
     }
 
     private async Task ValidateAndWrite()
@@ -206,7 +210,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         if (_state.State.Validate(out var v)) return;
 
         var context = new ScopeContext(_logger);
-        context.Location().LogStatus(v, "ScheduleModel is not valid on read");
-        throw new InvalidOperationException($"ScheduleModel is not valid on read, error={v.Error}");
+        context.Location().LogStatus(v, "ScheduleModel is not valid");
+        throw new InvalidOperationException($"ScheduleModel is not valid, statusCode={v.StatusCode}, error={v.Error}");
     }
 }

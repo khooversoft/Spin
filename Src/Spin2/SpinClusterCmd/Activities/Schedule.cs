@@ -85,14 +85,12 @@ internal class Schedule : ICommandRoute
             return;
         }
 
-        SchedulesModel model = scheduleModel.Return();
+        SchedulesResponseModel model = scheduleModel.Return();
 
         var lines = new string[][]
         {
             new [] { "Active schedules..." },
             dumpValues(model.ActiveItems.Values),
-            new [] { "Assigned work..." },
-            dumpValues(model.AssignedItems.Values),
             new [] { "Completed wpork..." },
             dumpValues(model.CompletedItems.Values),
             new [] { string.Empty },
