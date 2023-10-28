@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.Tokenizer;
 using Toolbox.Tokenizer.Token;
 
@@ -153,6 +154,30 @@ namespace Toolbox.Test.Tokenizer
                 new TokenValue(" "),
                 new TokenValue("def"),
                 new TokenValue(" "),
+            };
+
+            tokens.Count.Should().Be(expectedTokens.Length);
+
+            tokens
+                .Zip(expectedTokens, (o, i) => (o, i))
+                .All(x => x.o.Value == x.i.Value)
+                .Should().BeTrue();
+        }
+
+        [Fact]
+        public void BasicToken_WhenTokenIsSpaceAndPadWithFilter()
+        {
+            IReadOnlyList<IToken> tokens = new StringTokenizer()
+                .UseCollapseWhitespace()
+                .UseDoubleQuote()
+                .UseSingleQuote()
+                .SetFilter(x => x.Value.IsNotEmpty())
+                .Parse("  abc   def  ");
+
+            var expectedTokens = new IToken[]
+            {
+                new TokenValue("abc"),
+                new TokenValue("def"),
             };
 
             tokens.Count.Should().Be(expectedTokens.Length);

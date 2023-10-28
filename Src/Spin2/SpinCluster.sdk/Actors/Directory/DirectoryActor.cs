@@ -47,7 +47,6 @@ public class DirectoryActor : Grain, IDirectoryActor
             case false: await SetGraphToStorage(); break;
         }
 
-        if (_state.RecordExists) await ReadGraphFromStorage();
         await base.OnActivateAsync(cancellationToken);
     }
 
@@ -56,7 +55,7 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Adding edge, edge={edge}", edge);
 
-        var option = _map.Edges.Add(new GraphEdge<string>(edge.FromKey, edge.ToKey, tags: edge.Tags));
+        var option = _map.Edges.Add(edge.ConvertTo());
         if (option.IsError()) return option;
 
         await SetGraphToStorage();
@@ -68,12 +67,46 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Adding node, node={node}", node);
 
-        var option = _map.Nodes.Add(new GraphNode<string>(node.Key, node.Tags));
+        var option = _map.Nodes.Add(node.ConvertTo());
         if (option.IsError()) return option;
 
         await SetGraphToStorage();
         return StatusCode.OK;
     }
+
+    //public async Task<Option> Batch(DirectoryBatch batch, string traceId)
+    //{
+    //    var context = new ScopeContext(traceId, _logger);
+    //    context.Location().LogInformation("Processing batch, batch={batch}", batch);
+
+    //    // Working map
+    //    GraphMap workingMap = GraphMap.FromJson(_map.ToJson());
+    //    Option option;
+
+    //    foreach (var item in batch.Items)
+    //    {
+    //        switch (item)
+    //        {
+    //            case DirectoryNode node:
+    //                option = workingMap.Nodes.Add(node.ConvertTo());
+    //                if (option.IsError()) return option;
+    //                break;
+
+    //            case DirectoryEdge edge:
+    //                option = workingMap.Edges.Add(edge.ConvertTo());
+    //                if (option.IsError()) return option;
+    //                break;
+
+    //            case RemoveNode removeNode:
+    //                workingMap.Nodes.Remove(removeNode.NodeKey);
+    //                break;
+
+    //            case RemoveEdge removeEdge:
+    //                workingMap.Edges.Remove(removeEdge.EdgeKey);
+    //                break;
+    //        }
+    //    }
+    //}
 
     public async Task Clear(string traceId)
     {
@@ -89,13 +122,13 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Lookup edge, search={search}", search);
 
-        IReadOnlyList<GraphNode<string>> nodeQuery = (search.NodeKey, search.MatchNodeTags) switch
+        IReadOnlyList<GraphNode<string>> nodeQuery = (search.NodeKey, search.NodeTags) switch
         {
             (null, null) => Array.Empty<GraphNode<string>>(),
             _ => _map.Query().Nodes(search.IsMatch).Nodes,
         };
 
-        IReadOnlyList<GraphEdge<string>> edgeQuery = (search.FromKey, search.ToKey, search.MatchEdgeTags) switch
+        IReadOnlyList<GraphEdge<string>> edgeQuery = (search.FromKey, search.ToKey, search.EdgeTags) switch
         {
             (null, null, null) => Array.Empty<GraphEdge<string>>(),
             _ => _map.Query().Edges(search.IsMatch).Edges,

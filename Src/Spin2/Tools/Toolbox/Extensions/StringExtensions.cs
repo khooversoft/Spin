@@ -186,6 +186,8 @@ public static class StringExtensions
     {
         if (input.IsEmpty() || pattern.IsEmpty()) return false;
 
+        if (!pattern.Any(x => x == '*' || x == '?')) return StringComparer.OrdinalIgnoreCase.Equals(input, pattern);
+
         var builder = new StringBuilder("^");
 
         foreach (Char c in pattern)
@@ -200,6 +202,7 @@ public static class StringExtensions
 
         builder.Append('$');
 
-        return new Regex(builder.ToString(), RegexOptions.IgnoreCase).IsMatch(input);
+        bool result = new Regex(builder.ToString(), RegexOptions.IgnoreCase).IsMatch(input);
+        return result;
     }
 }

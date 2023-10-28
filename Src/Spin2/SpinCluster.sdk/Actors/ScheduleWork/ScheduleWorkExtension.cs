@@ -23,7 +23,7 @@ public static class ScheduleWorkExtension
 {
     private const string _edgeTypePrefix = "scheduleWorkType:";
 
-    public static async Task<Option> AddSchedule(this IDirectoryActor client, string workId, string? tags, string traceId)
+    public static async Task<Option> AddSchedule(this IDirectoryActor directoryActor, string workId, string? tags, string traceId)
     {
         var nodeRequest = new DirectoryNode
         {
@@ -31,7 +31,10 @@ public static class ScheduleWorkExtension
             Tags = tags,
         };
 
-        var addNodeOption = await client.AddNode(nodeRequest, traceId);
+        // make sure the schedule root node is there
+        await directoryActor.AddNode(new DirectoryNode { Key = SpinConstants.Dir.ScheduleWork }, traceId);
+
+        var addNodeOption = await directoryActor.AddNode(nodeRequest, traceId);
         if (addNodeOption.IsError()) return addNodeOption;
 
         var edgeRequest = new DirectoryEdge
@@ -41,11 +44,11 @@ public static class ScheduleWorkExtension
             EdgeType = ScheduleEdgeType.Active.GetEdgeType(),
         };
 
-        var addResult = await client.AddEdge(edgeRequest, traceId);
+        var addResult = await directoryActor.AddEdge(edgeRequest, traceId);
         return addResult;
     }
 
-    public static async Task<Option> ChangeScheduleState(this IDirectoryActor client, string workId, ScheduleEdgeType state, string traceId)
+    public static async Task<Option> ChangeScheduleState(this IDirectoryActor directoryActor, string workId, ScheduleEdgeType state, string traceId)
     {
         var request = new DirectoryEdgeUpdate
         {
@@ -55,7 +58,7 @@ public static class ScheduleWorkExtension
             UpdateEdgeType = state.GetEdgeType(),
         };
 
-        var result = await client.Update(request, traceId);
+        var result = await directoryActor.Update(request, traceId);
         return result;
     }
 
@@ -65,52 +68,53 @@ public static class ScheduleWorkExtension
         var v => $"{_edgeTypePrefix}{v}",
     };
 
-    public static async Task<Option<DirectoryResponse>> GetSchedules(this IDirectoryActor client, string traceId)
+    public static async Task<Option<DirectoryResponse>> GetSchedules(this IDirectoryActor directoryActor, string traceId)
     {
         var request = new DirectoryQuery
         {
             FromKey = SpinConstants.Dir.ScheduleWork,
-            MatchEdgeType = _edgeTypePrefix + "*",
+            EdgeType = _edgeTypePrefix + "*",
         };
 
-        Option<DirectoryResponse> result = await client.Query(request, traceId);
+        Option<DirectoryResponse> result = await directoryActor.Query(request, traceId);
         if (result.IsError()) return result;
 
         return result;
     }
 
-    public static async Task<Option<DirectoryResponse>> GetSchedules(this IDirectoryActor client, ScheduleEdgeType state, string traceId)
+    public static async Task<Option<DirectoryResponse>> GetSchedules(this IDirectoryActor directoryActor, ScheduleEdgeType state, string traceId)
     {
         var request = new DirectoryQuery
         {
             FromKey = SpinConstants.Dir.ScheduleWork,
-            MatchEdgeType = state.GetEdgeType(),
+            EdgeType = state.GetEdgeType(),
         };
 
-        Option<DirectoryResponse> result = await client.Query(request, traceId);
+        Option<DirectoryResponse> result = await directoryActor.Query(request, traceId);
         if (result.IsError()) return result;
 
         return result;
     }
-    public static async Task<Option<IReadOnlyList<DirectoryEdge>>> GetActiveWorkSchedules(this IDirectoryActor client, string traceId)
+
+    public static async Task<Option<IReadOnlyList<DirectoryEdge>>> GetActiveWorkSchedules(this IDirectoryActor directoryActor, string traceId)
     {
         var request = new DirectoryQuery
         {
             FromKey = SpinConstants.Dir.ScheduleWork,
-            MatchEdgeType = _edgeTypePrefix + "*",
+            EdgeType = _edgeTypePrefix + "*",
         };
 
-        Option<DirectoryResponse> result = await client.Query(request, traceId);
+        Option<DirectoryResponse> result = await directoryActor.Query(request, traceId);
         if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<DirectoryEdge>>();
 
         return result.Return().Edges.ToOption();
     }
 
-    public static async Task<Option> RemoveSchedule(this IDirectoryActor client, string workId, string traceId)
+    public static async Task<Option> RemoveSchedule(this IDirectoryActor directoryActor, string workId, string traceId)
     {
         var query = new DirectoryQuery { NodeKey = workId };
 
-        Option<DirectoryResponse> option = await client.Remove(query, traceId);
+        Option<DirectoryResponse> option = await directoryActor.Remove(query, traceId);
         return option.ToOptionStatus();
     }
 }

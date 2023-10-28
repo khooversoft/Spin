@@ -8,11 +8,11 @@ namespace SpinCluster.sdk.Actors.Directory;
 public sealed record DirectoryQuery
 {
     [Id(0)] public string? NodeKey { get; init; }
-    [Id(1)] public string? MatchNodeTags { get; init; }
+    [Id(1)] public string? NodeTags { get; init; }
     [Id(2)] public string? FromKey { get; init; }
     [Id(3)] public string? ToKey { get; init; }
-    [Id(4)] public string? MatchEdgeType { get; init; }
-    [Id(5)] public string? MatchEdgeTags { get; init; }
+    [Id(4)] public string? EdgeType { get; init; }
+    [Id(5)] public string? EdgeTags { get; init; }
 }
 
 
@@ -23,19 +23,19 @@ public static class DirectoryQueryExtensions
         if (subject == null) return false;
 
         return subject.NodeKey == null &&
-            subject.MatchNodeTags == null &&
+            subject.NodeTags == null &&
             subject.FromKey == null &&
             subject.ToKey == null &&
-            subject.MatchEdgeType == null &&
-            subject.MatchNodeTags == null;
+            subject.EdgeType == null &&
+            subject.NodeTags == null;
     }
 
     public static bool IsMatch(this DirectoryQuery subject, IGraphNode<string> node)
     {
         subject.NotNull();
 
-        if (subject.NodeKey != null && !GraphEdgeTool.IsKeysEqual(subject.NodeKey, node.Key)) return false;
-        if (subject.MatchNodeTags != null && !node.Tags.Has(subject.MatchNodeTags)) return false;
+        if (subject.NodeKey != null && !node.Key.Match(subject.NodeKey)) return false;
+        if (subject.NodeTags != null && !node.Tags.Has(subject.NodeTags)) return false;
 
         return true;
     }
@@ -44,10 +44,10 @@ public static class DirectoryQueryExtensions
     {
         subject.NotNull();
 
-        if (subject.FromKey != null && !GraphEdgeTool.IsKeysEqual(subject.FromKey, edge.FromKey)) return false;
-        if (subject.ToKey != null && !GraphEdgeTool.IsKeysEqual(subject.ToKey, edge.ToKey)) return false;
-        if (subject.MatchEdgeType != null && edge.EdgeType.Match(subject.MatchEdgeType)) return false;
-        if (subject.MatchEdgeTags != null && !edge.Tags.Has(subject.MatchEdgeTags)) return false;
+        if (subject.FromKey != null && !edge.FromKey.Match(subject.FromKey)) return false;
+        if (subject.ToKey != null && !edge.ToKey.Match(subject.ToKey)) return false;
+        if (subject.EdgeType != null && !edge.EdgeType.Match(subject.EdgeType)) return false;
+        if (subject.EdgeTags != null && !edge.Tags.Has(subject.EdgeTags)) return false;
 
         return true;
     }

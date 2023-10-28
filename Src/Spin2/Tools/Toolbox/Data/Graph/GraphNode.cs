@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Toolbox.Tools;
+using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace Toolbox.Data;
@@ -13,6 +14,8 @@ public interface IGraphNode<TKey> : IGraphCommon
 
 public record GraphNode<TKey> : IGraphNode<TKey>
 {
+    public GraphNode() { }
+
     public GraphNode(TKey key, string? tags = null)
     {
         Key = key.NotNull();
@@ -27,7 +30,24 @@ public record GraphNode<TKey> : IGraphNode<TKey>
         CreatedDate = createdDate;
     }
 
-    public TKey Key { get; init; }
+    public TKey Key { get; init; } = default!;
     public Tags Tags { get; init; } = new Tags();
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+
+    public static IValidator<IGraphNode<TKey>> Validator { get; } = new Validator<IGraphNode<TKey>>()
+        .RuleFor(x => x.Key).NotNull()
+        .RuleFor(x => x.Tags).NotNull()
+        .RuleFor(x => x.CreatedDate).ValidDateTime()
+        .Build();
+}
+
+public static class GraphNodeTool
+{
+    public static Option Validate<TKey>(this IGraphNode<TKey> subject) where TKey : notnull => GraphNode<TKey>.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate<TKey>(this IGraphNode<TKey> subject, out Option result) where TKey : notnull
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
 }

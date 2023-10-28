@@ -11,6 +11,8 @@ public record struct FinalizeScope<T> : IDisposable
         _value = value;
     }
 
+    public void Cancel() => _finalizeAction = null;
+
     public void Dispose() => Interlocked.Exchange(ref _finalizeAction, null)?.Invoke(_value);
 
     public static implicit operator T(FinalizeScope<T> scope) => scope._value;

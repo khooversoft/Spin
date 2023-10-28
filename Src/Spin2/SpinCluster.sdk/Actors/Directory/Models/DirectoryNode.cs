@@ -5,7 +5,7 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.Directory;
 
 [GenerateSerializer, Immutable]
-public sealed record DirectoryNode
+public sealed record DirectoryNode : IDirectoryGraph
 {
     [Id(0)] public string Key { get; init; } = null!;
     [Id(1)] public string? Tags { get; init; }
@@ -32,6 +32,13 @@ public static class DirectoryNodeExtensions
     {
         Key = subject.Key,
         Tags = subject.Tags.ToString(),
+        CreatedDate = subject.CreatedDate,
+    };
+
+    public static GraphNode<string> ConvertTo(this DirectoryNode subject) => new GraphNode<string>
+    {
+        Key = subject.Key,
+        Tags = Tags.Parse(subject.Tags),
         CreatedDate = subject.CreatedDate,
     };
 }

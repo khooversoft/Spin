@@ -33,7 +33,7 @@ namespace Toolbox.Tokenizer.Syntax
         public IToken CreateToken(ReadOnlySpan<char> span)
         {
             string value = span.ToString();
-            return new TokenValue(value);
+            return new TokenValue(value) { IsSyntaxToken = true };
         }
     }
 }

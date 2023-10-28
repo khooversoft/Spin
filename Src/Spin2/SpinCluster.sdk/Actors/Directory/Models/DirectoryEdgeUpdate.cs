@@ -27,6 +27,6 @@ public static class DirectoryEdgeUpdateExtensions
     {
         FromKey = subject.FromKey,
         ToKey = subject.ToKey,
-        MatchEdgeType = subject.MatchEdgeType,
+        EdgeType = subject.MatchEdgeType,
     };
 }

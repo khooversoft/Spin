@@ -38,6 +38,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{9CB07323-2
 		Docs\Components.md = Docs\Components.md
 		Config.md = Config.md
 		Docs\Notes.md = Docs\Notes.md
+		Docs\QuerySyntax.md = Docs\QuerySyntax.md
 		Docs\schema.md = Docs\schema.md
 		Docs\Smartc.md = Docs\Smartc.md
 		Docs\SpinClusterCmd.md = Docs\SpinClusterCmd.md

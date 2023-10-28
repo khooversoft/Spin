@@ -9,6 +9,7 @@ namespace Toolbox.Tokenizer
     public class StringTokenizer
     {
         private readonly List<ITokenSyntax> _syntaxList = new();
+        private Func<IToken, bool>? _filter;
 
         /// <summary>
         /// Return white space tokens that have been collapsed.
@@ -63,6 +64,17 @@ namespace Toolbox.Tokenizer
         }
 
         /// <summary>
+        /// Add filter for final result
+        /// </summary>
+        /// <param name="filter">lambda to filter result</param>
+        /// <returns></returns>
+        public StringTokenizer SetFilter(Func<IToken, bool> filter)
+        {
+            _filter = filter;
+            return this;
+        }
+
+        /// <summary>
         /// Parse strings for tokens
         /// </summary>
         /// <param name="sources">n number of strings</param>
@@ -95,10 +107,7 @@ namespace Toolbox.Tokenizer
                 for (int syntaxIndex = 0; syntaxIndex < syntaxRules.Length; syntaxIndex++)
                 {
                     matchLength = syntaxRules[syntaxIndex].Match(span.Slice(index));
-                    if (matchLength == null)
-                    {
-                        continue;
-                    }
+                    if (matchLength == null) continue;
 
                     if (dataStart != null)
                     {
@@ -110,7 +119,8 @@ namespace Toolbox.Tokenizer
                         dataStart = null;
                     }
 
-                    tokenList.Add(syntaxRules[syntaxIndex].CreateToken(span.Slice(index, (int)matchLength)));
+                    IToken token = syntaxRules[syntaxIndex].CreateToken(span.Slice(index, (int)matchLength));
+                    tokenList.Add(token);
                     break;
                 }
 
@@ -131,6 +141,8 @@ namespace Toolbox.Tokenizer
 
                 tokenList.Add(new TokenValue(dataValue));
             }
+
+            if (_filter != null) tokenList = tokenList.Where(x => _filter(x)).ToList();
 
             return tokenList;
         }

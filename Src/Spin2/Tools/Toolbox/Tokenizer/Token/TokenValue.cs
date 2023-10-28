@@ -10,17 +10,15 @@ namespace Toolbox.Tokenizer.Token
         public TokenValue(string value) => Value = value.NotNull();
 
         public string Value { get; init; }
+        public bool IsSyntaxToken { get; init; }
 
         public override bool Equals(object? obj) => obj is TokenValue value && Value == value.Value;
-
         public override int GetHashCode() => HashCode.Combine(Value);
-
         public override string ToString() => Value;
 
         public static bool operator ==(TokenValue left, TokenValue right) => left.Equals(right);
-
         public static bool operator !=(TokenValue left, TokenValue right) => !(left == right);
 
-        public static implicit operator string(TokenValue tokenValue) => tokenValue.Value;
+        public static explicit operator string(TokenValue tokenValue) => tokenValue.Value;
     }
 }

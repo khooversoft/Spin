@@ -74,12 +74,12 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
     public IReadOnlyList<TEdge> Get(TKey nodeKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
     {
-        return Query(new GraphEdgeQuery<TKey> { NodeKey = nodeKey, Direction = direction, MatchEdgeType = matchEdgeType });
+        return Query(new GraphEdgeQuery<TKey> { NodeKey = nodeKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
     public IReadOnlyList<TEdge> Get(TKey fromKey, TKey toKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
     {
-        return Query(new GraphEdgeQuery<TKey> { FromKey = fromKey, ToKey = toKey, Direction = direction, MatchEdgeType = matchEdgeType });
+        return Query(new GraphEdgeQuery<TKey> { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
     public bool Remove(Guid edgeKey)
@@ -128,8 +128,8 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
             var edges = result
                 .Select(x => _index[x])
-                .Where(x => query.MatchEdgeType == null || x.EdgeType.Match(query.MatchEdgeType))
-                .Where(x => query.MatchTags == null || new Tags(x.Tags).Has(query.MatchTags))
+                .Where(x => query.EdgeType == null || x.EdgeType.Match(query.EdgeType))
+                .Where(x => query.Tags == null || new Tags(x.Tags).Has(query.Tags))
                 .ToArray();
 
             return edges;

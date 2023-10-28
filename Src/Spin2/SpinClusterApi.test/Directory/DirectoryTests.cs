@@ -11,7 +11,7 @@ using SpinClusterApi.test.Application;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace SpinClusterApi.test.Basics;
+namespace SpinClusterApi.test.Directory;
 
 public class DirectoryTests : IClassFixture<ClusterApiFixture>
 {
@@ -58,7 +58,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         response.Nodes.First().Key.Should().Be(nodeKey);
         response.Nodes.First().Tags.Should().Be("t1");
 
-        getNodeOption = await dirClient.Query(new DirectoryQuery { MatchNodeTags = "t1" }, _context);
+        getNodeOption = await dirClient.Query(new DirectoryQuery { NodeTags = "t1" }, _context);
         getNodeOption.IsOk().Should().BeTrue();
         response = getNodeOption.Return();
         response.Nodes.Count.Should().Be(1);
@@ -106,7 +106,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         response.Nodes.First().Key.Should().Be("node1");
         response.Nodes.First().Tags.Should().Be("t1;name=adam");
 
-        getNodeOption = await dirClient.Query(new DirectoryQuery { MatchNodeTags = "name" }, _context);
+        getNodeOption = await dirClient.Query(new DirectoryQuery { NodeTags = "name" }, _context);
         getNodeOption.IsOk().Should().BeTrue();
         response = getNodeOption.Return();
         response.Nodes.Count.Should().Be(1);
@@ -158,7 +158,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
             response.Nodes.First().Tags.Should().Be("t1");
         }
 
-        getNodeOption = await dirClient.Query(new DirectoryQuery { MatchNodeTags = "t1" }, _context);
+        getNodeOption = await dirClient.Query(new DirectoryQuery { NodeTags = "t1" }, _context);
         getNodeOption.IsOk().Should().BeTrue();
         response = getNodeOption.Return();
         response.Nodes.Count.Should().Be(count);
@@ -336,7 +336,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
     {
         var dirClient = _cluster.ServiceProvider.GetRequiredService<DirectoryClient>();
         var addNodes = new[]
-        { 
+        {
             new DirectoryNode { Key = "node1" },
             new DirectoryNode { Key = "node2" }
         };

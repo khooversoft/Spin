@@ -5,14 +5,14 @@ using Toolbox.Types;
 namespace SpinCluster.sdk.Actors.Directory;
 
 [GenerateSerializer, Immutable]
-public sealed record DirectoryEdge
+public sealed record DirectoryEdge : IDirectoryGraph
 {
     [Id(0)] public Guid Key { get; init; }
     [Id(1)] public string FromKey { get; init; } = null!;
     [Id(2)] public string ToKey { get; init; } = null!;
     [Id(3)] public string EdgeType { get; init; } = "default";
     [Id(4)] public string? Tags { get; init; }
-    [Id(5)] public DateTime CreatedDate { get; init; }
+    [Id(5)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 
     public static IValidator<DirectoryEdge> Validator { get; } = new Validator<DirectoryEdge>()
         .RuleFor(x => x.FromKey).NotEmpty()
@@ -39,6 +39,15 @@ public static class DirectoryEdgeExtensions
         ToKey = subject.ToKey,
         EdgeType = subject.EdgeType,
         Tags = subject.Tags.ToString(),
+        CreatedDate = subject.CreatedDate,
+    };
+
+    public static GraphEdge<string> ConvertTo(this DirectoryEdge subject) => new GraphEdge<string>
+    {
+        FromKey = subject.FromKey,
+        ToKey = subject.ToKey,
+        EdgeType = subject.EdgeType,
+        Tags = Tags.Parse(subject.Tags),
         CreatedDate = subject.CreatedDate,
     };
 }

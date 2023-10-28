@@ -82,7 +82,7 @@ public class SchedulerActor : Grain, ISchedulerActor
                 case { StatusCode: StatusCode.Conflict }:
                     continue;
 
-                case { StatusCode: StatusCode.NotFound}:
+                case { StatusCode: StatusCode.NotFound }:
                     context.Location().LogError("Removing index that not found, workId={workId}", workId);
                     await _clusterClient.GetDirectoryActor().RemoveSchedule(workId, context.TraceId);
                     continue;
@@ -143,7 +143,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         DirectoryResponse response = dirResponse.Return();
 
         var workScheduleList = new List<(string edgeType, ScheduleWorkModel model)>();
-        foreach (var item in response.Edges)
+        foreach (var item in response.Edges.Where(x => isEdgeType(x.EdgeType)))
         {
             var getOption = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Get(traceId);
             if (getOption.IsError())
@@ -167,6 +167,14 @@ public class SchedulerActor : Grain, ISchedulerActor
         };
 
         return result;
+
+        static bool isEdgeType(string edgeType) => edgeType switch
+        {
+            string v when v == ScheduleEdgeType.Active.GetEdgeType() => true,
+            string v when v == ScheduleEdgeType.Completed.GetEdgeType() => true,
+
+            _ => false,
+        };
     }
 }
 

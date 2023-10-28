@@ -111,5 +111,14 @@ public class Cursor<T>
 public static class CursorExtensions
 {
     public static Cursor<T> ToCursor<T>(this IReadOnlyList<T> collection) => new Cursor<T>(collection);
+
+    public static IReadOnlyList<T> FromCursor<T>(this Cursor<T> subject, int maxSize)
+    {
+        int available = subject.List.Count - subject.Index;
+        if (available <= 0) return Array.Empty<T>();
+
+        var data = subject.List.Skip(subject.Index).Take(maxSize).ToArray();
+        return data;
+    }
 }
 

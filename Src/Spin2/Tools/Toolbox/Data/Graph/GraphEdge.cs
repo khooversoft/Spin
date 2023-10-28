@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -24,6 +25,8 @@ public interface IGraphEdge<TKey> : IGraphCommon
 
 public sealed record GraphEdge<TKey> : IGraphEdge<TKey> where TKey : notnull
 {
+    public GraphEdge() { }
+
     public GraphEdge(TKey fromNodeKey, TKey toNodeKey, string? edgeType = null, string? tags = null, DateTime? createdDate = null)
     {
         FromKey = fromNodeKey.NotNull();
@@ -49,8 +52,8 @@ public sealed record GraphEdge<TKey> : IGraphEdge<TKey> where TKey : notnull
     }
 
     public Guid Key { get; } = Guid.NewGuid();
-    public TKey FromKey { get; init; }
-    public TKey ToKey { get; init; }
+    public TKey FromKey { get; init; } = default!;
+    public TKey ToKey { get; init; } = default!;
     public string EdgeType { get; init; } = "default";
     public Tags Tags { get; init; } = new Tags();
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
