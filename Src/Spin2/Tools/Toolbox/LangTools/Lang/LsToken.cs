@@ -24,8 +24,10 @@ public class LsToken : ILangSyntax
     public string? Name { get; }
     public bool Optional { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax> syntaxCursor)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
     {
+        syntaxCursor.NotNull();
+
         if (!pContext.TokensCursor.TryNextValue(out var token)) return failStatus();
 
         switch (token)

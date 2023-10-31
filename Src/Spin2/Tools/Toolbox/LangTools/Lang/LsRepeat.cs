@@ -6,13 +6,13 @@ namespace Toolbox.LangTools;
 
 
 [DebuggerDisplay("Name={Name}")]
-public class LsRepeat : LsRoot, ILangSyntax
+public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
 {
     public LsRepeat(string? name) => Name = name;
 
     public string? Name { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax> _)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
         bool first = true;
         var nodes = new LangNodes();

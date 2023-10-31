@@ -14,20 +14,11 @@ public class LangSimpleAssignmentTests
 
         var root = new LsRoot() + new LsValue("lvalue") + new LsToken("=", "equal") + new LsValue("rvalue");
 
-        var parser = new StringTokenizer()
-            .UseSingleQuote()
-            .UseDoubleQuote()
-            .UseCollapseWhitespace()
-            .SetFilter(x => x.Value.IsNotEmpty())
-            .Add("=");
-
         var lines = new[] { "s=", "=5", "s 5", "this is wrong", "no" };
 
         foreach (var test in lines)
         {
-            IReadOnlyList<IToken> tokens = parser.Parse(test);
-
-            Option<LangNodes> tree = LangParser.Parse(root, tokens);
+            Option<LangNodes> tree = LangParser.Parse(root, test);
             tree.Should().NotBeNull();
             tree.IsError().Should().BeTrue();
         }

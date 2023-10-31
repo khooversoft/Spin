@@ -4,19 +4,29 @@ using Toolbox.Types;
 namespace Toolbox.LangTools;
 
 
-public interface ILangRoot : ILangBase<ILangSyntax>
-{
-}
-
 public interface ILangSyntax
 {
     string? Name { get; }
-    Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax> syntaxCursor);
+    Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor = null);
 }
 
 
+public interface ILangRoot : ILangBase<ILangSyntax>, ILangSyntax
+{
+}
+
 public class LsRoot : LangBase<ILangSyntax>, ILangRoot
 {
+    public LsRoot(string? name = null) => Name = name;
+    public string? Name { get; }
+
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
+    {
+        Option<LangNodes> nodes = this.MatchSyntaxSegement(pContext);
+        if (nodes.IsError()) return nodes;
+        return nodes;
+    }
+
     public static LsRoot operator +(LsRoot subject, ILangSyntax value) => subject.Action(x => x.Children.Add(value));
     public static LsRoot operator +(LsRoot subject, string symbol) => subject.Action(x => x.Children.Add(new LsToken(symbol)));
 

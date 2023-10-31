@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.LangTools;
@@ -13,8 +14,10 @@ public class LsValue : ILangSyntax
 
     public string? Name { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax> syntaxCursor)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
     {
+        syntaxCursor.NotNull();
+
         if (!pContext.TokensCursor.TryNextValue(out var token)) return StatusCode.BadRequest;
 
         switch (token)

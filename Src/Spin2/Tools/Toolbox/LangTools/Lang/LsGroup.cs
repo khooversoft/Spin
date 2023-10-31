@@ -6,7 +6,7 @@ using Toolbox.Types;
 namespace Toolbox.LangTools;
 
 [DebuggerDisplay("StartToken={StartToken}, EndToken={EndToken}, Name={Name}")]
-public class LsGroup : LsRoot, ILangSyntax
+public class LsGroup : LangBase<ILangSyntax>, ILangRoot
 {
     public LsGroup(string startToken, string endToken, string? name)
     {
@@ -19,7 +19,7 @@ public class LsGroup : LsRoot, ILangSyntax
     public string EndToken { get; }
     public string? Name { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax> syntaxCursor)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
         bool atLeastOne = false;
         var nodes = new LangNodes();

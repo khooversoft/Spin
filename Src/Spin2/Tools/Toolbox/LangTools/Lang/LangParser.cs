@@ -16,22 +16,12 @@ public static class LangParser
             .Add(langRoot.GetSyntaxTokens())
             .Parse(rawData);
 
-        var result = LangParser.Parse(langRoot, tokens);
-        return result;
-    }
-
-    public static Option<LangNodes> Parse(ILangRoot langRoot, IReadOnlyList<IToken> tokens)
-    {
-        langRoot.NotNull();
-        tokens.NotNull();
-
         var pContext = new LangParserContext(langRoot, tokens);
 
-        Option<LangNodes> nodes = langRoot.MatchSyntaxSegement(pContext);
-        if (nodes.IsError()) return nodes;
+        var result = langRoot.Process(pContext);
 
-        if (pContext.TokensCursor.TryPeekValue(out _)) return (StatusCode.BadRequest, "Syntax error");
-        return nodes;
+        if (pContext.TokensCursor.TryPeekValue(out var _)) return (StatusCode.BadRequest, "Syntax error, input tokens not completed");
+        return result;
     }
 
     public static string[] GetSyntaxTokens(this ILangRoot langRoot)
