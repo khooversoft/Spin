@@ -1,0 +1,47 @@
+﻿using System.Diagnostics;
+using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace Toolbox.LangTools;
+
+[DebuggerDisplay("Symbol={Symbol}, Name={Name}")]
+public class LsToken : ILangSyntax
+{
+    public LsToken(string symbol, bool optional)
+    {
+        Symbol = symbol.NotNull();
+        Optional = optional;
+    }
+
+    public LsToken(string symbol, string? name = null, bool optional = false)
+    {
+        Symbol = symbol.NotNull();
+        Name = name;
+        Optional = optional;
+    }
+
+    public string Symbol { get; }
+    public string? Name { get; }
+    public bool Optional { get; }
+
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax> syntaxCursor)
+    {
+        if (!pContext.TokensCursor.TryNextValue(out var token)) return failStatus();
+
+        switch (token)
+        {
+            case TokenValue tokenValue when tokenValue.Value == Symbol:
+                return new LangNodes() + new LangNode(syntaxCursor.Current, tokenValue.Value);
+
+            default:
+                if (Optional) pContext.TokensCursor.Index--;
+                return (failStatus(), $"Syntax error: unknown {token.Value}");
+        }
+
+        StatusCode failStatus() => Optional switch
+        {
+            false => StatusCode.BadRequest,
+            true => StatusCode.NoContent,
+        };
+    }
+}

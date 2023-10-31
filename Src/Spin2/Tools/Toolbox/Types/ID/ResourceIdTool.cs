@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tokenizer;
-using Toolbox.Tokenizer.Token;
+using Toolbox.LangTools;
 
 namespace Toolbox.Types.ID;
 

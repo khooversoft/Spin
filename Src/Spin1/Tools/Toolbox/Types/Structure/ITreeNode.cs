@@ -21,17 +21,17 @@ public interface ITreeNode : ITreeParent
     void Add(ITreeNode value);
     void AddRange(IEnumerable<ITreeNode> values);
 
-    public static ITreeNode operator +(ITreeNode left, ITreeNode right)
-    {
-        left.Add(right);
-        return left;
-    }
+    //public static ITreeNode operator +(ITreeNode left, ITreeNode right)
+    //{
+    //    left.Add(right);
+    //    return left;
+    //}
 
-    public static ITreeNode operator +(ITreeNode left, IEnumerable<ITreeNode> right)
-    {
-        left.AddRange(right);
-        return left;
-    }
+    //public static ITreeNode operator +(ITreeNode left, IEnumerable<ITreeNode> right)
+    //{
+    //    left.AddRange(right);
+    //    return left;
+    //}
 }
 
 

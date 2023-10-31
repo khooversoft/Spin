@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Toolbox.Data;
+﻿namespace Toolbox.Data;
 
 public readonly record struct GraphEdgeQuery<TKey> : IGraphQL where TKey : notnull
 {

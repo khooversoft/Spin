@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SpinCluster.sdk.Actors.Directory.Models;
+﻿namespace SpinCluster.sdk.Actors.Directory.Models;
 
 [GenerateSerializer, Immutable]
 public record DirectoryEdgeQuery

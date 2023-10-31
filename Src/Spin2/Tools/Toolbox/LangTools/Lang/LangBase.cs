@@ -1,21 +1,14 @@
 ﻿using System.Collections;
+using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Tokenizer.Tree;
-
-public enum LangType
-{
-    Root,
-    SyntaxToken,
-    Value,
-}
+namespace Toolbox.LangTools;
 
 
 public interface ILangBase<T>
 {
     Guid Id { get; }
-    LangType Type { get; }
-    IList<T> Children { get; }
+    List<T> Children { get; }
     Cursor<T> CreateCursor();
 }
 
@@ -24,16 +17,12 @@ public class LangBase<T> : ILangBase<T>, IEnumerable<T>
 {
     private readonly List<T> _children = new List<T>();
 
-    public LangBase() { }
-    public LangBase(LangType type) => Type = type;
-
     public Guid Id { get; } = Guid.NewGuid();
-    public LangType Type { get; } = LangType.Root;
+    public List<T> Children => _children;
 
-    public IList<T> Children => _children;
     public Cursor<T> CreateCursor() => new Cursor<T>(_children);
-
-    public void Add(T node) => _children.Add(node);
+    public void Add(T node) => _children.Add(node.NotNull());
+    public void AddRange(IEnumerable<T> nodes) => _children.AddRange(nodes.NotNull());
 
     public IEnumerator<T> GetEnumerator() => _children.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
