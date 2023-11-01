@@ -16,25 +16,17 @@ public class LsOr : LangBase<ILangSyntax>, ILangRoot
     {
         while (pContext.TokensCursor.TryPeekValue(out var token))
         {
-            var result = this.MatchSyntaxSegement(pContext);
-            if (result.IsOk()) return result;
+            foreach (var item in Children.OfType<ILangRoot>())
+            {
+                var result = item.MatchSyntaxSegement(pContext);
+                if (result.IsOk()) return result;
+            }
+
+            break;
         }
 
         return (StatusCode.BadRequest, "Syntax error, no repeating values");
     }
 
-    public static LsOr operator +(LsOr subject, ILangSyntax value)
-    {
-        //var root = new LsRoot() + value;
-        subject.Children.Add(value);
-        return subject;
-    }
-    public static LsOr operator +(LsOr subject, ILangRoot root) => subject.Action(x => x.Children.AddRange(root.Children));
-    public static LsOr operator +(LsOr subject, string symbol) => subject.Action(x => x.Children.Add(new LsToken(symbol)));
-
-    public static LsOr operator +(LsOr subject, (string symbol, string name) data)
-    {
-        subject.Children.Add(new LsToken(data.symbol, data.name));
-        return subject;
-    }
+    public static LsOr operator +(LsOr subject, ILangRoot syntax) => subject.Action(x => x.Children.Add(syntax));
 }
