@@ -21,12 +21,6 @@ public class LsValue : ILangSyntax
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
     {
-        var result = pContext.RunAndLog(nameof(LsValue), Name, () => InternalProcess(pContext, syntaxCursor));
-        return result;
-    }
-
-    public Option<LangNodes> InternalProcess(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
-    {
         syntaxCursor.NotNull();
 
         if (!pContext.TokensCursor.TryNextValue(out var token)) return failStatus();

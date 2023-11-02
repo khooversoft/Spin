@@ -14,18 +14,11 @@ public class LsOption : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
-        var result = pContext.RunAndLog(nameof(LsOption), Name, () => InternalProcess(pContext));
-        return result;
-    }
-
-    private Option<LangNodes> InternalProcess(LangParserContext pContext)
-    {
         while (pContext.TokensCursor.TryPeekValue(out var token))
         {
             foreach (var item in Children.OfType<ILangRoot>())
             {
-                var result = item.MatchSyntaxSegement(pContext);
-                pContext.Log(nameof(LsOption) + ":MatchSyntaxSegement", result, Name);
+                var result = item.MatchSyntaxSegement(nameof(LsOption), pContext);
                 if (result.IsOk()) return result;
             }
 

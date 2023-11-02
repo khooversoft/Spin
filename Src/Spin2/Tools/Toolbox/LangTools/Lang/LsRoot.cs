@@ -22,14 +22,7 @@ public class LsRoot : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
-        var result = pContext.RunAndLog(nameof(LsRoot), Name, () => InternalProcess(pContext));
-        return result;
-    }
-
-    private Option<LangNodes> InternalProcess(LangParserContext pContext)
-    {
-        Option<LangNodes> nodes = this.MatchSyntaxSegement(pContext);
-        pContext.Log(nameof(LsRoot), nodes, Name);
+        Option<LangNodes> nodes = this.MatchSyntaxSegement(nameof(LsRoot), pContext);
         return nodes;
     }
 

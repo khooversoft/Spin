@@ -14,12 +14,6 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
-        var result = pContext.RunAndLog(nameof(LsRepeat), Name, () => InternalProcess(pContext));
-        return result;
-    }
-
-    private Option<LangNodes> InternalProcess(LangParserContext pContext)
-    {
         var nodes = new LangNodes();
         bool first = true;
         bool isDelimter = false;
@@ -28,8 +22,7 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
         {
             if (!first && !isDelimter) break;
 
-            var result = this.MatchSyntaxSegement(pContext);
-            pContext.Log(nameof(LsRepeat) + ":MatchSyntaxSegement", result, Name);
+            var result = this.MatchSyntaxSegement(nameof(LsRepeat), pContext);
             if (result.IsError()) break;
 
             LangNodes langNodes = result.Return();

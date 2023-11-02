@@ -21,12 +21,6 @@ public class LsGroup : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
-        var result = pContext.RunAndLog(nameof(LsGroup), Name, () => InternalProcess(pContext));
-        return result;
-    }
-
-    private Option<LangNodes> InternalProcess(LangParserContext pContext)
-    {
         var nodes = new LangNodes();
 
         if (!pContext.TokensCursor.TryPeekValue(out var token)) return (StatusCode.BadRequest, "no tokens");
@@ -36,8 +30,7 @@ public class LsGroup : LangBase<ILangSyntax>, ILangRoot
         pContext.TokensCursor.NextValue().Assert(x => x.IsOk(), "Failed to get token");
         nodes += new LangNode(this, tokenValue.Value);
 
-        var result = this.MatchSyntaxSegement(pContext);
-        pContext.Log(nameof(LsGroup) + ":MatchSyntaxSegement", result, Name);
+        var result = this.MatchSyntaxSegement(nameof(LsGroup), pContext);
         if (result.IsError()) return result;
 
         nodes += result.Return();

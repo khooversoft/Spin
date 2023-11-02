@@ -49,7 +49,6 @@ node[key="key1";tags="t1=v1"] n1 -> edge["toKey", "t1"] -> node[has "t2"] n2
 (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2
 (key=key1;t1) n1 -> [schedulework:*] -> (schedule) n2
 [fromKey=key1;edgeType=abc*] -> (schedule) n1
-
 (t1) -> [tags=schedulework:active] -> (tags="state=active") n1
 
 match (p:person)-[:lives_in]->(c:city), (p:person)-[:NATIONAL_OF]->(ec:EUCountry)

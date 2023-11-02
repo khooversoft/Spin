@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,18 +10,20 @@ using Toolbox.Types;
 
 namespace Toolbox.LangTools;
 
-public enum LangTraceType
+public enum TraceType
 {
     None,
     Start,
-    Result,
-    Detail,
+    Process,
+    Ok,
+    Error
 }
+
 
 public record LangTrace
 {
     public string Action { get; init; } = null!;
-    public LangTraceType Type { get; init; }
+    public TraceType Type { get; init; }
     public string Name { get; init; } = null!;
     public StatusCode StatusCode { get; init; }
     public string? Error { get; init; } = null!;
@@ -29,46 +32,21 @@ public record LangTrace
 
     public override string ToString() => Error switch
     {
-        null => $"StatusCode={StatusCode}, Type={Type}, Action={Action}, Name={Name}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
-        not null => $"StatusCode={StatusCode}, Type={Type}, Action ={Action}, Name={Name}, Error={Error}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
+        null => $"StatusCode={StatusCode,-10}, Type={Type,-7}, Action={Action,-8}, Name={Name, -12}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
+        not null => $"StatusCode={StatusCode,-10}, Type={Type,-7}, Action={Action,-8}, Name={Name, -12}, Error={Error}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
     };
 }
 
 
+[DebuggerStepThrough]
 public static class LangTraceExtensions
 {
     public static string TokenPointer(this LangParserContext subject)
     {
-        return "[ " + subject.TokensCursor.List.Skip(subject.TokensCursor.Index).Select(x => x.ToString()).Join(' ') + " ]";
+        return "[ " + subject.TokensCursor.List.Skip(subject.TokensCursor.Index + 1).Select(x => x.ToString()).Join(' ') + " ]";
     }
 
-    public static Option RunAndLog(this LangParserContext subject, string action, string? name, Func<Option> exec)
-    {
-        subject.NotNull();
-        action.NotEmpty();
-        exec.NotNull();
-
-        subject.Log(LangTraceType.Start, action, name);
-        var result = exec();
-        subject.Log(action, result, name);
-
-        return result;
-    }
-
-    public static Option<T> RunAndLog<T>(this LangParserContext subject, string action, string? name, Func<Option<T>> exec)
-    {
-        subject.NotNull();
-        action.NotEmpty();
-        exec.NotNull();
-
-        subject.Log(LangTraceType.Start, action,  name);
-        var result = exec();
-        subject.Log(action, result, name);
-
-        return result;
-    }
-
-    public static void Log(this LangParserContext subject, LangTraceType type, string action, string? name = null)
+    public static void Log(this LangParserContext subject, TraceType type, string action, string? name = null)
     {
         var trace = new LangTrace
         {
@@ -82,12 +60,12 @@ public static class LangTraceExtensions
         subject.Trace.Add(trace);
     }
 
-    public static void Log(this LangParserContext subject, string action, Option option, string? name = null)
+    public static void Log(this LangParserContext subject, TraceType type, string action, Option option, string? name = null)
     {
         var trace = new LangTrace
         {
             Action = action,
-            Type = LangTraceType.Result,
+            Type = type,
             Name = name ?? "<no name>",
             StatusCode = option.StatusCode,
             Error = option.Error,
@@ -98,12 +76,12 @@ public static class LangTraceExtensions
         subject.Trace.Add(trace);
     }
 
-    public static void Log<T>(this LangParserContext subject, string action, Option<T> option, string? name = null)
+    public static void Log<T>(this LangParserContext subject, TraceType type, string action, Option<T> option, string? name = null)
     {
         var trace = new LangTrace
         {
             Action = action,
-            Type = LangTraceType.Result,
+            Type = type,
             Name = name ?? "<no name>",
             StatusCode = option.StatusCode,
             Error = option.Error,
