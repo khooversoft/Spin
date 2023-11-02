@@ -1,6 +1,6 @@
 ﻿namespace Toolbox.Data;
 
-public readonly record struct GraphEdgeQuery<TKey> : IGraphQL where TKey : notnull
+public record GraphEdgeQuery<TKey> : IGraphQL where TKey : notnull
 {
     public GraphEdgeQuery() { }
 

@@ -21,6 +21,6 @@ public static class DirectoryNodeUpdateExtensions
     public static GraphNodeQuery<string> ConvertTo(this DirectoryNodeUpdate subject) => new GraphNodeQuery<string>
     {
         Key = subject.Key,
-        MatchTags = subject.MatchTags,
+        Tags = subject.MatchTags,
     };
 }

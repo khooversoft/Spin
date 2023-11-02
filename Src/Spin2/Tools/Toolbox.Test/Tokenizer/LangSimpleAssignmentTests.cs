@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Tools;
-using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;
@@ -73,5 +71,5 @@ public class LangSimpleAssignmentTests
                 LangTestTools.Verify(_output, root, test);
             }
         }
-    }    
+    }
 }

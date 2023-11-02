@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.LangTools;
@@ -32,8 +26,8 @@ public record LangTrace
 
     public override string ToString() => Error switch
     {
-        null => $"StatusCode={StatusCode,-10}, Type={Type,-7}, Action={Action,-8}, Name={Name, -12}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
-        not null => $"StatusCode={StatusCode,-10}, Type={Type,-7}, Action={Action,-8}, Name={Name, -12}, Error={Error}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
+        null => $"StatusCode={StatusCode,-10}, Type={Type,-7}, Action={Action,-8}, Name={Name,-12}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
+        not null => $"StatusCode={StatusCode,-10}, Type={Type,-7}, Action={Action,-8}, Name={Name,-12}, Error={Error}, TokenPointer={TokenPointer}, SyntaxPointer={SyntaxPointer}",
     };
 }
 

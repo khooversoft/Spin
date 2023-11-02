@@ -82,7 +82,7 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
 
         lock (_lock)
         {
-            IEnumerable<TNode> result = (query.Key, query.MatchTags) switch
+            IEnumerable<TNode> result = (query.Key, query.Tags) switch
             {
                 (null, null) => _index.Values.Select(x => x),
                 (TKey nodeKey, null) => _index.TryGetValue(nodeKey, out var v) ? v.ToEnumerable() : Array.Empty<TNode>(),

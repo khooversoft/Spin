@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
-using Toolbox.LangTools;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿using Toolbox.LangTools;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;

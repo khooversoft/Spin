@@ -44,6 +44,6 @@ public class LsValue : ILangSyntax
             true => StatusCode.NoContent,
         };
     }
-    public override string ToString() => $"{nameof(LsValue)}: Name={Name}";
 
+    public override string ToString() => $"{nameof(LsValue)}: Name={Name}";
 }

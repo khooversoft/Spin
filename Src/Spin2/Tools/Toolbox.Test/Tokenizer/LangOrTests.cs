@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Toolbox.Extensions;
-using Toolbox.LangTools;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿using Toolbox.LangTools;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;
