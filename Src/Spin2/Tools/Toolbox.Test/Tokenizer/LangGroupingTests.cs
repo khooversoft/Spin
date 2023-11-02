@@ -1,111 +1,102 @@
 ﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
+using Toolbox.Tools;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;
 
 public class LangGroupingTests
 {
-    [Fact]
-    public void LangSyntaxWithGroup()
+    private readonly ITestOutputHelper _output;
+    private readonly ILangRoot _root;
+
+    public LangGroupingTests(ITestOutputHelper output)
     {
-        //var equalValue = new LsRoot() + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
-        //var valueOnly = new LsRoot() + new LsValue("svalue");
+        _output = output;
 
-        //var root = new LsRoot()
-        //    + (new LsGroup("(", ")", "prop")
-        //        + (new LsRepeat("valueEqual") + (new LsOr("prop-fmt") + equalValue + valueOnly) + new LsToken(";", true))
-        //    );
+        var equalValue = new LsRoot("k=v") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
+        var valueOnly = new LsRoot("v") + new LsValue("svalue");
+        var repeat = new LsRepeat("repeat") + (new LsOr("or") + equalValue + valueOnly) + new LsToken(";", "delimiter", true);
 
-        var root = new LsRoot()
-            + (new LsGroup("(", ")", "prop")
-                + (new LsRepeat("valueEqual") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue") + new LsToken(";", true))
-            );
+        _root = new LsRoot("root") + (new LsGroup("(", ")", "group") + repeat);
+    }
 
+    [Fact]
+    public void Failure()
+    {
         var tests = new QueryTest[]
         {
-            new QueryTest { RawData = "(key='string value')", Results = new List<IQueryResult>()
-            {
-                new QueryResult<LsGroup>("(","prop"),
-                new QueryResult<LsValue>("key","lvalue"),
-                new QueryResult<LsToken>("=", "equal"),
-                new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsGroup>(")","prop"),
-            } },
-            new QueryTest { RawData = "(key='string value';)", Results = new List<IQueryResult>()
-            {
-                new QueryResult<LsGroup>("(","prop"),
-                new QueryResult<LsValue>("key","lvalue"),
-                new QueryResult<LsToken>("=", "equal"),
-                new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsToken>(";"),
-                new QueryResult<LsGroup>(")","prop"),
-            } },
-            new QueryTest { RawData = "(key='string value';tags=t1)", Results = new List<IQueryResult>()
-            {
-                new QueryResult<LsGroup>("(","prop"),
-                new QueryResult<LsValue>("key","lvalue"),
-                new QueryResult<LsToken>("=", "equal"),
-                new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsToken>(";"),
-                new QueryResult<LsValue>("tags","lvalue"),
-                new QueryResult<LsToken>("=", "equal"),
-                new QueryResult<LsValue>("t1", "rvalue"),
-                new QueryResult<LsGroup>(")","prop"),
-            } },
             new QueryTest { RawData = "(key=)", Results = new List<IQueryResult>() },
-            new QueryTest { RawData = "(key=v1;error)", Results = new List<IQueryResult>() },
+            new QueryTest { RawData = "(key=v1;=)", Results = new List<IQueryResult>() },
         };
 
         foreach (var test in tests)
         {
-            Option<LangNodes> tree = root.Parse(test.RawData);
+            LangTestTools.Verify(_output, _root, test);
+        }
+    }
 
-            tree.Should().NotBeNull();
-            var pass = tree switch
+    [Fact]
+    public void SingleAssignment()
+    {
+        var test = new QueryTest
+        {
+            RawData = "(key='string value')",
+            Results = new List<IQueryResult>()
             {
-                var v when v.IsOk() && test.Results.Count > 0 => true,
-                var v when v.IsError() && test.Results.Count == 0 => true,
-                _ => false,
-            };
-            pass.Should().Be(true, test.RawData);
-            if (test.Results.Count == 0) continue;
+                new QueryResult<LsGroup>("(","group"),
+                new QueryResult<LsValue>("key","lvalue"),
+                new QueryResult<LsToken>("=", "equal"),
+                new QueryResult<LsValue>("string value", "rvalue"),
+                new QueryResult<LsGroup>(")","group"),
+            }
+        };
 
-            LangNodes nodes = tree.Return();
-            test.Results.Count.Should().Be(nodes.Children.Count);
-
-            var zip = nodes.Children.Zip(test.Results);
-            zip.ForEach(x => x.Second.Test(x.First));
-        }
+        LangTestTools.Verify(_output, _root, test);
     }
 
-    private interface IQueryResult
+    [Fact]
+    public void SingleAssignmentWithDelimiter()
     {
-        void Test(LangNode node);
-    }
-
-    private record QueryTest
-    {
-        public string RawData { get; init; } = null!;
-        public List<IQueryResult> Results { get; init; } = null!;
-    }
-
-    private record QueryResult<T> : IQueryResult
-    {
-        public QueryResult(string value, string? name = null)
+        var test = new QueryTest
         {
-            Value = value;
-            Name = name;
-        }
-        public string Value { get; init; } = null!;
-        public string? Name { get; }
+            RawData = "(key='string value';)",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsGroup>("(","group"),
+                new QueryResult<LsValue>("key","lvalue"),
+                new QueryResult<LsToken>("=", "equal"),
+                new QueryResult<LsValue>("string value", "rvalue"),
+                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsGroup>(")","group"),
+            }
+        };
 
-        public void Test(LangNode node)
+        LangTestTools.Verify(_output, _root, test);
+    }
+
+    [Fact]
+    public void TwoAssignments()
+    {
+        var test = new QueryTest
         {
-            (node.SyntaxNode is T).Should().BeTrue($"SyntaxNode={node.SyntaxNode.GetType().Name}, T={typeof(T).Name}");
-            node.SyntaxNode.Name.Should().Be(Name);
-            node.Value.Should().Be(Value);
-        }
+            RawData = "(key='string value';tags=t1)",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsGroup>("(","group"),
+                new QueryResult<LsValue>("key","lvalue"),
+                new QueryResult<LsToken>("=", "equal"),
+                new QueryResult<LsValue>("string value", "rvalue"),
+                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsValue>("tags","lvalue"),
+                new QueryResult<LsToken>("=", "equal"),
+                new QueryResult<LsValue>("t1", "rvalue"),
+                new QueryResult<LsGroup>(")","group"),
+            }
+        };
+
+        LangTestTools.Verify(_output, _root, test);
     }
 }

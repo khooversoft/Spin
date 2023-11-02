@@ -14,9 +14,14 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
-        bool first = true;
-        var nodes = new LangNodes();
+        var result = pContext.RunAndLog(nameof(LsRepeat), Name, () => InternalProcess(pContext));
+        return result;
+    }
 
+    private Option<LangNodes> InternalProcess(LangParserContext pContext)
+    {
+        var nodes = new LangNodes();
+        bool first = true;
         bool isDelimter = false;
 
         while (pContext.TokensCursor.TryPeekValue(out var token))
@@ -24,6 +29,7 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
             if (!first && !isDelimter) break;
 
             var result = this.MatchSyntaxSegement(pContext);
+            pContext.Log(nameof(LsRepeat) + ":MatchSyntaxSegement", result, Name);
             if (result.IsError()) break;
 
             LangNodes langNodes = result.Return();
@@ -39,9 +45,11 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
     }
 
     private bool IsDelimiter(LangParserContext pContext, LangNodes ln) => Children.Count > 0 &&
-        Children.Count == ln.Children.Count &&
+        ln.Children.Count > 0 &&
         Children.Last() is LsToken token &&
         token.Symbol == ln.Last().Value;
+
+    public override string ToString() => $"{nameof(LsRepeat)}: Name={Name}, Syntax=[ {this.Select(x => x.ToString()).Join(' ')} ]";
 
     public static LsRepeat operator +(LsRepeat subject, ILangSyntax value) => subject.Action(x => x.Children.Add(value));
     public static LsRepeat operator +(LsRepeat subject, string symbol) => subject.Action(x => x.Children.Add(new LsToken(symbol)));

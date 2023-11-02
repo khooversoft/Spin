@@ -6,15 +6,15 @@ namespace Toolbox.LangTools;
 
 
 [DebuggerDisplay("Name={Name}")]
-public class LsOr : LangBase<ILangSyntax>, ILangRoot
+public class LsOption : LangBase<ILangSyntax>, ILangRoot
 {
-    public LsOr(string? name) => Name = name;
+    public LsOption(string? name) => Name = name;
 
     public string? Name { get; }
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
-        var result = pContext.RunAndLog(nameof(LsOr), Name, () => InternalProcess(pContext));
+        var result = pContext.RunAndLog(nameof(LsOption), Name, () => InternalProcess(pContext));
         return result;
     }
 
@@ -25,7 +25,7 @@ public class LsOr : LangBase<ILangSyntax>, ILangRoot
             foreach (var item in Children.OfType<ILangRoot>())
             {
                 var result = item.MatchSyntaxSegement(pContext);
-                pContext.Log(nameof(LsOr) + ":MatchSyntaxSegement", result, Name);
+                pContext.Log(nameof(LsOption) + ":MatchSyntaxSegement", result, Name);
                 if (result.IsOk()) return result;
             }
 
@@ -35,7 +35,7 @@ public class LsOr : LangBase<ILangSyntax>, ILangRoot
         return (StatusCode.BadRequest, "Syntax error, no repeating values");
     }
 
-    public override string ToString() => $"{nameof(LsOr)}: Name={Name}, nodes=[ {this.Select(x => x.ToString()).Join(' ')} ]";
+    public override string ToString() => $"{nameof(LsOption)}: Name={Name}, nodes=[ {this.Select(x => x.ToString()).Join(' ')} ]";
 
-    public static LsOr operator +(LsOr subject, ILangRoot syntax) => subject.Action(x => x.Children.Add(syntax));
+    public static LsOption operator +(LsOption subject, ILangRoot syntax) => subject.Action(x => x.Children.Add(syntax));
 }

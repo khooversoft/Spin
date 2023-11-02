@@ -26,6 +26,12 @@ public class LsToken : ILangSyntax
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
     {
+        var result = pContext.RunAndLog(nameof(LsToken), Name, () => InternalProcess(pContext, syntaxCursor));
+        return result;
+    }
+
+    private Option<LangNodes> InternalProcess(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
+    {
         syntaxCursor.NotNull();
 
         if (!pContext.TokensCursor.TryNextValue(out var token)) return failStatus();
@@ -37,7 +43,7 @@ public class LsToken : ILangSyntax
 
             default:
                 if (Optional) pContext.TokensCursor.Index--;
-                return (failStatus(), $"Syntax error: unknown {token.Value}");
+                return (failStatus(), $"Syntax error: unknown token={token.Value}");
         }
 
         StatusCode failStatus() => Optional switch
@@ -46,4 +52,6 @@ public class LsToken : ILangSyntax
             true => StatusCode.NoContent,
         };
     }
+
+    public override string ToString() => $"{nameof(LsToken)}: Symbol={Symbol}, Name={Name}, Optional={Optional}";
 }

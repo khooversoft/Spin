@@ -7,35 +7,42 @@ using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;
 
-public class LangOrTests
+public class LangOptionTests
 {
     private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public LangOrTests(ITestOutputHelper output)
+    public LangOptionTests(ITestOutputHelper output)
     {
         _output = output;
 
         var equalValue = new LsRoot("equal") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
-        var valueOnly = new LsRoot("single") + new LsValue("svalue");
+        var addValue = new LsRoot("plus") + new LsValue("lvalue") + ("+", "plusSign") + new LsValue("rvalue");
 
-        _root = new LsRoot() + (new LsOr("or") + equalValue + valueOnly);
+        _root = new LsRoot() + (new LsOption("optional") + equalValue + addValue);
     }
 
     [Fact]
-    public void Failure()
+    public void Failures()
     {
-        var test = new QueryTest { RawData = "=", Results = new List<IQueryResult>() };
-        LangTestTools.Verify(_output, _root, test);
+        var tests = new QueryTest[]
+        {
+            new QueryTest { RawData = "key", Results = new List<IQueryResult>() },
+            new QueryTest { RawData = "=", Results = new List<IQueryResult>() },
+        };
+
+        foreach (var test in tests)
+        {
+            LangTestTools.Verify(_output, _root, test);
+        }
     }
 
     [Fact]
-    public void FirstOrPattern()
+    public void SingleAssignment()
     {
         var test = new QueryTest
         {
@@ -52,14 +59,16 @@ public class LangOrTests
     }
 
     [Fact]
-    public void SecondOrPattern()
+    public void SingleMath()
     {
         var test = new QueryTest
         {
-            RawData = "key",
+            RawData = "value+5",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsValue>("key","svalue"),
+                new QueryResult<LsValue>("value","lvalue"),
+                new QueryResult<LsToken>("+", "plusSign"),
+                new QueryResult<LsValue>("5", "rvalue"),
             }
         };
 

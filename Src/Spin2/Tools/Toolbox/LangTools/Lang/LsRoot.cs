@@ -22,10 +22,18 @@ public class LsRoot : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
+        var result = pContext.RunAndLog(nameof(LsRoot), Name, () => InternalProcess(pContext));
+        return result;
+    }
+
+    private Option<LangNodes> InternalProcess(LangParserContext pContext)
+    {
         Option<LangNodes> nodes = this.MatchSyntaxSegement(pContext);
-        if (nodes.IsError()) return nodes;
+        pContext.Log(nameof(LsRoot), nodes, Name);
         return nodes;
     }
+
+    public override string ToString() => $"{nameof(LsRoot)}: Name={Name}, Syntax=[ {this.Select(x => x.ToString()).Join(' ')} ]";
 
     public static LsRoot operator +(LsRoot subject, ILangSyntax value) => subject.Action(x => x.Children.Add(value));
     public static LsRoot operator +(LsRoot subject, string symbol) => subject.Action(x => x.Children.Add(new LsToken(symbol)));

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -6,12 +7,6 @@ namespace Toolbox.LangTools;
 
 public class LangParserContext
 {
-    private readonly record struct Position
-    {
-        public ILangRoot Root { get; init; }
-        public int TokensCursorIndex { get; init; }
-    }
-
     private readonly Stack<Position> _postionStack = new Stack<Position>();
 
     public LangParserContext(ILangRoot root, IReadOnlyList<IToken> tokens)
@@ -22,6 +17,7 @@ public class LangParserContext
 
     public ILangRoot Root { get; private set; }
     public Cursor<IToken> TokensCursor { get; }
+    public List<LangTrace> Trace { get; } = new List<LangTrace>();
 
     public FinalizeScope<LangParserContext> PushWithScope(ILangRoot langRoot)
     {
@@ -55,4 +51,12 @@ public class LangParserContext
     {
         if (_postionStack.Count > 0) _postionStack.Pop();
     }
+
+    private readonly record struct Position
+    {
+        public ILangRoot Root { get; init; }
+        public int TokensCursorIndex { get; init; }
+    }
 }
+
+

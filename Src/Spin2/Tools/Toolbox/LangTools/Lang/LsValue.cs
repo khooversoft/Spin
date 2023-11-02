@@ -7,18 +7,29 @@ namespace Toolbox.LangTools;
 [DebuggerDisplay("Name={Name}")]
 public class LsValue : ILangSyntax
 {
-    public LsValue(string? name)
+    public LsValue(bool optional = false) => Optional = optional;
+
+    public LsValue(string? name, bool optional = false)
     {
         Name = name;
+        Optional = optional;
     }
 
     public string? Name { get; }
+    public bool Optional { get; }
+
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
     {
+        var result = pContext.RunAndLog(nameof(LsValue), Name, () => InternalProcess(pContext, syntaxCursor));
+        return result;
+    }
+
+    public Option<LangNodes> InternalProcess(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
+    {
         syntaxCursor.NotNull();
 
-        if (!pContext.TokensCursor.TryNextValue(out var token)) return StatusCode.BadRequest;
+        if (!pContext.TokensCursor.TryNextValue(out var token)) return failStatus();
 
         switch (token)
         {
@@ -29,7 +40,16 @@ public class LsValue : ILangSyntax
                 return new LangNodes() + new LangNode(syntaxCursor.Current, blockToken.Value);
 
             default:
-                return (StatusCode.BadRequest, $"Syntax error: unknown token={token.GetType().FullName}");
+                if (Optional) pContext.TokensCursor.Index--;
+                return (failStatus(), $"Syntax error: unknown token={token.Value}");
         }
+
+        StatusCode failStatus() => Optional switch
+        {
+            false => StatusCode.BadRequest,
+            true => StatusCode.NoContent,
+        };
     }
+    public override string ToString() => $"{nameof(LsValue)}: Name={Name}";
+
 }

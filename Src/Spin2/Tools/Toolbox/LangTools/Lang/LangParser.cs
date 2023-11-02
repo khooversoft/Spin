@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -6,7 +7,7 @@ namespace Toolbox.LangTools;
 
 public static class LangParser
 {
-    public static Option<LangNodes> Parse(this ILangRoot langRoot, string rawData)
+    public static LangResult Parse(this ILangRoot langRoot, string rawData)
     {
         var tokens = new StringTokenizer()
             .UseSingleQuote()
@@ -18,10 +19,25 @@ public static class LangParser
 
         var pContext = new LangParserContext(langRoot, tokens);
 
-        var result = langRoot.Process(pContext);
+        Option<LangNodes> result = langRoot.Process(pContext);
+        pContext.Log(nameof(Parse), result);
 
-        if (pContext.TokensCursor.TryPeekValue(out var _)) return (StatusCode.BadRequest, "Syntax error, input tokens not completed");
-        return result;
+        if (result.IsOk() && pContext.TokensCursor.TryPeekValue(out var _))
+        {
+            result = (StatusCode.BadRequest, "Syntax error, input tokens not completed");
+            pContext.Log(nameof(Parse), result);
+        }
+
+        var response = new LangResult
+        {
+            StatusCode = result.StatusCode,
+            Error = result.Error,
+            RawData = rawData,
+            LangNodes = result.IsOk() ? result.Return() : null,
+            Traces = pContext.Trace,
+        };
+
+        return response;
     }
 
     public static string[] GetSyntaxTokens(this ILangRoot langRoot)

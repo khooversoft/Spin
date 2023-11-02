@@ -21,33 +21,37 @@ public class LsGroup : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
-        bool atLeastOne = false;
+        var result = pContext.RunAndLog(nameof(LsGroup), Name, () => InternalProcess(pContext));
+        return result;
+    }
+
+    private Option<LangNodes> InternalProcess(LangParserContext pContext)
+    {
         var nodes = new LangNodes();
 
-        while (pContext.TokensCursor.TryPeekValue(out var token))
-        {
-            if (!(token is TokenValue tokenValue)) return (StatusCode.BadRequest, $"Syntax error: no start token");
-            if (tokenValue.Value != StartToken) return (StatusCode.BadRequest, $"Syntax error: not start token={tokenValue.Value}");
+        if (!pContext.TokensCursor.TryPeekValue(out var token)) return (StatusCode.BadRequest, "no tokens");
+        if (!(token is TokenValue tokenValue)) return (StatusCode.BadRequest, $"Syntax error: no start token");
+        if (tokenValue.Value != StartToken) return (StatusCode.BadRequest, $"Syntax error: not start token={tokenValue.Value}");
 
-            pContext.TokensCursor.NextValue().Assert(x => x.IsOk(), "Failed to get token");
-            nodes += new LangNode(this, tokenValue.Value);
+        pContext.TokensCursor.NextValue().Assert(x => x.IsOk(), "Failed to get token");
+        nodes += new LangNode(this, tokenValue.Value);
 
-            var result = this.MatchSyntaxSegement(pContext);
-            if (result.IsError()) break;
+        var result = this.MatchSyntaxSegement(pContext);
+        pContext.Log(nameof(LsGroup) + ":MatchSyntaxSegement", result, Name);
+        if (result.IsError()) return result;
 
-            nodes += result.Return();
-            atLeastOne = true;
+        nodes += result.Return();
 
-            if (!pContext.TokensCursor.TryNextValue(out var lastToken)) return (StatusCode.BadRequest, "No ending token");
-            if (lastToken.Value != EndToken) return (StatusCode.BadRequest, $"No ending token={lastToken.Value}");
-            nodes += new LangNode(this, lastToken.Value);
-        }
-
-        if (!atLeastOne) return (StatusCode.BadRequest, "Syntax error");
+        if (!pContext.TokensCursor.TryNextValue(out var lastToken)) return (StatusCode.BadRequest, "No ending token");
+        if (lastToken.Value != EndToken) return (StatusCode.BadRequest, $"No ending token={lastToken.Value}");
+        nodes += new LangNode(this, lastToken.Value);
 
         return nodes;
     }
 
+    public override string ToString() => $"{nameof(LsGroup)}: StartToken={StartToken}, EndToken={EndToken}, Name={Name}";
+
+    public static LsGroup operator +(LsGroup subject, ILangRoot value) => subject.Action(x => x.Children.Add(value));
     public static LsGroup operator +(LsGroup subject, ILangSyntax value) => subject.Action(x => x.Children.Add(value));
     public static LsGroup operator +(LsGroup subject, string symbol) => subject.Action(x => x.Children.Add(new LsToken(symbol)));
 

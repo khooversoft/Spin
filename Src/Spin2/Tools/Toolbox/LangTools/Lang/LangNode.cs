@@ -4,9 +4,6 @@ using Toolbox.Tools;
 
 namespace Toolbox.LangTools;
 
-//public interface ILangNode : ILangTree
-//{
-//}
 
 [DebuggerDisplay("Count={Children.Count}")]
 public class LangNodes : LangBase<LangNode>
@@ -30,4 +27,6 @@ public class LangNode : LangBase<LangNode>
 
     public ILangSyntax SyntaxNode { get; }
     public string Value { get; }
+
+    public override string ToString() => $"{typeof(LangNode)}: SyntaxNode={SyntaxNode}, Value={Value}";
 }
