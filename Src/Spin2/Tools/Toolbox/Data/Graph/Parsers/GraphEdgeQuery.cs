@@ -9,5 +9,6 @@ public record GraphEdgeQuery<TKey> : IGraphQL where TKey : notnull
     public TKey? ToKey { get; init; }
     public string? EdgeType { get; init; }
     public string? Tags { get; init; }
+    public string? Alias { get; init; }
     public EdgeDirection Direction { get; init; } = EdgeDirection.Both;
 }

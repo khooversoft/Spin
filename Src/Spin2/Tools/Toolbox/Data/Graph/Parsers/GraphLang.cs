@@ -113,17 +113,25 @@ public static class GraphLang
 
                     break;
 
+                case { SyntaxNode.Name: "params-delimiter" }:
+                    break;
+
                 case { SyntaxNode.Name: "node-group" }:
                     if (key == null && tags == null) return (StatusCode.BadRequest, "No key or tags specified");
+
+                    string? alias = null;
+                    if (stack.TryPeek(out langNode) && langNode.SyntaxNode.Name == "alias")
+                    {
+                        stack.Pop();
+                        alias = langNode.Value;
+                    }
 
                     return new GraphNodeQuery<string>
                     {
                         Key = key,
                         Tags = tags,
+                        Alias = alias,
                     };
-
-                case { SyntaxNode.Name: "params-delimiter" }:
-                    break;
 
                 default:
                     break;
@@ -179,12 +187,22 @@ public static class GraphLang
 
                     break;
 
+                case { SyntaxNode.Name: "params-delimiter" }:
+                    break;
+
                 case { SyntaxNode.Name: "edge-group" }:
                     if (nodeKey == null &&
                         fromKey == null &&
                         toKey == null &&
                         edgeType == null &&
                         tags == null) return (StatusCode.BadRequest, "No parameters specified");
+
+                    string? alias = null;
+                    if (stack.TryPeek(out langNode) && langNode.SyntaxNode.Name == "alias")
+                    {
+                        stack.Pop();
+                        alias = langNode.Value;
+                    }
 
                     return new GraphEdgeQuery<string>
                     {
@@ -193,10 +211,8 @@ public static class GraphLang
                         ToKey = toKey,
                         EdgeType = edgeType,
                         Tags = tags,
+                        Alias = alias,
                     };
-
-                case { SyntaxNode.Name: "params-delimiter" }:
-                    break;
 
                 default:
                     break;
