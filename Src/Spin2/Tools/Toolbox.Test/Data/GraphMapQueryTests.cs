@@ -26,7 +26,7 @@ public class GraphMapQueryTests
             new GraphEdge<string>("node4", "node3", tags: "created"),
         };
 
-        map.Query1().Nodes(x => x.Key == "node1").HasEdge(x => true).Nodes.Action(x =>
+        map.Query().Nodes(x => x.Key == "node1").HasEdge(x => true).Nodes.Action(x =>
         {
             x.Count.Should().Be(1);
             x[0].Key.Should().Be("node1");
@@ -35,20 +35,20 @@ public class GraphMapQueryTests
             x[0].Tags.Has("name").Should().BeTrue();
         });
 
-        map.Query1().Nodes(x => x.Tags.Has("name")).Nodes.Action(x =>
+        map.Query().Nodes(x => x.Tags.Has("name")).Nodes.Action(x =>
         {
             x.Count.Should().Be(6);
             var inSet = map.Nodes.Where(x => x.Key != "node7").Select(x => x.Key).ToArray();
             Enumerable.SequenceEqual(x.Select(x => x.Key).OrderBy(y => y), inSet).Should().BeTrue();
         });
 
-        map.Query1().Nodes(x => x.Tags.Has("name", "marko")).Nodes.Action(x =>
+        map.Query().Nodes(x => x.Tags.Has("name", "marko")).Nodes.Action(x =>
         {
             x.Count.Should().Be(1);
             x.First().Key.Should().Be("node1");
         });
 
-        map.Query1().Nodes().HasEdge(x => x.Tags.Has("knows")).Action(x =>
+        map.Query().Nodes().HasEdge(x => x.Tags.Has("knows")).Action(x =>
         {
             x.Nodes.Count.Should().Be(1);
             x.Nodes.First().Key.Should().Be("node1");
@@ -59,7 +59,7 @@ public class GraphMapQueryTests
             Enumerable.SequenceEqual(inSet, shouldMatch).Should().BeTrue();
         });
 
-        map.Query1().Edges().HasNode(x => x.Tags.Has("lang")).Action(x =>
+        map.Query().Edges().HasNode(x => x.Tags.Has("lang")).Action(x =>
         {
             x.Nodes.Count.Should().Be(2);
             var n1 = new[] { "node3", "node5" };
