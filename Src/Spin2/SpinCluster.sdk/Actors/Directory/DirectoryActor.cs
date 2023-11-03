@@ -124,13 +124,13 @@ public class DirectoryActor : Grain, IDirectoryActor
         IReadOnlyList<GraphNode<string>> nodeQuery = (search.NodeKey, search.NodeTags) switch
         {
             (null, null) => Array.Empty<GraphNode<string>>(),
-            _ => _map.Query1().Nodes(search.IsMatch).Nodes,
+            _ => _map.Query().Nodes(search.IsMatch).Nodes,
         };
 
         IReadOnlyList<GraphEdge<string>> edgeQuery = (search.FromKey, search.ToKey, search.EdgeTags) switch
         {
             (null, null, null) => Array.Empty<GraphEdge<string>>(),
-            _ => _map.Query1().Edges(search.IsMatch).Edges,
+            _ => _map.Query().Edges(search.IsMatch).Edges,
         };
 
         var result = new DirectoryResponse

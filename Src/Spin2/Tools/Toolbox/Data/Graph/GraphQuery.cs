@@ -10,7 +10,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Data.Graph;
 
-public readonly record struct QueryResult
+public record QueryResult
 {
     public StatusCode StatusCode { get; init; }
     public string? Error { get; init; }
@@ -36,49 +36,51 @@ public class GraphQuery
 
         var stack = result.Return().Reverse().ToStack();
         var query = _map.Query();
-        var bool first = true;
+        bool first = true;
 
         while (stack.TryPop(out var graphQL))
         {
             switch (graphQL)
             {
-                case GraphNodeQuery<string> node:
-                    query = first switch
-                    {
-                        true => query.Nodes(x => node.IsMatch(x)),
-                        false => query.HasNode(x => node.IsMatch(x)),
-                    };
-                    break;
+                //case GraphNodeQuery<string> node:
+                //    query = first switch
+                //    {
+                //        true => query.Nodes(x => node.IsMatch(x)),
+                //        false => query.HasNode(x => node.IsMatch(x)),
+                //    };
+                //    break;
 
-                case GraphEdgeQuery<string> edge:
-                    query = first switch
-                    {
-                        true => query.Edges(x => node.IsMatch(x)),
-                        false => query.HasNode(x => node.IsMatch(x)),
-                    };
-                    break;
+                //case GraphEdgeQuery<string> edge:
+                //    query = first switch
+                //    {
+                //        true => query.Edges(x => node.IsMatch(x)),
+                //        false => query.HasNode(x => node.IsMatch(x)),
+                //    };
+                //    break;
             }
 
             first = false;
-            if( )
+            //if( )
         }
+
+        return null!;
     }
 }
 
-public static class GraphQueryExtension
-{
-    public static QueryContext1<T> Query<T>(this GraphMap<T> subject, string rawData) where T : notnull => new QueryContext1<T> { Map = subject.NotNull() };
+//public static class GraphQueryExtension
+//{
+//    public static QueryContext1<T> Query<T>(this GraphMap<T> subject, string rawData) where T : notnull => new QueryContext1<T> { Map = subject.NotNull() };
 
-    public static QueryContext1<T> Nodes<T>(this QueryContext1<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
-    {
-        subject.NotNull();
+//    public static QueryContext1<T> Nodes<T>(this QueryContext1<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
+//    {
+//        subject.NotNull();
 
-        var result = subject with
-        {
-            Nodes = subject.Map.Nodes.Where(x => predicate?.Invoke(x) ?? true).ToArray(),
-            Edges = Array.Empty<GraphEdge<T>>(),
-        };
+//        var result = subject with
+//        {
+//            Nodes = subject.Map.Nodes.Where(x => predicate?.Invoke(x) ?? true).ToArray(),
+//            Edges = Array.Empty<GraphEdge<T>>(),
+//        };
 
-        return result;
-    }
-}
+//        return result;
+//    }
+//}
