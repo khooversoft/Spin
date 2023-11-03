@@ -20,3 +20,21 @@ public readonly record struct QueryContext
 public class GraphQuery
 {
 }
+
+public static class GraphQueryExtension
+{
+    public static QueryContext1<T> Query<T>(this GraphMap<T> subject, string rawData) where T : notnull => new QueryContext1<T> { Map = subject.NotNull() };
+
+    public static QueryContext1<T> Nodes<T>(this QueryContext1<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
+    {
+        subject.NotNull();
+
+        var result = subject with
+        {
+            Nodes = subject.Map.Nodes.Where(x => predicate?.Invoke(x) ?? true).ToArray(),
+            Edges = Array.Empty<GraphEdge<T>>(),
+        };
+
+        return result;
+    }
+}
