@@ -3,10 +3,10 @@ using Toolbox.Tools;
 
 namespace Toolbox.Data;
 
-public readonly record struct QueryContext1<T> where T : notnull
+public readonly record struct QueryContext<T> where T : notnull
 {
     [SetsRequiredMembers]
-    public QueryContext1() { }
+    public QueryContext() { }
 
     public GraphMap<T> Map { get; init; } = null!;
     public IReadOnlyList<GraphNode<T>> Nodes { get; init; } = Array.Empty<GraphNode<T>>();
@@ -19,9 +19,9 @@ public readonly record struct QueryContext1<T> where T : notnull
 // var v = g.Query.Edges(x => x.{edge}).HasNode(x => x.{node}).Edges()
 public static class GraphMapQuery
 {
-    public static QueryContext1<T> Query1<T>(this GraphMap<T> subject) where T : notnull => new QueryContext1<T> { Map = subject.NotNull() };
+    public static QueryContext<T> Query<T>(this GraphMap<T> subject) where T : notnull => new QueryContext<T> { Map = subject.NotNull() };
 
-    public static QueryContext1<T> Nodes<T>(this QueryContext1<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
+    public static QueryContext<T> Nodes<T>(this QueryContext<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
     {
         subject.NotNull();
 
@@ -34,7 +34,7 @@ public static class GraphMapQuery
         return result;
     }
 
-    public static QueryContext1<T> Edges<T>(this QueryContext1<T> subject, Func<GraphEdge<T>, bool>? predicate = null) where T : notnull
+    public static QueryContext<T> Edges<T>(this QueryContext<T> subject, Func<GraphEdge<T>, bool>? predicate = null) where T : notnull
     {
         subject.NotNull();
 
@@ -47,7 +47,7 @@ public static class GraphMapQuery
         return result;
     }
 
-    public static QueryContext1<T> HasNode<T>(this QueryContext1<T> subject, Func<GraphNode<T>, bool> predicate) where T : notnull
+    public static QueryContext<T> HasNode<T>(this QueryContext<T> subject, Func<GraphNode<T>, bool> predicate) where T : notnull
     {
         subject.NotNull();
         predicate.NotNull();
@@ -72,7 +72,7 @@ public static class GraphMapQuery
         return subject;
     }
 
-    public static QueryContext1<T> HasEdge<T>(this QueryContext1<T> subject, Func<GraphEdge<T>, bool> predicate) where T : notnull
+    public static QueryContext<T> HasEdge<T>(this QueryContext<T> subject, Func<GraphEdge<T>, bool> predicate) where T : notnull
     {
         subject.NotNull();
         predicate.NotNull();
