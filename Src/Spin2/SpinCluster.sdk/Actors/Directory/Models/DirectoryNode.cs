@@ -28,14 +28,14 @@ public static class DirectoryNodeExtensions
         return result.IsOk();
     }
 
-    public static DirectoryNode ConvertTo(this IGraphNode<string> subject) => new DirectoryNode
+    public static DirectoryNode ConvertTo(this GraphNode subject) => new DirectoryNode
     {
         Key = subject.Key,
         Tags = subject.Tags.ToString(),
         CreatedDate = subject.CreatedDate,
     };
 
-    public static GraphNode<string> ConvertTo(this DirectoryNode subject) => new GraphNode<string>
+    public static GraphNode ConvertTo(this DirectoryNode subject) => new GraphNode
     {
         Key = subject.Key,
         Tags = Tags.Parse(subject.Tags),

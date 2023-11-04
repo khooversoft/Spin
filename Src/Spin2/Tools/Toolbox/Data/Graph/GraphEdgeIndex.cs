@@ -5,28 +5,26 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
-    where TKey : notnull
-    where TEdge : IGraphEdge<TKey>
+public class GraphEdgeIndex : IEnumerable<GraphEdge>
 {
-    private readonly Dictionary<Guid, TEdge> _index;
-    private readonly SecondaryIndex<TKey, Guid> _edgesFrom;
-    private readonly SecondaryIndex<TKey, Guid> _edgesTo;
-    private readonly HashSet<TEdge> _masterList = new HashSet<TEdge>(new GraphEdgeComparer<TKey, TEdge>());
+    private readonly Dictionary<Guid, GraphEdge> _index;
+    private readonly SecondaryIndex<string, Guid> _edgesFrom;
+    private readonly SecondaryIndex<string, Guid> _edgesTo;
+    private readonly HashSet<GraphEdge> _masterList = new HashSet<GraphEdge>(new GraphEdgeComparer());
     private readonly object _lock;
-    private readonly Func<TKey, bool> _isNodeExist;
+    private readonly Func<string, bool> _isNodeExist;
 
-    public GraphEdgeIndex(object syncLock, Func<TKey, bool> isNodeExist, IEqualityComparer<TKey>? keyComparer = null)
+    public GraphEdgeIndex(object syncLock, Func<string, bool> isNodeExist, IEqualityComparer<string>? keyComparer = null)
     {
         _lock = syncLock.NotNull();
         _isNodeExist = isNodeExist.NotNull();
 
-        _index = new Dictionary<Guid, TEdge>();
-        _edgesFrom = new SecondaryIndex<TKey, Guid>(keyComparer);
-        _edgesTo = new SecondaryIndex<TKey, Guid>(keyComparer);
+        _index = new Dictionary<Guid, GraphEdge>();
+        _edgesFrom = new SecondaryIndex<string, Guid>(keyComparer);
+        _edgesTo = new SecondaryIndex<string, Guid>(keyComparer);
     }
 
-    public TEdge this[Guid key]
+    public GraphEdge this[Guid key]
     {
         get => _index[key];
         set
@@ -43,7 +41,7 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
     public int Count => _index.Count;
 
-    public Option Add(TEdge edge)
+    public Option Add(GraphEdge edge)
     {
         if (!edge.Validate(out var v1)) return v1;
 
@@ -72,14 +70,14 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
     }
     public bool ContainsKey(Guid edgeKey) => _index.ContainsKey(edgeKey);
 
-    public IReadOnlyList<TEdge> Get(TKey nodeKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
+    public IReadOnlyList<GraphEdge> Get(string nodeKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
     {
-        return Query(new GraphEdgeQuery<TKey> { NodeKey = nodeKey, Direction = direction, EdgeType = matchEdgeType });
+        return Query(new GraphEdgeQuery { NodeKey = nodeKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
-    public IReadOnlyList<TEdge> Get(TKey fromKey, TKey toKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
+    public IReadOnlyList<GraphEdge> Get(string fromKey, string toKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
     {
-        return Query(new GraphEdgeQuery<TKey> { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
+        return Query(new GraphEdgeQuery { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
     public bool Remove(Guid edgeKey)
@@ -96,11 +94,11 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         }
     }
 
-    public bool Remove(TKey nodeKey)
+    public bool Remove(string nodeKey)
     {
         lock (_lock)
         {
-            var query = new GraphEdgeQuery<TKey> { NodeKey = nodeKey };
+            var query = new GraphEdgeQuery { NodeKey = nodeKey };
             var keys = Query(query);
             if (keys.Count == 0) return false;
 
@@ -109,7 +107,7 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         }
     }
 
-    public IReadOnlyList<TEdge> Query(GraphEdgeQuery<TKey> query)
+    public IReadOnlyList<GraphEdge> Query(GraphEdgeQuery query)
     {
         lock (_lock)
         {
@@ -117,10 +115,10 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
 
             IReadOnlyList<Guid> result = (query.NodeKey, query.FromKey, query.ToKey) switch
             {
-                (TKey nodeKey, null, null) => GetInclusive(nodeKey, query.Direction),
-                (null, TKey fromKey, null) => _edgesFrom.Lookup(fromKey),
-                (null, null, TKey toKey) => _edgesTo.Lookup(toKey),
-                (null, TKey fromKey, TKey toKey) => GetIntersect(fromKey, toKey, query.Direction),
+                (string nodeKey, null, null) => GetInclusive(nodeKey, query.Direction),
+                (null, string fromKey, null) => _edgesFrom.Lookup(fromKey),
+                (null, null, string toKey) => _edgesTo.Lookup(toKey),
+                (null, string fromKey, string toKey) => GetIntersect(fromKey, toKey, query.Direction),
                 (null, null, null) => _index.Values.Select(x => x.Key).Distinct().ToArray(),
 
                 _ => Array.Empty<Guid>()
@@ -136,23 +134,23 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         }
     }
 
-    public bool TryGetValue(Guid key, out TEdge? value) => _index.TryGetValue(key, out value);
+    public bool TryGetValue(Guid key, out GraphEdge? value) => _index.TryGetValue(key, out value);
 
-    public Option Update(GraphEdgeQuery<TKey> query, Func<TEdge, TEdge> update)
+    public Option Update(GraphEdgeQuery query, Func<GraphEdge, GraphEdge> update)
     {
         update.NotNull();
 
         lock (_lock)
         {
-            IReadOnlyList<TEdge> list = Query(query);
+            IReadOnlyList<GraphEdge> list = Query(query);
             if (list.Count == 0) return StatusCode.OK;
 
             list = list.Select(x =>
             {
                 var n = update(x);
                 (n.Key == x.Key).Assert(x => x == true, "Cannot change the primary key");
-                GraphEdgeTool.IsKeysEqual(n.FromKey, x.FromKey).Assert(x => x == true, "Cannot change the From key key");
-                GraphEdgeTool.IsKeysEqual(n.ToKey, x.ToKey).Assert(x => x == true, "Cannot change the To key key");
+                n.FromKey.EqualsIgnoreCase(x.FromKey).Assert(x => x == true, "Cannot change the From key key");
+                n.ToKey.EqualsIgnoreCase(x.ToKey).Assert(x => x == true, "Cannot change the To key key");
                 return n;
             })
             .ToArray();
@@ -163,10 +161,10 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         }
     }
 
-    public IEnumerator<TEdge> GetEnumerator() => _index.Values.GetEnumerator();
+    public IEnumerator<GraphEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private bool ValidateNodes(TEdge edge, out Option result)
+    private bool ValidateNodes(GraphEdge edge, out Option result)
     {
         if (!_isNodeExist(edge.FromKey))
         {
@@ -184,14 +182,14 @@ public class GraphEdgeIndex<TKey, TEdge> : IEnumerable<TEdge>
         return true;
     }
 
-    private IReadOnlyList<Guid> GetInclusive(TKey key, EdgeDirection direction) => direction switch
+    private IReadOnlyList<Guid> GetInclusive(string key, EdgeDirection direction) => direction switch
     {
         EdgeDirection.Both => _edgesFrom.Lookup(key).Concat(_edgesTo.Lookup(key)).Distinct().ToArray(),
         EdgeDirection.Directed => _edgesFrom.Lookup(key).Distinct().ToArray(),
         _ => throw new InvalidOperationException($"Invalid direction, {direction}")
     };
 
-    private IReadOnlyList<Guid> GetIntersect(TKey fromKey, TKey toKey, EdgeDirection direction) => direction switch
+    private IReadOnlyList<Guid> GetIntersect(string fromKey, string toKey, EdgeDirection direction) => direction switch
     {
         EdgeDirection.Both => _edgesFrom.Lookup(fromKey).Intersect(_edgesTo.Lookup(toKey)).Distinct().ToArray(),
         EdgeDirection.Directed => _edgesFrom.Lookup(fromKey).Distinct().ToArray(),

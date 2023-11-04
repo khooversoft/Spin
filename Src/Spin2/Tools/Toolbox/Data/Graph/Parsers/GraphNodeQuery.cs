@@ -1,8 +1,8 @@
 ﻿namespace Toolbox.Data;
 
-public record GraphNodeQuery<TKey> : IGraphQL where TKey : notnull
+public record GraphNodeQuery : IGraphQL
 {
-    public TKey? Key { get; init; }
+    public string? Key { get; init; }
     public string? Tags { get; init; }
     public string? Alias { get; init; }
 }

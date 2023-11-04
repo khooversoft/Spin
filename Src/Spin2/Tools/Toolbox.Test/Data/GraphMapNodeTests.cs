@@ -9,27 +9,27 @@ public class GraphMapNodeTests
     [Fact]
     public void EmptyNode()
     {
-        var map = new GraphMap<string, IGraphNode<string>, IGraphEdge<string>>();
+        var map = new GraphMap();
     }
 
     [Fact]
     public void Node()
     {
-        var e1 = new GraphNode<string>("n1");
+        var e1 = new GraphNode("n1");
         e1.Should().NotBeNull();
         e1.Key.Should().Be("n1");
 
         string json = e1.ToJson();
-        var r1 = json.ToObject<GraphNode<string>>();
+        var r1 = json.ToObject<GraphNode>();
         (e1 == r1).Should().BeTrue();
     }
 
     [Fact]
     public void OneNode()
     {
-        var map = new GraphMap<string, IGraphNode<string>, IGraphEdge<string>>()
+        var map = new GraphMap()
         {
-            new GraphNode<string>("Node1"),
+            new GraphNode("Node1"),
         };
 
         map.Nodes.Count.Should().Be(1);
@@ -40,10 +40,10 @@ public class GraphMapNodeTests
     [Fact]
     public void TwoNodes()
     {
-        var map = new GraphMap<string, GraphNode<string>, GraphEdge<string>>()
+        var map = new GraphMap()
         {
-            new GraphNode<string>("Node1"),
-            new GraphNode<string>("Node2"),
+            new GraphNode("Node1"),
+            new GraphNode("Node2"),
         };
 
         map.Nodes.Count.Should().Be(2);
@@ -57,13 +57,13 @@ public class GraphMapNodeTests
     {
         const int count = 100;
         const string sampleKey = "Node_10";
-        var map = new GraphMap<string, GraphNode<string>, GraphEdge<string>>();
+        var map = new GraphMap();
 
-        Enumerable.Range(0, count).ForEach(x => map.Add(new GraphNode<string>($"Node_{x}")));
+        Enumerable.Range(0, count).ForEach(x => map.Add(new GraphNode($"Node_{x}")));
         map.Nodes.Count.Should().Be(count);
         map.Edges.Count.Should().Be(0);
 
-        IGraphNode<string> node = map.Nodes[sampleKey];
+        GraphNode node = map.Nodes[sampleKey];
         node.Should().NotBeNull();
         node.Key.Should().Be(sampleKey);
         map.Nodes.TryGetValue(sampleKey, out var _).Should().BeTrue();
@@ -75,7 +75,7 @@ public class GraphMapNodeTests
 
         var action = () =>
         {
-            IGraphNode<string> node = map.Nodes[sampleKey];
+            GraphNode node = map.Nodes[sampleKey];
         };
 
         action.Should().Throw<KeyNotFoundException>();
@@ -84,20 +84,20 @@ public class GraphMapNodeTests
     [Fact]
     public void TwoNodesSameKeyShouldFail()
     {
-        GraphMap<string, IGraphNode<string>, IGraphEdge<string>> map = null!;
+        GraphMap map = null!;
 
-        var test1 = () => map = new GraphMap<string, IGraphNode<string>, IGraphEdge<string>>()
+        var test1 = () => map = new GraphMap()
         {
-            new GraphNode<string>("Node1"),
-            new GraphNode<string>("Node1"),
+            new GraphNode("Node1"),
+            new GraphNode("Node1"),
         };
 
         test1.Should().Throw<ArgumentException>();
 
-        var test2 = () => map = new GraphMap<string, IGraphNode<string>, IGraphEdge<string>>()
+        var test2 = () => map = new GraphMap()
         {
-            new GraphNode<string>("Node1"),
-            new GraphNode<string>("node1"),
+            new GraphNode("Node1"),
+            new GraphNode("node1"),
         };
 
         test1.Should().Throw<ArgumentException>();

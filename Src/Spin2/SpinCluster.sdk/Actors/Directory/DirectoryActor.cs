@@ -121,15 +121,15 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Lookup edge, search={search}", search);
 
-        IReadOnlyList<GraphNode<string>> nodeQuery = (search.NodeKey, search.NodeTags) switch
+        IReadOnlyList<GraphNode> nodeQuery = (search.NodeKey, search.NodeTags) switch
         {
-            (null, null) => Array.Empty<GraphNode<string>>(),
+            (null, null) => Array.Empty<GraphNode>(),
             _ => _map.Query().Nodes(search.IsMatch).Nodes,
         };
 
-        IReadOnlyList<GraphEdge<string>> edgeQuery = (search.FromKey, search.ToKey, search.EdgeTags) switch
+        IReadOnlyList<GraphEdge> edgeQuery = (search.FromKey, search.ToKey, search.EdgeTags) switch
         {
-            (null, null, null) => Array.Empty<GraphEdge<string>>(),
+            (null, null, null) => Array.Empty<GraphEdge>(),
             _ => _map.Query().Edges(search.IsMatch).Edges,
         };
 

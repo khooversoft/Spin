@@ -18,7 +18,7 @@ public sealed record DirectoryNodeUpdate
 
 public static class DirectoryNodeUpdateExtensions
 {
-    public static GraphNodeQuery<string> ConvertTo(this DirectoryNodeUpdate subject) => new GraphNodeQuery<string>
+    public static GraphNodeQuery ConvertTo(this DirectoryNodeUpdate subject) => new GraphNodeQuery
     {
         Key = subject.Key,
         Tags = subject.MatchTags,

@@ -10,11 +10,11 @@ public class GraphMapSerializationTests
     [Fact]
     public void EmptyMapString()
     {
-        var map = new GraphMap<string>();
+        var map = new GraphMap();
 
         var json = map.ToJson();
 
-        var mapResult = GraphMap.FromJson<string>(json).NotNull();
+        var mapResult = GraphMap.FromJson(json).NotNull();
         mapResult.Should().NotBeNull();
         mapResult.Count().Should().Be(0);
         mapResult.Nodes.Count.Should().Be(0);
@@ -26,33 +26,12 @@ public class GraphMapSerializationTests
     {
         new GraphMap()
         {
-            new GraphNode<string>("Node1"),
+            new GraphNode("Node1"),
         }.Action(x =>
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMap.FromJson<string>(json).NotNull();
-            mapResult.Should().NotBeNull();
-            mapResult.Count().Should().Be(1);
-            mapResult.Edges.Count.Should().Be(0);
-
-            mapResult.Nodes.Count.Should().Be(1);
-            mapResult.Nodes.First().Action(y =>
-            {
-                y.Key.Should().Be("Node1");
-                y.Tags.Should().NotBeNull();
-                y.Tags.Count.Should().Be(0);
-            });
-        });
-
-        new GraphMap<string>()
-        {
-            new GraphNode<string>("Node1"),
-        }.Action(x =>
-        {
-            var json = x.ToJson();
-
-            var mapResult = GraphMap.FromJson<string>(json).NotNull();
+            var mapResult = GraphMap.FromJson(json).NotNull();
             mapResult.Should().NotBeNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
@@ -68,12 +47,33 @@ public class GraphMapSerializationTests
 
         new GraphMap()
         {
-            new GraphNode<string>("Node1", tags: "t1;t2=v2"),
+            new GraphNode("Node1"),
         }.Action(x =>
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMap.FromJson<string>(json).NotNull();
+            var mapResult = GraphMap.FromJson(json).NotNull();
+            mapResult.Should().NotBeNull();
+            mapResult.Count().Should().Be(1);
+            mapResult.Edges.Count.Should().Be(0);
+
+            mapResult.Nodes.Count.Should().Be(1);
+            mapResult.Nodes.First().Action(y =>
+            {
+                y.Key.Should().Be("Node1");
+                y.Tags.Should().NotBeNull();
+                y.Tags.Count.Should().Be(0);
+            });
+        });
+
+        new GraphMap()
+        {
+            new GraphNode("Node1", tags: "t1;t2=v2"),
+        }.Action(x =>
+        {
+            var json = x.ToJson();
+
+            var mapResult = GraphMap.FromJson(json).NotNull();
             mapResult.Should().NotBeNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
@@ -89,14 +89,14 @@ public class GraphMapSerializationTests
             });
         });
 
-        new GraphMap<string>()
+        new GraphMap()
         {
-            new GraphNode<string>("Node1", tags: "t1;t2=v2"),
+            new GraphNode("Node1", tags: "t1;t2=v2"),
         }.Action(x =>
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMap.FromJson<string>(json).NotNull();
+            var mapResult = GraphMap.FromJson(json).NotNull();
             mapResult.Should().NotBeNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
@@ -116,21 +116,21 @@ public class GraphMapSerializationTests
     [Fact]
     public void GraphMapSample1()
     {
-        var map = new GraphMap<string>()
+        var map = new GraphMap()
         {
-            new GraphNode<string>("node1"),
-            new GraphNode<string>("node2"),
-            new GraphNode<string>("node3"),
-            new GraphNode<string>("node4"),
+            new GraphNode("node1"),
+            new GraphNode("node2"),
+            new GraphNode("node3"),
+            new GraphNode("node4"),
 
-            new GraphEdge<string>("node1", "node2"),
-            new GraphEdge<string>("node1", "node3"),
-            new GraphEdge<string>("node1", "node4"),
+            new GraphEdge("node1", "node2"),
+            new GraphEdge("node1", "node3"),
+            new GraphEdge("node1", "node4"),
         };
 
         string json = map.ToJson();
 
-        var mapRead = GraphMap.FromJson<string>(json).NotNull();
+        var mapRead = GraphMap.FromJson(json).NotNull();
         mapRead.Nodes.Count.Should().Be(4);
         mapRead.Edges.Count.Should().Be(3);
 
@@ -146,21 +146,21 @@ public class GraphMapSerializationTests
     [Fact]
     public void NodeSerialization()
     {
-        new GraphNode<string>("node1").Action(x =>
+        new GraphNode("node1").Action(x =>
         {
             string json = x.ToJson();
 
-            var graphNode = json.ToObject<GraphNode<string>>();
+            var graphNode = json.ToObject<GraphNode>();
             graphNode.Should().NotBeNull();
             graphNode!.Key.Should().Be("node1");
             graphNode.Tags.Should().NotBeNull();
         });
 
-        new GraphNode<string>("node1", tags: "t1;t2=v2").Action(x =>
+        new GraphNode("node1", tags: "t1;t2=v2").Action(x =>
         {
             string json = x.ToJson();
 
-            var graphNode = json.ToObject<GraphNode<string>>();
+            var graphNode = json.ToObject<GraphNode>();
             graphNode.Should().NotBeNull();
             graphNode!.Key.Should().Be("node1");
             graphNode.Tags.Should().NotBeNull();
@@ -173,22 +173,22 @@ public class GraphMapSerializationTests
     [Fact]
     public void EdgeSerialization()
     {
-        new GraphEdge<string>("node1", "node2").Action(x =>
+        new GraphEdge("node1", "node2").Action(x =>
         {
             string json = x.ToJson();
 
-            var graphEdge = json.ToObject<GraphEdge<string>>();
+            var graphEdge = json.ToObject<GraphEdge>();
             graphEdge.Should().NotBeNull();
             graphEdge!.FromKey.Should().Be("node1");
             graphEdge!.ToKey.Should().Be("node2");
             graphEdge.Tags.Should().NotBeNull();
         });
 
-        new GraphEdge<string>("node1", "node2", tags: "t1;t2=v2").Action(x =>
+        new GraphEdge("node1", "node2", tags: "t1;t2=v2").Action(x =>
         {
             string json = x.ToJson();
 
-            var graphEdge = json.ToObject<GraphEdge<string>>();
+            var graphEdge = json.ToObject<GraphEdge>();
             graphEdge.Should().NotBeNull();
             graphEdge!.FromKey.Should().Be("node1");
             graphEdge!.ToKey.Should().Be("node2");

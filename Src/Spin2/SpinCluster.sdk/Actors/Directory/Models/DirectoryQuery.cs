@@ -30,7 +30,7 @@ public static class DirectoryQueryExtensions
             subject.NodeTags == null;
     }
 
-    public static bool IsMatch(this DirectoryQuery subject, IGraphNode<string> node)
+    public static bool IsMatch(this DirectoryQuery subject, GraphNode node)
     {
         subject.NotNull();
 
@@ -40,7 +40,7 @@ public static class DirectoryQueryExtensions
         return true;
     }
 
-    public static bool IsMatch(this DirectoryQuery subject, IGraphEdge<string> edge)
+    public static bool IsMatch(this DirectoryQuery subject, GraphEdge edge)
     {
         subject.NotNull();
 

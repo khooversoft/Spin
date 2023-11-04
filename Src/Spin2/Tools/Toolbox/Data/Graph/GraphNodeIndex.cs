@@ -5,22 +5,20 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
-    where TKey : notnull
-    where TNode : IGraphNode<TKey>
+public class GraphNodeIndex : IEnumerable<GraphNode>
 {
-    private readonly Dictionary<TKey, TNode> _index;
-    private readonly Action<TNode> _removeEvent;
+    private readonly Dictionary<string, GraphNode> _index;
+    private readonly Action<GraphNode> _removeEvent;
     private readonly object _lock;
 
-    public GraphNodeIndex(object syncLock, Action<TNode> removeEvent, IEqualityComparer<TKey>? equalityComparer = null)
+    public GraphNodeIndex(object syncLock, Action<GraphNode> removeEvent)
     {
         _lock = syncLock.NotNull();
         _removeEvent = removeEvent.NotNull();
-        _index = new Dictionary<TKey, TNode>(equalityComparer.ComparerFor());
+        _index = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
     }
 
-    public TNode this[TKey key]
+    public GraphNode this[string key]
     {
         get => _index[key];
 
@@ -36,7 +34,7 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
 
     public int Count => _index.Count;
 
-    public Option Add(TNode node)
+    public Option Add(GraphNode node)
     {
         lock (_lock)
         {
@@ -48,7 +46,7 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
         }
     }
 
-    public bool ContainsKey(TKey key) => _index.ContainsKey(key);
+    public bool ContainsKey(string key) => _index.ContainsKey(key);
 
     public void Clear()
     {
@@ -58,15 +56,15 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
         }
     }
 
-    public Option<TNode> Get(TKey nodeKey) => _index.TryGetValue(nodeKey, out var value) switch
+    public Option<GraphNode> Get(string nodeKey) => _index.TryGetValue(nodeKey, out var value) switch
     {
         true => value,
         false => StatusCode.NotFound
     };
 
-    public bool Remove(TKey key) => Remove(key, out var _);
+    public bool Remove(string key) => Remove(key, out var _);
 
-    public bool Remove(TKey key, out TNode? value)
+    public bool Remove(string key, out GraphNode? value)
     {
         lock (_lock)
         {
@@ -76,22 +74,22 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
         }
     }
 
-    public IReadOnlyList<TNode> Query(GraphNodeQuery<TKey> query)
+    public IReadOnlyList<GraphNode> Query(GraphNodeQuery query)
     {
         query.NotNull();
 
         lock (_lock)
         {
-            IEnumerable<TNode> result = (query.Key, query.Tags) switch
+            IEnumerable<GraphNode> result = (query.Key, query.Tags) switch
             {
                 (null, null) => _index.Values.Select(x => x),
-                (TKey nodeKey, null) => _index.TryGetValue(nodeKey, out var v) ? v.ToEnumerable() : Array.Empty<TNode>(),
+                (string nodeKey, null) => _index.TryGetValue(nodeKey, out var v) ? v.ToEnumerable() : Array.Empty<GraphNode>(),
                 (null, string tags) => _index.Values.Where(x => x.Tags.Has(tags)),
 
-                (TKey nodeKey, string tags) => _index.TryGetValue(nodeKey, out var v) switch
+                (string nodeKey, string tags) => _index.TryGetValue(nodeKey, out var v) switch
                 {
-                    false => Array.Empty<TNode>(),
-                    true => v.Tags.Has(tags) ? v.ToEnumerable() : Array.Empty<TNode>(),
+                    false => Array.Empty<GraphNode>(),
+                    true => v.Tags.Has(tags) ? v.ToEnumerable() : Array.Empty<GraphNode>(),
                 },
             };
 
@@ -99,7 +97,7 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
         }
     }
 
-    public Option Update(GraphNodeQuery<TKey> query, Func<TNode, TNode> update)
+    public Option Update(GraphNodeQuery query, Func<GraphNode, GraphNode> update)
     {
         update.NotNull();
 
@@ -119,8 +117,8 @@ public class GraphNodeIndex<TKey, TNode> : IEnumerable<TNode>
         }
     }
 
-    public bool TryGetValue(TKey key, out TNode? value) => _index.TryGetValue(key, out value);
+    public bool TryGetValue(string key, out GraphNode? value) => _index.TryGetValue(key, out value);
 
-    public IEnumerator<TNode> GetEnumerator() => _index.Values.GetEnumerator();
+    public IEnumerator<GraphNode> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

@@ -3,14 +3,14 @@ using Toolbox.Tools;
 
 namespace Toolbox.Data;
 
-public readonly record struct QueryContext<T> where T : notnull
+public readonly record struct QueryContext
 {
     [SetsRequiredMembers]
     public QueryContext() { }
 
-    public GraphMap<T> Map { get; init; } = null!;
-    public IReadOnlyList<GraphNode<T>> Nodes { get; init; } = Array.Empty<GraphNode<T>>();
-    public IReadOnlyList<GraphEdge<T>> Edges { get; init; } = Array.Empty<GraphEdge<T>>();
+    public GraphMap Map { get; init; } = null!;
+    public IReadOnlyList<GraphNode> Nodes { get; init; } = Array.Empty<GraphNode>();
+    public IReadOnlyList<GraphEdge> Edges { get; init; } = Array.Empty<GraphEdge>();
 }
 
 
@@ -19,41 +19,41 @@ public readonly record struct QueryContext<T> where T : notnull
 // var v = g.Query.Edges(x => x.{edge}).HasNode(x => x.{node}).Edges()
 public static class GraphMapQuery
 {
-    public static QueryContext<T> Query<T>(this GraphMap<T> subject) where T : notnull => new QueryContext<T> { Map = subject.NotNull() };
+    public static QueryContext Query(this GraphMap subject) => new QueryContext { Map = subject.NotNull() };
 
-    public static QueryContext<T> Nodes<T>(this QueryContext<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
+    public static QueryContext Nodes(this QueryContext subject, Func<GraphNode, bool>? predicate = null)
     {
         subject.NotNull();
 
         var result = subject with
         {
             Nodes = subject.Map.Nodes.Where(x => predicate?.Invoke(x) ?? true).ToArray(),
-            Edges = Array.Empty<GraphEdge<T>>(),
+            Edges = Array.Empty<GraphEdge>(),
         };
 
         return result;
     }
 
-    public static QueryContext<T> Edges<T>(this QueryContext<T> subject, Func<GraphEdge<T>, bool>? predicate = null) where T : notnull
+    public static QueryContext Edges(this QueryContext subject, Func<GraphEdge, bool>? predicate = null)
     {
         subject.NotNull();
 
         var result = subject with
         {
-            Nodes = Array.Empty<GraphNode<T>>(),
+            Nodes = Array.Empty<GraphNode>(),
             Edges = subject.Map.Edges.Where(x => predicate?.Invoke(x) ?? true).ToArray(),
         };
 
         return result;
     }
 
-    public static QueryContext<T> HasNode<T>(this QueryContext<T> subject, Func<GraphNode<T>, bool> predicate) where T : notnull
+    public static QueryContext HasNode(this QueryContext subject, Func<GraphNode, bool> predicate)
     {
         subject.NotNull();
         predicate.NotNull();
 
         var selectedNodes = subject.Edges
-            .SelectMany(x => new T[] { x.FromKey, x.ToKey })
+            .SelectMany(x => new string[] { x.FromKey, x.ToKey })
             .Distinct()
             .Select(x => subject.Map.Nodes[x])
             .Where(x => predicate?.Invoke(x) ?? true)
@@ -72,7 +72,7 @@ public static class GraphMapQuery
         return subject;
     }
 
-    public static QueryContext<T> HasEdge<T>(this QueryContext<T> subject, Func<GraphEdge<T>, bool> predicate) where T : notnull
+    public static QueryContext HasEdge(this QueryContext subject, Func<GraphEdge, bool> predicate)
     {
         subject.NotNull();
         predicate.NotNull();

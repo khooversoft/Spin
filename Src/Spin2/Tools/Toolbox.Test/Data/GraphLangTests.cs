@@ -23,7 +23,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
 
             query.Key.Should().Be("key1");
             query.Tags.Should().Be("t1");
@@ -32,7 +32,7 @@ public class GraphLangTests
 
         list[1].Action(x =>
         {
-            if (x is not GraphEdgeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
 
             query.NodeKey.Should().Be("key1");
             query.FromKey.Should().Be("fromKey1");
@@ -44,7 +44,7 @@ public class GraphLangTests
 
         list[2].Action(x =>
         {
-            if (x is not GraphNodeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
 
             query.Key.Should().BeNull();
             query.Tags.Should().Be("schedule");
@@ -65,7 +65,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
 
             query.Key.Should().Be("key1");
             query.Tags.Should().Be("t1");
@@ -74,7 +74,7 @@ public class GraphLangTests
 
         list[1].Action(x =>
         {
-            if (x is not GraphEdgeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
 
             query.NodeKey.Should().Be("key1");
             query.FromKey.Should().Be("fromKey1");
@@ -86,7 +86,7 @@ public class GraphLangTests
 
         list[2].Action(x =>
         {
-            if (x is not GraphNodeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
 
             query.Key.Should().BeNull();
             query.Tags.Should().Be("schedule");
@@ -107,7 +107,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
 
             query.Key.Should().BeNull();
             query.Tags.Should().Be("t1");
@@ -127,7 +127,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
 
             query.Key.Should().Be("key1");
             query.Tags.Should().Be("t1");
@@ -147,7 +147,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphEdgeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
 
             query.NodeKey.Should().BeNull();
             query.FromKey.Should().BeNull();
@@ -170,7 +170,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphEdgeQuery<string> query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
 
             query.NodeKey.Should().Be("key1");
             query.FromKey.Should().Be("fromKey1");

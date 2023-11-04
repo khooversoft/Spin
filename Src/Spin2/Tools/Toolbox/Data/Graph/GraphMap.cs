@@ -8,71 +8,54 @@ namespace Toolbox.Data;
 public interface IGraphCommon { }
 
 
-public class GraphMap : GraphMap<string>
+//public class GraphMap : GraphMap<string>
+//{
+//    public GraphMap() { }
+//    public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge<string>> edges, IEqualityComparer<string>? keyComparer = null)
+//        : base(nodes, edges, keyComparer)
+//    {
+//    }
+
+//    public static GraphMap FromJson(string json) =>
+//        json.ToObject<GraphSerialization>()
+//        .NotNull()
+//        .FromSerialization();
+
+//    public static GraphMap<T> FromJson<T>(string json) where T : notnull =>
+//        json.ToObject<GraphSerialization<T>>()
+//        .NotNull()
+//        .FromSerialization();
+//}
+
+
+public class GraphMap : IEnumerable<IGraphCommon>
 {
-    public GraphMap() { }
-    public GraphMap(IEnumerable<GraphNode<string>> nodes, IEnumerable<GraphEdge<string>> edges, IEqualityComparer<string>? keyComparer = null)
-        : base(nodes, edges, keyComparer)
-    {
-    }
-
-    public static GraphMap FromJson(string json) =>
-        json.ToObject<GraphSerialization>()
-        .NotNull()
-        .FromSerialization();
-
-    public static GraphMap<T> FromJson<T>(string json) where T : notnull =>
-        json.ToObject<GraphSerialization<T>>()
-        .NotNull()
-        .FromSerialization();
-}
-
-
-public class GraphMap<T> : GraphMap<T, GraphNode<T>, GraphEdge<T>>
-    where T : notnull
-{
-    public GraphMap() { }
-    public GraphMap(IEnumerable<GraphNode<T>> nodes, IEnumerable<GraphEdge<T>> edges, IEqualityComparer<T>? keyComparer = null)
-        : base(nodes, edges, keyComparer)
-    {
-    }
-}
-
-
-public class GraphMap<TKey, TNode, TEdge> : IEnumerable<IGraphCommon>
-    where TKey : notnull
-    where TNode : IGraphNode<TKey>
-    where TEdge : IGraphEdge<TKey>
-{
-    private readonly GraphNodeIndex<TKey, TNode> _nodes;
-    private readonly GraphEdgeIndex<TKey, TEdge> _edges;
+    private readonly GraphNodeIndex _nodes;
+    private readonly GraphEdgeIndex _edges;
     private readonly object _lock = new object();
 
-    public GraphMap(IEqualityComparer<TKey>? keyComparer = null)
+    public GraphMap()
     {
-        _nodes = new GraphNodeIndex<TKey, TNode>(_lock, x => _edges.NotNull().Remove(x.Key), keyComparer);
-        _edges = new GraphEdgeIndex<TKey, TEdge>(_lock, x => _nodes.NotNull().ContainsKey(x));
-
-        KeyCompare = keyComparer.ComparerFor();
+        _nodes = new GraphNodeIndex(_lock, x => _edges.NotNull().Remove(x.Key));
+        _edges = new GraphEdgeIndex(_lock, x => _nodes.NotNull().ContainsKey(x));
     }
 
-    public GraphMap(IEnumerable<TNode> nodes, IEnumerable<TEdge> edges, IEqualityComparer<TKey>? keyComparer = null)
-        : this(keyComparer)
+    public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges)
+        : this()
     {
         nodes.NotNull().ForEach(x => Nodes.Add(x).ThrowOnError("Node add failed"));
         edges.NotNull().ForEach(x => Edges.Add(x).ThrowOnError("Edge add failed"));
     }
 
-    public IEqualityComparer<TKey> KeyCompare { get; }
-    public GraphNodeIndex<TKey, TNode> Nodes => _nodes;
-    public GraphEdgeIndex<TKey, TEdge> Edges => _edges;
+    public GraphNodeIndex Nodes => _nodes;
+    public GraphEdgeIndex Edges => _edges;
 
-    public GraphMap<TKey, TNode, TEdge> Add(IGraphCommon element)
+    public GraphMap Add(IGraphCommon element)
     {
         switch (element)
         {
-            case TNode node: _nodes.Add(node).ThrowOnError("Node add failed"); break;
-            case TEdge edge: _edges.Add(edge).ThrowOnError("Edge add failed"); break;
+            case GraphNode node: _nodes.Add(node).ThrowOnError("Node add failed"); break;
+            case GraphEdge edge: _edges.Add(edge).ThrowOnError("Edge add failed"); break;
             default: throw new ArgumentException("Unknown element");
         }
 
@@ -95,4 +78,9 @@ public class GraphMap<TKey, TNode, TEdge> : IEnumerable<IGraphCommon>
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public static GraphMap FromJson(string json) =>
+        json.ToObject<GraphSerialization>()
+        .NotNull()
+        .FromSerialization();
 }

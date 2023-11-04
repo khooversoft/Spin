@@ -57,13 +57,13 @@ public static class GraphLang
             switch (langNode)
             {
                 case { SyntaxNode.Name: "node-group" }:
-                    Option<GraphNodeQuery<string>> nodeParse = ParseNode(stack, list);
+                    Option<GraphNodeQuery> nodeParse = ParseNode(stack, list);
                     if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
                     list.Add(nodeParse.Return());
                     break;
 
                 case { SyntaxNode.Name: "edge-group" }:
-                    Option<GraphEdgeQuery<string>> edgeParse = ParseEdge(stack, list);
+                    Option<GraphEdgeQuery> edgeParse = ParseEdge(stack, list);
                     if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
                     list.Add(edgeParse.Return());
                     break;
@@ -79,7 +79,7 @@ public static class GraphLang
         return list;
     }
 
-    private static Option<GraphNodeQuery<string>> ParseNode(Stack<LangNode> stack, List<IGraphQL> list)
+    private static Option<GraphNodeQuery> ParseNode(Stack<LangNode> stack, List<IGraphQL> list)
     {
         string? key = null;
         string? tags = null;
@@ -126,7 +126,7 @@ public static class GraphLang
                         alias = langNode.Value;
                     }
 
-                    return new GraphNodeQuery<string>
+                    return new GraphNodeQuery
                     {
                         Key = key,
                         Tags = tags,
@@ -141,7 +141,7 @@ public static class GraphLang
         return (StatusCode.BadRequest, "No closure");
     }
 
-    private static Option<GraphEdgeQuery<string>> ParseEdge(Stack<LangNode> stack, List<IGraphQL> list)
+    private static Option<GraphEdgeQuery> ParseEdge(Stack<LangNode> stack, List<IGraphQL> list)
     {
         string? nodeKey = null!;
         string? fromKey = null!;
@@ -204,7 +204,7 @@ public static class GraphLang
                         alias = langNode.Value;
                     }
 
-                    return new GraphEdgeQuery<string>
+                    return new GraphEdgeQuery
                     {
                         NodeKey = nodeKey,
                         FromKey = fromKey,

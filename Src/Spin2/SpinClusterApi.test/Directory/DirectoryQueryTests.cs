@@ -11,8 +11,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphNode<string>("node1", "t1"),
-            new GraphNode<string>("node2", "t2"),
+            new GraphNode("node1", "t1"),
+            new GraphNode("node2", "t2"),
         };
 
         var query = new DirectoryQuery { NodeKey = "node1" };
@@ -60,8 +60,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphEdge<string>("fromKey1", "toKey1", "edgeType:key1", "t1"),
-            new GraphEdge<string>("fromKey2", "toKey2", "edgeType:key2", "t2"),
+            new GraphEdge("fromKey1", "toKey1", "edgeType:key1", "t1"),
+            new GraphEdge("fromKey2", "toKey2", "edgeType:key2", "t2"),
         };
 
         var query = new DirectoryQuery { FromKey = "fromKey1" };
@@ -84,8 +84,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphEdge<string>("fromKey1", "toKey1", "edgeType:key1", "t1"),
-            new GraphEdge<string>("fromKey2", "toKey2", "edgeType:key2", "t2"),
+            new GraphEdge("fromKey1", "toKey1", "edgeType:key1", "t1"),
+            new GraphEdge("fromKey2", "toKey2", "edgeType:key2", "t2"),
         };
 
         var query = new DirectoryQuery { ToKey = "toKey1" };
@@ -124,8 +124,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphEdge<string>("fromKey1", "toKey1", "edgeType:key1", "t1"),
-            new GraphEdge<string>("fromKey2", "toKey2", "edgeType:key2", "t2"),
+            new GraphEdge("fromKey1", "toKey1", "edgeType:key1", "t1"),
+            new GraphEdge("fromKey2", "toKey2", "edgeType:key2", "t2"),
         };
 
         var query = new DirectoryQuery { EdgeType = "edgeType:key1" };
@@ -159,8 +159,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphEdge<string>("fromKey1", "toKey1", "edgeType:key1", "t1"),
-            new GraphEdge<string>("fromKey2", "toKey2", "edgeType:key2", "t2"),
+            new GraphEdge("fromKey1", "toKey1", "edgeType:key1", "t1"),
+            new GraphEdge("fromKey2", "toKey2", "edgeType:key2", "t2"),
         };
 
         var query = new DirectoryQuery { EdgeTags = "t1" };
@@ -183,8 +183,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphNode<string>("node1", "t1;t2"),
-            new GraphNode<string>("node2", "t2;t4=v1"),
+            new GraphNode("node1", "t1;t2"),
+            new GraphNode("node2", "t2;t4=v1"),
         };
 
         var query = new DirectoryQuery { NodeTags = "t1" };
@@ -218,8 +218,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphEdge<string>("fromKey1", "toKey1", "edgeType:key1", "t1;t2"),
-            new GraphEdge<string>("fromKey2", "toKey2", "edgeType:key2", "t2;t4=v1"),
+            new GraphEdge("fromKey1", "toKey1", "edgeType:key1", "t1;t2"),
+            new GraphEdge("fromKey2", "toKey2", "edgeType:key2", "t2;t4=v1"),
         };
 
         var query = new DirectoryQuery { EdgeTags = "t1" };
@@ -253,8 +253,8 @@ public class DirectoryQueryTests
     {
         var list = new[]
         {
-            new GraphEdge<string>("fromKey1", "toKey1", "edgeType:key1", "t1;t2;t4=v1"),
-            new GraphEdge<string>("fromKey2", "toKey2", "edgeType:key2", "t2;t4=v1"),
+            new GraphEdge("fromKey1", "toKey1", "edgeType:key1", "t1;t2;t4=v1"),
+            new GraphEdge("fromKey2", "toKey2", "edgeType:key2", "t2;t4=v1"),
         };
 
         var query = new DirectoryQuery { EdgeTags = "t1" };

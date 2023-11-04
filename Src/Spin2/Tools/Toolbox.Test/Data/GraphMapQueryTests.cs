@@ -9,21 +9,21 @@ public class GraphMapQueryTests
     [Fact]
     public void SingleNodeQuery()
     {
-        var map = new GraphMap<string>()
+        var map = new GraphMap()
         {
-            new GraphNode<string>("node1", tags: "name=marko;age=29"),
-            new GraphNode<string>("node2", tags: "name=vadas;age=27"),
-            new GraphNode<string>("node3", tags: "name=lop;lang=java"),
-            new GraphNode<string>("node4", tags: "name=josh;age=32"),
-            new GraphNode<string>("node5", tags: "name=ripple;lang=java"),
-            new GraphNode<string>("node6", tags: "name=peter;age=35"),
-            new GraphNode<string>("node7", tags: "lang=java"),
+            new GraphNode("node1", tags: "name=marko;age=29"),
+            new GraphNode("node2", tags: "name=vadas;age=27"),
+            new GraphNode("node3", tags: "name=lop;lang=java"),
+            new GraphNode("node4", tags: "name=josh;age=32"),
+            new GraphNode("node5", tags: "name=ripple;lang=java"),
+            new GraphNode("node6", tags: "name=peter;age=35"),
+            new GraphNode("node7", tags: "lang=java"),
 
-            new GraphEdge<string>("node1", "node2", tags: "knows;level=1"),
-            new GraphEdge<string>("node1", "node3", tags: "knows;level=1"),
-            new GraphEdge<string>("node6", "node3", tags: "created"),
-            new GraphEdge<string>("node4", "node5", tags: "created"),
-            new GraphEdge<string>("node4", "node3", tags: "created"),
+            new GraphEdge("node1", "node2", tags: "knows;level=1"),
+            new GraphEdge("node1", "node3", tags: "knows;level=1"),
+            new GraphEdge("node6", "node3", tags: "created"),
+            new GraphEdge("node4", "node5", tags: "created"),
+            new GraphEdge("node4", "node3", tags: "created"),
         };
 
         map.Query().Nodes(x => x.Key == "node1").HasEdge(x => true).Nodes.Action(x =>

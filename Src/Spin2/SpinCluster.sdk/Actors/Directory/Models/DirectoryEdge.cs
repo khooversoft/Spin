@@ -32,7 +32,7 @@ public static class DirectoryEdgeExtensions
         return result.IsOk();
     }
 
-    public static DirectoryEdge ConvertTo(this IGraphEdge<string> subject) => new DirectoryEdge
+    public static DirectoryEdge ConvertTo(this GraphEdge subject) => new DirectoryEdge
     {
         Key = subject.Key,
         FromKey = subject.FromKey,
@@ -42,7 +42,7 @@ public static class DirectoryEdgeExtensions
         CreatedDate = subject.CreatedDate,
     };
 
-    public static GraphEdge<string> ConvertTo(this DirectoryEdge subject) => new GraphEdge<string>
+    public static GraphEdge ConvertTo(this DirectoryEdge subject) => new GraphEdge
     {
         FromKey = subject.FromKey,
         ToKey = subject.ToKey,
