@@ -33,7 +33,7 @@ public class StringExtensionsTests
     [InlineData("test:value", "*:value", true)]
     public void TestWildcardTest(string? input, string? pattern, bool expected)
     {
-        bool result = input.Match(pattern);
+        bool result = input.IsMatch(pattern);
         result.Should().Be(expected);
     }
 }

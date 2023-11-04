@@ -34,7 +34,7 @@ public static class DirectoryQueryExtensions
     {
         subject.NotNull();
 
-        if (subject.NodeKey != null && !node.Key.Match(subject.NodeKey)) return false;
+        if (subject.NodeKey != null && !node.Key.IsMatch(subject.NodeKey)) return false;
         if (subject.NodeTags != null && !node.Tags.Has(subject.NodeTags)) return false;
 
         return true;
@@ -44,9 +44,9 @@ public static class DirectoryQueryExtensions
     {
         subject.NotNull();
 
-        if (subject.FromKey != null && !edge.FromKey.Match(subject.FromKey)) return false;
-        if (subject.ToKey != null && !edge.ToKey.Match(subject.ToKey)) return false;
-        if (subject.EdgeType != null && !edge.EdgeType.Match(subject.EdgeType)) return false;
+        if (subject.FromKey != null && !edge.FromKey.IsMatch(subject.FromKey)) return false;
+        if (subject.ToKey != null && !edge.ToKey.IsMatch(subject.ToKey)) return false;
+        if (subject.EdgeType != null && !edge.EdgeType.IsMatch(subject.EdgeType)) return false;
         if (subject.EdgeTags != null && !edge.Tags.Has(subject.EdgeTags)) return false;
 
         return true;

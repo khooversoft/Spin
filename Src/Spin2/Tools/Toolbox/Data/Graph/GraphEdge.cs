@@ -42,8 +42,8 @@ public sealed record GraphEdge : IGraphCommon
     }
 
     public Guid Key { get; } = Guid.NewGuid();
-    public string FromKey { get; init; } = default!;
-    public string ToKey { get; init; } = default!;
+    public string FromKey { get; init; } = null!;
+    public string ToKey { get; init; } = null!;
     public string EdgeType { get; init; } = "default";
     public Tags Tags { get; init; } = new Tags();
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;

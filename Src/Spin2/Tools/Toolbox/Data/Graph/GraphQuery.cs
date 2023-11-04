@@ -1,86 +1,88 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Diagnostics.CodeAnalysis;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using Toolbox.Extensions;
-//using Toolbox.Tools;
-//using Toolbox.Types;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
 
-//namespace Toolbox.Data.Graph;
+namespace Toolbox.Data;
 
-//public record QueryResult
-//{
-//    public StatusCode StatusCode { get; init; }
-//    public string? Error { get; init; }
+public record QueryResult
+{
+    public StatusCode StatusCode { get; init; }
+    public string? Error { get; init; }
 
-//    public GraphMap<string>? Map { get; init; }
-//    public List<IGraphCommon>? Current { get; init; }
-//    public Dictionary<string, IGraphCommon>? Alias { get; init; }
-//}
+    public GraphMap Map { get; init; } = null!;
+    public IReadOnlyList<IGraphCommon> Result { get; init; } = null!;
+    public IReadOnlyDictionary<string, IReadOnlyList<IGraphCommon>> Alias { get; init; } = null!;
+}
 
 
-//public class GraphQuery
-//{
-//    private readonly GraphMap<string> _map;
-//    private readonly Dictionary<string, List<IGraphCommon>> _alias = new(StringComparer.OrdinalIgnoreCase);
-//    private readonly List<IGraphCommon> _current = new List<IGraphCommon>();
+public class GraphQuery
+{
+    private readonly GraphMap _map;
+    public GraphQuery(GraphMap map) => _map = map.NotNull();
 
-//    public GraphQuery(GraphMap<string> map) => _map = map.NotNull();
+    public QueryResult Search(string graphQuery)
+    {
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
+        if (result.IsError()) return new QueryResult { StatusCode = result.StatusCode, Error = result.Error };
 
-//    public QueryResult Search(string graphQuery)
-//    {
-//        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
-//        if (result.IsError()) return new QueryResult { StatusCode = result.StatusCode, Error = result.Error };
+        bool first = true;
+        var stack = result.Return().Reverse().ToStack();
+        SearchContext search = _map.Search();
+        IReadOnlyList<IGraphCommon> current = null!;
+        Dictionary<string, IReadOnlyList<IGraphCommon>> aliasDict = new(StringComparer.OrdinalIgnoreCase);
 
-//        var stack = result.Return().Reverse().ToStack();
-//        var query = _map.Query();
-//        bool first = true;
+        while (stack.TryPop(out var graphQL))
+        {
+            switch (graphQL)
+            {
+                case GraphNodeQuery node:
+                    search = first switch
+                    {
+                        true => search.Nodes(x => node.IsMatch(x)),
+                        false => search.HasNode(x => node.IsMatch(x)),
+                    };
 
-//        while (stack.TryPop(out var graphQL))
-//        {
-//            switch (graphQL)
-//            {
-//                //case GraphNodeQuery<string> node:
-//                //    query = first switch
-//                //    {
-//                //        true => query.Nodes(x => node.IsMatch(x)),
-//                //        false => query.HasNode(x => node.IsMatch(x)),
-//                //    };
-//                //    break;
+                    update(search, node.Alias);
+                    break;
 
-//                //case GraphEdgeQuery<string> edge:
-//                //    query = first switch
-//                //    {
-//                //        true => query.Edges(x => node.IsMatch(x)),
-//                //        false => query.HasNode(x => node.IsMatch(x)),
-//                //    };
-//                //    break;
-//            }
+                case GraphEdgeQuery edge:
+                    search = first switch
+                    {
+                        true => search.Edges(x => edge.IsMatch(x)),
+                        false => search.HasEdge(x => edge.IsMatch(x)),
+                    };
 
-//            first = false;
-//            //if( )
-//        }
+                    update(search, edge.Alias);
+                    break;
+            }
 
-//        return null!;
-//    }
-//}
+            first = false;
+        }
 
-////public static class GraphQueryExtension
-////{
-////    public static QueryContext1<T> Query<T>(this GraphMap<T> subject, string rawData) where T : notnull => new QueryContext1<T> { Map = subject.NotNull() };
+        return new QueryResult
+        {
+            StatusCode = StatusCode.OK,
+            Map = _map,
+            Result = current,
+            Alias = aliasDict,
+        };
 
-////    public static QueryContext1<T> Nodes<T>(this QueryContext1<T> subject, Func<GraphNode<T>, bool>? predicate = null) where T : notnull
-////    {
-////        subject.NotNull();
+        void update(SearchContext searchContext, string? alias)
+        {
+            current = search.LastSearch switch
+            {
+                SearchContext.LastSearchType.Node => searchContext.Nodes.ToArray(),
+                SearchContext.LastSearchType.Edge => searchContext.Edges.ToArray(),
+                _ => throw new UnreachableException(),
+            };
 
-////        var result = subject with
-////        {
-////            Nodes = subject.Map.Nodes.Where(x => predicate?.Invoke(x) ?? true).ToArray(),
-////            Edges = Array.Empty<GraphEdge<T>>(),
-////        };
+            if (alias.IsNotEmpty()) aliasDict[alias] = current;
+        }
+    }
+}
 
-////        return result;
-////    }
-////}
+public static class GraphQueryExtension
+{
+    public static GraphQuery Query(this GraphMap subject) => new GraphQuery(subject);
+}

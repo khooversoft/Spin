@@ -13,6 +13,7 @@ public interface IGraphQL
 /// <summary>
 /// (key=key1;tags=t1) n1 -> [schedulework:active] -> (schedule) n2
 /// (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2
+/// (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule=tagValue) n2
 /// 
 /// Node properties = Key, Tags
 /// Edge properties = NodeKey, FromKey, ToKey, EdgeType, Tags

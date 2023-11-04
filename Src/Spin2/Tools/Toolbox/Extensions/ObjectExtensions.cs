@@ -72,4 +72,14 @@ public static class ObjectExtensions
     /// <param name="subject">subject</param>
     /// <returns>json</returns>
     public static string ToJsonFormat<T>(this T subject) => Json.Default.SerializeFormat(subject);
+
+    public static T SafeCast<T>(this object subject)
+    {
+        return subject is T to ? to : default!;
+    }
+
+    public static T Cast<T>(this object subject)
+    {
+        return subject is T to ? to : throw new ArgumentException($"Cannot cast to type={typeof(T).FullName}");
+    }
 }

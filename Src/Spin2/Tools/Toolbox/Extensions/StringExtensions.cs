@@ -182,7 +182,7 @@ public static class StringExtensions
     /// <param name="pattern"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public static bool Match(this string? input, string? pattern)
+    public static bool IsMatch(this string? input, string? pattern)
     {
         if (input.IsEmpty() || pattern.IsEmpty()) return false;
 
