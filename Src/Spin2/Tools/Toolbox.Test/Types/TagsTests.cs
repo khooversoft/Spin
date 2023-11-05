@@ -9,6 +9,14 @@ namespace Toolbox.Test.Types;
 public class TagsTests
 {
     [Fact]
+    public void ImplicitConversion()
+    {
+        Tags t = "hello";
+        t.Should().NotBeNull();
+        t.ToString().Should().Be("hello");
+    }
+
+    [Fact]
     public void TagsEmpty()
     {
         var tags = new Tags();
@@ -20,10 +28,10 @@ public class TagsTests
         (tags == tags2).Should().BeTrue();
         (tags.ToString() == tags2.ToString()).Should().BeTrue();
 
-        var tags3 = Tags.Parse("");
+        var tags3 = new Tags("");
         (tags == tags3).Should().BeTrue();
 
-        var tags4 = Tags.Parse(null!);
+        var tags4 = new Tags((string)null!);
         (tags == tags4).Should().BeTrue();
     }
 
@@ -70,10 +78,10 @@ public class TagsTests
         (tags.ToString() == tags2.ToString()).Should().BeFalse();
         (tags.ToString(true) == tags2.ToString(true)).Should().BeTrue();
 
-        var tags3 = Tags.Parse("key2=value2;key1=value1");
+        var tags3 = new Tags("key2=value2;key1=value1");
         (tags == tags3).Should().BeTrue();
 
-        var tags4 = Tags.Parse("key2=value2");
+        var tags4 = new Tags("key2=value2");
         (tags == tags4).Should().BeFalse();
     }
 
@@ -98,7 +106,7 @@ public class TagsTests
         (tags == tags3).Should().BeTrue();
         (tags.ToString(true) == tags3.ToString(true)).Should().BeTrue();
 
-        var tags4 = Tags.Parse("key2=value2;key1=value1");
+        var tags4 = new Tags("key2=value2;key1=value1");
         tags4.Count.Should().Be(2);
         (tags == tags4).Should().BeTrue();
         (tags.ToString(true) == tags4.ToString(true)).Should().BeTrue();
@@ -126,7 +134,7 @@ public class TagsTests
         (tags == tags3).Should().BeTrue();
         (tags.ToString(true) == tags3.ToString(true)).Should().BeTrue();
 
-        var tags4 = Tags.Parse("key2;key1=value1");
+        var tags4 = new Tags("key2;key1=value1");
         tags4.Count.Should().Be(2);
         (tags == tags4).Should().BeTrue();
         (tags.ToString(true) == tags4.ToString(true)).Should().BeTrue();
@@ -179,7 +187,7 @@ public class TagsTests
             State = ScheduleEdgeWorkState.Completed,
         };
 
-        Tags tags = Tags.Create(data);
+        Tags tags = new Tags().Set(data);
         tags.Should().NotBeNull();
         tags.ToString().Should().Be("State=2");
 
@@ -207,7 +215,7 @@ public class TagsTests
             StateValue = ScheduleEdgeWorkState.Completed,
         };
 
-        Tags tags = Tags.Create(data);
+        Tags tags = new Tags().Set(data);
         tags.Should().NotBeNull();
         tags.ToString().Should().Be("State=Completed");
 
@@ -234,7 +242,7 @@ public class TagsTests
             State = ScheduleEdgeWorkState.Completed,
         };
 
-        Tags tags = Tags.Create(data);
+        Tags tags = new Tags().Set(data);
         tags.Should().NotBeNull();
         tags.ToString().Should().Be("Name=name1;Running=True;State=2;StateName=Completed");
 

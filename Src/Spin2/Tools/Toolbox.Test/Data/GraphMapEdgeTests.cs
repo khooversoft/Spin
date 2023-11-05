@@ -7,6 +7,16 @@ namespace Toolbox.Test.Data;
 public class GraphMapEdgeTests
 {
     [Fact]
+    public void ImplicitConversionForTags()
+    {
+        var v = new GraphEdge { FromKey = "a", ToKey = "b", Tags = "t1" };
+        v.Should().NotBeNull();
+        v.FromKey.Should().Be("a");
+        v.ToKey.Should().Be("b");
+        v.Tags.ToString().Should().Be("t1");
+    }
+
+    [Fact]
     public void Edge()
     {
         var e1 = new GraphEdge("fk", "tk");

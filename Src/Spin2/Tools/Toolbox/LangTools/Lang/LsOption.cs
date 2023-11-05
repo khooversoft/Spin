@@ -8,7 +8,7 @@ namespace Toolbox.LangTools;
 [DebuggerDisplay("Name={Name}")]
 public class LsOption : LangBase<ILangSyntax>, ILangRoot
 {
-    public LsOption(string? name) => Name = name;
+    public LsOption(string? name = null) => Name = name;
 
     public string? Name { get; }
 

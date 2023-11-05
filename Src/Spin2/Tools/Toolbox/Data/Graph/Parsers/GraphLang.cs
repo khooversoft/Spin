@@ -40,6 +40,12 @@ public static class GraphLang
         + (new LsGroup("[", "]", "edge-group") + _parameters)
         + new LsValue("alias", true);
 
+    //private readonly static LsRoot _opr = new LsRoot("opr")
+    //    + (new LsOr("opr-or")
+    //        + (new LsRoot() + new LsToken("->", "next"))
+    //        + (new LsRoot() + new LsToken("=", "next"))
+    //    );
+
     private readonly static LsRoot _root = new LsRoot()
         + (new LsRepeat("root-rpt")
             + (new LsOr("instr-or") + _nodeSyntax + _edgeSyntax) + new LsToken("->", "next", true)

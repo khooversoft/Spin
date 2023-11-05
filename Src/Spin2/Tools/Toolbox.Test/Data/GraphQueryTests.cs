@@ -27,13 +27,13 @@ public class GraphQueryTests
     [Fact]
     public void NodeToEdge()
     {
-        QueryResult result = _map.Query().Search("(name) -> [knows]");
+        GraphQueryResult result = _map.Query().Execute("(name) -> [knows]");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
-        var edges = result.Result.Select(x => x.Cast<GraphEdge>()).ToArray();
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
         edges.Length.Should().Be(2);
 
         var inSet = _map.Edges.Where(x => x.Tags.Has("knows")).Select(x => x.Key).OrderBy(x => x).ToArray();
@@ -43,13 +43,13 @@ public class GraphQueryTests
     [Fact]
     public void NodeToEdgeWithAlias()
     {
-        QueryResult result = _map.Query().Search("(name) -> [knows] a1");
+        GraphQueryResult result = _map.Query().Execute("(name) -> [knows] a1");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(1);
 
-        var edges = result.Result.Select(x => x.Cast<GraphEdge>()).ToArray();
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
         edges.Length.Should().Be(2);
 
         var inSet = _map.Edges.Where(x => x.Tags.Has("knows")).Select(x => x.Key).OrderBy(x => x).ToArray();
@@ -63,13 +63,13 @@ public class GraphQueryTests
     [Fact]
     public void NodeToEdgeToNode()
     {
-        QueryResult result = _map.Query().Search("(name) -> [knows] -> ('age=29')");
+        GraphQueryResult result = _map.Query().Execute("(name) -> [knows] -> ('age=29')");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
-        var nodes = result.Result.Select(x => x.Cast<GraphNode>()).ToArray();
+        var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
         nodes.Length.Should().Be(1);
 
         var inSet = _map.Nodes.Where(x => x.Tags.Has("age=29")).Select(x => x.Key).ToArray();
@@ -79,13 +79,13 @@ public class GraphQueryTests
     [Fact]
     public void NodeToEdgeToNodeWithAliases()
     {
-        QueryResult result = _map.Query().Search("(target) a1 -> [knows] a2 -> ('age=29') a3");
+        GraphQueryResult result = _map.Query().Execute("(target) a1 -> [knows] a2 -> ('age=29') a3");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(3);
 
-        var nodes = result.Result.Select(x => x.Cast<GraphNode>()).ToArray();
+        var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
         nodes.Length.Should().Be(1);
 
         var inSet = _map.Nodes.Where(x => x.Tags.Has("age=29")).Select(x => x.Key).ToArray();
@@ -113,13 +113,13 @@ public class GraphQueryTests
     [Fact]
     public void KeyNodeToEdgeToNodeWithAliases()
     {
-        QueryResult result = _map.Query().Search("(key=Node1) a1 -> [knows] a2 -> ('age=29') a3");
+        GraphQueryResult result = _map.Query().Execute("(key=Node1) a1 -> [knows] a2 -> ('age=29') a3");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(3);
 
-        var nodes = result.Result.Select(x => x.Cast<GraphNode>()).ToArray();
+        var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
         nodes.Length.Should().Be(1);
 
         var inSet = _map.Nodes.Where(x => x.Tags.Has("age=29")).Select(x => x.Key).ToArray();

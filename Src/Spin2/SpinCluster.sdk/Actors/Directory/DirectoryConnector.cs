@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -35,7 +36,7 @@ public class DirectoryConnector
         return group;
     }
 
-    private async Task<IResult> AddEdge(DirectoryEdge edge, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> AddEdge(GraphEdge edge, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (!edge.Validate(out var v)) return v.ToResult();
 
@@ -43,7 +44,7 @@ public class DirectoryConnector
         return result.ToResult();
     }
 
-    private async Task<IResult> AddNode(DirectoryNode node, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> AddNode(GraphNode node, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (!node.Validate(out var v)) return v.ToResult();
 
@@ -53,13 +54,13 @@ public class DirectoryConnector
 
     private async Task<IResult> Query(DirectoryQuery search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option<DirectoryResponse> result = await _client.GetDirectoryActor().Query(search, traceId);
+        Option<GraphQueryResult> result = await _client.GetDirectoryActor().Query(search, traceId);
         return result.ToResult();
     }
 
     private async Task<IResult> Remove(DirectoryQuery search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option<DirectoryResponse> result = await _client.GetDirectoryActor().Remove(search, traceId);
+        Option<GraphQueryResult> result = await _client.GetDirectoryActor().Remove(search, traceId);
         return result.ToResult();
     }
 

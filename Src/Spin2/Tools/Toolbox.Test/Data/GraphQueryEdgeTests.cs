@@ -27,13 +27,13 @@ public class GraphQueryEdgeTests
     [Fact]
     public void TagDefaultQuery()
     {
-        QueryResult result = _map.Query().Search("[knows]");
+        GraphQueryResult result = _map.Query().Execute("[knows]");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
-        var edges = result.Result.Select(x => x.Cast<GraphEdge>()).ToArray();
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
         edges.Length.Should().Be(2);
 
         var shouldMatch = new[] { ("node1", "node2"), ("node1", "node3") };
@@ -44,13 +44,13 @@ public class GraphQueryEdgeTests
     [Fact]
     public void TagWithKeywordQuery()
     {
-        QueryResult result = _map.Query().Search("[tags=knows]");
+        GraphQueryResult result = _map.Query().Execute("[tags=knows]");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
-        var edges = result.Result.Select(x => x.Cast<GraphEdge>()).ToArray();
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
         edges.Length.Should().Be(2);
 
         var shouldMatch = new[] { ("node1", "node2"), ("node1", "node3") };
@@ -61,13 +61,13 @@ public class GraphQueryEdgeTests
     [Fact]
     public void TagWithKeywordForSpecificQuery()
     {
-        QueryResult result = _map.Query().Search("[tags='level=1']");
+        GraphQueryResult result = _map.Query().Execute("[tags='level=1']");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
-        var edges = result.Result.Select(x => x.Cast<GraphEdge>()).ToArray();
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
         edges.Length.Should().Be(2);
 
         var inSet = _map.Edges.Where(x => x.Tags.Has("level=1")).Select(x => x.Key).OrderBy(x => x).ToArray();
@@ -77,13 +77,13 @@ public class GraphQueryEdgeTests
     [Fact]
     public void TagWithFromAndToQuery()
     {
-        QueryResult result = _map.Query().Search("[fromKey=node1;toKey=node2]");
+        GraphQueryResult result = _map.Query().Execute("[fromKey=node1;toKey=node2]");
 
         result.StatusCode.IsOk().Should().BeTrue();
-        result.Result.Count.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
-        var edges = result.Result.Select(x => x.Cast<GraphEdge>()).ToArray();
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
         edges.Length.Should().Be(1);
 
         var inSet = _map.Edges.Where(x => x.FromKey == "node1" && x.ToKey == "node2").Select(x => x.Key).ToArray();

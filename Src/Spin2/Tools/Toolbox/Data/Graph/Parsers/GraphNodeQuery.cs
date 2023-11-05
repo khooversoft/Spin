@@ -14,7 +14,7 @@ public static class GraphNodeQueryExtensions
 {
     public static bool IsMatch(this GraphNodeQuery subject, GraphNode node)
     {
-        bool isKey = subject.Key == null || subject.Key.IsMatch(node.Key);
+        bool isKey = subject.Key == null || node.Key.IsMatch(subject.Key);
         bool isTag = subject.Tags == null || node.Tags.Has(subject.Tags);
 
         return isKey && isTag;

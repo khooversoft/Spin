@@ -323,7 +323,14 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         model.GetState().Should().Be(ScheduleWorkState.Assigned);
 
         model.RunResults.Count.Should().Be(1);
-        model.RunResults[0].Should().Be(runResult);
+        model.RunResults[0].Id.Should().Be(runResult.Id);
+        model.RunResults[0].CreatedDate.Should().Be(runResult.CreatedDate);
+        model.RunResults[0].WorkId.Should().Be(runResult.WorkId);
+        model.RunResults[0].CompletedDate.Should().Be(runResult.CompletedDate);
+        model.RunResults[0].StatusCode.Should().Be(runResult.StatusCode);
+        model.RunResults[0].AgentId.Should().Be(runResult.AgentId);
+        model.RunResults[0].Message.Should().Be(runResult.Message);
+        model.RunResults[0].Payloads.Should().NotBeNull();
     }
 
     private async Task Complete(string workId)

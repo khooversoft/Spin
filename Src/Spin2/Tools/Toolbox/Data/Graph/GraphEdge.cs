@@ -41,7 +41,7 @@ public sealed record GraphEdge : IGraphCommon
         this.Validate().ThrowOnError("Edge is invalid");
     }
 
-    public Guid Key { get; } = Guid.NewGuid();
+    public Guid Key { get; init; } = Guid.NewGuid();
     public string FromKey { get; init; } = null!;
     public string ToKey { get; init; } = null!;
     public string EdgeType { get; init; } = "default";

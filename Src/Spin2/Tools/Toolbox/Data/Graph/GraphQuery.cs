@@ -5,26 +5,15 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public record QueryResult
-{
-    public StatusCode StatusCode { get; init; }
-    public string? Error { get; init; }
-
-    public GraphMap Map { get; init; } = null!;
-    public IReadOnlyList<IGraphCommon> Result { get; init; } = null!;
-    public IReadOnlyDictionary<string, IReadOnlyList<IGraphCommon>> Alias { get; init; } = null!;
-}
-
-
 public class GraphQuery
 {
     private readonly GraphMap _map;
     public GraphQuery(GraphMap map) => _map = map.NotNull();
 
-    public QueryResult Search(string graphQuery)
+    public GraphQueryResult Execute(string graphQuery)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
-        if (result.IsError()) return new QueryResult { StatusCode = result.StatusCode, Error = result.Error };
+        if (result.IsError()) return new GraphQueryResult { StatusCode = result.StatusCode, Error = result.Error };
 
         bool first = true;
         var stack = result.Return().Reverse().ToStack();
@@ -60,11 +49,10 @@ public class GraphQuery
             first = false;
         }
 
-        return new QueryResult
+        return new GraphQueryResult
         {
             StatusCode = StatusCode.OK,
-            Map = _map,
-            Result = current,
+            Items = current,
             Alias = aliasDict,
         };
 

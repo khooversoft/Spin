@@ -11,11 +11,11 @@ namespace SpinCluster.sdk.Actors.Directory;
 
 public interface IDirectoryActor : IGrainWithStringKey
 {
-    Task<Option> AddEdge(DirectoryEdge edge, string traceId);
-    Task<Option> AddNode(DirectoryNode node, string traceId);
+    Task<Option> AddEdge(GraphEdge edge, string traceId);
+    Task<Option> AddNode(GraphNode node, string traceId);
     Task Clear(string traceId);
-    Task<Option<DirectoryResponse>> Query(DirectoryQuery search, string traceId);
-    Task<Option<DirectoryResponse>> Remove(DirectoryQuery search, string traceId);
+    Task<Option<GraphQueryResult>> Query(DirectoryQuery search, string traceId);
+    Task<Option<GraphQueryResult>> Remove(DirectoryQuery search, string traceId);
     Task<Option> Update(DirectoryEdgeUpdate node, string traceId);
     Task<Option> Update(DirectoryNodeUpdate node, string traceId);
 }
@@ -49,24 +49,24 @@ public class DirectoryActor : Grain, IDirectoryActor
         await base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option> AddEdge(DirectoryEdge edge, string traceId)
+    public async Task<Option> AddEdge(GraphEdge edge, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Adding edge, edge={edge}", edge);
 
-        var option = _map.Edges.Add(edge.ConvertTo());
+        var option = _map.Edges.Add(edge);
         if (option.IsError()) return option;
 
         await SetGraphToStorage();
         return StatusCode.OK;
     }
 
-    public async Task<Option> AddNode(DirectoryNode node, string traceId)
+    public async Task<Option> AddNode(GraphNode node, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Adding node, node={node}", node);
 
-        var option = _map.Nodes.Add(node.ConvertTo());
+        var option = _map.Nodes.Add(node);
         if (option.IsError()) return option;
 
         await SetGraphToStorage();
@@ -116,46 +116,33 @@ public class DirectoryActor : Grain, IDirectoryActor
         await SetGraphToStorage();
     }
 
-    public Task<Option<DirectoryResponse>> Query(DirectoryQuery search, string traceId)
+    public Task<Option<GraphQueryResult>> Query(DirectoryQuery search, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
+        if (!search.Validate(out var v)) return v.ToOptionStatus<GraphQueryResult>().ToTaskResult();
         context.Location().LogInformation("Lookup edge, search={search}", search);
 
-        IReadOnlyList<GraphNode> nodeQuery = (search.NodeKey, search.NodeTags) switch
-        {
-            (null, null) => Array.Empty<GraphNode>(),
-            _ => _map.Search().Nodes(search.IsMatch).Nodes,
-        };
-
-        IReadOnlyList<GraphEdge> edgeQuery = (search.FromKey, search.ToKey, search.EdgeTags) switch
-        {
-            (null, null, null) => Array.Empty<GraphEdge>(),
-            _ => _map.Search().Edges(search.IsMatch).Edges,
-        };
-
-        var result = new DirectoryResponse
-        {
-            Nodes = nodeQuery.Select(x => x.ConvertTo()).ToArray(),
-            Edges = edgeQuery.Select(x => x.ConvertTo()).ToArray(),
-        };
+        GraphQueryResult result = _map.Query().Execute(search.GraphQuery);
+        if (result.StatusCode.IsError()) return new Option<GraphQueryResult>(result.StatusCode, result.Error).ToTaskResult();
 
         return result.ToOption().ToTaskResult();
     }
 
-    public async Task<Option<DirectoryResponse>> Remove(DirectoryQuery search, string traceId)
+    public async Task<Option<GraphQueryResult>> Remove(DirectoryQuery search, string traceId)
     {
-        if (search.IsQueryEmpty()) return StatusCode.BadRequest;
+        if (!search.Validate(out var v)) return v.ToOptionStatus<GraphQueryResult>();
         var context = new ScopeContext(traceId, _logger);
 
-        Option<DirectoryResponse> result = await Query(search, traceId);
+        Option<GraphQueryResult> result = await Query(search, traceId);
         if (result.IsError()) return result;
-        DirectoryResponse response = result.Return();
-        if (response.Nodes.Count + response.Edges.Count == 0) return StatusCode.NotFound;
 
-        context.Location().LogInformation("Removing nodes/edges, directoryResponse={directoryResponse}", result);
+        GraphQueryResult response = result.Return();
+        if (response.Items.Count == 0) return StatusCode.NotFound;
 
-        response.Nodes.ForEach(x => _map.Nodes.Remove(x.Key));
-        response.Edges.ForEach(x => _map.Edges.Remove(x.Key));
+        context.Location().LogInformation("Removing nodes/edges, GraphQueryResult={graphQueryResult}", response);
+
+        response.Items.OfType<GraphNode>().ForEach(x => _map.Nodes.Remove(x.Key));
+        response.Items.OfType<GraphEdge>().ForEach(x => _map.Edges.Remove(x.Key));
 
         await SetGraphToStorage();
         return response;

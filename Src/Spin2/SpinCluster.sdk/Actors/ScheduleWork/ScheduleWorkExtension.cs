@@ -1,5 +1,6 @@
 ﻿using SpinCluster.sdk.Actors.Directory;
 using SpinCluster.sdk.Application;
+using Toolbox.Data;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.ScheduleWork;
@@ -19,19 +20,19 @@ public static class ScheduleWorkExtension
 
     public static async Task<Option> AddSchedule(this IDirectoryActor directoryActor, string workId, string? tags, string traceId)
     {
-        var nodeRequest = new DirectoryNode
+        var nodeRequest = new GraphNode
         {
             Key = workId,
-            Tags = tags,
+            Tags = new Tags(tags),
         };
 
         // make sure the schedule root node is there
-        await directoryActor.AddNode(new DirectoryNode { Key = SpinConstants.Dir.ScheduleWork }, traceId);
+        await directoryActor.AddNode(new GraphNode { Key = SpinConstants.Dir.ScheduleWork }, traceId);
 
         var addNodeOption = await directoryActor.AddNode(nodeRequest, traceId);
         if (addNodeOption.IsError()) return addNodeOption;
 
-        var edgeRequest = new DirectoryEdge
+        var edgeRequest = new GraphEdge
         {
             FromKey = SpinConstants.Dir.ScheduleWork,
             ToKey = workId,
@@ -62,53 +63,52 @@ public static class ScheduleWorkExtension
         var v => $"{_edgeTypePrefix}{v}",
     };
 
-    public static async Task<Option<DirectoryResponse>> GetSchedules(this IDirectoryActor directoryActor, string traceId)
+    public static async Task<Option<GraphQueryResult>> GetSchedules(this IDirectoryActor directoryActor, string traceId)
     {
         var request = new DirectoryQuery
         {
-            FromKey = SpinConstants.Dir.ScheduleWork,
-            EdgeType = _edgeTypePrefix + "*",
+            GraphQuery = $"(key={SpinConstants.Dir.ScheduleWork})->[edgeType={_edgeTypePrefix + "*"}]",
         };
 
-        Option<DirectoryResponse> result = await directoryActor.Query(request, traceId);
+        Option<GraphQueryResult> result = await directoryActor.Query(request, traceId);
         if (result.IsError()) return result;
 
         return result;
     }
 
-    public static async Task<Option<DirectoryResponse>> GetSchedules(this IDirectoryActor directoryActor, ScheduleEdgeType state, string traceId)
+    public static async Task<Option<GraphQueryResult>> GetSchedules(this IDirectoryActor directoryActor, ScheduleEdgeType state, string traceId)
     {
         var request = new DirectoryQuery
         {
-            FromKey = SpinConstants.Dir.ScheduleWork,
-            EdgeType = state.GetEdgeType(),
+            GraphQuery = $"(key={SpinConstants.Dir.ScheduleWork})->[edgeType={state.GetEdgeType()}]",
         };
 
-        Option<DirectoryResponse> result = await directoryActor.Query(request, traceId);
+        Option<GraphQueryResult> result = await directoryActor.Query(request, traceId);
         if (result.IsError()) return result;
 
         return result;
     }
 
-    public static async Task<Option<IReadOnlyList<DirectoryEdge>>> GetActiveWorkSchedules(this IDirectoryActor directoryActor, string traceId)
+    public static async Task<Option<IReadOnlyList<GraphEdge>>> GetActiveWorkSchedules(this IDirectoryActor directoryActor, string traceId)
     {
         var request = new DirectoryQuery
         {
-            FromKey = SpinConstants.Dir.ScheduleWork,
-            EdgeType = _edgeTypePrefix + "*",
+            GraphQuery = $"(key={SpinConstants.Dir.ScheduleWork})->[edgeType={_edgeTypePrefix + "*"}]",
         };
 
-        Option<DirectoryResponse> result = await directoryActor.Query(request, traceId);
-        if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<DirectoryEdge>>();
+        Option<GraphQueryResult> result = await directoryActor.Query(request, traceId);
+        if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<GraphEdge>>();
 
-        return result.Return().Edges.ToOption();
+        IReadOnlyList<GraphEdge> data = result.Return().Items.OfType<GraphEdge>().ToArray();
+
+        return data.ToOption();
     }
 
     public static async Task<Option> RemoveSchedule(this IDirectoryActor directoryActor, string workId, string traceId)
     {
-        var query = new DirectoryQuery { NodeKey = workId };
+        var query = new DirectoryQuery { GraphQuery = $"(key={workId})" };
 
-        Option<DirectoryResponse> option = await directoryActor.Remove(query, traceId);
+        Option<GraphQueryResult> option = await directoryActor.Remove(query, traceId);
         return option.ToOptionStatus();
     }
 }

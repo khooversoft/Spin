@@ -1,9 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using Toolbox.Data;
 
 namespace SpinCluster.sdk.Actors.Directory;
 
-[JsonDerivedType(typeof(DirectoryNode), typeDiscriminator: "DirectoryNode")]
-[JsonDerivedType(typeof(DirectoryEdge), typeDiscriminator: "DirectoryEdge")]
+[JsonDerivedType(typeof(GraphNode), typeDiscriminator: "GraphNode")]
+[JsonDerivedType(typeof(GraphEdge), typeDiscriminator: "GraphEdge")]
 [JsonDerivedType(typeof(RemoveNode), typeDiscriminator: "RemoveNode")]
 [JsonDerivedType(typeof(RemoveEdge), typeDiscriminator: "RemoveEdge")]
 public interface IDirectoryGraph

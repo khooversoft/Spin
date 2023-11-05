@@ -7,6 +7,7 @@ public class Tags : Dictionary<string, string?>
 {
     public Tags() : base(StringComparer.OrdinalIgnoreCase) { }
     public Tags(IEnumerable<KeyValuePair<string, string?>> values) : base(values, StringComparer.OrdinalIgnoreCase) { }
+    public Tags(string? tags) : base(StringComparer.OrdinalIgnoreCase) => Set(tags);
 
     public Tags Set(string? tags)
     {
@@ -14,6 +15,15 @@ public class Tags : Dictionary<string, string?>
 
         var keyValuePairs = tags.ToDictionaryFromString();
         keyValuePairs.ForEach(x => this[x.Key] = x.Value);
+        return this;
+    }
+
+    public Tags Set<T>(T? value) where T : class
+    {
+        if (value == null) return this;
+
+        var dict = value.ToDictionary();
+        dict.ForEach(x => this[x.Key] = x.Value);
         return this;
     }
 
@@ -64,13 +74,7 @@ public class Tags : Dictionary<string, string?>
     public static bool operator ==(Tags? left, Tags? right) => EqualityComparer<Tags>.Default.Equals(left, right);
     public static bool operator !=(Tags? left, Tags? right) => !(left == right);
 
-    public static Tags Parse(string? subject) => new Tags().Set(subject);
-
-    public static Tags Create<T>(T value) where T : class
-    {
-        var dict = value.ToDictionary();
-        return new Tags(dict.OfType<KeyValuePair<string, string?>>());
-    }
+    public static implicit operator Tags(string? value) => new Tags(value);
 }
 
 

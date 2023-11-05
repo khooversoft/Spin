@@ -1,54 +1,32 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Validation;
+using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Directory;
 
 [GenerateSerializer, Immutable]
 public sealed record DirectoryQuery
 {
-    [Id(0)] public string? NodeKey { get; init; }
-    [Id(1)] public string? NodeTags { get; init; }
-    [Id(2)] public string? FromKey { get; init; }
-    [Id(3)] public string? ToKey { get; init; }
-    [Id(4)] public string? EdgeType { get; init; }
-    [Id(5)] public string? EdgeTags { get; init; }
+    public DirectoryQuery() { }
+    public DirectoryQuery(string graphQuery) => GraphQuery = graphQuery;
+
+    [Id(0)] public string GraphQuery { get; init; } = null!;
+
+    public static IValidator<DirectoryQuery> Validator { get; } = new Validator<DirectoryQuery>()
+        .RuleFor(x => x.GraphQuery).NotEmpty()
+        .Build();
 }
 
 
 public static class DirectoryQueryExtensions
 {
-    public static bool IsQueryEmpty(this DirectoryQuery subject)
+    public static Option Validate(this DirectoryQuery subject) => DirectoryQuery.Validator.Validate(subject).ToOptionStatus();
+
+    public static bool Validate(this DirectoryQuery subject, out Option result)
     {
-        if (subject == null) return false;
-
-        return subject.NodeKey == null &&
-            subject.NodeTags == null &&
-            subject.FromKey == null &&
-            subject.ToKey == null &&
-            subject.EdgeType == null &&
-            subject.NodeTags == null;
-    }
-
-    public static bool IsMatch(this DirectoryQuery subject, GraphNode node)
-    {
-        subject.NotNull();
-
-        if (subject.NodeKey != null && !node.Key.IsMatch(subject.NodeKey)) return false;
-        if (subject.NodeTags != null && !node.Tags.Has(subject.NodeTags)) return false;
-
-        return true;
-    }
-
-    public static bool IsMatch(this DirectoryQuery subject, GraphEdge edge)
-    {
-        subject.NotNull();
-
-        if (subject.FromKey != null && !edge.FromKey.IsMatch(subject.FromKey)) return false;
-        if (subject.ToKey != null && !edge.ToKey.IsMatch(subject.ToKey)) return false;
-        if (subject.EdgeType != null && !edge.EdgeType.IsMatch(subject.EdgeType)) return false;
-        if (subject.EdgeTags != null && !edge.Tags.Has(subject.EdgeTags)) return false;
-
-        return true;
+        result = subject.Validate();
+        return result.IsOk();
     }
 }

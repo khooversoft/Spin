@@ -25,9 +25,9 @@ public static class GraphEdgeQueryExtensions
             string => edge.FromKey.IsMatch(subject.NodeKey) || edge.ToKey.IsMatch(subject.NodeKey),
         };
 
-        bool isFromKey = subject.FromKey == null || subject.FromKey.IsMatch(edge.FromKey);
-        bool isToKey = subject.ToKey == null || subject.ToKey.IsMatch(edge.ToKey);
-        bool isEdgeType = subject.EdgeType == null || subject.EdgeType.IsMatch(edge.EdgeType);
+        bool isFromKey = subject.FromKey == null || edge.FromKey.IsMatch(subject.FromKey);
+        bool isToKey = subject.ToKey == null || edge.ToKey.IsMatch(subject.ToKey);
+        bool isEdgeType = subject.EdgeType == null || edge.EdgeType.IsMatch(subject.EdgeType);
         bool isTag = subject.Tags == null || edge.Tags.Has(subject.Tags);
 
         return isNodeKey && isFromKey && isToKey && isEdgeType && isTag;

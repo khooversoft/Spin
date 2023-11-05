@@ -5,29 +5,6 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public interface IGraphCommon { }
-
-
-//public class GraphMap : GraphMap<string>
-//{
-//    public GraphMap() { }
-//    public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge<string>> edges, IEqualityComparer<string>? keyComparer = null)
-//        : base(nodes, edges, keyComparer)
-//    {
-//    }
-
-//    public static GraphMap FromJson(string json) =>
-//        json.ToObject<GraphSerialization>()
-//        .NotNull()
-//        .FromSerialization();
-
-//    public static GraphMap<T> FromJson<T>(string json) where T : notnull =>
-//        json.ToObject<GraphSerialization<T>>()
-//        .NotNull()
-//        .FromSerialization();
-//}
-
-
 public class GraphMap : IEnumerable<IGraphCommon>
 {
     private readonly GraphNodeIndex _nodes;

@@ -46,6 +46,7 @@ public static class OptionExtensionTools
     public static bool IsSuccess<T>(this Option<T> subject) => subject.StatusCode.IsSuccess();
     public static bool IsError<T>(this Option<T> subject) => subject.StatusCode.IsError();
     public static bool IsNotFound<T>(this Option<T> subject) => subject.StatusCode.IsNotFound();
+    public static bool IsBadRequest<T>(this Option<T> subject) => subject.StatusCode.IsBadRequest();
 
     public static Option ThrowOnError(this Option option,
         string? message = "< no message >",

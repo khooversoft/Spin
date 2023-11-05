@@ -8,6 +8,7 @@ using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -59,7 +60,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         var searchOption = await _clusterClient.GetDirectoryActor().GetActiveWorkSchedules(context.TraceId);
         if (searchOption.IsError()) return searchOption.ToOptionStatus<WorkAssignedModel>();
 
-        IReadOnlyList<DirectoryEdge> activeWork = searchOption.Return();
+        IReadOnlyList<GraphEdge> activeWork = searchOption.Return();
         if (activeWork.Count == 0) return StatusCode.NotFound;
 
         var stack = activeWork
@@ -103,12 +104,12 @@ public class SchedulerActor : Grain, ISchedulerActor
 
         context.Location().LogInformation("Clear queue, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        Option<DirectoryResponse> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
+        Option<GraphQueryResult> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
         if (dirResponse.IsError()) return dirResponse.ToOptionStatus();
 
-        DirectoryResponse response = dirResponse.Return();
+        GraphQueryResult response = dirResponse.Return();
 
-        foreach (var item in response.Edges)
+        foreach (var item in response.Items.OfType<GraphEdge>())
         {
             var result = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Delete(context.TraceId);
             if (result.IsError())
@@ -137,13 +138,13 @@ public class SchedulerActor : Grain, ISchedulerActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<DirectoryResponse> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
+        Option<GraphQueryResult> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
         if (dirResponse.IsError()) return dirResponse.ToOptionStatus<SchedulesResponseModel>();
 
-        DirectoryResponse response = dirResponse.Return();
+        GraphQueryResult response = dirResponse.Return();
 
         var workScheduleList = new List<(string edgeType, ScheduleWorkModel model)>();
-        foreach (var item in response.Edges.Where(x => isEdgeType(x.EdgeType)))
+        foreach (var item in response.Items.OfType<GraphEdge>().Where(x => isEdgeType(x.EdgeType)))
         {
             var getOption = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Get(traceId);
             if (getOption.IsError())

@@ -8,6 +8,30 @@ namespace Toolbox.Test.Data;
 public class GraphMapSerializationTests
 {
     [Fact]
+    public void GraphNode()
+    {
+        var v = new GraphNode("Node1", "t1=v");
+
+        string json = v.ToJson();
+        json.Should().NotBeNullOrEmpty();
+
+        var v2 = json.ToObject<GraphNode>();
+        (v == v2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void GraphEdge()
+    {
+        var v = new GraphEdge("Node1", "Node2", "edgeType", "t1=v");
+
+        string json = v.ToJson();
+        json.Should().NotBeNullOrEmpty();
+
+        var v2 = json.ToObject<GraphEdge>();
+        (v == v2).Should().BeTrue();
+    }
+
+    [Fact]
     public void EmptyMapString()
     {
         var map = new GraphMap();

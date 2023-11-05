@@ -1,4 +1,7 @@
-﻿using Toolbox.LangTools;
+﻿using FluentAssertions;
+using Toolbox.LangTools;
+using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;
@@ -16,6 +19,25 @@ public class LangOptionTests
         var addValue = new LsRoot("plus") + new LsValue("lvalue") + ("+", "plusSign") + new LsValue("rvalue");
 
         _root = new LsRoot() + (new LsOption("optional") + equalValue + addValue);
+    }
+
+    [Fact]
+    public void SimpleFormat()
+    {
+        var ins = new LsOption() + (new LsRoot() + new LsToken("=", "equal")) + (new LsRoot() + new LsToken("+", "plus"));
+        LangResult tree = ins.Parse("=");
+        tree.StatusCode.IsOk().Should().BeTrue();
+
+        LangNodes nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+
+        tree = ins.Parse("+");
+        tree.StatusCode.IsOk().Should().BeTrue();
+
+        nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
     }
 
     [Fact]
