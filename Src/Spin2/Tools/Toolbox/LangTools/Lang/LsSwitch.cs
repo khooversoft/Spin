@@ -1,15 +1,14 @@
 ﻿using System.Diagnostics;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.LangTools;
 
 
 [DebuggerDisplay("Name={Name}")]
-public class LsOption : LangBase<ILangSyntax>, ILangRoot
+public class LsSwitch : LangBase<ILangSyntax>, ILangRoot
 {
-    public LsOption(string? name = null) => Name = name;
+    public LsSwitch(string? name = null) => Name = name;
 
     public string? Name { get; }
 
@@ -22,7 +21,7 @@ public class LsOption : LangBase<ILangSyntax>, ILangRoot
                 switch (item)
                 {
                     case ILangRoot root:
-                        var result = root.MatchSyntaxSegement(nameof(LsOption), pContext);
+                        var result = root.MatchSyntaxSegement(nameof(LsSwitch), pContext);
                         if (result.IsOk()) return result;
                         break;
 
@@ -40,11 +39,11 @@ public class LsOption : LangBase<ILangSyntax>, ILangRoot
             break;
         }
 
-        return new LangNodes();
+        return (StatusCode.BadRequest, "Syntax error, no repeating values");
     }
 
-    public override string ToString() => $"{nameof(LsOption)}: Name={Name}, nodes=[ {this.Select(x => x.ToString()).Join(' ')} ]";
+    public override string ToString() => $"{nameof(LsSwitch)}: Name={Name}, nodes=[ {this.Select(x => x.ToString()).Join(' ')} ]";
 
-    public static LsOption operator +(LsOption subject, ILangRoot syntax) => subject.Action(x => x.Children.Add(syntax));
-    public static LsOption operator +(LsOption subject, ILangSyntax syntax) => subject.Action(x => x.Children.Add(syntax));
+    public static LsSwitch operator +(LsSwitch subject, ILangRoot syntax) => subject.Action(x => x.Children.Add(syntax));
+    public static LsSwitch operator +(LsSwitch subject, ILangSyntax syntax) => subject.Action(x => x.Children.Add(syntax));
 }

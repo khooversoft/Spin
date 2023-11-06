@@ -14,7 +14,7 @@ public class LangGroupingTests
 
         var equalValue = new LsRoot("k=v") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
         var valueOnly = new LsRoot("v") + new LsValue("svalue");
-        var repeat = new LsRepeat("repeat") + (new LsOr("or") + equalValue + valueOnly) + new LsToken(";", "delimiter", true);
+        var repeat = new LsRepeat("repeat") + (new LsSwitch("or") + equalValue + valueOnly) + new LsToken(";", "delimiter", true);
 
         _root = new LsRoot("root") + (new LsGroup("(", ")", "group") + repeat);
     }

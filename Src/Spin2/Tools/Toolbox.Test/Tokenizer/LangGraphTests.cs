@@ -3,13 +3,8 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;
 
-/// <summary>
-/// (key=key1;tags=t1) n1 -> [schedulework:active] -> (schedule) n2
-/// (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2
-/// (key= key1; t1) n1 -> [schedulework:*] -> (schedule) n2
-/// [fromKey = key1; edgeType=abc*] -> (schedule) n1
-/// (t1) -> [tags=schedulework:active] -> (tags="state=active") n1
-/// </summary>
+
+
 public class LangGraphTests
 {
     private readonly ITestOutputHelper _output;
@@ -21,7 +16,7 @@ public class LangGraphTests
 
         var equalValue = new LsRoot("equalValue") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
         var valueOnly = new LsRoot("valueOnly") + new LsValue("svalue");
-        var parameters = new LsRepeat("rpt-parms") + (new LsOr("or") + equalValue + valueOnly) + new LsToken(";", "delimiter", true);
+        var parameters = new LsRepeat("rpt-parms") + (new LsSwitch("or") + equalValue + valueOnly) + new LsToken(";", "delimiter", true);
 
         var nodeSyntax = new LsRoot("node")
             + (new LsGroup("(", ")", "pgroup") + parameters)
@@ -31,7 +26,17 @@ public class LangGraphTests
             + (new LsGroup("[", "]", "bgroup") + parameters)
             + new LsValue("alias", true);
 
-        _root = new LsRoot() + (new LsRepeat("repeat-root") + (new LsOr("instr-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "next", true));
+        var search = new LsRoot() + (new LsRepeat("repeat-root") + (new LsSwitch("instr-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "next", true));
+
+        var property = new LsRoot("property") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
+        var properties = new LsRepeat("properties-rpt") + equalValue + new LsToken(",", "delimiter", true);
+        var setValues = new LsRoot("setValues") + properties + new LsToken(";", "term", true);
+
+        var select = new LsRoot() +
+            (new LsSwitch("switch")
+                + (new LsRoot("select-root") + new LsToken("select", "select") + search)
+            //+ (new LsRoot("add-root") + 
+            );
     }
 
     [Fact]

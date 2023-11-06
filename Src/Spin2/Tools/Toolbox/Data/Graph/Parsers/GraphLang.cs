@@ -29,7 +29,7 @@ public static class GraphLang
     private readonly static LsRoot _valueOnly = new LsRoot("valueOnly") + new LsValue("svalue");
 
     private readonly static LsRepeat _parameters = new LsRepeat("params-rpt")
-        + (new LsOr("params-or") + _equalValue + _valueOnly)
+        + (new LsSwitch("params-or") + _equalValue + _valueOnly)
         + new LsToken(";", "params-delimiter", true);
 
     private readonly static LsRoot _nodeSyntax = new LsRoot("node")
@@ -48,7 +48,7 @@ public static class GraphLang
 
     private readonly static LsRoot _root = new LsRoot()
         + (new LsRepeat("root-rpt")
-            + (new LsOr("instr-or") + _nodeSyntax + _edgeSyntax) + new LsToken("->", "next", true)
+            + (new LsSwitch("instr-or") + _nodeSyntax + _edgeSyntax) + new LsToken("->", "next", true)
         );
 
     public static Option<IReadOnlyList<IGraphQL>> Parse(string rawData)

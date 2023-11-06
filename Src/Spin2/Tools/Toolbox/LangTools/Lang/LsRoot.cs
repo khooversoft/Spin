@@ -4,13 +4,6 @@ using Toolbox.Types;
 namespace Toolbox.LangTools;
 
 
-public interface ILangSyntax
-{
-    string? Name { get; }
-    Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor = null);
-}
-
-
 public interface ILangRoot : ILangBase<ILangSyntax>, ILangSyntax
 {
 }

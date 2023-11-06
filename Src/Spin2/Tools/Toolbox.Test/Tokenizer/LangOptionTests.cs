@@ -22,9 +22,32 @@ public class LangOptionTests
     }
 
     [Fact]
-    public void SimpleFormat()
+    public void SimpleFormatWithRootShouldFail()
     {
         var ins = new LsOption() + (new LsRoot() + new LsToken("=", "equal")) + (new LsRoot() + new LsToken("+", "plus"));
+        LangResult tree = ins.Parse("=");
+        tree.StatusCode.IsOk().Should().BeTrue(tree.StatusCode.ToString());
+
+        LangNodes nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+
+        tree = ins.Parse("+");
+        tree.StatusCode.IsOk().Should().BeTrue();
+
+        nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
+
+        tree = ins.Parse("*");
+        tree.StatusCode.IsError().Should().BeTrue(tree.StatusCode.ToString());
+    }
+
+    [Fact]
+    public void SimpleFormat()
+    {
+        var ins = new LsRoot("root") + (new LsOption("option") + new LsToken("=", "equal") + new LsToken("+", "plus")) + new LsValue("catch", true);
+
         LangResult tree = ins.Parse("=");
         tree.StatusCode.IsOk().Should().BeTrue();
 
@@ -38,6 +61,12 @@ public class LangOptionTests
         nodes = tree.LangNodes.NotNull();
         nodes.Children.Count.Should().Be(1);
         nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
+
+        tree = ins.Parse("*");
+        tree.StatusCode.IsOk().Should().BeTrue(tree.StatusCode.ToString());
+        nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("catch");
     }
 
     [Fact]

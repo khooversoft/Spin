@@ -1,4 +1,7 @@
-﻿using Toolbox.LangTools;
+﻿using FluentAssertions;
+using Toolbox.LangTools;
+using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tokenizer;
@@ -15,7 +18,46 @@ public class LangOrTests
         var equalValue = new LsRoot("equal") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
         var valueOnly = new LsRoot("single") + new LsValue("svalue");
 
-        _root = new LsRoot() + (new LsOr("or") + equalValue + valueOnly);
+        _root = new LsRoot() + (new LsSwitch("or") + equalValue + valueOnly);
+    }
+
+
+    [Fact]
+    public void SimpleFormatWithRoot()
+    {
+        var ins = new LsSwitch() + (new LsRoot() + new LsToken("=", "equal")) + (new LsRoot() + new LsToken("+", "plus"));
+        LangResult tree = ins.Parse("=");
+        tree.StatusCode.IsOk().Should().BeTrue();
+
+        LangNodes nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+
+        tree = ins.Parse("+");
+        tree.StatusCode.IsOk().Should().BeTrue();
+
+        nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
+    }
+
+    [Fact]
+    public void SimpleFormat()
+    {
+        var ins = new LsRoot("root") + (new LsSwitch("option") + new LsToken("=", "equal") + new LsToken("+", "plus"));
+        LangResult tree = ins.Parse("=");
+        tree.StatusCode.IsOk().Should().BeTrue();
+
+        LangNodes nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+
+        tree = ins.Parse("+");
+        tree.StatusCode.IsOk().Should().BeTrue();
+
+        nodes = tree.LangNodes.NotNull();
+        nodes.Children.Count.Should().Be(1);
+        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
     }
 
     [Fact]
