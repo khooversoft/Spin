@@ -3,7 +3,7 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Graph;
 
 public class GraphMapSerializationTests
 {
@@ -160,11 +160,11 @@ public class GraphMapSerializationTests
 
         var s1 = map.Nodes.Select(x => x.Key).OrderBy(x => x).ToArray();
         var s2 = mapRead.Nodes.Select(x => x.Key).OrderBy(x => x).ToArray();
-        Enumerable.SequenceEqual(s1, s2).Should().BeTrue();
+        s1.SequenceEqual(s2).Should().BeTrue();
 
         var e1 = map.Edges.Select(x => x.Key).OrderBy(x => x).ToArray();
         var e2 = mapRead.Edges.Select(x => x.Key).OrderBy(x => x).ToArray();
-        Enumerable.SequenceEqual(e1, e2).Should().BeTrue();
+        e1.SequenceEqual(e2).Should().BeTrue();
     }
 
     [Fact]

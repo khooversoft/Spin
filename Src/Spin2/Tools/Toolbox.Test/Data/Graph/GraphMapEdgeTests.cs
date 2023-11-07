@@ -2,7 +2,7 @@
 using Toolbox.Data;
 using Toolbox.Extensions;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Graph;
 
 public class GraphMapEdgeTests
 {

@@ -9,7 +9,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Serialization;
 
 public class GraphQueryResultTests
 {
@@ -50,17 +50,17 @@ public class GraphQueryResultTests
         result.Alias.Count.Should().Be(2);
 
         var n = result.Items.OfType<GraphNode>().OrderBy(x => x.Key).ToArray();
-        Enumerable.SequenceEqual(nodes, n).Should().BeTrue();
+        nodes.SequenceEqual(n).Should().BeTrue();
 
         var e = result.Items.OfType<GraphEdge>().OrderBy(x => x.FromKey).ToArray();
-        Enumerable.SequenceEqual(edges, e).Should().BeTrue();
+        edges.SequenceEqual(e).Should().BeTrue();
 
         result.Alias.ContainsKey("a1").Should().BeTrue();
         var n1 = result.Alias["a1"].OfType<GraphNode>().OrderBy(x => x.Key).ToArray();
-        Enumerable.SequenceEqual(nodes, n1).Should().BeTrue();
+        nodes.SequenceEqual(n1).Should().BeTrue();
 
         result.Alias.ContainsKey("b2").Should().BeTrue();
         var e1 = result.Alias["b2"].OfType<GraphEdge>().OrderBy(x => x.FromKey).ToArray();
-        Enumerable.SequenceEqual(edges, e1).Should().BeTrue();
+        edges.SequenceEqual(e1).Should().BeTrue();
     }
 }

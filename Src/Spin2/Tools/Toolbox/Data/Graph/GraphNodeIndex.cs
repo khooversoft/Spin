@@ -74,7 +74,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public IReadOnlyList<GraphNode> Query(GraphNodeQuery query)
+    public IReadOnlyList<GraphNode> Query(GraphNodeSelect query)
     {
         query.NotNull();
 
@@ -97,7 +97,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public Option Update(GraphNodeQuery query, Func<GraphNode, GraphNode> update)
+    public Option Update(GraphNodeSelect query, Func<GraphNode, GraphNode> update)
     {
         update.NotNull();
 

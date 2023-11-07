@@ -2,7 +2,7 @@
 using Toolbox.Data;
 using Toolbox.Extensions;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Types;
 
 public class DictionaryHashSetTests
 {
@@ -55,7 +55,7 @@ public class DictionaryHashSetTests
 
             var inSet = set.OrderBy(x => x.Key).ToArray();
 
-            Enumerable.SequenceEqual(inSet, shouldMatch).Should().BeTrue();
+            inSet.SequenceEqual(shouldMatch).Should().BeTrue();
 
             shuffle.TryPop(out var key).Should().BeTrue();
 
@@ -91,7 +91,7 @@ public class DictionaryHashSetTests
 
             var inSet = set.OrderBy(x => x.Value).ToArray();
 
-            Enumerable.SequenceEqual(inSet, shouldMatch).Should().BeTrue();
+            inSet.SequenceEqual(shouldMatch).Should().BeTrue();
             shuffle.TryPop(out var refKey).Should().BeTrue();
 
             set.Remove(key, refKey).Should().BeTrue();
@@ -125,7 +125,7 @@ public class DictionaryHashSetTests
                 .ToArray();
 
             var inSet = set.OrderBy(x => x.Key).ThenBy(x => x.Value).ToArray();
-            Enumerable.SequenceEqual(inSet, shouldMatch).Should().BeTrue();
+            inSet.SequenceEqual(shouldMatch).Should().BeTrue();
 
             shuffle.TryPop(out var pair).Should().BeTrue();
             set.Remove(pair.Key, pair.Value).Should().BeTrue();

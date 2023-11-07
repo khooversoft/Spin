@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Toolbox.Data;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Graph;
 
 public class GraphSearchTests
 {
@@ -41,7 +41,7 @@ public class GraphSearchTests
 
         nodes.Count.Should().Be(6);
         var inSet = _map.Nodes.Where(x => x.Key != "node7").Select(x => x.Key).ToArray();
-        Enumerable.SequenceEqual(nodes.Select(x => x.Key).OrderBy(y => y), inSet).Should().BeTrue();
+        nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class GraphSearchTests
         result.Edges.Count.Should().Be(2);
         var shouldMatch = new[] { ("node1", "node2"), ("node1", "node3") };
         var inSet = result.Edges.OrderBy(x => x.ToKey).Select(x => (x.FromKey, x.ToKey)).ToArray();
-        Enumerable.SequenceEqual(inSet, shouldMatch).Should().BeTrue();
+        inSet.SequenceEqual(shouldMatch).Should().BeTrue();
     }
 
     [Fact]
@@ -75,11 +75,11 @@ public class GraphSearchTests
         result.Nodes.Count.Should().Be(2);
         var n1 = new[] { "node3", "node5" };
         var n2 = result.Nodes.Select(x => x.Key).OrderBy(x => x);
-        Enumerable.SequenceEqual(n1, n2).Should().BeTrue();
+        n1.SequenceEqual(n2).Should().BeTrue();
 
         result.Edges.Count.Should().Be(4);
         var e1 = new[] { "node3", "node3", "node3", "node5" };
         var e2 = result.Edges.Select(x => x.ToKey).OrderBy(x => x);
-        Enumerable.SequenceEqual(e1, e2).Should().BeTrue();
+        e1.SequenceEqual(e2).Should().BeTrue();
     }
 }

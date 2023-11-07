@@ -2,7 +2,7 @@
 using Toolbox.Data;
 using Toolbox.Extensions;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Types;
 
 public class SecondaryIndexTests
 {
@@ -80,7 +80,7 @@ public class SecondaryIndexTests
 
             var shouldMatch = pkeyInput.Select(x => new KeyValuePair<int, Guid>(key, x)).OrderBy(x => x.Key).ToArray();
             shouldMatch.Length.Should().Be(pkeyInput.Length);
-            Enumerable.SequenceEqual(index.OrderBy(x => x.Key).ToArray(), shouldMatch).Should().BeTrue();
+            index.OrderBy(x => x.Key).ToArray().SequenceEqual(shouldMatch).Should().BeTrue();
 
             var keys = index.LookupPrimaryKey(shuffel.Peek());
             keys.Count.Should().Be(1);
@@ -88,7 +88,7 @@ public class SecondaryIndexTests
 
             var pkeys = index.Lookup(key);
             pkeys.Count.Should().Be(pkeyInput.Length);
-            Enumerable.SequenceEqual(pkeyInput.OrderBy(x => x), pkeys.OrderBy(x => x)).Should().BeTrue();
+            pkeyInput.OrderBy(x => x).SequenceEqual(pkeys.OrderBy(x => x)).Should().BeTrue();
 
             shuffel.TryPop(out var pkey).Should().BeTrue();
             index.Remove(key, pkey).Should().BeTrue();
@@ -122,11 +122,11 @@ public class SecondaryIndexTests
 
             var shouldMatch = shuffle.Select(x => new KeyValuePair<int, Guid>(x, pkeyInput)).OrderBy(x => x.Key).ToArray();
             shouldMatch.Length.Should().Be(shuffle.Count);
-            Enumerable.SequenceEqual(index.OrderBy(x => x.Key).ToArray(), shouldMatch).Should().BeTrue();
+            index.OrderBy(x => x.Key).ToArray().SequenceEqual(shouldMatch).Should().BeTrue();
 
             var keys = index.LookupPrimaryKey(pkeyInput);
             keys.Count.Should().Be(shuffle.Count);
-            Enumerable.SequenceEqual(shuffle.OrderBy(x => x), keys.OrderBy(x => x)).Should().BeTrue();
+            shuffle.OrderBy(x => x).SequenceEqual(keys.OrderBy(x => x)).Should().BeTrue();
 
             var pkeys = index.Lookup(shuffle.Peek());
             pkeys.Count.Should().Be(1);
@@ -166,8 +166,7 @@ public class SecondaryIndexTests
             index.Count.Should().Be(shuffle.Select(x => x.Key).Distinct().Count());
             index.Count().Should().Be(shuffle.Count);
 
-            Enumerable.SequenceEqual(
-                index.OrderBy(x => x.Key).ThenBy(x => x.Value),
+            index.OrderBy(x => x.Key).ThenBy(x => x.Value).SequenceEqual(
                 shuffle.OrderBy(x => x.Key).ThenBy(x => x.Value)
                 ).Should().BeTrue();
 
@@ -181,7 +180,7 @@ public class SecondaryIndexTests
                 .ToArray();
 
             keys.Count.Should().Be(shouldMatchPk.Length);
-            Enumerable.SequenceEqual(shouldMatchPk, keys.OrderBy(x => x)).Should().BeTrue();
+            shouldMatchPk.SequenceEqual(keys.OrderBy(x => x)).Should().BeTrue();
 
             int key = shuffle.Peek().Key;
             var pkeys = index.Lookup(key);
@@ -195,7 +194,7 @@ public class SecondaryIndexTests
             pkeys.Count.Should().Be(shouldMatch.Length);
             var inSet = pkeys.OrderBy(x => x).ToArray();
 
-            Enumerable.SequenceEqual(inSet, shouldMatch).Should().BeTrue();
+            inSet.SequenceEqual(shouldMatch).Should().BeTrue();
 
             shuffle.TryPop(out var item).Should().BeTrue();
             index.Remove(item.Key, item.Value).Should().BeTrue();
@@ -231,8 +230,7 @@ public class SecondaryIndexTests
             index.Count.Should().Be(shuffle.Select(x => x.Key).Distinct().Count());
             index.Count().Should().Be(shuffle.Count);
 
-            Enumerable.SequenceEqual(
-                index.OrderBy(x => x.Key).ThenBy(x => x.Value),
+            index.OrderBy(x => x.Key).ThenBy(x => x.Value).SequenceEqual(
                 shuffle.OrderBy(x => x.Key).ThenBy(x => x.Value)
                 ).Should().BeTrue();
 
@@ -246,7 +244,7 @@ public class SecondaryIndexTests
                 .ToArray();
 
             keys.Count.Should().Be(shouldMatchPk.Length);
-            Enumerable.SequenceEqual(shouldMatchPk, keys.OrderBy(x => x)).Should().BeTrue();
+            shouldMatchPk.SequenceEqual(keys.OrderBy(x => x)).Should().BeTrue();
 
             string key = shuffle.Peek().Key;
             var pkeys = index.Lookup(key);
@@ -258,7 +256,7 @@ public class SecondaryIndexTests
                 .ToArray();
 
             pkeys.Count.Should().Be(shouldMatch.Length);
-            Enumerable.SequenceEqual(shouldMatch, pkeys.OrderBy(x => x)).Should().BeTrue();
+            shouldMatch.SequenceEqual(pkeys.OrderBy(x => x)).Should().BeTrue();
 
             shuffle.TryPop(out var item).Should().BeTrue();
             index.Remove(item.Key, item.Value).Should().BeTrue();

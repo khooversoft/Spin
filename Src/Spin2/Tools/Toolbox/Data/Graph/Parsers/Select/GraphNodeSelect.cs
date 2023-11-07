@@ -2,7 +2,7 @@
 
 namespace Toolbox.Data;
 
-public record GraphNodeQuery : IGraphQL
+public record GraphNodeSelect : IGraphQL
 {
     public string? Key { get; init; }
     public string? Tags { get; init; }
@@ -12,7 +12,7 @@ public record GraphNodeQuery : IGraphQL
 
 public static class GraphNodeQueryExtensions
 {
-    public static bool IsMatch(this GraphNodeQuery subject, GraphNode node)
+    public static bool IsMatch(this GraphNodeSelect subject, GraphNode node)
     {
         bool isKey = subject.Key == null || node.Key.IsMatch(subject.Key);
         bool isTag = subject.Tags == null || node.Tags.Has(subject.Tags);

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Toolbox.Data;
 using Toolbox.LangTools;
 using Xunit.Abstractions;
 
@@ -29,11 +25,11 @@ public class GraphUpdateTests
             {
                 new QueryResult<LsSymbol>("update"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
 
                 new QueryResult<LsSymbol>("set"),
 
@@ -62,7 +58,7 @@ public class GraphUpdateTests
             {
                 new QueryResult<LsSymbol>("update"),
 
-                new QueryResult<LsGroup>("[","bgroup"),
+                new QueryResult<LsGroup>("[","edge-group"),
                 new QueryResult<LsValue>("edgeType","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("abc*", "rvalue"),
@@ -70,7 +66,7 @@ public class GraphUpdateTests
                 new QueryResult<LsToken>(";", "delimiter"),
                 new QueryResult<LsValue>("schedulework:active","svalue"),
 
-                new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsGroup>("]","edge-group"),
 
                 new QueryResult<LsSymbol>("set"),
 

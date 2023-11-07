@@ -2,10 +2,8 @@
 
 namespace Toolbox.Data;
 
-public record GraphEdgeQuery : IGraphQL
+public record GraphEdgeSelect : IGraphQL
 {
-    public GraphEdgeQuery() { }
-
     public string? NodeKey { get; init; }
     public string? FromKey { get; init; }
     public string? ToKey { get; init; }
@@ -17,7 +15,7 @@ public record GraphEdgeQuery : IGraphQL
 
 public static class GraphEdgeQueryExtensions
 {
-    public static bool IsMatch(this GraphEdgeQuery subject, GraphEdge edge)
+    public static bool IsMatch(this GraphEdgeSelect subject, GraphEdge edge)
     {
         bool isNodeKey = subject.NodeKey switch
         {

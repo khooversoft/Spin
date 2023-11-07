@@ -25,7 +25,7 @@ public class GraphQuery
         {
             switch (graphQL)
             {
-                case GraphNodeQuery node:
+                case GraphNodeSelect node:
                     search = first switch
                     {
                         true => search.Nodes(x => node.IsMatch(x)),
@@ -35,7 +35,7 @@ public class GraphQuery
                     update(search, node.Alias);
                     break;
 
-                case GraphEdgeQuery edge:
+                case GraphEdgeSelect edge:
                     search = first switch
                     {
                         true => search.Edges(x => edge.IsMatch(x)),

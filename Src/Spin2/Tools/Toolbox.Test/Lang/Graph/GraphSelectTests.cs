@@ -1,4 +1,5 @@
-﻿using Toolbox.LangTools;
+﻿using Toolbox.Data;
+using Toolbox.LangTools;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Lang.Graph;
@@ -24,11 +25,11 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsToken>(";", "term"),
             }
         };
@@ -46,11 +47,11 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("[","bgroup"),
+                new QueryResult<LsGroup>("[","edge-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsGroup>("]","edge-group"),
                 new QueryResult<LsToken>(";", "term"),
             }
         };
@@ -68,11 +69,11 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsValue>("a1","alias"),
                 new QueryResult<LsToken>(";", "term"),
             }
@@ -92,11 +93,11 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("[","bgroup"),
+                new QueryResult<LsGroup>("[","edge-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsGroup>("]","edge-group"),
                 new QueryResult<LsValue>("a1","alias"),
                 new QueryResult<LsToken>(";", "term"),
             }
@@ -115,7 +116,7 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
@@ -123,13 +124,13 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
 
-                new QueryResult<LsToken>("->", "next"),
+                new QueryResult<LsToken>("->", "select-next"),
 
-                new QueryResult<LsGroup>("[","bgroup"),
+                new QueryResult<LsGroup>("[","edge-group"),
                 new QueryResult<LsValue>("schedulework:active","svalue"),
-                new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsGroup>("]","edge-group"),
                 new QueryResult<LsToken>(";", "term"),
             }
         };
@@ -147,7 +148,7 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
@@ -155,18 +156,18 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
 
-                new QueryResult<LsToken>("->", "next"),
+                new QueryResult<LsToken>("->", "select-next"),
 
-                new QueryResult<LsGroup>("[","bgroup"),
+                new QueryResult<LsGroup>("[","edge-group"),
                 new QueryResult<LsValue>("schedulework:active","svalue"),
-                new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsGroup>("]","edge-group"),
 
-                new QueryResult<LsToken>("->", "next"),
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsToken>("->", "select-next"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("schedule","svalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsValue>("n2","alias"),
                 new QueryResult<LsToken>(";", "term"),
             }
@@ -185,7 +186,7 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
@@ -193,23 +194,23 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsValue>("n1","alias"),
 
-                new QueryResult<LsToken>("->", "next"),
+                new QueryResult<LsToken>("->", "select-next"),
 
-                new QueryResult<LsGroup>("[","bgroup"),
+                new QueryResult<LsGroup>("[","edge-group"),
                 new QueryResult<LsValue>("edgeType","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("abc*", "rvalue"),
                 new QueryResult<LsToken>(";", "delimiter"),
                 new QueryResult<LsValue>("schedulework:active","svalue"),
-                new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsGroup>("]","edge-group"),
 
-                new QueryResult<LsToken>("->", "next"),
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsToken>("->", "select-next"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("schedule","svalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsValue>("n2","alias"),
                 new QueryResult<LsToken>(";", "term"),
             }
@@ -228,25 +229,25 @@ public class GraphSelectTests
             {
                 new QueryResult<LsSymbol>("select"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("t1","svalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsValue>("n1","alias"),
 
-                new QueryResult<LsToken>("->", "next"),
+                new QueryResult<LsToken>("->", "select-next"),
 
-                new QueryResult<LsGroup>("[","bgroup"),
+                new QueryResult<LsGroup>("[","edge-group"),
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("schedulework:active", "rvalue"),
-                new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsGroup>("]","edge-group"),
                 new QueryResult<LsValue>("n3","alias"),
 
-                new QueryResult<LsToken>("->", "next"),
+                new QueryResult<LsToken>("->", "select-next"),
 
-                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsGroup>("(","node-group"),
                 new QueryResult<LsValue>("t2","svalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsValue>("n2","alias"),
                 new QueryResult<LsToken>(";", "term"),
             }

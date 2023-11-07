@@ -3,36 +3,37 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Lang;
 
 //var q = "(t1)";
 //var q = "(key=key1;tags=t1)";
 //var q = "[schedulework:active]";
-public class GraphLangTests
+public class GraphSelectTests
 {
     [Fact]
     public void FullSyntax()
     {
-        var q = "(key=key1;tags=t1) -> [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2] -> (schedule)";
+        var q = "select (key=key1;tags=t1) -> [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2] -> (schedule);";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(3);
 
-        list[0].Action(x =>
+        int index = 0;
+        list[index++].Action(x =>
         {
-            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
 
             query.Key.Should().Be("key1");
             query.Tags.Should().Be("t1");
             query.Alias.Should().BeNull();
         });
 
-        list[1].Action(x =>
+        list[index++].Action(x =>
         {
-            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
 
             query.NodeKey.Should().Be("key1");
             query.FromKey.Should().Be("fromKey1");
@@ -42,9 +43,9 @@ public class GraphLangTests
             query.Alias.Should().BeNull();
         });
 
-        list[2].Action(x =>
+        list[index++].Action(x =>
         {
-            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
 
             query.Key.Should().BeNull();
             query.Tags.Should().Be("schedule");
@@ -55,7 +56,7 @@ public class GraphLangTests
     [Fact]
     public void FullSyntaxWithAlias()
     {
-        var q = "(key=key1;tags=t1) a1 -> [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2] a2 -> (schedule) a3";
+        var q = "select (key=key1;tags=t1) a1 -> [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2] a2 -> (schedule) a3;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -65,7 +66,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
 
             query.Key.Should().Be("key1");
             query.Tags.Should().Be("t1");
@@ -74,7 +75,7 @@ public class GraphLangTests
 
         list[1].Action(x =>
         {
-            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
 
             query.NodeKey.Should().Be("key1");
             query.FromKey.Should().Be("fromKey1");
@@ -86,7 +87,7 @@ public class GraphLangTests
 
         list[2].Action(x =>
         {
-            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
 
             query.Key.Should().BeNull();
             query.Tags.Should().Be("schedule");
@@ -97,7 +98,7 @@ public class GraphLangTests
     [Fact]
     public void SingleTagsSyntax()
     {
-        var q = "(t1)";
+        var q = "select (t1);";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -107,7 +108,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
 
             query.Key.Should().BeNull();
             query.Tags.Should().Be("t1");
@@ -117,7 +118,7 @@ public class GraphLangTests
     [Fact]
     public void SingleSyntax()
     {
-        var q = "(key=key1;tags=t1)";
+        var q = "select (key=key1;tags=t1);";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -127,7 +128,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
 
             query.Key.Should().Be("key1");
             query.Tags.Should().Be("t1");
@@ -137,7 +138,7 @@ public class GraphLangTests
     [Fact]
     public void SingleEdgeTagSyntax()
     {
-        var q = "[schedulework:active]";
+        var q = "select [schedulework:active];";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -147,7 +148,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
 
             query.NodeKey.Should().BeNull();
             query.FromKey.Should().BeNull();
@@ -160,7 +161,7 @@ public class GraphLangTests
     [Fact]
     public void SingleEdgeSyntax()
     {
-        var q = "[NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2]";
+        var q = "select [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2];";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -170,7 +171,7 @@ public class GraphLangTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphEdgeQuery query) throw new ArgumentException("not graphNode");
+            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
 
             query.NodeKey.Should().Be("key1");
             query.FromKey.Should().Be("fromKey1");

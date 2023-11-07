@@ -3,7 +3,7 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace Toolbox.Test.Data;
+namespace Toolbox.Test.Data.Graph;
 
 public class GraphQueryNodeTests
 {
@@ -28,7 +28,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void NodeQuery()
     {
-        GraphQueryResult result = _map.Query().Execute("(key=node1)");
+        GraphQueryResult result = _map.Query().Execute("select (key=node1);");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
@@ -45,7 +45,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void QueryWithAlias()
     {
-        GraphQueryResult result = _map.Query().Execute("(key=node1) a1");
+        GraphQueryResult result = _map.Query().Execute("select (key=node1) a1;");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(1);
@@ -69,7 +69,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void TagDefaultQuery1()
     {
-        GraphQueryResult result = _map.Query().Execute("(name) a1");
+        GraphQueryResult result = _map.Query().Execute("select (name) a1;");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(6);
@@ -79,13 +79,13 @@ public class GraphQueryNodeTests
         nodes.Length.Should().Be(6);
 
         var inSet = _map.Nodes.Where(x => x.Key != "node7").Select(x => x.Key).OrderBy(x => x).ToArray();
-        Enumerable.SequenceEqual(nodes.Select(x => x.Key).OrderBy(y => y), inSet).Should().BeTrue();
+        nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
     }
 
     [Fact]
     public void SpecificTagDefaultQuery()
     {
-        GraphQueryResult result = _map.Query().Execute("('name=marko')");
+        GraphQueryResult result = _map.Query().Execute("select ('name=marko');");
 
         result.StatusCode.IsOk().Should().BeTrue(result.Error);
         result.Items.Count.Should().Be(1);
@@ -95,13 +95,13 @@ public class GraphQueryNodeTests
         nodes.Length.Should().Be(1);
 
         var inSet = _map.Nodes.Where(x => x.Key == "node1" && x.Tags.Has("name=marko")).Select(x => x.Key).ToArray();
-        Enumerable.SequenceEqual(nodes.Select(x => x.Key).OrderBy(y => y), inSet).Should().BeTrue();
+        nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
     }
 
     [Fact]
     public void TagWithTagKeywordQuery()
     {
-        GraphQueryResult result = _map.Query().Execute("(tags='name=marko')");
+        GraphQueryResult result = _map.Query().Execute("select (tags='name=marko');");
 
         result.StatusCode.IsOk().Should().BeTrue(result.Error);
         result.Items.Count.Should().Be(1);
@@ -111,7 +111,7 @@ public class GraphQueryNodeTests
         nodes.Length.Should().Be(1);
 
         var inSet = _map.Nodes.Where(x => x.Key == "node1" && x.Tags.Has("name=marko")).Select(x => x.Key).ToArray();
-        Enumerable.SequenceEqual(nodes.Select(x => x.Key).OrderBy(y => y), inSet).Should().BeTrue();
+        nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
     }
 
     [Fact]
@@ -119,8 +119,8 @@ public class GraphQueryNodeTests
     {
         var cmds = new (string query, Func<GraphNode, bool> filter, int count)[]
         {
-            ("(key=*)", x => true, 7),
-            ("(key=*5)", x => x.Key == "node5", 1),
+            ("select (key=*);", x => true, 7),
+            ("select (key=*5);", x => x.Key == "node5", 1),
         };
 
         foreach (var cmd in cmds)
@@ -135,7 +135,7 @@ public class GraphQueryNodeTests
             nodes.Length.Should().Be(cmd.count);
 
             var inSet = _map.Nodes.Where(x => cmd.filter(x)).Select(x => x.Key).ToArray();
-            Enumerable.SequenceEqual(nodes.Select(x => x.Key).OrderBy(y => y), inSet).Should().BeTrue();
+            nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
         }
     }
 
@@ -144,17 +144,17 @@ public class GraphQueryNodeTests
     {
         var cmds = new (string query, Func<GraphEdge, bool> filter, int count)[]
         {
-            ("[fromKey=*]", x => true, 5),
-            ("[fromKey=node4]", x => x.FromKey == "node4", 2),
-            ("[fromKey=*1]", x => x.FromKey.EndsWith("1"), 2),
+            ("select [fromKey=*];", x => true, 5),
+            ("select [fromKey=node4];", x => x.FromKey == "node4", 2),
+            ("select [fromKey=*1];", x => x.FromKey.EndsWith("1"), 2),
 
-            ("[toKey=*]", x => true, 5),
-            ("[toKey=node5]", x => x.ToKey == "node5", 1),
-            ("[toKey=*3]", x => x.ToKey.EndsWith("3"), 3),
+            ("select [toKey=*];", x => true, 5),
+            ("select [toKey=node5];", x => x.ToKey == "node5", 1),
+            ("select [toKey=*3];", x => x.ToKey.EndsWith("3"), 3),
 
-            ("[EdgeType=*]", x => true, 5),
-            ("[edgeType=owns-3]", x => x.EdgeType == "owns-3", 1),
-            ("[edgeType=owns*]", x => x.EdgeType.StartsWith("own"), 3),
+            ("select [EdgeType=*];", x => true, 5),
+            ("select [edgeType=owns-3];", x => x.EdgeType == "owns-3", 1),
+            ("select [edgeType=owns*];", x => x.EdgeType.StartsWith("own"), 3),
         };
 
         foreach (var cmd in cmds)
@@ -170,7 +170,7 @@ public class GraphQueryNodeTests
 
             var inSet = _map.Edges.Where(x => cmd.filter(x)).Select(x => x.Key).OrderBy(x => x).ToArray();
             inSet.Length.Should().Be(nodes.Length, cmd.query);
-            Enumerable.SequenceEqual(nodes.Select(x => x.Key).OrderBy(y => y), inSet).Should().BeTrue(cmd.query);
+            nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue(cmd.query);
         }
     }
 }

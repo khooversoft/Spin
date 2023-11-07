@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 
-namespace Toolbox.Test.Lang.Graph;
+namespace Toolbox.Data;
 
 /// <summary>
 /// 
@@ -13,7 +13,7 @@ namespace Toolbox.Test.Lang.Graph;
 /// 
 /// delete (key=key1;tags=t1);
 /// delete [edgeType=abc*;schedulework:active];
-/// delete (key=key1;tags=t1) -> [schedulework:active];
+/// delete (key=key1;tags=t1) a1 -> [schedulework:active] a2;
 /// 
 /// update (key=key1;tags=t1) set key=key1,tags=t1;
 /// update [edgeType=abc*;schedulework:active] set fromKey=key1,toKey=key2,edgeType=et,tags=t2;
@@ -45,14 +45,14 @@ public static class GraphLangGrammer
         get
         {
             var nodeSyntax = new LsRoot("node")
-                + (new LsGroup("(", ")", "pgroup") + SearchFilter)
+                + (new LsGroup("(", ")", "node-group") + SearchFilter)
                 + new LsValue("alias", true);
 
             var edgeSyntax = new LsRoot("edge")
-                + (new LsGroup("[", "]", "bgroup") + SearchFilter)
+                + (new LsGroup("[", "]", "edge-group") + SearchFilter)
                 + new LsValue("alias", true);
 
-            var search = new LsRepeat(nameof(SearchQuery)) + (new LsSwitch("instr-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "next", true);
+            var search = new LsRepeat(nameof(SearchQuery)) + (new LsSwitch("instr-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "select-next", true);
             return search;
         }
     }
@@ -61,8 +61,8 @@ public static class GraphLangGrammer
     {
         get
         {
-            var nodeSyntax = new LsRoot("node-group") + (new LsGroup("(", ")", "pgroup") + SearchFilter);
-            var edgeSyntax = new LsRoot("edge-group") + (new LsGroup("[", "]", "bgroup") + SearchFilter);
+            var nodeSyntax = new LsRoot() + (new LsGroup("(", ")", "node-group") + SearchFilter);
+            var edgeSyntax = new LsRoot() + (new LsGroup("[", "]", "edge-group") + SearchFilter);
 
             var search = new LsSwitch(nameof(UpdateQuery)) + nodeSyntax + edgeSyntax;
             return search;
@@ -104,7 +104,7 @@ public static class GraphLangGrammer
             var rule = new LsRoot(nameof(Update))
                 + new LsSymbol("update")
                 + UpdateQuery
-                + new LsSymbol("set")
+                + new LsSymbol("set", "update-set")
                 + SetValues
                 + new LsToken(";", "term");
 
