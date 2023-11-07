@@ -36,6 +36,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public Option Add(GraphNode node)
     {
+        if (!node.Validate(out var v)) return v;
+
         lock (_lock)
         {
             return _index.TryAdd(node.Key, node) switch

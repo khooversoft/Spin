@@ -32,6 +32,9 @@ delete (key=key1;tags=t1) -> [schedulework:active]
 Update syntax:
 
 ```
-update (key=key1;tags=t1) set key=key1,tags=t1;
-update [edgeType=abc*;schedulework:active] set fromKey=key1,toKey=key2,edgeType=et,tags=t2;
+// update (key=key1;tags=t1) set key=key1,tags=t1;
+// update [edgeType=abc*;schedulework:active] set fromKey=key1,toKey=key2,edgeType=et,tags=t2;
+
+update (key=key1;tags=t1) set tags=t1;
+update [edgeType=abc*;schedulework:active] set edgeType=et,tags=t2;
 ```

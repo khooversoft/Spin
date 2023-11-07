@@ -15,8 +15,15 @@ public class GraphQuery
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
         if (result.IsError()) return new GraphQueryResult { StatusCode = result.StatusCode, Error = result.Error };
 
+        return Process(result.Return());
+    }
+
+    public GraphQueryResult Process(IReadOnlyList<IGraphQL> instructions)
+    {
+        instructions.NotNull();
+
         bool first = true;
-        var stack = result.Return().Reverse().ToStack();
+        var stack = instructions.Reverse().ToStack();
         SearchContext search = _map.Search();
         IReadOnlyList<IGraphCommon> current = null!;
         Dictionary<string, IReadOnlyList<IGraphCommon>> aliasDict = new(StringComparer.OrdinalIgnoreCase);
@@ -44,6 +51,9 @@ public class GraphQuery
 
                     update(search, edge.Alias);
                     break;
+
+                default:
+                    throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
             }
 
             first = false;

@@ -48,6 +48,8 @@ public class GraphMap : IEnumerable<IGraphCommon>
         }
     }
 
+    public GraphMap Clone() => new GraphMap(_nodes, _edges);
+
     public IEnumerator<IGraphCommon> GetEnumerator()
     {
         foreach (var item in Nodes.OfType<IGraphCommon>()) yield return item;
