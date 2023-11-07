@@ -10,30 +10,27 @@ public class GraphUpdateTests
     [Fact]
     public void updateNode()
     {
-        var q = "update (key=key1;tags=t1) set key=key1,tags=t1;";
+        var q = "update (key=key1;tags=t1) set key=key2,tags=t2;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(2);
+        list.Count.Should().Be(1);
 
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid type");
 
-            query.Key.Should().Be("key1");
-            query.Tags.Should().Be("t1");
-            query.Alias.Should().BeNull();
-        });
-
-        list[index++].Action(x =>
-        {
-            if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
-
-            query.Key.Should().Be("key1");
-            query.Tags.Should().Be("t1");
+            query.Key.Should().Be("key2");
+            query.Tags.Should().Be("t2");
+            query.Search.Count.Should().Be(1);
+            query.Search[0].Cast<GraphNodeSelect>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.Should().Be("t1");
+            });
         });
     }
 
@@ -46,20 +43,9 @@ public class GraphUpdateTests
         result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(2);
+        list.Count.Should().Be(1);
 
         int index = 0;
-        list[index++].Action(x =>
-        {
-            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
-
-            query.NodeKey.Should().BeNull();
-            query.FromKey.Should().BeNull();
-            query.ToKey.Should().BeNull();
-            query.EdgeType.Should().Be("abc*");
-            query.Tags.Should().Be("schedulework:active");
-        });
-
         list[index++].Action(x =>
         {
             if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
@@ -68,6 +54,14 @@ public class GraphUpdateTests
             query.ToKey.Should().Be("key2");
             query.EdgeType.Should().Be("et");
             query.Tags.Should().Be("t2");
+            query.Search[0].Cast<GraphEdgeSelect>().Action(x =>
+            {
+                x.NodeKey.Should().BeNull();
+                x.FromKey.Should().BeNull();
+                x.ToKey.Should().BeNull();
+                x.EdgeType.Should().Be("abc*");
+                x.Tags.Should().Be("schedulework:active"); ;
+            });
         });
     }
 }

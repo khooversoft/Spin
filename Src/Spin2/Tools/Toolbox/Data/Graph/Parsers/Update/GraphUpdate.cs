@@ -11,7 +11,7 @@ public static class GraphUpdate
         var selectListOption = GraphSelect.Parse(stack, "update");
         if (selectListOption.IsError()) return selectListOption;
 
-        var list = new Sequence<IGraphQL>() + selectListOption.Return();
+        var list = new Sequence<IGraphQL>();
 
         if (!stack.TryPop(out var setCommand) || setCommand.SyntaxNode.Name != "update-set") return (StatusCode.BadRequest, "Syntax error: Command 'set' is required");
 
@@ -22,7 +22,12 @@ public static class GraphUpdate
             var nodeParse = ParseNode(stack);
             if (nodeParse.IsOk())
             {
-                list += nodeParse.Return();
+                GraphNodeUpdate updateNode = nodeParse.Return() with
+                {
+                    Search = selectListOption.Return(),
+                };
+
+                list += updateNode;
                 return list;
             }
 
@@ -33,7 +38,11 @@ public static class GraphUpdate
             var edgeParse = ParseEdge(stack);
             if (edgeParse.IsOk())
             {
-                list += edgeParse.Return();
+                GraphEdgeUpdate updateEdge = edgeParse.Return() with
+                {
+                    Search = selectListOption.Return(),
+                };
+                list += updateEdge;
                 return list;
             }
 

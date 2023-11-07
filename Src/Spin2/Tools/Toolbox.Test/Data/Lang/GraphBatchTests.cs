@@ -23,7 +23,7 @@ public class GraphBatchTests
         result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(7);
+        list.Count.Should().Be(6);
 
         int index = 0;
         list[index++].Action(x =>
@@ -46,19 +46,16 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
-
-            query.Key.Should().Be("key1");
-            query.Tags.Should().BeNull();
-            query.Alias.Should().BeNull();
-        });
-
-        list[index++].Action(x =>
-        {
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
 
             query.Key.Should().Be("key2");
             query.Tags.Should().Be("t2");
+            query.Search[0].Cast<GraphNodeSelect>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.Should().BeNull();
+                x.Alias.Should().BeNull();
+            });
         });
 
         list[index++].Action(x =>
