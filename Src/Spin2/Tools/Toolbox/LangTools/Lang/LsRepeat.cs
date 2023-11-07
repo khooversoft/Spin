@@ -10,7 +10,10 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
 {
     public LsRepeat(string? name) => Name = name;
 
+    public LsRepeat(bool noDelimiter, string? name) => (NoDelimiter, Name) = (noDelimiter, name);
+
     public string? Name { get; }
+    public bool NoDelimiter { get; }
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
     {
@@ -20,13 +23,13 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
 
         while (pContext.TokensCursor.TryPeekValue(out var token))
         {
-            if (!first && !isDelimter) break;
+            if (!NoDelimiter && !first && !isDelimter) break;
 
             var result = this.MatchSyntaxSegement(nameof(LsRepeat), pContext);
             if (result.IsError()) break;
 
             LangNodes langNodes = result.Return();
-            isDelimter = IsDelimiter(pContext, langNodes);
+            if (!NoDelimiter) isDelimter = IsDelimiter(pContext, langNodes);
 
             nodes += result.Return();
             first = false;
@@ -40,7 +43,7 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
     private bool IsDelimiter(LangParserContext pContext, LangNodes ln) => Children.Count > 0 &&
         ln.Children.Count > 0 &&
         Children.Last() is LsToken token &&
-        token.Symbol == ln.Last().Value;
+        token.Token == ln.Last().Value;
 
     public override string ToString() => $"{nameof(LsRepeat)}: Name={Name}, Syntax=[ {this.Select(x => x.ToString()).Join(' ')} ]";
 

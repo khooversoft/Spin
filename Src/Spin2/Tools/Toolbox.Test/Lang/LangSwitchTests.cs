@@ -4,29 +4,30 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Tokenizer;
+namespace Toolbox.Test.Lang;
 
-public class LangOptionTests
+public class LangSwitchTests
 {
     private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public LangOptionTests(ITestOutputHelper output)
+    public LangSwitchTests(ITestOutputHelper output)
     {
         _output = output;
 
         var equalValue = new LsRoot("equal") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
-        var addValue = new LsRoot("plus") + new LsValue("lvalue") + ("+", "plusSign") + new LsValue("rvalue");
+        var valueOnly = new LsRoot("single") + new LsValue("svalue");
 
-        _root = new LsRoot() + (new LsOption("optional") + equalValue + addValue);
+        _root = new LsRoot() + (new LsSwitch("or") + equalValue + valueOnly);
     }
 
+
     [Fact]
-    public void SimpleFormatWithRootShouldFail()
+    public void SimpleFormatWithRoot()
     {
-        var ins = new LsOption() + (new LsRoot() + new LsToken("=", "equal")) + (new LsRoot() + new LsToken("+", "plus"));
+        var ins = new LsSwitch() + (new LsRoot() + new LsToken("=", "equal")) + (new LsRoot() + new LsToken("+", "plus"));
         LangResult tree = ins.Parse("=");
-        tree.StatusCode.IsOk().Should().BeTrue(tree.StatusCode.ToString());
+        tree.StatusCode.IsOk().Should().BeTrue();
 
         LangNodes nodes = tree.LangNodes.NotNull();
         nodes.Children.Count.Should().Be(1);
@@ -38,16 +39,12 @@ public class LangOptionTests
         nodes = tree.LangNodes.NotNull();
         nodes.Children.Count.Should().Be(1);
         nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
-
-        tree = ins.Parse("*");
-        tree.StatusCode.IsError().Should().BeTrue(tree.StatusCode.ToString());
     }
 
     [Fact]
     public void SimpleFormat()
     {
-        var ins = new LsRoot("root") + (new LsOption("option") + new LsToken("=", "equal") + new LsToken("+", "plus")) + new LsValue("catch", true);
-
+        var ins = new LsRoot("root") + (new LsSwitch("option") + new LsToken("=", "equal") + new LsToken("+", "plus"));
         LangResult tree = ins.Parse("=");
         tree.StatusCode.IsOk().Should().BeTrue();
 
@@ -61,31 +58,17 @@ public class LangOptionTests
         nodes = tree.LangNodes.NotNull();
         nodes.Children.Count.Should().Be(1);
         nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
-
-        tree = ins.Parse("*");
-        tree.StatusCode.IsOk().Should().BeTrue(tree.StatusCode.ToString());
-        nodes = tree.LangNodes.NotNull();
-        nodes.Children.Count.Should().Be(1);
-        nodes.Children[0].SyntaxNode.Name.Should().Be("catch");
     }
 
     [Fact]
-    public void Failures()
+    public void Failure()
     {
-        var tests = new QueryTest[]
-        {
-            new QueryTest { RawData = "key", Results = new List<IQueryResult>() },
-            new QueryTest { RawData = "=", Results = new List<IQueryResult>() },
-        };
-
-        foreach (var test in tests)
-        {
-            LangTestTools.Verify(_output, _root, test);
-        }
+        var test = new QueryTest { RawData = "=", Results = new List<IQueryResult>() };
+        LangTestTools.Verify(_output, _root, test);
     }
 
     [Fact]
-    public void SingleAssignment()
+    public void FirstOrPattern()
     {
         var test = new QueryTest
         {
@@ -102,16 +85,14 @@ public class LangOptionTests
     }
 
     [Fact]
-    public void SingleMath()
+    public void SecondOrPattern()
     {
         var test = new QueryTest
         {
-            RawData = "value+5",
+            RawData = "key",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsValue>("value","lvalue"),
-                new QueryResult<LsToken>("+", "plusSign"),
-                new QueryResult<LsValue>("5", "rvalue"),
+                new QueryResult<LsValue>("key","svalue"),
             }
         };
 

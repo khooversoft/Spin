@@ -4,7 +4,7 @@ using Toolbox.LangTools;
 using Toolbox.Tools;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Tokenizer;
+namespace Toolbox.Test.Lang;
 
 internal static class LangTestTools
 {
@@ -56,7 +56,7 @@ internal record QueryResult<T> : IQueryResult
     public void Test(LangNode node)
     {
         (node.SyntaxNode is T).Should().BeTrue($"SyntaxNode={node.SyntaxNode.GetType().Name}, T={typeof(T).Name}");
-        node.SyntaxNode.Name.Should().Be(Name);
+        if (Name.IsNotEmpty()) node.SyntaxNode.Name.Should().Be(Name);
         node.Value.Should().Be(Value);
     }
 }

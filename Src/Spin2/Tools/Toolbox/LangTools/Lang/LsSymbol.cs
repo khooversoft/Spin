@@ -4,24 +4,24 @@ using Toolbox.Types;
 
 namespace Toolbox.LangTools;
 
-[DebuggerDisplay("Token={Token}, Name={Name}")]
-public class LsToken : ILangSyntax
+[DebuggerDisplay("Symbol={Symbol}, Name={Name}")]
+public class LsSymbol : ILangSyntax
 {
-    public LsToken(string token, bool optional)
+    public LsSymbol(string symbol, bool optional)
     {
-        Token = token.NotNull();
-        Name = Token;
+        Symbol = symbol.NotNull();
+        Name = symbol;
         Optional = optional;
     }
 
-    public LsToken(string symbol, string? name = null, bool optional = false)
+    public LsSymbol(string symbol, string? name = null, bool optional = false)
     {
-        Token = symbol.NotNull();
-        Name = name ?? symbol;
+        Symbol = symbol.NotNull();
+        Name = name ?? Symbol;
         Optional = optional;
     }
 
-    public string Token { get; }
+    public string Symbol { get; }
     public string Name { get; }
     public bool Optional { get; }
 
@@ -33,7 +33,7 @@ public class LsToken : ILangSyntax
 
         switch (token)
         {
-            case TokenValue tokenValue when tokenValue.Value == Token:
+            case TokenValue tokenValue when tokenValue.Value == Symbol:
                 return new LangNodes() + new LangNode(syntaxCursor.Current, tokenValue.Value);
 
             default:
@@ -48,5 +48,5 @@ public class LsToken : ILangSyntax
         };
     }
 
-    public override string ToString() => $"{nameof(LsToken)}: Symbol={Token}, Name={Name}, Optional={Optional}";
+    public override string ToString() => $"{nameof(LsToken)}: Symbol={Symbol}, Name={Name}, Optional={Optional}";
 }

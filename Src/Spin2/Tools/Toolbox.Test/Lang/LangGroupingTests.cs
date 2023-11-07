@@ -1,7 +1,7 @@
 ﻿using Toolbox.LangTools;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Tokenizer;
+namespace Toolbox.Test.Lang;
 
 public class LangGroupingTests
 {

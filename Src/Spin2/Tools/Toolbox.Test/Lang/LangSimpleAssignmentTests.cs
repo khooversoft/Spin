@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Tokenizer;
+namespace Toolbox.Test.Lang;
 
 public class LangSimpleAssignmentTests
 {
@@ -25,7 +25,7 @@ public class LangSimpleAssignmentTests
 
         foreach (var test in lines)
         {
-            LangResult tree = LangParser.Parse(root, test);
+            LangResult tree = root.Parse(test);
             tree.Traces.ForEach(x => _output.WriteLine(x.ToString()));
             tree.Should().NotBeNull();
             tree.IsError().Should().BeTrue();

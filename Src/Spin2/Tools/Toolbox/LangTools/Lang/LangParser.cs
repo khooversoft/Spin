@@ -44,7 +44,7 @@ public static class LangParser
 
         while (stack.TryPop(out var root))
         {
-            root.Children.OfType<LsToken>().ForEach(x => list.Add(x.Symbol));
+            root.Children.OfType<LsToken>().ForEach(x => list.Add(x.Token));
             root.Children.OfType<LsGroup>().ForEach(x => list.AddRange(new[] { x.StartToken, x.EndToken }));
             root.Children.OfType<ILangRoot>().ForEach(x => stack.Push(x));
         }

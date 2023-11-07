@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 using Toolbox.LangTools;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Tokenizer;
+namespace Toolbox.Test.Lang;
 
 /// <summary>
 /// fromKey=key1,toKey=key2,edgeType=et,tags=t2;
 /// </summary>
-public class FormatPropertyTests
+public class PatternPropertyTests
 {
     private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public FormatPropertyTests(ITestOutputHelper output)
+    public PatternPropertyTests(ITestOutputHelper output)
     {
         _output = output;
 

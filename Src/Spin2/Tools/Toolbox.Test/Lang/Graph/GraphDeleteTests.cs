@@ -1,42 +1,17 @@
 ﻿using Toolbox.LangTools;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Tokenizer;
+namespace Toolbox.Test.Lang.Graph;
 
-
-
-public class LangGraphTests
+public class GraphDeleteTests
 {
     private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public LangGraphTests(ITestOutputHelper output)
+    public GraphDeleteTests(ITestOutputHelper output)
     {
         _output = output;
-
-        var equalValue = new LsRoot("equalValue") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
-        var valueOnly = new LsRoot("valueOnly") + new LsValue("svalue");
-        var parameters = new LsRepeat("rpt-parms") + (new LsSwitch("or") + equalValue + valueOnly) + new LsToken(";", "delimiter", true);
-
-        var nodeSyntax = new LsRoot("node")
-            + (new LsGroup("(", ")", "pgroup") + parameters)
-            + new LsValue("alias", true);
-
-        var edgeSyntax = new LsRoot("edge")
-            + (new LsGroup("[", "]", "bgroup") + parameters)
-            + new LsValue("alias", true);
-
-        var search = new LsRoot() + (new LsRepeat("repeat-root") + (new LsSwitch("instr-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "next", true));
-
-        var property = new LsRoot("property") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
-        var properties = new LsRepeat("properties-rpt") + equalValue + new LsToken(",", "delimiter", true);
-        var setValues = new LsRoot("setValues") + properties + new LsToken(";", "term", true);
-
-        var select = new LsRoot() +
-            (new LsSwitch("switch")
-                + (new LsRoot("select-root") + new LsToken("select", "select") + search)
-            //+ (new LsRoot("add-root") + 
-            );
+        _root = GraphLangGrammer.Root;
     }
 
     [Fact]
@@ -44,34 +19,17 @@ public class LangGraphTests
     {
         var test = new QueryTest
         {
-            RawData = "(key='string value')",
+            RawData = "delete (key='string value');",
             Results = new List<IQueryResult>()
             {
+                new QueryResult<LsSymbol>("delete"),
+
                 new QueryResult<LsGroup>("(","pgroup"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("string value", "rvalue"),
                 new QueryResult<LsGroup>(")","pgroup"),
-            }
-        };
-
-        LangTestTools.Verify(_output, _root, test);
-    }
-
-    [Fact]
-    public void SingleNodeWithAlias()
-    {
-        var test = new QueryTest
-        {
-            RawData = "(key='string value') a1",
-            Results = new List<IQueryResult>()
-            {
-                new QueryResult<LsGroup>("(","pgroup"),
-                new QueryResult<LsValue>("key","lvalue"),
-                new QueryResult<LsToken>("=", "equal"),
-                new QueryResult<LsValue>("string value", "rvalue"),
-                new QueryResult<LsGroup>(")","pgroup"),
-                new QueryResult<LsValue>("a1","alias"),
+                new QueryResult<LsToken>(";", "term"),
             }
         };
 
@@ -83,14 +41,17 @@ public class LangGraphTests
     {
         var test = new QueryTest
         {
-            RawData = "[key='string value']",
+            RawData = "delete [key='string value'];",
             Results = new List<IQueryResult>()
             {
+                new QueryResult<LsSymbol>("delete"),
+
                 new QueryResult<LsGroup>("[","bgroup"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("string value", "rvalue"),
                 new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsToken>(";", "term"),
             }
         };
 
@@ -98,19 +59,46 @@ public class LangGraphTests
     }
 
     [Fact]
+    public void SingleNodeWithAlias()
+    {
+        var test = new QueryTest
+        {
+            RawData = "delete (key='string value') a1;",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsSymbol>("delete"),
+
+                new QueryResult<LsGroup>("(","pgroup"),
+                new QueryResult<LsValue>("key","lvalue"),
+                new QueryResult<LsToken>("=", "equal"),
+                new QueryResult<LsValue>("string value", "rvalue"),
+                new QueryResult<LsGroup>(")","pgroup"),
+                new QueryResult<LsValue>("a1","alias"),
+                new QueryResult<LsToken>(";", "term"),
+            }
+        };
+
+        LangTestTools.Verify(_output, _root, test);
+    }
+
+
+    [Fact]
     public void SingleEdgeWithAlias()
     {
         var test = new QueryTest
         {
-            RawData = "[key='string value'] a1",
+            RawData = "delete [key='string value'] a1;",
             Results = new List<IQueryResult>()
             {
+                new QueryResult<LsSymbol>("delete"),
+
                 new QueryResult<LsGroup>("[","bgroup"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("string value", "rvalue"),
                 new QueryResult<LsGroup>("]","bgroup"),
                 new QueryResult<LsValue>("a1","alias"),
+                new QueryResult<LsToken>(";", "term"),
             }
         };
 
@@ -122,9 +110,11 @@ public class LangGraphTests
     {
         var test = new QueryTest
         {
-            RawData = "(key=key1;tags=t1) -> [schedulework:active]",
+            RawData = "delete (key=key1;tags=t1) -> [schedulework:active];",
             Results = new List<IQueryResult>()
             {
+                new QueryResult<LsSymbol>("delete"),
+
                 new QueryResult<LsGroup>("(","pgroup"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
@@ -140,6 +130,7 @@ public class LangGraphTests
                 new QueryResult<LsGroup>("[","bgroup"),
                 new QueryResult<LsValue>("schedulework:active","svalue"),
                 new QueryResult<LsGroup>("]","bgroup"),
+                new QueryResult<LsToken>(";", "term"),
             }
         };
 
@@ -151,9 +142,11 @@ public class LangGraphTests
     {
         var test = new QueryTest
         {
-            RawData = "(key=key1;tags=t1) -> [schedulework:active]->(schedule) n2",
+            RawData = "delete (key=key1;tags=t1) -> [schedulework:active]->(schedule) n2;",
             Results = new List<IQueryResult>()
             {
+                new QueryResult<LsSymbol>("delete"),
+
                 new QueryResult<LsGroup>("(","pgroup"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
@@ -175,6 +168,7 @@ public class LangGraphTests
                 new QueryResult<LsValue>("schedule","svalue"),
                 new QueryResult<LsGroup>(")","pgroup"),
                 new QueryResult<LsValue>("n2","alias"),
+                new QueryResult<LsToken>(";", "term"),
             }
         };
 
@@ -186,9 +180,11 @@ public class LangGraphTests
     {
         var test = new QueryTest
         {
-            RawData = "(key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2",
+            RawData = "delete (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2;",
             Results = new List<IQueryResult>()
             {
+                new QueryResult<LsSymbol>("delete"),
+
                 new QueryResult<LsGroup>("(","pgroup"),
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
@@ -215,6 +211,7 @@ public class LangGraphTests
                 new QueryResult<LsValue>("schedule","svalue"),
                 new QueryResult<LsGroup>(")","pgroup"),
                 new QueryResult<LsValue>("n2","alias"),
+                new QueryResult<LsToken>(";", "term"),
             }
         };
 
@@ -226,9 +223,11 @@ public class LangGraphTests
     {
         var test = new QueryTest
         {
-            RawData = "(t1) n1 -> [tags=schedulework:active]n3 -> (t2) n2",
+            RawData = "delete (t1) n1 -> [tags=schedulework:active]n3 -> (t2) n2;",
             Results = new List<IQueryResult>()
             {
+                new QueryResult<LsSymbol>("delete"),
+
                 new QueryResult<LsGroup>("(","pgroup"),
                 new QueryResult<LsValue>("t1","svalue"),
                 new QueryResult<LsGroup>(")","pgroup"),
@@ -249,6 +248,7 @@ public class LangGraphTests
                 new QueryResult<LsValue>("t2","svalue"),
                 new QueryResult<LsGroup>(")","pgroup"),
                 new QueryResult<LsValue>("n2","alias"),
+                new QueryResult<LsToken>(";", "term"),
             }
         };
 
