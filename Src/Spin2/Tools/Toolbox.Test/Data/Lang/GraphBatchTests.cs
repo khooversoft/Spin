@@ -13,7 +13,7 @@ public class GraphBatchTests
         string q = """
             add node key=key1,tags=t1;
             add edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;
-            update (key=key1) set key=key2,tags=t2;
+            update (key=key1) set tags=t2;
             delete [schedulework:active] a1;
             select (Key=k4) a1;
             select [fromKey=k2] a1;
@@ -48,7 +48,6 @@ public class GraphBatchTests
         {
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
 
-            query.Key.Should().Be("key2");
             query.Tags.Should().Be("t2");
             query.Search[0].Cast<GraphNodeSelect>().Action(x =>
             {

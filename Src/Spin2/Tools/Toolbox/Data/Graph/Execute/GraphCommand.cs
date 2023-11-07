@@ -96,26 +96,42 @@ public class GraphCommand
 
     private Option UpdateEdge(GraphEdgeUpdate updateEdge, GraphMap map)
     {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Updating edge, model={model}", model);
+        var searchResult = map.Query().Process(updateEdge.Search);
 
-        _map.Edges.Update(model.ConvertTo(), x => x with
+        IReadOnlyList<GraphEdge> edges = searchResult.Edges();
+        if (edges.Count == 0) return StatusCode.NoContent;
+
+        _map.Edges.Update(edges, x => x with
         {
-            EdgeType = model.UpdateEdgeType ?? x.EdgeType,
-            Tags = x.Tags.Set(model.UpdateTags)
+            EdgeType = updateEdge.EdgeType ?? x.EdgeType,
+            Tags = x.Tags.Set(updateEdge.Tags),
         });
 
-        return new Option(StatusCode.OK).ToTaskResult();
+        return StatusCode.OK;
     }
 
     private Option UpdateNode(GraphNodeUpdate updateNode, GraphMap map)
     {
-        throw new NotImplementedException();
+        var searchResult = map.Query().Process(updateNode.Search);
+
+        IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
+        if (nodes.Count == 0) return StatusCode.NoContent;
+
+        _map.Nodes.Update(nodes, x => x with
+        {
+            Tags = x.Tags.Set(updateNode.Tags),
+        });
+
+        return StatusCode.OK;
     }
 
     private Option DeleteEdge(GraphEdgeDelete deleteEdge, GraphMap map)
     {
-        throw new NotImplementedException();
+        //var searchResult = map.Query().Process(deleteEdge.Search);
+
+        //IReadOnlyList<GraphEdge> edges = searchResult.Edges();
+        //if (edges.Count == 0) return StatusCode.NoContent;
+        return default!;
     }
 
     private Option DeleteNode(GraphNodeDelete deleteNode, GraphMap map)

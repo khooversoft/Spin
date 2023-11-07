@@ -136,28 +136,24 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public bool TryGetValue(Guid key, out GraphEdge? value) => _index.TryGetValue(key, out value);
 
-    public Option Update(GraphEdgeSelect query, Func<GraphEdge, GraphEdge> update)
+    public Option Update(IReadOnlyList<GraphEdge> edges, Func<GraphEdge, GraphEdge> update)
     {
+        edges.NotNull();
         update.NotNull();
+        if (edges.Count == 0) return StatusCode.OK;
 
         lock (_lock)
         {
-            IReadOnlyList<GraphEdge> list = Query(query);
-            if (list.Count == 0) return StatusCode.OK;
-
-            list = list.Select(x =>
+            edges.ForEach(x =>
             {
                 var n = update(x);
                 (n.Key == x.Key).Assert(x => x == true, "Cannot change the primary key");
                 n.FromKey.EqualsIgnoreCase(x.FromKey).Assert(x => x == true, "Cannot change the From key key");
                 n.ToKey.EqualsIgnoreCase(x.ToKey).Assert(x => x == true, "Cannot change the To key key");
-                return n;
-            })
-            .ToArray();
+                _index[x.Key] = n;
+            });
 
-            list.ForEach(x => _index[x.Key] = x);
-
-            return list.Count > 0 ? StatusCode.OK : StatusCode.NotFound;
+            return StatusCode.OK;
         }
     }
 

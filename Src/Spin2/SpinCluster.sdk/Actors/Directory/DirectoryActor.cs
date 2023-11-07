@@ -153,11 +153,11 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Updating edge, model={model}", model);
 
-        _map.Edges.Update(model.ConvertTo(), x => x with
-        {
-            EdgeType = model.UpdateEdgeType ?? x.EdgeType,
-            Tags = x.Tags.Set(model.UpdateTags)
-        });
+        //_map.Edges.Update(model.ConvertTo(), x => x with
+        //{
+        //    EdgeType = model.UpdateEdgeType ?? x.EdgeType,
+        //    Tags = x.Tags.Set(model.UpdateTags)
+        //});
 
         return new Option(StatusCode.OK).ToTaskResult();
     }
@@ -167,10 +167,10 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Updating node, model={model}", model);
 
-        _map.Nodes.Update(model.ConvertTo(), x => x with
-        {
-            Tags = x.Tags.Set(model.UpdateTags)
-        });
+        //_map.Nodes.Update(model.ConvertTo(), x => x with
+        //{
+        //    Tags = x.Tags.Set(model.UpdateTags)
+        //});
 
         return new Option(StatusCode.OK).ToTaskResult();
     }

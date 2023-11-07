@@ -8,7 +8,13 @@ namespace Toolbox.Data;
 public class GraphQuery
 {
     private readonly GraphMap _map;
-    public GraphQuery(GraphMap map) => _map = map.NotNull();
+    private readonly object _syncLock;
+
+    internal GraphQuery(GraphMap map, object syncLock)
+    {
+        _map = map.NotNull();
+        _syncLock = syncLock.NotNull();
+    }
 
     public GraphQueryResult Execute(string graphQuery)
     {
@@ -28,59 +34,58 @@ public class GraphQuery
         IReadOnlyList<IGraphCommon> current = null!;
         Dictionary<string, IReadOnlyList<IGraphCommon>> aliasDict = new(StringComparer.OrdinalIgnoreCase);
 
-        while (stack.TryPop(out var graphQL))
+        lock (_syncLock)
         {
-            switch (graphQL)
+            while (stack.TryPop(out var graphQL))
             {
-                case GraphNodeSelect node:
-                    search = first switch
-                    {
-                        true => search.Nodes(x => node.IsMatch(x)),
-                        false => search.HasNode(x => node.IsMatch(x)),
-                    };
+                switch (graphQL)
+                {
+                    case GraphNodeSelect node:
+                        search = first switch
+                        {
+                            true => search.Nodes(x => node.IsMatch(x)),
+                            false => search.HasNode(x => node.IsMatch(x)),
+                        };
 
-                    update(search, node.Alias);
-                    break;
+                        update(search, node.Alias);
+                        break;
 
-                case GraphEdgeSelect edge:
-                    search = first switch
-                    {
-                        true => search.Edges(x => edge.IsMatch(x)),
-                        false => search.HasEdge(x => edge.IsMatch(x)),
-                    };
+                    case GraphEdgeSelect edge:
+                        search = first switch
+                        {
+                            true => search.Edges(x => edge.IsMatch(x)),
+                            false => search.HasEdge(x => edge.IsMatch(x)),
+                        };
 
-                    update(search, edge.Alias);
-                    break;
+                        update(search, edge.Alias);
+                        break;
 
-                default:
-                    throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
+                    default:
+                        throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
+                }
+
+                first = false;
             }
 
-            first = false;
-        }
-
-        return new GraphQueryResult
-        {
-            StatusCode = StatusCode.OK,
-            Items = current,
-            Alias = aliasDict,
-        };
-
-        void update(SearchContext searchContext, string? alias)
-        {
-            current = search.LastSearch switch
+            return new GraphQueryResult
             {
-                SearchContext.LastSearchType.Node => searchContext.Nodes.ToArray(),
-                SearchContext.LastSearchType.Edge => searchContext.Edges.ToArray(),
-                _ => throw new UnreachableException(),
+                StatusCode = StatusCode.OK,
+                Items = current,
+                Alias = aliasDict,
             };
 
-            if (alias.IsNotEmpty()) aliasDict[alias] = current;
+            void update(SearchContext searchContext, string? alias)
+            {
+                current = search.LastSearch switch
+                {
+                    SearchContext.LastSearchType.Node => searchContext.Nodes.ToArray(),
+                    SearchContext.LastSearchType.Edge => searchContext.Edges.ToArray(),
+                    _ => throw new UnreachableException(),
+                };
+
+                if (alias.IsNotEmpty()) aliasDict[alias] = current;
+            }
         }
     }
 }
 
-public static class GraphQueryExtension
-{
-    public static GraphQuery Query(this GraphMap subject) => new GraphQuery(subject);
-}

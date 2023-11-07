@@ -99,16 +99,15 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public Option Update(GraphNodeSelect query, Func<GraphNode, GraphNode> update)
+    public Option Update(IReadOnlyList<GraphNode> query, Func<GraphNode, GraphNode> update)
     {
+        query.NotNull();
         update.NotNull();
+        if (query.Count == 0) return StatusCode.NoContent;
 
         lock (_lock)
         {
-            var result = Query(query);
-            if (result.Count == 0) return StatusCode.NotFound;
-
-            result.ForEach(x =>
+            query.ForEach(x =>
             {
                 var n = update(x);
                 x.Key.Equals(n.Key).Assert(x => x == true, "Cannot change the primary key");

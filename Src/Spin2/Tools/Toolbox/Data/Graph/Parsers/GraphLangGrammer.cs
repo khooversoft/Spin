@@ -4,18 +4,20 @@ namespace Toolbox.Data;
 
 /// <summary>
 /// 
-/// select (key=key1;tags=t1) n1 -> [schedulework:active] -> (schedule) n2;
-/// select (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2;
+/// Rules....
+///     selectGrammar = (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2
+/// 
+/// select <selectGrammar>;
+/// 
+/// examples: select (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2;
 /// 
 /// add node key=key1,tags=t1;
 /// add edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;
 /// 
-/// delete (key=key1;tags=t1);
-/// delete [edgeType=abc*;schedulework:active];
-/// delete (key=key1;tags=t1) a1 -> [schedulework:active] a2;
+/// delete <selectGrammar>;
 /// 
-/// update (key=key1;tags=t1) set key=key1,tags=t1;
-/// update [edgeType=abc*;schedulework:active] set fromKey=key1,toKey=key2,edgeType=et,tags=t2;
+/// update <selectGrammar> set tags=t1;                         // for node updates
+/// update <selectGrammar> set edgeType=et,tags=t2;             // for edge updates
 /// 
 /// </summary>
 public static class GraphLangGrammer

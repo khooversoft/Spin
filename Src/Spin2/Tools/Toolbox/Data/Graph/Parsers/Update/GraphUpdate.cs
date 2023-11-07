@@ -54,7 +54,6 @@ public static class GraphUpdate
 
     private static Option<GraphNodeUpdate> ParseNode(Stack<LangNode> stack)
     {
-        string? key = null;
         string? tags = null;
 
         while (stack.TryPop(out var langNode))
@@ -69,14 +68,11 @@ public static class GraphUpdate
 
                     switch (lvalue)
                     {
-                        case "key" when key == null: key = rvalue.Value; break;
-                        case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
-
                         case "tags" when tags == null: tags = rvalue.Value; break;
                         case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
 
                         default:
-                            return (StatusCode.BadRequest, $"Only 'Key' and 'Tags' is valid in lvalue");
+                            return (StatusCode.BadRequest, $"Only 'Tags' is can be updated");
                     }
 
                     break;
@@ -85,11 +81,10 @@ public static class GraphUpdate
                     break;
 
                 case { SyntaxNode.Name: "term" }:
-                    if (key == null || tags == null) return (StatusCode.BadRequest, "No key and tags must be specified");
+                    if (tags == null) return (StatusCode.BadRequest, "No key and tags must be specified");
 
                     return new GraphNodeUpdate
                     {
-                        Key = key,
                         Tags = tags,
                     };
 
@@ -103,8 +98,6 @@ public static class GraphUpdate
 
     private static Option<GraphEdgeUpdate> ParseEdge(Stack<LangNode> stack)
     {
-        string? fromKey = null!;
-        string? toKey = null!;
         string? edgeType = null!;
         string? tags = null!;
 
@@ -120,12 +113,6 @@ public static class GraphUpdate
 
                     switch (lvalue)
                     {
-                        case "fromkey" when fromKey == null: fromKey = rvalue.Value; break;
-                        case "fromkey" when fromKey != null: return (StatusCode.BadRequest, "FromKey already specified");
-
-                        case "tokey" when toKey == null: toKey = rvalue.Value; break;
-                        case "tokey" when toKey != null: return (StatusCode.BadRequest, "ToKey already specified");
-
                         case "edgetype" when edgeType == null: edgeType = rvalue.Value; break;
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
@@ -133,7 +120,7 @@ public static class GraphUpdate
                         case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
 
                         default:
-                            return (StatusCode.BadRequest, $"Only 'FromKey', 'ToKey', 'EdgeType', and/or 'Tags' is valid in lvalue");
+                            return (StatusCode.BadRequest, $"Only 'EdgeType', and/or 'Tags' is valid in lvalue");
                     }
 
                     break;
@@ -142,12 +129,10 @@ public static class GraphUpdate
                     break;
 
                 case { SyntaxNode.Name: "term" }:
-                    if (fromKey == null || toKey == null) return (StatusCode.BadRequest, "No fromKey, toKey are required");
+                    if (edgeType == null || tags == null) return (StatusCode.BadRequest, "No edgeType, tags are required");
 
                     return new GraphEdgeUpdate
                     {
-                        FromKey = fromKey,
-                        ToKey = toKey,
                         EdgeType = edgeType,
                         Tags = tags,
                     };

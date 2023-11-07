@@ -49,6 +49,7 @@ public class GraphMap : IEnumerable<IGraphCommon>
     }
 
     public GraphMap Clone() => new GraphMap(_nodes, _edges);
+    public GraphQuery Query() => new GraphQuery(this, _lock);
 
     public IEnumerator<IGraphCommon> GetEnumerator()
     {
