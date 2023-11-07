@@ -42,7 +42,7 @@ public class DirectoryClient
         .GetContent<GraphQueryResult>();
 
     public async Task<Option<GraphQueryResult>> Remove(string query, ScopeContext context) => await Remove(new DirectoryQuery(query), context);
-    
+
     public async Task<Option<GraphQueryResult>> Remove(DirectoryQuery query, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Directory}/remove")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)

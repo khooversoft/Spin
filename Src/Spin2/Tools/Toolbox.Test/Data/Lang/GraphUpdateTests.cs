@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Types;
@@ -64,7 +59,7 @@ public class GraphUpdateTests
             query.EdgeType.Should().Be("abc*");
             query.Tags.Should().Be("schedulework:active");
         });
-        
+
         list[index++].Action(x =>
         {
             if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");

@@ -1,5 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.LangTools;
+﻿using Toolbox.LangTools;
 
 namespace Toolbox.Data;
 
