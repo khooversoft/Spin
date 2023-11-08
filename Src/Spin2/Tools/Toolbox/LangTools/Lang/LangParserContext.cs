@@ -1,6 +1,5 @@
 ﻿using Toolbox.Tools;
 using Toolbox.Types;
-using System.Linq;
 
 namespace Toolbox.LangTools;
 

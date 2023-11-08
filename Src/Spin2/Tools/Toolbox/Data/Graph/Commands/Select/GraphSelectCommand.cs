@@ -3,7 +3,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public static class GraphSelect
+public static class GraphSelectCommand
 {
     public static Option<IReadOnlyList<IGraphQL>> Parse(Stack<LangNode> stack, string command)
     {
@@ -17,13 +17,13 @@ public static class GraphSelect
             switch (langNode)
             {
                 case { SyntaxNode.Name: "node-group" }:
-                    Option<GraphNodeSelect> nodeParse = ParseNode(stack);
+                    Option<GraphNodeSearch> nodeParse = ParseNode(stack);
                     if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
                     list.Add(nodeParse.Return());
                     break;
 
                 case { SyntaxNode.Name: "edge-group" }:
-                    Option<GraphEdgeSelect> edgeParse = ParseEdge(stack);
+                    Option<GraphEdgeSearch> edgeParse = ParseEdge(stack);
                     if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
                     list.Add(edgeParse.Return());
                     break;
@@ -46,7 +46,7 @@ public static class GraphSelect
         return list;
     }
 
-    private static Option<GraphNodeSelect> ParseNode(Stack<LangNode> stack)
+    private static Option<GraphNodeSearch> ParseNode(Stack<LangNode> stack)
     {
         string? key = null;
         string? tags = null;
@@ -93,7 +93,7 @@ public static class GraphSelect
                         alias = langNode.Value;
                     }
 
-                    return new GraphNodeSelect
+                    return new GraphNodeSearch
                     {
                         Key = key,
                         Tags = tags,
@@ -108,7 +108,7 @@ public static class GraphSelect
         return (StatusCode.BadRequest, "No closure");
     }
 
-    private static Option<GraphEdgeSelect> ParseEdge(Stack<LangNode> stack)
+    private static Option<GraphEdgeSearch> ParseEdge(Stack<LangNode> stack)
     {
         string? nodeKey = null!;
         string? fromKey = null!;
@@ -171,7 +171,7 @@ public static class GraphSelect
                         alias = langNode.Value;
                     }
 
-                    return new GraphEdgeSelect
+                    return new GraphEdgeSearch
                     {
                         NodeKey = nodeKey,
                         FromKey = fromKey,

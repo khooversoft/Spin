@@ -9,7 +9,7 @@ namespace SpinCluster.sdk.Actors.Directory;
 public sealed record DirectoryCmd
 {
     public DirectoryCmd() { }
-    public DirectoryCmd(string command) => Commands = new [] { command };
+    public DirectoryCmd(string command) => Commands = new[] { command };
     public DirectoryCmd(IEnumerable<string> commands) => Commands = commands.ToArray();
 
     [Id(0)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();

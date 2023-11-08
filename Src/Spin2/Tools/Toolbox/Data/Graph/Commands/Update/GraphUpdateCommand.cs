@@ -4,12 +4,12 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public static class GraphUpdate
+public static class GraphUpdateCommand
 {
-    public static Option<IReadOnlyList<IGraphQL>> Parse(Stack<LangNode> stack)
+    public static Option<IGraphQL> Parse(Stack<LangNode> stack)
     {
-        var selectListOption = GraphSelect.Parse(stack, "update");
-        if (selectListOption.IsError()) return selectListOption;
+        var selectListOption = GraphSelectCommand.Parse(stack, "update");
+        if (selectListOption.IsError()) return selectListOption.ToOptionStatus<IGraphQL>();
 
         var list = new Sequence<IGraphQL>();
 
@@ -22,13 +22,10 @@ public static class GraphUpdate
             var nodeParse = ParseNode(stack);
             if (nodeParse.IsOk())
             {
-                GraphNodeUpdate updateNode = nodeParse.Return() with
+                return nodeParse.Return() with
                 {
                     Search = selectListOption.Return(),
                 };
-
-                list += updateNode;
-                return list;
             }
 
             int restoreCount = saveStack.Count - stack.Count;
@@ -38,12 +35,10 @@ public static class GraphUpdate
             var edgeParse = ParseEdge(stack);
             if (edgeParse.IsOk())
             {
-                GraphEdgeUpdate updateEdge = edgeParse.Return() with
+                return edgeParse.Return() with
                 {
                     Search = selectListOption.Return(),
                 };
-                list += updateEdge;
-                return list;
             }
 
             return (StatusCode.BadRequest, "Unknown language node");

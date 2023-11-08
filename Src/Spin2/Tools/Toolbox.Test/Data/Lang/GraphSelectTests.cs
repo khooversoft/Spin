@@ -19,37 +19,39 @@ public class GraphSelectTests
         result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(3);
+        list.Count.Should().Be(1);
 
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.Key.Should().Be("key1");
-            query.Tags.Should().Be("t1");
-            query.Alias.Should().BeNull();
-        });
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(3);
 
-        list[index++].Action(x =>
-        {
-            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.Should().Be("t1");
+                x.Alias.Should().BeNull();
+            });
 
-            query.NodeKey.Should().Be("key1");
-            query.FromKey.Should().Be("fromKey1");
-            query.ToKey.Should().Be("tokey1");
-            query.EdgeType.Should().Be("schedulework:active");
-            query.Tags.Should().Be("t2");
-            query.Alias.Should().BeNull();
-        });
+            cursor.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
+            {
+                x.NodeKey.Should().Be("key1");
+                x.FromKey.Should().Be("fromKey1");
+                x.ToKey.Should().Be("tokey1");
+                x.EdgeType.Should().Be("schedulework:active");
+                x.Tags.Should().Be("t2");
+                x.Alias.Should().BeNull();
+            });
 
-        list[index++].Action(x =>
-        {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
-
-            query.Key.Should().BeNull();
-            query.Tags.Should().Be("schedule");
-            query.Alias.Should().BeNull();
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().BeNull();
+                x.Tags.Should().Be("schedule");
+                x.Alias.Should().BeNull();
+            });
         });
     }
 
@@ -62,36 +64,39 @@ public class GraphSelectTests
         result.IsOk().Should().BeTrue();
 
         IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(3);
+        list.Count.Should().Be(1);
 
-        list[0].Action(x =>
+        int index = 0;
+        list[index++].Action(x =>
         {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.Key.Should().Be("key1");
-            query.Tags.Should().Be("t1");
-            query.Alias.Should().Be("a1");
-        });
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(3);
 
-        list[1].Action(x =>
-        {
-            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.Should().Be("t1");
+                x.Alias.Should().Be("a1");
+            });
 
-            query.NodeKey.Should().Be("key1");
-            query.FromKey.Should().Be("fromKey1");
-            query.ToKey.Should().Be("tokey1");
-            query.EdgeType.Should().Be("schedulework:active");
-            query.Tags.Should().Be("t2");
-            query.Alias.Should().Be("a2");
-        });
+            cursor.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
+            {
+                x.NodeKey.Should().Be("key1");
+                x.FromKey.Should().Be("fromKey1");
+                x.ToKey.Should().Be("tokey1");
+                x.EdgeType.Should().Be("schedulework:active");
+                x.Tags.Should().Be("t2");
+                x.Alias.Should().Be("a2");
+            });
 
-        list[2].Action(x =>
-        {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
-
-            query.Key.Should().BeNull();
-            query.Tags.Should().Be("schedule");
-            query.Alias.Should().Be("a3");
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().BeNull();
+                x.Tags.Should().Be("schedule");
+                x.Alias.Should().Be("a3");
+            });
         });
     }
 
@@ -108,10 +113,16 @@ public class GraphSelectTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.Key.Should().BeNull();
-            query.Tags.Should().Be("t1");
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(1);
+
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().BeNull();
+                x.Tags.Should().Be("t1");
+            });
         });
     }
 
@@ -128,10 +139,16 @@ public class GraphSelectTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.Key.Should().Be("key1");
-            query.Tags.Should().Be("t1");
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(1);
+
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.Should().Be("t1");
+            });
         });
     }
 
@@ -148,13 +165,19 @@ public class GraphSelectTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.NodeKey.Should().BeNull();
-            query.FromKey.Should().BeNull();
-            query.ToKey.Should().BeNull();
-            query.EdgeType.Should().BeNull();
-            query.Tags.Should().Be("schedulework:active");
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(1);
+
+            cursor.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
+            {
+                x.NodeKey.Should().BeNull();
+                x.FromKey.Should().BeNull();
+                x.ToKey.Should().BeNull();
+                x.EdgeType.Should().BeNull();
+                x.Tags.Should().Be("schedulework:active");
+            });
         });
     }
 
@@ -171,13 +194,19 @@ public class GraphSelectTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.NodeKey.Should().Be("key1");
-            query.FromKey.Should().Be("fromKey1");
-            query.ToKey.Should().Be("tokey1");
-            query.EdgeType.Should().Be("schedulework:active");
-            query.Tags.Should().Be("t2");
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(1);
+
+            cursor.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
+            {
+                x.NodeKey.Should().Be("key1");
+                x.FromKey.Should().Be("fromKey1");
+                x.ToKey.Should().Be("tokey1");
+                x.EdgeType.Should().Be("schedulework:active");
+                x.Tags.Should().Be("t2");
+            });
         });
     }
 }

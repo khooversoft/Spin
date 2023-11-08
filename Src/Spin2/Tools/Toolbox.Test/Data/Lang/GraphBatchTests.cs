@@ -51,7 +51,7 @@ public class GraphBatchTests
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
 
             query.Tags.Should().Be("t2");
-            query.Search[0].Cast<GraphNodeSelect>().Action(x =>
+            query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
                 x.Tags.Should().BeNull();
@@ -66,13 +66,13 @@ public class GraphBatchTests
             query.Tags.Should().Be("t2");
 
             query.Search.Count.Should().Be(2);
-            query.Search[0].Cast<GraphNodeSelect>().Action(x =>
+            query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
                 x.Tags.Should().BeNull();
                 x.Alias.Should().BeNull();
             });
-            query.Search[1].Cast<GraphEdgeSelect>().Action(x =>
+            query.Search[1].Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
@@ -88,7 +88,7 @@ public class GraphBatchTests
 
             var idx = query.Search.ToCursor();
             query.Search.Count.Should().Be(1);
-            idx.NextValue().Return().Cast<GraphEdgeSelect>().Action(x =>
+            idx.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
@@ -97,7 +97,7 @@ public class GraphBatchTests
                 x.Alias.Should().Be("a1");
             });
         });
-        
+
         list[index++].Action(x =>
         {
             if (x is not GraphNodeDelete query) throw new ArgumentException("Invalid type");
@@ -105,7 +105,7 @@ public class GraphBatchTests
             var idx = query.Search.ToCursor();
             query.Search.Count.Should().Be(2);
 
-            idx.NextValue().Return().Cast<GraphEdgeSelect>().Action(x =>
+            idx.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
@@ -114,7 +114,7 @@ public class GraphBatchTests
                 x.Alias.Should().BeNull();
             });
 
-            idx.NextValue().Return().Cast<GraphNodeSelect>().Action(x =>
+            idx.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("k1");
                 x.Tags.Should().BeNull();
@@ -124,20 +124,32 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.Key.Should().Be("k4");
-            query.Tags.Should().BeNull();
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(1);
+
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().Be("k4");
+                x.Tags.Should().BeNull();
+            });
         });
 
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
 
-            query.FromKey.Should().Be("k2");
-            query.ToKey.Should().BeNull();
-            query.EdgeType.Should().BeNull();
-            query.Tags.Should().BeNull();
+            var cursor = query.Search.ToCursor();
+            cursor.List.Count.Should().Be(1);
+
+            cursor.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
+            {
+                x.FromKey.Should().Be("k2");
+                x.ToKey.Should().BeNull();
+                x.EdgeType.Should().BeNull();
+                x.Tags.Should().BeNull();
+            });
         });
     }
 }

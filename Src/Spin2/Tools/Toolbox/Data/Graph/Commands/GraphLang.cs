@@ -26,31 +26,32 @@ public static class GraphLang
             switch (langNode)
             {
                 case { SyntaxNode.Name: "select" }:
-                    var nodeParse = GraphSelect.Parse(stack, "select");
+                    var nodeParse = GraphSelectCommand.Parse(stack, "select");
                     if (nodeParse.IsError()) return nodeParse;
 
-                    list.AddRange(nodeParse.Return());
+                    var select = new GraphSelect { Search = nodeParse.Return() };
+                    list.Add(select);
                     break;
 
                 case { SyntaxNode.Name: "add" }:
-                    var addParse = GraphAdd.Parse(stack);
-                    if (addParse.IsError()) return addParse;
+                    var addParse = GraphAddCommand.Parse(stack);
+                    if (addParse.IsError()) return addParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
 
-                    list.AddRange(addParse.Return());
+                    list.Add(addParse.Return());
                     break;
 
                 case { SyntaxNode.Name: "delete" }:
-                    var deleteParse = GraphDelete.Parse(stack);
-                    if (deleteParse.IsError()) return deleteParse;
+                    var deleteParse = GraphDeleteCommand.Parse(stack);
+                    if (deleteParse.IsError()) return deleteParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
 
-                    list.AddRange(deleteParse.Return());
+                    list.Add(deleteParse.Return());
                     break;
 
                 case { SyntaxNode.Name: "update" }:
-                    var updateParse = GraphUpdate.Parse(stack);
-                    if (updateParse.IsError()) return updateParse;
+                    var updateParse = GraphUpdateCommand.Parse(stack);
+                    if (updateParse.IsError()) return updateParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
 
-                    list.AddRange(updateParse.Return());
+                    list.Add(updateParse.Return());
                     break;
             }
         }

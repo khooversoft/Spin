@@ -27,7 +27,7 @@ public class GraphUpdateTests
             query.Search.Count.Should().Be(1);
             query.Search.Count.Should().Be(1);
 
-            query.Search[0].Cast<GraphNodeSelect>().Action(x =>
+            query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
                 x.Tags.Should().Be("t1");
@@ -55,7 +55,7 @@ public class GraphUpdateTests
             query.Tags.Should().Be("t2");
             query.Search.Count.Should().Be(1);
 
-            query.Search[0].Cast<GraphEdgeSelect>().Action(x =>
+            query.Search[0].Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.NodeKey.Should().BeNull();
                 x.FromKey.Should().BeNull();
@@ -88,13 +88,13 @@ public class GraphUpdateTests
             query.Search.Count.Should().Be(2);
 
             int idx = 0;
-            query.Search[idx++].Cast<GraphNodeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("k*");
                 x.Tags.Should().BeNull(); ;
             });
 
-            query.Search[idx++].Cast<GraphEdgeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.NodeKey.Should().BeNull();
                 x.FromKey.Should().BeNull();

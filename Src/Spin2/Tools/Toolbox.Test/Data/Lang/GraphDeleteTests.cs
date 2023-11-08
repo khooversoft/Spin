@@ -25,7 +25,7 @@ public class GraphDeleteTests
 
             query.Search.Count.Should().Be(1);
             int idx = 0;
-            query.Search[idx++].Cast<GraphNodeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
                 x.Tags.Should().Be("t1");
@@ -33,7 +33,7 @@ public class GraphDeleteTests
             });
         });
     }
-    
+
     [Fact]
     public void DeleteEdge1()
     {
@@ -52,14 +52,14 @@ public class GraphDeleteTests
 
             query.Search.Count.Should().Be(2);
             int idx = 0;
-            query.Search[idx++].Cast<GraphNodeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
                 x.Tags.Should().Be("t1");
                 x.Alias.Should().Be("a1");
             });
-            
-            query.Search[idx++].Cast<GraphEdgeSelect>().Action(x =>
+
+            query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
@@ -89,7 +89,7 @@ public class GraphDeleteTests
 
             query.Search.Count.Should().Be(1);
             int idx = 0;
-            query.Search[idx++].Cast<GraphEdgeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
@@ -118,7 +118,7 @@ public class GraphDeleteTests
 
             query.Search.Count.Should().Be(1);
             int idx = 0;
-            query.Search[idx++].Cast<GraphEdgeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().Be("key1");
                 x.ToKey.Should().Be("key2");
@@ -148,14 +148,14 @@ public class GraphDeleteTests
 
             query.Search.Count.Should().Be(2);
             int idx = 0;
-            query.Search[idx++].Cast<GraphNodeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key91");
                 x.Tags.Should().Be("t9=v99");
                 x.Alias.Should().Be("a1");
             });
 
-            query.Search[idx++].Cast<GraphEdgeSelect>().Action(x =>
+            query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();

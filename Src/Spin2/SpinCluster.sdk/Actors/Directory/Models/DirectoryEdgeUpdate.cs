@@ -23,7 +23,7 @@ public sealed record DirectoryEdgeUpdate
 
 public static class DirectoryEdgeUpdateExtensions
 {
-    public static GraphEdgeSelect ConvertTo(this DirectoryEdgeUpdate subject) => new GraphEdgeSelect
+    public static GraphEdgeSearch ConvertTo(this DirectoryEdgeUpdate subject) => new GraphEdgeSearch
     {
         FromKey = subject.FromKey,
         ToKey = subject.ToKey,

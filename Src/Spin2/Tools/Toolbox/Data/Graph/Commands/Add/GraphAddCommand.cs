@@ -3,9 +3,9 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public static class GraphAdd
+public static class GraphAddCommand
 {
-    public static Option<IReadOnlyList<IGraphQL>> Parse(Stack<LangNode> stack)
+    public static Option<IGraphQL> Parse(Stack<LangNode> stack)
     {
         var list = new List<IGraphQL>();
 
@@ -18,15 +18,13 @@ public static class GraphAdd
             {
                 case { SyntaxNode.Name: "node" }:
                     Option<GraphNodeAdd> nodeParse = ParseNode(stack);
-                    if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
-                    list.Add(nodeParse.Return());
-                    return list;
+                    if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IGraphQL>();
+                    return nodeParse.Return();
 
                 case { SyntaxNode.Name: "edge" }:
                     Option<GraphEdgeAdd> edgeParse = ParseEdge(stack);
-                    if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
-                    list.Add(edgeParse.Return());
-                    return list;
+                    if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IGraphQL>();
+                    return edgeParse.Return();
 
                 case { SyntaxNode.Name: "select-next" }:
                     break;
@@ -36,7 +34,7 @@ public static class GraphAdd
             }
         }
 
-        return list;
+        return (StatusCode.BadRequest, "Unknown language node");
     }
 
     private static Option<GraphNodeAdd> ParseNode(Stack<LangNode> stack)

@@ -72,12 +72,12 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public IReadOnlyList<GraphEdge> Get(string nodeKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
     {
-        return Query(new GraphEdgeSelect { NodeKey = nodeKey, Direction = direction, EdgeType = matchEdgeType });
+        return Query(new GraphEdgeSearch { NodeKey = nodeKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
     public IReadOnlyList<GraphEdge> Get(string fromKey, string toKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
     {
-        return Query(new GraphEdgeSelect { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
+        return Query(new GraphEdgeSearch { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
     public bool Remove(Guid edgeKey)
@@ -98,7 +98,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     {
         lock (_lock)
         {
-            var query = new GraphEdgeSelect { NodeKey = nodeKey };
+            var query = new GraphEdgeSearch { NodeKey = nodeKey };
             var keys = Query(query);
             if (keys.Count == 0) return false;
 
@@ -107,7 +107,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    public IReadOnlyList<GraphEdge> Query(GraphEdgeSelect query)
+    public IReadOnlyList<GraphEdge> Query(GraphEdgeSearch query)
     {
         lock (_lock)
         {

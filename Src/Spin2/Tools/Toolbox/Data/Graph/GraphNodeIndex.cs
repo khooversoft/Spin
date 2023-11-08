@@ -76,7 +76,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public IReadOnlyList<GraphNode> Query(GraphNodeSelect query)
+    public IReadOnlyList<GraphNode> Query(GraphNodeSearch query)
     {
         query.NotNull();
 
