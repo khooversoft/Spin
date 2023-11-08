@@ -8,13 +8,10 @@ namespace Toolbox.Test.Lang;
 
 public class LangSwitchTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public LangSwitchTests(ITestOutputHelper output)
+    public LangSwitchTests()
     {
-        _output = output;
-
         var equalValue = new LsRoot("equal") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
         var valueOnly = new LsRoot("single") + new LsValue("svalue");
 
@@ -64,7 +61,7 @@ public class LangSwitchTests
     public void Failure()
     {
         var test = new QueryTest { RawData = "=", Results = new List<IQueryResult>() };
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -81,7 +78,7 @@ public class LangSwitchTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -96,6 +93,6 @@ public class LangSwitchTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

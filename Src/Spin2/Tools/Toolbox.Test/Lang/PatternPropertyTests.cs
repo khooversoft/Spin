@@ -8,13 +8,10 @@ namespace Toolbox.Test.Lang;
 /// </summary>
 public class PatternPropertyTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public PatternPropertyTests(ITestOutputHelper output)
+    public PatternPropertyTests()
     {
-        _output = output;
-
         var equalValue = new LsRoot("equalValue") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
 
         var property = new LsRoot("property") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
@@ -32,7 +29,7 @@ public class PatternPropertyTests
             Results = new List<IQueryResult>(),
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -49,7 +46,7 @@ public class PatternPropertyTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -83,6 +80,6 @@ public class PatternPropertyTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

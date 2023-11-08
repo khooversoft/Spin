@@ -8,7 +8,7 @@ public record LangResult
     public string? Error { get; init; }
     public string RawData { get; init; } = null!;
     public LangNodes? LangNodes { get; init; }
-    public IReadOnlyList<LangTrace> Traces { get; init; } = null!;
+    public string? MaxTokens { get; init; }
 
     public bool IsError() => StatusCode.IsError();
     public bool IsOk() => StatusCode.IsOk();

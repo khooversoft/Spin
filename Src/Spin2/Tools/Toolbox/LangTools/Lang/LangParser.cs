@@ -22,7 +22,6 @@ public static class LangParser
         if (result.IsOk() && pContext.TokensCursor.TryPeekValue(out var _))
         {
             result = (StatusCode.BadRequest, "Syntax error, input tokens not completed");
-            pContext.Log(TraceType.Error, nameof(Parse), result);
         }
 
         var response = new LangResult
@@ -31,7 +30,7 @@ public static class LangParser
             Error = result.Error,
             RawData = rawData,
             LangNodes = result.IsOk() ? result.Return() : null,
-            Traces = pContext.Trace,
+            MaxTokens = tokens.Take(pContext.TokensCursor.MaxIndex).Select(x => x.Value).Join(" "),
         };
 
         return response;
@@ -58,12 +57,9 @@ public static class LangParser
         using var pScope = pContext.PushWithScope(langRoot);
         var nodes = new LangNodes();
 
-        pContext.Log(TraceType.Start, syntaxName, langRoot.Name);
-
         while (syntaxCursor.TryNextValue(out var syntax))
         {
             Option<LangNodes> state = syntax.Process(pContext, syntaxCursor);
-            pContext.Log(state.IsError() ? TraceType.Error : TraceType.Process, syntaxName, state, syntax.Name);
             if (state.IsError()) return state;
 
             if (state.IsOk()) nodes += state.Return();
@@ -71,12 +67,10 @@ public static class LangParser
 
         if (syntaxCursor.TryNextValue(out _))
         {
-            pContext.Log(TraceType.Error, syntaxName, langRoot.Name);
             return (StatusCode.BadRequest, "Syntax error, end");
         }
 
         pScope.Cancel();
-        pContext.Log(TraceType.Ok, syntaxName, langRoot.Name);
         return nodes;
     }
 }

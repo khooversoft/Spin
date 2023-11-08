@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
 
@@ -12,30 +13,28 @@ public static class GraphDelete
         if (selectListOption.IsError()) return selectListOption;
 
         IReadOnlyList<IGraphQL> selectList = selectListOption.Return();
+        if (selectList.Count == 0) return (StatusCode.BadRequest, "No search for delete");
 
-        var list = selectList
-            .Select(x => x switch
-            {
-                GraphNodeSelect v => (IGraphQL)new GraphNodeDelete
-                {
-                    Key = v.Key,
-                    Tags = v.Tags,
-                    Alias = v.Alias
-                },
-                GraphEdgeSelect v => (IGraphQL)new GraphEdgeDelete
-                {
-                    NodeKey = v.NodeKey,
-                    FromKey = v.FromKey,
-                    ToKey = v.ToKey,
-                    EdgeType = v.EdgeType,
-                    Tags = v.Tags,
-                    Alias = v.Alias,
-                    Direction = v.Direction,
-                },
+        var list = new Sequence<IGraphQL>();
 
-                var v => throw new UnreachableException($"Invalid type={v.GetType().FullName}"),
-            })
-            .ToArray();
+        switch (selectList.Last())
+        {
+            case GraphNodeSelect:
+                list += new GraphNodeDelete
+                {
+                    Search = selectList,
+                };
+                break;
+
+            case GraphEdgeSelect:
+                list += new GraphEdgeDelete
+                {
+                    Search = selectList,
+                };
+                break;
+
+            case object v: throw new UnreachableException($"Unknown search type {v.GetType().FullName}");
+        }
 
         return list;
     }

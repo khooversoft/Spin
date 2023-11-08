@@ -6,12 +6,10 @@ namespace Toolbox.Test.Lang.Graph;
 
 public class GraphAddTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public GraphAddTests(ITestOutputHelper output)
+    public GraphAddTests()
     {
-        _output = output;
         _root = GraphLangGrammer.Root;
     }
 
@@ -37,7 +35,7 @@ public class GraphAddTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -49,7 +47,7 @@ public class GraphAddTests
             Results = new List<IQueryResult>(),
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -61,7 +59,7 @@ public class GraphAddTests
             Results = new List<IQueryResult>(),
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
 
@@ -74,7 +72,7 @@ public class GraphAddTests
             Results = new List<IQueryResult>(),
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -111,6 +109,6 @@ public class GraphAddTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

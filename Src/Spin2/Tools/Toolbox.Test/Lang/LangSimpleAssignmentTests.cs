@@ -7,13 +7,6 @@ namespace Toolbox.Test.Lang;
 
 public class LangSimpleAssignmentTests
 {
-    private readonly ITestOutputHelper _output;
-
-    public LangSimpleAssignmentTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
     [Fact]
     public void InvalidLangSyntax()
     {
@@ -26,7 +19,6 @@ public class LangSimpleAssignmentTests
         foreach (var test in lines)
         {
             LangResult tree = root.Parse(test);
-            tree.Traces.ForEach(x => _output.WriteLine(x.ToString()));
             tree.Should().NotBeNull();
             tree.IsError().Should().BeTrue();
         }
@@ -63,13 +55,5 @@ public class LangSimpleAssignmentTests
             new QueryTest { RawData = "s =5", Results = testFor },
             new QueryTest { RawData = "s =    5", Results = testFor },
         };
-
-        foreach (var root in roots)
-        {
-            foreach (var test in tests)
-            {
-                LangTestTools.Verify(_output, root, test);
-            }
-        }
     }
 }

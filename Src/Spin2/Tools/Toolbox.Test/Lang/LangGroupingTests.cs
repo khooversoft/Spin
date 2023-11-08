@@ -5,13 +5,10 @@ namespace Toolbox.Test.Lang;
 
 public class LangGroupingTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public LangGroupingTests(ITestOutputHelper output)
+    public LangGroupingTests()
     {
-        _output = output;
-
         var equalValue = new LsRoot("k=v") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
         var valueOnly = new LsRoot("v") + new LsValue("svalue");
         var repeat = new LsRepeat("repeat") + (new LsSwitch("or") + equalValue + valueOnly) + new LsToken(";", "delimiter", true);
@@ -30,7 +27,7 @@ public class LangGroupingTests
 
         foreach (var test in tests)
         {
-            LangTestTools.Verify(_output, _root, test);
+            LangTestTools.Verify(_root, test);
         }
     }
 
@@ -50,7 +47,7 @@ public class LangGroupingTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -70,7 +67,7 @@ public class LangGroupingTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -93,6 +90,6 @@ public class LangGroupingTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

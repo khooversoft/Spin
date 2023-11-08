@@ -8,13 +8,10 @@ namespace Toolbox.Test.Lang;
 
 public class LangOptionTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public LangOptionTests(ITestOutputHelper output)
+    public LangOptionTests()
     {
-        _output = output;
-
         var equalValue = new LsRoot("equal") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue");
         var addValue = new LsRoot("plus") + new LsValue("lvalue") + ("+", "plusSign") + new LsValue("rvalue");
 
@@ -80,7 +77,7 @@ public class LangOptionTests
 
         foreach (var test in tests)
         {
-            LangTestTools.Verify(_output, _root, test);
+            LangTestTools.Verify(_root, test);
         }
     }
 
@@ -98,7 +95,7 @@ public class LangOptionTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -115,6 +112,6 @@ public class LangOptionTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

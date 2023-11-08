@@ -14,7 +14,9 @@ public class GraphBatchTests
             add node key=key1,tags=t1;
             add edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;
             update (key=key1) set tags=t2;
+            update (key=key1) -> [t2] set tags=t2;
             delete [schedulework:active] a1;
+            delete [schedulework:active] -> (key=k1) a2;
             select (Key=k4) a1;
             select [fromKey=k2] a1;
             """;
@@ -23,7 +25,7 @@ public class GraphBatchTests
         result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(6);
+        list.Count.Should().Be(8);
 
         int index = 0;
         list[index++].Action(x =>
@@ -59,12 +61,65 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
+            if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
+
+            query.Tags.Should().Be("t2");
+
+            query.Search.Count.Should().Be(2);
+            query.Search[0].Cast<GraphNodeSelect>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.Should().BeNull();
+                x.Alias.Should().BeNull();
+            });
+            query.Search[1].Cast<GraphEdgeSelect>().Action(x =>
+            {
+                x.FromKey.Should().BeNull();
+                x.ToKey.Should().BeNull();
+                x.EdgeType.Should().BeNull();
+                x.Tags.Should().Be("t2");
+                x.Alias.Should().BeNull();
+            });
+        });
+
+        list[index++].Action(x =>
+        {
             if (x is not GraphEdgeDelete query) throw new ArgumentException("Invalid type");
 
-            query.FromKey.Should().BeNull();
-            query.ToKey.Should().BeNull();
-            query.EdgeType.Should().BeNull();
-            query.Tags.Should().Be("schedulework:active");
+            var idx = query.Search.ToCursor();
+            query.Search.Count.Should().Be(1);
+            idx.NextValue().Return().Cast<GraphEdgeSelect>().Action(x =>
+            {
+                x.FromKey.Should().BeNull();
+                x.ToKey.Should().BeNull();
+                x.EdgeType.Should().BeNull();
+                x.Tags.Should().Be("schedulework:active");
+                x.Alias.Should().Be("a1");
+            });
+        });
+        
+        list[index++].Action(x =>
+        {
+            if (x is not GraphNodeDelete query) throw new ArgumentException("Invalid type");
+
+            var idx = query.Search.ToCursor();
+            query.Search.Count.Should().Be(2);
+
+            idx.NextValue().Return().Cast<GraphEdgeSelect>().Action(x =>
+            {
+                x.FromKey.Should().BeNull();
+                x.ToKey.Should().BeNull();
+                x.EdgeType.Should().BeNull();
+                x.Tags.Should().Be("schedulework:active");
+                x.Alias.Should().BeNull();
+            });
+
+            idx.NextValue().Return().Cast<GraphNodeSelect>().Action(x =>
+            {
+                x.Key.Should().Be("k1");
+                x.Tags.Should().BeNull();
+                x.Alias.Should().Be("a2");
+            });
         });
 
         list[index++].Action(x =>

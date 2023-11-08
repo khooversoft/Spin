@@ -53,23 +53,10 @@ public static class GraphLangGrammer
                 + (new LsGroup("[", "]", "edge-group") + SearchFilter)
                 + new LsValue("alias", true);
 
-            var search = new LsRepeat(nameof(SearchQuery)) + (new LsSwitch("instr-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "select-next", true);
+            var search = new LsRepeat(nameof(SearchQuery)) + (new LsSwitch($"{nameof(SearchQuery)}-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "select-next", true);
             return search;
         }
     }
-
-    public static ILangRoot UpdateQuery
-    {
-        get
-        {
-            var nodeSyntax = new LsRoot() + (new LsGroup("(", ")", "node-group") + SearchFilter);
-            var edgeSyntax = new LsRoot() + (new LsGroup("[", "]", "edge-group") + SearchFilter);
-
-            var search = new LsSwitch(nameof(UpdateQuery)) + nodeSyntax + edgeSyntax;
-            return search;
-        }
-    }
-
 
     public static ILangRoot SetValues
     {
@@ -104,7 +91,7 @@ public static class GraphLangGrammer
         {
             var rule = new LsRoot(nameof(Update))
                 + new LsSymbol("update")
-                + UpdateQuery
+                + SearchQuery
                 + new LsSymbol("set", "update-set")
                 + SetValues
                 + new LsToken(";", "term");

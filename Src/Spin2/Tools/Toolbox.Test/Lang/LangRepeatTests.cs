@@ -5,13 +5,10 @@ namespace Toolbox.Test.Lang;
 
 public class LangRepeatTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public LangRepeatTests(ITestOutputHelper output)
+    public LangRepeatTests()
     {
-        _output = output;
-
         _root = new LsRoot()
             + (new LsRepeat("valueEqual") + new LsValue("lvalue") + ("=", "equal") + new LsValue("rvalue") + new LsToken(";", true));
     }
@@ -29,7 +26,7 @@ public class LangRepeatTests
 
         foreach (var test in tests)
         {
-            LangTestTools.Verify(_output, _root, test);
+            LangTestTools.Verify(_root, test);
         }
     }
 
@@ -47,7 +44,7 @@ public class LangRepeatTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
 
@@ -66,7 +63,7 @@ public class LangRepeatTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -88,7 +85,7 @@ public class LangRepeatTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -113,6 +110,6 @@ public class LangRepeatTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

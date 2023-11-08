@@ -6,12 +6,10 @@ namespace Toolbox.Test.Lang.Graph;
 
 public class GraphSelectTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public GraphSelectTests(ITestOutputHelper output)
+    public GraphSelectTests()
     {
-        _output = output;
         _root = GraphLangGrammer.Root;
     }
 
@@ -34,7 +32,7 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -56,7 +54,7 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -79,7 +77,7 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
 
@@ -103,7 +101,7 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -135,7 +133,7 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -173,7 +171,7 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -216,7 +214,7 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -253,6 +251,6 @@ public class GraphSelectTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

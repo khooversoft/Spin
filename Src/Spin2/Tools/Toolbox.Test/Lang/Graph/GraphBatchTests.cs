@@ -6,12 +6,10 @@ namespace Toolbox.Test.Lang.Graph;
 
 public class GraphBatchTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly ILangRoot _root;
 
-    public GraphBatchTests(ITestOutputHelper output)
+    public GraphBatchTests()
     {
-        _output = output;
         _root = GraphLangGrammer.Root;
     }
 
@@ -95,6 +93,6 @@ public class GraphBatchTests
             }
         };
 
-        LangTestTools.Verify(_output, _root, test);
+        LangTestTools.Verify(_root, test);
     }
 }

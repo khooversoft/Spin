@@ -28,6 +28,12 @@ public class LsValue : ILangSyntax
         switch (token)
         {
             case TokenValue tokenValue when !tokenValue.IsSyntaxToken:
+                if (pContext.Symbols.ContainsKey(tokenValue.Value))
+                {
+                    if (Optional) pContext.TokensCursor.Index--;
+                    return (failStatus(), $"token {tokenValue.Value} is a symbol");
+                }
+
                 return new LangNodes() + new LangNode(syntaxCursor.Current, tokenValue.Value);
 
             case BlockToken blockToken:

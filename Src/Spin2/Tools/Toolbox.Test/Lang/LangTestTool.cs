@@ -8,10 +8,9 @@ namespace Toolbox.Test.Lang;
 
 internal static class LangTestTools
 {
-    public static void Verify(ITestOutputHelper _output, ILangRoot root, QueryTest test)
+    public static void Verify(ILangRoot root, QueryTest test)
     {
         LangResult tree = root.Parse(test.RawData);
-        tree.Traces.ForEach(x => _output.WriteLine(x.ToString()));
 
         tree.Should().NotBeNull();
         var pass = tree switch

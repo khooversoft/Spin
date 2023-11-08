@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -16,12 +17,7 @@ public class Cursor<T>
     /// Bind cursor to collection
     /// </summary>
     /// <param name="collection"></param>
-    public Cursor(IReadOnlyList<T> collection)
-    {
-        collection.NotNull();
-
-        _list = collection;
-    }
+    public Cursor(IReadOnlyList<T> collection) => _list = collection.NotNull();
 
     /// <summary>
     /// Reference list
@@ -47,10 +43,16 @@ public class Cursor<T>
     /// </summary>
     public bool IsCursorAtEnd => !(_cursor >= 0 && _cursor < _list.Count);
 
+    public int MaxIndex { get; private set; }
+
     /// <summary>
     /// Reset cursor to the beginning of the list
     /// </summary>
-    public void Reset() => _cursor = -1;
+    public void Reset()
+    {
+        _cursor = -1;
+        MaxIndex = _cursor;
+    }
 
     /// <summary>
     /// Try to get the next value and increment cursor if value is returned
@@ -65,7 +67,7 @@ public class Cursor<T>
         int current = Math.Min(Interlocked.Increment(ref _cursor), _list.Count);
         if (current >= _list.Count) return false;
 
-        value = _list[current];
+        value = _list[Track(current)];
         return true;
     }
 
@@ -105,6 +107,8 @@ public class Cursor<T>
         bool hasValue = TryPeekValue(out T? value);
         return new Option<T>(hasValue, value!);
     }
+
+    private int Track(int value) => value.Action(x => MaxIndex = Math.Max(MaxIndex, x));
 }
 
 
