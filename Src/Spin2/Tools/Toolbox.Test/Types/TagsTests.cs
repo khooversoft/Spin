@@ -75,14 +75,33 @@ public class TagsTests
         tags2.Count.Should().Be(2);
 
         (tags == tags2).Should().BeTrue();
-        (tags.ToString() == tags2.ToString()).Should().BeFalse();
-        (tags.ToString(true) == tags2.ToString(true)).Should().BeTrue();
+        (tags.ToString() == tags2.ToString()).Should().BeTrue();
 
         var tags3 = new Tags("key2=value2;key1=value1");
         (tags == tags3).Should().BeTrue();
 
         var tags4 = new Tags("key2=value2");
         (tags == tags4).Should().BeFalse();
+    }
+
+
+    [Fact]
+    public void RemoveTag()
+    {
+        var tags = new Tags();
+        tags["key2"] = "value2";
+        tags["key1"] = "value1";
+        tags.Count.Should().Be(2);
+        tags.ContainsKey("key1").Should().BeTrue();
+
+        tags.Set("-key2");
+        tags.ToString().Should().Be("key1=value1");
+
+        tags.Set("key2=value3");
+        tags.ToString().Should().Be("key1=value1;key2=value3");
+
+        tags.Set("-key1=v");
+        tags.ToString().Should().Be("key2=value3");
     }
 
     [Fact]
@@ -98,18 +117,18 @@ public class TagsTests
         tags2["key2"] = "value2";
         tags2.Count.Should().Be(2);
         (tags == tags2).Should().BeTrue();
-        (tags.ToString(true) == tags2.ToString(true)).Should().BeTrue();
+        (tags.ToString() == tags2.ToString()).Should().BeTrue();
 
         var tags3 = new Tags();
         tags3.Set("key2=value2;key1=value1");
         tags3.Count.Should().Be(2);
         (tags == tags3).Should().BeTrue();
-        (tags.ToString(true) == tags3.ToString(true)).Should().BeTrue();
+        (tags.ToString() == tags3.ToString()).Should().BeTrue();
 
         var tags4 = new Tags("key2=value2;key1=value1");
         tags4.Count.Should().Be(2);
         (tags == tags4).Should().BeTrue();
-        (tags.ToString(true) == tags4.ToString(true)).Should().BeTrue();
+        (tags.ToString() == tags4.ToString()).Should().BeTrue();
     }
 
     [Fact]
@@ -126,18 +145,18 @@ public class TagsTests
         tags2["key2"] = null;
         tags2.Count.Should().Be(2);
         (tags == tags2).Should().BeTrue();
-        (tags.ToString(true) == tags2.ToString(true)).Should().BeTrue();
+        (tags.ToString() == tags2.ToString()).Should().BeTrue();
 
         var tags3 = new Tags();
         tags3.Set("key2;key1=value1");
         tags3.Count.Should().Be(2);
         (tags == tags3).Should().BeTrue();
-        (tags.ToString(true) == tags3.ToString(true)).Should().BeTrue();
+        (tags.ToString() == tags3.ToString()).Should().BeTrue();
 
         var tags4 = new Tags("key2;key1=value1");
         tags4.Count.Should().Be(2);
         (tags == tags4).Should().BeTrue();
-        (tags.ToString(true) == tags4.ToString(true)).Should().BeTrue();
+        (tags.ToString() == tags4.ToString()).Should().BeTrue();
     }
 
     [Fact]

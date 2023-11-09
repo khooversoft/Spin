@@ -48,7 +48,7 @@ public static class LangParser
             root.Children.OfType<ILangRoot>().ForEach(x => stack.Push(x));
         }
 
-        return list.ToArray();
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     public static Option<LangNodes> MatchSyntaxSegement(this ILangRoot langRoot, string syntaxName, LangParserContext pContext)

@@ -23,7 +23,7 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
 
         while (pContext.TokensCursor.TryPeekValue(out var token))
         {
-            if (!NoDelimiter && !first && !isDelimter) break;
+             if (!NoDelimiter && !first && !isDelimter) break;
 
             var result = this.MatchSyntaxSegement(nameof(LsRepeat), pContext);
             if (result.IsError()) break;

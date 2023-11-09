@@ -50,13 +50,13 @@ public class GraphSelectCommandTests
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("name=lop;lang=java");
+                x.Tags.ToString().Should().Be("lang=java;name=lop");
             });
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node5");
-                x.Tags.ToString().Should().Be("name=ripple;lang=java");
+                x.Tags.ToString().Should().Be("lang=java;name=ripple");
             });
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>

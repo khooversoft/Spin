@@ -41,7 +41,7 @@ public class GraphDeleteCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node1");
-            x.Tags.ToString().Should().Be("name=marko;age=29");
+            x.Tags.ToString().Should().Be("age=29;name=marko");
         });
 
         index.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -72,7 +72,7 @@ public class GraphDeleteCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node1");
-                x.Tags.ToString().Should().Be("name=marko;age=29");
+                x.Tags.ToString().Should().Be("age=29;name=marko");
             });
         });
     }
@@ -95,7 +95,7 @@ public class GraphDeleteCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node6");
-            x.Tags.ToString().Should().Be("name=peter;age=35");
+            x.Tags.ToString().Should().Be("age=35;name=peter");
         });
 
         index.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -119,7 +119,7 @@ public class GraphDeleteCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node6");
-                x.Tags.ToString().Should().Be("name=peter;age=35");
+                x.Tags.ToString().Should().Be("age=35;name=peter");
             });
         });
     }

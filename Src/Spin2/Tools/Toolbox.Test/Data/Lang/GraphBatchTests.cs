@@ -61,7 +61,7 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
+            if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
 
             query.Tags.Should().Be("t2");
 

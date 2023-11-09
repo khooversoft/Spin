@@ -14,7 +14,7 @@ public class Tags : Dictionary<string, string?>
         if (tags.IsEmpty()) return this;
 
         var keyValuePairs = tags.ToDictionaryFromString();
-        keyValuePairs.ForEach(x => this[x.Key] = x.Value);
+        keyValuePairs.ForEach(x => SetValue(x.Key, x.Value));
         return this;
     }
 
@@ -23,12 +23,25 @@ public class Tags : Dictionary<string, string?>
         if (value == null) return this;
 
         var dict = value.ToDictionary();
-        dict.ForEach(x => this[x.Key] = x.Value);
+        dict.ForEach(x => SetValue(x.Key, x.Value));
         return this;
     }
 
-    public Tags SetValue(string key) => this.Action(x => this[key.NotEmpty()] = null);
-    public Tags SetValue(string key, string value) => this.Action(x => this[key.NotEmpty()] = value);
+    public Tags SetValue(string key) => this.Action(x => SetValue(key, null));
+
+    public Tags SetValue(string key, string? value)
+    {
+        key.NotEmpty();
+
+        if (key.Length > 1 && key[0] == '-')
+        {
+            Remove(key[1..]);
+            return this;
+        }
+
+        this[key] = value;
+        return this;
+    }
 
     public bool Has(string? key) => key switch
     {
@@ -51,14 +64,9 @@ public class Tags : Dictionary<string, string?>
     }
 
     public override string ToString() => this
+        .OrderBy(x => x.Key)
         .Select(x => x.Value.IsEmpty() ? x.Key : $"{x.Key}={x.Value}")
         .Join(';');
-
-    public string ToString(bool order) => order switch
-    {
-        false => this.ToString(),
-        true => this.OrderBy(x => x.Key).Select(x => x.Value.IsEmpty() ? x.Key : $"{x.Key}={x.Value}").Join(';'),
-    };
 
     public Tags Copy() => new Tags(ToString());
 

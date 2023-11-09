@@ -76,29 +76,6 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public IReadOnlyList<GraphNode> Query(GraphNodeSearch query)
-    {
-        query.NotNull();
-
-        lock (_lock)
-        {
-            IEnumerable<GraphNode> result = (query.Key, query.Tags) switch
-            {
-                (null, null) => _index.Values.Select(x => x),
-                (string nodeKey, null) => _index.TryGetValue(nodeKey, out var v) ? v.ToEnumerable() : Array.Empty<GraphNode>(),
-                (null, string tags) => _index.Values.Where(x => x.Tags.Has(tags)),
-
-                (string nodeKey, string tags) => _index.TryGetValue(nodeKey, out var v) switch
-                {
-                    false => Array.Empty<GraphNode>(),
-                    true => v.Tags.Has(tags) ? v.ToEnumerable() : Array.Empty<GraphNode>(),
-                },
-            };
-
-            return result.ToArray();
-        }
-    }
-
     public Option Update(IReadOnlyList<GraphNode> query, Func<GraphNode, GraphNode> update)
     {
         query.NotNull();
