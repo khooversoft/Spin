@@ -1,6 +1,6 @@
 ﻿using Toolbox.Types;
 
-namespace Toolbox.Data.Graph.Execute;
+namespace Toolbox.Data;
 
 public enum CommandType
 {
@@ -37,6 +37,8 @@ public record CommandResult
     public IReadOnlyList<IGraphCommon> SearchResult { get; init; } = Array.Empty<IGraphCommon>();
 }
 
-public record CommandResponse
+public record CommandResults
 {
+    public GraphMap GraphMap { get; init; } = null!;
+    public IReadOnlyList<CommandResult> Results { get; init; } = Array.Empty<CommandResult>();
 }

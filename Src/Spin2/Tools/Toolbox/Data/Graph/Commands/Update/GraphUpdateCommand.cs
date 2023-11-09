@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
 
@@ -11,37 +12,36 @@ public static class GraphUpdateCommand
         var selectListOption = GraphSelectCommand.Parse(stack, "update");
         if (selectListOption.IsError()) return selectListOption.ToOptionStatus<IGraphQL>();
 
-        var list = new Sequence<IGraphQL>();
+        IReadOnlyList<IGraphQL> selectList = selectListOption.Return();
+        if (selectList.Count == 0) return (StatusCode.BadRequest, "No search for delete");
 
-        if (!stack.TryPop(out var setCommand) || setCommand.SyntaxNode.Name != "update-set") return (StatusCode.BadRequest, "Syntax error: Command 'set' is required");
+        if (!stack.TryPop(out var setCommand) || setCommand.SyntaxNode.Name != "update-set") return (StatusCode.BadRequest, "'set' command required");
 
-        while (stack.TryPeek(out var langNode))
+        switch (selectList.Last())
         {
-            var saveStack = new Stack<LangNode>(stack);
-
-            var nodeParse = ParseNode(stack);
-            if (nodeParse.IsOk())
-            {
-                return nodeParse.Return() with
+            case GraphNodeSearch:
+                var nodeParse = ParseNode(stack);
+                if (nodeParse.IsOk())
                 {
-                    Search = selectListOption.Return(),
-                };
-            }
+                    return nodeParse.Return() with
+                    {
+                        Search = selectListOption.Return(),
+                    };
+                }
+                break;
 
-            int restoreCount = saveStack.Count - stack.Count;
-            Enumerable.Range(0, saveStack.Count - restoreCount).ForEach(_ => saveStack.Pop());
-            Enumerable.Range(0, restoreCount).ForEach(_ => stack.Push(saveStack.Pop()));
-
-            var edgeParse = ParseEdge(stack);
-            if (edgeParse.IsOk())
-            {
-                return edgeParse.Return() with
+            case GraphEdgeSearch:
+                var edgeParse = ParseEdge(stack);
+                if (edgeParse.IsOk())
                 {
-                    Search = selectListOption.Return(),
-                };
-            }
+                    return edgeParse.Return() with
+                    {
+                        Search = selectListOption.Return(),
+                    };
+                }
+                break;
 
-            return (StatusCode.BadRequest, "Unknown language node");
+            case object v: throw new UnreachableException($"Unknown search type {v.GetType().FullName}");
         }
 
         return (StatusCode.BadRequest, "No language nodes");
@@ -83,8 +83,7 @@ public static class GraphUpdateCommand
                         Tags = tags,
                     };
 
-                default:
-                    break;
+                default: throw new UnreachableException($"Unknown langNode={langNode.GetType().FullName}");
             }
         }
 
@@ -124,7 +123,7 @@ public static class GraphUpdateCommand
                     break;
 
                 case { SyntaxNode.Name: "term" }:
-                    if (edgeType == null || tags == null) return (StatusCode.BadRequest, "No edgeType, tags are required");
+                    if (edgeType == null && tags == null) return (StatusCode.BadRequest, "No edgeType, tags are required");
 
                     return new GraphEdgeUpdate
                     {
@@ -132,8 +131,7 @@ public static class GraphUpdateCommand
                         Tags = tags,
                     };
 
-                default:
-                    break;
+                default: throw new UnreachableException($"Unknown langNode={langNode.GetType().FullName}");
             }
         }
 

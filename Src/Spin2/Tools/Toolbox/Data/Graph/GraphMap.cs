@@ -20,8 +20,8 @@ public class GraphMap : IEnumerable<IGraphCommon>
     public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges)
         : this()
     {
-        nodes.NotNull().ForEach(x => Nodes.Add(x).ThrowOnError("Node add failed"));
-        edges.NotNull().ForEach(x => Edges.Add(x).ThrowOnError("Edge add failed"));
+        nodes.NotNull().ForEach(x => Nodes.Add(x.Copy()).ThrowOnError("Node add failed"));
+        edges.NotNull().ForEach(x => Edges.Add(x.Copy()).ThrowOnError("Edge add failed"));
     }
 
     public GraphNodeIndex Nodes => _nodes;
@@ -48,8 +48,9 @@ public class GraphMap : IEnumerable<IGraphCommon>
         }
     }
 
-    public GraphMap Clone() => new GraphMap(_nodes, _edges);
+    public GraphMap Copy() => new GraphMap(_nodes, _edges);
     public GraphQuery Query() => new GraphQuery(this, _lock);
+    public GraphCommand Command() => new GraphCommand(this, _lock);
 
     public IEnumerator<IGraphCommon> GetEnumerator()
     {

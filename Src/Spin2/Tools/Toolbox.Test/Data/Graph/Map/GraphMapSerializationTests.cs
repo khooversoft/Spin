@@ -3,7 +3,7 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Test.Data.Graph;
+namespace Toolbox.Test.Data.Graph.Map;
 
 public class GraphMapSerializationTests
 {

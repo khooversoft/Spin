@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Validation;
@@ -13,6 +14,7 @@ public enum EdgeDirection
 }
 
 
+[DebuggerDisplay("Key={Key}, FromKey={FromKey}, ToKey={ToKey}, EdgeType={EdgeType}, Tags={Tags}")]
 public sealed record GraphEdge : IGraphCommon
 {
     public GraphEdge() { }
@@ -47,6 +49,8 @@ public sealed record GraphEdge : IGraphCommon
     public string EdgeType { get; init; } = "default";
     public Tags Tags { get; init; } = new Tags();
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
+
+    public GraphEdge Copy() => new GraphEdge(Key, FromKey, ToKey, EdgeType, Tags.Copy(), CreatedDate);
 
     public bool Equals(GraphEdge? obj) => obj is GraphEdge document &&
         Key.Equals(document.Key) &&

@@ -3,7 +3,7 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace Toolbox.Test.Data.Graph;
+namespace Toolbox.Test.Data.Graph.Query;
 
 public class GraphQueryEdgeTests
 {

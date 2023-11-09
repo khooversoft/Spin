@@ -33,43 +33,42 @@ public class GraphQuery
         IReadOnlyList<IGraphCommon> current = null!;
         Dictionary<string, IReadOnlyList<IGraphCommon>> aliasDict = new(StringComparer.OrdinalIgnoreCase);
 
+        bool first = true;
         lock (_syncLock)
         {
             while (stack.TryPop(out var graphQL))
             {
-                if (graphQL is not GraphSelect select) throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
-
-                bool first = true;
-                foreach (var item in select.Search)
+                switch (graphQL)
                 {
-                    switch (item)
-                    {
-                        case GraphNodeSearch node:
-                            search = first switch
-                            {
-                                true => search.Nodes(x => node.IsMatch(x)),
-                                false => search.HasNode(x => node.IsMatch(x)),
-                            };
+                    case GraphNodeSearch node:
+                        search = first switch
+                        {
+                            true => search.Nodes(x => node.IsMatch(x)),
+                            false => search.HasNode(x => node.IsMatch(x)),
+                        };
 
-                            update(search, node.Alias);
-                            break;
+                        update(search, node.Alias);
+                        break;
 
-                        case GraphEdgeSearch edge:
-                            search = first switch
-                            {
-                                true => search.Edges(x => edge.IsMatch(x)),
-                                false => search.HasEdge(x => edge.IsMatch(x)),
-                            };
+                    case GraphEdgeSearch edge:
+                        search = first switch
+                        {
+                            true => search.Edges(x => edge.IsMatch(x)),
+                            false => search.HasEdge(x => edge.IsMatch(x)),
+                        };
 
-                            update(search, edge.Alias);
-                            break;
+                        update(search, edge.Alias);
+                        break;
 
-                        default:
-                            throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
-                    }
+                    case GraphSelect select:
+                        select.Search.Reverse().ForEach(x => stack.Push(x));
+                        continue;
 
-                    first = false;
+                    default:
+                        throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
                 }
+
+                first = false;
             }
 
             return new GraphQueryResult

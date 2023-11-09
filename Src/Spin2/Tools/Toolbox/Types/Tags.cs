@@ -60,6 +60,8 @@ public class Tags : Dictionary<string, string?>
         true => this.OrderBy(x => x.Key).Select(x => x.Value.IsEmpty() ? x.Key : $"{x.Key}={x.Value}").Join(';'),
     };
 
+    public Tags Copy() => new Tags(ToString());
+
     public bool Equals(Tags? other) => other is not null &&
         this.Count == other.Count &&
         this.All(x => other.TryGetValue(x.Key, out var subject) && (x.Value, subject) switch

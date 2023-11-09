@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Toolbox.Data;
 
-namespace Toolbox.Test.Data.Graph;
+namespace Toolbox.Test.Data.Graph.Map;
 
 public class GraphSearchTests
 {
