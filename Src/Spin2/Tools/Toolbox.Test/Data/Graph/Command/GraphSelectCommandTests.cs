@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Data.Graph.Command;
@@ -30,13 +31,13 @@ public class GraphSelectCommandTests
         var newMapOption = _map.Command().Execute("select (tags='lang=java');");
         newMapOption.IsOk().Should().BeTrue();
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         GraphCommandTools.CompareMap(_map, commandResults.GraphMap).Count.Should().Be(0);
 
-        commandResults.Results.Count.Should().Be(1);
-        var resultIndex = commandResults.Results.ToCursor();
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
@@ -44,8 +45,8 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.Count.Should().Be(3);
-            var index = x.SearchResult.ToCursor();
+            x.SearchResult.NotNull().Items.Count.Should().Be(3);
+            var index = x.SearchResult.NotNull().Items.ToCursor();
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
@@ -73,13 +74,13 @@ public class GraphSelectCommandTests
         var newMapOption = _map.Command().Execute("select [knows];");
         newMapOption.IsOk().Should().BeTrue();
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         GraphCommandTools.CompareMap(_map, commandResults.GraphMap).Count.Should().Be(0);
 
-        commandResults.Results.Count.Should().Be(1);
-        var resultIndex = commandResults.Results.ToCursor();
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
@@ -87,9 +88,9 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.Count.Should().Be(2);
+            x.SearchResult.NotNull().Items.Count.Should().Be(2);
 
-            var index = x.SearchResult.ToCursor();
+            var index = x.SearchResult.NotNull().Items.ToCursor();
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node1");
@@ -113,13 +114,13 @@ public class GraphSelectCommandTests
         var newMapOption = _map.Command().Execute("select [knows];select [created];");
         newMapOption.IsOk().Should().BeTrue();
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         GraphCommandTools.CompareMap(_map, commandResults.GraphMap).Count.Should().Be(0);
-        commandResults.Results.Count.Should().Be(2);
+        commandResults.Items.Count.Should().Be(2);
 
-        var resultIndex = commandResults.Results.ToCursor();
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
@@ -127,8 +128,8 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.Count.Should().Be(2);
-            var index = x.SearchResult.ToCursor();
+            x.SearchResult.NotNull().Items.Count.Should().Be(2);
+            var index = x.SearchResult.NotNull().Items.ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
@@ -151,8 +152,8 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.Count.Should().Be(3);
-            var index = x.SearchResult.ToCursor();
+            x.SearchResult.NotNull().Items.Count.Should().Be(3);
+            var index = x.SearchResult.NotNull().Items.ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {

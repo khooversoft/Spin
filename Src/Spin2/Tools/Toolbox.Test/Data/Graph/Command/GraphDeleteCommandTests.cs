@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Data.Graph.Command;
@@ -30,7 +31,7 @@ public class GraphDeleteCommandTests
         var newMapOption = _map.Command().Execute("delete (key=node1);");
         newMapOption.IsOk().Should().BeTrue();
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
@@ -58,17 +59,17 @@ public class GraphDeleteCommandTests
             x.Tags.ToString().Should().Be("knows;level=1");
         });
 
-        commandResults.Results.Count.Should().Be(1);
-        var resultIndex = commandResults.Results.ToCursor();
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.DeleteNode);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.Count.Should().Be(1);
+            x.SearchResult.NotNull().Items.Count.Should().Be(1);
 
-            var resultIndex = x.SearchResult.ToCursor();
+            var resultIndex = x.SearchResult.NotNull().Items.ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node1");
@@ -84,7 +85,7 @@ public class GraphDeleteCommandTests
         var newMapOption = _map.Command().Execute("delete [created] -> (tags='age=35');");
         newMapOption.IsOk().Should().BeTrue();
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
@@ -105,17 +106,17 @@ public class GraphDeleteCommandTests
             x.Tags.ToString().Should().Be("created");
         });
 
-        commandResults.Results.Count.Should().Be(1);
-        var resultIndex = commandResults.Results.ToCursor();
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.DeleteNode);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.Count.Should().Be(1);
+            x.SearchResult.NotNull().Items.Count.Should().Be(1);
 
-            var resultIndex = x.SearchResult.ToCursor();
+            var resultIndex = x.SearchResult.NotNull().Items.ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node6");
@@ -130,7 +131,7 @@ public class GraphDeleteCommandTests
         var newMapOption = _map.Command().Execute("delete [fromKey=node4; toKey=node5];");
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
@@ -145,17 +146,17 @@ public class GraphDeleteCommandTests
             x.Tags.ToString().Should().Be("created");
         });
 
-        commandResults.Results.Count.Should().Be(1);
-        var resultIndex = commandResults.Results.ToCursor();
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.DeleteEdge);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.Count.Should().Be(1);
+            x.SearchResult.NotNull().Items.Count.Should().Be(1);
 
-            var resultIndex = x.SearchResult.ToCursor();
+            var resultIndex = x.SearchResult.NotNull().Items.ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node4");

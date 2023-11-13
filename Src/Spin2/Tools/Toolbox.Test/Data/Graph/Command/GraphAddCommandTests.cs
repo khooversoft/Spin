@@ -30,7 +30,7 @@ public class GraphAddCommandTests
         var newMapOption = _map.Command().Execute("add node key=node99,tags=newTags;");
         newMapOption.IsOk().Should().BeTrue();
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
@@ -42,15 +42,15 @@ public class GraphAddCommandTests
             x.Tags.ToString().Should().Be("newTags");
         });
 
-        commandResults.Results.Count.Should().Be(1);
-        var resultIndex = commandResults.Results.ToCursor();
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddNode);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.Count.Should().Be(0);
+            x.SearchResult.Should().NotBeNull();
         });
     }
 
@@ -60,7 +60,7 @@ public class GraphAddCommandTests
         var newMapOption = _map.Command().Execute("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, tags=newTags;");
         newMapOption.IsOk().Should().BeTrue();
 
-        CommandResults commandResults = newMapOption.Return();
+        GraphCommandExceuteResults commandResults = newMapOption.Return();
 
         commandResults.GraphMap.Should().NotBeNull();
         var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
@@ -74,15 +74,15 @@ public class GraphAddCommandTests
             x.Tags.ToString().Should().Be("newTags");
         });
 
-        commandResults.Results.Count.Should().Be(1);
-        var resultIndex = commandResults.Results.ToCursor();
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddEdge);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.Count.Should().Be(0);
+            x.SearchResult.Should().NotBeNull();
         });
     }
 }

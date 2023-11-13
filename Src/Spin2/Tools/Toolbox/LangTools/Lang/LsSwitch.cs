@@ -39,7 +39,7 @@ public class LsSwitch : LangBase<ILangSyntax>, ILangRoot
             break;
         }
 
-        return (StatusCode.BadRequest, "Syntax error, no repeating values");
+        return (StatusCode.BadRequest, "Syntax error, switch failed");
     }
 
     public override string ToString() => $"{nameof(LsSwitch)}: Name={Name}, nodes=[ {this.Select(x => x.ToString()).Join(' ')} ]";

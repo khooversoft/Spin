@@ -104,12 +104,12 @@ public class SchedulerActor : Grain, ISchedulerActor
 
         context.Location().LogInformation("Clear queue, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        Option<GraphQueryResult> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
+        Option<IReadOnlyList<GraphEdge>> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
         if (dirResponse.IsError()) return dirResponse.ToOptionStatus();
 
-        GraphQueryResult response = dirResponse.Return();
+        IReadOnlyList<GraphEdge> items = dirResponse.Return();
 
-        foreach (var item in response.Items.OfType<GraphEdge>())
+        foreach (var item in items)
         {
             var result = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Delete(context.TraceId);
             if (result.IsError())
@@ -138,13 +138,13 @@ public class SchedulerActor : Grain, ISchedulerActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<GraphQueryResult> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
+        Option<IReadOnlyList<GraphEdge>> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
         if (dirResponse.IsError()) return dirResponse.ToOptionStatus<SchedulesResponseModel>();
 
-        GraphQueryResult response = dirResponse.Return();
+        IReadOnlyList<GraphEdge> items = dirResponse.Return();
 
         var workScheduleList = new List<(string edgeType, ScheduleWorkModel model)>();
-        foreach (var item in response.Items.OfType<GraphEdge>().Where(x => isEdgeType(x.EdgeType)))
+        foreach (var item in items.Where(x => isEdgeType(x.EdgeType)))
         {
             var getOption = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Get(traceId);
             if (getOption.IsError())

@@ -70,7 +70,7 @@ public static class GraphAddCommand
                     break;
 
                 case { SyntaxNode.Name: "term" }:
-                    if (key == null || tags == null) return (StatusCode.BadRequest, "No key and tags must be specified");
+                    if (key == null) return (StatusCode.BadRequest, "No key and tags must be specified");
 
                     return new GraphNodeAdd
                     {

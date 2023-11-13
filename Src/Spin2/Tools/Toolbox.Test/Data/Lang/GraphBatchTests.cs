@@ -152,4 +152,40 @@ public class GraphBatchTests
             });
         });
     }
+
+    [Fact]
+    public void AddScheduleTest()
+    {
+        string q = """
+            add node key=system:schedule-work;add node key=schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed;add edge fromKey=system:schedule-work,toKey=schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed,edgeType=scheduleWorkType:Active;
+            """;
+
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
+        result.IsOk().Should().BeTrue(result.ToString());
+
+        IReadOnlyList<IGraphQL> list = result.Return();
+        list.Count.Should().Be(3);
+
+        var cursor = list.ToCursor();
+
+        cursor.NextValue().Return().Cast<GraphNodeAdd>().Action(x =>
+        {
+            x.Key.Should().Be("system:schedule-work");
+            x.Tags.Should().Be(null);
+        });
+
+        cursor.NextValue().Return().Cast<GraphNodeAdd>().Action(x =>
+        {
+            x.Key.Should().Be("schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed");
+            x.Tags.Should().Be(null);
+        });
+
+        cursor.NextValue().Return().Cast<GraphEdgeAdd>().Action(x =>
+        {
+            x.FromKey.Should().Be("system:schedule-work");
+            x.ToKey.Should().Be("schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed");
+            x.EdgeType.Should().Be("scheduleWorkType:Active");
+            x.Tags.Should().Be(null);
+        });
+    }
 }

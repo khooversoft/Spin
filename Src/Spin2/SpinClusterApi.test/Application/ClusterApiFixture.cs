@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
 using SpinCluster.sdk.Actors.Agent;
@@ -63,4 +64,13 @@ public class ClusterApiFixture
     public IServiceProvider ServiceProvider { get; }
 
     public HttpClient GetClient() => ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient("raw");
+
+    public async Task ResetEnvironment()
+    {
+        SchedulerClient schedulerClient = ServiceProvider.GetRequiredService<SchedulerClient>();
+        await schedulerClient.Clear("admin@domain.com", new ScopeContext(NullLogger.Instance));
+
+        DirectoryClient directoryClient = ServiceProvider.GetRequiredService<DirectoryClient>();
+        await directoryClient.Clear("admin@domain.com", new ScopeContext(NullLogger.Instance));
+    }
 }

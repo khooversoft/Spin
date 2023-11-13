@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -16,6 +17,8 @@ public static class GraphLang
     public static Option<IReadOnlyList<IGraphQL>> Parse(string rawData)
     {
         LangResult langResult = _root.Parse(rawData);
+        if (langResult.StatusCode == StatusCode.BadRequest) Debugger.Break();
+
         if (langResult.IsError()) return new Option<IReadOnlyList<IGraphQL>>(langResult.StatusCode, langResult.Error);
 
         Stack<LangNode> stack = langResult.LangNodes.NotNull().Reverse().ToStack();

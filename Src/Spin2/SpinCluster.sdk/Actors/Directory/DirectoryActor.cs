@@ -11,13 +11,8 @@ namespace SpinCluster.sdk.Actors.Directory;
 
 public interface IDirectoryActor : IGrainWithStringKey
 {
-    Task<Option> AddEdge(GraphEdge edge, string traceId);
-    Task<Option> AddNode(GraphNode node, string traceId);
-    Task Clear(string traceId);
-    Task<Option<GraphQueryResult>> Query(DirectoryQuery search, string traceId);
-    Task<Option<GraphQueryResult>> Remove(DirectoryQuery search, string traceId);
-    Task<Option> Update(DirectoryEdgeUpdate node, string traceId);
-    Task<Option> Update(DirectoryNodeUpdate node, string traceId);
+    Task<Option> Clear(string principalId, string traceId);
+    Task<Option<GraphCommandResults>> Execute(string command, string traceId);
 }
 
 public class DirectoryActor : Grain, IDirectoryActor
@@ -61,118 +56,39 @@ public class DirectoryActor : Grain, IDirectoryActor
         return StatusCode.OK;
     }
 
-    public async Task<Option> AddNode(GraphNode node, string traceId)
+    public async Task<Option> Clear(string principalId, string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Adding node, node={node}", node);
+        principalId.NotEmpty();
 
-        var option = _map.Nodes.Add(node);
-        if (option.IsError()) return option;
-
-        await SetGraphToStorage();
-        return StatusCode.OK;
-    }
-
-    //public async Task<Option> Batch(DirectoryBatch batch, string traceId)
-    //{
-    //    var context = new ScopeContext(traceId, _logger);
-    //    context.Location().LogInformation("Processing batch, batch={batch}", batch);
-
-    //    // Working map
-    //    GraphMap workingMap = GraphMap.FromJson(_map.ToJson());
-    //    Option option;
-
-    //    foreach (var item in batch.Items)
-    //    {
-    //        switch (item)
-    //        {
-    //            case DirectoryNode node:
-    //                option = workingMap.Nodes.Add(node.ConvertTo());
-    //                if (option.IsError()) return option;
-    //                break;
-
-    //            case DirectoryEdge edge:
-    //                option = workingMap.Edges.Add(edge.ConvertTo());
-    //                if (option.IsError()) return option;
-    //                break;
-
-    //            case RemoveNode removeNode:
-    //                workingMap.Nodes.Remove(removeNode.NodeKey);
-    //                break;
-
-    //            case RemoveEdge removeEdge:
-    //                workingMap.Edges.Remove(removeEdge.EdgeKey);
-    //                break;
-    //        }
-    //    }
-    //}
-
-    public async Task Clear(string traceId)
-    {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Clearing graph");
 
         _map.Clear();
         await SetGraphToStorage();
+
+        return StatusCode.OK;
     }
 
-    public Task<Option<GraphQueryResult>> Query(DirectoryQuery search, string traceId)
+    public async Task<Option<GraphCommandResults>> Execute(string command, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        if (!search.Validate(out var v)) return v.ToOptionStatus<GraphQueryResult>().ToTaskResult();
-        context.Location().LogInformation("Lookup edge, search={search}", search);
+        if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
+        context.Location().LogInformation("Command, search={search}", command);
 
-        GraphQueryResult result = _map.Query().Execute(search.GraphQuery);
-        if (result.StatusCode.IsError()) return new Option<GraphQueryResult>(result.StatusCode, result.Error).ToTaskResult();
+        var commandOption = _map.Command().Execute(command);
+        if (commandOption.StatusCode.IsError()) return commandOption.ToOptionStatus<GraphCommandResults>();
 
-        return result.ToOption().ToTaskResult();
-    }
+        GraphCommandExceuteResults commandResult = commandOption.Return();
 
-    public async Task<Option<GraphQueryResult>> Remove(DirectoryQuery search, string traceId)
-    {
-        if (!search.Validate(out var v)) return v.ToOptionStatus<GraphQueryResult>();
-        var context = new ScopeContext(traceId, _logger);
+        bool isMapModified = commandResult.Items.Any(x => x.CommandType != CommandType.Select);
+        if (!isMapModified) return commandResult.ConvertTo();
 
-        Option<GraphQueryResult> result = await Query(search, traceId);
-        if (result.IsError()) return result;
+        context.Location().LogInformation("Directory command modified graph, writing changes");
 
-        GraphQueryResult response = result.Return();
-        if (response.Items.Count == 0) return StatusCode.NotFound;
-
-        context.Location().LogInformation("Removing nodes/edges, GraphQueryResult={graphQueryResult}", response);
-
-        response.Items.OfType<GraphNode>().ForEach(x => _map.Nodes.Remove(x.Key));
-        response.Items.OfType<GraphEdge>().ForEach(x => _map.Edges.Remove(x.Key));
-
+        _map = commandResult.GraphMap;
         await SetGraphToStorage();
-        return response;
-    }
 
-    public Task<Option> Update(DirectoryEdgeUpdate model, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Updating edge, model={model}", model);
-
-        //_map.Edges.Update(model.ConvertTo(), x => x with
-        //{
-        //    EdgeType = model.UpdateEdgeType ?? x.EdgeType,
-        //    Tags = x.Tags.Set(model.UpdateTags)
-        //});
-
-        return new Option(StatusCode.OK).ToTaskResult();
-    }
-
-    public Task<Option> Update(DirectoryNodeUpdate model, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Updating node, model={model}", model);
-
-        //_map.Nodes.Update(model.ConvertTo(), x => x with
-        //{
-        //    Tags = x.Tags.Set(model.UpdateTags)
-        //});
-
-        return new Option(StatusCode.OK).ToTaskResult();
+        return commandResult.ConvertTo();
     }
 
     private async Task ReadGraphFromStorage(bool forceRead = false)

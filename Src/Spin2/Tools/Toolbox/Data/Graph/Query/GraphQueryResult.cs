@@ -8,8 +8,8 @@ public record GraphQueryResult
     public StatusCode StatusCode { get; init; }
     public string? Error { get; init; }
 
-    public IReadOnlyList<IGraphCommon> Items { get; init; } = null!;
-    public IReadOnlyDictionary<string, IReadOnlyList<IGraphCommon>> Alias { get; init; } = null!;
+    public IReadOnlyList<IGraphCommon> Items { get; init; } = Array.Empty<IGraphCommon>();
+    public IReadOnlyDictionary<string, IReadOnlyList<IGraphCommon>> Alias { get; init; } = new Dictionary<string, IReadOnlyList<IGraphCommon>>(StringComparer.OrdinalIgnoreCase);
 }
 
 

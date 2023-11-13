@@ -53,7 +53,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
 
         ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
         Option deleteResponse = await workClient.Delete(workId, _context);
-        deleteResponse.IsOk().Should().BeTrue(deleteResponse.ToString());
+        deleteResponse.IsNotFound().Should().BeTrue(deleteResponse.ToString());
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
 
         ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
         Option deleteResponse = await workClient.Delete(workId, _context);
-        deleteResponse.IsOk().Should().BeTrue(deleteResponse.ToString());
+        deleteResponse.IsNotFound().Should().BeTrue(deleteResponse.ToString());
     }
 
     private async Task Setup()

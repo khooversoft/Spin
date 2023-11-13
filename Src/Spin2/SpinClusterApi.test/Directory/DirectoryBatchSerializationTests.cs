@@ -4,6 +4,7 @@
 
 //namespace SpinClusterApi.test.Directory;
 
+// [CollectionDefinition("directory")]
 //public class DirectoryBatchSerializationTests
 //{
 //    [Fact]

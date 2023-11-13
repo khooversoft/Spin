@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.LangTools;
@@ -21,7 +22,14 @@ public static class LangParser
 
         if (result.IsOk() && pContext.TokensCursor.TryPeekValue(out var _))
         {
-            result = (StatusCode.BadRequest, "Syntax error, input tokens not completed");
+            string left = pContext.TokensCursor.List
+                .Skip(pContext.TokensCursor.Index)
+                .Select(x => x.Value)
+                .Join(" ");
+
+            Debugger.Break();
+
+            result = (StatusCode.BadRequest, $"Syntax error, input tokens not completed, rawData='{rawData}' left tokens='{left}'.");
         }
 
         var response = new LangResult

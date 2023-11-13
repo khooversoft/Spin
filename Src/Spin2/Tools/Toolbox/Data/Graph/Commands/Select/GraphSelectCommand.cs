@@ -39,7 +39,7 @@ public static class GraphSelectCommand
                     return list;
 
                 default:
-                    return (StatusCode.BadRequest, "Unknown language node");
+                    throw new ArgumentException("Unknown language node");
             }
         }
 

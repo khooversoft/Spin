@@ -26,53 +26,23 @@ public class DirectoryConnector
     {
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Directory}");
 
-        group.MapPost("/addEdge", AddEdge);
-        group.MapPost("/addNode", AddNode);
-        group.MapPost("/query", Query);
-        group.MapPost("/remove", Remove);
-        group.MapPost("/updateEdge", SetTagsForEdge);
-        group.MapPost("/updateNode", SetTagsForNode);
-
+        group.MapPost("/command", Command);
+        group.MapDelete("/{principalId}/clear", Clear);
         return group;
     }
 
-    private async Task<IResult> AddEdge(GraphEdge edge, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Command(DirectoryCommand search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        if (!edge.Validate(out var v)) return v.ToResult();
-
-        Option result = await _client.GetDirectoryActor().AddEdge(edge, traceId);
-        return result.ToResult();
+        Option<GraphCommandResults> result = await _client.GetDirectoryActor().Execute(search.Command, traceId);
+        var response = result.ToResult();
+        return response;
     }
 
-    private async Task<IResult> AddNode(GraphNode node, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Clear(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        if (!node.Validate(out var v)) return v.ToResult();
+        if (principalId.IsEmpty()) return Results.BadRequest();
 
-        Option result = await _client.GetDirectoryActor().AddNode(node, traceId);
-        return result.ToResult();
-    }
-
-    private async Task<IResult> Query(DirectoryQuery search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        Option<GraphQueryResult> result = await _client.GetDirectoryActor().Query(search, traceId);
-        return result.ToResult();
-    }
-
-    private async Task<IResult> Remove(DirectoryQuery search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        Option<GraphQueryResult> result = await _client.GetDirectoryActor().Remove(search, traceId);
-        return result.ToResult();
-    }
-
-    public async Task<IResult> SetTagsForEdge(DirectoryEdgeUpdate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        Option result = await _client.GetDirectoryActor().Update(model, traceId);
-        return result.ToResult();
-    }
-
-    public async Task<IResult> SetTagsForNode(DirectoryNodeUpdate model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
-    {
-        Option result = await _client.GetDirectoryActor().Update(model, traceId);
-        return result.ToResult();
+        Option response = await _client.GetDirectoryActor().Clear(principalId, traceId);
+        return response.ToResult();
     }
 }
