@@ -153,7 +153,7 @@ public class LoanContractManager
             PostedDate = model.PostedDate,
             ContractId = model.ContractId,
             OwnerId = model.PrincipalId,
-            Description = "model charge",
+            Description = "Interest charge",
             Type = LoanLedgerType.Debit,
             TrxType = LoanTrxType.InterestCharge,
             Amount = interestCharge,
