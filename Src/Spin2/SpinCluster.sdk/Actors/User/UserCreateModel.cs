@@ -1,4 +1,6 @@
-﻿using Toolbox.Tools.Validation;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.User;
@@ -27,6 +29,16 @@ public sealed record UserCreateModel
         .RuleFor(x => x.DisplayName).NotEmpty()
         .RuleFor(x => x.FirstName).NotEmpty()
         .RuleFor(x => x.LastName).NotEmpty()
+        .RuleForObject(x => x).Must(x =>
+        {
+            var userIdOption = ResourceId.Create(x.UserId);
+            if (userIdOption.IsError()) return false;
+
+            string userPrincipalId = userIdOption.Return().PrincipalId.NotEmpty();
+            bool pass = x.PrincipalId.EqualsIgnoreCase(userPrincipalId);
+            return pass;
+
+        }, _ => "User id does not match principalId")
         .Build();
 }
 

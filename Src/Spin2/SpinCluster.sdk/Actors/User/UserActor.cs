@@ -6,6 +6,7 @@ using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Security.Sign;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.User;
@@ -40,7 +41,7 @@ public class UserActor : Grain, IUserActor
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.VerifySchema(SpinConstants.Schema.User, new ScopeContext(_logger));
+        this.VerifySchema(ResourceType.Owned, SpinConstants.Schema.User, new ScopeContext(_logger).Location());
         return base.OnActivateAsync(cancellationToken);
     }
 
@@ -49,19 +50,16 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists) return StatusCode.NotFound;
+        if (_state.RecordExists) await _state.ClearStateAsync();
 
-        string? publicKeyId = _state.State.UserKey?.PublicKeyId;
-        await _state.ClearStateAsync();
+        var userKeys = UserKeyModel.Create(getPrincipalId());
 
-        if (publicKeyId != null)
-        {
-            await _clusterClient
-                .GetResourceGrain<IPrincipalKeyActor>(publicKeyId)
-                .Delete(context.TraceId);
-        }
+        await _clusterClient.GetResourceGrain<IPrincipalKeyActor>(userKeys.PublicKeyId).Delete(context.TraceId);
+        await _clusterClient.GetResourceGrain<IPrincipalPrivateKeyActor>(userKeys.PrivateKeyId).Delete(context.TraceId);
 
         return StatusCode.OK;
+
+        string getPrincipalId() => ResourceId.Create(this.GetPrimaryKeyString()).Return().PrincipalId.NotEmpty();
     }
 
     public async Task<Option> Create(UserCreateModel model, string traceId)
@@ -69,8 +67,9 @@ public class UserActor : Grain, IUserActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Create user, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (_state.RecordExists) return (StatusCode.Conflict, "Record already exist");
+        if (_state.RecordExists) return (StatusCode.Conflict, $"Record already exist, actorKey={this.GetPrimaryKeyString()}");
         if (!model.Validate(out var v)) return v;
+        if (!model.UserId.EqualsIgnoreCase(this.GetPrimaryKeyString())) return (StatusCode.BadRequest, "User id does not match actorKey");
 
         var v2 = await VerifyDomain(model.UserId, context);
         if (v2.IsError()) return v2;

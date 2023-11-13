@@ -167,7 +167,7 @@ public class SetupTools
         };
 
         Option setOption = await client.Create(user, context);
-        setOption.IsOk().Should().BeTrue();
+        setOption.IsOk().Should().BeTrue(setOption.ToString());
 
         return user;
     }

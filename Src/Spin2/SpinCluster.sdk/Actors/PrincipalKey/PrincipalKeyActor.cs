@@ -88,7 +88,7 @@ public class PrincipalKeyActor : Grain, IPrincipalKeyActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Creating public/private key for keyId={keyId}", model.KeyId);
 
-        if (_state.RecordExists) return StatusCode.NotFound;
+        if (_state.RecordExists) return (StatusCode.Conflict, $"Cannot create - private key already exist, keyId={model.KeyId}");
         if (!this.VerifyIdentity(model.PrincipalKeyId, out var v)) return v;
         if (!model.Validate(out var v2)) return v2;
 

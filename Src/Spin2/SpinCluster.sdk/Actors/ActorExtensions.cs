@@ -14,6 +14,16 @@ public static class ActorExtensions
         resourceId.Schema.Assert(x => x == schema, x => $"Invalid schema, {x} does not match {schema}");
     }
 
+    public static void VerifySchema(this Grain grain, ResourceType resourceType, string schema, ScopeContextLocation location)
+    {
+        string actorKey = grain.GetPrimaryKeyString();
+        if (ResourceId.IsValid(actorKey, resourceType, schema)) return;
+
+        string msg = $"Invalid schema, {actorKey} does not match {schema} and type={resourceType}";
+        location.LogError(msg);
+        throw new InvalidOperationException(msg);
+    }
+
     public static Option VerifyIdentity(this Grain grain, string keyToMatch)
     {
         string actorKey = grain.GetPrimaryKeyString();
