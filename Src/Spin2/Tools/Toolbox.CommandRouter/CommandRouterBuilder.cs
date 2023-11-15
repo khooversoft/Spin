@@ -21,7 +21,12 @@ public class CommandRouterBuilder
         _serviceCollection = new ServiceCollection()
             .AddLogging(config =>
             {
-                config.AddConsole();
+                config.AddSimpleConsole(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.SingleLine = true;
+                    options.TimestampFormat = "HH:mm:ss ";
+                });
                 config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
             })
             .AddSingleton<AbortSignal>();

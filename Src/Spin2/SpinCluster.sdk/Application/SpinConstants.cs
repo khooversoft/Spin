@@ -32,6 +32,7 @@ public static class SpinConstants
         public const string ScheduleWork = "schedulework";
         public const string Agent = "agent";
         public const string Smartc = "smartc";
+        public const string Queue = "queue";
     }
 
     public static class ConfigKeys
@@ -53,6 +54,6 @@ public static class SpinConstants
 
     public static class Dir
     {
-        public const string ScheduleWork = "system:schedule-work";
+        public const string ScheduleWorkQueue = "queue:schedule-work";
     }
 }
