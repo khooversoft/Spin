@@ -11,6 +11,29 @@ public class ValidationNameTests
         public string Name { get; set; } = null!;
     }
 
+    private record NameTestOption
+    {
+        public string? Name { get; set; }
+    }
+
+    [Fact]
+
+    public void NullMistake()
+    {
+        IValidator<NameTest> validator = new Validator<NameTest>()
+            .RuleFor(x => x.Name).ValidName()
+            .Build();
+
+        var model = new NameTest
+        {
+            Name = null!,
+        };
+
+        var result = validator.Validate(model);
+        result.IsError().Should().BeTrue();
+        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -19,11 +42,11 @@ public class ValidationNameTests
 
     public void NullAndInvalidCharacters(string? value)
     {
-        IValidator<NameTest> validator = new Validator<NameTest>()
-            .RuleFor(x => x.Name).ValidName()
+        IValidator<NameTestOption> validator = new Validator<NameTestOption>()
+            .RuleFor(x => x.Name).ValidNameOption()
             .Build();
 
-        var model = new NameTest
+        var model = new NameTestOption
         {
             Name = value,
         };

@@ -126,7 +126,7 @@ public class ResourceIdIdTests
     [InlineData("contract:domain.com/user@domain.com")] // Invalid start with number, 2
     public void InvalidResourceId(string? id)
     {
-        var result = ResourceId.Create(id);
+        var result = ResourceId.Create(id!);
         result.IsError().Should().BeTrue();
     }
 
