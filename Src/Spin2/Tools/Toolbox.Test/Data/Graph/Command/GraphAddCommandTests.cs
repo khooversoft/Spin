@@ -50,7 +50,7 @@ public class GraphAddCommandTests
             x.CommandType.Should().Be(CommandType.AddNode);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.Should().NotBeNull();
+            x.Items.Should().NotBeNull();
         });
     }
 
@@ -82,7 +82,7 @@ public class GraphAddCommandTests
             x.CommandType.Should().Be(CommandType.AddEdge);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.Should().NotBeNull();
+            x.Items.Should().NotBeNull();
         });
     }
 }

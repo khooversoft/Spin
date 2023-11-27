@@ -16,7 +16,7 @@ public class DomainTests
     [InlineData("domain.com-")]
     [InlineData("-domain.com")]
     [InlineData("2domain.com")]
-    public void Invalid(string nameId)
+    public void Invalid(string? nameId)
     {
         IdPatterns.IsDomain(nameId).Should().BeFalse();
     }

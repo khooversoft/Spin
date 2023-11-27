@@ -8,10 +8,11 @@ namespace SpinClusterApi.test.Models;
 
 public class ScheduleCreateModelTests
 {
-    private const string _agentId = "agent:test-agent";
+    //private const string _agentId = "agent:test-agent";
+    private const string _schedulerId = "scheduler:test";
     private const string _smartcId = "smartc:company30.com/contract1";
     private const string _principalId = "user1@company30.com";
-    private const string _contractId = "contract:company30.com/contract1";
+    //private const string _contractId = "contract:company30.com/contract1";
     private const string _sourceId = "source1";
     private const string _command = "create";
 
@@ -21,13 +22,14 @@ public class ScheduleCreateModelTests
         var model = new ScheduleCreateModel
         {
             SmartcId = _smartcId,
+            SchedulerId = _schedulerId,
             PrincipalId = _principalId,
             SourceId = _sourceId,
             Command = _command,
         };
 
         Option v = model.Validate();
-        v.IsOk().Should().BeTrue();
+        v.IsOk().Should().BeTrue(v.ToString());
     }
 
     [Fact]
@@ -39,13 +41,11 @@ public class ScheduleCreateModelTests
         var model = new ScheduleCreateModel
         {
             SmartcId = _smartcId,
+            SchedulerId = _schedulerId,
             PrincipalId = _principalId,
             SourceId = _sourceId,
             Command = _command,
-            Payloads = new DataObjectSetBuilder()
-                .Add(t)
-                .Add(t2)
-                .Build(),
+            Payloads = new DataObjectSet().Set(t).Set(t2)
         };
 
         Option v = model.Validate();

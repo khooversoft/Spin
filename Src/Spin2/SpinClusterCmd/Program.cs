@@ -14,8 +14,12 @@ Console.WriteLine();
 
 var state = await new CommandRouterBuilder()
     .SetArgs(args)
-    .ConfigureAppConfiguration(config => config.AddEnvironmentVariables("SPIN_CLI_"))
-    .ConfigureAppConfiguration((config, service) => service.AddSingleton(config.Build().Bind<CmdOption>().Verify()))
+    .ConfigureAppConfiguration((config, service) =>
+    {
+        config.AddJsonFile("appsettings.json");
+        config.AddEnvironmentVariables("SPIN_CLI_");
+        service.AddSingleton(config.Build().Bind<CmdOption>().Verify());
+    })
     .AddCommand<AgentRegistration>()
     .AddCommand<Configuration>()
     .AddCommand<Contract>()

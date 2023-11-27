@@ -49,7 +49,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         await Complete(workId);
 
         SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear("admin@domain.com", _context);
+        await schedulerClient.Clear(_cluster.Option.SchedulerId, "admin@domain.com", _context);
 
         ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
         Option deleteResponse = await workClient.Delete(workId, _context);
@@ -71,7 +71,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         await Complete(workId);
 
         SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear("admin@domain.com", _context);
+        await schedulerClient.Clear(_cluster.Option.SchedulerId, "admin@domain.com", _context);
 
         ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
         Option deleteResponse = await workClient.Delete(workId, _context);
@@ -81,7 +81,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
     private async Task Setup()
     {
         SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear("admin@domain.com", _context);
+        await schedulerClient.Clear(_cluster.Option.SchedulerId, "admin@domain.com", _context);
 
         var agent = new AgentModel
         {
@@ -124,20 +124,18 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
 
         var request = new ScheduleCreateModel
         {
+            SchedulerId = _cluster.Option.SchedulerId,
             SmartcId = _smartcId,
             PrincipalId = _principalId,
             SourceId = _sourceId,
             Command = _command,
-            Payloads = new DataObjectSetBuilder()
-                .Add(payload1)
-                .Add(payload2)
-                .Build(),
+            Payloads = new DataObjectSet().Set(payload1).Set(payload2),
         };
 
         Option response = await schedulerClient.CreateSchedule(request, _context);
         response.IsOk().Should().BeTrue(response.ToString());
 
-        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_cluster.Option.SchedulerId, _context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(1);
@@ -154,6 +152,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         string json = """
             {
               "smartcId": "smartc:company30.com/contract1",
+              "schedulerId": "scheduler:test",
               "principalId": "user1@company30.com",
               "sourceId": "source1",
               "command": "create",
@@ -205,7 +204,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         Option response = await schedulerClient.CreateSchedule(request, _context);
         response.IsOk().Should().BeTrue(response.ToString());
 
-        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_cluster.Option.SchedulerId, _context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(1);
@@ -258,7 +257,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
         ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
 
-        Option<WorkAssignedModel> assignedOption = await schedulerClient.AssignWork(_agentId, _context);
+        Option<WorkAssignedModel> assignedOption = await schedulerClient.AssignWork(_cluster.Option.SchedulerId, _agentId, _context);
         assignedOption.IsOk().Should().BeTrue(assignedOption.ToString());
 
         WorkAssignedModel model = assignedOption.Return();
@@ -266,10 +265,10 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         model.SmartcId.Should().Be(_smartcId);
         model.Command.Should().Be(_command);
 
-        var noAssignOption = await schedulerClient.AssignWork(_agentId, _context);
+        var noAssignOption = await schedulerClient.AssignWork(_cluster.Option.SchedulerId, _agentId, _context);
         noAssignOption.IsError().Should().BeTrue();
 
-        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_cluster.Option.SchedulerId, _context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(1);
@@ -368,7 +367,7 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         model.Assigned.AssignedCompleted.Message.Should().Be("completed");
         model.RunResults.Count.Should().Be(1);
 
-        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_context);
+        Option<SchedulesResponseModel> schedulesOption = await schedulerClient.GetSchedules(_cluster.Option.SchedulerId, _context);
         schedulesOption.IsOk().Should().BeTrue(schedulesOption.ToString());
         SchedulesResponseModel schedulesModel = schedulesOption.Return();
         schedulesModel.ActiveItems.Count.Should().Be(0);

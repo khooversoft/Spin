@@ -5,7 +5,6 @@ namespace SpinCluster.sdk.Actors.Scheduler;
 [GenerateSerializer, Immutable]
 public sealed record SchedulesResponseModel
 {
-    // .Validate(AssignedCompleted.Validator)
     [Id(0)] public Dictionary<string, ScheduleEntry> ActiveItems { get; init; } = new Dictionary<string, ScheduleEntry>(StringComparer.OrdinalIgnoreCase);
     [Id(2)] public Dictionary<string, ScheduleEntry> CompletedItems { get; init; } = new Dictionary<string, ScheduleEntry>(StringComparer.OrdinalIgnoreCase);
 }

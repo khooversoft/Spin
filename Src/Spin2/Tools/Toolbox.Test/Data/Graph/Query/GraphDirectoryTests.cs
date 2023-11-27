@@ -106,10 +106,10 @@ public class GraphDirectoryTests
 
         GraphCommandExceuteResults searchResult = result.Return();
         searchResult.Items.Count.Should().Be(1);
-        searchResult.Items[0].SearchResult.Should().NotBeNull();
-        searchResult.Items[0].SearchResult.NotNull().Items.Count.Should().Be(1);
-        searchResult.Items[0].SearchResult.NotNull().Edges().Count.Should().Be(1);
-        searchResult.Items[0].SearchResult.NotNull().Edges()[0].Action(x =>
+        searchResult.Items[0].Should().NotBeNull();
+        searchResult.Items[0].NotNull().Items.Count.Should().Be(1);
+        searchResult.Items[0].NotNull().Edges().Count.Should().Be(1);
+        searchResult.Items[0].NotNull().Edges()[0].Action(x =>
         {
             x.FromKey.Should().Be("system:schedule-work");
             x.ToKey.Should().Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");
@@ -123,10 +123,10 @@ public class GraphDirectoryTests
 
         GraphCommandExceuteResults r = rOption.Return();
         r.Items.Count.Should().Be(1);
-        r.Items[0].SearchResult.Should().NotBeNull();
-        r.Items[0].SearchResult.NotNull().Items.Count.Should().Be(1);
-        r.Items[0].SearchResult.NotNull().Edges().Count.Should().Be(1);
-        r.Items[0].SearchResult.NotNull().Edges()[0].Action(x =>
+        r.Items[0].Should().NotBeNull();
+        r.Items[0].NotNull().Items.Count.Should().Be(1);
+        r.Items[0].NotNull().Edges().Count.Should().Be(1);
+        r.Items[0].NotNull().Edges()[0].Action(x =>
         {
             x.FromKey.Should().Be("system:schedule-work");
             x.ToKey.Should().Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");

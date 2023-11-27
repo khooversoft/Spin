@@ -5,18 +5,20 @@ using Toolbox.Types;
 
 namespace SpinAgent.Application;
 
-internal record AgentOption
+public record AgentOption
 {
     public string ClusterApiUri { get; init; } = null!;
     public string AgentId { get; init; } = null!;
+    public string SchedulerId { get; init; } = null!;
 }
 
 
-internal static class CmdOptionExtensions
+public static class CmdOptionExtensions
 {
     public static Validator<AgentOption> Validator { get; } = new Validator<AgentOption>()
         .RuleFor(x => x.ClusterApiUri).NotEmpty()
-        .RuleFor(x => x.AgentId).NotEmpty()
+        .RuleFor(x => x.AgentId).ValidResourceId(ResourceType.System, "agent")
+        .RuleFor(x => x.SchedulerId).ValidResourceId(ResourceType.System, "scheduler")
         .Build();
 
     public static AgentOption Verify(this AgentOption option) => option.Action(x => Validator.Validate(x).ThrowOnError());

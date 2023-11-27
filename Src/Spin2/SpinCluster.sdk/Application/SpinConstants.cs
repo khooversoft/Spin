@@ -4,7 +4,7 @@ public static class SpinConstants
 {
     public const string SpinStateStore = "spinStateStore";
     public const string SignValidation = "system:signValidation";
-    public const string SchedulerActoryKey = "system:scheduler";
+    //public const string SchedulerActoryKey = "system:scheduler";
     public const string DomainActorKey = "system:domain";
     public const string LeaseActorKey = "system:lease";
     public const string DirectoryActorKey = "system:directory";
@@ -32,7 +32,6 @@ public static class SpinConstants
         public const string ScheduleWork = "schedulework";
         public const string Agent = "agent";
         public const string Smartc = "smartc";
-        public const string Queue = "queue";
     }
 
     public static class ConfigKeys
@@ -52,8 +51,8 @@ public static class SpinConstants
         public const string PrincipalId = "spin-principal-id";
     }
 
-    public static class Dir
+    public static class Schedulers
     {
-        public const string ScheduleWorkQueue = "queue:schedule-work";
+        public const string Smartc = "scheduler:smartc";
     }
 }

@@ -25,20 +25,20 @@ public class SchedulerClient
         .PostAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option<WorkAssignedModel>> AssignWork(string agentId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(agentId)}/assign")
+    public async Task<Option<WorkAssignedModel>> AssignWork(string schedulerId, string agentId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(schedulerId)}/{Uri.EscapeDataString(agentId)}/assign")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context.With(_logger))
         .GetContent<WorkAssignedModel>();
 
-    public async Task<Option> Clear(string principalId, ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(principalId)}/clear")
+    public async Task<Option> Clear(string schedulerId, string principalId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(schedulerId)}/{Uri.EscapeDataString(principalId)}/clear")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .DeleteAsync(context.With(_logger))
         .ToOption();
 
-    public async Task<Option<SchedulesResponseModel>> GetSchedules(ScopeContext context) => await new RestClient(_client)
-        .SetPath($"/{SpinConstants.Schema.Scheduler}/schedules")
+    public async Task<Option<SchedulesResponseModel>> GetSchedules(string schedulerId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Scheduler}/{Uri.EscapeDataString(schedulerId)}/schedules")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .GetAsync(context.With(_logger))
         .GetContent<SchedulesResponseModel>();

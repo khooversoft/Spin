@@ -17,7 +17,7 @@ public class RemoveDuplicateSequencesTests
     [InlineData("a//b//c", '/', "a/b/c")]
     [InlineData("a//b//c/", '/', "a/b/c/")]
     [InlineData("a//b//c//", '/', "a/b/c/")]
-    public void TestRemoveDuplicate(string source, char token, string expected)
+    public void TestRemoveDuplicate(string? source, char token, string? expected)
     {
         string? result = source.RemoveDuplicates(token);
         result.Should().Be(expected);

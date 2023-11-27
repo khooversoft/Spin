@@ -18,7 +18,7 @@ public class IdPatternsTests
     [InlineData("")]
     [InlineData("0abc")]
     [InlineData("-abc")]
-    public void IsNameError(string subject)
+    public void IsNameError(string? subject)
     {
         IdPatterns.IsName(subject).Should().BeFalse();
     }
@@ -36,7 +36,7 @@ public class IdPatternsTests
     [InlineData("")]
     [InlineData("0abc")]
     [InlineData("-abc")]
-    public void IsPathError(string subject)
+    public void IsPathError(string? subject)
     {
         IdPatterns.IsPath(subject).Should().BeFalse();
     }
@@ -64,7 +64,7 @@ public class IdPatternsTests
     [InlineData("domain.com-")]
     [InlineData("-domain.com")]
     [InlineData("2domain.com")]
-    public void IsDomainError(string subject)
+    public void IsDomainError(string? subject)
     {
         IdPatterns.IsDomain(subject).Should().BeFalse();
     }
@@ -84,7 +84,7 @@ public class IdPatternsTests
     [InlineData("")]
     [InlineData("0abc")]
     [InlineData("-abc")]
-    public void IsKeyIdError(string subject)
+    public void IsKeyIdError(string? subject)
     {
         IdPatterns.IsKeyId(subject).Should().BeFalse();
     }
@@ -111,7 +111,7 @@ public class IdPatternsTests
     [InlineData("-name@domain.com")]
     [InlineData("name.@domain.com")]
     [InlineData("<>()*#.domain.com")]
-    public void IsPrincipalError(string subject)
+    public void IsPrincipalError(string? subject)
     {
         IdPatterns.IsPrincipalId(subject).Should().BeFalse();
     }

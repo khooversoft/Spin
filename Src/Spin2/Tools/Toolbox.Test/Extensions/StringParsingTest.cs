@@ -11,7 +11,7 @@ public class StringParsingTest
     [InlineData("a", 'a')]
     [InlineData("ab", 'a')]
     [InlineData("1ab", '1')]
-    public void TestFirstCharacter(string input, char? expected)
+    public void TestFirstCharacter(string? input, char? expected)
     {
         char? chr = input.GetFirstChar();
         chr.Should().Be(expected);
@@ -23,7 +23,7 @@ public class StringParsingTest
     [InlineData("a", null)]
     [InlineData("ab", 'b')]
     [InlineData("1ab", 'b')]
-    public void TestLastCharacter(string input, char? expected)
+    public void TestLastCharacter(string? input, char? expected)
     {
         char? chr = input.GetLastChar();
         chr.Should().Be(expected);
@@ -36,7 +36,7 @@ public class StringParsingTest
     [InlineData("ab", null)]
     [InlineData("1ab", "a")]
     [InlineData("1acb", "ac")]
-    public void TestMiddleCharacters(string input, string? expected)
+    public void TestMiddleCharacters(string? input, string? expected)
     {
         string? str = input.GetMiddleChars();
         str.Should().Be(expected);

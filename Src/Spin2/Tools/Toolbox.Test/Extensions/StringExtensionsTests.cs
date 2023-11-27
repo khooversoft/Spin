@@ -14,7 +14,7 @@ public class StringExtensionsTests
     [InlineData("/bc", '/', "/bc")]
     [InlineData("//", '/', "/")]
     [InlineData("/ab/", '/', "/ab")]
-    public void TestRemoveTrailing(string? subject, char ch, string expected)
+    public void TestRemoveTrailing(string? subject, char ch, string? expected)
     {
         string? result = subject.RemoveTrailing(ch);
         result.Should().Be(expected);

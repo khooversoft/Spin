@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Orleans.Concurrency;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Directory;
@@ -16,25 +15,13 @@ using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Scheduler;
 
-public interface ISchedulerActor : IGrainWithStringKey
-{
-    Task<Option<WorkAssignedModel>> AssignWork(string agentId, string traceId);
-    Task<Option> Clear(string principalId, string traceId);
-    Task<Option> CreateSchedule(ScheduleCreateModel work, string traceId);
-    Task<Option<SchedulesResponseModel>> GetSchedules(string traceId);
-}
-
-// Actor key = "system:schedule
-[StatelessWorker]
+// Actor key = "scheduler:{schedulerName}
 public class SchedulerActor : Grain, ISchedulerActor
 {
     private readonly IClusterClient _clusterClient;
     private readonly ILogger<SchedulerActor> _logger;
 
-    public SchedulerActor(
-        IClusterClient clusterClient,
-        ILogger<SchedulerActor> logger
-        )
+    public SchedulerActor(IClusterClient clusterClient, ILogger<SchedulerActor> logger)
     {
         _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();
@@ -42,8 +29,7 @@ public class SchedulerActor : Grain, ISchedulerActor
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.GetPrimaryKeyString().Assert(x => x == SpinConstants.SchedulerActoryKey, x => $"Actor key {x} is invalid, must match {SpinConstants.SchedulerActoryKey}");
-
+        this.VerifySchema(ResourceType.System, SpinConstants.Schema.Scheduler, new ScopeContext(_logger).Location());
         return base.OnActivateAsync(cancellationToken);
     }
 
@@ -57,7 +43,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         if (agentLookup.IsError()) return new Option<WorkAssignedModel>(agentLookup.StatusCode, $"agentId={agentId}, " + agentLookup.Error);
 
         // Query directory for active schedules
-        var searchOption = await _clusterClient.GetDirectoryActor().GetActiveWorkSchedules(context.TraceId);
+        var searchOption = await GetActiveSchedules(context);
         if (searchOption.IsError()) return searchOption.ToOptionStatus<WorkAssignedModel>();
 
         IReadOnlyList<GraphEdge> activeWork = searchOption.Return();
@@ -85,7 +71,7 @@ public class SchedulerActor : Grain, ISchedulerActor
 
                 case { StatusCode: StatusCode.NotFound }:
                     context.Location().LogError("Removing index that not found, workId={workId}", workId);
-                    await _clusterClient.GetDirectoryActor().RemoveSchedule(workId, context.TraceId);
+                    await RemoveSchedule(workId, context.TraceId);
                     continue;
 
                 default:
@@ -97,18 +83,25 @@ public class SchedulerActor : Grain, ISchedulerActor
         return StatusCode.NotFound;
     }
 
+    public async Task<Option> ChangeScheduleState(string workId, ScheduleEdgeType state, string traceId)
+    {
+        string search = $"[fromKey={this.GetPrimaryKeyString()};toKey={workId};edgeType=scheduleWorkType:*]";
+        string command = $"update {search} set edgeType={state.GetEdgeType()};";
+
+        var updateResult = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
+        return updateResult.ToOptionStatus();
+    }
+
     public async Task<Option> Clear(string principalId, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        if (!ResourceId.IsValid(principalId, ResourceType.Principal)) return StatusCode.BadRequest;
-
+        if (!ResourceId.IsValid(principalId, ResourceType.Principal)) return (StatusCode.BadRequest, "Invalid principalId");
         context.Location().LogInformation("Clear queue, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        Option<IReadOnlyList<GraphEdge>> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
+        Option<IReadOnlyList<GraphEdge>> dirResponse = await GetSchedules(context);
         if (dirResponse.IsError()) return dirResponse.ToOptionStatus();
 
         IReadOnlyList<GraphEdge> items = dirResponse.Return();
-
         foreach (var item in items)
         {
             var result = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Delete(context.TraceId);
@@ -116,6 +109,13 @@ public class SchedulerActor : Grain, ISchedulerActor
             {
                 context.Location().LogStatus(result, "Deleting work schedule");
             }
+        }
+
+        string command = $"delete [fromKey={this.GetPrimaryKeyString()}];";
+        var deleteNode = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
+        if (deleteNode.IsError())
+        {
+            context.Location().LogStatus(deleteNode.ToOptionStatus(), "Deleting edge");
         }
 
         return StatusCode.OK;
@@ -126,6 +126,9 @@ public class SchedulerActor : Grain, ISchedulerActor
         var context = new ScopeContext(traceId, _logger);
         if (!work.Validate(out var v)) return v;
         context.Location().LogInformation("Schedule work, actorKey={actorKey}, work={work}", this.GetPrimaryKeyString(), work);
+
+        var addResult = await AddSchedule(work.WorkId, context);
+        if (addResult.IsError()) return addResult;
 
         var createOption = await _clusterClient
             .GetResourceGrain<IScheduleWorkActor>(work.WorkId)
@@ -138,7 +141,7 @@ public class SchedulerActor : Grain, ISchedulerActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<IReadOnlyList<GraphEdge>> dirResponse = await _clusterClient.GetDirectoryActor().GetSchedules(traceId);
+        Option<IReadOnlyList<GraphEdge>> dirResponse = await GetSchedules(context);
         if (dirResponse.IsError()) return dirResponse.ToOptionStatus<SchedulesResponseModel>();
 
         IReadOnlyList<GraphEdge> items = dirResponse.Return();
@@ -176,6 +179,58 @@ public class SchedulerActor : Grain, ISchedulerActor
 
             _ => false,
         };
+    }
+
+    public async Task<Option> RemoveSchedule(string workId, string traceId)
+    {
+        new ScopeContext(traceId, _logger).Location().LogInformation("Delete workId={workId}", workId);
+
+        string command = $"delete (key={workId});";
+        Option<GraphCommandResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
+
+        return updateResult.ToOptionStatus();
+    }
+
+    private async Task<Option> AddSchedule(string workId, ScopeContext context)
+    {
+        context.Location().LogInformation("Add schedule, workId={workId}", workId);
+
+        string command = new Sequence<string>()
+            .Add($"add node key={this.GetPrimaryKeyString()}")
+            .Add($"add node key={workId}")
+            .Add($"add edge fromKey={this.GetPrimaryKeyString()},toKey={workId},edgeType={ScheduleEdgeType.Active.GetEdgeType()}")
+            .Join(';') + ';';
+
+        var addResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
+        return addResult.ToOptionStatus();
+    }
+
+    private async Task<Option<IReadOnlyList<GraphEdge>>> GetSchedules(ScopeContext context)
+    {
+        string command = $"select [fromKey={this.GetPrimaryKeyString()};edgeType={ScheduleEdgeTypeTool.EdgeTypeSearch}];";
+
+        Option<GraphCommandResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
+        if (updateResult.IsError()) return updateResult.ToOptionStatus<IReadOnlyList<GraphEdge>>();
+
+        var graphCmdResult = updateResult.Return();
+        graphCmdResult.Items.Count.Assert(x => x == 1, $"Returned items count={graphCmdResult.Items.Count}");
+
+        if (graphCmdResult.Items[0].StatusCode == StatusCode.NoContent) return Array.Empty<GraphEdge>();
+        return updateResult.Return().Items[0].Edges().ToOption();
+    }
+
+    private async Task<Option<IReadOnlyList<GraphEdge>>> GetActiveSchedules(ScopeContext context)
+    {
+        context.Location().LogInformation("Getting active schedules");
+        string command = $"select [fromKey={this.GetPrimaryKeyString()};edgeType={ScheduleEdgeType.Active.GetEdgeType()}];";
+
+        Option<GraphCommandResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
+        if (updateResult.IsError()) return updateResult.ToOptionStatus<IReadOnlyList<GraphEdge>>();
+
+        GraphCommandResults result = updateResult.Return();
+        result.Items.Count.Assert(x => x == 1, "Multiple data sets was returned, expected only 1");
+
+        return result.Items[0].Edges().OrderBy(x => x.CreatedDate).ToArray();
     }
 }
 

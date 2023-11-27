@@ -9,6 +9,7 @@ namespace SpinCluster.sdk.Actors.Scheduler;
 public sealed record ScheduleCommandModel
 {
     public string WorkId { get; init; } = $"{SpinConstants.Schema.ScheduleWork}:WKID-{Guid.NewGuid()}";
+    public string SchedulerId { get; init; } = null!;
     public string SmartcId { get; init; } = null!;
     public string PrincipalId { get; init; } = null!;
     public DateTime? ValidTo { get; init; }
@@ -21,7 +22,8 @@ public sealed record ScheduleCommandModel
 
     public static IValidator<ScheduleCommandModel> Validator { get; } = new Validator<ScheduleCommandModel>()
         .RuleFor(x => x.WorkId).ValidResourceId(ResourceType.System, SpinConstants.Schema.ScheduleWork)
-        .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
+        .RuleFor(x => x.SchedulerId).ValidResourceId(ResourceType.System, SpinConstants.Schema.Scheduler)
+        .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, SpinConstants.Schema.Smartc)
         .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.SourceId).ValidName()
         .RuleFor(x => x.Command).NotEmpty()
@@ -42,6 +44,7 @@ public static class ScheduleCommandModelExtensions
     public static ScheduleCreateModel ConvertTo(this ScheduleCommandModel subject) => new ScheduleCreateModel
     {
         WorkId = subject.WorkId,
+        SchedulerId = subject.SchedulerId,
         SmartcId = subject.SmartcId,
         PrincipalId = subject.PrincipalId,
         ValidTo = subject.ValidTo,

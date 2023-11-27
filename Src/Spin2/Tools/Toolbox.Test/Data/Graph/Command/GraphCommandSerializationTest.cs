@@ -15,7 +15,7 @@ public class GraphCommandSerializationTest
         {
             Items = new[]
             {
-                new GraphCommandResult(CommandType.Select, new Option(StatusCode.OK)),
+                new GraphQueryResult(CommandType.Select, StatusCode.OK),
             },
         };
 
@@ -28,36 +28,21 @@ public class GraphCommandSerializationTest
     }
 
     [Fact]
-    public void SampleDeserialization()
-    {
-        string json = """
-            {"items":[{"commandType":5,"statusCode":0,"error":null,"searchResult":null}]}
-            """;
-
-        GraphCommandResults r = json.ToObject<GraphCommandResults>().NotNull();
-        r.Should().NotBeNull();
-        r.Items.Count.Should().Be(1);
-        r.Items[0].CommandType.Should().Be(CommandType.DeleteNode);
-    }
-
-    [Fact]
     public void GraphCommandResultsWithResult()
     {
         var g = new GraphCommandResults
         {
             Items = new[]
             {
-                new GraphCommandResult(CommandType.Select, new Option(StatusCode.OK))
+                new GraphQueryResult
                 {
-                    SearchResult = new GraphQueryResult
+                    CommandType = CommandType.Select,
+                    StatusCode = StatusCode.OK,
+                    Items = new IGraphCommon[]
                     {
-                        StatusCode = StatusCode.OK,
-                        Items = new IGraphCommon[]
-                        {
-                            new GraphEdge("fromKey1", "toKey1", "edgeType2"),
-                            new GraphNode("key1", "t1"),
-                        }
-                    },
+                        new GraphEdge("fromKey1", "toKey1", "edgeType2"),
+                        new GraphNode("key1", "t1"),
+                    }
                 },
             },
         };
@@ -68,17 +53,17 @@ public class GraphCommandSerializationTest
         r.Should().NotBeNull();
         r.Items.Count.Should().Be(1);
         r.Items[0].CommandType.Should().Be(CommandType.Select);
-        r.Items[0].SearchResult.Should().NotBeNull();
-        r.Items[0].SearchResult!.StatusCode.Should().Be(StatusCode.OK);
-        r.Items[0].SearchResult!.Items.Count.Should().Be(2);
+        r.Items[0].Should().NotBeNull();
+        r.Items[0].StatusCode.Should().Be(StatusCode.OK);
+        r.Items[0].Items.Count.Should().Be(2);
 
-        r.Items[0].SearchResult!.Items[0].Cast<GraphEdge>().Action(x =>
+        r.Items[0].Items[0].Cast<GraphEdge>().Action(x =>
         {
             x.FromKey.Should().Be("fromKey1");
             x.ToKey.Should().Be("toKey1");
             x.EdgeType.Should().Be("edgeType2");
         });
-        r.Items[0].SearchResult!.Items[1].Cast<GraphNode>().Action(x =>
+        r.Items[0].Items[1].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("key1");
             x.Tags.ToString().Should().Be("t1");

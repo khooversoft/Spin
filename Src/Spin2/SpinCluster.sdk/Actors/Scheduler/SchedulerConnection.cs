@@ -30,9 +30,9 @@ public class SchedulerConnection
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Scheduler}");
 
         group.MapPost("create", CreateSchedule);
-        group.MapGet("/{agentId}/assign", AssignWork);
-        group.MapDelete("/{principalId}/clear", Clear);
-        group.MapGet("/schedules", GetSchedules);
+        group.MapGet("/{schedulerId}/{agentId}/assign", AssignWork);
+        group.MapDelete("/{schedulerId}/{principalId}/clear", Clear);
+        group.MapGet("/{schedulerId}/schedules", GetSchedules);
 
         return group;
     }
@@ -42,38 +42,45 @@ public class SchedulerConnection
         if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
+            .GetResourceGrain<ISchedulerActor>(model.SchedulerId)
             .CreateSchedule(model, traceId);
 
         return response.ToResult();
     }
 
-    private async Task<IResult> AssignWork(string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> AssignWork(string schedulerId, string agentId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (agentId.IsEmpty()) return Results.BadRequest();
+        schedulerId = Uri.UnescapeDataString(schedulerId);
+        if (!ResourceId.IsValid(schedulerId, ResourceType.System, "scheduler")) return Results.BadRequest("Invalid schedulerId");
 
         Option<WorkAssignedModel> response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
+            .GetResourceGrain<ISchedulerActor>(schedulerId)
             .AssignWork(agentId, traceId);
 
         return response.ToResult();
     }
 
-    private async Task<IResult> Clear(string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Clear(string schedulerId, string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (principalId.IsEmpty()) return Results.BadRequest();
+        schedulerId = Uri.UnescapeDataString(schedulerId);
+        if (!ResourceId.IsValid(schedulerId, ResourceType.System, "scheduler")) return Results.BadRequest("Invalid schedulerId");
 
         Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
+            .GetResourceGrain<ISchedulerActor>(schedulerId)
             .Clear(principalId, traceId);
 
         return response.ToResult();
     }
 
-    private async Task<IResult> GetSchedules([FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> GetSchedules(string schedulerId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
+        schedulerId = Uri.UnescapeDataString(schedulerId);
+        if (!ResourceId.IsValid(schedulerId, ResourceType.System, "scheduler")) return Results.BadRequest("Invalid schedulerId");
+
         Option<SchedulesResponseModel> response = await _client
-            .GetResourceGrain<ISchedulerActor>(SpinConstants.SchedulerActoryKey)
+            .GetResourceGrain<ISchedulerActor>(schedulerId)
             .GetSchedules(traceId);
 
         return response.ToResult();

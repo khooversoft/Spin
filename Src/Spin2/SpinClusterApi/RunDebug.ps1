@@ -1,2 +1,2 @@
 $env:DOTNET_ENVIRONMENT = 'Development'
-& .\bin\Debug\net7.0\SpinClusterApi.exe
+& .\bin\Debug\net8.0\SpinClusterApi.exe

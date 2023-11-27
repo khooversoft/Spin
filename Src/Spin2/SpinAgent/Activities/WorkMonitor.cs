@@ -72,7 +72,7 @@ internal class WorkMonitor : ICommandRoute
     {
         while (!_abortSignal.GetToken().IsCancellationRequested)
         {
-            var result = await _scheduleClient.AssignWork(_option.AgentId, context);
+            var result = await _scheduleClient.AssignWork(_option.SchedulerId, _option.AgentId, context);
             if (result.IsOk()) return result;
 
             await Task.Delay(TimeSpan.FromSeconds(5));

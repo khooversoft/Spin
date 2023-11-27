@@ -35,9 +35,20 @@ public class DataObjectSet : Dictionary<string, DataObject>
         }
     }
 
+    public DataObjectSet Set(DataObject subject) => this.Action(x => x[subject.Key] = subject);
+
+    public DataObjectSet Set<T>(T value) where T : class
+    {
+        var data = DataObject.Create(value);
+        this[data.Key] = data;
+        return this;
+    }
+
+    public static DataObjectSet operator +(DataObjectSet subject, DataObject dataObject) => subject.Action(x => subject[dataObject.Key] = dataObject);
+
     public static IValidator<DataObjectSet> Validator { get; } = new Validator<DataObjectSet>()
         .RuleForEach(x => x.Keys).Must(x => x.IsNotEmpty(), _ => "Invalid")
-        .RuleForEach(x => x.Values).Must(x => x.Validate().IsOk(), _ => "Invalid")
+        .RuleForEach(x => x.Values).Validate(DataObject.Validator)
         .Build();
 }
 
@@ -52,22 +63,36 @@ public static class DataObjectSetExtensions
         return result.IsOk();
     }
 
-    public static T GetObject<T>(this DataObjectSet subject, string? key = null)
+    public static T GetObject<T>(this DataObjectSet subject, string? key = null, IValidator<T>? validator = null)
     {
         key ??= typeof(T).GetTypeName();
         subject.TryGetValue(key, out var dataObject).Assert(x => x == true, $"key={key} does not exist");
 
-        return dataObject!.ToObject<T>();
+        var value = dataObject!.ToObject<T>();
+
+        if (validator != null)
+        {
+            var validatorResult = validator.Validate(value);
+            if (validatorResult.IsError()) throw new ArgumentException($"Type={typeof(T).FullName} failed validation, error={validatorResult.Error}");
+        }
+
+        return value;
     }
 
-    public static bool TryGetObject<T>(this DataObjectSet subject, out T value, string? key = null)
+    public static Option<T> TryGetObject<T>(this DataObjectSet subject, out T value, string? key = null, IValidator<T>? validator = null)
     {
         value = default!;
 
         key ??= typeof(T).GetTypeName();
-        if (!subject.TryGetValue(key, out var dataObject)) return false;
+        if (!subject.TryGetValue(key, out var dataObject)) return (StatusCode.NotFound, $"Type {typeof(T).FullName} is not found");
 
-        value = dataObject!.ToObject<T>();
-        return true;
+        value = dataObject.ToObject<T>();
+        if (validator != null)
+        {
+            var validatorResult = validator.Validate(value);
+            if (validatorResult.IsError()) return validatorResult.ToOptionStatus<T>();
+        }
+
+        return value;
     }
 }

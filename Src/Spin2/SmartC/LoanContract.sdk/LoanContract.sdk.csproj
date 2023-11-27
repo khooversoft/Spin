@@ -13,8 +13,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\SoftBank.sdk\SoftBank.sdk.csproj" />
+    <ProjectReference Include="..\..\SpinAgent.sdk\SpinAgent.sdk.csproj" />
     <ProjectReference Include="..\..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Finance\Toolbox.Finance.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>

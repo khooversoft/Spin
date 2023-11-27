@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.ScheduleWork;
+﻿using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Models;
@@ -16,11 +15,12 @@ namespace SpinCluster.sdk.Actors.ScheduleWork;
 public sealed record ScheduleWorkModel
 {
     [Id(0)] public string WorkId { get; init; } = null!;
-    [Id(1)] public string SmartcId { get; init; } = null!;
-    [Id(2)] public DateTime CreateDate { get; init; } = DateTime.UtcNow;
-    [Id(3)] public DateTime? ValidTo { get; init; }
-    [Id(4)] public DateTime? ExecuteAfter { get; init; }
-    [Id(5)] public string SourceId { get; init; } = null!;
+    [Id(1)] public string SchedulerId { get; init; } = null!;
+    [Id(2)] public string SmartcId { get; init; } = null!;
+    [Id(3)] public DateTime CreateDate { get; init; } = DateTime.UtcNow;
+    [Id(4)] public DateTime? ValidTo { get; init; }
+    [Id(5)] public DateTime? ExecuteAfter { get; init; }
+    [Id(6)] public string SourceId { get; init; } = null!;
     [Id(7)] public string Command { get; init; } = null!;
     [Id(8)] public AssignedModel? Assigned { get; init; }
     [Id(9)] public DataObjectSet Payloads { get; init; } = new DataObjectSet();
@@ -29,6 +29,7 @@ public sealed record ScheduleWorkModel
 
     public static IValidator<ScheduleWorkModel> Validator { get; } = new Validator<ScheduleWorkModel>()
         .RuleFor(x => x.WorkId).ValidResourceId(ResourceType.System, SpinConstants.Schema.ScheduleWork)
+        .RuleFor(x => x.SchedulerId).ValidResourceId(ResourceType.System, SpinConstants.Schema.Scheduler)
         .RuleFor(x => x.SmartcId).ValidResourceId(ResourceType.DomainOwned, "smartc")
         .RuleFor(x => x.SourceId).ValidName()
         .RuleFor(x => x.Command).NotEmpty()
@@ -62,42 +63,4 @@ public static class ScheduleWorkModelExtensions
         { Assigned: not null } v => v.Assigned.GetState(),
         _ => ScheduleWorkState.Available,
     };
-
-    public static ExtractScope Extract(this ScheduleWorkModel subject, ILogger logger)
-    {
-        return new ExtractScope
-        {
-            Logger = logger.NotNull(),
-            Model = subject.NotNull(),
-            Option = StatusCode.OK,
-        };
-    }
-
-    public static ExtractScope TryGetObject<T>(this ExtractScope subject, out T result)
-    {
-        result = default!;
-        if (subject.Option.IsError()) return subject;
-
-        subject = subject with
-        {
-            Option = subject.Model.Payloads.TryGetObject<T>(out result) ?
-                StatusCode.OK :
-                (StatusCode.NotFound, $"Type {typeof(T).GetTypeName()} not found in payload"
-                ),
-        };
-
-        if (subject.Option.IsError())
-        {
-            new ScopeContext(subject.Logger).Location().LogError(subject.Option.Error);
-        }
-
-        return subject;
-    }
-
-    public readonly record struct ExtractScope
-    {
-        public ILogger Logger { get; init; }
-        public ScheduleWorkModel Model { get; init; }
-        public Option Option { get; init; }
-    }
 }

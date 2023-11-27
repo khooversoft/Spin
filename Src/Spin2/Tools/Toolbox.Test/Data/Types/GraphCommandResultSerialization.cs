@@ -11,7 +11,7 @@ public class GraphCommandResultSerialization
     [Fact]
     public void SimpleSerialization()
     {
-        GraphCommandResult source = new GraphCommandResult
+        GraphQueryResult source = new GraphQueryResult
         {
             CommandType = CommandType.AddEdge,
             StatusCode = StatusCode.Conflict,
@@ -20,7 +20,7 @@ public class GraphCommandResultSerialization
 
         string json = source.ToJson();
 
-        GraphCommandResult result = json.ToObject<GraphCommandResult>().NotNull();
+        GraphQueryResult result = json.ToObject<GraphQueryResult>().NotNull();
 
         result.CommandType.Should().Be(CommandType.AddEdge);
         result.StatusCode.Should().Be(StatusCode.Conflict);
@@ -30,25 +30,19 @@ public class GraphCommandResultSerialization
     [Fact]
     public void WithResultSerialization()
     {
-        GraphCommandResult source = new GraphCommandResult
+        GraphQueryResult source = new GraphQueryResult
         {
-            CommandType = CommandType.AddEdge,
-            StatusCode = StatusCode.Conflict,
-            Error = "error",
-            SearchResult = new GraphQueryResult
+            StatusCode = StatusCode.OK,
+            Error = "no error",
+            Items = new IGraphCommon[]
             {
-                StatusCode = StatusCode.OK,
-                Error = "no error",
-                Items = new IGraphCommon[]
-                {
-                    new GraphNode("key1"),
-                    new GraphEdge("key1", "key2"),
-                },
+                new GraphNode("key1"),
+                new GraphEdge("key1", "key2"),
             },
         };
 
         string json = source.ToJson();
 
-        GraphCommandResult result = json.ToObject<GraphCommandResult>().NotNull();
+        GraphQueryResult result = json.ToObject<GraphQueryResult>().NotNull();
     }
 }

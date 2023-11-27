@@ -15,8 +15,7 @@ public class CommandRouterBuilder
 
     public CommandRouterBuilder()
     {
-        _configBuilder = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", false);
+        _configBuilder = new ConfigurationBuilder();
 
         _serviceCollection = new ServiceCollection()
             .AddLogging(config =>
@@ -62,7 +61,7 @@ public class CommandRouterBuilder
         return this;
     }
 
-    public CommandRouterBuilder SetArgs(string[] args)
+    public CommandRouterBuilder SetArgs(params string[] args)
     {
         (string[] ConfigArgs, string[] CommandLineArgs) = ArgumentTool.Split(args);
 
@@ -83,12 +82,11 @@ public class CommandRouterBuilder
         return this;
     }
 
-    public CommandRouterHost Build()
+    public ICommandRouterHost Build()
     {
         IConfiguration config = _configBuilder.Build();
         _serviceCollection.AddSingleton(config);
 
-        IServiceProvider service = _serviceCollection.BuildServiceProvider();
-        return new CommandRouterHost(_args ?? Array.Empty<string>(), service, _startup, _shutdown);
+        return new CommandRouterHost(_args ?? Array.Empty<string>(), _serviceCollection, _startup, _shutdown);
     }
 }

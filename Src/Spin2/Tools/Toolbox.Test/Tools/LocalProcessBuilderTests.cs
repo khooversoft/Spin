@@ -33,9 +33,9 @@ public class LocalProcessBuilderTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("  ")]
-    public void TestCommandLineParserFailure2(string cmdLine)
+    public void TestCommandLineParserFailure2(string? cmdLine)
     {
-        Action act = () => new LocalProcessBuilder().SetCommandLine(cmdLine);
+        Action act = () => new LocalProcessBuilder().SetCommandLine(cmdLine!);
         act.Should().Throw<ArgumentException>();
     }
 }

@@ -68,7 +68,7 @@ public class ClusterApiFixture
     public async Task ResetEnvironment()
     {
         SchedulerClient schedulerClient = ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear("admin@domain.com", new ScopeContext(NullLogger.Instance));
+        await schedulerClient.Clear(Option.SchedulerId, "admin@domain.com", new ScopeContext(NullLogger.Instance));
 
         DirectoryClient directoryClient = ServiceProvider.GetRequiredService<DirectoryClient>();
         await directoryClient.Clear("admin@domain.com", new ScopeContext(NullLogger.Instance));

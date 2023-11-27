@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LoanContract.sdk.Contract;
+﻿using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.ScheduleWork;
+using Toolbox.CommandRouter;
+using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace LoanContract.sdk.Activities;
 
-public class PaymentActivity
+public class PaymentActivity : ICommandRoute
 {
     private readonly ScheduleWorkClient _client;
     private readonly LoanContractManager _manager;
@@ -24,6 +22,12 @@ public class PaymentActivity
         _manager = manager.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("payment", "Make payment").Action(x =>
+    {
+        var workId = x.AddArgument<string>("workId", "Work Id of schedule");
+        x.SetHandler(MakePayment, workId);
+    });
 
     public async Task MakePayment(string workId)
     {
@@ -41,25 +45,17 @@ public class PaymentActivity
 
         try
         {
-            var extractResult = workOption.Return()
-                .Extract(_logger)
-                .TryGetObject<LoanPaymentRequest>(out var loanPaymentRequest);
-
-            if (extractResult.Option.IsError())
+            var loanPaymentRequestOption = workOption.Return().Payloads.TryGetObject<LoanPaymentRequest>(out var loanPaymentRequest, validator: LoanPaymentRequest.Validator);
+            if (loanPaymentRequestOption.IsError())
             {
-                resultOption = extractResult.Option;
+                resultOption = loanPaymentRequestOption.ToOptionStatus();
                 return;
             }
 
             var makePaymentResponse = await _manager.MakePayment(loanPaymentRequest, context);
             if (makePaymentResponse.IsError())
             {
-                context.Location().LogStatus(
-                    makePaymentResponse,
-                    "Failed to create make payment on loan contract, loanPaymentRequest={loanPaymentRequest}",
-                    loanPaymentRequest
-                    );
-
+                context.Location().LogStatus(makePaymentResponse, "Failed to create make payment on loan contract, loanPaymentRequest={loanPaymentRequest}", loanPaymentRequest);
                 resultOption = makePaymentResponse;
                 return;
             }

@@ -124,7 +124,7 @@ public class ResourceIdIdTests
     [InlineData("principal-key:-user1@company3.com")] // Invalid start with '-'
     [InlineData("principal-key:user1@2company3.com")] // Invalid start with number, 2
     [InlineData("contract:domain.com/user@domain.com")] // Invalid start with number, 2
-    public void InvalidResourceId(string id)
+    public void InvalidResourceId(string? id)
     {
         var result = ResourceId.Create(id);
         result.IsError().Should().BeTrue();

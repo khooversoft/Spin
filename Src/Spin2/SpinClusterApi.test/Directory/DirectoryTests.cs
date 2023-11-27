@@ -23,7 +23,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
     [Fact]
     public async Task SingleNode()
     {
-        const string nodeKey = "node1";
+        string nodeKey = "node1-" + Guid.NewGuid().ToString();
 
         await _cluster.ResetEnvironment();
 
@@ -38,7 +38,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         Option<GraphCommandResults> getNodeOption = await dirClient.Execute($"select (key={nodeKey});", _context);
         getNodeOption.IsOk().Should().BeTrue();
 
-        GraphQueryResult response = getNodeOption.Return().SingleQueryResult();
+        GraphQueryResult response = getNodeOption.Return().Items.Single();
         response.Items.Count.Should().Be(1);
         response.Edges().Count.Should().Be(0);
         response.Nodes().First().Key.Should().Be(nodeKey);
@@ -46,7 +46,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
 
         getNodeOption = await dirClient.Execute("select (Key=*);", _context);
         getNodeOption.IsOk().Should().BeTrue();
-        response = getNodeOption.Return().SingleQueryResult();
+        response = getNodeOption.Return().Items.Single();
         response.Nodes().Count.Should().BeGreaterThanOrEqualTo(1);
         response.Edges().Count.Should().Be(0);
         response.Nodes().First().Key.Should().Be(nodeKey);
@@ -54,7 +54,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
 
         getNodeOption = await dirClient.Execute("select (Tags=t1);", _context);
         getNodeOption.IsOk().Should().BeTrue();
-        response = getNodeOption.Return().SingleQueryResult();
+        response = getNodeOption.Return().Items.Single();
         response.Nodes().Count.Should().Be(1);
         response.Edges().Count.Should().Be(0);
         response.Nodes().First().Key.Should().Be(nodeKey);
@@ -65,8 +65,8 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
 
         getNodeOption = await dirClient.Execute($"select (key={nodeKey});", _context);
         getNodeOption.IsOk().Should().BeTrue();
-        getNodeOption.Return().SingleQueryResult().Nodes().Count.Should().Be(0);
-        getNodeOption.Return().SingleQueryResult().Edges().Count.Should().Be(0);
+        getNodeOption.Return().Items.Single().Nodes().Count.Should().Be(0);
+        getNodeOption.Return().Items.Single().Edges().Count.Should().Be(0);
     }
 
     //[Fact]

@@ -1,36 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LoanContract.sdk.Contract;
+﻿using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Actors.ScheduleWork;
+using Toolbox.CommandRouter;
+using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace LoanContract.sdk.Activities;
 
-public class CreateContractActivity
+public class CreateContractActivity : ICommandRoute
 {
-    private readonly ScheduleWorkClient _client;
+    private readonly ScheduleWorkClient _scheduleWorkClient;
     private readonly LoanContractManager _manager;
     private readonly ILogger<CreateContractActivity> _logger;
 
-    public CreateContractActivity(ScheduleWorkClient client, LoanContractManager manager, ILogger<CreateContractActivity> logger)
+    public CreateContractActivity(ScheduleWorkClient scheduleWorkClient, LoanContractManager manager, ILogger<CreateContractActivity> logger)
     {
-        _client = client.NotNull();
+        _scheduleWorkClient = scheduleWorkClient.NotNull();
         _manager = manager.NotNull();
         _logger = logger.NotNull();
     }
+
+    public CommandSymbol CommandSymbol() => new CommandSymbol("create", "Create, clear, dump schedule queues").Action(x =>
+    {
+        var workId = x.AddArgument<string>("workId", "Work Id to retrive details");
+        x.SetHandler(Create, workId);
+    });
 
     public async Task Create(string workId)
     {
         var context = new ScopeContext(_logger);
         context.Location().LogInformation("Creating loan contract for workId={workId}", workId);
 
-        var workOption = await _client.Get(workId, context);
+        var workOption = await _scheduleWorkClient.Get(workId, context);
         if (workOption.IsError())
         {
             context.Location().LogError("[Abort] Cannot get Schedule work detail for workId={workId}", workId);
@@ -38,17 +42,18 @@ public class CreateContractActivity
         }
 
         Option resultOption = StatusCode.OK;
+        ScheduleWorkModel work = workOption.Return();
 
         try
         {
-            var extractResult = workOption.Return()
-                .Extract(_logger)
-                .TryGetObject<LoanAccountDetail>(out var loanAccountDetail)
-                .TryGetObject<LoanDetail>(out var loanDetail);
+            var testResult = new OptionTest()
+                .Test(work.Payloads.TryGetObject<LoanAccountDetail>(out var loanAccountDetail, validator: LoanAccountDetail.Validator))
+                .Test(work.Payloads.TryGetObject<LoanDetail>(out var loanDetail, validator: LoanDetail.Validator));
 
-            if (extractResult.Option.IsError())
+            if (testResult.IsError())
             {
-                resultOption = extractResult.Option;
+                context.Location().LogError("Failed to get required payload from schedule, error={error}", testResult.Error);
+                resultOption = testResult.Option;
                 return;
             }
 
@@ -77,7 +82,7 @@ public class CreateContractActivity
                 Message = resultOption.StatusCode.IsOk() ? "Created contract" : $"Failed to create contract, error={resultOption.Error}",
             };
 
-            var writeRunResult = await _client.AddRunResult(response, context);
+            var writeRunResult = await _scheduleWorkClient.AddRunResult(response, context);
             if (writeRunResult.IsError())
             {
                 context.Location().LogError("Failed to write 'RunResult' to loan contract, work={work}", workOption.Return());

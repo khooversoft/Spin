@@ -81,5 +81,16 @@ public class SmartcActor : Grain, ISmartcActor
 
         return StatusCode.OK;
     }
+
+    //public Task<Option> SetPayload(DataObject payload, string traceId)
+    //{
+    //    var context = new ScopeContext(traceId, _logger);
+    //    if (!payload.Validate(out var v2)) return v2;
+    //    if (!_state.RecordExists) return new Option(StatusCode.NotFound).ToTaskResult();
+    //    context.Location().LogInformation("Set payload, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+    //    _state.State.Payloads.Set(payload);
+    //    return new Option(StatusCode.OK).ToTaskResult();
+    //}
 }
 

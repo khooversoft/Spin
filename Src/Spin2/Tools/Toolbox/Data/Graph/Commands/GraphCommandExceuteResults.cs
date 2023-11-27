@@ -3,7 +3,7 @@
 public record GraphCommandExceuteResults
 {
     public GraphMap GraphMap { get; init; } = null!;
-    public IReadOnlyList<GraphCommandResult> Items { get; init; } = Array.Empty<GraphCommandResult>();
+    public IReadOnlyList<GraphQueryResult> Items { get; init; } = Array.Empty<GraphQueryResult>();
 }
 
 

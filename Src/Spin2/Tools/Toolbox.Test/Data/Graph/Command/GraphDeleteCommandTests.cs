@@ -67,9 +67,9 @@ public class GraphDeleteCommandTests
             x.CommandType.Should().Be(CommandType.DeleteNode);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.NotNull().Items.Count.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
-            var resultIndex = x.SearchResult.NotNull().Items.ToCursor();
+            var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node1");
@@ -114,9 +114,9 @@ public class GraphDeleteCommandTests
             x.CommandType.Should().Be(CommandType.DeleteNode);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.NotNull().Items.Count.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
-            var resultIndex = x.SearchResult.NotNull().Items.ToCursor();
+            var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node6");
@@ -154,9 +154,9 @@ public class GraphDeleteCommandTests
             x.CommandType.Should().Be(CommandType.DeleteEdge);
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
-            x.SearchResult.NotNull().Items.Count.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
-            var resultIndex = x.SearchResult.NotNull().Items.ToCursor();
+            var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node4");

@@ -8,5 +8,6 @@ public class CommandOption<T> : ISymbolDescriptor<T>
 
     internal Option<T> Option;
     public TO GetValueDescriptor<TO>() => (TO)(object)Option;
+    public bool IsRequired { get => Option.IsRequired; set => Option.IsRequired = value; }
 }
 

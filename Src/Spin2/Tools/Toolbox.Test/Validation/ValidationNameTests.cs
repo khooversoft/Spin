@@ -17,7 +17,7 @@ public class ValidationNameTests
     [InlineData("~!(")]
     [InlineData("&")]
 
-    public void NullAndInvalidCharacters(string value)
+    public void NullAndInvalidCharacters(string? value)
     {
         IValidator<NameTest> validator = new Validator<NameTest>()
             .RuleFor(x => x.Name).ValidName()

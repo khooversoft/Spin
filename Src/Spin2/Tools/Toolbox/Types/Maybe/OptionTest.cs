@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using Toolbox.Extensions;
 
 namespace Toolbox.Types;
 
@@ -11,16 +10,11 @@ public class OptionTest
     public StatusCode StatusCode => Option.StatusCode;
     public string? Error => Option.Error;
 
-    public OptionTest Build(StatusCode? errorCode = null, string? errorMessage = null)
+    public OptionTest Test<T>(Option<T> test)
     {
-        if (errorMessage != null && Option.IsError())
-        {
-            Option = new Option(
-                errorCode ?? Option.StatusCode,
-                Option.Error.IsEmpty() ? errorMessage : errorMessage + ", " + Option.Error
-                );
-        }
+        if (Option.IsError()) return this;
 
+        Option = test.ToOptionStatus();
         return this;
     }
 

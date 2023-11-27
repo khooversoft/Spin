@@ -11,7 +11,7 @@ public class DataObjectTests
     [Fact]
     public void EmptyDataObjectSetValidation()
     {
-        DataObjectSet model = new DataObjectSetBuilder().Build();
+        DataObjectSet model = new DataObjectSet();
 
         Option v = model.Validate();
         v.IsOk().Should().BeTrue();
@@ -26,7 +26,7 @@ public class DataObjectTests
             Value = "value",
         };
 
-        DataObject d = t.ToDataObject();
+        DataObject d = DataObject.Create(t);
         d.Should().NotBeNull();
         d.Key.Should().Be("TestClass");
         d.TypeName.Should().Be("TestClass");
@@ -55,10 +55,7 @@ public class DataObjectTests
             Description = "description",
         };
 
-        DataObjectSet set = new DataObjectSetBuilder()
-            .Add(t1)
-            .Add(t2)
-            .Build();
+        DataObjectSet set = new DataObjectSet().Set(t1).Set(t2);
 
         set.Count.Should().Be(2);
 

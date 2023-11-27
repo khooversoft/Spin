@@ -29,6 +29,7 @@ public class SmartcConnector
         group.MapGet("/{smartcId}/exist", Exist);
         group.MapGet("/{smartcId}", Get);
         group.MapPost("/", Set);
+        //group.MapPost("/{smartcId}/setPayload", SetPayload);
 
         return group;
     }
@@ -67,4 +68,14 @@ public class SmartcConnector
         var response = await _client.GetResourceGrain<ISmartcActor>(model.SmartcId).Set(model, traceId);
         return response.ToResult();
     }
+
+    //private async Task<IResult> SetPayload(string smartcId, DataObject model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    //{
+    //    smartcId = Uri.UnescapeDataString(smartcId);
+    //    if (!ResourceId.IsValid(smartcId, ResourceType.DomainOwned, SpinConstants.Schema.Smartc)) return Results.BadRequest();
+    //    if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
+
+    //    var response = await _client.GetResourceGrain<ISmartcActor>(smartcId).SetPayload(model, traceId);
+    //    return response.ToResult();
+    //}
 }

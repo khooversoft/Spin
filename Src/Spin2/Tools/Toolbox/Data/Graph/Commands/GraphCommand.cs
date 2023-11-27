@@ -23,7 +23,7 @@ public class GraphCommand
         if (result.IsError()) return result.ToOptionStatus<GraphCommandExceuteResults>();
 
         IReadOnlyList<IGraphQL> commands = result.Return();
-        var results = new Sequence<GraphCommandResult>();
+        var results = new Sequence<GraphQueryResult>();
 
         lock (_syncLock)
         {
@@ -48,7 +48,7 @@ public class GraphCommand
             Items = results,
         };
     }
-    private GraphCommandResult AddNode(GraphNodeAdd addNode, GraphMap map)
+    private GraphQueryResult AddNode(GraphNodeAdd addNode, GraphMap map)
     {
         var graphNode = new GraphNode
         {
@@ -57,10 +57,10 @@ public class GraphCommand
         };
 
         var result = map.Nodes.Add(graphNode);
-        return new GraphCommandResult(CommandType.AddNode, result);
+        return new GraphQueryResult(CommandType.AddNode, StatusCode.OK);
     }
 
-    private GraphCommandResult AddEdge(GraphEdgeAdd addEdge, GraphMap map)
+    private GraphQueryResult AddEdge(GraphEdgeAdd addEdge, GraphMap map)
     {
         var graphEdge = new GraphEdge
         {
@@ -71,15 +71,15 @@ public class GraphCommand
         };
 
         var result = map.Edges.Add(graphEdge);
-        return new GraphCommandResult(CommandType.AddEdge, result);
+        return new GraphQueryResult(CommandType.AddEdge, StatusCode.OK);
     }
 
-    private GraphCommandResult UpdateEdge(GraphEdgeUpdate updateEdge, GraphMap map)
+    private GraphQueryResult UpdateEdge(GraphEdgeUpdate updateEdge, GraphMap map)
     {
-        var searchResult = map.Query().Process(updateEdge.Search);
+        GraphQueryResult searchResult = map.Query().Process(updateEdge.Search);
 
         IReadOnlyList<GraphEdge> edges = searchResult.Edges();
-        if (edges.Count == 0) return new GraphCommandResult(CommandType.UpdateEdge, StatusCode.NoContent);
+        if (edges.Count == 0) return new GraphQueryResult(CommandType.UpdateEdge, StatusCode.NoContent);
 
         map.Edges.Update(edges, x => x with
         {
@@ -87,52 +87,53 @@ public class GraphCommand
             Tags = x.Tags.Set(updateEdge.Tags),
         });
 
-        return new GraphCommandResult(CommandType.UpdateEdge, searchResult);
+        return searchResult with { CommandType = CommandType.UpdateEdge };
     }
 
-    private GraphCommandResult UpdateNode(GraphNodeUpdate updateNode, GraphMap map)
+    private GraphQueryResult UpdateNode(GraphNodeUpdate updateNode, GraphMap map)
     {
         var searchResult = map.Query().Process(updateNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
-        if (nodes.Count == 0) return new GraphCommandResult(CommandType.UpdateNode, StatusCode.NoContent);
+        if (nodes.Count == 0) return new GraphQueryResult(CommandType.UpdateNode, StatusCode.NoContent);
 
         map.Nodes.Update(nodes, x => x with
         {
             Tags = x.Tags.Set(updateNode.Tags),
         });
 
-        return new GraphCommandResult(CommandType.UpdateNode, searchResult);
+        return searchResult with { CommandType = CommandType.UpdateNode };
     }
 
-    private GraphCommandResult DeleteEdge(GraphEdgeDelete deleteEdge, GraphMap map)
+    private GraphQueryResult DeleteEdge(GraphEdgeDelete deleteEdge, GraphMap map)
     {
         var searchResult = map.Query().Process(deleteEdge.Search);
 
         IReadOnlyList<GraphEdge> edges = searchResult.Edges();
-        if (edges.Count == 0) return new GraphCommandResult(CommandType.DeleteEdge, StatusCode.NoContent);
+        if (edges.Count == 0) return new GraphQueryResult(CommandType.DeleteEdge, StatusCode.NoContent);
 
         edges.ForEach(x => map.Edges.Remove(x.Key));
-        return new GraphCommandResult(CommandType.DeleteEdge, searchResult);
+        return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private GraphCommandResult DeleteNode(GraphNodeDelete deleteNode, GraphMap map)
+    private GraphQueryResult DeleteNode(GraphNodeDelete deleteNode, GraphMap map)
     {
         var searchResult = map.Query().Process(deleteNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
-        if (nodes.Count == 0) return new GraphCommandResult(CommandType.DeleteNode, StatusCode.NoContent);
+        if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent);
 
         nodes.ForEach(x => map.Nodes.Remove(x.Key));
-        return new GraphCommandResult(CommandType.DeleteNode, searchResult);
+        return searchResult with { CommandType = CommandType.DeleteNode };
     }
 
-    private GraphCommandResult Select(GraphSelect select, GraphMap map)
+    private GraphQueryResult Select(GraphSelect select, GraphMap map)
     {
         GraphQueryResult searchResult = map.Query().Process(select.Search);
 
         IReadOnlyList<IGraphCommon> nodes = searchResult.Items;
-        if (nodes.Count == 0) return new GraphCommandResult(CommandType.Select, StatusCode.NoContent);
-        return new GraphCommandResult(CommandType.Select, searchResult);
+        if (nodes.Count == 0) return new GraphQueryResult(CommandType.Select, StatusCode.NoContent);
+
+        return searchResult with { CommandType = CommandType.Select };
     }
 }

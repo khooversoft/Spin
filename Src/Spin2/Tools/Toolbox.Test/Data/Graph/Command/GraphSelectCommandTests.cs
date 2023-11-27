@@ -45,8 +45,8 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.NotNull().Items.Count.Should().Be(3);
-            var index = x.SearchResult.NotNull().Items.ToCursor();
+            x.Items.NotNull().Count.Should().Be(3);
+            var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
@@ -88,9 +88,9 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.NotNull().Items.Count.Should().Be(2);
+            x.Items.NotNull().Count.Should().Be(2);
 
-            var index = x.SearchResult.NotNull().Items.ToCursor();
+            var index = x.Items.NotNull().ToCursor();
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node1");
@@ -128,8 +128,8 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.NotNull().Items.Count.Should().Be(2);
-            var index = x.SearchResult.NotNull().Items.ToCursor();
+            x.Items.NotNull().Count.Should().Be(2);
+            var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
@@ -152,8 +152,8 @@ public class GraphSelectCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
 
-            x.SearchResult.NotNull().Items.Count.Should().Be(3);
-            var index = x.SearchResult.NotNull().Items.ToCursor();
+            x.Items.NotNull().Count.Should().Be(3);
+            var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {

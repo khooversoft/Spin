@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
-using SpinCluster.sdk.Actors.Directory;
 using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
@@ -120,7 +119,10 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
 
         await ValidateAndWrite();
 
-        var moveOption = await _clusterClient.GetDirectoryActor().ChangeScheduleState(this.GetPrimaryKeyString(), ScheduleEdgeType.Completed, context.TraceId);
+        var moveOption = await _clusterClient
+            .GetScheduleActor(_state.State.SchedulerId)
+            .ChangeScheduleState(this.GetPrimaryKeyString(), ScheduleEdgeType.Completed, context.TraceId);
+
         if (moveOption.IsError()) context.Location().LogStatus(moveOption, "Failed to change directory's state");
         return StatusCode.OK;
     }
@@ -137,9 +139,6 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         _state.State = model.ConvertTo();
         await _state.WriteStateAsync();
 
-        var dirOption = await _clusterClient.GetDirectoryActor().AddSchedule(model.WorkId, model.Tags, context.TraceId);
-        if (dirOption.IsError()) return dirOption;
-
         return StatusCode.OK;
     }
 
@@ -153,7 +152,10 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         ScheduleWorkModel save = _state.State;
         await _state.ClearStateAsync();
 
-        var dirOption = await _clusterClient.GetDirectoryActor().RemoveSchedule(save.WorkId, context.TraceId);
+        var dirOption = await _clusterClient
+            .GetScheduleActor(_state.State.SchedulerId)
+            .RemoveSchedule(save.WorkId, context.TraceId);
+
         if (dirOption.IsError()) return dirOption;
 
         return StatusCode.OK;
@@ -186,7 +188,10 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         _state.State = _state.State with { Assigned = null };
         await _state.WriteStateAsync();
 
-        var dirOption = await _clusterClient.GetDirectoryActor().ChangeScheduleState(_state.State.WorkId, ScheduleEdgeType.Active, context.TraceId);
+        var dirOption = await _clusterClient
+            .GetScheduleActor(_state.State.SchedulerId)
+            .ChangeScheduleState(_state.State.WorkId, ScheduleEdgeType.Active, context.TraceId);
+
         return dirOption;
     }
 

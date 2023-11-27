@@ -30,12 +30,14 @@ internal class Schedule : ICommandRoute
         }),
         new CommandSymbol("clear", "Clear schedule queues").Action(x =>
         {
+            var schedulerId = x.AddArgument<string>("schedulerId", "SchedulerId, ex. scheduler:{name");
             var principalId = x.AddArgument<string>("principalId", "PrincipalId, ex. {user}@{domain}");
-            x.SetHandler(Clear, principalId);
+            x.SetHandler(Clear, schedulerId, principalId);
         }),
         new CommandSymbol("get", "Get schedules").Action(x =>
         {
-            x.SetHandler(Get);
+            var schedulerId = x.AddArgument<string>("schedulerId", "SchedulerId, ex. scheduler:{name");
+            x.SetHandler(Get, schedulerId);
         }),
     };
 
@@ -60,12 +62,12 @@ internal class Schedule : ICommandRoute
         context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
     }
 
-    public async Task Clear(string principalId)
+    public async Task Clear(string schedulerId, string principalId)
     {
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Clearing schedule queue");
 
-        var clearOption = await _client.Clear(principalId, context);
+        var clearOption = await _client.Clear(schedulerId, principalId, context);
         if (clearOption.IsError())
         {
             context.Trace().LogStatus(clearOption, "Failed to clear schedule queue");
@@ -73,12 +75,12 @@ internal class Schedule : ICommandRoute
         }
     }
 
-    public async Task Get()
+    public async Task Get(string schedulerId)
     {
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Getting schedules");
 
-        var scheduleModel = await _client.GetSchedules(context);
+        var scheduleModel = await _client.GetSchedules(schedulerId, context);
         if (scheduleModel.IsError())
         {
             context.Trace().LogStatus(scheduleModel.ToOptionStatus(), "Failed to get schedule");
