@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpinClient.sdk\SpinClient.sdk.csproj" />
     <ProjectReference Include="..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
     <ProjectReference Include="..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />

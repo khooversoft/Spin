@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;

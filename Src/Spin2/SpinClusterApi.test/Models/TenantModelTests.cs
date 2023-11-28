@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using SpinCluster.sdk.Actors.Tenant;
+using SpinCluster.abstraction;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Models;

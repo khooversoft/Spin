@@ -2,9 +2,8 @@
 using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.Trx;
-using SpinCluster.sdk.Actors.Contract;
-using SpinCluster.sdk.Actors.PrincipalKey;
-using SpinCluster.sdk.Actors.Signature;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;

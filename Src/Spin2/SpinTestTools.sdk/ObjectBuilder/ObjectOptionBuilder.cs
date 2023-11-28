@@ -1,7 +1,6 @@
 ﻿using SoftBank.sdk.Models;
+using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Subscription;
-using SpinCluster.sdk.Actors.Tenant;
-using SpinCluster.sdk.Actors.User;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Tools;

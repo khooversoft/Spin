@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using SpinCluster.sdk.Actors.Configuration;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using SpinClusterApi.test.Application;
 using Toolbox.Types;
 

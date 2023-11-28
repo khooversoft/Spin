@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using SpinAgent.Activities;
 using SpinAgent.Application;
 using SpinAgent.Services;
-using SpinCluster.sdk.Application;
+using SpinClient.sdk;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 

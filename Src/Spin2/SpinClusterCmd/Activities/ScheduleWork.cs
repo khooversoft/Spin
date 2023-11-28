@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.ScheduleWork;
+using SpinClient.sdk;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;

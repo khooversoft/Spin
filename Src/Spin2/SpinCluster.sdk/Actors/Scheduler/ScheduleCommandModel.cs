@@ -1,4 +1,4 @@
-﻿using SpinCluster.sdk.Actors.ScheduleWork;
+﻿using SpinCluster.abstraction;
 using SpinCluster.sdk.Application;
 using Toolbox.Data;
 using Toolbox.Tools.Validation;

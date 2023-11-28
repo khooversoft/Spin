@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SpinAgent.sdk;
-using SpinCluster.sdk.Actors.Contract;
+using SpinClient.sdk;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Data;
 using Toolbox.Extensions;

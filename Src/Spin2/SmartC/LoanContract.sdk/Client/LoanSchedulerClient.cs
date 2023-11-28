@@ -1,8 +1,8 @@
 ﻿using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Scheduler;
-using SpinCluster.sdk.Actors.ScheduleWork;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using Toolbox.Data;
 using Toolbox.Tools;
 using Toolbox.Types;

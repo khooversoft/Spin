@@ -1,4 +1,4 @@
-﻿using SpinCluster.sdk.Actors.Contract;
+﻿using SpinCluster.abstraction;
 using Toolbox.Block;
 
 namespace SpinCluster.sdk.Serialization;

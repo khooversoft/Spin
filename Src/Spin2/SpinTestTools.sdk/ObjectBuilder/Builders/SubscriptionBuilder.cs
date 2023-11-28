@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SpinClient.sdk;
 using SpinCluster.sdk.Actors.Subscription;
 using Toolbox.Types;
 

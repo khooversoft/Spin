@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinAgent.Application;
 using SpinAgent.Services;
-using SpinCluster.sdk.Actors.Scheduler;
-using SpinCluster.sdk.Actors.ScheduleWork;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;

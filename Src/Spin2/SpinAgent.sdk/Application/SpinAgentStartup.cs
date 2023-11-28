@@ -7,7 +7,7 @@ public static class SpinAgentStartup
     public static IServiceCollection AddSpinAgent(this IServiceCollection services)
     {
         services.AddSingleton<RunSmartC>();
-        services.AddTransient<WorkMonitor>();
+        services.AddTransient<LookForWorkActivity>();
 
         services.AddTransient<AgentSession>((services) =>
         {

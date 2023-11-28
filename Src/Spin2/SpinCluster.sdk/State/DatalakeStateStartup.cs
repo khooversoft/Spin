@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Orleans.Runtime;
 using Orleans.Storage;
-using SpinCluster.sdk.Application;
+using SpinCluster.abstraction;
 
 namespace SpinCluster.sdk.State;
 

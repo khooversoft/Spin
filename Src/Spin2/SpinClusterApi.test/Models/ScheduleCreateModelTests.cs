@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using SpinCluster.sdk.Actors.ScheduleWork;
+using SpinCluster.abstraction;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Types;

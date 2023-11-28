@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\SpinCluster.abstraction\SpinCluster.abstraction.csproj" />
         <ProjectReference Include="..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
         <ProjectReference Include="..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
         <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />

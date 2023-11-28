@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using SpinClient.sdk;
 
 namespace SpinAgent.sdk;
 
@@ -14,7 +15,7 @@ public class SpinAgentHost
         .ConfigureAppConfiguration(config => config.AddEnvironmentVariables("SPIN_AGENT_"))
         .ConfigureAppConfiguration((config, service) => service.AddSingleton(config.Build().Bind<AgentOption>().Verify()))
         .AddStartup(x => x.GetRequiredService<AgentConfiguration>().Startup())
-        .AddCommand<WorkMonitor>()
+        .AddCommand<LookForWorkActivity>()
         .ConfigureService(x =>
         {
             x.AddSingleton<IRunSmartc, RunSmartC>();
@@ -28,7 +29,7 @@ public class SpinAgentHost
         .SetArgs(args)
         .ConfigureAppConfiguration(config => config.AddEnvironmentVariables("SPIN_AGENT_"))
         .ConfigureAppConfiguration((config, service) => service.AddSingleton(agentOption.Verify()))
-        .AddCommand<WorkMonitor>()
+        .AddCommand<LookForWorkActivity>()
         .ConfigureService(x =>
         {
             x.AddSingleton<IRunSmartc, T>();

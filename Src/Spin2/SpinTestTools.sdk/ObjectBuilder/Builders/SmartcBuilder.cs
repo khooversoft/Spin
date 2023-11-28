@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SpinCluster.sdk.Actors.Smartc;
+using SpinClient.sdk;
 using Toolbox.Tools;
 using Toolbox.Types;
 

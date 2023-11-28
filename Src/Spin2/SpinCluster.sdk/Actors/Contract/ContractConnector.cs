@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Contract;
+using SpinCluster.abstraction;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Extensions;

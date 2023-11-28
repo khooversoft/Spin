@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
-using SpinCluster.sdk.Application;
+using SpinClient.sdk;
 
 namespace SoftBank.sdk.Application;
 

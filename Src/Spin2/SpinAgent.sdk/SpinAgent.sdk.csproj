@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpinClient.sdk\SpinClient.sdk.csproj" />
+    <ProjectReference Include="..\SpinCluster.abstraction\SpinCluster.abstraction.csproj" />
     <ProjectReference Include="..\SpinCluster.sdk\SpinCluster.sdk.csproj" />
     <ProjectReference Include="..\SpinClusterApi\SpinClusterApi.csproj" />
     <ProjectReference Include="..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj" />

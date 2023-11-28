@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
+using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Agent;
-using SpinCluster.sdk.Actors.Contract;
 using SpinCluster.sdk.Actors.Directory;
 using SpinCluster.sdk.Actors.Scheduler;
 using SpinCluster.sdk.Actors.ScheduleWork;
-using SpinCluster.sdk.Actors.Smartc;
 using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Data;

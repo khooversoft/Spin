@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Concurrency;
-using SpinCluster.sdk.Actors.Configuration;
+using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Tenant;
 using SpinCluster.sdk.Application;
 using Toolbox.Tools;

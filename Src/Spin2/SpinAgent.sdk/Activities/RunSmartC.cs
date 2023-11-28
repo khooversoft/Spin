@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Scheduler;
+using SpinCluster.abstraction;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Local;

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Application;
 using SpinAgent.sdk;
-using SpinCluster.sdk.Application;
+using SpinClient.sdk;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 
@@ -26,7 +26,7 @@ public static class LoanContractStartup
         .ConfigureService(x =>
         {
             x.AddSingleton<IRunSmartc, RunSmartC>();
-            x.AddSingleton<WorkMonitor>();
+            x.AddSingleton<LookForWorkActivity>();
             x.AddSpinClusterClients(LogLevel.Warning);
             x.AddSoftBankClients(LogLevel.Warning);
             x.AddSpinAgent();

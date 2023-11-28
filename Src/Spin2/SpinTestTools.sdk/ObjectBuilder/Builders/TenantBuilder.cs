@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SpinCluster.sdk.Actors.Tenant;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;

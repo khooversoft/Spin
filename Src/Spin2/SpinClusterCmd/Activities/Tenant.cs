@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Tenant;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using SpinClusterCmd.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;

@@ -1,8 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using SpinCluster.sdk.Actors.PrincipalKey;
-using SpinCluster.sdk.Actors.PrincipalPrivateKey;
-using SpinCluster.sdk.Actors.User;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using SpinClusterApi.test.Basics;
 using Toolbox.Types;
 

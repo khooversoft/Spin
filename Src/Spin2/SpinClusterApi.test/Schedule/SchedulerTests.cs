@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using SpinCluster.sdk.Actors.Agent;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Scheduler;
-using SpinCluster.sdk.Actors.ScheduleWork;
 using SpinClusterApi.test.Application;
 using Toolbox.Block;
 using Toolbox.Data;

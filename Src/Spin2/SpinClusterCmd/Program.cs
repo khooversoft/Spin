@@ -8,6 +8,7 @@ using SpinClusterCmd.Activities;
 using SpinClusterCmd.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using SpinClient.sdk;
 
 Console.WriteLine($"Spin Cluster CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();

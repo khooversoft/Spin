@@ -1,8 +1,7 @@
 ﻿using System.IO.Compression;
 using Microsoft.Extensions.Logging;
-using SpinCluster.sdk.Actors.Agent;
-using SpinCluster.sdk.Actors.Smartc;
-using SpinCluster.sdk.Actors.Storage;
+using SpinClient.sdk;
+using SpinCluster.abstraction;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Zip;
