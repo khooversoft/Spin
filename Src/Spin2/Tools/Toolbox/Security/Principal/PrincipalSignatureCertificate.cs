@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Toolbox.Security.Principal;
+namespace Toolbox.Security;
 
 public class PrincipalSignatureCertificate : PrincipalSignatureBase
 {

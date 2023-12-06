@@ -2,7 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using Toolbox.Tools;
 
-namespace Toolbox.Security.Principal;
+namespace Toolbox.Security;
 
 public class PrincipalSignature : PrincipalSignatureBase
 {

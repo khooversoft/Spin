@@ -1,10 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Toolbox.Extensions;
-using Toolbox.Security.Principal;
 using Toolbox.Tools;
 
-namespace Toolbox.Security.Jwt;
+namespace Toolbox.Security;
 
 /// <summary>
 /// Build JWT token (builder pattern)

@@ -2,10 +2,9 @@
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Toolbox.Extensions;
-using Toolbox.Security.Principal;
 using Toolbox.Tools;
 
-namespace Toolbox.Security.Jwt;
+namespace Toolbox.Security;
 
 /// <summary>
 /// JWT Token parser - designed to parse and validate many tokens based on the same set of issuers

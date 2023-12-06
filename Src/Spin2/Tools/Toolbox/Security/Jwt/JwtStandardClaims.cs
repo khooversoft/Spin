@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Security.Jwt;
+﻿namespace Toolbox.Security;
 
 public static class JwtStandardClaimNames
 {

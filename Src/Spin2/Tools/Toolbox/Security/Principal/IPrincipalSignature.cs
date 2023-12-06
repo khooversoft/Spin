@@ -1,6 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 
-namespace Toolbox.Security.Principal;
+namespace Toolbox.Security;
 
 public interface IPrincipalSignature : ISign, ISignValidate
 {

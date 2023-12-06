@@ -1,7 +1,6 @@
 ﻿using System.Security.Cryptography;
 using FluentAssertions;
-using Toolbox.Security.Jwt;
-using Toolbox.Security.Principal;
+using Toolbox.Security;
 
 namespace Toolbox.Test.Security;
 

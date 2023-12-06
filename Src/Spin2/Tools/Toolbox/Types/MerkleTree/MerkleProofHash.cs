@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Types.MerkleTree;
+﻿namespace Toolbox.Types;
 
 public class MerkleProofHash
 {

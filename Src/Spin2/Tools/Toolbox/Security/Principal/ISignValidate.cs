@@ -1,6 +1,6 @@
 ﻿using Toolbox.Types;
 
-namespace Toolbox.Security.Principal;
+namespace Toolbox.Security;
 
 public interface ISignValidate
 {

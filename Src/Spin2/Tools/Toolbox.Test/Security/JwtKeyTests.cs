@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.IdentityModel.Tokens;
-using Toolbox.Security.Jwt;
-using Toolbox.Security.Principal;
+using Toolbox.Security;
 
 namespace Toolbox.Test.Security;
 

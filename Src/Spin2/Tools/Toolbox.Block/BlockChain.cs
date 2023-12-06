@@ -1,9 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 using Toolbox.Extensions;
-using Toolbox.Security.Sign;
+using Toolbox.Security;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Types.MerkleTree;
 
 namespace Toolbox.Block;
 

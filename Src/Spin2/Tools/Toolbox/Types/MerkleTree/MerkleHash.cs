@@ -2,7 +2,7 @@
 using System.Text;
 using Toolbox.Tools;
 
-namespace Toolbox.Types.MerkleTree;
+namespace Toolbox.Types;
 
 public struct MerkleHash
 {

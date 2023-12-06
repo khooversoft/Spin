@@ -1,7 +1,7 @@
 using System.Text;
 using FluentAssertions;
 using Toolbox.Extensions;
-using Toolbox.Types.MerkleTree;
+using Toolbox.Types;
 
 namespace Toolbox.Test.Security
 {

@@ -6,7 +6,7 @@ using SpinCluster.sdk.Actors.PrincipalKey;
 using SpinCluster.sdk.Actors.PrincipalPrivateKey;
 using SpinCluster.sdk.Application;
 using Toolbox.Extensions;
-using Toolbox.Security.Sign;
+using Toolbox.Security;
 using Toolbox.Tools;
 using Toolbox.Types;
 

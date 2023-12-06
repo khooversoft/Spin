@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Security.Sign;
+﻿namespace Toolbox.Security;
 
 public record PrincipalDigest
 {

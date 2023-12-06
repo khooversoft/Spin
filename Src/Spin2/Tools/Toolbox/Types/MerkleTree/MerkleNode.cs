@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using Toolbox.Tools;
 
-namespace Toolbox.Types.MerkleTree;
+namespace Toolbox.Types;
 
 public sealed class MerkleNode : IEnumerable<MerkleNode>
 {

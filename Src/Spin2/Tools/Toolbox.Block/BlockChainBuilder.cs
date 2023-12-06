@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Security.Principal;
+using Toolbox.Security;
 using Toolbox.Tools;
 using Toolbox.Types;
 

@@ -1,7 +1,7 @@
 ﻿using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Security.Sign;
+namespace Toolbox.Security;
 
 public sealed record SignResponse
 {

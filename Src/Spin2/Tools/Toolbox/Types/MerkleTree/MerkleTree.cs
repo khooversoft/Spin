@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Types.MerkleTree;
+namespace Toolbox.Types;
 
 public sealed class MerkleTree
 {

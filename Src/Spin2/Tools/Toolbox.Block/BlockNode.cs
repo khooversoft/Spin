@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types.MerkleTree;
+using Toolbox.Types;
 
 namespace Toolbox.Block;
 

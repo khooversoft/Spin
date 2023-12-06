@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
 
-namespace Toolbox.Types.Context;
+namespace Toolbox.Types;
 
 public interface ILoggingFormatter
 {

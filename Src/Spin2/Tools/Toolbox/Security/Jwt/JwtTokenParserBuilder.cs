@@ -1,8 +1,7 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Security.Principal;
 using Toolbox.Tools;
 
-namespace Toolbox.Security.Jwt
+namespace Toolbox.Security
 {
     /// <summary>
     /// Build a JWT token parser, specify certificates, audiences, and issuers.  This is just a helper builder pattern class

@@ -1,6 +1,4 @@
-﻿using Toolbox.Types.Context;
-
-namespace Toolbox.Types;
+﻿namespace Toolbox.Types;
 
 public readonly record struct ScopeContextLocation
 {

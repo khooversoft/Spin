@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
-using Toolbox.Security.Principal;
+using Toolbox.Security;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Test;

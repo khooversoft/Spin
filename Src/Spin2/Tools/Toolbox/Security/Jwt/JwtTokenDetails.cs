@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Security.Jwt;
+namespace Toolbox.Security;
 
 /// <summary>
 /// JWT token details (created when parsing a JWT token)
