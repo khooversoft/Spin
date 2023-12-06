@@ -3,53 +3,54 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Local;
 using Toolbox.Types;
 
-namespace SpinAgent.sdk;
+namespace SpinClient.sdk;
 
 public class RunSmartC : IRunSmartc
 {
     private readonly ILogger<RunSmartC> _logger;
     private readonly AbortSignal _abortSignal;
     private readonly PackageManagement _packageManagement;
+    private readonly ScheduleWorkClient _scheduleWorkClient;
 
-    public RunSmartC(PackageManagement packageManagement, AbortSignal abortSignal, ILogger<RunSmartC> logger)
+    public RunSmartC(PackageManagement packageManagement, ScheduleWorkClient scheduleWorkClient, AbortSignal abortSignal, ILogger<RunSmartC> logger)
     {
         _packageManagement = packageManagement.NotNull();
         _abortSignal = abortSignal.NotNull();
+        _scheduleWorkClient = scheduleWorkClient.NotNull();
         _logger = logger.NotNull();
     }
 
-    public async Task<Option> Run(WorkSession agentWorkClient, bool whatIf, ScopeContext context)
+    public async Task<Option> Run(ScheduleAssigned scheduleAssigned, bool whatIf, ScopeContext context)
     {
         context = context.With(_logger);
-        agentWorkClient.NotNull();
+        scheduleAssigned.NotNull();
 
-        var unpackPackageLocation = await UnpackPackage(agentWorkClient, context);
+        var unpackPackageLocation = await UnpackPackage(scheduleAssigned, context);
         if (unpackPackageLocation.IsError())
         {
-            await agentWorkClient.UpdateWorkStatus(unpackPackageLocation.StatusCode, unpackPackageLocation.Error, context);
+            await _scheduleWorkClient.CompletedWork(
+                scheduleAssigned.ScheduleOption.AgentId,
+                scheduleAssigned.WorkAssigned.WorkId,
+                unpackPackageLocation.ToOptionStatus(),
+                "Unpack package",
+                context);
+
             return StatusCode.InternalServerError;
         }
 
-        var runResult = await RunLocal(unpackPackageLocation.Return(), agentWorkClient.WorkAssigned, whatIf, context);
-        await agentWorkClient.UpdateWorkStatus(runResult.StatusCode, runResult.Error, context);
+        var runResult = await RunLocal(unpackPackageLocation.Return(), scheduleAssigned.WorkAssigned, whatIf, context);
+        await _scheduleWorkClient.CompletedWork(scheduleAssigned.ScheduleOption.AgentId, scheduleAssigned.WorkAssigned.WorkId, runResult, "Run local", context);
 
         return StatusCode.OK;
     }
 
-    private async Task<Option<string>> UnpackPackage(WorkSession agentWorkClient, ScopeContext context)
+    private async Task<Option<string>> UnpackPackage(ScheduleAssigned scheduleAssigned, ScopeContext context)
     {
-        context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", agentWorkClient.WorkAssigned.SmartcId);
+        context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", scheduleAssigned.WorkAssigned.SmartcId);
 
-        var result = await _packageManagement.LoadPackage(agentWorkClient.WorkAssigned.SmartcId, context);
-        if (result.IsError())
-        {
-            await agentWorkClient.UpdateWorkStatus(result.StatusCode, result.Error, context);
-            return result;
-        }
-
+        var result = await _packageManagement.LoadPackage(scheduleAssigned.ScheduleOption.AgentId, scheduleAssigned.WorkAssigned.SmartcId, context);
         return result;
     }
 

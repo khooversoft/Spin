@@ -51,19 +51,25 @@ internal class ResourceIdTool
             AccountTest
         };
 
-        Option<ResourceId> result = tests
-            .Select(x => isMatch(tokens, subject, x))
-            .SkipWhile(x => x.IsError())
-            .FirstOrDefault(StatusCode.NotFound);
+        foreach (var test in tests)
+        {
+            var matchResult = isMatch(tokens, subject, test);
+            if (matchResult.IsOk()) return matchResult;
+        }
 
-        return result;
+        return StatusCode.NotFound;
+
 
         Option<ResourceId> isMatch(IReadOnlyList<IToken> tokens, string id, Test test)
         {
-            TokenResult[] result = test.Pattern.Zip(tokens).Select(x => x.First(x.Second)).ToArray();
-            if (result.Any(x => x == TokenResult.None)) return StatusCode.NotFound;
-
             if (!test.PostTest(tokens)) return StatusCode.NotFound;
+            TokenResult[] result = new TokenResult[test.Pattern.Length];
+
+            for (int i = 0; i < test.Pattern.Length; i++)
+            {
+                result[i] = test.Pattern[i](tokens[i]);
+                if (result[i] == TokenResult.None) return StatusCode.NotFound;
+            }
 
             return test.Build(id, result, tokens);
         }

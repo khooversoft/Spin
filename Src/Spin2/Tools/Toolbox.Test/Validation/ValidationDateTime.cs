@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Toolbox.Tools.Validation;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Validation;

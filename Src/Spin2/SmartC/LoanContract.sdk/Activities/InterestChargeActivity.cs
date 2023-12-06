@@ -1,5 +1,4 @@
 ﻿using LoanContract.sdk.Contract;
-using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
@@ -17,9 +16,11 @@ public class InterestChargeActivity : ICommandRoute
     private readonly LoanContractManager _manager;
     private readonly ILogger<PaymentActivity> _logger;
     private readonly SmartcClient _smartcClient;
+    private readonly ScheduleOption _option;
 
-    public InterestChargeActivity(ScheduleWorkClient client, LoanContractManager manager, SmartcClient smartcClient, ILogger<PaymentActivity> logger)
+    public InterestChargeActivity(ScheduleOption option, ScheduleWorkClient client, LoanContractManager manager, SmartcClient smartcClient, ILogger<PaymentActivity> logger)
     {
+        _option = option.NotNull();
         _scheduleWorkClient = client.NotNull();
         _manager = manager.NotNull();
         _smartcClient = smartcClient.NotNull();
@@ -28,7 +29,7 @@ public class InterestChargeActivity : ICommandRoute
 
     public CommandSymbol CommandSymbol() => new CommandSymbol("interestCharge", "Post interest charges").Action(x =>
     {
-        var workId = x.AddArgument<string>("workId", "Work Id of schedule");
+        var workId = x.AddOption<string>("--workId", "Work Id to retrive details", isRequired: true);
         x.SetHandler(PostInterestCharge, workId);
     });
 
@@ -44,41 +45,24 @@ public class InterestChargeActivity : ICommandRoute
             return;
         }
 
-        Option resultOption = StatusCode.OK;
         ScheduleWorkModel work = workOption.Return();
 
-        try
+        var getPayloadOption = work.Payloads.TryGetObject<LoanInterestRequest>(out var loanInterestRequest, validator: LoanInterestRequest.Validator);
+        await _scheduleWorkClient.AddRunResult(workId, getPayloadOption.ToOptionStatus(), "Required payload", context);
+        if (getPayloadOption.IsError())
         {
-            var getPayloadOption = work.Payloads.TryGetObject<LoanPaymentRequest>(out var loanPaymentRequest, validator: LoanPaymentRequest.Validator);
-            if (getPayloadOption.IsError())
-            {
-                context.Location().LogError("Failed to get required payload 'LoanPaymentRequest' from schedule, error={error}", getPayloadOption.Error);
-                resultOption = getPayloadOption.ToOptionStatus();
-                return;
-            }
-
-            var applyInterestChargeResult = await _manager.PostInterestCharge(loanPaymentRequest, context);
-            if (applyInterestChargeResult.IsError())
-            {
-                context.Location().LogError("Apply interset charge failed, error={error}", applyInterestChargeResult.Error);
-                resultOption = applyInterestChargeResult;
-                return;
-            }
+            await _scheduleWorkClient.CompletedWork(_option.AgentId, work.WorkId, getPayloadOption.ToOptionStatus(), "Get required payload", context);
+            return;
         }
-        finally
+
+        var applyInterestChargeResult = await _manager.PostInterestCharge(loanInterestRequest, context);
+        await _scheduleWorkClient.AddRunResult(workId, applyInterestChargeResult, "Post interest charge", context);
+        if (applyInterestChargeResult.IsError())
         {
-            var response = new RunResultModel
-            {
-                WorkId = workId,
-                StatusCode = resultOption.StatusCode,
-                Message = resultOption.StatusCode.IsOk() ? "Posted interest charages" : $"Failed to post interest charages, error={resultOption.Error}",
-            };
-
-            var writeRunResult = await _scheduleWorkClient.AddRunResult(response, context);
-            if (writeRunResult.IsError())
-            {
-                context.Location().LogError("Failed to write 'RunResult' to loan contract, work={work}", workOption.Return());
-            }
+            await _scheduleWorkClient.CompletedWork(_option.AgentId, work.WorkId, applyInterestChargeResult, "Post interest charge", context);
+            return;
         }
+
+        await _scheduleWorkClient.CompletedWork(_option.AgentId, work.WorkId, StatusCode.OK, "Completed", context);
     }
 }

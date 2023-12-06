@@ -2,7 +2,7 @@
 
 namespace Toolbox.Types;
 
-public static class ScopeExtensions
+public static class ScopeLoggingExtensions
 {
     public static void Log(this ScopeContextLocation context, LogLevel logLevel, string? message, params object?[] args)
     {

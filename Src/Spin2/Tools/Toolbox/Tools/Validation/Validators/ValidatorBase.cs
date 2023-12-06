@@ -1,6 +1,6 @@
 ﻿using Toolbox.Types;
 
-namespace Toolbox.Tools.Validation;
+namespace Toolbox.Tools;
 
 public abstract class ValidatorBase<T, TProperty> : IPropertyValidator<TProperty>
 {

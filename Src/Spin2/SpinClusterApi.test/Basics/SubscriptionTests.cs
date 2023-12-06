@@ -3,8 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
-using SpinCluster.sdk.Actors.Subscription;
-using SpinCluster.sdk.Application;
 using SpinClusterApi.test.Application;
 using Toolbox.Types;
 

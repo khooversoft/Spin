@@ -1,6 +1,6 @@
 ﻿using SoftBank.sdk.Application;
 using Toolbox.Block;
-using Toolbox.Tools.Validation;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.Models;

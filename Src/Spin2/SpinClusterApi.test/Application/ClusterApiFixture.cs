@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
 using SpinClient.sdk;
-using SpinCluster.sdk.Actors.Subscription;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -54,8 +53,12 @@ public class ClusterApiFixture
 
     public async Task ResetEnvironment()
     {
+        var contxt = new ScopeContext(NullLogger.Instance);
         SchedulerClient schedulerClient = ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear(Option.SchedulerId, "admin@domain.com", new ScopeContext(NullLogger.Instance));
+        ScheduleWorkClient scheduleWorkClient = ServiceProvider.GetRequiredService<ScheduleWorkClient>();
+        await schedulerClient.ClearAllWorkSchedules(Option.SchedulerId, scheduleWorkClient, contxt);
+
+        await schedulerClient.Delete(Option.SchedulerId, "admin@domain.com", contxt);
 
         DirectoryClient directoryClient = ServiceProvider.GetRequiredService<DirectoryClient>();
         await directoryClient.Clear("admin@domain.com", new ScopeContext(NullLogger.Instance));

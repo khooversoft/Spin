@@ -1,42 +1,43 @@
 ﻿using System.IO.Compression;
 using Microsoft.Extensions.Logging;
-using SpinClient.sdk;
 using SpinCluster.abstraction;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Zip;
 using Toolbox.Types;
 
-namespace SpinAgent.sdk;
+namespace SpinClient.sdk;
 
 public class PackageManagement
 {
-    private readonly AgentConfiguration _agentConfiguration;
+    private readonly AgentClient _agentClient;
     private readonly ILogger<PackageManagement> _logger;
     private readonly SmartcClient _smartcClient;
     private readonly StorageClient _storageClient;
     private readonly AbortSignal _abortSignal;
 
     public PackageManagement(
-        AgentConfiguration agentConfiguration,
+        AgentClient agentClient,
         SmartcClient smartcClient,
         StorageClient storageClient,
         AbortSignal abortSignal,
         ILogger<PackageManagement> logger)
     {
-        _agentConfiguration = agentConfiguration.NotNull();
+        _agentClient = agentClient.NotNull();
         _smartcClient = smartcClient.NotNull();
         _storageClient = storageClient.NotNull();
         _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<string>> LoadPackage(string smartcId, ScopeContext context)
+    public async Task<Option<string>> LoadPackage(string agentId, string smartcId, ScopeContext context)
     {
+        agentId.NotEmpty();
+        smartcId.NotEmpty();
+
         context = context.With(_logger);
         context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", smartcId);
 
-        var workContextModel = await Setup(smartcId, context);
+        var workContextModel = await Setup(agentId, smartcId, context);
         if (workContextModel.IsError()) return workContextModel.ToOptionStatus<string>();
 
         WorkContext workContext = workContextModel.Return();
@@ -53,24 +54,29 @@ public class PackageManagement
         return workContext.Executable;
     }
 
-    private async Task<Option<WorkContext>> Setup(string smartcId, ScopeContext context)
+    private async Task<Option<WorkContext>> Setup(string agentId, string smartcId, ScopeContext context)
     {
-
         var smartcModelOption = await _smartcClient.Get(smartcId, context);
         if (smartcModelOption.IsError())
         {
             context.Trace().LogError("Cannot find smartcId={smartcId}", smartcId);
             return smartcModelOption.ToOptionStatus<WorkContext>();
         }
-
         var model = smartcModelOption.Return();
-        var agent = _agentConfiguration.Get(context);
-        var folder = Path.Combine(agent.WorkingFolder, model.BlobHash);
+
+        var agent = await _agentClient.Get(agentId, context);
+        if (agent.IsError())
+        {
+            context.Trace().LogError("Cannot get agent details for agentId={agentId}", agentId);
+            return smartcModelOption.ToOptionStatus<WorkContext>();
+        }
+
+        var folder = Path.Combine(agent.Return().WorkingFolder, model.BlobHash);
+        Directory.CreateDirectory(folder);
 
         return new WorkContext
         {
             SmartcModel = model,
-            AgentModel = agent,
             PackageFolder = folder,
             Executable = Path.Combine(folder, model.Executable),
         };
@@ -173,7 +179,6 @@ public class PackageManagement
     private sealed record WorkContext
     {
         public SmartcModel SmartcModel { get; init; } = null!;
-        public AgentModel AgentModel { get; init; } = null!;
         public string PackageFolder { get; init; } = null!;
         public string Executable { get; init; } = null!;
     }

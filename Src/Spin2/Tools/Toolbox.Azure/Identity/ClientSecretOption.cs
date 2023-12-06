@@ -1,7 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Identity;
 using Toolbox.Extensions;
-using Toolbox.Tools.Validation;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Azure.Identity;

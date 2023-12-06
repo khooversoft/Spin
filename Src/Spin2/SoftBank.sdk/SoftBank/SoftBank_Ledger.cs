@@ -36,14 +36,12 @@ internal class SoftBank_Ledger
         if (!IdPatterns.IsPrincipalId(principalId)) return StatusCode.BadRequest;
 
         IContractActor contract = _parent.GetContractActor();
-
         var query = ContractQuery.CreateQuery<SbLedgerItem>(principalId);
 
         Option<ContractQueryResponse> queryOption = await contract.Query(query, context.TraceId);
         if (queryOption.IsError()) return queryOption.ToOptionStatus<IReadOnlyList<SbLedgerItem>>();
 
         IReadOnlyList<SbLedgerItem> list = queryOption.Return().GetItems<SbLedgerItem>();
-
         return list.ToOption();
     }
 

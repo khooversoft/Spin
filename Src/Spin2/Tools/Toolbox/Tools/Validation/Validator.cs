@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Toolbox.Types;
 
-namespace Toolbox.Tools.Validation;
+namespace Toolbox.Tools;
 
 public interface IValidator<T>
 {

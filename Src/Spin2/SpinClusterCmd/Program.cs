@@ -3,12 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Application;
-using SpinCluster.sdk.Application;
+using SpinClient.sdk;
 using SpinClusterCmd.Activities;
 using SpinClusterCmd.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
-using SpinClient.sdk;
 
 Console.WriteLine($"Spin Cluster CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();

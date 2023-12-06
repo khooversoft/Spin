@@ -1,48 +1,34 @@
 ﻿using LoanContract.sdk.Activities;
+using LoanContract.sdk.Contract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SoftBank.sdk.Application;
-using SpinAgent.sdk;
 using SpinClient.sdk;
+using SpinCluster.abstraction;
 using Toolbox.CommandRouter;
-using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace LoanContract.sdk;
 
 public static class LoanContractStartup
 {
-    public static CommandRouterBuilder Create(params string[] args) => new CommandRouterBuilder()
+    public static CommandRouterBuilder CreateLocalAgent(params string[] args) => SpinClientHost.CreateLocalAgent()
         .SetArgs(args)
         .ConfigureAppConfiguration((config, service) =>
         {
             config.AddJsonFile("appsettings.json");
-            config.AddEnvironmentVariables("SPIN_SMARTC_");
-            service.AddSingleton(config.Build().Bind<AgentOption>().Verify());
-        })
-        .AddCommand<CreateContractActivity>()
-        .AddCommand<PaymentActivity>()
-        .AddCommand<InterestChargeActivity>()
-        .ConfigureService(x =>
-        {
-            x.AddSingleton<IRunSmartc, RunSmartC>();
-            x.AddSingleton<LookForWorkActivity>();
-            x.AddSpinClusterClients(LogLevel.Warning);
-            x.AddSoftBankClients(LogLevel.Warning);
-            x.AddSpinAgent();
-
-            //x.AddLoanContract();
         });
 
-    public static CommandRouterBuilder CreateInMemory<T>(AgentOption agentOption, params string[] args) where T : class, IRunSmartc => new CommandRouterBuilder()
+    public static CommandRouterBuilder CreateSmartcWorkflow(ScheduleOption option, ClientOption clientOption, params string[] args) => SpinClientHost.CreateTestAgent(option)
         .SetArgs(args)
-        .ConfigureAppConfiguration((config, service) => service.AddSingleton(agentOption.Verify()))
         .AddCommand<CreateContractActivity>()
         .AddCommand<PaymentActivity>()
         .AddCommand<InterestChargeActivity>()
         .ConfigureService(x =>
         {
-            x.AddSingleton<IRunSmartc, T>();
+            x.AddSingleton(clientOption.NotNull());
+            x.AddSingleton<LoanContractManager>();
             x.AddSpinClusterClients(LogLevel.Warning);
             x.AddSoftBankClients(LogLevel.Warning);
         });

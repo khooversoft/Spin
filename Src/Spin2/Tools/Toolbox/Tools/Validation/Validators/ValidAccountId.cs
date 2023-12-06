@@ -1,6 +1,6 @@
 ﻿using Toolbox.Types;
 
-namespace Toolbox.Tools.Validation;
+namespace Toolbox.Tools;
 
 public class ValidAccountId<T> : ValidatorBase<T, string>
 {

@@ -1,6 +1,5 @@
 ﻿using SoftBank.sdk.Models;
-using Toolbox.Extensions;
-using Toolbox.Tools.Validation;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.Models;
@@ -22,8 +21,8 @@ public static class TrxResponseValidator
 {
     public static IValidator<TrxResponse> Validator { get; } = new Validator<TrxResponse>()
         .RuleFor(x => x.Id).NotEmpty()
-        .RuleFor(x => x.Request).Validate(TrxRequestValidator.Validator)
-        .RuleFor(x => x.Status).Must(x => x.IsEnumValid(), x => $"Enum {x.ToString()} is invalid enum")
+        .RuleFor(x => x.Request).Validate(TrxRequest.Validator)
+        .RuleFor(x => x.Status).ValidEnum()
         .RuleFor(x => x.DestinationLedgerItemId).NotEmpty()
         .Build();
 

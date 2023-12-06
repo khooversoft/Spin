@@ -1,6 +1,5 @@
-﻿using Orleans;
-using Toolbox.Block;
-using Toolbox.Tools.Validation;
+﻿using Toolbox.Block;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinCluster.abstraction;
@@ -17,7 +16,7 @@ public sealed record ContractCreateModel
         .RuleFor(x => x.DocumentId).ValidResourceId(ResourceType.DomainOwned)
         .RuleFor(x => x.PrincipalId).ValidResourceId(ResourceType.Principal)
         .RuleFor(x => x.BlockAccess).NotNull()
-        .RuleForEach(x => x.BlockAccess).Validate(BlockAccessValidator.Validator)
+        .RuleForEach(x => x.BlockAccess).Validate(AccessBlock.Validator)
         .RuleFor(x => x.RoleRights).NotNull()
         .RuleForEach(x => x.RoleRights).Validate(BlockRoleAccessValidator.Validator)
         .Build();

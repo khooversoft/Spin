@@ -132,6 +132,8 @@ public sealed class BlockChain
         if (aclOption.IsNoContent()) return StatusCode.Forbidden;
 
         var result = aclOption.Return().HasAccess(principalId, grant, blockType);
+        if (result.IsError()) return result;
+
         return result;
     }
 

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
 using SpinClient.sdk;
-using SpinCluster.sdk.Actors.Subscription;
+using SpinCluster.abstraction;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -18,7 +18,7 @@ public class ClusterApiFixture
         Option = new ConfigurationBuilder()
             .AddJsonFile("test-appsettings.json")
             .Build()
-            .Bind<TestOption>().Assert(x => x.Validate().IsOk(), "Invalid");
+            .Bind<ClientOption>().Assert(x => x.Validate().IsOk(), "Invalid");
 
         ServiceProvider = new ServiceCollection()
         .AddSingleton(Option)
@@ -31,6 +31,7 @@ public class ClusterApiFixture
             x.AddHttpClient<PrincipalKeyClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<PrincipalPrivateKeyClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<SchedulerClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<ScheduleWorkClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<SignatureClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<SmartcClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<SoftBankClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
@@ -38,11 +39,12 @@ public class ClusterApiFixture
             x.AddHttpClient<SubscriptionClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<TenantClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
             x.AddHttpClient<UserClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
+            x.AddHttpClient<AgentClient>(client => client.BaseAddress = new Uri(Option.ClusterApiUri));
         })
         .BuildServiceProvider();
     }
 
-    public TestOption Option { get; }
+    public ClientOption Option { get; }
 
     public IServiceProvider ServiceProvider { get; }
 

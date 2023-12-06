@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Tools.Validation;
+﻿namespace Toolbox.Tools;
 
 public readonly struct Rule<T, TProperty>
 {

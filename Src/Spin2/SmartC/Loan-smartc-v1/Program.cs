@@ -4,7 +4,7 @@ using LoanContract.sdk;
 Console.WriteLine($"Loan-smartc-v1 CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 
-var state2 = await LoanContractStartup.Create(args).Build().Run();
+var state2 = await LoanContractStartup.CreateLocalAgent(args).Build().Run();
 
 //var state = await new CommandRouterBuilder()
 //    .SetArgs(args)

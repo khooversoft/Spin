@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
 using Toolbox.Azure.DataLake;
@@ -13,20 +14,19 @@ public class DatalakeSchemaResources
 {
     private const string _defaultSchema = "$default";
     private readonly SpinClusterOption _clusterOption;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DatalakeSchemaResources> _logger;
     private readonly SiloConfigStore _siloConfigStore;
     private readonly ConcurrentDictionary<string, IDatalakeStore> _datalakeResources = new ConcurrentDictionary<string, IDatalakeStore>(StringComparer.OrdinalIgnoreCase);
-    private readonly ILoggerFactory _loggerFactory;
     private readonly string _instanceId = Guid.NewGuid().ToString();
 
-    public DatalakeSchemaResources(SpinClusterOption clusterOption, SiloConfigStore siloConfigStore, ILoggerFactory loggerFactory)
+    public DatalakeSchemaResources(SpinClusterOption clusterOption, SiloConfigStore siloConfigStore, IServiceProvider serviceProvider, ILogger<DatalakeSchemaResources> logger)
     {
         Debug.WriteLine($"Constructed: {nameof(DatalakeSchemaResources)}, _instanceId={_instanceId}");
         _clusterOption = clusterOption.NotNull();
         _siloConfigStore = siloConfigStore.NotNull();
-        _loggerFactory = loggerFactory.NotNull();
-
-        _logger = loggerFactory.NotNull().CreateLogger<DatalakeSchemaResources>();
+        _serviceProvider = serviceProvider.NotNull();
+        _logger = logger.NotNull();
     }
 
     public async Task<StatusCode> Startup(ScopeContext context)
@@ -51,13 +51,13 @@ public class DatalakeSchemaResources
         {
             var option = new DatalakeOption
             {
-                AccountName = _siloConfigStore.DatalakeLocation.Account,
-                ContainerName = schemaOption.ContainerName,
+                Account = _siloConfigStore.DatalakeLocation.Account,
+                Container = schemaOption.ContainerName,
                 BasePath = schemaOption.BasePath,
                 Credentials = _clusterOption.Credentials,
             };
 
-            IDatalakeStore store = new DatalakeStore(option, _loggerFactory.CreateLogger<DatalakeStore>());
+            IDatalakeStore store = ActivatorUtilities.CreateInstance<DatalakeStore>(_serviceProvider, option);
             context.Location().LogInformation("Setting up schemaName={schemaName}, option={option}", schemaOption.SchemaName, option);
 
             _datalakeResources[schemaOption.SchemaName] = store;

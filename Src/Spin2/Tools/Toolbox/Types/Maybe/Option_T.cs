@@ -24,7 +24,7 @@ public interface IOption
 /// 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-[DebuggerDisplay("StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}")]
+[DebuggerDisplay("StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}, Error={Error}")]
 public readonly struct Option<T> : IOption, IEquatable<Option<T>>
 {
     [SetsRequiredMembers()]
@@ -68,7 +68,7 @@ public readonly struct Option<T> : IOption, IEquatable<Option<T>>
     public string? Error { get; }
     object IOption.ValueObject => Value!;
 
-    public override string ToString() => $"StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}, Error='{Error}'";
+    public override string ToString() => $"StatusCode={StatusCode}, HasValue={HasValue}, Value={Value}" + (Error != null ? $", Error='{Error}'" : string.Empty);
 
     public override bool Equals(object? obj) =>
         obj is Option<T> maybe &&

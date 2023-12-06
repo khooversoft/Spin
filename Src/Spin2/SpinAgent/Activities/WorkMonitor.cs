@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinAgent.Application;
-using SpinAgent.Services;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
 using Toolbox.CommandRouter;
@@ -85,7 +84,7 @@ internal class WorkMonitor : ICommandRoute
     {
         context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", workSchedule.SmartcId);
 
-        var result = await _packageManagement.LoadPackage(workSchedule.SmartcId, context);
+        var result = await _packageManagement.LoadPackage(_option.AgentId, workSchedule.SmartcId, context);
         if (result.IsError())
         {
             await UpdateWorkStatus(workSchedule.WorkId, result.StatusCode, result.Error, context);

@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 
-namespace Toolbox.Tools.Zip;
+namespace Toolbox.Tools;
 
 public static class ZipExtractExtension
 {

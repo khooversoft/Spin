@@ -6,12 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
-using SpinAgent.sdk;
 using SpinClient.sdk;
+using SpinCluster.abstraction;
 using SpinTestTools.sdk.ObjectBuilder;
+using Toolbox.CommandRouter;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace LoanContract.sdk.test;
@@ -28,7 +30,8 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
     const string _schedulerId = "scheduler:test";
     const string _agentId = "agent:test1";
 
-    private const string _setup = """
+    private const string _setup =
+        """
         {
            "Configs": [
               {
@@ -101,6 +104,12 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
               "Type": "Credit",
               "Amount": 2000.00
             }
+          ],
+          "Agents": [
+            {
+                "AgentId": "agent:test1",
+                "Enabled": true
+            }
           ]
         }
         """;
@@ -110,22 +119,12 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
     [Fact]
     public async Task LifecycleTest()
     {
-        await Setup();
-
-        AgentOption agentOption = new AgentOption
-        {
-            ClusterApiUri = _cluster.ServiceProvider.GetRequiredService<TestOption>().ClusterApiUri,
-            AgentId = _agentId,
-            SchedulerId = _schedulerId,
-            PrincipalId = _ownerId,
-            SourceId = "source",
-        };
-
-        AgentSession agentSession = ActivatorUtilities.CreateInstance<AgentSession>(_cluster.ServiceProvider, agentOption);
+        (ICommandRouterHost commandHost, ScheduleOption scheduleOption) = await Setup();
 
         var startDate = new DateTime(2023, 1, 1);
+        var scheduleClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
 
-        await PostCreateAccountCommand(agentSession, startDate, _ownerId, _smartcId, _contractId);
+        await PostCreateAccountCommand(startDate, scheduleOption, _smartcId, _contractId, commandHost);
         await CheckSoftBank("softbank:rental.com/user1-account/primary", "user1@rental.com", 100.00m);
         await CheckSoftBank("softbank:outlook.com/user2-account/primary", "user2@outlook.com", 2000.00m);
 
@@ -134,46 +133,38 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
         for (int i = 0; i < 12; i++)
         {
             DateTime postedDate = startDate.AddMonths(i + 1);
-
-            var paymentRequest = new LoanPaymentRequest
-            {
-                ContractId = _contractId,
-                PrincipalId = _ownerId,
-                PostedDate = postedDate,
-            };
-
-            var postOption = await agentSession.CreateSchedule("interestCharge", _smartcId, paymentRequest, _context);
-            postOption.IsOk().Should().BeTrue(postOption.ToString());
+            await PostInterestCharges(commandHost, postedDate, scheduleOption, scheduleClient);
+            await PostPayment(commandHost, postedDate, scheduleOption, scheduleClient);
 
             var reportOption = await manager.GetReport(_contractId, _ownerId, _context);
             reportOption.IsOk().Should().BeTrue();
 
             LoanReportModel loanReportModel = reportOption.Return();
             loanReportModel.LedgerItems.Should().NotBeNull();
-            loanReportModel.LedgerItems.Count.Should().Be(i + 1);
+            loanReportModel.LedgerItems.Count.Should().Be((i + 1) * 2);
         }
 
-        //LoanReportModel finalReport = await manager.GetReport(contractId, ownerId, _context).Return();
-        //finalReport.LedgerItems.Count.Should().Be(12);
+        LoanReportModel finalReport = await manager.GetReport(_contractId, _ownerId, _context).Return();
+        finalReport.LedgerItems.Count.Should().Be(12);
 
-        //var testSet = new decimal[]
-        //{
-        //    -42.47m, -38.52m, -42.81m, -41.60m, -43.17m, -41.95m,
-        //    -43.53m, -43.71m, -42.48m, -44.08m, -42.84m, -44.45m,
-        //};
+        var testSet = new decimal[]
+        {
+            -42.47m, -38.52m, -42.81m, -41.60m, -43.17m, -41.95m,
+            -43.53m, -43.71m, -42.48m, -44.08m, -42.84m, -44.45m,
+        };
 
-        //finalReport.LedgerItems.WithIndex().ForEach(x =>
-        //{
-        //    x.Item.ContractId.Should().Be(contractId);
-        //    x.Item.OwnerId.Should().Be(ownerId);
-        //    x.Item.Description.Should().Be("Interest charge");
-        //    x.Item.Type.Should().Be(LoanLedgerType.Debit);
-        //    x.Item.TrxType.Should().Be(LoanTrxType.InterestCharge);
-        //    x.Item.NaturalAmount.Should().Be(testSet[x.Index]);
-        //});
+        finalReport.LedgerItems.WithIndex().ForEach(x =>
+        {
+            x.Item.ContractId.Should().Be(_contractId);
+            x.Item.OwnerId.Should().Be(_ownerId);
+            x.Item.Description.Should().Be("Interest charge");
+            x.Item.Type.Should().Be(LoanLedgerType.Debit);
+            x.Item.TrxType.Should().Be(LoanTrxType.InterestCharge);
+            x.Item.NaturalAmount.Should().Be(testSet[x.Index]);
+        });
     }
 
-    private async Task Setup()
+    private async Task<(ICommandRouterHost commandHost, ScheduleOption scheduleOption)> Setup()
     {
         var result = await new TestObjectBuilder()
             .SetJson(_setup)
@@ -181,17 +172,43 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
             .AddStandard()
             .Build(_context);
 
+        result.IsOk().Should().BeTrue();
+
+        SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
+        ScheduleWorkClient scheduleWorkClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
+        var r1 = await schedulerClient.ClearAllWorkSchedules(_schedulerId, scheduleWorkClient, _context);
+        r1.IsOk().Should().BeTrue();
+
+        var r2 = await schedulerClient.Delete(_schedulerId, "name@domain.com", _context);
+        r2.IsOk().Should().BeTrue();
+
+        ScheduleOption scheduleOption = new ScheduleOption
+        {
+            AgentId = _agentId,
+            SchedulerId = _schedulerId,
+            PrincipalId = _ownerId,
+            SourceId = "source",
+        };
+
+        var contractClient = _cluster.ServiceProvider.GetRequiredService<ContractClient>();
+        var contractDelete = await contractClient.Delete(_contractId, _context);
+        contractDelete.Assert(x => x.IsOk() || x.IsNotFound(), x => $"delete failed: option={x}");
+
+        ClientOption clientOption = _cluster.ServiceProvider.GetRequiredService<ClientOption>();
+        ICommandRouterHost commandHost = LoanContractStartup.CreateSmartcWorkflow(scheduleOption, clientOption).Build();
+        return (commandHost, scheduleOption);
     }
 
-    private async Task PostCreateAccountCommand(AgentSession agentSession, DateTime startDate, string ownerId, string smartcId, string contractId)
+    private async Task PostCreateAccountCommand(DateTime startDate, ScheduleOption scheduleOption, string smartcId, string contractId, ICommandRouterHost commandHost)
     {
         await _cluster.ServiceProvider.GetRequiredService<ContractClient>().Delete(contractId, _context);
 
         var loanAccountDetail = new LoanAccountDetail
         {
             ContractId = contractId,
-            OwnerId = ownerId,
+            OwnerId = _ownerId,
             Name = "Loan APR contact",
+            Access = LoanAccountDetail.CreatePaymentAccess("user2@outlook.com"),
         };
 
         var terms = new LoanTerms
@@ -207,7 +224,7 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
         var loanDetail = new LoanDetail
         {
             ContractId = contractId,
-            OwnerId = "user1@rental.com",
+            OwnerId = _ownerId,
             OwnerSoftBankId = "softbank:rental.com/user1-account/primary",
             FirstPaymentDate = startDate,
             PrincipalAmount = 10_000.00m,
@@ -219,13 +236,66 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
             PartySoftBankId = "softbank:outlook.com/user2-account/primary",
         };
 
-        var result = await agentSession.CreateSchedule("create", smartcId, loanAccountDetail, loanDetail, _context);
+
+        var scheduleClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
+
+        ScheduleCreateModel createModel = scheduleOption.CreateSchedule("create", smartcId, loanAccountDetail, loanDetail);
+        var result = await scheduleClient.CreateSchedule(createModel, _context);
         result.IsOk().Should().BeTrue();
 
-        //var builder = LoanContractStartup.CreateInMemory
+        int response = await commandHost.Run("run", "--waitFor", "10");
+        response.Should().Be(0);
+
+        await CheckWorkScheduleForStatus(scheduleOption, createModel.WorkId, StatusCode.OK);
     }
 
-    //private async Task GetAssignment
+    private async Task PostInterestCharges(ICommandRouterHost commandHost, DateTime postedDate, ScheduleOption scheduleOption, SchedulerClient scheduleClient)
+    {
+        var loanInterestRequest = new LoanInterestRequest
+        {
+            ContractId = _contractId,
+            PrincipalId = _ownerId,
+            PostedDate = postedDate,
+        };
+
+        ScheduleCreateModel interestCharge = scheduleOption.CreateSchedule("interestCharge", _smartcId, loanInterestRequest);
+        var postOption = await scheduleClient.CreateSchedule(interestCharge, _context);
+        postOption.IsOk().Should().BeTrue(postOption.ToString());
+
+        int response = await commandHost.Run("run", "--waitFor", "10");
+        response.Should().Be(0);
+
+        await CheckWorkScheduleForStatus(scheduleOption, interestCharge.WorkId, StatusCode.OK);
+    }
+
+    private async Task PostPayment(ICommandRouterHost commandHost, DateTime postedDate, ScheduleOption scheduleOption, SchedulerClient scheduleClient)
+    {
+        var contractClient = _cluster.ServiceProvider.GetRequiredService<ContractClient>();
+
+        var query = new ContractQueryBuilder().SetPrincipalId(_ownerId).Add<LoanDetail>(true).Build();
+        Option<ContractQueryResponse> data = await contractClient.Query(_contractId, query, _context);
+        data.IsOk().Should().BeTrue();
+
+        var loanDetailOption = data.Return().GetSingle<LoanDetail>();
+        loanDetailOption.IsOk().Should().BeTrue();
+
+        var paymentRequest = new LoanPaymentRequest
+        {
+            ContractId = _contractId,
+            PrincipalId = "user2@outlook.com",
+            PostedDate = postedDate,
+            PaymentAmount = loanDetailOption.Return().Payment,
+        };
+
+        ScheduleCreateModel payment = scheduleOption.CreateSchedule("payment", _smartcId, paymentRequest);
+        var paymentOption = await scheduleClient.CreateSchedule(payment, _context);
+        paymentOption.IsOk().Should().BeTrue(paymentOption.ToString());
+
+        int response = await commandHost.Run("run", "--waitFor", "10");
+        response.Should().Be(0);
+
+        await CheckWorkScheduleForStatus(scheduleOption, payment.WorkId, StatusCode.OK);
+    }
 
     private async Task CheckSoftBank(string accountId, string ownerId, decimal balance)
     {
@@ -235,5 +305,20 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
         balanceOption.IsOk().Should().BeTrue();
 
         (balance == balanceOption.Return().PrincipalBalance).Should().BeTrue();
+    }
+
+    private async Task CheckWorkScheduleForStatus(ScheduleOption scheduleOption, string workId, StatusCode statusCode)
+    {
+        var isThereWork = await _cluster.ServiceProvider.GetRequiredService<SchedulerClient>().IsWorkAvailable(scheduleOption.SchedulerId, _context);
+        isThereWork.IsError().Should().BeTrue();
+
+        var workScheduleOption = await _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>().Get(workId, _context);
+        workScheduleOption.IsOk().Should().BeTrue();
+
+        ScheduleWorkModel workSchedule = workScheduleOption.Return();
+        workSchedule.Assigned.NotNull().AssignedCompleted.NotNull().StatusCode.Should().Be(StatusCode.OK);
+
+        workSchedule.RunResults.Count.Should().BeGreaterThan(0);
+        workSchedule.RunResults.All(x => x.StatusCode.IsOk()).Should().BeTrue();
     }
 }

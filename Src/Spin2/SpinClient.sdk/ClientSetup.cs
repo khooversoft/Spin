@@ -1,21 +1,37 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using SpinCluster.abstraction;
+using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace SpinClient.sdk;
 
 public static class ClientSetup
 {
+    public static IServiceCollection AddClientOption(this IServiceCollection services)
+    {
+        services.TryAddSingleton<ScheduleOption>(service =>
+        {
+            IConfiguration config = service.GetRequiredService<IConfiguration>();
+
+            var option = config.Bind<ScheduleOption>();
+            option.Validate().ThrowOnError();
+            return option;
+        });
+
+        return services;
+    }
+
     public static IServiceCollection AddClusterHttpClient<T>(this IServiceCollection services) where T : class
     {
         services.AddHttpClient<T>((service, HttpClient) =>
         {
-            string uri = service
-                .GetRequiredService<IConfiguration>()["ClusterApiUri"]
-                .NotNull("No 'ClusterApiUri' in configuration");
+            var clientOption = service.GetRequiredService<ClientOption>();
 
-            HttpClient.BaseAddress = new Uri(uri);
+            HttpClient.BaseAddress = new Uri(clientOption.ClusterApiUri);
         });
 
         return services;

@@ -31,8 +31,9 @@ public class SchedulerConnection
 
         group.MapPost("create", CreateSchedule);
         group.MapGet("/{schedulerId}/{agentId}/assign", AssignWork);
-        group.MapDelete("/{schedulerId}/{principalId}/clear", Clear);
+        group.MapDelete("/{schedulerId}/{principalId}/delete", Delete);
         group.MapGet("/{schedulerId}/schedules", GetSchedules);
+        group.MapGet("/{schedulerId}/isWorkAvailable", IsWorkAvailable);
 
         return group;
     }
@@ -41,10 +42,7 @@ public class SchedulerConnection
     {
         if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
 
-        Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(model.SchedulerId)
-            .CreateSchedule(model, traceId);
-
+        Option response = await _client.GetResourceGrain<ISchedulerActor>(model.SchedulerId).CreateSchedule(model, traceId);
         return response.ToResult();
     }
 
@@ -54,23 +52,20 @@ public class SchedulerConnection
         schedulerId = Uri.UnescapeDataString(schedulerId);
         if (!ResourceId.IsValid(schedulerId, ResourceType.System, "scheduler")) return Results.BadRequest("Invalid schedulerId");
 
-        Option<WorkAssignedModel> response = await _client
-            .GetResourceGrain<ISchedulerActor>(schedulerId)
-            .AssignWork(agentId, traceId);
-
+        Option<WorkAssignedModel> response = await _client.GetResourceGrain<ISchedulerActor>(schedulerId).AssignWork(agentId, traceId);
         return response.ToResult();
     }
 
-    private async Task<IResult> Clear(string schedulerId, string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    private async Task<IResult> Delete(string schedulerId, string principalId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
         if (principalId.IsEmpty()) return Results.BadRequest();
         schedulerId = Uri.UnescapeDataString(schedulerId);
+        principalId = Uri.UnescapeDataString(principalId);
+
         if (!ResourceId.IsValid(schedulerId, ResourceType.System, "scheduler")) return Results.BadRequest("Invalid schedulerId");
+        if (!ResourceId.IsValid(principalId, ResourceType.Principal)) return Results.BadRequest("Invalid principalID");
 
-        Option response = await _client
-            .GetResourceGrain<ISchedulerActor>(schedulerId)
-            .Clear(principalId, traceId);
-
+        Option response = await _client.GetResourceGrain<ISchedulerActor>(schedulerId).Delete(principalId, traceId);
         return response.ToResult();
     }
 
@@ -79,10 +74,16 @@ public class SchedulerConnection
         schedulerId = Uri.UnescapeDataString(schedulerId);
         if (!ResourceId.IsValid(schedulerId, ResourceType.System, "scheduler")) return Results.BadRequest("Invalid schedulerId");
 
-        Option<SchedulesResponseModel> response = await _client
-            .GetResourceGrain<ISchedulerActor>(schedulerId)
-            .GetSchedules(traceId);
+        Option<SchedulesResponseModel> response = await _client.GetResourceGrain<ISchedulerActor>(schedulerId).GetSchedules(traceId);
+        return response.ToResult();
+    }
 
+    private async Task<IResult> IsWorkAvailable(string schedulerId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        schedulerId = Uri.UnescapeDataString(schedulerId);
+        if (!ResourceId.IsValid(schedulerId, ResourceType.System, "scheduler")) return Results.BadRequest("Invalid schedulerId");
+
+        Option response = await _client.GetResourceGrain<ISchedulerActor>(schedulerId).IsWorkAvailable(traceId);
         return response.ToResult();
     }
 }

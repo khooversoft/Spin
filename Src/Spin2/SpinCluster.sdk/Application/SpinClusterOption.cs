@@ -2,7 +2,7 @@
 using Toolbox.Azure.DataLake;
 using Toolbox.Azure.Identity;
 using Toolbox.Extensions;
-using Toolbox.Tools.Validation;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Application;
@@ -13,7 +13,7 @@ public record SpinClusterOption
     public ClientSecretOption Credentials { get; init; } = null!;
 
     public static Validator<SpinClusterOption> Validator { get; } = new Validator<SpinClusterOption>()
-        .RuleFor(x => x.BootConnectionString).Must(x => DatalakeLocation.ParseConnectionString(x).IsOk(), x => $"Connection string {x} is not valid")
+        .RuleFor(x => x.BootConnectionString).Must(x => DatalakeEndpoint.Create(x).Validate().IsOk(), x => $"Connection string {x} is not valid")
         .RuleFor(x => x.Credentials).Validate(ClientSecretOption.Validator)
         .Build();
 }

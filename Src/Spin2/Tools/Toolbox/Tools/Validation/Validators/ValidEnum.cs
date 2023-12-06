@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
 
-namespace Toolbox.Tools.Validation;
+namespace Toolbox.Tools;
 
 public class ValidEnum<T, TProperty> : ValidatorBase<T, TProperty> where TProperty : struct, Enum
 {

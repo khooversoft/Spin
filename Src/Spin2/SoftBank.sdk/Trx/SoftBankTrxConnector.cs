@@ -40,10 +40,7 @@ public class SoftBankTrxConnector
 
         ResourceId trxActorKey = ((ResourceId)request.AccountID).ToSoftBankTrxId();
 
-        Option<TrxResponse> response = await _client
-            .GetResourceGrain<ISoftBankTrxActor>(trxActorKey)
-            .Request(request, traceId);
-
+        Option<TrxResponse> response = await _client.GetResourceGrain<ISoftBankTrxActor>(trxActorKey).Request(request, traceId);
         return response.ToResult();
     }
 }

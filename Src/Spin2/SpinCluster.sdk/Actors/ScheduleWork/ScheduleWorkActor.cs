@@ -109,13 +109,24 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         if (!completed.Validate(out var v)) return v;
         if (_state.State.Assigned == null) return (StatusCode.Conflict, "Not assigned");
 
+        RunResultModel runResult = new RunResultModel
+        {
+            WorkId = this.GetPrimaryKeyString(),
+            StatusCode = completed.StatusCode,
+            AgentId = completed.AgentId,
+            Message = completed.Message,
+        };
+
         _state.State = _state.State with
         {
-
             Assigned = _state.State.Assigned.NotNull() with
             {
                 AssignedCompleted = completed,
-            }
+            },
+
+            RunResults = (_state.State.RunResults ?? Array.Empty<RunResultModel>())
+                .Append(runResult)
+                .ToArray(),
         };
 
         await ValidateAndWrite();
@@ -154,7 +165,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         await _state.ClearStateAsync();
 
         var dirOption = await _clusterClient
-            .GetScheduleActor(_state.State.SchedulerId)
+            .GetScheduleActor(save.SchedulerId)
             .RemoveSchedule(save.WorkId, context.TraceId);
 
         if (dirOption.IsError()) return dirOption;

@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Tools.Validation;
+﻿using Toolbox.Tools;
 
 public class ValidDateTime<T> : ValidatorBase<T, DateTime>
 {
@@ -19,7 +19,6 @@ public class ValidDateTime<T> : ValidatorBase<T, DateTime>
         };
     }
 }
-
 
 public static class ValidDateTimeExtensions
 {

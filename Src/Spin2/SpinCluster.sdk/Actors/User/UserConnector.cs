@@ -28,6 +28,7 @@ public class UserConnector
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.User}");
 
         group.MapDelete("/{userId}", Delete);
+        group.MapGet("/{userId}/exist", Exist);
         group.MapGet("/{userId}", Get);
         group.MapPost("/create", Create);
         group.MapPost("/", Update);
@@ -42,6 +43,15 @@ public class UserConnector
         if (!ResourceId.IsValid(userId, ResourceType.Owned, "user")) return Results.BadRequest();
 
         Option response = await _client.GetResourceGrain<IUserActor>(userId).Delete(traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> Exist(string userId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        userId = Uri.UnescapeDataString(userId);
+        if (!ResourceId.IsValid(userId, ResourceType.Owned, "user")) return Results.BadRequest();
+
+        Option response = await _client.GetResourceGrain<IUserActor>(userId).Exist(traceId);
         return response.ToResult();
     }
 

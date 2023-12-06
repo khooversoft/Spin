@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Orleans.Configuration;
 using SoftBank.sdk.Application;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.Application;
@@ -39,14 +40,19 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
         silo.UseLocalhostClustering();
         silo.AddSpinCluster(context);
         silo.AddSoftBank();
+        silo.ConfigureServices(x => x.PostConfigure<ClientMessagingOptions>(options => options.ResponseTimeout = TimeSpan.FromMinutes(15)));
     })
     .UseConsoleLifetime()
     .ConfigureWebHostDefaults(webBuilder =>
     {
         webBuilder.ConfigureServices((context, services) =>
         {
-            services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            if (option.UseSwagger)
+            {
+                services.AddEndpointsApiExplorer();
+                services.AddSwaggerGen();
+            }
+
             services.AddApplicationInsightsTelemetry(config => config.EnableAdaptiveSampling = false);
 
             services.AddSpinApi();
@@ -77,6 +83,7 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
             });
         });
     });
+
 
 IHost host = builder.Build();
 IConfiguration config = host.Services.GetRequiredService<IConfiguration>();

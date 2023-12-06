@@ -9,7 +9,6 @@ using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Scheduler;
@@ -91,34 +90,6 @@ public class SchedulerActor : Grain, ISchedulerActor
         return updateResult.ToOptionStatus();
     }
 
-    public async Task<Option> Clear(string principalId, string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        if (!ResourceId.IsValid(principalId, ResourceType.Principal)) return (StatusCode.BadRequest, "Invalid principalId");
-        context.Location().LogInformation("Clear queue, actorKey={actorKey}", this.GetPrimaryKeyString());
-
-        Option<IReadOnlyList<GraphEdge>> dirResponse = await GetSchedules(context);
-        if (dirResponse.IsError()) return dirResponse.ToOptionStatus();
-
-        IReadOnlyList<GraphEdge> items = dirResponse.Return();
-        foreach (var item in items)
-        {
-            var result = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Delete(context.TraceId);
-            if (result.IsError())
-            {
-                context.Location().LogStatus(result, "Deleting work schedule");
-            }
-        }
-
-        string command = $"delete [fromKey={this.GetPrimaryKeyString()}];";
-        var deleteNode = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
-        if (deleteNode.IsError())
-        {
-            context.Location().LogStatus(deleteNode.ToOptionStatus(), "Deleting edge");
-        }
-
-        return StatusCode.OK;
-    }
 
     public async Task<Option> CreateSchedule(ScheduleCreateModel work, string traceId)
     {
@@ -129,11 +100,21 @@ public class SchedulerActor : Grain, ISchedulerActor
         var addResult = await AddSchedule(work.WorkId, context);
         if (addResult.IsError()) return addResult;
 
-        var createOption = await _clusterClient
-            .GetResourceGrain<IScheduleWorkActor>(work.WorkId)
-            .Create(work, context.TraceId);
-
+        var createOption = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(work.WorkId).Create(work, context.TraceId);
         return createOption;
+    }
+
+    public async Task<Option> Delete(string principalId, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        if (!ResourceId.IsValid(principalId, ResourceType.Principal)) return (StatusCode.BadRequest, "Invalid principalId");
+        context.Location().LogInformation("Delete queue, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        string command = $"delete [fromKey={this.GetPrimaryKeyString()}];";
+        var deleteNode = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
+        context.Location().LogStatus(deleteNode.ToOptionStatus(), "Deleting edge, command={command}", command);
+
+        return StatusCode.OK;
     }
 
     public async Task<Option<SchedulesResponseModel>> GetSchedules(string traceId)
@@ -151,7 +132,7 @@ public class SchedulerActor : Grain, ISchedulerActor
             var getOption = await _clusterClient.GetResourceGrain<IScheduleWorkActor>(item.ToKey).Get(traceId);
             if (getOption.IsError())
             {
-                context.Location().LogError("Cannot find workId={workId} in directory", item.ToKey);
+                context.Location().LogWarning("Cannot find workId={workId} in directory", item.ToKey);
                 continue;
             }
 
@@ -188,6 +169,20 @@ public class SchedulerActor : Grain, ISchedulerActor
         Option<GraphCommandResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
 
         return updateResult.ToOptionStatus();
+    }
+
+    public async Task<Option> IsWorkAvailable(string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Checking to see if work is available");
+
+        var searchOption = await GetActiveSchedules(context);
+        if (searchOption.IsError()) return (StatusCode.NotFound, "Could not get active schedules");
+
+        IReadOnlyList<GraphEdge> activeWork = searchOption.Return();
+        if (activeWork.Count == 0) return StatusCode.NotFound;
+
+        return StatusCode.OK;
     }
 
     private async Task<Option> AddSchedule(string workId, ScopeContext context)

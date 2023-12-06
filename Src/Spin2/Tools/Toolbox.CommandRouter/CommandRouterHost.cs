@@ -9,24 +9,12 @@ using Toolbox.Types;
 
 namespace Toolbox.CommandRouter;
 
-public interface ICommandRouterHost
-{
-    void Enqueue(params string[] args);
-    Task<int> Run();
-    IServiceProvider Service { get; }
-}
-
 public class CommandRouterHost : ICommandRouterHost
 {
-    private readonly IReadOnlyList<Func<IServiceProvider, Task>> _startup;
-    private readonly IReadOnlyList<Func<IServiceProvider, Task>> _shutdown;
     private ConcurrentQueue<string[]> _argsQueue = new();
 
-    public CommandRouterHost(string[] args, IServiceCollection serviceCollection, IEnumerable<Func<IServiceProvider, Task>> startup, IEnumerable<Func<IServiceProvider, Task>> shutdown)
+    public CommandRouterHost(string[] args, IServiceCollection serviceCollection)
     {
-        _startup = startup.ToArray();
-        _shutdown = shutdown.ToArray();
-
         Enqueue(args);
         serviceCollection.NotNull().AddSingleton<ICommandRouterHost>(this);
         Service = serviceCollection.BuildServiceProvider();
@@ -35,6 +23,14 @@ public class CommandRouterHost : ICommandRouterHost
     public IServiceProvider Service { get; }
 
     public void Enqueue(params string[] args) => _argsQueue.Enqueue(args.NotNull());
+
+    public async Task<int> Run(params string[] args)
+    {
+        _argsQueue.Clear();
+        Enqueue(args);
+
+        return await Run();
+    }
 
     public async Task<int> Run()
     {
@@ -53,8 +49,6 @@ public class CommandRouterHost : ICommandRouterHost
             AbortSignal? abortSignal = Service.GetService<AbortSignal>();
             abortSignal?.StartTracking();
 
-            await _startup.ForEachAsync(async x => await x(Service));
-
             int rcResult = 0;
             var capture = new ConsoleCapature(context.Location());
 
@@ -64,7 +58,6 @@ public class CommandRouterHost : ICommandRouterHost
                 commandRoutes.ForEach(x => rc.AddCommand(x.Command));
 
                 rcResult = await rc.InvokeAsync(args, capture);
-
                 if (rcResult != 0)
                 {
                     context.Trace().LogError("Args={args} failed", args.Join(" "));
@@ -73,8 +66,6 @@ public class CommandRouterHost : ICommandRouterHost
             }
 
             capture.Dump();
-            await _shutdown.ForEachAsync(async x => await x(Service));
-
             abortSignal?.StopTracking();
             int state = abortSignal?.GetToken().IsCancellationRequested == true ? 1 : 0;
 

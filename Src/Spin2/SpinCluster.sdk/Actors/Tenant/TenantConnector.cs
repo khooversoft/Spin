@@ -27,6 +27,7 @@ public class TenantConnector
         RouteGroupBuilder group = app.MapGroup($"/{SpinConstants.Schema.Tenant}");
 
         group.MapDelete("/{tenantId}", Delete);
+        group.MapGet("/{tenantId}/exist", Exist);
         group.MapGet("/{tenantId}", Get);
         group.MapPost("/", Set);
 
@@ -40,6 +41,15 @@ public class TenantConnector
 
         ResourceId resourceId = IdTool.CreateTenantId(tenantId);
         Option response = await _client.GetResourceGrain<ITenantActor>(resourceId).Delete(traceId);
+        return response.ToResult();
+    }
+
+    public async Task<IResult> Exist(string tenantId, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
+    {
+        tenantId = Uri.UnescapeDataString(tenantId);
+        if (!IdPatterns.IsDomain(tenantId)) return Results.BadRequest();
+
+        Option response = await _client.GetResourceGrain<ITenantActor>(tenantId).Exist(traceId);
         return response.ToResult();
     }
 

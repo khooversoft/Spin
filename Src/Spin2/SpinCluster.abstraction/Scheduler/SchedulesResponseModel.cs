@@ -1,6 +1,4 @@
-﻿using Orleans;
-
-namespace SpinCluster.abstraction;
+﻿namespace SpinCluster.abstraction;
 
 [GenerateSerializer, Immutable]
 public sealed record SchedulesResponseModel

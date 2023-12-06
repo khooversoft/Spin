@@ -1,5 +1,6 @@
 ﻿using LoanContract.sdk.Models;
 using Microsoft.Extensions.Logging;
+using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.Trx;
 using SpinClient.sdk;
@@ -27,15 +28,6 @@ public class LoanContractManager
         _logger = logger.NotNull();
     }
 
-    public async Task<Option> AddLedgerItem(LoanLedgerItem ledgerItem, ScopeContext context)
-    {
-        context = context.With(_logger);
-        if (!ledgerItem.Validate(out var v)) return v;
-
-        context.Location().LogInformation("Adding ledger, contractId={contractId}, ledgerItem={ledgerItem}", ledgerItem.ContractId, ledgerItem);
-
-        return await Append(ledgerItem, ledgerItem.ContractId, ledgerItem.OwnerId, context);
-    }
     public async Task<Option> Create(LoanAccountDetail detail, ScopeContext context)
     {
         context = context.With(_logger);
@@ -46,8 +38,8 @@ public class LoanContractManager
         {
             DocumentId = detail.ContractId,
             PrincipalId = detail.OwnerId,
-            BlockAccess = detail.AccessRights.ToArray(),
-            RoleRights = detail.RoleRights.ToArray(),
+            BlockAccess = detail.Access,
+            RoleRights = detail.RoleAccess.ToArray(),
         };
 
         var createOption = await _contractClient.Create(createContractRequest, context);
@@ -56,16 +48,28 @@ public class LoanContractManager
         return await Append(detail, detail.ContractId, detail.OwnerId, context);
     }
 
+    public async Task<Option<LoanDetail>> GetLoanDetail(string contractId, string principalId, ScopeContext context)
+    {
+        context = context.With(_logger);
+        context.Location().LogInformation("Get loan detail, contractId={contractId}", contractId);
+
+        var query = new ContractQueryBuilder().SetPrincipalId(principalId).Add<LoanDetail>(true).Build();
+
+        Option<ContractQueryResponse> data = await _contractClient.Query(contractId, query, context);
+        if (data.IsError()) return data.ToOptionStatus<LoanDetail>();
+
+        var loanDetailOption = data.Return().GetSingle<LoanDetail>();
+        if (loanDetailOption.IsError()) return loanDetailOption;
+
+        return loanDetailOption;
+    }
+
     public async Task<Option<LoanReportModel>> GetReport(string contractId, string principalId, ScopeContext context)
     {
         context = context.With(_logger);
-        context.Location().LogInformation("Calculating interest, contractId={contractId}", contractId);
+        context.Location().LogInformation("Get loan report, contractId={contractId}", contractId);
 
-        var query = new ContractQueryBuilder()
-            .SetPrincipalId(principalId)
-            .Add<LoanDetail>(true)
-            .Add<LoanLedgerItem>(false)
-            .Build();
+        var query = new ContractQueryBuilder().SetPrincipalId(principalId).Add<LoanDetail>(true).Add<LoanLedgerItem>(false).Build();
 
         Option<ContractQueryResponse> data = await _contractClient.Query(contractId, query, context);
         if (data.IsError()) return data.ToOptionStatus<LoanReportModel>();
@@ -88,21 +92,17 @@ public class LoanContractManager
     {
         if (!model.Validate(out var v)) return v;
         context = context.With(_logger);
-        context.Location().LogInformation("Posting payment, contractId={contractId}, postedDate={postedDate}",
-            model.ContractId, model.PostedDate);
+        context.Location().LogInformation("Posting payment, contractId={contractId}, postedDate={postedDate}", model.ContractId, model.PostedDate);
 
-        var interestOption = await PostInterestCharge(model, context);
-        if (interestOption.IsError()) return interestOption;
-
-        var reportOption = await GetReport(model.ContractId, model.PrincipalId, context);
-        if (reportOption.IsError()) return reportOption.ToOptionStatus();
-        LoanReportModel report = reportOption.Return();
+        var loanDetailOption = await GetLoanDetail(model.ContractId, model.PrincipalId, context);
+        if (loanDetailOption.IsError()) return loanDetailOption.ToOptionStatus();
+        LoanDetail report = loanDetailOption.Return();
 
         var trxRequest = new TrxRequest
         {
             PrincipalId = model.PrincipalId,
-            AccountID = report.LoanDetail.OwnerSoftBankId,
-            PartyAccountId = report.LoanDetail.PartySoftBankId,
+            AccountID = report.OwnerSoftBankId,
+            PartyAccountId = report.PartySoftBankId,
             Description = "Manager payment",
             Type = TrxType.Pull,
             Amount = model.PaymentAmount,
@@ -114,18 +114,14 @@ public class LoanContractManager
         Option<TrxResponse> trxResponse = await _softBankTrxClient.Request(trxRequest, context);
         if (trxResponse.IsError())
         {
-            context.Location().LogStatus(
-                trxResponse.ToOptionStatus(),
-                "Failed to make payment, model={model}, trxResponse={trxResponse}", model, trxResponse.Return()
-                );
-
+            context.Location().LogStatus(trxResponse.ToOptionStatus(), "Failed to make payment, model={model}", model);
             return trxResponse.ToOptionStatus();
         }
 
         return await PostPayment(model, context);
     }
 
-    public async Task<Option> PostInterestCharge(LoanPaymentRequest model, ScopeContext context)
+    public async Task<Option> PostInterestCharge(LoanInterestRequest model, ScopeContext context)
     {
         if (!model.Validate(out var v)) return v;
         context = context.With(_logger);
@@ -203,6 +199,15 @@ public class LoanContractManager
         context.Location().LogInformation("Set loan detail, contractId={contractId}", loanDetail);
 
         return await Append(loanDetail, loanDetail.ContractId, loanDetail.OwnerId, context);
+    }
+
+    public async Task<Option> AddLedgerItem(LoanLedgerItem ledgerItem, ScopeContext context)
+    {
+        context = context.With(_logger);
+        if (!ledgerItem.Validate(out var v)) return v;
+        context.Location().LogInformation("Adding ledger, contractId={contractId}, ledgerItem={ledgerItem}", ledgerItem.ContractId, ledgerItem);
+
+        return await Append(ledgerItem, ledgerItem.ContractId, SoftBankConstants.SoftBankPrincipalId, context);
     }
 
     private async Task<Option> Append<T>(T value, string contractId, string principalId, ScopeContext context) where T : class

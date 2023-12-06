@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace Toolbox.Block;
@@ -14,7 +13,9 @@ public sealed record AclBlock
 
     public IReadOnlyList<AccessBlock> AccessRights { get; init; } = Array.Empty<AccessBlock>();
     public IReadOnlyList<RoleAccessBlock> RoleAccess { get; init; } = Array.Empty<RoleAccessBlock>();
-    public bool Equals(AclBlock? obj) => obj is AclBlock document && AccessRights.SequenceEqual(document.AccessRights);
+    public bool Equals(AclBlock? obj) => obj is AclBlock document &&
+        AccessRights.SequenceEqual(document.AccessRights) &&
+        RoleAccess.SequenceEqual(document.RoleAccess);
     public override int GetHashCode() => HashCode.Combine(AccessRights);
 }
 
@@ -22,7 +23,7 @@ public sealed record AclBlock
 public static class AclBlockValidator
 {
     public static IValidator<AclBlock> Validator { get; } = new Validator<AclBlock>()
-        .RuleForEach(x => x.AccessRights).NotNull().Validate(BlockAccessValidator.Validator)
+        .RuleForEach(x => x.AccessRights).NotNull().Validate(AccessBlock.Validator)
         .Build();
 
     public static Option Validate(this AclBlock subject) => Validator.Validate(subject).ToOptionStatus();

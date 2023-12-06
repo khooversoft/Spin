@@ -2,48 +2,47 @@
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace Toolbox.Tools.Property
+namespace Toolbox.Tools;
+
+public class PropertyResolver : IPropertyResolver
 {
-    public class PropertyResolver : IPropertyResolver
+    private readonly IDictionary<string, string> _property;
+
+    public PropertyResolver(IEnumerable<KeyValuePair<string, string>> properties)
     {
-        private readonly IDictionary<string, string> _property;
+        properties.NotNull();
 
-        public PropertyResolver(IEnumerable<KeyValuePair<string, string>> properties)
+        _property = new Dictionary<string, string>(properties, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public static IPropertyResolver CreateEmpty() => new PropertyResolver(Array.Empty<KeyValuePair<string, string>>());
+
+
+    [return: NotNullIfNotNull("subject")]
+    public string? Resolve(string? subject)
+    {
+        if (subject.IsEmpty()) return subject;
+
+        var list = new List<KeyValuePair<string, string>>(_property);
+        var index = new Cursor<KeyValuePair<string, string>>(list);
+
+        while (HasProperty(subject))
         {
-            properties.NotNull();
-
-            _property = new Dictionary<string, string>(properties, StringComparer.OrdinalIgnoreCase);
-        }
-
-        public static IPropertyResolver CreateEmpty() => new PropertyResolver(Array.Empty<KeyValuePair<string, string>>());
-
-
-        [return: NotNullIfNotNull("subject")]
-        public string? Resolve(string? subject)
-        {
-            if (subject.IsEmpty()) return subject;
-
-            var list = new List<KeyValuePair<string, string>>(_property);
-            var index = new Cursor<KeyValuePair<string, string>>(list);
-
-            while (HasProperty(subject))
+            if (!index.TryNextValue(out KeyValuePair<string, string> result))
             {
-                if (!index.TryNextValue(out KeyValuePair<string, string> result))
-                {
-                    index.Reset();
-                    continue;
-                }
-
-                subject = subject.Replace($"{{{result.Key}}}", result.Value, StringComparison.OrdinalIgnoreCase);
+                index.Reset();
+                continue;
             }
 
-            return subject;
+            subject = subject.Replace($"{{{result.Key}}}", result.Value, StringComparison.OrdinalIgnoreCase);
         }
 
-        public bool HasProperty(string subject)
-        {
-            if (subject.IsEmpty()) return false;
-            return _property.Any(x => subject.IndexOf($"{{{x.Key}}}", StringComparison.OrdinalIgnoreCase) >= 0);
-        }
+        return subject;
+    }
+
+    public bool HasProperty(string subject)
+    {
+        if (subject.IsEmpty()) return false;
+        return _property.Any(x => subject.IndexOf($"{{{x.Key}}}", StringComparison.OrdinalIgnoreCase) >= 0);
     }
 }

@@ -12,14 +12,14 @@ public class SiloConfigStore
     private readonly IDatalakeStore _datalakeStore;
     private readonly ILogger<SiloConfigStore> _logger;
 
-    public SiloConfigStore(DatalakeLocation datalakeLocation, IDatalakeStore datalakeStore, ILogger<SiloConfigStore> logger)
+    public SiloConfigStore(DatalakeEndpoint datalakeLocation, IDatalakeStore datalakeStore, ILogger<SiloConfigStore> logger)
     {
         DatalakeLocation = datalakeLocation.NotNull();
         _datalakeStore = datalakeStore.NotNull();
         _logger = logger.NotNull();
     }
 
-    public DatalakeLocation DatalakeLocation { get; }
+    public DatalakeEndpoint DatalakeLocation { get; }
 
     public async Task<Option<SiloConfigOption>> Get(ScopeContext context)
     {

@@ -56,3 +56,47 @@ public class ScheduleWorkClient
         .PostAsync(context.With(_logger))
         .ToOption();
 }
+
+
+public static class ScheduleWorkClientExtensions
+{
+    public static async Task<Option> CompletedWork(this ScheduleWorkClient client, string agentId, string workId, Option option, string message, ScopeContext context)
+    {
+        client.NotNull();
+        agentId.NotEmpty();
+        workId.NotEmpty();
+        message.NotEmpty();
+
+        var completeStatus = new AssignedCompleted
+        {
+            AgentId = agentId,
+            WorkId = workId,
+            StatusCode = option.StatusCode,
+            Message = message + (option.Error != null ? ", " + option.Error : string.Empty),
+        };
+
+        var updateOption = await client.CompletedWork(completeStatus, context);
+        if (updateOption.IsError())
+        {
+            context.Location().LogError("Could not update complete work status on schedule, model={model}", completeStatus);
+        }
+
+        return updateOption;
+    }
+
+    public static async Task AddRunResult(this ScheduleWorkClient client, string workId, Option option, string message, ScopeContext context)
+    {
+        var response = new RunResultModel
+        {
+            WorkId = workId,
+            StatusCode = option.StatusCode,
+            Message = message + (option.Error != null ? ", " + option.Error : string.Empty),
+        };
+
+        var writeRunResult = await client.AddRunResult(response, context);
+        if (writeRunResult.IsError())
+        {
+            context.Location().LogError("Failed to write 'RunResult' to loan contract, workId={workId}", workId);
+        }
+    }
+}

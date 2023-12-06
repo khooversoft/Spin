@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
 
-namespace Toolbox.Tools.Validation;
+namespace Toolbox.Tools;
 
 public class NotEmpty<T> : ValidatorBase<T, string>
 {
@@ -9,7 +9,6 @@ public class NotEmpty<T> : ValidatorBase<T, string>
     {
     }
 }
-
 
 public static class NotEmptyExtensions
 {

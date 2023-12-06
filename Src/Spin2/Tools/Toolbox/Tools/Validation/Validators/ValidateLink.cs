@@ -1,6 +1,7 @@
 ﻿using Toolbox.Types;
 
-namespace Toolbox.Tools.Validation;
+namespace Toolbox.Tools;
+
 
 public class ValidateLink<T, TProperty> : IPropertyValidator<TProperty>
 {
@@ -17,6 +18,7 @@ public class ValidateLink<T, TProperty> : IPropertyValidator<TProperty>
         return _validator.Validate(subject);
     }
 }
+
 
 public class ValidateLinkOption<T, TProperty> : IPropertyValidator<TProperty>
 {

@@ -13,20 +13,22 @@ namespace LoanContract.sdk.Activities;
 
 public class PaymentActivity : ICommandRoute
 {
-    private readonly ScheduleWorkClient _client;
+    private readonly ScheduleWorkClient _scheduleWorkClient;
     private readonly LoanContractManager _manager;
     private readonly ILogger<PaymentActivity> _logger;
+    private readonly ScheduleOption _option;
 
-    public PaymentActivity(ScheduleWorkClient client, LoanContractManager manager, ILogger<PaymentActivity> logger)
+    public PaymentActivity(ScheduleOption option, ScheduleWorkClient scheduleWorkClient, LoanContractManager manager, ILogger<PaymentActivity> logger)
     {
-        _client = client.NotNull();
+        _option = option.NotNull();
+        _scheduleWorkClient = scheduleWorkClient.NotNull();
         _manager = manager.NotNull();
         _logger = logger.NotNull();
     }
 
     public CommandSymbol CommandSymbol() => new CommandSymbol("payment", "Make payment").Action(x =>
     {
-        var workId = x.AddArgument<string>("workId", "Work Id of schedule");
+        var workId = x.AddOption<string>("--workId", "Work Id to retrive details", isRequired: true);
         x.SetHandler(MakePayment, workId);
     });
 
@@ -35,47 +37,31 @@ public class PaymentActivity : ICommandRoute
         var context = new ScopeContext(_logger);
         context.Location().LogInformation("Creating loan contract for workId={workId}", workId);
 
-        var workOption = await _client.Get(workId, context);
+        var workOption = await _scheduleWorkClient.Get(workId, context);
         if (workOption.IsError())
         {
             context.Location().LogError("[Abort] Cannot get Schedule work detail for workId={workId}", workId);
             return;
         }
 
-        Option resultOption = StatusCode.OK;
+        ScheduleWorkModel work = workOption.Return();
 
-        try
+        var loanPaymentRequestOption = workOption.Return().Payloads.TryGetObject<LoanPaymentRequest>(out var loanPaymentRequest, validator: LoanPaymentRequest.Validator);
+        await _scheduleWorkClient.AddRunResult(workId, loanPaymentRequestOption.ToOptionStatus(), "", context);
+        if (loanPaymentRequestOption.IsError())
         {
-            var loanPaymentRequestOption = workOption.Return().Payloads.TryGetObject<LoanPaymentRequest>(out var loanPaymentRequest, validator: LoanPaymentRequest.Validator);
-            if (loanPaymentRequestOption.IsError())
-            {
-                resultOption = loanPaymentRequestOption.ToOptionStatus();
-                return;
-            }
-
-            var makePaymentResponse = await _manager.MakePayment(loanPaymentRequest, context);
-            if (makePaymentResponse.IsError())
-            {
-                context.Location().LogStatus(makePaymentResponse, "Failed to create make payment on loan contract, loanPaymentRequest={loanPaymentRequest}", loanPaymentRequest);
-                resultOption = makePaymentResponse;
-                return;
-            }
+            await _scheduleWorkClient.CompletedWork(_option.AgentId, work.WorkId, loanPaymentRequestOption.ToOptionStatus(), "Required payload", context);
+            return;
         }
-        finally
+
+        var makePaymentResponse = await _manager.MakePayment(loanPaymentRequest, context);
+        await _scheduleWorkClient.AddRunResult(workId, makePaymentResponse, "Make payment", context);
+        if (makePaymentResponse.IsError())
         {
-            var response = new RunResultModel
-            {
-                WorkId = workId,
-                StatusCode = resultOption.StatusCode,
-                Message = resultOption.StatusCode.IsOk() ? "Created contract" : $"Failed to post payment to contract, error={resultOption.Error}",
-            };
-
-            var writeRunResult = await _client.AddRunResult(response, context);
-            if (writeRunResult.IsError())
-            {
-                context.Location().LogError("Failed to write 'RunResult' to loan contract for payment, work={work}", workOption.Return());
-            }
+            await _scheduleWorkClient.CompletedWork(_option.AgentId, work.WorkId, makePaymentResponse, "Make payment", context);
+            return;
         }
+
+        await _scheduleWorkClient.CompletedWork(_option.AgentId, work.WorkId, StatusCode.OK, "Completed", context);
     }
-
 }

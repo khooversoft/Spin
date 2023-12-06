@@ -13,12 +13,14 @@ namespace SpinClusterCmd.Activities;
 
 internal class Schedule : ICommandRoute
 {
-    private readonly SchedulerClient _client;
+    private readonly SchedulerClient _schedulerClient;
     private readonly ILogger<Schedule> _logger;
+    private readonly ScheduleWorkClient _scheduleWorkClient;
 
-    public Schedule(SchedulerClient client, ILogger<Schedule> logger)
+    public Schedule(SchedulerClient client, ScheduleWorkClient scheduleWorkClient, ILogger<Schedule> logger)
     {
-        _client = client.NotNull();
+        _schedulerClient = client.NotNull();
+        _scheduleWorkClient = scheduleWorkClient.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -53,7 +55,7 @@ internal class Schedule : ICommandRoute
         ScheduleCreateModel model = readResult.Return().ConvertTo();
 
         context.Trace().LogInformation("Adding schedule, model={model}", model);
-        var queueResult = await _client.CreateSchedule(model, context);
+        var queueResult = await _schedulerClient.CreateSchedule(model, context);
         if (queueResult.IsError())
         {
             context.Trace().LogStatus(queueResult, "Failed to add scehdule, model={model}", model);
@@ -68,12 +70,11 @@ internal class Schedule : ICommandRoute
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Clearing schedule queue");
 
-        var clearOption = await _client.Clear(schedulerId, principalId, context);
-        if (clearOption.IsError())
-        {
-            context.Trace().LogStatus(clearOption, "Failed to clear schedule queue");
-            return;
-        }
+        var clearAllOption = await _schedulerClient.ClearAllWorkSchedules(schedulerId, _scheduleWorkClient, context);
+        context.Trace().LogStatus(clearAllOption, "Clear schedule queue");
+
+        Option deleteResponse = await _schedulerClient.Delete(schedulerId, principalId, context);
+        context.Trace().LogStatus(deleteResponse, "Delete schedule queue");
     }
 
     public async Task Get(string schedulerId)
@@ -81,7 +82,7 @@ internal class Schedule : ICommandRoute
         var context = new ScopeContext(_logger);
         context.Trace().LogInformation("Getting schedules");
 
-        var scheduleModel = await _client.GetSchedules(schedulerId, context);
+        var scheduleModel = await _schedulerClient.GetSchedules(schedulerId, context);
         if (scheduleModel.IsError())
         {
             context.Trace().LogStatus(scheduleModel.ToOptionStatus(), "Failed to get schedule");

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Toolbox.Tools.Zip;
+namespace Toolbox.Tools;
 
 [DebuggerDisplay("Source={Source}, Destination={Destination}")]
 public readonly record struct CopyTo

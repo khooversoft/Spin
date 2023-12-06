@@ -2,7 +2,7 @@
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 
-namespace Toolbox.Tools.Local;
+namespace Toolbox.Tools;
 
 public class LocalProcessBuilder
 {

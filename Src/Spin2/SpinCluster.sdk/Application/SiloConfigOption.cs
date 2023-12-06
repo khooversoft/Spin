@@ -1,6 +1,6 @@
 ﻿using SpinCluster.sdk.Application;
 using SpinCluster.sdk.Services;
-using Toolbox.Tools.Validation;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Application;

@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace Toolbox.Block;
@@ -24,6 +23,13 @@ public sealed record RoleAccessBlock
         PrincipalId == document.PrincipalId;
 
     public override int GetHashCode() => HashCode.Combine(Grant, Claim, PrincipalId);
+
+    public static RoleAccessBlock Create(BlockRoleGrant grant, string principalId, string? claim = null) => new RoleAccessBlock
+    {
+        Grant = grant,
+        PrincipalId = principalId,
+        Claim = claim,
+    };
 }
 
 public static class BlockRoleAccessValidator

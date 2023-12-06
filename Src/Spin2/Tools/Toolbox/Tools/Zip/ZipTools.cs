@@ -1,7 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text;
 
-namespace Toolbox.Tools.Zip;
+namespace Toolbox.Tools;
 
 public static class ZipTools
 {

@@ -25,8 +25,8 @@ public class DatalakeStore : IDatalakeStore
 
         _serviceClient = azureStoreOption.CreateDataLakeServiceClient();
 
-        _fileSystem = _serviceClient.GetFileSystemClient(azureStoreOption.ContainerName);
-        _fileSystem.Exists().Assert(x => x == true, $"Datalake file system does not exist, containerName={azureStoreOption.ContainerName}");
+        _fileSystem = _serviceClient.GetFileSystemClient(azureStoreOption.Container);
+        _fileSystem.Exists().Assert(x => x == true, $"Datalake file system does not exist, containerName={azureStoreOption.Container}");
     }
 
     public async Task<StatusCode> Append(string path, byte[] data, ScopeContext context)

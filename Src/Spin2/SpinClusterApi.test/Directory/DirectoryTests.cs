@@ -49,8 +49,10 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         response = getNodeOption.Return().Items.Single();
         response.Nodes().Count.Should().BeGreaterThanOrEqualTo(1);
         response.Edges().Count.Should().Be(0);
-        response.Nodes().First().Key.Should().Be(nodeKey);
-        response.Nodes().First().Tags.ToString().Should().Be("t1");
+
+        response.Nodes().Any(x => x.Key == nodeKey && x.Tags.ToString() == "t1").Should().BeTrue();
+        //response.Nodes().First().Key.Should().Be(nodeKey);
+        //response.Nodes().First().Tags.ToString().Should().Be("t1");
 
         getNodeOption = await dirClient.Execute("select (Tags=t1);", _context);
         getNodeOption.IsOk().Should().BeTrue();

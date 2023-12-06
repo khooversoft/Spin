@@ -1,6 +1,6 @@
 {
-  "AccountName": "devspinstore",
-  "ContainerName": "test",
+  "Account": "devspinstore",
+  "Container": "test",
   "BasePath": "dev-tests",
   "Credentials": {
     "TenantId": "33470f72-2b3b-4a0b-837d-4ba9ba499d69",

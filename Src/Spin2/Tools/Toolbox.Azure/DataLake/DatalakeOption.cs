@@ -2,23 +2,22 @@
 using Azure.Storage.Files.DataLake;
 using Toolbox.Azure.Identity;
 using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace Toolbox.Azure.DataLake;
 
 public record DatalakeOption
 {
-    public string AccountName { get; init; } = null!;
-    public string ContainerName { get; init; } = null!;
+    public string Account { get; init; } = null!;
+    public string Container { get; init; } = null!;
     public string? BasePath { get; init; }
     public ClientSecretOption Credentials { get; init; } = null!;
 
-    public override string ToString() => $"AccountName={AccountName}, ContainerName={ContainerName}, BasePath={BasePath}, Credentials={Credentials}";
+    public override string ToString() => $"Account={Account}, Container={Container}, BasePath={BasePath}, Credentials={Credentials}";
 
     public static IValidator<DatalakeOption> Validator { get; } = new Validator<DatalakeOption>()
-        .RuleFor(x => x.AccountName).NotEmpty()
-        .RuleFor(x => x.ContainerName).NotEmpty()
+        .RuleFor(x => x.Account).NotEmpty()
+        .RuleFor(x => x.Container).NotEmpty()
         .RuleFor(x => x.Credentials).Validate(ClientSecretOption.Validator)
         .Build();
 }
@@ -32,7 +31,7 @@ public static class DatalakeOptionValidator
     {
         subject.NotNull();
 
-        var serviceUri = new Uri($"https://{subject.AccountName}.blob.core.windows.net");
+        var serviceUri = new Uri($"https://{subject.Account}.blob.core.windows.net");
         TokenCredential credential = subject.Credentials.ToTokenCredential();
 
         return new DataLakeServiceClient(serviceUri, credential);

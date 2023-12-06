@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Contract;
@@ -42,7 +43,10 @@ internal class SoftBank_Management
         {
             DocumentId = _parent.GetSoftBankContractId(),
             PrincipalId = detail.OwnerId,
-            BlockAccess = detail.AccessRights.ToArray(),
+            BlockAccess = [.. detail.AccessRights,
+                AccessBlock.Create<SbAccountDetail>(BlockGrant.Read, SoftBankConstants.SoftBankPrincipalId),
+                AccessBlock.Create<SbLedgerItem>(BlockGrant.ReadWrite, SoftBankConstants.SoftBankPrincipalId),
+            ],
             RoleRights = detail.RoleRights.ToArray(),
         };
 

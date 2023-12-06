@@ -10,8 +10,6 @@ public class CommandRouterBuilder
     private IConfigurationBuilder _configBuilder;
     private IServiceCollection _serviceCollection;
     private string[]? _args;
-    private IList<Func<IServiceProvider, Task>> _startup = new List<Func<IServiceProvider, Task>>();
-    private IList<Func<IServiceProvider, Task>> _shutdown = new List<Func<IServiceProvider, Task>>();
 
     public CommandRouterBuilder()
     {
@@ -33,7 +31,7 @@ public class CommandRouterBuilder
 
     public CommandRouterBuilder AddCommand<T>() where T : class, ICommandRoute
     {
-        _serviceCollection.AddCommandRoute<T>();
+        _serviceCollection.AddSingleton<ICommandRoute, T>();
         return this;
     }
 
@@ -70,23 +68,11 @@ public class CommandRouterBuilder
         return this;
     }
 
-    public CommandRouterBuilder AddShutdown(Func<IServiceProvider, Task> shutdown)
-    {
-        _shutdown.Add(shutdown.NotNull());
-        return this;
-    }
-
-    public CommandRouterBuilder AddStartup(Func<IServiceProvider, Task> startup)
-    {
-        _startup.Add(startup.NotNull());
-        return this;
-    }
-
     public ICommandRouterHost Build()
     {
         IConfiguration config = _configBuilder.Build();
         _serviceCollection.AddSingleton(config);
 
-        return new CommandRouterHost(_args ?? Array.Empty<string>(), _serviceCollection, _startup, _shutdown);
+        return new CommandRouterHost(_args ?? Array.Empty<string>(), _serviceCollection);
     }
 }

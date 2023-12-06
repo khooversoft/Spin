@@ -6,22 +6,9 @@ using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Validation;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Actors.Contract;
-
-public interface IContractActor : IGrainWithStringKey
-{
-    Task<Option> Delete(string traceId);
-    Task<Option> Exist(string traceId);
-    Task<Option> Create(ContractCreateModel blockCreateModel, string traceId);
-    Task<Option<ContractQueryResponse>> Query(ContractQuery model, string traceId);
-    Task<Option> Append(DataBlock block, string traceId);
-    Task<Option<ContractPropertyModel>> GetProperties(string principalId, string traceId);
-    Task<Option> HasAccess(string principalId, BlockRoleGrant grant, string traceId);
-    Task<Option> HasAccess(string principalId, BlockGrant grant, string blockType, string traceId);
-}
 
 public class ContractActor : Grain, IContractActor
 {
@@ -47,23 +34,26 @@ public class ContractActor : Grain, IContractActor
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option> Delete(string traceId)
+    public async Task<Option> Append(DataBlock block, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Deleting BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        context.Location().LogInformation(
+            "Append, actorKey={actorKey}, blockId={blockId}, blockType={blockType}, principalId={principalId}",
+            this.GetPrimaryKeyString(), block.BlockId, block.BlockType, block.PrincipleId
+            );
 
         if (!_state.RecordExists) return StatusCode.NotFound;
+        if (!block.Validate(out var mv)) return mv;
+        if (!_state.State.HasAccess(block.PrincipleId, BlockGrant.Write, block.BlockType, out var av)) return av;
 
-        context.Location().LogInformation("Deleted block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
-        await _state.ClearStateAsync();
+        await VerifyBlock();
 
-        return StatusCode.OK;
-    }
+        var addOption = _state.State.Add(block);
+        if (addOption.IsError()) return addOption;
 
-    public async Task<Option> Exist(string traceId)
-    {
-        await _state.ReadStateAsync();
-        return _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
+        var writeOption = await WriteContract(_state.State, context);
+        return writeOption;
     }
 
     public async Task<Option> Create(ContractCreateModel model, string traceId)
@@ -88,57 +78,23 @@ public class ContractActor : Grain, IContractActor
         return StatusCode.OK;
     }
 
-    public async Task<Option<ContractQueryResponse>> Query(ContractQuery model, string traceId)
+    public async Task<Option> Delete(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Query, actorKey={actorKey}, model={model}", this.GetPrimaryKeyString(), model);
+        context.Location().LogInformation("Deleting BlobPackage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         if (!_state.RecordExists) return StatusCode.NotFound;
-        if (!model.Validate(out var mv)) return mv.ToOptionStatus<ContractQueryResponse>();
 
-        await VerifyBlock();
+        context.Location().LogInformation("Deleted block chain, actorKey={actorKey}", this.GetPrimaryKeyString());
+        await _state.ClearStateAsync();
 
-        string? blockTypes = model.GetBlockTypes();
-        Option<IEnumerable<DataBlock>> dataBlocks = blockTypes switch
-        {
-            string v => _state.State.Filter(model.PrincipalId, v),
-            _ => _state.State.Filter(model.PrincipalId),
-        };
-
-        if (dataBlocks.IsError()) return dataBlocks.ToOptionStatus<ContractQueryResponse>();
-
-        var response = new ContractQueryResponse
-        {
-            Items = dataBlocks.Return()
-                .GroupBy(x => x.BlockType)
-                .Select(x => new QueryBlockTypeResponse
-                {
-                    BlockType = x.Key,
-                    DataBlocks = model.LatestOnly(x.Key) ? x.TakeLast(1).ToArray() : x.ToArray(),
-                })
-                .ToArray(),
-        };
-
-        return response.ToOption();
+        return StatusCode.OK;
     }
 
-    public async Task<Option> Append(DataBlock block, string traceId)
+    public async Task<Option> Exist(string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Append, actorKey={actorKey}, blockId={blockId}, blockType={blockType}, principalId={principalId}",
-            this.GetPrimaryKeyString(), block.BlockId, block.BlockType, block.PrincipleId);
-
-        if (!_state.RecordExists) return StatusCode.NotFound;
-        if (!block.Validate(out var mv)) return mv;
-        if (!_state.State.HasAccess(block.PrincipleId, BlockGrant.Write, block.BlockType, out var av)) return av;
-
-        await VerifyBlock();
-
-        var addOption = _state.State.Add(block);
-        if (addOption.IsError()) return addOption;
-
-        var writeOption = await WriteContract(_state.State, context);
-        return writeOption;
+        await _state.ReadStateAsync();
+        return _state.RecordExists ? StatusCode.OK : StatusCode.NotFound;
     }
 
     public async Task<Option<ContractPropertyModel>> GetProperties(string principalId, string traceId)
@@ -190,7 +146,43 @@ public class ContractActor : Grain, IContractActor
         await VerifyBlock();
 
         var result = _state.State.HasAccess(principalId, grant, blockType);
+        if (result.IsError()) return result;
+
         return result;
+    }
+
+    public async Task<Option<ContractQueryResponse>> Query(ContractQuery model, string traceId)
+    {
+        var context = new ScopeContext(traceId, _logger);
+        context.Location().LogInformation("Query, actorKey={actorKey}, model={model}", this.GetPrimaryKeyString(), model);
+
+        if (!_state.RecordExists) return StatusCode.NotFound;
+        if (!model.Validate(out var mv)) return mv.ToOptionStatus<ContractQueryResponse>();
+
+        await VerifyBlock();
+
+        string? blockTypes = model.GetBlockTypes();
+        Option<IEnumerable<DataBlock>> dataBlocks = blockTypes switch
+        {
+            string v => _state.State.Filter(model.PrincipalId, v),
+            _ => _state.State.Filter(model.PrincipalId),
+        };
+
+        if (dataBlocks.IsError()) return dataBlocks.ToOptionStatus<ContractQueryResponse>();
+
+        var response = new ContractQueryResponse
+        {
+            Items = dataBlocks.Return()
+                .GroupBy(x => x.BlockType)
+                .Select(x => new QueryBlockTypeResponse
+                {
+                    BlockType = x.Key,
+                    DataBlocks = model.LatestOnly(x.Key) ? x.TakeLast(1).ToArray() : x.ToArray(),
+                })
+                .ToArray(),
+        };
+
+        return response.ToOption();
     }
 
     private async Task<Option> WriteContract(BlockChain blockChain, ScopeContext context)

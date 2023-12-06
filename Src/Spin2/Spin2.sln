@@ -64,13 +64,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoanContract.sdk.test", "Sm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.CommandRouter", "Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj", "{9D3B1403-9629-4E4F-AA61-F0710F6E3DA1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinAgent.sdk", "SpinAgent.sdk\SpinAgent.sdk.csproj", "{D868AD03-5333-4859-93B6-BD52D20FCCF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.CommandRouter.test", "Tools\Toolbox.CommandRouter.test\Toolbox.CommandRouter.test.csproj", "{617EF111-E011-49F2-8693-A045F8CE27A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.CommandRouter.test", "Tools\Toolbox.CommandRouter.test\Toolbox.CommandRouter.test.csproj", "{617EF111-E011-49F2-8693-A045F8CE27A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinClient.sdk", "SpinClient.sdk\SpinClient.sdk.csproj", "{BCFD50C5-6471-492C-A3C1-785116F90CA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinClient.sdk", "SpinClient.sdk\SpinClient.sdk.csproj", "{BCFD50C5-6471-492C-A3C1-785116F90CA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpinCluster.abstraction", "SpinCluster.abstraction\SpinCluster.abstraction.csproj", "{5318CA31-0845-440E-BFF0-5511FCA6F821}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpinCluster.abstraction", "SpinCluster.abstraction\SpinCluster.abstraction.csproj", "{5318CA31-0845-440E-BFF0-5511FCA6F821}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.TestConsole", "Toolbox.TestConsole\Toolbox.TestConsole.csproj", "{6B5BBEEE-83FE-45F5-A2B3-3BCEBB2B7822}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -166,10 +166,6 @@ Global
 		{9D3B1403-9629-4E4F-AA61-F0710F6E3DA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D3B1403-9629-4E4F-AA61-F0710F6E3DA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D3B1403-9629-4E4F-AA61-F0710F6E3DA1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D868AD03-5333-4859-93B6-BD52D20FCCF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D868AD03-5333-4859-93B6-BD52D20FCCF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D868AD03-5333-4859-93B6-BD52D20FCCF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D868AD03-5333-4859-93B6-BD52D20FCCF0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{617EF111-E011-49F2-8693-A045F8CE27A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{617EF111-E011-49F2-8693-A045F8CE27A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{617EF111-E011-49F2-8693-A045F8CE27A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -182,6 +178,10 @@ Global
 		{5318CA31-0845-440E-BFF0-5511FCA6F821}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5318CA31-0845-440E-BFF0-5511FCA6F821}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5318CA31-0845-440E-BFF0-5511FCA6F821}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B5BBEEE-83FE-45F5-A2B3-3BCEBB2B7822}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B5BBEEE-83FE-45F5-A2B3-3BCEBB2B7822}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B5BBEEE-83FE-45F5-A2B3-3BCEBB2B7822}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B5BBEEE-83FE-45F5-A2B3-3BCEBB2B7822}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -201,6 +201,7 @@ Global
 		{B744A47B-568A-457A-A095-2245A9F973ED} = {FC04D7BE-5DFD-4B25-B0DE-1C17F14B8CD8}
 		{9D3B1403-9629-4E4F-AA61-F0710F6E3DA1} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{617EF111-E011-49F2-8693-A045F8CE27A5} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
+		{6B5BBEEE-83FE-45F5-A2B3-3BCEBB2B7822} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C148F5D7-56ED-4D3F-8AAB-8363CB110674}

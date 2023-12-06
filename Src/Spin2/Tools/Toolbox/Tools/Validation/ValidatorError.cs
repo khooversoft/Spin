@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Tools.Validation;
+﻿namespace Toolbox.Tools;
 
 public record ValidatorError : IValidatorResult
 {

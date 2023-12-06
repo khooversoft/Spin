@@ -128,14 +128,14 @@ public class CreateContractTests : IClassFixture<ClusterApiFixture>
         {
             DateTime postedDate = startDate.AddMonths(i + 1);
 
-            var paymentRequest = new LoanPaymentRequest
+            var interestRequest = new LoanInterestRequest
             {
                 ContractId = contractId,
                 PrincipalId = ownerId,
                 PostedDate = postedDate,
             };
 
-            var postOption = await manager.PostInterestCharge(paymentRequest, _context);
+            var postOption = await manager.PostInterestCharge(interestRequest, _context);
             postOption.IsOk().Should().BeTrue();
 
             var reportOption = await manager.GetReport(contractId, ownerId, _context);

@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Toolbox.Tools.Local;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Tools;
 

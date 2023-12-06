@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 using FluentAssertions;
-using Toolbox.Tools.Zip;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Tools;
 

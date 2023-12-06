@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.Trx;
 using SpinClient.sdk;
-using SpinCluster.sdk.Actors.Subscription;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;

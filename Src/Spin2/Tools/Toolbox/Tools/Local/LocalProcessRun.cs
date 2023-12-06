@@ -2,7 +2,7 @@
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace Toolbox.Tools.Local;
+namespace Toolbox.Tools;
 
 public class LocalProcessRun
 {

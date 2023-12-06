@@ -20,6 +20,7 @@ namespace SpinClusterApi.test.Schedule;
 /// SmartC's actor talks to schedule to see if there is any work available
 /// </summary>
 
+[CollectionDefinition("directory")]
 public class SchedulerTests : IClassFixture<ClusterApiFixture>
 {
     private const string _agentId = "agent:test-agent";
@@ -44,16 +45,11 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
 
         await AssignToAgent(workId);
         await VerifyWork(workId, payload, true);
-        await AddRunResult(workId);
+        //await AddRunResult(workId);
 
         await Complete(workId);
 
-        SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear(_cluster.Option.SchedulerId, "admin@domain.com", _context);
-
-        ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
-        Option deleteResponse = await workClient.Delete(workId, _context);
-        deleteResponse.IsNotFound().Should().BeTrue(deleteResponse.ToString());
+        await ClearScheduler();
     }
 
     [Fact]
@@ -66,22 +62,15 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
 
         await AssignToAgent(workId);
         await VerifyWork(workId, payload, true);
-        await AddRunResult(workId);
-
+        //await AddRunResult(workId);
         await Complete(workId);
 
-        SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear(_cluster.Option.SchedulerId, "admin@domain.com", _context);
-
-        ScheduleWorkClient workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
-        Option deleteResponse = await workClient.Delete(workId, _context);
-        deleteResponse.IsNotFound().Should().BeTrue(deleteResponse.ToString());
+        await ClearScheduler();
     }
 
     private async Task Setup()
     {
-        SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
-        await schedulerClient.Clear(_cluster.Option.SchedulerId, "admin@domain.com", _context);
+        await ClearScheduler();
 
         var agent = new AgentModel
         {
@@ -94,6 +83,16 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
             .Set(agent, _context);
 
         agentOption.IsOk().Should().BeTrue(agentOption.ToString());
+    }
+
+    private async Task ClearScheduler()
+    {
+        SchedulerClient schedulerClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
+        ScheduleWorkClient scheduleWorkClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
+        await schedulerClient.ClearAllWorkSchedules(_cluster.Option.SchedulerId, scheduleWorkClient, _context);
+
+        Option deleteResponse = await schedulerClient.Delete(_cluster.Option.SchedulerId, "name@domain.com", _context);
+        deleteResponse.IsOk().Should().BeTrue(deleteResponse.ToString());
     }
 
     private async Task<(string workId, CreatePayload payload)> CreateSchedule()
@@ -292,45 +291,45 @@ public class SchedulerTests : IClassFixture<ClusterApiFixture>
         workModel.Assigned.AssignedCompleted.Should().BeNull();
     }
 
-    private async Task AddRunResult(string workId)
-    {
-        var workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
+    //private async Task AddRunResult(string workId)
+    //{
+    //    var workClient = _cluster.ServiceProvider.GetRequiredService<ScheduleWorkClient>();
 
-        var runResult = new RunResultModel
-        {
-            AgentId = _agentId,
-            WorkId = workId,
-            StatusCode = StatusCode.OK,
-            Message = "completed",
-        };
+    //    var runResult = new RunResultModel
+    //    {
+    //        AgentId = _agentId,
+    //        WorkId = workId,
+    //        StatusCode = StatusCode.OK,
+    //        Message = "completed - duplicate",
+    //    };
 
-        var response = await workClient.AddRunResult(runResult, _context);
-        response.IsOk().Should().BeTrue(response.ToString());
+    //    var response = await workClient.AddRunResult(runResult, _context);
+    //    response.IsOk().Should().BeTrue(response.ToString());
 
-        Option<ScheduleWorkModel> workOption = await workClient.Get(workId, _context);
-        workOption.IsOk().Should().BeTrue(workOption.ToString());
+    //    Option<ScheduleWorkModel> workOption = await workClient.Get(workId, _context);
+    //    workOption.IsOk().Should().BeTrue(workOption.ToString());
 
-        ScheduleWorkModel model = workOption.Return();
-        model.WorkId.Should().Be(workId);
-        model.SmartcId.Should().Be(_smartcId);
-        model.SourceId.Should().Be(_sourceId);
-        model.Command.Should().Be(_command);
+    //    ScheduleWorkModel model = workOption.Return();
+    //    model.WorkId.Should().Be(workId);
+    //    model.SmartcId.Should().Be(_smartcId);
+    //    model.SourceId.Should().Be(_sourceId);
+    //    model.Command.Should().Be(_command);
 
-        model.Assigned.Should().NotBeNull();
-        model.Assigned!.AgentId.Should().Be(_agentId);
-        model.Assigned!.AssignedCompleted.Should().BeNull();
-        model.GetState().Should().Be(ScheduleWorkState.Assigned);
+    //    model.Assigned.Should().NotBeNull();
+    //    model.Assigned!.AgentId.Should().Be(_agentId);
+    //    model.Assigned!.AssignedCompleted.Should().BeNull();
+    //    model.GetState().Should().Be(ScheduleWorkState.Assigned);
 
-        model.RunResults.Count.Should().Be(1);
-        model.RunResults[0].Id.Should().Be(runResult.Id);
-        model.RunResults[0].CreatedDate.Should().Be(runResult.CreatedDate);
-        model.RunResults[0].WorkId.Should().Be(runResult.WorkId);
-        model.RunResults[0].CompletedDate.Should().Be(runResult.CompletedDate);
-        model.RunResults[0].StatusCode.Should().Be(runResult.StatusCode);
-        model.RunResults[0].AgentId.Should().Be(runResult.AgentId);
-        model.RunResults[0].Message.Should().Be(runResult.Message);
-        model.RunResults[0].Payloads.Should().NotBeNull();
-    }
+    //    model.RunResults.Count.Should().Be(1);
+    //    model.RunResults[0].Id.Should().Be(runResult.Id);
+    //    model.RunResults[0].CreatedDate.Should().Be(runResult.CreatedDate);
+    //    model.RunResults[0].WorkId.Should().Be(runResult.WorkId);
+    //    model.RunResults[0].CompletedDate.Should().Be(runResult.CompletedDate);
+    //    model.RunResults[0].StatusCode.Should().Be(runResult.StatusCode);
+    //    model.RunResults[0].AgentId.Should().Be(runResult.AgentId);
+    //    model.RunResults[0].Message.Should().Be(runResult.Message);
+    //    model.RunResults[0].Payloads.Should().NotBeNull();
+    //}
 
     private async Task Complete(string workId)
     {

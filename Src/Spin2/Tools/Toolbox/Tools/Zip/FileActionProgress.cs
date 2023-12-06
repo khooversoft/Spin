@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Tools.Zip;
+﻿namespace Toolbox.Tools;
 
 public struct FileActionProgress
 {

@@ -203,10 +203,7 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
         if (!request.Validate(out var v)) return v.ToOptionStatus<SbAmountReserved>();
         if (!IdPatterns.IsAccountId(accountId)) return new Option<SbAmountReserved>(StatusCode.BadRequest, "Invalid accountId");
 
-        Option<SbAmountReserved> reserveAmount = await _clusterClient
-            .GetSoftBankActor(accountId)
-            .Reserve(request.PrincipalId, request.Amount, context.TraceId);
-
+        Option<SbAmountReserved> reserveAmount = await _clusterClient.GetSoftBankActor(accountId).Reserve(request.PrincipalId, request.Amount, context.TraceId);
         if (reserveAmount.IsError()) return reserveAmount;
 
         context.Location().LogInformation("Lease acquired, actorKey={actorKey}, accountId={accountId}, leaseKey={leaseKey}",

@@ -25,9 +25,10 @@ public class CommandSymbol : IEnumerable<CommandSymbol>
         return arg;
     }
 
-    public CommandOption<T> AddOption<T>(string name, string? description)
+    public CommandOption<T> AddOption<T>(string name, string? description, bool isRequired = false)
     {
         var arg = new CommandOption<T>(name, description);
+        arg.IsRequired = isRequired;
         Command.AddOption(arg.Option);
         return arg;
     }

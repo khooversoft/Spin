@@ -12,21 +12,20 @@ using Toolbox.Extensions;
 Console.WriteLine($"Spin Agent CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 
-var state = await new CommandRouterBuilder()
+var host = new CommandRouterBuilder()
     .SetArgs(args)
     .ConfigureAppConfiguration(config => config.AddEnvironmentVariables("SPIN_AGENT_"))
     .ConfigureAppConfiguration((config, service) => service.AddSingleton(config.Build().Bind<AgentOption>().Verify()))
-    .AddStartup(x => x.GetRequiredService<AgentConfiguration>().Startup())
     .AddCommand<WorkMonitor>()
     .ConfigureService(x =>
     {
-        x.AddSingleton<RunSmartC>();
+        //x.AddSingleton<RunSmartC>();
         x.AddSingleton<AgentConfiguration>();
         x.AddSingleton<PackageManagement>();
         x.AddSpinClusterClients(LogLevel.Warning);
         x.AddSpinClusterAdminClients(LogLevel.Warning);
     })
-    .Build()
-    .Run();
+    .Build();
 
-return state;
+await host.Service.GetRequiredService<AgentConfiguration>().Startup();
+return await host.Run();

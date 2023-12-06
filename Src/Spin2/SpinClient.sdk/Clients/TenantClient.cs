@@ -23,6 +23,12 @@ public class TenantClient
         .DeleteAsync(context.With(_logger))
         .ToOption();
 
+    public async Task<Option> Exist(string tenantId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.Tenant}/{Uri.EscapeDataString(tenantId)}/exist")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .DeleteAsync(context.With(_logger))
+        .ToOption();
+
     public async Task<Option<TenantModel>> Get(string tenantId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Tenant}/{Uri.EscapeDataString(tenantId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)

@@ -24,6 +24,12 @@ public class UserClient
         .DeleteAsync(context.With(_logger))
         .ToOption();
 
+    public async Task<Option> Exist(string userId, ScopeContext context) => await new RestClient(_client)
+        .SetPath($"/{SpinConstants.Schema.User}/{Uri.EscapeDataString(userId)}/exist")
+        .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
+        .DeleteAsync(context.With(_logger))
+        .ToOption();
+
     public async Task<Option<UserModel>> Get(string userId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.User}/{Uri.EscapeDataString(userId)}")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
