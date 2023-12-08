@@ -34,4 +34,64 @@ public class PlanEmbeddedSequenceTests
         });
 
     }
+
+    [Fact]
+    public async Task TwoLinked()
+    {
+        var service = new ServiceCollection().BuildServiceProvider();
+        int value = 0;
+
+        Plan plan2 = new Plan(PlanMode.All)
+            .Add((planContext, context) => StatusCode.OK.Action(x => value += 1));
+
+        Plan plan3 = new Plan(PlanMode.All)
+            .Add((planContext, context) => StatusCode.OK.Action(x => value += 1));
+
+        Option<PlanContext> plan = await new Plan(PlanMode.All)
+            .Add(plan2)
+            .Add(plan3)
+            .Run(service, _context);
+
+        plan.IsOk().Should().BeTrue();
+        value.Should().Be(2);
+        plan.Return().Action(x =>
+        {
+            x.History.Count.Should().Be(4);
+            x.History.All(x => x.StatusCode == StatusCode.OK);
+            x.States.Count.Should().Be(0);
+        });
+    }
+
+    [Fact]
+    public async Task TwoLinkAsync()
+    {
+        var service = new ServiceCollection().BuildServiceProvider();
+        int value = 0;
+
+        Plan plan2 = new Plan(PlanMode.All)
+            .AddAsync((planContext, context) => upValue());
+
+        Plan plan3 = new Plan(PlanMode.All)
+            .AddAsync((planContext, context) => upValue());
+
+        Option<PlanContext> plan = await new Plan(PlanMode.All)
+            .Add(plan2)
+            .Add(plan3)
+            .Run(service, _context);
+
+        plan.IsOk().Should().BeTrue();
+        value.Should().Be(2);
+        plan.Return().Action(x =>
+        {
+            x.History.Count.Should().Be(4);
+            x.History.All(x => x.StatusCode == StatusCode.OK);
+            x.States.Count.Should().Be(0);
+        });
+
+        Task<Option> upValue()
+        {
+            value++;
+            return new Option(StatusCode.OK).ToTaskResult();
+        }
+    }
 }

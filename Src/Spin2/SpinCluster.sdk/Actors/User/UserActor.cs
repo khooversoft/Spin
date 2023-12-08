@@ -173,6 +173,9 @@ public class UserActor : Grain, IUserActor
         string domain = user.Return().Domain!;
         if (!IdPatterns.IsDomain(domain)) return StatusCode.BadRequest;
 
+        // Handle special domain
+        if (domain.EqualsIgnoreCase("spin.com")) return StatusCode.OK;
+
         var domainDetail = await _clusterClient
             .GetResourceGrain<IDomainActor>(SpinConstants.DomainActorKey)
             .GetDetails(domain, context.TraceId);

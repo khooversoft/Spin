@@ -12,6 +12,8 @@ namespace SpinCluster.sdk.Application;
 
 public static class SiloStartup
 {
+    private static Plan _startupPlan = new Plan().AddAsync(SetupDatalakeSchemaResources);
+
     public static ISiloBuilder AddSpinCluster(this ISiloBuilder builder, HostBuilderContext hostContext)
     {
         builder.NotNull();
@@ -20,7 +22,7 @@ public static class SiloStartup
         option.Validate(out Option v).Assert(x => x == true, $"SpinClusterOption is invalid, errors={v.Error}");
 
         builder.AddDatalakeGrainStorage();
-        builder.AddStartupTask(async (IServiceProvider services, CancellationToken _) => await services.RunStartup());
+        builder.AddStartupTask(async (IServiceProvider services, CancellationToken _) => await services.RunStartup(), stage: ServiceLifecycleStage.ApplicationServices);
 
         builder.ConfigureServices(services =>
         {
@@ -50,13 +52,33 @@ public static class SiloStartup
         return builder;
     }
 
-    private static async Task RunStartup(this IServiceProvider serviceProvider)
+    private static async Task RunStartup(this IServiceProvider service)
     {
-        serviceProvider.NotNull();
+        service.NotNull();
 
-        DatalakeSchemaResources datalakeResources = serviceProvider.GetRequiredService<DatalakeSchemaResources>();
-        ILoggerFactory factory = serviceProvider.GetRequiredService<ILoggerFactory>();
+        ILogger logger = service.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(RunStartup));
+        var context = new ScopeContext(logger);
 
-        await datalakeResources.Startup(new ScopeContext(factory.CreateLogger(nameof(RunStartup))));
+        var plans = service.GetServices<IPlan>().ToArray();
+
+        var option = await new Plan()
+            .Add(_startupPlan)
+            .AddRange(plans)
+            .Run(service, context);
+
+        if (option.IsError())
+        {
+            context.Location().LogCritical("Failed to startup cluster");
+            throw new InvalidOperationException("Startup failed");
+        }
+
+        context.Location().LogWarning("Startup has completed");
+    }
+
+    private static async Task<Option> SetupDatalakeSchemaResources(PlanContext planContext, ScopeContext context)
+    {
+        DatalakeSchemaResources datalakeResources = planContext.Service.GetRequiredService<DatalakeSchemaResources>();
+        var option = await datalakeResources.Startup(context);
+        return option;
     }
 }

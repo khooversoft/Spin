@@ -29,7 +29,7 @@ public class DatalakeSchemaResources
         _logger = logger.NotNull();
     }
 
-    public async Task<StatusCode> Startup(ScopeContext context)
+    public async Task<Option> Startup(ScopeContext context)
     {
         Debug.WriteLine($"Here: {nameof(DatalakeSchemaResources)}, _instanceId={_instanceId}");
 

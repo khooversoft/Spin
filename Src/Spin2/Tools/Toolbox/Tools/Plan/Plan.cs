@@ -15,12 +15,13 @@ public class Plan : IPlan, IEnumerable<IPlan>
 {
     private List<IPlan> _list = new List<IPlan>();
 
-    public Plan(PlanMode mode) => Mode = mode.Assert(x => x.IsEnumValid(), x => $"Invalid PlanMode={x}");
+    public Plan(PlanMode mode = PlanMode.All) => Mode = mode.Assert(x => x.IsEnumValid(), x => $"Invalid PlanMode={x}");
 
     public PlanMode Mode { get; init; }
     public int Count => _list.Count;
     public IList<IPlan> Items => _list;
     public Plan Add(IPlan plan) => this.Action(x => x._list.Add(plan.NotNull()));
+    public Plan AddRange(params IPlan[] plans) => this.Action(x => plans.NotNull().ForEach(y => x._list.Add(y)));
     public Plan Add(Func<PlanContext, ScopeContext, Option> func) => Add(new LambdaPlan(func));
     public Plan AddAsync(Func<PlanContext, ScopeContext, Task<Option>> func) => Add(new LambdaPlanAsync(func));
     public Plan Add<T>() where T : IPlan => Add(new TypedPlan<T>());
@@ -29,10 +30,21 @@ public class Plan : IPlan, IEnumerable<IPlan>
     {
         foreach (var item in _list)
         {
-            Option option = await item.Run(planContext, context);
-            planContext.History.Add(option);
+            Option option;
 
-            switch (planContext.Mode)
+            try
+            {
+                option = await item.Run(planContext, context);
+                planContext.History.Add(option);
+            }
+            catch (Exception ex)
+            {
+                var errorOption = (StatusCode.InternalServerError, ex.ToString());
+                planContext.History.Add(errorOption);
+                return errorOption;
+            }
+
+            switch (Mode)
             {
                 case PlanMode.All:
                     if (option.IsError()) return option;
@@ -44,7 +56,10 @@ public class Plan : IPlan, IEnumerable<IPlan>
                     if (option.IsOk()) return StatusCode.OK;
                     break;
 
-                default: throw new UnreachableException($"Unknown mode={planContext.Mode}");
+                default:
+                    string msg = $"Unknown mode={Mode}";
+                    planContext.History.Add((StatusCode.InternalServerError, msg));
+                    throw new UnreachableException(msg);
             }
         }
 
@@ -62,12 +77,7 @@ public static class PlanExtensions
 {
     public static async Task<Option<PlanContext>> Run(this Plan plan, IServiceProvider service, ScopeContext context)
     {
-        var planContext = new PlanContext
-        {
-            Mode = plan.Mode,
-            Service = service,
-        };
-
+        var planContext = new PlanContext(service);
         Option option = await plan.Run(planContext, context);
         return new Option<PlanContext>(planContext, option.StatusCode);
     }

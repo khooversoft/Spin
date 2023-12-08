@@ -2,12 +2,7 @@
 
 public enum PlanMode
 {
-    // All plan(s) must be Ok
-    All = 1,
-
-    // Run all plans, ignore all errors
-    IgnoreError,
-
-    // Run until the first OK
-    First,
+    All = 1,            // All plan(s) must be Ok
+    IgnoreError,        // Run all plans, ignore all errors
+    First,              // Run until the first OK\
 }
