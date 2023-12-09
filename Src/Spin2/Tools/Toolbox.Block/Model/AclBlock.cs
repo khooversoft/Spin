@@ -37,7 +37,7 @@ public static class AclBlockValidator
     public static Option HasAccess(this AclBlock subject, string principalId, BlockGrant grant, string blockType) => subject
         .NotNull()
         .AccessRights.Any(x => x.HasAccess(principalId, grant, blockType))
-        .ToOptionStatus(StatusCode.NotFound);
+        .ToOptionStatus(StatusCode.Forbidden);
 
     public static Option HasAccess(this AclBlock subject, string principalId, BlockRoleGrant grant) => subject
         .NotNull()

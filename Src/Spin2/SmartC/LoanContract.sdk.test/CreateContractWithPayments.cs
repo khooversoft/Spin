@@ -4,6 +4,7 @@ using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SpinClient.sdk;
@@ -140,6 +141,16 @@ public class CreateContractWithPayments : IClassFixture<ClusterApiFixture>
         {
             DateTime postedDate = startDate.AddMonths(i + 1);
 
+            var loanInterestRequest = new LoanInterestRequest
+            {
+                ContractId = contractId,
+                PrincipalId = ownerId,
+                PostedDate = postedDate,
+            };
+
+            var interestCharge = await manager.PostInterestCharge(loanInterestRequest, _context);
+            interestCharge.IsOk().Should().BeTrue();
+
             var paymentRequest = new LoanPaymentRequest
             {
                 ContractId = contractId,
@@ -201,6 +212,7 @@ public class CreateContractWithPayments : IClassFixture<ClusterApiFixture>
             ContractId = contractId,
             OwnerId = ownerId,
             Name = "Loan APR contact",
+            Access = LoanAccountDetail.CreatePaymentAccess(SoftBankConstants.SoftBankPrincipalId),
         };
 
         var createOption = await manager.Create(createRequest, _context);

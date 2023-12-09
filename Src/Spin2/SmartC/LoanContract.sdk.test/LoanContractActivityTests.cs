@@ -4,6 +4,7 @@ using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using SoftBank.sdk.Application;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SpinClient.sdk;
@@ -95,14 +96,14 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
               "OwnerId": "user1@rental.com",
               "Description": "Initial deposit",
               "Type": "Credit",
-              "Amount": 100.00
+              "Amount": 100000.00
             },
             {
               "AccountId": "softbank:outlook.com/user2-account/primary",
               "OwnerId": "user2@outlook.com",
               "Description": "Initial deposit",
               "Type": "Credit",
-              "Amount": 2000.00
+              "Amount": 200000.00
             }
           ],
           "Agents": [
@@ -125,8 +126,8 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
         var scheduleClient = _cluster.ServiceProvider.GetRequiredService<SchedulerClient>();
 
         await PostCreateAccountCommand(startDate, scheduleOption, _smartcId, _contractId, commandHost);
-        await CheckSoftBank("softbank:rental.com/user1-account/primary", "user1@rental.com", 100.00m);
-        await CheckSoftBank("softbank:outlook.com/user2-account/primary", "user2@outlook.com", 2000.00m);
+        await CheckSoftBank("softbank:rental.com/user1-account/primary", "user1@rental.com", 100000.00m);
+        await CheckSoftBank("softbank:outlook.com/user2-account/primary", "user2@outlook.com", 200000.00m);
 
         var manager = _cluster.ServiceProvider.GetRequiredService<LoanContractManager>();
 
@@ -145,23 +146,29 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
         }
 
         LoanReportModel finalReport = await manager.GetReport(_contractId, _ownerId, _context).Return();
-        finalReport.LedgerItems.Count.Should().Be(12);
+        finalReport.LedgerItems.Count.Should().Be(24);
+        finalReport.BalanceItems.Count.Should().Be(12);
 
-        var testSet = new decimal[]
+        var matchTo = new[]
         {
-            -42.47m, -38.52m, -42.81m, -41.60m, -43.17m, -41.95m,
-            -43.53m, -43.71m, -42.48m, -44.08m, -42.84m, -44.45m,
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 2, 1), CreditCharge = 42.47m, Payment = 856.07m, ToPrincipal = 813.60m, PrincipalBalance = 9186.40m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 3, 1), CreditCharge = 35.24m, Payment = 856.07m, ToPrincipal = 820.83m, PrincipalBalance = 8365.57m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 4, 1), CreditCharge = 35.53m, Payment = 856.07m, ToPrincipal = 820.54m, PrincipalBalance = 7545.03m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 5, 1), CreditCharge = 31.01m, Payment = 856.07m, ToPrincipal = 825.06m, PrincipalBalance = 6719.97m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 6, 1), CreditCharge = 28.54m, Payment = 856.07m, ToPrincipal = 827.53m, PrincipalBalance = 5892.44m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 7, 1), CreditCharge = 24.22m, Payment = 856.07m, ToPrincipal = 831.85m, PrincipalBalance = 5060.59m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 8, 1), CreditCharge = 21.49m, Payment = 856.07m, ToPrincipal = 834.58m, PrincipalBalance = 4226.01m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 9, 1), CreditCharge = 17.95m, Payment = 856.07m, ToPrincipal = 838.12m, PrincipalBalance = 3387.89m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 10, 1), CreditCharge = 13.92m, Payment = 856.07m, ToPrincipal = 842.15m, PrincipalBalance = 2545.74m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 11, 1), CreditCharge = 10.81m, Payment = 856.07m, ToPrincipal = 845.26m, PrincipalBalance = 1700.48m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2023, 12, 1), CreditCharge = 6.99m, Payment = 856.07m, ToPrincipal = 849.08m, PrincipalBalance = 851.40m },
+            new LedgerBalanceItem { PostedDate = new DateTime(2024, 1, 1), CreditCharge = 3.62m, Payment = 856.07m, ToPrincipal = 852.45m, PrincipalBalance = -1.05m },
         };
 
-        finalReport.LedgerItems.WithIndex().ForEach(x =>
-        {
-            x.Item.ContractId.Should().Be(_contractId);
-            x.Item.OwnerId.Should().Be(_ownerId);
-            x.Item.Description.Should().Be("Interest charge");
-            x.Item.Type.Should().Be(LoanLedgerType.Debit);
-            x.Item.TrxType.Should().Be(LoanTrxType.InterestCharge);
-            x.Item.NaturalAmount.Should().Be(testSet[x.Index]);
-        });
+        Enumerable.SequenceEqual(finalReport.BalanceItems, matchTo).Should().BeTrue();
+
+        await CheckSoftBank("softbank:rental.com/user1-account/primary", "user1@rental.com", 110272.84m);
+        await CheckSoftBank("softbank:outlook.com/user2-account/primary", "user2@outlook.com", 200_000.00m - 10272.84m);
     }
 
     private async Task<(ICommandRouterHost commandHost, ScheduleOption scheduleOption)> Setup()
@@ -208,7 +215,10 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
             ContractId = contractId,
             OwnerId = _ownerId,
             Name = "Loan APR contact",
-            Access = LoanAccountDetail.CreatePaymentAccess("user2@outlook.com"),
+            Access = [
+                .. LoanAccountDetail.CreatePaymentAccess("user2@outlook.com"),
+                .. LoanAccountDetail.CreatePaymentAccess(SoftBankConstants.SoftBankPrincipalId)
+                ]
         };
 
         var terms = new LoanTerms
@@ -302,9 +312,9 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
         SoftBankClient client = _cluster.ServiceProvider.GetRequiredService<SoftBankClient>();
 
         Option<SbAccountBalance> balanceOption = await client.GetBalance(accountId, ownerId, _context);
-        balanceOption.IsOk().Should().BeTrue();
+        balanceOption.IsOk().Should().BeTrue(balanceOption.ToString());
 
-        (balance == balanceOption.Return().PrincipalBalance).Should().BeTrue();
+        balanceOption.Return().PrincipalBalance.Should().Be(balance);
     }
 
     private async Task CheckWorkScheduleForStatus(ScheduleOption scheduleOption, string workId, StatusCode statusCode)

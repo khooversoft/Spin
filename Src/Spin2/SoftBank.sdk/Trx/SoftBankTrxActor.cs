@@ -41,13 +41,20 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
         var context = new ScopeContext(traceId, _logger);
         if (!request.Validate(out var v)) return v.ToOptionStatus<TrxResponse>();
 
-        return IsSourceOrDestination(request) switch
+        var result = IsSourceOrDestination(request) switch
         {
             Direction.IsSource => await ProcessAsSource(request, context),
             Direction.IsDestination => await ProcessAsDestination(request, context),
 
             _ => (StatusCode.BadRequest, "Request is invalid based on actor key"),
         };
+
+        if (result.IsError())
+        {
+            context.Location().LogStatus(result.ToOptionStatus(), "Failed to process request");
+        }
+
+        return result;
     }
 
     private async Task<Option<TrxResponse>> ProcessAsSource(TrxRequest request, ScopeContext context)
@@ -88,7 +95,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             }.Join(';'),
         };
 
-        var update = await _clusterClient.GetSoftBankActor(request.AccountID).AddLedgerItem(ledgerItem, context.TraceId);
+        //var update = await _clusterClient.GetSoftBankActor(request.AccountID).AddLedgerItem(ledgerItem, context.TraceId);
+        var update = await TryAddingToledger(ledgerItem, context);
         if (update.IsError())
         {
             context.Location().LogCritical("Failed to add ledger item");
@@ -140,7 +148,8 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             }.Join(';'),
         };
 
-        var update = await _clusterClient.GetSoftBankActor(request.PartyAccountId).AddLedgerItem(ledgerItem, context.TraceId);
+        var update = await TryAddingToledger(ledgerItem, context);
+        //var update = await _clusterClient.GetSoftBankActor(request.PartyAccountId).AddLedgerItem(ledgerItem, context.TraceId);
         if (update.IsError())
         {
             context.Location().LogCritical("Failed to add ledger item");
@@ -157,6 +166,18 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
         };
 
         return trxResponse;
+    }
+
+    private async Task<Option> TryAddingToledger(SbLedgerItem ledgerItem, ScopeContext context)
+    {
+        var update = await _clusterClient.GetSoftBankActor(ledgerItem.AccountId).AddLedgerItem(ledgerItem, context.TraceId);
+        if (update.IsOk()) return update;
+
+        ledgerItem = ledgerItem with { OwnerId = SoftBankConstants.SoftBankPrincipalId };
+
+        update = await _clusterClient.GetSoftBankActor(ledgerItem.AccountId).AddLedgerItem(ledgerItem, context.TraceId);
+        if (update.IsError()) return update;
+        return update;
     }
 
     private Direction IsSourceOrDestination(TrxRequest request)
