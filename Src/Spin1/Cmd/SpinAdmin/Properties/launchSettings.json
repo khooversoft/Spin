@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "SpinAdmin": {
-      "commandName": "Project",
-      "commandLineArgs": "environment publish --store D:\\SpinDisk --environment dev"
-    }
-  }
-}

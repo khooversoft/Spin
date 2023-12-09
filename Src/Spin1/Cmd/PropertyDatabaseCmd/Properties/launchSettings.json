@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "PropertyDatabaseCmd": {
-      "commandName": "Project",
-      "commandLineArgs": "publish d:\\work\\spin spin-secrets"
-    }
-  }
-}

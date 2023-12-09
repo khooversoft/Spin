@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "ArtifactCmd": {
-      "commandName": "Project",
-      "commandLineArgs": "-e local"
-    }
-  }
-}

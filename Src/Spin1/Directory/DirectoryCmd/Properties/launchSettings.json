@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DirectoryCmd": {
-      "commandName": "Project",
-      "commandLineArgs": "set file D:\\SpinDisk\\Environments\\dev-Spin.upload.json"
-    }
-  }
-}
