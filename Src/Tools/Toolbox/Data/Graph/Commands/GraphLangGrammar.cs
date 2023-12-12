@@ -20,7 +20,7 @@ namespace Toolbox.Data;
 /// update <selectGrammar> set edgeType=et,tags=t2;             // for edge updates
 /// 
 /// </summary>
-public static class GraphLangGrammer
+public static class GraphLangGrammar
 {
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))
         + new LsValue("lvalue")

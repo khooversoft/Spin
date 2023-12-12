@@ -1,6 +1,5 @@
 ﻿using Polly;
 using Polly.Extensions.Http;
-using SpinCluster.sdk.Client;
 using Toolbox.Extensions;
 
 namespace SpinPortal.Application;

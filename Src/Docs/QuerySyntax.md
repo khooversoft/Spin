@@ -1,8 +1,8 @@
 # Query Syntax
 
 
-Node properties = Key, Tags
-Edge properties = NodeKey, FromKey, ToKey, EdgeType, Tags
+1. Node properties = Key, Tags
+2. Edge properties = NodeKey, FromKey, ToKey, EdgeType, Tags
 
 Query syntax:
 

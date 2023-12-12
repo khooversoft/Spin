@@ -9,7 +9,7 @@ public class GraphAddTests
 
     public GraphAddTests()
     {
-        _root = GraphLangGrammer.Root;
+        _root = GraphLangGrammar.Root;
     }
 
     [Fact]

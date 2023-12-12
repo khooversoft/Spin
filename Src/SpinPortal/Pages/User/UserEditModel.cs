@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using SpinCluster.sdk.Actors.User;
 
 namespace SpinPortal.Pages.User;
 

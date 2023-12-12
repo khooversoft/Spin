@@ -27,6 +27,12 @@ public static class DatalakeOptionValidator
 {
     public static Option Validate(this DatalakeOption subject) => DatalakeOption.Validator.Validate(subject).ToOptionStatus();
 
+    public static bool Validate(this DatalakeOption subject, out Option result)
+    {
+        result = subject.Validate();
+        return result.IsOk();
+    }
+
     public static DataLakeServiceClient CreateDataLakeServiceClient(this DatalakeOption subject)
     {
         subject.NotNull();

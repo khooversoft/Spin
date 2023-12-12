@@ -9,7 +9,7 @@ public class GraphBatchTests
 
     public GraphBatchTests()
     {
-        _root = GraphLangGrammer.Root;
+        _root = GraphLangGrammar.Root;
     }
 
     [Fact]

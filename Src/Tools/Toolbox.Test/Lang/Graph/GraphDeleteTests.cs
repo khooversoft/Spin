@@ -9,7 +9,7 @@ public class GraphDeleteTests
 
     public GraphDeleteTests()
     {
-        _root = GraphLangGrammer.Root;
+        _root = GraphLangGrammar.Root;
     }
 
     [Fact]
