@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NBlog.sdk.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace NBlogCmd.Application;
+namespace NBlog.sdk.Application;
 
-internal record CmdOption
+public record CmdOption
 {
     public DatalakeOption Storage { get; init; } = null!;
 }
 
-internal static class CmdOptionExtensions
+public static class CmdOptionExtensions
 {
     public static Validator<CmdOption> Validator { get; } = new Validator<CmdOption>()
         .RuleFor(x => x.Storage).Validate(DatalakeOption.Validator)

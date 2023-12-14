@@ -10,6 +10,7 @@ public class CommandRouterBuilder
     private IConfigurationBuilder _configBuilder;
     private IServiceCollection _serviceCollection;
     private string[]? _args;
+    private bool _captureOutput = false;
 
     public CommandRouterBuilder()
     {
@@ -27,6 +28,12 @@ public class CommandRouterBuilder
                 config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
             })
             .AddSingleton<AbortSignal>();
+    }
+
+    public CommandRouterBuilder SetCaptureOutput(bool captureOutput)
+    {
+        _captureOutput = captureOutput;
+        return this;
     }
 
     public CommandRouterBuilder AddCommand<T>() where T : class, ICommandRoute
@@ -73,6 +80,6 @@ public class CommandRouterBuilder
         IConfiguration config = _configBuilder.Build();
         _serviceCollection.AddSingleton(config);
 
-        return new CommandRouterHost(_args ?? Array.Empty<string>(), _serviceCollection);
+        return new CommandRouterHost(_args ?? Array.Empty<string>(), _serviceCollection, _captureOutput);
     }
 }

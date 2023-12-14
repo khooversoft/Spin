@@ -11,13 +11,15 @@ namespace Toolbox.CommandRouter;
 
 public class CommandRouterHost : ICommandRouterHost
 {
+    private readonly bool _captureOutput;
     private ConcurrentQueue<string[]> _argsQueue = new();
 
-    public CommandRouterHost(string[] args, IServiceCollection serviceCollection)
+    public CommandRouterHost(string[] args, IServiceCollection serviceCollection, bool captureOutput)
     {
         Enqueue(args);
         serviceCollection.NotNull().AddSingleton<ICommandRouterHost>(this);
         Service = serviceCollection.BuildServiceProvider();
+        _captureOutput = captureOutput;
     }
 
     public IServiceProvider Service { get; }
@@ -50,7 +52,7 @@ public class CommandRouterHost : ICommandRouterHost
             abortSignal?.StartTracking();
 
             int rcResult = 0;
-            var capture = new ConsoleCapature(context.Location());
+            IConsole? capture = _captureOutput ? new ConsoleCapature(context.Location()) : null;
 
             while (_argsQueue.TryDequeue(out var args))
             {
@@ -60,23 +62,16 @@ public class CommandRouterHost : ICommandRouterHost
                 rcResult = await rc.InvokeAsync(args, capture);
                 if (rcResult != 0)
                 {
-                    context.Trace().LogError("Args={args} failed", args.Join(" "));
+                    if (_captureOutput) context.Trace().LogError("Args='{args}' failed", args.Join(" "));
                     break;
                 }
             }
 
-            capture.Dump();
+            if (capture != null) ((ConsoleCapature)capture).Dump();
             abortSignal?.StopTracking();
             int state = abortSignal?.GetToken().IsCancellationRequested == true ? 1 : 0;
 
-            if (state != 0 || rcResult != 0)
-            {
-                context.Trace().LogError("Command failed, state={state}, rcResult={rcResult}", state, rcResult);
-                return 1;
-            }
-
-            context.Trace().LogTrace("Command completed, state={state}, rcResult={rcResult}", state, rcResult);
-            return 0;
+            return (state != 0 || rcResult != 0) ? 1 : 0;
         }
         catch (Exception ex)
         {

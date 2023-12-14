@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NBlogCmd.Activities;
 using NBlogCmd.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.CommandRouter;
@@ -23,22 +24,11 @@ var state = await new CommandRouterBuilder()
         if (option.UserSecrets.IsNotEmpty()) config.AddUserSecrets(option.UserSecrets);
         config.AddEnvironmentVariables("SPIN_CLI_");
 
-        var cmdOption = config.Build().Bind<CmdOption>().Verify();
+        var cmdOption = config.Build().Bind<CmdOption>();
         service.AddSingleton(cmdOption);
         service.AddSingleton(cmdOption.Storage);
     })
-    //.AddCommand<AgentRegistration>()
-    //.AddCommand<Configuration>()
-    //.AddCommand<Contract>()
-    //.AddCommand<Lease>()
-    //.AddCommand<LoadScenario>()
-    //.AddCommand<Schedule>()
-    //.AddCommand<ScheduleWork>()
-    //.AddCommand<SmartcPackage>()
-    //.AddCommand<SmartcRegistration>()
-    //.AddCommand<Subscription>()
-    //.AddCommand<Tenant>()
-    //.AddCommand<User>()
+    .AddCommand<Build>()
     .ConfigureService(x =>
     {
         x.AddSingleton<IDatalakeStore, DatalakeStore>();

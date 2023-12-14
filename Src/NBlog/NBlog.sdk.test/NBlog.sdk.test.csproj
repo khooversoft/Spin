@@ -29,4 +29,10 @@
     <ProjectReference Include="..\NBlog.sdk\NBlog.sdk.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="test-appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

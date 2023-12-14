@@ -21,21 +21,15 @@ public static class FileTool
         var fileList = files.ToArray();
         var errorCnt = 0;
         var queue = new ConcurrentQueue<FileHash>();
-        var block = new ActionBlock<string>(getFileHash, new ExecutionDataflowBlockOptions
-        {
-            MaxDegreeOfParallelism = 5
-        });
 
-        fileList.ForEach(x => block.Post(x));
-        block.Complete();
-        await block.Completion;
+        await ActionBlockParallel.Run<string>(getHash, fileList);
 
         var diffTest = fileList.Length - queue.Count;
         if (diffTest != 0) throw new InvalidOperationException($"diffTest violation, fileCount={fileList.Length}, processedCount={queue.Count}");
 
         return queue.OrderBy(x => x.File).ToArray();
 
-        async Task getFileHash(string file)
+        async Task getHash(string file)
         {
             var result = await GetFileHash(file, context);
             if (result.IsError())
@@ -49,9 +43,9 @@ public static class FileTool
         }
     }
 
-    public static Task<Option<FileHash>> GetFileHash(string file, ScopeContext context)
+    public static async Task<Option<FileHash>> GetFileHash(string file, ScopeContext context)
     {
-        if (!File.Exists(file)) return new Option<FileHash>(StatusCode.NotFound).ToTaskResult();
+        if (!File.Exists(file)) return StatusCode.NotFound;
 
         using FileStream fileStream = File.OpenRead(file);
         using SHA256 hasher = SHA256.Create();
@@ -61,23 +55,23 @@ public static class FileTool
             fileStream.Position = 0;
 
             // Compute the hash of the fileStream.
-            byte[] hashValue = hasher.ComputeHash(fileStream);
+            byte[] hashValue = await hasher.ComputeHashAsync(fileStream);
 
             return new FileHash
             {
                 File = file,
                 Hash = hashValue.ToHex(),
-            }.ToOption().ToTaskResult();
+            }.ToOption();
         }
         catch (IOException ex)
         {
             context.Location().LogError(ex, "Failed to hash file={file}", file);
-            return new Option<FileHash>(StatusCode.InternalServerError).ToTaskResult();
+            return StatusCode.InternalServerError;
         }
         catch (UnauthorizedAccessException ex)
         {
             context.Location().LogError(ex, "Access Exception for hash file={file}", file);
-            return new Option<FileHash>(StatusCode.InternalServerError).ToTaskResult();
+            return StatusCode.InternalServerError;
         }
     }
 }

@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Azure", "..\Tools\T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{322395CE-D247-42A9-A546-36FE58F4A70E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.CommandRouter", "..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj", "{358DCC99-1931-4566-8D18-419F132F7525}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{812E0619-71C5-4332-A518-47294057385E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{812E0619-71C5-4332-A518-47294057385E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{812E0619-71C5-4332-A518-47294057385E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{358DCC99-1931-4566-8D18-419F132F7525}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{358DCC99-1931-4566-8D18-419F132F7525}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{358DCC99-1931-4566-8D18-419F132F7525}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{358DCC99-1931-4566-8D18-419F132F7525}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -54,6 +60,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{9B0B73E8-110C-461E-80D5-37C86666E0D8} = {322395CE-D247-42A9-A546-36FE58F4A70E}
 		{812E0619-71C5-4332-A518-47294057385E} = {322395CE-D247-42A9-A546-36FE58F4A70E}
+		{358DCC99-1931-4566-8D18-419F132F7525} = {322395CE-D247-42A9-A546-36FE58F4A70E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E4CF92A9-A73C-4E21-BCAD-7F93A2B2D579}

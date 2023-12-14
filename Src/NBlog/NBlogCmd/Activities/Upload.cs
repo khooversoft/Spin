@@ -22,15 +22,14 @@ internal class Upload : ICommandRoute
         _logger = logger.NotNull();
     }
 
-    public CommandSymbol CommandSymbol() => new CommandSymbol("Upload", "Update articles and support files to datalake").Action(x =>
+    public CommandSymbol CommandSymbol() => new CommandSymbol("upload", "Update articles and support files to datalake").Action(x =>
     {
-        var basePath = x.AddArgument<string>("basePath", "Path for the base folder to update");
+        var packageFile = x.AddArgument<string>("packageFile", "Package file to upload to Spin Cluster");
 
-        x.SetHandler(Uploadx, basePath);
-
+        x.SetHandler(UploadPackage, packageFile);
     });
 
-    private async Task Uploadx(string basePath)
+    private async Task UploadPackage (string packageFile)
     {
     }
 }
