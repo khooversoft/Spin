@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NBlog.sdk.Application;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace NBlog.sdk.test.Application;
 
@@ -31,6 +26,7 @@ public class TestFixture
             .AddLogging()
             .AddSingleton(Option)
             .AddSingleton<PackageBuild>()
+            .AddSingleton<PackageUpload>()
             .BuildServiceProvider();
     }
 

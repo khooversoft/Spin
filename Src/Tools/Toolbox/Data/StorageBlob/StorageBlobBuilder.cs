@@ -1,7 +1,8 @@
-﻿using Toolbox.Extensions;
+﻿using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace SpinCluster.abstraction;
+namespace Toolbox.Data;
 
 public class StorageBlobBuilder
 {

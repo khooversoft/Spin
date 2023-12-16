@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -15,6 +9,9 @@ namespace NBlog.sdk;
 
 public class PackageBuild
 {
+    public const string ManifestFilesFolder = "manifestfiles/";
+    public const string DataFilesFolder = "datafiles/";
+
     private readonly ILogger<PackageBuild> _logger;
     public PackageBuild(ILogger<PackageBuild> logger) => _logger = logger.NotNull();
 
@@ -22,22 +19,20 @@ public class PackageBuild
     {
         packageFile = PathTools.SetExtension(packageFile, NBlogConstants.PackageExtension);
         var context = new ScopeContext(_logger);
+        context.Location().LogInformation("Building package, basePath={basePath}, packageFile={packageFile}", basePath, packageFile);
 
         IReadOnlyList<QueuedManifest> manifestFiles = await ReadManifestFiles(basePath, context);
         if (manifestFiles.Count == 0) return (StatusCode.NoContent);
-        context.Location().LogInformation("Completed: Package has been created, files added={count}", manifestFiles.Count);
+        context.Location().LogInformation("Manifest detected, files added={count}", manifestFiles.Count);
 
         var verifyOption = VerifyManifest(manifestFiles, context);
         if (verifyOption.IsError()) return verifyOption;
 
-        context.Location().LogInformation("Creating NBlog package file={file}", packageFile);
         using var zipFile = File.Open(packageFile, FileMode.Create);
         using var zip = new ZipArchive(zipFile, ZipArchiveMode.Create);
 
-        foreach (var manifest in manifestFiles)
-        {
-            WriteManifestAndFilesToZip(zip, manifest, context);
-        }
+        WriteManifestFilesToZip(zip, manifestFiles, context);
+        WriteFilesToZip(zip, manifestFiles, context);
 
         context.Location().LogInformation("Completed: Package has been created, files added={count}", manifestFiles.Count);
         return StatusCode.OK;
@@ -47,30 +42,28 @@ public class PackageBuild
     {
         string data = await File.ReadAllTextAsync(file);
         var model = data.ToObject<ArticleManifest>();
-        if (model == null)
+        if (model == null || model.Validate().IsError())
         {
-            context.Location().LogInformation("File={file} is not a valid manifest file", file);
+            context.Location().LogError("File={file} is not a valid manifest file", file);
             return;
         }
 
-        if (!model.Validate(out Option v))
-        {
-            context.Location().LogError("Manifest file={file} does not validate, error={error}", file, v.Error);
-            return;
-        }
+        string folder = Path.GetFullPath(file)
+            .Func(x => Path.GetDirectoryName(x))
+            .NotNull($"File={file} does not have directory name");
 
-        var commands = model.GetCommands();
-        if (commands.Count == 0)
+        var commands = model.GetCommands()
+            .Select(x => x with { LocalFilePath = Path.Combine(folder, x.LocalFilePath) })
+            .ToArray();
+
+        if (commands.Length == 0)
         {
             context.Location().LogError("Manifest={file} does not have any commands specified");
             return;
         }
 
-        string folder = Path.GetDirectoryName(file).NotNull($"File={file} does not have directory name");
-        var commandFiles = commands.Select(x => Path.Combine(folder, x.LocalFilePath)).ToArray();
-
-        var findResult = commandFiles
-            .Select(x => File.Exists(x) ? null : $"File={x} does not exist, local file for manifest={file}")
+        var findResult = commands
+            .Select(x => File.Exists(x.LocalFilePath) ? null : $"File={x.LocalFilePath} does not exist, local file for manifest={file}")
             .OfType<string>()
             .ToArray();
 
@@ -84,7 +77,7 @@ public class PackageBuild
         var queuedManifest = new QueuedManifest
         {
             File = file,
-            CommandLocalFiles = commandFiles,
+            Commands = commands,
             Manifest = model,
         };
 
@@ -93,9 +86,7 @@ public class PackageBuild
 
     private async Task<IReadOnlyList<QueuedManifest>> ReadManifestFiles(string basePath, ScopeContext context)
     {
-        var options = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 };
         var queue = new ConcurrentQueue<QueuedManifest>();
-        var block = new ActionBlock<string>(async x => await ReadManifest(x, queue, context), options);
 
         string[] files = Directory.GetFiles(basePath, "*.json", SearchOption.AllDirectories);
         context.Location().LogInformation("Reading manifest files, count={count}", files.Length);
@@ -105,9 +96,7 @@ public class PackageBuild
             return Array.Empty<QueuedManifest>();
         }
 
-        await files.ForEachAsync(async x => await block.SendAsync(x));
-        block.Complete();
-        await block.Completion;
+        await ActionBlockParallel.Run<string>(async x => await ReadManifest(x, queue, context), files);
 
         if (files.Length != queue.Count)
         {
@@ -122,34 +111,65 @@ public class PackageBuild
     private Option VerifyManifest(IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
     {
         var fileIds = manifestFiles.Select(x => x.Manifest.ArticleId).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        if (fileIds.Length == manifestFiles.Count) return StatusCode.OK;
+        if (fileIds.Length != manifestFiles.Count)
+        {
+            string msg = fileIds.Aggregate("Duplicate 'Article Ids'" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
+            context.Location().LogError(msg);
+            return StatusCode.Conflict;
+        }
 
-        string msg = fileIds.Aggregate("Duplicate 'Article Ids" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
-        context.Location().LogError(msg);
-        return StatusCode.Conflict;
+        var multipleReferences = manifestFiles
+            .SelectMany(x => x.Commands)
+            .Select(x => (fileId: x.FileId.ToLower(), localFile: x.LocalFilePath.ToLower()))
+            .GroupBy(x => x.fileId)
+            .Where(x => x.Count() > 1)
+            .ToArray();
+
+        if (multipleReferences.Length != 0)
+        {
+            string msg = multipleReferences.Aggregate("Multiple references to the same file" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
+            context.Location().LogError(msg);
+            return StatusCode.Conflict;
+        }
+
+        return StatusCode.OK;
     }
 
-    private void WriteManifestAndFilesToZip(ZipArchive zip, QueuedManifest queueManifest, ScopeContext context)
+    private void WriteManifestFilesToZip(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
     {
-        string zipFolder = queueManifest.Manifest.ArticleId;
-
-        string manifestFileEntry = zipFolder + "/" + Path.GetFileName(queueManifest.File);
-        zip.CreateEntryFromFile(queueManifest.File, manifestFileEntry);
-        context.Location().LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
-
-        var commands = queueManifest.Manifest.GetCommands();
-        foreach (var commandLocalFile in queueManifest.CommandLocalFiles)
+        foreach (var queueManifest in manifestFiles)
         {
-            string localFileEntry = zipFolder + "/" + Path.GetFileName(commandLocalFile);
-            zip.CreateEntryFromFile(commandLocalFile, localFileEntry);
-            context.Location().LogInformation("Writing manifest command file={file} to zipEntry={zipEntry}", commandLocalFile, localFileEntry);
+            string zipFolder = ManifestFilesFolder + queueManifest.Manifest.ArticleId;
+
+            string manifestFileEntry = zipFolder + "/" + Path.GetFileName(queueManifest.File);
+            zip.CreateEntryFromFile(queueManifest.File, manifestFileEntry.ToLower());
+            context.Location().LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
         }
+
+        context.Location().LogInformation("Write manifest count={count} files", manifestFiles.Count);
+    }
+
+    private void WriteFilesToZip(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
+    {
+        var dataFiles = manifestFiles
+            .SelectMany(x => x.Commands)
+            .Select(x => (fileId: x.FileId, localFile: x.LocalFilePath))
+            .ToArray();
+
+        foreach (var dataFile in dataFiles)
+        {
+            string fileEntry = DataFilesFolder + dataFile.fileId;
+            zip.CreateEntryFromFile(dataFile.localFile, fileEntry.ToLower());
+            context.Location().LogInformation("Writing data command file={file} to zipEntry={zipEntry}", dataFile.localFile, fileEntry);
+        }
+
+        context.Location().LogInformation("Write data count={count} files", manifestFiles.Count);
     }
 
     private record QueuedManifest
     {
         public string File { get; init; } = null!;
-        public IReadOnlyList<string> CommandLocalFiles { get; init; } = Array.Empty<string>();
+        public IReadOnlyList<CommandNode> Commands { get; init; } = Array.Empty<CommandNode>();
         public ArticleManifest Manifest { get; init; } = null!;
     }
 }

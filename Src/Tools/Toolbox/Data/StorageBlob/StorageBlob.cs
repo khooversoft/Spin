@@ -2,27 +2,27 @@
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace SpinCluster.abstraction;
+namespace Toolbox.Data;
 
-[GenerateSerializer, Immutable]
 public sealed record StorageBlob
 {
-    [Id(0)] public string StorageId { get; init; } = null!;
-    [Id(1)] public byte[] Content { get; init; } = null!;
-    [Id(2)] public string? ETag { get; init; }
-    [Id(3)] public string BlobHash { get; init; } = null!;
+    public string StorageId { get; init; } = null!;
+    public byte[] Content { get; init; } = null!;
+    public string? ETag { get; init; }
+    public string BlobHash { get; init; } = null!;
+    public string? Tags { get; init; }
 
-    public bool Equals(StorageBlob? obj)
-    {
-        return obj is StorageBlob document &&
-               StorageId == document.StorageId &&
-               Content.SequenceEqual(document.Content);
-    }
+    public bool Equals(StorageBlob? obj) => obj is StorageBlob document &&
+        StorageId == document.StorageId &&
+        Content.SequenceEqual(document.Content) &&
+        ETag == document.ETag &&
+        BlobHash == document.BlobHash &&
+        Tags == document.Tags;
 
     public override int GetHashCode() => HashCode.Combine(StorageId, Content);
 
     public static IValidator<StorageBlob> Validator { get; } = new Validator<StorageBlob>()
-        .RuleFor(x => x.StorageId).ValidResourceId(ResourceType.DomainOwned)
+        .RuleFor(x => x.StorageId).NotEmpty()
         .RuleFor(x => x.Content).NotNull()
         .RuleFor(x => x.BlobHash).NotEmpty()
         .Build();

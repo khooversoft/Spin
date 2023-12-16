@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace NBlog.sdk;
@@ -23,7 +18,20 @@ public class ArticleManifest
         .RuleFor(x => x.ArticleId).Must(x => FileId.Create(x).IsOk(), _ => "Invalid artical Id")
         .RuleFor(x => x.Title).NotEmpty()
         .RuleFor(x => x.Author).NotEmpty()
-        .RuleForEach(x => x.Commands).Must(x => CommandGrammarParser.Parse(x).IsOk(), x => $"{x} is invalid")
+        .RuleForEach(x => x.Commands).Must(x =>
+        {
+            var commandsOption = CommandGrammarParser.Parse(x);
+            if (commandsOption.IsError()) return commandsOption.ToOptionStatus<string>();
+            var commands = commandsOption.Return();
+
+            int fileIdDistinctCount = commands.Select(x => x.FileId).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+            if (fileIdDistinctCount != commands.Count) return (StatusCode.BadRequest, "Duplicate FileIds");
+
+            int localFilePathCount = commands.Select(x => x.LocalFilePath).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+            if (localFilePathCount != commands.Count) return (StatusCode.BadRequest, "Duplicate LocalFilePath");
+
+            return StatusCode.OK;
+        })
         .Build();
 }
 

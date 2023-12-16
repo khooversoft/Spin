@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Azure.DataLake;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
@@ -29,7 +24,7 @@ internal class Upload : ICommandRoute
         x.SetHandler(UploadPackage, packageFile);
     });
 
-    private async Task UploadPackage (string packageFile)
+    private async Task UploadPackage(string packageFile)
     {
     }
 }

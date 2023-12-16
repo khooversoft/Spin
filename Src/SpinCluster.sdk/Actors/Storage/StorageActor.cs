@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure.DataLake;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -113,6 +114,9 @@ public class StorageActor : Grain, IStorageActor
 
         if (!blob.Validate(out var v)) return v;
 
+        bool matchActorKey = blob.StorageId.EqualsIgnoreCase(this.GetPrimaryKeyString());
+        if (!matchActorKey) return (StatusCode.BadRequest, $"Storage Id={blob.StorageId} does not match actorKey={this.GetPrimaryKeyString()}");
+
         var schemaOption = GetStore(context);
         if (schemaOption.IsError()) return schemaOption.ToOptionStatus();
 
@@ -128,14 +132,11 @@ public class StorageActor : Grain, IStorageActor
         var result = await store.Write(filePath, dataEtag, true, context);
         if (result.IsError())
         {
-            context.Location().LogError("Failed to write state file, actorKey={actorKey}, filePath={filePath}",
-                this.GetPrimaryKeyString(), filePath);
+            context.Location().LogError("Failed to write state file, actorKey={actorKey}, filePath={filePath}", this.GetPrimaryKeyString(), filePath);
             return result.ToOptionStatus();
         }
 
-        context.Location().LogInformation("Write storage blob to actorKey={actorKey}, filePath={filePath}",
-                this.GetPrimaryKeyString(), filePath);
-
+        context.Location().LogInformation("Write storage blob to actorKey={actorKey}, filePath={filePath}", this.GetPrimaryKeyString(), filePath);
         return StatusCode.OK;
     }
 
