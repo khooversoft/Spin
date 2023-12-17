@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using NBlog.sdk;
+using NBlog.sdk.Application;
 using Toolbox.Azure.DataLake;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
@@ -8,13 +10,13 @@ namespace NBlogCmd.Activities;
 
 internal class Upload : ICommandRoute
 {
-    private readonly ILogger<Upload> _logger;
-    private readonly IDatalakeStore _store;
+    private readonly PackageUpload _packageUpload;
+    private readonly CmdOption _cmdOption;
 
-    public Upload(IDatalakeStore store, ILogger<Upload> logger)
+    public Upload(PackageUpload packageUpload, CmdOption cmdOption)
     {
-        _store = store.NotNull();
-        _logger = logger.NotNull();
+        _packageUpload = packageUpload.NotNull();
+        _cmdOption = cmdOption.NotNull();
     }
 
     public CommandSymbol CommandSymbol() => new CommandSymbol("upload", "Update articles and support files to datalake").Action(x =>
@@ -26,5 +28,6 @@ internal class Upload : ICommandRoute
 
     private async Task UploadPackage(string packageFile)
     {
+        await _packageUpload.Upload(packageFile, _cmdOption.Storage);
     }
 }

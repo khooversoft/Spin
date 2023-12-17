@@ -1,14 +1,16 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 
-namespace Toolbox.Application;
+namespace Toolbox.Logging;
 
 public class LambdaLoggerProvider : ILoggerProvider
 {
     private readonly Action<string> _redirect;
+    private readonly ConcurrentDictionary<string, LambdaLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
     public LambdaLoggerProvider(Action<string> redirect) => _redirect = redirect;
-    public ILogger CreateLogger(string categoryName) => new LambdaLogger(_redirect, categoryName);
-    public void Dispose() { }
+    public ILogger CreateLogger(string categoryName) => _loggers.GetOrAdd(categoryName, name => new LambdaLogger(_redirect, categoryName));
+    public void Dispose() => _loggers.Clear();
 }
 
 

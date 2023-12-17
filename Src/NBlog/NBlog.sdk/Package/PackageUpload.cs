@@ -27,7 +27,9 @@ public class PackageUpload
 
         packageFile = PathTools.SetExtension(packageFile, NBlogConstants.PackageExtension);
         var context = new ScopeContext(_logger);
-        context.Location().LogInformation("Uploading package={packageFile} to datalake, option={option}", packageFile, datalakeOption);
+
+        context.Location().LogInformation("Uploading package={packageFile} to datalake, account={account}, container={container}, basePath={basePath}",
+            packageFile, datalakeOption.Account, datalakeOption.Container, datalakeOption.BasePath);
 
         if (!File.Exists(packageFile)) return (StatusCode.BadRequest, $"Package file={packageFile} does not exist");
         IDatalakeStore datalakeStore = ActivatorUtilities.CreateInstance<DatalakeStore>(_service, datalakeOption);
@@ -48,7 +50,7 @@ public class PackageUpload
 
     private async Task<Option> ClearDatalake(IDatalakeStore datalakeStore, ScopeContext context)
     {
-        var query = new QueryParameter { Recurse = true };
+        var query = new QueryParameter();
         int maxCount = 100;
 
         while (maxCount-- > 0)
@@ -63,9 +65,26 @@ public class PackageUpload
             QueryResponse<DatalakePathItem> queryResponse = queryResponseOption.Return();
             if (queryResponse.Items.Count == 0 || queryResponse.EndOfSearch) return StatusCode.OK;
 
+            var directories = queryResponse.Items.Where(x => x.IsDirectory == true).ToArray();
+            if (directories.Length > 0)
+            {
+                foreach (DatalakePathItem file in directories)
+                {
+                    await datalakeStore.DeleteDirectory(file.Name, context);
+                }
+
+                continue;
+            }
+
             foreach (DatalakePathItem file in queryResponse.Items)
             {
-                await datalakeStore.Delete(file.Name, context);
+                StatusCode status = file.IsDirectory switch
+                {
+                    true => await datalakeStore.DeleteDirectory(file.Name, context),
+                    _ => await datalakeStore.Delete(file.Name, context)
+                };
+
+                if (status.IsError()) return status;
             }
         }
 

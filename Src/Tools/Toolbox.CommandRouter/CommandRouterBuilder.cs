@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Toolbox.Logging;
 using Toolbox.Tools;
 
 namespace Toolbox.CommandRouter;
@@ -19,12 +20,7 @@ public class CommandRouterBuilder
         _serviceCollection = new ServiceCollection()
             .AddLogging(config =>
             {
-                config.AddSimpleConsole(options =>
-                {
-                    options.IncludeScopes = true;
-                    options.SingleLine = true;
-                    options.TimestampFormat = "HH:mm:ss ";
-                });
+                config.SimpleConsole();
                 config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
             })
             .AddSingleton<AbortSignal>();

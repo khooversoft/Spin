@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NBlog.sdk;
+using NBlog.sdk.Application;
 using NBlogCmd.Activities;
-using NBlogCmd.Application;
-using Toolbox.Azure.DataLake;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 
@@ -29,9 +29,11 @@ var state = await new CommandRouterBuilder()
         service.AddSingleton(cmdOption.Storage);
     })
     .AddCommand<Build>()
+    .AddCommand<Upload>()
     .ConfigureService(x =>
     {
-        x.AddSingleton<IDatalakeStore, DatalakeStore>();
+        x.AddSingleton<PackageBuild>();
+        x.AddSingleton<PackageUpload>();
     })
     .Build()
     .Run();
