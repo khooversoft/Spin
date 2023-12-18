@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NBlog.sdk.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -20,7 +19,7 @@ public class TestFixture
             .AddJsonFile("test-appsettings.json")
             .AddUserSecrets(userSecretName.UserSecrets.NotEmpty())
             .Build()
-            .Bind<CmdOption>().Assert(x => x.Validate().IsOk(), "Configuration fails validation");
+            .Bind<StorageOption>().Assert(x => x.Validate().IsOk(), "Configuration fails validation");
 
         ServiceProvider = new ServiceCollection()
             .AddLogging()
@@ -30,7 +29,7 @@ public class TestFixture
             .BuildServiceProvider();
     }
 
-    public CmdOption Option { get; }
+    public StorageOption Option { get; }
 
     public IServiceProvider ServiceProvider { get; }
 }

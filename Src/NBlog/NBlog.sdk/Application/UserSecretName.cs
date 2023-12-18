@@ -1,4 +1,4 @@
-﻿namespace NBlog.sdk.Application;
+﻿namespace NBlog.sdk;
 
 public record UserSecretName
 {

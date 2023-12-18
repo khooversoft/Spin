@@ -8,9 +8,9 @@ using Toolbox.Extensions;
 Console.WriteLine($"NBlog web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 
-UserSecretName option = Host.CreateApplicationBuilder(args)
+AppOption option = Host.CreateApplicationBuilder(args)
     .Build()
-    .Func(x => x.Services.GetRequiredService<IConfiguration>().Bind<UserSecretName>());
+    .Func(x => x.Services.GetRequiredService<IConfiguration>().Bind<AppOption>());
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,11 +27,15 @@ builder.Logging
         options.SingleLine = true;
         options.TimestampFormat = "HH:mm:ss ";
     })
-    .AddDebug()
-    .AddApplicationInsights(
+    .AddDebug();
+
+if (option.AppInsightsConnectionString != null)
+{
+    builder.Logging.AddApplicationInsights(
         configureTelemetryConfiguration: (config) => config.ConnectionString = option.AppInsightsConnectionString,
         configureApplicationInsightsLoggerOptions: (options) => { }
     );
+}
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

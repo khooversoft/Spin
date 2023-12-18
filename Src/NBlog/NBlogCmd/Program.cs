@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NBlog.sdk;
-using NBlog.sdk.Application;
 using NBlogCmd.Activities;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
@@ -24,7 +23,7 @@ var state = await new CommandRouterBuilder()
         if (option.UserSecrets.IsNotEmpty()) config.AddUserSecrets(option.UserSecrets);
         config.AddEnvironmentVariables("SPIN_CLI_");
 
-        var cmdOption = config.Build().Bind<CmdOption>();
+        var cmdOption = config.Build().Bind<StorageOption>();
         service.AddSingleton(cmdOption);
         service.AddSingleton(cmdOption.Storage);
     })

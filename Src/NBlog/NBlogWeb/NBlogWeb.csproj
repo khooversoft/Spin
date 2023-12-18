@@ -4,7 +4,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <UserSecretsId>nblog-web-test</UserSecretsId>
+        <UserSecretsId>nblog-cmd-secrets</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,6 +15,10 @@
         <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
         <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
         <ProjectReference Include="..\NBlog.sdk\NBlog.sdk.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Application\" />
     </ItemGroup>
 
 </Project>

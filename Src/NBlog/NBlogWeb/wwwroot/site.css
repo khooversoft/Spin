@@ -1,0 +1,14 @@
+﻿.program-icon {
+    max-width: 64px;
+}
+
+
+.program-footer {
+    background-color: #f6f6f6;
+    height: 60px;
+    border-top: 1px solid #e7e7e7;
+    padding: 18px 0;
+    color: #232323;
+    font-size: .9rem;
+    border-radius: 10px;
+}

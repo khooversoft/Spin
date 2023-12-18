@@ -1,0 +1,38 @@
+﻿<header class="navbar navbar-expand-lg navbar-dark bd-navbar sticky-top">
+    <div class="container">
+        <nav class="navbar justify-content-between">
+            <dev class="row">
+                <a href="">
+                    <img src="/Images/khicon.svg" class="img-fluid" style="max-width: 64px;" aria-label="KH" />
+                    Kelvin Hoover
+                </a>
+            </dev>
+            <div class="form-inline">
+                @if (!ShowSearch)
+                {
+                    <NavLink class="program-top-menu-item program-color" href="">Home</NavLink>
+                    <NavLink class="program-top-menu-item" href="">Articles</NavLink>
+                    <NavLink class="program-top-menu-item" href="">Projects</NavLink>
+                    <NavLink class="program-top-menu-item" href="">For Hire</NavLink>
+                    <NavLink class="program-top-menu-item" href="">Contact</NavLink>
+
+                    <NavLink @onclick="ToggleSearch" href=""><span class="oi oi-magnifying-glass program-color"></span></NavLink>
+                }
+                else
+                {
+                    <div>
+                        <SearchBar OnCloseCallback="@CloseHandler" />
+                    </div>
+                }
+            </div>
+        </nav>
+    </div>
+</header>
+
+@code {
+    private bool ShowSearch { get; set; } = false;
+
+    private void ToggleSearch() => ShowSearch = true;
+
+    private void CloseHandler() => ShowSearch = false;
+}
