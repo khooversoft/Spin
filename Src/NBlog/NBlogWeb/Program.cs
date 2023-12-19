@@ -41,12 +41,12 @@ if (option.AppInsightsConnectionString != null)
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Host.UseOrleans((context, silo) =>
-{
-    silo.UseLocalhostClustering();
-    silo.AddBlogCluster(context);
-    silo.AddDatalakeGrainStorage();
-});
+//builder.Host.UseOrleans((context, silo) =>
+//{
+//    silo.UseLocalhostClustering();
+//    silo.AddBlogCluster(context);
+//    silo.AddDatalakeGrainStorage();
+//});
 
 var app = builder.Build();
 

@@ -1,38 +1,39 @@
 ﻿<header class="navbar navbar-expand-lg navbar-dark bd-navbar sticky-top">
-    <div class="container">
-        <nav class="navbar justify-content-between">
-            <dev class="row">
-                <a href="">
-                    <img src="/Images/khicon.svg" class="img-fluid" style="max-width: 64px;" aria-label="KH" />
-                    Kelvin Hoover
-                </a>
-            </dev>
-            <div class="form-inline">
-                @if (!ShowSearch)
-                {
-                    <NavLink class="program-top-menu-item program-color" href="">Home</NavLink>
-                    <NavLink class="program-top-menu-item" href="">Articles</NavLink>
-                    <NavLink class="program-top-menu-item" href="">Projects</NavLink>
-                    <NavLink class="program-top-menu-item" href="">For Hire</NavLink>
-                    <NavLink class="program-top-menu-item" href="">Contact</NavLink>
+  <nav class="container-xxl bd-gutter flex-wrap flex-lg-nowrap" aria-label="Main navigation">
+    <dev>
+        <a href="">
+            <img src="/Images/khicon.svg" class="img-fluid" style="max-width: 64px;" aria-label="KH" />
+        </a>
+        <span>Kelvin Hoover</span>
+    </dev>
 
-                    <NavLink @onclick="ToggleSearch" href=""><span class="oi oi-magnifying-glass program-color"></span></NavLink>
-                }
-                else
-                {
-                    <div>
-                        <SearchBar OnCloseCallback="@CloseHandler" />
-                    </div>
-                }
-            </div>
-        </nav>
+    <div class="navbar">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Dropdown
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+        </li>
+      </ul>
+      <form class="d-flex" role="search">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
     </div>
+  </nav>
 </header>
-
-@code {
-    private bool ShowSearch { get; set; } = false;
-
-    private void ToggleSearch() => ShowSearch = true;
-
-    private void CloseHandler() => ShowSearch = false;
-}
