@@ -1,17 +1,20 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
+<div>
     <TopMenuBar />
 
-@*     <div class="sidebar">
-        <NavMenu />
-    </div> *@
-
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+    <div class="container-xxl px-4 px-xxl-2">
+        <div class="d-lg-grid content">
+            <LeftColumn/>
+            <div class="main">
+                <main>
+                    <article class="content px-4">
+                        @Body
+                    </article>
+                </main>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="blazor-error-ui">
@@ -19,3 +22,5 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+

@@ -1,4 +1,23 @@
-﻿.program-icon {
+﻿:root {
+    --bd-purple: #4c0bce;
+    --bd-violet: #712cf9;
+    --bd-accent: #ffe484;
+    --db-newcolor: #5A3751;
+    --bd-violet-rgb: 112.520718,44.062154,249.437846;
+    --bd-newcolor-rgb: 120,236,71;
+    --bd-accent-rgb: 255,228,132;
+    --bd-pink-rgb: 214,51,132;
+    --bd-teal-rgb: 32,201,151;
+    --bd-violet-bg: var(--bd-violet);
+    --bd-toc-color: var(--bd-violet);
+    --bd-sidebar-link-bg: rgba(var(--bd-violet-rgb), .1);
+    --bd-callout-link: 10,88,202;
+    --bd-callout-code-color: #ab296a;
+    --bd-pre-bg: var(--bs-tertiary-bg);
+}
+
+
+.program-icon {
     max-width: 64px;
 }
 
@@ -11,4 +30,71 @@
     color: #232323;
     font-size: .9rem;
     border-radius: 10px;
+}
+
+
+.bd-gutter {
+    --bs-gutter-x: 3rem;
+}
+
+.bd-navbar {
+    padding: .75rem 0;
+    background-color: transparent;
+    background-image: linear-gradient(to bottom, rgba(var(--bd-newcolor-rgb), 1), rgba(var(--bd-newcolor-rgb), 0.95));
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15),inset 0 -1px 0 rgba(0,0,0,0.15);
+}
+
+.masthead {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 4rem;
+}
+
+.content {
+    grid-template-columns: 1.15fr 3fr;
+    gap: 3rem;
+}
+
+.gap-1 {
+    gap: .25rem !important;
+}
+
+.nav {
+    --bs-nav-link-padding-x: 1rem;
+    --bs-nav-link-padding-y: .5rem;
+    --bs-nav-link-font-weight:;
+    --bs-nav-link-color: var(--bs-link-color);
+    --bs-nav-link-hover-color: var(--bs-link-hover-color);
+    --bs-nav-link-disabled-color: var(--bs-secondary-color);
+    display: flex;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
+
+.flex-lg-column {
+    flex-direction: column !important;
+}
+
+.bi {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -.125em;
+    fill: currentcolor;
+}
+
+body {
+    margin: 0;
+    font-family: var(--bs-body-font-family);
+    font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: #dee2e6;
+    text-align: var(--bs-body-text-align);
+    background-color: #212529;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
