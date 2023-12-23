@@ -4,7 +4,7 @@ using Toolbox.Types;
 namespace NBlog.sdk;
 
 [GenerateSerializer, Immutable]
-public class NBlogConfiguration
+public record NBlogConfiguration
 {
     [Id(0)] public string RootPath { get; init; } = null!;
 

@@ -4,7 +4,7 @@ using Toolbox.Types;
 namespace NBlog.sdk;
 
 [GenerateSerializer, Immutable]
-public class ArticleManifest
+public record ArticleManifest
 {
     [Id(0)] public string ArticleId { get; init; } = null!;
     [Id(1)] public string Title { get; init; } = null!;
@@ -47,4 +47,8 @@ public static class ArticleManifestExtensions
     }
 
     public static IReadOnlyList<CommandNode> GetCommands(this ArticleManifest subject) => subject.Commands.SelectMany(x => CommandGrammarParser.Parse(x).Return()).ToArray();
+
+    public static Option<CommandNode> GetCommand(this ArticleManifest subject, string attribute) => subject.GetCommands()
+        .Where(x => x.Attributes.Any(y => y == attribute))
+        .FirstOrDefaultOption();
 }

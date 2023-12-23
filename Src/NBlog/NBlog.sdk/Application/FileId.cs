@@ -8,9 +8,10 @@ public record FileId
     private FileId(string id) => Id = id;
     public string Id { get; }
 
+    public override string ToString() => Id;
 
     public static explicit operator string(FileId articleId) => articleId.ToString();
-    public static explicit operator FileId(string id) => new FileId(id);
+    public static explicit operator FileId(string id) => FileId.Create(id).ThrowOnError().Return();
 
     public static Option<FileId> Create(string id)
     {
@@ -29,5 +30,11 @@ public record FileId
         }
 
         return new FileId(id);
+    }
+
+    public static bool Validate(string id, out Option result)
+    {
+        result = FileId.Create(id).ToOptionStatus();
+        return result.IsOk();
     }
 }

@@ -21,7 +21,7 @@ public class ArticleManifestActor : Grain, IArticleManifestActor
     private readonly ILogger<ArticleManifestActor> _logger;
     private DateTime _nextRead;
 
-    public ArticleManifestActor([PersistentState(stateName: "default")] IPersistentState<ArticleManifest> state, ILogger<ArticleManifestActor> logger)
+    public ArticleManifestActor([PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<ArticleManifest> state, ILogger<ArticleManifestActor> logger)
     {
         _state = state.NotNull();
         _logger = logger.NotNull();

@@ -7,7 +7,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace NBlog.sdk.State;
+namespace NBlog.sdk;
 
 internal class DatalakeStateConnector : IGrainStorage
 {
@@ -51,10 +51,18 @@ internal class DatalakeStateConnector : IGrainStorage
 
         try
         {
-            grainState.State = result.Return().Data
-                .BytesToString()
-                .ToObject<T>()
-                .NotNull();
+            DataETag dataETag = result.Return();
+
+            grainState.State = typeof(T) switch
+            {
+                Type v when v == typeof(DataETag) => dataETag.Cast<T>(),
+                _ => dataETag.Data.BytesToString().ToObject<T>().NotNull(),
+            };
+
+            //grainState.State = result.Return().Data
+            //    .BytesToString()
+            //    .ToObject<T>()
+            //    .NotNull();
         }
         catch (Exception ex)
         {
@@ -75,12 +83,23 @@ internal class DatalakeStateConnector : IGrainStorage
         string filePath = GetPath(grainId);
         context.Location().LogInformation("Writing state for filePath={filePath}", filePath);
 
-        byte[] data = grainState.State
-            .ToJsonSafe(context.Location())
-            .ToBytes();
-
         ETag etag = new ETag(grainState.ETag);
-        var dataEtag = new DataETag(data, etag);
+
+        DataETag dataEtag = grainState.State switch
+        {
+            DataETag v => new DataETag(v.Data, etag),
+            var v => v
+                .ToJsonSafe(context.Location())
+                .ToBytes()
+                .Func(x => new DataETag(x, etag)),
+        };
+
+        //byte[] data = grainState.State
+        //    .ToJsonSafe(context.Location())
+        //    .ToBytes();
+
+        //ETag etag = new ETag(grainState.ETag);
+        //var dataEtag = new DataETag(data, etag);
 
         var result = await _datalakeStore.Write(filePath, dataEtag, true, context);
         if (result.IsError())

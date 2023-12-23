@@ -1,4 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -40,6 +42,10 @@ public static class OptionExtensionTools
 
         return Option<T>.None;
     }
+
+    public static bool IsOk(this Option subject) => subject.StatusCode.IsOk();
+    public static bool IsNotFound(this Option subject) => subject.StatusCode.IsNotFound();
+    public static bool IsError(this Option subject) => subject.StatusCode.IsError();
 
     public static bool IsOk<T>(this Option<T> subject) => subject.StatusCode.IsOk();
     public static bool IsNoContent<T>(this Option<T> subject) => subject.StatusCode.IsNoContent();
@@ -95,4 +101,40 @@ public static class OptionExtensionTools
             x => x.StatusCode.IsOk(),
             x => $"Message={message}, StatusCode= {x.StatusCode}, Error={x.Error}", function: function, path: path, lineNumber: lineNumber, name: name
             );
+
+    public static Option LogOnError(this Option option,
+        ScopeContext context,
+        string? message = "< no message >",
+        [CallerMemberName] string function = "",
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerArgumentExpression("option")] string name = ""
+        )
+    {
+        if (option.IsError())
+        {
+            string msg = $"Message={message}, StatusCode={option.StatusCode}, Error={option.Error}";
+            context.Location(function: function, path: path, lineNumber: lineNumber).LogError(msg);
+        }
+
+        return option;
+    }
+
+    public static Option<T> LogOnError<T>(this Option<T> option,
+        ScopeContext context,
+        string? message = "< no message >",
+        [CallerMemberName] string function = "",
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerArgumentExpression("option")] string name = ""
+        )
+    {
+        if (option.IsError())
+        {
+            string msg = $"Message={message}, StatusCode={option.StatusCode}, Error={option.Error}";
+            context.Location(function: function, path: path, lineNumber: lineNumber).LogError(msg);
+        }
+
+        return option;
+    }
 }

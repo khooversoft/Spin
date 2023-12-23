@@ -70,6 +70,7 @@ public class PackageUpload
             {
                 foreach (DatalakePathItem file in directories)
                 {
+                    context.Location().LogInformation("Deleting directory={directoryName}", file.Name);
                     await datalakeStore.DeleteDirectory(file.Name, context);
                 }
 
@@ -78,13 +79,8 @@ public class PackageUpload
 
             foreach (DatalakePathItem file in queryResponse.Items)
             {
-                StatusCode status = file.IsDirectory switch
-                {
-                    true => await datalakeStore.DeleteDirectory(file.Name, context),
-                    _ => await datalakeStore.Delete(file.Name, context)
-                };
-
-                if (status.IsError()) return status;
+                context.Location().LogInformation("Deleting file={file}", file.Name);
+                var status = await datalakeStore.Delete(file.Name, context);
             }
         }
 

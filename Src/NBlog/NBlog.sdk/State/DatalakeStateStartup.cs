@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Orleans.Providers;
 using Orleans.Runtime;
 using Orleans.Storage;
 using Toolbox.Azure.DataLake;
@@ -12,7 +13,7 @@ public static class DatalakeStateStartup
         {
             services.AddSingleton<IDatalakeStore, DatalakeStore>();
             services.AddSingleton<DatalakeStateConnector>();
-            services.AddSingletonNamedService("spinStateStore", CreateStorage);
+            services.AddSingletonNamedService(NBlogConstants.DataLakeProviderName, CreateStorage);
         });
 
     private static IGrainStorage CreateStorage(IServiceProvider service, string name) => service.GetRequiredService<DatalakeStateConnector>();

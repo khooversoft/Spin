@@ -1,4 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -6,22 +11,23 @@ using Toolbox.Types;
 
 namespace NBlog.sdk;
 
-public interface INBlogConfigurationActor : IGrainWithStringKey
+public interface IStorageActor : IGrainWithStringKey
 {
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
-    Task<Option<NBlogConfiguration>> Get(string traceId);
-    Task<Option> Set(NBlogConfiguration model, string traceId);
+    Task<Option<DataETag>> Get(string traceId);
+    Task<Option> Set(DataETag model, string traceId);
 }
 
-public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
+
+public class StorageActor : Grain, IStorageActor
 {
     private readonly TimeSpan _cacheTime = TimeSpan.FromMinutes(15);
-    private readonly IPersistentState<NBlogConfiguration> _state;
-    private readonly ILogger<NBlogConfigurationActor> _logger;
+    private readonly IPersistentState<DataETag> _state;
+    private readonly ILogger<StorageActor> _logger;
     private DateTime _nextRead;
 
-    public NBlogConfigurationActor([PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<NBlogConfiguration> state, ILogger<NBlogConfigurationActor> logger)
+    public StorageActor([PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<DataETag> state, ILogger<StorageActor> logger)
     {
         _state = state.NotNull();
         _logger = logger.NotNull();
@@ -32,17 +38,16 @@ public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
         string actorKey = this.GetPrimaryKeyString();
-        if (actorKey.EqualsIgnoreCase(NBlogConstants.ConfigurationActorId)) throw new ArgumentException($"ActorKey={actorKey} should be {NBlogConstants.ConfigurationActorId}");
+        FileId.Create(actorKey).ThrowOnError("Actor Id is invalid");
         return base.OnActivateAsync(cancellationToken);
     }
 
     public async Task<Option> Delete(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Deleting NBlogConfiguration, actorKey={actorKey}", this.GetPrimaryKeyString());
+        context.Location().LogInformation("Deleting storage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         if (!_state.RecordExists) return StatusCode.NotFound;
-
         await _state.ClearStateAsync();
 
         return StatusCode.OK;
@@ -50,10 +55,10 @@ public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
 
     public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
-    public async Task<Option<NBlogConfiguration>> Get(string traceId)
+    public async Task<Option<DataETag>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Get NBlogConfiguration, actorKey={actorKey}", this.GetPrimaryKeyString());
+        context.Location().LogInformation("Get ArticleManifest, actorKey={actorKey}", this.GetPrimaryKeyString());
 
         if (DateTime.UtcNow > _nextRead && _state.RecordExists)
         {
@@ -64,16 +69,18 @@ public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
         var option = _state.RecordExists switch
         {
             true => _state.State,
-            false => new Option<NBlogConfiguration>(StatusCode.NotFound),
+            false => new Option<DataETag>(StatusCode.NotFound),
         };
 
         return option;
     }
 
-    public async Task<Option> Set(NBlogConfiguration model, string traceId)
+    public async Task<Option> Set(DataETag model, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Set NBlogConfiguration, actorKey={actorKey}", this.GetPrimaryKeyString());
+        context.Location().LogInformation("Set ArticleManifest, actorKey={actorKey}", this.GetPrimaryKeyString());
+
+        string actorKey = this.GetPrimaryKeyString();
         if (!model.Validate(out var v1)) return v1;
 
         _state.State = model;

@@ -38,13 +38,31 @@ public class PackageBuild
         return StatusCode.OK;
     }
 
-    private static async Task ReadManifest(string file, ConcurrentQueue<QueuedManifest> queue, ScopeContext context)
+    private static async Task ReadManifest(string file, string basePath, ConcurrentQueue<QueuedManifest> queue, ScopeContext context)
     {
+        file.NotEmpty();
+        basePath.NotEmpty();
+
+        string fileId = file[(basePath.Length + 1)..].Replace(@"\", "/");
+        string pathFileId = Path.GetDirectoryName(fileId).NotNull().Replace(@"\", "/");
+
         string data = await File.ReadAllTextAsync(file);
         var model = data.ToObject<ArticleManifest>();
-        if (model == null || model.Validate().IsError())
+        if (model == null)
         {
-            context.Location().LogError("File={file} is not a valid manifest file", file);
+            context.Location().LogError("Cannot deserialize json={file}", file);
+            return;
+        }
+
+        model = model with
+        {
+            ArticleId = resolveVariables(model.ArticleId),
+            Commands = model.Commands.Select(x => resolveVariables(x)).ToArray(),
+        };
+
+        if (!model.Validate(out var v))
+        {
+            context.Location().LogStatus(v, "File={file} is not a valid manifest file", file);
             return;
         }
 
@@ -82,6 +100,10 @@ public class PackageBuild
         };
 
         queue.Enqueue(queuedManifest);
+
+        string resolveVariables(string value) => value
+            .Replace("{pathAndFile}", fileId)
+            .Replace("{path}", pathFileId);
     }
 
     private async Task<IReadOnlyList<QueuedManifest>> ReadManifestFiles(string basePath, ScopeContext context)
@@ -96,7 +118,7 @@ public class PackageBuild
             return Array.Empty<QueuedManifest>();
         }
 
-        await ActionBlockParallel.Run<string>(async x => await ReadManifest(x, queue, context), files);
+        await ActionBlockParallel.Run<string>(async x => await ReadManifest(x, basePath, queue, context), files);
 
         if (files.Length != queue.Count)
         {
@@ -137,15 +159,19 @@ public class PackageBuild
 
     private void WriteManifestFilesToZip(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
     {
+        string tempFile = Path.GetTempFileName();
+
         foreach (var queueManifest in manifestFiles)
         {
-            string zipFolder = ManifestFilesFolder + queueManifest.Manifest.ArticleId;
+            string json = queueManifest.Manifest.ToJson();
+            File.WriteAllText(tempFile, json);
 
-            string manifestFileEntry = zipFolder + "/" + Path.GetFileName(queueManifest.File);
-            zip.CreateEntryFromFile(queueManifest.File, manifestFileEntry.ToLower());
+            string manifestFileEntry = ManifestFilesFolder + queueManifest.Manifest.ArticleId;
+            zip.CreateEntryFromFile(tempFile, manifestFileEntry.ToLower());
             context.Location().LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
         }
 
+        if (File.Exists(tempFile)) File.Delete(tempFile);
         context.Location().LogInformation("Write manifest count={count} files", manifestFiles.Count);
     }
 
