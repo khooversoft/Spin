@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Toolbox.Types;
 using Toolbox.Tools;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
+using System.Collections.Concurrent;
+using System.Threading.Tasks.Dataflow;
 
 namespace NBlog.sdk;
 
@@ -46,6 +49,33 @@ public class ArticleService
         };
     }
 
+    public async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context)
+    {
+        Option<GraphCommandResults> response = await _clusterClient.GetDirectoryActor().Execute("select (key=article:*);", context.TraceId);
+        if (response.IsError()) return response.LogOnError(context, "Directory search failed").ToOptionStatus<IReadOnlyList<ArticleManifest>>();
+
+        GraphCommandResults result = response.Return();
+        IReadOnlyList<GraphNode> nodes = result.Items.SelectMany(x => x.Nodes()).ToArray();
+
+        var queue = new ConcurrentQueue<ArticleManifest>();
+        await ActionBlockParallel.Run(getArticleDetail, nodes);
+
+        var list = queue.OrderByDescending(x => x.CreatedDate).ToArray();
+        return list;
+
+
+        async Task getArticleDetail(GraphNode node)
+        {
+            string articleId = node.Key.Replace("article:", string.Empty);
+
+            var manifestOption = await GetManifest(articleId, context);
+            if (manifestOption.IsError()) return;
+            ArticleManifest manifest = manifestOption.Return();
+
+            queue.Enqueue(manifest);
+        }
+    }
+
     private async Task<Option<ArticleManifest>> GetManifest(string articleId, ScopeContext context)
     {
         string label = $"Article Id={articleId}";
@@ -71,3 +101,4 @@ public class ArticleService
         return command;
     }
 }
+

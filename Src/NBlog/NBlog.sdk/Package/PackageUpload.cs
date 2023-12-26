@@ -39,10 +39,10 @@ public class PackageUpload
         using var zipFile = File.Open(packageFile, FileMode.Open, FileAccess.Read);
         using var zipArchive = new ZipArchive(zipFile, ZipArchiveMode.Read);
 
-        Option manifestOption = await ProcessManifests(zipArchive, datalakeStore, context);
-        if (manifestOption.IsError()) return manifestOption;
+        //Option manifestOption = await ProcessManifests(zipArchive, datalakeStore, context);
+        //if (manifestOption.IsError()) return manifestOption;
 
-        Option datafileOption = await ProcessDataFiles(zipArchive, datalakeStore, context);
+        Option datafileOption = await ProcessFiles(zipArchive, datalakeStore, context);
         if (datafileOption.IsError()) return datafileOption;
 
         return StatusCode.OK;
@@ -52,6 +52,8 @@ public class PackageUpload
     {
         var query = new QueryParameter();
         int maxCount = 100;
+
+        context.Location().LogInformation("Clearing all files in datalake storage");
 
         while (maxCount-- > 0)
         {
@@ -87,13 +89,11 @@ public class PackageUpload
         return (StatusCode.Conflict, "maxCount exceeded");
     }
 
-    private async Task<Option> ProcessManifests(ZipArchive zipArchive, IDatalakeStore datalakeStore, ScopeContext context)
+    private async Task<Option> ProcessFiles(ZipArchive zipArchive, IDatalakeStore datalakeStore, ScopeContext context)
     {
-        ZipArchiveEntry[] zipFiles = zipArchive.Entries
-            .Where(x => x.FullName.StartsWith(PackageBuild.ManifestFilesFolder) && x.FullName.EndsWith(".json"))
-            .ToArray();
+        context.Location().LogInformation("Uploading files to datalake storage");
 
-        foreach (var zipFile in zipFiles)
+        foreach (var zipFile in zipArchive.Entries)
         {
             byte[] data;
             using (var zipStream = zipFile.Open())
@@ -103,11 +103,7 @@ public class PackageUpload
                 data = memory.ToArray();
             }
 
-            var model = data.BytesToString().ToObject<ArticleManifest>();
-            if (model == null) return (StatusCode.NotFound, $"zip entry={zipFile.FullName} failed to deserialize to 'ArticleManifest'");
-            if (!model.Validate(out var r)) return r;
-
-            string dataLakePath = zipFile.FullName[PackageBuild.ManifestFilesFolder.Length..];
+            string dataLakePath = calcDatalakePath( zipFile.FullName);
             var dataEtag = new DataETag(data);
             var writeOption = await datalakeStore.Write(dataLakePath, dataEtag, true, context);
             if (writeOption.IsError())
@@ -120,36 +116,14 @@ public class PackageUpload
         }
 
         return StatusCode.OK;
-    }
 
-    private async Task<Option> ProcessDataFiles(ZipArchive zipArchive, IDatalakeStore datalakeStore, ScopeContext context)
-    {
-        ZipArchiveEntry[] zipFiles = zipArchive.Entries
-            .Where(x => x.FullName.StartsWith(PackageBuild.DataFilesFolder))
-            .ToArray();
-
-        foreach (var zipFile in zipFiles)
+        string calcDatalakePath(string path) => path switch
         {
-            byte[] data;
-            using (var zipStream = zipFile.Open())
-            using (var memory = new MemoryStream())
-            {
-                zipStream.CopyTo(memory);
-                data = memory.ToArray();
-            }
+            string v when v.StartsWith(PackageBuild.ManifestFilesFolder) => v[PackageBuild.ManifestFilesFolder.Length..],
+            string v when v.StartsWith(PackageBuild.DataFilesFolder) => v[PackageBuild.DataFilesFolder.Length..],
+            string v when v == (PackageBuild.ArticleIndexZipFile) => v,
 
-            string dataLakePath = zipFile.FullName[PackageBuild.DataFilesFolder.Length..];
-            var dataEtag = new DataETag(data);
-            var writeOption = await datalakeStore.Write(dataLakePath, dataEtag, true, context);
-            if (writeOption.IsError())
-            {
-                context.Location().LogError("Cannot write to datalake, path={path}, error={error}", dataLakePath, writeOption.Error);
-                return writeOption.ToOptionStatus();
-            }
-
-            context.Location().LogInformation("Write fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, dataLakePath);
-        }
-
-        return StatusCode.OK;
+            _ => throw new ArgumentException($"Unknown path or path prefix: {path}")
+        };
     }
 }

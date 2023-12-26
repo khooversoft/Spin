@@ -43,6 +43,12 @@ public class Tags : Dictionary<string, string?>
         return this;
     }
 
+    public Tags SetValues(IEnumerable<KeyValuePair<string, string?>> values)
+    {
+        values.NotNull().ForEach(x => SetValue(x.Key, x.Value));
+        return this;
+    }
+
     public bool Has(string? key) => key switch
     {
         string v => v.Func(x => v.ToDictionaryFromString().All(x => TryGetValue(x.Key, out var value) switch
@@ -85,6 +91,7 @@ public class Tags : Dictionary<string, string?>
     public static bool operator !=(Tags? left, Tags? right) => !(left == right);
 
     public static implicit operator Tags(string? value) => new Tags(value);
+    //public static implicit operator string(Tags value) => value.NotNull().ToString();
 }
 
 

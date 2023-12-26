@@ -38,7 +38,7 @@ public record GraphNode : IGraphCommon
         .Build();
 }
 
-public static class GraphNodeTool
+public static class GraphNodeExtensions
 {
     public static Option Validate(this GraphNode subject) => GraphNode.Validator.Validate(subject).ToOptionStatus();
 

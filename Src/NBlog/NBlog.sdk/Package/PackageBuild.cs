@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -11,6 +12,7 @@ public class PackageBuild
 {
     public const string ManifestFilesFolder = "manifestfiles/";
     public const string DataFilesFolder = "datafiles/";
+    public const string ArticleIndexZipFile = NBlogConstants.DirectoryActorKey;
 
     private readonly ILogger<PackageBuild> _logger;
     public PackageBuild(ILogger<PackageBuild> logger) => _logger = logger.NotNull();
@@ -33,6 +35,7 @@ public class PackageBuild
 
         WriteManifestFilesToZip(zip, manifestFiles, context);
         WriteFilesToZip(zip, manifestFiles, context);
+        BuildAndWriteIndex(zip, manifestFiles, context);
 
         context.Location().LogInformation("Completed: Package has been created, files added={count}", manifestFiles.Count);
         return StatusCode.OK;
@@ -161,18 +164,24 @@ public class PackageBuild
     {
         string tempFile = Path.GetTempFileName();
 
-        foreach (var queueManifest in manifestFiles)
+        try
         {
-            string json = queueManifest.Manifest.ToJson();
-            File.WriteAllText(tempFile, json);
+            foreach (var queueManifest in manifestFiles)
+            {
+                string json = queueManifest.Manifest.ToJson();
+                File.WriteAllText(tempFile, json);
 
-            string manifestFileEntry = ManifestFilesFolder + queueManifest.Manifest.ArticleId;
-            zip.CreateEntryFromFile(tempFile, manifestFileEntry.ToLower());
-            context.Location().LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
+                string manifestFileEntry = ManifestFilesFolder + queueManifest.Manifest.ArticleId;
+                zip.CreateEntryFromFile(tempFile, manifestFileEntry.ToLower());
+                context.Location().LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
+            }
+
+            context.Location().LogInformation("Write manifest count={count} files", manifestFiles.Count);
         }
-
-        if (File.Exists(tempFile)) File.Delete(tempFile);
-        context.Location().LogInformation("Write manifest count={count} files", manifestFiles.Count);
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
     }
 
     private void WriteFilesToZip(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
@@ -189,7 +198,30 @@ public class PackageBuild
             context.Location().LogInformation("Writing data command file={file} to zipEntry={zipEntry}", dataFile.localFile, fileEntry);
         }
 
-        context.Location().LogInformation("Write data count={count} files", manifestFiles.Count);
+        context.Location().LogInformation("Write data count={count} files", dataFiles.Length);
+    }
+
+    private void BuildAndWriteIndex(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
+    {
+        var map = new GraphMap();
+
+        manifestFiles.SelectMany(x => x.Manifest.GetNodes()).ForEach(x => map.Nodes.Add(x, true).ThrowOnError());
+        manifestFiles.SelectMany(x => x.Manifest.GetEdges()).ForEach(x => map.Edges.Add(x, true).ThrowOnError());
+
+        string tempFile = Path.GetTempFileName();
+
+        try
+        {
+            string json = map.ToJson();
+            File.WriteAllText(tempFile, json);
+            zip.CreateEntryFromFile(tempFile, ArticleIndexZipFile);
+
+            context.Location().LogInformation("Writing directory to zipEntry={zipEntry}", ArticleIndexZipFile);
+        }
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
     }
 
     private record QueuedManifest

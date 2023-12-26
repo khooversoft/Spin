@@ -41,7 +41,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public int Count => _index.Count;
 
-    public Option Add(GraphEdge edge)
+    public Option Add(GraphEdge edge, bool upsert = false)
     {
         if (!edge.Validate(out var v1)) return v1;
 
@@ -49,7 +49,21 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         {
             if (!ValidateNodes(edge, out var v2)) return v2;
             if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
-            if (!_masterList.Add(edge)) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
+
+            if (!_masterList.Add(edge))
+            {
+                if( !upsert) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
+
+                if (!_masterList.TryGetValue(edge, out var readEdge)) throw new InvalidOperationException("Master list lookup failed");
+                _masterList.Remove(readEdge);
+
+                readEdge = readEdge with
+                {
+                    Tags = readEdge.Tags.Copy().SetValues(edge.Tags),
+                };
+
+                _masterList.Add(readEdge).Assert<bool, InvalidOperationException>(x => x == true, _ => "Failed to update edge on upsert");
+            }
 
             _edgesFrom.Set(edge.FromKey, edge.Key);
             _edgesTo.Set(edge.ToKey, edge.Key);

@@ -2,10 +2,9 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Toolbox.Application;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Xunit.Abstractions;
-
 
 namespace Toolbox.CommandRouter.test;
 public class ChainedCommandTests

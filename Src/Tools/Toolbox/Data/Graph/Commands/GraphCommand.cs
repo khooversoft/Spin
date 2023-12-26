@@ -42,12 +42,22 @@ public class GraphCommand
             }
         }
 
-        return new GraphCommandExceuteResults
+        Option option = results switch
+        {
+            { Count: 0 } => StatusCode.NoContent,
+            var v when !v.All(x => x.StatusCode.IsOk()) => (StatusCode.BadRequest, "One or more results has errors"),
+            _ => StatusCode.OK,
+        };
+
+        var mapResult = new GraphCommandExceuteResults
         {
             GraphMap = map,
             Items = results,
         };
+
+        return new Option<GraphCommandExceuteResults>(mapResult, option.StatusCode, option.Error);
     }
+
     private GraphQueryResult AddNode(GraphNodeAdd addNode, GraphMap map)
     {
         var graphNode = new GraphNode

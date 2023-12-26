@@ -1,7 +1,41 @@
 ﻿@page "/"
+@using NBlog.sdk
 @using NBlogWeb.Components.Layout
+@using Toolbox.Types
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<ArticleSummary ArticleId="Blog/Design/Composition.manifest.json" />
+@if (_manifests != null)
+{
+    @foreach (var manifest in _manifests)
+    {
+        <ArticleSummary ArticleId="@manifest.ArticleId" />
+    }
+}
 
+
+@code {
+    private IReadOnlyList<ArticleDetail> _articles { get; set; } = Array.Empty<ArticleDetail>();
+
+    [Inject]
+    private ArticleService _articleService { get; init; } = null!;
+
+    [Inject]
+    private ILogger<Home> _logger { get; init; } = null!;
+
+    private IReadOnlyList<ArticleManifest> _manifests { get; set; } = null!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var context = new ScopeContext(_logger);
+        var manifestOption = await _articleService.GetSummaries(context);
+        if (manifestOption.IsOk())
+        {
+            _manifests = manifestOption.Return();
+        }
+
+        await InvokeAsync(() => StateHasChanged());
+        await base.OnParametersSetAsync();
+    }
+}

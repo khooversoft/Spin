@@ -4,6 +4,9 @@ namespace Toolbox.Data;
 
 /// <summary>
 /// 
+/// (key=..;tags=..) = node search, wild cards supported
+/// [fromKey=...;toKey=..;edgeType=..;tags=..] = edge search
+/// 
 /// Rules....
 ///     selectGrammar = (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2
 /// 

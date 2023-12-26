@@ -32,7 +32,7 @@ public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
         string actorKey = this.GetPrimaryKeyString();
-        if (actorKey.EqualsIgnoreCase(NBlogConstants.ConfigurationActorId)) throw new ArgumentException($"ActorKey={actorKey} should be {NBlogConstants.ConfigurationActorId}");
+        if (actorKey.EqualsIgnoreCase(NBlogConstants.ConfigurationActorKey)) throw new ArgumentException($"ActorKey={actorKey} should be {NBlogConstants.ConfigurationActorKey}");
         return base.OnActivateAsync(cancellationToken);
     }
 

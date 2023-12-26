@@ -34,17 +34,29 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public int Count => _index.Count;
 
-    public Option Add(GraphNode node)
+    public Option Add(GraphNode node, bool upsert = false)
     {
         if (!node.Validate(out var v)) return v;
 
         lock (_lock)
         {
-            return _index.TryAdd(node.Key, node) switch
+            Option option = _index.TryAdd(node.Key, node) switch
             {
                 true => StatusCode.OK,
                 false => (StatusCode.Conflict, $"Node key={node.Key} already exist"),
             };
+
+            if (option.IsError() && !upsert) return option;
+
+            var readNode = _index[node.Key];
+            readNode = readNode with
+            {
+                Tags = readNode.Tags.Copy().SetValues(node.Tags),
+            };
+
+            _index[node.Key] = readNode;
+
+            return StatusCode.OK;
         }
     }
 
