@@ -13,9 +13,10 @@
     --bd-sidebar-link-bg: rgba(var(--bd-violet-rgb), .1);
     --bd-callout-link: 10,88,202;
     --bd-callout-code-color: #ab296a;
-    --bd-pre-bg: var(--bs-tertiary-bg);
-}
+    --bd-pre-bg: #1b1f22;
 
+    --bs-info-rgb: 13,202,240;
+}
 
 .program-icon {
     max-width: 64px;
@@ -97,4 +98,26 @@ body {
     background-color: #212529;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+pre {
+    background-color: #2b2b2b; /* var(--bd-pre-bg); */
+    border-width: 2px;
+    border-style: solid;
+    border-color: #495057;
+    color: #cccccc;
+    /*border-radius: 4px;*/
+    /*padding: 1em;*/
+    padding: .75rem 1.25rem;
+    border-radius: calc(.375rem - 1px);
+}
+
+article h2 {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
+}
+
+article h3 {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
 }

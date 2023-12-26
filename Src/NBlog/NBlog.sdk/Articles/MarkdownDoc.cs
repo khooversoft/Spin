@@ -19,6 +19,7 @@ public class MarkdownDoc
         {
             var pipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
+                .UseBootstrap()
                 .Build();
 
             return Markdown.ToHtml(MdSource, pipeline);
