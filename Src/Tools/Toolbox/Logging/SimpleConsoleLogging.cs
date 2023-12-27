@@ -8,6 +8,8 @@ namespace Toolbox.Logging;
 public class SimpleConsoleLogging : ILogger
 {
     private readonly string _name;
+    private readonly object _lock = new object();
+
     public SimpleConsoleLogging(string name) => _name = name.NotEmpty();
 
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default!;
@@ -16,39 +18,42 @@ public class SimpleConsoleLogging : ILogger
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        if (!IsEnabled(logLevel)) return;
-
-        string formatString = formatter(state, exception);
-
-        (ConsoleColor? consoleColor, string logText) = logLevel switch
+        lock (_lock)
         {
-            LogLevel.Information => (ConsoleColor.Green, "Info"),
-            LogLevel.Warning => (ConsoleColor.Yellow, "Warn"),
-            LogLevel.Error => (ConsoleColor.Red, "Error"),
-            LogLevel.Critical => (ConsoleColor.Red, "Critial"),
+            if (!IsEnabled(logLevel)) return;
 
-            _ => ((ConsoleColor?)null, logLevel.ToString()),
-        };
+            string formatString = formatter(state, exception);
 
-        ConsoleColor originalColor = Console.ForegroundColor;
-
-        Console.Write($"{DateTime.Now.ToString("HH:mm:ss")} ");
-
-        Console.ForegroundColor = consoleColor ?? originalColor;
-        Console.Write($"{logText,-6} ");
-        Console.ForegroundColor = originalColor;
-
-        if (logLevel <= LogLevel.Information)
-        {
-            int index = formatString.IndexOf("traceId");
-            if (index >= 0)
+            (ConsoleColor? consoleColor, string logText) = logLevel switch
             {
-                while (index > 0 && formatString[index - 1] == ' ' || formatString[index - 1] == ',') index--;
-                formatString = formatString[0..index];
-            }
-        }
+                LogLevel.Information => (ConsoleColor.Green, "Info"),
+                LogLevel.Warning => (ConsoleColor.Yellow, "Warn"),
+                LogLevel.Error => (ConsoleColor.Red, "Error"),
+                LogLevel.Critical => (ConsoleColor.Red, "Critial"),
 
-        Console.WriteLine(formatString);
+                _ => ((ConsoleColor?)null, logLevel.ToString()),
+            };
+
+            ConsoleColor originalColor = Console.ForegroundColor;
+
+            Console.Write($"{DateTime.Now.ToString("HH:mm:ss")} ");
+
+            Console.ForegroundColor = consoleColor ?? originalColor;
+            Console.Write($"{logText,-6} ");
+            Console.ForegroundColor = originalColor;
+
+            if (logLevel <= LogLevel.Information)
+            {
+                int index = formatString.IndexOf("traceId");
+                if (index >= 0)
+                {
+                    while (index > 0 && formatString[index - 1] == ' ' || formatString[index - 1] == ',') index--;
+                    formatString = formatString[0..index];
+                }
+            }
+
+            Console.WriteLine(formatString);
+        }
     }
 }
 

@@ -45,9 +45,11 @@ public class PackageBuild
     {
         file.NotEmpty();
         basePath.NotEmpty();
+        context.Location().LogInformation("Processing file={file}, basePath={basePath}", file, basePath);
 
         string fileId = file[(basePath.Length + 1)..].Replace(@"\", "/");
         string pathFileId = Path.GetDirectoryName(fileId).NotNull().Replace(@"\", "/");
+        context.Location().LogInformation("Processing fileId={fileId}, pathFileId={pathFileId}", fileId, pathFileId);
 
         string data = await File.ReadAllTextAsync(file);
         var model = data.ToObject<ArticleManifest>();
@@ -104,7 +106,7 @@ public class PackageBuild
 
         queue.Enqueue(queuedManifest);
 
-        string resolveVariables(string value) => value
+        string resolveVariables(string value) => value.NotEmpty()
             .Replace("{pathAndFile}", fileId)
             .Replace("{path}", pathFileId);
     }
@@ -113,7 +115,10 @@ public class PackageBuild
     {
         var queue = new ConcurrentQueue<QueuedManifest>();
 
-        string[] files = Directory.GetFiles(basePath, "*.json", SearchOption.AllDirectories);
+        string[] files = Directory.GetFiles(basePath, "*.json", SearchOption.AllDirectories)
+            .Where(x => x.IndexOf(".vscode") < 0)
+            .ToArray();
+
         context.Location().LogInformation("Reading manifest files, count={count}", files.Length);
         if (files.Length == 0)
         {

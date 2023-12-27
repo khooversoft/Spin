@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.34.0" />
+    <PackageReference Include="Markdown.ColorCode" Version="2.1.0" />
     <PackageReference Include="Microsoft.Orleans.Client" Version="7.2.4" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.2.4" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="7.2.4" />

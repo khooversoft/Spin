@@ -18,7 +18,7 @@ public class OptionUnwrapTest
         wrapped.Value.StatusCode.Should().Be(StatusCode.OK);
         wrapped.Value.Error.Should().Be("no error");
 
-        Option unwrapped = wrapped.Unwrap();
+        Option unwrapped = wrapped.Return();
         unwrapped.StatusCode.Should().Be(StatusCode.OK);
         unwrapped.Error.Should().Be("no error");
     }
@@ -38,7 +38,7 @@ public class OptionUnwrapTest
         wrapped.Value.StatusCode.Should().Be(StatusCode.OK);
         wrapped.Value.Error.Should().Be("no error");
 
-        Option<string> unwrapped = wrapped.Unwrap();
+        Option<string> unwrapped = wrapped.Return();
         unwrapped.HasValue.Should().BeTrue();
         unwrapped.Value.Should().Be("value");
         unwrapped.StatusCode.Should().Be(StatusCode.OK);

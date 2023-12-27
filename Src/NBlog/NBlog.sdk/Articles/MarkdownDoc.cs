@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Markdig;
+using Markdown.ColorCode;
 using Toolbox.Extensions;
 
 namespace NBlog.sdk;
@@ -20,9 +21,10 @@ public class MarkdownDoc
             var pipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
                 .UseBootstrap()
+                .UseColorCode()
                 .Build();
 
-            return Markdown.ToHtml(MdSource, pipeline);
+            return Markdig.Markdown.ToHtml(MdSource, pipeline);
         }
     }
 }

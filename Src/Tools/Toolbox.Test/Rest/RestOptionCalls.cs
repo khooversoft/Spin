@@ -29,21 +29,6 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
     }
 
     [Fact]
-    public async Task OptionOkUnwrap()
-    {
-        var client = _testApiHost.CreateClient();
-
-        Option response = await new RestClient(client)
-            .SetPath("/option")
-            .GetAsync(_context)
-            .GetContent<Option>()
-            .UnwrapAsync();
-
-        response.StatusCode.Should().Be(StatusCode.OK);
-        response.Error.Should().BeNull();
-    }
-
-    [Fact]
     public async Task OptionWithError()
     {
         var client = _testApiHost.CreateClient();
@@ -58,20 +43,5 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
         response.HasValue.Should().BeTrue();
         response.Return().StatusCode.Should().Be(StatusCode.BadRequest);
         response.Return().Error.Should().Be(ModelDefaults.BadRequestResponse);
-    }
-
-    [Fact]
-    public async Task OptionWithErrorUnwrap()
-    {
-        var client = _testApiHost.CreateClient();
-
-        Option response = await new RestClient(client)
-            .SetPath("/optionWithError")
-            .GetAsync(_context)
-            .GetContent<Option>()
-            .UnwrapAsync();
-
-        response.StatusCode.Should().Be(StatusCode.BadRequest);
-        response.Error.Should().Be(ModelDefaults.BadRequestResponse);
     }
 }
