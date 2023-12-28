@@ -24,7 +24,7 @@ public class PackageBuild
         context.Location().LogInformation("Building package, basePath={basePath}, packageFile={packageFile}", basePath, packageFile);
 
         IReadOnlyList<QueuedManifest> manifestFiles = await ReadManifestFiles(basePath, context);
-        if (manifestFiles.Count == 0) return (StatusCode.NoContent);
+        if (manifestFiles.Count == 0) return StatusCode.NoContent;
         context.Location().LogInformation("Manifest detected, files added={count}", manifestFiles.Count);
 
         var verifyOption = VerifyManifest(manifestFiles, context);

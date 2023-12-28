@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using ColorCode;
 using Markdig;
 using Markdown.ColorCode;
 using Toolbox.Extensions;
@@ -8,6 +9,9 @@ namespace NBlog.sdk;
 public class MarkdownDoc
 {
     private string? _html;
+    private static MarkdownPipeline? _pipeline;
+    private readonly static string _csharpLanguageId = Languages.CSharp.Id;
+
     public MarkdownDoc(byte[] data) => MdSource = Encoding.UTF8.GetString(data.RemoveBOM());
 
     public string MdSource { get; init; }
@@ -18,13 +22,16 @@ public class MarkdownDoc
 
         string build()
         {
-            var pipeline = new MarkdownPipelineBuilder()
+            _pipeline ??= new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
                 .UseBootstrap()
-                .UseColorCode()
+                .UseColorCode(defaultLanguageId: _csharpLanguageId)
+                .UsePreciseSourceLocation()
+                .UseYamlFrontMatter()
+                .UseEmojiAndSmiley()
                 .Build();
 
-            return Markdig.Markdown.ToHtml(MdSource, pipeline);
+            return Markdig.Markdown.ToHtml(MdSource, _pipeline);
         }
     }
 }

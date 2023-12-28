@@ -39,9 +39,6 @@ public class PackageUpload
         using var zipFile = File.Open(packageFile, FileMode.Open, FileAccess.Read);
         using var zipArchive = new ZipArchive(zipFile, ZipArchiveMode.Read);
 
-        //Option manifestOption = await ProcessManifests(zipArchive, datalakeStore, context);
-        //if (manifestOption.IsError()) return manifestOption;
-
         Option datafileOption = await ProcessFiles(zipArchive, datalakeStore, context);
         if (datafileOption.IsError()) return datafileOption;
 

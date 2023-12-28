@@ -58,7 +58,7 @@ public class GraphCommand
         return new Option<GraphCommandExceuteResults>(mapResult, option.StatusCode, option.Error);
     }
 
-    private GraphQueryResult AddNode(GraphNodeAdd addNode, GraphMap map)
+    private static GraphQueryResult AddNode(GraphNodeAdd addNode, GraphMap map)
     {
         var graphNode = new GraphNode
         {
@@ -70,7 +70,7 @@ public class GraphCommand
         return new GraphQueryResult(CommandType.AddNode, StatusCode.OK);
     }
 
-    private GraphQueryResult AddEdge(GraphEdgeAdd addEdge, GraphMap map)
+    private static GraphQueryResult AddEdge(GraphEdgeAdd addEdge, GraphMap map)
     {
         var graphEdge = new GraphEdge
         {
@@ -84,7 +84,7 @@ public class GraphCommand
         return new GraphQueryResult(CommandType.AddEdge, StatusCode.OK);
     }
 
-    private GraphQueryResult UpdateEdge(GraphEdgeUpdate updateEdge, GraphMap map)
+    private static GraphQueryResult UpdateEdge(GraphEdgeUpdate updateEdge, GraphMap map)
     {
         GraphQueryResult searchResult = map.Query().Process(updateEdge.Search);
 
@@ -100,7 +100,7 @@ public class GraphCommand
         return searchResult with { CommandType = CommandType.UpdateEdge };
     }
 
-    private GraphQueryResult UpdateNode(GraphNodeUpdate updateNode, GraphMap map)
+    private static GraphQueryResult UpdateNode(GraphNodeUpdate updateNode, GraphMap map)
     {
         var searchResult = map.Query().Process(updateNode.Search);
 
@@ -115,7 +115,7 @@ public class GraphCommand
         return searchResult with { CommandType = CommandType.UpdateNode };
     }
 
-    private GraphQueryResult DeleteEdge(GraphEdgeDelete deleteEdge, GraphMap map)
+    private static GraphQueryResult DeleteEdge(GraphEdgeDelete deleteEdge, GraphMap map)
     {
         var searchResult = map.Query().Process(deleteEdge.Search);
 
@@ -126,7 +126,7 @@ public class GraphCommand
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private GraphQueryResult DeleteNode(GraphNodeDelete deleteNode, GraphMap map)
+    private static GraphQueryResult DeleteNode(GraphNodeDelete deleteNode, GraphMap map)
     {
         var searchResult = map.Query().Process(deleteNode.Search);
 
@@ -137,7 +137,7 @@ public class GraphCommand
         return searchResult with { CommandType = CommandType.DeleteNode };
     }
 
-    private GraphQueryResult Select(GraphSelect select, GraphMap map)
+    private static GraphQueryResult Select(GraphSelect select, GraphMap map)
     {
         GraphQueryResult searchResult = map.Query().Process(select.Search);
 

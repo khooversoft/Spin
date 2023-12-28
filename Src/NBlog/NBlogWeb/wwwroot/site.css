@@ -116,9 +116,16 @@ article {
     max-width: 900px;
 }
 
+article h1 {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
+    margin-top: 40px;
+}
+
 article h2 {
     --bs-text-opacity: 1;
     color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
+    margin-top: 20px;
 }
 
 article h3 {
@@ -129,4 +136,16 @@ article h3 {
 .table {
     --bs-table-bg: var(--bd-body-bg);
     --bs-table-color: var(--bd-color);
+}
+
+.alert {
+    --bs-alert-padding-x: .5rem;
+    --bs-alert-padding-y: .5rem;
+    padding: 4px 4px;
+    /*opacity: 0.9;*/
+    margin: 1rem;
+}
+
+.alert ul {
+    margin-bottom: 0;
 }
