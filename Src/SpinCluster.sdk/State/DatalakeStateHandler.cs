@@ -2,7 +2,6 @@
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.DataLake;
-using Toolbox.Azure.Extensions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -28,7 +27,6 @@ public class DatalakeStateHandler
     {
         context = context.With(_logger);
         context.Location().LogInformation("Clearing state for filePath={filePath}", filePath);
-        using var perf = _telemetryClient.TrackPerformance("DatalakeStateHandler_ClearStateAsync");
 
         var result = await _datalakeStore.Delete(filePath, context);
         if (result.IsError()) return;
@@ -40,7 +38,6 @@ public class DatalakeStateHandler
     {
         context = context.With(_logger);
         context.Location().LogInformation("Reading state for filePath={filePath}", filePath);
-        using var perf = _telemetryClient.TrackPerformance("DatalakeStateHandler_ReadStateAsync");
 
         var result = await _datalakeStore.Read(filePath, context);
         if (result.IsError())
@@ -72,7 +69,6 @@ public class DatalakeStateHandler
     {
         context = context.With(_logger);
         context.Location().LogInformation("Writing state for filePath={filePath}", filePath);
-        using var perf = _telemetryClient.TrackPerformance("DatalakeStateHandler_WriteStateAsync");
 
         byte[] data = grainState.State
             .ToJsonSafe(context.Location())

@@ -1,6 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;

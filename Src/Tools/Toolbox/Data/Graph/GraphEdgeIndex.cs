@@ -52,7 +52,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             if (!_masterList.Add(edge))
             {
-                if( !upsert) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
+                if (!upsert) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
 
                 if (!_masterList.TryGetValue(edge, out var readEdge)) throw new InvalidOperationException("Master list lookup failed");
                 _masterList.Remove(readEdge);

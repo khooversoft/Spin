@@ -2,7 +2,6 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Metrics;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -67,7 +66,6 @@ public class RestClient
 
     public async Task<RestResponse> SendAsync(HttpRequestMessage requestMessage, ScopeContext context)
     {
-
         string? requestPayload = (await requestMessage.GetContent()).Return(false);
 
         context.Location().LogTrace(
@@ -89,11 +87,8 @@ public class RestClient
             HttpResponseMessage response;
             string content;
 
-            using (var metric = context.TrackPerformance("RestClient.SendAsync / " + requestMessage.RequestUri?.ToString()))
-            {
-                response = await _client.SendAsync(requestMessage.NotNull(), context);
-                content = await response.Content.ReadAsStringAsync();
-            }
+            response = await _client.SendAsync(requestMessage.NotNull(), context);
+            content = await response.Content.ReadAsStringAsync();
 
             context.Location().Log(
                 setLogLevel(response),

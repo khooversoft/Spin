@@ -1,7 +1,4 @@
-﻿using Toolbox.Tools;
-using Toolbox.Types;
-
-namespace Toolbox.Data;
+﻿namespace Toolbox.Data;
 
 public record GraphCommandResults
 {

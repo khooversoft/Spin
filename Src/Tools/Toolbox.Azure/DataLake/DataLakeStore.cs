@@ -4,7 +4,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Metrics;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -32,7 +31,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> Append(string path, byte[] data, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/Append/" + path);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
@@ -73,7 +71,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> Delete(string path, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/Delete/" + path);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Deleting to {path}", path);
@@ -97,7 +94,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> DeleteDirectory(string path, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/DeleteDirectory/" + path);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Deleting directory {path}", path);
@@ -119,7 +115,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<StatusCode> Exist(string path, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/Exist/" + path);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Is path {path} exist", path);
@@ -140,7 +135,6 @@ public class DatalakeStore : IDatalakeStore
     public Task<Option<DatalakePathProperties>> GetPathProperties(string path, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/GetPathProperties/" + path);
 
         path = WithBasePath(path);
 
@@ -151,7 +145,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option<DataETag>> Read(string path, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/Read/" + path);
 
         path = WithBasePath(path);
 
@@ -181,8 +174,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option<QueryResponse<DatalakePathItem>>> Search(QueryParameter queryParameter, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/Search");
-
         queryParameter.NotNull();
         queryParameter = queryParameter with { Filter = WithBasePath(queryParameter.Filter) };
         context.Location().LogTrace("Searching {queryParameter}", queryParameter);
@@ -232,7 +223,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option<ETag>> Write(string path, DataETag data, bool overwrite, ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/Write/" + path);
 
         path = WithBasePath(path);
         context.Location().LogTrace($"Writing to {path}, data.Length={data.Data.Length}, eTag={data.ETag?.ToString() ?? "<null>"}");
@@ -248,8 +238,6 @@ public class DatalakeStore : IDatalakeStore
     public async Task<bool> TestConnection(ScopeContext context)
     {
         context = context.With(_logger);
-        using var scope = context.TrackPerformance("DatalakeStore/TestConnection");
-
         context.Location().LogTrace("Testing connection");
 
         try
@@ -283,7 +271,6 @@ public class DatalakeStore : IDatalakeStore
 
     private async Task<Option<ETag>> Upload(string path, Stream fromStream, bool overwrite, DataETag dataETag, ScopeContext context)
     {
-        using var scope = context.TrackPerformance("DatalakeStore/Upload");
         Response<PathInfo> result;
 
         try

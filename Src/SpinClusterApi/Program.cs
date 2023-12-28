@@ -4,7 +4,6 @@ using Orleans.Configuration;
 using SoftBank.sdk.Application;
 using SpinCluster.sdk.Application;
 using SpinClusterApi.Application;
-using Toolbox.Azure.Extensions;
 using Toolbox.Extensions;
 
 [assembly: InternalsVisibleTo("SpinClusterApi.test")]
@@ -56,7 +55,6 @@ IHostBuilder builder = Host.CreateDefaultBuilder(args)
             services.AddApplicationInsightsTelemetry(config => config.EnableAdaptiveSampling = false);
 
             services.AddSpinApi();
-            services.AddMetricApplicationInsight();
             services.AddHealthChecks();
         });
 
