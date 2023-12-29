@@ -17,7 +17,7 @@ public class TenantBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set((TenantModel)tenant, context);
 
-            context.Trace().LogStatus(setOption, "Creating Tenant domain={domain}", tenant.Domain);
+            setOption.LogStatus(context, "Creating Tenant domain={domain}", tenant.Domain);
             test.Test(() => setOption);
         }
 
@@ -31,7 +31,7 @@ public class TenantBuilder : IObjectBuilder
         foreach (var item in option.Tenants)
         {
             await client.Value.Delete(item.Domain, context);
-            context.Trace().LogInformation("Tenant deleted: {domains}", item.Domain);
+            context.LogInformation("Tenant deleted: {domains}", item.Domain);
         }
 
         return StatusCode.OK;

@@ -16,7 +16,7 @@ public class SubscriptionBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set(subscription, context);
 
-            context.Trace().LogStatus(setOption, "Creating Subscription name={name}", subscription.Name);
+            setOption.LogStatus(context, "Creating Subscription name={name}", subscription.Name);
             test.Test(() => setOption);
         }
 
@@ -30,7 +30,7 @@ public class SubscriptionBuilder : IObjectBuilder
         foreach (var item in option.Subscriptions)
         {
             await client.Value.Delete(item.Name, context);
-            context.Trace().LogInformation("Subscription deleted: {name}", item.Name);
+            context.LogInformation("Subscription deleted: {name}", item.Name);
         }
 
         return StatusCode.OK;

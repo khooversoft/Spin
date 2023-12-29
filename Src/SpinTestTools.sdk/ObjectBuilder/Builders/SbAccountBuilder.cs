@@ -16,7 +16,7 @@ public class SbAccountBuilder : IObjectBuilder
         {
             var createOption = await client.Value.Create(account, context);
 
-            context.Trace().LogStatus(createOption, "Creating Account accountId={accountId}", account.AccountId);
+            createOption.LogStatus(context, "Creating Account accountId={accountId}", account.AccountId);
             test.Test(() => createOption);
         }
 
@@ -30,7 +30,7 @@ public class SbAccountBuilder : IObjectBuilder
         foreach (var item in option.SbAccounts)
         {
             await client.Value.Delete(item.AccountId, context);
-            context.Trace().LogInformation("Account deleted: {accountId}", item.AccountId);
+            context.LogInformation("Account deleted: {accountId}", item.AccountId);
         }
 
         return StatusCode.OK;

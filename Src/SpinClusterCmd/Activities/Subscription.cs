@@ -42,21 +42,21 @@ internal class Subscription : ICommandRoute
     public async Task Delete(string nameId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Deleting Subscription nameId={nameId}", nameId);
+        context.LogInformation("Deleting Subscription nameId={nameId}", nameId);
 
         Option response = await _client.Delete(nameId, context);
-        context.Trace().LogStatus(response, "Deleting subscription");
+        response.LogStatus(context, "Deleting subscription");
     }
 
     public async Task Get(string nameId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Get Subscription nameId={nameId}", nameId);
+        context.LogInformation("Get Subscription nameId={nameId}", nameId);
 
         var response = await _client.Get(nameId, context);
         if (response.IsError())
         {
-            context.Trace().LogError("Cannot get Subscription nameId={nameId}", nameId);
+            context.LogError("Cannot get Subscription nameId={nameId}", nameId);
             return;
         }
 
@@ -66,7 +66,7 @@ internal class Subscription : ICommandRoute
             .Prepend($"Subscription...")
             .Join(Environment.NewLine) + Environment.NewLine;
 
-        context.Trace().LogInformation(result);
+        context.LogInformation(result);
     }
 
     public async Task Set(string jsonFile)
@@ -79,6 +79,6 @@ internal class Subscription : ICommandRoute
         SubscriptionModel model = readResult.Return();
 
         Option response = await _client.Set(model, context);
-        context.Trace().LogStatus(response, "Creating/Updating Subscription, model={model}", model);
+        response.LogStatus(context, "Creating/Updating Subscription, model={model}", model);
     }
 }

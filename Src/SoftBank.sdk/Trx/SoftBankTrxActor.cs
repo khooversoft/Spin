@@ -49,11 +49,7 @@ public class SoftBankTrxActor : Grain, ISoftBankTrxActor
             _ => (StatusCode.BadRequest, "Request is invalid based on actor key"),
         };
 
-        if (result.IsError())
-        {
-            context.Location().LogStatus(result.ToOptionStatus(), "Failed to process request");
-        }
-
+        result.LogStatus(context, "Request processed");
         return result;
     }
 

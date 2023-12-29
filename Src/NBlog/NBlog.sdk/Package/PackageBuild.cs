@@ -55,7 +55,7 @@ public class PackageBuild
         var model = data.ToObject<ArticleManifest>();
         if (model == null)
         {
-            context.Location().LogError("Cannot deserialize json={file}", file);
+            context.LogError("Cannot deserialize json={file}", file);
             return;
         }
 
@@ -67,7 +67,7 @@ public class PackageBuild
 
         if (!model.Validate(out var v))
         {
-            context.Location().LogStatus(v, "File={file} is not a valid manifest file", file);
+            v.LogStatus(context, "File={file} is not a valid manifest file", file);
             return;
         }
 
@@ -81,7 +81,7 @@ public class PackageBuild
 
         if (commands.Length == 0)
         {
-            context.Location().LogError("Manifest={file} does not have any commands specified");
+            context.LogError("Manifest={file} does not have any commands specified");
             return;
         }
 
@@ -93,7 +93,7 @@ public class PackageBuild
         if (findResult.Length != 0)
         {
             string msg = findResult.Aggregate("Cannot find local files" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
-            context.Location().LogError(msg);
+            context.LogError(msg);
             return;
         }
 

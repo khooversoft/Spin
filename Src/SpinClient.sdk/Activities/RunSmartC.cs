@@ -48,7 +48,7 @@ public class RunSmartC : IRunSmartc
 
     private async Task<Option<string>> UnpackPackage(ScheduleAssigned scheduleAssigned, ScopeContext context)
     {
-        context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", scheduleAssigned.WorkAssigned.SmartcId);
+        context.LogInformation("Unpacking SmartC package smartcId={smartcId}", scheduleAssigned.WorkAssigned.SmartcId);
 
         var result = await _packageManagement.LoadPackage(scheduleAssigned.ScheduleOption.AgentId, scheduleAssigned.WorkAssigned.SmartcId, context);
         return result;
@@ -63,7 +63,7 @@ public class RunSmartC : IRunSmartc
         using CancellationTokenSource tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_abortSignal.GetToken());
         context = new ScopeContext(context.TraceId, _logger, tokenSource.Token);
 
-        var actionBlock = new ActionBlock<string>(x => context.Trace().LogInformation("[localHost] {line}", x));
+        var actionBlock = new ActionBlock<string>(x => context.LogInformation("[localHost] {line}", x));
 
         string args = new string[]
         {

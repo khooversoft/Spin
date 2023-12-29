@@ -11,11 +11,11 @@ internal static class CmdTools
         jsonFile.NotEmpty();
         validator.NotNull();
 
-        context.Trace().LogInformation("Processing file {file}", jsonFile);
+        context.LogInformation("Processing file {file}", jsonFile);
 
         if (!File.Exists(jsonFile))
         {
-            context.Trace().LogError("File {file} does not exist", jsonFile);
+            context.LogError("File {file} does not exist", jsonFile);
             return StatusCode.NotFound;
         }
 
@@ -23,14 +23,14 @@ internal static class CmdTools
         T? obj = json.ToObject<T>();
         if (obj == null)
         {
-            context.Trace().LogError("Cannot parse {file}", jsonFile);
+            context.LogError("Cannot parse {file}", jsonFile);
             return StatusCode.BadRequest;
         }
 
         var v = validator.Validate(obj);
         if (v.IsError())
         {
-            context.Trace().LogError("Option is not valid, error={error}", v.Error);
+            context.LogError("Option is not valid, error={error}", v.Error);
             return v.ToOptionStatus<T>();
         }
 

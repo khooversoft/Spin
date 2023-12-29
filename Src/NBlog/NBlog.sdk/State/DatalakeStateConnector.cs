@@ -25,7 +25,7 @@ internal class DatalakeStateConnector : IGrainStorage
         var context = new ScopeContext(_logger);
 
         string filePath = GetPath(grainId);
-        context.Location().LogInformation("Clearing state for filePath={filePath}", filePath);
+        context.LogInformation("Clearing state for filePath={filePath}", filePath);
 
         var result = await _datalakeStore.Delete(filePath, context);
         if (result.IsError()) return;
@@ -39,12 +39,12 @@ internal class DatalakeStateConnector : IGrainStorage
         context = context.With(_logger);
 
         string filePath = GetPath(grainId);
-        context.Location().LogInformation("Reading state for filePath={filePath}", filePath);
+        context.LogInformation("Reading state for filePath={filePath}", filePath);
 
         var result = await _datalakeStore.Read(filePath, context);
         if (result.IsError())
         {
-            context.Location().LogStatus(result.ToOptionStatus(), "Reading file from datalake");
+            result.LogStatus(context, "Reading file from datalake");
             ResetState(grainState);
             return;
         }
@@ -73,7 +73,7 @@ internal class DatalakeStateConnector : IGrainStorage
 
         grainState.RecordExists = true;
         grainState.ETag = result.Return().ETag.ToString();
-        context.Location().LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
+        context.LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
     }
 
     public async Task WriteStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)

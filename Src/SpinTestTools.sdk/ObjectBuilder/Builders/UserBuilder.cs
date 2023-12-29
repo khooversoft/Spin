@@ -16,7 +16,7 @@ public class UserBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Create(user, context);
 
-            context.Trace().LogStatus(setOption, "Creating User userId={userId}", user.UserId);
+            setOption.LogStatus(context, "Creating User userId={userId}", user.UserId);
             test.Test(() => setOption);
         }
 
@@ -30,7 +30,7 @@ public class UserBuilder : IObjectBuilder
         foreach (var user in option.Users)
         {
             await client.Value.Delete(user.UserId, context);
-            context.Trace().LogInformation("User deleted: {user}", user.UserId);
+            context.LogInformation("User deleted: {user}", user.UserId);
         }
 
         return StatusCode.OK;

@@ -110,6 +110,7 @@ pre {
     /*padding: 1em;*/
     padding: .75rem 1.25rem;
     border-radius: calc(.375rem - 1px);
+    font-size:12px;
 }
 
 article {

@@ -3,8 +3,15 @@ using System.Text.Json.Serialization;
 
 namespace Toolbox.Types;
 
+public interface IOptionStatus
+{
+    StatusCode StatusCode { get; }
+    string? Error { get; }
+}
+
+
 [DebuggerDisplay("StatusCode={StatusCode}, Error={Error}")]
-public readonly struct Option : IEquatable<Option>
+public readonly struct Option : IOptionStatus, IEquatable<Option>
 {
     public Option(StatusCode statusCode) => StatusCode = statusCode;
 

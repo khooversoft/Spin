@@ -16,7 +16,7 @@ public class AgentBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set(model, context);
 
-            context.Trace().LogStatus(setOption, "Creating Agent agentId={agentId}", model.AgentId);
+            setOption.LogStatus(context, "Creating Agent agentId={agentId}", model.AgentId);
             test.Test(() => setOption);
         }
 
@@ -30,7 +30,7 @@ public class AgentBuilder : IObjectBuilder
         foreach (var item in option.Agents)
         {
             await client.Value.Delete(item.AgentId, context);
-            context.Trace().LogInformation("Agent deleted: {agentId}", item.AgentId);
+            context.LogInformation("Agent deleted: {agentId}", item.AgentId);
         }
 
         return StatusCode.OK;

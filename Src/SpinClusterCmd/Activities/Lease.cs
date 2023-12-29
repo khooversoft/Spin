@@ -45,12 +45,12 @@ internal class Lease : ICommandRoute
     public async Task Get(string leaseKey)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Get lease details for leaseKey={leaseKey}", leaseKey);
+        context.LogInformation("Get lease details for leaseKey={leaseKey}", leaseKey);
 
         Option<LeaseData> response = await _client.Get(leaseKey, context);
         if (response.IsError())
         {
-            context.Trace().LogError("Failed to get lease details for leaseKey={leaseKey}", leaseKey);
+            context.LogError("Failed to get lease details for leaseKey={leaseKey}", leaseKey);
             return;
         }
 
@@ -60,27 +60,27 @@ internal class Lease : ICommandRoute
             .Prepend($"Lease detail...")
             .Join(Environment.NewLine) + Environment.NewLine;
 
-        context.Trace().LogInformation(result);
+        context.LogInformation(result);
     }
 
     public async Task IsValid(string leaseKey)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Checking is lease is valid for leaseKey={leaseKey}", leaseKey);
+        context.LogInformation("Checking is lease is valid for leaseKey={leaseKey}", leaseKey);
 
         Option response = await _client.IsValid(leaseKey, context);
-        context.Trace().LogStatus(response, "Is lease valid");
+        response.LogStatus(context, "Is lease valid");
     }
 
     public async Task List()
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Listing valid leases");
+        context.LogInformation("Listing valid leases");
 
         Option<IReadOnlyList<LeaseData>> response = await _client.List(QueryParameter.Default, context);
         if (response.IsError())
         {
-            context.Trace().LogError("Failed to get lease details");
+            context.LogError("Failed to get lease details");
             return;
         }
 
@@ -92,16 +92,16 @@ internal class Lease : ICommandRoute
                 .Prepend($"Lease detail...")
                 .Join(Environment.NewLine) + Environment.NewLine;
 
-            context.Trace().LogInformation(result);
+            context.LogInformation(result);
         }
     }
 
     public async Task Release(string leaseKey)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Releasing lease for leaseKey={leaseKey}", leaseKey);
+        context.LogInformation("Releasing lease for leaseKey={leaseKey}", leaseKey);
 
         Option response = await _client.Release(leaseKey, context);
-        context.Trace().LogStatus(response, "Release lease");
+        response.LogStatus(context, "Release lease");
     }
 }

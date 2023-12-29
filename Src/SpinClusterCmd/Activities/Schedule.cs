@@ -47,45 +47,45 @@ internal class Schedule : ICommandRoute
     public async Task Add(string jsonFile)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Processing file {file}", jsonFile);
+        context.LogInformation("Processing file {file}", jsonFile);
 
         var readResult = CmdTools.LoadJson<ScheduleCommandModel>(jsonFile, ScheduleCommandModel.Validator, context);
         if (readResult.IsError()) return;
 
         ScheduleCreateModel model = readResult.Return().ConvertTo();
 
-        context.Trace().LogInformation("Adding schedule, model={model}", model);
+        context.LogInformation("Adding schedule, model={model}", model);
         var queueResult = await _schedulerClient.CreateSchedule(model, context);
         if (queueResult.IsError())
         {
-            context.Trace().LogStatus(queueResult, "Failed to add scehdule, model={model}", model);
+            queueResult.LogStatus(context, "Failed to add scehdule, model={model}", model);
             return;
         }
 
-        context.Trace().LogInformation("Queued command, workId={workId}", model.WorkId);
+        context.LogInformation("Queued command, workId={workId}", model.WorkId);
     }
 
     public async Task Clear(string schedulerId, string principalId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Clearing schedule queue");
+        context.LogInformation("Clearing schedule queue");
 
         var clearAllOption = await _schedulerClient.ClearAllWorkSchedules(schedulerId, _scheduleWorkClient, context);
-        context.Trace().LogStatus(clearAllOption, "Clear schedule queue");
+        clearAllOption.LogStatus(context, "Clear schedule queue");
 
         Option deleteResponse = await _schedulerClient.Delete(schedulerId, principalId, context);
-        context.Trace().LogStatus(deleteResponse, "Delete schedule queue");
+        deleteResponse.LogStatus(context, "Delete schedule queue");
     }
 
     public async Task Get(string schedulerId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Getting schedules");
+        context.LogInformation("Getting schedules");
 
         var scheduleModel = await _schedulerClient.GetSchedules(schedulerId, context);
         if (scheduleModel.IsError())
         {
-            context.Trace().LogStatus(scheduleModel.ToOptionStatus(), "Failed to get schedule");
+            scheduleModel.LogStatus(context, "Failed to get schedule");
             return;
         }
 
@@ -98,7 +98,6 @@ internal class Schedule : ICommandRoute
             new [] { "Completed wpork..." },
             dumpValues(model.CompletedItems.Values),
             new [] { string.Empty },
-
         };
 
         string[] dumpValues<T>(ICollection<T> values) => values switch
@@ -113,6 +112,6 @@ internal class Schedule : ICommandRoute
             .SelectMany(x => x)
             .Join(Environment.NewLine);
 
-        context.Trace().LogInformation(line);
+        context.LogInformation(line);
     }
 }

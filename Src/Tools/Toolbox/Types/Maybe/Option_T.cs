@@ -4,6 +4,13 @@ using System.Text.Json.Serialization;
 
 namespace Toolbox.Types;
 
+public interface IOption : IOptionStatus
+{
+    bool HasValue { get; }
+    object ValueObject { get; }
+}
+
+
 /// <summary>
 /// Option struct to prevent allocations
 /// 

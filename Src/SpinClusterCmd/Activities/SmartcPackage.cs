@@ -45,7 +45,7 @@ internal class SmartcPackage : ICommandRoute
     public async Task CreateAndUpload(string jsonFile, bool verbose)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Processing file {file} to create and upload package", jsonFile);
+        context.LogInformation("Processing file {file} to create and upload package", jsonFile);
 
         var optionOption = LoadOption(jsonFile, context);
         if (optionOption.IsError()) return;
@@ -57,21 +57,21 @@ internal class SmartcPackage : ICommandRoute
         var createOption = await Create(option, verbose, context);
         if (createOption.IsError())
         {
-            context.Trace().LogError("Failed to create package");
+            context.LogError("Failed to create package");
             return;
         }
 
         var uploadOption = await Upload(option, context);
         if (uploadOption.IsError())
         {
-            context.Trace().LogError("Failed to upload package");
+            context.LogError("Failed to upload package");
             return;
         }
 
         var setSmartOption = await SetSmartC(option, createOption.Return(), uploadOption.Return(), context);
         if (setSmartOption.IsError())
         {
-            context.Trace().LogError("Failed to set SmartC details");
+            context.LogError("Failed to set SmartC details");
             return;
         }
     }
@@ -79,7 +79,7 @@ internal class SmartcPackage : ICommandRoute
     public async Task Download(string jsonFile)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Processing file {file} to download package", jsonFile);
+        context.LogInformation("Processing file {file} to download package", jsonFile);
 
         var optionOption = LoadOption(jsonFile, context);
         if (optionOption.IsError()) return;
@@ -92,13 +92,13 @@ internal class SmartcPackage : ICommandRoute
 
         File.WriteAllBytes(option.SmartcPackageFile, blob.Content);
 
-        context.Trace().LogInformation("Download smartcExeId={smartcExeId} to smartcPackageFile={smartcPackageFile}",
+        context.LogInformation("Download smartcExeId={smartcExeId} to smartcPackageFile={smartcPackageFile}",
             option.SmartcExeId, option.SmartcPackageFile);
     }
 
     private async Task<Option<IReadOnlyList<PackageFile>>> Create(PackageOption option, bool verbose, ScopeContext context)
     {
-        context.Trace().LogInformation("Creating package, smartcId={smartcId}, smartcExeId={smartcExeId}", option.SmartcId, option.SmartcExeId);
+        context.LogInformation("Creating package, smartcId={smartcId}, smartcExeId={smartcExeId}", option.SmartcId, option.SmartcExeId);
 
         CreateFolder(option.SmartcPackageFile);
 
@@ -123,24 +123,24 @@ internal class SmartcPackage : ICommandRoute
 
         if (verbose) dump(copy);
 
-        context.Trace().LogInformation("Created SmartC package, smartcPackageFile={smartcPackageFile}", option.SmartcPackageFile);
+        context.LogInformation("Created SmartC package, smartcPackageFile={smartcPackageFile}", option.SmartcPackageFile);
 
         return packageFiles.ToOption();
 
         void dump(CopyTo[] copyTo) => copyTo
             .Select(x => $"  Adding to package: {x.Source} -> {x.Destination}")
             .Join(Environment.NewLine)
-            .Action(x => context.Trace().LogInformation(x));
+            .Action(x => context.LogInformation(x));
 
         void hashDump(IEnumerable<FileTool.FileHash> files) => files
             .Select(x => $"  File hashes: {x.File} -> {x.Hash}")
             .Join(Environment.NewLine)
-            .Action(x => context.Trace().LogInformation(x));
+            .Action(x => context.LogInformation(x));
     }
 
     private async Task<Option<string>> Upload(PackageOption option, ScopeContext context)
     {
-        context.Trace().LogInformation("Uploading package, smartcPackageFile={smartcPackageFile}", option.SmartcExeId);
+        context.LogInformation("Uploading package, smartcPackageFile={smartcPackageFile}", option.SmartcExeId);
 
         StorageBlob blob = new StorageBlobBuilder()
             .SetStorageId(option.SmartcExeId)
@@ -149,7 +149,7 @@ internal class SmartcPackage : ICommandRoute
 
         Option uploadOption = await _storageClient.Set(blob, context);
 
-        context.Trace().LogStatus(uploadOption, "Upload blob to storage, smartcExeId={smartcExeId}, smartcPackageFile={smartcPackageFile}",
+        uploadOption.LogStatus(context, "Upload blob to storage, smartcExeId={smartcExeId}, smartcPackageFile={smartcPackageFile}",
             option.SmartcExeId, option.SmartcPackageFile);
 
         return blob.BlobHash;
@@ -170,7 +170,7 @@ internal class SmartcPackage : ICommandRoute
 
         var setOption = await _smartcClient.Set(model, context);
 
-        context.Trace().LogStatus(setOption, "Set SmartC, smartcId={smartcId}, smartcExeId={smartcExeId}", option.SmartcId, option.SmartcExeId);
+        setOption.LogStatus(context, "Set SmartC, smartcId={smartcId}, smartcExeId={smartcExeId}", option.SmartcId, option.SmartcExeId);
         return setOption;
     }
 
@@ -183,7 +183,7 @@ internal class SmartcPackage : ICommandRoute
 
         if (!Directory.Exists(option.SourceFolder))
         {
-            context.Trace().LogError("Folder {folder} does not exist", option.SourceFolder);
+            context.LogError("Folder {folder} does not exist", option.SourceFolder);
             return StatusCode.NotFound;
         }
 

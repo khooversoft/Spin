@@ -46,7 +46,7 @@ internal class AgentRegistration : ICommandRoute
         var readOption = await _client.Get(agentId, context);
         if (readOption.IsError())
         {
-            context.Trace().LogError("Cannot get details on agentId={agentId}", agentId);
+            context.LogError("Cannot get details on agentId={agentId}", agentId);
             return;
         }
 
@@ -56,7 +56,7 @@ internal class AgentRegistration : ICommandRoute
             .Prepend($"Configuration...")
             .Join(Environment.NewLine) + Environment.NewLine;
 
-        context.Trace().LogInformation(result);
+        context.LogInformation(result);
     }
 
     public async Task Register(string jsonFile)
@@ -69,7 +69,7 @@ internal class AgentRegistration : ICommandRoute
         AgentModel model = readResult.Return();
 
         Option response = await _client.Set(model, context);
-        context.Trace().LogStatus(response, "Creating/Updating agent, model={model}", model);
+        response.LogStatus(context, "Creating/Updating agent, model={model}", model);
     }
 
     public async Task Remove(string agentId)
@@ -77,6 +77,6 @@ internal class AgentRegistration : ICommandRoute
         var context = new ScopeContext(_logger);
 
         Option response = await _client.Delete(agentId, context);
-        context.Trace().LogStatus(response, "Deleted agent, agentId={agentId}", agentId);
+        response.LogStatus(context, "Deleted agent, agentId={agentId}", agentId);
     }
 }

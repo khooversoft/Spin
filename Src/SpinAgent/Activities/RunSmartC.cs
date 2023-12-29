@@ -27,7 +27,7 @@ internal class RunSmartC
         using CancellationTokenSource tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_abortSignal.GetToken());
         context = new ScopeContext(context.TraceId, _logger, tokenSource.Token);
 
-        var actionBlock = new ActionBlock<string>(x => context.Trace().LogInformation("[localHost] {line}", x));
+        var actionBlock = new ActionBlock<string>(x => context.LogInformation("[localHost] {line}", x));
 
         string args = new string[]
         {

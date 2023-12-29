@@ -44,7 +44,7 @@ internal class SmartcRegistration : ICommandRoute
         };
 
         Option response = await _client.Set(model, context);
-        context.Trace().LogStatus(response, "Creating/Updating SmartC, smartcId={smartcId}", smartcId);
+        response.LogStatus(context, "Creating/Updating SmartC, smartcId={smartcId}", smartcId);
     }
 
     public async Task Remove(string smartcId)
@@ -52,6 +52,6 @@ internal class SmartcRegistration : ICommandRoute
         var context = new ScopeContext(_logger);
 
         Option response = await _client.Delete(smartcId, context);
-        context.Trace().LogStatus(response, "Deleted SmartC, smartcId={smartcId}", smartcId);
+        response.LogStatus(context, "Deleted SmartC, smartcId={smartcId}", smartcId);
     }
 }

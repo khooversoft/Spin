@@ -114,7 +114,7 @@ public class LoanContractManager
         Option<TrxResponse> trxResponse = await _softBankTrxClient.Request(trxRequest, context);
         if (trxResponse.IsError())
         {
-            context.Location().LogStatus(trxResponse.ToOptionStatus(), "Failed to make payment, model={model}", model);
+            trxResponse.LogStatus(context, "Failed to make payment, model={model}", model);
             return trxResponse.ToOptionStatus();
         }
 

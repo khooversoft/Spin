@@ -112,7 +112,7 @@ public class SchedulerActor : Grain, ISchedulerActor
 
         string command = $"delete [fromKey={this.GetPrimaryKeyString()}];";
         var deleteNode = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
-        context.Location().LogStatus(deleteNode.ToOptionStatus(), "Deleting edge, command={command}", command);
+        deleteNode.LogStatus(context, "Deleting edge, command={command}", command);
 
         return StatusCode.OK;
     }

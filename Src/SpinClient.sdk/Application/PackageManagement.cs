@@ -36,7 +36,7 @@ public class PackageManagement
         smartcId.NotEmpty();
 
         context = context.With(_logger);
-        context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", smartcId);
+        context.LogInformation("Unpacking SmartC package smartcId={smartcId}", smartcId);
 
         var workContextModel = await Setup(agentId, smartcId, context);
         if (workContextModel.IsError()) return workContextModel.ToOptionStatus<string>();
@@ -60,7 +60,7 @@ public class PackageManagement
         var smartcModelOption = await _smartcClient.Get(smartcId, context);
         if (smartcModelOption.IsError())
         {
-            context.Trace().LogError("Cannot find smartcId={smartcId}", smartcId);
+            context.LogError("Cannot find smartcId={smartcId}", smartcId);
             return smartcModelOption.ToOptionStatus<WorkContext>();
         }
         var model = smartcModelOption.Return();
@@ -68,7 +68,7 @@ public class PackageManagement
         var agent = await _agentClient.Get(agentId, context);
         if (agent.IsError())
         {
-            context.Trace().LogError("Cannot get agent details for agentId={agentId}", agentId);
+            context.LogError("Cannot get agent details for agentId={agentId}", agentId);
             return smartcModelOption.ToOptionStatus<WorkContext>();
         }
 
@@ -96,19 +96,19 @@ public class PackageManagement
 
     private async Task<Option> DownloadAndExpand(WorkContext workContext, ScopeContext context)
     {
-        context.Trace().LogInformation("Downloading and unpacking smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
+        context.LogInformation("Downloading and unpacking smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
 
         var blobPackageOption = await _storageClient.Get(workContext.SmartcModel.SmartcExeId, context);
         if (blobPackageOption.IsError())
         {
-            context.Trace().LogError("Cannot download blob package for smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
+            context.LogError("Cannot download blob package for smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
             return StatusCode.NotFound;
         }
 
         StorageBlob blob = blobPackageOption.Return();
         if (blob.BlobHash != blob.CalculateHash())
         {
-            context.Trace().LogCritical("SmartC package's blobs hash is invalid, smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
+            context.LogCritical("SmartC package's blobs hash is invalid, smartcExeId={smartcExeId}", workContext.SmartcModel.SmartcExeId);
             return StatusCode.Conflict;
         }
 
@@ -120,7 +120,7 @@ public class PackageManagement
             read.ExtractToFolder(workContext.PackageFolder, _abortSignal.GetToken(), null);
         }
 
-        context.Trace().LogInformation("Extracted SmartC package smartcExeId={smartcExeId} to folder={folder}",
+        context.LogInformation("Extracted SmartC package smartcExeId={smartcExeId} to folder={folder}",
             workContext.SmartcModel.SmartcExeId, workContext.PackageFolder);
 
         return StatusCode.OK;
@@ -134,7 +134,7 @@ public class PackageManagement
 
         if (localFiles.Length != workContext.SmartcModel.PackageFiles.Count)
         {
-            context.Trace().LogError("Count mistmatch, filesCount={filesCount}, packageFileCount={packageFileCount}",
+            context.LogError("Count mistmatch, filesCount={filesCount}, packageFileCount={packageFileCount}",
                 localFiles.Length, workContext.SmartcModel.PackageFiles.Count);
 
             return StatusCode.Conflict;
@@ -144,7 +144,7 @@ public class PackageManagement
         Option<IReadOnlyList<FileTool.FileHash>> fileHashesOption = await FileTool.GetFileHashes(localFiles.Select(x => x.file).ToArray(), context);
         if (fileHashesOption.IsError())
         {
-            context.Trace().LogError("Package file's hash violations detected, deleting folder for refresh, smartcExeId={smartcExeId}",
+            context.LogError("Package file's hash violations detected, deleting folder for refresh, smartcExeId={smartcExeId}",
                 workContext.SmartcModel.SmartcExeId);
 
             return fileHashesOption.ToOptionStatus();
@@ -168,7 +168,7 @@ public class PackageManagement
 
         if (allFiles.Length > 0)
         {
-            context.Trace().LogError("There are more files then recorded for package, count={count}, files={files}, smartcExeId={smartcExeId}",
+            context.LogError("There are more files then recorded for package, count={count}, files={files}, smartcExeId={smartcExeId}",
                 allFiles.Length, allFiles.Join(';'), workContext.SmartcModel.SmartcExeId);
 
             return StatusCode.Conflict;

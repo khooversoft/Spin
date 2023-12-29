@@ -15,7 +15,7 @@ public static class FileTool
 
     public static async Task<Option<IReadOnlyList<FileHash>>> GetFileHashes(IEnumerable<string> files, ScopeContext context)
     {
-        context.Trace().LogInformation("Calculating hash for all files");
+        context.LogInformation("Calculating hash for all files");
 
         var fileList = files.ToArray();
         var errorCnt = 0;

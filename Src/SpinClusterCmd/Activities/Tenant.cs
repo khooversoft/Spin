@@ -42,21 +42,21 @@ internal class Tenant : ICommandRoute
     public async Task Delete(string tenantId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Deleting tenant tenantId={tenantId}", tenantId);
+        context.LogInformation("Deleting tenant tenantId={tenantId}", tenantId);
 
         Option response = await _client.Delete(tenantId, context);
-        context.Trace().LogStatus(response, "Deleting Tenant");
+        response.LogStatus(context, "Deleting Tenant");
     }
 
     public async Task Get(string tenantId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Get Tenant tenantId={tenantId}", tenantId);
+        context.LogInformation("Get Tenant tenantId={tenantId}", tenantId);
 
         var response = await _client.Get(tenantId, context);
         if (response.IsError())
         {
-            context.Trace().LogError("Cannot get Tenant tenantId={tenantId}", tenantId);
+            context.LogError("Cannot get Tenant tenantId={tenantId}", tenantId);
             return;
         }
 
@@ -66,7 +66,7 @@ internal class Tenant : ICommandRoute
             .Prepend($"Tenant...")
             .Join(Environment.NewLine) + Environment.NewLine;
 
-        context.Trace().LogInformation(result);
+        context.LogInformation(result);
     }
 
     public async Task Set(string jsonFile)
@@ -79,6 +79,6 @@ internal class Tenant : ICommandRoute
         TenantModel model = readResult.Return();
 
         Option response = await _client.Set(model, context);
-        context.Trace().LogStatus(response, "Creating/Updating Tenant, model={model}", model);
+        response.LogStatus(context, "Creating/Updating Tenant, model={model}", model);
     }
 }

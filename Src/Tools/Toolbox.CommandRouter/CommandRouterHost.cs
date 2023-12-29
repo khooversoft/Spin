@@ -62,7 +62,7 @@ public class CommandRouterHost : ICommandRouterHost
                 rcResult = await rc.InvokeAsync(args, capture);
                 if (rcResult != 0)
                 {
-                    if (_captureOutput) context.Trace().LogError("Args='{args}' failed", args.Join(" "));
+                    if (_captureOutput) context.LogError("Args='{args}' failed", args.Join(" "));
                     break;
                 }
             }
@@ -75,7 +75,7 @@ public class CommandRouterHost : ICommandRouterHost
         }
         catch (Exception ex)
         {
-            context.Trace().LogError(ex, "Failed to execute command");
+            context.LogError(ex, "Failed to execute command");
             return 1;
         }
     }

@@ -16,7 +16,7 @@ public class ConfigBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set(model, context);
 
-            context.Trace().LogStatus(setOption, "Creating config configId={configId}", model.ConfigId);
+            setOption.LogStatus(context, "Creating config configId={configId}", model.ConfigId);
             test.Test(() => setOption);
         }
 
@@ -30,7 +30,7 @@ public class ConfigBuilder : IObjectBuilder
         foreach (var item in option.Configs)
         {
             await client.Value.Delete(item.ConfigId, context);
-            context.Trace().LogInformation("Config deleted: {configId}", item.ConfigId);
+            context.LogInformation("Config deleted: {configId}", item.ConfigId);
         }
 
         return StatusCode.OK;

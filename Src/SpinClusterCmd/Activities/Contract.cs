@@ -42,20 +42,17 @@ internal class Contract : ICommandRoute
     public async Task Delete(string contractId, string principalId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Dumping account ID {contractId}, principalId={principalId}", contractId, principalId);
+        context.LogInformation("Dumping account ID {contractId}, principalId={principalId}", contractId, principalId);
 
         var response = await _client.Delete(contractId, context);
-        if (response.IsError())
-        {
-            context.Trace().LogStatus(response, "Delete failed");
-            return;
-        }
+        response.LogOnError(context, "Delete failed");
+        return;
     }
 
     public async Task Dump(string contractId, string principalId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Dumping account ID {contractId}, principalId={principalId}", contractId, principalId);
+        context.LogInformation("Dumping account ID {contractId}, principalId={principalId}", contractId, principalId);
 
         var query = new ContractQuery
         {
@@ -63,11 +60,8 @@ internal class Contract : ICommandRoute
         };
 
         Option<ContractQueryResponse> result = await _client.Query(contractId, query, context);
-        context.Trace().LogTrace("Dumping contract {contractId}", contractId);
-        if (result.IsError())
-        {
-            context.Trace().LogStatus(result.ToOptionStatus(), "Query failed to contract failed");
-        }
+        context.LogTrace("Dumping contract {contractId}", contractId);
+        result.LogOnError(context, "Query failed to contract failed");
 
         ContractQueryResponse response = result.Return();
 
@@ -82,7 +76,7 @@ internal class Contract : ICommandRoute
                 .Select(x => $"{x.Key}={x.Value}".Replace("{", "{{").Replace("}", "}}"))
                 .Join(Environment.NewLine);
 
-            context.Trace().LogInformation(line);
+            context.LogInformation(line);
         }
     }
 }

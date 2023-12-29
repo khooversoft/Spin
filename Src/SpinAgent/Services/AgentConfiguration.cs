@@ -29,12 +29,12 @@ internal class AgentConfiguration
         bool result = await InternalGet(context);
         if (!result)
         {
-            context.Trace().LogError(msg);
+            context.LogError(msg);
             throw new InvalidOperationException(msg);
         }
 
         Directory.CreateDirectory(_agentModel.WorkingFolder);
-        context.Trace().LogInformation("Agent configuration, model={model}", _agentModel);
+        context.LogInformation("Agent configuration, model={model}", _agentModel);
     }
 
     public AgentModel Get(ScopeContext context) => _agentModel.NotNull();
@@ -47,7 +47,7 @@ internal class AgentConfiguration
 
         if (agentModelOption.IsError() || agentModelOption.Return().Validate().IsError())
         {
-            context.Trace().LogError("Cannot get agent details, agentId={agentId}", _option.AgentId);
+            context.LogError("Cannot get agent details, agentId={agentId}", _option.AgentId);
             return false;
         }
 

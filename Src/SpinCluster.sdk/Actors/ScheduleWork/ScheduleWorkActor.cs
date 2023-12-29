@@ -135,7 +135,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
             .GetScheduleActor(_state.State.SchedulerId)
             .ChangeScheduleState(this.GetPrimaryKeyString(), ScheduleEdgeType.Completed, context.TraceId);
 
-        if (moveOption.IsError()) context.Location().LogStatus(moveOption, "Failed to change directory's state");
+        if (moveOption.IsError()) moveOption.LogStatus(context, "Failed to change directory's state");
         return StatusCode.OK;
     }
 
@@ -227,7 +227,7 @@ public class ScheduleWorkActor : Grain, IScheduleWorkActor
         if (_state.State.Validate(out var v)) return;
 
         var context = new ScopeContext(_logger);
-        context.Location().LogStatus(v, "ScheduleModel is not valid");
+        v.LogStatus(context, "ScheduleModel is not valid");
         throw new InvalidOperationException($"ScheduleModel is not valid, statusCode={v.StatusCode}, error={v.Error}");
     }
 }

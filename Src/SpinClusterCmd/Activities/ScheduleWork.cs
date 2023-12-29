@@ -41,12 +41,12 @@ internal class ScheduleWork : ICommandRoute
     public async Task Delete(string workId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Deleting workId={workId}", workId);
+        context.LogInformation("Deleting workId={workId}", workId);
 
         var clearOption = await _client.Delete(workId, context);
         if (clearOption.IsError())
         {
-            context.Trace().LogStatus(clearOption, "Failed to delete workId={workId}", workId);
+            clearOption.LogStatus(context, "Failed to delete workId={workId}", workId);
             return;
         }
     }
@@ -54,12 +54,12 @@ internal class ScheduleWork : ICommandRoute
     public async Task Get(string workId)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Getting workId={workId}", workId);
+        context.LogInformation("Getting workId={workId}", workId);
 
         var scheduleWorkModel = await _client.Get(workId, context);
         if (scheduleWorkModel.IsError())
         {
-            context.Trace().LogStatus(scheduleWorkModel.ToOptionStatus(), "Failed to get workId={workId}", workId);
+            scheduleWorkModel.LogStatus(context, "Failed to get workId={workId}", workId);
             return;
         }
 
@@ -69,18 +69,18 @@ internal class ScheduleWork : ICommandRoute
             .Prepend($"Schedule work...")
             .Join(Environment.NewLine) + Environment.NewLine;
 
-        context.Trace().LogInformation(result);
+        context.LogInformation(result);
     }
 
     public async Task ReleaseAssign(string workId, bool force)
     {
         var context = new ScopeContext(_logger);
-        context.Trace().LogInformation("Releasing assignment workId={workId}", workId);
+        context.LogInformation("Releasing assignment workId={workId}", workId);
 
         var releaseOption = await _client.ReleaseAssign(workId, force, context);
         if (releaseOption.IsError())
         {
-            context.Trace().LogStatus(releaseOption, "Failed to delete workId={workId}", workId);
+            releaseOption.LogStatus(context, "Failed to delete workId={workId}", workId);
             return;
         }
 

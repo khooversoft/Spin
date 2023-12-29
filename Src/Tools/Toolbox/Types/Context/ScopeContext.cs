@@ -1,11 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Linq;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
-public readonly record struct ScopeContext
+public readonly record struct ScopeContext : ILoggingContext
 {
     [Obsolete("Do not use, logger is required, will throw")]
     public ScopeContext() { throw new InvalidOperationException(); }
@@ -31,16 +31,11 @@ public readonly record struct ScopeContext
     [JsonIgnore] public CancellationToken Token { get; init; }
     [JsonIgnore] public ILogger Logger { get; }
 
-    public ScopeContextLocation Location([CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
-    {
-        Logger.NotNull();
-        return new ScopeContextLocation(this, new CodeLocation(function, path, lineNumber), LoggingFormatter.LoggingFormatterLocation);
-    }
+    public ScopeContext Context => this;
 
-    public ScopeContextLocation Trace()
+    public (string? message, object?[] args) AppendContext(string? message, object?[] args)
     {
-        Logger.NotNull();
-        return new ScopeContextLocation(this, new CodeLocation(), LoggingFormatter.LoggingTrace);
+        return (ScopeContextTools.AppendMessage(message, "traceId={traceId}"), ScopeContextTools.AppendArgs(args, TraceId));
     }
 
     public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger.NotNull(), Token);

@@ -38,7 +38,8 @@ public class RunWorkActivity : ICommandRoute
         var scheduleWorkModelOption = await _scheduleWorkClient.Get(workId, context);
         if (scheduleWorkModelOption.IsError())
         {
-            context.Location().LogStatus(scheduleWorkModelOption.ToOptionStatus(), "failed to get workId={workId}", workId);
+            scheduleWorkModelOption.LogOnError(context);
+            context.Location().LogError("failed to get workId={workId}", workId);
             return;
         }
 
@@ -49,6 +50,6 @@ public class RunWorkActivity : ICommandRoute
         };
 
         Option result = await _runSmartc.Run(assigned, whatIf, context);
-        context.Location().LogStatus(result, "runSmartc");
+        result.LogOnError(context, "runSmartc, workId");
     }
 }

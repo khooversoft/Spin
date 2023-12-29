@@ -82,7 +82,7 @@ internal class WorkMonitor : ICommandRoute
 
     private async Task<Option<string>> UnpackPackage(WorkAssignedModel workSchedule, ScopeContext context)
     {
-        context.Trace().LogInformation("Unpacking SmartC package smartcId={smartcId}", workSchedule.SmartcId);
+        context.LogInformation("Unpacking SmartC package smartcId={smartcId}", workSchedule.SmartcId);
 
         var result = await _packageManagement.LoadPackage(_option.AgentId, workSchedule.SmartcId, context);
         if (result.IsError())

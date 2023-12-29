@@ -59,7 +59,7 @@ internal class Configuration : ICommandRoute
         ConfigModel model = readResult.Return();
 
         Option response = await _client.Set(model, context);
-        context.Trace().LogStatus(response, "Creating/Updating configuration, model={model}", model);
+        response.LogStatus(context, "Creating/Updating configuration, model={model}", model);
     }
 
     public async Task SetProperty(string configId, string key, string value)
@@ -74,7 +74,7 @@ internal class Configuration : ICommandRoute
         };
 
         var response = await _client.SetProperty(request, context);
-        context.Trace().LogStatus(response, "Set property");
+        response.LogStatus(context, "Set property");
     }
 
     public async Task RemoveProperty(string configId, string key)
@@ -88,7 +88,7 @@ internal class Configuration : ICommandRoute
         };
 
         var response = await _client.RemoveProperty(request, context);
-        context.Trace().LogStatus(response, "Remove property");
+        response.LogStatus(context, "Remove property");
     }
 
     public async Task Get(string configId)
@@ -98,7 +98,7 @@ internal class Configuration : ICommandRoute
         var response = await _client.Get(configId, context);
         if (response.IsError())
         {
-            context.Trace().LogError("Failed to get configId={confgiId}", configId);
+            context.LogError("Failed to get configId={confgiId}", configId);
             return;
         }
 
@@ -108,6 +108,6 @@ internal class Configuration : ICommandRoute
             .Prepend($"Configuration...")
             .Join(Environment.NewLine) + Environment.NewLine;
 
-        context.Trace().LogInformation(result);
+        context.LogInformation(result);
     }
 }
