@@ -49,13 +49,20 @@ public class ArticleService
         };
     }
 
-    public async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context)
+    public Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context) => GetSummaries(x => !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
+    public Task<Option<IReadOnlyList<ArticleManifest>>> GetToolSummaries(ScopeContext context) => GetSummaries(x => x.Tags.Has(NBlogConstants.ToolTag), context);
+    public Task<Option<IReadOnlyList<ArticleManifest>>> GetFrameworkSummaries(ScopeContext context) => GetSummaries(x => x.Tags.Has(NBlogConstants.FrameworkDesignTag), context);
+
+    private async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(Func<GraphNode, bool> filter, ScopeContext context)
     {
         Option<GraphCommandResults> response = await _clusterClient.GetDirectoryActor().Execute("select (key=article:*);", context.TraceId);
         if (response.IsError()) return response.LogOnError(context, "Directory search failed").ToOptionStatus<IReadOnlyList<ArticleManifest>>();
 
         GraphCommandResults result = response.Return();
-        IReadOnlyList<GraphNode> nodes = result.Items.SelectMany(x => x.Nodes()).ToArray();
+        IReadOnlyList<GraphNode> nodes = result.Items
+            .SelectMany(x => x.Nodes())
+            .Where(x => filter(x))
+            .ToArray();
 
         var queue = new ConcurrentQueue<ArticleManifest>();
         await ActionBlockParallel.Run(getArticleDetail, nodes);

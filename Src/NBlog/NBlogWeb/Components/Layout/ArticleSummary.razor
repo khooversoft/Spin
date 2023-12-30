@@ -75,7 +75,7 @@ else
             var commandNode = _articleDetail.Manifest.GetCommand(NBlogConstants.MainAttribute);
             if (commandNode.IsOk())
             {
-                _docFileId = NavRoutes.GotoArticle(ArticleId);
+                _docFileId = NavRoutes.GotoArticle(NBlogConstants.MainAttribute, ArticleId);
             }
         }
         finally

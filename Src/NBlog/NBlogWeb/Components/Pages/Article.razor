@@ -1,4 +1,4 @@
-﻿@page "/article/{*ArticleId}"
+﻿@page "/article/{Attribute}/{*ArticleId}"
 @using NBlog.sdk
 @using Toolbox.Types
 @rendermode InteractiveServer
@@ -22,6 +22,9 @@
 
 @code {
     [Parameter]
+    public string Attribute { get; init; } = null!;
+
+    [Parameter]
     public string ArticleId { get; init; } = null!;
 
     [Inject]
@@ -39,7 +42,7 @@
     protected override async Task OnInitializedAsync()
     {
         var context = new ScopeContext(_logger);
-        var mdDoc = await _articleService.ReadArticleDetail(ArticleId, NBlogConstants.MainAttribute, context);
+        var mdDoc = await _articleService.ReadArticleDetail(ArticleId, Attribute, context);
         if (mdDoc.IsError())
         {
             _title = mdDoc.ToString();

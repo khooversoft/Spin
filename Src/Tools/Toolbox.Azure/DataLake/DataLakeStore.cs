@@ -35,7 +35,7 @@ public class DatalakeStore : IDatalakeStore
         path = WithBasePath(path);
         context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
 
-        data.NotNull().Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0");
+        data.NotNull().Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0, path={path}");
 
         using var memoryBuffer = new MemoryStream(data.ToArray());
 
@@ -227,7 +227,7 @@ public class DatalakeStore : IDatalakeStore
         path = WithBasePath(path);
         context.Location().LogTrace($"Writing to {path}, data.Length={data.Data.Length}, eTag={data.ETag?.ToString() ?? "<null>"}");
 
-        data.NotNull().Assert(x => x.Data.Length > 0, "length must be greater then 0");
+        data.NotNull().Assert(x => x.Data.Length > 0, $"length must be greater then 0, path={path}");
 
         context.Location().LogTrace("Writing path={path}", path);
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());

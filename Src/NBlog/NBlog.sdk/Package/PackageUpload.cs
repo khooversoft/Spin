@@ -28,10 +28,15 @@ public class PackageUpload
         packageFile = PathTools.SetExtension(packageFile, NBlogConstants.PackageExtension);
         var context = new ScopeContext(_logger);
 
-        context.Location().LogInformation("Uploading package={packageFile} to datalake, account={account}, container={container}, basePath={basePath}",
+        context.LogInformation("Uploading package={packageFile} to datalake, account={account}, container={container}, basePath={basePath}",
             packageFile, datalakeOption.Account, datalakeOption.Container, datalakeOption.BasePath);
 
-        if (!File.Exists(packageFile)) return (StatusCode.BadRequest, $"Package file={packageFile} does not exist");
+        if (!File.Exists(packageFile))
+        {
+            context.LogError("Package file={packageFile} does not exist.", packageFile);
+            return StatusCode.BadRequest;
+        }
+
         IDatalakeStore datalakeStore = ActivatorUtilities.CreateInstance<DatalakeStore>(_service, datalakeOption);
 
         Option clearOption = await ClearDatalake(datalakeStore, context);
@@ -100,7 +105,15 @@ public class PackageUpload
                 data = memory.ToArray();
             }
 
+            if (data.Length == 0)
+            {
+                context.Location().LogError("Data length is 0 for zipFile={zipFile}", zipFile);
+                continue;
+            }
+
             string dataLakePath = calcDatalakePath( zipFile.FullName);
+            context.LogInformation("Writting fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, dataLakePath);
+
             var dataEtag = new DataETag(data);
             var writeOption = await datalakeStore.Write(dataLakePath, dataEtag, true, context);
             if (writeOption.IsError())
@@ -108,8 +121,6 @@ public class PackageUpload
                 context.Location().LogError("Cannot write to datalake, path={path}, error={error}", dataLakePath, writeOption.Error);
                 return writeOption.ToOptionStatus();
             }
-
-            context.Location().LogInformation("Write fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, dataLakePath);
         }
 
         return StatusCode.OK;

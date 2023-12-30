@@ -22,6 +22,7 @@ public class PackageBuild
         packageFile = PathTools.SetExtension(packageFile, NBlogConstants.PackageExtension);
         var context = new ScopeContext(_logger);
         context.Location().LogInformation("Building package, basePath={basePath}, packageFile={packageFile}", basePath, packageFile);
+        if (File.Exists(packageFile)) File.Delete(packageFile);
 
         IReadOnlyList<QueuedManifest> manifestFiles = await ReadManifestFiles(basePath, context);
         if (manifestFiles.Count == 0) return StatusCode.NoContent;
@@ -86,13 +87,21 @@ public class PackageBuild
         }
 
         var findResult = commands
-            .Select(x => File.Exists(x.LocalFilePath) ? null : $"File={x.LocalFilePath} does not exist, local file for manifest={file}")
+            .Select(x => File.Exists(x.LocalFilePath) switch
+            {
+                false => $"File={x.LocalFilePath} does not exist, local file for manifest={file}",
+                true => new FileInfo(x.LocalFilePath) switch
+                {
+                    { Length: 0 } => $"File={x.LocalFilePath} is empty, local file for manifest={file}",
+                    _ => null,
+                }
+            })
             .OfType<string>()
             .ToArray();
 
         if (findResult.Length != 0)
         {
-            string msg = findResult.Aggregate("Cannot find local files" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
+            string msg = findResult.Aggregate("Errors in local files" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
             context.LogError(msg);
             return;
         }

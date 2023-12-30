@@ -30,8 +30,9 @@ public readonly record struct ScopeContext : ILoggingContext
     [JsonIgnore] public bool IsCancellationRequested => Token.IsCancellationRequested;
     [JsonIgnore] public CancellationToken Token { get; init; }
     [JsonIgnore] public ILogger Logger { get; }
+    [JsonIgnore] public ScopeContext Context => this;
 
-    public ScopeContext Context => this;
+    public override string ToString() => "TraceId=" + TraceId;
 
     public (string? message, object?[] args) AppendContext(string? message, object?[] args)
     {
