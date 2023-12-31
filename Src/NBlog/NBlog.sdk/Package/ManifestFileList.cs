@@ -115,7 +115,14 @@ public class ManifestFileList
         foreach (var file in manifestFiles)
         {
             var attributes = file.Commands.SelectMany(x => x.Attributes);
-            bool containsAll = _requiredAttributes.All(itemB => attributes.Contains(itemB));
+
+            var shouldHave = Tags.HasTag(file.Manifest.Tags, NBlogConstants.NoSummaryTag) switch
+            {
+                true => _requiredNoSummaryAttributes,
+                false => _requiredAttributes,
+            };
+
+            bool containsAll = shouldHave.All(itemB => attributes.Contains(itemB));
 
             if (!containsAll)
             {

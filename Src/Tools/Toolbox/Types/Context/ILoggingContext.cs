@@ -19,7 +19,7 @@ public static class LoggerContextExtensions
     public static void Log(this ILoggingContext context, LogLevel logLevel, string? message, params object?[] args)
     {
         (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Log(logLevel, newMessage, newObjects);
+        context.Context.Logger.Log(logLevel, newMessage, newObjects);
     }
 
     public static void LogInformation(this ILoggingContext context, string? message, params object?[] args)

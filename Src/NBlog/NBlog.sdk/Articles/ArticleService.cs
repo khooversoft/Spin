@@ -49,31 +49,69 @@ public class ArticleService
         };
     }
 
-    public Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context) => GetSummaries(x => !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
-    public Task<Option<IReadOnlyList<ArticleManifest>>> GetToolSummaries(ScopeContext context) => GetSummaries(x => x.Tags.Has(NBlogConstants.ToolTag), context);
+    public Task<Option<IReadOnlyList<ArticleManifest>>> GetToolSummaries(ScopeContext context) => GetSummaries(NBlogConstants.ToolTag, context);
+    public Task<Option<IReadOnlyList<ArticleManifest>>> GetFrameworkSummaries(ScopeContext context) => GetSummaries(NBlogConstants.FrameworkDesignTag, context);
 
-    public Task<Option<IReadOnlyList<ArticleManifest>>> GetFrameworkSummaries(ScopeContext context)
+    public async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context, int limit = 10)
     {
-        return GetSummaries(x => x.Tags.Has(NBlogConstants.FrameworkDesignTag) && !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
+        var nodeListOption = await QueryDirectory(x => !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
+        if (nodeListOption.IsError()) return nodeListOption.ToOptionStatus<IReadOnlyList<ArticleManifest>>();
+
+        var nodeList = nodeListOption.Return()
+            .Select(x => expandWithDate(x))
+            .OrderByDescending(x => x.createdDate)
+            .Take(limit)
+            .Select(x => x.node)
+            .ToArray();
+
+        return await GetSummaries(nodeList, context);
+
+        (GraphNode node, DateTime createdDate) expandWithDate(GraphNode node)
+        {
+            DateTime date = node.Tags.TryGetValue(NBlogConstants.CreatedDate, out var createdDateValue) switch
+            {
+                false => DateTime.MinValue,
+                true => DateTime.TryParse(createdDateValue, out var createdDate) switch
+                {
+                    false => DateTime.MinValue,
+                    true => createdDate,
+                }
+            };
+
+            return (node, date);
+        }
     }
 
-    private async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(Func<GraphNode, bool> filter, ScopeContext context)
+    private async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(string lookForTag, ScopeContext context)
+    {
+        var nodeListOption = await QueryDirectory(x => x.Tags.Has(lookForTag), context);
+        if (nodeListOption.IsError()) return nodeListOption.ToOptionStatus<IReadOnlyList<ArticleManifest>>();
+
+        return await GetSummaries(nodeListOption.Return(), context);
+    }
+
+    private async Task<Option<IReadOnlyList<GraphNode>>> QueryDirectory(Func<GraphNode, bool> filter, ScopeContext context)
     {
         Option<GraphCommandResults> response = await _clusterClient.GetDirectoryActor().Execute("select (key=article:*);", context.TraceId);
-        if (response.IsError()) return response.LogOnError(context, "Directory search failed").ToOptionStatus<IReadOnlyList<ArticleManifest>>();
+        if (response.IsError()) return response.LogOnError(context, "Directory search failed").ToOptionStatus<IReadOnlyList<GraphNode>>();
 
         GraphCommandResults result = response.Return();
+
         IReadOnlyList<GraphNode> nodes = result.Items
             .SelectMany(x => x.Nodes())
             .Where(x => filter(x))
             .ToArray();
 
+        return nodes.ToOption();
+    }
+
+    private async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(IReadOnlyList<GraphNode> nodes, ScopeContext context)
+    {
         var queue = new ConcurrentQueue<ArticleManifest>();
         await ActionBlockParallel.Run(getArticleDetail, nodes);
 
         var list = queue.OrderByDescending(x => x.CreatedDate).ToArray();
         return list;
-
 
         async Task getArticleDetail(GraphNode node)
         {

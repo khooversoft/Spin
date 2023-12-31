@@ -10,7 +10,7 @@ public static class ScopeContextTools
         string v => addMessage switch
         {
             null => v,
-            string => v + ", " + addMessage,
+            string v2 => v + ", " + v2,
         }
     };
 

@@ -19,6 +19,7 @@ public record ArticleManifest
         .RuleFor(x => x.ArticleId).Must(x => FileId.Create(x).IsOk(), _ => "Invalid artical Id")
         .RuleFor(x => x.Title).NotEmpty()
         .RuleFor(x => x.Author).NotEmpty()
+        .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleForEach(x => x.Commands).Must(x =>
         {
             var commandsOption = CommandGrammarParser.Parse(x);
