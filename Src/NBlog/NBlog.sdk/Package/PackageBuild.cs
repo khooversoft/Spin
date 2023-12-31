@@ -21,160 +21,25 @@ public class PackageBuild
     {
         packageFile = PathTools.SetExtension(packageFile, NBlogConstants.PackageExtension);
         var context = new ScopeContext(_logger);
-        context.Location().LogInformation("Building package, basePath={basePath}, packageFile={packageFile}", basePath, packageFile);
+        context.LogInformation("Building package, basePath={basePath}, packageFile={packageFile}", basePath, packageFile);
         if (File.Exists(packageFile)) File.Delete(packageFile);
 
-        IReadOnlyList<QueuedManifest> manifestFiles = await ReadManifestFiles(basePath, context);
-        if (manifestFiles.Count == 0) return StatusCode.NoContent;
-        context.Location().LogInformation("Manifest detected, files added={count}", manifestFiles.Count);
-
-        var verifyOption = VerifyManifest(manifestFiles, context);
-        if (verifyOption.IsError()) return verifyOption;
+        var manifestFileListOption = await ManifestFileList.Build(basePath, context);
+        if (manifestFileListOption.IsError()) return manifestFileListOption.ToOptionStatus();
+        ManifestFileList manifestFileList = manifestFileListOption.Return();
 
         using var zipFile = File.Open(packageFile, FileMode.Create);
         using var zip = new ZipArchive(zipFile, ZipArchiveMode.Create);
 
-        WriteManifestFilesToZip(zip, manifestFiles, context);
-        WriteFilesToZip(zip, manifestFiles, context);
-        BuildAndWriteIndex(zip, manifestFiles, context);
+        WriteManifestFilesToZip(zip, manifestFileList.Files, context);
+        WriteFilesToZip(zip, manifestFileList.Files, context);
+        BuildAndWriteIndex(zip, manifestFileList.Files, context);
 
-        context.Location().LogInformation("Completed: Package has been created, files added={count}", manifestFiles.Count);
+        context.Location().LogInformation("Completed: Package has been created, files added={count}", manifestFileList.Files.Count);
         return StatusCode.OK;
     }
 
-    private static async Task ReadManifest(string file, string basePath, ConcurrentQueue<QueuedManifest> queue, ScopeContext context)
-    {
-        file.NotEmpty();
-        basePath.NotEmpty();
-        context.Location().LogInformation("Processing file={file}, basePath={basePath}", file, basePath);
-
-        string fileId = file[(basePath.Length + 1)..].Replace(@"\", "/");
-        string pathFileId = Path.GetDirectoryName(fileId).NotNull().Replace(@"\", "/");
-        context.Location().LogInformation("Processing fileId={fileId}, pathFileId={pathFileId}", fileId, pathFileId);
-
-        string data = await File.ReadAllTextAsync(file);
-        var model = data.ToObject<ArticleManifest>();
-        if (model == null)
-        {
-            context.LogError("Cannot deserialize json={file}", file);
-            return;
-        }
-
-        model = model with
-        {
-            ArticleId = resolveVariables(model.ArticleId),
-            Commands = model.Commands.Select(x => resolveVariables(x)).ToArray(),
-        };
-
-        if (!model.Validate(out var v))
-        {
-            v.LogStatus(context, "File={file} is not a valid manifest file", file);
-            return;
-        }
-
-        string folder = Path.GetFullPath(file)
-            .Func(x => Path.GetDirectoryName(x))
-            .NotNull($"File={file} does not have directory name");
-
-        var commands = model.GetCommands()
-            .Select(x => x with { LocalFilePath = Path.Combine(folder, x.LocalFilePath) })
-            .ToArray();
-
-        if (commands.Length == 0)
-        {
-            context.LogError("Manifest={file} does not have any commands specified");
-            return;
-        }
-
-        var findResult = commands
-            .Select(x => File.Exists(x.LocalFilePath) switch
-            {
-                false => $"File={x.LocalFilePath} does not exist, local file for manifest={file}",
-                true => new FileInfo(x.LocalFilePath) switch
-                {
-                    { Length: 0 } => $"File={x.LocalFilePath} is empty, local file for manifest={file}",
-                    _ => null,
-                }
-            })
-            .OfType<string>()
-            .ToArray();
-
-        if (findResult.Length != 0)
-        {
-            string msg = findResult.Aggregate("Errors in local files" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
-            context.LogError(msg);
-            return;
-        }
-
-        var queuedManifest = new QueuedManifest
-        {
-            File = file,
-            Commands = commands,
-            Manifest = model,
-        };
-
-        queue.Enqueue(queuedManifest);
-
-        string resolveVariables(string value) => value.NotEmpty()
-            .Replace("{pathAndFile}", fileId)
-            .Replace("{path}", pathFileId);
-    }
-
-    private async Task<IReadOnlyList<QueuedManifest>> ReadManifestFiles(string basePath, ScopeContext context)
-    {
-        var queue = new ConcurrentQueue<QueuedManifest>();
-
-        string[] files = Directory.GetFiles(basePath, "*.json", SearchOption.AllDirectories)
-            .Where(x => x.IndexOf(".vscode") < 0)
-            .ToArray();
-
-        context.Location().LogInformation("Reading manifest files, count={count}", files.Length);
-        if (files.Length == 0)
-        {
-            context.Location().LogWarning("No files to read");
-            return Array.Empty<QueuedManifest>();
-        }
-
-        await ActionBlockParallel.Run<string>(async x => await ReadManifest(x, basePath, queue, context), files);
-
-        if (files.Length != queue.Count)
-        {
-            context.Location().LogError("Failed to read {count} files.", files.Length - queue.Count);
-            return Array.Empty<QueuedManifest>();
-        }
-
-        context.Location().LogInformation("Read {count} files", queue.Count);
-        return queue.ToArray();
-    }
-
-    private Option VerifyManifest(IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
-    {
-        var fileIds = manifestFiles.Select(x => x.Manifest.ArticleId).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        if (fileIds.Length != manifestFiles.Count)
-        {
-            string msg = fileIds.Aggregate("Duplicate 'Article Ids'" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
-            context.Location().LogError(msg);
-            return StatusCode.Conflict;
-        }
-
-        var multipleReferences = manifestFiles
-            .SelectMany(x => x.Commands)
-            .Select(x => (fileId: x.FileId.ToLower(), localFile: x.LocalFilePath.ToLower()))
-            .GroupBy(x => x.fileId)
-            .Where(x => x.Count() > 1)
-            .ToArray();
-
-        if (multipleReferences.Length != 0)
-        {
-            string msg = multipleReferences.Aggregate("Multiple references to the same file" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
-            context.Location().LogError(msg);
-            return StatusCode.Conflict;
-        }
-
-        return StatusCode.OK;
-    }
-
-    private void WriteManifestFilesToZip(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
+    private static void WriteManifestFilesToZip(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
     {
         string tempFile = Path.GetTempFileName();
 
@@ -198,7 +63,7 @@ public class PackageBuild
         }
     }
 
-    private void WriteFilesToZip(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
+    private static void WriteFilesToZip(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
     {
         var dataFiles = manifestFiles
             .SelectMany(x => x.Commands)
@@ -215,7 +80,7 @@ public class PackageBuild
         context.Location().LogInformation("Write data count={count} files", dataFiles.Length);
     }
 
-    private void BuildAndWriteIndex(ZipArchive zip, IReadOnlyList<QueuedManifest> manifestFiles, ScopeContext context)
+    private static void BuildAndWriteIndex(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
     {
         var map = new GraphMap();
 
@@ -236,12 +101,5 @@ public class PackageBuild
         {
             if (File.Exists(tempFile)) File.Delete(tempFile);
         }
-    }
-
-    private record QueuedManifest
-    {
-        public string File { get; init; } = null!;
-        public IReadOnlyList<CommandNode> Commands { get; init; } = Array.Empty<CommandNode>();
-        public ArticleManifest Manifest { get; init; } = null!;
     }
 }

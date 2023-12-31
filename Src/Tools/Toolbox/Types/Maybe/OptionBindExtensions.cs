@@ -4,49 +4,25 @@ namespace Toolbox.Types;
 
 public static class OptionBindExtensions
 {
-    public static Option<TO> Bind<TO, T>(this Option<T> subject, Func<T, Option<TO>> func)
+    public static Option Bind(this Option subject, Func<Option> func)
     {
         func.NotNull();
 
-        return subject.HasValue switch
+        return subject.IsOk() switch
         {
-            true => func(subject.Return()),
-            false => subject.ToOptionStatus<TO>(),
+            true => func(),
+            false => subject,
         };
     }
 
-    public static async Task<Option<TO>> BindAsync<TO, T>(this Option<T> subject, Func<T, Task<Option<TO>>> func)
+    public static async Task<Option> BindAsync(this Option subject, Func<Task<Option>> func)
     {
         func.NotNull();
 
-        return subject.HasValue switch
+        return subject.IsOk() switch
         {
-            true => await func(subject.Return()),
-            false => subject.ToOptionStatus<TO>(),
-        };
-    }
-
-    public static Option<TO> Bind<TO, T>(this Option<T> subject, Func<T, TO> func)
-    {
-        func.NotNull();
-
-        return subject.HasValue switch
-        {
-            true => func(subject.Return()).ToOption(),
-            false => subject.ToOptionStatus<TO>(),
-        };
-    }
-
-    public static async Task<Option<TO>> BindAsync<TO, T>(this Task<Option<T>> subject, Func<T, Task<TO>> func)
-    {
-        func.NotNull();
-
-        Option<T> subjectResult = await subject;
-
-        return subjectResult.HasValue switch
-        {
-            true => await func(subjectResult.Return()),
-            false => subjectResult.ToOptionStatus<TO>(),
+            true => await func(),
+            false => subject,
         };
     }
 }

@@ -1,52 +1,14 @@
-﻿@page "/{topic?}"
-@using NBlog.sdk
-@using NBlogWeb.Components.Layout
-@using Toolbox.Extensions
-@using Toolbox.Types
+﻿@page "/"
 @rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
-
-@if (_manifests != null)
-{
-    @foreach (var manifest in _manifests)
-    {
-        <ArticleSummary ArticleId="@manifest.ArticleId" />
-    }
-}
-
+<PageTitle>NBlog</PageTitle>
 
 @code {
-    [Parameter]
-    public string? Topic { get; set; }
-
     [Inject]
-    private ArticleService _articleService { get; init; } = null!;
+    public NavigationManager _navManager { get; init; } = null!;
 
-    [Inject]
-    private ILogger<Home> _logger { get; init; } = null!;
-
-    private IReadOnlyList<ArticleDetail> _articles { get; set; } = Array.Empty<ArticleDetail>();
-    private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
-
-    protected override async Task OnParametersSetAsync()
+    protected override void OnAfterRender(bool firstRender)
     {
-        var context = new ScopeContext(_logger);
-
-        var manifestOption = Topic?.ToLower() switch
-        {
-            null => await _articleService.GetSummaries(context),
-            var v when v.EqualsIgnoreCase(NBlogConstants.ToolTag) => await _articleService.GetToolSummaries(context),
-            var v when v.EqualsIgnoreCase(NBlogConstants.FrameworkDesignTag) => await _articleService.GetFrameworkSummaries(context),
-
-            _ => StatusCode.BadRequest,
-        };
-
-        _manifests = manifestOption.IsOk() ? manifestOption.Return() : null;
-
-        // _manifests = await _articleService.GetSummaries(context).Return();
-
-        await InvokeAsync(() => StateHasChanged());
-        await base.OnParametersSetAsync();
+        _navManager.NavigateTo("/summary/home", true);
     }
 }

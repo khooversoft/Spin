@@ -16,6 +16,8 @@
     --bd-body-bg: #212529;
     --bd-color: #dee2e6;
     --bs-info-rgb: 13,202,240;
+
+    --loading-color-bg: 45, 45, 45;
 }
 
 .program-icon {

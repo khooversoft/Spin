@@ -1,5 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using System;
 
 namespace Toolbox.Types;
 
@@ -51,7 +52,7 @@ public class Tags : Dictionary<string, string?>
 
     public bool Has(string? key) => key switch
     {
-        string v => v.Func(x => v.ToDictionaryFromString().All(x => TryGetValue(x.Key, out var value) switch
+        string v => v.Func(_ => v.ToDictionaryFromString().All(x => TryGetValue(x.Key, out var value) switch
         {
             false => false,
             true => x.Value == null || x.Value == value,
@@ -91,7 +92,45 @@ public class Tags : Dictionary<string, string?>
     public static bool operator !=(Tags? left, Tags? right) => !(left == right);
 
     public static implicit operator Tags(string? value) => new Tags(value);
-    //public static implicit operator string(Tags value) => value.NotNull().ToString();
+
+    public static bool HasTag(string? tags, string tag)
+    {
+        if (tags == null) return false;
+        tag.NotEmpty();
+
+        var memoryTag = tag.AsMemory();
+
+        foreach (var item in tags.AsMemory().Split(';'))
+        {
+            foreach (ReadOnlyMemory<char> field in item.Split('='))
+            {
+                bool isEqual = field.Span.Equals(memoryTag.Span, StringComparison.OrdinalIgnoreCase);
+                if (isEqual) return true;
+            }
+        }
+
+        return false;
+    }
+    public static bool HasTag(string? tags, string tag, string value)
+    {
+        if (tags == null) return false;
+        tag.NotEmpty();
+        value.NotEmpty();
+
+        var memoryTag = tag.AsMemory();
+        var memoryValue = value.AsMemory();
+
+        foreach (var item in tags.AsMemory().Split(';'))
+        {
+            foreach (var field in item.Split('=').WithIndex())
+            {
+                if (field.Index == 0 && !field.Item.Span.Equals(memoryTag.Span, StringComparison.OrdinalIgnoreCase)) break;
+                if (field.Index == 1 && field.Item.Span.Equals(memoryValue.Span, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 

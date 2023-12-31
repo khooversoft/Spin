@@ -51,7 +51,11 @@ public class ArticleService
 
     public Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context) => GetSummaries(x => !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
     public Task<Option<IReadOnlyList<ArticleManifest>>> GetToolSummaries(ScopeContext context) => GetSummaries(x => x.Tags.Has(NBlogConstants.ToolTag), context);
-    public Task<Option<IReadOnlyList<ArticleManifest>>> GetFrameworkSummaries(ScopeContext context) => GetSummaries(x => x.Tags.Has(NBlogConstants.FrameworkDesignTag), context);
+
+    public Task<Option<IReadOnlyList<ArticleManifest>>> GetFrameworkSummaries(ScopeContext context)
+    {
+        return GetSummaries(x => x.Tags.Has(NBlogConstants.FrameworkDesignTag) && !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
+    }
 
     private async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(Func<GraphNode, bool> filter, ScopeContext context)
     {

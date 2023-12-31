@@ -13,6 +13,8 @@ public interface IOptionStatus
 [DebuggerDisplay("StatusCode={StatusCode}, Error={Error}")]
 public readonly struct Option : IOptionStatus, IEquatable<Option>
 {
+    public static Option Root { get; } = new Option(StatusCode.OK);
+
     public Option(StatusCode statusCode) => StatusCode = statusCode;
 
     [JsonConstructor]

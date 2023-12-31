@@ -1,0 +1,74 @@
+﻿@page "/summary/{tag}"
+@using NBlog.sdk
+@using NBlogWeb.Components.Layout
+@using Toolbox.Extensions
+@using Toolbox.Types
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+@if (_manifests != null && _running == 2)
+{
+    @foreach (var manifest in _manifests.WithIndex())
+    {
+        <ArticleSummary ArticleId="@manifest.Item.ArticleId" Index="@manifest.Index" Attribute="@_attribute" />
+    }
+}
+else
+{
+    <LoadingComponent Size="0" />
+}
+
+
+@code {
+    [Parameter]
+    public string Tag { get; set; } = null!;
+
+    [Inject]
+    private ArticleService _articleService { get; init; } = null!;
+
+    [Inject]
+    private ILogger<Home> _logger { get; init; } = null!;
+
+    private int _running;
+    private IReadOnlyList<ArticleDetail> _articles { get; set; } = Array.Empty<ArticleDetail>();
+    private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
+    private string? _attribute { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _running = 0;
+            await Load();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task Load()
+    {
+        var context = new ScopeContext(_logger);
+        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
+        if (currentRunnning == 1) return;
+
+        try
+        {
+            var manifestOption = Tag?.ToLower() switch
+            {
+                string v when v.EqualsIgnoreCase(NBlogConstants.ToolTag) => await _articleService.GetToolSummaries(context),
+                string v when v.EqualsIgnoreCase(NBlogConstants.FrameworkDesignTag) => await _articleService.GetFrameworkSummaries(context),
+
+                _ => await _articleService.GetSummaries(context),
+            };
+
+            _manifests = manifestOption.IsOk() ? manifestOption.Return() : null;
+            _attribute = _manifests?.Count == 1 ? NBlogConstants.MainAttribute : null;
+        }
+        finally
+        {
+            _running = 2;
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+}

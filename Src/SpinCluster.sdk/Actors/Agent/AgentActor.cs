@@ -32,7 +32,7 @@ public class AgentActor : Grain, IAgentActor
         _logger = logger.NotNull();
     }
 
-    public override Task OnActivateAsync(CancellationToken cancellationToken.)
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
         this.VerifySchema(SpinConstants.Schema.Agent, new ScopeContext(_logger));
         return base.OnActivateAsync(cancellationToken);
