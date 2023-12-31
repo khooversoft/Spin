@@ -1,0 +1,98 @@
+﻿@page "/history"
+@using NBlog.sdk
+@using NBlogWeb.Components.Layout
+@using Toolbox.Extensions
+@using Toolbox.Types
+@rendermode InteractiveServer
+
+@if (_manifests != null && _running == 2)
+{
+    <div class="posts-container mx-auto px-3 py-5">
+        @foreach (var byDate in _byDate)
+        {
+            <h3>@byDate.Year</h3>
+
+            <ul class="list mb-5">
+                @foreach (var item in byDate.Manifests)
+                {
+                    <li>
+                        <a class="truncate-text" href="@GetDocFileId(item)">@item.Title</a>
+                        <span class="d-none d-lg-block">@item.CreatedDate.ToString("MMM dd, yyyy")</span>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+}
+else
+{
+    <LoadingComponent Size="0" />
+}
+
+
+@code {
+    [Inject]
+    private ArticleService _articleService { get; init; } = null!;
+
+    [Inject]
+    private ILogger<Home> _logger { get; init; } = null!;
+
+    private int _running;
+    private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
+    private string? _attribute { get; set; }
+    private IReadOnlyList<ByDate> _byDate = Array.Empty<ByDate>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _running = 0;
+            await Load();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task Load()
+    {
+        var context = new ScopeContext(_logger);
+        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
+        if (currentRunnning == 1) return;
+
+        try
+        {
+            var manifestOption = await _articleService.GetSummaries(context, int.MaxValue);
+
+            _manifests = manifestOption.IsOk() ? manifestOption.Return() : null;
+            if (_manifests == null) return;
+
+            _byDate = _manifests
+                .GroupBy(x => x.CreatedDate.ToString("yyyy"))
+                .Select(x => new ByDate { Year = x.Key, Manifests = x.OrderBy(y => y.CreatedDate).ToArray() })
+                .OrderByDescending(x => x.Year)
+                .ToArray();
+        }
+        finally
+        {
+            _running = 2;
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    private static string GetDocFileId(ArticleManifest manifest)
+    {
+        var commandNode = manifest.GetCommand(NBlogConstants.MainAttribute);
+        if (commandNode.IsOk())
+        {
+            return NavRoutes.GotoArticle(NBlogConstants.MainAttribute, manifest.ArticleId);
+        }
+
+        return "/";
+    }
+
+    private record ByDate
+    {
+        public string Year { get; init; } = null!;
+        public IReadOnlyList<ArticleManifest> Manifests { get; init; } = Array.Empty<ArticleManifest>();
+    };
+}

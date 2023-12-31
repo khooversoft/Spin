@@ -31,7 +31,6 @@ else
     private ILogger<Home> _logger { get; init; } = null!;
 
     private int _running;
-    private IReadOnlyList<ArticleDetail> _articles { get; set; } = Array.Empty<ArticleDetail>();
     private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
     private string? _attribute { get; set; }
 
