@@ -1,0 +1,28 @@
+﻿@inherits LayoutComponentBase
+
+<div>
+    <TopMenuBar />
+
+    <div class="container-xxl px-4 px-xxl-2">
+        <div class="d-lg-grid content">
+            <div>
+                <LeftColumn />
+            </div>
+            <div class="main">
+                <main>
+                    <article class="content px-4">
+                        @Body
+                    </article>
+                </main>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+

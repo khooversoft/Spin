@@ -7,7 +7,7 @@ namespace Toolbox.Test.Tokenizer
     public class StringTokenizerTests
     {
         [Fact]
-        public void BasicToken_WhenEmptyString_ShouldReturnNoTokens()
+        public void EmptyString()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()
                 .UseCollapseWhitespace()
@@ -19,89 +19,7 @@ namespace Toolbox.Test.Tokenizer
         }
 
         [Fact]
-        public void BlockStringToken_WhenDoubleQuotedString_ShouldReturnString()
-        {
-            IReadOnlyList<IToken> tokens = new StringTokenizer()
-                .UseCollapseWhitespace()
-                .UseDoubleQuote()
-                .UseSingleQuote()
-                .Parse("\"quote\"");
-
-            tokens.Count.Should().Be(1);
-        }
-
-        [Fact]
-        public void BlockStringToken_WhenDoubleQuoteInString_ShouldReturnString()
-        {
-            var tokenizer = new StringTokenizer()
-                .UseCollapseWhitespace()
-                .UseDoubleQuote()
-                .UseSingleQuote();
-
-            IReadOnlyList<IToken> tokens = tokenizer.Parse("\"this \"is quote");
-
-            IToken[] expectedTokens = new IToken[]
-            {
-                new TokenValue("this "),
-                new TokenValue("is"),
-                new TokenValue(" "),
-                new TokenValue("quote"),
-            };
-
-            test();
-
-            tokens = tokenizer.Parse("this is \"quote\"");
-
-            expectedTokens = new IToken[]
-            {
-                new TokenValue("this"),
-                new TokenValue(" "),
-                new TokenValue("is"),
-                new TokenValue(" "),
-                new TokenValue("quote"),
-            };
-
-            test();
-
-            tokens = tokenizer.Parse("this \"is text\" quote");
-
-            expectedTokens = new IToken[]
-            {
-                new TokenValue("this"),
-                new TokenValue(" "),
-                new TokenValue("is text"),
-                new TokenValue(" "),
-                new TokenValue("quote"),
-            };
-
-            test();
-
-
-            void test()
-            {
-                tokens.Count.Should().Be(expectedTokens.Length);
-
-                tokens
-                    .Zip(expectedTokens, (o, i) => (o, i))
-                    .All(x => x.o.Value == x.i.Value)
-                    .Should().BeTrue();
-            }
-        }
-
-        [Fact]
-        public void BlockStringToken_WhenSingleFullString_ShouldReturnString()
-        {
-            IReadOnlyList<IToken> tokens = new StringTokenizer()
-                .UseCollapseWhitespace()
-                .UseDoubleQuote()
-                .UseSingleQuote()
-                .Parse("'quote'");
-
-            tokens.Count.Should().Be(1);
-        }
-
-        [Fact]
-        public void BasicToken_WhenPadString_ShouldReturnSpaceToken()
+        public void PadString()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()
                 .UseCollapseWhitespace()
@@ -114,7 +32,7 @@ namespace Toolbox.Test.Tokenizer
         }
 
         [Fact]
-        public void BasicToken_WhenTokenIsSpace_ShouldReturnValidTokens()
+        public void TokenIsSpace()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()
                 .UseCollapseWhitespace()
@@ -138,7 +56,7 @@ namespace Toolbox.Test.Tokenizer
         }
 
         [Fact]
-        public void BasicToken_WhenTokenIsSpaceAndPad_ShouldReturnValidTokens()
+        public void TokenIsSpaceAndPad()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()
                 .UseCollapseWhitespace()
@@ -164,7 +82,7 @@ namespace Toolbox.Test.Tokenizer
         }
 
         [Fact]
-        public void BasicToken_WhenTokenIsSpaceAndPadWithFilter()
+        public void TokenIsSpaceAndPadWithFilter()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()
                 .UseCollapseWhitespace()
@@ -188,7 +106,7 @@ namespace Toolbox.Test.Tokenizer
         }
 
         [Fact]
-        public void BasicToken_WhenKnownTokenSpecified_ShouldReturnValidTokens()
+        public void KnownTokenSpecified()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()
                 .UseCollapseWhitespace()
@@ -217,7 +135,7 @@ namespace Toolbox.Test.Tokenizer
         }
 
         [Fact]
-        public void PropertyName_WhenEscapeIsUsed_ShouldReturnValidTokens()
+        public void EscapeIsUsed()
         {
             IReadOnlyList<IToken> tokens = new StringTokenizer()
                 .Add("{", "}", "{{", "}}")

@@ -9,18 +9,27 @@ public struct BlockSyntax : ITokenSyntax
 {
     public BlockSyntax(char blockSignal = '"')
     {
-        BlockSignal = blockSignal;
+        StartSignal = blockSignal;
+        StopSignal = blockSignal;
         Priority = 1;
     }
 
-    public char BlockSignal { get; }
+    public BlockSyntax(char startSignal, char stopSignal)
+    {
+        StartSignal = startSignal;
+        StopSignal = stopSignal;
+        Priority = 1;
+    }
+
+    public char StartSignal { get; }
+    public char StopSignal { get; }
 
     public int Priority { get; }
 
     public int? Match(ReadOnlySpan<char> span)
     {
         if (span.Length == 0) return null;
-        if (span[0] != BlockSignal) return null;
+        if (span[0] != StartSignal) return null;
 
         bool isEscape = false;
         for (int index = 1; index < span.Length; index++)
@@ -28,7 +37,7 @@ public struct BlockSyntax : ITokenSyntax
             if (isEscape)
             {
                 isEscape = false;
-                if (span[index] != BlockSignal) throw new ArgumentException("Invalid escape sequence");
+                if (span[index] != StopSignal) throw new ArgumentException($"Invalid escape sequence for token={span[index]}, stopSignal={StopSignal}");
                 continue;
             }
 
@@ -38,15 +47,15 @@ public struct BlockSyntax : ITokenSyntax
                 continue;
             }
 
-            if (span[index] == BlockSignal) return index + 1;
+            if (span[index] == StopSignal) return index + 1;
         }
 
-        throw new ArgumentException("Missing ending quote");
+        throw new ArgumentException($"Missing ending signal={StopSignal}");
     }
 
     public IToken CreateToken(ReadOnlySpan<char> span)
     {
         string value = span.ToString();
-        return new BlockToken(value);
+        return new BlockToken(value, StartSignal, StopSignal);
     }
 }

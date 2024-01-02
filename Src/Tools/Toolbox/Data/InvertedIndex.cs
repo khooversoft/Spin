@@ -3,25 +3,25 @@ using Toolbox.Tools;
 
 namespace Toolbox.Data;
 
-public class DictionaryHashSet<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey, TReferenceKey>>
+public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey, TReferenceKey>>
     where TKey : notnull
     where TReferenceKey : notnull
 {
     private readonly object _lock = new object();
     private readonly Dictionary<TKey, HashSet<TReferenceKey>> _index;
-    private readonly IEqualityComparer<TKey>? _keyComparer;
-    private readonly IEqualityComparer<TReferenceKey>? _referenceComparer;
 
-    public DictionaryHashSet(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
+    public InvertedIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
     {
-        _keyComparer = keyComparer.ComparerFor();
-        _referenceComparer = referenceComparer.ComparerFor();
+        KeyComparer = keyComparer.ComparerFor();
+        ReferenceComparer = referenceComparer.ComparerFor();
 
-        _index = new Dictionary<TKey, HashSet<TReferenceKey>>(_keyComparer);
+        _index = new Dictionary<TKey, HashSet<TReferenceKey>>(KeyComparer);
     }
 
     public int Count => _index.Count;
     public IReadOnlyList<TReferenceKey> this[TKey key] => Get(key);
+    public IEqualityComparer<TKey>? KeyComparer { get; }
+    public IEqualityComparer<TReferenceKey>? ReferenceComparer { get; }
 
     public void Clear()
     {
@@ -43,24 +43,35 @@ public class DictionaryHashSet<TKey, TReferenceKey> : IEnumerable<KeyValuePair<T
         }
     }
 
-    public DictionaryHashSet<TKey, TReferenceKey> Set(TKey key, TReferenceKey referenceKey)
+    public bool TryGetValue(TKey key, out IReadOnlyList<TReferenceKey>? value)
+    {
+        value = null;
+
+        lock (_lock)
+        {
+            if (_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys))
+            {
+                value = pkeys.ToArray();
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    public InvertedIndex<TKey, TReferenceKey> Set(TKey key, TReferenceKey referenceKey)
     {
         lock (_lock)
         {
-            switch (_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys))
+            if (_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys))
             {
-                case true:
-                    pkeys.Add(referenceKey);
-                    break;
-
-                case false:
-                    _index.Add(key, new HashSet<TReferenceKey>(new[] { referenceKey }, _referenceComparer));
-                    break;
+                pkeys.Add(referenceKey);
+                return this;
             }
 
+            _index.Add(key, new HashSet<TReferenceKey>(new[] { referenceKey }, ReferenceComparer));
+            return this;
         }
-
-        return this;
     }
 
     public IReadOnlyList<TReferenceKey> Remove(TKey key)

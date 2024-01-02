@@ -4,12 +4,12 @@ using Toolbox.Extensions;
 
 namespace Toolbox.Test.Data.Types;
 
-public class DictionaryHashSetTests
+public class InvertedIndexTests
 {
     [Fact]
     public void Empty()
     {
-        var set = new DictionaryHashSet<int, Guid>();
+        var set = new InvertedIndex<int, Guid>();
         set.Count.Should().Be(0);
         set.Count().Should().Be(0);
 
@@ -22,7 +22,7 @@ public class DictionaryHashSetTests
         int key = 5;
         Guid refKey = Guid.NewGuid();
 
-        var set = new DictionaryHashSet<int, Guid>().Set(key, refKey);
+        var set = new InvertedIndex<int, Guid>().Set(key, refKey);
 
         set.Count.Should().Be(1);
         set.Count().Should().Be(1);
@@ -38,7 +38,7 @@ public class DictionaryHashSetTests
         var keys = Enumerable.Range(0, 5).ToArray();
         Guid refKey = Guid.NewGuid();
 
-        var set = new DictionaryHashSet<int, Guid>();
+        var set = new InvertedIndex<int, Guid>();
         keys.ForEach(x => set.Set(x, refKey));
 
         set.Count.Should().Be(keys.Length);
@@ -74,7 +74,7 @@ public class DictionaryHashSetTests
         var key = 5;
         var refKeys = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
 
-        var set = new DictionaryHashSet<int, Guid>();
+        var set = new InvertedIndex<int, Guid>();
         refKeys.ForEach(x => set.Set(key, x));
 
         set.Count.Should().Be(1);
@@ -110,7 +110,7 @@ public class DictionaryHashSetTests
             .SelectMany(x => x)
             .ToArray();
 
-        var set = new DictionaryHashSet<int, Guid>();
+        var set = new InvertedIndex<int, Guid>();
         baseSet.ForEach(x => set.Set(x.Key, x.Value));
 
         set.Count.Should().Be(keys.Length);

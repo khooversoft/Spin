@@ -38,12 +38,29 @@ public class StringTokenizer
         return this;
     }
 
+    public StringTokenizer AddBlock(char startSignal, char stopSignal)
+    {
+        _syntaxList.Add(new BlockSyntax(startSignal, stopSignal));
+        return this;
+    }
+
     /// <summary>
     /// Add tokens to be used in parsing
     /// </summary>
     /// <param name="tokens"></param>
     /// <returns></returns>
     public StringTokenizer Add(params string[] tokens)
+    {
+        _syntaxList.AddRange(tokens.Select(x => (ITokenSyntax)new TokenSyntax(x)));
+        return this;
+    }
+
+    /// <summary>
+    /// Add tokens to be used in parsing
+    /// </summary>
+    /// <param name="tokens"></param>
+    /// <returns></returns>
+    public StringTokenizer Add(IEnumerable<string> tokens)
     {
         _syntaxList.AddRange(tokens.Select(x => (ITokenSyntax)new TokenSyntax(x)));
         return this;
@@ -77,6 +94,13 @@ public class StringTokenizer
     /// <param name="sources">n number of strings</param>
     /// <returns>list of tokens</returns>
     public IReadOnlyList<IToken> Parse(params string[] sources) => Parse(string.Join(string.Empty, sources));
+
+    /// <summary>
+    /// Parse strings for tokens
+    /// </summary>
+    /// <param name="sources">n number of strings</param>
+    /// <returns>list of tokens</returns>
+    public IReadOnlyList<IToken> Parse(IEnumerable<string> sources) => Parse(string.Join(string.Empty, sources));
 
     /// <summary>
     /// Parse string for tokens

@@ -8,13 +8,13 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
     where TPrimaryKey : notnull
 {
     private readonly object _lock = new object();
-    private readonly DictionaryHashSet<TKey, TPrimaryKey> _index;
-    private readonly DictionaryHashSet<TPrimaryKey, TKey> _reverseLookup;
+    private readonly InvertedIndex<TKey, TPrimaryKey> _index;
+    private readonly InvertedIndex<TPrimaryKey, TKey> _reverseLookup;
 
     public SecondaryIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TPrimaryKey>? primaryKeyComparer = null)
     {
-        _index = new DictionaryHashSet<TKey, TPrimaryKey>(keyComparer);
-        _reverseLookup = new DictionaryHashSet<TPrimaryKey, TKey>(primaryKeyComparer);
+        _index = new InvertedIndex<TKey, TPrimaryKey>(keyComparer);
+        _reverseLookup = new InvertedIndex<TPrimaryKey, TKey>(primaryKeyComparer);
     }
 
     public int Count => _index.Count;

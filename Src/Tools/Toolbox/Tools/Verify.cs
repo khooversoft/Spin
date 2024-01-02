@@ -29,7 +29,7 @@ public static class Verify
         if (test(subject)) return subject;
         message.NotEmpty();
 
-        message += $", {name}" + FormatCaller(function, path, lineNumber);
+        message += $", {name}, " + FormatCaller(function, path, lineNumber);
         throw new ArgumentException(message);
     }
 
