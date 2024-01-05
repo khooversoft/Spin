@@ -2,7 +2,7 @@
   "profiles": {
     "NBlogCmd": {
       "commandName": "Project",
-      "commandLineArgs": "build D:\\Sources\\NBlogArticles\\Src D:\\Work\\nblog.package"
+      "commandLineArgs": "upload D:\\Work\\nblog.nblogPackage"
     }
   }
 }

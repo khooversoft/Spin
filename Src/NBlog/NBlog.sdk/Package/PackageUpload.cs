@@ -77,8 +77,6 @@ public class PackageUpload
                     context.Location().LogInformation("Deleting directory={directoryName}", file.Name);
                     await datalakeStore.DeleteDirectory(file.Name, context);
                 }
-
-                continue;
             }
 
             foreach (DatalakePathItem file in queryResponse.Items)
@@ -95,34 +93,44 @@ public class PackageUpload
     {
         context.Location().LogInformation("Uploading files to datalake storage");
 
-        foreach (var zipFile in zipArchive.Entries)
+        await ActionBlockParallel.Run<(string datalakePath, DataETag dataEtag)>(writeToDatalake, readEntries(), 5);
+        return StatusCode.OK;
+
+        IEnumerable<(string datalakePath, DataETag dataEtag)> readEntries()
         {
-            byte[] data;
-            using (var zipStream = zipFile.Open())
-            using (var memory = new MemoryStream())
+            foreach (var zipFile in zipArchive.Entries)
             {
-                zipStream.CopyTo(memory);
-                data = memory.ToArray();
-            }
+                byte[] data;
+                using (var zipStream = zipFile.Open())
+                using (var memory = new MemoryStream())
+                {
+                    zipStream.CopyTo(memory);
+                    data = memory.ToArray();
+                }
 
-            if (data.Length == 0)
-            {
-                context.Location().LogError("Data length is 0 for zipFile={zipFile}", zipFile);
-                continue;
-            }
+                if (data.Length == 0)
+                {
+                    context.Location().LogError("Data length is 0 for zipFile={zipFile}", zipFile);
+                    continue;
+                }
 
-            string dataLakePath = PackagePaths.GetDatalakePath(zipFile.FullName);
-            context.LogInformation("Writting fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, dataLakePath);
+                string datalakePath = PackagePaths.GetDatalakePath(zipFile.FullName);
+                context.LogInformation("Writting fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, datalakePath);
 
-            var dataEtag = new DataETag(data);
-            var writeOption = await datalakeStore.Write(dataLakePath, dataEtag, true, context);
-            if (writeOption.IsError())
-            {
-                context.Location().LogError("Cannot write to datalake, path={path}, error={error}", dataLakePath, writeOption.Error);
-                return writeOption.ToOptionStatus();
+                var dataEtag = new DataETag(data);
+
+                yield return (datalakePath, dataEtag);
             }
         }
 
-        return StatusCode.OK;
+        async Task writeToDatalake((string datalakePath, DataETag dataEtag) payload)
+        {
+            var writeOption = await datalakeStore.Write(payload.datalakePath, payload.dataEtag, true, context);
+            if (writeOption.IsError())
+            {
+                context.Location().LogError("Cannot write to datalake, path={path}, error={error}", payload.datalakePath, writeOption.Error);
+                return;
+            }
+        }
     }
 }
