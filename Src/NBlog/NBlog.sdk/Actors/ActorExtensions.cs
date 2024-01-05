@@ -18,4 +18,5 @@ public static class ActorExtensions
     public static IArticleManifestActor GetArticleManifestActor(this IClusterClient client, string articleId) => client.GetResourceGain<IArticleManifestActor>(articleId);
     public static IStorageActor GetStorageActor(this IClusterClient client, string fileId) => client.GetResourceGain<IStorageActor>(fileId);
     public static IDirectoryActor GetDirectoryActor(this IClusterClient client) => client.GetResourceGain<IDirectoryActor>(NBlogConstants.DirectoryActorKey);
+    public static ISearchActor GetSearchActor(this IClusterClient client) => client.GetResourceGain<ISearchActor>(NBlogConstants.SearchActorKey);
 }

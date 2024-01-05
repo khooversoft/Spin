@@ -111,7 +111,7 @@ public class PackageUpload
                 continue;
             }
 
-            string dataLakePath = calcDatalakePath( zipFile.FullName);
+            string dataLakePath = PackagePaths.GetDatalakePath(zipFile.FullName);
             context.LogInformation("Writting fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, dataLakePath);
 
             var dataEtag = new DataETag(data);
@@ -124,14 +124,5 @@ public class PackageUpload
         }
 
         return StatusCode.OK;
-
-        string calcDatalakePath(string path) => path switch
-        {
-            string v when v.StartsWith(PackageBuild.ManifestFilesFolder) => v[PackageBuild.ManifestFilesFolder.Length..],
-            string v when v.StartsWith(PackageBuild.DataFilesFolder) => v[PackageBuild.DataFilesFolder.Length..],
-            string v when v == (PackageBuild.ArticleIndexZipFile) => v,
-
-            _ => throw new ArgumentException($"Unknown path or path prefix: {path}")
-        };
     }
 }

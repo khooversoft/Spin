@@ -10,11 +10,12 @@ public class WordTokenList : IEnumerable<WordToken>
     public WordTokenList() => Dictionary = FrozenDictionary<string, WordToken>.Empty;
 
     public WordTokenList(IEnumerable<WordToken> values) => Dictionary = values.NotNull()
-        .GroupBy(x => x.Word)
+        .GroupBy(x => x.Word, StringComparer.OrdinalIgnoreCase)
         .Select(x => new WordToken(x.Key, x.Max(y => y.Weight)))
         .ToFrozenDictionary(x => x.Word, x => x, StringComparer.OrdinalIgnoreCase);
 
     public FrozenDictionary<string, WordToken> Dictionary { get; }
+    public int Count => Dictionary.Count;
 
     public IReadOnlyList<WordToken> Lookup(IEnumerable<string> words)
     {
@@ -30,8 +31,9 @@ public class WordTokenList : IEnumerable<WordToken>
 
     public string ToJson() => Dictionary
         .Select(x => x.Value)
+        .OrderBy(x => x.Word, StringComparer.OrdinalIgnoreCase)
         .ToArray()
-        .ToJson();
+        .ToJsonFormat();
 
     public IEnumerator<WordToken> GetEnumerator()
     {

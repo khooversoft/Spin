@@ -1,9 +1,15 @@
 ﻿namespace Toolbox.LangTools;
 
-/// <summary>
-///  Standard token interface
-/// </summary>
+public enum TokenType
+{
+    None,
+    Token,
+    Block,
+    Unicode,
+}
+
 public interface IToken
 {
     string Value { get; }
+    TokenType TokenType { get; }
 }

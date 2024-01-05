@@ -5,7 +5,7 @@
 /// The block start and ending signal must be the same.
 /// Handles escaping characters with "\" (back slash)s
 /// </summary>
-public struct BlockSyntax : ITokenSyntax
+public class BlockSyntax : ITokenSyntax
 {
     public BlockSyntax(char blockSignal = '"')
     {

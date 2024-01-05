@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -22,17 +16,15 @@ public interface IStorageActor : IGrainWithStringKey
 
 public class StorageActor : Grain, IStorageActor
 {
-    private readonly TimeSpan _cacheTime = TimeSpan.FromMinutes(15);
-    private readonly IPersistentState<DataETag> _state;
     private readonly ILogger<StorageActor> _logger;
-    private DateTime _nextRead;
+    private ActorCacheState<DataETag> _state;
 
     public StorageActor([PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<DataETag> state, ILogger<StorageActor> logger)
     {
-        _state = state.NotNull();
+        state.NotNull();
         _logger = logger.NotNull();
 
-        ResetNextRead();
+        _state = new ActorCacheState<DataETag>(state, TimeSpan.FromMinutes(15));
     }
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
@@ -47,32 +39,17 @@ public class StorageActor : Grain, IStorageActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting storage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists) return StatusCode.NotFound;
-        await _state.ClearStateAsync();
-
-        return StatusCode.OK;
+        return await _state.Clear();
     }
 
-    public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+    public Task<Option> Exist(string traceId) => _state.Exist();
 
     public async Task<Option<DataETag>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Get ArticleManifest, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (DateTime.UtcNow > _nextRead && _state.RecordExists)
-        {
-            ResetNextRead();
-            await _state.ReadStateAsync();
-        }
-
-        var option = _state.RecordExists switch
-        {
-            true => _state.State,
-            false => new Option<DataETag>(StatusCode.NotFound),
-        };
-
-        return option;
+        return await _state.GetState();
     }
 
     public async Task<Option> Set(DataETag model, string traceId)
@@ -83,12 +60,6 @@ public class StorageActor : Grain, IStorageActor
         string actorKey = this.GetPrimaryKeyString();
         if (!model.Validate(out var v1)) return v1;
 
-        _state.State = model;
-        await _state.WriteStateAsync();
-
-        ResetNextRead();
-        return StatusCode.OK;
+        return await _state.SetState(model);
     }
-
-    private void ResetNextRead() => _nextRead = DateTime.UtcNow.Add(_cacheTime);
 }

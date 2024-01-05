@@ -3,7 +3,7 @@
 /// <summary>
 /// Provides the token syntax definition for a general string token.
 /// </summary>
-public struct TokenSyntax : ITokenSyntax
+public class TokenSyntax : ITokenSyntax
 {
     public TokenSyntax(string token, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
     {

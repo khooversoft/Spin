@@ -12,7 +12,9 @@ public record DocumentReference
         DocumentId = documentId.NotEmpty();
 
         Words = new HashSet<WordToken>(words.NotNull(), WordTokenComparer.Instance);
-        Tags = new HashSet<string>(tags ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+
+        tags = (tags ?? Array.Empty<string>()).Select(x => x.ToLower());
+        Tags = new HashSet<string>(tags, StringComparer.OrdinalIgnoreCase);
     }
 
     [JsonConstructor]

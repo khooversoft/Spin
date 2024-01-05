@@ -2,7 +2,7 @@
 using ColorCode;
 using Markdig;
 using Markdown.ColorCode;
-using Toolbox.Extensions;
+using Toolbox.Data;
 
 namespace NBlog.sdk;
 
@@ -12,7 +12,7 @@ public class MarkdownDoc
     private static MarkdownPipeline? _pipeline;
     private readonly static string _csharpLanguageId = Languages.CSharp.Id;
 
-    public MarkdownDoc(byte[] data) => MdSource = Encoding.UTF8.GetString(data.RemoveBOM());
+    public MarkdownDoc(byte[] data) => MdSource = Encoding.UTF8.GetString(DataTool.RemoveBOM(data));
 
     public string MdSource { get; init; }
 

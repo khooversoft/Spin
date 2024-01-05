@@ -21,6 +21,7 @@ public struct BlockToken : IToken
     public char StopSignal { get; }
 
     public string Value { get; }
+    public TokenType TokenType { get; } = TokenType.Block;
 
     public override string ToString() => Value;
     public override int GetHashCode() => Value.GetHashCode();

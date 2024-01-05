@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Types;
-using Toolbox.Tools;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Data;
-using System.Collections.Concurrent;
-using System.Threading.Tasks.Dataflow;
+using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace NBlog.sdk;
 
@@ -16,12 +9,20 @@ public class ArticleService
 {
     private readonly IClusterClient _clusterClient;
     private readonly ILogger<ArticleService> _logger;
-    public ArticleService(IClusterClient clusterClient, ILogger<ArticleService> logger) => (_clusterClient, _logger) = (clusterClient.NotNull(), logger.NotNull());
+    private readonly ManifestService _manifestService;
+
+    public ArticleService(IClusterClient clusterClient, ManifestService manifestService, ILogger<ArticleService> logger)
+    {
+        _clusterClient = clusterClient.NotNull();
+        _manifestService = manifestService.NotNull();
+        _logger = logger.NotNull();
+    }
 
     public async Task<Option<ArticleDetail>> ReadArticleDetail(string articleId, string attribute, ScopeContext context)
     {
         articleId.NotEmpty();
         attribute.NotEmpty();
+        context = context.With(_logger);
 
         var manifestOption = await GetManifest(articleId, context);
         if (manifestOption.IsError()) return manifestOption.ToOptionStatus<ArticleDetail>();
@@ -54,6 +55,8 @@ public class ArticleService
 
     public async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context, int limit = 10)
     {
+        context = context.With(_logger);
+
         var nodeListOption = await QueryDirectory(x => !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
         if (nodeListOption.IsError()) return nodeListOption.ToOptionStatus<IReadOnlyList<ArticleManifest>>();
 
@@ -64,7 +67,7 @@ public class ArticleService
             .Select(x => x.node)
             .ToArray();
 
-        return await GetSummaries(nodeList, context);
+        return await _manifestService.GetManifests(nodeList.Select(x => x.Key).ToArray(), context);
 
         (GraphNode node, DateTime createdDate) expandWithDate(GraphNode node)
         {
@@ -87,7 +90,7 @@ public class ArticleService
         var nodeListOption = await QueryDirectory(x => x.Tags.Has(lookForTag), context);
         if (nodeListOption.IsError()) return nodeListOption.ToOptionStatus<IReadOnlyList<ArticleManifest>>();
 
-        return await GetSummaries(nodeListOption.Return(), context);
+        return await _manifestService.GetManifests(nodeListOption.Return().Select(x => x.Key).ToArray(), context);
     }
 
     private async Task<Option<IReadOnlyList<GraphNode>>> QueryDirectory(Func<GraphNode, bool> filter, ScopeContext context)
@@ -103,26 +106,6 @@ public class ArticleService
             .ToArray();
 
         return nodes.ToOption();
-    }
-
-    private async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(IReadOnlyList<GraphNode> nodes, ScopeContext context)
-    {
-        var queue = new ConcurrentQueue<ArticleManifest>();
-        await ActionBlockParallel.Run(getArticleDetail, nodes);
-
-        var list = queue.OrderByDescending(x => x.CreatedDate).ToArray();
-        return list;
-
-        async Task getArticleDetail(GraphNode node)
-        {
-            string articleId = node.Key.Replace("article:", string.Empty);
-
-            var manifestOption = await GetManifest(articleId, context);
-            if (manifestOption.IsError()) return;
-            ArticleManifest manifest = manifestOption.Return();
-
-            queue.Enqueue(manifest);
-        }
     }
 
     private async Task<Option<ArticleManifest>> GetManifest(string articleId, ScopeContext context)

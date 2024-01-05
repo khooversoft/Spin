@@ -7,7 +7,7 @@ public static class ReadOnlySpanExtensions
         int startIndex = 0;
         int index;
 
-        while ((index = source.Span.Slice(startIndex).IndexOf(delimiter)) != -1)
+        while ((index = source.Span[startIndex..].IndexOf(delimiter)) != -1)
         {
             yield return source.Slice(startIndex, index);
             startIndex += index + 1;
@@ -15,7 +15,7 @@ public static class ReadOnlySpanExtensions
 
         if (startIndex < source.Length)
         {
-            yield return source.Slice(startIndex);
+            yield return source[startIndex..];
         }
     }
 }

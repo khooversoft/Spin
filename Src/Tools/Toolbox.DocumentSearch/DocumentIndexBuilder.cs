@@ -7,18 +7,19 @@ namespace Toolbox.DocumentSearch;
 
 public class DocumentIndexBuilder
 {
-    public TokenizeDocument? Tokenizer { get; set; }
-    public DocumentIndexBuilder SetTokenizer(TokenizeDocument tokenizer) => this.Action(x => x.Tokenizer = tokenizer);
+    public DocumentTokenizer? Tokenizer { get; set; }
+    public DocumentIndexBuilder SetTokenizer(DocumentTokenizer tokenizer) => this.Action(x => x.Tokenizer = tokenizer);
 
     public List<DocumentReference> DocumentReferences { get; } = new();
     public DocumentIndexBuilder Add(DocumentReference document) => this.Action(x => x.DocumentReferences.Add(document.Verify()));
+    public DocumentIndexBuilder Add(IEnumerable<DocumentReference> documents) => this.Action(x => documents.NotNull().ForEach(y => x.DocumentReferences.Add(y)));
 
     public List<(string DocumentId, string Text, string[]? Tags)> Documents { get; } = new();
     public DocumentIndexBuilder Add(string documentId, string text, string[]? tags = null) => this.Action(x => x.Documents.Add((documentId.NotEmpty(), text.NotEmpty(), tags)));
 
     public DocumentIndex Build()
     {
-        Tokenizer.NotNull("required");
+        Tokenizer ??= new DocumentTokenizer();
 
         var newDocuments = Documents
             .Select(x => (r: x, words: Tokenizer.Parse(x.Text, x.Tags)))
@@ -39,20 +40,5 @@ public class DocumentIndexBuilder
         var frozenDocumentIndex = newDocuments.ToDictionary(x => x.DocumentId, x => x).ToFrozenDictionary();
 
         return new DocumentIndex(frozenInvertedIndex, Tokenizer, frozenDocumentIndex);
-    }
-
-    public static DocumentIndex BuildFromJson(string json, TokenizeDocument tokenizer)
-    {
-        json.NotEmpty();
-        tokenizer.NotNull();
-
-        var package = json.NotEmpty().ToObject<IReadOnlyList<DocumentReference>>().NotNull();
-
-        var index = new DocumentIndexBuilder()
-            .SetTokenizer(tokenizer)
-            .Action(x => package.ForEach(y => x.Add(y)))
-            .Build();
-
-        return index;
     }
 }

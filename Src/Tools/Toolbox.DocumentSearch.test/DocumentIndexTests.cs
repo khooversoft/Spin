@@ -8,7 +8,7 @@ public class DocumentIndexTests
     public void CreateIndex()
     {
         var index = new DocumentIndexBuilder()
-            .SetTokenizer(new TokenizeDocument(CreateWorkWeight()))
+            .SetTokenizer(new DocumentTokenizer(CreateWorkWeight()))
             .Add("doc1", _text)
             .Build();
 
@@ -20,7 +20,7 @@ public class DocumentIndexTests
     public void SimpleQuery()
     {
         var index = new DocumentIndexBuilder()
-            .SetTokenizer(new TokenizeDocument(CreateWorkWeight()))
+            .SetTokenizer(new DocumentTokenizer(CreateWorkWeight()))
             .Add("doc1", _text)
             .Build();
 
@@ -35,7 +35,7 @@ public class DocumentIndexTests
     public void NoResultQuery()
     {
         var index = new DocumentIndexBuilder()
-            .SetTokenizer(new TokenizeDocument(CreateWorkWeight()))
+            .SetTokenizer(new DocumentTokenizer(CreateWorkWeight()))
             .Add("doc1", _text)
             .Build();
 
@@ -48,7 +48,7 @@ public class DocumentIndexTests
     public void MultipleDocsQuery()
     {
         var index = new DocumentIndexBuilder()
-            .SetTokenizer(new TokenizeDocument(CreateWorkWeight()))
+            .SetTokenizer(new DocumentTokenizer(CreateWorkWeight()))
             .Add("doc1", "This is document one")
             .Add("doc2", "This is document two", ["tag2"])
             .Add("doc3", "This is document two and three", ["tag1", "tag2"])
@@ -94,7 +94,7 @@ public class DocumentIndexTests
     [Fact]
     public void Serialization()
     {
-        TokenizeDocument tokenizer = new TokenizeDocument(CreateWorkWeight());
+        DocumentTokenizer tokenizer = new DocumentTokenizer(CreateWorkWeight());
 
         var index = new DocumentIndexBuilder()
             .SetTokenizer(tokenizer)

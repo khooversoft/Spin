@@ -1,4 +1,4 @@
-﻿@page "/summary/{tag}"
+﻿@page "/search/{searchString}"
 @layout Layout.MainLayout
 
 @using NBlog.sdk
@@ -9,30 +9,41 @@
 
 @if (_manifests != null && _running == 2)
 {
+    <div class="container p-0 mt-4">
+        <div class="row p-2">
+            <div class="col-md-1">
+                <label class="text-white-50">Search:</label>
+            </div>
+            <div class="col-md-11">
+                <span class="text-white">@_title</span>
+            </div>
+        </div>
+    </div>
+
     @foreach (var manifest in _manifests.WithIndex())
     {
-        <ArticleSummary ArticleId="@manifest.Item.ArticleId" Index="@manifest.Index" Attribute="@_attribute" />
+        <ArticleSummary ArticleId="@manifest.Item.ArticleId" Index="@manifest.Index" />
     }
 }
 else
 {
-    <LoadingComponent Size="0" />
+    <LoadingComponent Size="1" />
 }
 
 
 @code {
     [Parameter]
-    public string Tag { get; set; } = null!;
+    public string SearchString { get; init; } = null!;
 
     [Inject]
-    private ArticleService _articleService { get; init; } = null!;
+    private SearchService _searchService { get; init; } = null!;
 
     [Inject]
     private ILogger<Home> _logger { get; init; } = null!;
 
-    private int _running;
     private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
-    private string? _attribute { get; set; }
+    private int _running;
+    private string _title = string.Empty;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -47,22 +58,16 @@ else
 
     private async Task Load()
     {
-        var context = new ScopeContext(_logger);
         int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
         if (currentRunnning == 1) return;
+        var context = new ScopeContext(_logger);
 
         try
         {
-            var manifestOption = Tag?.ToLower() switch
-            {
-                string v when v.EqualsIgnoreCase(NBlogConstants.ToolTag) => await _articleService.GetToolSummaries(context),
-                string v when v.EqualsIgnoreCase(NBlogConstants.FrameworkDesignTag) => await _articleService.GetFrameworkSummaries(context),
+            string search = Uri.UnescapeDataString(SearchString);
+            _title = search;
 
-                _ => await _articleService.GetSummaries(context),
-            };
-
-            _manifests = manifestOption.IsOk() ? manifestOption.Return() : null;
-            _attribute = _manifests?.Count == 1 ? NBlogConstants.MainAttribute : null;
+            _manifests = await _searchService.Search(search, context);
         }
         finally
         {

@@ -9,7 +9,7 @@ public record WordToken
 {
     public WordToken() { }
 
-    public WordToken(string word, int weight) => (Word, Weight) = (word.NotEmpty(), weight);
+    public WordToken(string word, int weight) => (Word, Weight) = (word.NotEmpty().ToLower(), weight);
     public string Word { get; init; } = null!;
     public int Weight { get; init; }
 

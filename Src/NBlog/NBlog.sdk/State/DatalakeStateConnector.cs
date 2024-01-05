@@ -59,10 +59,10 @@ internal class DatalakeStateConnector : IGrainStorage
                 _ => dataETag.Data.BytesToString().ToObject<T>().NotNull(),
             };
 
-            //grainState.State = result.Return().Data
-            //    .BytesToString()
-            //    .ToObject<T>()
-            //    .NotNull();
+            grainState.RecordExists = true;
+            grainState.ETag = result.Return().ETag.ToString();
+            context.LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
+            return;
         }
         catch (Exception ex)
         {
@@ -70,10 +70,6 @@ internal class DatalakeStateConnector : IGrainStorage
             ResetState(grainState);
             return;
         }
-
-        grainState.RecordExists = true;
-        grainState.ETag = result.Return().ETag.ToString();
-        context.LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
     }
 
     public async Task WriteStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)

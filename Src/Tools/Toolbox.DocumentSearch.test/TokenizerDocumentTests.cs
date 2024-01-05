@@ -14,7 +14,7 @@ public class TokenizerDocumentTests
     [InlineData("hello+works,next", new[] { "hello", "works", "next" })]
     public void Parse(string? value, string[] expected)
     {
-        var tokens = new TokenizeDocument().Parse(value!);
+        var tokens = new DocumentTokenizer().Parse(value!);
         tokens.Count.Should().Be(expected.Length, tokens.Select(x => x.ToString()).Join(';'));
         Enumerable.SequenceEqual(expected, tokens.Select(x => x.Word)).Should().BeTrue(tokens.Select(x => x.Word).Join(';'));
     }

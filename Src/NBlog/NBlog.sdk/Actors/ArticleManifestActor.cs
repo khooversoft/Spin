@@ -16,17 +16,13 @@ public interface IArticleManifestActor : IGrainWithStringKey
 
 public class ArticleManifestActor : Grain, IArticleManifestActor
 {
-    private readonly TimeSpan _cacheTime = TimeSpan.FromMinutes(15);
-    private readonly IPersistentState<ArticleManifest> _state;
     private readonly ILogger<ArticleManifestActor> _logger;
-    private DateTime _nextRead;
+    private ActorCacheState<ArticleManifest> _state;
 
     public ArticleManifestActor([PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<ArticleManifest> state, ILogger<ArticleManifestActor> logger)
     {
-        _state = state.NotNull();
         _logger = logger.NotNull();
-
-        ResetNextRead();
+        _state = new ActorCacheState<ArticleManifest>(state, TimeSpan.FromMinutes(15));
     }
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
@@ -41,32 +37,18 @@ public class ArticleManifestActor : Grain, IArticleManifestActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Deleting ArticleManifest, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!_state.RecordExists) return StatusCode.NotFound;
-        await _state.ClearStateAsync();
-
-        return StatusCode.OK;
+        return await _state.Clear();
     }
 
-    public Task<Option> Exist(string traceId) => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
+    public async Task<Option> Exist(string traceId) => (await _state.GetState()).ToOptionStatus();
 
     public async Task<Option<ArticleManifest>> Get(string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Get ArticleManifest, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (DateTime.UtcNow > _nextRead && _state.RecordExists)
-        {
-            ResetNextRead();
-            await _state.ReadStateAsync();
-        }
-
-        var option = _state.RecordExists switch
-        {
-            true => _state.State,
-            false => new Option<ArticleManifest>(StatusCode.NotFound),
-        };
-
-        return option;
+        var state = await _state.GetState();
+        return state;
     }
 
     public async Task<Option> Set(ArticleManifest model, string traceId)
@@ -78,12 +60,6 @@ public class ArticleManifestActor : Grain, IArticleManifestActor
         if (actorKey.EqualsIgnoreCase(model.ArticleId)) return (StatusCode.BadRequest, $"ArticleId={model.ArticleId} does not match actorKey={actorKey}");
         if (!model.Validate(out var v1)) return v1;
 
-        _state.State = model;
-        await _state.WriteStateAsync();
-
-        ResetNextRead();
-        return StatusCode.OK;
+        return await _state.SetState(model);
     }
-
-    private void ResetNextRead() => _nextRead = DateTime.UtcNow.Add(_cacheTime);
 }

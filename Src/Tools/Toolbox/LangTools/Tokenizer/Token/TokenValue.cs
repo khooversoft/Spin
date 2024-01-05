@@ -11,6 +11,8 @@ public readonly struct TokenValue : IToken
 
     public string Value { get; init; }
     public bool IsSyntaxToken { get; init; }
+    public TokenType TokenType { get; init; } = TokenType.Token;
+
 
     public override bool Equals(object? obj) => obj is TokenValue value && Value == value.Value;
     public override int GetHashCode() => HashCode.Combine(Value);

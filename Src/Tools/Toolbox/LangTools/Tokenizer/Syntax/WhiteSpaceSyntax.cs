@@ -4,7 +4,7 @@
 /// Defines a whit space token.  Whitespace tokens are any character 32 or less
 /// and are compressed to a space " " token.
 /// </summary>
-public struct WhiteSpaceSyntax : ITokenSyntax
+public class WhiteSpaceSyntax : ITokenSyntax
 {
     public int Priority { get; }
 

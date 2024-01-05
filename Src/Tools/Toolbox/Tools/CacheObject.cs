@@ -21,6 +21,14 @@ public class CacheObject<T>
         return this;
     }
 
+    public T Value => TryGetValue(out var value) ? value : throw new InvalidOperationException("Cache is not valid");
+
+    public bool IsValid() => _valueStore switch
+    {
+        null => false,
+        var v => DateTimeOffset.Now < v.Value.ValidTo
+    };
+
     public bool TryGetValue(out T value)
     {
         value = default!;
@@ -44,26 +52,10 @@ public class CacheObject<T>
         return this;
     }
 
-    public bool IsValid()
+    private readonly struct ValueStore(T value, DateTime validTo)
     {
-        return _valueStore switch
-        {
-            null => false,
-            var v => DateTimeOffset.Now < v.Value.ValidTo
-        };
-    }
-
-    private struct ValueStore
-    {
-        public ValueStore(T value, DateTime validTo)
-        {
-            Value = value;
-            ValidTo = validTo;
-        }
-
-        public DateTime ValidTo { get; }
-
-        public T Value { get; }
+        public DateTime ValidTo { get; } = validTo;
+        public T Value { get; } = value;
     }
 }
 

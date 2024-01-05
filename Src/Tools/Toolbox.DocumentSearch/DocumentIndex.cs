@@ -7,9 +7,9 @@ namespace Toolbox.DocumentSearch;
 
 public class DocumentIndex
 {
-    private readonly TokenizeDocument _tokenizer;
+    private readonly DocumentTokenizer _tokenizer;
 
-    public DocumentIndex(FrozenInvertedIndex<string, string> invertedIndex, TokenizeDocument tokenizer, FrozenDictionary<string, DocumentReference> documentIndex)
+    public DocumentIndex(FrozenInvertedIndex<string, string> invertedIndex, DocumentTokenizer tokenizer, FrozenDictionary<string, DocumentReference> documentIndex)
     {
         InvertedIndex = invertedIndex.NotNull();
         _tokenizer = tokenizer.NotNull();

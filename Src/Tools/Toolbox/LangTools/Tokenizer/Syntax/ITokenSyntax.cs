@@ -1,5 +1,6 @@
 ﻿namespace Toolbox.LangTools;
 
+
 /// <summary>
 /// General token syntax interface for processing different types of tokens.
 /// 
@@ -9,8 +10,6 @@
 public interface ITokenSyntax
 {
     int Priority { get; }
-
     int? Match(ReadOnlySpan<char> span);
-
     IToken CreateToken(ReadOnlySpan<char> span);
 }
