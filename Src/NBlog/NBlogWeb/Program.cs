@@ -12,13 +12,17 @@ AppOption option = Host.CreateApplicationBuilder(args)
     .Build()
     .Func(x => x.Services.GetRequiredService<IConfiguration>().Bind<AppOption>());
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 if (option.UserSecrets != null)
 {
     builder.Configuration.AddUserSecrets(option.UserSecrets);
 }
+
+//var b = builder.Build();
+//var bb = b.Services.GetRequiredService<IConfiguration>().Bind<StorageOption>();
+
+//Console.WriteLine($"Secret: {bb.Storage.ToString()}");
 
 builder.Logging
     .AddSimpleConsole(options =>
@@ -49,6 +53,9 @@ builder.Host.UseOrleans((context, silo) =>
 });
 
 var app = builder.Build();
+
+var bb = app.Services.GetRequiredService<IConfiguration>().Bind<StorageOption>();
+Console.WriteLine($"Secret: {bb.Storage.ToString()}");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

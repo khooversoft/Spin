@@ -130,8 +130,8 @@ public static class StringExtensions
     /// <returns></returns>
     public static string GetSecretThumbprint(this string value, int count = 3) => value switch
     {
-        null => "***",
-        string v when v.Length < count * 2 => "***",
+        null => "**null*",
+        string v when v.Length < count * 2 => $"***{v.Length}",
         string v => value[0..count] + "..." + value[^count..],
     };
 

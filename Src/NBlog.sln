@@ -3,23 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlog.sdk", "NBlog.sdk\NBlog.sdk.csproj", "{052E85A2-0FD1-4BA8-8C39-073A096222F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlog.sdk", "NBlog\NBlog.sdk\NBlog.sdk.csproj", "{052E85A2-0FD1-4BA8-8C39-073A096222F6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlog.sdk.test", "NBlog.sdk.test\NBlog.sdk.test.csproj", "{06F537ED-BE0A-4053-86CC-904203C0680D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlog.sdk.test", "NBlog\NBlog.sdk.test\NBlog.sdk.test.csproj", "{06F537ED-BE0A-4053-86CC-904203C0680D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlogCmd", "NBlogCmd\NBlogCmd.csproj", "{4522549F-9AEB-4131-B832-3787D9BBD575}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlogCmd", "NBlog\NBlogCmd\NBlogCmd.csproj", "{4522549F-9AEB-4131-B832-3787D9BBD575}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlogWeb", "NBlogWeb\NBlogWeb.csproj", "{1386E1FA-AEB4-488A-92A1-DFB34132F013}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBlogWeb", "NBlog\NBlogWeb\NBlogWeb.csproj", "{1386E1FA-AEB4-488A-92A1-DFB34132F013}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "..\Tools\Toolbox\Toolbox.csproj", "{9B0B73E8-110C-461E-80D5-37C86666E0D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Tools\Toolbox\Toolbox.csproj", "{9B0B73E8-110C-461E-80D5-37C86666E0D8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Azure", "..\Tools\Toolbox.Azure\Toolbox.Azure.csproj", "{812E0619-71C5-4332-A518-47294057385E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Azure", "Tools\Toolbox.Azure\Toolbox.Azure.csproj", "{812E0619-71C5-4332-A518-47294057385E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{322395CE-D247-42A9-A546-36FE58F4A70E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.CommandRouter", "..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj", "{358DCC99-1931-4566-8D18-419F132F7525}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.CommandRouter", "Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj", "{358DCC99-1931-4566-8D18-419F132F7525}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.DocumentSearch", "..\Tools\Toolbox.DocumentSearch\Toolbox.DocumentSearch.csproj", "{3BC5BAAF-A23F-481A-8DDB-98F5242EBFE2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.DocumentSearch", "Tools\Toolbox.DocumentSearch\Toolbox.DocumentSearch.csproj", "{3BC5BAAF-A23F-481A-8DDB-98F5242EBFE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
