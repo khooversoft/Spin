@@ -149,7 +149,7 @@ public class ValidationTests
     public void TestValidationMust()
     {
         var validations = new Validator<TestOption>()
-            .RuleFor(x => x.DomainName).NotEmpty().Must(x => x == "domain" ? Option<string>.None : "domain is required")
+            .RuleFor(x => x.DomainName).NotEmpty().Must(x => x == "domain" ? StatusCode.OK : (StatusCode.Conflict, "domain is required"))
             .RuleFor(x => x.AccountName).NotEmpty().Must(x => x == "accountName", _ => "accountName is required")
             .Build();
 
@@ -161,7 +161,7 @@ public class ValidationTests
         {
             var result = validations.Validate(x);
             result.Should().NotBeNull();
-            result.IsOk().Should().BeTrue();
+            result.IsOk().Should().BeTrue(result.ToString());
             result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
         });
 

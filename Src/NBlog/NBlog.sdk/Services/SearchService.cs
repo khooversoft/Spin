@@ -27,10 +27,7 @@ public class SearchService
         if (resultOption.IsError()) return Array.Empty<ArticleManifest>();
         IReadOnlyList<DocumentReference> result = resultOption.Return();
 
-        var articleManifestsOption = await _manifestService.GetManifests(result.Select(x => x.DocumentId).ToArray(), context);
-        if (articleManifestsOption.IsError()) return Array.Empty<ArticleManifest>();
-        IReadOnlyList<ArticleManifest> articleManifests = articleManifestsOption.Return();
-
+        var articleManifests = await _manifestService.GetManifests(result.Select(x => x.DocumentId).ToArray(), context);
         return articleManifests;
     }
 }

@@ -1,46 +1,21 @@
-﻿<Symbols />
+﻿@rendermode InteractiveServer
 
-<div class="sidebar">
-    <div class="masthead pt-5">
-        <div class="mb-4 text-lg-start">
-            <div class="ms-3 ms-lg-0">
-                <h1 class="mb-1 mb-lg-2 f1 fw-600">Secrets of .NET and Cloud</h1>
-                <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">
-                    .NET has evolved rapidly since its inception as an open-source and
-                    cross-platform framework.
-                </p>
-                <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
-                    The newest version introduces advanced features that enhance performance and security,
-                    while also offering more convenience and productivity for developers.
-                </p>
-            </div>
-        </div>
+@switch (_showIndex)
+{
+    case false:
+        <LeftOverviewIndex ShowIndex="OnShowIndex" />
+        break;
 
-        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start gap-1">
-            <a class="nav-link d-flex align-items-center fw-600" href="/">
-                <svg class="bi me-2 f5 text-warning"><use xlink:href="#file-earmark-richtext"></use></svg>
-                <span class="text-info"> Current </span>
-            </a>
-            <a class="nav-link d-flex align-items-center fw-600" href="/summary/Tools">
-                <svg class="bi me-2 f5 text-success"><use xlink:href="#sun-fill"></use></svg>
-                <span class="text-info"> Tools </span>
-            </a>
-            <a class="nav-link d-flex align-items-center fw-600" href="/summary/FrameworkDesign">
-                <svg class="bi me-2 f5 text-success"><use xlink:href="#check2"></use></svg>
-                <span class="text-info"> Guidance </span>
-            </a>
-            <a class="nav-link d-flex align-items-center fw-600" href="/history">
-                <svg class="bi me-2 f5 text-success"><use xlink:href="#file-earmark-richtext"></use></svg>
-                <span class="text-info"> Archives </span>
-            </a>
-@*             <a class="nav-link d-flex align-items-center" href="/videos/">
-                <svg class="bi me-2 f5 text-info"><use xlink:href="#film"></use></svg>
-                <span class="text-info"> Videos </span>
-            </a>
-            <a class="nav-link d-flex align-items-center" href="https://blog.getbootstrap.com/feed.xml">
-                <svg class="bi me-2 f5 text-warning"><use xlink:href="#rss"></use></svg>
-                <span class="text-info"> Subscribe </span>
-            </a> *@
-        </nav>
-    </div>
-</div>
+    case true:
+        <LeftContextIndex ShowIndex="OnShowIndex" />
+        break;
+}
+
+@code {
+    private bool _showIndex { get; set; }
+
+    private void OnShowIndex()
+    {
+        _showIndex = !_showIndex;
+    }
+}

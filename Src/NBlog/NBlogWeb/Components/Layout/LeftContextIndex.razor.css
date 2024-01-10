@@ -1,0 +1,52 @@
+﻿.bd-sidebar {
+    overflow-y: scroll;
+    height: 90vh;
+    padding: 1rem;
+}
+
+    .bd-sidebar::-webkit-scrollbar {
+        width: 11px;
+    }
+
+    .bd-sidebar::-webkit-scrollbar-thumb {
+        background-color: var(--thumbBG);
+        border-radius: 6px;
+        border: 3px solid var(--scrollbarBG);
+    }
+
+.group-menu {
+    --bs-list-group-bg: inherit;
+}
+
+.group-menu-Item {
+    --bs-list-group-bg: inherit;
+    border: none;
+}
+
+    .group-menu-Item a {
+        color: white;
+    }
+
+        .group-menu-Item a:hover {
+            color: yellow;
+        }
+
+.left-menu-format {
+    padding-left: 16px;
+    padding-top: 0;
+    padding-bottom: 2px;
+}
+
+.left-menu-group {
+    color: white;
+    font-size: 18px;
+    padding: 0;
+}
+
+.left-menu-topic {
+    color: white;
+    font-size: 16px;
+    font-weight: 200;
+    padding: 0;
+    padding-left:1.5rem
+}

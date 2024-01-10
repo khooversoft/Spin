@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.DocumentSearch.test;
 
@@ -96,7 +98,7 @@ public class DocumentIndexTests
     {
         DocumentTokenizer tokenizer = new DocumentTokenizer(CreateWorkWeight());
 
-        var index = new DocumentIndexBuilder()
+        DocumentIndex index = new DocumentIndexBuilder()
             .SetTokenizer(tokenizer)
             .Add("doc1", "This is document one")
             .Add("doc2", "This is document two", ["tag1"])
@@ -109,7 +111,7 @@ public class DocumentIndexTests
         string json = index.ToJson();
         json.Should().NotBeNullOrEmpty();
 
-        DocumentIndex newIndex = DocumentIndexBuilder.BuildFromJson(json, tokenizer);
+        DocumentIndex newIndex = json.ToObject<DocumentIndexSerialization>().NotNull().FromSerialization();
         newIndex.Should().NotBeNull();
         newIndex.Index.Count.Should().Be(3);
         newIndex.InvertedIndex.Index.Count.Should().Be(6);

@@ -13,7 +13,7 @@ public enum EdgeDirection
 }
 
 
-[DebuggerDisplay("Key={Key}, FromKey={FromKey}, ToKey={ToKey}, EdgeType={EdgeType}, Tags={Tags}")]
+[DebuggerDisplay("Key={Key}, FromKey={FromKey}, ToKey={ToKey}, EdgeType={EdgeType}, Tags={Tags.ToString()}")]
 public sealed record GraphEdge : IGraphCommon
 {
     public GraphEdge() { }

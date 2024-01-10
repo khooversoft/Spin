@@ -25,6 +25,30 @@ public class GraphQueryEdgeTests
     };
 
     [Fact]
+    public void AllEdgesQuery()
+    {
+        GraphQueryResult result = _map.Query().Execute("select [*];");
+
+        result.StatusCode.IsOk().Should().BeTrue();
+        result.Items.Count.Should().Be(5);
+        result.Alias.Count.Should().Be(0);
+
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
+        edges.Length.Should().Be(5);
+
+        var shouldMatch = new[]
+        {
+            ("node1", "node2"),
+            ("node1", "node3"),
+            ("node6", "node3"),
+            ("node4", "node3"),
+            ("node4", "node5"),
+        };
+        var inSet = edges.OrderBy(x => x.ToKey).Select(x => (x.FromKey, x.ToKey)).ToArray();
+        inSet.SequenceEqual(shouldMatch).Should().BeTrue();
+    }
+
+    [Fact]
     public void TagDefaultQuery()
     {
         GraphQueryResult result = _map.Query().Execute("select [knows];");

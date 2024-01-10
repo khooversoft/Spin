@@ -2,7 +2,7 @@
 
 namespace Toolbox.Tools;
 
-public abstract class ValidatorBase<T, TProperty> : IPropertyValidator<TProperty>
+public abstract class ValidatorBase<T, TProperty> : IPropertyValidator<T, TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly string _errorMessage;
@@ -15,9 +15,9 @@ public abstract class ValidatorBase<T, TProperty> : IPropertyValidator<TProperty
         _isValid = isValid.NotNull();
     }
 
-    public Option<IValidatorResult> Validate(TProperty subject)
+    public Option<IValidatorResult> Validate(T subject, TProperty property)
     {
-        return _isValid(subject) switch
+        return _isValid(property) switch
         {
             true => Option<IValidatorResult>.None,
             false => _rule.CreateError(_errorMessage),

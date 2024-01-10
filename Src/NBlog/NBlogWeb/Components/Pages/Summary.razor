@@ -1,4 +1,4 @@
-﻿@page "/summary/{tag}"
+﻿@page "/summary/{*index}"
 @layout Layout.MainLayout
 
 @using NBlog.sdk
@@ -7,11 +7,11 @@
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-@if (_manifests != null && _running == 2)
+@if (_articleIds != null && _running == 2)
 {
-    @foreach (var manifest in _manifests.WithIndex())
+    @foreach (var manifest in _articleIds.WithIndex())
     {
-        <ArticleSummary ArticleId="@manifest.Item.ArticleId" Index="@manifest.Index" Attribute="@_attribute" />
+        <ArticleSummary ArticleId="@manifest.Item" Index="@manifest.Index" Attribute="@_attribute" />
     }
 }
 else
@@ -22,7 +22,7 @@ else
 
 @code {
     [Parameter]
-    public string Tag { get; set; } = null!;
+    public string? Index { get; set; }
 
     [Inject]
     private ArticleService _articleService { get; init; } = null!;
@@ -31,7 +31,7 @@ else
     private ILogger<Home> _logger { get; init; } = null!;
 
     private int _running;
-    private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
+    private IReadOnlyList<string>? _articleIds { get; set; } = null!;
     private string? _attribute { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -53,16 +53,13 @@ else
 
         try
         {
-            var manifestOption = Tag?.ToLower() switch
+            _articleIds = Index switch
             {
-                string v when v.EqualsIgnoreCase(NBlogConstants.ToolTag) => await _articleService.GetToolSummaries(context),
-                string v when v.EqualsIgnoreCase(NBlogConstants.FrameworkDesignTag) => await _articleService.GetFrameworkSummaries(context),
-
-                _ => await _articleService.GetSummaries(context),
+                string v when v != "home" => (await _articleService.GetIndexSummaries(v, context)).Select(x => x.ArticleId).ToArray(),
+                _ => (await _articleService.GetSummaries(context)).Select(x => x.ArticleId).ToArray(),
             };
 
-            _manifests = manifestOption.IsOk() ? manifestOption.Return() : null;
-            _attribute = _manifests?.Count == 1 ? NBlogConstants.MainAttribute : null;
+            _attribute = _articleIds?.Count == 1 ? NBlogConstants.MainAttribute : null;
         }
         finally
         {

@@ -1,0 +1,119 @@
+﻿@using NBlog.sdk
+@using Toolbox.Types
+@rendermode InteractiveServer
+
+<Symbols />
+
+<div class="bd-sidebar">
+    <div class="masthead pt-5">
+        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
+                <a class="btn btn-left-menu text-info" @onclick=IndexEvent>Index</a>
+            </dev>
+        </nav>
+
+        @if (_running == 2)
+        {
+            @foreach (var group in _indexMap)
+            {
+                <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
+                    <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
+                        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
+                        <span class="left-menu-group">@group.GroupTitle</span>
+                    </dev>
+                </dev>
+
+                @foreach(var link in group.Items)
+                {
+                    <a class="left-menu-format nav-link d-flex align-items-center fw-600" href="/article/main/@link.FileId">
+                        <span class="btn btn-left-menu left-menu-topic"> @link.Title </span>
+                    </a>
+                }
+            }
+
+
+            <a class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
+                <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
+                    <a class="btn btn-left-menu left-menu-topic" style="padding-left:1.5rem" @onclick=IndexEvent>Subitem</a>
+                </dev>
+            </a>
+
+            <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
+                <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
+                    <a class="btn btn-left-menu left-menu-topic" style="padding-left:1.5rem" @onclick=IndexEvent>Subitem2</a>
+                </dev>
+            </dev>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback ShowIndex { get; set; }
+
+    [Inject]
+    private ArticleService _articleService { get; init; } = null!;
+
+    [Inject]
+    private ILogger<LeftContextIndex> _logger { get; init; } = null!;
+
+    private int _running;
+    private IReadOnlyList<ArticleIndex>? _indexes { get; set; }
+    private IReadOnlyList<IndexMap> _indexMap { get; set; } = Array.Empty<IndexMap>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _running = 0;
+            await Load();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task IndexEvent()
+    {
+        await ShowIndex.InvokeAsync();
+    }
+
+    private async Task Load()
+    {
+        var context = new ScopeContext(_logger);
+        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
+        if (currentRunnning == 1) return;
+
+        try
+        {
+            _indexes = await _articleService.GetIndexDocs(context);
+
+            _indexMap = _indexes
+                .Select(x => (group: unwrap(x.IndexName), index: x))
+                .GroupBy(x => x.group.groupName)
+                .Select(x => new IndexMap
+                    {
+                        GroupTitle = x.Key,
+                        Items = x.Select(x => (x.group.topic, x.index.FileId)).ToArray(),
+                    })
+                .ToArray();
+        }
+        finally
+        {
+            _running = 2;
+            await InvokeAsync(() => StateHasChanged());
+        }
+
+        static (string groupName, string topic) unwrap(string indexName)
+        {
+            var parts = indexName.Split('/');
+            return (parts[0], parts[1]);
+        }
+    }
+
+    private record IndexMap
+    {
+        public required string GroupTitle { get; init; }
+        public required IReadOnlyList<(string Title, string FileId)> Items { get; init; }
+    }
+}

@@ -11,7 +11,7 @@ public class ManifestService
     private readonly ILogger<ManifestService> _logger;
     public ManifestService(IClusterClient clusterClient, ILogger<ManifestService> logger) => (_clusterClient, _logger) = (clusterClient.NotNull(), logger.NotNull());
 
-    public async Task<Option<IReadOnlyList<ArticleManifest>>> GetManifests(IReadOnlyList<string> nodes, ScopeContext context)
+    public async Task<IReadOnlyList<ArticleManifest>> GetManifests(IReadOnlyList<string> nodes, ScopeContext context)
     {
         context = context.With(_logger);
 
@@ -33,7 +33,7 @@ public class ManifestService
         }
     }
 
-    private async Task<Option<ArticleManifest>> GetManifest(string articleId, ScopeContext context)
+    public async Task<Option<ArticleManifest>> GetManifest(string articleId, ScopeContext context)
     {
         context = context.With(_logger);
 

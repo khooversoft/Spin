@@ -79,13 +79,17 @@ public class PackageBuild
 
     private static void BuildAndWriteIndex(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
     {
-        context.LogInformation("Building manifest directory map");
-        var map = new GraphMap();
+        Option<GraphMap> index = new ArticleDirectoryBuilder()
+            .Add(manifestFiles.Select(x => x.Manifest))
+            .Build();
 
-        manifestFiles.SelectMany(x => x.Manifest.GetNodes()).ForEach(x => map.Nodes.Add(x, true).ThrowOnError());
-        manifestFiles.SelectMany(x => x.Manifest.GetEdges()).ForEach(x => map.Edges.Add(x, true).ThrowOnError());
+        if (index.IsError())
+        {
+            context.Location().LogError("Failed to build article directory graph, error={error}", index);
+            return;
+        }
 
-        string json = map.ToJson();
+        string json = index.Return().ToJson();
         WriteJsonToZip(zip, json, PackagePaths.GetPathArticleIndexZipPath(), context);
     }
 

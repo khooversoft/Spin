@@ -49,16 +49,20 @@ public class Tags : Dictionary<string, string?>
         return this;
     }
 
-    public bool Has(string? key) => key switch
+    public bool Has(string? key)
     {
-        string v => v.Func(_ => v.ToDictionaryFromString().All(x => TryGetValue(x.Key, out var value) switch
+        if (key.IsEmpty()) return false;
+        if (key == "*") return true;
+
+        // Must find all tags
+        var find = key.ToDictionaryFromString().All(x => TryGetValue(x.Key, out var value) switch
         {
             false => false,
             true => x.Value == null || x.Value == value,
-        })),
+        });
 
-        _ => false,
-    };
+        return find;
+    }
 
     public bool Has(string key, string value)
     {
@@ -75,6 +79,7 @@ public class Tags : Dictionary<string, string?>
         .Join(';');
 
     public Tags Copy() => new Tags(ToString());
+    public static Tags Create(string? tags) => new Tags(tags);
 
     public bool Equals(Tags? other) => other is not null &&
         this.Count == other.Count &&
@@ -91,60 +96,4 @@ public class Tags : Dictionary<string, string?>
     public static bool operator !=(Tags? left, Tags? right) => !(left == right);
 
     public static implicit operator Tags(string? value) => new Tags(value);
-
-    public static bool HasTag(string? tags, string tag)
-    {
-        if (tags == null) return false;
-        tag.NotEmpty();
-
-        var memoryTag = tag.AsMemory();
-
-        foreach (var item in tags.AsMemory().Split(';'))
-        {
-            foreach (ReadOnlyMemory<char> field in item.Split('='))
-            {
-                bool isEqual = field.Span.Equals(memoryTag.Span, StringComparison.OrdinalIgnoreCase);
-                if (isEqual) return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static bool HasTag(string? tags, string tag, string value)
-    {
-        if (tags == null) return false;
-        tag.NotEmpty();
-        value.NotEmpty();
-
-        var memoryTag = tag.AsMemory();
-        var memoryValue = value.AsMemory();
-
-        foreach (var item in tags.AsMemory().Split(';'))
-        {
-            foreach (var field in item.Split('=').WithIndex())
-            {
-                if (field.Index == 0 && !field.Item.Span.Equals(memoryTag.Span, StringComparison.OrdinalIgnoreCase)) break;
-                if (field.Index == 1 && field.Item.Span.Equals(memoryValue.Span, StringComparison.OrdinalIgnoreCase)) return true;
-            }
-        }
-
-        return false;
-    }
-}
-
-
-public static class TagsTool
-{
-    public static T ToObject<T>(this Tags subject) where T : new()
-    {
-        subject.NotNull();
-
-        var dict = subject
-            .Select(x => new KeyValuePair<string, string>(x.Key, x.Value ?? "true"))
-            .ToDictionary(x => x.Key, x => x.Value);
-
-        var result = DictionaryExtensions.ToObject<T>(dict);
-        return result;
-    }
 }

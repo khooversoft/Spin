@@ -14,7 +14,10 @@ public static class NBlogConstants
     public const string SummaryAttribute = "summary";
     public const string MainAttribute = "main";
 
-    public const string ToolTag = "Tools";
+    //public const string ToolTag = "Tools";
     public const string NoSummaryTag = "noSummary";
-    public const string FrameworkDesignTag = "FrameworkDesign";
+    //public const string FrameworkDesignTag = "FrameworkDesign";
+
+    public const string DbTag = "db";
+    public const string AreaTag = "area";
 }

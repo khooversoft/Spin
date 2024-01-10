@@ -65,7 +65,7 @@ public class PackageBuildUploadTest : IClassFixture<TestFixture>
 
         while (stack.TryPop(out var rootPath))
         {
-            if (Directory.Exists(rootPath)) return rootPath;
+            if (System.IO.Directory.Exists(rootPath)) return rootPath;
         }
 
         throw new Exception("failed");

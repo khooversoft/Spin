@@ -17,6 +17,9 @@
     --bd-color: #dee2e6;
     --bs-info-rgb: 13,202,240;
     --loading-color-bg: 45, 45, 45;
+
+    --scrollbarBG: #CFD8DC;
+    --thumbBG: #90A4AE;
 }
 
 .program-icon {
@@ -49,7 +52,7 @@
 .masthead {
     position: -webkit-sticky;
     position: sticky;
-    top: 4rem;
+    top: 0;
 }
 
 .content {
@@ -116,6 +119,7 @@ pre {
 
 article {
     max-width: 900px;
+    /*overflow-y: auto;*/
 }
 
     article h1 {
@@ -169,3 +173,25 @@ article {
     font-size: 1.4rem;
 }
 
+.btn-left-menu {
+    padding: 0;
+}
+
+.main {
+    overflow-y: auto;
+    height: 90vh;
+}
+
+/*    .main::-webkit-scrollbar-track {
+        background: var(--scrollbarBG);
+    }
+*/
+    .main::-webkit-scrollbar {
+        width: 11px;
+    }
+
+    .main::-webkit-scrollbar-thumb {
+        background-color: var(--thumbBG);
+        border-radius: 6px;
+        border: 3px solid var(--scrollbarBG);
+    }

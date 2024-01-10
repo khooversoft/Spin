@@ -35,12 +35,4 @@ public class DocumentIndex
 
         return docs;
     }
-
-    public string ToJson()
-    {
-        DocumentReference[] list = Index.Values.ToArray();
-
-        string json = list.ToJson();
-        return json;
-    }
 }

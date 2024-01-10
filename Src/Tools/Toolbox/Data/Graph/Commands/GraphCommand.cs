@@ -44,7 +44,6 @@ public class GraphCommand
 
         Option option = results switch
         {
-            { Count: 0 } => StatusCode.NoContent,
             var v when !v.All(x => x.StatusCode.IsOk()) => (StatusCode.BadRequest, "One or more results has errors"),
             _ => StatusCode.OK,
         };
@@ -140,10 +139,6 @@ public class GraphCommand
     private static GraphQueryResult Select(GraphSelect select, GraphMap map)
     {
         GraphQueryResult searchResult = map.Query().Process(select.Search);
-
-        IReadOnlyList<IGraphCommon> nodes = searchResult.Items;
-        if (nodes.Count == 0) return new GraphQueryResult(CommandType.Select, StatusCode.NoContent);
-
         return searchResult with { CommandType = CommandType.Select };
     }
 }

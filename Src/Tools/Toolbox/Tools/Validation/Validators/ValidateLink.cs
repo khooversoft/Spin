@@ -3,7 +3,7 @@
 namespace Toolbox.Tools;
 
 
-public class ValidateLink<T, TProperty> : IPropertyValidator<TProperty>
+public class ValidateLink<T, TProperty> : IPropertyValidator<T, TProperty>
 {
     private readonly IPropertyRule<T, TProperty> _rule;
     private readonly IValidator<TProperty> _validator;
@@ -13,14 +13,14 @@ public class ValidateLink<T, TProperty> : IPropertyValidator<TProperty>
         _validator = validator.NotNull();
     }
 
-    public Option<IValidatorResult> Validate(TProperty subject)
+    public Option<IValidatorResult> Validate(T subject, TProperty property)
     {
-        return _validator.Validate(subject);
+        return _validator.Validate(property);
     }
 }
 
 
-public class ValidateLinkOption<T, TProperty> : IPropertyValidator<TProperty>
+public class ValidateLinkOption<T, TProperty> : IPropertyValidator<T, TProperty>
 {
     private readonly IValidator<TProperty> _validator;
     public ValidateLinkOption(IPropertyRule<T, TProperty?> _, IValidator<TProperty> validator)
@@ -28,11 +28,11 @@ public class ValidateLinkOption<T, TProperty> : IPropertyValidator<TProperty>
         _validator = validator.NotNull();
     }
 
-    public Option<IValidatorResult> Validate(TProperty? subject)
+    public Option<IValidatorResult> Validate(T subject, TProperty? property)
     {
-        if (subject == null) return Option<IValidatorResult>.None;
+        if (property == null) return Option<IValidatorResult>.None;
 
-        return _validator.Validate(subject);
+        return _validator.Validate(property);
     }
 }
 

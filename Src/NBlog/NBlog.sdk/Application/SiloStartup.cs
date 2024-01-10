@@ -22,6 +22,14 @@ public static class SiloStartup
             services.AddSingleton<ArticleService>();
             services.AddSingleton<ManifestService>();
             services.AddSingleton<SearchService>();
+
+            services.AddSingleton<ArticleDirectoryClient>(service =>
+            {
+                IClusterClient clusterClient = service.GetRequiredService<IClusterClient>();
+                IDirectoryActor directoryActor = clusterClient.GetDirectoryActor();
+
+                return ActivatorUtilities.CreateInstance<ArticleDirectoryClient>(service, directoryActor);
+            });
         });
 
         return builder;

@@ -6,7 +6,7 @@ using Toolbox.Types;
 namespace Toolbox.Data;
 
 
-[DebuggerDisplay("Key={Key}, Tags={Tags}")]
+[DebuggerDisplay("Key={Key}, Tags={Tags.ToString()}")]
 public record GraphNode : IGraphCommon
 {
     public GraphNode() { }

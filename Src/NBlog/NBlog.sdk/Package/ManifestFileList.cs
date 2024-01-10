@@ -21,8 +21,7 @@ public class ManifestFileList
 
         var verifyOption = Option.Root
             .Bind(() => VerifyArticleIds(manifestFiles, context))
-            .Bind(() => VerifyFileReferences(manifestFiles, context))
-            .Bind(() => VerifyRequiredCommandAttributes(manifestFiles, context));
+            .Bind(() => VerifyFileReferences(manifestFiles, context));
 
         if (verifyOption.IsError()) return verifyOption.ToOptionStatus<ManifestFileList>();
 
@@ -98,34 +97,5 @@ public class ManifestFileList
         }
 
         return StatusCode.OK;
-    }
-
-    private static List<string> _requiredAttributes = [NBlogConstants.MainAttribute, NBlogConstants.SummaryAttribute];
-    private static List<string> _requiredNoSummaryAttributes = [NBlogConstants.MainAttribute];
-
-    private static Option VerifyRequiredCommandAttributes(IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
-    {
-        int errors = 0;
-
-        foreach (var file in manifestFiles)
-        {
-            var attributes = file.Commands.SelectMany(x => x.Attributes);
-
-            var shouldHave = Tags.HasTag(file.Manifest.Tags, NBlogConstants.NoSummaryTag) switch
-            {
-                true => _requiredNoSummaryAttributes,
-                false => _requiredAttributes,
-            };
-
-            bool containsAll = shouldHave.All(itemB => attributes.Contains(itemB));
-
-            if (!containsAll)
-            {
-                context.Location().LogError("File={file} is missing 1 or more required attributes={attributes}", file.File, _requiredAttributes.Join(";"));
-                errors++;
-            }
-        }
-
-        return errors == 0 ? StatusCode.OK : StatusCode.BadRequest;
     }
 }

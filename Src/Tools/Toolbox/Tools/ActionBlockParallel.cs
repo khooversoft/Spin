@@ -13,7 +13,7 @@ public static class ActionBlockParallel
 
         var block = new ActionBlock<T>(receiver, new ExecutionDataflowBlockOptions
         {
-            MaxDegreeOfParallelism = 5
+            MaxDegreeOfParallelism = maxDegree
         });
 
         list.ForEach(x => block.Post(x));

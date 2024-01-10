@@ -11,7 +11,7 @@ public static class DatalakeStateStartup
         builder.ConfigureServices(services =>
         {
             services.AddSingleton<DatalakeStateConnector>();
-            services.AddSingletonNamedService(SpinConstants.SpinStateStore, CreateStorage);
+            services.AddKeyedSingleton(SpinConstants.SpinStateStore, CreateStorage);
         });
 
     private static IGrainStorage CreateStorage(IServiceProvider service, string name)

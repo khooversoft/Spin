@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -10,10 +11,12 @@ public class ArticleService
     private readonly IClusterClient _clusterClient;
     private readonly ILogger<ArticleService> _logger;
     private readonly ManifestService _manifestService;
+    private readonly ArticleDirectoryClient _directory;
 
-    public ArticleService(IClusterClient clusterClient, ManifestService manifestService, ILogger<ArticleService> logger)
+    public ArticleService(IClusterClient clusterClient, ArticleDirectoryClient directory, ManifestService manifestService, ILogger<ArticleService> logger)
     {
         _clusterClient = clusterClient.NotNull();
+        _directory = directory.NotNull();
         _manifestService = manifestService.NotNull();
         _logger = logger.NotNull();
     }
@@ -24,7 +27,7 @@ public class ArticleService
         attribute.NotEmpty();
         context = context.With(_logger);
 
-        var manifestOption = await GetManifest(articleId, context);
+        var manifestOption = await _manifestService.GetManifest(articleId, context);
         if (manifestOption.IsError()) return manifestOption.ToOptionStatus<ArticleDetail>();
         ArticleManifest manifest = manifestOption.Return();
 
@@ -50,76 +53,13 @@ public class ArticleService
         };
     }
 
-    public Task<Option<IReadOnlyList<ArticleManifest>>> GetToolSummaries(ScopeContext context) => GetSummaries(NBlogConstants.ToolTag, context);
-    public Task<Option<IReadOnlyList<ArticleManifest>>> GetFrameworkSummaries(ScopeContext context) => GetSummaries(NBlogConstants.FrameworkDesignTag, context);
+    public Task<IReadOnlyList<ArticleFileReference>> GetSummaries(ScopeContext context) => _directory.GetSummaries("article", context);
 
-    public async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(ScopeContext context, int limit = 10)
-    {
-        context = context.With(_logger);
+    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(ScopeContext context) => _directory.GetSummaryIndexes("article", context);
 
-        var nodeListOption = await QueryDirectory(x => !x.Tags.Has(NBlogConstants.NoSummaryTag), context);
-        if (nodeListOption.IsError()) return nodeListOption.ToOptionStatus<IReadOnlyList<ArticleManifest>>();
+    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(string indexName, ScopeContext context) => _directory.GetSummaryIndexes("article", indexName, context);
 
-        var nodeList = nodeListOption.Return()
-            .Select(x => expandWithDate(x))
-            .OrderByDescending(x => x.createdDate)
-            .Take(limit)
-            .Select(x => x.node)
-            .ToArray();
-
-        return await _manifestService.GetManifests(nodeList.Select(x => x.Key).ToArray(), context);
-
-        (GraphNode node, DateTime createdDate) expandWithDate(GraphNode node)
-        {
-            DateTime date = node.Tags.TryGetValue(NBlogConstants.CreatedDate, out var createdDateValue) switch
-            {
-                false => DateTime.MinValue,
-                true => DateTime.TryParse(createdDateValue, out var createdDate) switch
-                {
-                    false => DateTime.MinValue,
-                    true => createdDate,
-                }
-            };
-
-            return (node, date);
-        }
-    }
-
-    private async Task<Option<IReadOnlyList<ArticleManifest>>> GetSummaries(string lookForTag, ScopeContext context)
-    {
-        var nodeListOption = await QueryDirectory(x => x.Tags.Has(lookForTag), context);
-        if (nodeListOption.IsError()) return nodeListOption.ToOptionStatus<IReadOnlyList<ArticleManifest>>();
-
-        return await _manifestService.GetManifests(nodeListOption.Return().Select(x => x.Key).ToArray(), context);
-    }
-
-    private async Task<Option<IReadOnlyList<GraphNode>>> QueryDirectory(Func<GraphNode, bool> filter, ScopeContext context)
-    {
-        Option<GraphCommandResults> response = await _clusterClient.GetDirectoryActor().Execute("select (key=article:*);", context.TraceId);
-        if (response.IsError()) return response.LogOnError(context, "Directory search failed").ToOptionStatus<IReadOnlyList<GraphNode>>();
-
-        GraphCommandResults result = response.Return();
-
-        IReadOnlyList<GraphNode> nodes = result.Items
-            .SelectMany(x => x.Nodes())
-            .Where(x => filter(x))
-            .ToArray();
-
-        return nodes.ToOption();
-    }
-
-    private async Task<Option<ArticleManifest>> GetManifest(string articleId, ScopeContext context)
-    {
-        string label = $"Article Id={articleId}";
-
-        var readOption = await _clusterClient.GetArticleManifestActor(articleId).Get(context.TraceId);
-        if (readOption.IsError()) return readOption.LogOnError(context, label);
-
-        ArticleManifest manifest = readOption.Return();
-        if (!manifest.Validate(out var v)) return v.LogOnError(context, label).ToOptionStatus<ArticleManifest>();
-
-        return manifest;
-    }
+    public Task<IReadOnlyList<ArticleIndex>> GetIndexDocs(ScopeContext context) => _directory.GetDocIndexes("article", context);
 
     private Option<CommandNode> GetCommandNode(ArticleManifest manifest, string attribute, ScopeContext context)
     {

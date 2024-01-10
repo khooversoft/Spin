@@ -26,6 +26,16 @@ public class GraphQueryNodeTests
 
 
     [Fact]
+    public void AllNodesQuery()
+    {
+        GraphQueryResult result = _map.Query().Execute("select (*);");
+
+        result.StatusCode.IsOk().Should().BeTrue();
+        result.Alias.Count.Should().Be(0);
+        result.Items.Count.Should().Be(7);
+    }
+
+    [Fact]
     public void NodeQuery()
     {
         GraphQueryResult result = _map.Query().Execute("select (key=node1);");
