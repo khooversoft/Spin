@@ -19,38 +19,22 @@
         </div>
 
         <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start gap-1">
-            <div class="nav-link d-flex align-items-center fw-600">
-                <a href="/">
-                    <svg class="bi me-2 f5 text-warning"><use xlink:href="#file-earmark-richtext"></use></svg>
-                    <span class="text-info"> Current </span>
-                </a>
-            </div>
-            <div class="nav-link d-flex align-items-center fw-600">
-                <a href="/summary/area/tools">
-                    <svg class="bi me-2 f5 text-success"><use xlink:href="#sun-fill"></use></svg>
-                    <span class="text-info"> Tools </span>
-                </a>
-            </div>
-            <div class="nav-link d-flex align-items-center fw-600">
-                <a href="/summary/area/strategy">
-                    <svg class="bi me-2 f5 text-success"><use xlink:href="#check2"></use></svg>
-                    <span class="text-info"> Guidance </span>
-                </a>
-            </div>
-            <div class="nav-link d-flex align-items-center fw-600">
-                <a href="/history">
-                    <svg class="bi me-2 f5 text-success"><use xlink:href="#file-earmark-richtext"></use></svg>
-                    <span class="text-info"> Archives </span>
-                </a>
-            </div>
-            @*             <a class="nav-link d-flex align-items-center" href="/videos/">
-            <svg class="bi me-2 f5 text-info"><use xlink:href="#film"></use></svg>
-            <span class="text-info"> Videos </span>
-            </a>
-            <a class="nav-link d-flex align-items-center" href="https://blog.getbootstrap.com/feed.xml">
-            <svg class="bi me-2 f5 text-warning"><use xlink:href="#rss"></use></svg>
-            <span class="text-info"> Subscribe </span>
-            </a> *@
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5 text-warning"><use xlink:href="#file-earmark-richtext"></use></svg>
+                <a class="btn btn-left-menu text-info" href="/">Current</a>
+            </dev>
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5" style="color: yellow"><use xlink:href="#sun-fill"></use></svg>
+                <a class="btn btn-left-menu text-info" href="/summary/area/tools">Tools</a>
+            </dev>
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5" style="color: red" sty><use xlink:href="#check2"></use></svg>
+                <a class="btn btn-left-menu text-info" href="/summary/area/strategy">Guidance</a>
+            </dev>
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5" style="color: Magenta"><use xlink:href="#file-earmark-richtext"></use></svg>
+                <a class="btn btn-left-menu text-info" href="/history">Archives</a>
+            </dev>
             <dev class="nav-link d-flex align-items-center fw-600">
                 <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
                 <a class="btn btn-left-menu text-info" @onclick=IndexEvent>Index</a>
