@@ -53,7 +53,7 @@ public class ArticleService
         };
     }
 
-    public Task<IReadOnlyList<ArticleFileReference>> GetSummaries(ScopeContext context) => _directory.GetSummaries("article", context);
+    public Task<IReadOnlyList<ArticleReference>> GetSummaries(ScopeContext context) => _directory.GetSummaries("article", context);
 
     public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(ScopeContext context) => _directory.GetSummaryIndexes("article", context);
 

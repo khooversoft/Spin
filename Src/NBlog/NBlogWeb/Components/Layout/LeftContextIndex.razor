@@ -6,10 +6,16 @@
 
 <div class="bd-sidebar">
     <div class="masthead pt-5">
-        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
+        <div class="mb-4 text-lg-start">
+            <div class="ms-3 ms-lg-0">
+                <h3 class="mb-1 mb-lg-2 f1 fw-600">Secrets of .NET and Cloud</h3>
+            </div>
+        </div>
+
+        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start index-backto-home">
             <dev class="nav-link d-flex align-items-center fw-600">
-                <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
-                <a class="btn btn-left-menu text-info" @onclick=IndexEvent>Index</a>
+                <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
+                <a class="btn btn-left-menu text-info" @onclick=IndexEvent>Back to overview</a>
             </dev>
         </nav>
 
@@ -17,33 +23,22 @@
         {
             @foreach (var group in _indexMap)
             {
-                <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
+                <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start left-menu-group-content">
                     <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
-                        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
-                        <span class="left-menu-group">@group.GroupTitle</span>
+                        @((MarkupString)group.SvcCommand)
+                        <span class="left-menu-group">@group.GroupName</span>
                     </dev>
                 </dev>
 
-                @foreach(var link in group.Items)
+                @foreach (var link in group.Items)
                 {
-                    <a class="left-menu-format nav-link d-flex align-items-center fw-600" href="/article/main/@link.FileId">
-                        <span class="btn btn-left-menu left-menu-topic"> @link.Title </span>
-                    </a>
+                    <div class="left-menu-format nav-link d-flex align-items-center fw-600">
+                        <a href=@link.ArticleLink>
+                            <span class="btn btn-left-menu left-menu-topic"> @link.Topic </span>
+                        </a>
+                    </div>
                 }
             }
-
-
-            <a class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
-                <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
-                    <a class="btn btn-left-menu left-menu-topic" style="padding-left:1.5rem" @onclick=IndexEvent>Subitem</a>
-                </dev>
-            </a>
-
-            <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start">
-                <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
-                    <a class="btn btn-left-menu left-menu-topic" style="padding-left:1.5rem" @onclick=IndexEvent>Subitem2</a>
-                </dev>
-            </dev>
         }
     </div>
 </div>
@@ -54,6 +49,9 @@
 
     [Inject]
     private ArticleService _articleService { get; init; } = null!;
+
+    [Inject]
+    private ConfigurationService _configurationService { get; init; } = null!;
 
     [Inject]
     private ILogger<LeftContextIndex> _logger { get; init; } = null!;
@@ -93,10 +91,31 @@
                 .GroupBy(x => x.group.groupName)
                 .Select(x => new IndexMap
                     {
-                        GroupTitle = x.Key,
-                        Items = x.Select(x => (x.group.topic, x.index.FileId)).ToArray(),
+                        GroupName = x.Key,
+                        Items = x.GroupBy(y => y.group.topic)
+                            .Select(x => (x.Key, NavRoutes.GotoSummary(x.First().index.IndexName)))
+                            .ToArray(),
+                        SvcCommand = "r",
                     })
                 .ToArray();
+
+            var groupNames = _indexes.Select(x => unwrap(x.IndexName).groupName).ToArray();
+            var iconGroups = await _configurationService.Lookup(groupNames, context);
+            var iconDict = iconGroups.ToDictionary(x => x.GroupName, x => x, StringComparer.OrdinalIgnoreCase);
+
+            _indexMap = _indexMap
+                .Select(x => x with { SvcCommand = createSvc(x.GroupName) })
+                .ToArray();
+
+
+            string createSvc(string groupName)
+            {
+                (string iconName, string color) = iconDict.TryGetValue(groupName, out var indexGroup) ?
+                    (indexGroup.IconName, indexGroup.IconColor) :
+                    ("moon - stars - fill", "white");
+
+                return $"<svg class=\"bi me-2 f5\" style=\"color: {color} !important\"><use xlink:href=#{iconName}></use></svg>";
+            }
         }
         finally
         {
@@ -113,7 +132,8 @@
 
     private record IndexMap
     {
-        public required string GroupTitle { get; init; }
-        public required IReadOnlyList<(string Title, string FileId)> Items { get; init; }
+        public required string GroupName { get; init; }
+        public required string SvcCommand { get; init; }
+        public required IReadOnlyList<(string Topic, string ArticleLink)> Items { get; init; }
     }
 }

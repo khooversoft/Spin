@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace NBlog.sdk;
@@ -6,10 +7,20 @@ namespace NBlog.sdk;
 [GenerateSerializer, Immutable]
 public record NBlogConfiguration
 {
-    [Id(0)] public string RootPath { get; init; } = null!;
+    [Id(0)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
 
     public static IValidator<NBlogConfiguration> Validator { get; } = new Validator<NBlogConfiguration>()
-        .RuleFor(x => x.RootPath).Must(x => FileId.Create(x).IsOk(), _ => "Invalid root path")
+        .RuleForEach(x => x.IndexGroups).Validate(IndexGroup.Validator)
+        .RuleForObject(x => x).Must(x =>
+        {
+            var names = x.IndexGroups
+                .GroupBy(x => x.GroupName, StringComparer.OrdinalIgnoreCase)
+                .Where(x => x.Count() != 1)
+                .Select(x => x.Key)
+                .ToArray();
+
+            return names.Length == 0 ? StatusCode.OK : (StatusCode.BadRequest, $"Duplicate group names={names.Join(';')}");
+        })
         .Build();
 }
 

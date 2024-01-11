@@ -31,7 +31,7 @@ public static class ArticleManifestValidations
 {
     public static Option DistinctTests(ArticleManifest manifest)
     {
-        if( !GetCommands(manifest, out var commandsOption)) return commandsOption.ToOptionStatus();
+        if (!GetCommands(manifest, out var commandsOption)) return commandsOption.ToOptionStatus();
         IReadOnlyList<CommandNode> commands = commandsOption.Return();
 
         int fileIdDistinctCount = commands.Select(x => x.FileId).Distinct(StringComparer.OrdinalIgnoreCase).Count();
@@ -42,7 +42,7 @@ public static class ArticleManifestValidations
 
         return StatusCode.OK;
     }
- 
+
     public static Option RequiredAttributes(ArticleManifest manifest)
     {
         if (!GetCommands(manifest, out var commandsOption)) return commandsOption.ToOptionStatus();

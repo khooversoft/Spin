@@ -3,10 +3,11 @@
 public static class NBlogConstants
 {
     public const string DataLakeProviderName = "datalake";
-    public const string ConfigurationActorKey = "NBlogConfiguration.json";
+    public const string ConfigurationActorKey = "nblog-configuration.json";
     public const string DirectoryActorKey = "directory.json";
     public const string SearchActorKey = "searchindex.json";
     public const string CreatedDate = "createdDate";
+    public const string ArticleTitle = "articleTitle";
 
     public const string PackageExtension = ".nblogPackage";
     public const string WordTokenExtension = ".wordTokens.json";

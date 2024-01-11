@@ -6,20 +6,21 @@ using Toolbox.Types;
 
 namespace NBlog.sdk;
 
-public interface INBlogConfigurationActor : IGrainWithStringKey
+public interface IConfigurationActor : IGrainWithStringKey
 {
     Task<Option> Delete(string traceId);
     Task<Option> Exist(string traceId);
     Task<Option<NBlogConfiguration>> Get(string traceId);
     Task<Option> Set(NBlogConfiguration model, string traceId);
+    Task<IReadOnlyList<IndexGroup>> Lookup(IReadOnlyList<string> groupName, string traceId);
 }
 
-public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
+public class ConfigurationActor : Grain, IConfigurationActor
 {
     private readonly ActorCacheState<NBlogConfiguration> _state;
-    private readonly ILogger<NBlogConfigurationActor> _logger;
+    private readonly ILogger<ConfigurationActor> _logger;
 
-    public NBlogConfigurationActor([PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<NBlogConfiguration> state, ILogger<NBlogConfigurationActor> logger)
+    public ConfigurationActor([PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<NBlogConfiguration> state, ILogger<ConfigurationActor> logger)
     {
         _logger = logger.NotNull();
         _state = new ActorCacheState<NBlogConfiguration>(state, TimeSpan.FromMinutes(15));
@@ -27,8 +28,7 @@ public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        string actorKey = this.GetPrimaryKeyString();
-        if (actorKey.EqualsIgnoreCase(NBlogConstants.ConfigurationActorKey)) throw new ArgumentException($"ActorKey={actorKey} should be {NBlogConstants.ConfigurationActorKey}");
+        this.GetPrimaryKeyString().Assert(x => x == NBlogConstants.ConfigurationActorKey, x => $"ActorKey={x} should be {NBlogConstants.ConfigurationActorKey}");
         return base.OnActivateAsync(cancellationToken);
     }
 
@@ -57,5 +57,27 @@ public class NBlogConfigurationActor : Grain, INBlogConfigurationActor
         if (!model.Validate(out var v1)) return v1;
 
         return await _state.SetState(model);
+    }
+
+    public async Task<IReadOnlyList<IndexGroup>> Lookup(IReadOnlyList<string> groupNames, string traceId)
+    {
+        var context = new ScopeContext(_logger);
+
+        var configOption = await _state.GetState();
+        if (configOption.IsError())
+        {
+            context.Location().LogError("Failed to get state, error={error}", configOption.ToString());
+            return Array.Empty<IndexGroup>();
+        }
+
+        NBlogConfiguration config = configOption.Return();
+
+        groupNames = groupNames.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+        var result = config.IndexGroups
+            .Join(groupNames, x => x.GroupName, x => x, (o, i) => o, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return result;
     }
 }

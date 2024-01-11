@@ -27,12 +27,27 @@ public class PackageBuild
         using var zipFile = File.Open(packageFile, FileMode.Create);
         using var zip = new ZipArchive(zipFile, ZipArchiveMode.Create);
 
+        if (WriteConfigurationFile(zip, basePath, context).IsError()) return StatusCode.BadRequest;
+
         WriteManifestFilesToZip(zip, manifestFileList.Files, context);
         WriteFilesToZip(zip, manifestFileList.Files, context);
+
         BuildAndWriteIndex(zip, manifestFileList.Files, context);
         await BuildSearchIndex(zip, manifestFileList.Files, basePath, context);
 
         context.Location().LogInformation("Completed: Package has been created, files added={count}", manifestFileList.Files.Count);
+        return StatusCode.OK;
+    }
+
+    private Option WriteConfigurationFile(ZipArchive zip, string basePath, ScopeContext context)
+    {
+        var configFileOption = ConfigurationFile.Read(basePath, context);
+        if (configFileOption.IsError()) return configFileOption.ToOptionStatus();
+
+        var configFile = configFileOption.Return();
+        string configEntry = PackagePaths.GetConfigurationPath();
+        zip.CreateEntryFromFile(configFile, configEntry.ToLower());
+
         return StatusCode.OK;
     }
 
@@ -49,10 +64,10 @@ public class PackageBuild
 
                 string manifestFileEntry = PackagePaths.GetManifestZipPath(queueManifest.Manifest.ArticleId);
                 zip.CreateEntryFromFile(tempFile, manifestFileEntry.ToLower());
-                context.Location().LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
+                context.LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
             }
 
-            context.Location().LogInformation("Write manifest count={count} files", manifestFiles.Count);
+            context.LogInformation("Write manifest count={count} files", manifestFiles.Count);
         }
         finally
         {
@@ -71,7 +86,7 @@ public class PackageBuild
         {
             string fileEntry = PackagePaths.GetDatafileZipPath(dataFile.fileId);
             zip.CreateEntryFromFile(dataFile.localFile, fileEntry.ToLower());
-            context.Location().LogInformation("Writing data command file={file} to zipEntry={zipEntry}", dataFile.localFile, fileEntry);
+            context.LogInformation("Writing data command file={file} to zipEntry={zipEntry}", dataFile.localFile, fileEntry);
         }
 
         context.Location().LogInformation("Write data count={count} files", dataFiles.Length);
@@ -157,7 +172,7 @@ public class PackageBuild
             File.WriteAllText(tempFile, json);
             zip.CreateEntryFromFile(tempFile, zipFile);
 
-            context.Location().LogInformation("Writing to zipEntry={zipEntry}", zipFile);
+            context.LogInformation("Writing to zipEntry={zipEntry}", zipFile);
         }
         finally
         {

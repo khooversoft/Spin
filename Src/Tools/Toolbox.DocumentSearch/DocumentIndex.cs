@@ -1,6 +1,5 @@
 ﻿using System.Collections.Frozen;
 using Toolbox.Data;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.DocumentSearch;

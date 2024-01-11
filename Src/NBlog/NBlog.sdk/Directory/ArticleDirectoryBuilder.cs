@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -54,7 +49,11 @@ public class ArticleDirectoryBuilder
     {
         subject.NotNull();
 
-        string tags = new Tags(subject.Tags).SetValue(NBlogConstants.CreatedDate, subject.CreatedDate.ToString("o")).ToString();
+        string tags = new Tags(subject.Tags)
+            .SetValue(NBlogConstants.ArticleTitle, subject.Title)
+            .SetValue(NBlogConstants.CreatedDate, subject.CreatedDate.ToString("o"))
+            .ToString();
+
         return new GraphNode($"article:{subject.ArticleId}", tags);
     }
 

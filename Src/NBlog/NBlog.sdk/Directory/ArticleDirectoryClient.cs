@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -23,7 +18,7 @@ public class ArticleDirectoryClient
         _logger = logger.NotNull();
     }
 
-    public async Task<IReadOnlyList<ArticleFileReference>> GetSummaries(string dbName, ScopeContext context)
+    public async Task<IReadOnlyList<ArticleReference>> GetSummaries(string dbName, ScopeContext context)
     {
         var query = $"select ('db={dbName.ToLower()}') a1 -> [summary;toKey=file:*];";
 
@@ -31,7 +26,7 @@ public class ArticleDirectoryClient
         if (result.IsError())
         {
             context.Location().LogError("Query failed to execute, query={query} with directoryActor", query);
-            return Array.Empty<ArticleFileReference>();
+            return Array.Empty<ArticleReference>();
         }
 
         GraphQueryResult graphResult = result.Return().Items[0];
@@ -43,7 +38,7 @@ public class ArticleDirectoryClient
             .Join(edges,
                 x => x.Key,
                 x => x.FromKey,
-                (o, i) => new ArticleFileReference(RemovePrefix(i.FromKey), o.Tags[NBlogConstants.CreatedDate].NotNull(), RemovePrefix(i.ToKey))
+                (o, i) => new ArticleReference(RemovePrefix(i.FromKey), o.Tags[NBlogConstants.CreatedDate].NotNull())
                 )
             .ToArray();
 
@@ -57,7 +52,7 @@ public class ArticleDirectoryClient
 
     public async Task<IReadOnlyList<ArticleIndex>> GetIndexes(string dbName, string indexName, string docAttribute, ScopeContext context)
     {
-        var query = $"select (key=tag:{indexName.ToLower()}) -> [tagIndex] a0 -> ('db={dbName.ToLower()}') -> [{docAttribute};toKey=file:*] a1;";
+        var query = $"select (key=tag:{indexName.ToLower()}) -> [tagIndex] a0 -> ('db={dbName.ToLower()}') a1 -> [{docAttribute};toKey=file:*] a2;";
 
         var result = await _directoryActor.Execute(query, context.TraceId);
         if (result.IsError())
@@ -70,11 +65,19 @@ public class ArticleDirectoryClient
         GraphQueryResult graphResult = result.Return().Items[0];
 
         var indexSet = graphResult.Alias["a0"].OfType<GraphEdge>().ToArray();
-        var edgeSet = graphResult.Alias["a1"].OfType<GraphEdge>().ToArray();
+        var articleSet = graphResult.Alias["a1"].OfType<GraphNode>().ToArray();
+        var edgeSet = graphResult.Alias["a2"].OfType<GraphEdge>().ToArray();
 
         var indexes = indexSet
-            .Join(edgeSet, x => x.ToKey, x => x.FromKey, (o, i) => (tagNodeKey: o.FromKey, manifestNodeKey: i.FromKey, fileKey: i.ToKey))
-            .Select(x => new ArticleIndex(RemovePrefix(x.tagNodeKey), RemovePrefix(x.manifestNodeKey), RemovePrefix(x.fileKey)))
+            .Join(articleSet, x => x.ToKey, x => x.Key, (o, i) => (tagNodeKey: o.FromKey, articleKey: i.Key, articleTags: i.Tags))
+            .Join(edgeSet, x => x.articleKey, x => x.FromKey, (o, i) => (o.tagNodeKey, o.articleKey, o.articleTags))
+            .Select(x => new ArticleIndex
+            {
+                IndexName = RemovePrefix(x.tagNodeKey),
+                ArticleId = RemovePrefix(x.articleKey),
+                Title = x.articleTags[NBlogConstants.ArticleTitle].NotNull(),
+                CreatedDate = DateTime.Parse(x.articleTags[NBlogConstants.CreatedDate].NotNull()),
+            })
             .ToArray();
 
         return indexes;

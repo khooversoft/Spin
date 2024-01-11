@@ -37,9 +37,13 @@
     padding-bottom: 2px;
 }
 
+.left-menu-group-content {
+    padding-top: 10px;
+}
+
 .left-menu-group {
     color: white;
-    font-size: 18px;
+    font-size: 16px;
     padding: 0;
 }
 
@@ -47,6 +51,11 @@
     color: white;
     font-size: 16px;
     font-weight: 200;
-    padding: 0;
-    padding-left:1.5rem
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 1.5rem
+}
+
+.index-backto-home {
+    padding-bottom: 15px;
 }

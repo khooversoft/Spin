@@ -53,10 +53,19 @@ else
 
         try
         {
+            Index = Index?.Func(x => Uri.UnescapeDataString(x));
+
             _articleIds = Index switch
             {
-                string v when v != "home" => (await _articleService.GetIndexSummaries(v, context)).Select(x => x.ArticleId).ToArray(),
-                _ => (await _articleService.GetSummaries(context)).Select(x => x.ArticleId).ToArray(),
+                string v when v != "home" => (await _articleService.GetIndexSummaries(v, context))
+                    .OrderByDescending(x => x.CreatedDate)
+                    .Select(x => x.ArticleId)
+                    .ToArray(),
+
+                _ => (await _articleService.GetSummaries(context))
+                    .OrderByDescending(x => x.CreatedDate)
+                    .Select(x => x.ArticleId)
+                    .ToArray(),
             };
 
             _attribute = _articleIds?.Count == 1 ? NBlogConstants.MainAttribute : null;

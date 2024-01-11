@@ -3,27 +3,24 @@ using Toolbox.Tools;
 
 namespace NBlog.sdk;
 
-public record ArticleFileReference
+public record ArticleReference
 {
-    public ArticleFileReference() { }
+    public ArticleReference() { }
 
     [SetsRequiredMembers]
-    public ArticleFileReference(string articleId, string createdDate, string fileId)
+    public ArticleReference(string articleId, string createdDate)
     {
         ArticleId = articleId.NotEmpty();
-        FileId = fileId.NotEmpty();
         CreatedDate = DateTime.Parse(createdDate);
     }
 
     [SetsRequiredMembers]
-    public ArticleFileReference(string articleId, DateTime createdDate, string fileId)
+    public ArticleReference(string articleId, DateTime createdDate)
     {
         ArticleId = articleId.NotEmpty();
-        FileId = fileId.NotEmpty();
         CreatedDate = createdDate;
     }
 
     public required string ArticleId { get; init; }
     public required DateTime CreatedDate { get; init; }
-    public required string FileId { get; init; }
 }
