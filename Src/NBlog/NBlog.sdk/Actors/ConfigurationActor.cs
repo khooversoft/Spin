@@ -28,7 +28,7 @@ public class ConfigurationActor : Grain, IConfigurationActor
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.GetPrimaryKeyString().Assert(x => x == NBlogConstants.ConfigurationActorKey, x => $"ActorKey={x} should be {NBlogConstants.ConfigurationActorKey}");
+        this.GetPrimaryKeyString().Assert(NBlogConstants.Tool.IsConfigurationActorKey, x => $"ActorKey={x} is not valid.");
         return base.OnActivateAsync(cancellationToken);
     }
 

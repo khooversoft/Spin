@@ -8,7 +8,7 @@ public class SequentialState
 
     public int State => _state;
 
-    public void Reset() => _state = 0;
+    public void Reset() => Interlocked.Exchange(ref _state, 0);
 
     public bool MoveState(int newState)
     {
@@ -16,3 +16,4 @@ public class SequentialState
         return currentValue == (newState - 1);
     }
 }
+

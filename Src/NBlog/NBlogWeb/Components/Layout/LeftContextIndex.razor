@@ -1,4 +1,5 @@
 ﻿@using NBlog.sdk
+@using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
 
@@ -6,128 +7,133 @@
 
 <div class="bd-sidebar">
     <div class="masthead pt-5">
-        <div class="mb-4 text-lg-start">
-            <div class="ms-3 ms-lg-0">
-                <h3 class="mb-1 mb-lg-2 f1 fw-600">Secrets of .NET and Cloud</h3>
-            </div>
-        </div>
 
-        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start index-backto-home">
-            <dev class="nav-link d-flex align-items-center fw-600">
-                <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
-                <a class="btn btn-left-menu text-info" @onclick=IndexEvent>Back to overview</a>
-            </dev>
-        </nav>
-
-        @if (_running == 2)
+        @if (_flow.State == 2)
         {
-            @foreach (var group in _indexMap)
-            {
-                <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start left-menu-group-content">
-                    <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
-                        @((MarkupString)group.SvcCommand)
-                        <span class="left-menu-group">@group.GroupName</span>
-                    </dev>
-                </dev>
+            <div class="mb-4 text-lg-start">
+                <div class="ms-3 ms-lg-0">
+                    <h1 class="mb-1 mb-lg-2 f1 fw-600">@_configuration.IndexPanel.Title</h1>
+                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_configuration.IndexPanel.Lines[0]</p>
 
-                @foreach (var link in group.Items)
+                    @foreach (var line in _configuration.IndexPanel.Lines.Skip(1))
+                    {
+                        <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
+                            @line
+                        </p>
+                    }
+                </div>
+
+                <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start index-back-to-home">
+                    <dev class="nav-link d-flex align-items-center fw-600">
+                        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
+                        <a class="btn btn-left-menu text-info" @onclick=IndexEvent>Back to overview</a>
+                    </dev>
+                </nav>
+
+                @foreach (var group in _indexMap)
                 {
-                    <div class="left-menu-format nav-link d-flex align-items-center fw-600">
-                        <a href=@link.ArticleLink>
-                            <span class="btn btn-left-menu left-menu-topic"> @link.Topic </span>
-                        </a>
-                    </div>
+                    <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start left-menu-group-content">
+                        <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
+                            @((MarkupString)group.SvcCommand)
+                            <span class="left-menu-group">@group.GroupName</span>
+                        </dev>
+                    </dev>
+
+                    @foreach (var link in group.Items)
+                    {
+                        <div class="left-menu-format nav-link d-flex align-items-center fw-600">
+                            <a href=@link.ArticleLink>
+                                <span class="btn btn-left-menu left-menu-topic"> @link.Topic </span>
+                            </a>
+                        </div>
+                    }
                 }
-            }
+            </div>
         }
     </div>
 </div>
 
 @code {
-    [Parameter]
-    public EventCallback ShowIndex { get; set; }
+    [Parameter] public EventCallback ShowIndex { get; set; }
+    [Inject] private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ConfigurationService _configurationService { get; init; } = null!;
+    [Inject] private ILogger<LeftContextIndex> _logger { get; init; } = null!;
 
-    [Inject]
-    private ArticleService _articleService { get; init; } = null!;
-
-    [Inject]
-    private ConfigurationService _configurationService { get; init; } = null!;
-
-    [Inject]
-    private ILogger<LeftContextIndex> _logger { get; init; } = null!;
-
-    private int _running;
+    private SequentialState _flow = new SequentialState();
+    private string Database = "article";
     private IReadOnlyList<ArticleIndex>? _indexes { get; set; }
     private IReadOnlyList<IndexMap> _indexMap { get; set; } = Array.Empty<IndexMap>();
+    private NBlogConfiguration _configuration = null!;
+
+    private async Task IndexEvent() => await ShowIndex.InvokeAsync();
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _running = 0;
+            _flow.Reset();
             await Load();
         }
 
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task IndexEvent()
-    {
-        await ShowIndex.InvokeAsync();
-    }
-
     private async Task Load()
     {
         var context = new ScopeContext(_logger);
-        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
-        if (currentRunnning == 1) return;
+        if (!_flow.MoveState(1)) return;
 
         try
         {
+            var config = await _configurationService.Get(Database, context);
+            if (config.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={Database}");
+            _configuration = config.Return();
+
             _indexes = await _articleService.GetIndexDocs(context);
 
             _indexMap = _indexes
-                .Select(x => (group: unwrap(x.IndexName), index: x))
+                .Select(x => (group: Unwrap(x.IndexName), index: x))
                 .GroupBy(x => x.group.groupName)
                 .Select(x => new IndexMap
                     {
                         GroupName = x.Key,
                         Items = x.GroupBy(y => y.group.topic)
-                            .Select(x => (x.Key, NavRoutes.GotoSummary(x.First().index.IndexName)))
-                            .ToArray(),
+                                    .Select(x => (x.Key, NavRoutes.GotoSummary(x.First().index.IndexName)))
+                                    .ToArray(),
                         SvcCommand = "r",
                     })
                 .ToArray();
 
-            var groupNames = _indexes.Select(x => unwrap(x.IndexName).groupName).ToArray();
-            var iconGroups = await _configurationService.Lookup(groupNames, context);
+            var groupNames = _indexes.Select(x => Unwrap(x.IndexName).groupName).ToArray();
+            var iconGroups = await _configurationService.Lookup("article", groupNames, context);
             var iconDict = iconGroups.ToDictionary(x => x.GroupName, x => x, StringComparer.OrdinalIgnoreCase);
 
             _indexMap = _indexMap
-                .Select(x => x with { SvcCommand = createSvc(x.GroupName) })
+                .Select(x => x with { SvcCommand = CreateSvg(iconDict, x.GroupName) })
                 .ToArray();
-
-
-            string createSvc(string groupName)
-            {
-                (string iconName, string color) = iconDict.TryGetValue(groupName, out var indexGroup) ?
-                    (indexGroup.IconName, indexGroup.IconColor) :
-                    ("moon - stars - fill", "white");
-
-                return $"<svg class=\"bi me-2 f5\" style=\"color: {color} !important\"><use xlink:href=#{iconName}></use></svg>";
-            }
         }
         finally
         {
-            _running = 2;
+            _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
 
-        static (string groupName, string topic) unwrap(string indexName)
-        {
-            var parts = indexName.Split('/');
-            return (parts[0], parts[1]);
-        }
+    }
+
+    private static (string groupName, string topic) Unwrap(string indexName)
+    {
+        var parts = indexName.Split('/');
+        return (parts[0], parts[1]);
+    }
+
+    private static string CreateSvg(IDictionary<string, IndexGroup> iconDict, string groupName)
+    {
+        (string iconName, string color) = iconDict.TryGetValue(groupName, out var indexGroup) ?
+            (indexGroup.IconName, indexGroup.IconColor) :
+            ("moon - stars - fill", "white");
+
+        return $"<svg class=\"bi me-2 f5\" style=\"color: {color} !important\"><use xlink:href=#{iconName}></use></svg>";
     }
 
     private record IndexMap

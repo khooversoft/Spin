@@ -15,8 +15,10 @@ public class ConfigurationService
         _logger = logger.NotNull();
     }
 
-    public Task<IReadOnlyList<IndexGroup>> Lookup(IReadOnlyList<string> groupNames, ScopeContext context)
+    public Task<IReadOnlyList<IndexGroup>> Lookup(string db, IReadOnlyList<string> groupNames, ScopeContext context)
     {
-        return _clusterClient.GetConfigurationActor().Lookup(groupNames, context.TraceId);
+        return _clusterClient.GetConfigurationActor(db).Lookup(groupNames, context.TraceId);
     }
+
+    public Task<Option<NBlogConfiguration>> Get(string db, ScopeContext context) => _clusterClient.GetConfigurationActor(db).Get(context.TraceId);
 }

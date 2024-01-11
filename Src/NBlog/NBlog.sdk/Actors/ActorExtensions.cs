@@ -14,7 +14,11 @@ public static class ActorExtensions
         return client.GetGrain<T>(actorKey);
     }
 
-    public static IConfigurationActor GetConfigurationActor(this IClusterClient client) => client.GetResourceGain<IConfigurationActor>(NBlogConstants.ConfigurationActorKey);
+    public static IConfigurationActor GetConfigurationActor(this IClusterClient client, string db)
+    {
+        return client.GetResourceGain<IConfigurationActor>(NBlogConstants.Tool.CreateConfigurationActorKey(db));
+    }
+
     public static IArticleManifestActor GetArticleManifestActor(this IClusterClient client, string articleId) => client.GetResourceGain<IArticleManifestActor>(articleId);
     public static IStorageActor GetStorageActor(this IClusterClient client, string fileId) => client.GetResourceGain<IStorageActor>(fileId);
     public static IDirectoryActor GetDirectoryActor(this IClusterClient client) => client.GetResourceGain<IDirectoryActor>(NBlogConstants.DirectoryActorKey);

@@ -27,7 +27,7 @@ public class PackageBuild
         using var zipFile = File.Open(packageFile, FileMode.Create);
         using var zip = new ZipArchive(zipFile, ZipArchiveMode.Create);
 
-        if (WriteConfigurationFile(zip, basePath, context).IsError()) return StatusCode.BadRequest;
+        if (WriteConfigurationFiles(zip, basePath, context).IsError()) return StatusCode.BadRequest;
 
         WriteManifestFilesToZip(zip, manifestFileList.Files, context);
         WriteFilesToZip(zip, manifestFileList.Files, context);
@@ -39,14 +39,18 @@ public class PackageBuild
         return StatusCode.OK;
     }
 
-    private Option WriteConfigurationFile(ZipArchive zip, string basePath, ScopeContext context)
+    private Option WriteConfigurationFiles(ZipArchive zip, string basePath, ScopeContext context)
     {
         var configFileOption = ConfigurationFile.Read(basePath, context);
         if (configFileOption.IsError()) return configFileOption.ToOptionStatus();
 
-        var configFile = configFileOption.Return();
-        string configEntry = PackagePaths.GetConfigurationPath();
-        zip.CreateEntryFromFile(configFile, configEntry.ToLower());
+        var configFiles = configFileOption.Return();
+
+        foreach (var file in configFiles)
+        {
+            string configEntry = PackagePaths.GetConfigurationPath(Path.GetFileName(file));
+            zip.CreateEntryFromFile(file, configEntry.ToLower());
+        }
 
         return StatusCode.OK;
     }
