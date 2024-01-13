@@ -10,13 +10,13 @@ public record ArticleManifest
 {
     [Id(0)] public string ArticleId { get; init; } = null!;
     [Id(1)] public string Title { get; init; } = null!;
-    [Id(3)] public string Author { get; init; } = null!;
-    [Id(4)] public int? Index { get; init; }
-    [Id(5)] public DateTime CreatedDate { get; init; }
-    [Id(6)] public DateTime? StartDate { get; init; }
-    [Id(7)] public DateTime? EndDate { get; init; }
-    [Id(8)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
-    [Id(9)] public string Tags { get; init; } = null!;
+    [Id(2)] public string Author { get; init; } = null!;
+    [Id(3)] public int? Index { get; init; }
+    [Id(4)] public DateTime CreatedDate { get; init; }
+    [Id(5)] public DateTime? StartDate { get; init; }
+    [Id(6)] public DateTime? EndDate { get; init; }
+    [Id(7)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
+    [Id(8)] public string Tags { get; init; } = null!;
 
     public static IValidator<ArticleManifest> Validator { get; } = new Validator<ArticleManifest>()
         .RuleFor(x => x.ArticleId).Must(x => FileId.Create(x).IsOk(), _ => "Invalid artical Id")
