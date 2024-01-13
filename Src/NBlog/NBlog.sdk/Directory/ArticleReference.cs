@@ -8,19 +8,12 @@ public record ArticleReference
     public ArticleReference() { }
 
     [SetsRequiredMembers]
-    public ArticleReference(string articleId, string createdDate)
+    public ArticleReference(string articleId, string index)
     {
         ArticleId = articleId.NotEmpty();
-        CreatedDate = DateTime.Parse(createdDate);
-    }
-
-    [SetsRequiredMembers]
-    public ArticleReference(string articleId, DateTime createdDate)
-    {
-        ArticleId = articleId.NotEmpty();
-        CreatedDate = createdDate;
+        Index = index;
     }
 
     public required string ArticleId { get; init; }
-    public required DateTime CreatedDate { get; init; }
+    public required string Index { get; init; }
 }

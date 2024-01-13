@@ -62,13 +62,13 @@ else
         {
             var articleReference = await _articleService.GetSummaries(DbName, context);
 
-            var nodes = articleReference.OrderByDescending(x => x.CreatedDate).Select(x => x.ArticleId).ToArray();
+            var nodes = articleReference.OrderBy(x => x.Index).Select(x => x.ArticleId).ToArray();
             _manifests = await _manifestService.GetManifests(nodes, context);
 
             _byDate = _manifests
                 .GroupBy(x => x.CreatedDate.ToString("yyyy"))
                 .Select(x => new ByDate { Year = x.Key, Manifests = x.OrderBy(y => y.CreatedDate).ToArray() })
-                .OrderByDescending(x => x.Year)
+                .OrderBy(x => x.Year)
                 .ToArray();
         }
         finally

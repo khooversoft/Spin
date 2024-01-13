@@ -9,7 +9,7 @@ public record OverviewPanel
 {
     [Id(0)] public required string Title { get; init; }
     [Id(1)] public required IReadOnlyList<string> Lines { get; init; } = Array.Empty<string>();
-    [Id(3)] public IReadOnlyList<OverviewMenu> Menus { get; init; } = Array.Empty<OverviewMenu>();
+    [Id(2)] public IReadOnlyList<OverviewMenu> Menus { get; init; } = Array.Empty<OverviewMenu>();
 
     public static IValidator<OverviewPanel> Validator { get; } = new Validator<OverviewPanel>()
         .RuleFor(x => x.Title).NotEmpty()
@@ -36,13 +36,13 @@ public record OverviewMenu
     [Id(0)] public required string Title { get; init; }
     [Id(1)] public required string IconName { get; init; } = _randomText;
     [Id(2)] public required string IconColor { get; init; }
-    [Id(4)] public required string HRef { get; init; }
-    [Id(3)] public int OrderIndex { get; init; } = 1000;
+    [Id(3)] public required string HRef { get; init; }
+    [Id(4)] public int OrderIndex { get; init; } = 1000;
 
     public bool IsRandom() => IconName == _randomText;
 
     public static IValidator<OverviewMenu> Validator { get; } = new Validator<OverviewMenu>()
-        .RuleFor(x => x.Title).ValidName()
+        .RuleFor(x => x.Title).NotEmpty()
         .RuleFor(x => x.IconName).ValidName()
         .RuleFor(x => x.IconColor).NotEmpty()
         .RuleFor(x => x.HRef).NotEmpty()

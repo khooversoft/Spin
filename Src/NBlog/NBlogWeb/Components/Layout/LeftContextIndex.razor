@@ -91,15 +91,12 @@
         try
         {
             if (DbName == null) return;
-
-            var config = await _configurationService.Get(DbName, context);
-            if (config.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={DbName}");
-            _configuration = config.Return();
+            _configuration = await _configurationService.Get(DbName, context);
 
             _title = _configuration.IndexPanel.Title;
             _lines = _configuration.IndexPanel.Lines.ToArray();
 
-            _indexes = await _articleService.GetIndexDocs(context);
+            _indexes = await _articleService.GetIndexDocs(DbName, context);
 
             _indexMap = _indexes
                 .Select(x => (group: Unwrap(x.IndexName), index: x))

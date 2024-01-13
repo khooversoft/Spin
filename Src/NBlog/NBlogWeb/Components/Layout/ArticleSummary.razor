@@ -1,4 +1,5 @@
 ﻿@using NBlog.sdk
+@using Toolbox.Extensions
 @using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
@@ -76,7 +77,17 @@ else
             _articleDetail = mdDoc.Return();
             _title = _articleDetail.Manifest.Title;
             _html = _articleDetail.MarkdownDoc.ToHtml();
-            _date = _articleDetail.Manifest.CreatedDate.ToString("MMMM dd, yyyy");
+
+            DateTime[] dates = (_articleDetail.Manifest.StartDate, _articleDetail.Manifest.EndDate) switch
+            {
+                (DateTime v1, DateTime v2) => [v1, v2],
+                _ => [_articleDetail.Manifest.CreatedDate],
+            };
+
+            _date = dates
+                .OfType<DateTime>()
+                .Select(x => x.ToString("MMMM dd, yyyy"))
+                .Join(" - ");
 
             var commandNode = _articleDetail.Manifest.GetCommand(NBlogConstants.MainAttribute);
             if (commandNode.IsOk())

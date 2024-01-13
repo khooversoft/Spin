@@ -49,7 +49,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                CreatedDate = x.CreatedDate,
+                Index = x.CreatedDate.ToString("yyyyMMdd")!,
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();
@@ -75,7 +75,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                CreatedDate = x.CreatedDate,
+                Index = x.CreatedDate.ToString("yyyyMMdd")!,
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();
@@ -102,14 +102,13 @@ public class ArticleDirectoryQueryTests
                 .Where(x => x.Value.IsNotEmpty())
                 .Where(x => !x.Key.EqualsIgnoreCase("db"))
                 .OfType<KeyValuePair<string, string>>(),
-                (o, i) => (articleId: o.ArticleId, indexName: $"{i.Key}/{i.Value}", title: o.Title, createdDate: o.CreatedDate)
+                (o, i) => (articleId: o.ArticleId, indexName: $"{i.Key}/{i.Value}", createdDate: o.CreatedDate)
             )
             .Select(x => new ArticleIndex
             {
                 IndexName = x.indexName,
                 ArticleId = x.articleId,
-                Title = x.title,
-                CreatedDate = x.createdDate,
+                Index = x.createdDate.ToString("yyyyMMdd")!,
             })
             .OrderBy(x => x.ArticleId).ThenBy(x => x.IndexName)
             .ToArray();

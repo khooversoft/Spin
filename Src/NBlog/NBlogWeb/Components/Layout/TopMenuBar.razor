@@ -88,10 +88,7 @@
         try
         {
             if (DbName == null) return;
-
-            var config = await _configurationService.Get(DbName, context);
-            if (config.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={DbName}");
-            _configuration = config.Return();
+            _configuration = await _configurationService.Get(DbName, context);
 
             _title = _configuration.OverviewPanel.Title;
             _menus = _configuration.OverviewPanel.Menus.Take(3).ToArray();

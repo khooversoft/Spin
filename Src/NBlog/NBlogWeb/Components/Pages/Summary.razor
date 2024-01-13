@@ -55,12 +55,12 @@ else
             _articleIds = Index switch
             {
                 string v when v != "home" => (await _articleService.GetIndexSummariesByName(DbName, v, context))
-                    .OrderByDescending(x => x.CreatedDate)
+                    .OrderBy(x => x.Index)
                     .Select(x => x.ArticleId)
                     .ToArray(),
 
                 _ => (await _articleService.GetSummaries(DbName, context))
-                    .OrderByDescending(x => x.CreatedDate)
+                    .OrderBy(x => x.Index)
                     .Select(x => x.ArticleId)
                     .ToArray(),
             };

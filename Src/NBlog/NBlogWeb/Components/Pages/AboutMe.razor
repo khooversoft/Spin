@@ -1,0 +1,15 @@
+﻿@page "/about-me"
+@using NBlog.sdk
+@rendermode InteractiveServer
+@layout Layout.MainLayout
+
+<PageTitle>NBlog</PageTitle>
+
+@code {
+    [Inject] public NavigationManager _navManager { get; init; } = null!;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _navManager.NavigateTo(NavRoutes.GotoSummary("resume", "home"), true);
+    }
+}

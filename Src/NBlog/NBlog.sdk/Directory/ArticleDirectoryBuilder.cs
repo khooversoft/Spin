@@ -49,9 +49,14 @@ public class ArticleDirectoryBuilder
     {
         subject.NotNull();
 
+        string orderBy = subject.Index switch
+        {
+            int v => (subject.Index ?? 999).ToString(),
+            _ => ((int)(new DateTime(2200, 12, 31) - subject.CreatedDate).TotalDays).ToString("D8"),
+        };
+
         string tags = new Tags(subject.Tags)
-            .SetValue(NBlogConstants.ArticleTitle, subject.Title)
-            .SetValue(NBlogConstants.CreatedDate, subject.CreatedDate.ToString("o"))
+            .SetValue(NBlogConstants.Index, orderBy)
             .ToString();
 
         return new GraphNode($"article:{subject.ArticleId}", tags);

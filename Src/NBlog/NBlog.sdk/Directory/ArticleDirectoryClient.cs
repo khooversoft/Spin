@@ -38,7 +38,7 @@ public class ArticleDirectoryClient
             .Join(edges,
                 x => x.Key,
                 x => x.FromKey,
-                (o, i) => new ArticleReference(RemovePrefix(i.FromKey), o.Tags[NBlogConstants.CreatedDate].NotNull())
+                (o, i) => new ArticleReference(RemovePrefix(i.FromKey), o.Tags[NBlogConstants.Index].NotNull())
                 )
             .ToArray();
 
@@ -75,8 +75,7 @@ public class ArticleDirectoryClient
             {
                 IndexName = RemovePrefix(x.tagNodeKey),
                 ArticleId = RemovePrefix(x.articleKey),
-                Title = x.articleTags[NBlogConstants.ArticleTitle].NotNull(),
-                CreatedDate = DateTime.Parse(x.articleTags[NBlogConstants.CreatedDate].NotNull()),
+                Index = x.articleTags[NBlogConstants.Index].NotNull(),
             })
             .ToArray();
 

@@ -59,7 +59,7 @@ public class ArticleService
 
     public Task<IReadOnlyList<ArticleIndex>> GetIndexSummariesByName(string dbName, string indexName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, indexName, context);
 
-    public Task<IReadOnlyList<ArticleIndex>> GetIndexDocs(ScopeContext context) => _directory.GetDocIndexes("article", context);
+    public Task<IReadOnlyList<ArticleIndex>> GetIndexDocs(string dbName, ScopeContext context) => _directory.GetDocIndexes(dbName, context);
 
     private Option<CommandNode> GetCommandNode(ArticleManifest manifest, string attribute, ScopeContext context)
     {
