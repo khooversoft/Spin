@@ -53,11 +53,11 @@ public class ArticleService
         };
     }
 
-    public Task<IReadOnlyList<ArticleReference>> GetSummaries(ScopeContext context) => _directory.GetSummaries("article", context);
+    public Task<IReadOnlyList<ArticleReference>> GetSummaries(string dbName, ScopeContext context) => _directory.GetSummaries(dbName, context);
 
-    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(ScopeContext context) => _directory.GetSummaryIndexes("article", context);
+    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(string dbName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, context);
 
-    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(string indexName, ScopeContext context) => _directory.GetSummaryIndexes("article", indexName, context);
+    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummariesByName(string dbName, string indexName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, indexName, context);
 
     public Task<IReadOnlyList<ArticleIndex>> GetIndexDocs(ScopeContext context) => _directory.GetDocIndexes("article", context);
 

@@ -12,10 +12,10 @@
         {
             <div class="mb-4 text-lg-start">
                 <div class="ms-3 ms-lg-0">
-                    <h1 class="mb-1 mb-lg-2 f1 fw-600">@_configuration.IndexPanel.Title</h1>
-                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_configuration.IndexPanel.Lines[0]</p>
+                    <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
+                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_lines[0]</p>
 
-                    @foreach (var line in _configuration.IndexPanel.Lines.Skip(1))
+                    @foreach (var line in _lines.Skip(1))
                     {
                         <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
                             @line
@@ -55,17 +55,21 @@
 
 @code {
     [Parameter] public EventCallback ShowIndex { get; set; }
+    [Parameter] public string? DbName { get; init; }
+
     [Inject] private ArticleService _articleService { get; init; } = null!;
     [Inject] private ConfigurationService _configurationService { get; init; } = null!;
     [Inject] private ILogger<LeftContextIndex> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();
-    private string Database = "article";
     private IReadOnlyList<ArticleIndex>? _indexes { get; set; }
     private IReadOnlyList<IndexMap> _indexMap { get; set; } = Array.Empty<IndexMap>();
     private NBlogConfiguration _configuration = null!;
 
     private async Task IndexEvent() => await ShowIndex.InvokeAsync();
+
+    private string? _title = "";
+    public IReadOnlyList<string> _lines = [""];
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -81,14 +85,19 @@
 
     private async Task Load()
     {
-        var context = new ScopeContext(_logger);
         if (!_flow.MoveState(1)) return;
+        var context = new ScopeContext(_logger);
 
         try
         {
-            var config = await _configurationService.Get(Database, context);
-            if (config.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={Database}");
+            if (DbName == null) return;
+
+            var config = await _configurationService.Get(DbName, context);
+            if (config.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={DbName}");
             _configuration = config.Return();
+
+            _title = _configuration.IndexPanel.Title;
+            _lines = _configuration.IndexPanel.Lines.ToArray();
 
             _indexes = await _articleService.GetIndexDocs(context);
 
@@ -99,19 +108,20 @@
                     {
                         GroupName = x.Key,
                         Items = x.GroupBy(y => y.group.topic)
-                                    .Select(x => (x.Key, NavRoutes.GotoSummary(x.First().index.IndexName)))
-                                    .ToArray(),
+                            .Select(x => (x.Key, NavRoutes.GotoSummary(DbName, x.First().index.IndexName)))
+                            .ToArray(),
                         SvcCommand = "r",
                     })
                 .ToArray();
 
             var groupNames = _indexes.Select(x => Unwrap(x.IndexName).groupName).ToArray();
-            var iconGroups = await _configurationService.Lookup("article", groupNames, context);
+            var iconGroups = await _configurationService.Lookup(DbName, groupNames, context);
             var iconDict = iconGroups.ToDictionary(x => x.GroupName, x => x, StringComparer.OrdinalIgnoreCase);
 
             _indexMap = _indexMap
                 .Select(x => x with { SvcCommand = CreateSvg(iconDict, x.GroupName) })
                 .ToArray();
+
         }
         finally
         {

@@ -1,11 +1,12 @@
-﻿@page "/history"
+﻿@page "/history/{dbName}"
 @using NBlog.sdk
 @using NBlogWeb.Components.Layout
 @using Toolbox.Extensions
+@using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-@if (_manifests != null && _running == 2)
+@if (_manifests != null && _flow.State == 2)
 {
     <div class="posts-container mx-auto px-3 py-5">
         @foreach (var byDate in _byDate)
@@ -31,16 +32,12 @@ else
 
 
 @code {
-    [Inject]
-    private ArticleService _articleService { get; init; } = null!;
+    [Parameter] public string DbName { get; init; } = null!;
+    [Inject] private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ManifestService _manifestService { get; init; } = null!;
+    [Inject] private ILogger<Home> _logger { get; init; } = null!;
 
-    [Inject]
-    private ManifestService _manifestService { get; init; } = null!;
-
-    [Inject]
-    private ILogger<Home> _logger { get; init; } = null!;
-
-    private int _running;
+    private SequentialState _flow = new SequentialState();
     private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
     private string? _attribute { get; set; }
     private IReadOnlyList<ByDate> _byDate = Array.Empty<ByDate>();
@@ -49,7 +46,7 @@ else
     {
         if (firstRender)
         {
-            _running = 0;
+            _flow.Reset();
             await Load();
         }
 
@@ -59,12 +56,11 @@ else
     private async Task Load()
     {
         var context = new ScopeContext(_logger);
-        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
-        if (currentRunnning == 1) return;
+        if (!_flow.MoveState(1)) return;
 
         try
         {
-            var articleReference = await _articleService.GetSummaries(context);
+            var articleReference = await _articleService.GetSummaries(DbName, context);
 
             var nodes = articleReference.OrderByDescending(x => x.CreatedDate).Select(x => x.ArticleId).ToArray();
             _manifests = await _manifestService.GetManifests(nodes, context);
@@ -77,17 +73,17 @@ else
         }
         finally
         {
-            _running = 2;
+            _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
     }
 
-    private static string GetDocFileId(ArticleManifest manifest)
+    private string GetDocFileId(ArticleManifest manifest)
     {
         var commandNode = manifest.GetCommand(NBlogConstants.MainAttribute);
         if (commandNode.IsOk())
         {
-            return NavRoutes.GotoArticle(NBlogConstants.MainAttribute, manifest.ArticleId);
+            return NavRoutes.GotoArticle(DbName, NBlogConstants.MainAttribute, manifest.ArticleId);
         }
 
         return "/";

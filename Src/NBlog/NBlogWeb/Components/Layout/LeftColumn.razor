@@ -7,17 +7,18 @@
     @switch (_showIndex)
     {
         case false:
-            <LeftOverviewIndex ShowIndex="OnShowIndex" />
+            <LeftOverviewIndex ShowIndex="OnShowIndex" DbName="@DbName" />
             break;
 
         case true:
-            <LeftContextIndex ShowIndex="OnShowIndex" />
+            <LeftContextIndex ShowIndex="OnShowIndex" DbName="@DbName" />
             break;
     }
 }
 
 @code {
-    @inject ProtectedSessionStorage _store;
+    [Parameter] public string? DbName { get; init; }
+    [Inject] public ProtectedSessionStorage _store { get; init; } = null!;
 
     private bool _showIndex { get; set; }
     private SequentialState _flow = new SequentialState();
@@ -27,7 +28,7 @@
         if (firstRender)
         {
             _flow.MoveState(1);
-            await SetShowIndex();
+            await GetShowIndex();
             StateHasChanged();
         }
 
@@ -40,7 +41,7 @@
         await _store.SetAsync(nameof(_showIndex), _showIndex);
     }
 
-    private async Task SetShowIndex()
+    private async Task GetShowIndex()
     {
         var result = await _store.GetAsync<bool>(nameof(_showIndex));
         _showIndex = result.Success ? result.Value : false;

@@ -1,17 +1,18 @@
-﻿@page "/summary/{*index}"
+﻿@page "/summary/{dbName}/{*index}"
 @layout Layout.MainLayout
 
 @using NBlog.sdk
 @using NBlogWeb.Components.Layout
 @using Toolbox.Extensions
+@using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-@if (_articleIds != null && _running == 2)
+@if (_articleIds != null && _flow.State == 2)
 {
     @foreach (var manifest in _articleIds.WithIndex())
     {
-        <ArticleSummary ArticleId="@manifest.Item" Index="@manifest.Index" Attribute="@_attribute" />
+        <ArticleSummary ArticleId="@manifest.Item" Index="@manifest.Index" Attribute="@_attribute" DbName="@DbName" />
     }
 }
 else
@@ -21,16 +22,13 @@ else
 
 
 @code {
-    [Parameter]
-    public string? Index { get; set; }
+    [Parameter] public string DbName { get; set; } = null!;
+    [Parameter] public string? Index { get; set; }
 
-    [Inject]
-    private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ILogger<Home> _logger { get; init; } = null!;
 
-    [Inject]
-    private ILogger<Home> _logger { get; init; } = null!;
-
-    private int _running;
+    private SequentialState _flow = new SequentialState();
     private IReadOnlyList<string>? _articleIds { get; set; } = null!;
     private string? _attribute { get; set; }
 
@@ -38,7 +36,7 @@ else
     {
         if (firstRender)
         {
-            _running = 0;
+            _flow.Reset();
             await Load();
         }
 
@@ -48,8 +46,7 @@ else
     private async Task Load()
     {
         var context = new ScopeContext(_logger);
-        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
-        if (currentRunnning == 1) return;
+        if (!_flow.MoveState(1)) return;
 
         try
         {
@@ -57,12 +54,12 @@ else
 
             _articleIds = Index switch
             {
-                string v when v != "home" => (await _articleService.GetIndexSummaries(v, context))
+                string v when v != "home" => (await _articleService.GetIndexSummariesByName(DbName, v, context))
                     .OrderByDescending(x => x.CreatedDate)
                     .Select(x => x.ArticleId)
                     .ToArray(),
 
-                _ => (await _articleService.GetSummaries(context))
+                _ => (await _articleService.GetSummaries(DbName, context))
                     .OrderByDescending(x => x.CreatedDate)
                     .Select(x => x.ArticleId)
                     .ToArray(),
@@ -72,7 +69,7 @@ else
         }
         finally
         {
-            _running = 2;
+            _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
     }

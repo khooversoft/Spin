@@ -11,10 +11,10 @@
         {
             <div class="mb-4 text-lg-start">
                 <div class="ms-3 ms-lg-0">
-                    <h1 class="mb-1 mb-lg-2 f1 fw-600">@_configuration.OverviewPanel.Title</h1>
-                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_configuration.OverviewPanel.Lines[0]</p>
+                    <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
+                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_lines[0]</p>
 
-                    @foreach (var line in _configuration.OverviewPanel.Lines.Skip(1))
+                    @foreach (var line in _lines.Skip(1))
                     {
                         <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
                             @line
@@ -43,15 +43,19 @@
 
 @code {
     [Parameter] public EventCallback ShowIndex { get; set; }
+    [Parameter] public string? DbName { get; init; }
+
     [Inject] private ConfigurationService _configurationService { get; init; } = null!;
-    [Inject] private ILogger<LeftContextIndex> _logger { get; init; } = null!;
+    [Inject] private ILogger<LeftOverviewIndex> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();
-    private string Database = "article";
     private IReadOnlyList<IndexMap> _indexMap = Array.Empty<IndexMap>();
     private NBlogConfiguration _configuration = null!;
 
     private async Task IndexEvent() => await ShowIndex.InvokeAsync();
+
+    public string _title = "";
+    public IReadOnlyList<string> _lines = [""];
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -67,16 +71,21 @@
 
     private async Task Load()
     {
-        var context = new ScopeContext(_logger);
         if (!_flow.MoveState(1)) return;
+        var context = new ScopeContext(_logger);
 
         try
         {
-            var config = await _configurationService.Get(Database, context);
-            if (config.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={Database}");
+            if (DbName == null) return;
+
+            var config = await _configurationService.Get(DbName, context);
+            if (config.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={DbName}");
             _configuration = config.Return();
 
-            _indexMap = _configuration.OverviewPanel.OverviewMenus
+            _title = _configuration.OverviewPanel.Title;
+            _lines = _configuration.OverviewPanel.Lines.ToArray();
+
+            _indexMap = _configuration.OverviewPanel.Menus
                 .OrderBy(x => x.OrderIndex)
                 .Select(x => new IndexMap
                     {

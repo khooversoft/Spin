@@ -1,15 +1,15 @@
 ﻿@page "/"
+@using NBlog.sdk
 @rendermode InteractiveServer
 @layout Layout.MainLayout
 
 <PageTitle>NBlog</PageTitle>
 
 @code {
-    [Inject]
-    public NavigationManager _navManager { get; init; } = null!;
+    [Inject] public NavigationManager _navManager { get; init; } = null!;
 
     protected override void OnAfterRender(bool firstRender)
     {
-        _navManager.NavigateTo("/summary/home", true);
+        _navManager.NavigateTo(NavRoutes.GotoSummary("article", "home"), true);
     }
 }

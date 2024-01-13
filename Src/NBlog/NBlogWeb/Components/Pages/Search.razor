@@ -1,13 +1,14 @@
-﻿@page "/search/{searchString}"
+﻿@page "/search/{dbName}/{searchString}"
 @layout Layout.MainLayout
 
 @using NBlog.sdk
 @using NBlogWeb.Components.Layout
 @using Toolbox.Extensions
+@using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-@if (_manifests != null && _running == 2)
+@if (_manifests != null && _flow.State == 2)
 {
     <div class="container p-0 mt-4">
         <div class="row p-2">
@@ -32,24 +33,21 @@ else
 
 
 @code {
-    [Parameter]
-    public string SearchString { get; init; } = null!;
+    [Parameter] public string DbName { get; set; } = null!;
+    [Parameter] public string SearchString { get; init; } = null!;
 
-    [Inject]
-    private SearchService _searchService { get; init; } = null!;
-
-    [Inject]
-    private ILogger<Home> _logger { get; init; } = null!;
+    [Inject] private SearchService _searchService { get; init; } = null!;
+    [Inject] private ILogger<Home> _logger { get; init; } = null!;
 
     private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
-    private int _running;
+    private SequentialState _flow = new SequentialState();
     private string _title = string.Empty;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _running = 0;
+            _flow.Reset();
             await Load();
         }
 
@@ -58,20 +56,17 @@ else
 
     private async Task Load()
     {
-        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
-        if (currentRunnning == 1) return;
+        if (!_flow.MoveState(1)) return;
         var context = new ScopeContext(_logger);
 
         try
         {
-            string search = Uri.UnescapeDataString(SearchString);
-            _title = search;
-
-            _manifests = await _searchService.Search(search, context);
+            string search = _title = Uri.UnescapeDataString(SearchString);
+            _manifests = await _searchService.Search(DbName, search, context);
         }
         finally
         {
-            _running = 2;
+            _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
     }

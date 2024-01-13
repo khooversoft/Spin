@@ -1,8 +1,9 @@
 ﻿@using NBlog.sdk
+@using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-@if (_running == 2)
+@if (_flow.State == 2)
 {
     <a href="@_docFileId" class="article-header-link text-info">@_title</a>
 
@@ -22,7 +23,7 @@
 }
 else
 {
-    if (Index < 3 && _running != 2)
+    if (Index < 3)
     {
         <LoadingComponent Size="1" />
     }
@@ -30,23 +31,16 @@ else
 
 
 @code {
-    [Parameter]
-    public string ArticleId { get; init; } = null!;
+    [Parameter] public string DbName { get; set; } = null!;
+    [Parameter] public string ArticleId { get; init; } = null!;
+    [Parameter] public int Index { get; init; }
+    [Parameter] public string? Attribute { get; init; }
 
-    [Parameter]
-    public int Index { get; init; }
-
-    [Parameter]
-    public string? Attribute { get; init; }
-
-    [Inject]
-    private ArticleService _articleService { get; init; } = null!;
-
-    [Inject]
-    private ILogger<ArticleSummary> _logger { get; init; } = null!;
+    [Inject] private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ILogger<ArticleSummary> _logger { get; init; } = null!;
 
     private ArticleDetail _articleDetail { get; set; } = null!;
-    private int _running;
+    private SequentialState _flow = new SequentialState();
     private string _title { get; set; } = string.Empty;
     private string _html { get; set; } = string.Empty;
     private string _date { get; set; } = string.Empty;
@@ -56,7 +50,7 @@ else
     {
         if (firstRender)
         {
-            _running = 0;
+            _flow.Reset();
             await Load();
         }
 
@@ -66,8 +60,7 @@ else
     private async Task Load()
     {
         var context = new ScopeContext(_logger);
-        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
-        if (currentRunnning == 1) return;
+        if (!_flow.MoveState(1)) return;
 
         string attribute = Attribute ?? NBlogConstants.SummaryAttribute;
 
@@ -88,12 +81,12 @@ else
             var commandNode = _articleDetail.Manifest.GetCommand(NBlogConstants.MainAttribute);
             if (commandNode.IsOk())
             {
-                _docFileId = NavRoutes.GotoArticle(NBlogConstants.MainAttribute, ArticleId);
+                _docFileId = NavRoutes.GotoArticle(DbName, NBlogConstants.MainAttribute, ArticleId);
             }
         }
         finally
         {
-            _running = 2;
+            _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
     }

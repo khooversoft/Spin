@@ -18,7 +18,7 @@ public class SearchService
         _logger = logger.NotNull();
     }
 
-    public async Task<IReadOnlyList<ArticleManifest>> Search(string search, ScopeContext context)
+    public async Task<IReadOnlyList<ArticleManifest>> Search(string dbName, string search, ScopeContext context)
     {
         context = context.With(_logger);
         ISearchActor searchActor = _clusterClient.GetSearchActor();

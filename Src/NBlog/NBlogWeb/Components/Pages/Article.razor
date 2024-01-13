@@ -1,12 +1,13 @@
-﻿@page "/article/{Attribute}/{*ArticleId}"
+﻿@page "/article/{dbName}/{Attribute}/{*ArticleId}"
 @layout Layout.MainLayout
 
 @using NBlog.sdk
 @using NBlogWeb.Components.Layout
+@using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-@if (_running == 2)
+@if (_flow.State == 2)
 {
     <h2>@_title</h2>
 
@@ -31,29 +32,24 @@ else
 
 
 @code {
-    [Parameter]
-    public string Attribute { get; init; } = null!;
+    [Parameter] public string DbName { get; init; } = null!;
+    [Parameter] public string Attribute { get; init; } = null!;
+    [Parameter] public string ArticleId { get; init; } = null!;
 
-    [Parameter]
-    public string ArticleId { get; init; } = null!;
-
-    [Inject]
-    private ArticleService _articleService { get; init; } = null!;
-
-    [Inject]
-    private ILogger<Article> _logger { get; init; } = null!;
+    [Inject] private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ILogger<Article> _logger { get; init; } = null!;
 
     private ArticleDetail _articleDetail { get; set; } = null!;
     private string? _title { get; set; }
     private string? _html { get; set; }
     private string? _date { get; set; }
-    private int _running;
+    private SequentialState _flow = new SequentialState();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _running = 0;
+            _flow.Reset();
             await Load();
         }
 
@@ -63,8 +59,7 @@ else
     private async Task Load()
     {
         var context = new ScopeContext(_logger);
-        int currentRunnning = Interlocked.CompareExchange(ref _running, 1, 0);
-        if (currentRunnning == 1) return;
+        if (!_flow.MoveState(1)) return;
 
         try
         {
@@ -81,7 +76,7 @@ else
         }
         finally
         {
-            _running = 2;
+            _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
     }

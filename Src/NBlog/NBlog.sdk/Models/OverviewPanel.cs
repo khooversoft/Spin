@@ -9,15 +9,15 @@ public record OverviewPanel
 {
     [Id(0)] public required string Title { get; init; }
     [Id(1)] public required IReadOnlyList<string> Lines { get; init; } = Array.Empty<string>();
-    [Id(3)] public IReadOnlyList<OverviewMenu> OverviewMenus { get; init; } = Array.Empty<OverviewMenu>();
+    [Id(3)] public IReadOnlyList<OverviewMenu> Menus { get; init; } = Array.Empty<OverviewMenu>();
 
     public static IValidator<OverviewPanel> Validator { get; } = new Validator<OverviewPanel>()
         .RuleFor(x => x.Title).NotEmpty()
         .RuleForEach(x => x.Lines).NotEmpty().Must(x => x.Length > 0, _ => $"Must have at least one line")
-        .RuleForEach(x => x.OverviewMenus).Validate(OverviewMenu.Validator)
+        .RuleForEach(x => x.Menus).Validate(OverviewMenu.Validator)
         .RuleForObject(x => x).Must(x =>
         {
-            var names = x.OverviewMenus
+            var names = x.Menus
                 .GroupBy(x => x.Title, StringComparer.OrdinalIgnoreCase)
                 .Where(x => x.Count() != 1)
                 .Select(x => x.Key)

@@ -1,12 +1,13 @@
-﻿@inherits LayoutComponentBase
+﻿@using NBlog.sdk
+@inherits LayoutComponentBase
 
 <div>
-    <TopMenuBar />
+    <TopMenuBar DbName="@_dbName" />
 
     <div class="container-xxl px-4 px-xxl-2">
         <div class="d-lg-grid content">
-            <div >
-                <LeftColumn />
+            <div>
+                <LeftColumn DbName="@_dbName" />
             </div>
             <div class="main">
                 <main>
@@ -17,6 +18,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 <div id="blazor-error-ui">
@@ -25,4 +27,31 @@
     <a class="dismiss">🗙</a>
 </div>
 
+@code {
+    [CascadingParameter] RouteData RouteData { get; set; } = null!;
+    private string? _dbName;
 
+    protected override void OnInitialized()
+    {
+        _dbName = null;
+
+        if (RouteData == null) return;
+
+        if( RouteData.RouteValues.TryGetValue("dbName", out var value))
+        {
+            _dbName = value as string;
+        }
+
+        return;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+    }
+}
