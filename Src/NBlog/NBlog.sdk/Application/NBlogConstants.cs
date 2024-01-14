@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using System.Collections.Frozen;
+using Toolbox.Tools;
 
 namespace NBlog.sdk;
 
@@ -21,6 +22,8 @@ public static class NBlogConstants
 
     public const string DbTag = "db";
     public const string AreaTag = "area";
+
+    public static FrozenSet<string> ValidThemes = ((string[])["dark", "light"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static class Tool
     {

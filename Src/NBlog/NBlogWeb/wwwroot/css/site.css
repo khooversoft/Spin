@@ -17,7 +17,6 @@
     --bd-color: #dee2e6;
     --bs-info-rgb: 13,202,240;
     --loading-color-bg: 45, 45, 45;
-
     --scrollbarBG: #CFD8DC;
     --thumbBG: #90A4AE;
 }
@@ -27,7 +26,7 @@
 }
 
 
-.program-footer {
+/*.program-footer {
     background-color: #f6f6f6;
     height: 60px;
     border-top: 1px solid #e7e7e7;
@@ -35,17 +34,24 @@
     color: #232323;
     font-size: .9rem;
     border-radius: 10px;
-}
+}*/
 
 
-.bd-gutter {
+/*.bd-gutter {
     --bs-gutter-x: 3rem;
-}
+}*/
 
-.bd-navbar {
+.dark-theme .bd-navbar {
     padding: .75rem 0;
     background-color: transparent;
     background-image: linear-gradient(to bottom, rgba(var(--bd-newcolor-rgb), 1), rgba(var(--bd-newcolor-rgb), 0.95));
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15),inset 0 -1px 0 rgba(0,0,0,0.15);
+}
+
+.light-theme .bd-navbar {
+    padding: .75rem 0;
+    background-color: transparent;
+    background-image: linear-gradient(180deg, rgba(93,138,203,1) 0%, rgba(112,167,247,1) 100%);
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15),inset 0 -1px 0 rgba(0,0,0,0.15);
 }
 
@@ -64,11 +70,11 @@
     gap: .25rem !important;
 }
 
-.nav {
+/*.nav {
     --bs-nav-link-padding-x: 1rem;
-    --bs-nav-link-padding-y: .5rem;
-    --bs-nav-link-font-weight:;
-    --bs-nav-link-color: var(--bs-link-color);
+    --bs-nav-link-padding-y: .5rem;*/
+/*--bs-nav-link-font-weight:;*/
+/*--bs-nav-link-color: var(--bs-link-color);
     --bs-nav-link-hover-color: var(--bs-link-hover-color);
     --bs-nav-link-disabled-color: var(--bs-secondary-color);
     display: flex;
@@ -76,12 +82,12 @@
     padding-left: 0;
     margin-bottom: 0;
     list-style: none;
-}
+}*/
 
 
-.flex-lg-column {
+/*.flex-lg-column {
     flex-direction: column !important;
-}
+}*/
 
 .bi {
     display: inline-block;
@@ -91,7 +97,20 @@
     fill: currentcolor;
 }
 
-body {
+/*body {
+    margin: 0;
+    font-family: var(--bs-body-font-family);
+    font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: var(--bd-color);
+    text-align: var(--bs-body-text-align);
+    background-color: var(--bd-body-bg);*/ /* #212529;*/
+/*-webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}*/
+
+.dark-theme .app-body {
     margin: 0;
     font-family: var(--bs-body-font-family);
     font-size: var(--bs-body-font-size);
@@ -104,6 +123,26 @@ body {
     -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
+.light-theme .app-body {
+    margin: 0;
+    font-family: var(--bs-body-font-family);
+    font-size: var(--bs-body-font-size);
+    font-weight: var(--bs-body-font-weight);
+    line-height: var(--bs-body-line-height);
+    color: DarkSlateGray;
+    /*color: var(--bd-color);*/
+    text-align: var(--bs-body-text-align);
+    /*background: linear-gradient(90deg,#0d274c,#1c53a3);*/
+    /*background: linear-gradient(90deg,#0d274c,#143c76);*/
+    background-color: #eee;
+    /*    background-color: #edf2f9;
+    background-color: var(--bd-body-bg);
+    background-color: #212529;
+*/ -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+/* Used for the C# code blocks */
 pre {
     background-color: #2b2b2b; /* var(--bd-pre-bg); */
     border-width: 2px;
@@ -117,47 +156,79 @@ pre {
     font-size: 12px;
 }
 
-article {
+.dark-theme article {
     max-width: 900px;
     /*overflow-y: auto;*/
 }
 
-    article h1 {
+    .dark-theme article h1 {
         --bs-text-opacity: 1;
         color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
         margin-top: 40px;
     }
 
-    article h2 {
+    .dark-theme article h2 {
         --bs-text-opacity: 1;
         color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
         margin-top: 20px;
     }
 
-    article h3 {
+    .dark-theme article h3 {
         --bs-text-opacity: 1;
         color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
     }
 
-.table {
-    --bs-table-bg: var(--bd-body-bg);
-    --bs-table-color: var(--bd-color);
+.light-theme article {
+    max-width: 900px;
+    /*overflow-y: auto;*/
 }
 
-.alert {
+    .light-theme article h1 {
+        --bs-text-opacity: 1;
+        color: black !important;
+        margin-top: 40px;
+        font-size: 1.5rem;
+    }
+
+    .light-theme article h2 {
+        --bs-text-opacity: 1;
+        color: black !important;
+        margin-top: 20px;
+        font-size: 1.4rem;
+    }
+
+    .light-theme article h3 {
+        --bs-text-opacity: 1;
+        color: black !important;
+        font-size: 1.3rem;
+    }
+
+.dark-theme .table {
+    --bs-table-bg: var(--bd-body-bg);
+    --bs-table-color: var(--bd-color);
+    --bs-table-border-color: var(--bs-border-color)
+}
+
+.light-theme .table {
+    --bs-table-bg: #eee;
+    --bs-table-color: black;
+    --bs-table-border-color: gray;
+}
+
+/*.alert {
     --bs-alert-padding-x: .5rem;
     --bs-alert-padding-y: .5rem;
-    padding: 4px 4px;
-    /*opacity: 0.9;*/
-    margin: 1rem;
+    padding: 4px 4px;*/
+/*opacity: 0.9;*/
+/*margin: 1rem;
 }
 
     .alert ul {
         margin-bottom: 0;
-    }
+    }*/
 
 
-.article-header-link {
+.dark-theme .article-header-link {
     text-decoration: none !important;
     box-shadow: inset 0 0px 0 white, inset 0 -1px 0 gray;
     --bs-text-opacity: 1;
@@ -165,14 +236,30 @@ article {
     font-size: 1.75rem;
 }
 
-.article-link {
+.light-theme .article-header-link {
+    text-decoration: none !important;
+    box-shadow: inset 0 0px 0 white, inset 0 -1px 0 gray;
+    --bs-text-opacity: 1;
+    color: black !important;
+    font-size: 1.75rem;
+}
+
+.dark-theme .left-menu-link-text {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
+}
+
+.light-theme .left-menu-link-text {
+    color: black !important;
+}
+
+/*.article-link {
     text-decoration: none !important;
     box-shadow: inset 0 0px 0 white, inset 0 -1px 0 gray;
     --bs-text-opacity: 1;
     color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
     font-size: 1.4rem;
-}
-
+}*/
 .btn-left-menu {
     padding: 0;
 }
@@ -182,7 +269,7 @@ article {
     height: 90vh;
 }
 
-/*    .main::-webkit-scrollbar-track {
+    /*    .main::-webkit-scrollbar-track {
         background: var(--scrollbarBG);
     }
 */

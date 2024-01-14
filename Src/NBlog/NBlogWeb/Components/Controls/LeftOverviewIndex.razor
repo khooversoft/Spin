@@ -1,4 +1,5 @@
 ﻿@using NBlog.sdk
+@using NBlogWeb.Components.Layout
 @using Toolbox.Tools
 @using Toolbox.Types
 @rendermode InteractiveServer
@@ -28,13 +29,13 @@
                 {
                     <dev class="nav-link d-flex align-items-center fw-600">
                         @((MarkupString)item.SvcCommand)
-                        <a class="btn btn-left-menu text-info" href="@item.HRef">@item.Title</a>
+                        <a class="btn btn-left-menu left-menu-link-text" href="@item.HRef">@item.Title</a>
                     </dev>
                 }
 
                 <dev class="nav-link d-flex align-items-center fw-600">
                     <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
-                    <a class="btn btn-left-menu text-info" @onclick=IndexEvent>Index</a>
+                    <a class="btn btn-left-menu left-menu-link-text" @onclick=IndexEvent>Index</a>
                 </dev>
             </nav>
         }

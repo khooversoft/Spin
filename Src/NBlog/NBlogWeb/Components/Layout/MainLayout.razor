@@ -1,24 +1,28 @@
 ﻿@using NBlog.sdk
+@using NBlogWeb.Components.Controls
+@using Toolbox.Extensions
+@using Toolbox.Types
 @inherits LayoutComponentBase
 
-<div>
-    <TopMenuBar DbName="@_dbName" />
+<div class="@_themeClass">
+    <div class="app-body">
+        <TopMenuBar DbName="@_dbName" />
 
-    <div class="container-xxl px-4 px-xxl-2">
-        <div class="d-lg-grid content">
-            <div>
-                <LeftColumn DbName="@_dbName" />
-            </div>
-            <div class="main">
-                <main>
-                    <article class="content p-4">
-                        @Body
-                    </article>
-                </main>
+        <div class="container-xxl px-4 px-xxl-2">
+            <div class="d-lg-grid content">
+                <div>
+                    <LeftColumn DbName="@_dbName" />
+                </div>
+                <div class="main">
+                    <main>
+                        <article class="content p-4">
+                            @Body
+                        </article>
+                    </main>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <div id="blazor-error-ui">
@@ -29,16 +33,29 @@
 
 @code {
     [CascadingParameter] RouteData RouteData { get; set; } = null!;
-    private string? _dbName;
 
-    protected override void OnInitialized()
+    [Inject] private ConfigurationService _configurationService { get; init; } = null!;
+    [Inject] private ILogger<MainLayout> _logger { get; init; } = null!;
+
+    private string _themeClass = "dark-theme";
+    private string? _dbName;
+    private NBlogConfiguration _configuration = null!;
+
+    protected override async Task OnInitializedAsync()
     {
         _dbName = null;
         if (RouteData == null) return;
 
-        if( RouteData.RouteValues.TryGetValue("dbName", out var value))
+        if (RouteData.RouteValues.TryGetValue("dbName", out var value))
         {
+            var context = new ScopeContext(_logger);
             _dbName = value as string;
+
+            if (_dbName.IsNotEmpty())
+            {
+                _configuration = await _configurationService.Get(_dbName, context);
+                _themeClass = $"{_configuration.Theme}-theme";
+            }
         }
 
         return;

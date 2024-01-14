@@ -7,11 +7,13 @@ namespace NBlog.sdk;
 [GenerateSerializer, Immutable]
 public record NBlogConfiguration
 {
-    [Id(0)] public required OverviewPanel OverviewPanel { get; init; }
-    [Id(1)] public required IndexPanel IndexPanel { get; init; }
-    [Id(2)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
+    [Id(0)] public required string Theme { get; init; }
+    [Id(1)] public required OverviewPanel OverviewPanel { get; init; }
+    [Id(2)] public required IndexPanel IndexPanel { get; init; }
+    [Id(3)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
 
     public static IValidator<NBlogConfiguration> Validator { get; } = new Validator<NBlogConfiguration>()
+        .RuleFor(x => x.Theme).NotEmpty().Must(NBlogConstants.ValidThemes.Contains, x => $"{x} not a valid theme")
         .RuleFor(x => x.OverviewPanel).Validate(OverviewPanel.Validator)
         .RuleFor(x => x.IndexPanel).Validate(IndexPanel.Validator)
         .RuleForEach(x => x.IndexGroups).Validate(IndexGroup.Validator)
