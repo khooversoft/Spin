@@ -6,17 +6,21 @@ namespace NBlog.sdk;
 
 public record ManifestFile
 {
-    private ManifestFile(string file, IReadOnlyList<CommandNode> commands, ArticleManifest manifest)
+    public ManifestFile(string file, IReadOnlyList<CommandNode> commands, ArticleManifest manifest)
     {
-        File = file;
-        Commands = commands;
-        Manifest = manifest;
+        File = file.NotEmpty();
+        Commands = commands.NotNull();
+        Manifest = manifest.Verify();
     }
 
     public string File { get; } = null!;
     public IReadOnlyList<CommandNode> Commands { get; } = Array.Empty<CommandNode>();
     public ArticleManifest Manifest { get; } = null!;
+}
 
+
+public static class ManifestFileTool
+{
     public static async Task<Option<ManifestFile>> Read(string file, string basePath, ScopeContext context)
     {
         var articleManifestOption = await ReadManifest(file, basePath, context);
@@ -34,13 +38,12 @@ public record ManifestFile
     {
         file.NotEmpty();
         basePath.NotEmpty();
-        context.LogInformation("Reading file={file}, basePath={basePath}", file, basePath);
 
         string fileId = file[(basePath.Length + 1)..].Replace(@"\", "/");
         string pathFileId = Path.GetDirectoryName(fileId).NotNull().Replace(@"\", "/");
-        context.LogInformation("Processing fileId={fileId}, pathFileId={pathFileId}", fileId, pathFileId);
+        context.LogInformation("Reading manifest file, file={file} fileId={fileId}, pathFileId={pathFileId}", file, fileId, pathFileId);
 
-        string data = await System.IO.File.ReadAllTextAsync(file);
+        string data = await File.ReadAllTextAsync(file);
 
         var model = data.ToObject<ArticleManifest>();
         if (model == null)
@@ -86,7 +89,7 @@ public record ManifestFile
         }
 
         var findResult = commands
-            .Select(x => System.IO.File.Exists(x.LocalFilePath) switch
+            .Select(x => File.Exists(x.LocalFilePath) switch
             {
                 false => $"File={x.LocalFilePath} does not exist, local file for manifest={file}",
                 true => new FileInfo(x.LocalFilePath) switch

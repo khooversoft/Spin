@@ -29,12 +29,12 @@ var state = await new CommandRouterBuilder()
     })
     .AddCommand<Build>()
     .AddCommand<Upload>()
-    .AddCommand<BuildWordList>()
+    //.AddCommand<BuildWordList>()
     .ConfigureService(x =>
     {
         x.AddSingleton<PackageBuild>();
         x.AddSingleton<PackageUpload>();
-        x.AddSingleton<BuildWordTokenList>();
+        //x.AddSingleton<BuildWordTokenList>();
     })
     .Build()
     .Run();

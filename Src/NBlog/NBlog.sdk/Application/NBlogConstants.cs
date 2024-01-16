@@ -13,6 +13,9 @@ public static class NBlogConstants
     public const string PackageExtension = ".nblogPackage";
     public const string WordTokenExtension = ".wordTokens.json";
     public const string ConfigurationExtension = ".configuration.json";
+    public const string ManifestExtension = ".manifest.json";
+    public const string ContactMeExtension = ".contact-me.md";
+    public const string SearchExtension = ".searchindex.json";
 
     public const string SummaryAttribute = "summary";
     public const string MainAttribute = "main";
@@ -27,8 +30,10 @@ public static class NBlogConstants
 
     public static class Tool
     {
-        public static string CreateConfigurationActorKey(string db) => $"{db.NotNull().ToLower()}{ConfigurationExtension}";
-
+        public static string CreateConfigurationActorKey(string dbName) => $"{dbName.NotNull().ToLower()}{ConfigurationExtension}";
         public static bool IsConfigurationActorKey(string key) => key.NotNull().EndsWith(ConfigurationExtension);
+
+        public static string CreateSearchIndexActorKey(string dbName) => $"{dbName.NotNull().ToLower()}{SearchExtension}";
+        public static bool IsSearchActorKey(string key) => key.NotNull().EndsWith(SearchExtension);
     }
 }

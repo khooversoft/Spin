@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.DataLake;
@@ -69,31 +70,34 @@ public class PackageUpload
             QueryResponse<DatalakePathItem> queryResponse = queryResponseOption.Return();
             if (queryResponse.Items.Count == 0 || queryResponse.EndOfSearch) return StatusCode.OK;
 
-            var directories = queryResponse.Items.Where(x => x.IsDirectory == true).ToArray();
-            if (directories.Length > 0)
-            {
-                foreach (DatalakePathItem file in directories)
-                {
-                    context.Location().LogInformation("Deleting directory={directoryName}", file.Name);
-                    await datalakeStore.DeleteDirectory(file.Name, context);
-                }
-            }
-
-            foreach (DatalakePathItem file in queryResponse.Items)
-            {
-                context.Location().LogInformation("Deleting file={file}", file.Name);
-                var status = await datalakeStore.Delete(file.Name, context);
-            }
+            var deleteResults = await ActionParallel.RunAsync(queryResponse.Items, deleteItem);
+            if (deleteResults.Any(x => x.IsError())) return StatusCode.Conflict;
         }
 
         return (StatusCode.Conflict, "maxCount exceeded");
+
+        async Task<Option> deleteItem(DatalakePathItem pathItem)
+        {
+            switch (pathItem)
+            {
+                case { IsDirectory: true } file:
+                    context.LogInformation("Deleting directory={directoryName} in datalake", file.Name);
+                    return await datalakeStore.DeleteDirectory(file.Name, context);
+
+                case { IsDirectory: false } file:
+                    context.LogInformation("Deleting file={file} in datalake", file.Name);
+                    return await datalakeStore.Delete(file.Name, context);
+
+                default: throw new UnreachableException();
+            }
+        }
     }
 
     private async Task<Option> ProcessFiles(ZipArchive zipArchive, IDatalakeStore datalakeStore, ScopeContext context)
     {
         context.Location().LogInformation("Uploading files to datalake storage");
 
-        await ActionBlockParallel.Run<(string datalakePath, DataETag dataEtag)>(writeToDatalake, readEntries(), 5);
+        await ActionParallel.Run<(string datalakePath, DataETag dataEtag)>(writeToDatalake, readEntries(), 5);
         return StatusCode.OK;
 
         IEnumerable<(string datalakePath, DataETag dataEtag)> readEntries()
@@ -114,7 +118,7 @@ public class PackageUpload
                     continue;
                 }
 
-                string datalakePath = PackagePaths.GetDatalakePath(zipFile.FullName);
+                string datalakePath = zipFile.FullName;
                 context.LogInformation("Writting fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, datalakePath);
 
                 var dataEtag = new DataETag(data);

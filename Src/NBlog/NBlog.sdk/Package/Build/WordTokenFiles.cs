@@ -28,7 +28,7 @@ public static class WordTokenFiles
             .ToArray();
 
         var queue = new ConcurrentQueue<WordTokenList>();
-        await ActionBlockParallel.Run<string>(async file =>
+        await ActionParallel.Run<string>(async file =>
         {
             var result = await ReadFile(file);
             if (result.IsOk()) queue.Enqueue(result.Return());

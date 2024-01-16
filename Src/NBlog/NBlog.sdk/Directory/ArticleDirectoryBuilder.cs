@@ -98,6 +98,4 @@ public class ArticleDirectoryBuilder
 
         return nodes;
     }
-
-
 }

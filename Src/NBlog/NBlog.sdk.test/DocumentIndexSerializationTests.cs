@@ -10,7 +10,7 @@ public class DocumentIndexSerializationTests
     [Fact]
     public void SimplePayload()
     {
-        DocumentReference r1 = new DocumentReference("documentId", [new WordToken("word", 1)], ["tag1"]);
+        DocumentReference r1 = new DocumentReference("db", "documentId", [new WordToken("word", 1)], ["tag1"]);
 
         var json = r1.ToJson();
         json.Should().NotBeNullOrWhiteSpace();
@@ -24,8 +24,8 @@ public class DocumentIndexSerializationTests
     {
         var list = new[]
         {
-            new DocumentReference("documentId", [new WordToken("word", 1)], ["tag1"]),
-            new DocumentReference("documentId2", [new WordToken("word2", 2), new WordToken("word3", 3)], ["tag1"]),
+            new DocumentReference("db", "documentId", [new WordToken("word", 1)], ["tag1"]),
+            new DocumentReference("db", "documentId2", [new WordToken("word2", 2), new WordToken("word3", 3)], ["tag1"]),
         };
 
         var document = new DocumentIndexSerialization

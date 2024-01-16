@@ -1,7 +1,6 @@
 ﻿using System.IO.Compression;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
-using Toolbox.DocumentSearch;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -15,172 +14,225 @@ public class PackageBuild
 
     public async Task<Option> Build(string basePath, string packageFile)
     {
-        packageFile = PathTools.SetExtension(packageFile, NBlogConstants.PackageExtension);
         var context = new ScopeContext(_logger);
-        context.LogInformation("Building package, basePath={basePath}, packageFile={packageFile}", basePath, packageFile);
-        if (File.Exists(packageFile)) File.Delete(packageFile);
 
-        var manifestFileListOption = await ManifestFileList.Build(basePath, context);
-        if (manifestFileListOption.IsError()) return manifestFileListOption.ToOptionStatus();
-        ManifestFileList manifestFileList = manifestFileListOption.Return();
+        BuildContext buildContext = Create(basePath, packageFile, context);
 
-        using var zipFile = File.Open(packageFile, FileMode.Create);
+        buildContext = GetAllFiles(buildContext, context);
+        buildContext = await ProcessManifestFiles(buildContext, context);
+        buildContext = BuildDirectoryGraph(buildContext, context);
+        buildContext = await SearchIndexTool.BuildSearchIndex(buildContext, context);
+        buildContext = VerifyArticleIds(buildContext, context);
+        buildContext = VerifyFileReferences(buildContext, context);
+
+        if (buildContext.Errors.Count > 0)
+        {
+            context.LogError("Build failed, errors={errors}", buildContext.Errors.Join(';'));
+            return StatusCode.Conflict;
+        }
+
+        CreatePackage(buildContext, context);
+        return StatusCode.OK;
+    }
+
+    private BuildContext Create(string basePath, string packageFile, ScopeContext context)
+    {
+        string folderName = Path.GetFileNameWithoutExtension(packageFile) + "-obj";
+        string workingFolder = Path.Combine(Path.GetDirectoryName(packageFile).NotNull(), folderName);
+
+        if (Directory.Exists(workingFolder)) Directory.Delete(workingFolder, true);
+        Directory.CreateDirectory(workingFolder);
+
+        BuildContext buildContext = new BuildContext
+        {
+            BasePath = basePath,
+            PackageFile = packageFile,
+            WorkingFolder = workingFolder,
+        };
+
+        context.LogInformation(
+            "Building package, basePath={basePath}, packageFile={packageFile}, buildFolder={buildFolder}",
+            buildContext.BasePath, buildContext.PackageFile, buildContext.WorkingFolder
+            );
+
+        return buildContext;
+    }
+
+    private BuildContext GetAllFiles(BuildContext buildContext, ScopeContext context)
+    {
+        context.LogInformation("Scanning all files basePath={basePath}", buildContext.BasePath);
+
+        string[] files = Directory.EnumerateFiles(buildContext.BasePath, "*.*", SearchOption.AllDirectories)
+            .Where(x => x.IndexOf(".vscode") < 0)
+            .Where(x => x.EndsWith(".json") || x.EndsWith(".md"))
+            .ToArray();
+
+        IReadOnlyList<(FileType fileType, string path)> fileList = files
+            .Select(x => x switch
+            {
+                string v when v.EndsWith(NBlogConstants.ManifestExtension) => (FileType.Manifest, v),
+                string v when v.EndsWith(NBlogConstants.ConfigurationExtension) => (FileType.Configuration, v),
+                string v when v.EndsWith(NBlogConstants.ContactMeExtension) => (FileType.ContactMe, v),
+
+                _ => (FileType.Unknown, null!),
+            })
+            .Where(x => x.Item1 != FileType.Unknown)
+            .ToArray();
+
+        buildContext = buildContext with
+        {
+            Files = fileList.ToSequence(),
+            CopyCommands = fileList
+                .Where(x => x.fileType == FileType.Configuration || x.fileType == FileType.ContactMe)
+                .Select(x => x.fileType switch
+                {
+                    FileType.Configuration => (x.path, Path.GetFileName(x.path)),
+                    FileType.ContactMe => (x.path, Path.GetFileName(x.path)),
+
+                    _ => throw new ArgumentException($"Unknown file type={x.fileType}")
+                }).ToSequence(),
+        };
+
+        context.LogInformation(
+            "Found files in basePath={basePath}, file list count={fileListCount}, copyCommands.Count={copyCommandCount}",
+            buildContext.BasePath, fileList.Count, buildContext.CopyCommands.Count
+            );
+
+        return buildContext;
+    }
+
+    private async Task<BuildContext> ProcessManifestFiles(BuildContext buildContext, ScopeContext context)
+    {
+        var manifests = buildContext.Files
+            .Where(x => x.FileType == FileType.Manifest)
+            .Select(x => x.FilePath)
+            .ToArray();
+
+        context.LogInformation("Processing manifest files count={manifestFileCount}", manifests.Length);
+
+        IReadOnlyList<Option<ManifestFile>> results = await ActionParallel.RunAsync(manifests, async x => await ManifestFileTool.Read(x, buildContext.BasePath, context));
+        var e1 = results.Where(x => x.IsError()).Select(x => x.ToString()).ToArray();
+        var manifestFiles = results.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
+
+        var c1 = manifestFiles
+            .Select(x => (file: x.File, zipFile: x.Manifest.ArticleId))
+            .ToArray();
+
+        var addMainifestCopyOption = ActionParallel.Run(c1, writeFile);
+        var e2 = addMainifestCopyOption.Where(x => x.IsError()).Select(x => x.ToString()).ToArray();
+        var addMainifestCopy = addMainifestCopyOption.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
+
+        var addFiles = manifestFiles
+            .SelectMany(x => x.Commands.Select(y => (y.LocalFilePath, y.FileId)))
+            .ToArray();
+
+        var result = buildContext with
+        {
+            ManifestFiles = manifestFiles.ToArray(),
+            CopyCommands = buildContext.CopyCommands + addMainifestCopy + addFiles,
+            Errors = buildContext.Errors + e1 + e2,
+        };
+
+        context.LogInformation("Processed manifest files count={manifestFileCount}", manifestFiles.Length);
+        return result;
+
+
+        Option<(string sourceFile, string zipFile)> writeFile((string file, string zipFile) copy)
+        {
+            try
+            {
+                string workingFile = Path.Combine(buildContext.WorkingFolder, buildContext.RemoveBasePath(copy.file));
+                context.LogInformation("Copying manifest sourceFile={sourceFile} -> workingFile={workingFile}", copy.file, workingFile);
+
+                Path.GetDirectoryName(workingFile)?.Action(x => Directory.CreateDirectory(x));
+                File.Copy(copy.file, workingFile);
+
+                return (workingFile, copy.zipFile);
+            }
+            catch (Exception ex)
+            {
+                return (StatusCode.Conflict, $"Failed to copy, ex={ex.Message}");
+            }
+        }
+    }
+
+    private BuildContext BuildDirectoryGraph(BuildContext buildContext, ScopeContext context)
+    {
+        context.LogInformation("Building direcvtory graph");
+
+        Option<GraphMap> indexOption = new ArticleDirectoryBuilder()
+            .Add(buildContext.ManifestFiles.Select(x => x.Manifest))
+            .Build();
+
+        if (indexOption.IsError())
+        {
+            context.Location().LogError("Failed to build article directory graph, error={error}", indexOption);
+            return buildContext with { Errors = buildContext.Errors + $"Failed to build article directory graph, error={indexOption}" };
+        }
+
+        var index = indexOption.Return();
+
+        string sourceFile = buildContext.CreateWorkFile(NBlogConstants.DirectoryActorKey);
+        string json = index.ToJson();
+        File.WriteAllText(sourceFile, json);
+        context.LogInformation("Writing index to file={file}", sourceFile);
+
+        buildContext = buildContext with
+        {
+            CopyCommands = buildContext.CopyCommands + (sourceFile, NBlogConstants.DirectoryActorKey),
+        };
+
+        context.LogInformation("Completed building, nodes.count={nodesCount}, edges.count={edgesCount}", index.Nodes.Count, index.Edges.Count);
+        return buildContext;
+    }
+
+    private BuildContext VerifyArticleIds(BuildContext buildContext, ScopeContext context)
+    {
+        context.LogInformation("Verifying article Ids...");
+
+        var fileIds = buildContext.ManifestFiles.Select(x => x.Manifest.ArticleId).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        if (fileIds.Length != buildContext.ManifestFiles.Count)
+        {
+            string msg = fileIds.Aggregate("Duplicate 'Article Ids'" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
+            context.Location().LogError(msg);
+            return buildContext with { Errors = buildContext.Errors + msg };
+        }
+
+        return buildContext;
+    }
+
+    private BuildContext VerifyFileReferences(BuildContext buildContext, ScopeContext context)
+    {
+        context.LogInformation("Verifying File references ...");
+
+        var multipleReferences = buildContext.ManifestFiles
+            .SelectMany(x => x.Commands)
+            .Select(x => (fileId: x.FileId.ToLower(), localFile: x.LocalFilePath.ToLower()))
+            .GroupBy(x => x.fileId)
+            .Where(x => x.Count() > 1)
+            .ToArray();
+
+        if (multipleReferences.Length != 0)
+        {
+            string msg = multipleReferences.Aggregate("Multiple references to the same file" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
+            context.Location().LogError(msg);
+            return buildContext with { Errors = buildContext.Errors + msg };
+        }
+
+        return buildContext;
+    }
+
+    private void CreatePackage(BuildContext buildContext, ScopeContext context)
+    {
+        context.LogInformation("Creating package={packageFile}", buildContext.PackageFile);
+
+        using var zipFile = File.Open(buildContext.PackageFile, FileMode.Create);
         using var zip = new ZipArchive(zipFile, ZipArchiveMode.Create);
 
-        if (WriteConfigurationFiles(zip, basePath, context).IsError()) return StatusCode.BadRequest;
-
-        WriteManifestFilesToZip(zip, manifestFileList.Files, context);
-        WriteFilesToZip(zip, manifestFileList.Files, context);
-
-        BuildAndWriteIndex(zip, manifestFileList.Files, context);
-        await BuildSearchIndex(zip, manifestFileList.Files, basePath, context);
-
-        context.Location().LogInformation("Completed: Package has been created, files added={count}", manifestFileList.Files.Count);
-        return StatusCode.OK;
-    }
-
-    private Option WriteConfigurationFiles(ZipArchive zip, string basePath, ScopeContext context)
-    {
-        var configFileOption = ConfigurationFile.Read(basePath, context);
-        if (configFileOption.IsError()) return configFileOption.ToOptionStatus();
-
-        var configFiles = configFileOption.Return();
-
-        foreach (var file in configFiles)
+        foreach (var item in buildContext.CopyCommands)
         {
-            string configEntry = PackagePaths.GetConfigurationPath(Path.GetFileName(file));
-            zip.CreateEntryFromFile(file, configEntry.ToLower());
-        }
-
-        return StatusCode.OK;
-    }
-
-    private static void WriteManifestFilesToZip(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
-    {
-        string tempFile = Path.GetTempFileName();
-
-        try
-        {
-            foreach (var queueManifest in manifestFiles)
-            {
-                string json = queueManifest.Manifest.ToJson();
-                File.WriteAllText(tempFile, json);
-
-                string manifestFileEntry = PackagePaths.GetManifestZipPath(queueManifest.Manifest.ArticleId);
-                zip.CreateEntryFromFile(tempFile, manifestFileEntry.ToLower());
-                context.LogInformation("Writing manifest file={file} to zipEntry={zipEntry}", queueManifest.File, manifestFileEntry);
-            }
-
-            context.LogInformation("Write manifest count={count} files", manifestFiles.Count);
-        }
-        finally
-        {
-            if (File.Exists(tempFile)) File.Delete(tempFile);
-        }
-    }
-
-    private static void WriteFilesToZip(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
-    {
-        var dataFiles = manifestFiles
-            .SelectMany(x => x.Commands)
-            .Select(x => (fileId: x.FileId, localFile: x.LocalFilePath))
-            .ToArray();
-
-        foreach (var dataFile in dataFiles)
-        {
-            string fileEntry = PackagePaths.GetDatafileZipPath(dataFile.fileId);
-            zip.CreateEntryFromFile(dataFile.localFile, fileEntry.ToLower());
-            context.LogInformation("Writing data command file={file} to zipEntry={zipEntry}", dataFile.localFile, fileEntry);
-        }
-
-        context.Location().LogInformation("Write data count={count} files", dataFiles.Length);
-    }
-
-    private static void BuildAndWriteIndex(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, ScopeContext context)
-    {
-        Option<GraphMap> index = new ArticleDirectoryBuilder()
-            .Add(manifestFiles.Select(x => x.Manifest))
-            .Build();
-
-        if (index.IsError())
-        {
-            context.Location().LogError("Failed to build article directory graph, error={error}", index);
-            return;
-        }
-
-        string json = index.Return().ToJson();
-        WriteJsonToZip(zip, json, PackagePaths.GetPathArticleIndexZipPath(), context);
-    }
-
-    private static async Task BuildSearchIndex(ZipArchive zip, IReadOnlyList<ManifestFile> manifestFiles, string basePath, ScopeContext context)
-    {
-        context.LogInformation("Building search index");
-
-        WordTokenList wordList = await WordTokenFiles.Search(basePath);
-        var tokenizer = new DocumentTokenizer(wordList);
-
-        var files = manifestFiles
-            .SelectMany(x => x.Commands.Select(y => y.LocalFilePath), (o, i) => (man: o.Manifest, file: i))
-            .GroupBy(x => x.file, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        var list = new Sequence<DocumentReference>();
-
-        foreach (var file in files)
-        {
-            string line = await File.ReadAllTextAsync(file.Key);
-            var tokens = tokenizer.Parse(line);
-
-            foreach ((ArticleManifest man, string file) article in file)
-            {
-                var tags = new Tags(article.man.Tags);
-                list += new DocumentReference(article.man.ArticleId, tokens, tags.Keys);
-            }
-        }
-
-        var docGroup = list
-            .GroupBy(x => x.DocumentId, StringComparer.OrdinalIgnoreCase)
-            .Select(doc =>
-            {
-                var words = doc
-                    .SelectMany(x => x.Words)
-                    .GroupBy(x => x.Word, StringComparer.OrdinalIgnoreCase)
-                    .Select(x => new WordToken(x.Key, x.Max(y => y.Weight)))
-                    .ToArray();
-
-                var tags = doc
-                    .SelectMany(x => x.Tags)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToArray();
-
-                return new DocumentReference(doc.Key, words, tags);
-            })
-            .ToArray();
-
-        var documentIndex = new DocumentIndexBuilder()
-            .SetTokenizer(tokenizer)
-            .Add(docGroup)
-            .Build();
-
-        string json = documentIndex.ToSerialization().ToJson();
-        WriteJsonToZip(zip, json, PackagePaths.GetSearchFileZipPath(), context);
-    }
-
-    private static void WriteJsonToZip(ZipArchive zip, string json, string zipFile, ScopeContext context)
-    {
-        json.NotEmpty();
-        string tempFile = Path.GetTempFileName();
-
-        try
-        {
-            File.WriteAllText(tempFile, json);
-            zip.CreateEntryFromFile(tempFile, zipFile);
-
-            context.LogInformation("Writing to zipEntry={zipEntry}", zipFile);
-        }
-        finally
-        {
-            if (File.Exists(tempFile)) File.Delete(tempFile);
+            zip.CreateEntryFromFile(item.sourceFile, item.zipFile);
+            context.LogInformation("Writing sourceFile={sourceFile} to zipEntry={zipEntry}", item.sourceFile, item.zipFile);
         }
     }
 }

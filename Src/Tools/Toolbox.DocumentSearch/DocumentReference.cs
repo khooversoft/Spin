@@ -7,8 +7,9 @@ namespace Toolbox.DocumentSearch;
 
 public record DocumentReference
 {
-    public DocumentReference(string documentId, IEnumerable<WordToken> words, IEnumerable<string>? tags = null)
+    public DocumentReference(string dbName, string documentId, IEnumerable<WordToken> words, IEnumerable<string>? tags = null)
     {
+        DbName = dbName.NotEmpty();
         DocumentId = documentId.NotEmpty();
 
         Words = new HashSet<WordToken>(words.NotNull(), WordTokenComparer.Instance);
@@ -18,18 +19,21 @@ public record DocumentReference
     }
 
     [JsonConstructor]
-    public DocumentReference(string documentId, HashSet<WordToken> words, HashSet<string> tags)
+    public DocumentReference(string dbName, string documentId, HashSet<WordToken> words, HashSet<string> tags)
     {
+        DbName = dbName.NotEmpty();
         DocumentId = documentId.NotEmpty();
         Words = new HashSet<WordToken>(words.NotNull(), WordTokenComparer.Instance);
         Tags = new HashSet<string>(tags.NotNull(), StringComparer.OrdinalIgnoreCase);
     }
 
+    public string DbName { get; init; } = null!;
     public string DocumentId { get; init; } = null!;
     public HashSet<WordToken> Words { get; } = new HashSet<WordToken>(WordTokenComparer.Instance);
     public HashSet<string> Tags { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public static IValidator<DocumentReference> Validator { get; } = new Validator<DocumentReference>()
+        .RuleFor(x => x.DbName).NotEmpty()
         .RuleFor(x => x.DocumentId).NotEmpty()
         .RuleForEach(x => x.Words).Validate(WordToken.Validator)
         .RuleForEach(x => x.Tags).NotEmpty()

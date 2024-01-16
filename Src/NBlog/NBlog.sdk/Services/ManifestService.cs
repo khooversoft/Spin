@@ -16,7 +16,7 @@ public class ManifestService
         context = context.With(_logger);
 
         var queue = new ConcurrentQueue<ArticleManifest>();
-        await ActionBlockParallel.Run(getArticleDetail, nodes);
+        await ActionParallel.Run(getArticleDetail, nodes);
 
         var list = queue.OrderByDescending(x => x.CreatedDate).ToArray();
         return list;

@@ -41,13 +41,19 @@
     padding-top: 10px;
 }
 
-.left-menu-group {
+.dark-theme .left-menu-group {
     color: white;
     font-size: 16px;
     padding: 0;
 }
 
-.left-menu-topic {
+.light-theme .left-menu-group {
+    color: black !important;
+    font-size: 16px;
+    padding: 0;
+}
+
+.dark-theme .left-menu-topic {
     color: white;
     font-size: 16px;
     font-weight: 200;
@@ -55,6 +61,26 @@
     padding-bottom: 3px;
     padding-left: 1.5rem
 }
+
+.light-theme .left-menu-topic {
+    color: black !important;
+    font-size: 16px;
+    font-weight: 200;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 1.5rem
+}
+
+.dark-theme .overview-text {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
+}
+
+.light-theme .overview-text {
+    --bs-text-opacity: 1;
+    color: black !important;
+}
+
 
 .index-back-to-home {
     padding-bottom: 10px;

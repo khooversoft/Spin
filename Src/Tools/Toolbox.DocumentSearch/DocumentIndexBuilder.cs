@@ -23,7 +23,7 @@ public class DocumentIndexBuilder
 
         var newDocuments = Documents
             .Select(x => (r: x, words: Tokenizer.Parse(x.Text, x.Tags)))
-            .Select(x => new DocumentReference(x.r.DocumentId, x.words, x.r.Tags))
+            .Select(x => new DocumentReference("db", x.r.DocumentId, x.words, x.r.Tags))
             .Concat(DocumentReferences)
             .GroupBy(x => x.DocumentId)
             .Select(x => x.Assert(y => y.Count() == 1, "Duplicate document ids").First())
@@ -36,7 +36,6 @@ public class DocumentIndexBuilder
             .ForEach(x => index.Set(x.word.Word, x.doc.DocumentId));
 
         var frozenInvertedIndex = index.ToFrozenInvertedIndex();
-
         var frozenDocumentIndex = newDocuments.ToDictionary(x => x.DocumentId, x => x).ToFrozenDictionary();
 
         return new DocumentIndex(frozenInvertedIndex, Tokenizer, frozenDocumentIndex);

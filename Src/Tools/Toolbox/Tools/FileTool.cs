@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -18,27 +17,26 @@ public static class FileTool
         context.LogInformation("Calculating hash for all files");
 
         var fileList = files.ToArray();
-        var errorCnt = 0;
-        var queue = new ConcurrentQueue<FileHash>();
 
-        await ActionBlockParallel.Run<string>(getHash, fileList);
+        var fileHashes = await ActionParallel.RunAsync(fileList, getHash);
+        var errors = fileHashes.Where(x => x.IsError()).Select(x => x.Error).ToArray();
+        if (errors.Length > 0)
+        {
+            return (StatusCode.Conflict, errors.Join(';'));
+        }
 
-        var diffTest = fileList.Length - queue.Count;
-        if (diffTest != 0) throw new InvalidOperationException($"diffTest violation, fileCount={fileList.Length}, processedCount={queue.Count}");
+        return fileHashes.Select(x => x.Return()).OrderBy(x => x.File).ToArray();
 
-        return queue.OrderBy(x => x.File).ToArray();
-
-        async Task getHash(string file)
+        async Task<Option<FileHash>> getHash(string file)
         {
             var result = await GetFileHash(file, context);
             if (result.IsError())
             {
                 context.Location().LogError("Failed to get hash of file, file={file}", file);
-                errorCnt++;
-                return;
+                return (StatusCode.Conflict, $"Failed to get hash of file, file={file}");
             }
 
-            queue.Enqueue(result.Return());
+            return result;
         }
     }
 
@@ -72,5 +70,49 @@ public static class FileTool
             context.Location().LogError(ex, "Access Exception for hash file={file}", file);
             return StatusCode.InternalServerError;
         }
+    }
+
+    public static Option<string> ReadFile(string file, ScopeContext context)
+    {
+        file.NotEmpty();
+
+        if (!File.Exists(file))
+        {
+            context.LogError("Cannot find file={file}", file);
+            return StatusCode.NotFound;
+        }
+
+        string configJson = File.ReadAllText(file);
+        if (configJson.IsEmpty())
+        {
+            context.LogError("File={file} is empty", file);
+            return StatusCode.NotFound;
+        }
+
+        return configJson;
+    }
+
+    public static Option<T> ReadFileAndDeserialize<T>(string file, IValidator<T> validator, ScopeContext context)
+    {
+        validator.NotNull();
+
+        var readOption = ReadFile(file, context);
+        if (readOption.IsError()) return readOption.ToOptionStatus<T>();
+
+        var instance = readOption.Return().ToObject<T>();
+        if (instance == null)
+        {
+            context.LogError("Failed to deserialize configuration file={file}", file);
+            return StatusCode.BadRequest;
+        }
+
+        var validation = validator.Validate(instance);
+        if (validation.IsError())
+        {
+            context.LogError("Configuration file={file} is invalid, error={error}", file, validation.ToString());
+            return StatusCode.BadRequest;
+        }
+
+        return instance;
     }
 }
