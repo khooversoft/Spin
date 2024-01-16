@@ -15,15 +15,22 @@ public record ArticleManifest
     [Id(4)] public DateTime CreatedDate { get; init; }
     [Id(5)] public DateTime? StartDate { get; init; }
     [Id(6)] public DateTime? EndDate { get; init; }
-    [Id(7)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
-    [Id(8)] public string Tags { get; init; } = null!;
+    [Id(7)] public bool NoShowDate { get; init; }
+    [Id(8)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
+    [Id(9)] public string Tags { get; init; } = null!;
 
     public static IValidator<ArticleManifest> Validator { get; } = new Validator<ArticleManifest>()
         .RuleFor(x => x.ArticleId).Must(x => FileId.Create(x).IsOk(), _ => "Invalid artical Id")
         .RuleFor(x => x.Title).NotEmpty()
         .RuleFor(x => x.Author).NotEmpty()
-        .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.Tags).NotEmpty().Must(ArticleManifestValidations.RequiredTags)
+        .RuleForObject(x => x).Must(x =>
+        {
+            bool status = ValidDateTimeTool.IsValidDateTime(x.CreatedDate) ||
+                (ValidDateTimeTool.IsValidDateTime(x.StartDate) && ValidDateTimeTool.IsValidDateTime(x.EndDate));
+
+            return status ? StatusCode.OK : (StatusCode.BadRequest, "Invalid date");
+        })
         .RuleForObject(x => x).Must(ArticleManifestValidations.DistinctTests)
         .RuleForObject(x => x).Must(ArticleManifestValidations.RequiredAttributes)
         .Build();
@@ -32,6 +39,16 @@ public record ArticleManifest
 
 public static class ArticleManifestValidations
 {
+    public static int GetIndexOrStartDate(this ArticleManifest subject) => subject.Index switch
+    {
+        int v => v,
+        _ => subject.StartDate switch
+        {
+            DateTime v => int.Parse(v.ToString("yyyyMMdd")),
+            _ => 0,
+        },
+    };
+
     public static Option DistinctTests(ArticleManifest manifest)
     {
         if (!GetCommands(manifest, out var commandsOption)) return commandsOption.ToOptionStatus();

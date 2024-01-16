@@ -52,7 +52,7 @@ public class ArticleDirectoryBuilder
         string orderBy = subject.Index switch
         {
             int v => (subject.Index ?? 999).ToString(),
-            _ => ((int)(new DateTime(2200, 12, 31) - subject.CreatedDate).TotalDays).ToString("D8"),
+            _ => subject.CreatedDate.ToString("yyyyMMdd"),
         };
 
         string tags = new Tags(subject.Tags)
@@ -93,7 +93,6 @@ public class ArticleDirectoryBuilder
             .Where(x => x.Value.IsNotEmpty())
             .Where(x => !x.Key.EqualsIgnoreCase("db"))
             .Select(x => new GraphEdge($"tag:{x.Key}/{x.Value}", $"article:{subject.ArticleId}", edgeType: "tagIndex", tags: "tagIndex"))
-
             .ToArray();
 
         return nodes;

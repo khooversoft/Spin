@@ -49,13 +49,14 @@ public static class ManifestFileTool
         if (model == null)
         {
             context.Location().LogError("Cannot deserialize json={file}", file);
-            return StatusCode.BadRequest;
+            return (StatusCode.BadRequest, $"Cannot deserialize json={file}");
         }
 
         model = model with
         {
             ArticleId = resolveVariables(model.ArticleId),
             Commands = model.Commands.Select(x => resolveVariables(x)).ToArray(),
+            Index = model.Index ?? model.GetIndexOrStartDate(),
         };
 
         if (!model.Validate(out var v))

@@ -6,8 +6,8 @@
 
 <Symbols />
 
-<div class="bd-sidebar">
-    <div class="masthead pt-5">
+<div class="sidebar">
+    <div class="masthead">
 
         @if (_flow.State == 2)
         {
@@ -24,7 +24,7 @@
                     }
                 </div>
 
-                <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start index-back-to-home">
+                <nav class="nav nav-pills flex-lg-column justify-content-lg-start index-back-to-home">
                     <dev class="nav-link d-flex align-items-center fw-600">
                         <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
                         <a class="btn btn-left-menu overview-text" @onclick=IndexEvent>Back to overview</a>
@@ -33,19 +33,21 @@
 
                 @foreach (var group in _indexMap)
                 {
-                    <dev class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start left-menu-group-content">
-                        <dev class="left-menu-format nav-link d-flex align-items-center fw-600">
+                    <div class="nav nav-pills flex-lg-column justify-content-lg-start left-menu-group-content">
+                        <div class="left-menu-format nav-link d-flex align-items-center fw-600">
                             @((MarkupString)group.SvcCommand)
                             <span class="left-menu-group">@group.GroupName</span>
-                        </dev>
-                    </dev>
+                        </div>
+                    </div>
 
                     @foreach (var link in group.Items)
                     {
-                        <div class="left-menu-format nav-link d-flex align-items-center fw-600">
-                            <a href=@link.ArticleLink>
-                                <span class="btn btn-left-menu left-menu-topic"> @link.Topic </span>
-                            </a>
+                        <div class="nav nav-pills flex-lg-column justify-content-lg-start left-menu-group-content">
+                            <div class="left-menu-format nav-link d-flex align-items-center fw-600">
+                                <a href=@link.ArticleLink>
+                                    <span class="btn btn-left-menu left-menu-topic"> @link.Topic </span>
+                                </a>
+                            </div>
                         </div>
                     }
                 }
@@ -108,8 +110,8 @@
                     {
                         GroupName = x.Key,
                         Items = x.GroupBy(y => y.group.topic)
-                                .Select(x => (x.Key, NavRoutes.GotoSummary(DbName, x.First().index.IndexName)))
-                                .ToArray(),
+                                                    .Select(x => (x.Key, NavRoutes.GotoSummary(DbName, x.First().index.IndexName)))
+                                                    .ToArray(),
                         SvcCommand = "r",
                     })
                 .ToArray();

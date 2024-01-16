@@ -6,40 +6,38 @@
 
 <Symbols />
 
-<div class="sidebar">
-    <div class="masthead pt-5">
-        @if (_flow.State == 2 && DbName != null)
-        {
-            <div class="mb-4 text-lg-start">
-                <div class="ms-3 ms-lg-0">
-                    <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
-                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_lines[0]</p>
+<div class="sidebar ">
+    @if (_flow.State == 2 && DbName != null)
+    {
+        <div class="mb-4 text-lg-start">
+            <div class="ms-3 ms-lg-0">
+                <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
+                <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_lines[0]</p>
 
-                    @foreach (var line in _lines.Skip(1))
-                    {
-                        <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
-                            @line
-                        </p>
-                    }
-                </div>
-            </div>
-
-            <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start gap-1">
-                @foreach (var item in _indexMap)
+                @foreach (var line in _lines.Skip(1))
                 {
-                    <dev class="nav-link d-flex align-items-center fw-600">
-                        @((MarkupString)item.SvcCommand)
-                        <a class="btn btn-left-menu left-menu-link-text" href="@item.HRef">@item.Title</a>
-                    </dev>
+                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
+                        @line
+                    </p>
                 }
+            </div>
+        </div>
 
+        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start gap-1">
+            @foreach (var item in _indexMap)
+            {
                 <dev class="nav-link d-flex align-items-center fw-600">
-                    <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
-                    <a class="btn btn-left-menu left-menu-link-text" @onclick=IndexEvent>Index</a>
+                    @((MarkupString)item.SvcCommand)
+                    <a class="btn btn-left-menu left-menu-link-text" href="@item.HRef">@item.Title</a>
                 </dev>
-            </nav>
-        }
-    </div>
+            }
+
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
+                <a class="btn btn-left-menu left-menu-link-text" @onclick=IndexEvent>Index</a>
+            </dev>
+        </nav>
+    }
 </div>
 
 @code {

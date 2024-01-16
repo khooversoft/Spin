@@ -2,6 +2,7 @@
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace NBlogCmd.Activities;
 
@@ -30,7 +31,8 @@ internal class Upload : ICommandRoute
     {
         if (basePath.IsNotEmpty())
         {
-            await _packageBuild.Build(basePath, packageFile);
+            var option = await _packageBuild.Build(basePath, packageFile);
+            if (option.IsError()) return;
         }
 
         await _packageUpload.Upload(packageFile, _cmdOption.Storage);

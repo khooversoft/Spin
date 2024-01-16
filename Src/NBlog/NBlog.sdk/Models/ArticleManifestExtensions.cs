@@ -1,4 +1,5 @@
-﻿using Toolbox.Data;
+﻿using System.Collections.Frozen;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -21,4 +22,8 @@ public static class ArticleManifestExtensions
     public static Option<CommandNode> GetCommand(this ArticleManifest subject, string attribute) => subject.GetCommands()
         .Where(x => x.Attributes.Any(y => y == attribute))
         .FirstOrDefaultOption();
+
+    public static Option<CommandNode> GetLinkedCommand(this ArticleManifest subject, string attribute, string notAttribute) => subject.GetCommands()
+            .Where(x => x.Attributes.Any(y => y == attribute) && !x.Attributes.Any(y => y == notAttribute))
+            .FirstOrDefaultOption();
 }

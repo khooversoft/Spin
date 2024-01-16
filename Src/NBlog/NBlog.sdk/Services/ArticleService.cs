@@ -64,6 +64,11 @@ public class ArticleService
     private Option<CommandNode> GetCommandNode(ArticleManifest manifest, string attribute, ScopeContext context)
     {
         var command = manifest.GetCommand(attribute);
+        if (command.IsOk()) return command;
+
+        if (attribute != NBlogConstants.SummaryAttribute) return command;
+
+        command = manifest.GetCommand(NBlogConstants.MainAttribute);
         if (command.IsError())
         {
             context.Location().LogError("Could not find attribute={attribute} in articleId={articleId}", manifest.ArticleId, attribute);
