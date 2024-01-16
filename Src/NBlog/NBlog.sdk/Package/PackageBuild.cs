@@ -115,7 +115,7 @@ public class PackageBuild
         var manifestFiles = results.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
 
         var c1 = manifestFiles
-            .Select(x => (file: x.File, zipFile: x.Manifest.ArticleId))
+            .Select(x => (file: x.File, man: x.Manifest))
             .ToArray();
 
         var addMainifestCopyOption = ActionParallel.Run(c1, writeFile);
