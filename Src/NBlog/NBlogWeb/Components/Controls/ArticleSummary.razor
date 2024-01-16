@@ -71,7 +71,7 @@ else
             if (mdDoc.IsError())
             {
                 _title = mdDoc.ToString();
-                await base.OnParametersSetAsync();
+                return;
             }
 
             _articleDetail = mdDoc.Return();

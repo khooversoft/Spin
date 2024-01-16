@@ -23,6 +23,7 @@ public static class SiloStartup
             services.AddSingleton<ManifestService>();
             services.AddSingleton<SearchService>();
             services.AddSingleton<ConfigurationService>();
+            services.AddSingleton<StorageService>();
 
             services.AddSingleton<ArticleDirectoryClient>(service =>
             {

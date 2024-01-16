@@ -21,7 +21,7 @@ public class SearchService
     public async Task<IReadOnlyList<ArticleManifest>> Search(string dbName, string search, ScopeContext context)
     {
         context = context.With(_logger);
-        ISearchActor searchActor = _clusterClient.GetSearchActor();
+        ISearchActor searchActor = _clusterClient.GetSearchActor(dbName);
 
         Option<IReadOnlyList<DocumentReference>> resultOption = await searchActor.Search(search, context.TraceId);
         if (resultOption.IsError()) return Array.Empty<ArticleManifest>();

@@ -115,7 +115,7 @@ public class PackageBuild
         var manifestFiles = results.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
 
         var c1 = manifestFiles
-            .Select(x => (file: x.File, man: x.Manifest))
+            .Select(x => (file: x.File, manifest: x.Manifest))
             .ToArray();
 
         var addMainifestCopyOption = ActionParallel.Run(c1, writeFile);
@@ -137,17 +137,18 @@ public class PackageBuild
         return result;
 
 
-        Option<(string sourceFile, string zipFile)> writeFile((string file, string zipFile) copy)
+        Option<(string sourceFile, string zipFile)> writeFile((string file, ArticleManifest manifest) copy)
         {
             try
             {
                 string workingFile = Path.Combine(buildContext.WorkingFolder, buildContext.RemoveBasePath(copy.file));
-                context.LogInformation("Copying manifest sourceFile={sourceFile} -> workingFile={workingFile}", copy.file, workingFile);
+                context.LogInformation("Writing modified manifest sourceFile={sourceFile} -> workingFile={workingFile}", copy.file, workingFile);
 
                 Path.GetDirectoryName(workingFile)?.Action(x => Directory.CreateDirectory(x));
-                File.Copy(copy.file, workingFile);
+                string json = copy.manifest.ToJson();
+                File.WriteAllText(workingFile, json);
 
-                return (workingFile, copy.zipFile);
+                return (workingFile, copy.manifest.ArticleId);
             }
             catch (Exception ex)
             {
@@ -231,7 +232,7 @@ public class PackageBuild
 
         foreach (var item in buildContext.CopyCommands)
         {
-            zip.CreateEntryFromFile(item.sourceFile, item.zipFile);
+            zip.CreateEntryFromFile(item.sourceFile, item.zipFile.ToLower());
             context.LogInformation("Writing sourceFile={sourceFile} to zipEntry={zipEntry}", item.sourceFile, item.zipFile);
         }
     }

@@ -33,8 +33,8 @@ public class ArticleService
 
         var commandNodeOption = GetCommandNode(manifest, attribute, context);
         if (commandNodeOption.IsError()) return commandNodeOption.ToOptionStatus<ArticleDetail>();
-
         CommandNode commandNode = commandNodeOption.Return();
+
         context.Location().LogInformation("Reading articleId={articleId}, fileId={fileId}", articleId, commandNode.FileId);
         var dataOption = await _clusterClient.GetStorageActor(commandNode.FileId).Get(context.TraceId);
         if (dataOption.IsError())

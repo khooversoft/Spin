@@ -29,7 +29,7 @@ public class SearchActor : Grain, ISearchActor
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.GetPrimaryKeyString().Assert(x => x == NBlogConstants.SearchActorKey, x => $"Actor key {x} is not {NBlogConstants.SearchActorKey}");
+        this.GetPrimaryKeyString().Assert(NBlogConstants.Tool.IsSearchActorKey, x => $"ActorKey={x} is not valid.");
         await base.OnActivateAsync(cancellationToken);
     }
 

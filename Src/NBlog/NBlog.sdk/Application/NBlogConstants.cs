@@ -35,5 +35,7 @@ public static class NBlogConstants
 
         public static string CreateSearchIndexActorKey(string dbName) => $"{dbName.NotNull().ToLower()}{SearchExtension}";
         public static bool IsSearchActorKey(string key) => key.NotNull().EndsWith(SearchExtension);
+
+        public static string CreateContactFileId(string dbName) => $"{dbName.NotNull().ToLower()}{ContactMeExtension}";
     }
 }
