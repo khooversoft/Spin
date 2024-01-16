@@ -118,12 +118,10 @@ public class PackageUpload
                     continue;
                 }
 
-                string datalakePath = zipFile.FullName;
-                context.LogInformation("Writting fileId={fileId} to datalakePath={datalakePath}", zipFile.FullName, datalakePath);
-
+                context.LogInformation("Writting fileId={fileId} to datalakePath", zipFile.FullName);
                 var dataEtag = new DataETag(data);
 
-                yield return (datalakePath, dataEtag);
+                yield return (zipFile.FullName, dataEtag);
             }
         }
 
