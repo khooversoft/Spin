@@ -78,7 +78,9 @@
         try
         {
             if (DbName == null) return;
-            _configuration = await _configurationService.Get(DbName, context);
+            var configurationOption = await _configurationService.Get(DbName, context);
+            if (configurationOption.IsError()) return;
+            _configuration = configurationOption.Return();
 
             _title = _configuration.OverviewPanel.Title;
             _lines = _configuration.OverviewPanel.Lines.ToArray();

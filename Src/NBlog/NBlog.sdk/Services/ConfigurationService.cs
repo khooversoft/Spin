@@ -20,10 +20,5 @@ public class ConfigurationService
         return _clusterClient.GetConfigurationActor(db).Lookup(groupNames, context.TraceId);
     }
 
-    public async Task<NBlogConfiguration> Get(string dbName, ScopeContext context)
-    {
-        var option = await _clusterClient.GetConfigurationActor(dbName).Get(context.TraceId);
-        if (option.IsError()) throw new InvalidOperationException($"Failed to get configuration for db={dbName}");
-        return option.Return();
-    }
+    public Task<Option<NBlogConfiguration>> Get(string dbName, ScopeContext context) => _clusterClient.GetConfigurationActor(dbName).Get(context.TraceId);
 }

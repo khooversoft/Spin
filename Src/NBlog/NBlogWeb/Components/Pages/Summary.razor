@@ -18,7 +18,14 @@
 }
 else
 {
-    <LoadingComponent Size="0" />
+    if (_flow.State == 3)
+    {
+        <ShowRouteError Title="Cannot find area" />
+    }
+    else
+    {
+        <LoadingComponent Size="0" />
+    }
 }
 
 
@@ -65,6 +72,12 @@ else
                     .Select(x => x.ArticleId)
                     .ToArray(),
             };
+
+            if( Index?.EqualsIgnoreCase("home") == false && _articleIds.Count == 0)
+            {
+                _flow.SetState(3);
+                return;
+            }
 
             _attribute = _articleIds?.Count == 1 ? NBlogConstants.MainAttribute : null;
         }

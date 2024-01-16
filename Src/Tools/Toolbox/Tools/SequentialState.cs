@@ -9,6 +9,7 @@ public class SequentialState
     public int State => _state;
 
     public void Reset() => Interlocked.Exchange(ref _state, 0);
+    public void SetState(int state) => Interlocked.Exchange(ref _state, state);
 
     public bool MoveState(int newState)
     {

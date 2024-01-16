@@ -50,6 +50,10 @@
     grid-template-columns: 1fr 2.9fr;
     gap: 3rem;
 }
+.content-error {
+    /*grid-template-columns: 4fr;*/
+    gap: 3rem;
+}
 
 .gap-1 {
     gap: .25rem !important;
@@ -86,7 +90,7 @@
     line-height: var(--bs-body-line-height);
     color: DarkSlateGray;
     text-align: var(--bs-body-text-align);
-    background-color: #eee;
+    background-color: #f1f1f1;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
     min-height: 100vh;

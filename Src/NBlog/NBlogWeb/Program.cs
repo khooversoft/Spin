@@ -53,8 +53,9 @@ builder.Host.UseOrleans((context, silo) =>
 });
 
 var app = builder.Build();
+app.UseStatusCodePagesWithReExecute("/NotFound/{0}");
 
-var bb = app.Services.GetRequiredService<IConfiguration>().Bind<StorageOption>();
+//var bb = app.Services.GetRequiredService<IConfiguration>().Bind<StorageOption>();
 //Console.WriteLine($"Secret: {bb.Storage.ToString()}");
 
 // Configure the HTTP request pipeline.

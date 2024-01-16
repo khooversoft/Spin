@@ -61,7 +61,7 @@
 
     private SequentialState _flow = new SequentialState();
     private NBlogConfiguration _configuration = null!;
-    private string _title = "";
+    private string _title = "Secrets of .NET and Cloud";
     private IReadOnlyList<OverviewMenu> _menus = Array.Empty<OverviewMenu>();
     private string _searchText = string.Empty;
     private string _contactUrl = string.Empty;
@@ -101,7 +101,9 @@
         try
         {
             if (DbName == null) return;
-            _configuration = await _configurationService.Get(DbName, context);
+            var configurationOption = await _configurationService.Get(DbName, context);
+            if (configurationOption.IsError()) return;
+            _configuration = configurationOption.Return();
 
             _title = _configuration.OverviewPanel.Title;
             _menus = _configuration.OverviewPanel.Menus.OrderBy(x => x.OrderIndex).Take(2).ToArray();

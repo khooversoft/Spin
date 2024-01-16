@@ -49,7 +49,7 @@ public class ActorCacheState<TState, TSerialize>
 
     private async Task<Option<TState>> ReadFromStorage(bool forceRead = false)
     {
-        _state.RecordExists.Assert(x => x == true, "Record does not exist");
+        if (!_state.RecordExists) return StatusCode.NotFound;
 
         if (Interlocked.CompareExchange(ref _firstRead, 1, 0) == 0 && _state.RecordExists)
         {

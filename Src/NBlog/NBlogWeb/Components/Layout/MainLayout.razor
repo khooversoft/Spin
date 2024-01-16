@@ -1,29 +1,73 @@
 ﻿@using NBlog.sdk
 @using NBlogWeb.Components.Controls
 @using Toolbox.Extensions
+@using Toolbox.Tools
 @using Toolbox.Types
 @inherits LayoutComponentBase
 
 <div class="@_themeClass">
     <div class="app-body">
-        <TopMenuBar DbName="@_dbName" />
+        @if (_flow.State != 0)
+        {
+            <TopMenuBar DbName="@_dbName" />
+        }
 
-        <div class="container-xxl px-4 px-xxl-2">
-            <div class="d-lg-grid content">
-                <div>
-                    <LeftColumn DbName="@_dbName" />
+        @switch (_flow.State)
+        {
+            case 1:
+
+                @if (_flow.State == 1)
+                {
+                    <div class="container-xxl px-4 px-xxl-2">
+                        <div class="d-lg-grid content">
+                            <div>
+                                <LeftColumn DbName="@_dbName" />
+                            </div>
+
+                            <div class="main">
+                                <main>
+                                    <article class="content p-4">
+                                        @Body
+                                    </article>
+                                </main>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                break;
+
+            case 2:
+                <div class="container-xxl px-4  px-xxl-2">
+                    <div class="d-lg-grid">
+                        <div class="main">
+                            <main>
+                                <article class="content-error p-4">
+                                    <ShowRouteError Title="Unknown database" />
+                                </article>
+                            </main>
+                        </div>
+                    </div>
                 </div>
-                <div class="main">
-                    <main>
-                        <article class="content p-4">
-                            @Body
-                        </article>
-                    </main>
+                break;
+
+            case 3:
+                <div class="container-xxl px-4  px-xxl-2">
+                    <div class="d-lg-grid">
+                        <div class="main">
+                            <main>
+                                <article class="content-error p-4">
+                                    @Body
+                                </article>
+                            </main>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+                break;
+        }
     </div>
 </div>
+
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
@@ -40,24 +84,42 @@
     private string _themeClass = "dark-theme";
     private string? _dbName;
     private NBlogConfiguration _configuration = null!;
+    private SequentialState _flow = new SequentialState();
 
     protected override async Task OnInitializedAsync()
     {
-        _dbName = null;
         if (RouteData == null) return;
+        if (_dbName != null) return;
+
+        _flow.Reset();
+
+        if (RouteData.Template?.StartsWith("/NotFound") == true && RouteData.RouteValues.TryGetValue("code", out var _))
+        {
+            _flow.SetState(3);
+            return;
+        }
 
         if (RouteData.RouteValues.TryGetValue("dbName", out var value))
         {
             var context = new ScopeContext(_logger);
-            _dbName = value as string;
+            string? dbName = value as string;
 
-            if (_dbName.IsNotEmpty())
+            if (dbName.IsNotEmpty())
             {
-                _configuration = await _configurationService.Get(_dbName, context);
+                var configurationOption = await _configurationService.Get(dbName, context);
+                if (configurationOption.IsError())
+                {
+                    _flow.SetState(2);
+                    return;
+                }
+                _configuration = configurationOption.Return();
+
+                _dbName = dbName;
                 _themeClass = $"{_configuration.Theme}-theme";
             }
         }
 
+        _flow.MoveState(1);
         return;
     }
 }

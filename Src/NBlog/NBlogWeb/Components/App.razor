@@ -20,3 +20,17 @@
 </body>
 
 </html>
+
+@code {
+    [Inject] public NavigationManager _navManager { get; init; } = null!;
+
+    protected override void OnInitialized() => _navManager.LocationChanged += HandleLocationChanged!;
+
+    private void HandleLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        if (args.Location == "/404")
+        {
+            _navManager.NavigateTo("/");
+        }
+    }
+}
