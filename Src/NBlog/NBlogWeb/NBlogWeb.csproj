@@ -20,8 +20,4 @@
         <ProjectReference Include="..\NBlog.sdk\NBlog.sdk.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Application\" />
-    </ItemGroup>
-
 </Project>

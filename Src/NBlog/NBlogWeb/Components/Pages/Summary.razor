@@ -11,9 +11,18 @@
 
 @if (_articleIds != null && _flow.State == 2)
 {
+    <div class="summary-header-bar">
+        <button class="summary-header-button" type="button" @onclick=@HideAll style="float: right;">
+            <svg class="bi f5"><use xlink:href="#dash-square"></use></svg>
+        </button>
+        <button class="summary-header-button" type="button" @onclick=@ShowAll style="float: right;">
+            <svg class="bi f5"><use xlink:href="#plus-square"></use></svg>
+        </button>
+    </div>
+
     @foreach (var manifest in _articleIds.WithIndex())
     {
-        <ArticleSummary ArticleId="@manifest.Item" Index="@manifest.Index" Attribute="@_attribute" DbName="@DbName" />
+        <ArticleSummary ArticleId="@manifest.Item" Index="@manifest.Index" Attribute="@_attribute" DbName="@DbName" Collapse=@_collapse />
     }
 }
 else
@@ -37,8 +46,21 @@ else
     [Inject] private ILogger<Home> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();
-    private IReadOnlyList<string>? _articleIds { get; set; } = null!;
-    private string? _attribute { get; set; }
+    private IReadOnlyList<string>? _articleIds = null!;
+    private string? _attribute;
+    private bool _collapse;
+
+    private void HideAll()
+    {
+        _collapse = true;
+        StateHasChanged();
+    }
+
+    private void ShowAll()
+    {
+        _collapse = false;
+        StateHasChanged();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -73,7 +95,7 @@ else
                     .ToArray(),
             };
 
-            if( Index?.EqualsIgnoreCase("home") == false && _articleIds.Count == 0)
+            if (Index?.EqualsIgnoreCase("home") == false && _articleIds.Count == 0)
             {
                 _flow.SetState(3);
                 return;

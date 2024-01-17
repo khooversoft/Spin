@@ -1,0 +1,34 @@
+﻿.dark-theme .summary-header-bar {
+    margin-bottom: 10px;
+    height: 32px;
+    margin-right: 10px;
+}
+
+.dark-theme .summary-header-button {
+    background-color: transparent;
+    border: 0;
+    border-radius: 5px;
+    color: white;
+    opacity: 0.5;
+}
+
+    .dark-theme .summary-header-button:hover {
+        opacity: 1;
+    }
+
+.light-theme .summary-header-bar {
+    margin-bottom: 10px;
+    height: 32px;
+    margin-right: 10px;
+}
+
+.light-theme .summary-header-button {
+    background-color: transparent;
+    border: 0;
+    border-radius: 5px;
+    opacity: 0.5;
+}
+
+    .light-theme .summary-header-button:hover {
+        opacity: 1;
+    }

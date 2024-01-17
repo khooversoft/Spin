@@ -226,15 +226,6 @@ pre {
     padding: 0;
 }
 
-/*.main {
-    overflow-y: auto;
-    height: 95vh;
-}
-*/
-/*    .main::-webkit-scrollbar-track {
-        background: var(--scrollbarBG);
-    }
-*/
 .main::-webkit-scrollbar {
     width: 11px;
 }
@@ -244,3 +235,4 @@ pre {
     border-radius: 6px;
     border: 3px solid var(--scrollbarBG);
 }
+
