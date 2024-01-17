@@ -12,7 +12,7 @@ public record ArticleManifest
     [Id(1)] public string Title { get; init; } = null!;
     [Id(2)] public string Author { get; init; } = null!;
     [Id(3)] public int? Index { get; init; }
-    [Id(4)] public DateTime CreatedDate { get; init; }
+    [Id(4)] public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     [Id(5)] public DateTime? StartDate { get; init; }
     [Id(6)] public DateTime? EndDate { get; init; }
     [Id(7)] public bool NoShowDate { get; init; }
@@ -44,8 +44,12 @@ public static class ArticleManifestValidations
         int v => v,
         _ => subject.StartDate switch
         {
-            DateTime v => int.Parse(v.ToString("yyyyMMdd")),
-            _ => 0,
+            DateTime v => 3000_00_00 - int.Parse(v.ToString("yyyyMMdd")),
+            _ => subject.StartDate switch
+            {
+                DateTime v => 3000_00_00 - int.Parse(v.ToString("yyyyMMdd")),
+                _ => 0,
+            }
         },
     };
 

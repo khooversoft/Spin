@@ -49,7 +49,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                Index = x.CreatedDate.ToString("yyyyMMdd")!,
+                Index = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();
@@ -75,7 +75,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                Index = x.CreatedDate.ToString("yyyyMMdd")!,
+                Index = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();

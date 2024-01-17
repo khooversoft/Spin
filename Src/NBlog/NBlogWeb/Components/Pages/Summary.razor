@@ -50,17 +50,8 @@ else
     private string? _attribute;
     private bool _collapse;
 
-    private void HideAll()
-    {
-        _collapse = true;
-        StateHasChanged();
-    }
-
-    private void ShowAll()
-    {
-        _collapse = false;
-        StateHasChanged();
-    }
+    private void HideAll() => _collapse = true;
+    private void ShowAll() => _collapse = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -11,9 +11,9 @@ public record ArticleReference
     public ArticleReference(string articleId, string index)
     {
         ArticleId = articleId.NotEmpty();
-        Index = index;
+        Index = int.Parse(index);
     }
 
     public required string ArticleId { get; init; }
-    public required string Index { get; init; }
+    public required int Index { get; init; }
 }
