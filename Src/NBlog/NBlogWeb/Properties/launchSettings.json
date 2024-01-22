@@ -16,7 +16,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DOTNET_ENVIRONMENT": "Development",
-        "Storage__Credentials__ClientSecret": "Q1y8Q~bsNDmNpaUiDs8hmSecQHBE5uaznAdgsc0k"
+        "Storage__Credentials__ClientSecret": "<enter>"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7111;http://localhost:5121"

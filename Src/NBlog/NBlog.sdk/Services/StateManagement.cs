@@ -19,8 +19,8 @@ public class StateManagement
     private readonly ILogger<StateManagement> _logger;
     private readonly ConcurrentDictionary<string, CacheObject<object>> _cacheDataMap = new(StringComparer.OrdinalIgnoreCase);
     private string? _eTag;
-    private TimeSpan _cacheValueSpan = TimeSpan.FromMinutes(15);
-    private TimeSpan _checkSpan = TimeSpan.FromMinutes(1);
+    private TimeSpan _cacheValueSpan = TimeSpan.FromMinutes(30);
+    private TimeSpan _checkSpan = TimeSpan.FromMinutes(5);
     private DateTime _refreshTime;
     private readonly ActionBlock<ScopeContext> _checkDirectoryFile;
     private readonly StorageService _storageService;
