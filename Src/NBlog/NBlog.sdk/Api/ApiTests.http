@@ -1,0 +1,7 @@
+@hostname=localhost
+@port=5121
+GET http://{{hostname}}:{{port}}/state
+x-api-key: "testKey"
+
+###
+

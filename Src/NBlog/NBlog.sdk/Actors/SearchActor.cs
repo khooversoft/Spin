@@ -19,17 +19,27 @@ public class SearchActor : Grain, ISearchActor
     private readonly ActorCacheState<DocumentIndex, DocumentIndexSerialization> _state;
 
     public SearchActor(
+        StateManagement stateManagement,
         [PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<DocumentIndexSerialization> state,
         ILogger<SearchActor> logger
         )
     {
         _logger = logger.NotNull();
-        _state = new ActorCacheState<DocumentIndex, DocumentIndexSerialization>(state, x => x.ToSerialization(), x => x.FromSerialization(), TimeSpan.FromMinutes(15));
+        stateManagement.NotNull();
+
+        _state = new ActorCacheState<DocumentIndex, DocumentIndexSerialization>(
+            stateManagement, 
+            state, x => x.ToSerialization(), 
+            x => x.FromSerialization(), 
+            TimeSpan.FromMinutes(15)
+            );
     }
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
         this.GetPrimaryKeyString().Assert(NBlogConstants.Tool.IsSearchActorKey, x => $"ActorKey={x} is not valid.");
+
+        _state.SetName(nameof(SearchActor), this.GetPrimaryKeyString());
         await base.OnActivateAsync(cancellationToken);
     }
 
@@ -37,7 +47,7 @@ public class SearchActor : Grain, ISearchActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<DocumentIndex> indexOption = await _state.GetState();
+        Option<DocumentIndex> indexOption = await _state.GetState(context);
         if (indexOption.IsError())
         {
             context.Location().LogError("Cannot get document index from storage");

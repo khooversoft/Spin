@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using NBlog.sdk;
 using NBlog.sdk.State;
@@ -8,16 +9,24 @@ using Toolbox.Extensions;
 Console.WriteLine($"NBlog web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 
+IDictionary environmentVariables = Environment.GetEnvironmentVariables();
+
+// Loop through each environment variable and print it
+//foreach (DictionaryEntry variable in environmentVariables)
+//{
+//    Console.WriteLine($"Env: {variable.Key} = {variable.Value}");
+//}
+
 AppOption option = Host.CreateApplicationBuilder(args)
     .Build()
     .Func(x => x.Services.GetRequiredService<IConfiguration>().Bind<AppOption>());
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (option.UserSecrets != null)
-{
-    builder.Configuration.AddUserSecrets(option.UserSecrets);
-}
+//if (option.UserSecrets != null)
+//{
+//    builder.Configuration.AddUserSecrets(option.UserSecrets);
+//}
 
 //var b = builder.Build();
 //var bb = b.Services.GetRequiredService<IConfiguration>().Bind<StorageOption>();
@@ -52,6 +61,8 @@ builder.Host.UseOrleans((context, silo) =>
     silo.AddDatalakeGrainStorage();
 });
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 app.UseStatusCodePagesWithReExecute("/NotFound/{0}");
 
@@ -66,12 +77,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.UseRouting();
+app.UseAntiforgery();
+app.MapHealthChecks("/health");
+app.MapBlogApi();
 
 app.Run();

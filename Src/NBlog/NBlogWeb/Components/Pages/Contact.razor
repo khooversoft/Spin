@@ -22,7 +22,7 @@ else
 @code {
     [Parameter] public string DbName { get; set; } = null!;
 
-    [Inject] public StorageService _storage { get; init; } = null!;
+    [Inject] public MarkdownDocService _storage { get; init; } = null!;
     [Inject] private ILogger<Contact> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();

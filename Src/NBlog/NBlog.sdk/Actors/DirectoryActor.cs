@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -19,19 +20,24 @@ public class DirectoryActor : Grain, IDirectoryActor
     private readonly ActorCacheState<GraphMap, GraphSerialization> _state;
 
     public DirectoryActor(
+        StateManagement stateManagement,
         [PersistentState("default", NBlogConstants.DataLakeProviderName)] IPersistentState<GraphSerialization> state,
         ILogger<DirectoryActor> logger
         )
     {
         _logger = logger.NotNull();
-        _state = new ActorCacheState<GraphMap, GraphSerialization>(state, x => x.ToSerialization(), x => x.FromSerialization(), TimeSpan.FromMinutes(15));
+        stateManagement.NotNull();
+
+        _state = new ActorCacheState<GraphMap, GraphSerialization>(stateManagement, state, x => x.ToSerialization(), x => x.FromSerialization(), TimeSpan.FromMinutes(15));
     }
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
         this.GetPrimaryKeyString().Assert(x => x == NBlogConstants.DirectoryActorKey, x => $"Actor key {x} is not {NBlogConstants.DirectoryActorKey}");
 
-        if (!_state.RecordExists) await _state.SetState(new GraphMap());
+        _state.SetName(nameof(DirectoryActor), this.GetPrimaryKeyString());
+        if (!_state.RecordExists) await _state.SetState(new GraphMap(), new ScopeContext(_logger));
+
         await base.OnActivateAsync(cancellationToken);
     }
 
@@ -51,7 +57,7 @@ public class DirectoryActor : Grain, IDirectoryActor
         if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
         context.Location().LogInformation("Command, search={search}", command);
 
-        GraphMap map = (await _state.GetState()).ThrowOnError("Failed to get state").Return();
+        GraphMap map = (await _state.GetState(context)).ThrowOnError("Failed to get state").Return();
 
         var commandOption = map.Command().Execute(command);
         if (commandOption.StatusCode.IsError()) return commandOption.ToOptionStatus<GraphCommandResults>();
@@ -62,7 +68,7 @@ public class DirectoryActor : Grain, IDirectoryActor
         if (!isMapModified) return commandResult.ConvertTo();
 
         context.Location().LogInformation("Directory command modified graph, writing changes");
-        await _state.SetState(map);
+        await _state.SetState(map, context);
 
         return commandResult.ConvertTo();
     }
