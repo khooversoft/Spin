@@ -43,8 +43,25 @@
 .sidebar {
     position: -webkit-sticky;
     position: sticky;
-    top: 100px;
+    /*top: 0;*/
+    top: 70px;
     left: 0;
+}
+
+.sidebar-header {
+    /*top: 40px;*/
+}
+
+.dark-theme .scroll-to-top {
+--bs-bg-opacity: 1;
+    background-color: rgba(var(--bd-newcolor-rgb),.6);
+    color: black;
+}
+
+.light-theme .scroll-to-top {
+    --bs-bg-opacity: 1;
+    background-image: linear-gradient(180deg, rgba(93,138,203,1) 0%, rgba(112,167,247,1) 100%);
+    color: black;
 }
 
 .content {

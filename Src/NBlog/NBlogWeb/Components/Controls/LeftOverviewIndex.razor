@@ -4,11 +4,12 @@
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-<Symbols />
 
-<div class="sidebar ">
-    @if (_flow.State == 2 && DbName != null)
-    {
+@if (_flow.State == 2 && DbName != null)
+{
+    <Symbols />
+ 
+    <div>
         <div class="mb-4 text-lg-start">
             <div class="ms-3 ms-lg-0">
                 <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
@@ -37,8 +38,8 @@
                 <a class="btn btn-left-menu left-menu-link-text" @onclick=IndexEvent>Index</a>
             </dev>
         </nav>
-    }
-</div>
+    </div>
+}
 
 @code {
     [Parameter] public EventCallback ShowIndex { get; set; }

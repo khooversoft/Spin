@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <DockerfileContext>..\..</DockerfileContext>
+        <UserSecretsId>6b225b98-807e-4dcf-9e8e-c7b586e02de2</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,6 +18,10 @@
         <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
         <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
         <ProjectReference Include="..\NBlog.sdk\NBlog.sdk.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Properties\PublishProfiles\" />
     </ItemGroup>
 
 </Project>

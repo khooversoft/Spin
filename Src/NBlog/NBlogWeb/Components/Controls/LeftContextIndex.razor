@@ -4,55 +4,55 @@
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-<Symbols />
 
-<div class="sidebar">
+@if (_flow.State == 2)
+{
+    <Symbols />
 
-        @if (_flow.State == 2)
-        {
-            <div class="mb-4 text-lg-start">
-                <div class="ms-3 ms-lg-0">
-                    <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
-                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_lines[0]</p>
+    <div>
+        <div class="mb-4 text-lg-start">
+            <div class="ms-3 ms-lg-0">
+                <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
+                <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_lines[0]</p>
 
-                    @foreach (var line in _lines.Skip(1))
-                    {
-                        <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
-                            @line
-                        </p>
-                    }
+                @foreach (var line in _lines.Skip(1))
+                {
+                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
+                        @line
+                    </p>
+                }
+            </div>
+
+            <nav class="nav nav-pills flex-lg-column justify-content-lg-start index-back-to-home">
+                <dev class="nav-link d-flex align-items-center fw-600">
+                    <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
+                    <a class="btn btn-left-menu overview-text" @onclick=IndexEvent>Back to overview</a>
+                </dev>
+            </nav>
+
+            @foreach (var group in _indexMap)
+            {
+                <div class="nav nav-pills flex-lg-column justify-content-lg-start left-menu-group-content">
+                    <div class="left-menu-format nav-link d-flex align-items-center fw-600">
+                        @((MarkupString)group.SvcCommand)
+                        <span class="left-menu-group">@group.GroupName</span>
+                    </div>
                 </div>
 
-                <nav class="nav nav-pills flex-lg-column justify-content-lg-start index-back-to-home">
-                    <dev class="nav-link d-flex align-items-center fw-600">
-                        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
-                        <a class="btn btn-left-menu overview-text" @onclick=IndexEvent>Back to overview</a>
-                    </dev>
-                </nav>
-
-                @foreach (var group in _indexMap)
+                @foreach (var link in group.Items)
                 {
                     <div class="nav nav-pills flex-lg-column justify-content-lg-start left-menu-group-content">
                         <div class="left-menu-format nav-link d-flex align-items-center fw-600">
-                            @((MarkupString)group.SvcCommand)
-                            <span class="left-menu-group">@group.GroupName</span>
+                            <a href=@link.ArticleLink>
+                                <span class="btn btn-left-menu left-menu-topic"> @link.Topic </span>
+                            </a>
                         </div>
                     </div>
-
-                    @foreach (var link in group.Items)
-                    {
-                        <div class="nav nav-pills flex-lg-column justify-content-lg-start left-menu-group-content">
-                            <div class="left-menu-format nav-link d-flex align-items-center fw-600">
-                                <a href=@link.ArticleLink>
-                                    <span class="btn btn-left-menu left-menu-topic"> @link.Topic </span>
-                                </a>
-                            </div>
-                        </div>
-                    }
                 }
-            </div>
-        }
-</div>
+            }
+        </div>
+    </div>
+}
 
 @code {
     [Parameter] public EventCallback ShowIndex { get; set; }
@@ -108,8 +108,8 @@
                     {
                         GroupName = x.Key,
                         Items = x.GroupBy(y => y.group.topic)
-                                                    .Select(x => (x.Key, NavRoutes.GotoSummary(DbName, x.First().index.IndexName)))
-                                                    .ToArray(),
+                                                            .Select(x => (x.Key, NavRoutes.GotoSummary(DbName, x.First().index.IndexName)))
+                                                            .ToArray(),
                         SvcCommand = "r",
                     })
                 .ToArray();

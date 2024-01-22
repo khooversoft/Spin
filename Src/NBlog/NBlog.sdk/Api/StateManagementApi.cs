@@ -35,7 +35,8 @@ public class StateManagementApi
 
     private IResult Get(HttpRequest request)
     {
-        if (!request.Headers.TryGetValue(Constants.ApiKeyName, out var _)) return Results.Unauthorized();
+        if (!request.Headers.TryGetValue(Constants.ApiKeyName, out var value)) return Results.Unauthorized();
+        if (value != "testKey") return Results.Unauthorized();
 
         _stateManagement.Clear();
         return Results.Ok();

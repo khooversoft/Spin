@@ -4,32 +4,32 @@
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-<header class="navbar navbar-expand-lg navbar-light bd-navbar sticky-top">
-    <nav class="container-xxl flex-wrap flex-lg-nowrap" aria-label="Main navigation">
-        <div class="d-lg-none" style="width: 2.24rem;"></div>
-        <dev>
-            <a href="">
-                <img src="/Images/khicon.svg" class="img-fluid" style="max-width: 64px;" aria-label="KH" />
-            </a>
-        </dev>
-        <div>
-            <span class="collapse navbar-collapse" style="color:black;margin-right:30px;font-size:.9rem">Kelvin Hoover</span>
-        </div>
-
-        @if (_flow.State == 2)
-        {
+@if (_flow.State == 2)
+{
+    <header class="navbar navbar-expand-lg navbar-light bd-navbar sticky-top">
+        <nav class="container-xxl flex-wrap flex-lg-nowrap" aria-label="Main navigation">
+            <div class="d-lg-none" style="width: 2.24rem;"></div>
+            <dev>
+                <a href="">
+                    <img src="/Images/khicon.svg" class="img-fluid" style="max-width: 64px;" aria-label="KH" />
+                </a>
+            </dev>
             <div>
-                <span style="color: black;font-size:1.6rem;font-weight:600;font-style:italic">@_title</span>
+                <span class="collapse navbar-collapse" style="color:black;margin-right:30px;font-size:.9rem">Kelvin Hoover</span>
             </div>
-        }
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <dev class="collapse navbar-collapse" id="navbarSupportedContent">
             @if (_flow.State == 2)
             {
+                <div>
+                    <span style="color: black;font-size:1.6rem;font-weight:600;font-style:italic">@_title</span>
+                </div>
+            }
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <dev class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-lg-0 mx-4">
                     @foreach (var item in _menus)
                     {
@@ -42,15 +42,15 @@
                         <a class="nav-link active" href="@_contactUrl">Contact</a>
                     </li>
                 </ul>
-            }
 
-            <div class="d-flex">
-                <input class="form-control me-2" placeholder="Search" aria-label="Search" @oninput=OnSearchInput @bind=_searchText @onkeydown="OnSearchKeyPress" />
-                <button class="btn btn-outline-dark" @onclick=SearchEvent>Search</button>
-            </div>
-        </dev>
-    </nav>
-</header>
+                <div class="d-flex">
+                    <input class="form-control me-2" placeholder="Search" aria-label="Search" @oninput=OnSearchInput @bind=_searchText @onkeydown="OnSearchKeyPress" />
+                    <button class="btn btn-outline-dark" @onclick=SearchEvent>Search</button>
+                </div>
+            </dev>
+        </nav>
+    </header>
+}
 
 @code {
     [Parameter] public string? DbName { get; init; }
@@ -66,7 +66,7 @@
     private string _searchText = string.Empty;
     private string _contactUrl = string.Empty;
 
-    protected override void OnInitialized() => _contactUrl = $"/contact/{DbName}";
+    protected override void OnParametersSet() => _contactUrl = $"/contact/{DbName}";
 
     private void SearchEvent()
     {

@@ -7,6 +7,12 @@
 
 <div class="@_themeClass">
     <div class="app-body">
+
+        <button type="button" class="btn btn-floating scroll-to-top" id="btn-back-to-top">
+            <svg class="bi f5"><use xlink:href="#arrow-up-square"></use></svg>
+        </button>
+
+
         @if (_flow.State != 0)
         {
             <TopMenuBar DbName="@_dbName" />
@@ -21,7 +27,11 @@
                     <div class="container-xxl px-4 px-xxl-2">
                         <div class="d-lg-grid content">
                             <div>
-                                <LeftColumn DbName="@_dbName" />
+                                <div class="sidebar">
+                                    <div class="sidebar-header">
+                                        <LeftColumn DbName="@_dbName" />
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="main">
