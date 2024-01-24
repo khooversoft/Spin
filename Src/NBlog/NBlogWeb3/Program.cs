@@ -1,37 +1,19 @@
-using System.Collections;
 using System.Reflection;
-using NBlog.sdk;
-using NBlogWeb.Application;
-using NBlogWeb.Components;
+using NBlogWeb3.Application;
+using NBlogWeb3.Components;
 using Toolbox.Extensions;
+using NBlog.sdk;
+
 
 Console.WriteLine($"NBlog web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
 
-IDictionary environmentVariables = Environment.GetEnvironmentVariables();
-
-// Loop through each environment variable and print it
-//foreach (DictionaryEntry variable in environmentVariables)
-//{
-//    Console.WriteLine($"Env: {variable.Key} = {variable.Value}");
-//}
 
 AppOption option = Host.CreateApplicationBuilder(args)
     .Build()
     .Func(x => x.Services.GetRequiredService<IConfiguration>().Bind<AppOption>());
 
 var builder = WebApplication.CreateBuilder(args);
-//builder.WebHost.UseUrls("http://*:80", "https://*:443");
-
-//if (option.UserSecrets != null)
-//{
-//    builder.Configuration.AddUserSecrets(option.UserSecrets);
-//}
-
-//var b = builder.Build();
-//var bb = b.Services.GetRequiredService<IConfiguration>().Bind<StorageOption>();
-
-//Console.WriteLine($"Secret: {bb.Storage.ToString()}");
 
 builder.Logging
     .AddSimpleConsole(options =>
@@ -66,27 +48,23 @@ builder.Services.AddHealthChecks();
 var app = builder.Build();
 app.UseStatusCodePagesWithReExecute("/NotFound/{0}");
 
-//var bb = app.Services.GetRequiredService<IConfiguration>().Bind<StorageOption>();
-//Console.WriteLine($"Secret: {bb.Storage.ToString()}");
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    //app.UseHsts();
+    app.UseHsts();
 }
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+app.UseRouting();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.UseRouting();
-app.UseAntiforgery();
 app.MapHealthChecks("/health");
 app.MapBlogApi();
 

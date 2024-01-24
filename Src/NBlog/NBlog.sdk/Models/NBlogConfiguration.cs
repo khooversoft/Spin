@@ -7,12 +7,14 @@ namespace NBlog.sdk;
 [GenerateSerializer, Immutable]
 public record NBlogConfiguration
 {
-    [Id(0)] public required string Theme { get; init; }
-    [Id(1)] public required OverviewPanel OverviewPanel { get; init; }
-    [Id(2)] public required IndexPanel IndexPanel { get; init; }
-    [Id(3)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
+    [Id(1)] public string DbName { get; init; } = null!;
+    [Id(2)] public string Theme { get; init; } = null!;
+    [Id(3)] public OverviewPanel OverviewPanel { get; init; } = null!;
+    [Id(4)] public IndexPanel IndexPanel { get; init; } = null!;
+    [Id(5)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
 
     public static IValidator<NBlogConfiguration> Validator { get; } = new Validator<NBlogConfiguration>()
+        .RuleFor(x => x.DbName).ValidName()
         .RuleFor(x => x.Theme).NotEmpty().Must(NBlogConstants.ValidThemes.Contains, x => $"{x} not a valid theme")
         .RuleFor(x => x.OverviewPanel).Validate(OverviewPanel.Validator)
         .RuleFor(x => x.IndexPanel).Validate(IndexPanel.Validator)
@@ -39,5 +41,17 @@ public static class NBlogConfigurationExtentions
     {
         result = subject.Validate();
         return result.IsOk();
+    }
+
+    public static Option VerifyFileId(this NBlogConfiguration subject, string fileId, ScopeContext context)
+    {
+        string shouldBeActorKey = NBlogConstants.Tool.CreateConfigurationActorKey(subject.DbName);
+        if (fileId != shouldBeActorKey)
+        {
+            context.LogError("NBlogConfiguration.DbName={dbName} does not match fileId={fileId}", subject.DbName, fileId);
+            return (StatusCode.Conflict, "NBlogConfiguration.DbName does not match fileId");
+        }
+
+        return StatusCode.OK;
     }
 }

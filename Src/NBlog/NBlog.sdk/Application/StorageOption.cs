@@ -8,9 +8,11 @@ namespace NBlog.sdk;
 public record StorageOption
 {
     public DatalakeOption Storage { get; init; } = null!;
+    public string DefaultDbName { get; init; } = null!;
 
     public static Validator<StorageOption> Validator { get; } = new Validator<StorageOption>()
         .RuleFor(x => x.Storage).Validate(DatalakeOption.Validator)
+        .RuleFor(x => x.DefaultDbName).ValidName()
         .Build();
 }
 

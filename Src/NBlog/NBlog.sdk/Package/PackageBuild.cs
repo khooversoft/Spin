@@ -19,6 +19,7 @@ public class PackageBuild
         BuildContext buildContext = Create(basePath, packageFile, context);
 
         buildContext = GetAllFiles(buildContext, context);
+        buildContext = await VerifyConfigurationFiles(buildContext, context);
         buildContext = await ProcessManifestFiles(buildContext, context);
         buildContext = BuildDirectoryGraph(buildContext, context);
         buildContext = await SearchIndexTool.BuildSearchIndex(buildContext, context);
@@ -99,6 +100,47 @@ public class PackageBuild
             );
 
         return buildContext;
+    }
+
+    private async Task<BuildContext> VerifyConfigurationFiles(BuildContext buildContext, ScopeContext context)
+    {
+        var configurationFiles = buildContext.Files
+            .Where(x => x.FileType == FileType.Configuration)
+            .Select(x => x.FilePath)
+            .ToArray();
+
+        context.LogInformation("Processing manifest files count={manifestFileCount}", configurationFiles.Length);
+
+        IReadOnlyList<Option<NBlogConfiguration>> results = await ActionParallel.RunAsync(configurationFiles, readConfiguration, 1);
+        var e1 = results.Where(x => x.IsError()).Select(x => x.ToString()).ToArray();
+        var configurations = results.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
+
+        var result = buildContext with
+        {
+            Errors = buildContext.Errors + e1,
+        };
+
+        context.LogInformation("Processed manifest files count={configurationFiles}, errorCount={errorCount}", configurationFiles.Length, e1.Length);
+        return result;
+
+
+        async Task<Option<NBlogConfiguration>> readConfiguration(string file)
+        {
+            context.LogInformation("Reading and verifying configuration file={file}", file);
+            string data = await File.ReadAllTextAsync(file);
+
+            var o = data.ToObject<NBlogConfiguration>();
+            if (o == null) return (StatusCode.BadRequest, $"Cannot deserialize json={file}");
+
+            var v = o.Validate().Action(x => x.LogStatus(context, $"File={file}"));
+            if (v.IsError()) return v.ToOptionStatus<NBlogConfiguration>();
+
+            string fileId = Path.GetFileName(file);
+            var verify = o.VerifyFileId(fileId, context);
+            if (verify.IsError()) return (StatusCode.Conflict, $"DbName={o.DbName} does not match fileId={fileId}");
+
+            return o;
+        }
     }
 
     private async Task<BuildContext> ProcessManifestFiles(BuildContext buildContext, ScopeContext context)

@@ -1,0 +1,80 @@
+﻿.top-menu-container {
+    padding-right: 10px;
+    padding-left: 0;
+}
+
+
+.dark-theme .top-menu-title {
+    color: black;
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.2;
+    font-style: italic;
+    min-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.light-theme .top-menu-title {
+    color: black;
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.2;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+@media (max-width: 640.98px) {
+
+    .top-menu-title {
+        display: none;
+    }
+}
+
+
+.dark-theme .top-menu-inputbox {
+    padding: .375rem .75rem;
+    margin-top: 6px;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: 250px;
+    max-height: 35px;
+}
+
+.light-theme .top-menu-inputbox {
+    padding: .375rem .75rem;
+    margin-top: 6px;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: 250px;
+    max-height: 35px;
+}
+
+.dark-theme .top-menu-button {
+    margin-top: 6px;
+    max-height: 35px;
+    padding: 0rem .75rem;
+}
+
+.light-theme .top-menu-button {
+    margin-top: 6px;
+    max-height: 35px;
+    padding: 0rem .75rem;
+}
+
+.dark-theme .contact-link {
+    padding-top: 10px;
+    padding-right: 10px;
+    color: black;
+}
+
+.light-theme .contact-link {
+    padding-top: 10px;
+    padding-right: 10px;
+    color: black;
+}

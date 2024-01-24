@@ -43,6 +43,7 @@ public class ActorCacheState<TState, TSerialize>
     }
 
     public bool RecordExists => _state.RecordExists;
+    public TSerialize State => _state.State;
     public Task<Option> Exist() => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
     public async Task<Option<TState>> GetState(ScopeContext context)

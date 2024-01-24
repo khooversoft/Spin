@@ -1,0 +1,49 @@
+﻿@using NBlog.sdk
+@using Toolbox.Types
+@* @attribute [StreamRendering(true)] *@
+@rendermode InteractiveServer
+
+<div class="d-flex top-menu-container">
+    @if (Configuration != null)
+    {
+        <div class="flex-fill p-2 top-menu-title">@_title</div>
+
+        <a class="btn btn-link contact-link" href="@_contactUrl">Contact</a>
+
+        <input class="form-control top-menu-inputbox" placeholder="Search" aria-label="Search" @oninput=OnSearchInput @bind=_searchText @onkeydown="OnSearchKeyPress" />
+        <button type="button" class="btn btn-outline-dark top-menu-button" @onclick=SearchEvent>Search</button>
+    }
+</div>
+
+@code {
+    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+
+    [Inject] private NavigationManager _navManager { get; init; } = null!;
+    [Inject] private ConfigurationService _configurationService { get; init; } = null!;
+    [Inject] private ILogger<TopMenuBar> _logger { get; init; } = null!;
+
+    private IReadOnlyList<OverviewMenu> _menus = Array.Empty<OverviewMenu>();
+    private string _title = "Secrets of .NET and Cloud";
+    private string _contactUrl = string.Empty;
+    private string _searchText = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (Configuration == null) return;
+
+        _contactUrl = $"/contact/{Configuration.DbName}";
+        _title = Configuration.OverviewPanel.Title;
+        _menus = Configuration.OverviewPanel.Menus.OrderBy(x => x.OrderIndex).Take(2).ToArray();
+    }
+
+    private void SearchEvent()
+    {
+    }
+
+    private void OnSearchInput(ChangeEventArgs e) => _searchText = e.Value?.ToString() ?? string.Empty;
+
+    private void OnSearchKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") SearchEvent();
+    }
+}

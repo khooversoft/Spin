@@ -1,0 +1,67 @@
+﻿@using NBlog.sdk
+@using NBlogWeb3.Components.Controls
+@using Toolbox.Extensions
+@using Toolbox.Tools
+@using Toolbox.Types
+@inherits LayoutComponentBase
+
+<Symbols />
+
+<div class="@_themeClass">
+    <div class="app-body">
+
+        <button type="button" class="btn btn-floating scroll-to-top" id="btn-back-to-top">
+            <svg class="bi f5"><use xlink:href="#arrow-up-square"></use></svg>
+        </button>
+
+        <div class="page">
+            @*             <div class="sidebar">
+            <NavMenu DbName="@_dbName" Configuration="@_configuration" />
+            </div>
+            *@
+            <main>
+                <div class="top-row top-row-top-menu">
+                    <TopMenuBar Configuration="@_configuration" />
+                </div>
+
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
+        </div>
+    </div>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+
+@code {
+    [CascadingParameter] RouteData RouteData { get; set; } = null!;
+
+    [Inject] private ConfigurationService _configurationService { get; init; } = null!;
+    [Inject] private ILogger<MainLayout> _logger { get; init; } = null!;
+
+    private string _themeClass = "dark-theme";
+    private NBlogConfiguration _configuration = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RouteData == null) return;
+
+        string? dbName = null!;
+        if (RouteData.RouteValues.TryGetValue("dbName", out var value) && (value is string v)) dbName = v;
+        dbName ??= "*";
+
+        var context = new ScopeContext(_logger);
+        var configurationOption = await _configurationService.Get(dbName, context);
+        if (configurationOption.IsError()) throw new InvalidOperationException("Failed to read configuraiton");
+
+        _configuration = configurationOption.Return();
+        _themeClass = $"{_configuration.Theme}-theme";
+        return;
+    }
+}

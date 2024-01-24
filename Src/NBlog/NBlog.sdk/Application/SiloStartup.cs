@@ -28,6 +28,7 @@ public static class SiloStartup
 
         builder.ConfigureServices(services =>
         {
+            services.AddSingleton<StorageOption>(option);
             services.AddSingleton<DatalakeOption>(option.Storage);
             services.AddSingleton<ArticleService>();
             services.AddSingleton<ManifestService>();

@@ -1,0 +1,138 @@
+﻿@using NBlog.sdk
+@using Toolbox.Tools
+@rendermode InteractiveServer
+
+
+@if (_flow.State == 2)
+{
+    <div class="m-4">
+        <div>
+            @foreach (var line in _lines)
+            {
+                <p class="left-menu-line">@line</p>
+            }
+        </div>
+
+        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start gap-1">
+            @foreach (var item in _indexMap)
+            {
+                <dev class="nav-link d-flex align-items-center fw-600">
+                    @((MarkupString)item.SvcCommand)
+                    <a class="btn-left-menu btn left-menu-link-text" href="@item.HRef">@item.Title</a>
+                </dev>
+            }
+
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
+                <a class="btn btn-left-menu left-menu-link-text" @onclick=IndexEvent>Index</a>
+            </dev>
+        </nav>
+    </div>
+
+    @*     <div>
+        <div class="mb-4 text-lg-start">
+            <div class="ms-3 ms-lg-0">
+                <h1 class="mb-1 mb-lg-2 f1 fw-600">@_title</h1>
+                <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4">@_lines[0]</p>
+
+                @foreach (var line in _lines.Skip(1))
+                {
+                    <p class="col-sm-8 col-lg-12 mx-auto mb-1 mb-lg-4 d-none d-lg-block">
+                        @line
+                    </p>
+                }
+            </div>
+        </div>
+
+        <nav class="nav nav-pills justify-content-center flex-lg-column justify-content-lg-start gap-1">
+            @foreach (var item in _indexMap)
+            {
+                <dev class="nav-link d-flex align-items-center fw-600">
+                    @((MarkupString)item.SvcCommand)
+                    <a class="btn btn-left-menu left-menu-link-text" href="@item.HRef">@item.Title</a>
+                </dev>
+            }
+
+            <dev class="nav-link d-flex align-items-center fw-600">
+                <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
+                <a class="btn btn-left-menu left-menu-link-text" @onclick=IndexEvent>Index</a>
+            </dev>
+        </nav>
+    </div>
+ *@}
+@* <div class="m-4">
+    <div>
+        <h4 class="left-menu-header">Secrets of .NET and Cloud </h4>
+        <div class="left-menu-line">This is a test of text# 1 This is a test of text# 1 This is a test of text# 1 This is a test of text# 1</div>
+        <div class="left-menu-line">This is a test of text #2 </div>
+    </div>
+</div>
+<nav class="flex-column">
+    <div class="nav-item px-3">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+        </NavLink>
+    </div>
+
+    <div class="nav-item px-3">
+        <NavLink class="nav-link" href="counter">
+            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+        </NavLink>
+    </div>
+
+    <div class="nav-item px-3">
+        <NavLink class="nav-link" href="weather">
+            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+        </NavLink>
+    </div>
+</nav>
+ *@
+@code {
+    [Parameter] public EventCallback ShowIndex { get; set; }
+    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+
+    [Inject] private ConfigurationService _configurationService { get; init; } = null!;
+    [Inject] private ILogger<LeftMenuContent> _logger { get; init; } = null!;
+
+    private SequentialState _flow = new SequentialState();
+    private IReadOnlyList<IndexMap> _indexMap = Array.Empty<IndexMap>();
+
+    private async Task IndexEvent() => await ShowIndex.InvokeAsync();
+
+    public string _title = "";
+    public IReadOnlyList<string> _lines = [""];
+
+    protected override void OnParametersSet()
+    {
+        if (Configuration == null) return;
+
+        _lines = Configuration.OverviewPanel.Lines.ToArray();
+
+        _indexMap = Configuration.OverviewPanel.Menus
+            .OrderBy(x => x.OrderIndex)
+            .Select(x => new IndexMap
+                {
+                    Title = x.Title,
+                    SvcCommand = CreateSvg(x.IconName, x.IconColor),
+                    HRef = x.HRef,
+                })
+            .ToArray();
+
+        _flow.SetState(2);
+        base.OnParametersSet();
+    }
+
+
+
+    private static string CreateSvg(string iconName, string color)
+    {
+        return $"<svg class=\"bi me-2 f5\" style=\"color: {color} !important\"><use xlink:href=#{iconName}></use></svg>";
+    }
+
+    private record IndexMap
+    {
+        public required string Title { get; init; }
+        public required string SvcCommand { get; init; }
+        public required string HRef { get; init; }
+    }
+}

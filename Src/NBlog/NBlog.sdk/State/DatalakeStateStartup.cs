@@ -3,7 +3,7 @@ using Orleans.Runtime;
 using Orleans.Storage;
 using Toolbox.Azure.DataLake;
 
-namespace NBlog.sdk.State;
+namespace NBlog.sdk;
 
 public static class DatalakeStateStartup
 {
@@ -12,9 +12,9 @@ public static class DatalakeStateStartup
         {
             services.AddSingleton<IDatalakeStore, DatalakeStore>();
             services.AddSingleton<DatalakeStateConnector>();
-            services.AddSingletonNamedService(NBlogConstants.DataLakeProviderName, CreateStorage);
+            services.AddKeyedSingleton<IGrainStorage>(NBlogConstants.DataLakeProviderName, CreateStorage);
         });
 
-    private static IGrainStorage CreateStorage(IServiceProvider service, string name) => service.GetRequiredService<DatalakeStateConnector>();
+    private static IGrainStorage CreateStorage(IServiceProvider service, object _) => service.GetRequiredService<DatalakeStateConnector>();
 
 }

@@ -37,6 +37,7 @@ public class ConfigurationActor : Grain, IConfigurationActor
         this.GetPrimaryKeyString().Assert(NBlogConstants.Tool.IsConfigurationActorKey, x => $"ActorKey={x} is not valid.");
 
         _state.SetName(nameof(ConfigurationActor), this.GetPrimaryKeyString());
+        VerifyDbName();
         return base.OnActivateAsync(cancellationToken);
     }
 
@@ -64,6 +65,9 @@ public class ConfigurationActor : Grain, IConfigurationActor
         context.Location().LogInformation("Set NBlogConfiguration, actorKey={actorKey}", this.GetPrimaryKeyString());
         if (!model.Validate(out var v1)) return v1;
 
+        var fileIdTest = model.VerifyFileId(this.GetPrimaryKeyString(), context);
+        if (fileIdTest.IsError()) return fileIdTest;
+
         return await _state.SetState(model, context);
     }
 
@@ -87,5 +91,13 @@ public class ConfigurationActor : Grain, IConfigurationActor
             .ToArray();
 
         return result;
+    }
+
+    private void VerifyDbName()
+    {
+        if (!_state.RecordExists) return;
+
+        var option = _state.State.VerifyFileId(this.GetPrimaryKeyString(), new ScopeContext(_logger));
+        option.ThrowOnError();
     }
 }
