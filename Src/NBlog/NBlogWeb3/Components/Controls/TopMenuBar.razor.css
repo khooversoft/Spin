@@ -1,80 +1,102 @@
-﻿.top-menu-container {
-    padding-right: 10px;
-    padding-left: 0;
+﻿.x-navbar-container {
+    max-width: 1200px;
 }
 
-
-.dark-theme .top-menu-title {
-    color: black;
-    font-size: 1.4rem;
-    font-weight: 600;
-    line-height: 1.2;
-    font-style: italic;
+.x-nvarbar-brand-container {
     min-width: 200px;
+}
+
+.x-navbar-brand {
+    font-size: 1rem;
+    color: black;
+    padding-right: 20px;
+}
+
+.x-navbar-brand-container {
+    opacity: 0.9;
+}
+
+.x-icon-svg {
+    max-width: 64px;
+}
+
+.dark-theme .x-top-menu-title {
+    color: black;
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.2;
+    font-style: italic;
+    min-width: 100px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 
-.light-theme .top-menu-title {
+.light-theme .x-top-menu-title {
     color: black;
     font-size: 1.4rem;
     font-weight: 600;
     line-height: 1.2;
     font-style: italic;
+    min-width: 100px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.x-top-menu-inputbox {
+    padding: .375rem .75rem;
+    margin-top: 4px;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: 250px;
+    max-height: 35px;
+}
+
+.x-top-menu-search-button {
+    margin-top: 4px;
+    max-height: 35px;
+    padding: 0rem .75rem;
+    opacity: 0.8;
+}
+
+.x-contact-link {
+    padding-top: 9px;
+    padding-right: 10px;
+    color: black;
+    opacity: 0.8;
+}
+
+.x-btn-icon-container {
+    padding-top: 2px;
+    display: none;
+    padding-top: 10px;
 }
 
 
 @media (max-width: 640.98px) {
+    .x-nvarbar-brand-container {
+        min-width: 64px;
+    }
 
-    .top-menu-title {
+    .x-top-menu-title {
         display: none;
     }
-}
 
+    .x-btn-icon-container {
+        display: block;
+    }
 
-.dark-theme .top-menu-inputbox {
-    padding: .375rem .75rem;
-    margin-top: 6px;
-    margin-left: 10px;
-    margin-right: 10px;
-    max-width: 250px;
-    max-height: 35px;
-}
+    .x-top-menu-search-button {
+        display: none;
+    }
 
-.light-theme .top-menu-inputbox {
-    padding: .375rem .75rem;
-    margin-top: 6px;
-    margin-left: 10px;
-    margin-right: 10px;
-    max-width: 250px;
-    max-height: 35px;
-}
+    .x-contact-link {
+        display: none;
+    }
 
-.dark-theme .top-menu-button {
-    margin-top: 6px;
-    max-height: 35px;
-    padding: 0rem .75rem;
-}
-
-.light-theme .top-menu-button {
-    margin-top: 6px;
-    max-height: 35px;
-    padding: 0rem .75rem;
-}
-
-.dark-theme .contact-link {
-    padding-top: 10px;
-    padding-right: 10px;
-    color: black;
-}
-
-.light-theme .contact-link {
-    padding-top: 10px;
-    padding-right: 10px;
-    color: black;
+    .x-navbar-brand-container {
+        display: none;
+    }
 }

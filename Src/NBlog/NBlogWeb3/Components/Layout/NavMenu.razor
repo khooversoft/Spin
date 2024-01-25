@@ -4,31 +4,20 @@
 @using Toolbox.Tools
 @rendermode InteractiveServer
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <div>
-            <a href="/summary/article/home">
-                <img src="/Images/khicon.svg" class="img-fluid" style="max-width: 64px;" aria-label="KH" />
-            </a>
-            <span class="navbar-brand">Kelvin Hoover</span>
-        </div>
-    </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="x-left-menu-container">
     @if (_flow.State == 1)
     {
         @switch (_showIndex)
         {
             case false:
-                <LeftMenuContent ShowIndex="OnShowIndex" Configuration="@Configuration" />
+                <LeftMenuContainer ShowIndex="OnShowIndex" Configuration="@Configuration" TargetName="@NBlogConstants.TargetName.Content" />
+                @* <LeftMenuContainer ShowIndex="OnShowIndex" Configuration="@Configuration", TargetName="@NBlogConstants.TargetName.Content" /> *@
                 break;
-@* 
+
             case true:
-                <LeftContextIndex ShowIndex="OnShowIndex" DbName="@DbName" />
-                break; *@
+                <LeftMenuContainer ShowIndex="OnShowIndex" Configuration="@Configuration" TargetName="@NBlogConstants.TargetName.Index" />
+                @* <LeftMenuContainer ShowIndex="OnShowIndex" Configuration="@Configuration" , TargetName="@NBlogConstants.TargetName.Index" /> *@
+                break;
         }
     }
 </div>

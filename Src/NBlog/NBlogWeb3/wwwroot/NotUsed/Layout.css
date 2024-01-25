@@ -1,0 +1,73 @@
+﻿/*.top-menu-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3.5rem;*/ /* Adjust based on your toolbar height */
+    /*z-index: 100;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 8px;
+    background-color: transparent;
+    background-image: linear-gradient(to bottom, rgba(var(--bd-newcolor-rgb), 1), rgba(var(--bd-newcolor-rgb), 0.95));
+}*/
+
+/*.left-menu-sidebar {
+    width: 300px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}*/
+
+/*.left-menu-container {
+    position: fixed;
+    top: 3.5rem;*/ /* Height of the top navigation toolbar */
+    /*left: 0;
+    width: 300px;*/ /* Adjust based on your preference */
+    /*height: calc(100% - 50px);*/ /* Full height minus the toolbar height */
+    /*overflow-y: auto;*/ /* Allows scrolling within the left navigation */
+/*}*/
+
+/*.main-content-container {
+    margin-left: 0px;*/ /* Width of the left navigation */
+    /*margin-top: 3.5rem;*/ /* Height of the top navigation toolbar */
+    /*overflow-y: auto;*/ /* Allows independent scrolling */
+    /*height: calc(100vh - 3.5rem);*/ /* Full viewport height minus the toolbar height */
+    /*padding: 20px;*/ /* Optional padding */
+/*}*/
+
+
+/*.div-show-big {
+    display: block;
+}
+
+.div-show-small {
+    display: none;
+}
+
+
+@media (max-width: 640.98px) {
+    .top-menu-brand-container {
+        display: none;
+    }
+
+    .left-menu-sidebar {
+        display: none;
+    }
+
+    .top-menu-title {
+        display: none;
+    }
+
+    .contact-link {
+        display: none;
+    }
+
+    div-show-big {
+        display: none;
+    }
+
+    div-show-small {
+        display: block !important;
+    }
+}*/

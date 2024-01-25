@@ -1,0 +1,54 @@
+﻿@using NBlog.sdk
+@using Toolbox.Tools
+@rendermode InteractiveServer
+
+
+@if (_flow.State == 1)
+{
+    <div class="m-4">
+        @switch (TargetName)
+        {
+            case NBlogConstants.TargetName.Content:
+                <ConfigurationMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
+                break;
+
+            case NBlogConstants.TargetName.Index:
+                <IndexMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
+                break;
+        }
+
+        <div class="m-4">
+            <div>
+                @foreach (var line in _lines)
+                {
+                    <p class="x-left-menu-line">@line</p>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback ShowIndex { get; set; }
+    [Parameter] public NBlogConfiguration? Configuration { get; set; }
+    [Parameter] public string? TargetName { get; set; }
+    [Inject] private ILogger<LeftMenuContainer> _logger { get; init; } = null!;
+
+    private SequentialState _flow = new SequentialState();
+
+    private async Task OnShowIndex() => await ShowIndex.InvokeAsync();
+
+    public IReadOnlyList<string> _lines = [""];
+
+    protected override void OnParametersSet()
+    {
+        if (Configuration == null || TargetName == null) return;
+        NBlogConstants.TargetName.ValidNames.Contains(TargetName).Assert(x => x == true, $"Invalid TargetName={TargetName}");
+
+        _flow.Reset();
+        _lines = Configuration.OverviewPanel.Lines.ToArray();
+
+        _flow.SetState(1);
+        base.OnParametersSet();
+    }
+}

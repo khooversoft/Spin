@@ -1,0 +1,67 @@
+﻿@page "/contact/{dbName}"
+@using NBlog.sdk
+@using NBlogWeb3.Components.Controls
+@using Toolbox.Tools
+@using Toolbox.Types
+@rendermode InteractiveServer
+@layout Layout.MainLayout
+
+@if (_flow.State == 2)
+{
+    <div class="x-body-container">
+        <h3>Contact Information</h3>
+
+        <div class="mt-3">
+            @((MarkupString)_html)
+        </div>
+    </div>
+}
+else
+{
+    <LoadingComponent Size="1" />
+}
+
+@code {
+    [Parameter] public string DbName { get; set; } = null!;
+
+    [Inject] public MarkdownDocService _storage { get; init; } = null!;
+    [Inject] private ILogger<Contact> _logger { get; init; } = null!;
+
+    private SequentialState _flow = new SequentialState();
+    private string _html = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _flow.Reset();
+            await Load();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task Load()
+    {
+        var context = new ScopeContext(_logger);
+        if (!_flow.MoveState(1)) return;
+
+        try
+        {
+            string contactFileId = NBlogConstants.Tool.CreateContactFileId(DbName);
+            var mdDoc = await _storage.Read(contactFileId, context);
+            if (mdDoc.IsError())
+            {
+                mdDoc.LogOnError(context, $"Cannot read contact file for fileId={contactFileId}");
+                return;
+            }
+
+            _html = mdDoc.Return().ToHtml();
+        }
+        finally
+        {
+            _flow.MoveState(2);
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+}

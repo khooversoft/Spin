@@ -1,0 +1,100 @@
+﻿@page "/history/{dbName}"
+@using NBlog.sdk
+@using NBlogWeb3.Components.Controls
+@using NBlogWeb3.Components.Layout
+@using Toolbox.Extensions
+@using Toolbox.Tools
+@using Toolbox.Types
+@rendermode InteractiveServer
+
+@if (_manifests != null && _flow.State == 2)
+{
+    <div class="x-body-container">
+        <div class="mx-auto px-3 py-5">
+            @foreach (var byDate in _byDate)
+            {
+                <h3>@byDate.Year</h3>
+
+                <ul class="list mb-5">
+                    @foreach (var item in byDate.Manifests)
+                    {
+                        <li>
+                            <a class="truncate-text" href="@GetDocFileId(item)">@item.Title</a>
+                            <span class="d-none d-lg-block">@item.CreatedDate.ToString("MMM dd, yyyy")</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <LoadingComponent Size="0" />
+}
+
+
+@code {
+    [Parameter] public string DbName { get; init; } = null!;
+    [Inject] private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ManifestService _manifestService { get; init; } = null!;
+    [Inject] private ILogger<Home> _logger { get; init; } = null!;
+
+    private SequentialState _flow = new SequentialState();
+    private IReadOnlyList<ArticleManifest>? _manifests { get; set; } = null!;
+    private string? _attribute { get; set; }
+    private IReadOnlyList<ByDate> _byDate = Array.Empty<ByDate>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _flow.Reset();
+            await Load();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task Load()
+    {
+        var context = new ScopeContext(_logger);
+        if (!_flow.MoveState(1)) return;
+
+        try
+        {
+            var articleReference = await _articleService.GetSummaries(DbName, context);
+
+            var nodes = articleReference.OrderBy(x => x.Index).Select(x => x.ArticleId).ToArray();
+            _manifests = await _manifestService.GetManifests(nodes, context);
+
+            _byDate = _manifests
+                .GroupBy(x => x.CreatedDate.ToString("yyyy"))
+                .Select(x => new ByDate { Year = x.Key, Manifests = x.OrderBy(y => y.CreatedDate).ToArray() })
+                .OrderBy(x => x.Year)
+                .ToArray();
+        }
+        finally
+        {
+            _flow.MoveState(2);
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    private string GetDocFileId(ArticleManifest manifest)
+    {
+        var commandNode = manifest.GetCommand(NBlogConstants.MainAttribute);
+        if (commandNode.IsOk())
+        {
+            return NavRoutes.GotoArticle(DbName, NBlogConstants.MainAttribute, manifest.ArticleId);
+        }
+
+        return "/";
+    }
+
+    private record ByDate
+    {
+        public string Year { get; init; } = null!;
+        public IReadOnlyList<ArticleManifest> Manifests { get; init; } = Array.Empty<ArticleManifest>();
+    };
+}

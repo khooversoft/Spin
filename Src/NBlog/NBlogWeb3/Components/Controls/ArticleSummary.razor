@@ -9,7 +9,7 @@
 {
     <div class=@_articleSummaryClass>
         <div class="@_articleContentClass">
-            <button class="article-button" type="button" @onclick=@HideOrShow style="float: right;">
+            <button class="article-button" type="button" @onclick=@HideOrShow>
                 @if (_isCollapse)
                 {
                     <svg class="bi f5"><use xlink:href="#three-dots"></use></svg>
@@ -26,7 +26,7 @@
             }
             else
             {
-                <span class="article-header text-info">@_title</span>
+                <span class="article-header">@_title</span>
             }
 
             @if (!_articleDetail.Manifest.NoShowDate)

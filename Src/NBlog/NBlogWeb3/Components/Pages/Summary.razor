@@ -9,19 +9,21 @@
 
 @if (_articleIds != null && _flow.State == 2)
 {
-    <div class="summary-header-bar">
-        <button class="summary-header-button" type="button" @onclick=@HideAll style="float: right;">
-            <svg class="bi f5"><use xlink:href="#dash-square"></use></svg>
-        </button>
-        <button class="summary-header-button" type="button" @onclick=@ShowAll style="float: right;">
-            <svg class="bi f5"><use xlink:href="#plus-square"></use></svg>
-        </button>
-    </div>
+    <div class="x-body-container">
+        <div class="summary-header-bar">
+            <button class="summary-header-button" type="button" @onclick=@HideAll>
+                <svg class="bi f5"><use xlink:href="#dash-square"></use></svg>
+            </button>
+            <button class="summary-header-button" type="button" @onclick=@ShowAll>
+                <svg class="bi f5"><use xlink:href="#plus-square"></use></svg>
+            </button>
+        </div>
 
-    @foreach (var manifest in _articleIds.WithIndex())
-    {
-        <ArticleSummary ArticleId="@manifest.Item" Index="@manifest.Index" Attribute="@_attribute" DbName="@DbName" Collapse=@_collapse />
-    }
+        @foreach (var manifest in _articleIds.WithIndex())
+        {
+            <ArticleSummary ArticleId="@manifest.Item" Index="@manifest.Index" Attribute="@_attribute" DbName="@DbName" Collapse=@_collapse />
+        }
+    </div>
 }
 else
 {

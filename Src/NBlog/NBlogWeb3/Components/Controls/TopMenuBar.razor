@@ -1,19 +1,42 @@
 ﻿@using NBlog.sdk
+@using Toolbox.Extensions
+@using Toolbox.Tools
 @using Toolbox.Types
 @* @attribute [StreamRendering(true)] *@
 @rendermode InteractiveServer
 
-<div class="d-flex top-menu-container">
-    @if (Configuration != null)
-    {
-        <div class="flex-fill p-2 top-menu-title">@_title</div>
+@if (_flow.State == 1)
+{
+    <div class="x-top-menu-container">
+        <div class="d-flex x-navbar-container">
+            @if (Configuration != null)
+            {
+                <div class="x-nvarbar-brand-container">
+                    <a href="/summary/article/home">
+                        <img src="/Images/khicon.svg" class="x-icon-svg " aria-label="KH" />
+                    </a>
+                    <span class="x-navbar-brand-container">
+                        <span class="x-navbar-brand">Kelvin Hoover</span>
+                    </span>
+                </div>
 
-        <a class="btn btn-link contact-link" href="@_contactUrl">Contact</a>
+                <div class="x-top-menu-title flex-fill p-2">@_title</div>
 
-        <input class="form-control top-menu-inputbox" placeholder="Search" aria-label="Search" @oninput=OnSearchInput @bind=_searchText @onkeydown="OnSearchKeyPress" />
-        <button type="button" class="btn btn-outline-dark top-menu-button" @onclick=SearchEvent>Search</button>
-    }
-</div>
+                <a class="x-contact-link btn btn-link" href="@_contactUrl">Contact</a>
+
+                <input class="x-top-menu-inputbox form-control" placeholder="Search" aria-label="Search" @oninput=OnSearchInput @bind=_searchText @onkeydown="OnSearchKeyPress" />
+
+                <button type="button" class="x-top-menu-search-button btn btn-outline-dark" @onclick=SearchEvent>Search</button>
+
+                <div class="x-btn-icon-container">
+                    <a class="x-btn-icon" @onclick=SearchEvent>
+                        <svg class="bi me-2 f5 text-success"><use xlink:href="#search"></use></svg>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+}
 
 @code {
     [Parameter] public NBlogConfiguration? Configuration { get; init; }
@@ -23,21 +46,29 @@
     [Inject] private ILogger<TopMenuBar> _logger { get; init; } = null!;
 
     private IReadOnlyList<OverviewMenu> _menus = Array.Empty<OverviewMenu>();
-    private string _title = "Secrets of .NET and Cloud";
+    private string _title = "..."; // "Secrets of .NET and Cloud";
     private string _contactUrl = string.Empty;
     private string _searchText = string.Empty;
+    private SequentialState _flow = new SequentialState();
 
     protected override void OnParametersSet()
     {
         if (Configuration == null) return;
 
+        _flow.Reset();
+
         _contactUrl = $"/contact/{Configuration.DbName}";
         _title = Configuration.OverviewPanel.Title;
         _menus = Configuration.OverviewPanel.Menus.OrderBy(x => x.OrderIndex).Take(2).ToArray();
+
+        _flow.MoveState(1);
     }
 
     private void SearchEvent()
     {
+        if (_searchText.IsEmpty() || Configuration == null) return;
+
+        _navManager.NavigateTo(NavRoutes.GotoSearch(Configuration.DbName, _searchText), true);
     }
 
     private void OnSearchInput(ChangeEventArgs e) => _searchText = e.Value?.ToString() ?? string.Empty;
