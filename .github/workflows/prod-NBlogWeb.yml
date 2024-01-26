@@ -20,7 +20,7 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
     - name: Restore
-      run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
+      run: dotnet restore "${{ env.SLN_FILE }}"
     - name: Build
       run: dotnet build "${{ env.SLN_FILE }}" --configuration ${{ env.CONFIGURATION }} --no-restore
     - name: Test
