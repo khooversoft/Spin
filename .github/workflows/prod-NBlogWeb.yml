@@ -19,11 +19,7 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
     - name: ls-attempt
-      run: ls src
-    - name: ls-attempt
-      run: ls src/NBlog
-    - name: List files in directory
-      run: ls -R src/NBlog/NBlogWeb3
+      run: ls -R
     - name: Restore
       run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
     - name: Build
