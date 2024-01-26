@@ -5,10 +5,10 @@ on:
     - master
 env:
   AZURE_WEBAPP_NAME: prod-NBlogWeb
-  AZURE_WEBAPP_PACKAGE_PATH: src/NBlog/NBlogWeb3/published
+  AZURE_WEBAPP_PACKAGE_PATH: ./Src/NBlog/NBlogWeb3/published
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
-  WORKING_DIRECTORY: src/NBlog/NBlogWeb3
+  WORKING_DIRECTORY: ./Src/NBlog/NBlogWeb3
 jobs:
   build:
     runs-on: ubuntu-latest
