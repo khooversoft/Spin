@@ -18,8 +18,6 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-    - name: ls-attempt
-      run: ls -R ./Src/NBlog/NBlogWeb3
     - name: Restore
       run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
     - name: Build
