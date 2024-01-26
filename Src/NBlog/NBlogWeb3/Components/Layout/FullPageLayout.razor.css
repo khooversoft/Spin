@@ -29,7 +29,7 @@ main {
 }
 
 .x-left-menu-sidebar {
-    width: 250px;
+    width: 400px;
     height: 100vh;
     position: sticky;
     top: 0;

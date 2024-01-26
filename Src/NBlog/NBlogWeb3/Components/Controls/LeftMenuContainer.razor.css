@@ -1,0 +1,35 @@
+﻿.x-left-menu-line {
+    font-weight: 400;
+    line-height: 1.2;
+    font-family: 'Times New Roman';
+    font-size: 1.1rem;
+    word-spacing: normal;
+    letter-spacing: normal;
+    hyphens: auto;
+}
+
+@media (min-width: 700px) {
+    .x-left-menu-container {
+        flex-direction: column;
+    }
+}
+
+.dark-theme .left-menu-link-text {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
+}
+
+.btn-left-menu {
+    padding: 0;
+}
+
+
+.dark-theme .btn-left-menu:hover {
+    --bs-text-opacity: 1;
+    color: rgba(var(--bs-info-highlight-rgb),var(--bs-text-opacity)) !important;
+}
+
+
+.light-theme .left-menu-link-text {
+    color: black !important;
+}

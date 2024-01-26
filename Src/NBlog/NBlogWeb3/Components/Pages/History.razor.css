@@ -1,0 +1,39 @@
+﻿.posts-container {
+    max-width: 760px;
+}
+
+.list {
+    padding-left: 0;
+    list-style: none;
+}
+
+    .list li {
+        display: block;
+        margin-bottom: .5rem;
+    }
+
+    .list span {
+        float: right;
+        color: var(--bs-gray-600);
+    }
+
+    .list a {
+        color: var(--bd-teal-rgb);
+        text-decoration-color: rgba(var(--bd-teal-rgb), 0.25);
+        text-underline-offset: .25rem;
+    }
+
+
+.truncate-text {
+    max-width: 100%; /* Set your desired maximum width */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 15px;
+}
+
+@media (max-width: 767px) {
+    .truncate-text {
+        display: block;
+    }
+}

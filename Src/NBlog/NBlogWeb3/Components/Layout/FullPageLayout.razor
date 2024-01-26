@@ -7,30 +7,28 @@
 
 <Symbols />
 
-<div class="@_themeClass">
-    <div class="app-body">
+<button type="button" class="btn btn-floating scroll-to-top" id="btn-back-to-top">
+    <svg class="bi f5"><use xlink:href="#arrow-up-square"></use></svg>
+</button>
 
-        <button type="button" class="btn btn-floating scroll-to-top" id="btn-back-to-top">
-            <svg class="bi f5"><use xlink:href="#arrow-up-square"></use></svg>
-        </button>
-
-        <div class="page">
-            @*             <div class="sidebar">
-            <NavMenu DbName="@_dbName" Configuration="@_configuration" />
+@if (_flow.State == 1)
+{
+    <div class="@_themeClass">
+        <div class="app-body">
+            <div class="x-top-menu-container">
+                <TopMenuBar Configuration=@_configuration />
             </div>
-            *@
-            <main>
-                <div class="top-row top-row-top-menu">
-                    <TopMenuBar Configuration="@_configuration" />
-                </div>
 
-                <article class="content px-4">
-                    @Body
-                </article>
-            </main>
+            <div class="page">
+                <main>
+                    <article class="x-main-content-container">
+                        @Body
+                    </article>
+                </main>
+            </div>
         </div>
     </div>
-</div>
+}
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
@@ -47,21 +45,33 @@
 
     private string _themeClass = "dark-theme";
     private NBlogConfiguration _configuration = null!;
+    private SequentialState _flow = new SequentialState();
 
-    protected override async Task OnInitializedAsync()
+    private Task IndexEvent()
+    {
+        return Task.CompletedTask; // await ShowIndex.InvokeAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
     {
         if (RouteData == null) return;
 
-        string? dbName = null!;
+        _flow.Reset();
+        string? dbName = null;
         if (RouteData.RouteValues.TryGetValue("dbName", out var value) && (value is string v)) dbName = v;
         dbName ??= "*";
 
         var context = new ScopeContext(_logger);
         var configurationOption = await _configurationService.Get(dbName, context);
-        if (configurationOption.IsError()) throw new InvalidOperationException("Failed to read configuraiton");
+        if (configurationOption.IsError())
+        {
+            throw new InvalidOperationException($"Failed to load configruation for dbName={dbName}");
+        }
 
         _configuration = configurationOption.Return();
         _themeClass = $"{_configuration.Theme}-theme";
-        return;
+
+        _flow.MoveState(1);
+        await base.OnParametersSetAsync();
     }
 }

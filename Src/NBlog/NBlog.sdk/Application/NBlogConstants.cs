@@ -28,6 +28,14 @@ public static class NBlogConstants
 
     public static FrozenSet<string> ValidThemes = ((string[])["dark", "light"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
+    public static class TargetName
+    {
+        public static FrozenSet<string> ValidNames = ((string[])["content", "index"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+        public const string Content = "content";
+        public const string Index = "index";
+    }
+
     public static class Tool
     {
         public static string CreateConfigurationActorKey(string dbName) => $"{dbName.NotNull().ToLower()}{ConfigurationExtension}";

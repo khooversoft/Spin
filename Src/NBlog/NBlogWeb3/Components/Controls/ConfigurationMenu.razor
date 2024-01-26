@@ -1,0 +1,54 @@
+﻿@using NBlog.sdk
+
+<nav class="x-container nav nav-pills gap-1">
+    @foreach (var item in _indexMap)
+    {
+        <div class="nav-link d-flex align-items-center fw-600">
+            @((MarkupString)item.SvcCommand)
+            <a class="x-btn-left-menu btn x-left-menu-link-text" href="@item.HRef">@item.Title</a>
+        </div>
+    }
+
+    <div class="nav-link d-flex align-items-center fw-600 ">
+        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
+        <a class="btn x-btn-left-menu x-left-menu-link-text" @onclick=OnShowIndex>Index</a>
+    </div>
+</nav>
+
+@code {
+    [Parameter] public EventCallback ShowIndex { get; set; }
+    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+    [Inject] private ILogger<ConfigurationMenu> _logger { get; init; } = null!;
+
+    private IReadOnlyList<IndexMap> _indexMap = Array.Empty<IndexMap>();
+    private async Task OnShowIndex() => await ShowIndex.InvokeAsync();
+
+    protected override void OnParametersSet()
+    {
+        if (Configuration == null) return;
+
+        _indexMap = Configuration.OverviewPanel.Menus
+            .OrderBy(x => x.OrderIndex)
+            .Select(x => new IndexMap
+                {
+                    Title = x.Title,
+                    SvcCommand = CreateSvg(x.IconName, x.IconColor),
+                    HRef = x.HRef,
+                })
+            .ToArray();
+
+        base.OnParametersSet();
+    }
+
+    private static string CreateSvg(string iconName, string color)
+    {
+        return $"<svg class=\"bi me-2 f5\" style=\"color: {color} !important\"><use xlink:href=#{iconName}></use></svg>";
+    }
+
+    private record IndexMap
+    {
+        public required string Title { get; init; }
+        public required string SvcCommand { get; init; }
+        public required string HRef { get; init; }
+    }
+}
