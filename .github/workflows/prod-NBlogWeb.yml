@@ -5,10 +5,11 @@ on:
     - master
 env:
   AZURE_WEBAPP_NAME: prod-NBlogWeb
-  AZURE_WEBAPP_PACKAGE_PATH: NBlog/NBlogWeb3/published
+  AZURE_WEBAPP_PACKAGE_PATH: src/NBlog/NBlogWeb3/published
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
-  WORKING_DIRECTORY: NBlog/NBlogWeb3
+  WORKING_DIRECTORY: src
+  SLN_FILE: src\NBlog.sln
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,11 +22,11 @@ jobs:
     - name: Restore
       run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
     - name: Build
-      run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
+      run: dotnet build "${{ env.SLN_FILE }}" --configuration ${{ env.CONFIGURATION }} --no-restore
     - name: Test
-      run: dotnet test "${{ env.WORKING_DIRECTORY }}" --no-build
+      run: dotnet test "${{ env.SLN_FILE }}" --no-build
     - name: Publish
-      run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+      run: dotnet publish "${{ env.SLN_FILE }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
       with:
