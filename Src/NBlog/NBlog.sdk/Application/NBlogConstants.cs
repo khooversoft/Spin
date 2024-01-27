@@ -19,6 +19,7 @@ public static class NBlogConstants
 
     public const string SummaryAttribute = "summary";
     public const string MainAttribute = "main";
+    public const string ImageAttribute = "image";
     public const string DefaultDbName = "article";
 
     public const string NoSummaryTag = "noSummary";

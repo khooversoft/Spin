@@ -22,7 +22,15 @@
 
             <div class="d-flex">
                 <div class="@_collapseClass">
-                    <img src="/Images/khicon.svg" class="image-box" aria-label="KH" />
+                    @if( _articleDetail.ImageBase64 != null)
+                    {
+                        <img src="@_articleDetail.ImageBase64" class="image-box" aria-label="KH" />
+                    }
+                    else
+                    {
+                        <div class="empty-box"></div>
+                    }
+                    @* <img src="/Images/khicon.svg" class="image-box" aria-label="KH" /> *@
                 </div>
                 <div>
                     @if (_docFileId.IsNotEmpty())
@@ -130,10 +138,20 @@ else
             if (mdDoc.IsError())
             {
                 _title = mdDoc.ToString();
+                _flow.MoveState(3);
                 return;
             }
 
             _articleDetail = mdDoc.Return();
+            if (_articleDetail.ImageBase64 != null)
+            {
+                int i = 5;
+                _articleDetail = _articleDetail with
+                {
+                    ImageBase64 = BuildImageCommand(_articleDetail.ImageBase64),
+                };
+            }
+
             _title = _articleDetail.Manifest.Title;
             _html = _articleDetail.MarkdownDoc.ToHtml();
 
@@ -155,14 +173,12 @@ else
             }
 
             await CreateTagIndex();
+            _flow.MoveState(2);
         }
         finally
         {
-            _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
-
-
     }
 
     private static (string groupName, string topic) Unwrap(string indexName)
@@ -204,4 +220,6 @@ else
 
         return tagIndex;
     }
+
+    private string BuildImageCommand(string imageBase64) => $"data:image/webp;base64,{imageBase64}";
 }

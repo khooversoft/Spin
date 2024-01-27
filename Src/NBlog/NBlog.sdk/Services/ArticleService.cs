@@ -31,26 +31,19 @@ public class ArticleService
         if (manifestOption.IsError()) return manifestOption.ToOptionStatus<ArticleDetail>();
         ArticleManifest manifest = manifestOption.Return();
 
-        var commandNodeOption = GetCommandNode(manifest, attribute, context);
-        if (commandNodeOption.IsError()) return commandNodeOption.ToOptionStatus<ArticleDetail>();
-        CommandNode commandNode = commandNodeOption.Return();
+        var dataOption = await GetData(manifest, articleId, attribute, context);
+        if (dataOption.IsError()) return dataOption.ToOptionStatus<ArticleDetail>();
 
-        context.Location().LogInformation("Reading articleId={articleId}, fileId={fileId}", articleId, commandNode.FileId);
-        var dataOption = await _clusterClient.GetStorageActor(commandNode.FileId).Get(context.TraceId);
-        if (dataOption.IsError())
-        {
-            context.Location().LogError("Could not find articleId={articleId}, fileId={fileId}", articleId, commandNode.FileId);
-            return (StatusCode.NotFound, "No fileId");
-        }
+        var imageOption = await GetData(manifest, articleId, NBlogConstants.ImageAttribute, context);
 
-        DataETag data = dataOption.Return();
-        if (!data.Validate(out var v)) return v.LogOnError(context, "DataETag").ToOptionStatus<ArticleDetail>();
-
-        return new ArticleDetail
+        var result = new ArticleDetail
         {
             Manifest = manifest,
-            MarkdownDoc = new MarkdownDoc(data.Data),
+            MarkdownDoc = new MarkdownDoc(dataOption.Return().Data),
+            ImageBase64 = imageOption.IsOk() ? Convert.ToBase64String(imageOption.Return().Data) : null,
         };
+
+        return result;
     }
 
     public Task<IReadOnlyList<ArticleReference>> GetSummaries(string dbName, ScopeContext context) => _directory.GetSummaries(dbName, context);
@@ -76,6 +69,26 @@ public class ArticleService
         }
 
         return command;
+    }
+
+    private async Task<Option<DataETag>> GetData(ArticleManifest manifest, string articleId, string attribute, ScopeContext context)
+    {
+        var commandNodeOption = GetCommandNode(manifest, attribute, context);
+        if (commandNodeOption.IsError() || commandNodeOption.IsNoContent()) return commandNodeOption.ToOptionStatus<DataETag>();
+        CommandNode commandNode = commandNodeOption.Return();
+
+        context.Location().LogInformation("Reading articleId={articleId}, fileId={fileId}", articleId, commandNode.FileId);
+        var dataOption = await _clusterClient.GetStorageActor(commandNode.FileId).Get(context.TraceId);
+        if (dataOption.IsError())
+        {
+            context.Location().LogError("Could not find articleId={articleId}, fileId={fileId}", articleId, commandNode.FileId);
+            return (StatusCode.NotFound, "No fileId");
+        }
+
+        DataETag data = dataOption.Return();
+        if (!data.Validate(out var v)) return v.LogOnError(context, "DataETag").ToOptionStatus<DataETag>();
+
+        return data;
     }
 }
 

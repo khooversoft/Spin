@@ -104,8 +104,18 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
-    max-height: 140px;
+    max-height: 160px;
     object-fit: scale-down;
+    margin: 0 15px 0 0;
+}
+
+.empty-box {
+    width: 160px;
+    height: 160px;
+    /*border: 1px solid black;*/
+    background-color: transparent;
+    /*background: linear-gradient(to right, #000000, #1a1a1a);*/
+    margin: 0 15px 0 0;
 }
 
 @media (max-width: 640.98px) {
