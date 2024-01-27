@@ -82,8 +82,6 @@ public static class DataTool
 
     public static string Filter(string input, Func<char, bool> isValid, Func<char, char>? convert = null)
     {
-        const int maxStackSize = (1024 * 1024) * 10;
-
         isValid.NotNull();
         if (input.Length == 0) return input;
 
@@ -102,7 +100,7 @@ public static class DataTool
         if (!willConvert && inputSpan.Length == resultLength) return input;
 
         // Allocate a Span<char> for reduced
-        Span<char> resultSpan = resultLength < maxStackSize ? stackalloc char[resultLength] : new char[resultLength];
+        Span<char> resultSpan = new char[resultLength];
 
         int index = 0;
         for (int i = 0; i < input.Length; i++)

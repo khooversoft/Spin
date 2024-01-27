@@ -36,11 +36,18 @@ public class ArticleService
 
         var imageOption = await GetData(manifest, articleId, NBlogConstants.ImageAttribute, context);
 
+        (string? fileId, string? base64) = imageOption switch
+        {
+            { StatusCode: StatusCode.OK } => imageOption.Return().Func(x => (x.fileId, Convert.ToBase64String(x.data.Data))),
+            _ => (null, null),
+        };
+
         var result = new ArticleDetail
         {
             Manifest = manifest,
-            MarkdownDoc = new MarkdownDoc(dataOption.Return().Data),
-            ImageBase64 = imageOption.IsOk() ? Convert.ToBase64String(imageOption.Return().Data) : null,
+            MarkdownDoc = new MarkdownDoc(dataOption.Return().data.Data),
+            ImageFileId = fileId,
+            ImageBase64 = base64,
         };
 
         return result;
@@ -71,10 +78,10 @@ public class ArticleService
         return command;
     }
 
-    private async Task<Option<DataETag>> GetData(ArticleManifest manifest, string articleId, string attribute, ScopeContext context)
+    private async Task<Option<(DataETag data, string fileId)>> GetData(ArticleManifest manifest, string articleId, string attribute, ScopeContext context)
     {
         var commandNodeOption = GetCommandNode(manifest, attribute, context);
-        if (commandNodeOption.IsError() || commandNodeOption.IsNoContent()) return commandNodeOption.ToOptionStatus<DataETag>();
+        if (commandNodeOption.IsError() || commandNodeOption.IsNoContent()) return commandNodeOption.ToOptionStatus<(DataETag, string)>();
         CommandNode commandNode = commandNodeOption.Return();
 
         context.Location().LogInformation("Reading articleId={articleId}, fileId={fileId}", articleId, commandNode.FileId);
@@ -86,9 +93,9 @@ public class ArticleService
         }
 
         DataETag data = dataOption.Return();
-        if (!data.Validate(out var v)) return v.LogOnError(context, "DataETag").ToOptionStatus<DataETag>();
+        if (!data.Validate(out var v)) return v.LogOnError(context, "DataETag").ToOptionStatus<(DataETag, string)>();
 
-        return data;
+        return (data, commandNode.FileId);
     }
 }
 

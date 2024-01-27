@@ -22,7 +22,7 @@
 
             <div class="d-flex">
                 <div class="@_collapseClass">
-                    @if( _articleDetail.ImageBase64 != null)
+                    @if (_articleDetail.ImageBase64 != null)
                     {
                         <img src="@_articleDetail.ImageBase64" class="image-box" aria-label="KH" />
                     }
@@ -81,9 +81,9 @@
 }
 else
 {
-    if (Index < 3)
+    if (Index < 1)
     {
-        <LoadingComponent Size="1" />
+        <LoadingComponent />
     }
 }
 
@@ -142,15 +142,14 @@ else
                 return;
             }
 
-            _articleDetail = mdDoc.Return();
-            if (_articleDetail.ImageBase64 != null)
+            _articleDetail = mdDoc.Return().Func(x => x.ImageBase64 switch
             {
-                int i = 5;
-                _articleDetail = _articleDetail with
-                {
-                    ImageBase64 = BuildImageCommand(_articleDetail.ImageBase64),
-                };
-            }
+                null => x,
+                string => x with
+                    {
+                        ImageBase64 = BuildImageCommand(x.ImageFileId.NotEmpty(), x.ImageBase64),
+                    },
+            });
 
             _title = _articleDetail.Manifest.Title;
             _html = _articleDetail.MarkdownDoc.ToHtml();
@@ -221,5 +220,10 @@ else
         return tagIndex;
     }
 
-    private string BuildImageCommand(string imageBase64) => $"data:image/webp;base64,{imageBase64}";
+    private string BuildImageCommand(string imageFileId, string imageBase64) => Path.GetExtension(imageFileId) switch
+    {
+        ".png" => $"data:image/png;base64,{imageBase64}",
+        ".webp" => $"data:image/webp;base64,{imageBase64}",
+        _ => throw new ArgumentException($"Unknown imageFileId={imageFileId}"),
+    };
 }
