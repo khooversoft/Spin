@@ -1,22 +1,7 @@
 ﻿@rendermode InteractiveServer
 
-@switch (Size)
-{
-    case 0:
-        <div class="col-2 text-center my-auto loading-panel loading-big">
-            <div class="text-secondary" style="opacity:0.7">Loading...</div>
-        </div>
-        break;
 
-    default:
-        <div class="col-2 text-center my-auto loading-panel loading-small">
-            <div class="text-secondary" style="opacity:0.7">Loading...</div>
-        </div>
-        break;
-}
-
-
-@code {
-    [Parameter]
-    public int Size { get; init; }
-}
+<div class="loading-container">
+    <div class="loading"></div>
+    @* <div id="loading-text">loading</div> *@
+</div>

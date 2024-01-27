@@ -16,13 +16,23 @@ public static class SearchIndexTool
         var tokenizer = new DocumentTokenizer(wordList);
 
         var files = buildContext.ManifestFiles
-            .SelectMany(x => x.Commands.Select(y => y.LocalFilePath), (o, i) => (man: o.Manifest, file: i))
+            .SelectMany(x => filterOnAttribute(x.Commands), (o, i) => (man: o.Manifest, file: i))
             .ToArray();
 
         var documentReferences = await ScrapFiles(tokenizer, files);
         buildContext = await BuildIndexes(buildContext, tokenizer, documentReferences, context);
 
+        context.LogInformation(
+            "Completed building search index, total manifest={manifestCount}, file processed={fileProcessedCount}",
+            buildContext.ManifestFiles.Count,
+            files.Length
+            );
+
         return buildContext;
+
+        IEnumerable<string> filterOnAttribute(IEnumerable<CommandNode> list) => list
+            .Where(x => x.Attributes.Any(y => NBlogConstants.CanIndexFilesAttributes.Contains(y)))
+            .Select(x => x.LocalFilePath);
     }
 
     private static async Task<IReadOnlyList<DocumentReference>> ScrapFiles(DocumentTokenizer tokenizer, IReadOnlyList<(ArticleManifest manifest, string file)> list)

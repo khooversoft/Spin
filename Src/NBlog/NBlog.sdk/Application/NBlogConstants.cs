@@ -30,6 +30,7 @@ public static class NBlogConstants
     public static FrozenSet<string> ValidThemes = ((string[])["dark", "light"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     public static FrozenSet<string> RequiredTags = ((string[])["db", "area"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     public static FrozenSet<string> FilterTags = ((string[])["db"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    public static FrozenSet<string> CanIndexFilesAttributes = ((string[])["main", "summary"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static class TargetName
     {
