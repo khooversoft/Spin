@@ -87,3 +87,26 @@
 .x-body-container {
     max-width: 900px;
 }
+
+
+.underline-from-left {
+    position: relative;
+    text-decoration: none;
+}
+
+    .underline-from-left::before {
+        content: '';
+        position: absolute;
+        bottom: -2px; /* Adjust the position as needed */
+        left: 0;
+        width: 0;
+        height: 1px; /* Adjust the line thickness as needed */
+        transform-origin: left;
+        background-color: gray; /* Line color */
+        transition: width 0.3s ease;
+    }
+
+    .underline-from-left:hover::before {
+        width: 100%;
+        transform-origin: right;
+    }

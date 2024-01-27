@@ -21,7 +21,6 @@ public static class TagsTool
     {
         if (tags == null) return false;
         tag.NotEmpty();
-
         var memoryTag = tag.AsMemory();
 
         foreach (var item in tags.AsMemory().Split(';'))
@@ -42,7 +41,6 @@ public static class TagsTool
 
         if (tags == null) return false;
         tag.NotEmpty();
-
         var memoryTag = tag.AsMemory();
 
         foreach (var item in tags.AsMemory().Split(';'))

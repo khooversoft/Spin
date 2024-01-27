@@ -87,6 +87,14 @@ pre {
     font-size: 1.75rem;
 }
 
+
+.light-theme .article-header {
+    text-decoration: none !important;
+    --bs-text-opacity: 1;
+    color: black !important;
+    font-size: 1.75rem;
+}
+
 .dark-theme .article-header-link {
     text-decoration: none !important;
     box-shadow: inset 0 0px 0 white, inset 0 -1px 0 gray;
@@ -95,12 +103,6 @@ pre {
     font-size: 1.75rem;
 }
 
-.light-theme .article-header {
-    text-decoration: none !important;
-    --bs-text-opacity: 1;
-    color: black !important;
-    font-size: 1.75rem;
-}
 
 .light-theme .article-header-link {
     text-decoration: none !important;

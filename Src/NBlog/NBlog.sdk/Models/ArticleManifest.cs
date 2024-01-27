@@ -87,13 +87,11 @@ public static class ArticleManifestValidations
 
     public static Option RequiredTags(string tags)
     {
-        IReadOnlyList<string> requiredTags = [NBlogConstants.DbTag, NBlogConstants.AreaTag];
-
-        var matched = requiredTags
+        var matched = NBlogConstants.RequiredTags
             .Select(x => TagsTool.TryGetValue(tags, x, out var _) ? x : null)
             .OfType<string>();
 
-        var except = requiredTags.Except(matched).ToArray();
+        var except = NBlogConstants.RequiredTags.Except(matched).ToArray();
 
         return except.Length == 0 ? StatusCode.OK : (StatusCode.BadRequest, $"Missing required tags={except.Join(';')}");
     }

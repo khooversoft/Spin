@@ -12,7 +12,7 @@
             <button class="article-button" type="button" @onclick=@HideOrShow>
                 @if (_isCollapse)
                 {
-                    <svg class="bi f5"><use xlink:href="#three-dots"></use></svg>
+                    <svg class="bi f5"><use xlink:href="#chevron-down"></use></svg>
                 }
                 else
                 {
@@ -20,31 +20,52 @@
                 }
             </button>
 
-            @if (_docFileId.IsNotEmpty())
-            {
-                <a href="@_docFileId" class="article-header-link text-info">@_title</a>
-            }
-            else
-            {
-                <span class="article-header">@_title</span>
-            }
-
-            @if (!_articleDetail.Manifest.NoShowDate)
-            {
-                <div class="d-flex align-items-center mt-3">
-                    <span class="d-flex align-items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="me-2" viewBox="0 0 16 16" role="img" fill="currentColor">
-                            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"></path>
-                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"></path>
-                        </svg>
-                        @_date
-                    </span>
+            <div class="d-flex">
+                <div class="@_collapseClass">
+                    <img src="/Images/khicon.svg" class="image-box" aria-label="KH" />
                 </div>
-            }
+                <div>
+                    @if (_docFileId.IsNotEmpty())
+                    {
+                        <a href="@_docFileId" class="article-header-link text-info">@_title</a>
+                    }
+                    else
+                    {
+                        <span class="article-header">@_title</span>
+                    }
 
-            <div class="@_collapseClass">
-                <div class="mt-3">
-                    @((MarkupString)_html)
+                    @if (!_articleDetail.Manifest.NoShowDate)
+                    {
+                        <div class="d-flex align-items-center mt-3">
+                            <span class="d-flex align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="me-2" viewBox="0 0 16 16" role="img" fill="currentColor">
+                                    <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"></path>
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"></path>
+                                </svg>
+                                @_date
+                            </span>
+                        </div>
+                    }
+
+                    <div class="@_collapseClass">
+                        <div class="mt-3">
+                            @((MarkupString)_html)
+                        </div>
+
+                        <div class="article-summary-hr"></div>
+
+                        <div class="d-flex">
+                            @foreach (var tag in _tags.WithIndex())
+                            {
+                                @if (tag.Index != 0)
+                                {
+                                    <div class="tag-btn-border" />
+                                }
+
+                                <a class="tag-btn underline-from-left" href="@tag.Item.Href">@tag.Item.Title</a>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,9 +100,11 @@ else
     private string _articleContentClass = "article-content";
     private string _collapseClass => _isCollapse ? "collapse" : string.Empty;
     private bool _isCollapse = false;
+    private IReadOnlyList<(string Title, string Href)> _tags = Array.Empty<(string, string)>();
 
     private void HideOrShow() => _isCollapse = !_isCollapse;
     protected override void OnParametersSet() => _isCollapse = Collapse;
+    private string key = Guid.NewGuid().ToString();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -130,11 +153,55 @@ else
             {
                 _docFileId = NavRoutes.GotoArticle(DbName, NBlogConstants.MainAttribute, ArticleId);
             }
+
+            await CreateTagIndex();
         }
         finally
         {
             _flow.MoveState(2);
             await InvokeAsync(() => StateHasChanged());
         }
+
+
+    }
+
+    private static (string groupName, string topic) Unwrap(string indexName)
+    {
+        var parts = indexName.Split('/');
+        return (parts[0], parts[1]);
+    }
+
+    private async Task CreateTagIndex()
+    {
+        var index = await LoadTagIndex();
+
+        _tags = Tags.Create(_articleDetail.Manifest.Tags)
+            .Where(x => !NBlogConstants.FilterTags.Contains(x.Key) && x.Value != null)
+            .Select(x => x.Value != null ? x.Value : x.Key)
+            .Select(x => (title: x, link: getLink(x)))
+            .Where(x => x.link != null)
+            .Select(x => (x.title, x.link.NotNull()))
+            .ToArray();
+
+        string? getLink(string tagValue) => index.TryGetValue(tagValue, out var indexName) switch
+        {
+            false => null,
+            true => NavRoutes.GotoSummary(DbName, indexName),
+        };
+    }
+
+
+    private async Task<IReadOnlyDictionary<string, string>> LoadTagIndex()
+    {
+        var context = new ScopeContext(_logger);
+        var indexes = await _articleService.GetIndexDocs(DbName, context);
+
+        var tagIndex = indexes
+            .Select(x => (Tag: Unwrap(x.IndexName).topic, IndexName: x.IndexName))
+            .GroupBy(x => x.Tag)
+            .Select(x => (x.Key, x.First().IndexName))
+            .ToDictionary(x => x.Key, x => x.IndexName, StringComparer.OrdinalIgnoreCase);
+
+        return tagIndex;
     }
 }
