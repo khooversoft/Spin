@@ -152,20 +152,20 @@ public static class EnumerableExtensions
         .Select((item, index) => (item, index));
 
 
-    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source)
+    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source, bool returnNotFound = false)
     {
         foreach (T element in source) return element;
-        return Option<T>.None;
+        return returnNotFound ? StatusCode.NotFound : Option<T>.None;
     }
 
-    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source, Func<T, bool> predicate, bool returnNotFound = false)
     {
         foreach (T element in source)
         {
             if (predicate(element)) return element;
         }
 
-        return Option<T>.None;
+        return returnNotFound ? StatusCode.NotFound : Option<T>.None;
     }
 
     public static Option<T> LastOrDefaultOption<T>(this IEnumerable<T> source)

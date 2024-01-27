@@ -4,7 +4,7 @@
 
 <nav class="x-container nav nav-pills">
     <div class="nav-link d-flex align-items-center fw-600 ">
-        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-right-square"></use></svg>
+        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
         <a class="btn x-btn-left-menu x-left-menu-link-text" @onclick=OnShowIndex>Content</a>
     </div>
 
@@ -48,17 +48,17 @@
             _indexes = await _articleService.GetIndexDocs(Configuration.DbName, context);
 
             _indexMap = _indexes
-            .Select(x => (group: Unwrap(x.IndexName), index: x))
-            .GroupBy(x => x.group.groupName)
-            .Select(x => new IndexMap
-                {
-                    GroupName = x.Key,
-                    Items = x.GroupBy(y => y.group.topic)
-                        .Select(x => (x.Key, NavRoutes.GotoSummary(Configuration.DbName, x.First().index.IndexName)))
-                        .ToArray(),
-                    SvcCommand = "r",
-                })
-            .ToArray();
+                .Select(x => (group: Unwrap(x.IndexName), index: x))
+                .GroupBy(x => x.group.groupName)
+                .Select(x => new IndexMap
+                    {
+                        GroupName = x.Key,
+                        Items = x.GroupBy(y => y.group.topic)
+                            .Select(x => (x.Key, NavRoutes.GotoSummary(Configuration.DbName, x.First().index.IndexName)))
+                            .ToArray(),
+                        SvcCommand = "r",
+                    })
+                .ToArray();
 
             var groupNames = _indexes.Select(x => Unwrap(x.IndexName).groupName).ToArray();
             var iconGroups = await _configurationService.Lookup(Configuration.DbName, groupNames, context);
