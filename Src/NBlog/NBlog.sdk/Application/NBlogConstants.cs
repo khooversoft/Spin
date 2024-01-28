@@ -32,13 +32,13 @@ public static class NBlogConstants
     public static FrozenSet<string> FilterTags = ((string[])["db"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     public static FrozenSet<string> CanIndexFilesAttributes = ((string[])["main", "summary"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    public static class TargetName
-    {
-        public static FrozenSet<string> ValidNames = ((string[])["content", "index"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    //public static class TargetName
+    //{
+    //    public static FrozenSet<string> ValidNames = ((string[])["content", "index"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-        public const string Content = "content";
-        public const string Index = "index";
-    }
+    //    public const string Content = "content";
+    //    public const string Index = "index";
+    //}
 
     public static class Tool
     {
