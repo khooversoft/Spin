@@ -31,10 +31,15 @@ public class ArticleService
         if (manifestOption.IsError()) return manifestOption.ToOptionStatus<ArticleDetail>();
         ArticleManifest manifest = manifestOption.Return();
 
-        var dataOption = await GetData(manifest, articleId, attribute, context);
-        if (dataOption.IsError()) return dataOption.ToOptionStatus<ArticleDetail>();
+        Option<(DataETag data, string fileId)> dataOption = default;
+        Option<(DataETag data, string fileId)> imageOption = default;
 
-        var imageOption = await GetData(manifest, articleId, NBlogConstants.ImageAttribute, context);
+        Func<Task>[] work = [
+            async () => dataOption = await GetData(manifest, articleId, attribute, context),
+            async () => imageOption = await GetData(manifest, articleId, NBlogConstants.ImageAttribute, context),
+            ];
+
+        await ActionParallel.Run(async x => await x(), work);
 
         (string? fileId, string? base64) = imageOption switch
         {

@@ -33,3 +33,13 @@
 .light-theme .left-menu-link-text {
     color: black !important;
 }
+
+.x-lines {
+    margin: 4px;
+}
+
+@media (max-width: 640.98px) {
+    .x-lines {
+        display: none;
+    }
+}

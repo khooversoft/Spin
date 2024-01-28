@@ -21,14 +21,16 @@
 
             <div class="page">
                 <div class="x-left-menu-sidebar">
-                    <NavMenu Configuration="@_configuration" />
+                    <div class="x-left-menu-container">
+                        <LeftMenuContainer Configuration="@_configuration" />
+                    </div>
                 </div>
 
                 <main>
                     @* <article class="content px-4"> *@
                     <article class="x-main-content-container">
                         <div class="x-main-configuration-container">
-                            <ConfigurationMenu ShowIndex="@IndexEvent" Configuration="@_configuration" />
+                            <LeftMenuContainer Configuration="@_configuration" />
                         </div>
 
                         @Body
