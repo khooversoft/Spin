@@ -111,7 +111,7 @@ public class PackageBuild
 
         context.LogInformation("Processing manifest files count={manifestFileCount}", configurationFiles.Length);
 
-        IReadOnlyList<Option<NBlogConfiguration>> results = await ActionParallel.RunAsync(configurationFiles, readConfiguration, 1);
+        IReadOnlyList<Option<NBlogConfiguration>> results = await ActionParallel.RunAsync(configurationFiles, readConfiguration);
         var e1 = results.Where(x => x.IsError()).Select(x => x.ToString()).ToArray();
         var configurations = results.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
 

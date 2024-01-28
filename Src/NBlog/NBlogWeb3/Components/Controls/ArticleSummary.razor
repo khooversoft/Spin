@@ -5,86 +5,88 @@
 @using Toolbox.Types
 @rendermode InteractiveServer
 
-@if (_flow.State == 2)
+@switch (_flow.State)
 {
-    <div class=@_articleSummaryClass>
-        <div class="@_articleContentClass">
-            <button class="article-button" type="button" @onclick=@HideOrShow>
-                @if (_isCollapse)
-                {
-                    <svg class="bi f5"><use xlink:href="#chevron-down"></use></svg>
-                }
-                else
-                {
-                    <svg class="bi f5"><use xlink:href="#chevron-up"></use></svg>
-                }
-            </button>
+    case 0:
+        if (Index < 1)
+        {
+            <LoadingComponent />
+        }
+        break;
 
-            <div class="d-flex">
-                <div class="@_collapseClass">
-                    @if (_articleDetail.ImageBase64 != null)
+    case 2:
+        <div class=@_articleSummaryClass>
+            <div class="@_articleContentClass">
+                <button class="article-button" type="button" @onclick=@HideOrShow>
+                    @if (_isCollapse)
                     {
-                        <img src="@_articleDetail.ImageBase64" class="image-box" aria-label="KH" />
+                        <svg class="bi f5"><use xlink:href="#chevron-down"></use></svg>
                     }
                     else
                     {
-                        <div class="empty-box"></div>
+                        <svg class="bi f5"><use xlink:href="#chevron-up"></use></svg>
                     }
-                    @* <img src="/Images/khicon.svg" class="image-box" aria-label="KH" /> *@
-                </div>
-                <div>
-                    @if (_docFileId.IsNotEmpty())
-                    {
-                        <a href="@_docFileId" class="article-header-link text-info">@_title</a>
-                    }
-                    else
-                    {
-                        <span class="article-header">@_title</span>
-                    }
+                </button>
 
-                    @if (!_articleDetail.Manifest.NoShowDate)
-                    {
-                        <div class="d-flex align-items-center mt-3">
-                            <span class="d-flex align-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="me-2" viewBox="0 0 16 16" role="img" fill="currentColor">
-                                    <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"></path>
-                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"></path>
-                                </svg>
-                                @_date
-                            </span>
-                        </div>
-                    }
-
+                <div class="d-flex">
                     <div class="@_collapseClass">
-                        <div class="mt-3">
-                            @((MarkupString)_html)
-                        </div>
+                        @if (_articleDetail.ImageBase64 != null)
+                        {
+                            <img src="@_articleDetail.ImageBase64" class="image-box" aria-label="KH" />
+                        }
+                        else
+                        {
+                            <div class="empty-box"></div>
+                        }
+                        @* <img src="/Images/khicon.svg" class="image-box" aria-label="KH" /> *@
+                    </div>
+                    <div>
+                        @if (_docFileId.IsNotEmpty())
+                        {
+                            <a href="@_docFileId" class="article-header-link text-info">@_title</a>
+                        }
+                        else
+                        {
+                            <span class="article-header">@_title</span>
+                        }
 
-                        <div class="thin-hr"></div>
+                        @if (!_articleDetail.Manifest.NoShowDate)
+                        {
+                            <div class="d-flex align-items-center mt-3">
+                                <span class="d-flex align-items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="me-2" viewBox="0 0 16 16" role="img" fill="currentColor">
+                                        <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"></path>
+                                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"></path>
+                                    </svg>
+                                    @_date
+                                </span>
+                            </div>
+                        }
 
-                        <div class="d-flex">
-                            @foreach (var tag in _tags.WithIndex())
-                            {
-                                @if (tag.Index != 0)
+                        <div class="@_collapseClass">
+                            <div class="mt-3">
+                                @((MarkupString)_html)
+                            </div>
+
+                            <div class="thin-hr"></div>
+
+                            <div class="d-flex">
+                                @foreach (var tag in _tags.WithIndex())
                                 {
-                                    <div class="tag-btn-border" />
-                                }
+                                    @if (tag.Index != 0)
+                                    {
+                                        <div class="tag-btn-border" />
+                                    }
 
-                                <a class="tag-btn underline-from-left" href="@tag.Item.Href">@tag.Item.Title</a>
-                            }
+                                    <a class="tag-btn underline-from-left" href="@tag.Item.Href">@tag.Item.Title</a>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-}
-else
-{
-    if (Index < 1)
-    {
-        <LoadingComponent />
-    }
+        break;
 }
 
 
@@ -105,7 +107,7 @@ else
     private string _date { get; set; } = string.Empty;
     private string? _docFileId { get; set; } = string.Empty;
     private string _articleSummaryClass => _isCollapse ? "article-summary article-summary-collapse" : "article-summary";
-    private string _articleContentClass = "article-content";
+    private const string _articleContentClass = "article-content";
     private string _collapseClass => _isCollapse ? "collapse" : string.Empty;
     private bool _isCollapse = false;
     private IReadOnlyList<(string Title, string Href)> _tags = Array.Empty<(string, string)>();
@@ -145,10 +147,7 @@ else
             _articleDetail = mdDoc.Return().Func(x => x.ImageBase64 switch
             {
                 null => x,
-                string => x with
-                    {
-                        ImageBase64 = BuildImageCommand(x.ImageFileId.NotEmpty(), x.ImageBase64),
-                    },
+                string => x with { ImageBase64 = BuildImageCommand(x.ImageFileId.NotEmpty(), x.ImageBase64) },
             });
 
             _title = _articleDetail.Manifest.Title;

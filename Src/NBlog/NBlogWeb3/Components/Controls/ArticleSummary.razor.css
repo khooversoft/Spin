@@ -16,6 +16,9 @@
 .article-summary {
     margin-top: 10px;
     font-size: 1rem;
+    background-color: #181818;
+    border-radius: 5px;
+    /*background-color: black;*/
 }
 
 .light-theme .article-summary {
@@ -99,7 +102,7 @@
     height: 100%;
     width: auto;
     object-fit: scale-down;
-    margin: 0 15px 0 0;
+    margin: 2px 15px 2px 2px;
 }
 
 
