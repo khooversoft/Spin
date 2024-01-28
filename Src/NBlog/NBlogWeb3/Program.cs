@@ -22,7 +22,8 @@ builder.Logging
         options.SingleLine = true;
         options.TimestampFormat = "HH:mm:ss ";
     })
-    .AddDebug();
+    .AddDebug()
+    .AddFilter(x => x >= LogLevel.Warning);
 
 if (option.AppInsightsConnectionString != null)
 {
