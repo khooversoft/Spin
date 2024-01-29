@@ -1,0 +1,37 @@
+﻿@using NBlog.sdk
+
+
+<div id="side-menu" class="@GetMenuClass()">
+    <div class="d-flex x-menu-container">
+        <a class="x-icon-button" @onclick=ToggleMenu>
+            <svg class="x-icon"><use xlink:href="#chevron-right"></use></svg>
+        </a>
+
+        <IndexMenu CloseIndex=CloseIndex Configuration="@Configuration" />
+    </div>
+
+</div>
+
+
+@code {
+    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+
+    private string GetMenuClass()
+    {
+        return isMenuOpen ? "open" : "";
+    }
+
+    private bool isMenuOpen = false;
+
+    public void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+        StateHasChanged();
+    }
+
+    private void CloseIndex()
+    {
+        isMenuOpen = false;
+        StateHasChanged();
+    }
+}

@@ -16,7 +16,7 @@
     <div class="@_themeClass">
         <div class="app-body">
             <div class="x-top-menu-container">
-                <TopMenuBar Configuration=@_configuration />
+                <TopMenuBar Configuration=@_configuration ShowMenu=ShowMenu />
             </div>
 
             <div class="page">
@@ -27,7 +27,6 @@
                 </div>
 
                 <main>
-                    @* <article class="content px-4"> *@
                     <article class="x-main-content-container">
                         <div class="x-main-configuration-container">
                             <LeftMenuContainer Configuration="@_configuration" />
@@ -58,7 +57,7 @@
     private NBlogConfiguration _configuration = null!;
     private SequentialState _flow = new SequentialState();
 
-    private Task IndexEvent()
+    private Task ShowMenu()
     {
         return Task.CompletedTask; // await ShowIndex.InvokeAsync();
     }

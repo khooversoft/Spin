@@ -6,74 +6,44 @@
 
 @if (_flow.State == 1)
 {
-    <div class="m-4">
-        @switch (_showIndex)
-        {
-            case false:
-                <ConfigurationMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
-                break;
+    <SlideLeftMenu @ref="slidingMenuRef" Configuration="@Configuration" />
 
-            case true:
-                <IndexMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
-                break;
-        }
+    <div class="d-flex x-menu-container">
+        <a class="x-icon-button" @onclick=OnShowIndex >
+            <svg class="x-icon"><use xlink:href="#chevron-right"></use></svg>
+        </a>
 
-        <div class="x-lines m-4">
-            <div>
-                @foreach (var line in _lines)
-                {
-                    <p class="x-left-menu-line">@line</p>
-                }
-            </div>
+        <div class="">
+            <ConfigurationMenu Configuration="@Configuration" />
+        </div>
+    </div>
+
+    <div class="x-lines m-4">
+        <div>
+            @foreach (var line in _lines)
+            {
+                <p class="x-left-menu-line">@line</p>
+            }
         </div>
     </div>
 }
 
 @code {
-    // [Parameter] public EventCallback ShowIndex { get; set; }
     [Parameter] public NBlogConfiguration? Configuration { get; set; }
-    // [Parameter] public string? TargetName { get; set; }
-    [Inject] public ProtectedSessionStorage _store { get; init; } = null!;
     [Inject] private ILogger<LeftMenuContainer> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();
-    private bool _showIndex { get; set; }
+    private SlideLeftMenu? slidingMenuRef;
     private IReadOnlyList<string> _lines = [""];
-
 
     protected override void OnParametersSet()
     {
-        if (Configuration == null /* || TargetName == null */) return;
-        // NBlogConstants.TargetName.ValidNames.Contains(TargetName).Assert(x => x == true, $"Invalid TargetName={TargetName}");
+        if (Configuration == null ) return;
 
-        _flow.Reset();
+        _flow.MoveState(1);
         _lines = Configuration.OverviewPanel.Lines.ToArray();
         base.OnParametersSet();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _flow.Reset();
-            await GetShowIndex();
-            _flow.MoveState(1);
-            StateHasChanged();
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    // private async Task OnShowIndex() => await ShowIndex.InvokeAsync();
-    private async Task OnShowIndex()
-    {
-        _showIndex = !_showIndex;
-        await _store.SetAsync(nameof(_showIndex), _showIndex);
-    }
-
-    private async Task GetShowIndex()
-    {
-        var result = await _store.GetAsync<bool>(nameof(_showIndex));
-        _showIndex = result.Success ? result.Value : false;
-    }
+    private void OnShowIndex() => slidingMenuRef?.ToggleMenu();
 }

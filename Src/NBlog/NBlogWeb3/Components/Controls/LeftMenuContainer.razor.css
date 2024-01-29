@@ -4,34 +4,32 @@
     font-family: 'Times New Roman';
     font-size: 1.1rem;
     word-spacing: normal;
-    letter-spacing: normal;
+    letter-spacing: normal;`
     hyphens: auto;
 }
 
-@media (min-width: 700px) {
-    .x-left-menu-container {
-        flex-direction: column;
-    }
+.x-menu-container {
+    margin: 10px 0px 0px 0px;
 }
 
-.dark-theme .left-menu-link-text {
-    --bs-text-opacity: 1;
-    color: rgba(var(--bs-info-rgb),var(--bs-text-opacity)) !important;
+.x-icon-button {
+    padding: 0.275rem 0rem 0rem 0rem;
+    cursor: pointer;
+    background-color: darkgray;
+    max-height: 35px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
-.btn-left-menu {
+
+.x-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    fill: currentcolor;
+    cursor: pointer;
     padding: 0;
-}
-
-
-.dark-theme .btn-left-menu:hover {
-    --bs-text-opacity: 1;
-    color: rgba(var(--bs-info-highlight-rgb),var(--bs-text-opacity)) !important;
-}
-
-
-.light-theme .left-menu-link-text {
-    color: black !important;
+    color: black;
 }
 
 .x-lines {

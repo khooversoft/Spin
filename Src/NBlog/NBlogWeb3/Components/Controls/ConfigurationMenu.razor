@@ -8,20 +8,13 @@
             <a class="x-btn-left-menu btn x-left-menu-link-text" href="@item.HRef">@item.Title</a>
         </div>
     }
-
-    <div class="nav-link d-flex align-items-center fw-600 ">
-        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
-        <a class="btn x-btn-left-menu x-left-menu-link-text" @onclick=OnShowIndex>Index</a>
-    </div>
 </nav>
 
 @code {
-    [Parameter] public EventCallback ShowIndex { get; set; }
     [Parameter] public NBlogConfiguration? Configuration { get; init; }
     [Inject] private ILogger<ConfigurationMenu> _logger { get; init; } = null!;
 
     private IReadOnlyList<IndexMap> _indexMap = Array.Empty<IndexMap>();
-    private async Task OnShowIndex() => await ShowIndex.InvokeAsync();
 
     protected override void OnParametersSet()
     {

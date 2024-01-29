@@ -39,11 +39,12 @@
 }
 
 @code {
-    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+    [Parameter] public NBlogConfiguration? Configuration { get; set; }
+    [Parameter] public EventCallback ShowMenu { get; set; }
 
-    [Inject] private NavigationManager _navManager { get; init; } = null!;
-    [Inject] private ConfigurationService _configurationService { get; init; } = null!;
-    [Inject] private ILogger<TopMenuBar> _logger { get; init; } = null!;
+    [Inject] private NavigationManager _navManager { get; set; } = null!;
+    [Inject] private ConfigurationService _configurationService { get; set; } = null!;
+    [Inject] private ILogger<TopMenuBar> _logger { get; set; } = null!;
 
     private IReadOnlyList<OverviewMenu> _menus = Array.Empty<OverviewMenu>();
     private string _title = "..."; // "Secrets of .NET and Cloud";
@@ -62,6 +63,11 @@
         _menus = Configuration.OverviewPanel.Menus.OrderBy(x => x.OrderIndex).Take(2).ToArray();
 
         _flow.MoveState(1);
+    }
+
+    private async Task ShowLeftMenu()
+    {
+        await ShowMenu.InvokeAsync();
     }
 
     private void SearchEvent()
