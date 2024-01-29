@@ -6,6 +6,7 @@
     --loading-color-bg: 45, 45, 45;
     --scrollbarBG: #CFD8DC;
     --thumbBG: #90A4AE;
+    --x-light-theme-background-color: #FDFEFE;
     /*  */
     /* Unknow usage */
     /*  */
@@ -46,7 +47,7 @@
     line-height: var(--bs-body-line-height);
 */ color: DarkSlateGray;
     text-align: var(--bs-body-text-align);
-    background-color: #ffffff;
+    background-color: var(--x-light-theme-background-color);
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
 }

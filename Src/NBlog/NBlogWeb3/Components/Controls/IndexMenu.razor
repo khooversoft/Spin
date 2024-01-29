@@ -2,33 +2,29 @@
 @using Toolbox.Tools
 @using Toolbox.Types
 
-<nav class="x-container nav nav-pills">
-    <div class="nav-link d-flex align-items-center fw-600 ">
-        <svg class="bi me-2 f5 text-success"><use xlink:href="#arrow-left-square"></use></svg>
-        <a class="btn x-btn-left-menu x-left-menu-link-text" @onclick=OnShowIndex>Content</a>
-    </div>
-    
-    <div class="thin-hr"></div>
-
+<nav class="x-container">
     @foreach (var group in _indexMap)
     {
         <div class="x-group-container nav-link d-flex align-items-center fw-600">
             @((MarkupString)group.SvcCommand)
-            <span class="x-group-text btn x-left-menu-link-text">@group.GroupName</span>
+            <span class="x-group-text">@group.GroupName</span>
         </div>
 
-        @foreach (var link in group.Items)
-        {
-            <div class="x-group-item-container d-flex align-items-center fw-600">
-                <a class="x-group-item-text btn x-btn-left-menu x-left-menu-link-text" href=@link.ArticleLink>@link.Topic</a>
-            </div>
-        }
+        <div class="thin-hr"></div>
+
+        <div class="d-flex x-btn-link-container">
+            @foreach (var link in group.Items)
+            {
+                <a class="btn btn-outline-light x-btn-link underline-from-left" @onclick="() => CloseAndLink(link.ArticleLink)">@link.Topic</a>
+            }
+        </div>
     }
 </nav>
 
 @code {
-    [Parameter] public EventCallback ShowIndex { get; set; }
+    [Parameter] public EventCallback CloseIndex { get; set; }
     [Parameter] public NBlogConfiguration? Configuration { get; init; }
+    [Inject] public NavigationManager _navManager { get; set; } = null!;
     [Inject] private ArticleService _articleService { get; init; } = null!;
     [Inject] private ConfigurationService _configurationService { get; init; } = null!;
     [Inject] private ILogger<IndexMenu> _logger { get; init; } = null!;
@@ -36,7 +32,12 @@
     private SequentialState _flow = new SequentialState();
     private IReadOnlyList<ArticleIndex>? _indexes { get; set; }
     private IReadOnlyList<IndexMap> _indexMap { get; set; } = Array.Empty<IndexMap>();
-    private async Task OnShowIndex() => await ShowIndex.InvokeAsync();
+
+    private async Task CloseAndLink(string link)
+    {
+        await CloseIndex.InvokeAsync();
+        _navManager.NavigateTo(link);
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -56,8 +57,8 @@
                     {
                         GroupName = x.Key,
                         Items = x.GroupBy(y => y.group.topic)
-                            .Select(x => (x.Key, NavRoutes.GotoSummary(Configuration.DbName, x.First().index.IndexName)))
-                            .ToArray(),
+                                    .Select(x => (x.Key, NavRoutes.GotoSummary(Configuration.DbName, x.First().index.IndexName)))
+                                    .ToArray(),
                         SvcCommand = "r",
                     })
                 .ToArray();

@@ -4,7 +4,7 @@
     font-family: 'Times New Roman';
     font-size: 1.1rem;
     word-spacing: normal;
-    letter-spacing: normal;
+    letter-spacing: normal;`
     hyphens: auto;
 }
 
@@ -12,21 +12,24 @@
     margin: 10px 0px 0px 0px;
 }
 
-.x-menu-button {
+.x-icon-button {
     padding: 0.275rem 0rem 0rem 0rem;
-    color: black;
     cursor: pointer;
-    background-color: transparent;
+    background-color: darkgray;
+    max-height: 35px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
+
 
 .x-icon {
     display: inline-block;
     width: 1em;
     height: 1em;
     fill: currentcolor;
-    color: darkgray;
     cursor: pointer;
     padding: 0;
+    color: black;
 }
 
 .x-lines {

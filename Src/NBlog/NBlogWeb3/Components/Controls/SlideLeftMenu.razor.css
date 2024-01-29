@@ -1,13 +1,41 @@
 ﻿#side-menu {
-    width: 250px;
+    width: 350px;
+    left: -350px; /* Start off-screen */
     position: fixed;
-    top: 0;
-    left: -250px; /* Start off-screen */
+    top: 3.5rem;
     height: 100vh;
     background-color: #343a40;
     transition: left 0.5s; /* Smooth transition for the sliding effect */
+    z-index: 10;
 }
 
     #side-menu.open {
         left: 0; /* Slide in */
     }
+
+.dark-theme #side-menu {
+    background-color: var(--x-light-theme-background-color);
+}
+
+.light-theme #side-menu {
+    background-color: var(--bd-body-bg);
+}
+
+.x-icon-button {
+    padding: 0.275rem 0rem 0rem 0rem;
+    cursor: pointer;
+    background-color: darkgray;
+    max-height: 35px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.x-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    fill: currentcolor;
+    cursor: pointer;
+    padding: 0;
+    color: black;
+}
