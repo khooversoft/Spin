@@ -29,7 +29,7 @@
                 </button>
 
                 <div class="d-flex">
-                    <div class="@_collapseClass">
+                    <div class="@_collapseImageClass">
                         @if (_articleDetail.ImageBase64 != null)
                         {
                             <img src="@_articleDetail.ImageBase64" class="image-box" aria-label="KH" />
@@ -108,6 +108,11 @@
     private string? _docFileId { get; set; } = string.Empty;
     private string _articleSummaryClass => _isCollapse ? "article-summary article-summary-collapse" : "article-summary";
     private const string _articleContentClass = "article-content";
+
+    private string _collapseImageClass => _isCollapse || _articleDetail?.Manifest.LeftBoxStyle == NBlogConstants.HideStyle ?
+        "collapse" :
+        string.Empty;
+
     private string _collapseClass => _isCollapse ? "collapse" : string.Empty;
     private bool _isCollapse = false;
     private IReadOnlyList<(string Title, string Href)> _tags = Array.Empty<(string, string)>();

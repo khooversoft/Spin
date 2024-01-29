@@ -6,25 +6,31 @@
 
 @if (_flow.State == 1)
 {
-    <div class="m-4">
-        @switch (_showIndex)
-        {
-            case false:
-                <ConfigurationMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
-                break;
+    <div class="d-flex x-menu-container">
+        <a class="x-menu-button">
+            <svg class="x-icon"><use xlink:href="#chevron-right"></use></svg>
+        </a>
 
-            case true:
-                <IndexMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
-                break;
-        }
+        <div class="">
+            @switch (_showIndex)
+            {
+                case false:
+                    <ConfigurationMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
+                    break;
 
-        <div class="x-lines m-4">
-            <div>
-                @foreach (var line in _lines)
-                {
-                    <p class="x-left-menu-line">@line</p>
-                }
-            </div>
+                case true:
+                    <IndexMenu ShowIndex="@OnShowIndex" Configuration="@Configuration" />
+                    break;
+            }
+        </div>
+    </div>
+
+    <div class="x-lines m-4">
+        <div>
+            @foreach (var line in _lines)
+            {
+                <p class="x-left-menu-line">@line</p>
+            }
         </div>
     </div>
 }

@@ -3,7 +3,7 @@
 }
 
 .x-nvarbar-brand-container {
-    min-width: 200px;
+    min-width: 200px;    
 }
 
 .x-navbar-brand {
@@ -72,6 +72,21 @@
     padding-top: 2px;
     display: none;
     padding-top: 10px;
+}
+
+.x-menu-button {
+    padding: 0.275rem 0.1rem 0.375rem 0rem;
+    color: black;
+    cursor: pointer;
+    background-color: transparent;
+}
+
+.x-icon {
+    display: inline-block;
+    width: 1.75em;
+    height: 1.75em;
+    fill: currentcolor;
+    color: black;
 }
 
 

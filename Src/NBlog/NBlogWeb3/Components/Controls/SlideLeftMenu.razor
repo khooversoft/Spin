@@ -1,0 +1,22 @@
+﻿<div id="side-menu" class="@GetMenuClass()">
+    This is the slide menu
+    <!-- Menu Content -->
+</div>
+
+<button @onclick="ToggleMenu">Toggle Menu</button>
+
+@code {
+    private string GetMenuClass()
+    {
+        return isMenuOpen ? "open" : "";
+    }
+}
+
+@code {
+    private bool isMenuOpen = false;
+
+    void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+}

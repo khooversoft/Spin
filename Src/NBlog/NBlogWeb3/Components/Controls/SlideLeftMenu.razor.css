@@ -1,0 +1,13 @@
+﻿#side-menu {
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: -250px; /* Start off-screen */
+    height: 100vh;
+    background-color: #343a40;
+    transition: left 0.5s; /* Smooth transition for the sliding effect */
+}
+
+    #side-menu.open {
+        left: 0; /* Slide in */
+    }
