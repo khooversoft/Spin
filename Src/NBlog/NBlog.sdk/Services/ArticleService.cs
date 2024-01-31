@@ -37,7 +37,7 @@ public class ArticleService
         Func<Task>[] work = [
             async () => dataOption = await GetData(manifest, articleId, attribute, context),
             async () => imageOption = await GetData(manifest, articleId, NBlogConstants.ImageAttribute, context),
-            ];
+        ];
 
         await ActionParallel.Run(async x => await x(), work);
 
