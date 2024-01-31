@@ -4,12 +4,12 @@
 
 
 <div id="side-menu" class="@GetMenuClass()">
-    <IndexMenu CloseIndex=CloseIndex Configuration="@Configuration" />
+    <IndexMenu CloseIndex=CloseIndex />
 </div>
 
 
 @code {
-    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+    [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
     [Inject] private LeftButtonStateService _leftButtonStateService { get; init; } = null!;
 
     private bool isMenuOpen = false;

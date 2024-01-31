@@ -60,7 +60,7 @@ public class ArticleService
 
     public Task<IReadOnlyList<ArticleReference>> GetSummaries(string dbName, ScopeContext context) => _directory.GetSummaries(dbName, context);
 
-    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(string dbName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, context);
+    //public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(string dbName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, context);
 
     public Task<IReadOnlyList<ArticleIndex>> GetIndexSummariesByName(string dbName, string indexName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, indexName, context);
 

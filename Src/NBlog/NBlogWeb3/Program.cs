@@ -64,11 +64,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAntiforgery();
+app.MapBlogApi();
+app.MapHealthChecks("/health");
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-app.MapHealthChecks("/health");
-app.MapBlogApi();
 
 app.Run();

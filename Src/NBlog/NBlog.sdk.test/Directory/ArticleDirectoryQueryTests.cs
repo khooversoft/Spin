@@ -49,7 +49,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                Index = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
+                OrderBy = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();
@@ -75,7 +75,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                Index = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
+                OrderBy = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();
@@ -108,7 +108,7 @@ public class ArticleDirectoryQueryTests
             {
                 IndexName = x.indexName,
                 ArticleId = x.articleId,
-                Index = x.createdDate.ToString("yyyyMMdd")!,
+                OrderBy = x.createdDate.ToString("yyyyMMdd")!,
             })
             .OrderBy(x => x.ArticleId).ThenBy(x => x.IndexName)
             .ToArray();

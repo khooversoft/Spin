@@ -8,12 +8,12 @@ public record ArticleReference
     public ArticleReference() { }
 
     [SetsRequiredMembers]
-    public ArticleReference(string articleId, string index)
+    public ArticleReference(string articleId, string orderBy)
     {
         ArticleId = articleId.NotEmpty();
-        Index = int.Parse(index);
+        OrderBy = int.Parse(orderBy);
     }
 
     public required string ArticleId { get; init; }
-    public required int Index { get; init; }
+    public required int OrderBy { get; init; }
 }

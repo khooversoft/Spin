@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -58,6 +59,7 @@ public static class ManifestFileTool
             Commands = model.Commands.Select(x => resolveVariables(x)).ToArray(),
             Index = model.Index ?? model.GetIndexOrStartDate(),
         };
+
 
         if (!model.Validate(out var v))
         {

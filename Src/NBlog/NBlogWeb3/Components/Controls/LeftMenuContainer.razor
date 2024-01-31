@@ -5,8 +5,8 @@
 
 @if (_flow.State == 1)
 {
-    <SlideLeftMenu Configuration="@Configuration" />
-    <ConfigurationMenu Configuration="@Configuration" />
+    <SlideLeftMenu />
+    <ConfigurationMenu />
 
     <div class="x-lines m-4">
         <div>
@@ -19,7 +19,7 @@
 }
 
 @code {
-    [Parameter] public NBlogConfiguration? Configuration { get; set; }
+    [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
     [Inject] private ILogger<LeftMenuContainer> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();

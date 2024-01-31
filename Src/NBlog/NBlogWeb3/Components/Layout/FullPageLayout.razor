@@ -13,21 +13,23 @@
 
 @if (_flow.State == 1)
 {
-    <div class="@_themeClass">
-        <div class="app-body">
-            <div class="x-top-menu-container">
-                <TopMenuBar Configuration=@_configuration />
-            </div>
+    <CascadingValue Value="_configuration">
+        <div class="@_themeClass">
+            <div class="app-body">
+                <div class="x-top-menu-container">
+                    <TopMenuBar />
+                </div>
 
-            <div class="page">
-                <main>
-                    <article class="x-main-content-container">
-                        @Body
-                    </article>
-                </main>
+                <div class="page">
+                    <main>
+                        <article class="x-main-content-container">
+                            @Body
+                        </article>
+                    </main>
+                </div>
             </div>
         </div>
-    </div>
+    </CascadingValue>
 }
 
 <div id="blazor-error-ui">

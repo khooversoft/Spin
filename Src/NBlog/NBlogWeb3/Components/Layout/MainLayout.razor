@@ -15,31 +15,33 @@
 
 @if (_flow.State == 1)
 {
-    <div class="@_themeClass">
-        <div class="app-body">
-            <div class="x-top-menu-container">
-                <TopMenuBar Configuration=@_configuration />
-            </div>
-
-            <div class="page">
-                <div class="x-left-menu-sidebar">
-                    <div class="x-left-menu-container">
-                        <LeftMenuContainer Configuration="@_configuration" />
-                    </div>
+    <CascadingValue Value="_configuration">
+        <div class="@_themeClass">
+            <div class="app-body">
+                <div class="x-top-menu-container">
+                    <TopMenuBar />
                 </div>
 
-                <main>
-                    <article class="x-main-content-container">
-                        <div class="x-main-configuration-container">
-                            <LeftMenuContainer Configuration="@_configuration" />
+                <div class="page">
+                    <div class="x-left-menu-sidebar">
+                        <div class="x-left-menu-container">
+                            <LeftMenuContainer />
                         </div>
+                    </div>
 
-                        @Body
-                    </article>
-                </main>
+                    <main>
+                        <article class="x-main-content-container">
+                            <div class="x-main-configuration-container">
+                                <LeftMenuContainer />
+                            </div>
+
+                            @Body
+                        </article>
+                    </main>
+                </div>
             </div>
         </div>
-    </div>
+    </CascadingValue>
 }
 
 <div id="blazor-error-ui">
