@@ -28,9 +28,9 @@ public class SearchActor : Grain, ISearchActor
         stateManagement.NotNull();
 
         _state = new ActorCacheState<DocumentIndex, DocumentIndexSerialization>(
-            stateManagement, 
-            state, x => x.ToSerialization(), 
-            x => x.FromSerialization(), 
+            stateManagement,
+            state, x => x.ToSerialization(),
+            x => x.FromSerialization(),
             TimeSpan.FromMinutes(15)
             );
     }

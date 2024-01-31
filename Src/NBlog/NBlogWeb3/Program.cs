@@ -1,9 +1,9 @@
 using System.Reflection;
+using NBlog.sdk;
 using NBlogWeb3.Application;
 using NBlogWeb3.Components;
-using Toolbox.Extensions;
-using NBlog.sdk;
 using NBlogWeb3.Models;
+using Toolbox.Extensions;
 
 
 Console.WriteLine($"NBlog web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
@@ -64,11 +64,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAntiforgery();
+app.MapBlogApi();
+app.MapHealthChecks("/health");
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-app.MapHealthChecks("/health");
-app.MapBlogApi();
 
 app.Run();

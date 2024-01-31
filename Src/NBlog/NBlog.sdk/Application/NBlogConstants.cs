@@ -8,7 +8,7 @@ public static class NBlogConstants
     public const string DataLakeProviderName = "datalake";
     public const string DirectoryActorKey = "directory.json";
     public const string SearchActorKey = "searchindex.json";
-    public const string Index = "orderBy";
+    public const string OrderBy = "orderBy";
 
     public const string PackageExtension = ".nblogPackage";
     public const string WordTokenExtension = ".wordTokens.json";
@@ -22,7 +22,6 @@ public static class NBlogConstants
     public const string ImageAttribute = "image";
     public const string DefaultDbName = "article";
 
-    public const string NoSummaryTag = "noSummary";
     public const string LeftMenuStateKey = "left-menu-state";
 
     public const string DbTag = "db";

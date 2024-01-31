@@ -21,7 +21,7 @@
 
 @code {
     [Parameter] public EventCallback CloseIndex { get; set; }
-    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+    [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
     [Inject] public NavigationManager _navManager { get; set; } = null!;
     [Inject] private ArticleService _articleService { get; init; } = null!;
     [Inject] private ConfigurationService _configurationService { get; init; } = null!;
@@ -39,7 +39,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (Configuration == null) return;
+        if (Configuration == null || _indexes != null) return;
 
         _flow.Reset();
         var context = new ScopeContext(_logger);
@@ -55,8 +55,8 @@
                     {
                         GroupName = x.Key,
                         Items = x.GroupBy(y => y.group.topic)
-                                            .Select(x => (x.Key, NavRoutes.GotoSummary(Configuration.DbName, x.First().index.IndexName)))
-                                            .ToArray(),
+                            .Select(x => (x.Key, NavRoutes.GotoSummary(Configuration.DbName, x.First().index.IndexName)))
+                            .ToArray(),
                         SvcCommand = "r",
                     })
                 .ToArray();
@@ -74,7 +74,6 @@
             _flow.MoveState(1);
             await InvokeAsync(() => StateHasChanged());
         }
-
     }
 
     private static (string groupName, string topic) Unwrap(string indexName)

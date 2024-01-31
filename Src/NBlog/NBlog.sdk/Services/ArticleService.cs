@@ -37,7 +37,7 @@ public class ArticleService
         Func<Task>[] work = [
             async () => dataOption = await GetData(manifest, articleId, attribute, context),
             async () => imageOption = await GetData(manifest, articleId, NBlogConstants.ImageAttribute, context),
-            ];
+        ];
 
         await ActionParallel.Run(async x => await x(), work);
 
@@ -60,7 +60,7 @@ public class ArticleService
 
     public Task<IReadOnlyList<ArticleReference>> GetSummaries(string dbName, ScopeContext context) => _directory.GetSummaries(dbName, context);
 
-    public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(string dbName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, context);
+    //public Task<IReadOnlyList<ArticleIndex>> GetIndexSummaries(string dbName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, context);
 
     public Task<IReadOnlyList<ArticleIndex>> GetIndexSummariesByName(string dbName, string indexName, ScopeContext context) => _directory.GetSummaryIndexes(dbName, indexName, context);
 

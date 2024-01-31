@@ -65,7 +65,7 @@ else
         {
             var articleReference = await _articleService.GetSummaries(DbName, context);
 
-            var nodes = articleReference.OrderBy(x => x.Index).Select(x => x.ArticleId).ToArray();
+            var nodes = articleReference.OrderBy(x => x.OrderBy).Select(x => x.ArticleId).ToArray();
             _manifests = await _manifestService.GetManifests(nodes, context);
 
             _byDate = _manifests

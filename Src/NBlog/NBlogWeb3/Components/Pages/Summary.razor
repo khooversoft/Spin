@@ -11,6 +11,13 @@
 {
     <div class="x-body-container">
         <div class="summary-header-bar">
+            <div class="summary-header-text-container">
+                @if (_indexName.IsNotEmpty())
+                {
+                    <span class="summary-header-title">Viewing: </span>
+                    <span class="summary-header-text">@_indexName</span>
+                }
+            </div>
             <button class="summary-header-button" type="button" @onclick=@HideAll>
                 <svg class="bi f5"><use xlink:href="#dash-square"></use></svg>
             </button>
@@ -40,6 +47,7 @@ else
 @code {
     [Parameter] public string? DbName { get; set; }
     [Parameter] public string? Index { get; set; }
+    [CascadingParameter] public NBlogConfiguration NBlogConfiguration { get; set; } = null!;
 
     [Inject] private ArticleService _articleService { get; init; } = null!;
     [Inject] private ILogger<Home> _logger { get; init; } = null!;
@@ -48,6 +56,7 @@ else
     private IReadOnlyList<string>? _articleIds = null!;
     private string? _attribute;
     private bool _collapse;
+    private string _indexName = string.Empty;
 
     private void HideAll() => _collapse = true;
     private void ShowAll() => _collapse = false;
@@ -72,17 +81,33 @@ else
 
         try
         {
-            Index = Index?.Func(x => Uri.UnescapeDataString(x));
+            Index = Index switch
+            {
+                "home" => NBlogConfiguration.HomeIndex switch
+                {
+                    null => Index,
+                    not null => NBlogConfiguration.HomeIndex,
+                },
+                string v => Index.Func(x => Uri.UnescapeDataString(x)),
+                null => NBlogConfiguration.HomeIndex,
+            };
+
+            _indexName = Index!.Split('/') switch
+            {
+                { Length: < 2 } => string.Empty,
+                { Length: 2 } v when v[1] == "home" => string.Empty,
+                var v => v.Skip(1).Join(',').Func(x => char.ToUpper(x[0]) + x[1..]),
+            };
 
             _articleIds = Index switch
             {
                 string v when v != "home" => (await _articleService.GetIndexSummariesByName(DbName, v, context))
-                    .OrderBy(x => x.Index)
+                    .OrderBy(x => x.OrderBy)
                     .Select(x => x.ArticleId)
                     .ToArray(),
 
                 _ => (await _articleService.GetSummaries(DbName, context))
-                    .OrderBy(x => x.Index)
+                    .OrderBy(x => x.OrderBy)
                     .Select(x => x.ArticleId)
                     .ToArray(),
             };

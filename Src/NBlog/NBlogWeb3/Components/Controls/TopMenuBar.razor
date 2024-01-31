@@ -40,7 +40,7 @@
 }
 
 @code {
-    [Parameter] public NBlogConfiguration? Configuration { get; set; }
+    [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
 
     [Inject] private LeftButtonStateService LeftButtonState { get; set; } = null!;
     [Inject] private NavigationManager _navManager { get; set; } = null!;

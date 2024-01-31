@@ -49,14 +49,8 @@ public class ArticleDirectoryBuilder
     {
         subject.NotNull();
 
-        string orderBy = subject.Index switch
-        {
-            int v => (subject.Index ?? 999).ToString(),
-            _ => subject.CreatedDate.ToString("yyyyMMdd"),
-        };
-
         string tags = new Tags(subject.Tags)
-            .SetValue(NBlogConstants.Index, orderBy)
+            .SetValue(NBlogConstants.OrderBy, subject.Index.ToString())
             .ToString();
 
         return new GraphNode($"article:{subject.ArticleId}", tags);
@@ -73,7 +67,8 @@ public class ArticleDirectoryBuilder
 
         var nodes = Tags.Create(subject.Tags)
             .Where(x => x.Value.IsNotEmpty())
-            .Where(x => !x.Key.EqualsIgnoreCase("db"))
+            .Where(x => !x.Key.EqualsIgnoreCase(NBlogConstants.DbTag))
+            .SelectMany(x => x.Value!.Split(',', StringSplitOptions.RemoveEmptyEntries), (o, i) => (o.Key, Value: i))
             .Select(x => new GraphNode($"tag:{x.Key}/{x.Value}", subject.Tags))
             .ToArray();
 
@@ -91,7 +86,8 @@ public class ArticleDirectoryBuilder
 
         var nodes = Tags.Create(subject.Tags)
             .Where(x => x.Value.IsNotEmpty())
-            .Where(x => !x.Key.EqualsIgnoreCase("db"))
+            .Where(x => !x.Key.EqualsIgnoreCase(NBlogConstants.DbTag))
+            .SelectMany(x => x.Value!.Split(',', StringSplitOptions.RemoveEmptyEntries), (o, i) => (o.Key, Value: i))
             .Select(x => new GraphEdge($"tag:{x.Key}/{x.Value}", $"article:{subject.ArticleId}", edgeType: "tagIndex", tags: "tagIndex"))
             .ToArray();
 

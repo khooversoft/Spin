@@ -9,9 +9,10 @@ public record NBlogConfiguration
 {
     [Id(1)] public string DbName { get; init; } = null!;
     [Id(2)] public string Theme { get; init; } = null!;
-    [Id(3)] public OverviewPanel OverviewPanel { get; init; } = null!;
-    [Id(4)] public IndexPanel IndexPanel { get; init; } = null!;
-    [Id(5)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
+    [Id(3)] public string? HomeIndex { get; init; }
+    [Id(4)] public OverviewPanel OverviewPanel { get; init; } = null!;
+    [Id(5)] public IndexPanel IndexPanel { get; init; } = null!;
+    [Id(6)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
 
     public static IValidator<NBlogConfiguration> Validator { get; } = new Validator<NBlogConfiguration>()
         .RuleFor(x => x.DbName).ValidName()

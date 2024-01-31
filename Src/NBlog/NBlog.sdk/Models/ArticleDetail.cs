@@ -1,6 +1,4 @@
-﻿using Toolbox.Types;
-
-namespace NBlog.sdk;
+﻿namespace NBlog.sdk;
 
 public record ArticleDetail
 {

@@ -59,6 +59,7 @@ public static class ManifestFileTool
             Index = model.Index ?? model.GetIndexOrStartDate(),
         };
 
+
         if (!model.Validate(out var v))
         {
             v.LogStatus(context, "File={file} is not a valid manifest file", file);

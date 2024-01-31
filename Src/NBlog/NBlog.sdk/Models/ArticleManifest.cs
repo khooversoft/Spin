@@ -16,9 +16,11 @@ public record ArticleManifest
     [Id(5)] public DateTime? StartDate { get; init; }
     [Id(6)] public DateTime? EndDate { get; init; }
     [Id(7)] public bool NoShowDate { get; init; }
-    [Id(8)] public string? LeftBoxStyle { get; init; }
-    [Id(9)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
-    [Id(10)] public string Tags { get; init; } = null!;
+    [Id(8)] public bool NoTagLinks { get; init; }
+    [Id(9)] public string? TitleLink { get; init; }
+    [Id(10)] public string? LeftBoxStyle { get; init; }
+    [Id(11)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
+    [Id(12)] public string Tags { get; init; } = null!;
 
     public static IValidator<ArticleManifest> Validator { get; } = new Validator<ArticleManifest>()
         .RuleFor(x => x.ArticleId).Must(x => FileId.Create(x).IsOk(), _ => "Invalid artical Id")
@@ -45,14 +47,16 @@ public static class ArticleManifestValidations
         int v => v,
         _ => subject.StartDate switch
         {
-            DateTime v => 3000_00_00 - int.Parse(v.ToString("yyyyMMdd")),
-            _ => subject.StartDate switch
-            {
-                DateTime v => 3000_00_00 - int.Parse(v.ToString("yyyyMMdd")),
-                _ => 0,
-            }
+            DateTime v => DateTimeToReverseIndex(v),
+            _ => DateTimeToReverseIndex(subject.CreatedDate),
         },
     };
+
+    private static int DateTimeToReverseIndex(DateTime dateTime)
+    {
+        TimeSpan timeSpan = DateTime.MaxValue - dateTime;
+        return (int)timeSpan.TotalDays;
+    }
 
     public static Option DistinctTests(ArticleManifest manifest)
     {
@@ -72,18 +76,12 @@ public static class ArticleManifestValidations
     {
         if (!GetCommands(manifest, out var commandsOption)) return commandsOption.ToOptionStatus();
         IReadOnlyList<CommandNode> commands = commandsOption.Return();
-
-        IReadOnlyList<string> shouldHave = TagsTool.HasTag(manifest.Tags, NBlogConstants.NoSummaryTag) switch
-        {
-            true => [NBlogConstants.MainAttribute],
-            false => [NBlogConstants.MainAttribute, NBlogConstants.SummaryAttribute],
-        };
+        IReadOnlyList<string> shouldHave = [NBlogConstants.MainAttribute, NBlogConstants.SummaryAttribute];
 
         var attributes = commands.SelectMany(x => x.Attributes).ToArray();
         var contains = shouldHave.Where(x => attributes.Contains(x)).ToArray();
-        var missing = shouldHave.Except(contains).ToArray();
 
-        return missing.Length == 0 ? StatusCode.OK : (StatusCode.Conflict, $"Missing attributes={missing.Join(';')}");
+        return contains.Length != 0 ? StatusCode.OK : (StatusCode.Conflict, $"Missing one of the required attributes={shouldHave.Join(';')}");
     }
 
     public static Option RequiredTags(string tags)

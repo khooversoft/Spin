@@ -11,7 +11,7 @@
 </nav>
 
 @code {
-    [Parameter] public NBlogConfiguration? Configuration { get; init; }
+    [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
     [Inject] private ILogger<ConfigurationMenu> _logger { get; init; } = null!;
 
     private IReadOnlyList<IndexMap> _indexMap = Array.Empty<IndexMap>();
