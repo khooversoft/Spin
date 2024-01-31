@@ -3,7 +3,6 @@
 @using Toolbox.Extensions
 @using Toolbox.Tools
 @using Toolbox.Types
-@rendermode InteractiveServer
 
 @switch (_flow.State)
 {
@@ -64,7 +63,7 @@
                         }
 
                         <div class="@_collapseClass">
-                            <div class="mt-3">
+                            <div class="x-markup-html-container mt-3">
                                 @((MarkupString)_html)
                             </div>
 

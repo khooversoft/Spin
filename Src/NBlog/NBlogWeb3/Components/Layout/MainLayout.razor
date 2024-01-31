@@ -1,5 +1,7 @@
-﻿@using NBlog.sdk
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using NBlog.sdk
 @using NBlogWeb3.Components.Controls
+@using NBlogWeb3.Models
 @using Toolbox.Extensions
 @using Toolbox.Tools
 @using Toolbox.Types
@@ -16,7 +18,7 @@
     <div class="@_themeClass">
         <div class="app-body">
             <div class="x-top-menu-container">
-                <TopMenuBar Configuration=@_configuration ShowMenu=ShowMenu />
+                <TopMenuBar Configuration=@_configuration />
             </div>
 
             <div class="page">
@@ -52,15 +54,11 @@
 
     [Inject] private ConfigurationService _configurationService { get; init; } = null!;
     [Inject] private ILogger<MainLayout> _logger { get; init; } = null!;
+    [Inject] private LeftButtonStateService _leftButtonStateService { get; init; } = null!;
 
     private string _themeClass = "dark-theme";
     private NBlogConfiguration _configuration = null!;
     private SequentialState _flow = new SequentialState();
-
-    private Task ShowMenu()
-    {
-        return Task.CompletedTask; // await ShowIndex.InvokeAsync();
-    }
 
     protected override async Task OnParametersSetAsync()
     {
