@@ -11,6 +11,8 @@
 
     #side-menu.open {
         left: 0; /* Slide in */
+        width: 100%;
+        max-width: 350px;
     }
 
 .dark-theme #side-menu {
@@ -21,7 +23,11 @@
     background-color: var(--bd-body-bg);
 }
 
-.x-icon-button {
+.x-show-menu-button-container {
+    margin: 10px 0px 0px 0px;
+}
+
+.x-show-menu-button {
     padding: 0.275rem 0rem 0rem 0rem;
     cursor: pointer;
     background-color: darkgray;
@@ -30,7 +36,7 @@
     border-bottom-right-radius: 5px;
 }
 
-.x-icon {
+.x-show-menu-icon {
     display: inline-block;
     width: 1em;
     height: 1em;

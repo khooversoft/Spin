@@ -1,22 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using NBlog.sdk
 @using Toolbox.Tools
-@rendermode InteractiveServer
 
 
 @if (_flow.State == 1)
 {
-    <SlideLeftMenu @ref="slidingMenuRef" Configuration="@Configuration" />
-
-    <div class="d-flex x-menu-container">
-        <a class="x-icon-button" @onclick=OnShowIndex >
-            <svg class="x-icon"><use xlink:href="#chevron-right"></use></svg>
-        </a>
-
-        <div class="">
-            <ConfigurationMenu Configuration="@Configuration" />
-        </div>
-    </div>
+    <SlideLeftMenu Configuration="@Configuration" />
+    <ConfigurationMenu Configuration="@Configuration" />
 
     <div class="x-lines m-4">
         <div>
@@ -33,17 +23,14 @@
     [Inject] private ILogger<LeftMenuContainer> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();
-    private SlideLeftMenu? slidingMenuRef;
     private IReadOnlyList<string> _lines = [""];
 
     protected override void OnParametersSet()
     {
-        if (Configuration == null ) return;
+        if (Configuration == null) return;
 
         _flow.MoveState(1);
         _lines = Configuration.OverviewPanel.Lines.ToArray();
         base.OnParametersSet();
     }
-
-    private void OnShowIndex() => slidingMenuRef?.ToggleMenu();
 }

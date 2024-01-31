@@ -1,9 +1,9 @@
 ﻿@using NBlog.sdk
+@using NBlogWeb3.Models
 @using Toolbox.Extensions
 @using Toolbox.Tools
 @using Toolbox.Types
-@* @attribute [StreamRendering(true)] *@
-@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 
 @if (_flow.State == 1)
 {
@@ -11,13 +11,14 @@
         <div class="d-flex x-navbar-container">
             @if (Configuration != null)
             {
+                <div class="x-menu-button" @onclick=ShowLeftMenu>
+                    <svg class="bi me-2 f5"><use xlink:href="#list"></use></svg>
+                </div>
+
                 <div class="x-nvarbar-brand-container">
                     <a href="/summary/article/home">
                         <img src="/Images/khicon.svg" class="x-icon-svg " aria-label="KH" />
                     </a>
-                    <span class="x-navbar-brand-container">
-                        <span class="x-navbar-brand">Kelvin Hoover</span>
-                    </span>
                 </div>
 
                 <div class="x-top-menu-title flex-fill p-2">@_title</div>
@@ -29,8 +30,8 @@
                 <button type="button" class="x-top-menu-search-button btn btn-outline-dark" @onclick=SearchEvent>Search</button>
 
                 <div class="x-btn-icon-container">
-                    <a class="x-btn-icon" @onclick=SearchEvent>
-                        <svg class="bi me-2 f5 text-success"><use xlink:href="#search"></use></svg>
+                    <a @onclick=SearchEvent>
+                        <svg class="bi me-2 f5 text-dark"><use xlink:href="#search"></use></svg>
                     </a>
                 </div>
             }
@@ -40,8 +41,8 @@
 
 @code {
     [Parameter] public NBlogConfiguration? Configuration { get; set; }
-    [Parameter] public EventCallback ShowMenu { get; set; }
 
+    [Inject] private LeftButtonStateService LeftButtonState { get; set; } = null!;
     [Inject] private NavigationManager _navManager { get; set; } = null!;
     [Inject] private ConfigurationService _configurationService { get; set; } = null!;
     [Inject] private ILogger<TopMenuBar> _logger { get; set; } = null!;
@@ -65,10 +66,7 @@
         _flow.MoveState(1);
     }
 
-    private async Task ShowLeftMenu()
-    {
-        await ShowMenu.InvokeAsync();
-    }
+    private void ShowLeftMenu() => LeftButtonState.Toggle();
 
     private void SearchEvent()
     {

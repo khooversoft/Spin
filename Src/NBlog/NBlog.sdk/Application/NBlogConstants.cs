@@ -23,6 +23,7 @@ public static class NBlogConstants
     public const string DefaultDbName = "article";
 
     public const string NoSummaryTag = "noSummary";
+    public const string LeftMenuStateKey = "left-menu-state";
 
     public const string DbTag = "db";
     public const string AreaTag = "area";

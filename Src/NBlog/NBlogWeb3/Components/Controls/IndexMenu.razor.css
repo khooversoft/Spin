@@ -1,23 +1,13 @@
-﻿/*
-@media (min-width: 641px) {
-    .x-container {
-        flex-direction: column;
-    }
-}*/
-
-.x-container {
-    margin: 0px 20px 0px 20px;
-}
-
-.x-group-container {
-    padding-top: 10px;
-    padding-bottom: 1px;
+﻿.x-container {
+    width: 100%;
+    padding: 10px;
 }
 
 .x-group-text {
     padding: 2px 0px 2px 0px;
     color: DarkSlateGray;
     font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .light-theme .x-group-text {
@@ -25,17 +15,19 @@
 }
 
 .x-btn-link-container {
+    margin: 0px 0px 20px 0px;
+    display: flex;
     flex-wrap: wrap;
 }
 
 .x-btn-link {
-    color: black;
+    color: darkslategray;
     border-color: transparent;
-    margin: 0px 10px 0px 0px;
     font-size: 0.9rem;
     text-align: left !important;
     padding-left: 0;
     padding-bottom: 0;
+    flex-basis: 50%;
 }
 
 .light-theme .x-btn-link {

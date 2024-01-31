@@ -74,6 +74,10 @@ main {
     .x-main-configuration-container {
         display: block;
     }
+
+    .x-main-content-container {
+        padding: 2px;
+    }
 }
 
 .top-row {

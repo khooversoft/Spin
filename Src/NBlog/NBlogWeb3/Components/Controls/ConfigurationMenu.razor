@@ -1,9 +1,9 @@
 ﻿@using NBlog.sdk
 
-<nav class="x-container nav nav-pills gap-1">
+<nav class="x-container nav">
     @foreach (var item in _indexMap)
     {
-        <div class="nav-link d-flex align-items-center fw-600">
+        <div class="x-btn-left-menu-container nav-link d-flex align-items-center fw-600">
             @((MarkupString)item.SvcCommand)
             <a class="x-btn-left-menu btn x-left-menu-link-text" href="@item.HRef">@item.Title</a>
         </div>
