@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -81,5 +82,30 @@ public static class ObjectExtensions
     public static T Cast<T>(this object subject)
     {
         return subject is T to ? to : throw new ArgumentException($"Cannot cast to type={typeof(T).FullName}");
+    }
+
+    /// <summary>
+    /// Compute hash for multiple objects, using string representations
+    /// </summary>
+    /// <param name="values">values</param>
+    /// <returns>hash bytes</returns>
+    public static byte[] ComputeHash(this IEnumerable<object?> values)
+    {
+        values.NotNull();
+
+        var ms = new MemoryStream();
+
+        values.Select(x => x switch
+        {
+            null => null,
+            string v => v.ToBytes(),
+            byte[] v => v,
+
+            var v => throw new InvalidDataException($"Not supported type={(v?.GetType()?.Name ?? "<null>")}"),
+        })
+        .ForEach(x => ms.Write(x));
+
+        ms.Seek(0, SeekOrigin.Begin);
+        return MD5.Create().ComputeHash(ms);
     }
 }

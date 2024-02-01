@@ -38,6 +38,7 @@ public record OverviewMenu
     [Id(2)] public required string IconColor { get; init; }
     [Id(3)] public required string HRef { get; init; }
     [Id(4)] public int OrderIndex { get; init; } = 1000;
+    [Id(5)] public bool IncludeInIndex { get; init; }
 
     public bool IsRandom() => IconName == _randomText;
 

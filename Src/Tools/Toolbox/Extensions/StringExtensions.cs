@@ -83,31 +83,6 @@ public static class StringExtensions
     public static bool EqualsIgnoreCase(this string subject, string value) => subject.Equals(value, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Compute hash for multiple objects, using string representations
-    /// </summary>
-    /// <param name="values">values</param>
-    /// <returns>hash bytes</returns>
-    public static byte[] ComputeHash(this IEnumerable<object?> values)
-    {
-        values.NotNull();
-
-        var ms = new MemoryStream();
-
-        values.Select(x => x switch
-        {
-            null => null,
-            string v => v.ToBytes(),
-            byte[] v => v,
-
-            var v => throw new InvalidDataException($"Not supported type={(v?.GetType()?.Name ?? "<null>")}"),
-        })
-        .ForEach(x => ms.Write(x));
-
-        ms.Seek(0, SeekOrigin.Begin);
-        return MD5.Create().ComputeHash(ms);
-    }
-
-    /// <summary>
     /// Truncate a string based on max length value
     /// </summary>
     /// <param name="subject">string or null</param>
@@ -134,75 +109,4 @@ public static class StringExtensions
         string v when v.Length < count * 2 => $"***{v.Length}",
         string v => value[0..count] + "..." + value[^count..],
     };
-
-    /// <summary>
-    /// Remove duplicate character from string
-    /// </summary>
-    /// <param name="input"></param>
-    /// <param name="removeDuplicateChr"></param>
-    /// <returns></returns>
-    public static string? RemoveDuplicates(this string? input, char removeDuplicateChr)
-    {
-        if (input.IsEmpty()) return input;
-
-        ReadOnlySpan<char> inputSpan = input.AsSpan();
-        Span<char> outputSpan = stackalloc char[inputSpan.Length];
-        int outputIndex = 0;
-        int i = 0;
-        outputSpan[outputIndex++] = inputSpan[i++];
-
-        for (; i < inputSpan.Length; i++)
-        {
-            if (inputSpan[i] == removeDuplicateChr && inputSpan[i - 1] == removeDuplicateChr) continue;
-
-            outputSpan[outputIndex++] = inputSpan[i];
-        }
-
-        return outputSpan.Slice(0, outputIndex).ToString();
-    }
-
-    /// <summary>
-    /// Remove trailing characters like '/'
-    /// </summary>
-    /// <param name="input"></param>
-    /// <param name="removeTrailingChr"></param>
-    /// <returns></returns>
-    [return: NotNullIfNotNull(nameof(input))]
-    public static string? RemoveTrailing(this string? input, char removeTrailingChr)
-    {
-        if (input.IsEmpty()) return input;
-
-        input = input.EndsWith(removeTrailingChr) ? input[0..(input.Length - 1)] : input;
-        return input;
-    }
-
-    /// <summary>
-    /// Match input against wilcard pattern
-    /// </summary>
-    /// <param name="pattern"></param>
-    /// <param name="input"></param>
-    /// <returns></returns>
-    public static bool IsMatch(this string? input, string? pattern)
-    {
-        if (input.IsEmpty() || pattern.IsEmpty()) return false;
-
-        if (!pattern.Any(x => x == '*' || x == '?')) return StringComparer.OrdinalIgnoreCase.Equals(input, pattern);
-
-        var builder = new StringBuilder("^");
-
-        foreach (Char c in pattern)
-        {
-            switch (c)
-            {
-                case '*': builder.Append(".*"); break;
-                case '?': builder.Append('.'); break;
-                default: builder.Append("[" + c + "]"); break;
-            }
-        }
-
-        builder.Append('$');
-
-        bool result = new Regex(builder.ToString(), RegexOptions.IgnoreCase).IsMatch(input);
-        return result;
-    }
 }
