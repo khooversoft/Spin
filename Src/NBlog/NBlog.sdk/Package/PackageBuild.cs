@@ -139,6 +139,9 @@ public class PackageBuild
             var verify = o.VerifyFileId(fileId, context);
             if (verify.IsError()) return (StatusCode.Conflict, $"DbName={o.DbName} does not match fileId={fileId}");
 
+            string contactMeFile = file[0..(file.Length - NBlogConstants.ConfigurationExtension.Length)] + NBlogConstants.ContactMeExtension;
+            if( !File.Exists(contactMeFile)) return (StatusCode.Conflict, $"ContactMe file={contactMeFile} does not exist");
+
             return o;
         }
     }
