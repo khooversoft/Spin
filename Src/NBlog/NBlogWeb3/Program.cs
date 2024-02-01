@@ -4,6 +4,7 @@ using NBlogWeb3.Application;
 using NBlogWeb3.Components;
 using NBlogWeb3.Models;
 using Toolbox.Extensions;
+using static System.Net.Mime.MediaTypeNames;
 
 
 Console.WriteLine($"NBlog web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
@@ -49,7 +50,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddScoped<LeftButtonStateService>();
 
 var app = builder.Build();
-app.UseStatusCodePagesWithReExecute("/NotFound/{0}");
+//app.UseStatusCodePagesWithReExecute("/summary/article/home");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -60,8 +61,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
+app.UseStatusCodePagesWithRedirects("/");
 app.UseRouting();
 app.UseAntiforgery();
 app.MapBlogApi();

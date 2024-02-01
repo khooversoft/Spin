@@ -1,16 +1,14 @@
-﻿@page "/NotFound/{code}/{message?}"
+﻿@page "/NotFound/{code}"
 @using NBlog.sdk
 @using NBlogWeb3.Components.Controls
 @layout Layout.FullPageLayout
 
 <div>
-    hello
     <ShowRouteError Title="@_message" />
 </div>
 
 @code {
     [Parameter] public string Code { get; init; } = null!;
-    [Parameter] public string? Message { get; init; }
 
     private string _message { get; set; } = null!;
 
@@ -19,7 +17,7 @@
         _message = Code switch
         {
             "404" => "Resource not found (404)",
-            _ => $"{Message} ({Code})",
+            _ => Code,
         };
     }
 }

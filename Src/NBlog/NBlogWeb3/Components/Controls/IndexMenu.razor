@@ -22,6 +22,7 @@
 @code {
     [Parameter] public EventCallback CloseIndex { get; set; }
     [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
+
     [Inject] public NavigationManager _navManager { get; set; } = null!;
     [Inject] private ArticleService _articleService { get; init; } = null!;
     [Inject] private ConfigurationService _configurationService { get; init; } = null!;
@@ -43,6 +44,12 @@
 
         _flow.Reset();
         var context = new ScopeContext(_logger);
+        var contactLink = (groupName: "Links", topic: "Contact", link: NavRoutes.GotoContact(Configuration.DbName));
+
+        var includeIndexes = Configuration.OverviewPanel.Menus
+            .Where(x => x.IncludeInIndex)
+            .Select(x => (groupName: "Links", topic: x.Title, link: x.HRef))
+            .ToArray();
 
         try
         {
@@ -50,13 +57,15 @@
 
             _indexMap = _indexes
                 .Select(x => (group: Unwrap(x.IndexName), index: x))
-                .GroupBy(x => x.group.groupName)
+                .Where(x => x.group.groupName != "route")
+                .Select(x => (groupName: x.group.groupName, topic: x.group.topic, link: NavRoutes.GotoSummary(Configuration.DbName, x.index.IndexName)))
+                .Append(contactLink)
+                .Concat(includeIndexes)
+                .GroupBy(x => x.groupName)
                 .Select(x => new IndexMap
                     {
                         GroupName = x.Key,
-                        Items = x.GroupBy(y => y.group.topic)
-                            .Select(x => (x.Key, NavRoutes.GotoSummary(Configuration.DbName, x.First().index.IndexName)))
-                            .ToArray(),
+                        Items = x.GroupBy(y => y.topic).Select(x => (x.Key, x.First().link)).ToArray(),
                         SvcCommand = "r",
                     })
                 .ToArray();

@@ -206,7 +206,7 @@
             .Select(x => x.Value != null ? x.Value : x.Key)
             .Select(x => (title: x, link: getLink(x)))
             .Where(x => x.link != null)
-            .Select(x => (x.title, x.link.NotNull()))
+            .Select(x => (x.title.ToUpperFirstLetter(), x.link.NotNull()))
             .ToArray();
 
         string? getLink(string tagValue) => index.TryGetValue(tagValue, out var indexName) switch

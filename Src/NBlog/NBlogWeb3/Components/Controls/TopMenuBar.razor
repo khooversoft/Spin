@@ -59,7 +59,7 @@
 
         _flow.Reset();
 
-        _contactUrl = $"/contact/{Configuration.DbName}";
+        _contactUrl = NavRoutes.GotoContact(Configuration.DbName);
         _title = Configuration.OverviewPanel.Title;
         _menus = Configuration.OverviewPanel.Menus.OrderBy(x => x.OrderIndex).Take(2).ToArray();
 
