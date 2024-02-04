@@ -1,5 +1,6 @@
 html, body {
-    font-family: Arial, 'Helvetica Neue', 'Times New Roman', Helvetica, sans-serif;
+    /*font-family: Arial, 'Helvetica Neue', 'Times New Roman', Helvetica, sans-serif;*/
+    font-family: system-ui, sans-serif;
 }
 
 a, .btn-link {

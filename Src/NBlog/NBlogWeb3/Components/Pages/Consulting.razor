@@ -1,0 +1,222 @@
+﻿@page "/consulting"
+@using NBlogWeb3.Components.Layout
+@using System.Diagnostics
+@layout Layout.BasePageLayout
+
+<ConsultingBackground />
+<ConsultingNavBar />
+
+<a class="btn btn-floating scroll-to-top" style=@_scrollClass id="btn-back-to-top" @onclick=ScrollToTop>
+    <svg class="bi"><use xlink:href="#arrow-up-square"></use></svg>
+</a>
+
+<div class="x-container">
+    <div class="x-content">
+        <div class="title-block">
+            <div class="title">
+                Unleashing Potential
+            </div>
+            <div class="title-topic">
+                Cloud Scale Consulting for Tomorrow's Business
+            </div>
+            <div class="title-description">
+                <p>
+                    At Cloud Scale Consulting, we specialize in unlocking the full
+                    potential of businesses by harnessing the power of cloud technology.
+                </p>
+                <p>
+                    We believe in a building strong partnerships, working closely with
+                    our clients to transform their operations, drive innovation,
+                    and facilitate sustainable growth.
+                </p>
+            </div>
+        </div>
+
+        <div id="products" class="product-block">
+            <div class="product-block-header">Products</div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Project Manager / Scrum Master</div>
+                <div class="table-column table-second-column">
+                    Boasting over a decade of program management expertise at Microsoft,
+                    adept in steering complex projects to successful completion with a
+                    strong grasp of Scrum methodologies.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Development Lead</div>
+                <div class="table-column table-second-column">
+                    A seasoned technology leader with 15+ years at Microsoft, in development
+                    management, coupled with an additional 5 years in consulting,
+                    demonstrating a deep understanding of technology leadership.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Full Stack Developer</div>
+                <div class="table-column table-second-column">
+                    Offering over 15 years of hands-on experience in Full Stack development,
+                    proficient in .NET, C#, and a range of modern development practices.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Cloud Developer</div>
+                <div class="table-column table-second-column">
+                    Over 15 years dedicated to crafting robust Web API Services, with
+                    extensive experience in deploying and managing cloud-hosted environments.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Analytics</div>
+                <div class="table-column table-second-column">
+                    More than 8 years of experience in analytics, proficient in Power BI,
+                    big data processing with tools like DataBricks, and Azure Synapse,
+                    offering insights-driven approaches to data management.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">SQL Data / Data Modeling</div>
+                <div class="table-column table-second-column">
+                    Specializes in SQL Server coding and data modeling, leveraging skills to
+                    create structured, efficient, and scalable data solutions.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Mentoring & Training</div>
+                <div class="table-column table-second-column">
+                    As a provider of technical expert guidance, my role is to empower your team with the
+                    knowledge and skills needed to excel in today's rapidly evolving technological landscape.
+                    Leveraging extensive experience in software development and project management,
+                    I can help closely align projects with your business goals.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Offshore Team Lead</div>
+                <div class="table-column table-second-column">
+                    Expert in leading offshore teams, skilled in both program management and
+                    development aspects, ensuring efficient and effective cross-border collaboration.
+                </div>
+            </div>
+        </div>
+
+        <div id="solitions" class="product-block">
+            <div class="product-block-header">Solutions</div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Mentoring & Training</div>
+                <div class="table-column table-second-column">
+                    I offer specialized mentoring and training services aimed at establishing
+                    or enhancing cloud-ready development teams, utilizing key technologies and
+                    practices such as DevOps, GitHub Actions, GIT, C#, and Data Modeling.
+                    <p>
+                        My approach is tailored to equip teams with the necessary skills and knowledge to
+                        thrive in a cloud-centric environment, focusing on efficient collaboration robust
+                        development disciplines. Additionally, I emphasize the importance of Data Modeling
+                        for effective data management and scalability in the cloud.
+                    </p>
+                    <p>
+                        My training sessions are more than just skill transfer; they are about cultivating a
+                        mindset that embraces continuous improvement and agile methodologies,
+                        essential for any team aspiring to excel in cloud-based development.
+                    </p>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Cloud Ready</div>
+                <div class="table-column table-second-column">
+                    By harnessing the combined capabilities of Azure services, such as App Services,
+                    Functions, Key Vault, Service Bus, and Containers, a set comprehensive
+                    solutions that address a wide array of business needs can be developed.
+                    <p>
+                        Utilizing holistic approaches to cloud development not only streamlines the
+                        deployment process but also ensures scalability, reliability, and cost-effectiveness.
+                    </p>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Full Stack Development</div>
+                <div class="table-column table-second-column">
+                    Leveraging a strong foundation in cloud-ready technologies such as .NET,
+                    ASP.NET Blazor, HTML/CSS, and various scripting languages, I offer tailored
+                    solutions for Web Applications and API Services.
+                    <p>
+                        My expertise encompasses the
+                        full spectrum of web development, from back-end logic using .NET frameworks to
+                        interactive front-end interfaces with HTML, CSS, and JavaScript.
+                        This includes creating responsive, user-friendly web applications and efficient,
+                        scalable API services.
+                    </p>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Cloud API Services</div>
+                <div class="table-column table-second-column">
+                    Utilizing cloud ready Azure & .NET technologies, including scalable technologies such as
+                    Open source Orleans Actors, community support robust server-side logic, and
+                    Blazor server and web assembly for interactive client-side UIs.
+                    <p>
+                        I ensure that the
+                        applications are not only functionally and visually rich, but also maintainable and
+                        scalable.
+                        This approach, combined with deep understanding of scripting for automation and
+                        integration,
+                        allows me to deliver comprehensive, cloud-optimized web solutions that meet diverse
+                        business
+                        requirements.
+                    </p>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Analytics</div>
+                <div class="table-column table-second-column">
+                    With a deep understanding of cutting-edge analytic technologies,
+                    I am well-equipped to deliver comprehensive analytic solutions
+                    tailored to your business needs. Utilizing Azure Synapse, Power BI, Databricks, SQL,
+                    just to name a few, I can seamlessly integrate big data analytics and data warehousing,
+                    providing a unified environment for advanced analytics at scale.
+                </div>
+            </div>
+        </div>
+
+        <div id="prices" class="product-block">
+            <div class="product-block-header">Prices</div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Consulting & Mentoring</div>
+                <div class="table-column table-second-column">
+                    My standard consulting fee is $140 per hour.
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-column table-first-column">Projects</div>
+                <div class="table-column table-second-column">
+                    Project pricing is subject to adjustment based on the project's scale and duration.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject] private IJSRuntime _js { get; init; } = null!;
+
+    private string _scrollClass => _showButton ? "display: block;" : "display: none;";
+    private bool _showButton = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var dotnetHelper = DotNetObjectReference.Create(this);
+            await _js.InvokeVoidAsync("scrollHandler.initialize", dotnetHelper);
+        }
+    }
+
+    [JSInvokable]
+    public void OnScroll(bool show)
+    {
+        _showButton = show;
+        StateHasChanged();
+    }
+
+    private void ScrollToTop()
+    {
+        _js.InvokeVoidAsync("scrollHandler.scrollToTop");
+    }
+}
