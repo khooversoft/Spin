@@ -11,8 +11,8 @@
         <div class="d-flex x-navbar-container">
             @if (Configuration != null)
             {
-                <div class="x-menu-button" @onclick=ShowLeftMenu>
-                    <svg class="bi me-2 f5"><use xlink:href="#list"></use></svg>
+                <div class="hamburger">
+                    <Hamburger OnClick=ShowLeftMenu Open=_leftButtonState />
                 </div>
 
                 <div class="x-nvarbar-brand-container">
@@ -52,12 +52,14 @@
     private string _contactUrl = string.Empty;
     private string _searchText = string.Empty;
     private SequentialState _flow = new SequentialState();
+    private bool _leftButtonState;
 
     protected override void OnParametersSet()
     {
         if (Configuration == null) return;
 
         _flow.Reset();
+        _leftButtonState = LeftButtonState.Get();
 
         _contactUrl = NavRoutes.GotoContact(Configuration.DbName);
         _title = Configuration.OverviewPanel.Title;
@@ -66,7 +68,11 @@
         _flow.MoveState(1);
     }
 
-    private void ShowLeftMenu() => LeftButtonState.Toggle();
+    private void ShowLeftMenu()
+    {
+        LeftButtonState.Toggle();
+        _leftButtonState = LeftButtonState.Get();
+    }
 
     private void SearchEvent()
     {
