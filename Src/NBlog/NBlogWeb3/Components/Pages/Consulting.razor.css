@@ -1,10 +1,4 @@
-﻿/*consutling-root {
-    --product-top-margin: 100px;
-    --first-column-size: 250px;
-    --second-column-size: 550px;
-}
-*/
-html {
+﻿html {
     scroll-behavior: smooth;
 }
 
@@ -28,54 +22,60 @@ html, body {
 
 
 .title {
-    font-size: 3rem;
     font-style: italic;
     font-weight: 500;
     margin-bottom: 20px;
 }
 
 .title-topic {
-    font-size: 1.5rem;
     font-weight: 500;
     margin-bottom: 20px;
 }
 
 .title-description {
-    font-size: 1.1rem;
-    width: 45%;
+    max-width: 600px;
 }
 
-.product-block {
-    margin: var(--product-top-margin) 0 10px 0;
-}
-
-.product-block-header {
-    font-size: 2rem;
-    margin-bottom: 20px;
-}
-
-.table-row {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 5px;
-}
-
-.table-first-column {
-    width: var(--first-column-size);
-    font-weight: 600;
-    text-align: right;
-}
-
-    .table-first-column ul {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
+    .product-block {
+        margin: var(--product-top-margin) 0 10px 0;
     }
 
-.table-second-column {
-    width: var(--second-column-size);
-}
+    .product-block-header {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
 
-.table-column {
-    padding: 10px;
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px; /* Space between cards */
+        max-width: 900px;
+    }
+
+    .card {
+        display: flex;
+        min-width: 250px;
+        margin-bottom: 5px;
+        flex: 1 1 calc(33.333% - 20px); /* Each card takes up a third of the container width minus the gap */
+        background-color: white;
+        border: 1px solid #ddd; /* Optional: border for the cards */
+        border-radius: 8px; /* Optional: rounded corners */
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: shadow for depth */
+    }
+
+    .card-title {
+        font-weight: 600;
+        margin: 0 0 10px 0;
+    }
+
+    .card-description {
+        /*width: var(--second-column-size);*/
+    }
+
+
+@media (max-width: 400px) {
+    .product-block {
+        margin: 10px 0 10px 0;
+    }
 }

@@ -76,9 +76,9 @@
     color: black !important;
 }
 
-.x-markup-html-container {
+/*.x-markup-html-container {
     font-size: calc(12px + (4 * ((100vw - 400px) / 600)));
-}
+}*/
 
 .tag-btn {
     text-decoration: none !important;
@@ -131,7 +131,7 @@
     width: calc(80px + 6vw);
 }
 
-@media (max-width: 400px) {
+/*@media (max-width: 400px) {
     .x-markup-html-container {
         font-size: 12px;
     }
@@ -141,7 +141,7 @@
     .x-markup-html-container {
         font-size: 16px;
     }
-}
+}*/
 
 
 @media (max-width: 640.98px) {

@@ -10,15 +10,27 @@
     }
 </nav>
 
+<div class="x-lines m-4">
+    <div>
+        @foreach (var line in _lines)
+        {
+            <p class="x-left-menu-line">@line</p>
+        }
+    </div>
+</div>
+
 @code {
     [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
     [Inject] private ILogger<ConfigurationMenu> _logger { get; init; } = null!;
 
     private IReadOnlyList<IndexMap> _indexMap = Array.Empty<IndexMap>();
+    private IReadOnlyList<string> _lines = [""];
 
     protected override void OnParametersSet()
     {
         if (Configuration == null) return;
+
+        _lines = Configuration.OverviewPanel.Lines.ToArray();
 
         _indexMap = Configuration.OverviewPanel.Menus
             .OrderBy(x => x.OrderIndex)

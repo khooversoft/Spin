@@ -3,6 +3,15 @@
 @using Toolbox.Types
 
 <nav class="x-container">
+    <div class="x-btn-link-container">
+        @foreach (var link in _links)
+        {
+            <a class="btn x-btn-link " @onclick="() => CloseAndLink(link.ArticleLink)">
+                <span class="underline-from-left x-content-menu">@link.Topic</span>
+            </a>
+        }
+    </div>
+
     @foreach (var group in _indexMap.OrderBy(x => x.GroupName))
     {
         <span class="x-group-text">@group.GroupName</span>
@@ -31,6 +40,7 @@
     private SequentialState _flow = new SequentialState();
     private IReadOnlyList<ArticleIndex>? _indexes { get; set; }
     private IReadOnlyList<IndexMap> _indexMap { get; set; } = Array.Empty<IndexMap>();
+    private IReadOnlyList<(string Topic, string ArticleLink)> _links = Array.Empty<(string, string)>();
 
     private async Task CloseAndLink(string link)
     {
@@ -44,11 +54,11 @@
 
         _flow.Reset();
         var context = new ScopeContext(_logger);
-        var contactLink = (groupName: "Links", topic: "Contact", link: NavRoutes.GotoContact(Configuration.DbName));
 
-        var includeIndexes = Configuration.OverviewPanel.Menus
-            .Where(x => x.IncludeInIndex)
-            .Select(x => (groupName: "Links", topic: x.Title, link: x.HRef))
+        _links = Configuration.OverviewPanel.Menus
+            .OrderBy(x => x.OrderIndex)
+            .Select(x => (topic: x.Title, link: x.HRef))
+            .Append(("Contact", NavRoutes.GotoContact(Configuration.DbName)))
             .ToArray();
 
         try
@@ -59,8 +69,6 @@
                 .Select(x => (group: Unwrap(x.IndexName), index: x))
                 .Where(x => x.group.groupName != "route")
                 .Select(x => (groupName: x.group.groupName, topic: x.group.topic, link: NavRoutes.GotoSummary(Configuration.DbName, x.index.IndexName)))
-                .Append(contactLink)
-                .Concat(includeIndexes)
                 .GroupBy(x => x.groupName)
                 .Select(x => new IndexMap
                     {

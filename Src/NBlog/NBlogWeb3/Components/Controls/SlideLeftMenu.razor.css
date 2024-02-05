@@ -7,6 +7,7 @@
     background-color: #343a40;
     transition: left 0.5s; /* Smooth transition for the sliding effect */
     z-index: 10;
+    border-top-right-radius: 10px;
 }
 
     #side-menu.open {

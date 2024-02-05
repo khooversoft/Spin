@@ -88,14 +88,9 @@
     color: black;
 }
 
-.bi {
-    display: inline-block;
-    width: 2em;
-    height: 2em;
-    vertical-align: -.125em;
-    fill: currentcolor;
+.hamburger {
+    margin: 0 10px 0 0;
 }
-
 
 @media (max-width: 640.98px) {
     .x-nvarbar-brand-container {

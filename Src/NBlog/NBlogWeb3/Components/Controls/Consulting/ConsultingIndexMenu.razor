@@ -1,0 +1,58 @@
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using NBlog.sdk
+@using NBlogWeb3.Models
+@using Toolbox.Extensions
+
+
+<div id="side-menu" class="@GetMenuClass()">
+    <a class="menu-button" @onclick='() => CloseAndGoto("products")'><span class="underline-from-left">Product</span></a>
+    <a class="menu-button" @onclick='() => CloseAndGoto("solitions")'><span class="underline-from-left">Solutions</span></a>
+    <a class="menu-button" @onclick='() => CloseAndGoto("prices")'><span class="underline-from-left">Pricing</span></a>
+    <a class="menu-button" @onclick='() => CloseAndGoto("contact-me")'><span class="underline-from-left">Contact Me</span></a>
+    <a class="menu-button" @onclick="() => CloseAndLink(NavRoutes.GotoHome())"><span class="underline-from-left">My Blog</span></a>
+</div>
+
+
+@code {
+    [Inject] private LeftButtonStateService _leftButtonStateService { get; init; } = null!;
+    [Inject] public NavigationManager _navManager { get; set; } = null!;
+    [Inject] public IJSRuntime _js { get; init; } = null!;
+
+    private bool isMenuOpen = false;
+    private string GetMenuClass() => isMenuOpen ? "open" : "";
+
+    protected override void OnInitialized()
+    {
+        _leftButtonStateService.OnChange += OnStateChange;
+        isMenuOpen = _leftButtonStateService.Get();
+        base.OnInitialized();
+    }
+
+    public void Dispose() => _leftButtonStateService.OnChange -= OnStateChange;
+
+    private void OnStateChange()
+    {
+        isMenuOpen = _leftButtonStateService.Get();
+        StateHasChanged();
+    }
+
+    private void CloseIndex()
+    {
+        _leftButtonStateService.Clear();
+        isMenuOpen = false;
+        StateHasChanged();
+    }
+
+    private void CloseAndLink(string link)
+    {
+        CloseIndex();
+        if (link.IsNotEmpty()) _navManager.NavigateTo(link);
+    }
+
+    private async Task CloseAndGoto(string id)
+    {
+        CloseIndex();
+        string script = $"document.getElementById('{id}').scrollIntoView({{behavior:'smooth'}})";
+        await _js.InvokeVoidAsync("eval", script);
+    }
+}

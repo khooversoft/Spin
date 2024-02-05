@@ -7,6 +7,7 @@
     --scrollbarBG: #CFD8DC;
     --thumbBG: #90A4AE;
     --x-light-theme-background-color: #FDFEFE;
+
     /*  */
     /* Unknow usage */
     /*  */
@@ -53,19 +54,7 @@
 }
 
 
-/*.dark-theme .top-row {
-    padding: .4rem 0;
-    background-color: transparent;
-    background-image: linear-gradient(to bottom, rgba(var(--bd-newcolor-rgb), 1), rgba(var(--bd-newcolor-rgb), 0.95));
-}
-
-.light-theme .top-row {
-    padding: .4rem 0;
-    background-color: transparent;
-    background-image: linear-gradient(180deg, rgba(93,138,203,1) 0%, rgba(112,167,247,1) 100%);
-}
-*/
-.dark-theme .scroll-to-top {
+.scroll-to-top {
     --bs-bg-opacity: 1;
     background-color: rgba(var(--bd-newcolor-rgb),.6);
     color: black;
@@ -118,4 +107,20 @@
     height: 1px;
     background-color: gray;
     /*margin: 10px 0;*/ /* Adjust margin as needed */
+}
+
+.x-markup-html-container {
+    font-size: calc(12px + (4 * ((100vw - 400px) / 600)));
+}
+
+@media (max-width: 400px) {
+    .x-markup-html-container {
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 1000px) {
+    .x-markup-html-container {
+        font-size: 16px;
+    }
 }

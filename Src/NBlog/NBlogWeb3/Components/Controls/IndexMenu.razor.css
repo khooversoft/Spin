@@ -1,6 +1,8 @@
 ﻿.x-container {
     width: 100%;
     padding: 10px;
+    height: calc(100% - 50px);
+    overflow-y: auto;
 }
 
 .x-group-text {
@@ -28,6 +30,11 @@
     padding-left: 0;
     padding-bottom: 0;
     flex-basis: 50%;
+}
+
+.x-content-menu {
+    font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .light-theme .x-btn-link {

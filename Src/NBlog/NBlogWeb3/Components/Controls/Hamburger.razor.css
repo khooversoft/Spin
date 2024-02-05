@@ -1,0 +1,46 @@
+﻿button {
+    background: transparent;
+    /*border-color: transparent;*/
+    /* border: 1px solid var(--button-color, #000); */
+    /* border-radius: 2px; */
+    padding: 0;
+    border: 0 solid transparent;
+    border-radius: 2px;
+    transition: border-color 0.5s ease-in;
+}
+
+/* button one */
+
+.button-one {
+    --button-color: #333;
+    --border-color: gray;
+}
+
+    .button-one[aria-expanded="true"] {
+        border: 2px solid var(--border-color, #000);
+    }
+
+    .button-one .line {
+        transition: y 300ms ease-in 300ms, rotate 300ms ease-in, opacity 0ms 300ms;
+        transform-origin: center;
+    }
+
+    .button-one[aria-expanded="true"] .line {
+        transition: y 300ms ease-in, rotate 300ms ease-in 300ms, opacity 0ms 300ms;
+    }
+
+    .button-one[aria-expanded="true"] :is(.top, .bottom) {
+        y: 45;
+    }
+
+    .button-one[aria-expanded="true"] .top {
+        rotate: 45deg;
+    }
+
+    .button-one[aria-expanded="true"] .middle {
+        opacity: 0;
+    }
+
+    .button-one[aria-expanded="true"] .bottom {
+        rotate: -45deg;
+    }

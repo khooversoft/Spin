@@ -9,10 +9,7 @@
 
 <Symbols />
 
-@* <button type="button" class="btn btn-floating scroll-to-top" id="btn-back-to-top">
-    <svg class="bi f5"><use xlink:href="#arrow-up-square"></use></svg>
-</button>
- *@
+
 @if (_flow.State == 1)
 {
     <CascadingValue Value="_configuration">
@@ -23,18 +20,15 @@
                 </div>
 
                 <div class="page">
+                    <SlideLeftMenu />
                     <div class="x-left-menu-sidebar">
                         <div class="x-left-menu-container">
-                            <LeftMenuContainer />
+                            <ConfigurationMenu />
                         </div>
                     </div>
 
                     <main>
                         <article class="x-main-content-container">
-                            <div class="x-main-configuration-container">
-                                <LeftMenuContainer />
-                            </div>
-
                             @Body
                         </article>
                     </main>
