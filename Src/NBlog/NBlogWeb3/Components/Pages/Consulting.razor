@@ -1,25 +1,25 @@
 ﻿@page "/consulting"
 @using NBlogWeb3.Components.Layout
 @using System.Diagnostics
-@layout Layout.BasePageLayout
-
-<ConsultingBackground />
-<ConsultingNavBar />
+@layout Layout.ConsultingLayout
 
 <a class="btn btn-floating scroll-to-top" style=@_scrollClass id="btn-back-to-top" @onclick=ScrollToTop>
     <svg class="bi"><use xlink:href="#arrow-up-square"></use></svg>
 </a>
 
+<ConsultingNavBar />
+<ConsultingIndexMenu />
+
 <div class="x-container">
     <div class="x-content">
         <div class="title-block">
-            <div class="title">
+            <div class="title text-scale-24-48">
                 Unleashing Potential
             </div>
-            <div class="title-topic">
+            <div class="title-topic text-scale-18-24">
                 Cloud Scale Consulting for Tomorrow's Business
             </div>
-            <div class="title-description">
+            <div class="title-description text-scale-12-16">
                 <p>
                     At Cloud Scale Consulting, we specialize in unlocking the full
                     potential of businesses by harnessing the power of cloud technology.
@@ -218,9 +218,5 @@
     private void ScrollToTop()
     {
         _js.InvokeVoidAsync("scrollHandler.scrollToTop");
-    }
-
-    private void OnClick()
-    {
     }
 }

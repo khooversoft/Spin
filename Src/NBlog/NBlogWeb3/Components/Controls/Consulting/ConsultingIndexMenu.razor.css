@@ -1,0 +1,34 @@
+﻿.x-container {
+    width: 100%;
+    padding: 10px;
+    height: calc(100% - 50px);
+    overflow-y: auto;
+}
+
+#side-menu {
+    width: 350px;
+    left: -350px; /* Start off-screen */
+    position: fixed;
+    top: 4.5rem;
+    height: 100vh;
+    background-color: var(--bs-gray-dark);
+    transition: left 0.5s; /* Smooth transition for the sliding effect */
+    z-index: 10;
+    border-top-right-radius: 10px;
+    padding: 10px 10px 0 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+    #side-menu.open {
+        left: 0; /* Slide in */
+        width: 100%;
+        max-width: 350px;
+    }
+
+.menu-button {
+    color: white;
+    margin: 0 0 10px 0;
+    text-decoration: none;
+    cursor: pointer;
+}

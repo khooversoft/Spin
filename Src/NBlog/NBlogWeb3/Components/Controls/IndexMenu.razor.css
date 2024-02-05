@@ -32,6 +32,11 @@
     flex-basis: 50%;
 }
 
+.x-content-menu {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
 .light-theme .x-btn-link {
     color: var(--x-light-theme-background-color);
 }

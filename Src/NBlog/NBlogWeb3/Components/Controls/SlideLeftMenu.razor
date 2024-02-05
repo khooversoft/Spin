@@ -9,7 +9,6 @@
 
 
 @code {
-    [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
     [Inject] private LeftButtonStateService _leftButtonStateService { get; init; } = null!;
 
     private bool isMenuOpen = false;
@@ -21,6 +20,8 @@
         isMenuOpen = _leftButtonStateService.Get();
         base.OnInitialized();
     }
+
+    public void Dispose() => _leftButtonStateService.OnChange -= OnStateChange;
 
     private void OnStateChange()
     {

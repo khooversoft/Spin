@@ -1,0 +1,48 @@
+﻿@using NBlog.sdk
+@using NBlogWeb3.Models
+<div class="x-menu-container">
+    <div class="x-menu-items-container">
+        <div class="hamburger">
+            <Hamburger OnClick=ShowLeftMenu Open=_leftButtonState />
+        </div>
+
+        <div class="x-menu-title">
+            <span>Consulting Services</span>
+        </div>
+
+        <a class="x-menu-button" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">Product</a>
+        <a class="x-menu-button" onclick="document.getElementById('solitions').scrollIntoView({behavior:'smooth'})">Solutions</a>
+        <a class="x-menu-button" onclick="document.getElementById('prices').scrollIntoView({behavior:'smooth'})">Pricing</a>
+        <a class="x-menu-button" onclick="document.getElementById('contact-me').scrollIntoView({behavior:'smooth'})">Contact Me</a>
+        <a class="x-menu-button" href=@NavRoutes.GotoHome()>My Blog</a>
+    </div>
+</div>
+
+@code {
+    [Inject] private LeftButtonStateService LeftButtonState { get; set; } = null!;
+    [Inject] private NavigationManager _navManager { get; set; } = null!;
+    [Inject] private LeftButtonStateService _leftButtonStateService { get; init; } = null!;
+
+    private bool _leftButtonState;
+
+    protected override void OnInitialized()
+    {
+        _leftButtonStateService.OnChange += OnStateChange;
+        _leftButtonState = LeftButtonState.Get();
+        base.OnInitializedAsync();
+    }
+
+    public void Dispose() => _leftButtonStateService.OnChange -= OnStateChange;
+
+    private void ShowLeftMenu()
+    {
+        LeftButtonState.Toggle();
+        _leftButtonState = LeftButtonState.Get();
+    }
+
+    private void OnStateChange()
+    {
+        _leftButtonState = _leftButtonStateService.Get();
+        StateHasChanged();
+    }
+}

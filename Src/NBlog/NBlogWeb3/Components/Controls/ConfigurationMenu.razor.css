@@ -72,9 +72,24 @@
     color: #3B9E11;
 }
 
+.x-lines {
+    margin: 4px;
+}
 
+.x-left-menu-line {
+    font-weight: 300;
+    line-height: 1.2;
+    font-size: 1.1rem;
+    word-spacing: normal;
+    letter-spacing: normal;
+    hyphens: auto;
+}
 
 @media (max-width: 640.98px) {
+    .x-lines {
+        display: none;
+    }
+
     .dark-theme .x-left-menu-link-text {
         font-size: 1rem;
     }
