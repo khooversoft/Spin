@@ -19,6 +19,7 @@ public class PackageBuild
         BuildContext buildContext = Create(basePath, packageFile, context);
 
         buildContext = GetAllFiles(buildContext, context);
+        buildContext = await VerifySysdataFiles(buildContext, context);
         buildContext = await VerifyConfigurationFiles(buildContext, context);
         buildContext = await ProcessManifestFiles(buildContext, context);
         buildContext = BuildDirectoryGraph(buildContext, context);
@@ -74,6 +75,8 @@ public class PackageBuild
                 string v when v.EndsWith(NBlogConstants.ManifestExtension) => (FileType.Manifest, v),
                 string v when v.EndsWith(NBlogConstants.ConfigurationExtension) => (FileType.Configuration, v),
                 string v when v.EndsWith(NBlogConstants.ContactMeExtension) => (FileType.ContactMe, v),
+                string v when v.EndsWith(NBlogConstants.AboutExtension) => (FileType.About, v),
+                string v when v.EndsWith(NBlogConstants.SysData) => (FileType.SysData, v),
 
                 _ => (FileType.Unknown, null!),
             })
@@ -84,14 +87,17 @@ public class PackageBuild
         {
             Files = fileList.ToSequence(),
             CopyCommands = fileList
-                .Where(x => x.fileType == FileType.Configuration || x.fileType == FileType.ContactMe)
                 .Select(x => x.fileType switch
                 {
                     FileType.Configuration => (x.path, Path.GetFileName(x.path)),
                     FileType.ContactMe => (x.path, Path.GetFileName(x.path)),
+                    FileType.About => (x.path, Path.GetFileName(x.path)),
+                    FileType.SysData => (x.path, Path.GetFileName(x.path)),
 
-                    _ => throw new ArgumentException($"Unknown file type={x.fileType}")
-                }).ToSequence(),
+                    _ => default,
+                })
+                .Where(x => x != default)
+                .ToSequence(),
         };
 
         context.LogInformation(
@@ -102,6 +108,42 @@ public class PackageBuild
         return buildContext;
     }
 
+    private async Task<BuildContext> VerifySysdataFiles(BuildContext buildContext, ScopeContext context)
+    {
+        var sysdataFiles = buildContext.Files
+            .Where(x => x.FileType == FileType.SysData)
+            .Select(x => x.FilePath)
+            .ToArray();
+
+        context.LogInformation("Processing sysdata files count={count}", sysdataFiles.Length);
+
+        IReadOnlyList<Option> results = await ActionParallel.RunAsync(sysdataFiles, readSysdata);
+        var e1 = results.Where(x => x.IsError()).Select(x => x.ToString()).ToArray();
+
+        var result = buildContext with
+        {
+            Errors = buildContext.Errors + e1,
+        };
+
+        context.LogInformation("Verified sysdata files count={count}, errorCount={errorCount}", sysdataFiles.Length, e1.Length);
+        return result;
+
+
+        async Task<Option> readSysdata(string file)
+        {
+            context.LogInformation("Reading and verifying sysdata file={file}", file);
+            string data = await File.ReadAllTextAsync(file);
+
+            var o = data.ToObject<ProfanityConfiguration>();
+            if (o == null) return (StatusCode.BadRequest, $"Cannot deserialize json={file}");
+
+            var v = o.Validate().Action(x => x.LogStatus(context, $"File={file}"));
+            if (v.IsError()) return v;
+
+            return StatusCode.OK;
+        }
+    }
+
     private async Task<BuildContext> VerifyConfigurationFiles(BuildContext buildContext, ScopeContext context)
     {
         var configurationFiles = buildContext.Files
@@ -109,11 +151,10 @@ public class PackageBuild
             .Select(x => x.FilePath)
             .ToArray();
 
-        context.LogInformation("Processing manifest files count={manifestFileCount}", configurationFiles.Length);
+        context.LogInformation("Processing manifest files count={count}", configurationFiles.Length);
 
         IReadOnlyList<Option<NBlogConfiguration>> results = await ActionParallel.RunAsync(configurationFiles, readConfiguration);
         var e1 = results.Where(x => x.IsError()).Select(x => x.ToString()).ToArray();
-        var configurations = results.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
 
         var result = buildContext with
         {
@@ -140,7 +181,10 @@ public class PackageBuild
             if (verify.IsError()) return (StatusCode.Conflict, $"DbName={o.DbName} does not match fileId={fileId}");
 
             string contactMeFile = file[0..(file.Length - NBlogConstants.ConfigurationExtension.Length)] + NBlogConstants.ContactMeExtension;
-            if( !File.Exists(contactMeFile)) return (StatusCode.Conflict, $"ContactMe file={contactMeFile} does not exist");
+            if (!File.Exists(contactMeFile)) return (StatusCode.Conflict, $"ContactMe file={contactMeFile} does not exist");
+
+            string aboutFile = file[0..(file.Length - NBlogConstants.ConfigurationExtension.Length)] + NBlogConstants.AboutExtension;
+            if (!File.Exists(contactMeFile)) return (StatusCode.Conflict, $"About file={contactMeFile} does not exist");
 
             return o;
         }

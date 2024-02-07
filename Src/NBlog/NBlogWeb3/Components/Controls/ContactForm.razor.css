@@ -1,0 +1,142 @@
+﻿input:focus-visible {
+    outline: none;
+}
+
+textarea:focus-visible {
+    outline: none;
+}
+
+.form {
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 640.98px) {
+    .form {
+        max-width: none;
+    }
+}
+
+.form-box {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.title {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.x-card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.x-card {
+    display: flex;
+    flex-direction: column;
+    /* min-width: 250px; */
+    margin-bottom: 5px;
+    flex: 1 1 calc(33.333% - 20px);
+    /* border: 1px solid #ddd; */
+    border-radius: 8px;
+    padding: 4px 10px 8px 10px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+}
+
+.dark-theme .x-card {
+    color: var(--bd-color);
+    background-color: var(--bd-body-bg)
+}
+
+.light-theme .x-card {
+    color: black;
+    background-color: white;
+}
+
+.label {
+    font-size: 0.7rem;
+    color: black;
+    font-weight: 600;
+    margin: 5px 2px 5px 2px;
+}
+
+.dark-theme .label {
+    color: var(--bd-color);
+    background-color: var(--bd-body-bg)
+}
+
+.light-theme .label {
+    color: black;
+    background-color: white;
+}
+
+.field {
+    border: 1px solid gray;
+    border: 0;
+    border-bottom: 1px solid gray;
+    /* border-radius: 5px; */
+    margin: 0;
+    height: 36px;
+    padding: 1px 8px 1px 8px;
+}
+
+.dark-theme .field {
+    color: var(--bd-color);
+    background-color: var(--bd-body-bg)
+}
+
+.light-theme .field {
+    color: black;
+    background-color: white;
+}
+
+
+.field-error {
+    color: red;
+    font-size: .8rem;
+}
+
+.message {
+    content: '';
+    height: 150px;
+    resize: both;
+    overflow: auto;
+}
+
+/*color: var(--bd-color);
+background-color: var(--bd-body-bg);
+*/
+.submit {
+    margin: 10px 0 15px 0;
+    padding: 10px;
+    border: 0;
+    border-radius: 5px;
+    width: 100px;
+    cursor: pointer;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 16px;
+    color: white;
+    transition: background-color 0.3s;
+    transition: color 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    outline: none;
+    background-color: #FE071B;
+    text-decoration: none;
+}
+
+    .submit:hover {
+        /* background-color: darkgray; */
+        /* color: black; */
+        background-color: #FE4C5C;
+    }
+
+    .submit:active {
+        border: none;
+        box-shadow: none;
+        color: black;
+    }

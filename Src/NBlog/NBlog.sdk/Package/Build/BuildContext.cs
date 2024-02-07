@@ -10,6 +10,8 @@ public enum FileType
     Document,
     Configuration,
     ContactMe,
+    SysData,
+    About,
 }
 
 public record BuildContext

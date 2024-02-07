@@ -4,7 +4,6 @@ using NBlogWeb3.Application;
 using NBlogWeb3.Components;
 using NBlogWeb3.Models;
 using Toolbox.Extensions;
-using static System.Net.Mime.MediaTypeNames;
 
 
 Console.WriteLine($"NBlog web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
@@ -46,6 +45,7 @@ builder.Host.UseOrleans((context, silo) =>
     silo.AddDatalakeGrainStorage();
 });
 
+builder.Services.AddAntiforgery();
 builder.Services.AddHealthChecks();
 builder.Services.AddScoped<LeftButtonStateService>();
 
@@ -65,6 +65,7 @@ app.UseStaticFiles();
 app.UseStatusCodePagesWithRedirects("/");
 app.UseRouting();
 app.UseAntiforgery();
+
 app.MapBlogApi();
 app.MapHealthChecks("/health");
 

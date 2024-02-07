@@ -1,20 +1,13 @@
-﻿@page "/contact/{dbName}"
+﻿@page "/about/{dbName}"
 @using NBlog.sdk
-@using NBlogWeb3.Components.Controls
 @using Toolbox.Tools
 @using Toolbox.Types
 @layout Layout.MainLayout
 
 @if (_flow.State == 2)
 {
-    <div class="x-body-container">
-        <div class="contact-form">
-            <ContactForm />
-        </div>
-
-        <div class="mt-3">
-            @((MarkupString)_html)
-        </div>
+    <div class="mt-3">
+        @((MarkupString)_html)
     </div>
 }
 else
@@ -23,7 +16,8 @@ else
 }
 
 @code {
-    [Parameter] public string DbName { get; set; } = null!;
+    [Parameter] public string? DbName { get; set; }
+    [CascadingParameter] public NBlogConfiguration NBlogConfiguration { get; set; } = null!;
 
     [Inject] public MarkdownDocService _storage { get; init; } = null!;
     [Inject] private ILogger<Contact> _logger { get; init; } = null!;
@@ -49,7 +43,7 @@ else
 
         try
         {
-            string contactFileId = NBlogConstants.Tool.CreateContactFileId(DbName);
+            string contactFileId = NBlogConstants.Tool.CreateAboutFileId(NBlogConfiguration.DbName);
             var mdDoc = await _storage.Read(contactFileId, context);
             if (mdDoc.IsError())
             {

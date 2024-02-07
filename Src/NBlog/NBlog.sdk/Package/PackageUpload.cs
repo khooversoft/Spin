@@ -54,32 +54,32 @@ public class PackageUpload
     private async Task<Option> ClearDatalake(IDatalakeStore datalakeStore, ScopeContext context)
     {
         var query = new QueryParameter();
-        int maxCount = 100;
 
         context.Location().LogInformation("Clearing all files in datalake storage");
 
-        while (maxCount-- > 0)
+        var queryResponseOption = await datalakeStore.Search(query, context);
+        if (queryResponseOption.IsError())
         {
-            var queryResponseOption = await datalakeStore.Search(query, context);
-            if (queryResponseOption.IsError())
-            {
-                context.Location().LogError("Failed to enumerate files on datalake");
-                return queryResponseOption.ToOptionStatus();
-            }
-
-            QueryResponse<DatalakePathItem> queryResponse = queryResponseOption.Return();
-            if (queryResponse.Items.Count == 0 || queryResponse.EndOfSearch) return StatusCode.OK;
-
-            var deleteResults = await ActionParallel.RunAsync(queryResponse.Items, deleteItem);
-            if (deleteResults.Any(x => x.IsError())) return StatusCode.Conflict;
+            context.Location().LogError("Failed to enumerate files on datalake");
+            return queryResponseOption.ToOptionStatus();
         }
 
-        return (StatusCode.Conflict, "maxCount exceeded");
+        QueryResponse<DatalakePathItem> queryResponse = queryResponseOption.Return();
+        if (queryResponse.Items.Count == 0 || queryResponse.EndOfSearch) return StatusCode.OK;
+
+        var deleteResults = await ActionParallel.RunAsync(queryResponse.Items, deleteItem);
+        if (deleteResults.Any(x => x.IsError())) return StatusCode.Conflict;
+
+        return StatusCode.OK;
 
         async Task<Option> deleteItem(DatalakePathItem pathItem)
         {
             switch (pathItem)
             {
+                case { IsDirectory: true } file when file.Name.StartsWith(NBlogConstants.ContactRequestFolder):
+                    context.LogInformation("Skipping delete of directory={directoryName} in datalake", file.Name);
+                    return StatusCode.OK;
+
                 case { IsDirectory: true } file:
                     context.LogInformation("Deleting directory={directoryName} in datalake", file.Name);
                     return await datalakeStore.DeleteDirectory(file.Name, context);
