@@ -123,11 +123,11 @@
 }
 
 .image-box, .empty-box {
-    /* Initial size */
-    max-height: 160px; /* or any initial size for .image-box */
-    width: 160px; /* or any initial size for .empty-box */
+/*    max-height: 160px;
+    width: 160px;
+*/
     /* Scale down based on the viewport width */
-    max-height: calc(80px + 6vw);
+    /*height: calc(80px + 6vw);*/
     width: calc(80px + 6vw);
 }
 
@@ -156,7 +156,8 @@
 
 @media (max-width: 600px) {
     .image-box {
-        max-height:50px;
-        width: auto;
+        width: 50px;
+        height:50px;
+        /*width: auto;*/
     }
 }
