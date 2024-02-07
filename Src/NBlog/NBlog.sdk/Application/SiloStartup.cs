@@ -36,7 +36,7 @@ public static class SiloStartup
             services.AddSingleton<MarkdownDocService>();
             services.AddSingleton<StateManagementApi>();
             services.AddSingleton<StateManagement>();
-            services.AddSingleton<StorageService>();
+            services.AddSingleton<RandomTag>();
 
             services.AddSingleton<ArticleDirectoryClient>(service =>
             {

@@ -17,11 +17,11 @@ public class StateManagement
     private TimeSpan _checkSpan = TimeSpan.FromMinutes(5);
     private DateTime _refreshTime;
     private readonly ActionBlock<ScopeContext> _checkDirectoryFile;
-    private readonly StorageService _storageService;
+    private readonly IDatalakeStore _datalakeStore;
 
-    public StateManagement(StorageService storageService, ILogger<StateManagement> logger)
+    public StateManagement(IDatalakeStore datalakeStore, ILogger<StateManagement> logger)
     {
-        _storageService = storageService.NotNull();
+        _datalakeStore = datalakeStore.NotNull();
         _logger = logger.NotNull();
 
         _checkDirectoryFile = new ActionBlock<ScopeContext>(CheckDirectoryFile, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 1 });
@@ -63,7 +63,7 @@ public class StateManagement
 
         context.LogInformation("Checking ETag of directory file={file}", NBlogConstants.DirectoryActorKey);
 
-        Option<DatalakePathProperties> readPathPropertyOption = await _storageService.GetPathProperties(NBlogConstants.DirectoryActorKey, context);
+        Option<DatalakePathProperties> readPathPropertyOption = await GetPathProperties(NBlogConstants.DirectoryActorKey, context);
         if (readPathPropertyOption.IsError()) return;
 
         DatalakePathProperties pathProperty = readPathPropertyOption.Return();
@@ -79,5 +79,20 @@ public class StateManagement
         _eTag = e1;
         _cacheDataMap.Clear();
         return;
+    }
+
+    private async Task<Option<DatalakePathProperties>> GetPathProperties(string fileId, ScopeContext context)
+    {
+        context = context.With(_logger);
+        context.LogInformation("Getting properties of file={file}", fileId);
+
+        Option<DatalakePathProperties> propertyOption = await _datalakeStore.GetPathProperties(fileId, context);
+        if (propertyOption.IsError())
+        {
+            context.LogError("Failed to read path properties for file={file}", fileId);
+            return propertyOption;
+        }
+
+        return propertyOption;
     }
 }

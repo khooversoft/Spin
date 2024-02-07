@@ -1,4 +1,6 @@
-﻿namespace NBlog.sdk;
+﻿using Toolbox.Tools;
+
+namespace NBlog.sdk;
 
 public static class NavRoutes
 {
@@ -7,6 +9,7 @@ public static class NavRoutes
     public static string GotoSummary(string dbName, string indexName) => $"/summary/{dbName}/{Uri.EscapeDataString(indexName)}";
     public static string GotoSearch(string dbName, string searchText) => $"/search/{dbName}/{Uri.EscapeDataString(searchText)}";
     public static string GotoContact(string dbName) => $"/contact/{dbName}";
+    public static string GotoAbout(string dbName) => $"/about/{dbName.NotEmpty()}";
 
     public static string GotoNotFound(string? msg = null) => msg switch
     {

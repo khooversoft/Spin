@@ -1,0 +1,160 @@
+﻿@using NBlog.sdk
+@using NBlog.sdk.Models
+@using Toolbox.Extensions
+@using Toolbox.Tools
+@using Toolbox.Types
+<div class="form form-box">
+    <div class="title">Contact Us</div>
+    <div class="x-card-container">
+        <div class="x-card">
+            <div class="label">Your Name</div>
+            <input class="field" placeholder="Enter your name" aria-label="Enter your name" @oninput=OnNameInput @bind=_nameField.Data />
+            @if (_nameField.IsShowError)
+            {
+                <div class="field-error">@_nameField.Error</div>
+            }
+        </div>
+        <div class="x-card">
+            <div class="label">Email</div>
+            <input class="field" placeholder="Enter your email address" aria-label="Enter your name" @oninput=OnEmailInput @bind=_emailField.Data />
+            @if (_emailField.IsShowError)
+            {
+                <div class="field-error">@_emailField.Error</div>
+            }
+        </div>
+        <div class="x-card">
+            <div class="label">Message</div>
+            <textarea class="field message" placeholder="Your message here..." aria-label="Enter your name" @oninput=OnMessageInput @bind=_messageField.Data></textarea>
+            @if (_messageField.IsShowError)
+            {
+                <div class="field-error">@_messageField.Error</div>
+            }
+        </div>
+    </div>
+
+    <a class="submit" @onclick=Submit>Submit</a>
+</div>
+
+@code {
+    [Inject] NavigationManager _navManager { get; init; } = null!;
+    [Inject] private IClusterClient _clusterClient { get; set; } = null!;
+    [Inject] private ILogger<ContactForm> _logger { get; set; } = null!;
+
+    private Field _nameField = new Field("Name", 100);
+    private EmailField _emailField = new EmailField("Name", 100);
+    private Field _messageField = new Field("Message", 1000);
+
+    private void OnNameInput(ChangeEventArgs e) => OnMessage(_nameField, e.Value);
+    private void OnEmailInput(ChangeEventArgs e) => OnMessage(_emailField, e.Value);
+    private void OnMessageInput(ChangeEventArgs e) => OnMessage(_messageField, e.Value);
+
+    private void OnMessage(Field field, object? value)
+    {
+        if (!field.SetData(value?.ToString())) StateHasChanged();
+    }
+
+    private async Task Submit()
+    {
+        var result = ((Field[])[_nameField, _emailField, _messageField]).All(x => x.TestRequired());
+        if (!result)
+        {
+            StateHasChanged();
+            return;
+        }
+
+        var context = new ScopeContext(_logger);
+
+        var request = new ContactRequest
+            {
+                Name = _nameField.Data.NotEmpty(),
+                Email = _emailField.Data.NotEmpty(),
+                Message = _messageField.Data.NotEmpty()
+            };
+
+        var option = await _clusterClient.GetContactRequestActor().Write(request, context.TraceId);
+        if (option.IsError())
+        {
+            option.LogOnError(context, "Failed to submit contact request");
+        }
+
+        _navManager.NavigateTo(NavRoutes.GotoHome(), true);
+    }
+
+
+    private class Field
+    {
+        public Field(string name, int limit)
+        {
+            Name = name;
+            Limit = limit;
+        }
+
+        public string Name { get; init; }
+        public int Limit { get; init; }
+        public string? Error { get; protected set; }
+
+        public string? Data { get; set; }
+        public bool IsShowError => Error.IsNotEmpty();
+
+        public virtual bool TestRequired()
+        {
+            if (Error.IsNotEmpty()) return false;
+
+            if (GetSafe(Data).Length == 0)
+            {
+                Error = $"{Name} is required";
+                return false;
+            }
+
+            return true;
+        }
+
+        public virtual bool SetData(string? data)
+        {
+            var dataSafe = GetSafe(data);
+            if (dataSafe.Length > Limit)
+            {
+                Error = $"{Name} is too long, max size is {Limit}";
+                Data = dataSafe[0..Limit];
+                return false;
+            }
+
+            Error = null;
+            Data = dataSafe;
+            return true;
+        }
+
+        private string GetSafe(string? subject) => subject.ToNullIfEmpty() ?? string.Empty;
+    }
+
+    private class EmailField : Field
+    {
+        public EmailField(string name, int limit) : base(name, limit) { }
+
+        public override bool SetData(string? data)
+        {
+            base.SetData(data);
+            if (Error != null || (Data ?? string.Empty).Length == 0) return false;
+
+            return Test();
+        }
+
+        public override bool TestRequired()
+        {
+            if (!base.TestRequired()) return false;
+            if (!Test()) return false;
+            return true;
+        }
+
+        bool Test()
+        {
+            if (!ValidEmailTool.IsValidEmail(Data))
+            {
+                Error = $"{Name} is not a valid";
+                return false;
+            }
+
+            return true;
+        }
+    }
+}

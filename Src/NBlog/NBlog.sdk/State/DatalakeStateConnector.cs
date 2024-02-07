@@ -84,18 +84,12 @@ internal class DatalakeStateConnector : IGrainStorage
         DataETag dataEtag = grainState.State switch
         {
             DataETag v => new DataETag(v.Data, etag),
+
             var v => v
                 .ToJsonSafe(context.Location())
                 .ToBytes()
                 .Func(x => new DataETag(x, etag)),
         };
-
-        //byte[] data = grainState.State
-        //    .ToJsonSafe(context.Location())
-        //    .ToBytes();
-
-        //ETag etag = new ETag(grainState.ETag);
-        //var dataEtag = new DataETag(data, etag);
 
         var result = await _datalakeStore.Write(filePath, dataEtag, true, context);
         if (result.IsError())

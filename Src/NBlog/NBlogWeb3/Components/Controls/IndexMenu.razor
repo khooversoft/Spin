@@ -59,6 +59,7 @@
             .OrderBy(x => x.OrderIndex)
             .Select(x => (topic: x.Title, link: x.HRef))
             .Append(("Contact", NavRoutes.GotoContact(Configuration.DbName)))
+            .Append(("About", NavRoutes.GotoAbout(Configuration.DbName)))
             .ToArray();
 
         try
