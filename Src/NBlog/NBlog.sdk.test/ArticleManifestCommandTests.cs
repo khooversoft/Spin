@@ -20,13 +20,13 @@ public class ArticleManifestCommandTests
                     "[main] spin/tools/SpinClusterCommandSyntaxSummary/doc = SpinClusterCommandSyntax.md",
                     "spin/tools/SpinClusterCommandSyntaxSummary/support = SpinClusterCommandSyntaxSupport.md"
                 ],
-                "Tags": "Spin Tools",
+                "Tags": "Spin Tools;db=dbName;area=testArea",
                 "Category": "Spin Cluster"
             }
             """;
 
         ArticleManifest articleManifest = rawData.ToObject<ArticleManifest>().NotNull();
-        articleManifest.Validate().IsOk().Should().BeTrue();
+        articleManifest.Validate().IsOk().Should().BeTrue(articleManifest.ToString());
 
         IReadOnlyList<CommandNode> commands = articleManifest.GetCommands();
         commands.Count.Should().Be(3);

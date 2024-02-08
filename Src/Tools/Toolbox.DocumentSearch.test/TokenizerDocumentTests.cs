@@ -8,9 +8,9 @@ public class TokenizerDocumentTests
     [Theory]
     [InlineData(null, new string[0])]
     [InlineData("", new string[0])]
-    [InlineData("notReserved", new[] { "notReserved" })]
+    [InlineData("notReserved", new[] { "notreserved" })]
     [InlineData("this works", new[] { "works" })]
-    [InlineData("notReserved   works", new[] { "notReserved", "works" })]
+    [InlineData("notReserved   works", new[] { "notreserved", "works" })]
     [InlineData("hello+works,next", new[] { "hello", "works", "next" })]
     public void Parse(string? value, string[] expected)
     {

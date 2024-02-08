@@ -15,7 +15,7 @@ public class DocumentIndexTests
             .Build();
 
         index.Index.Count.Should().Be(1);
-        index.InvertedIndex.Index.Count.Should().Be(39);
+        index.InvertedIndex.Index.Count.Should().Be(43);
     }
 
     [Fact]

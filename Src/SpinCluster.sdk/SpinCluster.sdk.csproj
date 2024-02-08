@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Core" Version="1.36.0" />
+        <PackageReference Include="Azure.Core" Version="1.37.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.22.0" />
         <PackageReference Include="Microsoft.Orleans.Client" Version="8.0.0" />
