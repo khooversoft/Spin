@@ -1,5 +1,6 @@
 {
   "UserSecrets": "nblog-cmd-secrets",
+  "DefaultDbName": "nblog",
 
   "Storage": {
     "Account": "nblogstore",

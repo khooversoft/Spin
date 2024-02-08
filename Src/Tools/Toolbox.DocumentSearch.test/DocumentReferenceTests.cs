@@ -22,7 +22,7 @@ public class DocumentReferenceTests
 
         string[] tags = ["tag1", "tag2"];
 
-        var docRef = new DocumentReference("doc1", words, tags);
+        var docRef = new DocumentReference("dbName", "doc1", words, tags);
 
         string json = docRef.ToJson();
         json.Should().NotBeEmpty();

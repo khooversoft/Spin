@@ -27,7 +27,7 @@ public class ArticleManifestTests
     }
 
     [Fact]
-    public void MissingAttribute()
+    public void MissingOneOfRequiredAttribute()
     {
         var man = new ArticleManifest
         {
@@ -36,7 +36,7 @@ public class ArticleManifestTests
             Author = "autor",
             Commands = new[]
             {
-                "[main] spin/tools/SpinClusterCommandSyntaxSummary/doc = SpinClusterCommandSyntax.md",
+                "[blue] spin/tools/SpinClusterCommandSyntaxSummary/doc = SpinClusterCommandSyntax.md",
                 "spin/tools/SpinClusterCommandSyntaxSummary/support = SpinClusterCommandSyntaxSupport.md"
             },
             Tags = "db=article;Area=Strategy;Design=Functional",

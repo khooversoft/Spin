@@ -26,7 +26,7 @@ public class PackageUpload
         packageFile.NotEmpty();
         if (!datalakeOption.Validate(out var v)) return v;
 
-        packageFile = PathTools.SetExtension(packageFile, NBlogConstants.PackageExtension);
+        packageFile = PathTool.SetExtension(packageFile, NBlogConstants.PackageExtension);
         var context = new ScopeContext(_logger);
 
         context.LogInformation("Uploading package={packageFile} to datalake, account={account}, container={container}, basePath={basePath}",

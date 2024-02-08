@@ -45,6 +45,8 @@ public class PackageBuild
         if (Directory.Exists(workingFolder)) Directory.Delete(workingFolder, true);
         Directory.CreateDirectory(workingFolder);
 
+        packageFile = PathTool.SetExtension(packageFile, NBlogConstants.PackageExtension);
+
         BuildContext buildContext = new BuildContext
         {
             BasePath = basePath,

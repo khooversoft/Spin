@@ -16,8 +16,8 @@ public class ArticleDirectoryQueryTests
         var directoryApi = DirectoryData.Load();
         directoryApi.Should().NotBeNull();
 
-        ((DirectoryFake)directoryApi).Map.Nodes.Count.Should().Be(36);
-        ((DirectoryFake)directoryApi).Map.Edges.Count.Should().Be(41);
+        ((DirectoryFake)directoryApi).Map.Nodes.Count.Should().Be(37);
+        ((DirectoryFake)directoryApi).Map.Edges.Count.Should().Be(51);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                OrderBy = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
+                OrderBy = 1,
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();
@@ -75,7 +75,7 @@ public class ArticleDirectoryQueryTests
             .Select(x => new ArticleReference
             {
                 ArticleId = x.ArticleId,
-                OrderBy = int.Parse(x.CreatedDate.ToString("yyyyMMdd")),
+                OrderBy = 1,
             })
             .OrderBy(x => x.ArticleId)
             .ToArray();
@@ -108,7 +108,7 @@ public class ArticleDirectoryQueryTests
             {
                 IndexName = x.indexName,
                 ArticleId = x.articleId,
-                OrderBy = x.createdDate.ToString("yyyyMMdd")!,
+                OrderBy = "1",
             })
             .OrderBy(x => x.ArticleId).ThenBy(x => x.IndexName)
             .ToArray();
