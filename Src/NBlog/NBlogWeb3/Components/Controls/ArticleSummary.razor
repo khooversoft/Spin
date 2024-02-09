@@ -205,7 +205,7 @@
     {
         var index = await LoadTagIndex();
 
-        _tags = Tags.Create(_articleDetail.Manifest.Tags)
+        _tags = new Tags(_articleDetail.Manifest.Tags)
             .Where(x => !NBlogConstants.FilterTags.Contains(x.Key) && x.Value != null)
             .Select(x => x.Value != null ? x.Value : x.Key)
             .Select(x => (title: x, link: getLink(x)))

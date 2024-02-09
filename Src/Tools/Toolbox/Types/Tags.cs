@@ -79,7 +79,6 @@ public class Tags : Dictionary<string, string?>
         .Join(';');
 
     public Tags Copy() => new Tags(ToString());
-    public static Tags Create(string? tags) => new Tags(tags);
 
     public bool Equals(Tags? other) => other is not null &&
         this.Count == other.Count &&
