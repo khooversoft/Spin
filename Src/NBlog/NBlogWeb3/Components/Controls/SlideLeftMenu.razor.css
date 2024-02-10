@@ -8,6 +8,7 @@
     transition: left 0.5s; /* Smooth transition for the sliding effect */
     z-index: 10;
     border-top-right-radius: 10px;
+    background-color: var(--style-light-theme-background-color);
 }
 
     #side-menu.open {
@@ -16,13 +17,13 @@
         max-width: 350px;
     }
 
-.dark-theme #side-menu {
-    background-color: var(--x-light-theme-background-color);
+./*dark-theme #side-menu {
+    background-color: var(--style-light-theme-background-color);
 }
 
 .light-theme #side-menu {
-    background-color: var(--bd-body-bg);
-}
+    background-color: var(--style-background-color);
+}*/
 
 .x-show-menu-button-container {
     margin: 10px 0px 0px 0px;
@@ -44,5 +45,5 @@
     fill: currentcolor;
     cursor: pointer;
     padding: 0;
-    color: black;
+    color: var(--style-black-color);
 }

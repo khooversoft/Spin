@@ -45,10 +45,12 @@ textarea:focus-visible {
     border-radius: 8px;
     padding: 4px 10px 8px 10px;
     /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+    color: var(--style-text-color);
+    background-color: var(--style-background-color)
 }
-
+/*
 .dark-theme .x-card {
-    color: var(--bd-color);
+    color: var(--style-text-color);
     background-color: var(--bd-body-bg)
 }
 
@@ -56,24 +58,26 @@ textarea:focus-visible {
     color: black;
     background-color: white;
 }
-
+*/
 .label {
     font-size: 0.7rem;
-    color: black;
+    color: var(--style-black-color);
     font-weight: 600;
     margin: 5px 2px 5px 2px;
+    color: var(--style-text-color);
+    background-color: var(--style-background-color)
 }
 
-.dark-theme .label {
-    color: var(--bd-color);
-    background-color: var(--bd-body-bg)
+/*.dark-theme .label {
+    color: var(--style-text-color);
+    background-color: var(--style-background-color)
 }
 
 .light-theme .label {
     color: black;
     background-color: white;
 }
-
+*/
 .field {
     border: 1px solid gray;
     border: 0;
@@ -82,9 +86,11 @@ textarea:focus-visible {
     margin: 0;
     height: 36px;
     padding: 1px 8px 1px 8px;
+    color: var(--style-text-color);
+    background-color: var(--style-background-color)
 }
 
-.dark-theme .field {
+/*.dark-theme .field {
     color: var(--bd-color);
     background-color: var(--bd-body-bg)
 }
@@ -94,9 +100,9 @@ textarea:focus-visible {
     background-color: white;
 }
 
-
+*/
 .field-error {
-    color: red;
+    color: var(--style-error-color);
     font-size: .8rem;
 }
 
@@ -120,23 +126,23 @@ background-color: var(--bd-body-bg);
     vertical-align: middle;
     text-align: center;
     font-size: 16px;
-    color: white;
+    color: var(--style-btn-color);
     transition: background-color 0.3s;
     transition: color 0.3s;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     outline: none;
-    background-color: #FE071B;
+    background-color: var(--style-btn-background-color);
     text-decoration: none;
 }
 
     .submit:hover {
         /* background-color: darkgray; */
         /* color: black; */
-        background-color: #FE4C5C;
+        background-color: var(--style-btn-hover);
     }
 
     .submit:active {
         border: none;
         box-shadow: none;
-        color: black;
+        color: var(--style-btn-press);
     }

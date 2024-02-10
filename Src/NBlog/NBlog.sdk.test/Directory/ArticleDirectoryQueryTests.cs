@@ -98,7 +98,7 @@ public class ArticleDirectoryQueryTests
 
         var matchTo = DirectoryData.TestArticleManifests
             .Where(x => TagsTool.HasTag(x.Tags, "db", "resume") && !TagsTool.HasTag(x.Tags, "noSummary"))
-            .SelectMany(x => Tags.Create(x.Tags)
+            .SelectMany(x => new Tags(x.Tags)
                 .Where(x => x.Value.IsNotEmpty())
                 .Where(x => !x.Key.EqualsIgnoreCase("db"))
                 .OfType<KeyValuePair<string, string>>(),

@@ -65,7 +65,7 @@ public class ArticleDirectoryBuilder
     {
         subject.NotNull();
 
-        var nodes = Tags.Create(subject.Tags)
+        var nodes = new Tags(subject.Tags)
             .Where(x => x.Value.IsNotEmpty())
             .Where(x => !x.Key.EqualsIgnoreCase(NBlogConstants.DbTag))
             .SelectMany(x => x.Value!.Split(',', StringSplitOptions.RemoveEmptyEntries), (o, i) => (o.Key, Value: i))
@@ -84,7 +84,7 @@ public class ArticleDirectoryBuilder
     {
         subject.NotNull();
 
-        var nodes = Tags.Create(subject.Tags)
+        var nodes = new Tags(subject.Tags)
             .Where(x => x.Value.IsNotEmpty())
             .Where(x => !x.Key.EqualsIgnoreCase(NBlogConstants.DbTag))
             .SelectMany(x => x.Value!.Split(',', StringSplitOptions.RemoveEmptyEntries), (o, i) => (o.Key, Value: i))
