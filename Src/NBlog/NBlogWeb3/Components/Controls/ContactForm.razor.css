@@ -48,17 +48,7 @@ textarea:focus-visible {
     color: var(--style-text-color);
     background-color: var(--style-background-color)
 }
-/*
-.dark-theme .x-card {
-    color: var(--style-text-color);
-    background-color: var(--bd-body-bg)
-}
 
-.light-theme .x-card {
-    color: black;
-    background-color: white;
-}
-*/
 .label {
     font-size: 0.7rem;
     color: var(--style-black-color);
@@ -68,16 +58,6 @@ textarea:focus-visible {
     background-color: var(--style-background-color)
 }
 
-/*.dark-theme .label {
-    color: var(--style-text-color);
-    background-color: var(--style-background-color)
-}
-
-.light-theme .label {
-    color: black;
-    background-color: white;
-}
-*/
 .field {
     border: 1px solid gray;
     border: 0;
@@ -90,17 +70,6 @@ textarea:focus-visible {
     background-color: var(--style-background-color)
 }
 
-/*.dark-theme .field {
-    color: var(--bd-color);
-    background-color: var(--bd-body-bg)
-}
-
-.light-theme .field {
-    color: black;
-    background-color: white;
-}
-
-*/
 .field-error {
     color: var(--style-error-color);
     font-size: .8rem;
@@ -113,9 +82,7 @@ textarea:focus-visible {
     overflow: auto;
 }
 
-/*color: var(--bd-color);
-background-color: var(--bd-body-bg);
-*/
+
 .submit {
     margin: 10px 0 15px 0;
     padding: 10px;
@@ -136,8 +103,6 @@ background-color: var(--bd-body-bg);
 }
 
     .submit:hover {
-        /* background-color: darkgray; */
-        /* color: black; */
         background-color: var(--style-btn-hover);
     }
 

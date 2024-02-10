@@ -1,29 +1,4 @@
-﻿/*#link {
-    color: var(--style-loading-background-color);
-    display: block;
-    font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
-    text-align: center;
-    text-decoration: none;
-}
-
-    #link:hover {
-        color: #CCCCCC
-    }
-
-    #link, #link:hover {
-        -webkit-transition: color 0.5s ease-out;
-        -moz-transition: color 0.5s ease-out;
-        -ms-transition: color 0.5s ease-out;
-        -o-transition: color 0.5s ease-out;
-        transition: color 0.5s ease-out;
-    }
-*/
-/** BEGIN CSS **/
-body {
-    background: var(--style-loading-background-color);
-}
-
-@keyframes rotate-loading {
+﻿@keyframes rotate-loading {
     0% {
         transform: rotate(0deg);
         -ms-transform: rotate(0deg);
