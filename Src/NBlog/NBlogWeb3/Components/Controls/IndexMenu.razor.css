@@ -7,15 +7,15 @@
 
 .x-group-text {
     padding: 2px 0px 2px 0px;
-    color: DarkSlateGray;
+    color: var(--style-leftnav-group-text);
     font-size: 1.1rem;
     font-weight: 600;
 }
-
+/*
 .light-theme .x-group-text {
     color: darkgray;
 }
-
+*/
 .x-btn-link-container {
     margin: 0px 0px 20px 0px;
     display: flex;
@@ -23,7 +23,7 @@
 }
 
 .x-btn-link {
-    color: darkslategray;
+    color: var(--style-leftnav-group-text);
     border-color: transparent;
     font-size: 0.9rem;
     text-align: left !important;
@@ -36,12 +36,12 @@
     font-weight: 500;
     font-size: 0.9rem;
 }
-
+/*
 .light-theme .x-btn-link {
-    color: var(--x-light-theme-background-color);
+    color: var(--style-light-theme-background-color);
 }
-
-.x-left-menu-link-text {
+*/
+/*.x-left-menu-link-text {
     --bs-text-opacity: 1;
     font-size: 1rem;
     transition: transform 0.3s ease;
@@ -53,8 +53,8 @@
         bottom: 0;
         left: 0;
         width: 0;
-        height: 1px; /* Adjust line thickness */
-        transition: width 0.5s ease;
+        height: 1px;*/ /* Adjust line thickness */
+        /*transition: width 0.5s ease;
     }
 
     .x-left-menu-link-text:hover::after {
@@ -67,16 +67,16 @@
 }
 
     .dark-theme .x-left-menu-link-text::after {
-        background-color: white; /* Line color */
-    }
+        background-color: white;*/ /* Line color */
+    /*}
 
 .light-theme .x-left-menu-link-text {
     color: #0F2804;
 }
 
     .light-theme .x-left-menu-link-text::after {
-        background-color: black; /* Line color */
-    }
+        background-color: black;*/ /* Line color */
+    /*}
 
 
 @media (max-width: 640.98px) {
@@ -87,4 +87,4 @@
     .light-theme .x-left-menu-link-text {
         font-size: 1rem;
     }
-}
+}*/
