@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -22,42 +23,15 @@ public class ConfigurationService
         return _clusterClient.GetConfigurationActor(db).Lookup(groupNames, context.TraceId);
     }
 
-    public async Task<Option<NBlogConfiguration>> Get(string dbName, ScopeContext context)
+    public async Task<Option<NBlogConfiguration>> Get(DbNameId dbNameId, ScopeContext context)
     {
-        if (dbName != "*")
+        var lookup = await _clusterClient.GetConfigurationActor(dbNameId.DbName).Get(context.TraceId);
+        if (lookup.IsError())
         {
-            var lookup = await _clusterClient.GetConfigurationActor(dbName).Get(context.TraceId);
-            if (lookup.IsOk()) return lookup;
-
-            _logger.LogWarning("Failed to find dbName={dbName}, trying defaultDbName={defaultDbName}", dbName, _storageOption.DefaultDbName);
+            _logger.LogError("Failed to find dbName={dbName} and defaultDbName={defaultDbName}", dbNameId, _storageOption.DefaultDbName);
+            return lookup;
         }
 
-        var lookup2 = await _clusterClient.GetConfigurationActor(_storageOption.DefaultDbName.NotEmpty()).Get(context.TraceId);
-        if (lookup2.IsError())
-        {
-            _logger.LogError("Failed to find defaultDbName={defaultDbName}", _storageOption.DefaultDbName);
-        }
-
-        return lookup2;
+        return lookup;
     }
-
-    public async Task<Option<(string dbName, NBlogConfiguration config)>> GetOrDefault(string dbName, ScopeContext context)
-    {
-        if (dbName != "*")
-        {
-            var lookup = await _clusterClient.GetConfigurationActor(dbName).Get(context.TraceId);
-            if (lookup.IsOk()) return (dbName, lookup.Return());
-
-            _logger.LogWarning("Failed to find dbName={dbName}, trying defaultDbName={defaultDbName}", dbName, _storageOption.DefaultDbName);
-        }
-
-        var lookup2 = await _clusterClient.GetConfigurationActor(_storageOption.DefaultDbName.NotEmpty()).Get(context.TraceId);
-        if (lookup2.IsError())
-        {
-            _logger.LogError("Failed to find defaultDbName={defaultDbName}", _storageOption.DefaultDbName);
-        }
-
-        return (_storageOption.DefaultDbName, lookup2.Return());
-    }
-
 }

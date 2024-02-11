@@ -31,7 +31,7 @@ public static class SearchIndexTool
         return buildContext;
 
         IEnumerable<string> filterOnAttribute(IEnumerable<CommandNode> list) => list
-            .Where(x => x.Attributes.Any(y => NBlogConstants.CanIndexFilesAttributes.Contains(y)))
+            .Where(x => x.Attributes.Any(y => NBlogConstants.FileAttributes.Contains(y)))
             .Select(x => x.LocalFilePath);
     }
 

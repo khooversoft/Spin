@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -81,9 +82,14 @@ public static class ManifestFileTool
             .NotNull($"File={file} does not have directory name");
 
         var commands = articleManifest.GetCommands()
-            .Select(x => x with { LocalFilePath = Path.Combine(folder, x.LocalFilePath) })
+            .Select(x => x.Attributes.Contains(NBlogConstants.IndexAttribute) switch
+            {
+                true => x,
+                false => x with { LocalFilePath = Path.Combine(folder, x.LocalFilePath) },
+            })
             .ToArray();
 
+        if (file.Contains("company", StringComparison.OrdinalIgnoreCase)) Debugger.Break();
         if (commands.Length == 0)
         {
             context.LogError("Manifest={file} does not have any commands specified");

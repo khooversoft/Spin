@@ -22,6 +22,9 @@ public record ArticleManifest
     [Id(11)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
     [Id(12)] public string Tags { get; init; } = null!;
 
+    public string GetArticleIdHash() => ArticleId.NotNull().ToBytes().ToHexHash();
+    public static string CalculateArticleIdHash(string articleId) => articleId.NotNull().ToLower().ToBytes().ToHexHash();
+
     public static IValidator<ArticleManifest> Validator { get; } = new Validator<ArticleManifest>()
         .RuleFor(x => x.ArticleId).Must(x => FileId.Create(x).IsOk(), _ => "Invalid artical Id")
         .RuleFor(x => x.Title).NotEmpty()
@@ -78,7 +81,7 @@ public static class ArticleManifestValidations
         IReadOnlyList<CommandNode> commands = commandsOption.Return();
         IReadOnlyList<string> shouldHave = [NBlogConstants.MainAttribute, NBlogConstants.SummaryAttribute];
 
-        var attributes = commands.SelectMany(x => x.Attributes).ToArray();
+        var attributes = commands.SelectMany(x => x.Attributes).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var contains = shouldHave.Where(x => attributes.Contains(x)).ToArray();
 
         return contains.Length != 0 ? StatusCode.OK : (StatusCode.Conflict, $"Missing one of the required attributes={shouldHave.Join(';')}");

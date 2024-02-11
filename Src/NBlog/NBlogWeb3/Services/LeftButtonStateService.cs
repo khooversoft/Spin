@@ -1,4 +1,4 @@
-﻿namespace NBlogWeb3.Models;
+﻿namespace NBlogWeb3.Services;
 
 public class LeftButtonStateService
 {

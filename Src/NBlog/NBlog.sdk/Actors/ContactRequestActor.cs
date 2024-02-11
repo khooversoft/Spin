@@ -17,14 +17,12 @@ public interface IContactRequestActor : IGrainWithIntegerKey
 public class ContactRequestActor : Grain, IContactRequestActor
 {
     private readonly IDatalakeStore _datalakeStore;
-    private readonly RandomTag _randomTag;
     private readonly IClusterClient _clusterClient;
     private ILogger<ContactRequestActor> _logger;
 
-    public ContactRequestActor(IDatalakeStore datalakeStore, RandomTag randomTag, IClusterClient clusterClient, ILogger<ContactRequestActor> logger)
+    public ContactRequestActor(IDatalakeStore datalakeStore, IClusterClient clusterClient, ILogger<ContactRequestActor> logger)
     {
         _datalakeStore = datalakeStore.NotNull();
-        _randomTag = randomTag.NotNull();
         _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();
     }
@@ -53,7 +51,7 @@ public class ContactRequestActor : Grain, IContactRequestActor
         };
 
         var dataEtag = contactRequest.ToJsonSafe(context.Location()).ToBytes().Func(x => new DataETag(x));
-        string filePath = NBlogConstants.Tool.CreateContactRequestFileId(_randomTag.Get(10));
+        string filePath = NBlogConstants.Tool.CreateContactRequestFileId(RandomTag.Generate(10));
 
         var result = await _datalakeStore.Write(filePath, dataEtag, true, context);
         result.LogStatus(context, "Writing contact request to datalake");

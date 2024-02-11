@@ -2,7 +2,7 @@ using System.Reflection;
 using NBlog.sdk;
 using NBlogWeb3.Application;
 using NBlogWeb3.Components;
-using NBlogWeb3.Models;
+using NBlogWeb3.Services;
 using Toolbox.Extensions;
 
 
@@ -47,7 +47,7 @@ builder.Host.UseOrleans((context, silo) =>
 
 builder.Services.AddAntiforgery();
 builder.Services.AddHealthChecks();
-builder.Services.AddScoped<LeftButtonStateService>();
+builder.Services.AddInternalServices();
 
 var app = builder.Build();
 //app.UseStatusCodePagesWithReExecute("/summary/article/home");

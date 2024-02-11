@@ -1,4 +1,5 @@
 ﻿@using NBlog.sdk
+@using NBlogWeb3.Application;
 @using NBlogWeb3.Components.Controls
 @using Toolbox.Extensions
 @using Toolbox.Tools
@@ -49,16 +50,12 @@
     private NBlogConfiguration _configuration = null!;
     private SequentialState _flow = new SequentialState();
 
-    private Task IndexEvent()
-    {
-        return Task.CompletedTask; // await ShowIndex.InvokeAsync();
-    }
-
     protected override async Task OnParametersSetAsync()
     {
         if (RouteData == null) return;
 
         _flow.Reset();
+        DbNameId dbNameId = RouteData.GetDbNameId();
         string? dbName = null;
         if (RouteData.RouteValues.TryGetValue("dbName", out var value) && (value is string v)) dbName = v;
         dbName ??= "*";

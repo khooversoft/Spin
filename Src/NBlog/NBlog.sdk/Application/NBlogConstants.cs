@@ -23,6 +23,8 @@ public static class NBlogConstants
     public const string SummaryAttribute = "summary";
     public const string MainAttribute = "main";
     public const string ImageAttribute = "image";
+    public const string IndexAttribute = "index";
+
     public const string DefaultDbName = "article";
     public const string ContactRequestFolder = "contact-request";
 
@@ -31,11 +33,13 @@ public static class NBlogConstants
     public const string DbTag = "db";
     public const string AreaTag = "area";
     public const string HideStyle = "hide";
+    public const string KeyHashTag = "keyhash";
 
     public static FrozenSet<string> ValidThemes = ((string[])["dark", "light"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     public static FrozenSet<string> RequiredTags = ((string[])["db", "area"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     public static FrozenSet<string> FilterTags = ((string[])["db"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-    public static FrozenSet<string> CanIndexFilesAttributes = ((string[])["main", "summary"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    public static FrozenSet<string> FileAttributes = ((string[])["main", "summary"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    public static FrozenSet<string> IndexAttributes = ((string[])["index"]).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static class Tool
     {
