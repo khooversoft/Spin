@@ -43,6 +43,7 @@
         {
             _articleId = _articleMenuService.Get();
             await Load();
+            StateHasChanged();
         }
 
         await base.OnAfterRenderAsync(firstRender);
