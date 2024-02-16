@@ -214,7 +214,7 @@ public class PackageBuild
         var addMainifestCopy = addMainifestCopyOption.Where(x => x.IsOk()).Select(x => x.Return()).ToArray();
 
         var addFiles = manifestFiles
-            .SelectMany(x => x.Commands.Select(y => (y.LocalFilePath, y.FileId)))
+            .SelectMany(x => x.Commands.Where(y => y.IsFileReference).Select(y => (y.FileIdValue, y.FileId)))
             .ToArray();
 
         var result = buildContext with
@@ -299,7 +299,7 @@ public class PackageBuild
 
         var multipleReferences = buildContext.ManifestFiles
             .SelectMany(x => x.Commands)
-            .Select(x => (fileId: x.FileId.ToLower(), localFile: x.LocalFilePath.ToLower()))
+            .Select(x => (fileId: x.FileId.ToLower(), localFile: x.FileIdValue.ToLower()))
             .GroupBy(x => x.fileId)
             .Where(x => x.Count() > 1)
             .ToArray();

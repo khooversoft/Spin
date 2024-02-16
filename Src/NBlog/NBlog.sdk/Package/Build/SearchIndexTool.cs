@@ -32,7 +32,7 @@ public static class SearchIndexTool
 
         IEnumerable<string> filterOnAttribute(IEnumerable<CommandNode> list) => list
             .Where(x => x.Attributes.Any(y => NBlogConstants.FileAttributes.Contains(y)))
-            .Select(x => x.LocalFilePath);
+            .Select(x => x.FileIdValue);
     }
 
     private static async Task<IReadOnlyList<DocumentReference>> ScrapFiles(DocumentTokenizer tokenizer, IReadOnlyList<(ArticleManifest manifest, string file)> list)

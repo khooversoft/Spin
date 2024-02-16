@@ -20,7 +20,7 @@
 </div>
 
 @code {
-    [CascadingParameter] RouteData RouteData { get; set; } = null!;
+    // [CascadingParameter] RouteData RouteData { get; set; } = null!;
     [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
     [Inject] private ILogger<ConfigurationMenu> _logger { get; init; } = null!;
 

@@ -21,7 +21,7 @@ public class CommandGrammarParserTests
             x.Attributes.Count.Should().Be(0);
 
             x.FileId.Should().Be("spin/tools/SpinClusterCommandSyntaxSummary/summary");
-            x.LocalFilePath.Should().Be("SpinClusterCommandSyntaxSummary.md");
+            x.FileIdValue.Should().Be("SpinClusterCommandSyntaxSummary.md");
         });
     }
 
@@ -41,7 +41,7 @@ public class CommandGrammarParserTests
             x.Attributes[0].Should().Be("summary");
 
             x.FileId.Should().Be("spin/tools/SpinClusterCommandSyntaxSummary/summary");
-            x.LocalFilePath.Should().Be("SpinClusterCommandSyntaxSummary.md");
+            x.FileIdValue.Should().Be("SpinClusterCommandSyntaxSummary.md");
         });
     }
 
@@ -62,7 +62,7 @@ public class CommandGrammarParserTests
             x.Attributes[1].Should().Be("main");
 
             x.FileId.Should().Be("spin/tools/SpinClusterCommandSyntaxSummary/summary");
-            x.LocalFilePath.Should().Be("SpinClusterCommandSyntaxSummary.md");
+            x.FileIdValue.Should().Be("SpinClusterCommandSyntaxSummary.md");
         });
     }
 
@@ -82,7 +82,7 @@ public class CommandGrammarParserTests
             x.Attributes[0].Should().Be("index");
 
             x.FileId.Should().Be("topic/CommandSyntaxSummary/summary");
-            x.LocalFilePath.Should().Be("This is text value");
+            x.FileIdValue.Should().Be("This is text value");
         });
     }
 }

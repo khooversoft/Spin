@@ -25,7 +25,13 @@ public class ConfigurationService
 
     public async Task<Option<NBlogConfiguration>> Get(DbNameId dbNameId, ScopeContext context)
     {
-        var lookup = await _clusterClient.GetConfigurationActor(dbNameId.DbName).Get(context.TraceId);
+        dbNameId = dbNameId.DbName switch
+        {
+            "*" => _storageOption.DefaultDbName,
+            string v => v,
+        };
+
+        var lookup = await _clusterClient.GetConfigurationActor(dbNameId).Get(context.TraceId);
         if (lookup.IsError())
         {
             _logger.LogError("Failed to find dbName={dbName} and defaultDbName={defaultDbName}", dbNameId, _storageOption.DefaultDbName);

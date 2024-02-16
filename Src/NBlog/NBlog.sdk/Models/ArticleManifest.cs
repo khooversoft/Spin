@@ -69,7 +69,7 @@ public static class ArticleManifestValidations
         int fileIdDistinctCount = commands.Select(x => x.FileId).Distinct(StringComparer.OrdinalIgnoreCase).Count();
         if (fileIdDistinctCount != commands.Count) return (StatusCode.BadRequest, "Duplicate FileIds");
 
-        int localFilePathCount = commands.Select(x => x.LocalFilePath).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        int localFilePathCount = commands.Select(x => x.FileIdValue).Distinct(StringComparer.OrdinalIgnoreCase).Count();
         if (localFilePathCount != commands.Count) return (StatusCode.BadRequest, "Duplicate LocalFilePath");
 
         return StatusCode.OK;
