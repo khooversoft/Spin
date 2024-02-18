@@ -1,20 +1,21 @@
 ﻿@using NBlog.sdk
 @using NBlogWeb3.Services
+@using System.Diagnostics
 @using Toolbox.Extensions
 @using Toolbox.Tools
 @using Toolbox.Types
 
-@if(_flow.State == 1)
+@if (_flow.State == 2 && _indexMap.Count > 0)
 {
     <nav class="x-container nav">
         <div class="title">@_title</div>
         @foreach (var item in _indexMap)
         {
-            <div class="x-btn-left-menu-container nav-link d-flex align-items-center fw-600">
-                <a class="x-btn-left-menu btn x-left-menu-link-text" href="@item.HRef">@item.Title</a>
-            </div>
+            <a class="x-btn underline-from-left" href="@item.HRef">@item.Title</a>
         }
     </nav>
+
+    <hr/>
 }
 
 @code {
@@ -39,7 +40,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        bool changedState = _flow.MoveState(1);
+        if (firstRender || changedState)
         {
             _articleId = _articleMenuService.Get();
             await Load();
@@ -49,16 +51,15 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private void OnStateChange()
+    private async void OnStateChange()
     {
-        _articleId = _articleMenuService.Get();
-        StateHasChanged();
+        _flow.Reset();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task Load()
     {
         _articleManifest = null;
-        _flow.Reset();
         _articleId = _articleMenuService.Get();
         _title = _articleManifest?.Title ?? "default";
 
@@ -75,7 +76,7 @@
             .Select(x => new IndexMap { Title = x.FileIdValue, HRef = x.FileId })
             .ToArray();
 
-        _flow.MoveState(1);
+        _flow.MoveState(2).Assert(x => x == true, x => $"{x} state is not valid");
     }
 
     private record IndexMap

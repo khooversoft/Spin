@@ -13,6 +13,8 @@
     --style-btn-background-color: #FE071B;
     --style-btn-hover: #FE4C5C;
     --style-btn-press: black;
+    --style-link-color-rgb: #0D6EFD;
+    --layout-left-menu-size: 250px;
 }
 
 .dark-theme {
@@ -29,6 +31,7 @@
     --style-article-header-color: rgba(var(--bs-info-rgb),var(--bs-text-opacity));
     --style-article-summary-background-color: #181818;
     --style-article-summary-background: var(--style-background-color);
+    --style-article-index-text-color: #0dcaf0;
 }
 
 .light-theme {
@@ -45,6 +48,7 @@
     --style-article-header-color: #0F2804;
     --style-article-summary-background-color: inherit;
     --style-article-summary-background: linear-gradient(135deg, hsla(0, 0%, 100%, 1) 0%, hsla(0, 0%, 86%, 0.7) 73%, hsla(0, 0%, 99%, 1) 100%);
+    --style-link-text-color: var(--style-black-color);
 }
 
 .app-body {
