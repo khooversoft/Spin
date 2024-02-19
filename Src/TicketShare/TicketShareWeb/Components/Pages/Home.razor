@@ -1,0 +1,20 @@
+﻿@page "/"
+@using TicketShare.sdk
+
+<PageTitle>Ticket Share</PageTitle>
+
+@* <h1>Welcome to Ticket Share</h1> *@
+
+<fluent-design-theme mode="light" primary-color="booking" />
+<div id="gradient"></div>
+
+<div class="x-container">
+    @((MarkupString)_html!)
+</div>
+
+
+@code {
+    private string? _html;
+
+    protected override void OnInitialized() => _html = StaticData.GetIntroHtml();
+}

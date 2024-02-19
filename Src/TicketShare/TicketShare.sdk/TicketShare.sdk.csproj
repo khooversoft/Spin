@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Data\FanHappy.webp" />
+    <None Remove="Data\Fans.webp" />
+    <None Remove="Data\FansTrading.webp" />
+    <None Remove="Data\Intro.html" />
+    <None Remove="Data\Intro.md" />
+    <None Remove="Data\SharringTickets.webp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\FanHappy.webp" />
+    <EmbeddedResource Include="Data\Fans.webp" />
+    <EmbeddedResource Include="Data\FansTrading.webp" />
+    <EmbeddedResource Include="Data\Intro.html" />
+    <EmbeddedResource Include="Data\Intro.md" />
+    <EmbeddedResource Include="Data\SharringTickets.webp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" Version="0.35.0" />
+    <PackageReference Include="Markdown.ColorCode" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+
+</Project>

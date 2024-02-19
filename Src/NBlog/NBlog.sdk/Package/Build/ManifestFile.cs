@@ -89,8 +89,6 @@ public static class ManifestFileTool
             })
             .ToArray();
 
-        //if (file.Contains("company", StringComparison.OrdinalIgnoreCase)) Debugger.Break();
-
         if (commands.Length == 0)
         {
             context.LogError("Manifest={file} does not have any commands specified");

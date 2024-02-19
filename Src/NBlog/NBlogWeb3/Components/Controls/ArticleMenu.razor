@@ -61,7 +61,6 @@
     {
         _articleManifest = null;
         _articleId = _articleMenuService.Get();
-        _title = _articleManifest?.Title ?? "default";
 
         if (_articleId.IsEmpty()) return;
 
@@ -70,6 +69,7 @@
         if (articleManifestOption.IsError()) return;
 
         _articleManifest = articleManifestOption.Return();
+        _title = _articleManifest.Title;
 
         _indexMap = _articleManifest.GetCommands()
             .Where(x => x.IsIndexReference)
