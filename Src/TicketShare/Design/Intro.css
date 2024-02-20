@@ -11,22 +11,28 @@ h3 {
     margin: 20px 0 0 0;
 }
 
-body {
+html, body {
     background-color: white;
     margin: 0;
+    --body-font: "Segoe UI Variable", "Segoe UI", sans-serif;
+    font-family: var(--body-font);
 }
 
 .content-block {
     max-width: 1024px;
     color: black;
     font-size: 14px;
-    padding: 10px;
+    padding: 50px 40px 50px 40px;
+}
+
+.content-block h2 {
+    margin: 0 0 15px 0;
 }
 
 .row {
     padding: 5px;
     display: flex;
-    gap: 15px;
+    gap: 35px;
     flex-wrap: wrap;
     justify-content: space-between;
 }
@@ -37,9 +43,14 @@ body {
 
 .column-image {
     /* flex: 0 0 300px; */
-    /* flex: 1 1 calc(20% - 20px); */
-    max-width: 250px;
+    flex: 1 1 calc(50% - 20px);
+    /* max-width: 450px; */
     height: auto;
+}
+
+.icon-image {
+    max-width: 32px;
+    background: transparent;
 }
 
 .image-s1 {
@@ -55,7 +66,15 @@ body {
 }
 
 .background-style3 {
-    background: #EAFAF1;    
+    background: #EAFAF1;
+}
+
+.background-style4 {
+    background: #FDF2E9;
+}
+
+.background-style5 {
+    background: #ECF0F1;
 }
 
 @media screen and (max-width: 600px) {
@@ -74,6 +93,10 @@ body {
     justify-content: space-between;
 }
 
+.card-2column {
+    gap: 100px;
+}
+
 .card {
     flex: 1;
     margin-bottom: 20px;
@@ -84,8 +107,20 @@ body {
     border-radius: 5px;
 }
 
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.card-offset {
+    max-width: 480px;
+}
+
+.card-small {
+    width: calc(50% - 100px);
+}
+
 .card-header {
-    padding: 15px;
+    padding: 10px;
     font-size: 1.0rem;
     font-weight: 600;
 }
@@ -94,6 +129,11 @@ body {
     font-size: 14px;
     padding: 15px;
     text-align: justify;
+}
+
+.card-price {
+    font-size: 1.5rem;
+    padding: 10px;
 }
 
 .card-image {
@@ -106,7 +146,7 @@ body {
     margin: 5px;
 }
 
-.right-float-image {
+/* .right-float-image {
     float: right;
     margin-left: 20px;
     width: 30%;
@@ -121,4 +161,61 @@ body {
 
 .text-image-wrapper P {
     margin: 20px 20px 0 0;
+} */
+
+.column-dialog {
+    margin: 0 10px 10px 10px;
+    padding: 20px;
+    max-width: 400px;
+    background-color: white;
+    border: 1px solid lightgray;
+}
+
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.dialog-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 20px 0 0 0;
+}
+
+.email-text {
+    margin: 20px 0 5px 0;
+    font-size: 0.9rem;
+}
+
+.email-input {
+    width: 100%;
+    font-size: 16px;
+    border-radius: 5px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.email-input:focus {
+    border-color: #007bff; /* Changes the border color when the input is focused for better visibility */
+}
+
+.agree-text {
+    margin: 20px 0 20px 0;
+    font-size: 0.8rem;
+}
+
+.agree-text a {
+    color: green;
+}
+
+.agree-button {
+    width: 100px;
+    font-size: 16px;
+    padding: 8px 12px;
+    background-color: #28B463;
+    border: 0;
 }

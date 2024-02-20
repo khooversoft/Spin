@@ -16,10 +16,6 @@
     /* z-index: -1; */
 }
 
-.background-gradient h2 {
-    margin: 5px;
-}
-
 @media(width < 600px) {
     .background-gradient {
         left: 0;

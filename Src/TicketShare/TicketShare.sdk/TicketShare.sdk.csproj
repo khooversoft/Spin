@@ -16,12 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data\FanHappy.webp" />
-    <EmbeddedResource Include="Data\Fans.webp" />
-    <EmbeddedResource Include="Data\FansTrading.webp" />
-    <EmbeddedResource Include="Data\Intro.html" />
     <EmbeddedResource Include="Data\Intro.md" />
-    <EmbeddedResource Include="Data\SharringTickets.webp" />
   </ItemGroup>
 
   <ItemGroup>
