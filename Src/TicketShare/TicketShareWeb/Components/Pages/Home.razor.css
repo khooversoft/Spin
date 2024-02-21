@@ -43,7 +43,7 @@ h3 {
     display: flex;
     gap: 35px;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 
 .column-text {
@@ -113,6 +113,7 @@ h3 {
     background: linear-gradient(135deg, hsla(0, 0%, 100%, 1) 1%, hsla(0, 0%, 89%, 1) 41%, hsla(0, 0%, 90%, 1) 69%, hsla(0, 0%, 100%, 1) 100%);
     color: black;
     border-radius: 5px;
+    max-width: 500px;
 }
 
     .card:hover {
@@ -188,18 +189,10 @@ h3 {
     font-size: 0.9rem;
 }
 
-.email-input {
+::deep .email-input {
+    margin: 30px 0 5px 0;
     width: 100%;
-    font-size: 16px;
-    border-radius: 5px;
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    outline: none;
 }
-
-    .email-input:focus {
-        border-color: #007bff;
-    }
 
 .agree-text {
     margin: 20px 0 20px 0;
@@ -212,29 +205,23 @@ h3 {
 
 .agree-button {
     width: 100px;
+    height: 36px;
     font-size: 16px;
     padding: 8px 12px;
     background-color: #28B463;
     border: 0;
+    border-radius: 0;
 }
 
 
 .background-gradient {
-    /* position: fixed; */
-    /* top: 50px; */
-    /* left: 255px; */
-    /* height: 60px; */
     width: 100%;
     border: 01px solid transparent;
-    /* background: linear-gradient(130deg, #ff7e00, #ffffff, #5cff00); */
     background: linear-gradient(130deg, rgba(255, 126, 0, .3), rgba(255, 255, 255, .5), rgba(92, 255, 0, .5));
     background-size: 200% 200%;
     -webkit-animation: Animation 20s ease infinite;
     -moz-animation: Animation 20s ease infinite;
     animation: Animation 20s ease infinite;
-    /* clip-path: polygon(0 0, 100% 0, 100% 30px, 0 100%); */
-    /* border-radius: 5px; */
-    /* z-index: -1; */
 }
 
 @media(width < 600px) {

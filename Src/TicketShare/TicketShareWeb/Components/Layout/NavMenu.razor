@@ -27,8 +27,7 @@
                 <FluentNavLink Icon="@(new Icons.Regular.Size24.LeafTwo())" Tooltip="League">Leagues</FluentNavLink>
             </FluentNavGroup>
 
-
-@*             <AuthorizeView>
+            <AuthorizeView>
                 <Authorized>
                     <FluentNavLink Href="Account/Manage">@context.User.Identity?.Name</FluentNavLink>
                         <form action="Account/Logout" method="post">
@@ -41,7 +40,7 @@
                         <FluentNavLink Href="Account/Register">Register</FluentNavLink>
                         <FluentNavLink Href="Account/Login">Login</FluentNavLink>
                     </NotAuthorized>
-                </AuthorizeView> *@
+                </AuthorizeView>
             </FluentNavMenu>
         </nav>
     </div>

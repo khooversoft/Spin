@@ -2,17 +2,15 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.FluentUI.AspNetCore.Components;
-using TicketShareWeb.Components;
-using TicketShareWeb.Components.Account;
-using TicketShareWeb.Data;
+using TicketShareWeb2.Components;
+using TicketShareWeb2.Components.Account;
+using TicketShareWeb2.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddFluentUIComponents();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -38,7 +36,8 @@ builder.Services.AddAuthentication(options =>
                 return Task.CompletedTask;
             }
         };
-    }).AddIdentityCookies();
+    })
+    .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

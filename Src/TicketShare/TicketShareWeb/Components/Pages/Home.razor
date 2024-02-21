@@ -2,7 +2,6 @@
 @using TicketShare.sdk
 
 <PageTitle>Ticket Share</PageTitle>
-<fluent-design-theme mode="light" primary-color="booking" />
 
 <div class="background-gradient">
     <div class="content-block">
@@ -17,24 +16,19 @@
                 <div class="dialog-title">
                     Enter your email, we'll check if you need to create a new account.
                 </div>
-                <div class="email-text">Email</div>
-                <input class="email-input" />
+                <FluentTextField @bind-Value=value2 Placeholder="Email" class="email-input"></FluentTextField>
                 <div class="agree-text">
                     By clicking Submit, you agree to these <a href="/">terms and conditions</a> and
-                    allow Ticket-Share to get your user and tenant details. <a href="/">
-                        Ticket-Share Privacy
-                        Statement
-                    </a>
+                    allow Ticket-Share to get your user and tenant details. <a href="/">Ticket-Share Privacy Statement</a>
                 </div>
-                <button class="agree-button">Submit</button>
+                <FluentButton BackgroundColor="#28B463" class="agree-button">Submit</FluentButton>
             </div>
 
             <div class="card">
                 <div class="card-header">Your go-to platform for connecting</div>
                 <img class="card-image" src="/images/SharringTickets.webp" alt="Ticket Sharring">
                 <div class="card-description">
-                    Introducing <b>Ticket Share</b>, your go-to platform for connecting with fellow event
-                    enthusiasts
+                    Introducing <b>Ticket Share</b>, your go-to platform for connecting with fellow event enthusiasts
                     to share the joy of live events! At Ticket Share, we believe in the power of community and
                     the unforgettable experiences that come from attending live events, whether it's a concert,
                     sports game, theater production, or any other gathering that brings people together.
@@ -54,12 +48,13 @@
             </div>
             <div class="column-text">
                 <h3>Connections</h3>
-
-                Stay ahead of the game with real-time
-                alerts across multiple channels, including email, SMS, and in-app notifications. Our tailored
-                notification system ensures you never miss an opportunity to attend the events you love.
-                Whether tickets become available through sales, trades, or generous shares, you'll be the
-                first to know.
+                <p>
+                    Stay ahead of the game with real-time
+                    alerts across multiple channels, including email, SMS, and in-app notifications. Our tailored
+                    notification system ensures you never miss an opportunity to attend the events you love.
+                    Whether tickets become available through sales, trades, or generous shares, you'll be the
+                    first to know.
+                </p>
             </div>
         </div>
     </div>
@@ -70,11 +65,12 @@
         <div class="row">
             <div class="column-text">
                 <h3>Marketplace</h3>
-
-                Our platform goes beyond ticket sharing. Subscribers gain
-                access to exclusive features that streamline the process of trading, selling, and purchasing
-                tickets. With enhanced visibility and priority listing options, your offers stand out, making
-                it easier than ever to find the perfect match for your ticket needs.
+                <p>
+                    Our platform goes beyond ticket sharing. Subscribers gain
+                    access to exclusive features that streamline the process of trading, selling, and purchasing
+                    tickets. With enhanced visibility and priority listing options, your offers stand out, making
+                    it easier than ever to find the perfect match for your ticket needs.
+                </p>
             </div>
             <div class="card">
                 <div class="card-header">Trade</div>
@@ -93,12 +89,13 @@
             </div>
             <div class="column-text">
                 <h3>Don't Miss Out</h3>
-
-                Gain privileged access to "first opportunity" tickets
-                for select events. Our subscription service partners with event organizers and venues to
-                offer exclusive early ticket releases, special discounts, and VIP packages to our subscribers.
-                This means you get the first pick on seats at highly anticipated events, often before tickets
-                are available to the general public.
+                <p>
+                    Gain privileged access to "first opportunity" tickets
+                    for select events. Our subscription service partners with event organizers and venues to
+                    offer exclusive early ticket releases, special discounts, and VIP packages to our subscribers.
+                    This means you get the first pick on seats at highly anticipated events, often before tickets
+                    are available to the general public.
+                </p>
             </div>
         </div>
     </div>
@@ -140,5 +137,5 @@
 
 
 @code {
-
+    private string value2;
 }
