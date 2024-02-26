@@ -22,9 +22,13 @@
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.35.0" />
     <PackageReference Include="Markdown.ColorCode" Version="2.2.1" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

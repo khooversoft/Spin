@@ -9,7 +9,7 @@ public class DirectoryToolTests
     [Fact]
     public void TestDirectoryFind()
     {
-        string[] roots = [@"d:\sources", @"c:\sources"];
+        string[] roots = [@"d:\sources", @"c:\sources", @"e:\sources"];
         var stack = roots.Reverse().ToStack();
 
         while (stack.TryPop(out var rootPath))

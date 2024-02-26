@@ -54,13 +54,7 @@ public class DataObjectSet : Dictionary<string, DataObject>
 
 public static class DataObjectSetExtensions
 {
-    public static Option Validate(this DataObjectSet subject) => DataObjectSet.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this DataObjectSet subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
+    public static Option<IValidatorResult> Validate(this DataObjectSet subject) => DataObjectSet.Validator.Validate(subject);
 
     public static T GetObject<T>(this DataObjectSet subject, string? key = null, IValidator<T>? validator = null)
     {

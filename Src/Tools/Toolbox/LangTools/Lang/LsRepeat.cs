@@ -15,7 +15,7 @@ public class LsRepeat : LangBase<ILangSyntax>, ILangRoot
     public string? Name { get; }
     public bool NoDelimiter { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _ = null)
     {
         var nodes = new LangNodes();
         bool first = true;

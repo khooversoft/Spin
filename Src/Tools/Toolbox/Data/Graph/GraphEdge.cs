@@ -49,7 +49,7 @@ public sealed record GraphEdge : IGraphCommon
     public Tags Tags { get; init; } = new Tags();
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 
-    public GraphEdge Copy() => new GraphEdge(Key, FromKey, ToKey, EdgeType, Tags.Copy(), CreatedDate);
+    public GraphEdge Copy() => new GraphEdge(Key, FromKey, ToKey, EdgeType, Tags.Clone(), CreatedDate);
 
     public bool Equals(GraphEdge? obj) => obj is GraphEdge document &&
         Key.Equals(document.Key) &&

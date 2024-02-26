@@ -5,17 +5,17 @@ namespace Toolbox.Types;
 
 public static class TagsTool
 {
-    public static T ToObject<T>(this Tags subject) where T : new()
-    {
-        subject.NotNull();
+    //public static T ToObject<T>(this Tags subject) where T : new()
+    //{
+    //    subject.NotNull();
 
-        var dict = subject
-            .Select(x => new KeyValuePair<string, string>(x.Key, x.Value ?? "true"))
-            .ToDictionary(x => x.Key, x => x.Value);
+    //    var dict = subject
+    //        .Select(x => new KeyValuePair<string, string>(x.Key, x.Value ?? "true"))
+    //        .ToDictionary(x => x.Key, x => x.Value);
 
-        var result = DictionaryExtensions.ToObject<T>(dict);
-        return result;
-    }
+    //    var result = DictionaryExtensions.ToObject<T>(dict);
+    //    return result;
+    //}
 
     public static bool HasTag(string? tags, string tag)
     {

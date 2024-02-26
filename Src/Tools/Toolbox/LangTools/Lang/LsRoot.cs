@@ -13,7 +13,7 @@ public class LsRoot : LangBase<ILangSyntax>, ILangRoot
     public LsRoot(string? name = null) => Name = name;
     public string? Name { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _ = null)
     {
         Option<LangNodes> nodes = this.MatchSyntaxSegement(nameof(LsRoot), pContext);
         return nodes;

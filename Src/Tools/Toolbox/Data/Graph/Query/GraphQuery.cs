@@ -5,36 +5,36 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class GraphQuery
+public static class GraphQuery
 {
-    private readonly GraphMap _map;
-    private readonly object _syncLock;
+    //private readonly GraphMap _map;
+    //private readonly object _syncLock;
 
-    internal GraphQuery(GraphMap map, object syncLock)
-    {
-        _map = map.NotNull();
-        _syncLock = syncLock.NotNull();
-    }
+    //internal GraphQuery(GraphMap map, object syncLock)
+    //{
+    //    _map = map.NotNull();
+    //    _syncLock = syncLock.NotNull();
+    //}
 
-    public GraphQueryResult Execute(string graphQuery)
-    {
-        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
-        if (result.IsError()) return new GraphQueryResult { StatusCode = result.StatusCode, Error = result.Error };
+    //public GraphQueryResult Execute(string graphQuery)
+    //{
+    //    Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
+    //    if (result.IsError()) return new GraphQueryResult { StatusCode = result.StatusCode, Error = result.Error };
 
-        return Process(result.Return());
-    }
+    //    return Process(result.Return());
+    //}
 
-    public GraphQueryResult Process(IReadOnlyList<IGraphQL> instructions)
+    public static GraphQueryResult Process(GraphMap map, IReadOnlyList<IGraphQL> instructions)
     {
         instructions.NotNull();
 
         var stack = instructions.Reverse().ToStack();
-        SearchContext search = _map.Search();
+        SearchContext search = map.Search();
         IReadOnlyList<IGraphCommon> current = null!;
         Dictionary<string, IReadOnlyList<IGraphCommon>> aliasDict = new(StringComparer.OrdinalIgnoreCase);
 
         bool first = true;
-        lock (_syncLock)
+        lock (map.SyncLock)
         {
             while (stack.TryPop(out var graphQL))
             {

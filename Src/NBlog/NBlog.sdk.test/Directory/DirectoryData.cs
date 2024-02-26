@@ -169,10 +169,10 @@ public class DirectoryFake : IDirectoryActor
 
     public Task<Option> Clear(string principalId, string traceId) => throw new NotImplementedException();
 
-    public Task<Option<GraphCommandResults>> Execute(string command, string _)
+    public Task<Option<GraphQueryResults>> Execute(string command, string _)
     {
-        GraphCommandExceuteResults result = Map.Command().Execute(command).ThrowOnError().Return();
-        return result.ConvertTo().ToOption().ToTaskResult();
+        GraphQueryResults result = Map.Execute(command).ThrowOnError().Return();
+        return result.ToOption().ToTaskResult();
     }
 }
 

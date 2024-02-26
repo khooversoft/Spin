@@ -166,7 +166,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         new ScopeContext(traceId, _logger).Location().LogInformation("Delete workId={workId}", workId);
 
         string command = $"delete (key={workId});";
-        Option<GraphCommandResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
+        Option<GraphQueryResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
 
         return updateResult.ToOptionStatus();
     }
@@ -203,7 +203,7 @@ public class SchedulerActor : Grain, ISchedulerActor
     {
         string command = $"select [fromKey={this.GetPrimaryKeyString()};edgeType={ScheduleEdgeTypeTool.EdgeTypeSearch}];";
 
-        Option<GraphCommandResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
+        Option<GraphQueryResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
         if (updateResult.IsError()) return updateResult.ToOptionStatus<IReadOnlyList<GraphEdge>>();
 
         var graphCmdResult = updateResult.Return();
@@ -218,10 +218,10 @@ public class SchedulerActor : Grain, ISchedulerActor
         context.Location().LogInformation("Getting active schedules");
         string command = $"select [fromKey={this.GetPrimaryKeyString()};edgeType={ScheduleEdgeType.Active.GetEdgeType()}];";
 
-        Option<GraphCommandResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
+        Option<GraphQueryResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
         if (updateResult.IsError()) return updateResult.ToOptionStatus<IReadOnlyList<GraphEdge>>();
 
-        GraphCommandResults result = updateResult.Return();
+        GraphQueryResults result = updateResult.Return();
         result.Items.Count.Assert(x => x == 1, "Multiple data sets was returned, expected only 1");
 
         return result.Items[0].Edges().OrderBy(x => x.CreatedDate).ToArray();

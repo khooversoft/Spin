@@ -4,23 +4,17 @@ namespace Toolbox.Data;
 
 /// <summary>
 /// 
-/// (key=..;tags=..) = node search, wild cards supported
-/// [fromKey=...;toKey=..;edgeType=..;tags=..] = edge search
+/// () = node
+/// [] = edge
 /// 
-/// Rules....
-///     selectGrammar = (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2
+/// (...) = {* | v | k=v}
+/// [...] = {* | v | k=v}
+/// search = { (...) | [...] } [-> { (...) | [...] ...}
 /// 
-/// select <selectGrammar>;
-/// 
-/// examples: select (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2;
-/// 
-/// add node key=key1,tags=t1;
-/// add edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;
-/// 
-/// delete <selectGrammar>;
-/// 
-/// update <selectGrammar> set tags=t1;                         // for node updates
-/// update <selectGrammar> set edgeType=et,tags=t2;             // for edge updates
+/// select search
+/// add {node | edge} {k | k=v}[, {k | k=v} ...]
+/// delete search
+/// update search set {k=v}[, {k=v} ...]
 /// 
 /// </summary>
 public static class GraphLangGrammar
@@ -30,15 +24,15 @@ public static class GraphLangGrammar
         + ("=", "equal")
         + new LsValue("rvalue");
 
-    public static ILangRoot SearchFilter
+    public static ILangRoot TagParameters
     {
         get
         {
             var valueOnly = new LsRoot("valueOnly") + new LsValue("svalue");
 
-            var parameters = new LsRepeat(nameof(SearchFilter))
-                + (new LsSwitch($"{nameof(SearchFilter)}-or") + ValueAssignment + valueOnly)
-                + new LsToken(";", "delimiter", true);
+            var parameters = new LsRepeat(nameof(TagParameters))
+                + (new LsSwitch($"{nameof(TagParameters)}-or") + ValueAssignment + valueOnly)
+                + new LsToken(",", "delimiter", true);
 
             return parameters;
         }
@@ -49,25 +43,15 @@ public static class GraphLangGrammar
         get
         {
             var nodeSyntax = new LsRoot("node")
-                + (new LsGroup("(", ")", "node-group") + SearchFilter)
+                + (new LsGroup("(", ")", "node-group") + TagParameters)
                 + new LsValue("alias", true);
 
             var edgeSyntax = new LsRoot("edge")
-                + (new LsGroup("[", "]", "edge-group") + SearchFilter)
+                + (new LsGroup("[", "]", "edge-group") + TagParameters)
                 + new LsValue("alias", true);
 
             var search = new LsRepeat(nameof(SearchQuery)) + (new LsSwitch($"{nameof(SearchQuery)}-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "select-next", true);
             return search;
-        }
-    }
-
-    public static ILangRoot SetValues
-    {
-        get
-        {
-            var properties = new LsRepeat("properties-rpt") + ValueAssignment + new LsToken(",", "value-delimiter", true);
-            var setValues = new LsRoot(nameof(SetValues)) + properties;
-            return setValues;
         }
     }
 
@@ -77,8 +61,8 @@ public static class GraphLangGrammar
     {
         get
         {
-            var node = new LsRoot("addNode") + new LsSymbol("node") + SetValues;
-            var edge = new LsRoot("addEdge") + new LsSymbol("edge") + SetValues;
+            var node = new LsRoot("addNode") + new LsSymbol("node") + TagParameters;
+            var edge = new LsRoot("addEdge") + new LsSymbol("edge") + TagParameters;
 
             var rule = new LsRoot(nameof(AddOpr)) + new LsSymbol("add") + (new LsSwitch("add-sw") + node + edge) + new LsToken(";", "term");
 
@@ -96,7 +80,7 @@ public static class GraphLangGrammar
                 + new LsSymbol("update")
                 + SearchQuery
                 + new LsSymbol("set", "update-set")
-                + SetValues
+                + TagParameters
                 + new LsToken(";", "term");
 
             return rule;

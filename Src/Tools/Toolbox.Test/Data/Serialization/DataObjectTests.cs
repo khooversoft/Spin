@@ -13,7 +13,7 @@ public class DataObjectTests
     {
         DataObjectSet model = new DataObjectSet();
 
-        Option v = model.Validate();
+        Option v = model.Validate().ToOptionStatus();
         v.IsOk().Should().BeTrue();
     }
 

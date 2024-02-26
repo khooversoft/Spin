@@ -8,6 +8,77 @@ namespace Toolbox.Test.Types;
 
 public class TagsTests
 {
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData("-", false)]
+    [InlineData(".", false)]
+    [InlineData(":", false)]
+    [InlineData("#", false)]
+    [InlineData("k", true)]
+    [InlineData("k1", true)]
+    [InlineData("k1/", false)]
+    [InlineData("k.1", true)]
+    [InlineData("k-1", true)]
+    [InlineData("k:1", true)]
+    [InlineData("1", true)]
+    [InlineData("1#", false)]
+    [InlineData("1k", true)]
+    [InlineData("1k.", true)]
+    [InlineData("1k.v", true)]
+    public void IsKeyValid(string? key, bool expected)
+    {
+        bool actual = Tags2Tool.IsKeyValid(key, out Option _);
+        actual.Should().Be(expected);
+
+        if (expected || key.IsEmpty())
+        {
+            _ = new Tags(key);
+            _ = new Tags().Set(key);
+            return;
+        }
+
+        Action act = () => new Tags(key);
+        act.Should().Throw<ArgumentException>();
+
+        Action act2 = () => new Tags().Set(key);
+        act2.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("a=v;b=v", false)]
+    [InlineData("a=v/b=v", false)]
+    [InlineData("a=v-b=v", false)]
+    [InlineData("a", true)]
+    [InlineData("a=v", true)]
+    [InlineData("a,b", true)]
+    [InlineData("a=v,b", true)]
+    [InlineData("a,b=v", true)]
+    [InlineData("a=v,b=v", true)]
+    [InlineData("a,b,c", true)]
+    [InlineData("a=v,b,c", true)]
+    [InlineData("a=v,b=v,c", true)]
+    [InlineData("a=v,b=v,c=v", true)]
+    [InlineData("a,b=v,c=v", true)]
+    [InlineData("a,b,c=v", true)]
+    [InlineData("  a=v   ,b  =  v  ,c =   v   ", true)]
+    public void IsSetValid(string? key, bool expected)
+    {
+        if (expected || key.IsEmpty())
+        {
+            _ = new Tags(key);
+            _ = new Tags().Set(key);
+            return;
+        }
+
+        Action act = () => new Tags(key);
+        act.Should().Throw<ArgumentException>();
+
+        Action act2 = () => new Tags().Set(key);
+        act2.Should().Throw<ArgumentException>();
+    }
+
+
     [Fact]
     public void ImplicitConversion()
     {
@@ -38,24 +109,28 @@ public class TagsTests
     [Fact]
     public void TagsSingleAndNotEqual()
     {
-        var tags = new Tags().Set("key1");
-        tags.Count.Should().Be(1);
-        tags.ContainsKey("key1").Should().BeTrue();
-        tags["key1"].Should().BeNull();
-        tags.Has("key1").Should().BeTrue();
-        tags.Has("key1", "value").Should().BeFalse();
-        tags.Has("fake").Should().BeFalse();
-        tags.Has("key1", "fake1").Should().BeFalse();
-        tags.Has(null).Should().BeFalse();
+        var tags = new Tags().Set("key1").Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x.ContainsKey("key1").Should().BeTrue();
+            x["key1"].Should().BeNull();
+            x.Has("key1").Should().BeTrue();
+            x.Has("key1", "value").Should().BeFalse();
+            x.Has("fake").Should().BeFalse();
+            x.Has("key1", "fake1").Should().BeFalse();
+            x.Has(null).Should().BeFalse();
+        });
 
-        var tags2 = new Tags().Set("key1=value1");
-        tags2.Count.Should().Be(1);
-        tags2.ContainsKey("key1").Should().BeTrue();
-        tags2["key1"].Should().Be("value1");
-        tags2.Has("key1").Should().BeTrue();
-        tags2.Has("key1", "value1").Should().BeTrue();
-        tags2.Has("fake").Should().BeFalse();
-        tags2.Has("key1", "fake1").Should().BeFalse();
+        var tags2 = new Tags().Set("key1=value1").Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x.ContainsKey("key1").Should().BeTrue();
+            x["key1"].Should().Be("value1");
+            x.Has("key1").Should().BeTrue();
+            x.Has("key1", "value1").Should().BeTrue();
+            x.Has("fake").Should().BeFalse();
+            x.Has("key1", "fake1").Should().BeFalse();
+        });
 
         (tags != tags2).Should().BeTrue();
     }
@@ -77,7 +152,7 @@ public class TagsTests
         (tags == tags2).Should().BeTrue();
         (tags.ToString() == tags2.ToString()).Should().BeTrue();
 
-        var tags3 = new Tags("key2=value2;key1=value1");
+        var tags3 = new Tags("key2=value2,key1=value1");
         (tags == tags3).Should().BeTrue();
 
         var tags4 = new Tags("key2=value2");
@@ -98,7 +173,7 @@ public class TagsTests
         tags.ToString().Should().Be("key1=value1");
 
         tags.Set("key2=value3");
-        tags.ToString().Should().Be("key1=value1;key2=value3");
+        tags.ToString().Should().Be("key1=value1,key2=value3");
 
         tags.Set("-key1=v");
         tags.ToString().Should().Be("key2=value3");
@@ -120,12 +195,12 @@ public class TagsTests
         (tags.ToString() == tags2.ToString()).Should().BeTrue();
 
         var tags3 = new Tags();
-        tags3.Set("key2=value2;key1=value1");
+        tags3.Set("key2=value2,key1=value1");
         tags3.Count.Should().Be(2);
         (tags == tags3).Should().BeTrue();
         (tags.ToString() == tags3.ToString()).Should().BeTrue();
 
-        var tags4 = new Tags("key2=value2;key1=value1");
+        var tags4 = new Tags("key2=value2,key1=value1");
         tags4.Count.Should().Be(2);
         (tags == tags4).Should().BeTrue();
         (tags.ToString() == tags4.ToString()).Should().BeTrue();
@@ -148,12 +223,12 @@ public class TagsTests
         (tags.ToString() == tags2.ToString()).Should().BeTrue();
 
         var tags3 = new Tags();
-        tags3.Set("key2;key1=value1");
+        tags3.Set("key2,key1=value1");
         tags3.Count.Should().Be(2);
         (tags == tags3).Should().BeTrue();
         (tags.ToString() == tags3.ToString()).Should().BeTrue();
 
-        var tags4 = new Tags("key2;key1=value1");
+        var tags4 = new Tags("key2,key1=value1");
         tags4.Count.Should().Be(2);
         (tags == tags4).Should().BeTrue();
         (tags.ToString() == tags4.ToString()).Should().BeTrue();
@@ -263,7 +338,7 @@ public class TagsTests
 
         Tags tags = new Tags().Set(data);
         tags.Should().NotBeNull();
-        tags.ToString().Should().Be("Name=name1;Running=True;State=2;StateName=Completed");
+        tags.ToString().Should().Be("Name=name1,Running=True,State=2,StateName=Completed");
 
         var readData = tags.ToObject<ScheduleWorkTags>();
         (data == readData).Should().BeTrue();

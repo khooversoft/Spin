@@ -92,7 +92,7 @@ public class GraphMapSerializationTests
 
         new GraphMap()
         {
-            new GraphNode("Node1", tags: "t1;t2=v2"),
+            new GraphNode("Node1", tags: "t1,t2=v2"),
         }.Action(x =>
         {
             var json = x.ToJson();
@@ -115,7 +115,7 @@ public class GraphMapSerializationTests
 
         new GraphMap()
         {
-            new GraphNode("Node1", tags: "t1;t2=v2"),
+            new GraphNode("Node1", tags: "t1,t2=v2"),
         }.Action(x =>
         {
             var json = x.ToJson();
@@ -180,7 +180,7 @@ public class GraphMapSerializationTests
             graphNode.Tags.Should().NotBeNull();
         });
 
-        new GraphNode("node1", tags: "t1;t2=v2").Action(x =>
+        new GraphNode("node1", tags: "t1,t2=v2").Action(x =>
         {
             string json = x.ToJson();
 
@@ -208,7 +208,7 @@ public class GraphMapSerializationTests
             graphEdge.Tags.Should().NotBeNull();
         });
 
-        new GraphEdge("node1", "node2", tags: "t1;t2=v2").Action(x =>
+        new GraphEdge("node1", "node2", tags: "t1,t2=v2").Action(x =>
         {
             string json = x.ToJson();
 

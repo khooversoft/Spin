@@ -13,7 +13,7 @@ public class GraphSelectTests
     [Fact]
     public void FullSyntax()
     {
-        var q = "select (key=key1;tags=t1) -> [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2] -> (schedule);";
+        var q = "select (key=key1, tags=t1) -> [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, tags=t2] -> (schedule);";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -58,7 +58,7 @@ public class GraphSelectTests
     [Fact]
     public void FullSyntaxWithAlias()
     {
-        var q = "select (key=key1;tags=t1) a1 -> [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2] a2 -> (schedule) a3;";
+        var q = "select (key=key1, tags=t1) a1 -> [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, tags=t2] a2 -> (schedule) a3;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -129,7 +129,7 @@ public class GraphSelectTests
     [Fact]
     public void SingleSyntax()
     {
-        var q = "select (key=key1;tags=t1);";
+        var q = "select (key=key1, tags=t1);";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -184,7 +184,7 @@ public class GraphSelectTests
     [Fact]
     public void SingleEdgeSyntax()
     {
-        var q = "select [NodeKey=key1;fromKey=fromKey1;toKey=tokey1;edgeType=schedulework:active;tags=t2];";
+        var q = "select [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, tags=t2];";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();

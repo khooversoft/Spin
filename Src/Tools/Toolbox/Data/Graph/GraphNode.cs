@@ -29,7 +29,7 @@ public record GraphNode : IGraphCommon
     public Tags Tags { get; init; } = new Tags();
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 
-    public GraphNode Copy() => new GraphNode(Key, Tags.Copy(), CreatedDate);
+    public GraphNode Copy() => new GraphNode(Key, Tags.Clone(), CreatedDate);
 
     public static IValidator<GraphNode> Validator { get; } = new Validator<GraphNode>()
         .RuleFor(x => x.Key).NotNull()

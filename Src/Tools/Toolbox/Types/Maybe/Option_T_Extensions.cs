@@ -1,15 +1,41 @@
 ﻿using System.Diagnostics;
+using Toolbox.Extensions;
 
 namespace Toolbox.Types;
 
 public static class Option_T_Extensions
 {
+    [DebuggerStepThrough]
     public static bool IsOk<T>(this Option<T> subject) => subject.StatusCode.IsOk();
+    
+    [DebuggerStepThrough]
     public static bool IsNoContent<T>(this Option<T> subject) => subject.StatusCode.IsNoContent();
+    
+    [DebuggerStepThrough] 
     public static bool IsSuccess<T>(this Option<T> subject) => subject.StatusCode.IsSuccess();
+    
+    [DebuggerStepThrough] 
     public static bool IsError<T>(this Option<T> subject) => subject.StatusCode.IsError();
+
+    [DebuggerStepThrough]
     public static bool IsNotFound<T>(this Option<T> subject) => subject.StatusCode.IsNotFound();
+    
+    [DebuggerStepThrough]
     public static bool IsBadRequest<T>(this Option<T> subject) => subject.StatusCode.IsBadRequest();
+
+    [DebuggerStepThrough]
+    public static bool IsOk<T>(this Option<T> subject, out Option result)
+    {
+        result = subject.ToOptionStatus();
+        return subject.IsOk();
+    }
+
+    [DebuggerStepThrough]
+    public static bool IsError<T>(this Option<T> subject, out Option result)
+    {
+        result = subject.ToOptionStatus();
+        return subject.IsError();
+    }
 
     [DebuggerStepThrough]
     public static T Return<T>(this Option<T> subject, bool throwOnNoValue = true, string? error = null) => subject.HasValue switch

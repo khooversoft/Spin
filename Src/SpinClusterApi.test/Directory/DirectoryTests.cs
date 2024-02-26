@@ -35,7 +35,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         var addOption = await dirClient.Execute($"add node key={nodeKey}, tags=t1;", _context);
         addOption.IsOk().Should().BeTrue(addOption.ToString());
 
-        Option<GraphCommandResults> getNodeOption = await dirClient.Execute($"select (key={nodeKey});", _context);
+        Option<GraphQueryResults> getNodeOption = await dirClient.Execute($"select (key={nodeKey});", _context);
         getNodeOption.IsOk().Should().BeTrue();
 
         GraphQueryResult response = getNodeOption.Return().Items.Single();

@@ -12,7 +12,7 @@ public class LsOption : LangBase<ILangSyntax>, ILangRoot
 
     public string? Name { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _ = null)
     {
         while (pContext.TokensCursor.TryPeekValue(out var token))
         {

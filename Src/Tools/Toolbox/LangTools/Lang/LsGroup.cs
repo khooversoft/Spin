@@ -19,7 +19,7 @@ public class LsGroup : LangBase<ILangSyntax>, ILangRoot
     public string EndToken { get; }
     public string? Name { get; }
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _)
+    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _ = null)
     {
         var nodes = new LangNodes();
 

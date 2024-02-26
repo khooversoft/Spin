@@ -33,7 +33,7 @@ public class DirectoryConnector
 
     private async Task<IResult> Command(DirectoryCommand search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option<GraphCommandResults> result = await _client.GetDirectoryActor().Execute(search.Command, traceId);
+        Option<GraphQueryResults> result = await _client.GetDirectoryActor().Execute(search.Command, traceId);
         var response = result.ToResult();
         return response;
     }

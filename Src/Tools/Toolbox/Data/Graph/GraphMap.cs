@@ -24,6 +24,7 @@ public class GraphMap : IEnumerable<IGraphCommon>
         edges.NotNull().ForEach(x => Edges.Add(x.Copy()).ThrowOnError("Edge add failed"));
     }
 
+    internal object SyncLock => _lock;
     public GraphNodeIndex Nodes => _nodes;
     public GraphEdgeIndex Edges => _edges;
 
@@ -49,8 +50,14 @@ public class GraphMap : IEnumerable<IGraphCommon>
     }
 
     public GraphMap Copy() => new GraphMap(_nodes, _edges);
-    public GraphQuery Query() => new GraphQuery(this, _lock);
-    public GraphCommand Command() => new GraphCommand(this, _lock);
+    //public GraphQuery Query() => new GraphQuery(this, _lock);
+    //public GraphCommand Command() => new GraphCommand(this, _lock);
+
+    public GraphQueryResult ExecuteScalar(string graphQuery) => new GraphCommand(this, _lock)
+        .Execute(graphQuery)
+        .Return().Items.First();
+
+    public Option<GraphQueryResults> Execute(string graphQuery) => new GraphCommand(this, _lock).Execute(graphQuery);
 
     public IEnumerator<IGraphCommon> GetEnumerator()
     {

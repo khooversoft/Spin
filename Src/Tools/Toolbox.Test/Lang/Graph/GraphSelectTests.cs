@@ -108,7 +108,7 @@ public class GraphSelectTests
     {
         var test = new QueryTest
         {
-            RawData = "select (key=key1;tags=t1) -> [schedulework:active];",
+            RawData = "select (key=key1,tags=t1) -> [schedulework:active];",
             Results = new List<IQueryResult>()
             {
                 new QueryResult<LsSymbol>("select"),
@@ -117,7 +117,7 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
@@ -140,7 +140,7 @@ public class GraphSelectTests
     {
         var test = new QueryTest
         {
-            RawData = "select (key=key1;tags=t1) -> [schedulework:active]->(schedule) n2;",
+            RawData = "select (key=key1,tags=t1) -> [schedulework:active]->(schedule) n2;",
             Results = new List<IQueryResult>()
             {
                 new QueryResult<LsSymbol>("select"),
@@ -149,7 +149,7 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
@@ -178,7 +178,7 @@ public class GraphSelectTests
     {
         var test = new QueryTest
         {
-            RawData = "select (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2;",
+            RawData = "select (key=key1,tags=t1) n1 -> [edgeType=abc*,schedulework:active] -> (schedule) n2;",
             Results = new List<IQueryResult>()
             {
                 new QueryResult<LsSymbol>("select"),
@@ -187,7 +187,7 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
@@ -200,7 +200,7 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("edgeType","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("abc*", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("schedulework:active","svalue"),
                 new QueryResult<LsGroup>("]","edge-group"),
 
@@ -246,6 +246,58 @@ public class GraphSelectTests
                 new QueryResult<LsValue>("t2","svalue"),
                 new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsValue>("n2","alias"),
+                new QueryResult<LsToken>(";", "term"),
+            }
+        };
+
+        LangTestTools.Verify(_root, test);
+    }
+
+    [Fact]
+    public void TwoNodeWildcard()
+    {
+        var test = new QueryTest
+        {
+            RawData = "select (*) -> [*];",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsSymbol>("select"),
+
+                new QueryResult<LsGroup>("(","node-group"),
+                new QueryResult<LsValue>("*","svalue"),
+                new QueryResult<LsGroup>(")","node-group"),
+                new QueryResult<LsToken>("->","select-next"),
+                new QueryResult<LsGroup>("[","edge-group"),
+                new QueryResult<LsValue>("*","svalue"),
+                new QueryResult<LsGroup>("]","edge-group"),
+                new QueryResult<LsToken>(";", "term"),
+            }
+        };
+
+        LangTestTools.Verify(_root, test);
+    }
+
+    [Fact]
+    public void ThreeNodeWildcard()
+    {
+        var test = new QueryTest
+        {
+            RawData = "select (*) -> [*] -> (*);",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsSymbol>("select"),
+
+                new QueryResult<LsGroup>("(","node-group"),
+                new QueryResult<LsValue>("*","svalue"),
+                new QueryResult<LsGroup>(")","node-group"),
+                new QueryResult<LsToken>("->","select-next"),
+                new QueryResult<LsGroup>("[","edge-group"),
+                new QueryResult<LsValue>("*","svalue"),
+                new QueryResult<LsGroup>("]","edge-group"),
+                new QueryResult<LsToken>("->","select-next"),
+                new QueryResult<LsGroup>("(","node-group"),
+                new QueryResult<LsValue>("*","svalue"),
+                new QueryResult<LsGroup>(")","node-group"),
                 new QueryResult<LsToken>(";", "term"),
             }
         };

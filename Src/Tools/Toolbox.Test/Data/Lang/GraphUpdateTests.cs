@@ -10,7 +10,7 @@ public class GraphUpdateTests
     [Fact]
     public void updateNode()
     {
-        var q = "update (key=key1;tags=t1) set tags=t2;";
+        var q = "update (key=key1, tags=t1) set tags=t2;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -38,7 +38,7 @@ public class GraphUpdateTests
     [Fact]
     public void UpdateEdge()
     {
-        var q = "update [edgeType=abc*;schedulework:active] set edgeType=et,tags=t2;";
+        var q = "update [edgeType=abc*, schedulework:active] set edgeType=et,tags=t2;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -69,7 +69,7 @@ public class GraphUpdateTests
     [Fact]
     public void UpdateEdgeViaNode()
     {
-        var q = "update (key=k*) -> [edgeType=abc*;schedulework:active] set edgeType=et,tags=t2;";
+        var q = "update (key=k*) -> [edgeType=abc*, schedulework:active] set edgeType=et,tags=t2;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());

@@ -12,7 +12,7 @@ namespace SpinCluster.sdk.Actors.Directory;
 public interface IDirectoryActor : IGrainWithStringKey
 {
     Task<Option> Clear(string principalId, string traceId);
-    Task<Option<GraphCommandResults>> Execute(string command, string traceId);
+    Task<Option<GraphQueryResults>> Execute(string command, string traceId);
 }
 
 public class DirectoryActor : Grain, IDirectoryActor
@@ -69,26 +69,24 @@ public class DirectoryActor : Grain, IDirectoryActor
         return StatusCode.OK;
     }
 
-    public async Task<Option<GraphCommandResults>> Execute(string command, string traceId)
+    public async Task<Option<GraphQueryResults>> Execute(string command, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
         context.Location().LogInformation("Command, search={search}", command);
 
-        var commandOption = _map.Command().Execute(command);
-        if (commandOption.StatusCode.IsError()) return commandOption.ToOptionStatus<GraphCommandResults>();
+        var commandOption = _map.Execute(command);
+        if (commandOption.StatusCode.IsError()) return commandOption;
 
-        GraphCommandExceuteResults commandResult = commandOption.Return();
+        GraphQueryResults commandResult = commandOption.Return();
 
         bool isMapModified = commandResult.Items.Any(x => x.CommandType != CommandType.Select);
-        if (!isMapModified) return commandResult.ConvertTo();
+        if (!isMapModified) return commandResult;
 
         context.Location().LogInformation("Directory command modified graph, writing changes");
 
-        _map = commandResult.GraphMap;
         await SetGraphToStorage();
-
-        return commandResult.ConvertTo();
+        return commandResult;
     }
 
     private async Task ReadGraphFromStorage(bool forceRead = false)

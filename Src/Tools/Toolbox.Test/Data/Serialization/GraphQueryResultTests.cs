@@ -15,7 +15,7 @@ public class GraphQueryResultTests
         {
             new GraphNode("node1", "t1"),
             new GraphNode("node2", "t2"),
-            new GraphNode("node3", "t3;t4=v1"),
+            new GraphNode("node3", "t3,t4=v1"),
         };
 
         var edges = new List<IGraphCommon>

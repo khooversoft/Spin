@@ -5,11 +5,27 @@ namespace Toolbox.Test.Lang.Graph;
 
 public class GraphDeleteTests
 {
-    private readonly ILangRoot _root;
+    private readonly ILangRoot _root = GraphLangGrammar.Root;
 
-    public GraphDeleteTests()
+
+    [Fact]
+    public void SingleNodeWildcard()
     {
-        _root = GraphLangGrammar.Root;
+        var test = new QueryTest
+        {
+            RawData = "delete (*);",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsSymbol>("delete"),
+
+                new QueryResult<LsGroup>("(","node-group"),
+                new QueryResult<LsValue>("*","svalue"),
+                new QueryResult<LsGroup>(")","node-group"),
+                new QueryResult<LsToken>(";", "term"),
+            }
+        };
+
+        LangTestTools.Verify(_root, test);
     }
 
     [Fact]
@@ -108,7 +124,7 @@ public class GraphDeleteTests
     {
         var test = new QueryTest
         {
-            RawData = "delete (key=key1;tags=t1) -> [schedulework:active];",
+            RawData = "delete (key=key1,tags=t1) -> [schedulework:active];",
             Results = new List<IQueryResult>()
             {
                 new QueryResult<LsSymbol>("delete"),
@@ -117,7 +133,7 @@ public class GraphDeleteTests
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
@@ -140,7 +156,7 @@ public class GraphDeleteTests
     {
         var test = new QueryTest
         {
-            RawData = "delete (key=key1;tags=t1) -> [schedulework:active]->(schedule) n2;",
+            RawData = "delete (key=key1,tags=t1) -> [schedulework:active]->(schedule) n2;",
             Results = new List<IQueryResult>()
             {
                 new QueryResult<LsSymbol>("delete"),
@@ -149,7 +165,7 @@ public class GraphDeleteTests
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
@@ -178,7 +194,7 @@ public class GraphDeleteTests
     {
         var test = new QueryTest
         {
-            RawData = "delete (key=key1;tags=t1) n1 -> [edgeType=abc*;schedulework:active] -> (schedule) n2;",
+            RawData = "delete (key=key1, tags=t1) n1 -> [edgeType=abc*,schedulework:active] -> (schedule) n2;",
             Results = new List<IQueryResult>()
             {
                 new QueryResult<LsSymbol>("delete"),
@@ -187,7 +203,7 @@ public class GraphDeleteTests
                 new QueryResult<LsValue>("key","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("key1", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("tags","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("t1", "rvalue"),
@@ -200,7 +216,7 @@ public class GraphDeleteTests
                 new QueryResult<LsValue>("edgeType","lvalue"),
                 new QueryResult<LsToken>("=", "equal"),
                 new QueryResult<LsValue>("abc*", "rvalue"),
-                new QueryResult<LsToken>(";", "delimiter"),
+                new QueryResult<LsToken>(",", "delimiter"),
                 new QueryResult<LsValue>("schedulework:active","svalue"),
                 new QueryResult<LsGroup>("]","edge-group"),
 

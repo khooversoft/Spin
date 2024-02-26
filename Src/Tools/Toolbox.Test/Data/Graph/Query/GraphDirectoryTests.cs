@@ -61,7 +61,7 @@ public class GraphDirectoryTests
     public void DirectorySearchQuery()
     {
         var map = GetMap();
-        var search = map.Query().Execute("select [fromKey=system:schedule-work;edgeType=scheduleWorkType:*];");
+        var search = map.ExecuteScalar("select [fromKey=system:schedule-work, edgeType=scheduleWorkType:*];");
         search.Should().NotBeNull();
         search.Items.Count.Should().Be(2);
         search.Edges().Count.Should().Be(2);
@@ -92,7 +92,7 @@ public class GraphDirectoryTests
     {
         var map = GetMap();
 
-        var search = "[fromKey=system:schedule-work;toKey=schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129;edgeType=scheduleWorkType:*]";
+        var search = "[fromKey=system:schedule-work, toKey=schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129, edgeType=scheduleWorkType:*]";
 
         var command = new Sequence<string>()
             .Add("update")
@@ -100,11 +100,11 @@ public class GraphDirectoryTests
             .Add("set edgeType=scheduleWorkType:Completed")
             .Join(" ") + ";";
 
-        var result = map.Command().Execute(command);
+        var result = map.Execute(command);
         result.Should().NotBeNull();
-        result.IsOk().Should().BeTrue();
+        result.IsOk().Should().BeTrue(result.ToString());
 
-        GraphCommandExceuteResults searchResult = result.Return();
+        GraphQueryResults searchResult = result.Return();
         searchResult.Items.Count.Should().Be(1);
         searchResult.Items[0].Should().NotBeNull();
         searchResult.Items[0].NotNull().Items.Count.Should().Be(1);
@@ -116,12 +116,10 @@ public class GraphDirectoryTests
             x.EdgeType.Should().Be("scheduleWorkType:Active");
         });
 
-        map = searchResult.GraphMap;
-
-        Option<GraphCommandExceuteResults> rOption = map.Command().Execute($"select {search};");
+        Option<GraphQueryResults> rOption = map.Execute($"select {search};");
         rOption.IsOk().Should().BeTrue();
 
-        GraphCommandExceuteResults r = rOption.Return();
+        GraphQueryResults r = rOption.Return();
         r.Items.Count.Should().Be(1);
         r.Items[0].Should().NotBeNull();
         r.Items[0].NotNull().Items.Count.Should().Be(1);

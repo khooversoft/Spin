@@ -10,16 +10,16 @@ public class GraphUpdateCommandTests
 {
     private readonly GraphMap _map = new GraphMap()
     {
-        new GraphNode("node1", tags: "name=marko;age=29"),
-        new GraphNode("node2", tags: "name=vadas;age=35"),
-        new GraphNode("node3", tags: "name=lop;lang=java"),
-        new GraphNode("node4", tags: "name=josh;age=32"),
-        new GraphNode("node5", tags: "name=ripple;lang=java"),
-        new GraphNode("node6", tags: "name=peter;age=35"),
+        new GraphNode("node1", tags: "name=marko,age=29"),
+        new GraphNode("node2", tags: "name=vadas,age=35"),
+        new GraphNode("node3", tags: "name=lop,lang=java"),
+        new GraphNode("node4", tags: "name=josh,age=32"),
+        new GraphNode("node5", tags: "name=ripple,lang=java"),
+        new GraphNode("node6", tags: "name=peter,age=35"),
         new GraphNode("node7", tags: "lang=java"),
 
-        new GraphEdge("node1", "node2", tags: "knows;level=1"),
-        new GraphEdge("node1", "node3", tags: "knows;level=1"),
+        new GraphEdge("node1", "node2", tags: "knows,level=1"),
+        new GraphEdge("node1", "node3", tags: "knows,level=1"),
         new GraphEdge("node6", "node3", tags: "created"),
         new GraphEdge("node4", "node5", tags: "created"),
         new GraphEdge("node4", "node3", tags: "created"),
@@ -28,13 +28,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleUpdateForNode()
     {
-        var newMapOption = _map.Command().Execute("update (key=node3) set tags=t1;");
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("update (key=node3) set tags=t1;");
         newMapOption.IsOk().Should().BeTrue();
 
-        GraphCommandExceuteResults commandResults = newMapOption.Return();
-
-        commandResults.GraphMap.Should().NotBeNull();
-        var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -42,7 +41,7 @@ public class GraphUpdateCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node3");
-            x.Tags.ToString().Should().Be("lang=java;name=lop;t1");
+            x.Tags.ToString().Should().Be("lang=java,name=lop,t1");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -59,7 +58,7 @@ public class GraphUpdateCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("lang=java;name=lop;t1");
+                x.Tags.ToString().Should().Be("lang=java,name=lop,t1");
             });
         });
     }
@@ -67,13 +66,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleRemoveTagForNode()
     {
-        var newMapOption = _map.Command().Execute("update (key=node3) set tags=-name;");
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("update (key=node3) set tags=-name;");
         newMapOption.IsOk().Should().BeTrue();
 
-        GraphCommandExceuteResults commandResults = newMapOption.Return();
-
-        commandResults.GraphMap.Should().NotBeNull();
-        var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -106,13 +104,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleUpdateForEdge()
     {
-        var newMapOption = _map.Command().Execute("update [fromKey=node1;toKey=node3] set tags=-knows;");
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("update [fromKey=node1, toKey=node3] set tags=-knows;");
         newMapOption.IsOk().Should().BeTrue();
 
-        GraphCommandExceuteResults commandResults = newMapOption.Return();
-
-        commandResults.GraphMap.Should().NotBeNull();
-        var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -149,13 +146,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleRemoveTagForEdge()
     {
-        var newMapOption = _map.Command().Execute("update [fromKey=node4;toKey=node5] set tags=t1;");
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("update [fromKey=node4, toKey=node5] set tags=t1;");
         newMapOption.IsOk().Should().BeTrue();
 
-        GraphCommandExceuteResults commandResults = newMapOption.Return();
-
-        commandResults.GraphMap.Should().NotBeNull();
-        var compareMap = GraphCommandTools.CompareMap(_map, commandResults.GraphMap);
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -165,7 +161,7 @@ public class GraphUpdateCommandTests
             x.FromKey.Should().Be("node4");
             x.ToKey.Should().Be("node5");
             x.EdgeType.Should().Be("default");
-            x.Tags.ToString().Should().Be("created;t1");
+            x.Tags.ToString().Should().Be("created,t1");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -184,7 +180,7 @@ public class GraphUpdateCommandTests
                 x.FromKey.Should().Be("node4");
                 x.ToKey.Should().Be("node5");
                 x.EdgeType.Should().Be("default");
-                x.Tags.ToString().Should().Be("created;t1");
+                x.Tags.ToString().Should().Be("created,t1");
             });
         });
     }

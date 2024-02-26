@@ -9,16 +9,16 @@ public class GraphQueryNodeTests
 {
     private readonly GraphMap _map = new GraphMap()
     {
-        new GraphNode("node1", tags: "name=marko;age=29"),
-        new GraphNode("node2", tags: "name=vadas;age=27"),
-        new GraphNode("node3", tags: "name=lop;lang=java"),
-        new GraphNode("node4", tags: "name=josh;age=32"),
-        new GraphNode("node5", tags: "name=ripple;lang=java"),
-        new GraphNode("node6", tags: "name=peter;age=35"),
+        new GraphNode("node1", tags: "name=marko,age=29"),
+        new GraphNode("node2", tags: "name=vadas,age=27"),
+        new GraphNode("node3", tags: "name=lop,lang=java"),
+        new GraphNode("node4", tags: "name=josh,age=32"),
+        new GraphNode("node5", tags: "name=ripple,lang=java"),
+        new GraphNode("node6", tags: "name=peter,age=35"),
         new GraphNode("node7", tags: "lang=java"),
 
-        new GraphEdge("node1", "node2", edgeType: "owns-1", tags: "knows;level=1"),
-        new GraphEdge("node1", "node3", edgeType: "friends-2", tags: "knows;level=1"),
+        new GraphEdge("node1", "node2", edgeType: "owns-1", tags: "knows,level=1"),
+        new GraphEdge("node1", "node3", edgeType: "friends-2", tags: "knows,level=1"),
         new GraphEdge("node6", "node3", edgeType: "owns-3", tags: "created"),
         new GraphEdge("node4", "node5", edgeType: "owns-1", tags: "created"),
         new GraphEdge("node4", "node3", tags: "created"),
@@ -28,7 +28,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void AllNodesQuery()
     {
-        GraphQueryResult result = _map.Query().Execute("select (*);");
+        GraphQueryResult result = _map.ExecuteScalar("select (*);");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
@@ -38,7 +38,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void NodeQuery()
     {
-        GraphQueryResult result = _map.Query().Execute("select (key=node1);");
+        GraphQueryResult result = _map.ExecuteScalar("select (key=node1);");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
@@ -47,7 +47,7 @@ public class GraphQueryNodeTests
         GraphNode node = result.Items[0].Cast<GraphNode>();
 
         node.Key.Should().Be("node1");
-        node.Tags.Has("name=marko;age=29").Should().BeTrue();
+        node.Tags.Has("name=marko,age=29").Should().BeTrue();
         node.Tags.Has("name=marko").Should().BeTrue();
         node.Tags.Has("name").Should().BeTrue();
     }
@@ -55,7 +55,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void QueryWithAlias()
     {
-        GraphQueryResult result = _map.Query().Execute("select (key=node1) a1;");
+        GraphQueryResult result = _map.ExecuteScalar("select (key=node1) a1;");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(1);
@@ -64,14 +64,14 @@ public class GraphQueryNodeTests
         GraphNode node = result.Items[0].Cast<GraphNode>();
 
         node.Key.Should().Be("node1");
-        node.Tags.Has("name=marko;age=29").Should().BeTrue();
+        node.Tags.Has("name=marko,age=29").Should().BeTrue();
         node.Tags.Has("name=marko").Should().BeTrue();
         node.Tags.Has("name").Should().BeTrue();
 
         result.Alias.ContainsKey("a1").Should().BeTrue();
         node = result.Alias["a1"].Select(x => x.Cast<GraphNode>()).First();
         node.Key.Should().Be("node1");
-        node.Tags.Has("name=marko;age=29").Should().BeTrue();
+        node.Tags.Has("name=marko,age=29").Should().BeTrue();
         node.Tags.Has("name=marko").Should().BeTrue();
         node.Tags.Has("name").Should().BeTrue();
     }
@@ -79,7 +79,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void TagDefaultQuery1()
     {
-        GraphQueryResult result = _map.Query().Execute("select (name) a1;");
+        GraphQueryResult result = _map.ExecuteScalar("select (name) a1;");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(6);
@@ -95,7 +95,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void SpecificTagDefaultQuery()
     {
-        GraphQueryResult result = _map.Query().Execute("select ('name=marko');");
+        GraphQueryResult result = _map.ExecuteScalar("select ('name=marko');");
 
         result.StatusCode.IsOk().Should().BeTrue(result.Error);
         result.Items.Count.Should().Be(1);
@@ -111,7 +111,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void TagWithTagKeywordQuery()
     {
-        GraphQueryResult result = _map.Query().Execute("select (tags='name=marko');");
+        GraphQueryResult result = _map.ExecuteScalar("select (tags='name=marko');");
 
         result.StatusCode.IsOk().Should().BeTrue(result.Error);
         result.Items.Count.Should().Be(1);
@@ -135,7 +135,7 @@ public class GraphQueryNodeTests
 
         foreach (var cmd in cmds)
         {
-            GraphQueryResult result = _map.Query().Execute(cmd.query);
+            GraphQueryResult result = _map.ExecuteScalar(cmd.query);
 
             result.StatusCode.IsOk().Should().BeTrue(result.Error);
             result.Items.Count.Should().Be(cmd.count);
@@ -169,7 +169,7 @@ public class GraphQueryNodeTests
 
         foreach (var cmd in cmds)
         {
-            GraphQueryResult result = _map.Query().Execute(cmd.query);
+            GraphQueryResult result = _map.ExecuteScalar(cmd.query);
 
             result.StatusCode.IsOk().Should().BeTrue(result.Error);
             result.Items.Count.Should().Be(cmd.count);

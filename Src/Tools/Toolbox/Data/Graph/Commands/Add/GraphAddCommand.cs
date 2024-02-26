@@ -66,7 +66,7 @@ public static class GraphAddCommand
 
                     break;
 
-                case { SyntaxNode.Name: "value-delimiter" }:
+                case { SyntaxNode.Name: "delimiter" }:
                     break;
 
                 case { SyntaxNode.Name: "term" }:
@@ -123,7 +123,7 @@ public static class GraphAddCommand
 
                     break;
 
-                case { SyntaxNode.Name: "value-delimiter" }:
+                case { SyntaxNode.Name: "delimiter" }:
                     break;
 
                 case { SyntaxNode.Name: "term" }:
