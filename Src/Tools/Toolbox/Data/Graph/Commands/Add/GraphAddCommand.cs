@@ -1,4 +1,6 @@
-﻿using Toolbox.LangTools;
+﻿using Toolbox.Extensions;
+using Toolbox.LangTools;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Data;
@@ -40,12 +42,16 @@ public static class GraphAddCommand
     private static Option<GraphNodeAdd> ParseNode(Stack<LangNode> stack)
     {
         string? key = null;
-        string? tags = null;
+        var tags = new Tags();
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
+                case { SyntaxNode.Name: "svalue" }:
+                    tags.Set(langNode.Value);
+                    break;
+
                 case { SyntaxNode.Name: "lvalue" }:
                     string lvalue = langNode.Value.ToLower();
 
@@ -57,11 +63,9 @@ public static class GraphAddCommand
                         case "key" when key == null: key = rvalue.Value; break;
                         case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
 
-                        case "tags" when tags == null: tags = rvalue.Value; break;
-                        case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
-
                         default:
-                            return (StatusCode.BadRequest, $"Only 'Key' and 'Tags' is valid in lvalue");
+                            tags.Set(lvalue, rvalue.Value);
+                            break;
                     }
 
                     break;
@@ -91,12 +95,16 @@ public static class GraphAddCommand
         string? fromKey = null!;
         string? toKey = null!;
         string? edgeType = null!;
-        string? tags = null!;
+        var tags = new Tags();
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
+                case { SyntaxNode.Name: "svalue" }:
+                    tags.Set(langNode.Value);
+                    break;
+
                 case { SyntaxNode.Name: "lvalue" }:
                     string lvalue = langNode.Value.ToLower();
 
@@ -114,11 +122,9 @@ public static class GraphAddCommand
                         case "edgetype" when edgeType == null: edgeType = rvalue.Value; break;
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
-                        case "tags" when tags == null: tags = rvalue.Value; break;
-                        case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
-
                         default:
-                            return (StatusCode.BadRequest, $"Only 'FromKey', 'ToKey', 'EdgeType', and/or 'Tags' is valid in lvalue");
+                            tags.Set(lvalue, rvalue.Value);
+                            break;
                     }
 
                     break;

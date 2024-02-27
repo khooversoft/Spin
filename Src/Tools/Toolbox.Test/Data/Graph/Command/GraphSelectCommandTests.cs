@@ -29,7 +29,7 @@ public class GraphSelectCommandTests
     public void SingleSelectForNode()
     {
         var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("select (tags='lang=java');");
+        var newMapOption = _map.Execute("select (lang=java);");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();

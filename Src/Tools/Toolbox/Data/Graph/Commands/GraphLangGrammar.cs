@@ -1,4 +1,5 @@
-﻿using Toolbox.LangTools;
+﻿using System.Collections.Frozen;
+using Toolbox.LangTools;
 
 namespace Toolbox.Data;
 
@@ -19,6 +20,13 @@ namespace Toolbox.Data;
 /// </summary>
 public static class GraphLangGrammar
 {
+    public static FrozenSet<string> ReserveTokens { get; } = new string[]
+    {
+        "select",       "add",          "node",
+        "edge",         "delete",       "update",
+        "set",          "key",          "tags",
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))
         + new LsValue("lvalue")
         + ("=", "equal")

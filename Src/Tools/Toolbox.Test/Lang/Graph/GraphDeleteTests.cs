@@ -7,7 +7,6 @@ public class GraphDeleteTests
 {
     private readonly ILangRoot _root = GraphLangGrammar.Root;
 
-
     [Fact]
     public void SingleNodeWildcard()
     {

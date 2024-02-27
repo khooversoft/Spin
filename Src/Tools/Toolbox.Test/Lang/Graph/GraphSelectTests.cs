@@ -5,12 +5,7 @@ namespace Toolbox.Test.Lang.Graph;
 
 public class GraphSelectTests
 {
-    private readonly ILangRoot _root;
-
-    public GraphSelectTests()
-    {
-        _root = GraphLangGrammar.Root;
-    }
+    private readonly ILangRoot _root = GraphLangGrammar.Root;
 
     [Fact]
     public void SingleNode()

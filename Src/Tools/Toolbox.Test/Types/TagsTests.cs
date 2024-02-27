@@ -15,6 +15,7 @@ public class TagsTests
     [InlineData(".", false)]
     [InlineData(":", false)]
     [InlineData("#", false)]
+    [InlineData("*", true)]
     [InlineData("k", true)]
     [InlineData("k1", true)]
     [InlineData("k1/", false)]
@@ -28,7 +29,7 @@ public class TagsTests
     [InlineData("1k.v", true)]
     public void IsKeyValid(string? key, bool expected)
     {
-        bool actual = Tags2Tool.IsKeyValid(key, out Option _);
+        bool actual = TagsTool.IsKeyValid(key, out Option _);
         actual.Should().Be(expected);
 
         if (expected || key.IsEmpty())
@@ -49,6 +50,7 @@ public class TagsTests
     [InlineData("a=v;b=v", false)]
     [InlineData("a=v/b=v", false)]
     [InlineData("a=v-b=v", false)]
+    [InlineData("*", true)]
     [InlineData("a", true)]
     [InlineData("a=v", true)]
     [InlineData("a,b", true)]
@@ -104,6 +106,21 @@ public class TagsTests
 
         var tags4 = new Tags((string)null!);
         (tags == tags4).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    [InlineData("k", true)]
+    [InlineData("key=node1", true)]
+    [InlineData("key=node1, t1, t2=v2", true)]
+    public void EqualPatterns(string? line, bool shouldExpect)
+    {
+        var t1 = new Tags(line);
+        var t2 = new Tags(line);
+
+        (t1 == t2).Should().Be(shouldExpect);
+        (t1 != t2).Should().Be(!shouldExpect);
     }
 
     [Fact]
@@ -175,7 +192,7 @@ public class TagsTests
         tags.Set("key2=value3");
         tags.ToString().Should().Be("key1=value1,key2=value3");
 
-        tags.Set("-key1=v");
+        tags.Set("-key1");
         tags.ToString().Should().Be("key2=value3");
     }
 
@@ -325,7 +342,6 @@ public class TagsTests
         public ScheduleEdgeWorkState State { get; init; }
     }
 
-
     [Fact]
     public void TasSerializationWithObject()
     {
@@ -342,5 +358,60 @@ public class TagsTests
 
         var readData = tags.ToObject<ScheduleWorkTags>();
         (data == readData).Should().BeTrue();
+    }
+
+    private record SimpleRecord
+    {
+        public string Name { get; init; } = null!;
+        public int Value { get; init; }
+    }
+
+    private record SimpleRecord2
+    {
+        public string Name { get; init; } = null!;
+        public string Country { get; init; } = null!;
+        public decimal Amount { get; init; }
+    }
+
+    [Fact]
+    public void TestRoundTripOfSingleClass()
+    {
+        var r1 = new SimpleRecord
+        {
+            Name = "name1",
+            Value = 1,
+        };
+
+        Tags tags = new Tags().Set(r1);
+        tags.ToString().Should().Be("Name=name1,Value=1");
+
+        var r2 = tags.ToObject<SimpleRecord>();
+        (r1 == r2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TestRoundTripOfTwopClass()
+    {
+        var r1 = new SimpleRecord
+        {
+            Name = "name1",
+            Value = 1,
+        };
+
+        var r2 = new SimpleRecord2
+        {
+            Name = "name1",
+            Country = "country",
+            Amount = 101.50m,
+        };
+
+        Tags tags = new Tags().Set(r1).Set(r2);
+        tags.ToString().Should().Be("Amount=101.50,Country=country,Name=name1,Value=1");
+
+        var r10 = tags.ToObject<SimpleRecord>();
+        (r1 == r10).Should().BeTrue();
+
+        var r11 = tags.ToObject<SimpleRecord2>();
+        (r2 == r11).Should().BeTrue();
     }
 }

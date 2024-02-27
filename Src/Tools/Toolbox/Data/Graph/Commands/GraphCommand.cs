@@ -4,38 +4,31 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class GraphCommand
+public static class GraphCommand
 {
-    private readonly GraphMap _map;
-    private readonly object _syncLock;
-
-    public GraphCommand(GraphMap map, object syncLock)
+    public static Option<GraphQueryResults> Execute(string graphQuery, GraphMap map)
     {
-        _map = map.NotNull();
-        _syncLock = syncLock.NotNull();
-    }
+        map.NotNull();
 
-    public Option<GraphQueryResults> Execute(string graphQuery)
-    {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
         if (result.IsError()) return result.ToOptionStatus<GraphQueryResults>();
 
         IReadOnlyList<IGraphQL> commands = result.Return();
         var results = new Sequence<GraphQueryResult>();
 
-        lock (_syncLock)
+        lock (map.SyncLock)
         {
             foreach (var cmd in commands)
             {
                 switch (cmd)
                 {
-                    case GraphNodeAdd addNode: results += AddNode(addNode); break;
-                    case GraphEdgeAdd addEdge: results += AddEdge(addEdge); break;
-                    case GraphEdgeUpdate updateEdge: results += UpdateEdge(updateEdge); break;
-                    case GraphNodeUpdate updateNode: results += UpdateNode(updateNode); break;
-                    case GraphEdgeDelete deleteEdge: results += DeleteEdge(deleteEdge); break;
-                    case GraphNodeDelete deleteNode: results += DeleteNode(deleteNode); break;
-                    case GraphSelect select: results += Select(select); break;
+                    case GraphNodeAdd addNode: results += AddNode(addNode, map); break;
+                    case GraphEdgeAdd addEdge: results += AddEdge(addEdge, map); break;
+                    case GraphEdgeUpdate updateEdge: results += UpdateEdge(updateEdge, map); break;
+                    case GraphNodeUpdate updateNode: results += UpdateNode(updateNode, map); break;
+                    case GraphEdgeDelete deleteEdge: results += DeleteEdge(deleteEdge, map); break;
+                    case GraphNodeDelete deleteNode: results += DeleteNode(deleteNode, map); break;
+                    case GraphSelect select: results += Select(select, map); break;
                 }
             }
         }
@@ -54,7 +47,7 @@ public class GraphCommand
         return new Option<GraphQueryResults>(mapResult, option.StatusCode, option.Error);
     }
 
-    private GraphQueryResult AddNode(GraphNodeAdd addNode)
+    private static GraphQueryResult AddNode(GraphNodeAdd addNode, GraphMap map)
     {
         var graphNode = new GraphNode
         {
@@ -62,11 +55,11 @@ public class GraphCommand
             Tags = addNode.Tags,
         };
 
-        var result = _map.Nodes.Add(graphNode);
+        var result = map.Nodes.Add(graphNode);
         return new GraphQueryResult(CommandType.AddNode, result.StatusCode, result.Error);
     }
 
-    private GraphQueryResult AddEdge(GraphEdgeAdd addEdge)
+    private static GraphQueryResult AddEdge(GraphEdgeAdd addEdge, GraphMap map)
     {
         var graphEdge = new GraphEdge
         {
@@ -76,66 +69,66 @@ public class GraphCommand
             Tags = new Tags(addEdge.Tags),
         };
 
-        var result = _map.Edges.Add(graphEdge);
+        var result = map.Edges.Add(graphEdge);
         return new GraphQueryResult(CommandType.AddEdge, result.StatusCode, result.Error);
     }
 
-    private GraphQueryResult UpdateEdge(GraphEdgeUpdate updateEdge)
+    private static GraphQueryResult UpdateEdge(GraphEdgeUpdate updateEdge, GraphMap map)
     {
-        GraphQueryResult searchResult = GraphQuery.Process(_map, updateEdge.Search);
+        GraphQueryResult searchResult = GraphQuery.Process(map, updateEdge.Search);
 
         IReadOnlyList<GraphEdge> edges = searchResult.Edges();
         if (edges.Count == 0) return new GraphQueryResult(CommandType.UpdateEdge, StatusCode.NoContent);
 
-        _map.Edges.Update(edges, x => x with
+        map.Edges.Update(edges, x => x with
         {
             EdgeType = updateEdge.EdgeType ?? x.EdgeType,
-            Tags = x.Tags.Set(updateEdge.Tags),
+            Tags = x.Tags.Set(updateEdge.Tags.ToString()),
         });
 
         return searchResult with { CommandType = CommandType.UpdateEdge };
     }
 
-    private GraphQueryResult UpdateNode(GraphNodeUpdate updateNode)
+    private static GraphQueryResult UpdateNode(GraphNodeUpdate updateNode, GraphMap map)
     {
-        var searchResult = GraphQuery.Process(_map, updateNode.Search);
+        var searchResult = GraphQuery.Process(map, updateNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.UpdateNode, StatusCode.NoContent);
 
-        _map.Nodes.Update(nodes, x => x with
+        map.Nodes.Update(nodes, x => x with
         {
-            Tags = x.Tags.Set(updateNode.Tags),
+            Tags = x.Tags.Set(updateNode.Tags.ToString()),
         });
 
         return searchResult with { CommandType = CommandType.UpdateNode };
     }
 
-    private GraphQueryResult DeleteEdge(GraphEdgeDelete deleteEdge)
+    private static GraphQueryResult DeleteEdge(GraphEdgeDelete deleteEdge, GraphMap map)
     {
-        var searchResult = GraphQuery.Process(_map, deleteEdge.Search);
+        var searchResult = GraphQuery.Process(map, deleteEdge.Search);
 
         IReadOnlyList<GraphEdge> edges = searchResult.Edges();
         if (edges.Count == 0) return new GraphQueryResult(CommandType.DeleteEdge, StatusCode.NoContent);
 
-        edges.ForEach(x => _map.Edges.Remove(x.Key));
+        edges.ForEach(x => map.Edges.Remove(x.Key));
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private GraphQueryResult DeleteNode(GraphNodeDelete deleteNode)
+    private static GraphQueryResult DeleteNode(GraphNodeDelete deleteNode, GraphMap map)
     {
-        var searchResult = GraphQuery.Process(_map, deleteNode.Search);
+        var searchResult = GraphQuery.Process(map, deleteNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent);
 
-        nodes.ForEach(x => _map.Nodes.Remove(x.Key));
+        nodes.ForEach(x => map.Nodes.Remove(x.Key));
         return searchResult with { CommandType = CommandType.DeleteNode };
     }
 
-    private GraphQueryResult Select(GraphSelect select)
+    private static GraphQueryResult Select(GraphSelect select, GraphMap map)
     {
-        GraphQueryResult searchResult = GraphQuery.Process(_map, select.Search);
+        GraphQueryResult searchResult = GraphQuery.Process(map, select.Search);
         return searchResult with { CommandType = CommandType.Select };
     }
 }

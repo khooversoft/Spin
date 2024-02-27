@@ -49,15 +49,14 @@ public static class GraphSelectCommand
     private static Option<GraphNodeSearch> ParseNode(Stack<LangNode> stack)
     {
         string? key = null;
-        string? tags = null;
+        var tags = new Tags();
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    if (tags != null) return (StatusCode.BadRequest, "Tags already specified");
-                    tags = langNode.Value;
+                    tags.Set(langNode.Value);
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -71,11 +70,9 @@ public static class GraphSelectCommand
                         case "key" when key == null: key = rvalue.Value; break;
                         case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
 
-                        case "tags" when tags == null: tags = rvalue.Value; break;
-                        case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
-
                         default:
-                            return (StatusCode.BadRequest, $"Only 'Key' and/or 'Tags' is valid in lvalue");
+                            tags.Set(lvalue, rvalue.Value);
+                            break;
                     }
 
                     break;
@@ -114,15 +111,14 @@ public static class GraphSelectCommand
         string? fromKey = null!;
         string? toKey = null!;
         string? edgeType = null!;
-        string? tags = null!;
+        var tags = new Tags();
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    if (tags != null) return (StatusCode.BadRequest, "Tags already specified");
-                    tags = langNode.Value;
+                    tags.Set(langNode.Value);
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -145,13 +141,10 @@ public static class GraphSelectCommand
                         case "edgetype" when edgeType == null: edgeType = rvalue.Value; break;
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
-                        case "tags" when tags == null: tags = rvalue.Value; break;
-                        case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
-
                         default:
-                            return (StatusCode.BadRequest, $"Only 'NodeKey', 'FromKey', 'ToKey', 'EdgeType', and/or 'Tags' is valid in lvalue");
+                            tags.Set(lvalue, rvalue.Value);
+                            break;
                     }
-
                     break;
 
                 case { SyntaxNode.Name: "params-delimiter" }:

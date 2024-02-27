@@ -49,27 +49,24 @@ public static class GraphUpdateCommand
 
     private static Option<GraphNodeUpdate> ParseNode(Stack<LangNode> stack)
     {
-        string? tags = null;
+        var tags = new Tags();
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
+                case { SyntaxNode.Name: "svalue" }:
+                    tags.Add(langNode.Value, null);
+                    //tags.Set(langNode.Value);
+                    break;
+
                 case { SyntaxNode.Name: "lvalue" }:
                     string lvalue = langNode.Value.ToLower();
 
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    switch (lvalue)
-                    {
-                        case "tags" when tags == null: tags = rvalue.Value; break;
-                        case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
-
-                        default:
-                            return (StatusCode.BadRequest, $"Only 'Tags' is can be updated");
-                    }
-
+                    tags.Set(lvalue, rvalue.Value);
                     break;
 
                 case { SyntaxNode.Name: "delimiter" }:
@@ -93,12 +90,17 @@ public static class GraphUpdateCommand
     private static Option<GraphEdgeUpdate> ParseEdge(Stack<LangNode> stack)
     {
         string? edgeType = null!;
-        string? tags = null!;
+        var tags = new Tags();
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
+                case { SyntaxNode.Name: "svalue" }:
+                    tags.Add(langNode.Value, null);
+                    //tags.Set(langNode.Value);
+                    break;
+
                 case { SyntaxNode.Name: "lvalue" }:
                     string lvalue = langNode.Value.ToLower();
 
@@ -110,11 +112,9 @@ public static class GraphUpdateCommand
                         case "edgetype" when edgeType == null: edgeType = rvalue.Value; break;
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
-                        case "tags" when tags == null: tags = rvalue.Value; break;
-                        case "tags" when tags != null: return (StatusCode.BadRequest, "Tags already specified");
-
                         default:
-                            return (StatusCode.BadRequest, $"Only 'EdgeType', and/or 'Tags' is valid in lvalue");
+                            tags.Set(lvalue, rvalue.Value);
+                            break;
                     }
 
                     break;

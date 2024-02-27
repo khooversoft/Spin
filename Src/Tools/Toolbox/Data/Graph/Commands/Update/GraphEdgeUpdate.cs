@@ -1,8 +1,10 @@
-﻿namespace Toolbox.Data;
+﻿using Toolbox.Types;
+
+namespace Toolbox.Data;
 
 public record GraphEdgeUpdate : IGraphQL
 {
     public string? EdgeType { get; init; }
-    public string? Tags { get; init; }
+    public Tags Tags { get; init; } = new Tags();
     public IReadOnlyList<IGraphQL> Search { get; init; } = Array.Empty<IGraphQL>();
 }

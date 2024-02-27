@@ -11,10 +11,10 @@ public class GraphBatchTests
     public void FullBatch()
     {
         string q = """
-            add node key=key1,tags=t1;
-            add edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;
-            update (key=key1) set tags=t2;
-            update (key=key1) -> [t2] set tags=t2;
+            add node key=key1,t1;
+            add edge fromKey=key1,toKey=key2,edgeType=et, t2;
+            update (key=key1) set t2;
+            update (key=key1) -> [t2] set t2;
             delete [schedulework:active] a1;
             delete [schedulework:active] -> (key=k1) a2;
             select (Key=k4) a1;
@@ -33,7 +33,7 @@ public class GraphBatchTests
             if (x is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
 
             query.Key.Should().Be("key1");
-            query.Tags.Should().Be("t1");
+            query.Tags.ToString().Should().Be("t1");
         });
 
         list[index++].Action(x =>
@@ -43,18 +43,18 @@ public class GraphBatchTests
             query.FromKey.Should().Be("key1");
             query.ToKey.Should().Be("key2");
             query.EdgeType.Should().Be("et");
-            query.Tags.Should().Be("t2");
+            query.Tags.ToString().Should().Be("t2");
         });
 
         list[index++].Action(x =>
         {
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
 
-            query.Tags.Should().Be("t2");
+            query.Tags.ToString().Should().Be("t2");
             query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.Should().BeNull();
+                x.Tags.Count.Should().Be(0);
                 x.Alias.Should().BeNull();
             });
         });
@@ -63,13 +63,13 @@ public class GraphBatchTests
         {
             if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
 
-            query.Tags.Should().Be("t2");
+            query.Tags.ToString().Should().Be("t2");
 
             query.Search.Count.Should().Be(2);
             query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.Should().BeNull();
+                x.Tags.Count.Should().Be(0);
                 x.Alias.Should().BeNull();
             });
             query.Search[1].Cast<GraphEdgeSearch>().Action(x =>
@@ -77,7 +77,7 @@ public class GraphBatchTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.Should().Be("t2");
+                x.Tags.ToString().Should().Be("t2");
                 x.Alias.Should().BeNull();
             });
         });
@@ -93,7 +93,7 @@ public class GraphBatchTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.Should().Be("schedulework:active");
+                x.Tags.ToString().Should().Be("schedulework:active");
                 x.Alias.Should().Be("a1");
             });
         });
@@ -110,14 +110,14 @@ public class GraphBatchTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.Should().Be("schedulework:active");
+                x.Tags.ToString().Should().Be("schedulework:active");
                 x.Alias.Should().BeNull();
             });
 
             idx.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("k1");
-                x.Tags.Should().BeNull();
+                x.Tags.Count.Should().Be(0);
                 x.Alias.Should().Be("a2");
             });
         });
@@ -132,7 +132,7 @@ public class GraphBatchTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("k4");
-                x.Tags.Should().BeNull();
+                x.Tags.Count.Should().Be(0);
             });
         });
 
@@ -148,7 +148,7 @@ public class GraphBatchTests
                 x.FromKey.Should().Be("k2");
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.Should().BeNull();
+                x.Tags.Count.Should().Be(0);
             });
         });
     }
@@ -171,13 +171,13 @@ public class GraphBatchTests
         cursor.NextValue().Return().Cast<GraphNodeAdd>().Action(x =>
         {
             x.Key.Should().Be("system:schedule-work");
-            x.Tags.Should().Be(null);
+            x.Tags.Count.Should().Be(0);
         });
 
         cursor.NextValue().Return().Cast<GraphNodeAdd>().Action(x =>
         {
             x.Key.Should().Be("schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed");
-            x.Tags.Should().Be(null);
+            x.Tags.Count.Should().Be(0);
         });
 
         cursor.NextValue().Return().Cast<GraphEdgeAdd>().Action(x =>
@@ -185,7 +185,7 @@ public class GraphBatchTests
             x.FromKey.Should().Be("system:schedule-work");
             x.ToKey.Should().Be("schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed");
             x.EdgeType.Should().Be("scheduleWorkType:Active");
-            x.Tags.Should().Be(null);
+            x.Tags.Count.Should().Be(0);
         });
     }
 }

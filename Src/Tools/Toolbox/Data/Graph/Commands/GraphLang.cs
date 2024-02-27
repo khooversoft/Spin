@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -56,7 +57,34 @@ public static class GraphLang
             }
         }
 
+        var reserveWords = list
+            .SelectMany(x => x switch
+            {
+                GraphNodeAdd v => v.Tags.Select(x => x.Key),
+                GraphEdgeAdd v => v.Tags.Select(x => x.Key),
+                GraphEdgeUpdate v => v.Tags.Select(x => x.Key),
+                GraphNodeUpdate v => getNodeAndEdges(v.Search),
+
+                GraphSelect v => getNodeAndEdges(v.Search),
+                GraphNodeDelete v => getNodeAndEdges(v.Search),
+                GraphEdgeDelete v => getNodeAndEdges(v.Search),
+
+                _ => throw new UnreachableException(),
+            })
+            .Where(GraphLangGrammar.ReserveTokens.Contains)
+            .ToArray();
+
+        if (reserveWords.Length > 0) return (StatusCode.BadRequest, $"Cannot use reserved token={reserveWords.Join(",")}");
+
         return list;
+
+        IEnumerable<string> getNodeAndEdges(IEnumerable<IGraphQL> items) => items.SelectMany(x => x switch
+        {
+            GraphNodeSearch s => s.Tags.Select(x => x.Key),
+            GraphEdgeSearch s => s.Tags.Select(x => x.Key),
+
+            _ => throw new UnreachableException(),
+        });
     }
 }
 

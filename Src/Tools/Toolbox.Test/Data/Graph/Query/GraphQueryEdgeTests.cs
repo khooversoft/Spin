@@ -68,7 +68,7 @@ public class GraphQueryEdgeTests
     [Fact]
     public void TagWithKeywordQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select [tags=knows];");
+        GraphQueryResult result = _map.ExecuteScalar("select [knows];");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(2);
@@ -85,7 +85,7 @@ public class GraphQueryEdgeTests
     [Fact]
     public void TagWithKeywordForSpecificQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select [tags='level=1'];");
+        GraphQueryResult result = _map.ExecuteScalar("select [level=1];");
 
         result.StatusCode.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(2);

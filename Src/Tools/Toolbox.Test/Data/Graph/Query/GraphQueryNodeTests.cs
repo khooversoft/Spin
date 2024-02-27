@@ -111,7 +111,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void TagWithTagKeywordQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (tags='name=marko');");
+        GraphQueryResult result = _map.ExecuteScalar("select (name=marko);");
 
         result.StatusCode.IsOk().Should().BeTrue(result.Error);
         result.Items.Count.Should().Be(1);

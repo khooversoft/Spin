@@ -1,7 +1,9 @@
-﻿namespace Toolbox.Data;
+﻿using Toolbox.Types;
+
+namespace Toolbox.Data;
 
 public record GraphNodeUpdate : IGraphQL
 {
-    public string? Tags { get; init; }
+    public Tags Tags { get; init; } = new Tags();
     public IReadOnlyList<IGraphQL> Search { get; init; } = Array.Empty<IGraphQL>();
 }

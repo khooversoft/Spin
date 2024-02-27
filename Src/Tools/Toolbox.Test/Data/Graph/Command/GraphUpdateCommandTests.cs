@@ -8,7 +8,7 @@ namespace Toolbox.Test.Data.Graph.Command;
 
 public class GraphUpdateCommandTests
 {
-    private readonly GraphMap _map = new GraphMap()
+    private static readonly GraphMap _map = new GraphMap()
     {
         new GraphNode("node1", tags: "name=marko,age=29"),
         new GraphNode("node2", tags: "name=vadas,age=35"),
@@ -28,12 +28,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleUpdateForNode()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("update (key=node3) set tags=t1;");
+        var workMap = _map.Copy();
+        var newMapOption = workMap.Execute("update (key=node3) set t1;");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -66,12 +66,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleRemoveTagForNode()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("update (key=node3) set tags=-name;");
+        var workMap = _map.Copy();
+        var newMapOption = workMap.Execute("update (key=node3) set -name;");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -104,12 +104,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleUpdateForEdge()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("update [fromKey=node1, toKey=node3] set tags=-knows;");
+        var workMap = _map.Copy();
+        var newMapOption = workMap.Execute("update [fromKey=node1, toKey=node3] set -knows;");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -146,12 +146,12 @@ public class GraphUpdateCommandTests
     [Fact]
     public void SingleRemoveTagForEdge()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("update [fromKey=node4, toKey=node5] set tags=t1;");
+        var workMap = _map.Copy();
+        var newMapOption = workMap.Execute("update [fromKey=node4, toKey=node5] set t1;");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();

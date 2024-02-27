@@ -50,14 +50,8 @@ public class GraphMap : IEnumerable<IGraphCommon>
     }
 
     public GraphMap Copy() => new GraphMap(_nodes, _edges);
-    //public GraphQuery Query() => new GraphQuery(this, _lock);
-    //public GraphCommand Command() => new GraphCommand(this, _lock);
-
-    public GraphQueryResult ExecuteScalar(string graphQuery) => new GraphCommand(this, _lock)
-        .Execute(graphQuery)
-        .Return().Items.First();
-
-    public Option<GraphQueryResults> Execute(string graphQuery) => new GraphCommand(this, _lock).Execute(graphQuery);
+    public GraphQueryResult ExecuteScalar(string graphQuery) => GraphCommand.Execute(graphQuery, this).Return().Items.First();
+    public Option<GraphQueryResults> Execute(string graphQuery) => GraphCommand.Execute(graphQuery, this);
 
     public IEnumerator<IGraphCommon> GetEnumerator()
     {

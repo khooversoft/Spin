@@ -5,12 +5,7 @@ namespace Toolbox.Test.Lang.Graph;
 
 public class GraphBatchTests
 {
-    private readonly ILangRoot _root;
-
-    public GraphBatchTests()
-    {
-        _root = GraphLangGrammar.Root;
-    }
+    private readonly ILangRoot _root = GraphLangGrammar.Root;
 
     [Fact]
     public void AllCommandsBatch()

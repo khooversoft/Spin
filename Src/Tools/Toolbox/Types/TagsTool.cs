@@ -1,87 +1,98 @@
-﻿using Toolbox.Extensions;
+﻿using System.Collections.Frozen;
+using Toolbox.Extensions;
+using Toolbox.LangTools;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 public static class TagsTool
 {
-    //public static T ToObject<T>(this Tags subject) where T : new()
-    //{
-    //    subject.NotNull();
+    private static FrozenSet<string> _delimiters = new string[] { ",", "=" }.ToFrozenSet();
+    private static FrozenSet<char> _allowCharacters = new char[] { '*', '-', '.', ':' }.ToFrozenSet();
 
-    //    var dict = subject
-    //        .Select(x => new KeyValuePair<string, string>(x.Key, x.Value ?? "true"))
-    //        .ToDictionary(x => x.Key, x => x.Value);
-
-    //    var result = DictionaryExtensions.ToObject<T>(dict);
-    //    return result;
-    //}
-
-    public static bool HasTag(string? tags, string tag)
+    public static Option<IReadOnlyList<KeyValuePair<string, string?>>> Parse(string? value)
     {
-        if (tags == null) return false;
-        tag.NotEmpty();
-        var memoryTag = tag.AsMemory();
+        var tokens = new StringTokenizer()
+            .UseDoubleQuote()
+            .UseSingleQuote()
+            .UseCollapseWhitespace()
+            .Add(_delimiters)
+            .Parse(value)
+            .Where(x => x.Value.IsNotEmpty())
+            .Reverse()
+            .ToStack();
 
-        foreach (var item in tags.AsMemory().Split(';'))
+        var result = new Sequence<KeyValuePair<string, string?>>();
+
+        while (tokens.Count > 0)
         {
-            foreach (ReadOnlyMemory<char> field in item.Split('='))
+            if (tokens.Peek().Value == ",")
             {
-                bool isEqual = field.Span.Equals(memoryTag.Span, StringComparison.OrdinalIgnoreCase);
-                if (isEqual) return true;
+                tokens.Pop();
+                continue;
             }
+
+            var assignment = parseAssignment(tokens);
+            if (assignment != null)
+            {
+                if (!IsKeyValid(assignment.Value.Key, out Option v1)) return v1.ToOptionStatus<IReadOnlyList<KeyValuePair<string, string?>>>();
+                result.Add(assignment.Value);
+                continue;
+            }
+
+            string tag = tokens.Pop().Value;
+            if (_delimiters.Contains(tag)) return (StatusCode.BadRequest, $"Invalid token={tag}");
+            if (!IsKeyValid(tag, out Option v2)) return v2.ToOptionStatus<IReadOnlyList<KeyValuePair<string, string?>>>();
+
+            result.Add(new KeyValuePair<string, string?>(tag, null));
         }
 
-        return false;
+        return result;
+
+        KeyValuePair<string, string?>? parseAssignment(Stack<IToken> tokens)
+        {
+            if (tokens.Count < 3) return null;
+            if (tokens.Skip(1).First().Value != "=") return null;
+
+            string key = tokens.Pop().Value;
+            tokens.Pop(); // Remove "="
+            string value = tokens.Pop().Value;
+
+            return new KeyValuePair<string, string?>(key, value);
+        }
     }
 
-    public static bool TryGetValue(string? tags, string tag, out string? value)
+    public static T ToObject<T>(this Tags subject) where T : new()
     {
-        value = null;
+        subject.NotNull();
 
-        if (tags == null) return false;
-        tag.NotEmpty();
-        var memoryTag = tag.AsMemory();
+        var dict = subject
+            .Select(x => new KeyValuePair<string, string>(x.Key, x.Value ?? "true"))
+            .ToDictionary(x => x.Key, x => x.Value);
 
-        foreach (var item in tags.AsMemory().Split(';'))
+        var result = DictionaryExtensions.ToObject<T>(dict);
+        return result;
+    }
+
+    public static bool IsKeyValid(string? key, out Option result)
+    {
+        result = key.IsEmpty() switch
         {
-            bool first = true;
-            foreach (ReadOnlyMemory<char> field in item.Split('='))
+            true => (StatusCode.BadRequest, "Key is empty"),
+            false => key switch
             {
-                if (first)
+                { Length: 1 } v when v == "*" => StatusCode.OK,
+                { Length: 1 } v when _allowCharacters.Contains(v[0]) => (StatusCode.BadRequest, $"Invalid key={key}"),
+
+                var v => v.All(x => char.IsLetterOrDigit(x) || _allowCharacters.Contains(x)) switch
                 {
-                    first = false;
-                    bool isEqual = field.Span.Equals(memoryTag.Span, StringComparison.OrdinalIgnoreCase);
-                    if (isEqual) continue;
-                    break;
-                }
-
-                value = field.Span.ToString();
-                return true;
+                    true => StatusCode.OK,
+                    false => (StatusCode.BadRequest, $"Invalid key={key}"),
+                },
             }
-        }
+        };
 
-        return false;
-    }
 
-    public static bool HasTag(string? tags, string tag, string value)
-    {
-        if (tags == null) return false;
-        tag.NotEmpty();
-        value.NotEmpty();
-
-        var memoryTag = tag.AsMemory();
-        var memoryValue = value.AsMemory();
-
-        foreach (var item in tags.AsMemory().Split(';'))
-        {
-            foreach (var field in item.Split('=').WithIndex())
-            {
-                if (field.Index == 0 && !field.Item.Span.Equals(memoryTag.Span, StringComparison.OrdinalIgnoreCase)) break;
-                if (field.Index == 1 && field.Item.Span.Equals(memoryValue.Span, StringComparison.OrdinalIgnoreCase)) return true;
-            }
-        }
-
-        return false;
+        return result.IsOk();
     }
 }

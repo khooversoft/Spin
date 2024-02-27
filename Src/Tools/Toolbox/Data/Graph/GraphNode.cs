@@ -7,7 +7,7 @@ namespace Toolbox.Data;
 
 
 [DebuggerDisplay("Key={Key}, Tags={Tags.ToString()}")]
-public record GraphNode : IGraphCommon
+public sealed record GraphNode : IGraphCommon
 {
     public GraphNode() { }
 
@@ -30,6 +30,18 @@ public record GraphNode : IGraphCommon
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
 
     public GraphNode Copy() => new GraphNode(Key, Tags.Clone(), CreatedDate);
+
+    public bool Equals(GraphNode? obj)
+    {
+        bool result = obj is GraphNode subject &&
+            Key == subject.Key &&
+            Tags == subject.Tags &&
+            CreatedDate == subject.CreatedDate;
+
+        return result;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(Key, Tags, CreatedDate);
 
     public static IValidator<GraphNode> Validator { get; } = new Validator<GraphNode>()
         .RuleFor(x => x.Key).NotNull()

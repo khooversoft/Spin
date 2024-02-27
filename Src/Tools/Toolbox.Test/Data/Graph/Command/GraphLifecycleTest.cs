@@ -17,7 +17,7 @@ public class GraphLifecycleTest
     {
         GraphMap map = new GraphMap();
 
-        Option<GraphQueryResults> addResult = map.Execute("add node key=node1, tags='t1,t2=v1';");
+        Option<GraphQueryResults> addResult = map.Execute("add node key=node1, t1,t2=v1;");
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
@@ -50,12 +50,12 @@ public class GraphLifecycleTest
     {
         GraphMap map = new GraphMap();
 
-        Option<GraphQueryResults> addResult1 = map.Execute("add node key=node1, tags='t1,t2=v1';");
+        Option<GraphQueryResults> addResult1 = map.Execute("add node key=node1, t1,t2=v1;");
         addResult1.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
-        Option<GraphQueryResults> addResult2 = map.Execute("add node key=node2, tags='t10,t20=v10';");
+        Option<GraphQueryResults> addResult2 = map.Execute("add node key=node2, t10,t20=v10;");
         addResult2.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
@@ -122,8 +122,8 @@ public class GraphLifecycleTest
         GraphMap map = new GraphMap();
 
         string q = """
-            add node key=node1,tags=t1;
-            add node key=node1,tags='t2,client';
+            add node key=node1, t1;
+            add node key=node1,t2,client;
             """;
 
         map.Execute(q).Action(x =>
@@ -141,9 +141,9 @@ public class GraphLifecycleTest
         GraphMap map = new GraphMap();
 
         string q = """
-            add node key=node1,tags=t1;
-            add node key=node2,tags='t2,client';
-            add edge fromKey=node1,toKey=node2,edgeType=et,tags='e2,worksFor';
+            add node key=node1, t1;
+            add node key=node2,t2,client;
+            add edge fromKey=node1,toKey=node2,edgeType=et,e2, worksFor;
             """;
 
         map.Execute(q).Action(x =>
@@ -172,13 +172,13 @@ public class GraphLifecycleTest
         GraphMap map = new GraphMap();
 
         string q = """
-            add node key=node1,tags=t1;
-            add node key=node2,tags='t2,client';
-            add node key=node3,tags='t3,client';
-            add node key=node4,tags='t4,client';
-            add node key=node5,tags='t5,client';
-            add edge fromKey=node1,toKey=node2,edgeType=et,tags='e2,worksFor';
-            add edge fromKey=node3,toKey=node4,edgeType=et,tags='e2,worksFor';
+            add node key=node1,t1;
+            add node key=node2,t2,client;
+            add node key=node3,t3,client;
+            add node key=node4,t4,client;
+            add node key=node5,t5,client;
+            add edge fromKey=node1,toKey=node2,edgeType=et,e2,worksFor;
+            add edge fromKey=node3,toKey=node4,edgeType=et,e2,worksFor;
             """;
 
         map.Execute(q).Action(x =>

@@ -5,15 +5,39 @@ using Toolbox.Types;
 
 namespace Toolbox.Test.Data.Lang;
 
-//var q = "(t1)";
-//var q = "(key=key1;tags=t1)";
-//var q = "[schedulework:active]";
 public class GraphSelectTests
 {
+    [Theory]
+    [InlineData("select (key=key1, tags=t1);")]
+    [InlineData("select (key=key1, tags=t, t1);")]
+    [InlineData("select (key=key1, add, t2);")]
+    [InlineData("select (key=key1, node, t2);")]
+    [InlineData("select (key=key1, edge, t2);")]
+    [InlineData("select (key=key1, delete=v2, t2);")]
+    [InlineData("select (key=key1, update, t2);")]
+    [InlineData("select (key=key1, set);")]
+    [InlineData("select (key=key1, set, t2);")]
+    [InlineData("select (key=key1, key, t2);")]
+    [InlineData("select [key=key1, tags=t1);")]
+    [InlineData("select [key=key1, tags=t, t1];")]
+    [InlineData("select [key=key1, add, t2];")]
+    [InlineData("select [key=key1, node, t2];")]
+    [InlineData("select [key=key1, edge, t2];")]
+    [InlineData("select [key=key1, delete=v2, t2];")]
+    [InlineData("select [key=key1, update, t2];")]
+    [InlineData("select [key=key1, set];")]
+    [InlineData("select [key=key1, set, t2];")]
+    [InlineData("select [key=key1, key, t2];")]
+    public void AddNodeWithReserveTags(string line)
+    {
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);
+        result.IsError().Should().BeTrue(result.ToString());
+    }
+
     [Fact]
     public void FullSyntax()
     {
-        var q = "select (key=key1, tags=t1) -> [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, tags=t2] -> (schedule);";
+        var q = "select (key=key1, t1) -> [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, t2] -> (schedule);";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -32,7 +56,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.Should().Be("t1");
+                x.Tags.ToString().Should().Be("t1");
                 x.Alias.Should().BeNull();
             });
 
@@ -42,14 +66,14 @@ public class GraphSelectTests
                 x.FromKey.Should().Be("fromKey1");
                 x.ToKey.Should().Be("tokey1");
                 x.EdgeType.Should().Be("schedulework:active");
-                x.Tags.Should().Be("t2");
+                x.Tags.ToString().Should().Be("t2");
                 x.Alias.Should().BeNull();
             });
 
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().BeNull();
-                x.Tags.Should().Be("schedule");
+                x.Tags.ToString().Should().Be("schedule");
                 x.Alias.Should().BeNull();
             });
         });
@@ -58,10 +82,10 @@ public class GraphSelectTests
     [Fact]
     public void FullSyntaxWithAlias()
     {
-        var q = "select (key=key1, tags=t1) a1 -> [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, tags=t2] a2 -> (schedule) a3;";
+        var q = "select (key=key1, t1) a1 -> [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, t2] a2 -> (schedule) a3;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
@@ -77,7 +101,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.Should().Be("t1");
+                x.Tags.ToString().Should().Be("t1");
                 x.Alias.Should().Be("a1");
             });
 
@@ -87,14 +111,14 @@ public class GraphSelectTests
                 x.FromKey.Should().Be("fromKey1");
                 x.ToKey.Should().Be("tokey1");
                 x.EdgeType.Should().Be("schedulework:active");
-                x.Tags.Should().Be("t2");
+                x.Tags.ToString().Should().Be("t2");
                 x.Alias.Should().Be("a2");
             });
 
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().BeNull();
-                x.Tags.Should().Be("schedule");
+                x.Tags.ToString().Should().Be("schedule");
                 x.Alias.Should().Be("a3");
             });
         });
@@ -121,7 +145,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().BeNull();
-                x.Tags.Should().Be("t1");
+                x.Tags.ToString().Should().Be("t1");
             });
         });
     }
@@ -129,7 +153,7 @@ public class GraphSelectTests
     [Fact]
     public void SingleSyntax()
     {
-        var q = "select (key=key1, tags=t1);";
+        var q = "select (key=key1, t1);";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -147,7 +171,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.Should().Be("t1");
+                x.Tags.ToString().Should().Be("t1");
             });
         });
     }
@@ -176,7 +200,7 @@ public class GraphSelectTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.Should().Be("schedulework:active");
+                x.Tags.ToString().Should().Be("schedulework:active");
             });
         });
     }
@@ -184,7 +208,7 @@ public class GraphSelectTests
     [Fact]
     public void SingleEdgeSyntax()
     {
-        var q = "select [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, tags=t2];";
+        var q = "select [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, t2];";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue();
@@ -205,7 +229,7 @@ public class GraphSelectTests
                 x.FromKey.Should().Be("fromKey1");
                 x.ToKey.Should().Be("tokey1");
                 x.EdgeType.Should().Be("schedulework:active");
-                x.Tags.Should().Be("t2");
+                x.Tags.ToString().Should().Be("t2");
             });
         });
     }

@@ -141,7 +141,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             var edges = result
                 .Select(x => _index[x])
                 .Where(x => query.EdgeType == null || x.EdgeType.IsMatch(query.EdgeType))
-                .Where(x => query.Tags == null || new Tags(x.Tags).Has(query.Tags))
+                .Where(x => query.Tags.Count == 0 || new Tags(x.Tags).Has(query.Tags))
                 .ToArray();
 
             return edges;

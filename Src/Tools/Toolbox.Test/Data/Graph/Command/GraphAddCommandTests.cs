@@ -28,7 +28,7 @@ public class GraphAddCommandTests
     public void SingleAddForNode()
     {
         var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add node key=node99,tags=newTags;");
+        var newMapOption = _map.Execute("add node key=node99, newTags;");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -57,7 +57,7 @@ public class GraphAddCommandTests
     public void SingleAddForNodeWithMultipleTags()
     {
         var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add node key=node99, tags='newTags,label=client';");
+        var newMapOption = _map.Execute("add node key=node99, newTags,label=client;");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -86,7 +86,7 @@ public class GraphAddCommandTests
     public void SingleAddForEdge()
     {
         var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, tags=newTags;");
+        var newMapOption = _map.Execute("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();

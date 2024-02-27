@@ -30,7 +30,7 @@ public class GraphDeleteCommandTests
     {
         var copyMap = _map.Copy();
         var newMapOption = _map.Execute("delete (key=node1);");
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
@@ -82,7 +82,7 @@ public class GraphDeleteCommandTests
     public void SingleDeleteForEdgeToNode()
     {
         var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("delete [created] -> (tags='age=35');");
+        var newMapOption = _map.Execute("delete [created] -> (age=35);");
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
