@@ -28,7 +28,7 @@ public class LsValue : ILangSyntax
         switch (token)
         {
             case TokenValue tokenValue when !tokenValue.IsSyntaxToken:
-                if (pContext.Symbols.ContainsKey(tokenValue.Value))
+                if (pContext.Symbols.Contains(tokenValue.Value))
                 {
                     if (Optional) pContext.TokensCursor.Index--;
                     return (failStatus(), $"token {tokenValue.Value} is a symbol");

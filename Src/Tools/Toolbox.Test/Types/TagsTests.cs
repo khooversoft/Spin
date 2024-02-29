@@ -298,7 +298,7 @@ public class TagsTests
             State = ScheduleEdgeWorkState.Completed,
         };
 
-        Tags tags = new Tags().Set(data);
+        Tags tags = new Tags().SetObject(data);
         tags.Should().NotBeNull();
         tags.ToString().Should().Be("State=2");
 
@@ -326,7 +326,7 @@ public class TagsTests
             StateValue = ScheduleEdgeWorkState.Completed,
         };
 
-        Tags tags = new Tags().Set(data);
+        Tags tags = new Tags().SetObject(data);
         tags.Should().NotBeNull();
         tags.ToString().Should().Be("State=Completed");
 
@@ -352,7 +352,7 @@ public class TagsTests
             State = ScheduleEdgeWorkState.Completed,
         };
 
-        Tags tags = new Tags().Set(data);
+        Tags tags = new Tags().SetObject(data);
         tags.Should().NotBeNull();
         tags.ToString().Should().Be("Name=name1,Running=True,State=2,StateName=Completed");
 
@@ -382,7 +382,7 @@ public class TagsTests
             Value = 1,
         };
 
-        Tags tags = new Tags().Set(r1);
+        Tags tags = new Tags().SetObject(r1);
         tags.ToString().Should().Be("Name=name1,Value=1");
 
         var r2 = tags.ToObject<SimpleRecord>();
@@ -405,7 +405,7 @@ public class TagsTests
             Amount = 101.50m,
         };
 
-        Tags tags = new Tags().Set(r1).Set(r2);
+        Tags tags = new Tags().SetObject(r1).SetObject(r2);
         tags.ToString().Should().Be("Amount=101.50,Country=country,Name=name1,Value=1");
 
         var r10 = tags.ToObject<SimpleRecord>();

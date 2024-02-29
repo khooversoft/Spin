@@ -62,7 +62,7 @@ public class GraphLifecycleTest
 
         map.ExecuteScalar("select (key=node1);").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().Should().BeTrue(x.ToString());
             x.Items.Count.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
@@ -73,7 +73,7 @@ public class GraphLifecycleTest
 
         map.ExecuteScalar("select (key=node2);").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().Should().BeTrue(x.ToString());
             x.Items.Count.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
@@ -91,13 +91,13 @@ public class GraphLifecycleTest
 
         map.ExecuteScalar("select (key=node1);").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().Should().BeTrue(x.ToString());
             x.Items.Count.Should().Be(0);
         });
 
         map.ExecuteScalar("select (key=node2);").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().Should().BeTrue(x.ToString());
             x.Items.Count.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
@@ -108,7 +108,7 @@ public class GraphLifecycleTest
 
         map.Execute("delete (key=node2);").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().Should().BeTrue(x.ToString());
             x.Return().Items.Count.Should().Be(1);
         });
 
@@ -128,7 +128,7 @@ public class GraphLifecycleTest
 
         map.Execute(q).Action(x =>
         {
-            x.IsError().Should().BeTrue();
+            x.IsError().Should().BeTrue(x.ToString());
         });
 
         map.Nodes.Count.Should().Be(1);
@@ -148,7 +148,7 @@ public class GraphLifecycleTest
 
         map.Execute(q).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().Should().BeTrue(x.ToString());
             x.Return().Items.Count.Should().Be(3);
         });
 

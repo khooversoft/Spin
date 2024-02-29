@@ -57,16 +57,13 @@ public static class GraphUpdateCommand
             {
                 case { SyntaxNode.Name: "svalue" }:
                     tags.Add(langNode.Value, null);
-                    //tags.Set(langNode.Value);
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
-                    string lvalue = langNode.Value.ToLower();
-
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    tags.Set(lvalue, rvalue.Value);
+                    tags.Set(langNode.Value, rvalue.Value);
                     break;
 
                 case { SyntaxNode.Name: "delimiter" }:
@@ -98,22 +95,19 @@ public static class GraphUpdateCommand
             {
                 case { SyntaxNode.Name: "svalue" }:
                     tags.Add(langNode.Value, null);
-                    //tags.Set(langNode.Value);
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
-                    string lvalue = langNode.Value.ToLower();
-
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    switch (lvalue)
+                    switch (langNode.Value.ToLower())
                     {
                         case "edgetype" when edgeType == null: edgeType = rvalue.Value; break;
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
                         default:
-                            tags.Set(lvalue, rvalue.Value);
+                            tags.Set(langNode.Value, rvalue.Value);
                             break;
                     }
 

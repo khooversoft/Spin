@@ -46,4 +46,11 @@ public static class GraphQueryResultExtensions
 
     public static bool IsOk(this GraphQueryResult subject) => subject.NotNull().StatusCode.IsOk();
     public static bool IsError(this GraphQueryResult subject) => subject.NotNull().StatusCode.IsError();
+
+    public static bool HasScalarResult(this GraphQueryResults subject) => subject.NotNull().Items.Count == 1 && subject.Items.First().Items.Count == 1;
+
+    public static IReadOnlyList<T> Get<T>(this GraphQueryResults subject) => subject.NotNull()
+        .Items.First()
+        .Items.OfType<T>()
+        .ToArray();
 }

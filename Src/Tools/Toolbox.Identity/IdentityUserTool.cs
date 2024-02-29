@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Microsoft.AspNetCore.Identity;
+namespace Toolbox.Identity;
 
 public static class IdentityUserTool
 {
@@ -18,5 +18,4 @@ public static class IdentityUserTool
         .Build();
 
     public static Option<IValidatorResult> Validate(this IdentityUser subject) => Validator.Validate(subject);
-    //public static bool Validate(this IdentityUser subject, out Option v) => Validator.TryValidate(subject, out v);
 }

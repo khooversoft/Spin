@@ -13,9 +13,12 @@ namespace Toolbox.Data;
 /// search = { (...) | [...] } [-> { (...) | [...] ...}
 /// 
 /// select search
-/// add {node | edge} {k | k=v}[, {k | k=v} ...]
+/// add {node | {edge unique?} } {k | k=v}[, {k | k=v} ...]
+/// upsert {node | {unique? edge}} {k | k=v}[, {k | k=v} ...]
 /// delete search
 /// update search set {k=v}[, {k=v} ...]
+/// 
+/// "unique edge" constraint no duplicate for fromKey + toKey
 /// 
 /// </summary>
 public static class GraphLangGrammar
@@ -25,6 +28,7 @@ public static class GraphLangGrammar
         "select",       "add",          "node",
         "edge",         "delete",       "update",
         "set",          "key",          "tags",
+        "upsert",       "unique",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))
@@ -78,6 +82,22 @@ public static class GraphLangGrammar
         }
     }
 
+    public static ILangRoot Upsert
+    {
+        get
+        {
+            var node = new LsRoot("addNode") + new LsSymbol("node") + TagParameters;
+
+            var onlyAdd = new LsRoot("onlyAdd") + new LsSymbol("edge");
+            var uniqueAdd = new LsRoot("uniqueAdd") + new LsSymbol("unique", "unique-add") + new LsSymbol("edge");
+            var edge = new LsRoot("addEdge") + (new LsSwitch("addEdge-Option") + onlyAdd + uniqueAdd) + TagParameters;
+
+            var rule = new LsRoot(nameof(Upsert)) + new LsSymbol("upsert") + (new LsSwitch("upsert-sw") + node + edge) + new LsToken(";", "term");
+
+            return rule;
+        }
+    }
+
     public static ILangRoot DeleteOpr { get; } = new LsRoot(nameof(DeleteOpr)) + new LsSymbol("delete") + SearchQuery + new LsToken(";", "term");
 
     public static ILangRoot Update
@@ -99,6 +119,7 @@ public static class GraphLangGrammar
         + (new LsSwitch("root-switch")
             + Select
             + AddOpr
+            + Upsert
             + DeleteOpr
             + Update
         );

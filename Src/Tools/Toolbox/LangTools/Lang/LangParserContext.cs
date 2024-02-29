@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using System.Collections.Frozen;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.LangTools;
@@ -14,12 +15,14 @@ public class LangParserContext
 
         Symbols = root.GetChildrenRecursive()
             .OfType<LsSymbol>()
-            .ToDictionary(x => x.Symbol, x => x, StringComparer.OrdinalIgnoreCase);
+            .Select(x => x.Symbol)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     }
 
     public ILangRoot Root { get; private set; }
     public Cursor<IToken> TokensCursor { get; }
-    public IReadOnlyDictionary<string, LsSymbol> Symbols { get; }
+    public FrozenSet<string> Symbols { get; }
 
     public FinalizeScope<LangParserContext> PushWithScope(ILangRoot langRoot)
     {

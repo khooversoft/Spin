@@ -10,6 +10,9 @@ public static class Option_T_Extensions
     
     [DebuggerStepThrough]
     public static bool IsNoContent<T>(this Option<T> subject) => subject.StatusCode.IsNoContent();
+
+    [DebuggerStepThrough]
+    public static bool IsConflict<T>(this Option<T> subject) => subject.StatusCode.IsConflict();
     
     [DebuggerStepThrough] 
     public static bool IsSuccess<T>(this Option<T> subject) => subject.StatusCode.IsSuccess();

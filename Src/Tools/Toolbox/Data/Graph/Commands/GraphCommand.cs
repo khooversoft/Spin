@@ -55,7 +55,7 @@ public static class GraphCommand
             Tags = addNode.Tags,
         };
 
-        var result = map.Nodes.Add(graphNode);
+        var result = map.Nodes.Add(graphNode, addNode.Upsert);
         return new GraphQueryResult(CommandType.AddNode, result.StatusCode, result.Error);
     }
 
@@ -69,7 +69,7 @@ public static class GraphCommand
             Tags = new Tags(addEdge.Tags),
         };
 
-        var result = map.Edges.Add(graphEdge);
+        var result = map.Edges.Add(graphEdge, upsert: addEdge.Upsert);
         return new GraphQueryResult(CommandType.AddEdge, result.StatusCode, result.Error);
     }
 

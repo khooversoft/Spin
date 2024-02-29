@@ -34,7 +34,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public int Count => _index.Count;
 
-    public Option Add(GraphNode node, bool update = false)
+    public Option Add(GraphNode node, bool upsert = false)
     {
         if (!node.Validate(out var v)) return v;
 
@@ -46,7 +46,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 false => (StatusCode.Conflict, $"Node key={node.Key} already exist"),
             };
 
-            if (option.IsOk() || !update) return option;
+            if (option.IsOk() || !upsert) return option;
 
             var readNode = _index[node.Key];
             readNode = readNode with

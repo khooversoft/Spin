@@ -62,6 +62,31 @@ public static class TagsTool
         }
     }
 
+    public static bool TryGetValue(this IReadOnlyList<KeyValuePair<string, string?>> values, string key, out string? value)
+    {
+        values.NotNull();
+
+        var list = values
+            .Where(x => x.Key.EqualsIgnoreCase(key))
+            .Select(x => x.Value)
+            .ToArray();
+
+        value = list.Length == 0 ? null : list[0];
+        return list.Length != 0;
+    }
+
+    public static bool HasTag(string? tags, string tag, string? value = null)
+    {
+        if (tags.IsEmpty() || tag.IsEmpty()) return false;
+
+        bool found = Parse(tags)
+            .ThrowOnError()
+            .Return()
+            .TryGetValue(tag, out _);
+
+        return found;
+    }
+
     public static T ToObject<T>(this Tags subject) where T : new()
     {
         subject.NotNull();

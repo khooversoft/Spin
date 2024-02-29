@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Collections.Frozen;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -7,11 +8,17 @@ namespace Toolbox.Data;
 
 public static class GraphAddCommand
 {
-    public static Option<IGraphQL> Parse(Stack<LangNode> stack)
+    private static FrozenSet<string> _validNames = new string[] { "add", "upsert" }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    public static Option<IGraphQL> Parse(Stack<LangNode> stack, bool upsert = false)
     {
         var list = new List<IGraphQL>();
 
-        if (!stack.TryPeek(out var cmd) || cmd.SyntaxNode.Name != "add") return StatusCode.NotFound;
+        if (
+            !stack.TryPeek(out var cmd) ||
+            cmd.SyntaxNode.Name.IsEmpty() ||
+            !_validNames.Contains(cmd.SyntaxNode.Name))
+            return StatusCode.NotFound;
+
         stack.Pop();
 
         while (stack.TryPop(out var langNode))
@@ -19,12 +26,12 @@ public static class GraphAddCommand
             switch (langNode)
             {
                 case { SyntaxNode.Name: "node" }:
-                    Option<GraphNodeAdd> nodeParse = ParseNode(stack);
+                    Option<GraphNodeAdd> nodeParse = ParseNode(stack, upsert);
                     if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IGraphQL>();
                     return nodeParse.Return();
 
                 case { SyntaxNode.Name: "edge" }:
-                    Option<GraphEdgeAdd> edgeParse = ParseEdge(stack);
+                    Option<GraphEdgeAdd> edgeParse = ParseEdge(stack, upsert);
                     if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IGraphQL>();
                     return edgeParse.Return();
 
@@ -39,7 +46,7 @@ public static class GraphAddCommand
         return (StatusCode.BadRequest, "Unknown language node");
     }
 
-    private static Option<GraphNodeAdd> ParseNode(Stack<LangNode> stack)
+    private static Option<GraphNodeAdd> ParseNode(Stack<LangNode> stack, bool upsert)
     {
         string? key = null;
         var tags = new Tags();
@@ -49,22 +56,20 @@ public static class GraphAddCommand
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Set(langNode.Value);
+                    tags.Add(langNode.Value, null);
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
-                    string lvalue = langNode.Value.ToLower();
-
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    switch (lvalue)
+                    switch (langNode.Value.ToLower())
                     {
                         case "key" when key == null: key = rvalue.Value; break;
                         case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
 
                         default:
-                            tags.Set(lvalue, rvalue.Value);
+                            tags.Set(langNode.Value, rvalue.Value);
                             break;
                     }
 
@@ -80,6 +85,7 @@ public static class GraphAddCommand
                     {
                         Key = key,
                         Tags = tags,
+                        Upsert = upsert,
                     };
 
                 default:
@@ -90,7 +96,7 @@ public static class GraphAddCommand
         return (StatusCode.BadRequest, "No closure");
     }
 
-    private static Option<GraphEdgeAdd> ParseEdge(Stack<LangNode> stack)
+    private static Option<GraphEdgeAdd> ParseEdge(Stack<LangNode> stack, bool upsert)
     {
         string? fromKey = null!;
         string? toKey = null!;
@@ -102,16 +108,14 @@ public static class GraphAddCommand
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Set(langNode.Value);
+                    tags.Add(langNode.Value, null);
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
-                    string lvalue = langNode.Value.ToLower();
-
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    switch (lvalue)
+                    switch (langNode.Value.ToLower())
                     {
                         case "fromkey" when fromKey == null: fromKey = rvalue.Value; break;
                         case "fromkey" when fromKey != null: return (StatusCode.BadRequest, "FromKey already specified");
@@ -123,7 +127,7 @@ public static class GraphAddCommand
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
                         default:
-                            tags.Set(lvalue, rvalue.Value);
+                            tags.Set(langNode.Value, rvalue.Value);
                             break;
                     }
 
@@ -141,6 +145,7 @@ public static class GraphAddCommand
                         ToKey = toKey,
                         EdgeType = edgeType,
                         Tags = tags,
+                        Upsert = upsert,
                     };
 
                 default:

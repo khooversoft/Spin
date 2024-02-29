@@ -89,8 +89,13 @@ public static class ArticleManifestValidations
 
     public static Option RequiredTags(string tags)
     {
+        var tokensOption = TagsTool.Parse(tags);
+        if (tokensOption.IsError()) return tokensOption.ToOptionStatus();
+
+        IReadOnlyList<KeyValuePair<string, string?>>? tokens = tokensOption.Return();
+
         var matched = NBlogConstants.RequiredTags
-            .Select(x => TagsTool.TryGetValue(tags, x, out var _) ? x : null)
+            .Select(x => tokens.TryGetValue(x, out var _) ? x : null)
             .OfType<string>();
 
         var except = NBlogConstants.RequiredTags.Except(matched).ToArray();

@@ -27,7 +27,7 @@ public class Tags : Dictionary<string, string?>
         return this;
     }
 
-    public Tags Set<T>(T value) where T : class
+    public Tags SetObject<T>(T value) where T : class
     {
         if (value == null) return this;
 

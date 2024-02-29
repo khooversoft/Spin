@@ -3,15 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Toolbox.Types;
 
-public interface IOptionStatus
-{
-    StatusCode StatusCode { get; }
-    string? Error { get; }
-}
-
 
 [DebuggerDisplay("StatusCode={StatusCode}, Error={Error}")]
-public readonly struct Option : IOptionStatus, IEquatable<Option>
+public readonly struct Option : IEquatable<Option>
 {
     public static Option Root { get; } = new Option(StatusCode.OK);
 
@@ -45,4 +39,13 @@ public static class OptionExtensions
     public static bool IsOk(this Option subject) => subject.StatusCode.IsOk();
     public static bool IsNotFound(this Option subject) => subject.StatusCode.IsNotFound();
     public static bool IsError(this Option subject) => subject.StatusCode.IsError();
+
+
+    [DebuggerStepThrough]
+    public static bool IsError(this Option subject, out Option result)
+    {
+        result = subject;
+        return subject.IsError();
+    }
+
 }

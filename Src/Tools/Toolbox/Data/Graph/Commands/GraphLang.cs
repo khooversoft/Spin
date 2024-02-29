@@ -41,6 +41,13 @@ public static class GraphLang
                     list.Add(addParse.Return());
                     break;
 
+                case { SyntaxNode.Name: "upsert" }:
+                    var upsertParse = GraphAddCommand.Parse(stack, upsert: true);
+                    if (upsertParse.IsError()) return upsertParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
+
+                    list.Add(upsertParse.Return());
+                    break;
+
                 case { SyntaxNode.Name: "delete" }:
                     var deleteParse = GraphDeleteCommand.Parse(stack);
                     if (deleteParse.IsError()) return deleteParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();

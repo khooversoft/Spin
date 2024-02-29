@@ -60,18 +60,16 @@ public static class GraphSelectCommand
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
-                    string lvalue = langNode.Value.ToLower();
-
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    switch (lvalue)
+                    switch (langNode.Value.ToLower())
                     {
                         case "key" when key == null: key = rvalue.Value; break;
                         case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
 
                         default:
-                            tags.Set(lvalue, rvalue.Value);
+                            tags.Set(langNode.Value, rvalue.Value);
                             break;
                     }
 
@@ -122,12 +120,10 @@ public static class GraphSelectCommand
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
-                    string lvalue = langNode.Value.ToLower();
-
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    switch (lvalue)
+                    switch (langNode.Value.ToLower())
                     {
                         case "nodekey" when nodeKey == null: nodeKey = rvalue.Value; break;
                         case "nodekey" when nodeKey != null: return (StatusCode.BadRequest, "NodeKey already specified");
@@ -142,7 +138,7 @@ public static class GraphSelectCommand
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
                         default:
-                            tags.Set(lvalue, rvalue.Value);
+                            tags.Set(langNode.Value, rvalue.Value);
                             break;
                     }
                     break;

@@ -42,7 +42,11 @@ public static class SearchIndexTool
             string line = await File.ReadAllTextAsync(x.file);
             var tokens = tokenizer.Parse(line);
 
-            string dbName = TagsTool.TryGetValue(x.manifest.Tags, NBlogConstants.DbTag, out var v1) ? v1.NotEmpty() : throw new UnreachableException();
+            var dbName = TagsTool.Parse(x.manifest.Tags)
+                .ThrowOnError()
+                .Return()
+                .TryGetValue(NBlogConstants.DbTag, out var v1) ? v1.NotEmpty() : throw new UnreachableException();
+
             var tags = new Tags(x.manifest.Tags);
             return new DocumentReference(dbName, x.manifest.ArticleId, tokens, tags.Keys).ToOption();
         });

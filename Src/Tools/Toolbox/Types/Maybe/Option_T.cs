@@ -4,8 +4,10 @@ using System.Text.Json.Serialization;
 
 namespace Toolbox.Types;
 
-public interface IOption : IOptionStatus
+public interface IOption
 {
+    StatusCode StatusCode { get; }
+    string? Error { get; }
     bool HasValue { get; }
     object ValueObject { get; }
 }

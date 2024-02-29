@@ -90,22 +90,32 @@ public static class OptionExtensionTools
         return option;
     }
 
-    public static IOptionStatus LogStatus(this IOptionStatus option, ILoggingContext context, string message, params object?[] args)
+    public static Option LogStatus(this Option option, ILoggingContext context, string message, params object?[] args)
+    {
+        LogStatusInternal(option.StatusCode, option.Error, context, message, args);
+        return option;
+    }
+
+    public static Option<T> LogStatus<T>(this Option<T> option, ILoggingContext context, string message, params object?[] args)
+    {
+        LogStatusInternal(option.StatusCode, option.Error, context, message, args);
+        return option;
+    }
+
+    private static void LogStatusInternal(StatusCode statusCode, string? error, ILoggingContext context, string message, params object?[] args)
     {
         const string fmt = "statusCode={statusCode}, error={error}";
 
-        (message, args) = option switch
+        (message, args) = statusCode switch
         {
-            var v when v.StatusCode.IsOk() => (message, args),
+            var v when v.IsOk() => (message, args),
             var v => (
                 ScopeContextTools.AppendMessage(message, fmt),
-                ScopeContextTools.AppendArgs(args, v.StatusCode, v.Error ?? "<no error>")
+                ScopeContextTools.AppendArgs(args, v, error ?? "<no error>")
                 ),
         };
 
         (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.Log(option.StatusCode.IsOk() ? LogLevel.Information : LogLevel.Error, newMessage, newObjects);
-
-        return option;
+        context.Context.Logger.Log(statusCode.IsOk() ? LogLevel.Information : LogLevel.Error, newMessage, newObjects);
     }
 }
