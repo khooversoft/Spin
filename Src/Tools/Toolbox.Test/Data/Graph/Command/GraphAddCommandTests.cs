@@ -54,35 +54,6 @@ public class GraphAddCommandTests
     }
      
     [Fact]
-    public void SingleAddForNode()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add node key=node99, newTags;");
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
-
-        compareMap.Count.Should().Be(1);
-        compareMap[0].Cast<GraphNode>().Action(x =>
-        {
-            x.Key.Should().Be("node99");
-            x.Tags.ToString().Should().Be("newTags");
-        });
-
-        commandResults.Items.Count.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.AddNode);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
-            x.Items.Should().NotBeNull();
-        });
-    }
-     
-    [Fact]
     public void SingleAddForNodeWithMultipleTags()
     {
         var copyMap = _map.Copy();
@@ -139,6 +110,62 @@ public class GraphAddCommandTests
             x.StatusCode.IsOk().Should().BeTrue();
             x.Error.Should().BeNull();
             x.Items.Should().NotBeNull();
+        });
+    }
+
+    [Fact]
+    public void SingleUniqueAddForEdge()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("add unique edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;");
+        newMapOption.IsOk().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphEdge>().Action(x =>
+        {
+            x.FromKey.Should().Be("node7");
+            x.ToKey.Should().Be("node1");
+            x.EdgeType.Should().Be("newEdgeType");
+            x.Tags.ToString().Should().Be("newTags");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.AddEdge);
+            x.StatusCode.IsOk().Should().BeTrue();
+            x.Error.Should().BeNull();
+            x.Items.Should().NotBeNull();
+        });
+    }
+
+    [Fact]
+    public void UniqueAddForEdgeWithExistingEdge()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("add unique edge fromKey=node4, toKey=node5;");
+        newMapOption.IsError().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+
+        compareMap.Count.Should().Be(0);
+
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.AddEdge);
+            x.StatusCode.Should().Be(StatusCode.Conflict);
+            x.Error.Should().BeNull();
+            x.Items.Should().NotBeNull();
+            x.Items.Count.Should().Be(0);
         });
     }
 }

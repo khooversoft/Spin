@@ -31,7 +31,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         {
             lock (_lock)
             {
-                if (!ValidateNodes(value, out var option)) option.ThrowOnError("Invalid edge");
+                if (!ValidateNodes(value, false, out var option)) option.ThrowOnError("Invalid edge");
 
                 Remove(value.Key);
                 Add(value);
@@ -41,13 +41,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public int Count => _index.Count;
 
-    public Option Add(GraphEdge edge, bool upsert = false)
+    public Option Add(GraphEdge edge, bool upsert = false, bool unique = false)
     {
         if (!edge.Validate(out var v1)) return v1;
 
         lock (_lock)
         {
-            if (!ValidateNodes(edge, out var v2)) return v2;
+            if (!ValidateNodes(edge, unique, out var v2)) return v2;
             if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
 
             if (!_masterList.Add(edge))
@@ -175,7 +175,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     public IEnumerator<GraphEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private bool ValidateNodes(GraphEdge edge, out Option result)
+    private bool ValidateNodes(GraphEdge edge, bool unique, out Option result)
     {
         if (!_isNodeExist(edge.FromKey))
         {
@@ -187,6 +187,15 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         {
             result = (StatusCode.NotFound, $"Cannot add edge, ToNodeKey={edge.ToKey} does not exist");
             return false;
+        }
+
+        if (unique)
+        {
+            if( GetIntersect(edge.FromKey, edge.ToKey, EdgeDirection.Both).Count > 0)
+            {
+                result = (StatusCode.Conflict, $"Edge already exist between {edge.FromKey} and {edge.ToKey}");
+                return false;
+            }
         }
 
         result = StatusCode.OK;

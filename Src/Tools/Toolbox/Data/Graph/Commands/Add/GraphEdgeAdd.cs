@@ -10,4 +10,5 @@ public record GraphEdgeAdd : IGraphQL
     public Tags Tags { get; init; } = new Tags();
     public EdgeDirection Direction { get; init; } = EdgeDirection.Both;
     public bool Upsert { get; init; }
+    public bool Unique { get; init; }
 }

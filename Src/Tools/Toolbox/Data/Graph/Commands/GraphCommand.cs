@@ -69,7 +69,7 @@ public static class GraphCommand
             Tags = new Tags(addEdge.Tags),
         };
 
-        var result = map.Edges.Add(graphEdge, upsert: addEdge.Upsert);
+        var result = map.Edges.Add(graphEdge, upsert: addEdge.Upsert, unique: addEdge.Unique);
         return new GraphQueryResult(CommandType.AddEdge, result.StatusCode, result.Error);
     }
 

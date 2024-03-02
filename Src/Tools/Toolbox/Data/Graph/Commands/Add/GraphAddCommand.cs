@@ -20,6 +20,7 @@ public static class GraphAddCommand
             return StatusCode.NotFound;
 
         stack.Pop();
+        bool unique = false;
 
         while (stack.TryPop(out var langNode))
         {
@@ -30,8 +31,12 @@ public static class GraphAddCommand
                     if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IGraphQL>();
                     return nodeParse.Return();
 
+                case { SyntaxNode.Name: "unique" }:
+                    unique = true;
+                    continue;
+
                 case { SyntaxNode.Name: "edge" }:
-                    Option<GraphEdgeAdd> edgeParse = ParseEdge(stack, upsert);
+                    Option<GraphEdgeAdd> edgeParse = ParseEdge(stack, upsert, unique);
                     if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IGraphQL>();
                     return edgeParse.Return();
 
@@ -96,7 +101,7 @@ public static class GraphAddCommand
         return (StatusCode.BadRequest, "No closure");
     }
 
-    private static Option<GraphEdgeAdd> ParseEdge(Stack<LangNode> stack, bool upsert)
+    private static Option<GraphEdgeAdd> ParseEdge(Stack<LangNode> stack, bool upsert, bool unique)
     {
         string? fromKey = null!;
         string? toKey = null!;
@@ -146,6 +151,7 @@ public static class GraphAddCommand
                         EdgeType = edgeType,
                         Tags = tags,
                         Upsert = upsert,
+                        Unique = unique,
                     };
 
                 default:
