@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -41,7 +42,8 @@ public static class DictionaryExtensions
     {
         subject.NotNull();
 
-        string json = JsonSerializer.Serialize(subject).NotEmpty(name: "Serialization failed");
+        var options = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+        string json = JsonSerializer.Serialize(subject, options).NotEmpty(name: "Serialization failed");
 
         byte[] byteArray = Encoding.UTF8.GetBytes(json);
         using MemoryStream stream = new MemoryStream(byteArray);

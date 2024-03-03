@@ -157,12 +157,11 @@ public class GraphLifecycleTest
 
         var query = map.ExecuteScalar("select (key=node1) a0 -> [*] a1 -> (*) a2;");
         query.IsOk().Should().Be(true);
-        query.Items.Count.Should().Be(2);
+        query.Items.Count.Should().Be(1);
         query.Items.OfType<GraphNode>().Action(x =>
         {
-            x.Count().Should().Be(2);
-            x.First().Key.Should().Be("node1");
-            x.Last().Key.Should().Be("node2");
+            x.Count().Should().Be(1);
+            x.First().Key.Should().Be("node2");
         });
     }
 
@@ -195,9 +194,8 @@ public class GraphLifecycleTest
             x.IsOk().Should().Be(true);
             x.Items.OfType<GraphNode>().Action(x =>
             {
-                x.Count().Should().Be(2);
-                x.First().Key.Should().Be("node3");
-                x.Last().Key.Should().Be("node4");
+                x.Count().Should().Be(1);
+                x.First().Key.Should().Be("node4");
             });
         });
     }

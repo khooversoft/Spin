@@ -16,7 +16,7 @@ public class IdentityInMemoryStore : IIdentityClient
     private readonly ILogger _logger;
     private readonly GraphMap _map = new GraphMap();
 
-    public IdentityInMemoryStore(ILogger<IdentityInMemoryStore> logger) => _logger.NotNull();
+    public IdentityInMemoryStore(ILogger<IdentityInMemoryStore> logger) => _logger = logger.NotNull();
 
     public Task<Option> Clear(string principalId, string traceId)
     {

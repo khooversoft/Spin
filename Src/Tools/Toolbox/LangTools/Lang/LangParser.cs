@@ -27,8 +27,6 @@ public static class LangParser
                 .Select(x => x.Value)
                 .Join(" ");
 
-            Debugger.Break();
-
             result = (StatusCode.BadRequest, $"Syntax error, input tokens not completed, rawData='{rawData}' left tokens='{left}'.");
         }
 
@@ -40,6 +38,11 @@ public static class LangParser
             LangNodes = result.IsOk() ? result.Return() : null,
             MaxTokens = tokens.Take(pContext.TokensCursor.MaxIndex).Select(x => x.Value).Join(" "),
         };
+
+        if (response.StatusCode.IsError())
+        {
+            response = response with { Error = (response.Error ?? string.Empty) + $"Parsed to: {response.MaxTokens}" };
+        }
 
         return response;
     }

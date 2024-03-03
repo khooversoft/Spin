@@ -14,7 +14,7 @@ public class GraphDeleteCommandTests
         new GraphNode("node2", tags: "name=vadas,age=35"),
         new GraphNode("node3", tags: "name=lop,lang=java"),
         new GraphNode("node4", tags: "name=josh,age=32"),
-        new GraphNode("node5", tags: "name=ripple,lang=java"),
+        new GraphNode("node5", tags: "name=ripple,lang=java,marked=true"),
         new GraphNode("node6", tags: "name=peter,age=35"),
         new GraphNode("node7", tags: "lang=java"),
 
@@ -82,45 +82,45 @@ public class GraphDeleteCommandTests
     public void SingleDeleteForEdgeToNode()
     {
         var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("delete [created] -> (age=35);");
-        newMapOption.IsOk().Should().BeTrue();
+        var commandResults = _map.ExecuteScalar("delete [created] -> (lang=java);");
+        commandResults.IsOk().Should().BeTrue(commandResults.ToString());
 
-        GraphQueryResults commandResults = newMapOption.Return();
+        commandResults.Items.NotNull().Count.Should().Be(2);
+        commandResults.CommandType.Should().Be(CommandType.DeleteNode);
+        commandResults.StatusCode.IsOk().Should().BeTrue();
+        commandResults.Error.Should().BeNull();
+
+        commandResults.Items.OfType<GraphNode>()
+            .Select(x => x.Key)
+            .OrderBy(x => x)
+            .Zip(["node3", "node5"])
+            .All(x => x.First == x.Second)
+            .Should().BeTrue();
+
         var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        compareMap.Count.Should().Be(6);
+        compareMap.OfType<GraphNode>().Count().Should().Be(2);
+        compareMap.OfType<GraphEdge>().Count().Should().Be(4);
+    }
 
+    [Fact]
+    public void SingleDeleteForEdgeToNode2()
+    {
+        var copyMap = _map.Copy();
+        var commandResults = _map.ExecuteScalar("delete [created] -> (marked=true);");
+        commandResults.IsOk().Should().BeTrue(commandResults.ToString());
+
+        commandResults.Items.NotNull().Count.Should().Be(1);
+        commandResults.CommandType.Should().Be(CommandType.DeleteNode);
+        commandResults.StatusCode.IsOk().Should().BeTrue();
+        commandResults.Error.Should().BeNull();
+
+        commandResults.Items.OfType<GraphNode>().First().Key.Should().Be("node5");
+
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
         compareMap.Count.Should().Be(2);
-        var index = compareMap.ToCursor();
-
-        index.NextValue().Return().Cast<GraphNode>().Action(x =>
-        {
-            x.Key.Should().Be("node6");
-            x.Tags.ToString().Should().Be("age=35,name=peter");
-        });
-
-        index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-        {
-            x.FromKey.Should().Be("node6");
-            x.ToKey.Should().Be("node3");
-            x.Tags.ToString().Should().Be("created");
-        });
-
-        commandResults.Items.Count.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.DeleteNode);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
-            x.Items.NotNull().Count.Should().Be(1);
-
-            var resultIndex = x.Items.NotNull().ToCursor();
-            resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
-            {
-                x.Key.Should().Be("node6");
-                x.Tags.ToString().Should().Be("age=35,name=peter");
-            });
-        });
+        compareMap.OfType<GraphNode>().Count().Should().Be(1);
+        compareMap.OfType<GraphEdge>().Count().Should().Be(1);
     }
 
     [Fact]

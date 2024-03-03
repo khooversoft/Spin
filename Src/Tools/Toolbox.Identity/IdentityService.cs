@@ -38,7 +38,7 @@ public class IdentityService
     {
         context = context.With(_logger);
 
-        string command = $"select (key={ToUserKey(id)})";
+        string command = $"select (key={ToUserKey(id)});";
         var result = await _identityClient.Execute(command, context.TraceId);
         if (result.IsError()) return result.ToOptionStatus<IdentityUser>();
 
@@ -93,7 +93,7 @@ public class IdentityService
 
         string userNodeKey = ToUserKey(user.Id);
 
-        var command = $"upsert node key={userNodeKey} {t1}";
+        var command = $"upsert node key={userNodeKey}, {t1};";
         var result = await _identityClient.Execute(command, context.TraceId);
         if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
 
@@ -116,7 +116,7 @@ public class IdentityService
 
     private async Task<Option> AddIndex(string indexName, ScopeContext context)
     {
-        var command = $"upsert node key={indexName}";
+        var command = $"upsert node key={indexName};";
 
         var result = await _identityClient.Execute(command, context.TraceId);
         if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
@@ -126,7 +126,7 @@ public class IdentityService
 
     private async Task<Option> AddEdge(string indexName, string toKey, ScopeContext context)
     {
-        var command = $"add unique edge fromKey={indexName}, toKey={toKey}";
+        var command = $"add unique edge fromKey={indexName}, toKey={toKey};";
         var result = await _identityClient.Execute(command, context.TraceId);
         if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
 

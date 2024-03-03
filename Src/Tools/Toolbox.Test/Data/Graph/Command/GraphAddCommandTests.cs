@@ -168,4 +168,11 @@ public class GraphAddCommandTests
             x.Items.Count.Should().Be(0);
         });
     }
+
+    [Fact]
+    public void AddNodeWithPayload()
+    {
+        var option = _map.Execute("upsert node key=user:44b5533a-31dd-463b-8712-2df9d8ee0780, AccessFailedCount=0,ConcurrencyStamp=3c03450e-0180-4281-8dbd-1f283e58a89e,Email='userName1@domain.com',EmailConfirmed=False,Id=44b5533a-31dd-463b-8712-2df9d8ee0780,LockoutEnabled=False,PhoneNumberConfirmed=False,SecurityStamp=b881724c-5f2b-4183-9b65-3faf75a1adf7,TwoFactorEnabled=False,UserName=userName1;");
+        option.IsOk().Should().BeTrue(option.ToString());
+    }
 }

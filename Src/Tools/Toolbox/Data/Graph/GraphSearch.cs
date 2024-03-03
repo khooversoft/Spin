@@ -51,7 +51,7 @@ public static class GraphSearch
         predicate.NotNull();
 
         var selectedNodes = subject.Edges
-            .SelectMany(x => new string[] { x.FromKey, x.ToKey })
+            .Select(x => x.ToKey)
             .Distinct()
             .Select(x => subject.Map.Nodes[x])
             .Where(x => predicate?.Invoke(x) ?? true)

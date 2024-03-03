@@ -33,7 +33,7 @@ public class UserAccess
         if (user.Validate().IsError(out Option v)) return v;
 
         var t1 = new Tags()
-            .Set(user)
+            .SetObject(user)
             .Set(tags);
 
         var node = new GraphNode($"user:{user.Id}", t1.ToString());

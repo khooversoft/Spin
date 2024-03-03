@@ -25,6 +25,7 @@ public record GraphQueryResult
     public StatusCode StatusCode { get; init; }
     public string? Error { get; init; }
     public CommandType? CommandType { get; init; }
+    public override string ToString() => $"{nameof(StatusCode)}={StatusCode}, {nameof(Error)}={Error}, {nameof(CommandType)}={CommandType}";
 
     public IReadOnlyList<IGraphCommon> Items { get; init; } = Array.Empty<IGraphCommon>();
     public IReadOnlyDictionary<string, IReadOnlyList<IGraphCommon>> Alias { get; init; } = new Dictionary<string, IReadOnlyList<IGraphCommon>>(StringComparer.OrdinalIgnoreCase);
