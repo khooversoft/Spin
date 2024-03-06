@@ -66,7 +66,7 @@ public static class DictionaryExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="values"></param>
     /// <returns></returns>
-    public static T ToObject<T>(this IEnumerable<KeyValuePair<string, string>> values) where T : new()
+    public static T ToObject<T>(this IEnumerable<KeyValuePair<string, string?>> values) where T : new()
     {
         values.NotNull();
         var dict = values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);

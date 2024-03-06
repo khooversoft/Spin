@@ -7,8 +7,20 @@ using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
 using TicketShareWeb.Data;
 using Toolbox.Orleans;
+using Toolbox.Identity;
+using System.Reflection;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using TicketShareWeb.Application;
+using Toolbox.Tools;
+using TicketShare.sdk;
+
+Console.WriteLine($"Ticket Share Web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
+Console.WriteLine();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configuration
+builder.AddApplicationConfiguration();
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -26,8 +38,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddMicrosoftAccount(opt =>
     {
-        opt.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"]!;
-        opt.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"]!;
+        opt.ClientId = builder.Configuration[TsConstants.Authentication.ClientId]!;
+        opt.ClientSecret = builder.Configuration[TsConstants.Authentication.ClientSecret]!;
 
         // Adding the prompt parameter
         opt.Events = new OAuthEvents
@@ -54,7 +66,9 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Host.UseOrleans((context, silo) =>
 {
     silo.UseLocalhostClustering();
+    silo.AddTickShareCluster(context);
     silo.AddDatalakeGrainStorage();
+    silo.AddIdentityActor(context);
 });
 
 var app = builder.Build();

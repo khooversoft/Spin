@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Toolbox.Azure.DataLake;
@@ -10,18 +11,18 @@ namespace TicketShare.sdk;
 
 public static class SiloStartup
 {
-    public static ISiloBuilder AddBlogCluster(this ISiloBuilder builder, HostBuilderContext hostContext)
+    public static ISiloBuilder AddTickShareCluster(this ISiloBuilder builder, HostBuilderContext hostContext)
     {
         builder.NotNull();
 
-        StorageOption option = hostContext.Configuration.Bind<StorageOption>();
-        Console.WriteLine($"SiloStartup: option={option}");
-        option.Validate().Assert(x => x.IsOk(), option => $"StorageOption is invalid, errors={option.Error}");
+        DatalakeOption datalakeOption = hostContext.Configuration.GetSection(TsConstants.DataLakeOptionConfigPath).Get<DatalakeOption>().NotNull();
+        datalakeOption.Validate().Assert(x => x.IsOk(), option => $"StorageOption is invalid, errors={option.Error}");
+
+        Console.WriteLine($"SiloStartup: option={datalakeOption}");
 
         builder.ConfigureServices(services =>
         {
-            services.AddSingleton<StorageOption>(option);
-            services.AddSingleton<DatalakeOption>(option.Storage);
+            services.AddSingleton<DatalakeOption>(datalakeOption);
         });
 
         return builder;

@@ -24,7 +24,7 @@ public class IdentityActor : Grain, IIdentityActor
 
     public IdentityActor(
         StateManagement stateManagement,
-        [PersistentState("default", IdentityConstants.DataLakeProviderName)] IPersistentState<GraphSerialization> state,
+        [PersistentState("default", ToolboxIdentityConstants.DataLakeProviderName)] IPersistentState<GraphSerialization> state,
         ILogger<IdentityActor> logger
         )
     {
@@ -36,7 +36,7 @@ public class IdentityActor : Grain, IIdentityActor
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        this.GetPrimaryKeyString().Assert(x => x == IdentityConstants.DirectoryActorKey, x => $"Actor key {x} is not {IdentityConstants.DirectoryActorKey}");
+        this.GetPrimaryKeyString().Assert(x => x == ToolboxIdentityConstants.DirectoryActorKey, x => $"Actor key {x} is not {ToolboxIdentityConstants.DirectoryActorKey}");
 
         _state.SetName(nameof(IdentityActor), this.GetPrimaryKeyString());
         if (!_state.RecordExists) await _state.SetState(new GraphMap(), new ScopeContext(_logger));
