@@ -37,7 +37,7 @@ public class IdentityServiceTests
         emailLookupOption.IsOk().Should().BeTrue();
 
         var deleteResult = await service.Delete(userIdentity.Id, context);
-        deleteResult.IsOk().Should().BeTrue();
+        deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());
     }
 
     [Fact]

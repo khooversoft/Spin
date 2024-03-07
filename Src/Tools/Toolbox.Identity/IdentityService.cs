@@ -27,7 +27,7 @@ public class IdentityService
     {
         context = context.With(_logger);
 
-        string command = $"delete (key={ToUserKey(id)})";
+        string command = $"delete (key={ToUserKey(id)});";
         Option<GraphQueryResults> result = await _identityClient.Execute(command, context.TraceId);
         result.LogStatus(context, $"Delete user {id}");
 
@@ -91,42 +91,25 @@ public class IdentityService
             .SetObject(user)
             .Set(tags);
 
-        string userNodeKey = ToUserKey(user.Id);
-
-        var command = $"upsert node key={userNodeKey}, {t1};";
-        var result = await _identityClient.Execute(command, context.TraceId);
-        if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
+        // Build graph commands
+        var cmds = new Sequence<string>();
+        cmds += $"upsert node key={ToUserKey(user.Id)}, {t1};";
 
         // User Name node -> user node
         if (user.UserName.IsNotEmpty())
         {
-            if ((await AddIndex(ToUserNameIndex(user.UserName), context)).IsError(out Option v1)) return v1;
-            if ((await AddEdge(ToUserNameIndex(user.UserName), ToUserKey(user.Id), context)).IsError(out Option v2)) return v2;
+            cmds += $"upsert node key={ToUserNameIndex(user.UserName)};";
+            cmds += $"add unique edge fromKey={ToUserNameIndex(user.UserName)}, toKey={ToUserKey(user.Id)};";
         }
 
         // Email node -> user node
         if (user.Email.IsNotEmpty())
         {
-            if ((await AddIndex(ToEmailIndex(user.Email), context)).IsError(out Option v1)) return v1;
-            if ((await AddEdge(ToEmailIndex(user.Email), ToUserKey(user.Id), context)).IsError(out Option v2)) return v2;
+            cmds += $"upsert node key={ToEmailIndex(user.Email)};";
+            cmds += $"add unique edge fromKey={ToEmailIndex(user.Email)}, toKey={ToUserKey(user.Id)};";
         }
 
-        return StatusCode.OK;
-    }
-
-    private async Task<Option> AddIndex(string indexName, ScopeContext context)
-    {
-        var command = $"upsert node key={indexName};";
-
-        var result = await _identityClient.Execute(command, context.TraceId);
-        if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
-
-        return StatusCode.OK;
-    }
-
-    private async Task<Option> AddEdge(string indexName, string toKey, ScopeContext context)
-    {
-        var command = $"add unique edge fromKey={indexName}, toKey={toKey};";
+        string command = cmds.Join(Environment.NewLine);
         var result = await _identityClient.Execute(command, context.TraceId);
         if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
 
