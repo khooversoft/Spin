@@ -9,13 +9,16 @@ using Toolbox.Types;
 
 namespace Toolbox.Identity;
 
-public static class IdentityUserTool
+public static class IdentityResultTool
 {
-    public static IValidator<IdentityUser> Validator { get; } = new Validator<IdentityUser>()
-        .RuleFor(x => x.Id).NotNull()
-        .RuleFor(x => x.UserName).NotNull()
-        .RuleFor(x => x.Email).ValidEmailOption()
-        .Build();
+    public static IdentityResult ToIdentityResult(this Option subject)
+    {
+        var identityResult = subject switch
+        {
+            { StatusCode: StatusCode.OK } => IdentityResult.Success,
+            _ => IdentityResult.Failed(new IdentityError { Code = "Conflict", Description = subject.Error ?? "< no error >" }),
+        };
 
-    public static Option<IValidatorResult> Validate(this IdentityUser subject) => Validator.Validate(subject);
+        return identityResult;
+    }
 }

@@ -3,6 +3,7 @@ using Orleans.Runtime;
 using SpinCluster.abstraction;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -75,7 +76,7 @@ public class DirectoryActor : Grain, IDirectoryActor
         if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
         context.Location().LogInformation("Command, search={search}", command);
 
-        var commandOption = _map.Execute(command);
+        var commandOption = _map.Execute(command, context);
         if (commandOption.StatusCode.IsError()) return commandOption;
 
         GraphQueryResults commandResult = commandOption.Return();

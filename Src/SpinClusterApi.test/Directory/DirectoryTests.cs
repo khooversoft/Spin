@@ -5,6 +5,7 @@ using SpinClient.sdk;
 using SpinClusterApi.test.Application;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Directory;

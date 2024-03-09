@@ -92,7 +92,7 @@ public static class TagsTool
         subject.NotNull();
 
         var dict = subject
-            .Select(x => new KeyValuePair<string, string>(x.Key, x.Value ?? "true"))
+            .Select(x => new KeyValuePair<string, string?>(x.Key, x.Value ?? "true"))
             .ToDictionary(x => x.Key, x => x.Value);
 
         var result = DictionaryExtensions.ToObject<T>(dict);

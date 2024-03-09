@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SpinCluster.abstraction\SpinCluster.abstraction.csproj" />
     <ProjectReference Include="..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj" />
+    <ProjectReference Include="..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

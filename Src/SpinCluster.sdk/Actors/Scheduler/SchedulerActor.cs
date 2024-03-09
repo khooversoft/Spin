@@ -8,6 +8,7 @@ using SpinCluster.sdk.Application;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 

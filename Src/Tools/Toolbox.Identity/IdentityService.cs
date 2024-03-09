@@ -34,55 +34,55 @@ public class IdentityService
         return result.ToOptionStatus();
     }
 
-    public async Task<Option<IdentityUser>> GetById(string id, ScopeContext context)
+    public async Task<Option<ApplicationUser>> GetById(string id, ScopeContext context)
     {
         context = context.With(_logger);
 
         string command = $"select (key={ToUserKey(id)});";
         var result = await _identityClient.Execute(command, context.TraceId);
-        if (result.IsError()) return result.ToOptionStatus<IdentityUser>();
+        if (result.IsError()) return result.ToOptionStatus<ApplicationUser>();
 
-        var user = result.Return().Get<GraphNode>().First().Tags.ToObject<IdentityUser>();
-        if (user.Validate().IsError(out Option v)) return v.ToOptionStatus<IdentityUser>();
+        var user = result.Return().Get<GraphNode>().First().Tags.ToObject<ApplicationUser>();
+        if (user.Validate().IsError(out Option v)) return v.ToOptionStatus<ApplicationUser>();
 
         return user;
     }
 
-    public async Task<Option<IdentityUser>> GetByUserName(string userName, ScopeContext context)
+    public async Task<Option<ApplicationUser>> GetByUserName(string userName, ScopeContext context)
     {
         context = context.With(_logger);
 
         string command = $"select [fromKey={ToUserNameIndex(userName)}] -> (*);";
         var resultOption = await _identityClient.Execute(command, context.TraceId);
-        if (resultOption.IsError()) return resultOption.ToOptionStatus<IdentityUser>();
+        if (resultOption.IsError()) return resultOption.ToOptionStatus<ApplicationUser>();
 
         GraphQueryResults results = resultOption.Return();
         if (!results.HasScalarResult()) return StatusCode.NotFound;
 
-        var user = results.Get<GraphNode>().First().Tags.ToObject<IdentityUser>();
-        if (user.Validate().IsError(out Option v)) return v.ToOptionStatus<IdentityUser>();
+        var user = results.Get<GraphNode>().First().Tags.ToObject<ApplicationUser>();
+        if (user.Validate().IsError(out Option v)) return v.ToOptionStatus<ApplicationUser>();
 
         return user;
     }
 
-    public async Task<Option<IdentityUser>> GetByEmail(string email, ScopeContext context)
+    public async Task<Option<ApplicationUser>> GetByEmail(string email, ScopeContext context)
     {
         context = context.With(_logger);
 
         string command = $"select [fromKey={ToEmailIndex(email)}] -> (*);";
         var resultOption = await _identityClient.Execute(command, context.TraceId);
-        if (resultOption.IsError()) return resultOption.ToOptionStatus<IdentityUser>();
+        if (resultOption.IsError()) return resultOption.ToOptionStatus<ApplicationUser>();
 
         GraphQueryResults results = resultOption.Return();
         if (!results.HasScalarResult()) return StatusCode.NotFound;
 
-        var user = resultOption.Return().Get<GraphNode>().First().Tags.ToObject<IdentityUser>();
-        if (user.Validate().IsError(out Option v)) return v.ToOptionStatus<IdentityUser>();
+        var user = resultOption.Return().Get<GraphNode>().First().Tags.ToObject<ApplicationUser>();
+        if (user.Validate().IsError(out Option v)) return v.ToOptionStatus<ApplicationUser>();
 
         return user;
     }
 
-    public async Task<Option> Set(IdentityUser user, string? tags, ScopeContext context)
+    public async Task<Option> Set(ApplicationUser user, string? tags, ScopeContext context)
     {
         context.With(_logger);
         if (user.Validate().LogStatus(context, $"UserId={user.Id}").IsError(out Option v)) return v;

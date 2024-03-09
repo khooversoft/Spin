@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Core" Version="1.37.0" />
+        <PackageReference Include="Azure.Core" Version="1.38.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.22.0" />
         <PackageReference Include="Microsoft.Orleans.Client" Version="8.0.0" />
@@ -23,6 +23,7 @@
         <ProjectReference Include="..\SpinCluster.abstraction\SpinCluster.abstraction.csproj" />
         <ProjectReference Include="..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
         <ProjectReference Include="..\Tools\Toolbox.Block\Toolbox.Block.csproj" />
+        <ProjectReference Include="..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
         <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
     </ItemGroup>
 
