@@ -51,25 +51,29 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             if (!ValidateNodes(edge, unique, out var v2)) return v2;
             if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
 
-            if (!_masterList.Add(edge))
+            bool added = _masterList.Add(edge);
+            if (!added)
             {
                 if (!upsert) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
 
                 if (!_masterList.TryGetValue(edge, out var readEdge)) throw new InvalidOperationException("Master list lookup failed");
                 _masterList.Remove(readEdge);
 
-                readEdge = readEdge with
+                var updateEdge = readEdge = readEdge with
                 {
                     Tags = readEdge.Tags.Clone().Set(edge.Tags),
                 };
 
                 _index[edge.Key] = readEdge;
                 _masterList.Add(readEdge).Assert<bool, InvalidOperationException>(x => x == true, _ => "Failed to update edge on upsert");
+
+                graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, readEdge), graphContext);
             }
 
             _edgesFrom.Set(edge.FromKey, edge.Key);
             _edgesTo.Set(edge.ToKey, edge.Key);
 
+            if (added) graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, null), graphContext);
             return StatusCode.OK;
         }
     }
@@ -106,6 +110,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesFrom.RemovePrimaryKey(nodeValue.Key);
             _edgesTo.RemovePrimaryKey(nodeValue.Key);
 
+            graphContext?.ChangeLog.Push(new EdgeDelete(nodeValue), graphContext);
             return true;
         }
     }
@@ -162,11 +167,15 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         {
             edges.ForEach(x =>
             {
+                _index.ContainsKey(x.Key).Assert(x => x == true, $"Key={x.Key} does not exist");
+
                 var n = update(x);
                 (n.Key == x.Key).Assert(x => x == true, "Cannot change the primary key");
                 n.FromKey.EqualsIgnoreCase(x.FromKey).Assert(x => x == true, "Cannot change the From key key");
                 n.ToKey.EqualsIgnoreCase(x.ToKey).Assert(x => x == true, "Cannot change the To key key");
                 _index[x.Key] = n;
+
+                graphContext?.ChangeLog.Push(new EdgeChange(x.Key, x), graphContext);
             });
 
             return StatusCode.OK;

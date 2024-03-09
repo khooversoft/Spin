@@ -26,7 +26,7 @@ public class ChangeLog
 
     public void Rollback(GraphChangeContext changeContext)
     {
-        changeContext.Context.Location().LogInformation("Undoing all: changeLogKey={changeLogKey}, {count} commands", ChangeLogKey, _commands.Count);
+        changeContext.Context.Location().LogInformation("Rollback all: changeLogKey={changeLogKey}, {count} commands", ChangeLogKey, _commands.Count);
 
         lock (changeContext.Map.SyncLock)
         {

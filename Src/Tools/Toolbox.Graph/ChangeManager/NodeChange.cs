@@ -17,7 +17,7 @@ public class NodeChange : IChangeLog
     public NodeChange(string nodeKey, GraphNode? oldValue)
     {
         _nodeKey = nodeKey.NotEmpty();
-        _oldValue = oldValue.NotNull();
+        _oldValue = oldValue;
     }
 
     public Guid LogKey { get; } = Guid.NewGuid();
@@ -29,7 +29,7 @@ public class NodeChange : IChangeLog
         if (_oldValue != null)
         {
             graphContext.Map.Nodes[_nodeKey] = _oldValue;
-            graphContext.Context.LogInformation("Rollback Node: logKey={logKey}, key={key}, restored value={value}", LogKey, _nodeKey, _oldValue.ToJson());
+            graphContext.Context.LogInformation("Rollback Node: restored node logKey={logKey}, key={key}, value={value}", LogKey, _nodeKey, _oldValue.ToJson());
             return StatusCode.OK;
         }
 
@@ -40,7 +40,7 @@ public class NodeChange : IChangeLog
             return (StatusCode.Conflict, $"Failed to remove node key={_nodeKey}");
         }
 
-        graphContext.Context.LogInformation("Rollback: logKey={logKey}, Node key={key} removed", LogKey, _nodeKey);
+        graphContext.Context.LogInformation("Rollback: removed node logKey={logKey}, Node key={key}", LogKey, _nodeKey);
         return StatusCode.OK;
     }
 }

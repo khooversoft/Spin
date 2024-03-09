@@ -57,7 +57,7 @@ public static class GraphCommand
             Tags = addNode.Tags,
         };
 
-        var result = graphContext.Map.Nodes.Add(graphNode, addNode.Upsert);
+        var result = graphContext.Map.Nodes.Add(graphNode, addNode.Upsert, graphContext);
         return new GraphQueryResult(CommandType.AddNode, result.StatusCode, result.Error);
     }
 
@@ -71,7 +71,7 @@ public static class GraphCommand
             Tags = new Tags(addEdge.Tags),
         };
 
-        var result = graphContext.Map.Edges.Add(graphEdge, upsert: addEdge.Upsert, unique: addEdge.Unique);
+        var result = graphContext.Map.Edges.Add(graphEdge, upsert: addEdge.Upsert, unique: addEdge.Unique, graphContext);
         return new GraphQueryResult(CommandType.AddEdge, result.StatusCode, result.Error);
     }
 
@@ -86,7 +86,7 @@ public static class GraphCommand
         {
             EdgeType = updateEdge.EdgeType ?? x.EdgeType,
             Tags = x.Tags.Set(updateEdge.Tags.ToString()),
-        });
+        }, graphContext);
 
         return searchResult with { CommandType = CommandType.UpdateEdge };
     }
@@ -101,7 +101,7 @@ public static class GraphCommand
         graphContext.Map.Nodes.Update(nodes, x => x with
         {
             Tags = x.Tags.Set(updateNode.Tags.ToString()),
-        });
+        }, graphContext);
 
         return searchResult with { CommandType = CommandType.UpdateNode };
     }
@@ -113,7 +113,7 @@ public static class GraphCommand
         IReadOnlyList<GraphEdge> edges = searchResult.Edges();
         if (edges.Count == 0) return new GraphQueryResult(CommandType.DeleteEdge, StatusCode.NoContent);
 
-        edges.ForEach(x => graphContext.Map.Edges.Remove(x.Key));
+        edges.ForEach(x => graphContext.Map.Edges.Remove(x.Key, graphContext));
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
@@ -124,7 +124,7 @@ public static class GraphCommand
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent);
 
-        nodes.ForEach(x => graphContext.Map.Nodes.Remove(x.Key));
+        nodes.ForEach(x => graphContext.Map.Nodes.Remove(x.Key, graphContext));
         return searchResult with { CommandType = CommandType.DeleteNode };
     }
 

@@ -46,16 +46,18 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 false => (StatusCode.Conflict, $"Node key={node.Key} already exist"),
             };
 
-            if( option.IsOk() ) graphContext?.ChangeLog.Push(new NodeChange(node.Key, null), graphContext);
+            if (option.IsOk()) graphContext?.ChangeLog.Push(new NodeChange(node.Key, null), graphContext);
             if (option.IsOk() || !upsert) return option;
 
-            var readNode = _index[node.Key];
-            readNode = readNode with
+            var currentNode = _index[node.Key];
+
+            var updateNode = currentNode with
             {
-                Tags = readNode.Tags.Clone().Set(node.Tags),
+                Tags = currentNode.Tags.Clone().Set(node.Tags),
             };
 
-            _index[node.Key] = readNode;
+            _index[node.Key] = updateNode;
+            graphContext?.ChangeLog.Push(new NodeChange(node.Key, currentNode), graphContext);
 
             return StatusCode.OK;
         }
@@ -77,7 +79,12 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         false => StatusCode.NotFound
     };
 
-    public bool Remove(string key, GraphChangeContext? graphContext = null) => Remove(key, out var _);
+    public bool Remove(string key, GraphChangeContext? graphContext = null)
+    {
+        bool removed = Remove(key, out var oldValue);
+        if (removed) graphContext?.ChangeLog.Push(new NodeDelete(oldValue!), graphContext);
+        return removed;
+    }
 
     public bool Remove(string key, out GraphNode? value)
     {
@@ -99,9 +106,13 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         {
             query.ForEach(x =>
             {
+                _index.ContainsKey(x.Key).Assert(x => x == true, $"Node key={x.Key} does not exist");
+
                 var n = update(x);
                 x.Key.Equals(n.Key).Assert(x => x == true, "Cannot change the primary key");
                 _index[x.Key] = n;
+
+                graphContext?.ChangeLog.Push(new NodeChange(x.Key, x), graphContext);
             });
 
             return StatusCode.OK;

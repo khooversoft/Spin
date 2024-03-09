@@ -17,7 +17,7 @@ public class EdgeChange : IChangeLog
     public EdgeChange(Guid edgeKey, GraphEdge? oldValue)
     {
         _edgeKey = edgeKey;
-        _oldValue = oldValue.NotNull();
+        _oldValue = oldValue;
     }
 
     public Guid LogKey { get; } = Guid.NewGuid();
@@ -28,8 +28,8 @@ public class EdgeChange : IChangeLog
 
         if (_oldValue != null)
         {
-            graphContext.Map.Edges[_edgeKey] = _oldValue;
-            graphContext.Context.LogInformation("Rollback Edge: logKey={logKey}, edgeKey={key}, restored value={value}", LogKey, _edgeKey, _oldValue.ToJson());
+            graphContext.Map.Add(_oldValue);
+            graphContext.Context.LogInformation("Rollback Edge: restored edge logKey={logKey}, edgeKey={key}, value={value}", LogKey, _edgeKey, _oldValue.ToJson());
             return StatusCode.OK;
         }
 
@@ -37,10 +37,10 @@ public class EdgeChange : IChangeLog
         if (!removeStatus)
         {
             graphContext.Context.LogError("Rollback Edge: logKey={logKey}, Failed to remove node key={key}", _edgeKey);
-            return (StatusCode.Conflict, $"Failed to remove node edgeKey={_edgeKey}");
+            return (StatusCode.Conflict, $"Failed to remove edge edgeKey={_edgeKey}");
         }
 
-        graphContext.Context.LogInformation("Rollback Edge: logKey={logKey}, Edge edgeKey={key} removed", LogKey, _edgeKey);
+        graphContext.Context.LogInformation("Rollback Edge: removed edge logKey={logKey}, Edge edgeKey={key} ", LogKey, _edgeKey);
         return StatusCode.OK;
     }
 }
