@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -22,22 +23,34 @@ public static class GraphCommand
         {
             foreach (var cmd in commands)
             {
-                switch (cmd)
+                GraphQueryResult qResult = cmd switch
                 {
-                    case GraphNodeAdd addNode: results += AddNode(addNode, changeContext); break;
-                    case GraphEdgeAdd addEdge: results += AddEdge(addEdge, changeContext); break;
-                    case GraphEdgeUpdate updateEdge: results += UpdateEdge(updateEdge, changeContext); break;
-                    case GraphNodeUpdate updateNode: results += UpdateNode(updateNode, changeContext); break;
-                    case GraphEdgeDelete deleteEdge: results += DeleteEdge(deleteEdge, changeContext); break;
-                    case GraphNodeDelete deleteNode: results += DeleteNode(deleteNode, changeContext); break;
-                    case GraphSelect select: results += Select(select, changeContext); break;
+                    GraphNodeAdd addNode => AddNode(addNode, changeContext),
+                    GraphEdgeAdd addEdge => AddEdge(addEdge, changeContext),
+                    GraphEdgeUpdate updateEdge => UpdateEdge(updateEdge, changeContext),
+                    GraphNodeUpdate updateNode => UpdateNode(updateNode, changeContext),
+                    GraphEdgeDelete deleteEdge => DeleteEdge(deleteEdge, changeContext),
+                    GraphNodeDelete deleteNode => DeleteNode(deleteNode, changeContext),
+                    GraphSelect select => Select(select, changeContext),
+
+                    _ => throw new UnreachableException(),
+                };
+
+                results += qResult;
+
+                if (qResult.Status.IsError())
+                {
+                    context.Location().LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", graphQuery, qResult.ToString());
+                    changeContext.ChangeLog.Rollback(changeContext);
+                    break;
                 }
             }
         }
 
         Option option = results switch
         {
-            var v when !v.All(x => x.StatusCode.IsOk()) => (StatusCode.BadRequest, "One or more results has errors"),
+            { Count: 0 } => StatusCode.OK,
+            var v when v.Last().Status.IsError() => v.Last().Status,
             _ => StatusCode.OK,
         };
 
@@ -58,7 +71,7 @@ public static class GraphCommand
         };
 
         var result = graphContext.Map.Nodes.Add(graphNode, addNode.Upsert, graphContext);
-        return new GraphQueryResult(CommandType.AddNode, result.StatusCode, result.Error);
+        return new GraphQueryResult(CommandType.AddNode, result);
     }
 
     private static GraphQueryResult AddEdge(GraphEdgeAdd addEdge, GraphChangeContext graphContext)
@@ -72,7 +85,7 @@ public static class GraphCommand
         };
 
         var result = graphContext.Map.Edges.Add(graphEdge, upsert: addEdge.Upsert, unique: addEdge.Unique, graphContext);
-        return new GraphQueryResult(CommandType.AddEdge, result.StatusCode, result.Error);
+        return new GraphQueryResult(CommandType.AddEdge, result);
     }
 
     private static GraphQueryResult UpdateEdge(GraphEdgeUpdate updateEdge, GraphChangeContext graphContext)

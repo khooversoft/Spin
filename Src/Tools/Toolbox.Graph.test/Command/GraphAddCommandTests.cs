@@ -46,8 +46,8 @@ public class GraphAddCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddNode);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
+            x.Status.Error.Should().BeNull();
             x.Items.Should().NotBeNull();
         });
     }
@@ -75,8 +75,7 @@ public class GraphAddCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddNode);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.Should().NotBeNull();
         });
     }
@@ -106,8 +105,7 @@ public class GraphAddCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddEdge);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.Should().NotBeNull();
         });
     }
@@ -137,8 +135,7 @@ public class GraphAddCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddEdge);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.Should().NotBeNull();
         });
     }
@@ -161,8 +158,7 @@ public class GraphAddCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddEdge);
-            x.StatusCode.Should().Be(StatusCode.Conflict);
-            x.Error.Should().BeNull();
+            x.Status.StatusCode.Should().Be(StatusCode.Conflict);
             x.Items.Should().NotBeNull();
             x.Items.Count.Should().Be(0);
         });

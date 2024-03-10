@@ -37,7 +37,7 @@ public class GraphCommandSerializationTests
                 new GraphQueryResult
                 {
                     CommandType = CommandType.Select,
-                    StatusCode = StatusCode.OK,
+                    Status = StatusCode.OK,
                     Items = new IGraphCommon[]
                     {
                         new GraphEdge("fromKey1", "toKey1", "edgeType2"),
@@ -54,7 +54,7 @@ public class GraphCommandSerializationTests
         r.Items.Count.Should().Be(1);
         r.Items[0].CommandType.Should().Be(CommandType.Select);
         r.Items[0].Should().NotBeNull();
-        r.Items[0].StatusCode.Should().Be(StatusCode.OK);
+        r.Items[0].Status.StatusCode.Should().Be(StatusCode.OK);
         r.Items[0].Items.Count.Should().Be(2);
 
         r.Items[0].Items[0].Cast<GraphEdge>().Action(x =>

@@ -41,8 +41,7 @@ public class GraphSelectCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.Select);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
 
             x.Items.NotNull().Count.Should().Be(3);
             var index = x.Items.NotNull().ToCursor();
@@ -83,8 +82,7 @@ public class GraphSelectCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.Select);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
 
             x.Items.NotNull().Count.Should().Be(2);
 
@@ -122,8 +120,7 @@ public class GraphSelectCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.Select);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
 
             x.Items.NotNull().Count.Should().Be(2);
             var index = x.Items.NotNull().ToCursor();
@@ -146,8 +143,7 @@ public class GraphSelectCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.Select);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
 
             x.Items.NotNull().Count.Should().Be(3);
             var index = x.Items.NotNull().ToCursor();

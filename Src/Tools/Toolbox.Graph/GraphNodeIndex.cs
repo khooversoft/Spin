@@ -46,11 +46,15 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 false => (StatusCode.Conflict, $"Node key={node.Key} already exist"),
             };
 
-            if (option.IsOk()) graphContext?.ChangeLog.Push(new NodeChange(node.Key, null), graphContext);
-            if (option.IsOk() || !upsert) return option;
+            if (option.IsOk())
+            {
+                graphContext?.ChangeLog.Push(new NodeChange(node.Key, null), graphContext);
+                return option;
+            }
+
+            if (!upsert) return option;
 
             var currentNode = _index[node.Key];
-
             var updateNode = currentNode with
             {
                 Tags = currentNode.Tags.Clone().Set(node.Tags),

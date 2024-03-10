@@ -56,7 +56,7 @@ public static class GraphQuery
 
             return new GraphQueryResult
             {
-                StatusCode = StatusCode.OK,
+                Status = StatusCode.OK,
                 Items = current,
                 Alias = aliasDict,
             };

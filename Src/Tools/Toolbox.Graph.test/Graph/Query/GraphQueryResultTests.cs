@@ -28,8 +28,7 @@ public class GraphQueryResultTests
 
         var v = new GraphQueryResult
         {
-            StatusCode = StatusCode.OK,
-            Error = "no error",
+            Status = (StatusCode.OK, "no error"),
             Items = nodes.Concat(edges).ToArray(),
             Alias = new Dictionary<string, IReadOnlyList<IGraphCommon>>
             {

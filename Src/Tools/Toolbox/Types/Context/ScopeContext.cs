@@ -1,8 +1,15 @@
 ﻿using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
+
+public static class NullScopeContext
+{
+    public static ScopeContext Instance { get; } = new ScopeContext(NullLogger.Instance);
+}
+
 
 public readonly record struct ScopeContext : ILoggingContext
 {

@@ -210,7 +210,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         var graphCmdResult = updateResult.Return();
         graphCmdResult.Items.Count.Assert(x => x == 1, $"Returned items count={graphCmdResult.Items.Count}");
 
-        if (graphCmdResult.Items[0].StatusCode == StatusCode.NoContent) return Array.Empty<GraphEdge>();
+        if (graphCmdResult.Items[0].Status == StatusCode.NoContent) return Array.Empty<GraphEdge>();
         return updateResult.Return().Items[0].Edges().ToOption();
     }
 

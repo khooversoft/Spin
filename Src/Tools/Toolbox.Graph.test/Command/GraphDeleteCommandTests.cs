@@ -64,8 +64,7 @@ public class GraphDeleteCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.DeleteNode);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
@@ -83,12 +82,9 @@ public class GraphDeleteCommandTests
     {
         var copyMap = _map.Copy();
         var commandResults = _map.ExecuteScalar("delete [created] -> (lang=java);", NullScopeContext.Instance);
-        commandResults.IsOk().Should().BeTrue(commandResults.ToString());
-
+        commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
         commandResults.Items.NotNull().Count.Should().Be(2);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
-        commandResults.StatusCode.IsOk().Should().BeTrue();
-        commandResults.Error.Should().BeNull();
 
         commandResults.Items.OfType<GraphNode>()
             .Select(x => x.Key)
@@ -108,12 +104,9 @@ public class GraphDeleteCommandTests
     {
         var copyMap = _map.Copy();
         var commandResults = _map.ExecuteScalar("delete [created] -> (marked=true);", NullScopeContext.Instance);
-        commandResults.IsOk().Should().BeTrue(commandResults.ToString());
-
+        commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
         commandResults.Items.NotNull().Count.Should().Be(1);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
-        commandResults.StatusCode.IsOk().Should().BeTrue();
-        commandResults.Error.Should().BeNull();
 
         commandResults.Items.OfType<GraphNode>().First().Key.Should().Be("node5");
 
@@ -149,8 +142,7 @@ public class GraphDeleteCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.DeleteEdge);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();

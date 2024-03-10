@@ -30,7 +30,7 @@ public class GraphQueryNodeTests
     {
         GraphQueryResult result = _map.ExecuteScalar("select (*);", NullScopeContext.Instance);
 
-        result.StatusCode.IsOk().Should().BeTrue();
+        result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
         result.Items.Count.Should().Be(7);
     }
@@ -40,7 +40,7 @@ public class GraphQueryNodeTests
     {
         GraphQueryResult result = _map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance);
 
-        result.StatusCode.IsOk().Should().BeTrue();
+        result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
         result.Items.Count.Should().Be(1);
 
@@ -57,7 +57,7 @@ public class GraphQueryNodeTests
     {
         GraphQueryResult result = _map.ExecuteScalar("select (key=node1) a1;", NullScopeContext.Instance);
 
-        result.StatusCode.IsOk().Should().BeTrue();
+        result.Status.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(1);
 
@@ -81,7 +81,7 @@ public class GraphQueryNodeTests
     {
         GraphQueryResult result = _map.ExecuteScalar("select (name) a1;", NullScopeContext.Instance);
 
-        result.StatusCode.IsOk().Should().BeTrue();
+        result.Status.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(6);
         result.Alias.Count.Should().Be(1);
 
@@ -97,7 +97,7 @@ public class GraphQueryNodeTests
     {
         GraphQueryResult result = _map.ExecuteScalar("select ('name=marko');", NullScopeContext.Instance);
 
-        result.StatusCode.IsOk().Should().BeTrue(result.Error);
+        result.Status.IsOk().Should().BeTrue(result.Status.Error);
         result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
@@ -113,7 +113,7 @@ public class GraphQueryNodeTests
     {
         GraphQueryResult result = _map.ExecuteScalar("select (name=marko);", NullScopeContext.Instance);
 
-        result.StatusCode.IsOk().Should().BeTrue(result.Error);
+        result.Status.IsOk().Should().BeTrue(result.Status.Error);
         result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
@@ -137,7 +137,7 @@ public class GraphQueryNodeTests
         {
             GraphQueryResult result = _map.ExecuteScalar(cmd.query, NullScopeContext.Instance);
 
-            result.StatusCode.IsOk().Should().BeTrue(result.Error);
+            result.Status.IsOk().Should().BeTrue(result.Status.Error);
             result.Items.Count.Should().Be(cmd.count);
             result.Alias.Count.Should().Be(0);
 
@@ -171,7 +171,7 @@ public class GraphQueryNodeTests
         {
             GraphQueryResult result = _map.ExecuteScalar(cmd.query, NullScopeContext.Instance);
 
-            result.StatusCode.IsOk().Should().BeTrue(result.Error);
+            result.Status.IsOk().Should().BeTrue(result.Status.Error);
             result.Items.Count.Should().Be(cmd.count);
             result.Alias.Count.Should().Be(0);
 

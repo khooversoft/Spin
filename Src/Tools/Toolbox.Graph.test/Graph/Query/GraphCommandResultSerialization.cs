@@ -14,8 +14,7 @@ public class GraphCommandResultSerialization
         GraphQueryResult source = new GraphQueryResult
         {
             CommandType = CommandType.AddEdge,
-            StatusCode = StatusCode.Conflict,
-            Error = "error",
+            Status = (StatusCode.Conflict, "error"),
         };
 
         string json = source.ToJson();
@@ -23,8 +22,8 @@ public class GraphCommandResultSerialization
         GraphQueryResult result = json.ToObject<GraphQueryResult>().NotNull();
 
         result.CommandType.Should().Be(CommandType.AddEdge);
-        result.StatusCode.Should().Be(StatusCode.Conflict);
-        result.Error.Should().Be("error");
+        result.Status.StatusCode.Should().Be(StatusCode.Conflict);
+        result.Status.Error.Should().Be("error");
     }
 
     [Fact]
@@ -32,8 +31,7 @@ public class GraphCommandResultSerialization
     {
         GraphQueryResult source = new GraphQueryResult
         {
-            StatusCode = StatusCode.OK,
-            Error = "no error",
+            Status = (StatusCode.OK, "no error"),
             Items = new IGraphCommon[]
             {
                 new GraphNode("key1"),

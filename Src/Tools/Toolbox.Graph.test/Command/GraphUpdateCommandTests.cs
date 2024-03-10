@@ -50,8 +50,7 @@ public class GraphUpdateCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.UpdateNode);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
@@ -88,8 +87,7 @@ public class GraphUpdateCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.UpdateNode);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
@@ -128,8 +126,7 @@ public class GraphUpdateCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.UpdateEdge);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
@@ -147,7 +144,7 @@ public class GraphUpdateCommandTests
     public void SingleRemoveTagForEdge()
     {
         var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update [fromKey=node4, toKey=node5] set t1;", NullScopeContext.Instance );
+        var newMapOption = workMap.Execute("update [fromKey=node4, toKey=node5] set t1;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -170,8 +167,7 @@ public class GraphUpdateCommandTests
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.UpdateEdge);
-            x.StatusCode.IsOk().Should().BeTrue();
-            x.Error.Should().BeNull();
+            x.Status.IsOk().Should().BeTrue();
             x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
