@@ -2,6 +2,7 @@
 using Orleans.Runtime;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -59,7 +60,7 @@ public class DirectoryActor : Grain, IDirectoryActor
 
         GraphMap map = (await _state.GetState(context)).ThrowOnError("Failed to get state").Return();
 
-        var commandOption = map.Execute(command);
+        var commandOption = map.Execute(command, context);
         if (commandOption.StatusCode.IsError()) return commandOption;
 
         GraphQueryResults commandResult = commandOption.Return();

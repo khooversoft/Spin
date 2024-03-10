@@ -201,7 +201,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
         if (unique)
         {
-            if( GetIntersect(edge.FromKey, edge.ToKey, EdgeDirection.Both).Count > 0)
+            if (GetIntersect(edge.FromKey, edge.ToKey, EdgeDirection.Both).Count > 0)
             {
                 result = (StatusCode.Conflict, $"Edge already exist between {edge.FromKey} and {edge.ToKey}");
                 return false;

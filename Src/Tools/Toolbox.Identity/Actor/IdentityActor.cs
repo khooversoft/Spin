@@ -10,6 +10,7 @@ using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 
 namespace Toolbox.Identity;
 
@@ -62,7 +63,7 @@ public class IdentityActor : Grain, IIdentityActor
 
         GraphMap map = (await _state.GetState(context)).ThrowOnError("Failed to get state").Return();
 
-        var commandOption = map.Execute(command);
+        var commandOption = map.Execute(command, context);
         if (commandOption.StatusCode.IsError()) return commandOption;
 
         GraphQueryResults commandResult = commandOption.Return();

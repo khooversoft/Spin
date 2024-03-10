@@ -1,5 +1,4 @@
-﻿using Toolbox.Data;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;

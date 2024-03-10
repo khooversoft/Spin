@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.LangTools;
 
 namespace Toolbox.Test.Tokenizer;
 
-public  class UnicodeTokenizerTests
+public class UnicodeTokenizerTests
 {
     [Fact]
     public void CommonUnicoded()
@@ -38,7 +33,7 @@ public  class UnicodeTokenizerTests
 
         tokens[2].TokenType.Should().Be(TokenType.Unicode);
     }
-    
+
     [Fact]
     public void CommonUnicodedNotEscaped()
     {
@@ -63,7 +58,7 @@ public  class UnicodeTokenizerTests
             .All(x => x.o.Value == x.i.Value)
             .Should().BeTrue();
     }
-    
+
     [Fact]
     public void StandardUnicoded()
     {
@@ -89,7 +84,7 @@ public  class UnicodeTokenizerTests
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
             .Should().BeTrue();
-    
+
         tokens[2].TokenType.Should().Be(TokenType.Unicode);
     }
 }

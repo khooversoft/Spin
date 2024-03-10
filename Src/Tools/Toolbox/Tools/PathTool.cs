@@ -21,7 +21,7 @@ public static class PathTool
             .Take(dotCount)
             .ToArray();
 
-        if( indexInMessage.Length != dotCount)
+        if (indexInMessage.Length != dotCount)
         {
             return simpleForm();
         }

@@ -1,5 +1,4 @@
-﻿using Toolbox.Data;
-using Toolbox.Graph;
+﻿using Toolbox.Graph;
 using Toolbox.Types;
 
 namespace SpinCluster.sdk.Serialization;

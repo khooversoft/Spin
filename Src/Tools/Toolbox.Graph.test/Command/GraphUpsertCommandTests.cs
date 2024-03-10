@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -199,7 +198,7 @@ public class GraphUpsertCommandTests
             x.Items.Should().NotBeNull();
         });
     }
-     
+
     [Fact]
     public void SingleAddWithUpsertForNodeWithMultipleTags()
     {

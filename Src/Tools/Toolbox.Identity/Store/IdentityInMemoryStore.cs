@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -27,6 +28,6 @@ public class IdentityInMemoryStore : IIdentityClient
     public Task<Option<GraphQueryResults>> Execute(string command, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
-        return _map.Execute(command).ToTaskResult();
+        return _map.Execute(command, context).ToTaskResult();
     }
 }
