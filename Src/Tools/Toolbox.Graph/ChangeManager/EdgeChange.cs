@@ -23,7 +23,7 @@ public class EdgeChange : IChangeLog
 
         if (_oldValue != null)
         {
-            graphContext.Map.Add(_oldValue);
+            graphContext.Map.Edges[_oldValue.Key] = _oldValue;
             graphContext.Context.LogInformation("Rollback Edge: restored edge logKey={logKey}, edgeKey={key}, value={value}", LogKey, _edgeKey, _oldValue.ToJson());
             return StatusCode.OK;
         }

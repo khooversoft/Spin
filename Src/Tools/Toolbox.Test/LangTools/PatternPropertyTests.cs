@@ -1,6 +1,6 @@
 ﻿using Toolbox.LangTools;
 
-namespace Toolbox.Graph.test.Lang;
+namespace Toolbox.Test.LangTools;
 
 /// <summary>
 /// fromKey=key1,toKey=key2,edgeType=et,tags=t2;

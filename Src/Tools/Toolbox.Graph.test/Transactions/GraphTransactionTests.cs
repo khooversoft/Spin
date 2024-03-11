@@ -2,12 +2,12 @@
 using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace Toolbox.Graph.test.Command;
+namespace Toolbox.Graph.test.Transactions;
 
 public class GraphTransactionTests
 {
     [Fact]
-    public void FailOnDuplicateTagKey()
+    public void SimpleSetOfCommandsWithFailuresKey()
     {
         GraphMap map = new GraphMap();
 

@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 
-namespace Toolbox.Graph.test.Lang;
+namespace Toolbox.Test.LangTools;
 
 internal static class LangTestTools
 {

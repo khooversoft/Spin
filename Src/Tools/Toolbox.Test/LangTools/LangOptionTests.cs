@@ -3,7 +3,7 @@ using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Graph.test.Lang;
+namespace Toolbox.Test.LangTools;
 
 public class LangOptionTests
 {

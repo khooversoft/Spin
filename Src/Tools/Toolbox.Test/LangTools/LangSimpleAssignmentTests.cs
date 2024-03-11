@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Toolbox.LangTools;
 
-namespace Toolbox.Graph.test.Lang;
+namespace Toolbox.Test.LangTools;
 
 public class LangSimpleAssignmentTests
 {

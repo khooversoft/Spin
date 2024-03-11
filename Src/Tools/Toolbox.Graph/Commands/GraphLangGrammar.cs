@@ -13,8 +13,8 @@ namespace Toolbox.Graph;
 /// search = { (...) | [...] } [-> { (...) | [...] ...}
 /// 
 /// select search
-/// add {node | {edge unique?} } {k | k=v}[, {k | k=v} ...]
-/// upsert {node | {unique? edge}} {k | k=v}[, {k | k=v} ...]
+/// add {node | {unique? edge} } {k | k=v}[, {k | k=v} ...]
+/// upsert {node | edge} {k | k=v}[, {k | k=v} ...]
 /// delete search
 /// update search set {k=v}[, {k=v} ...]
 /// 

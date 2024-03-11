@@ -51,11 +51,12 @@ public class GraphStressTests
         map.Edges.Count.Should().Be(count - 1);
     }
 
-    [Fact]
-    public async Task ParallelBatchTasks()
+    [Theory]
+    [InlineData(10, 10)]
+    [InlineData(10, 100)]
+    [InlineData(10, 1000)]
+    public async Task ParallelBatchTasks(int batchCount, int count)
     {
-        const int count = 10;
-        const int batchCount = 10;
         var map = new GraphMap();
 
         var tasks = Enumerable.Range(0, batchCount)
@@ -65,7 +66,7 @@ public class GraphStressTests
         await Task.WhenAll(tasks);
 
         map.Nodes.Count.Should().Be(batchCount * count);
-        map.Edges.Count.Should().Be((batchCount - 1) * count);
+        map.Edges.Count.Should().Be((batchCount * (count - 1)));
     }
 
     private Task AddNodes(GraphMap map, int start, int count)

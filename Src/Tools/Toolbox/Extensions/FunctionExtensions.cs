@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using System.Diagnostics;
+using Toolbox.Tools;
 
 namespace Toolbox.Extensions;
 
@@ -12,6 +13,7 @@ public static class FunctionExtensions
     /// <param name="subject">subject</param>
     /// <param name="function">lambda execute</param>
     /// <returns>return from lambda</returns>
+    [DebuggerStepThrough]
     public static TResult Func<T, TResult>(this T subject, Func<T, TResult> function) => function.NotNull()(subject);
 
     /// <summary>
@@ -22,6 +24,7 @@ public static class FunctionExtensions
     /// <param name="subject"></param>
     /// <param name="function"></param>
     /// <returns></returns>
+    [DebuggerStepThrough]
     public static Task<TResult> FuncAsync<T, TResult>(this T subject, Func<T, Task<TResult>> function) => function.NotNull()(subject);
 
 
@@ -32,6 +35,7 @@ public static class FunctionExtensions
     /// <param name="subject">subject</param>
     /// <param name="action">action</param>
     /// <returns>subject</returns>
+    [DebuggerStepThrough]
     public static T Action<T>(this T subject, Action<T> action)
     {
         action.NotNull();

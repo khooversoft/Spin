@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -12,6 +13,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type</typeparam>
     /// <param name="self">object to convert</param>
     /// <returns>enumerator</returns>
+    [DebuggerStepThrough]
     public static IEnumerable<T> ToEnumerable<T>(this T self)
     {
         yield return self;
@@ -58,6 +60,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="subjects"></param>
     /// <returns>Stack<typeparamref name="T"/></returns>
+    [DebuggerStepThrough]
     public static Stack<T> ToStack<T>(this IEnumerable<T>? subjects) => new Stack<T>(subjects ?? Array.Empty<T>());
 
     /// <summary>
