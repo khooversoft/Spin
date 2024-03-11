@@ -12,7 +12,7 @@ using Toolbox.Types;
 namespace Toolbox.Identity.Store;
 
 
-public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<ApplicationUser>
+public class UserStore : IUserStore<PrincipalIdentity>
 {
     private readonly IdentityService _identityService;
     private readonly ILogger<UserStore> _logger;
@@ -23,7 +23,7 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         _logger = logger.NotNull();
     }
 
-    public async Task<IdentityResult> CreateAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    public async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         user.NotNull();
@@ -33,7 +33,7 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         return identityResult;
     }
 
-    public async Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    public async Task<IdentityResult> DeleteAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         user.NotNull();
@@ -45,7 +45,7 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
 
     public void Dispose() { }
 
-    public async Task<ApplicationUser?> FindByIdAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<PrincipalIdentity?> FindByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         userId.NotEmpty();
@@ -55,7 +55,7 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         return result.IsOk() ? result.Return() : null;
     }
 
-    public async Task<ApplicationUser?> FindByNameAsync(string userName, CancellationToken cancellationToken = default)
+    public async Task<PrincipalIdentity?> FindByNameAsync(string userName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         userName.NotEmpty();
@@ -65,17 +65,10 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         return result.IsOk() ? result.Return() : null;
     }
 
-    public Task<string?> GetNormalizedUserNameAsync(ApplicationUser user, CancellationToken cancellationToken) => user.NormalizedUserName.ToTaskResult<string?>();
+    public Task<string?> GetNormalizedUserNameAsync(PrincipalIdentity user, CancellationToken cancellationToken) => user.NormalizedUserName.ToTaskResult<string?>();
 
-    public Task<string?> GetPasswordHashAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        user.NotNull();
 
-        return user.PasswordHash.ToTaskResult<string?>();
-    }
-
-    public Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken cancellationToken)
+    public Task<string> GetUserIdAsync(PrincipalIdentity user, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         user.NotNull();
@@ -83,7 +76,7 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         return user.Id.ToTaskResult();
     }
 
-    public Task<string?> GetUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
+    public Task<string?> GetUserNameAsync(PrincipalIdentity user, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         user.NotNull();
@@ -91,12 +84,7 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         return user.UserName.ToTaskResult<string?>();
     }
 
-    public Task<bool> HasPasswordAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task SetNormalizedUserNameAsync(ApplicationUser user, string? normalizedName, CancellationToken cancellationToken)
+    public Task SetNormalizedUserNameAsync(PrincipalIdentity user, string? normalizedName, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         user.NotNull();
@@ -106,18 +94,8 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         return Task.CompletedTask;
     }
 
-    public Task SetPasswordHashAsync(ApplicationUser user, string? passwordHash, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        user.NotNull();
-        passwordHash.NotEmpty();
 
-        user.PasswordHash = passwordHash;
-        return Task.CompletedTask;
-
-    }
-
-    public Task SetUserNameAsync(ApplicationUser user, string? userName, CancellationToken cancellationToken)
+    public Task SetUserNameAsync(PrincipalIdentity user, string? userName, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         user.NotNull();
@@ -127,7 +105,7 @@ public class UserStore : IUserStore<ApplicationUser>, IUserPasswordStore<Applica
         return Task.CompletedTask;
     }
 
-    public Task<IdentityResult> UpdateAsync(ApplicationUser user, CancellationToken cancellationToken)
+    public Task<IdentityResult> UpdateAsync(PrincipalIdentity user, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

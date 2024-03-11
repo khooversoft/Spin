@@ -9,7 +9,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Identity;
 
-public sealed record ApplicationUser : IIdentity
+public sealed record PrincipalIdentity : IIdentity
 {
     public string Id { get; set; } = null!;
     public string UserName { get; set; } = null!;
@@ -22,13 +22,14 @@ public sealed record ApplicationUser : IIdentity
     public string Name { get; set; } = null!;
 }
 
-public static class ApplicationUserTool
+
+public static class PrincipalIdentityExtensions
 {
-    public static IValidator<ApplicationUser> Validator { get; } = new Validator<ApplicationUser>()
+    public static IValidator<PrincipalIdentity> Validator { get; } = new Validator<PrincipalIdentity>()
         .RuleFor(x => x.Id).NotNull()
         .RuleFor(x => x.UserName).NotNull()
         .RuleFor(x => x.Email).ValidEmail()
         .Build();
 
-    public static Option<IValidatorResult> Validate(this ApplicationUser subject) => Validator.Validate(subject);
+    public static Option<IValidatorResult> Validate(this PrincipalIdentity subject) => Validator.Validate(subject);
 }

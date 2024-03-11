@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Types;
@@ -15,7 +14,7 @@ public class IdentityServiceTests
         var store = new IdentityInMemoryStore(NullLogger<IdentityInMemoryStore>.Instance);
         var service = new IdentityService(store, NullLogger<IdentityService>.Instance);
 
-        var userIdentity = new IdentityUser
+        var userIdentity = new PrincipalIdentity
         {
             Id = Guid.NewGuid().ToString(),
             UserName = "userName1",
@@ -70,7 +69,7 @@ public class IdentityServiceTests
 
         async Task addIdentity(string userName, string email)
         {
-            var userIdentity = new IdentityUser
+            var userIdentity = new PrincipalIdentity
             {
                 Id = Guid.NewGuid().ToString(),
                 UserName = userName,
