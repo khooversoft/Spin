@@ -1,18 +1,15 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components;
+using TicketShare.sdk;
+using TicketShareWeb.Application;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
-using TicketShareWeb.Data;
-using Toolbox.Orleans;
 using Toolbox.Identity;
-using System.Reflection;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
-using TicketShareWeb.Application;
-using Toolbox.Tools;
-using TicketShare.sdk;
+using Toolbox.Identity.Store;
+using Toolbox.Orleans;
 
 Console.WriteLine($"Ticket Share Web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
@@ -52,16 +49,13 @@ builder.Services.AddAuthentication(options =>
         };
     }).AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
+builder.Services.AddIdentityCore<PrincipalIdentity>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddTransient<IUserStore<PrincipalIdentity>, UserStore>();
+
+//builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 builder.Host.UseOrleans((context, silo) =>
 {
@@ -74,11 +68,7 @@ builder.Host.UseOrleans((context, silo) =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseMigrationsEndPoint();
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

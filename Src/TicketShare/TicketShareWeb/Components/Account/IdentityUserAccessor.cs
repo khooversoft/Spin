@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
-using TicketShareWeb.Data;
+using Toolbox.Identity;
 
 namespace TicketShareWeb.Components.Account;
-internal sealed class IdentityUserAccessor(UserManager<ApplicationUser> userManager, IdentityRedirectManager redirectManager)
+internal sealed class IdentityUserAccessor(UserManager<PrincipalIdentity> userManager, IdentityRedirectManager redirectManager)
 {
-    public async Task<ApplicationUser> GetRequiredUserAsync(HttpContext context)
+    public async Task<PrincipalIdentity> GetRequiredUserAsync(HttpContext context)
     {
         var user = await userManager.GetUserAsync(context.User);
 
