@@ -1,4 +1,4 @@
-﻿using Toolbox.Azure.DataLake;
+﻿using Toolbox.Azure;
 
 namespace Toolbox.Azure.test.Application;
 

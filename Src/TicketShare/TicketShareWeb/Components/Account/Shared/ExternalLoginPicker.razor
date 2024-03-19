@@ -9,24 +9,33 @@
 {
     <div>
         <p>
-            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-            about setting up this ASP.NET application to support logging in via external services</a>.
+            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">
+                article
+                about setting up this ASP.NET application to support logging in via external services
+            </a>.
         </p>
     </div>
 }
 else
 {
+    <p>Or, log on with one of the providers below</p>
     <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
         <div>
             <AntiforgeryToken />
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-            <p>
+            <div class="row-provider">
                 @foreach (var provider in externalLogins)
                 {
-                    <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Name="provider" Value="@provider.Name" Title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</FluentButton>
-                    <text>&nbsp;</text>
+                    <FluentButton class="x-btn"
+                                  Type="ButtonType.Submit"
+                                  BackgroundColor="#CCF4DD"
+                                  Color="black"
+                                  Appearance="Appearance.Accent"
+                                  Name="provider"
+                                  Value="@provider.Name"
+                                  Title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</FluentButton>
                 }
-            </p>
+            </div>
         </div>
     </form>
 }

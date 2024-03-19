@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;

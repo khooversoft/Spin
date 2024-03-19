@@ -1,5 +1,5 @@
 ﻿using SpinCluster.sdk.Services;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Azure.Identity;
 using Toolbox.Extensions;
 using Toolbox.Tools;

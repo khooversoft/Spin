@@ -11,7 +11,7 @@
 @inject SignInManager<PrincipalIdentity> SignInManager
 @inject UserManager<PrincipalIdentity> UserManager
 @inject IUserStore<PrincipalIdentity> UserStore
-@inject IEmailSender<PrincipalIdentity> EmailSender
+@* @inject IEmailSender<PrincipalIdentity> EmailSender *@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ExternalLogin> Logger
@@ -124,11 +124,11 @@
 
     private async Task OnValidSubmitAsync()
     {
-        var emailStore = GetEmailStore();
+        // var emailStore = GetEmailStore();
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        // await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
@@ -145,7 +145,7 @@
                 var callbackUrl = NavigationManager.GetUriWithQueryParameters(
                     NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
                     new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-                await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+                // await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
                 // If account confirmation is required, we need to show the link if we don't have a real email sender
                 if (UserManager.Options.SignIn.RequireConfirmedAccount)
@@ -174,14 +174,14 @@
         }
     }
 
-    private IUserEmailStore<PrincipalIdentity> GetEmailStore()
-    {
-        if (!UserManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException("The default UI requires a user store with email support.");
-        }
-        return (IUserEmailStore<PrincipalIdentity>)UserStore;
-    }
+    // private IUserEmailStore<PrincipalIdentity> GetEmailStore()
+    // {
+    //     if (!UserManager.SupportsUserEmail)
+    //     {
+    //         throw new NotSupportedException("The default UI requires a user store with email support.");
+    //     }
+    //     return (IUserEmailStore<PrincipalIdentity>)UserStore;
+    // }
 
     private sealed class InputModel
     {

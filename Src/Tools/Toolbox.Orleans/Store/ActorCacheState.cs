@@ -7,8 +7,8 @@ namespace Toolbox.Orleans;
 
 public class ActorCacheState<T> : ActorCacheState<T, T>
 {
-    public ActorCacheState(StateManagement stateManagement, IPersistentState<T> state, TimeSpan? cacheTime = null)
-        : base(stateManagement, state, x => x, x => x, cacheTime)
+    public ActorCacheState(IPersistentState<T> state, TimeSpan? cacheTime = null)
+        : base(state, x => x, x => x, cacheTime)
     {
     }
 }
@@ -18,27 +18,21 @@ public class ActorCacheState<TState, TSerialize>
     private readonly IPersistentState<TSerialize> _state;
     private readonly Func<TState, TSerialize> _toStorage;
     private readonly Func<TSerialize, TState> _fromStorage;
-    private readonly StateManagement _stateManagement;
-    private string? _name;
+    private readonly CacheObject<TState> _cacheObject = new(TimeSpan.FromMinutes(15));
     private int _firstRead = 0;
 
-    public ActorCacheState(StateManagement stateManagement, IPersistentState<TSerialize> state, Func<TState, TSerialize> toStorage, Func<TSerialize, TState> fromStorage, TimeSpan? cacheTime = null)
+    public ActorCacheState(IPersistentState<TSerialize> state, Func<TState, TSerialize> toStorage, Func<TSerialize, TState> fromStorage, TimeSpan? cacheTime = null)
     {
-        _stateManagement = stateManagement.NotNull();
         _state = state.NotNull();
         _toStorage = toStorage.NotNull();
         _fromStorage = fromStorage.NotNull();
     }
 
-    public void SetName(string actorName, string keyName) => _name = actorName.NotEmpty() + "::" + keyName.NotEmpty();
-
     public async Task<Option> Clear()
     {
-        _name.NotEmpty("Name not set");
-
         if (!_state.RecordExists) return StatusCode.NotFound;
         await _state.ClearStateAsync();
-        _stateManagement.Clear(_name);
+        _cacheObject.Clear();
         return StatusCode.OK;
     }
 
@@ -48,45 +42,37 @@ public class ActorCacheState<TState, TSerialize>
 
     public async Task<Option<TState>> GetState(ScopeContext context)
     {
-        _name.NotEmpty("Name not set");
-
-        var cacheState = _stateManagement.Get<TState>(_name, context);
-        if (cacheState.IsOk()) return cacheState;
-
+        if (_cacheObject.TryGetValue(out var value)) return value;
         return await ReadFromStorage(context);
     }
 
     public async Task<Option> SetState(TState state, ScopeContext context)
     {
-        _name.NotEmpty("Name not set");
-
         _state.State = _toStorage(state);
         await _state.WriteStateAsync();
 
-        _stateManagement.Set(_name, state, context);
+        _cacheObject.Set(state);
         return StatusCode.OK;
     }
 
     private async Task<Option<TState>> ReadFromStorage(ScopeContext context)
     {
-        _name.NotEmpty("Name not set");
-
         if (!_state.RecordExists) return StatusCode.NotFound;
 
         if (Interlocked.CompareExchange(ref _firstRead, 1, 0) == 0 && _state.RecordExists)
         {
             TState? f1 = _fromStorage(_state.State);
-            _stateManagement.Set(_name, f1, context);
+            _cacheObject.Set(f1);
             return f1;
         }
 
         await _state.ReadStateAsync();
-        _stateManagement.Clear(_name);
+        _cacheObject.Clear();
 
         if (!_state.RecordExists) return StatusCode.NotFound;
 
         TState? f2 = _fromStorage(_state.State);
-        _stateManagement.Set(_name, f2, context);
+        _cacheObject.Set(f2);
         return f2;
     }
 }

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
 using SpinCluster.sdk.Services;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;

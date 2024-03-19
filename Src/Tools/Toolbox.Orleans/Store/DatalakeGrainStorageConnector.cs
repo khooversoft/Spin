@@ -2,32 +2,32 @@
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Orleans.Storage;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
-internal class DatalakeStateConnector : IGrainStorage
+internal class DatalakeGrainStorageConnector : IGrainStorage
 {
-    private readonly IDatalakeStore _datalakeStore;
-    private readonly ILogger<DatalakeStateConnector> _logger;
+    private readonly IDatalakeManager _datalakeManager;
+    private readonly ILogger<DatalakeGrainStorageConnector> _logger;
 
-    public DatalakeStateConnector(IDatalakeStore datalakeStore, ILogger<DatalakeStateConnector> logger)
+    public DatalakeGrainStorageConnector(IDatalakeManager datalakeManager, ILogger<DatalakeGrainStorageConnector> logger)
     {
-        _datalakeStore = datalakeStore;
-        _logger = logger;
+        _datalakeManager = datalakeManager.NotNull();
+        _logger = logger.NotNull();
     }
 
     public async Task ClearStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)
     {
         var context = new ScopeContext(_logger);
 
-        string filePath = GetPath(grainId);
+        (string filePath, IDatalakeStore store) = GetStoreAndPath(grainId, stateName);
         context.LogInformation("Clearing state for filePath={filePath}", filePath);
 
-        var result = await _datalakeStore.Delete(filePath, context);
+        var result = await store.Delete(filePath, context);
         if (result.IsError()) return;
 
         ResetState(grainState);
@@ -38,10 +38,10 @@ internal class DatalakeStateConnector : IGrainStorage
         var context = new ScopeContext(_logger);
         context = context.With(_logger);
 
-        string filePath = GetPath(grainId);
+        (string filePath, IDatalakeStore store) = GetStoreAndPath(grainId, stateName);
         context.LogInformation("Reading state for filePath={filePath}", filePath);
 
-        var result = await _datalakeStore.Read(filePath, context);
+        var result = await store.Read(filePath, context);
         if (result.IsError())
         {
             result.LogStatus(context, "Reading file from datalake");
@@ -76,7 +76,7 @@ internal class DatalakeStateConnector : IGrainStorage
     {
         var context = new ScopeContext(_logger);
 
-        string filePath = GetPath(grainId);
+        (string filePath, IDatalakeStore store) = GetStoreAndPath(grainId, stateName);
         context.Location().LogInformation("Writing state for filePath={filePath}", filePath);
 
         ETag etag = new ETag(grainState.ETag);
@@ -91,7 +91,7 @@ internal class DatalakeStateConnector : IGrainStorage
                 .Func(x => new DataETag(x, etag)),
         };
 
-        var result = await _datalakeStore.Write(filePath, dataEtag, true, context);
+        var result = await store.Write(filePath, dataEtag, true, context);
         if (result.IsError())
         {
             context.Location().LogError("Failed to write state file, filePath={filePath}", filePath);
@@ -110,8 +110,17 @@ internal class DatalakeStateConnector : IGrainStorage
         grainState.ETag = null;
     }
 
-    private static string GetPath(GrainId grainId) => grainId.ToString()
+    private (string path, IDatalakeStore store) GetStoreAndPath(GrainId grainId, string extension)
+    {
+        string filePath = GetPath(grainId, extension);
+        IDatalakeStore store = _datalakeManager.MapToStore(filePath).ThrowOnError($"FilePath={filePath} failed to map to store").Return();
+
+        return (filePath, store);
+    }
+
+    private static string GetPath(GrainId grainId, string extension) => grainId.ToString()
         .Split('/', StringSplitOptions.RemoveEmptyEntries)
         .Skip(1)
-        .Join("/");
+        .Join("/")
+        .Func(x => extension.IsEmpty() ? x : PathTool.SetExtension(x, extension));
 }

@@ -1,8 +1,8 @@
 ﻿using Azure.Storage.Files.DataLake.Models;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Tools;
 
-namespace Toolbox.Azure.DataLake
+namespace Toolbox.Azure
 {
     public record DatalakePathItem
     {

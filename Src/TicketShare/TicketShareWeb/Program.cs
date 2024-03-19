@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
-using TicketShareWeb.Application;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
 using Toolbox.Identity;
@@ -61,8 +60,6 @@ builder.Host.UseOrleans((context, silo) =>
 {
     silo.UseLocalhostClustering();
     silo.AddTickShareCluster(context);
-    silo.AddDatalakeGrainStorage();
-    silo.AddIdentityActor(context);
 });
 
 var app = builder.Build();

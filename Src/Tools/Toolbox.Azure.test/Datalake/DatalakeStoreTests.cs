@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Azure.test.Application;
 using Toolbox.Extensions;
 using Toolbox.Types;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;

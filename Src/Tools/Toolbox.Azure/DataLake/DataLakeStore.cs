@@ -7,7 +7,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Azure.DataLake;
+namespace Toolbox.Azure;
 
 public class DatalakeStore : IDatalakeStore
 {

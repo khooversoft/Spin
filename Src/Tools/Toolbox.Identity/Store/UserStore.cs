@@ -7,7 +7,7 @@ using Toolbox.Types;
 namespace Toolbox.Identity.Store;
 
 
-public class UserStore : IUserStore<PrincipalIdentity>
+public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<PrincipalIdentity>
 {
     private readonly IdentityService _identityService;
     private readonly ILogger<UserStore> _logger;
@@ -16,6 +16,15 @@ public class UserStore : IUserStore<PrincipalIdentity>
     {
         _identityService = identityService.NotNull();
         _logger = logger.NotNull();
+    }
+
+    public Task AddLoginAsync(PrincipalIdentity user, UserLoginInfo login, CancellationToken cancellationToken)
+    {
+        user.LoginProvider = login.LoginProvider;
+        user.ProviderKey = login.ProviderKey;
+        user.ProviderDisplayName = login.ProviderDisplayName;
+
+        return Task.CompletedTask;
     }
 
     public async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
@@ -50,6 +59,17 @@ public class UserStore : IUserStore<PrincipalIdentity>
         return result.IsOk() ? result.Return() : null;
     }
 
+    public async Task<PrincipalIdentity?> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        loginProvider.NotEmpty();
+        providerKey.NotEmpty();
+        var context = new ScopeContext(_logger);
+
+        var result = await _identityService.FindByLogin(loginProvider, providerKey, context);
+        return result.IsOk() ? result.Return() : null;
+    }
+
     public async Task<PrincipalIdentity?> FindByNameAsync(string userName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -58,6 +78,11 @@ public class UserStore : IUserStore<PrincipalIdentity>
 
         var result = await _identityService.GetByUserName(userName, context);
         return result.IsOk() ? result.Return() : null;
+    }
+
+    public Task<IList<UserLoginInfo>> GetLoginsAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     public Task<string?> GetNormalizedUserNameAsync(PrincipalIdentity user, CancellationToken cancellationToken) => user.NormalizedUserName.ToTaskResult<string?>();
@@ -77,6 +102,11 @@ public class UserStore : IUserStore<PrincipalIdentity>
         user.NotNull();
 
         return user.UserName.ToTaskResult<string?>();
+    }
+
+    public Task RemoveLoginAsync(PrincipalIdentity user, string loginProvider, string providerKey, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     public Task SetNormalizedUserNameAsync(PrincipalIdentity user, string? normalizedName, CancellationToken cancellationToken)

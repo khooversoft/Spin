@@ -4,7 +4,7 @@ using Toolbox.Azure.Identity;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Azure.DataLake;
+namespace Toolbox.Azure;
 
 public record DatalakeOption
 {

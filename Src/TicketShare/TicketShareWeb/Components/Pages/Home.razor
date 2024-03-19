@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using TicketShare.sdk
+@using TicketShareWeb.Components.Account.Shared
 
 <PageTitle>Ticket Share</PageTitle>
 
@@ -14,14 +15,25 @@
                     <div>Ticket Share</div>
                 </div>
                 <div class="dialog-title">
-                    Enter your email, we'll check if you need to create a new account.
+                    Enter your email to log on or to create a new account.
                 </div>
                 <FluentTextField @bind-Value=value2 Placeholder="Email" class="email-input"></FluentTextField>
                 <div class="agree-text">
                     By clicking Submit, you agree to these <a href="/">terms and conditions</a> and
                     allow Ticket-Share to get your user and tenant details. <a href="/">Ticket-Share Privacy Statement</a>
                 </div>
-                <FluentButton BackgroundColor="#28B463" class="agree-button">Submit</FluentButton>
+                <FluentButton BackgroundColor="#CCF4DD" class="x-btn agree-button">Submit</FluentButton>
+
+                <FluentDivider Style="width: 100%;margin: 20px 0 10px 0;" Role="DividerRole.Presentation"></FluentDivider>
+                <ExternalLoginPicker />
+                @*                 <div class="row-provider">
+                    <FluentButton Appearance="Appearance.Accent" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                    <FluentButton Appearance="Appearance.Lightweight" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                    <FluentButton Appearance="Appearance.Outline" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                    <FluentButton Appearance="Appearance.Stealth" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                    <FluentButton BackgroundColor="var(--highlight-bg)" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                    <FluentButton BackgroundColor="#CCF4DD" class="x-btn use-google-logon">Log on with Google</FluentButton>
+                </div> *@
             </div>
 
             <div class="card">

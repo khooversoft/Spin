@@ -13,7 +13,7 @@ public class IdentityInMemoryStore : IIdentityClient
 
     public IdentityInMemoryStore(ILogger<IdentityInMemoryStore> logger) => _logger = logger.NotNull();
 
-    public Task<Option> Clear(string principalId, string traceId)
+    public Task<Option> Clear(string traceId)
     {
         _map.Clear();
         return ((Option)StatusCode.OK).ToTaskResult();
@@ -23,5 +23,10 @@ public class IdentityInMemoryStore : IIdentityClient
     {
         var context = new ScopeContext(traceId, _logger);
         return _map.Execute(command, context).ToTaskResult();
+    }
+
+    public IPrincipalIdentityActor GetPrincipalIdentityActor(string principalId)
+    {
+        throw new NotImplementedException();
     }
 }

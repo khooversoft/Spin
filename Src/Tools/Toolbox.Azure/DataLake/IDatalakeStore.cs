@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Toolbox.Types;
 
-namespace Toolbox.Azure.DataLake;
+namespace Toolbox.Azure;
 
 public interface IDatalakeStore
 {

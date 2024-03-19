@@ -2,10 +2,8 @@
 
 public class TsConstants
 {
-    public const string DataLakeProviderName = "datalake";
-    public const string DirectoryActorKey = "directory.json";
-
-    public const string DataLakeOptionConfigPath = "TicketShare:Identity:Storage";
+    public const string ConfigurationFilter = "TicketShare:*";
+    public const string StorageOptionConfigPath = "TicketShare:Storage";
 
     public static class Authentication
     {

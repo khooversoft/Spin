@@ -66,7 +66,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             [FromForm] string provider) =>
         {
             // Clear the existing external cookie to ensure a clean login process
-            await context.SignOutAsync(IdentityConstants.ExternalScheme);
+            await context.SignOutAsync(Identity.IdentityConstants.ExternalScheme);
 
             var redirectUrl = UriHelper.BuildRelative(
                 context.Request.PathBase,
