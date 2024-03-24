@@ -23,12 +23,11 @@ public class ChangeLog
     {
         changeContext.Context.Location().LogInformation("Rollback all: changeLogKey={changeLogKey}, {count} commands", ChangeLogKey, _commands.Count);
 
-        lock (changeContext.Map.SyncLock)
+        while (_commands.TryPop(out var item))
         {
-            while (_commands.TryPop(out var item))
-            {
-                item.Undo(changeContext);
-            }
+            item.Undo(changeContext);
         }
     }
+
+    public IReadOnlyList<IChangeLog> GetCommands() => _commands.ToArray();
 }

@@ -22,9 +22,17 @@ public record GraphQueryResult
     public GraphQueryResult(CommandType commandType, Option status) => (CommandType, Status) = (commandType, status);
 
     public Option Status { get; init; }
-    //public StatusCode StatusCode { get; init; }
-    //public string? Error { get; init; }
     public CommandType? CommandType { get; init; }
+    public bool IsMutating => CommandType switch
+    {
+        Graph.CommandType.AddNode => true,
+        Graph.CommandType.AddEdge => true,
+        Graph.CommandType.UpdateEdge => true,
+        Graph.CommandType.UpdateNode => true,
+        Graph.CommandType.DeleteEdge => true,
+        Graph.CommandType.DeleteNode => true,
+        _ => false,
+    };
     public override string ToString() => $"{Status}, {nameof(CommandType)}={CommandType}";
 
     public IReadOnlyList<IGraphCommon> Items { get; init; } = Array.Empty<IGraphCommon>();
@@ -34,6 +42,7 @@ public record GraphQueryResult
 public record GraphQueryResults
 {
     public IReadOnlyList<GraphQueryResult> Items { get; init; } = Array.Empty<GraphQueryResult>();
+    public bool IsMutating => Items.Any(x => x.IsMutating);
 }
 
 
@@ -44,9 +53,6 @@ public static class GraphQueryResultExtensions
 
     public static IReadOnlyList<GraphEdge> AliasEdge(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphEdge>().ToArray();
     public static IReadOnlyList<GraphNode> AliasNode(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphNode>().ToArray();
-
-    //public static bool IsOk(this GraphQueryResult subject) => subject.NotNull().Status.IsOk();
-    //public static bool IsError(this GraphQueryResult subject) => subject.NotNull().StatusCode.IsError();
 
     public static bool HasScalarResult(this GraphQueryResults subject) => subject.NotNull().Items.Count == 1 && subject.Items.First().Items.Count == 1;
 

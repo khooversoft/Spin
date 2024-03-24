@@ -55,9 +55,7 @@ public class GraphActor : Grain, IGraphActor
         if (commandOption.StatusCode.IsError()) return commandOption;
 
         GraphQueryResults commandResult = commandOption.Return();
-
-        bool isMapModified = commandResult.Items.Any(x => x.CommandType != CommandType.Select);
-        if (!isMapModified) return commandResult;
+        if (!commandResult.IsMutating) return commandResult;
 
         context.Location().LogInformation("Directory command modified graph, writing changes");
         await _state.SetState(map, context);

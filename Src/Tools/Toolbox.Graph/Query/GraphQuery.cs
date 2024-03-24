@@ -17,61 +17,58 @@ public static class GraphQuery
         Dictionary<string, IReadOnlyList<IGraphCommon>> aliasDict = new(StringComparer.OrdinalIgnoreCase);
 
         bool first = true;
-        lock (map.SyncLock)
+        while (stack.TryPop(out var graphQL))
         {
-            while (stack.TryPop(out var graphQL))
+            switch (graphQL)
             {
-                switch (graphQL)
-                {
-                    case GraphNodeSearch node:
-                        search = first switch
-                        {
-                            true => search.Nodes(x => node.IsMatch(x)),
-                            false => search.HasNode(x => node.IsMatch(x)),
-                        };
+                case GraphNodeSearch node:
+                    search = first switch
+                    {
+                        true => search.Nodes(x => node.IsMatch(x)),
+                        false => search.HasNode(x => node.IsMatch(x)),
+                    };
 
-                        update(search, node.Alias);
-                        break;
+                    update(search, node.Alias);
+                    break;
 
-                    case GraphEdgeSearch edge:
-                        search = first switch
-                        {
-                            true => search.Edges(x => edge.IsMatch(x)),
-                            false => search.HasEdge(x => edge.IsMatch(x)),
-                        };
+                case GraphEdgeSearch edge:
+                    search = first switch
+                    {
+                        true => search.Edges(x => edge.IsMatch(x)),
+                        false => search.HasEdge(x => edge.IsMatch(x)),
+                    };
 
-                        update(search, edge.Alias);
-                        break;
+                    update(search, edge.Alias);
+                    break;
 
-                    case GraphSelect select:
-                        select.Search.Reverse().ForEach(x => stack.Push(x));
-                        continue;
+                case GraphSelect select:
+                    select.Search.Reverse().ForEach(x => stack.Push(x));
+                    continue;
 
-                    default:
-                        throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
-                }
-
-                first = false;
+                default:
+                    throw new ArgumentException($"Unknown instruction={graphQL.GetType().FullName}");
             }
 
-            return new GraphQueryResult
+            first = false;
+        }
+
+        return new GraphQueryResult
+        {
+            Status = StatusCode.OK,
+            Items = current,
+            Alias = aliasDict,
+        };
+
+        void update(SearchContext searchContext, string? alias)
+        {
+            current = search.LastSearch switch
             {
-                Status = StatusCode.OK,
-                Items = current,
-                Alias = aliasDict,
+                SearchContext.LastSearchType.Node => searchContext.Nodes.ToArray(),
+                SearchContext.LastSearchType.Edge => searchContext.Edges.ToArray(),
+                _ => throw new UnreachableException(),
             };
 
-            void update(SearchContext searchContext, string? alias)
-            {
-                current = search.LastSearch switch
-                {
-                    SearchContext.LastSearchType.Node => searchContext.Nodes.ToArray(),
-                    SearchContext.LastSearchType.Edge => searchContext.Edges.ToArray(),
-                    _ => throw new UnreachableException(),
-                };
-
-                if (alias.IsNotEmpty()) aliasDict[alias] = current;
-            }
+            if (alias.IsNotEmpty()) aliasDict[alias] = current;
         }
     }
 }

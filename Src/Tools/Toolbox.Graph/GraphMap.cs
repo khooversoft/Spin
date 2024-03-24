@@ -9,6 +9,7 @@ public class GraphMap : IEnumerable<IGraphCommon>
 {
     private readonly GraphNodeIndex _nodes;
     private readonly GraphEdgeIndex _edges;
+    private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
     private readonly object _lock = new object();
 
     public GraphMap()
@@ -24,7 +25,7 @@ public class GraphMap : IEnumerable<IGraphCommon>
         edges.NotNull().ForEach(x => Edges.Add(x.Copy()).ThrowOnError("Edge add failed"));
     }
 
-    internal object SyncLock => _lock;
+    internal AsyncReaderWriterLock ReadWriterLock => _rwLock;
     public GraphNodeIndex Nodes => _nodes;
     public GraphEdgeIndex Edges => _edges;
 

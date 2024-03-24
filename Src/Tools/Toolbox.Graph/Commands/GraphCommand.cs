@@ -9,17 +9,23 @@ public static class GraphCommand
 {
     public static Option<GraphQueryResults> Execute(GraphMap map, string graphQuery, ScopeContext context)
     {
+        return Execute(map, graphQuery, null, context).Result;
+    }
+
+    public static async Task<Option<GraphQueryResults>> Execute(GraphMap map, string graphQuery, IGraphStore? graphStore, ScopeContext context)
+    {
         map.NotNull();
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(graphQuery);
         if (result.IsError()) return result.ToOptionStatus<GraphQueryResults>();
-
         IReadOnlyList<IGraphQL> commands = result.Return();
+
         var results = new Sequence<GraphQueryResult>();
+        var changeContext = new GraphChangeContext(map, new ChangeLog(), graphStore, context);
 
-        var changeContext = new GraphChangeContext(map, new ChangeLog(), context);
+        bool write = commands.Any(x => x is GraphNodeAdd || x is GraphEdgeAdd || x is GraphEdgeUpdate || x is GraphNodeUpdate || x is GraphEdgeDelete || x is GraphNodeDelete);
 
-        lock (map.SyncLock)
+        using (var release = write ? (await map.ReadWriterLock.WriterLockAsync()) : (await map.ReadWriterLock.ReaderLockAsync()))
         {
             foreach (var cmd in commands)
             {
@@ -30,7 +36,7 @@ public static class GraphCommand
                     GraphEdgeUpdate updateEdge => UpdateEdge(updateEdge, changeContext),
                     GraphNodeUpdate updateNode => UpdateNode(updateNode, changeContext),
                     GraphEdgeDelete deleteEdge => DeleteEdge(deleteEdge, changeContext),
-                    GraphNodeDelete deleteNode => DeleteNode(deleteNode, changeContext),
+                    GraphNodeDelete deleteNode => await DeleteNode(deleteNode, changeContext),
                     GraphSelect select => Select(select, changeContext),
 
                     _ => throw new UnreachableException(),
@@ -130,12 +136,21 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private static GraphQueryResult DeleteNode(GraphNodeDelete deleteNode, GraphChangeContext graphContext)
+    private static async Task<GraphQueryResult> DeleteNode(GraphNodeDelete deleteNode, GraphChangeContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, deleteNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent);
+
+        if (graphContext.Store != null)
+        {
+            foreach (var node in nodes)
+            {
+                var nodeIssues = (await graphContext.Store.Exist(node.Key, graphContext.Context)).NotNull();
+                if (nodeIssues.IsError()) return new GraphQueryResult(CommandType.DeleteNode, nodeIssues);
+            }
+        }
 
         nodes.ForEach(x => graphContext.Map.Nodes.Remove(x.Key, graphContext));
         return searchResult with { CommandType = CommandType.DeleteNode };
