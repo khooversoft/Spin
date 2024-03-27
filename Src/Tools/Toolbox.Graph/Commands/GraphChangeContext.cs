@@ -1,4 +1,4 @@
-﻿using Toolbox.Extensions;
+﻿using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -6,7 +6,7 @@ namespace Toolbox.Graph;
 
 public class GraphChangeContext
 {
-    public GraphChangeContext(GraphMap map, ChangeLog changeLog, IGraphStore? store, ScopeContext context)
+    public GraphChangeContext(GraphMap map, ChangeLog changeLog, IFileStore? store, ScopeContext context)
     {
         Map = map.NotNull();
         ChangeLog = changeLog.NotNull();
@@ -16,6 +16,6 @@ public class GraphChangeContext
 
     public GraphMap Map { get; }
     public ChangeLog ChangeLog { get; }
-    public IGraphStore? Store { get; }
+    public IFileStore? Store { get; }
     public ScopeContext Context { get; }
 }

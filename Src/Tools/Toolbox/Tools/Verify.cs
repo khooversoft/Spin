@@ -15,7 +15,7 @@ public static class Verify
     /// <param name="test">test func</param>
     /// <param name="message">message</param>
     /// <returns>subject</returns>
-    //[DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static T Assert<T>(
             this T subject,
             Func<T, bool> test,
@@ -91,7 +91,7 @@ public static class Verify
     /// <param name="subject">subject</param>
     /// <param name="name">name of subject or message</param>
     /// <returns>subject</returns>
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     [return: NotNull]
     public static T NotNull<T>(
             [NotNull] this T subject,

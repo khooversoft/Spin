@@ -1,6 +1,4 @@
-﻿using Toolbox.Azure;
-
-namespace Toolbox.Azure.test.Application;
+﻿namespace Toolbox.Azure.test.Application;
 
 internal record AzureTestOption
 {

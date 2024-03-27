@@ -73,27 +73,28 @@ public static class EnumerableExtensions
     {
         self.NotNull();
 
-        var list = self.ToList();
+        var list = self.ToArray();
+        RandomNumberGenerator.Shuffle(list.AsSpan());
 
-        var provider = RandomNumberGenerator.Create();
-        int n = list.Count;
+        //var provider = RandomNumberGenerator.Create();
+        //int n = list.Count;
 
-        while (n > 1)
-        {
-            var box = new byte[1];
-            do
-            {
-                provider.GetBytes(box);
-            }
-            while (!(box[0] < n * (Byte.MaxValue / n)));
+        //while (n > 1)
+        //{
+        //    var box = new byte[1];
+        //    do
+        //    {
+        //        provider.GetBytes(box);
+        //    }
+        //    while (!(box[0] < n * (Byte.MaxValue / n)));
 
-            var k = (box[0] % n);
-            n--;
+        //    var k = (box[0] % n);
+        //    n--;
 
-            var value = list[k];
-            list[k] = list[n];
-            list[n] = value;
-        }
+        //    var value = list[k];
+        //    list[k] = list[n];
+        //    list[n] = value;
+        //}
 
         return list;
     }

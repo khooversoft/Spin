@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Toolbox.Store;
 
 namespace Toolbox.Graph;
 
 public class GraphDb
 {
-    public GraphDb(IGraphStore graphStore)
+    private readonly GraphDbContext _dbContext;
+
+    public GraphDb(IFileStore graphStore)
     {
-        Graph = new GraphAccess(graphStore);
-        Store = new GraphStoreAccess(graphStore, Graph);
+        _dbContext = new GraphDbContext(graphStore);
+        Graph = new GraphAccess(_dbContext);
+        Store = new GraphStoreAccess(_dbContext);
     }
 
     public GraphAccess Graph { get; }

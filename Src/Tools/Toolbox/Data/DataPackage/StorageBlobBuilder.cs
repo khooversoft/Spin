@@ -12,9 +12,8 @@ public class StorageBlobBuilder
     public StorageBlobBuilder SetStorageId(string value) => this.Action(x => x.StorageId = value);
     public StorageBlobBuilder SetETag(string? value) => this.Action(x => x.ETag = value);
 
-    public StorageBlobBuilder SetContent(byte[] subject)
+    public StorageBlobBuilder SetContent(ReadOnlySpan<byte> subject)
     {
-        subject.NotNull();
         Content = subject.ToArray();
         return this;
     }

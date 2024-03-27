@@ -101,7 +101,7 @@ public class StorageActor : Grain, IStorageActor
         var blob = new StorageBlobBuilder()
             .SetStorageId(this.GetPrimaryKeyString())
             .SetETag(dataETag.ETag?.ToString())
-            .SetContent(dataETag.Data)
+            .SetContent(dataETag.Data.AsSpan())
             .Build();
 
         return blob;

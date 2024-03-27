@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -21,20 +22,12 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     public GraphNode this[string key]
     {
         get => _index[key];
-
-        set
-        {
-            lock (_lock)
-            {
-                Remove(key);
-                Add(value);
-            }
-        }
+        set => Set(value).ThrowOnError();
     }
 
     public int Count => _index.Count;
 
-    public Option Add(GraphNode node, bool upsert = false, GraphChangeContext? graphContext = null)
+    public Option Add(GraphNode node, GraphChangeContext? graphContext = null)
     {
         if (!node.Validate(out var v)) return v;
 
@@ -49,19 +42,26 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             if (option.IsOk())
             {
                 graphContext?.ChangeLog.Push(new NodeChange(node.Key, null), graphContext);
-                return option;
             }
 
-            if (!upsert) return option;
+            return option;
+        }
+    }
 
-            var currentNode = _index[node.Key];
-            var updateNode = currentNode with
+    public Option Set(GraphNode node, GraphChangeContext? graphContext = null)
+    {
+        if (!node.Validate(out var v)) return v;
+
+        lock (_lock)
+        {
+            GraphNode? current;
+            if (_index.TryGetValue(node.Key, out current))
             {
-                Tags = currentNode.Tags.Clone().Set(node.Tags),
-            };
+                node = current.WithMerged(node);
+            }
 
-            _index[node.Key] = updateNode;
-            graphContext?.ChangeLog.Push(new NodeChange(node.Key, currentNode), graphContext);
+            _index[node.Key] = node;
+            graphContext?.ChangeLog.Push(new NodeChange(node.Key, current), graphContext);
 
             return StatusCode.OK;
         }
@@ -123,7 +123,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public bool TryGetValue(string key, out GraphNode? value) => _index.TryGetValue(key, out value);
+    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
 
     public IEnumerator<GraphNode> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

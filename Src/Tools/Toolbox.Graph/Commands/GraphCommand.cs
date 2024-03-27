@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -12,7 +13,7 @@ public static class GraphCommand
         return Execute(map, graphQuery, null, context).Result;
     }
 
-    public static async Task<Option<GraphQueryResults>> Execute(GraphMap map, string graphQuery, IGraphStore? graphStore, ScopeContext context)
+    public static async Task<Option<GraphQueryResults>> Execute(GraphMap map, string graphQuery, IFileStore? graphStore, ScopeContext context)
     {
         map.NotNull();
 
@@ -76,7 +77,12 @@ public static class GraphCommand
             Tags = addNode.Tags,
         };
 
-        var result = graphContext.Map.Nodes.Add(graphNode, addNode.Upsert, graphContext);
+        Option result = addNode.Upsert switch
+        {
+            false => graphContext.Map.Nodes.Add(graphNode, graphContext),
+            true => graphContext.Map.Nodes.Set(graphNode, graphContext),
+        };
+
         return new GraphQueryResult(CommandType.AddNode, result);
     }
 
@@ -145,10 +151,11 @@ public static class GraphCommand
 
         if (graphContext.Store != null)
         {
-            foreach (var node in nodes)
+            var allFileIds = nodes.SelectMany(x => x.FileIds);
+            foreach (var fileId in allFileIds)
             {
-                var nodeIssues = (await graphContext.Store.Exist(node.Key, graphContext.Context)).NotNull();
-                if (nodeIssues.IsError()) return new GraphQueryResult(CommandType.DeleteNode, nodeIssues);
+                var existOption = (await graphContext.Store.Exist(fileId, graphContext.Context)).NotNull();
+                if (existOption.IsOk()) return new GraphQueryResult(CommandType.DeleteNode, (StatusCode.Conflict, $"NodeKey has attached file {fileId}"));
             }
         }
 
