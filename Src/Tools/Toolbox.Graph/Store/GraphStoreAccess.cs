@@ -71,6 +71,19 @@ public class GraphStoreAccess
         return await _graphDbContext.GraphStore.Set<T>(fileId, value, context);
     }
 
+    //public async Task<Option> Set<T>(string name, T value, ScopeContext context) where T : class
+    //{
+    //    using var scope = await _graphDbContext.ReadWriterLock.WriterLockAsync();
+
+    //    if (!_graphDbContext.IsNodeExist(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
+
+    //    string fileId = CreateFileId(nodeKey, name);
+    //    _graphDbContext.SetFileId(nodeKey, fileId);
+    //    await _graphDbContext.Write(context);
+
+    //    return await _graphDbContext.GraphStore.Set<T>(fileId, value, context);
+    //}
+
     public static string CreateFileId(string nodeKey, string name)
     {
         nodeKey.NotEmpty();

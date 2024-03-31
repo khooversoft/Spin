@@ -96,7 +96,12 @@ public static class GraphCommand
             Tags = new Tags(addEdge.Tags),
         };
 
-        var result = graphContext.Map.Edges.Add(graphEdge, upsert: addEdge.Upsert, unique: addEdge.Unique, graphContext);
+        var result = addEdge.Upsert switch
+        {
+            false => graphContext.Map.Edges.Add(graphEdge, unique: addEdge.Unique, graphContext),
+            true => graphContext.Map.Edges.Set(graphEdge, unique: addEdge.Unique, graphContext),
+        };
+
         return new GraphQueryResult(CommandType.AddEdge, result);
     }
 

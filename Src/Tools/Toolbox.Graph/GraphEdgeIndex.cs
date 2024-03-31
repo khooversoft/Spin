@@ -42,40 +42,54 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public int Count => _index.Count;
 
-    public Option Add(GraphEdge edge, bool upsert = false, bool unique = false, GraphChangeContext? graphContext = null)
+    public Option Add(GraphEdge edge, bool unique = false, GraphChangeContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
         lock (_lock)
         {
             if (!ValidateNodes(edge, unique, out var v2)) return v2;
+
             if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
+            if (_masterList.Contains(edge)) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
 
-            bool added = _masterList.Add(edge);
-            if (!added)
-            {
-                if (!upsert) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
-
-                if (!_masterList.TryGetValue(edge, out var readEdge)) throw new InvalidOperationException("Master list lookup failed");
-                _masterList.Remove(readEdge);
-
-                var updateEdge = readEdge = readEdge with
-                {
-                    Tags = readEdge.Tags.Clone().Set(edge.Tags),
-                };
-
-                _index[edge.Key] = readEdge;
-                _masterList.Add(readEdge).Assert<bool, InvalidOperationException>(x => x == true, _ => "Failed to update edge on upsert");
-
-                graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, readEdge), graphContext);
-            }
+            _masterList.Add(edge).Assert(x => x == true, "Failed to add edge to master list");
 
             _edgesFrom.Set(edge.FromKey, edge.Key);
             _edgesTo.Set(edge.ToKey, edge.Key);
 
-            if (added) graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, null), graphContext);
+            graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, null), graphContext);
             return StatusCode.OK;
         }
+    }
+
+    public Option Set(GraphEdge edge, bool unique = false, GraphChangeContext? graphContext = null)
+    {
+        if (!edge.Validate(out var v1)) return v1;
+
+        lock (_lock)
+        {
+            if (!ValidateNodes(edge, unique, out var v2)) return v2;
+
+            if (_masterList.TryGetValue(edge, out var readEdge))
+            {
+                readEdge = readEdge.WithMerged(edge);
+                _index[readEdge.Key] = readEdge;
+                graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, readEdge), graphContext);
+                return StatusCode.OK;
+            }
+
+            _index[edge.Key] = edge;
+            _masterList.Add(edge).Assert<bool, InvalidOperationException>(x => x == true, _ => "Failed to update edge on upsert");
+
+            graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, null), graphContext);
+        }
+
+        _edgesFrom.Set(edge.FromKey, edge.Key);
+        _edgesTo.Set(edge.ToKey, edge.Key);
+
+        graphContext?.ChangeLog.Push(new EdgeChange(edge.Key, null), graphContext);
+        return StatusCode.OK;
     }
 
     public void Clear()
@@ -199,13 +213,10 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             return false;
         }
 
-        if (unique)
+        if (unique && GetIntersect(edge.FromKey, edge.ToKey, EdgeDirection.Both).Count > 0)
         {
-            if (GetIntersect(edge.FromKey, edge.ToKey, EdgeDirection.Both).Count > 0)
-            {
-                result = (StatusCode.Conflict, $"Edge already exist between {edge.FromKey} and {edge.ToKey}");
-                return false;
-            }
+            result = (StatusCode.Conflict, $"Edge already exist between {edge.FromKey} and {edge.ToKey}");
+            return false;
         }
 
         result = StatusCode.OK;

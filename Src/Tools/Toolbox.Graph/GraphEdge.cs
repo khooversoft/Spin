@@ -51,6 +51,11 @@ public sealed record GraphEdge : IGraphCommon
 
     public GraphEdge Copy() => new GraphEdge(Key, FromKey, ToKey, EdgeType, Tags.Clone(), CreatedDate);
 
+    public GraphEdge WithMerged(GraphEdge node) => this with
+    {
+        Tags = Tags.Clone().Set(node.Tags),
+    };
+
     public bool Equals(GraphEdge? obj) => obj is GraphEdge document &&
         Key.Equals(document.Key) &&
         FromKey.EqualsIgnoreCase(document.FromKey) &&

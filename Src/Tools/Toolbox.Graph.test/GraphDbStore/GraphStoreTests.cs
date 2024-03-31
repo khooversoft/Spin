@@ -82,7 +82,7 @@ public class GraphStoreTests
     }
 
     [Fact]
-    public async Task MultipleNode()
+    public async Task MultipleNodesAtScaleAddThenDelete()
     {
         IFileStore store = new InMemoryFileStore();
         GraphDb db = new GraphDb(store);
@@ -114,7 +114,7 @@ public class GraphStoreTests
         {
             (await db.Store.Delete(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
             (await db.Graph.ExecuteScalar($"delete (key={nodeKey});", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
-            var currentCount = Interlocked.Increment(ref deleteCount);
+            Interlocked.Increment(ref deleteCount);
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
 
         await nodeKeys.ForEachAsync(async x => await deleteBlock.SendAsync(x));
@@ -123,6 +123,48 @@ public class GraphStoreTests
 
         deleteCount.Should().Be(100);
         s.Count.Should().Be(1);
+
+        TestDirectory(store, ["directory.json"]);
+    }
+
+    [Fact]
+    public async Task MultipleNodesAtScaleAddAndDeleteByTasks()
+    {
+        IFileStore store = new InMemoryFileStore();
+        GraphDb db = new GraphDb(store);
+        int count = 100;
+
+        int deleteCount = 0;
+        var deleteBlock = new ActionBlock<string>(async nodeKey =>
+        {
+            (await db.Store.Delete(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+            (await db.Graph.ExecuteScalar($"delete (key={nodeKey});", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+            Interlocked.Increment(ref deleteCount);
+        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
+
+        var addBlock = new ActionBlock<int>(async x =>
+        {
+            string nodeKey = $"contract/company.com/node_{x}.json";
+            var data = new NameValue($"Name_{x}", 40 * x);
+            (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
+
+            var option = await db.Store.Set(nodeKey, "main", data, NullScopeContext.Instance);
+            option.IsOk().Should().BeTrue(option.ToString());
+
+            await deleteBlock.SendAsync(nodeKey);
+        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
+
+        await Enumerable.Range(0, count).ForEachAsync(async x => await addBlock.SendAsync(x));
+
+        addBlock.Complete();
+        await addBlock.Completion;
+
+        deleteBlock.Complete();
+        await deleteBlock.Completion;
+
+        InMemoryFileStore s = (InMemoryFileStore)store;
+        s.Count.Should().Be(1);
+        deleteCount.Should().Be(100);
 
         TestDirectory(store, ["directory.json"]);
     }

@@ -27,6 +27,7 @@ public class TagsTests
     [InlineData("1k", true)]
     [InlineData("1k.", true)]
     [InlineData("1k.v", true)]
+    [InlineData("name:v", true)]
     public void IsKeyValid(string? key, bool expected)
     {
         bool actual = TagsTool.IsKeyValid(key, out Option _);
@@ -114,6 +115,10 @@ public class TagsTests
     [InlineData("k", true)]
     [InlineData("key=node1", true)]
     [InlineData("key=node1, t1, t2=v2", true)]
+    [InlineData("key=node1, t1, t2=v2, i:logonProvider={LoginProvider}/{ProviderKey}", true)]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider={LoginProvider}/{ProviderKey}", true)]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider=microsoft/user001-microsoft-id", true)]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider='microsoft user001-microsoft-id'", true)]
     public void EqualPatterns(string? line, bool shouldExpect)
     {
         var t1 = new Tags(line);

@@ -140,7 +140,6 @@ public class GraphUpsertCommandTests
         });
     }
 
-
     [Fact]
     public void UpsertForEdge()
     {
