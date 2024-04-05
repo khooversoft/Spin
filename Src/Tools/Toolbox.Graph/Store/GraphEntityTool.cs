@@ -12,9 +12,20 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
+public interface IGraphEntityCommand
+{
+    string GetAddCommand();
+    string GetDeleteCommand();
+}
+
 public static class GraphEntityTool
 {
-    public static IReadOnlyList<string> GetGraphAddCommands<T>(this T value)
+    public static NodeCreateCommand GetEntityNodeCommand(this IReadOnlyList<IGraphEntityCommand> commands) => commands
+        .OfType<NodeCreateCommand>()
+        .Where(x => x.IsEntityNode)
+        .First();
+
+    public static Option<IReadOnlyList<IGraphEntityCommand>> GetGraphCommands<T>(this T value)
     {
         value.NotNull();
 
@@ -31,71 +42,99 @@ public static class GraphEntityTool
             })
             .ToArray();
 
-        var nodeCommands = getKeyCommands(propertiesValues);
-        if (nodeCommands.Count == 0) return Array.Empty<string>();
-        (string rootNodeKey, string nodeCommand) = nodeCommands.First();
+        var nodeCommands = getKeyCommand(propertiesValues);
+        if (nodeCommands.IsError()) return nodeCommands.ToOptionStatus<IReadOnlyList<IGraphEntityCommand>>();
+        NodeCreateCommand setKeyNode = nodeCommands.Return();
 
-        var indexCommands = getIndexCommands(propertiesValues, rootNodeKey);
+        var indexCommands = getIndexCommands(propertiesValues, setKeyNode.NodeKey);
 
-        return [nodeCommand, .. indexCommands];
+        IReadOnlyList<IGraphEntityCommand> set = [setKeyNode, .. indexCommands];
+        return set.ToOption();
 
         Attribute[] search(MemberInfo x) => x.GetCustomAttributes(false).OfType<Attribute>().Where(y => isGraphAttribute(y)).ToArray();
         bool isGraphAttribute(Attribute x) => x is GraphKeyAttribute || x is GraphTagAttribute || x is GraphNodeIndexAttribute;
     }
 
-    private static IReadOnlyList<(string key, string cmd)> getKeyCommands(PropertyValue[] propertiesValues)
+    private static Option<NodeCreateCommand> getKeyCommand(PropertyValue[] propertiesValues)
     {
+        bool allHasValue = propertiesValues
+            .Where(x => x.Attribute is GraphTagAttribute)
+            .All(x => x.Value.IsNotEmpty());
+
+        if (!allHasValue) return (StatusCode.Conflict, "Required key property value is null");
+
         string tags = propertiesValues
             .Where(x => x.Attribute is GraphTagAttribute)
-            .Select(x => $"{((GraphTagAttribute)x.Attribute!).TagName}={x.Value ?? throw new ArgumentException("Required key property value is null")}")
+            .Select(x => getTag(x))
             .Join(',');
 
         var cmds = propertiesValues
-            .Select(x => x.Attribute as GraphKeyAttribute)
-            .OfType<GraphKeyAttribute>()
-            .Select(x => (attr: x, key: FormatWith(x.Format, propertiesValues)))
-            .Where(x => x.key != null)
-            .Select(x => (key: x.key!, cmd: $"upsert node key={x.key}" + (tags.IsNotEmpty() ? ", " + tags : string.Empty)))
+            .Where(x => x.Attribute is GraphKeyAttribute && x.Value.IsNotEmpty())
+            .Select(getNodeKey)
+            .Select(x => new NodeCreateCommand(x, tags))
             .Take(1)
             .ToArray();
 
-        return cmds;
+        return cmds.Length == 1 ? cmds[0] : (StatusCode.Conflict, "Cannot find property with GraphKeyAttribute or there is more then 1");
+
+        string getTag(PropertyValue pv) => $"{(((GraphTagAttribute)pv.Attribute!).TagName ?? pv.Name)}={pv.Value}";
+        string getNodeKey(PropertyValue pv) => $"{(((GraphKeyAttribute)pv.Attribute!).IndexName)}:{pv.Value}";
     }
 
-    private static IEnumerable<string> getIndexCommands(PropertyValue[] propertiesValues, string rootNodeKey)
+    private static IEnumerable<IGraphEntityCommand> getIndexCommands(PropertyValue[] propertiesValues, string rootNodeKey)
     {
         var cmds = propertiesValues
-            .Select(x => x.Attribute as GraphNodeIndexAttribute)
-            .OfType<GraphNodeIndexAttribute>()
-            .Select(x => (attr: x, fromKey: FormatWith(x.Format, propertiesValues)))
-            .Where(x => x.fromKey != null)
-            .SelectMany(x => new string[]
+            .Where(x => x.Attribute is GraphNodeIndexAttribute)
+            .Select(x => FormatWith(x, propertiesValues))
+            .Where(x => x != null)
+            .SelectMany(x => new IGraphEntityCommand[]
             {
-                $"upsert node key={x.fromKey}",
-                $"add unique edge fromKey={x.fromKey}, toKey={rootNodeKey};"
+                new NodeCreateCommand(x!, GraphConstants.UniqueIndexTag),
+                new EdgeCreateCommand(x!, rootNodeKey)
             })
             .ToArray();
 
         return cmds;
     }
 
-    private static string? FormatWith(string fmt, PropertyValue[] attrValueList)
+    private static string? FormatWith(PropertyValue pv, PropertyValue[] propertyValues)
     {
-        var propertyNames = GetPropertyNames(fmt);
+        var attr = pv.Attribute as GraphNodeIndexAttribute ?? throw new UnreachableException();
+        if (pv.Value == null) return null;
 
-        var join = propertyNames
-            .Join(attrValueList, x => x, x => x.Name, (o, i) => (pname: o, pvalue: i))
-            .ToArray();
+        string? value = attr.Format switch
+        {
+            null => $"{attr.IndexName}:{pv.Value}",
+            not null => FormatWith(attr, propertyValues) switch
+            {
+                null => null,
+                string v => attr.IndexName + ":" + v
+            }
+        };
 
-        (join.Length == propertyNames.Count).Assert(x => x == true, $"Cannot find all property names in format={fmt}");
-
-        int propertyWithValueCount = join.Where(x => x.pvalue.Value.IsNotEmpty()).Count();
-        if( propertyWithValueCount == 0) return null;
-        (propertyWithValueCount == propertyNames.Count).Assert(x => x == true, $"Not all properties have values in format={fmt}");
-
-        string value = attrValueList.Aggregate(fmt, (a, x) => a.Replace($"{{{x.Name}}}", x.Value));
         return value;
     }
+
+    private static string? FormatWith(GraphNodeIndexAttribute attr, PropertyValue[] propertyValues)
+    {
+        if (attr.Format == null) return null;
+
+        var propertyNames = GetPropertyNames(attr.Format);
+
+        var join = propertyNames
+            .Join(propertyValues, x => x, x => x.Name, (o, i) => (pname: o, pvalue: i))
+            .ToArray();
+
+        (join.Length == propertyNames.Count).Assert(x => x == true, $"Cannot find all property names in format={attr.Format}");
+
+        int propertyWithValueCount = join.Where(x => x.pvalue.Value.IsNotEmpty()).Count();
+        if (propertyWithValueCount == 0) return null;
+        if (propertyWithValueCount != propertyNames.Count) return null;
+
+        string value = propertyValues.Aggregate(attr.Format, (a, x) => a.Replace($"{{{x.Name}}}", x.Value));
+        return value;
+    }
+
     private static IReadOnlyList<string> GetPropertyNames(string fmt)
     {
         var p = new StringTokenizer()

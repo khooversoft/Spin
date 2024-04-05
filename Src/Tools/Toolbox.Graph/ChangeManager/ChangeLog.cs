@@ -8,6 +8,9 @@ namespace Toolbox.Graph;
 public class ChangeLog
 {
     private ConcurrentStack<IChangeLog> _commands = new();
+    private readonly GraphChangeContext _graphChangeContext;
+
+    public ChangeLog(GraphChangeContext graphChangeContext) => _graphChangeContext = graphChangeContext.NotNull();
 
     public Guid ChangeLogKey { get; } = Guid.NewGuid();
 
@@ -19,13 +22,13 @@ public class ChangeLog
         _commands.Push(changeLog);
     }
 
-    public void Rollback(GraphChangeContext changeContext)
+    public void Rollback()
     {
-        changeContext.Context.Location().LogInformation("Rollback all: changeLogKey={changeLogKey}, {count} commands", ChangeLogKey, _commands.Count);
+        _graphChangeContext.Context.Location().LogInformation("Rollback all: changeLogKey={changeLogKey}, {count} commands", ChangeLogKey, _commands.Count);
 
         while (_commands.TryPop(out var item))
         {
-            item.Undo(changeContext);
+            item.Undo(_graphChangeContext);
         }
     }
 

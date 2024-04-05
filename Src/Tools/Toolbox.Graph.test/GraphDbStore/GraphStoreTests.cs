@@ -12,12 +12,15 @@ public class GraphStoreTests
     [Theory]
     [InlineData("n", "nodes/main/n")]
     [InlineData("node1.json", "nodes/main/node1.json")]
+    [InlineData("user:user001", "nodes/main/user/user$user001")]
     [InlineData("data/node1.json", "nodes/main/data/data_node1.json")]
+    [InlineData("data:node1.json", "nodes/main/data/data$node1.json")]
+    [InlineData("data:folder1/node1.json", "nodes/main/data/folder1/data$folder1_node1.json")]
     [InlineData("data/company.com/node1.json", "nodes/main/data/company.com/data_company.com_node1.json")]
     [InlineData("Data/User1@company.com/node1.json", "nodes/main/data/user1@company.com/data_user1@company.com_node1.json")]
     public void CreateFileId(string source, string expected)
     {
-        string result = GraphStoreAccess.CreateFileId(source, "main");
+        string result = GraphTool.CreateFileId(source, "main");
         result.Should().Be(expected);
     }
 
@@ -34,6 +37,36 @@ public class GraphStoreTests
     }
 
     private record NameValue(string name, int value);
+
+    [Fact]
+    public async Task SingleFileAddAndRemove()
+    {
+        const string nodeKey = "subscription/node1.json";
+        IFileStore store = new InMemoryFileStore();
+        GraphDb db = new GraphDb(store);
+
+        (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
+
+        var data = new NameValue("Name1", 10);
+        (await db.Store.Add(nodeKey, "main", data, NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        ((InMemoryFileStore)store).Count.Should().Be(2);
+
+        (await db.Store.Add(nodeKey, "main", data, NullScopeContext.Instance)).Action(x => x.IsError().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        ((InMemoryFileStore)store).Count.Should().Be(2);
+
+        var readOption = await db.Store.Get<NameValue>(nodeKey, "main", NullScopeContext.Instance);
+        readOption.IsOk().Should().BeTrue(readOption.ToString());
+        ((InMemoryFileStore)store).Count.Should().Be(2);
+
+        var readData = readOption.Return();
+        (readData == data).Should().BeTrue();
+
+        (await db.Store.Delete(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsNotFound().Should().BeTrue(x.ToString()));
+        ((InMemoryFileStore)store).Count.Should().Be(1);
+    }
 
     [Fact]
     public async Task SingleFileRoundTrip()

@@ -22,7 +22,7 @@ public static class GraphCommand
         IReadOnlyList<IGraphQL> commands = result.Return();
 
         var results = new Sequence<GraphQueryResult>();
-        var changeContext = new GraphChangeContext(map, new ChangeLog(), graphStore, context);
+        var changeContext = new GraphChangeContext(map, graphStore, context);
 
         bool write = commands.Any(x => x is GraphNodeAdd || x is GraphEdgeAdd || x is GraphEdgeUpdate || x is GraphNodeUpdate || x is GraphEdgeDelete || x is GraphNodeDelete);
 
@@ -48,7 +48,7 @@ public static class GraphCommand
                 if (qResult.Status.IsError())
                 {
                     context.Location().LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", graphQuery, qResult.ToString());
-                    changeContext.ChangeLog.Rollback(changeContext);
+                    changeContext.ChangeLog.Rollback();
                     break;
                 }
             }
@@ -71,11 +71,7 @@ public static class GraphCommand
 
     private static GraphQueryResult AddNode(GraphNodeAdd addNode, GraphChangeContext graphContext)
     {
-        var graphNode = new GraphNode
-        {
-            Key = addNode.Key,
-            Tags = addNode.Tags,
-        };
+        var graphNode = new GraphNode(addNode.Key, addNode.Tags);
 
         Option result = addNode.Upsert switch
         {
@@ -128,10 +124,7 @@ public static class GraphCommand
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.UpdateNode, StatusCode.NoContent);
 
-        graphContext.Map.Nodes.Update(nodes, x => x with
-        {
-            Tags = x.Tags.Set(updateNode.Tags.ToString()),
-        }, graphContext);
+        graphContext.Map.Nodes.Update(nodes, x => x.WithTags(updateNode.Tags.ToString()), graphContext);
 
         return searchResult with { CommandType = CommandType.UpdateNode };
     }
@@ -147,25 +140,26 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private static async Task<GraphQueryResult> DeleteNode(GraphNodeDelete deleteNode, GraphChangeContext graphContext)
+    private static Task<GraphQueryResult> DeleteNode(GraphNodeDelete deleteNode, GraphChangeContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, deleteNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
-        if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent);
+        if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent).ToTaskResult();
 
-        if (graphContext.Store != null)
-        {
-            var allFileIds = nodes.SelectMany(x => x.FileIds);
-            foreach (var fileId in allFileIds)
-            {
-                var existOption = (await graphContext.Store.Exist(fileId, graphContext.Context)).NotNull();
-                if (existOption.IsOk()) return new GraphQueryResult(CommandType.DeleteNode, (StatusCode.Conflict, $"NodeKey has attached file {fileId}"));
-            }
-        }
+        //if (graphContext.Store != null)
+        //{
+        //    var allFileIds = nodes.SelectMany(x => x.FileIds);
+        //    foreach (var fileId in allFileIds)
+        //    {
+        //        var existOption = (await graphContext.Store.Exist(fileId, graphContext.Context)).NotNull();
+        //        if (existOption.IsOk()) return new GraphQueryResult(CommandType.DeleteNode, (StatusCode.Conflict, $"NodeKey has attached file {fileId}"));
+        //    }
+        //}
 
         nodes.ForEach(x => graphContext.Map.Nodes.Remove(x.Key, graphContext));
-        return searchResult with { CommandType = CommandType.DeleteNode };
+        var result = searchResult with { CommandType = CommandType.DeleteNode };
+        return result.ToTaskResult<GraphQueryResult>();
     }
 
     private static GraphQueryResult Select(GraphSelect select, GraphChangeContext graphContext)

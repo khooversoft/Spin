@@ -56,7 +56,7 @@ public class GraphUpdateCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("lang=java,name=lop,t1");
+                x.Tags.ToString().Should().Be("lang=java,name=lop");
             });
         });
     }
@@ -93,7 +93,7 @@ public class GraphUpdateCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("lang=java");
+                x.Tags.ToString().Should().Be("lang=java,name=lop");
             });
         });
     }

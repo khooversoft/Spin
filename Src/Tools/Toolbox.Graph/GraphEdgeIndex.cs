@@ -13,12 +13,12 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     private readonly SecondaryIndex<string, Guid> _edgesTo;
     private readonly HashSet<GraphEdge> _masterList = new HashSet<GraphEdge>(new GraphEdgeComparer());
     private readonly object _lock;
-    private readonly Func<string, bool> _isNodeExist;
+    private readonly GraphRI _graphRI;
 
-    public GraphEdgeIndex(object syncLock, Func<string, bool> isNodeExist, IEqualityComparer<string>? keyComparer = null)
+    internal GraphEdgeIndex(object syncLock, GraphRI graphRI, IEqualityComparer<string>? keyComparer = null)
     {
         _lock = syncLock.NotNull();
-        _isNodeExist = isNodeExist.NotNull();
+        _graphRI = graphRI.NotNull();
 
         _index = new Dictionary<Guid, GraphEdge>();
         _edgesFrom = new SecondaryIndex<string, Guid>(keyComparer);
@@ -28,7 +28,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     public GraphEdge this[Guid key]
     {
         get => _index[key];
-        set
+        internal set
         {
             lock (_lock)
             {
@@ -42,7 +42,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public int Count => _index.Count;
 
-    public Option Add(GraphEdge edge, bool unique = false, GraphChangeContext? graphContext = null)
+    internal Option Add(GraphEdge edge, bool unique = false, GraphChangeContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
@@ -63,7 +63,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    public Option Set(GraphEdge edge, bool unique = false, GraphChangeContext? graphContext = null)
+    internal Option Set(GraphEdge edge, bool unique = false, GraphChangeContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
@@ -92,7 +92,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         return StatusCode.OK;
     }
 
-    public void Clear()
+    internal void Clear()
     {
         lock (_lock)
         {
@@ -102,6 +102,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _masterList.Clear();
         }
     }
+
     public bool ContainsKey(Guid edgeKey) => _index.ContainsKey(edgeKey);
 
     public IReadOnlyList<GraphEdge> Get(string nodeKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
@@ -114,7 +115,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         return Query(new GraphEdgeSearch { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
-    public bool Remove(Guid edgeKey, GraphChangeContext? graphContext = null)
+    internal bool Remove(Guid edgeKey, GraphChangeContext? graphContext = null)
     {
         lock (_lock)
         {
@@ -129,20 +130,22 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    public bool Remove(string nodeKey)
+    internal IReadOnlyList<string> Remove(string nodeKey, GraphChangeContext? graphContext)
     {
         lock (_lock)
         {
             var query = new GraphEdgeSearch { NodeKey = nodeKey };
-            var keys = Query(query);
-            if (keys.Count == 0) return false;
+            IReadOnlyList<GraphEdge> keys = Query(query);
+            if (keys.Count == 0) return Array.Empty<string>();
 
-            keys.ForEach(x => Remove(x.Key).Assert(x => x == true, $"{x.Key} failed to remove"));
-            return true;
+            keys.ForEach(x => Remove(x.Key, graphContext).Assert(x => x == true, $"{x.Key} failed to remove"));
+
+            var set = keys.Select(x => x.FromKey != nodeKey ? x.FromKey : x.ToKey).ToArray();
+            return set;
         }
     }
 
-    public IReadOnlyList<GraphEdge> Query(GraphEdgeSearch query)
+    internal IReadOnlyList<GraphEdge> Query(GraphEdgeSearch query)
     {
         lock (_lock)
         {
@@ -171,7 +174,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public bool TryGetValue(Guid key, out GraphEdge? value) => _index.TryGetValue(key, out value);
 
-    public Option Update(IReadOnlyList<GraphEdge> edges, Func<GraphEdge, GraphEdge> update, GraphChangeContext? graphContext = null)
+    internal Option Update(IReadOnlyList<GraphEdge> edges, Func<GraphEdge, GraphEdge> update, GraphChangeContext? graphContext = null)
     {
         edges.NotNull();
         update.NotNull();
@@ -201,13 +204,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     private bool ValidateNodes(GraphEdge edge, bool unique, out Option result)
     {
-        if (!_isNodeExist(edge.FromKey))
+        if (!_graphRI.IsNodeExist(edge.FromKey))
         {
             result = (StatusCode.NotFound, $"Cannot add edge, FromNodeKey={edge.FromKey} does not exist");
             return false;
         }
 
-        if (!_isNodeExist(edge.ToKey))
+        if (!_graphRI.IsNodeExist(edge.ToKey))
         {
             result = (StatusCode.NotFound, $"Cannot add edge, ToNodeKey={edge.ToKey} does not exist");
             return false;

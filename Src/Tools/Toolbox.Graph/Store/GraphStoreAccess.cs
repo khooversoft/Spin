@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -7,101 +8,75 @@ namespace Toolbox.Graph;
 public class GraphStoreAccess
 {
     private readonly GraphDbContext _graphDbContext;
-    internal GraphStoreAccess(GraphDbContext graphDbContext) => _graphDbContext = graphDbContext.NotNull();
+    private readonly IFileStore _graphStore;
 
-    public Task<Option> Add(string fileId, string json, ScopeContext context)
+    internal GraphStoreAccess(GraphDbContext graphDbContext, IFileStore graphStore)
     {
-        throw new NotImplementedException();
+        _graphDbContext = graphDbContext.NotNull();
+        _graphStore = graphStore.NotNull();
     }
 
-    public async Task<Option<string>> Add<T>(string nodeKey, string name, T value, ScopeContext context) where T : class
-    {
-        using var scope = await _graphDbContext.ReadWriterLock.WriterLockAsync();
-
-        if (!_graphDbContext.IsNodeExist(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
-        if (_graphDbContext.HasFileId(nodeKey, name)) return (StatusCode.Conflict, $"NodeKey={nodeKey} name={name} already exist");
-
-        string fileId = CreateFileId(nodeKey, name);
-        _graphDbContext.SetFileId(nodeKey, fileId);
-        await _graphDbContext.Write(context);
-
-        var addOption = await _graphDbContext.GraphStore.Add<T>(fileId, value, context);
-        if (addOption.IsError()) return addOption.ToOptionStatus<string>();
-
-        return fileId;
-    }
+    public Task<Option<string>> Add<T>(string nodeKey, string name, T value, ScopeContext context) where T : class => AddOrUpdate(nodeKey, name, false, value, context);
 
     public async Task<Option> Delete(string nodeKey, string name, ScopeContext context)
     {
+        if (!_graphDbContext.Map.Nodes.ContainsKey(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
         using var scope = await _graphDbContext.ReadWriterLock.WriterLockAsync();
 
-        string fileId = CreateFileId(nodeKey, name);
-        _graphDbContext.RemoveFileId(nodeKey, fileId);
-        await _graphDbContext.Write(context);
+        string fileId = GraphTool.CreateFileId(nodeKey, name);
 
-        var result = await _graphDbContext.GraphStore.Delete(fileId, context);
-        return result;
+        var updatedNode = _graphDbContext.Map.Nodes.TryUpdate(nodeKey, x => x.DeleteEntityFileId(fileId));
+        if (!updatedNode)
+        {
+            return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist");
+        }
+
+        await _graphDbContext.Write(context);
+        await _graphStore.Delete(fileId, context);
+
+        return StatusCode.OK;
     }
 
     public Task<Option> Exist(string nodeKey, string name, ScopeContext context)
     {
-        string fileId = CreateFileId(nodeKey, name);
-        return _graphDbContext.GraphStore.Exist(fileId, context);
+        string fileId = GraphTool.CreateFileId(nodeKey, name);
+        return _graphStore.Exist(fileId, context);
     }
 
     public async Task<Option<T>> Get<T>(string nodeKey, string name, ScopeContext context)
     {
-        string fileId = CreateFileId(nodeKey, name);
-        var jsonOption = await _graphDbContext.GraphStore.Get<T>(fileId, context);
+        string fileId = GraphTool.CreateFileId(nodeKey, name);
+        var jsonOption = await _graphStore.Get<T>(fileId, context);
         if (jsonOption.IsError()) return jsonOption;
 
         return jsonOption.Return();
     }
 
-    public async Task<Option> Set<T>(string nodeKey, string name, T value, ScopeContext context) where T : class
+    public Task<Option<string>> Set<T>(string nodeKey, string name, T value, ScopeContext context) where T : class => AddOrUpdate(nodeKey, name, true, value, context);
+
+    private async Task<Option<string>> AddOrUpdate<T>(string nodeKey, string name, bool upsert, T value, ScopeContext context) where T : class
     {
+        if (!_graphDbContext.Map.Nodes.ContainsKey(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
         using var scope = await _graphDbContext.ReadWriterLock.WriterLockAsync();
 
-        if (!_graphDbContext.IsNodeExist(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
+        string fileId = GraphTool.CreateFileId(nodeKey, name);
 
-        string fileId = CreateFileId(nodeKey, name);
-        _graphDbContext.SetFileId(nodeKey, fileId);
-        await _graphDbContext.Write(context);
-
-        return await _graphDbContext.GraphStore.Set<T>(fileId, value, context);
-    }
-
-    //public async Task<Option> Set<T>(string name, T value, ScopeContext context) where T : class
-    //{
-    //    using var scope = await _graphDbContext.ReadWriterLock.WriterLockAsync();
-
-    //    if (!_graphDbContext.IsNodeExist(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
-
-    //    string fileId = CreateFileId(nodeKey, name);
-    //    _graphDbContext.SetFileId(nodeKey, fileId);
-    //    await _graphDbContext.Write(context);
-
-    //    return await _graphDbContext.GraphStore.Set<T>(fileId, value, context);
-    //}
-
-    public static string CreateFileId(string nodeKey, string name)
-    {
-        nodeKey.NotEmpty();
-        name.Assert(x => IdPatterns.IsName(x), x => $"{x} invalid name");
-
-        string file = nodeKey.NotEmpty().Replace('/', '_');
-
-        string storePath = nodeKey
-            .Split(new char[] { ':', '/' }, StringSplitOptions.RemoveEmptyEntries)
-            .Func(x => x.Length > 1 ? x[0..(x.Length - 1)] : Array.Empty<string>())
-            .Join('/');
-
-        string result = storePath.IsEmpty() switch
+        var addOption = upsert switch
         {
-            true => $"nodes/{name}/{file}",
-            false => $"nodes/{name}/{storePath}/{file}",
+            false => await _graphStore.Add<T>(fileId, value, context),        
+            true => await _graphStore.Set<T>(fileId, value, context),
         };
 
-        return result.ToLower();
+        if (addOption.IsError()) return addOption.ToOptionStatus<string>();
+
+        var updatedNode = _graphDbContext.Map.Nodes.TryUpdate(nodeKey, x => x.SetEntityFileId(fileId));
+        if (!updatedNode)
+        {
+            await _graphStore.Delete(fileId, context);
+            return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist");
+        }
+
+        await _graphDbContext.Write(context);
+        return fileId;
     }
 }

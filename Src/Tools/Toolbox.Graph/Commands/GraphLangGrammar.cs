@@ -16,7 +16,7 @@ namespace Toolbox.Graph;
 /// add {node | {unique? edge} } {k | k=v}[, {k | k=v} ...]
 /// upsert {node | edge} {k | k=v}[, {k | k=v} ...]
 /// delete search
-/// update search set {k=v}[, {k=v} ...]
+/// update search set {k=v}[, {k=v} ...] [link=path[, link=path...]]
 /// 
 /// "unique edge" constraint no duplicate for fromKey + toKey
 /// 
@@ -28,7 +28,7 @@ public static class GraphLangGrammar
         "select",       "add",          "node",
         "edge",         "delete",       "update",
         "set",          "key",          "tags",
-        "upsert",       "unique",
+        "upsert",       "unique",       "link",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))

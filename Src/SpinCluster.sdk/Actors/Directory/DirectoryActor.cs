@@ -49,8 +49,8 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Adding edge, edge={edge}", edge);
 
-        var option = _map.Edges.Add(edge);
-        if (option.IsError()) return option;
+        //var option = _map.Edges.Add(edge);
+        //if (option.IsError()) return option;
 
         await SetGraphToStorage();
         return StatusCode.OK;

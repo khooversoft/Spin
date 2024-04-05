@@ -9,10 +9,19 @@ internal class GraphDbContext
 {
     private const string _graphFileId = "directory.json";
 
-    public GraphDbContext(IFileStore store) => GraphStore = store.NotNull();
+    public GraphDbContext(IFileStore store)
+    {
+        GraphStore = store.NotNull();
+        Graph = new GraphAccess(this);
+        Store = new GraphStoreAccess(this, store);
+        Entity = new GraphEntityAccess(this);
+    }
 
     public GraphMap Map { get; private set; } = new GraphMap();
     public IFileStore GraphStore { get; }
+    public GraphAccess Graph { get; }
+    public GraphStoreAccess Store { get; }
+    public GraphEntityAccess Entity { get; }
     public AsyncReaderWriterLock ReadWriterLock => Map.ReadWriterLock;
 
     public async Task<Option> Read(ScopeContext context)
@@ -28,24 +37,5 @@ internal class GraphDbContext
     {
         var gs = Map.ToSerialization();
         return await GraphStore.Set(_graphFileId, gs, context);
-    }
-
-    public bool IsNodeExist(string nodeKey) => Map.Nodes.ContainsKey(nodeKey);
-
-    public bool HasFileId(string nodeKey, string fileId) => Map.Nodes.TryGetValue(nodeKey, out var value) && value.FileIds.Contains(fileId, StringComparer.OrdinalIgnoreCase);
-
-    public Option SetFileId(string nodeKey, string fileId) => IsNodeExist(nodeKey) switch
-    {
-        false => StatusCode.NotFound,
-        true => HasFileId(nodeKey, fileId) switch
-        {
-            true => StatusCode.OK,
-            false => StatusCode.OK.Action(x => Map.Nodes[nodeKey] = Map.Nodes[nodeKey].AddFileId(fileId)),
-        },
-    };
-
-    public void RemoveFileId(string nodeKey, string fileId)
-    {
-        if (Map.Nodes.TryGetValue(nodeKey, out var value)) value.RemoveFileId(fileId);
     }
 }

@@ -32,6 +32,14 @@ public class Tags : Dictionary<string, string?>
         return this;
     }
 
+    public Tags Delete(string key)
+    {
+        if (key.IsEmpty()) return this;
+
+        Remove(key);
+        return this;
+    }
+
     public Tags Set(string key, string? value)
     {
         if (key.IsEmpty()) return this;

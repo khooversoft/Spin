@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
@@ -54,6 +55,7 @@ public static class GraphAddCommand
     {
         string? key = null;
         var tags = new Tags();
+        var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -71,6 +73,10 @@ public static class GraphAddCommand
                     {
                         case "key" when key == null: key = rvalue.Value; break;
                         case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
+
+                        case "link":
+                            links.Add(rvalue.Value);
+                            break;
 
                         default:
                             tags.Set(langNode.Value, rvalue.Value);
@@ -90,6 +96,7 @@ public static class GraphAddCommand
                         Key = key,
                         Tags = tags,
                         Upsert = upsert,
+                        Links = links,
                     };
 
                 default:

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -19,28 +20,48 @@ public sealed record GraphNode : IGraphCommon
     }
 
     [JsonConstructor]
-    public GraphNode(string key, Tags tags, DateTime createdDate, IReadOnlyList<string> fileIds)
+    public GraphNode(string key, Tags tags, DateTime createdDate, ImmutableArray<string> links)
     {
         Key = key.NotNull();
         Tags = tags.NotNull();
         CreatedDate = createdDate;
-        FileIds = fileIds?.ToArray() ?? Array.Empty<string>();
+        Links = ((string[])[.. links])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToImmutableArray();
     }
 
-    public string Key { get; init; } = default!;
-    public Tags Tags { get; init; } = new Tags();
-    public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
-    public IReadOnlyList<string> FileIds { get; init; } = Array.Empty<string>();
+    public string Key { get; private set; } = default!;
+    public Tags Tags { get; private set; } = new Tags();
+    public DateTime CreatedDate { get; private set; } = DateTime.UtcNow;
+    public ImmutableArray<string> Links { get; private set; } = [];
 
-    public GraphNode Copy() => new GraphNode(Key, Tags.Clone(), CreatedDate, FileIds);
+    public GraphNode Copy() => new GraphNode(Key, Tags.Clone(), CreatedDate, Links);
     public GraphNode WithMerged(GraphNode node) => this with
     {
         Tags = Tags.Clone().Set(node.Tags),
-        FileIds = FileIds.Concat(node.FileIds).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
+        Links = ((string[])[.. Links, .. node.Links])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToImmutableArray(),
     };
+    public GraphNode WithLinks(params string[] attachments)
+    {
+        var list = new HashSet<string>(Links, StringComparer.OrdinalIgnoreCase);
 
-    public GraphNode AddFileId(string fileId) => this with { FileIds = [.. this.FileIds, fileId.NotEmpty()] };
-    public GraphNode RemoveFileId(string fileId) => this with { FileIds = this.FileIds.Where(x => fileId.EqualsIgnoreCase(x)).ToArray() };
+        attachments.Where(x => x.Length > 0 && x[0] == '-').Select(x => x[1..]).ForEach(x => list.Remove(x));
+        attachments.Where(x => x.Length > 0 && x[0] != '-').ForEach(x => list.Add(x));
+
+        return this with
+        {
+            Links = list
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(x => x)
+                .ToImmutableArray()
+        };
+    }
+
+    public GraphNode WithTags(string tags) => this with { Tags = Tags.Clone().Set(tags) };
 
     public bool Equals(GraphNode? obj)
     {
@@ -48,7 +69,7 @@ public sealed record GraphNode : IGraphCommon
             Key == subject.Key &&
             Tags == subject.Tags &&
             CreatedDate == subject.CreatedDate &&
-            Enumerable.SequenceEqual(FileIds.OrderBy(x => x), subject.FileIds.OrderBy(x => x));
+            Links.SequenceEqual(subject.Links);
 
         return result;
     }
@@ -58,6 +79,7 @@ public sealed record GraphNode : IGraphCommon
     public static IValidator<GraphNode> Validator { get; } = new Validator<GraphNode>()
         .RuleFor(x => x.Key).NotNull()
         .RuleFor(x => x.Tags).NotNull()
+        .RuleFor(x => x.Links).NotNull()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .Build();
 }
@@ -71,6 +93,4 @@ public static class GraphNodeExtensions
         result = subject.Validate();
         return result.IsOk();
     }
-
-    public static bool FileIdExist(this GraphNode graphNode, string fileId) => graphNode.FileIds.Contains(fileId, StringComparer.OrdinalIgnoreCase);
 }

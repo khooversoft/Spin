@@ -1,33 +1,36 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+
+[assembly: InternalsVisibleTo("Toolbox.Graph.test")]
 
 namespace Toolbox.Graph;
 
 public class GraphNodeIndex : IEnumerable<GraphNode>
 {
     private readonly Dictionary<string, GraphNode> _index;
-    private readonly Action<GraphNode> _removeEvent;
     private readonly object _lock;
+    private readonly GraphRI _graphRI;
 
-    public GraphNodeIndex(object syncLock, Action<GraphNode> removeEvent)
+    internal GraphNodeIndex(object syncLock, GraphRI graphRI)
     {
         _lock = syncLock.NotNull();
-        _removeEvent = removeEvent.NotNull();
+        _graphRI = graphRI.NotNull();
         _index = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
     }
 
     public GraphNode this[string key]
     {
         get => _index[key];
-        set => Set(value).ThrowOnError();
+        internal set => Set(value).ThrowOnError();
     }
 
     public int Count => _index.Count;
 
-    public Option Add(GraphNode node, GraphChangeContext? graphContext = null)
+    internal Option Add(GraphNode node, GraphChangeContext? graphContext = null)
     {
         if (!node.Validate(out var v)) return v;
 
@@ -48,7 +51,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public Option Set(GraphNode node, GraphChangeContext? graphContext = null)
+    internal Option Set(GraphNode node, GraphChangeContext? graphContext = null)
     {
         if (!node.Validate(out var v)) return v;
 
@@ -69,7 +72,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public bool ContainsKey(string key) => _index.ContainsKey(key);
 
-    public void Clear()
+    internal void Clear()
     {
         lock (_lock)
         {
@@ -77,30 +80,39 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public Option<GraphNode> Get(string nodeKey) => _index.TryGetValue(nodeKey, out var value) switch
-    {
-        true => value,
-        false => StatusCode.NotFound
-    };
-
-    public bool Remove(string key, GraphChangeContext? graphContext = null)
-    {
-        bool removed = Remove(key, out var oldValue);
-        if (removed) graphContext?.ChangeLog.Push(new NodeDelete(oldValue!), graphContext);
-        return removed;
-    }
-
-    public bool Remove(string key, out GraphNode? value)
+    internal bool Remove(string key, GraphChangeContext? graphContext = null)
     {
         lock (_lock)
         {
-            bool state = _index.Remove(key, out value);
-            if (state) _removeEvent(value.NotNull());
-            return state;
+            bool removed = _index.Remove(key, out var oldValue);
+            if (removed)
+            {
+                _graphRI.RemovedNodeFromEdges(oldValue!, graphContext);
+                graphContext?.ChangeLog.Push(new NodeDelete(oldValue!), graphContext);
+            }
+
+            return removed;
         }
     }
 
-    public Option Update(IReadOnlyList<GraphNode> query, Func<GraphNode, GraphNode> update, GraphChangeContext? graphContext = null)
+    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
+
+    internal bool TryUpdate(string key, Func<GraphNode, GraphNode> update, GraphChangeContext? graphContext = null)
+    {
+        lock (_lock)
+        {
+            if (!_index.TryGetValue(key, out var current)) return false;
+
+            GraphNode newValue = update(current);
+            current.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
+            _index[key] = newValue;
+
+            graphContext?.ChangeLog.Push(new NodeChange(key, current), graphContext);
+            return true;
+        }
+    }
+
+    internal Option Update(IReadOnlyList<GraphNode> query, Func<GraphNode, GraphNode> update, GraphChangeContext? graphContext = null)
     {
         query.NotNull();
         update.NotNull();
@@ -112,9 +124,9 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             {
                 _index.ContainsKey(x.Key).Assert(x => x == true, $"Node key={x.Key} does not exist");
 
-                var n = update(x);
-                x.Key.Equals(n.Key).Assert(x => x == true, "Cannot change the primary key");
-                _index[x.Key] = n;
+                var newValue = update(x);
+                x.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
+                _index[x.Key] = newValue;
 
                 graphContext?.ChangeLog.Push(new NodeChange(x.Key, x), graphContext);
             });
@@ -123,7 +135,6 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
 
     public IEnumerator<GraphNode> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

@@ -6,10 +6,10 @@ namespace Toolbox.Graph;
 
 public class GraphChangeContext
 {
-    public GraphChangeContext(GraphMap map, ChangeLog changeLog, IFileStore? store, ScopeContext context)
+    public GraphChangeContext(GraphMap map, IFileStore? store, ScopeContext context)
     {
         Map = map.NotNull();
-        ChangeLog = changeLog.NotNull();
+        ChangeLog = new ChangeLog(this);
         Store = store;
         Context = context.NotNull();
     }

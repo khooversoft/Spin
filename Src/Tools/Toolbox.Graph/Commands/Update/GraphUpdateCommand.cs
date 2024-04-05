@@ -50,6 +50,7 @@ public static class GraphUpdateCommand
     private static Option<GraphNodeUpdate> ParseNode(Stack<LangNode> stack)
     {
         var tags = new Tags();
+        var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -63,8 +64,18 @@ public static class GraphUpdateCommand
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    tags.Set(langNode.Value, rvalue.Value);
+                    switch (langNode.Value.ToLower())
+                    {
+                        case "link":
+                            links.Add(rvalue.Value);
+                            break;
+
+                        default:
+                            tags.Set(langNode.Value, rvalue.Value);
+                            break;
+                    }
                     break;
+
 
                 case { SyntaxNode.Name: "delimiter" }:
                     break;
@@ -75,6 +86,7 @@ public static class GraphUpdateCommand
                     return new GraphNodeUpdate
                     {
                         Tags = tags,
+                        Links = links,
                     };
 
                 default: throw new UnreachableException($"Unknown langNode={langNode.GetType().FullName}");
