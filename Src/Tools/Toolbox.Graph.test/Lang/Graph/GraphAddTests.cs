@@ -209,4 +209,56 @@ public class GraphAddTests
 
         LangTestTools.Verify(_root, test);
     }
+
+    [Fact]
+    public void AddNodeWithLink()
+    {
+        var test = new QueryTest
+        {
+            RawData = "add node key=node1, link=a/b/c;",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("node","node"),
+                new QueryResult<LsValue>("key","lvalue"),
+                new QueryResult<LsToken>("=", "equal"),
+                new QueryResult<LsValue>("node1", "rvalue"),
+                new QueryResult<LsToken>(",","delimiter"),
+                new QueryResult<LsValue>("link","lvalue"),
+                new QueryResult<LsToken>("=","equal"),
+                new QueryResult<LsValue>("a/b/c","rvalue"),
+                new QueryResult<LsToken>(";", "term"),
+            }
+        };
+
+        LangTestTools.Verify(_root, test);
+    }
+
+    [Fact]
+    public void AddNodeWithTwoLink()
+    {
+        var test = new QueryTest
+        {
+            RawData = "add node key=node1, link=a/b/c, link=file:nodes/file.json;",
+            Results = new List<IQueryResult>()
+            {
+                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("node","node"),
+                new QueryResult<LsValue>("key","lvalue"),
+                new QueryResult<LsToken>("=", "equal"),
+                new QueryResult<LsValue>("node1", "rvalue"),
+                new QueryResult<LsToken>(",","delimiter"),
+                new QueryResult<LsValue>("link","lvalue"),
+                new QueryResult<LsToken>("=","equal"),
+                new QueryResult<LsValue>("a/b/c","rvalue"),
+                new QueryResult<LsToken>(",","delimiter"),
+                new QueryResult<LsValue>("link","lvalue"),
+                new QueryResult<LsToken>("=","equal"),
+                new QueryResult<LsValue>("file:nodes/file.json","rvalue"),
+                new QueryResult<LsToken>(";", "term"),
+            }
+        };
+
+        LangTestTools.Verify(_root, test);
+    }
 }

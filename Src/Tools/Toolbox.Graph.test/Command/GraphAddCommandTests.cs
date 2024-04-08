@@ -53,6 +53,36 @@ public class GraphAddCommandTests
     }
 
     [Fact]
+    public void SingleAddForNodeWithLink()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("add node key=node99, link=ab/cd/ef;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node99");
+            x.Tags.ToString().Should().Be("");
+            x.Links.Join(',').Should().Be("ab/cd/ef");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.AddNode);
+            x.Status.IsOk().Should().BeTrue();
+            x.Status.Error.Should().BeNull();
+            x.Items.Should().NotBeNull();
+        });
+    }
+
+    [Fact]
     public void SingleAddForNodeWithMultipleTags()
     {
         var copyMap = _map.Copy();
@@ -67,6 +97,35 @@ public class GraphAddCommandTests
         {
             x.Key.Should().Be("node99");
             x.Tags.ToString().Should().Be("label=client,newTags");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.AddNode);
+            x.Status.IsOk().Should().BeTrue();
+            x.Items.Should().NotBeNull();
+        });
+    }
+
+    [Fact]
+    public void SingleAddForNodeWithMultipleTagsAndLinks()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("add node key=node99, newTags,label=client, Link=a/b/c/d, link=config:/system/directory.json;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node99");
+            x.Tags.ToString().Should().Be("label=client,newTags");
+            x.Links.OrderBy(x => x).Join(',').Should().Be("a/b/c/d,config:/system/directory.json");
         });
 
         commandResults.Items.Count.Should().Be(1);

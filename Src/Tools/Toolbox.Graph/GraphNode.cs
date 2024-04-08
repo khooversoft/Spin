@@ -19,6 +19,22 @@ public sealed record GraphNode : IGraphCommon
         Tags = new Tags().Set(tags);
     }
 
+    public GraphNode(string key, Tags tags)
+    {
+        Key = key.NotNull();
+        Tags = tags.NotNull();
+    }
+
+    public GraphNode(string key, Tags tags, IEnumerable<string> links)
+    {
+        Key = key.NotNull();
+        Tags = tags.NotNull();
+        Links = ((string[])[.. links])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToImmutableArray();
+    }
+
     [JsonConstructor]
     public GraphNode(string key, Tags tags, DateTime createdDate, ImmutableArray<string> links)
     {
@@ -69,6 +85,7 @@ public sealed record GraphNode : IGraphCommon
             Key == subject.Key &&
             Tags == subject.Tags &&
             CreatedDate == subject.CreatedDate &&
+            Links.Length == subject.Links.Length &&
             Links.SequenceEqual(subject.Links);
 
         return result;

@@ -71,7 +71,7 @@ public static class GraphCommand
 
     private static GraphQueryResult AddNode(GraphNodeAdd addNode, GraphChangeContext graphContext)
     {
-        var graphNode = new GraphNode(addNode.Key, addNode.Tags);
+        var graphNode = new GraphNode(addNode.Key, addNode.Tags, addNode.Links);
 
         Option result = addNode.Upsert switch
         {
