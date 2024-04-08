@@ -47,7 +47,7 @@ public class GraphEntityModelTests
 
         var commands = entity.GetGraphCommands();
         commands.IsOk().Should().BeTrue();
-        commands.Return().Select(x => x.ToString()).ToArray().Action(x =>
+        commands.Return().Select(x => x.GetAddCommand()).ToArray().Action(x =>
         {
             x.Length.Should().Be(3);
             x[0].Should().Be("upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001;");
@@ -74,7 +74,7 @@ public class GraphEntityModelTests
 
         var commands = entity.GetGraphCommands();
         commands.IsOk().Should().BeTrue();
-        commands.Return().Select(x => x.ToString()).ToArray().Action(x =>
+        commands.Return().Select(x => x.GetAddCommand()).ToArray().Action(x =>
         {
             x.Length.Should().Be(5);
             x[0].Should().Be("upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001;");

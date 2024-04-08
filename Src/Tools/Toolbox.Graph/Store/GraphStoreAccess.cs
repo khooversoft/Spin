@@ -25,11 +25,11 @@ public class GraphStoreAccess
 
         string fileId = GraphTool.CreateFileId(nodeKey, name);
 
-        var updatedNode = _graphDbContext.Map.Nodes.TryUpdate(nodeKey, x => x.DeleteEntityFileId(fileId));
-        if (!updatedNode)
-        {
-            return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist");
-        }
+        //var updatedNode = _graphDbContext.Map.Nodes.TryUpdate(nodeKey, x => x.DeleteEntityFileId(fileId));
+        //if (!updatedNode)
+        //{
+        //    return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist");
+        //}
 
         await _graphDbContext.Write(context);
         await _graphStore.Delete(fileId, context);
@@ -57,6 +57,7 @@ public class GraphStoreAccess
     private async Task<Option<string>> AddOrUpdate<T>(string nodeKey, string name, bool upsert, T value, ScopeContext context) where T : class
     {
         if (!_graphDbContext.Map.Nodes.ContainsKey(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
+
         using var scope = await _graphDbContext.ReadWriterLock.WriterLockAsync();
 
         string fileId = GraphTool.CreateFileId(nodeKey, name);
@@ -69,11 +70,13 @@ public class GraphStoreAccess
 
         if (addOption.IsError()) return addOption.ToOptionStatus<string>();
 
-        var updatedNode = _graphDbContext.Map.Nodes.TryUpdate(nodeKey, x => x.SetEntityFileId(fileId));
-        if (!updatedNode)
+        string cmd = $"update (key={nodeKey}) set link={fileId}";
+        var updateResult = await _graphDbContext.Graph.ExecuteScalar(cmd, context);
+
+        if (updateResult.StatusCode.IsError())
         {
             await _graphStore.Delete(fileId, context);
-            return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist");
+            return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist for update");
         }
 
         await _graphDbContext.Write(context);

@@ -61,6 +61,46 @@ public class GraphUpdateCommandTests
         });
     }
 
+
+    [Fact]
+    public void SingleUpdateForNodeWithLink()
+    {
+        var workMap = _map.Copy();
+        var newMapOption = workMap.Execute("update (key=node3) set link=abc/def;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
+
+        compareMap.Count.Should().Be(1);
+        var index = compareMap.ToCursor();
+
+        index.NextValue().Return().Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node3");
+            x.Tags.ToString().Should().Be("lang=java,name=lop,t1");
+            x.Links.Join(',').Should().Be("abc/def");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.UpdateNode);
+            x.Status.IsOk().Should().BeTrue();
+            x.Items.NotNull().Count.Should().Be(1);
+
+            var resultIndex = x.Items.NotNull().ToCursor();
+            resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
+            {
+                x.Key.Should().Be("node3");
+                x.Tags.ToString().Should().Be("lang=java,name=lop");
+                x.Links.Length.Should().Be(0);
+            });
+        });
+    }
+
     [Fact]
     public void SingleRemoveTagForNode()
     {

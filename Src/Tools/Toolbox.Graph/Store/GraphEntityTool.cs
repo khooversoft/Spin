@@ -20,10 +20,10 @@ public interface IGraphEntityCommand
 
 public static class GraphEntityTool
 {
-    public static NodeCreateCommand GetEntityNodeCommand(this IReadOnlyList<IGraphEntityCommand> commands) => commands
+    public static Option<NodeCreateCommand> GetEntityNodeCommand(this IReadOnlyList<IGraphEntityCommand> commands) => commands
         .OfType<NodeCreateCommand>()
         .Where(x => x.IsEntityNode)
-        .First();
+        .FirstOrDefaultOption(returnNotFound: true);
 
     public static Option<IReadOnlyList<IGraphEntityCommand>> GetGraphCommands<T>(this T value)
     {
@@ -71,7 +71,7 @@ public static class GraphEntityTool
         var cmds = propertiesValues
             .Where(x => x.Attribute is GraphKeyAttribute && x.Value.IsNotEmpty())
             .Select(getNodeKey)
-            .Select(x => new NodeCreateCommand(x, tags))
+            .Select(x => new NodeCreateCommand(x, tags, isEntityNode: true))
             .Take(1)
             .ToArray();
 

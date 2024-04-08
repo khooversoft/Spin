@@ -22,14 +22,4 @@ public class GraphAccess
 
         return result.Return().Items.First();
     }
-
-    public async Task<Option> Remove<T>(T subject, ScopeContext context) where T : class
-    {
-        NodeCreateCommand entityNodeCommand = subject.GetGraphCommands().ThrowOnError().Return().GetEntityNodeCommand();
-
-        string command = entityNodeCommand.GetDeleteCommand();
-        var result = await GraphCommand.Execute(_graphDbContext.Map, command, _graphDbContext.GraphStore, context);
-
-        return result.ToOptionStatus();
-    }
 }

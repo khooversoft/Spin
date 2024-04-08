@@ -22,7 +22,7 @@ public class GraphEntityTests
             Id = "user001",
             UserName = "User name",
             Email = "user@domain.com",
-            NormalizedUserName = "duser001-normalized",
+            NormalizedUserName = "user001-normalized",
             EmailConfirmed = true,
             PasswordHash = "passwordHash",
             Name = "name1-user001",
@@ -31,7 +31,7 @@ public class GraphEntityTests
         };
 
         var result = await db.Entity.Set(entity, NullScopeContext.Instance);
-        result.Should().Be(StatusCode.OK);
+        result.IsOk().Should().BeTrue();
     }
 
     private sealed record TestEntity

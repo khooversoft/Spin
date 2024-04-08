@@ -54,47 +54,4 @@ public static class GraphTool
     }
 }
 
-public static class EntityFileIdTool
-{
-    public static Tags RemoveFromTags(this EntityFileId entityFileId, Tags tags) => tags.Action(x => x.Remove(entityFileId.ToTagEncode()));
-    public static Tags AddToTags(this EntityFileId entityFileId, Tags tags) => tags.Set(entityFileId.ToTagEncode(), entityFileId.EntityId);
 
-    public static GraphNode DeleteEntityFileId(this GraphNode node, string fileId) => node with
-    {
-        //Tags = EntityFileId.CreateFromTagEncode(fileId).RemoveFromTags(node.Tags),
-    };
-
-    public static GraphNode SetEntityFileId(this GraphNode node, string fileId) => node with
-    {
-        //Tags = EntityFileId.CreateFromTagEncode(fileId).AddToTags(node.Tags),
-    };
-}
-
-
-public sealed record EntityFileId
-{
-    private EntityFileId(string entityId) => EntityId = entityId
-        .NotEmpty()
-        .Split('/', StringSplitOptions.RemoveEmptyEntries)
-        .Join('/');
-
-    public string EntityId { get; }
-    public string ToTagEncode() => $"{GraphConstants.EntityFileIdPrefix}{EntityId}";
-
-    public static EntityFileId Create(string nodeKey, string name)
-    {
-        string fileId = GraphTool.CreateFileId(nodeKey, name);
-        return new EntityFileId(fileId);
-    }
-
-    public static EntityFileId CreateFromTagEncode(string tag)
-    {
-        var fileId = tag.StartsWith(GraphConstants.EntityFileIdPrefix) switch
-        {
-            true => tag[GraphConstants.EntityFileIdPrefix.Length..],
-            false => tag,
-        };
-
-        return new EntityFileId(fileId);
-    }
-}
