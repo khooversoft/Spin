@@ -53,6 +53,7 @@ public sealed record GraphNode : IGraphCommon
     public ImmutableArray<string> Links { get; private set; } = [];
 
     public GraphNode Copy() => new GraphNode(Key, Tags.Clone(), CreatedDate, Links);
+
     public GraphNode WithMerged(GraphNode node) => this with
     {
         Tags = Tags.Clone().Set(node.Tags),
@@ -61,21 +62,17 @@ public sealed record GraphNode : IGraphCommon
             .OrderBy(x => x)
             .ToImmutableArray(),
     };
-    public GraphNode WithLinks(params string[] attachments)
+
+    public GraphNode With(Tags tags, IEnumerable<string> linkCommands) => this with
     {
-        var list = new HashSet<string>(Links, StringComparer.OrdinalIgnoreCase);
+        Tags = Tags.Clone().Set(tags),
+        Links = GraphNodeTool.ProcessLinks(Links, linkCommands)
+    };
 
-        attachments.Where(x => x.Length > 0 && x[0] == '-').Select(x => x[1..]).ForEach(x => list.Remove(x));
-        attachments.Where(x => x.Length > 0 && x[0] != '-').ForEach(x => list.Add(x));
-
-        return this with
-        {
-            Links = list
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(x => x)
-                .ToImmutableArray()
-        };
-    }
+    public GraphNode WithLinks(IEnumerable<string> linkCommands) => this with
+    {
+        Links = GraphNodeTool.ProcessLinks(Links, linkCommands)
+    };
 
     public GraphNode WithTags(string tags) => this with { Tags = Tags.Clone().Set(tags) };
 
@@ -101,7 +98,7 @@ public sealed record GraphNode : IGraphCommon
         .Build();
 }
 
-public static class GraphNodeExtensions
+public static class GraphNodeTool
 {
     public static Option Validate(this GraphNode subject) => GraphNode.Validator.Validate(subject).ToOptionStatus();
 
@@ -109,5 +106,20 @@ public static class GraphNodeExtensions
     {
         result = subject.Validate();
         return result.IsOk();
+    }
+
+    public static ImmutableArray<string> ProcessLinks(ImmutableArray<string> links, IEnumerable<string> linkCommands)
+    {
+        var list = new HashSet<string>(links, StringComparer.OrdinalIgnoreCase);
+
+        linkCommands.Where(x => x.Length > 0 && x[0] == '-').Select(x => x[1..]).ForEach(x => list.Remove(x));
+        linkCommands.Where(x => x.Length > 0 && x[0] != '-').ForEach(x => list.Add(x));
+
+        var result = list
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToImmutableArray();
+
+        return result;
     }
 }

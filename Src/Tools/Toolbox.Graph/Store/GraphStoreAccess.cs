@@ -70,7 +70,7 @@ public class GraphStoreAccess
 
         if (addOption.IsError()) return addOption.ToOptionStatus<string>();
 
-        string cmd = $"update (key={nodeKey}) set link={fileId}";
+        string cmd = $"update (key={nodeKey}) set link={fileId};";
         var updateResult = await _graphDbContext.Graph.ExecuteScalar(cmd, context);
 
         if (updateResult.StatusCode.IsError())

@@ -124,7 +124,7 @@ public static class GraphCommand
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.UpdateNode, StatusCode.NoContent);
 
-        graphContext.Map.Nodes.Update(nodes, x => x.WithTags(updateNode.Tags.ToString()), graphContext);
+        graphContext.Map.Nodes.Update(nodes, x => x.With(updateNode.Tags, updateNode.Links), graphContext);
 
         return searchResult with { CommandType = CommandType.UpdateNode };
     }

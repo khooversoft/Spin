@@ -78,7 +78,7 @@ public class GraphUpdateCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node3");
-            x.Tags.ToString().Should().Be("lang=java,name=lop,t1");
+            x.Tags.ToString().Should().Be("lang=java,name=lop");
             x.Links.Join(',').Should().Be("abc/def");
         });
 

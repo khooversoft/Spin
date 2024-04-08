@@ -9,9 +9,9 @@ public static class GraphTool
 {
     private static FrozenSet<(string chr, string replace)> _replaceMap = new []
     {
-        ( "/", "_0SL" ),
-        ( ":", "_0CO" ),
-        ( "$", "_0DL" ),
+        ( "/", "_SLH_" ),
+        ( ":", "__" ),
+        ( "$", "_DLR_" ),
     }.ToFrozenSet();
 
     private static string ToEncoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.chr, y.replace));
