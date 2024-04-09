@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Types;
 
@@ -32,6 +33,54 @@ public class GraphEntityTests
 
         var result = await db.Entity.Set(entity, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();
+
+        string nodeKey = entity.GetNodeKey();
+        (await db.Store.Exist(nodeKey, GraphConstants.EntityName, NullScopeContext.Instance)).ThrowOnError();
+
+        var userCmd = "select (key=userNormalizedUserName:user001-normalized) a1 -> [*] a2 -> (*) a3;";
+        var userOption = await db.Graph.ExecuteScalar(userCmd, NullScopeContext.Instance);
+        userOption.IsOk().Should().BeTrue();
+        GraphQueryResult userResult = userOption.Return();
+        userResult.Items.Count.Should().Be(1);
+        userResult.Alias.Count.Should().Be(3);
+
+        userResult.Alias["a1"].Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x.OfType<GraphNode>().ToArray().Action(y =>
+            {
+                y.Length.Should().Be(1);
+                y[0].Key.Should().Be("userNormalizedUserName:user001-normalized");
+                y[0].Tags.ToString().Should().Be(GraphConstants.UniqueIndexTag);
+            });
+        });
+
+        userResult.Alias["a2"].Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x.OfType<GraphEdge>().ToArray().Action(y =>
+            {
+                y.Length.Should().Be(1);
+                y[0].FromKey.Should().Be("userNormalizedUserName:user001-normalized");
+                y[0].ToKey.Should().Be("user:user001");
+                y[0].Tags.Count.Should().Be(0);
+            });
+        });
+
+        userResult.Alias["a3"].Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x.OfType<GraphNode>().ToArray().Action(y =>
+            {
+                y.Length.Should().Be(1);
+                y[0].Key.Should().Be("user:user001");
+                y[0].Tags.Count.Should().Be(2);
+                y[0].Tags.ToString().Should().Be("Name=name1-user001,userEmail=user@domain.com");
+            });
+        });
+
+        // Delete node, should delete all other nodes and linked file
+        var deleteREsult
     }
 
     private sealed record TestEntity

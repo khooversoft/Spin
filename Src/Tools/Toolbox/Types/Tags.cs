@@ -103,7 +103,7 @@ public class Tags : Dictionary<string, string?>
     private static string? Fmt(string key, string? value) => value.ToNullIfEmpty() switch
     {
         null => key,
-        var v => v.All(x => char.IsLetterOrDigit(x) || x == '-' || x == '.') switch
+        var v => v.All(x => char.IsLetterOrDigit(x) || char.IsSymbol(x) || char.IsPunctuation(x) || x == '-' || x == '.') switch
         {
             true => $"{key}={value}",
             false => $"{key}='{value}'",

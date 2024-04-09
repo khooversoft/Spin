@@ -58,8 +58,6 @@ public class GraphStoreAccess
     {
         if (!_graphDbContext.Map.Nodes.ContainsKey(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
 
-        using var scope = await _graphDbContext.ReadWriterLock.WriterLockAsync();
-
         string fileId = GraphTool.CreateFileId(nodeKey, name);
 
         var addOption = upsert switch

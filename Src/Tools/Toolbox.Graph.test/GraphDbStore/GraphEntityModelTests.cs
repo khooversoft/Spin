@@ -45,9 +45,26 @@ public class GraphEntityModelTests
             ProviderKey = "user001-microsoft-id",
         };
 
-        var commands = entity.GetGraphCommands();
-        commands.IsOk().Should().BeTrue();
-        commands.Return().Select(x => x.GetAddCommand()).ToArray().Action(x =>
+        var commandOptions = entity.GetGraphCommands();
+        commandOptions.IsOk().Should().BeTrue();
+
+        var nodeKeys = new string[]
+        {
+            "logonProvider:microsoft/user001-microsoft-id",
+            "user:user001",
+        };
+
+        var commands = commandOptions.Return();
+
+        commands
+            .OfType<NodeCreateCommand>()
+            .Select(x => x.NodeKey)
+            .OrderBy(x => x)
+            .Zip(nodeKeys, (o, i) => (o, i))
+            .Select(x => (x, pass: x.o == x.i))
+            .All(x => x.pass).Should().BeTrue();
+
+        commands.Select(x => x.GetAddCommand()).ToArray().Action(x =>
         {
             x.Length.Should().Be(3);
             x[0].Should().Be("upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001;");
@@ -72,9 +89,27 @@ public class GraphEntityModelTests
             ProviderKey = "user001-microsoft-id",
         };
 
-        var commands = entity.GetGraphCommands();
-        commands.IsOk().Should().BeTrue();
-        commands.Return().Select(x => x.GetAddCommand()).ToArray().Action(x =>
+        var commandOptions = entity.GetGraphCommands();
+        commandOptions.IsOk().Should().BeTrue();
+
+        var nodeKeys = new string[]
+        {
+            "logonProvider:microsoft/user001-microsoft-id",
+            "user:user001",
+            "userNormalizedUserName:user001-normalized",
+        };
+
+        var commands = commandOptions.Return();
+
+        commands
+            .OfType<NodeCreateCommand>()
+            .Select(x => x.NodeKey)
+            .OrderBy(x => x)
+            .Zip(nodeKeys, (o, i) => (o, i))
+            .Select(x => (x, pass: x.o == x.i))
+            .All(x => x.pass).Should().BeTrue();
+
+        commands.Select(x => x.GetAddCommand()).ToArray().Action(x =>
         {
             x.Length.Should().Be(5);
             x[0].Should().Be("upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001;");

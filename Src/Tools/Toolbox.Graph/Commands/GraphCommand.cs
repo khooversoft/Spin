@@ -140,26 +140,26 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private static Task<GraphQueryResult> DeleteNode(GraphNodeDelete deleteNode, GraphChangeContext graphContext)
+    private static async Task<GraphQueryResult> DeleteNode(GraphNodeDelete deleteNode, GraphChangeContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, deleteNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
-        if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent).ToTaskResult();
+        if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent);
 
-        //if (graphContext.Store != null)
-        //{
-        //    var allFileIds = nodes.SelectMany(x => x.FileIds);
-        //    foreach (var fileId in allFileIds)
-        //    {
-        //        var existOption = (await graphContext.Store.Exist(fileId, graphContext.Context)).NotNull();
-        //        if (existOption.IsOk()) return new GraphQueryResult(CommandType.DeleteNode, (StatusCode.Conflict, $"NodeKey has attached file {fileId}"));
-        //    }
-        //}
+        if (graphContext.Store != null)
+        {
+            var links = nodes.SelectMany(x => x.Links);
+            foreach (var fileId in links)
+            {
+                var existOption = await graphContext.Store.Exist(fileId, graphContext.Context);
+                if (existOption.IsOk()) return new GraphQueryResult(CommandType.DeleteNode, (StatusCode.Conflict, $"NodeKey has attached file {fileId}"));
+            }
+        }
 
         nodes.ForEach(x => graphContext.Map.Nodes.Remove(x.Key, graphContext));
         var result = searchResult with { CommandType = CommandType.DeleteNode };
-        return result.ToTaskResult<GraphQueryResult>();
+        return result;
     }
 
     private static GraphQueryResult Select(GraphSelect select, GraphChangeContext graphContext)

@@ -10,14 +10,14 @@ namespace Toolbox.Graph.test.GraphDbStore;
 public class GraphStoreTests
 {
     [Theory]
-    [InlineData("n", "nodes/main/n")]
+    [InlineData("n", "nodes/main/n.json")]
     [InlineData("node1.json", "nodes/main/node1.json")]
-    [InlineData("user:user001", "nodes/main/user/user$user001")]
-    [InlineData("data/node1.json", "nodes/main/data/data_node1.json")]
-    [InlineData("data:node1.json", "nodes/main/data/data$node1.json")]
-    [InlineData("data:folder1/node1.json", "nodes/main/data/folder1/data$folder1_node1.json")]
-    [InlineData("data/company.com/node1.json", "nodes/main/data/company.com/data_company.com_node1.json")]
-    [InlineData("Data/User1@company.com/node1.json", "nodes/main/data/user1@company.com/data_user1@company.com_node1.json")]
+    [InlineData("user:user001", "nodes/main/user/user__user001.json")]
+    [InlineData("data/node1.json", "nodes/main/data/data___node1.json")]
+    [InlineData("data:node1.json", "nodes/main/data/data__node1.json")]
+    [InlineData("data:folder1/node1.json", "nodes/main/data/folder1/data__folder1___node1.json")]
+    [InlineData("data/company.com/node1.json", "nodes/main/data/company.com/data___company.com___node1.json")]
+    [InlineData("Data/User1@company.com/node1.json", "nodes/main/data/user1@company.com/data___user1@company.com___node1.json")]
     public void CreateFileId(string source, string expected)
     {
         string result = GraphTool.CreateFileId(source, "main");
@@ -88,7 +88,7 @@ public class GraphStoreTests
 
         (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
 
-        TestDirectory(store, ["directory.json", "nodes/main/subscription/subscription_node1.json"]);
+        TestDirectory(store, ["directory.json", "nodes/main/subscription/subscription___node1.json"]);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class GraphStoreTests
 
         var option = await db.Store.Set(nodeKey, "main", data, NullScopeContext.Instance);
         option.IsOk().Should().BeTrue(option.ToString());
-        TestDirectory(store, ["directory.json", "nodes/main/contract/company.com/contract_company.com_node1.json"]);
+        TestDirectory(store, ["directory.json", "nodes/main/contract/company.com/contract___company.com___node1.json"]);
 
         (await db.Graph.ExecuteScalar($"select (key={nodeKey});", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
         (await db.Graph.ExecuteScalar($"delete (key={nodeKey});", NullScopeContext.Instance)).Action(x => x.IsError().Should().BeTrue(x.ToString()));

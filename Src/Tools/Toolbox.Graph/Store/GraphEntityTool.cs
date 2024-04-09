@@ -20,12 +20,33 @@ public interface IGraphEntityCommand
 
 public static class GraphEntityTool
 {
+    public static string GetNodeKey<T>(this T value) where T : class
+    {
+        IReadOnlyList<IGraphEntityCommand> commands = value.GetGraphCommands().ThrowOnError().Return();
+        return commands.GetEntityNodeCommand().ThrowOnError().Return().NodeKey.NotEmpty();
+    }
+
     public static Option<NodeCreateCommand> GetEntityNodeCommand(this IReadOnlyList<IGraphEntityCommand> commands) => commands
         .OfType<NodeCreateCommand>()
         .Where(x => x.IsEntityNode)
         .FirstOrDefaultOption(returnNotFound: true);
 
     public static Option<IReadOnlyList<IGraphEntityCommand>> GetGraphCommands<T>(this T value)
+    {
+        value.NotNull();
+        PropertyValue[] propertiesValues = BuildPropertyValues<T>(value);
+
+        var nodeCommands = GetKeyCommand(propertiesValues);
+        if (nodeCommands.IsError()) return nodeCommands.ToOptionStatus<IReadOnlyList<IGraphEntityCommand>>();
+        NodeCreateCommand setKeyNode = nodeCommands.Return();
+
+        var indexCommands = GetIndexCommands(propertiesValues, setKeyNode.NodeKey);
+
+        IReadOnlyList<IGraphEntityCommand> set = [setKeyNode, .. indexCommands];
+        return set.ToOption();
+    }
+
+    private static PropertyValue[] BuildPropertyValues<T>(T value)
     {
         value.NotNull();
 
@@ -42,20 +63,13 @@ public static class GraphEntityTool
             })
             .ToArray();
 
-        var nodeCommands = getKeyCommand(propertiesValues);
-        if (nodeCommands.IsError()) return nodeCommands.ToOptionStatus<IReadOnlyList<IGraphEntityCommand>>();
-        NodeCreateCommand setKeyNode = nodeCommands.Return();
-
-        var indexCommands = getIndexCommands(propertiesValues, setKeyNode.NodeKey);
-
-        IReadOnlyList<IGraphEntityCommand> set = [setKeyNode, .. indexCommands];
-        return set.ToOption();
+        return propertiesValues;
 
         Attribute[] search(MemberInfo x) => x.GetCustomAttributes(false).OfType<Attribute>().Where(y => isGraphAttribute(y)).ToArray();
         bool isGraphAttribute(Attribute x) => x is GraphKeyAttribute || x is GraphTagAttribute || x is GraphNodeIndexAttribute;
     }
 
-    private static Option<NodeCreateCommand> getKeyCommand(PropertyValue[] propertiesValues)
+    private static Option<NodeCreateCommand> GetKeyCommand(PropertyValue[] propertiesValues)
     {
         bool allHasValue = propertiesValues
             .Where(x => x.Attribute is GraphTagAttribute)
@@ -81,7 +95,7 @@ public static class GraphEntityTool
         string getNodeKey(PropertyValue pv) => $"{(((GraphKeyAttribute)pv.Attribute!).IndexName)}:{pv.Value}";
     }
 
-    private static IEnumerable<IGraphEntityCommand> getIndexCommands(PropertyValue[] propertiesValues, string rootNodeKey)
+    private static IEnumerable<IGraphEntityCommand> GetIndexCommands(PropertyValue[] propertiesValues, string rootNodeKey)
     {
         var cmds = propertiesValues
             .Where(x => x.Attribute is GraphNodeIndexAttribute)

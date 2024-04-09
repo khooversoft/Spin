@@ -9,7 +9,7 @@ public static class GraphTool
 {
     private static FrozenSet<(string chr, string replace)> _replaceMap = new []
     {
-        ( "/", "_SLH_" ),
+        ( "/", "___" ),
         ( ":", "__" ),
         ( "$", "_DLR_" ),
     }.ToFrozenSet();
