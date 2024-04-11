@@ -5,6 +5,7 @@ using Toolbox.Types;
 namespace Toolbox.LangTools;
 
 
+// Same as Switch, need to re-work
 [DebuggerDisplay("Name={Name}")]
 public class LsOption : LangBase<ILangSyntax>, ILangRoot
 {

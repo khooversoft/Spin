@@ -165,7 +165,8 @@ public class GraphStoreTests
     {
         IFileStore store = new InMemoryFileStore();
         GraphDb db = new GraphDb(store);
-        int count = 100;
+        const int count = 10000;
+        const int maxParallel = 20;
 
         int deleteCount = 0;
         var deleteBlock = new ActionBlock<string>(async nodeKey =>
@@ -173,7 +174,7 @@ public class GraphStoreTests
             (await db.Store.Delete(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
             (await db.Graph.ExecuteScalar($"delete (key={nodeKey});", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
             Interlocked.Increment(ref deleteCount);
-        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
+        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallel });
 
         var addBlock = new ActionBlock<int>(async x =>
         {
@@ -185,7 +186,7 @@ public class GraphStoreTests
             option.IsOk().Should().BeTrue(option.ToString());
 
             await deleteBlock.SendAsync(nodeKey);
-        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
+        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallel });
 
         await Enumerable.Range(0, count).ForEachAsync(async x => await addBlock.SendAsync(x));
 
@@ -197,7 +198,7 @@ public class GraphStoreTests
 
         InMemoryFileStore s = (InMemoryFileStore)store;
         s.Count.Should().Be(1);
-        deleteCount.Should().Be(100);
+        deleteCount.Should().Be(count);
 
         TestDirectory(store, ["directory.json"]);
     }

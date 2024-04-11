@@ -5,12 +5,15 @@ namespace Toolbox.Graph;
 
 public static class GraphSelectCommand
 {
-    public static Option<IReadOnlyList<IGraphQL>> Parse(Stack<LangNode> stack, string command)
+    public static Option<IReadOnlyList<IGraphQL>> Parse(Stack<LangNode> stack, string? command = null)
     {
         var list = new List<IGraphQL>();
 
-        if (!stack.TryPeek(out var cmd) || cmd.SyntaxNode.Name != command) return (StatusCode.NotFound, $"Command {command} not found");
-        stack.Pop();
+        if (command != null)
+        {
+            if (!stack.TryPeek(out var cmd) || cmd.SyntaxNode.Name != command) return (StatusCode.NotFound, $"Command {command} not found");
+            stack.Pop();
+        }
 
         while (stack.TryPop(out var langNode))
         {

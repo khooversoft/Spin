@@ -27,6 +27,8 @@ public class GraphUpdateTests
     [InlineData("update [key=key1, set] set tags=t2;")]
     [InlineData("update [key=key1, set, t2] set tags=t2;")]
     [InlineData("update [key=key1, key, t2] set tags=t2;")]
+    [InlineData("update [key=key1, key, t2] set tags=t2, link=l1;")]
+    [InlineData("update [key=key1, key, t2] set tags=t2, link=l1, link=l2;")]
     public void AddNodeWithReserveTags(string line)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);
@@ -78,6 +80,35 @@ public class GraphUpdateTests
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid type");
 
             query.Tags.ToString().Should().Be("t2");
+            query.Search.Count.Should().Be(1);
+            query.Search.Count.Should().Be(1);
+
+            query.Search[0].Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.ToString().Should().Be("t1");
+            });
+        });
+    }
+
+    [Fact]
+    public void updateNodeWithLink()
+    {
+        var q = "update (key=key1, t1) set t2, link=l1;";
+
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
+        result.IsOk().Should().BeTrue(result.ToString());
+
+        IReadOnlyList<IGraphQL> list = result.Return();
+        list.Count.Should().Be(1);
+
+        int index = 0;
+        list[index++].Action(x =>
+        {
+            if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid type");
+
+            query.Tags.ToString().Should().Be("t2");
+            query.Links.Join(',').Should().Be("l1");
             query.Search.Count.Should().Be(1);
             query.Search.Count.Should().Be(1);
 

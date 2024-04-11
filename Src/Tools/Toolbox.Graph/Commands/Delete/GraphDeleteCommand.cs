@@ -9,7 +9,16 @@ public static class GraphDeleteCommand
 {
     public static Option<IGraphQL> Parse(Stack<LangNode> stack)
     {
-        var selectListOption = GraphSelectCommand.Parse(stack, "delete");
+        if (!stack.TryPeek(out var cmd) || cmd.SyntaxNode.Name != "delete") return (StatusCode.NotFound, $"Command delete not found");
+        stack.Pop();
+
+        bool force = stack.TryPeek(out var forceCmd) switch
+        {
+            true when forceCmd.SyntaxNode.Name == "force" => true.Action(_ => stack.Pop()),
+            _ => false,
+        };
+
+        var selectListOption = GraphSelectCommand.Parse(stack);
         if (selectListOption.IsError()) return selectListOption.ToOptionStatus<IGraphQL>();
 
         IReadOnlyList<IGraphQL> selectList = selectListOption.Return();
@@ -21,6 +30,7 @@ public static class GraphDeleteCommand
                 return new GraphNodeDelete
                 {
                     Search = selectList,
+                    Force = force,
                 };
 
             case GraphEdgeSearch:

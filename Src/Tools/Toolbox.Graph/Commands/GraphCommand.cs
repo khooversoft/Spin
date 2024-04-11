@@ -147,15 +147,12 @@ public static class GraphCommand
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.DeleteNode, StatusCode.NoContent);
 
-        if (graphContext.Store != null)
+        if (!deleteNode.Force)
         {
-            var links = nodes.SelectMany(x => x.Links);
-            foreach (var fileId in links)
-            {
-                var existOption = await graphContext.Store.Exist(fileId, graphContext.Context);
-                if (existOption.IsOk()) return new GraphQueryResult(CommandType.DeleteNode, (StatusCode.Conflict, $"NodeKey has attached file {fileId}"));
-            }
+            if (await CustomLinkCount(nodes, graphContext) > 0) return new GraphQueryResult(CommandType.DeleteNode, (StatusCode.Conflict, "NodeKey has attached file(s)"));
         }
+
+        await DeleteLinks(nodes, graphContext);
 
         nodes.ForEach(x => graphContext.Map.Nodes.Remove(x.Key, graphContext));
         var result = searchResult with { CommandType = CommandType.DeleteNode };
@@ -166,5 +163,36 @@ public static class GraphCommand
     {
         GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search);
         return searchResult with { CommandType = CommandType.Select };
+    }
+
+
+    private static async Task<int> CustomLinkCount(IReadOnlyList<GraphNode> nodes, GraphChangeContext graphContext)
+    {
+        if (graphContext.Store == null) return 0;
+
+        var links = nodes
+            .SelectMany(x => x.Links)
+            .Where(x => GraphTool.GetFileIdName(x).Func(x => x.IsOk() && x.Return() != GraphConstants.EntityName));
+
+        int count = 0;
+        foreach (var fileId in links)
+        {
+            var existOption = await graphContext.Store.Exist(fileId, graphContext.Context);
+            if (existOption.IsOk()) count++;
+        }
+
+        return count;
+    }
+
+    private static async Task DeleteLinks(IReadOnlyList<GraphNode> nodes, GraphChangeContext graphContext)
+    {
+        if (graphContext.Store == null) return;
+
+        var linksToDelete = nodes.SelectMany(x => x.Links);
+        foreach (var fileId in linksToDelete)
+        {
+            var existOption = await graphContext.Store.Delete(fileId, graphContext.Context);
+            existOption.LogStatus(graphContext.Context.Location(), "Deleted link={fileId}", fileId);
+        }
     }
 }

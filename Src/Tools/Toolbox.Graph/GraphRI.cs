@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Graph;
 
@@ -16,10 +11,10 @@ internal class GraphRI
     {
         IReadOnlyList<string> removedSet = GraphEdgeIndex.Remove(graphNode.NotNull().Key, graphContext);
 
-        foreach(var node in removedSet)
+        foreach (var node in removedSet)
         {
-            if( !GraphNodeIndex.TryGetValue(node, out GraphNode? referencedNode) ) continue;
-            if( !referencedNode.Tags.Has(GraphConstants.UniqueIndexTag)) continue;
+            if (!GraphNodeIndex.TryGetValue(node, out GraphNode? referencedNode)) continue;
+            if (!referencedNode.Tags.Has(GraphConstants.UniqueIndexTag)) continue;
 
             var query = new GraphEdgeSearch { NodeKey = node };
             IReadOnlyList<GraphEdge> keys = GraphEdgeIndex.Query(query);

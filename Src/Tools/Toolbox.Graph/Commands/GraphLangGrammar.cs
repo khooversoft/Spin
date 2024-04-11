@@ -11,12 +11,14 @@ namespace Toolbox.Graph;
 /// (...) = {* | v | k=v}
 /// [...] = {* | v | k=v}
 /// search = { (...) | [...] } [-> { (...) | [...] ...}
+/// tag = {k | k=v}[, {k | k=v}...]
+/// link = {link=v}[, {link=v}...]
 /// 
 /// select search
-/// add {node | {unique? edge} } {k | k=v}[, {k | k=v} ...]
-/// upsert {node | edge} {k | k=v}[, {k | k=v} ...]
-/// delete search
-/// update search set {k=v}[, {k=v} ...] [link=path[, link=path...]]
+/// add {node | {unique? edge} } { tag, link }
+/// upsert {node | edge} { tag, link }
+/// delete search [force]
+/// update search set { tag, link }
 /// 
 /// "unique edge" constraint no duplicate for fromKey + toKey
 /// 
@@ -29,6 +31,7 @@ public static class GraphLangGrammar
         "edge",         "delete",       "update",
         "set",          "key",          "tags",
         "upsert",       "unique",       "link",
+        "force",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))
@@ -76,7 +79,7 @@ public static class GraphLangGrammar
             var node = new LsRoot("addNode") + new LsSymbol("node") + TagParameters;
 
             var onlyAdd = new LsRoot("onlyAdd") + new LsSymbol("edge");
-            var uniqueAdd = new LsRoot("uniqueAdd") + new LsSymbol("unique", "unique") + new LsSymbol("edge");
+            var uniqueAdd = new LsRoot("uniqueAdd") + new LsSymbol("unique") + new LsSymbol("edge");
             var edge = new LsRoot("addEdge") + (new LsSwitch("addEdge-Option") + uniqueAdd + onlyAdd) + TagParameters;
 
             var rule = new LsRoot(nameof(AddOpr)) + new LsSymbol("add") + (new LsSwitch("add-sw") + node + edge) + new LsToken(";", "term");
@@ -98,7 +101,17 @@ public static class GraphLangGrammar
         }
     }
 
-    public static ILangRoot DeleteOpr { get; } = new LsRoot(nameof(DeleteOpr)) + new LsSymbol("delete") + SearchQuery + new LsToken(";", "term");
+    public static ILangRoot DeleteOpr
+    {
+        get
+        {
+            var normal = new LsRoot("delete-no-force") + SearchQuery;
+            var force = new LsRoot("delete-force") + new LsSymbol("force") + SearchQuery;
+            var rule = new LsRoot(nameof(DeleteOpr)) + new LsSymbol("delete") + (new LsSwitch("delete-sw") + normal + force) + new LsToken(";", "term");
+            //var rule = new LsRoot(nameof(DeleteOpr)) + new LsSymbol("delete") + SearchQuery + new LsToken(";", "term");
+            return rule;
+        }
+    }
 
     public static ILangRoot Update
     {

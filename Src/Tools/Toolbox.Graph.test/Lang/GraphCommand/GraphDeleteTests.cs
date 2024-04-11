@@ -17,10 +17,21 @@ public class GraphDeleteTests
     [InlineData("delete (key=key1, set);")]
     [InlineData("delete (key=key1, set, t2);")]
     [InlineData("delete (key=key1, key, t2);")]
+    [InlineData("delete force (key=key1, key, t2);")]
     public void AddNodeWithReserveTags(string line)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);
         result.IsError().Should().BeTrue(result.ToString());
+    }
+
+    [Theory]
+    [InlineData("delete (key=key1);")]
+    [InlineData("delete force (key=key1);")]
+    [InlineData("delete force (key=key1, t1, t2);")]
+    public void ValidDelete(string line)
+    {
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);
+        result.IsOk().Should().BeTrue(result.ToString());
     }
 
     [Fact]
@@ -40,6 +51,35 @@ public class GraphDeleteTests
             if (x is not GraphNodeDelete query) throw new ArgumentException("Invalid type");
 
             query.Search.Count.Should().Be(1);
+            int idx = 0;
+            query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
+            {
+                x.Key.Should().Be("key1");
+                x.Tags.ToString().Should().Be("t1");
+                x.Alias.Should().BeNull();
+            });
+        });
+    }
+
+    [Fact]
+    public void DeleteNodeWithForce()
+    {
+        var q = "delete force (key=key1, t1);";
+
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
+        result.IsOk().Should().BeTrue(result.ToString());
+
+        IReadOnlyList<IGraphQL> list = result.Return();
+        list.Count.Should().Be(1);
+
+        int index = 0;
+        list[index++].Action(x =>
+        {
+            if (x is not GraphNodeDelete query) throw new ArgumentException("Invalid type");
+
+            query.Search.Count.Should().Be(1);
+            query.Force.Should().BeTrue();
+
             int idx = 0;
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
@@ -83,7 +123,6 @@ public class GraphDeleteTests
                 x.Tags.ToString().Should().Be("t2");
                 x.Alias.Should().Be("a2");
             });
-
         });
     }
 

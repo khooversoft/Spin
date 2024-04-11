@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -30,7 +25,7 @@ public class GraphEntityAccess
         return setStatus;
     }
 
-    public async Task<Option> Remove<T>(T subject, ScopeContext context) where T : class
+    public async Task<Option> Delete<T>(T subject, ScopeContext context) where T : class
     {
         NodeCreateCommand entityNodeCommand = subject
             .GetGraphCommands().ThrowOnError().Return()

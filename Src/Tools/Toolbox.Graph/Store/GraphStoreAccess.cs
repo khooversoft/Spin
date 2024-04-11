@@ -25,12 +25,6 @@ public class GraphStoreAccess
 
         string fileId = GraphTool.CreateFileId(nodeKey, name);
 
-        //var updatedNode = _graphDbContext.Map.Nodes.TryUpdate(nodeKey, x => x.DeleteEntityFileId(fileId));
-        //if (!updatedNode)
-        //{
-        //    return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist");
-        //}
-
         await _graphDbContext.Write(context);
         await _graphStore.Delete(fileId, context);
 
@@ -62,7 +56,7 @@ public class GraphStoreAccess
 
         var addOption = upsert switch
         {
-            false => await _graphStore.Add<T>(fileId, value, context),        
+            false => await _graphStore.Add<T>(fileId, value, context),
             true => await _graphStore.Set<T>(fileId, value, context),
         };
 
@@ -77,6 +71,7 @@ public class GraphStoreAccess
             return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist for update");
         }
 
+        using var release = await _graphDbContext.Map.ReadWriterLock.WriterLockAsync();
         await _graphDbContext.Write(context);
         return fileId;
     }

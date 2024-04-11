@@ -35,6 +35,7 @@ internal class GraphDbContext
 
     public async Task<Option> Write(ScopeContext context)
     {
+
         var gs = Map.ToSerialization();
         return await GraphStore.Set(_graphFileId, gs, context);
     }

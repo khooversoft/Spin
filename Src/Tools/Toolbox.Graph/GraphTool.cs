@@ -7,7 +7,7 @@ namespace Toolbox.Graph;
 
 public static class GraphTool
 {
-    private static FrozenSet<(string chr, string replace)> _replaceMap = new []
+    private static FrozenSet<(string chr, string replace)> _replaceMap = new[]
     {
         ( "/", "___" ),
         ( ":", "__" ),
@@ -37,6 +37,14 @@ public static class GraphTool
         };
 
         return result.ToLower();
+    }
+
+    public static Option<string> GetFileIdName(string fileId)
+    {
+        string[] parts = fileId.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 3) return StatusCode.NotFound;
+
+        return parts[1];
     }
 
     public static Option<(string nodeKey, string name, string file)> DecodeFileId(string fileId)
