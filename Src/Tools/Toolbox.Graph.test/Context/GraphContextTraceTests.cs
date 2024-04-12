@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Store;
-using Toolbox.Graph;
-using Toolbox.Types;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
+using Toolbox.Graph;
+using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Context;
 
