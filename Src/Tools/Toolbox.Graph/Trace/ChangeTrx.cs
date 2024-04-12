@@ -42,7 +42,7 @@ public readonly struct ChangeTrx : IEquatable<ChangeTrx>
         TrxId = trxId;
         LogKey = logKey;
         CurrentEdgeValue = currentValue.NotNull();
-        UpdateEdgeValue = UpdateEdgeValue.Assert(x => trxType != ChangeTrxType.EdgeChange || x != null, "Update value must be set for EdgeChange");
+        UpdateEdgeValue = updateValue.Assert(x => trxType != ChangeTrxType.EdgeChange || x != null, "Update value must be set for EdgeChange");
     }
 
     [JsonConstructor]

@@ -10,7 +10,8 @@ public class EdgeChange : IChangeLog
     {
         CurrentValue = currentValue.NotNull();
         NewValue = newValue.NotNull();
-        (CurrentValue.Key == NewValue.Key).Assert(x => x == true, "Edge Key must be the same");
+        (CurrentValue.FromKey == NewValue.FromKey).Assert(x => x == true, "Edge FromKey must be the same");
+        (CurrentValue.ToKey == NewValue.ToKey).Assert(x => x == true, "Edge ToKey must be the same");
     }
 
     public Guid LogKey { get; } = Guid.NewGuid();

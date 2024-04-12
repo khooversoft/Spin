@@ -174,7 +174,7 @@ public class GraphUpdateCommandTests
                 x.FromKey.Should().Be("node1");
                 x.ToKey.Should().Be("node3");
                 x.EdgeType.Should().Be("default");
-                x.Tags.ToString().Should().Be("level=1");
+                x.Tags.ToString().Should().Be("knows,level=1");
             });
         });
     }
@@ -215,7 +215,7 @@ public class GraphUpdateCommandTests
                 x.FromKey.Should().Be("node4");
                 x.ToKey.Should().Be("node5");
                 x.EdgeType.Should().Be("default");
-                x.Tags.ToString().Should().Be("created,t1");
+                x.Tags.ToString().Should().Be("created");
             });
         });
     }

@@ -78,15 +78,7 @@ public class GraphContextTraceTests
         trace.Count.Should().Be(1);
 
         var traces = trace.GetTraces();
-        traces[0].ToObject<ChangeTrx>().NotNull().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
-            x.CurrentNodeValue.NotNull().Action(y =>
-            {
-                y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be(string.Empty);
-            });
-        });
+        CheckCurrentNode(traces[0], ChangeTrxType.NodeAdd, "node1", "");
 
         var updateResult = await graphContext.ExecuteScalar("update (key=node1) set t1=v1;");
         updateResult.IsOk().Should().BeTrue();
@@ -97,29 +89,8 @@ public class GraphContextTraceTests
         trace.Count.Should().Be(2);
 
         traces = trace.GetTraces();
-        traces[0].ToObject<ChangeTrx>().NotNull().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
-            x.CurrentNodeValue.NotNull().Action(y =>
-            {
-                y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be(string.Empty);
-            });
-        });
-        traces[1].ToObject<ChangeTrx>().NotNull().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.NodeChange);
-            x.CurrentNodeValue.NotNull().Action(y =>
-            {
-                y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be(string.Empty);
-            });
-            x.UpdateNodeValue.NotNull().Action(y =>
-            {
-                y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be("t1=v1");
-            });
-        });
+        CheckCurrentNode(traces[0], ChangeTrxType.NodeAdd, "node1", "");
+        CheckCurrentAndUpdateNode(traces[1], ChangeTrxType.NodeChange, "node1", "", "t1=v1");
 
         var deleteResult = await graphContext.ExecuteScalar("delete (key=node1);");
         deleteResult.IsOk().Should().BeTrue();
@@ -130,30 +101,8 @@ public class GraphContextTraceTests
         trace.Count.Should().Be(3);
 
         traces = trace.GetTraces();
-        traces[0].ToObject<ChangeTrx>().NotNull().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
-            x.CurrentNodeValue.NotNull().Action(y =>
-            {
-                y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be(string.Empty);
-            });
-            x.UpdateNodeValue.Should().BeNull();
-        });
-        traces[1].ToObject<ChangeTrx>().NotNull().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.NodeChange);
-            x.CurrentNodeValue.NotNull().Action(y =>
-            {
-                y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be(string.Empty);
-            });
-            x.UpdateNodeValue.NotNull().Action(y =>
-            {
-                y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be("t1=v1");
-            });
-        });
+        CheckCurrentNode(traces[0], ChangeTrxType.NodeAdd, "node1", "");
+        CheckCurrentAndUpdateNode(traces[1], ChangeTrxType.NodeChange, "node1", "", "t1=v1");
 
         traces[2].ToObject<ChangeTrx>().NotNull().Action(x =>
         {
@@ -164,8 +113,9 @@ public class GraphContextTraceTests
                 y.Tags.ToString().Should().Be("t1=v1");
             });
             x.UpdateNodeValue.Should().BeNull();
+            x.CurrentEdgeValue.Should().BeNull();
+            x.UpdateEdgeValue.Should().BeNull();
         });
-
     }
 
     [Fact]
@@ -192,22 +142,9 @@ public class GraphContextTraceTests
 
         var traces = trace.GetTraces();
         traces.Count.Should().Be(3);
-        traces[0].ToObject<ChangeTrx>().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
-            x.CurrentNodeValue.NotNull().Key.Should().Be("node1");
-        });
-        traces[1].ToObject<ChangeTrx>().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
-            x.CurrentNodeValue.NotNull().Key.Should().Be("node2");
-        });
-        traces[2].ToObject<ChangeTrx>().Action(x =>
-        {
-            x.TrxType.Should().Be(ChangeTrxType.EdgeAdd);
-            x.CurrentEdgeValue.NotNull().FromKey.Should().Be("node1");
-            x.CurrentEdgeValue.NotNull().ToKey.Should().Be("node2");
-        });
+        CheckCurrentNode(traces[0], ChangeTrxType.NodeAdd, "node1", "");
+        CheckCurrentNode(traces[1], ChangeTrxType.NodeAdd, "node2", "");
+        CheckCurrentEdge(traces[2], ChangeTrxType.EdgeAdd, "node1", "node2", "");
     }
 
     [Fact]
@@ -234,21 +171,111 @@ public class GraphContextTraceTests
 
         var traces = trace.GetTraces();
         traces.Count.Should().Be(3);
-        traces[0].ToObject<ChangeTrx>().Action(x =>
+        CheckCurrentNode(traces[0], ChangeTrxType.NodeAdd, "node1", "");
+        CheckCurrentNode(traces[1], ChangeTrxType.NodeAdd, "node2", "");
+        CheckCurrentEdge(traces[2], ChangeTrxType.EdgeAdd, "node1", "node2", "");
+
+        var updateResult = await graphContext.ExecuteScalar("update [fromKey=node1, toKey=node2] set t1=v1;");
+        updateResult.IsOk().Should().BeTrue();
+        updateResult.Return().Items.Count.Should().Be(1);
+
+        traces = trace.GetTraces();
+        traces.Count.Should().Be(4);
+        CheckCurrentNode(traces[0], ChangeTrxType.NodeAdd, "node1", "");
+        CheckCurrentNode(traces[1], ChangeTrxType.NodeAdd, "node2", "");
+        CheckCurrentEdge(traces[2], ChangeTrxType.EdgeAdd, "node1", "node2", "");
+        CheckCurrentAndUpdateEdge(traces[3], ChangeTrxType.EdgeChange, "node1", "node2", "", "t1=v1");
+
+        var deleteResult = await graphContext.ExecuteScalar("delete [fromKey=node1, toKey=node2];");
+        deleteResult.IsOk().Should().BeTrue();
+        deleteResult.Return().Items.Count.Should().Be(1);
+
+        traces = trace.GetTraces();
+        traces.Count.Should().Be(5);
+        CheckCurrentNode(traces[0], ChangeTrxType.NodeAdd, "node1", "");
+        CheckCurrentNode(traces[1], ChangeTrxType.NodeAdd, "node2", "");
+        CheckCurrentEdge(traces[2], ChangeTrxType.EdgeAdd, "node1", "node2", "");
+        CheckCurrentAndUpdateEdge(traces[3], ChangeTrxType.EdgeChange, "node1", "node2", "", "t1=v1");
+
+        traces[4].ToObject<ChangeTrx>().NotNull().Action(x =>
         {
-            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
-            x.CurrentNodeValue.NotNull().Key.Should().Be("node1");
+            x.TrxType.Should().Be(ChangeTrxType.EdgeDelete);
+            x.CurrentNodeValue.Should().BeNull();
+            x.UpdateNodeValue.Should().BeNull();
+            x.CurrentEdgeValue.NotNull().Action(y =>
+            {
+                y.FromKey.Should().Be("node1");
+                y.ToKey.Should().Be("node2");
+                y.Tags.ToString().Should().Be("t1=v1");
+            });
+            x.UpdateEdgeValue.Should().BeNull();
         });
-        traces[1].ToObject<ChangeTrx>().Action(x =>
+    }
+
+    private static void CheckCurrentNode(string data, ChangeTrxType trxType, string nodeKey, string tags)
+    {
+        ChangeTrx trx = data.ToObject<ChangeTrx>().NotNull();
+        trx.TrxType.Should().Be(trxType);
+        trx.CurrentNodeValue.NotNull().Action(y =>
         {
-            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
-            x.CurrentNodeValue.NotNull().Key.Should().Be("node2");
+            y.Key.Should().Be(nodeKey);
+            y.Tags.ToString().Should().Be(tags);
         });
-        traces[2].ToObject<ChangeTrx>().Action(x =>
+        trx.UpdateNodeValue.Should().BeNull();
+        trx.CurrentEdgeValue.Should().BeNull();
+        trx.UpdateEdgeValue.Should().BeNull();
+    }
+
+    private static void CheckCurrentAndUpdateNode(string data, ChangeTrxType trxType, string nodeKey, string tags, string updatedTags)
+    {
+        ChangeTrx trx = data.ToObject<ChangeTrx>().NotNull();
+        trx.TrxType.Should().Be(trxType);
+        trx.CurrentNodeValue.NotNull().Action(y =>
         {
-            x.TrxType.Should().Be(ChangeTrxType.EdgeAdd);
-            x.CurrentEdgeValue.NotNull().FromKey.Should().Be("node1");
-            x.CurrentEdgeValue.NotNull().ToKey.Should().Be("node2");
+            y.Key.Should().Be(nodeKey);
+            y.Tags.ToString().Should().Be(tags);
+        });
+        trx.UpdateNodeValue.NotNull().Action(y =>
+        {
+            y.Key.Should().Be(nodeKey);
+            y.Tags.ToString().Should().Be(updatedTags);
+        });
+        trx.CurrentEdgeValue.Should().BeNull();
+        trx.UpdateEdgeValue.Should().BeNull();
+    }
+
+    private static void CheckCurrentEdge(string data, ChangeTrxType trxType, string fromNode, string toNode, string tags)
+    {
+        ChangeTrx trx = data.ToObject<ChangeTrx>().NotNull();
+        trx.TrxType.Should().Be(trxType);
+        trx.CurrentNodeValue.Should().BeNull();
+        trx.UpdateNodeValue.Should().BeNull();
+        trx.CurrentEdgeValue.NotNull().Action(y =>
+        {
+            y.FromKey.Should().Be(fromNode);
+            y.ToKey.Should().Be(toNode);
+            y.Tags.ToString().Should().Be(tags);
+        });
+        trx.UpdateEdgeValue.Should().BeNull();
+    }
+
+    private static void CheckCurrentAndUpdateEdge(string data, ChangeTrxType trxType, string fromNode, string toNode, string tags, string updatedTags)
+    {
+        ChangeTrx trx = data.ToObject<ChangeTrx>().NotNull();
+        trx.TrxType.Should().Be(trxType);
+        trx.CurrentNodeValue.Should().BeNull();
+        trx.UpdateNodeValue.Should().BeNull();
+        trx.CurrentEdgeValue.NotNull().Action(y =>
+        {
+            y.FromKey.Should().Be(fromNode);
+            y.ToKey.Should().Be(toNode);
+            y.Tags.ToString().Should().Be(tags);
+        });
+        trx.UpdateEdgeValue.NotNull().Action(y =>
+        {
+            y.FromKey.Should().Be(fromNode);
+            y.ToKey.Should().Be(toNode);
+            y.Tags.ToString().Should().Be(updatedTags);
         });
     }
 }

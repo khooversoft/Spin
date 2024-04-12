@@ -184,7 +184,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             {
                 _index.ContainsKey(currentValue.Key).Assert(x => x == true, $"Key={currentValue.Key} does not exist");
 
-                var newValue = update(currentValue);
+                GraphEdge newValue = update(currentValue);
                 (newValue.Key == currentValue.Key).Assert(x => x == true, "Cannot change the primary key");
                 newValue.FromKey.EqualsIgnoreCase(currentValue.FromKey).Assert(x => x == true, "Cannot change the From key key");
                 newValue.ToKey.EqualsIgnoreCase(currentValue.ToKey).Assert(x => x == true, "Cannot change the To key key");

@@ -110,7 +110,7 @@ public static class GraphCommand
         graphContext.Map.Edges.Update(edges, x => x with
         {
             EdgeType = updateEdge.EdgeType ?? x.EdgeType,
-            Tags = x.Tags.Set(updateEdge.Tags.ToString()),
+            Tags = x.Tags.Clone().Set(updateEdge.Tags.ToString()),
         }, graphContext);
 
         return searchResult with { CommandType = CommandType.UpdateEdge };
