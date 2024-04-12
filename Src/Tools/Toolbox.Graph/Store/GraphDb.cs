@@ -4,9 +4,8 @@ namespace Toolbox.Graph;
 
 public class GraphDb
 {
-    private readonly GraphDbContext _dbContext;
-
-    public GraphDb(IFileStore graphStore) => _dbContext = new GraphDbContext(graphStore);
+    private readonly GraphDbAccess _dbContext;
+    public GraphDb(IFileStore graphStore, IChangeTrace changeTrace) => _dbContext = new GraphDbAccess(graphStore, changeTrace);
 
     public GraphEntityAccess Entity => _dbContext.Entity;
     public GraphAccess Graph => _dbContext.Graph;

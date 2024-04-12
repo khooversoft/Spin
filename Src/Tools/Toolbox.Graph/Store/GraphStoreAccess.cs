@@ -7,10 +7,10 @@ namespace Toolbox.Graph;
 
 public class GraphStoreAccess
 {
-    private readonly GraphDbContext _graphDbContext;
+    private readonly GraphDbAccess _graphDbContext;
     private readonly IFileStore _graphStore;
 
-    internal GraphStoreAccess(GraphDbContext graphDbContext, IFileStore graphStore)
+    internal GraphStoreAccess(GraphDbAccess graphDbContext, IFileStore graphStore)
     {
         _graphDbContext = graphDbContext.NotNull();
         _graphStore = graphStore.NotNull();
@@ -71,7 +71,7 @@ public class GraphStoreAccess
             return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist for update");
         }
 
-        using var release = await _graphDbContext.Map.ReadWriterLock.WriterLockAsync();
+        using var release = await _graphDbContext.Map.ReadWriterLock.ReaderLockAsync();
         await _graphDbContext.Write(context);
         return fileId;
     }

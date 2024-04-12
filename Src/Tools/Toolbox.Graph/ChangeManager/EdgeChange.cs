@@ -6,36 +6,27 @@ namespace Toolbox.Graph;
 
 public class EdgeChange : IChangeLog
 {
-    private readonly Guid _edgeKey;
-    private readonly GraphEdge? _oldValue;
-
-    public EdgeChange(Guid edgeKey, GraphEdge? oldValue)
+    public EdgeChange(GraphEdge currentValue, GraphEdge newValue)
     {
-        _edgeKey = edgeKey;
-        _oldValue = oldValue;
+        CurrentValue = currentValue.NotNull();
+        NewValue = newValue.NotNull();
+        (CurrentValue.Key == NewValue.Key).Assert(x => x == true, "Edge Key must be the same");
     }
 
     public Guid LogKey { get; } = Guid.NewGuid();
+    private GraphEdge CurrentValue { get; }
+    private GraphEdge NewValue { get; }
 
-    public Option Undo(GraphChangeContext graphContext)
+    public Option Undo(GraphContext graphContext)
     {
         graphContext.NotNull();
 
-        if (_oldValue != null)
-        {
-            graphContext.Map.Edges[_oldValue.Key] = _oldValue;
-            graphContext.Context.LogInformation("Rollback Edge: restored edge logKey={logKey}, edgeKey={key}, value={value}", LogKey, _edgeKey, _oldValue.ToJson());
-            return StatusCode.OK;
-        }
+        graphContext.Map.Edges[CurrentValue.Key] = CurrentValue;
+        graphContext.Context.LogInformation("Rollback Edge: restored edge logKey={logKey}, edgeKey={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
 
-        var removeStatus = graphContext.Map.Edges.Remove(_edgeKey);
-        if (!removeStatus)
-        {
-            graphContext.Context.LogError("Rollback Edge: logKey={logKey}, Failed to remove node key={key}", _edgeKey);
-            return (StatusCode.Conflict, $"Failed to remove edge edgeKey={_edgeKey}");
-        }
-
-        graphContext.Context.LogInformation("Rollback Edge: removed edge logKey={logKey}, Edge edgeKey={key} ", LogKey, _edgeKey);
         return StatusCode.OK;
     }
+
+    public ChangeTrx GetChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.EdgeChange, trxKey, LogKey, CurrentValue, NewValue);
+    public ChangeTrx GetUndoChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.UndoEdgeChange, trxKey, LogKey, CurrentValue, NewValue);
 }

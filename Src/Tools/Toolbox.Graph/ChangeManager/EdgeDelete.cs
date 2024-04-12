@@ -6,17 +6,20 @@ namespace Toolbox.Graph;
 
 public record EdgeDelete : IChangeLog
 {
-    private readonly GraphEdge _oldValue;
-    public EdgeDelete(GraphEdge oldValue) => _oldValue = oldValue.NotNull();
+    public EdgeDelete(GraphEdge oldValue) => CurrentValue = oldValue.NotNull();
 
     public Guid LogKey { get; } = Guid.NewGuid();
+    private GraphEdge CurrentValue { get; }
 
-    public Option Undo(GraphChangeContext graphContext)
+    public Option Undo(GraphContext graphContext)
     {
         graphContext.NotNull();
 
-        graphContext.Map.Add(_oldValue);
-        graphContext.Context.LogInformation("Rollback: restored edge logKey={logKey}, Edge key={key}, value={value}", LogKey, _oldValue.Key, _oldValue.ToJson());
+        graphContext.Map.Add(CurrentValue);
+        graphContext.Context.LogInformation("Rollback: restored edge logKey={logKey}, Edge key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
         return StatusCode.OK;
     }
+
+    public ChangeTrx GetChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.EdgeDelete, trxKey, LogKey, CurrentValue, null);
+    public ChangeTrx GetUndoChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.UndoEdgeDelete, trxKey, LogKey, CurrentValue, null);
 }

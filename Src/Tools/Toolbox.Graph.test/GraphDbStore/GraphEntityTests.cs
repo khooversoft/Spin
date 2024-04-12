@@ -11,7 +11,8 @@ public class GraphEntityTests
     public async Task AddEntityWithIndexes()
     {
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        IChangeTrace trace = new InMemoryChangeTrace();
+        GraphDb db = new GraphDb(store, trace);
 
         var entity = new TestEntity
         {
@@ -70,7 +71,8 @@ public class GraphEntityTests
     public async Task DeleteEntityByNodeKey()
     {
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        IChangeTrace trace = new InMemoryChangeTrace();
+        GraphDb db = new GraphDb(store, trace);
 
         var entity = new TestEntity
         {

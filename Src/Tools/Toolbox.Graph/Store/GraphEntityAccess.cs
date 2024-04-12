@@ -6,8 +6,8 @@ namespace Toolbox.Graph;
 
 public class GraphEntityAccess
 {
-    private readonly GraphDbContext _graphDbContext;
-    internal GraphEntityAccess(GraphDbContext graphDbContext) => _graphDbContext = graphDbContext.NotNull();
+    private readonly GraphDbAccess _graphDbContext;
+    internal GraphEntityAccess(GraphDbAccess graphDbContext) => _graphDbContext = graphDbContext.NotNull();
 
     public async Task<Option<string>> Set<T>(T subject, ScopeContext context) where T : class
     {
@@ -32,7 +32,7 @@ public class GraphEntityAccess
             .GetEntityNodeCommand().ThrowOnError().Return();
 
         string command = entityNodeCommand.GetDeleteCommand();
-        var result = await GraphCommand.Execute(_graphDbContext.Map, command, _graphDbContext.GraphStore, context);
+        var result = await _graphDbContext.Graph.ExecuteScalar(command, context);
 
         return result.ToOptionStatus();
     }

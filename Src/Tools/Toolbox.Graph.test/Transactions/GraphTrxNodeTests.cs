@@ -30,6 +30,7 @@ public class GraphTrxNodeTests
 
         map.Execute(q2, NullScopeContext.Instance).Action(x =>
         {
+            x.IsError().Should().BeTrue();
             x.Value.Items.Count.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.OK, 0));
             x.Value.Items[1].Action(y => TestReturn(y, CommandType.AddEdge, StatusCode.Conflict, 0));

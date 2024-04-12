@@ -25,6 +25,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type</typeparam>
     /// <param name="subjects">types to process</param>
     /// <param name="action">action to execute</param>
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> subjects, Action<T> action)
     {
         subjects.NotNull();
@@ -42,6 +43,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type</typeparam>
     /// <param name="subjects">list to operate on</param>
     /// <param name="action">action to execute</param>
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> subjects, Action<T, int> action)
     {
         subjects.NotNull();
@@ -69,6 +71,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type in list</typeparam>
     /// <param name="self">list to shuffle</param>
     /// <returns>shuffled list</returns>
+    [DebuggerStepThrough]
     public static IReadOnlyList<T> Shuffle<T>(this IEnumerable<T> self)
     {
         self.NotNull();
@@ -99,6 +102,7 @@ public static class EnumerableExtensions
         return list;
     }
 
+    [DebuggerStepThrough]
     public static IEnumerable<T> ToSafe<T>(this IEnumerable<T>? list) => (list ?? Array.Empty<T>());
 
 
@@ -109,6 +113,7 @@ public static class EnumerableExtensions
     /// <param name="values"></param>
     /// <param name="separator"></param>
     /// <returns></returns>
+    [DebuggerStepThrough]
     public static IEnumerable<T> SequenceJoin<T>(this IEnumerable<T> values, T separator)
     {
         bool run = false;
@@ -129,6 +134,7 @@ public static class EnumerableExtensions
     /// <param name="values"></param>
     /// <param name="separatorSelect"></param>
     /// <returns></returns>
+    [DebuggerStepThrough]
     public static IEnumerable<T> SequenceJoin<T>(this IEnumerable<T> values, Func<T, T> separatorSelect)
     {
         bool hasValue = false;

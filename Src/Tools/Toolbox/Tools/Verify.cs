@@ -91,7 +91,7 @@ public static class Verify
     /// <param name="subject">subject</param>
     /// <param name="name">name of subject or message</param>
     /// <returns>subject</returns>
-    //[DebuggerStepThrough]
+    [DebuggerStepThrough]
     [return: NotNull]
     public static T NotNull<T>(
             [NotNull] this T subject,

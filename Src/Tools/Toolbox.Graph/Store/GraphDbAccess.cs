@@ -5,13 +5,15 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal class GraphDbContext
+internal class GraphDbAccess
 {
     private const string _graphFileId = "directory.json";
 
-    public GraphDbContext(IFileStore store)
+    public GraphDbAccess(IFileStore store, IChangeTrace changeTrace)
     {
         GraphStore = store.NotNull();
+        ChangeTrace = changeTrace.NotNull();
+
         Graph = new GraphAccess(this);
         Store = new GraphStoreAccess(this, store);
         Entity = new GraphEntityAccess(this);
@@ -19,6 +21,7 @@ internal class GraphDbContext
 
     public GraphMap Map { get; private set; } = new GraphMap();
     public IFileStore GraphStore { get; }
+    public IChangeTrace ChangeTrace { get; }
     public GraphAccess Graph { get; }
     public GraphStoreAccess Store { get; }
     public GraphEntityAccess Entity { get; }
@@ -35,8 +38,8 @@ internal class GraphDbContext
 
     public async Task<Option> Write(ScopeContext context)
     {
-
         var gs = Map.ToSerialization();
         return await GraphStore.Set(_graphFileId, gs, context);
     }
 }
+

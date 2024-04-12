@@ -8,27 +8,29 @@ namespace Toolbox.Graph;
 public class ChangeLog
 {
     private ConcurrentStack<IChangeLog> _commands = new();
-    private readonly GraphChangeContext _graphChangeContext;
+    private readonly GraphContext _graphChangeContext;
 
-    public ChangeLog(GraphChangeContext graphChangeContext) => _graphChangeContext = graphChangeContext.NotNull();
+    public ChangeLog(GraphContext graphChangeContext) => _graphChangeContext = graphChangeContext.NotNull();
 
-    public Guid ChangeLogKey { get; } = Guid.NewGuid();
+    public Guid TrxId { get; } = Guid.NewGuid();
 
-    public void Push(IChangeLog changeLog, GraphChangeContext graphContext)
+    public void Push(IChangeLog changeLog)
     {
-        changeLog.NotNull(nameof(changeLog));
+        changeLog.NotNull();
 
-        graphContext.Context.Location().LogInformation("Pushing changeLog: changeLogKey={changeLogKey}, logKey={logKey}", ChangeLogKey, changeLog.LogKey);
+        _graphChangeContext.Context.Location().LogInformation("Pushing changeLog: changeLogKey={changeLogKey}, trxId={trxId}", TrxId, changeLog.LogKey);
         _commands.Push(changeLog);
+        _graphChangeContext.ChangeTrace?.Log(changeLog.GetChangeTrx(TrxId));
     }
 
     public void Rollback()
     {
-        _graphChangeContext.Context.Location().LogInformation("Rollback all: changeLogKey={changeLogKey}, {count} commands", ChangeLogKey, _commands.Count);
+        _graphChangeContext.Context.Location().LogInformation("Rollback all: trxId={trxId}, {count} commands", TrxId, _commands.Count);
 
         while (_commands.TryPop(out var item))
         {
             item.Undo(_graphChangeContext);
+            _graphChangeContext.ChangeTrace?.Log(item.GetUndoChangeTrx(TrxId));
         }
     }
 

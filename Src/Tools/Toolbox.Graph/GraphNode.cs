@@ -8,7 +8,7 @@ using Toolbox.Types;
 namespace Toolbox.Graph;
 
 
-[DebuggerDisplay("Key={Key}, Tags={Tags.ToString()}")]
+[DebuggerDisplay("Key={Key}, Tags={Tags.ToString()}, Links={LinksString}")]
 public sealed record GraphNode : IGraphCommon
 {
     public GraphNode() { }
@@ -51,6 +51,7 @@ public sealed record GraphNode : IGraphCommon
     public Tags Tags { get; private set; } = new Tags();
     public DateTime CreatedDate { get; private set; } = DateTime.UtcNow;
     public ImmutableArray<string> Links { get; private set; } = [];
+    public string LinksString => Links.Join(',');
 
     public GraphNode Copy() => new GraphNode(Key, Tags.Clone(), CreatedDate, Links);
 

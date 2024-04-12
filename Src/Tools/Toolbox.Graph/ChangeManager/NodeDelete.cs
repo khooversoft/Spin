@@ -6,17 +6,20 @@ namespace Toolbox.Graph;
 
 public record NodeDelete : IChangeLog
 {
-    private readonly GraphNode _oldValue;
-    public NodeDelete(GraphNode oldValue) => _oldValue = oldValue.NotNull();
+    public NodeDelete(GraphNode oldValue) => CurrentValue = oldValue.NotNull();
 
     public Guid LogKey { get; } = Guid.NewGuid();
+    public GraphNode CurrentValue { get; }
 
-    public Option Undo(GraphChangeContext graphContext)
+    public Option Undo(GraphContext graphContext)
     {
         graphContext.NotNull();
 
-        graphContext.Map.Nodes[_oldValue.Key] = _oldValue;
-        graphContext.Context.LogInformation("Rollback: restored node logKey={logKey}, Node key={key}, value={value}", LogKey, _oldValue.Key, _oldValue.ToJson());
+        graphContext.Map.Nodes[CurrentValue.Key] = CurrentValue;
+        graphContext.Context.LogInformation("Rollback: restored node logKey={logKey}, Node key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
         return StatusCode.OK;
     }
+
+    public ChangeTrx GetChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.NodeDelete, trxKey, LogKey, CurrentValue, null);
+    public ChangeTrx GetUndoChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.UndoNodeDelete, trxKey, LogKey, CurrentValue, null);
 }

@@ -28,7 +28,7 @@ public class GraphStoreTests
     public async Task SingleFileWithoutNodeShouldFail()
     {
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         var data = new { Name = "Name1", Value = "Value1" };
 
@@ -43,7 +43,7 @@ public class GraphStoreTests
     {
         const string nodeKey = "subscription/node1.json";
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
 
@@ -73,7 +73,7 @@ public class GraphStoreTests
     {
         const string nodeKey = "subscription/node1.json";
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
 
@@ -96,7 +96,7 @@ public class GraphStoreTests
     {
         const string nodeKey = "contract/company.com/node1.json";
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         var data = new NameValue("Name1", 40);
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
@@ -118,7 +118,7 @@ public class GraphStoreTests
     public async Task MultipleNodesAtScaleAddThenDelete()
     {
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
         int count = 100;
         var nodeKeys = new ConcurrentQueue<string>();
 
@@ -164,7 +164,7 @@ public class GraphStoreTests
     public async Task MultipleNodesAtScaleAddAndDeleteByTasks()
     {
         IFileStore store = new InMemoryFileStore();
-        GraphDb db = new GraphDb(store);
+        GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
         const int count = 10000;
         const int maxParallel = 20;
 

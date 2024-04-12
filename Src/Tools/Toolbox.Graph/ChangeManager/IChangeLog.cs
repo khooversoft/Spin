@@ -5,5 +5,7 @@ namespace Toolbox.Graph;
 public interface IChangeLog
 {
     Guid LogKey { get; }
-    Option Undo(GraphChangeContext graphContext);
+    Option Undo(GraphContext graphContext);
+    ChangeTrx GetChangeTrx(Guid trxKey);
+    ChangeTrx GetUndoChangeTrx(Guid trxKey);
 }
