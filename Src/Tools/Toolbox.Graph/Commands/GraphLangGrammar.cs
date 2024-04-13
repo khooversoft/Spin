@@ -13,7 +13,6 @@ namespace Toolbox.Graph;
 /// search = { (...) | [...] } [-> { (...) | [...] ...}
 /// tag = {k | k=v}[, {k | k=v}...]
 /// link = {link=v}[, {link=v}...]
-/// data = {data=0xFFDD...}[, {data=0xFFDD...}...]  // {{'data'='value',
 /// 
 /// select search
 /// add {node | {unique? edge} } { tag, link }

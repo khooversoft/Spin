@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
@@ -21,6 +22,9 @@ public enum ChangeTrxType
     UndoEdgeAdd,
     UndoEdgeDelete,
     UndoEdgeChange,
+    FileAdd,
+    FileSet,
+    FileDelete
 }
 
 public readonly struct ChangeTrx : IEquatable<ChangeTrx>
@@ -45,8 +49,29 @@ public readonly struct ChangeTrx : IEquatable<ChangeTrx>
         UpdateEdgeValue = updateValue.Assert(x => trxType != ChangeTrxType.EdgeChange || x != null, "Update value must be set for EdgeChange");
     }
 
+    public ChangeTrx(ChangeTrxType trxType, string filePath, DataETag? fileData, DateTime? date = null)
+    {
+        Date = date ?? DateTime.UtcNow;
+        TrxType = trxType.Action(x => x.IsEnumValid().Assert(y => y == true, "Enum is invalid"));
+        TrxId = Guid.NewGuid();
+        LogKey = Guid.NewGuid();
+        FilePath = filePath.NotEmpty();
+        FileData = fileData;
+    }
+
     [JsonConstructor]
-    public ChangeTrx(DateTime date, ChangeTrxType trxType, Guid trxId, Guid logKey, GraphNode currentNodeValue, GraphNode? updateNodeValue, GraphEdge currentEdgeValue, GraphEdge? updateEdgeValue)
+    public ChangeTrx(
+        DateTime date,
+        ChangeTrxType trxType,
+        Guid trxId,
+        Guid logKey,
+        GraphNode currentNodeValue,
+        GraphNode? updateNodeValue,
+        GraphEdge currentEdgeValue,
+        GraphEdge? updateEdgeValue,
+        string? filePath,
+        DataETag? fileData
+        )
     {
         Date = date;
         TrxType = trxType;
@@ -56,6 +81,8 @@ public readonly struct ChangeTrx : IEquatable<ChangeTrx>
         UpdateNodeValue = updateNodeValue;
         CurrentEdgeValue = currentEdgeValue;
         UpdateEdgeValue = updateEdgeValue;
+        FilePath = filePath;
+        FileData = fileData;
     }
 
     public DateTime Date { get; }
@@ -66,6 +93,9 @@ public readonly struct ChangeTrx : IEquatable<ChangeTrx>
     public GraphNode? UpdateNodeValue { get; }
     public GraphEdge? CurrentEdgeValue { get; }
     public GraphEdge? UpdateEdgeValue { get; }
+
+    public string? FilePath { get; }
+    public DataETag? FileData { get; }
 
     public override bool Equals(object? obj) => obj is ChangeTrx trx && Equals(trx);
 
@@ -78,7 +108,9 @@ public readonly struct ChangeTrx : IEquatable<ChangeTrx>
             Test(CurrentNodeValue, other.CurrentNodeValue) &&
             Test(UpdateNodeValue, other.UpdateNodeValue) &&
             Test(CurrentEdgeValue, other.CurrentEdgeValue) &&
-            Test(UpdateEdgeValue, other.UpdateEdgeValue);
+            Test(UpdateEdgeValue, other.UpdateEdgeValue) &&
+            FilePath == other.FilePath &&
+            FileData == other.FileData;
 
         return result;
     }

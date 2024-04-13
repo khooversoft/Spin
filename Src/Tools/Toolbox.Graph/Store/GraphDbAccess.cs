@@ -11,7 +11,7 @@ internal class GraphDbAccess
 
     public GraphDbAccess(IFileStore store, IChangeTrace changeTrace)
     {
-        GraphStore = store.NotNull();
+        FileStore = store.NotNull();
         ChangeTrace = changeTrace.NotNull();
 
         Graph = new GraphAccess(this);
@@ -20,26 +20,26 @@ internal class GraphDbAccess
     }
 
     public GraphMap Map { get; private set; } = new GraphMap();
-    public IFileStore GraphStore { get; }
+    public IFileStore FileStore { get; }
     public IChangeTrace ChangeTrace { get; }
     public GraphAccess Graph { get; }
     public GraphStoreAccess Store { get; }
     public GraphEntityAccess Entity { get; }
     public AsyncReaderWriterLock ReadWriterLock => Map.ReadWriterLock;
 
-    public async Task<Option> Read(ScopeContext context)
+    public async Task<Option> ReadMapFromStore(ScopeContext context)
     {
-        var gsOption = await GraphStore.Get<GraphSerialization>(_graphFileId, context);
+        var gsOption = await FileStore.Get<GraphSerialization>(_graphFileId, context);
         if (gsOption.IsError()) return gsOption.ToOptionStatus();
 
         Map = gsOption.Return().FromSerialization();
         return StatusCode.OK;
     }
 
-    public async Task<Option> Write(ScopeContext context)
+    public async Task<Option> WriteMapToStore(ScopeContext context)
     {
         var gs = Map.ToSerialization();
-        return await GraphStore.Set(_graphFileId, gs, context);
+        return await FileStore.Set(_graphFileId, gs, context);
     }
 }
 

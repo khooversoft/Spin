@@ -1,9 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using System.Text;
-using Azure;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
@@ -23,13 +20,6 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
         };
 
         return option.ToTaskResult();
-    }
-
-    public Task<Option> Add<T>(string path, T value, ScopeContext context) where T : class
-    {
-        string json = value.ToJson();
-        DataETag data = new DataETag(json.ToBytes());
-        return Add(path, data, context);
     }
 
     public Task<Option> Delete(string path, ScopeContext context)
@@ -65,28 +55,10 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
         return option.ToTaskResult();
     }
 
-    public async Task<Option<T>> Get<T>(string path, ScopeContext context)
-    {
-        Option<T> option = (await Get(path, context)) switch
-        {
-            var v when v.IsOk() => v.Return().Data.AsSpan().ToObject<T>().NotNull(),
-            var v => v.ToOptionStatus<T>(),
-        };
-
-        return option;
-    }
-
     public Task<Option> Set(string path, DataETag data, ScopeContext context)
     {
         _store[path] = data;
         return new Option(StatusCode.OK).ToTaskResult();
-    }
-
-    public Task<Option> Set<T>(string path, T value, ScopeContext context) where T : class
-    {
-        string json = value.ToJson();
-        DataETag data = new DataETag(Encoding.UTF8.GetBytes(json));
-        return Set(path, data, context);
     }
 
     public IEnumerator<KeyValuePair<string, DataETag>> GetEnumerator() => _store.GetEnumerator();

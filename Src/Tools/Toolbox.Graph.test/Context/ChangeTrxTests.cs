@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.Context;
 
@@ -19,6 +21,10 @@ public class ChangeTrxTests
         var compareTo = new ChangeTrx(ChangeTrxType.NodeAdd, trxId, logKey, currentNode2, null, dt);
 
         (source == compareTo).Should().BeTrue();
+
+        var data = source.ToJson();
+        ChangeTrx readTrx = data.ToObject<ChangeTrx>().NotNull();
+        (source == readTrx).Should().BeTrue();
     }
 
     [Fact]
@@ -38,6 +44,10 @@ public class ChangeTrxTests
         var compareTo = new ChangeTrx(ChangeTrxType.NodeAdd, trxId, logKey, currentNode2, newValueNode2, dt);
 
         (source == compareTo).Should().BeTrue();
+
+        var data = source.ToJson();
+        ChangeTrx readTrx = data.ToObject<ChangeTrx>().NotNull();
+        (source == readTrx).Should().BeTrue();
     }
 
     [Fact]
@@ -60,6 +70,10 @@ public class ChangeTrxTests
         var compareTo = new ChangeTrx(ChangeTrxType.EdgeAdd, trxId, logKey, edge2, null, dt);
 
         (source == compareTo).Should().BeTrue();
+
+        var data = source.ToJson();
+        ChangeTrx readTrx = data.ToObject<ChangeTrx>().NotNull();
+        (source == readTrx).Should().BeTrue();
     }
 
     [Fact]

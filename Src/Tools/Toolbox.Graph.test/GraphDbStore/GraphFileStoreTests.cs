@@ -7,7 +7,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.GraphDbStore;
 
-public class GraphStoreTests
+public class GraphFileStoreTests
 {
     [Theory]
     [InlineData("n", "nodes/main/n.json")]
@@ -51,10 +51,18 @@ public class GraphStoreTests
         (await db.Store.Add(nodeKey, "main", data, NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
         (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
         ((InMemoryFileStore)store).Count.Should().Be(2);
+        (await db.Graph.ExecuteScalar($"select (key={nodeKey});", NullScopeContext.Instance)).Action(x =>
+        {
+            x.IsOk().Should().BeTrue(x.ToString());
+            x.Return().Items.OfType<GraphNode>().First().Action(y =>
+            {
+                y.Key.Should().Be(nodeKey);
+                y.LinksString.Should().Be("nodes/main/subscription/subscription___node1.json");
+            });
+        });
 
         (await db.Store.Add(nodeKey, "main", data, NullScopeContext.Instance)).Action(x => x.IsError().Should().BeTrue(x.ToString()));
         (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
-        ((InMemoryFileStore)store).Count.Should().Be(2);
 
         var readOption = await db.Store.Get<NameValue>(nodeKey, "main", NullScopeContext.Instance);
         readOption.IsOk().Should().BeTrue(readOption.ToString());
@@ -66,6 +74,91 @@ public class GraphStoreTests
         (await db.Store.Delete(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
         (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsNotFound().Should().BeTrue(x.ToString()));
         ((InMemoryFileStore)store).Count.Should().Be(1);
+        (await db.Graph.ExecuteScalar($"select (key={nodeKey});", NullScopeContext.Instance)).Action(x =>
+        {
+            x.IsOk().Should().BeTrue(x.ToString());
+            x.Return().Items.OfType<GraphNode>().First().Action(y =>
+            {
+                y.Key.Should().Be(nodeKey);
+                y.Links.Length.Should().Be(0);
+            });
+        });
+    }
+
+    [Fact]
+    public async Task MultipleFilesAddAndRemove()
+    {
+        const string nodeKey = "subscription/node1.json";
+        IFileStore store = new InMemoryFileStore();
+        GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
+
+        (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
+
+        var data = new NameValue("Name1", 10);
+        (await db.Store.Add(nodeKey, "main", data, NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        ((InMemoryFileStore)store).Count.Should().Be(2);
+        (await db.Graph.ExecuteScalar($"select (key={nodeKey});", NullScopeContext.Instance)).Action(x =>
+        {
+            x.IsOk().Should().BeTrue(x.ToString());
+            x.Return().Items.OfType<GraphNode>().First().Action(y =>
+            {
+                y.Key.Should().Be(nodeKey);
+                y.LinksString.Should().Be("nodes/main/subscription/subscription___node1.json");
+            });
+        });
+
+        (await db.Store.Add(nodeKey, "main", data, NullScopeContext.Instance)).Action(x => x.IsError().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+
+        (await db.Store.Add(nodeKey, "support", data, NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "support", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        ((InMemoryFileStore)store).Count.Should().Be(3);
+        (await db.Graph.ExecuteScalar($"select (key={nodeKey});", NullScopeContext.Instance)).Action(x =>
+        {
+            x.IsOk().Should().BeTrue(x.ToString());
+            x.Return().Items.OfType<GraphNode>().First().Action(y =>
+            {
+                y.Key.Should().Be(nodeKey);
+                y.LinksString.Should().Be("nodes/main/subscription/subscription___node1.json,nodes/support/subscription/subscription___node1.json");
+            });
+        });
+
+        (await db.Store.Add(nodeKey, "support", data, NullScopeContext.Instance)).Action(x => x.IsError().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "support", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+
+        var readOption = await db.Store.Get<NameValue>(nodeKey, "main", NullScopeContext.Instance);
+        readOption.IsOk().Should().BeTrue(readOption.ToString());
+        ((InMemoryFileStore)store).Count.Should().Be(3);
+
+        var readData = readOption.Return();
+        (readData == data).Should().BeTrue();
+
+        (await db.Store.Delete(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "main", NullScopeContext.Instance)).Action(x => x.IsNotFound().Should().BeTrue(x.ToString()));
+        ((InMemoryFileStore)store).Count.Should().Be(2);
+        (await db.Graph.ExecuteScalar($"select (key={nodeKey});", NullScopeContext.Instance)).Action(x =>
+        {
+            x.IsOk().Should().BeTrue(x.ToString());
+            x.Return().Items.OfType<GraphNode>().First().Action(y =>
+            {
+                y.Key.Should().Be(nodeKey);
+                y.LinksString.Should().Be("nodes/support/subscription/subscription___node1.json");
+            });
+        });
+
+        (await db.Store.Delete(nodeKey, "support", NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        (await db.Store.Exist(nodeKey, "support", NullScopeContext.Instance)).Action(x => x.IsNotFound().Should().BeTrue(x.ToString()));
+        ((InMemoryFileStore)store).Count.Should().Be(1);
+        (await db.Graph.ExecuteScalar($"select (key={nodeKey});", NullScopeContext.Instance)).Action(x =>
+        {
+            x.IsOk().Should().BeTrue(x.ToString());
+            x.Return().Items.OfType<GraphNode>().First().Action(y =>
+            {
+                y.Key.Should().Be(nodeKey);
+                y.Links.Length.Should().Be(0);
+            });
+        });
     }
 
     [Fact]

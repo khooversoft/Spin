@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
-using Azure;
+using System.Text.Json.Serialization;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
@@ -7,10 +8,13 @@ namespace Toolbox.Types;
 public readonly struct DataETag : IEquatable<DataETag>
 {
     public DataETag(byte[] data) => Data = ImmutableArray.Create<byte>(data.NotNull());
-    public DataETag(byte[] data, ETag? etag) => (Data, ETag) = (ImmutableArray.Create<byte>(data.NotNull()), etag);
+    public DataETag(byte[] data, string? etag) => (Data, ETag) = (ImmutableArray.Create<byte>(data.NotNull()), etag);
+
+    [JsonConstructor]
+    public DataETag(ImmutableArray<byte> data, string? eTag) => (Data, ETag) = (data, eTag);
 
     public ImmutableArray<byte> Data { get; }
-    public ETag? ETag { get; }
+    public string? ETag { get; }
 
     public static implicit operator DataETag(byte[] data) => new(data);
 
@@ -24,7 +28,6 @@ public readonly struct DataETag : IEquatable<DataETag>
         .RuleFor(x => x.Data).NotNull()
         .RuleFor(x => x.Data).Must(x => x.Length > 0, x => $"Data {x.Length} is invalid")
         .Build();
-
 }
 
 
@@ -36,5 +39,11 @@ public static class DataETagExtensions
     {
         result = subject.Validate();
         return result.IsOk();
+    }
+
+    public static DataETag ToDataETag<T>(this T value) where T : class
+    {
+        string json = value.ToJson();
+        return new DataETag(json.ToBytes());
     }
 }

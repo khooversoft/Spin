@@ -157,7 +157,7 @@ public class DatalakeStore : IDatalakeStore
             await response.Value.Content.CopyToAsync(memory);
 
             context.Location().LogInformation("Read file {path}", path);
-            return new DataETag(memory.ToArray(), response.Value.Properties.ETag).ToOption();
+            return new DataETag(memory.ToArray(), response.Value.Properties.ETag.ToString()).ToOption();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
@@ -281,7 +281,7 @@ public class DatalakeStore : IDatalakeStore
             {
                 var option = new DataLakeFileUploadOptions
                 {
-                    Conditions = new DataLakeRequestConditions { IfMatch = dataETag.ETag }
+                    Conditions = new DataLakeRequestConditions { IfMatch = dataETag.ETag.IsNotEmpty() ? new ETag(dataETag.ETag) : null }
                 };
 
                 result = await file.UploadAsync(fromStream, option, context);

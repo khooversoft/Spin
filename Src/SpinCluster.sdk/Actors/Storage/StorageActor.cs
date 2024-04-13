@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
 using SpinCluster.sdk.Services;
 using Toolbox.Azure;
@@ -126,7 +125,7 @@ public class StorageActor : Grain, IStorageActor
         var dataEtag = blob.ETag switch
         {
             null => new DataETag(blob.Content),
-            string e => new DataETag(blob.Content, new ETag(e))
+            string e => new DataETag(blob.Content, e)
         };
 
         var result = await store.Write(filePath, dataEtag, true, context);

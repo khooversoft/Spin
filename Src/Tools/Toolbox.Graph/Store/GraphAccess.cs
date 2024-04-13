@@ -11,14 +11,14 @@ public class GraphAccess
 
     public async Task<Option<GraphQueryResults>> Execute(string graphQuery, ScopeContext context)
     {
-        var graphContext = new GraphContext(_graphDbContext.Map, _graphDbContext.GraphStore, _graphDbContext.ChangeTrace, context);
+        var graphContext = new GraphContext(_graphDbContext.Map, _graphDbContext.FileStore, _graphDbContext.ChangeTrace, context);
         var result = await GraphCommand.Execute(graphContext, graphQuery);
         return result;
     }
 
     public async Task<Option<GraphQueryResult>> ExecuteScalar(string graphQuery, ScopeContext context)
     {
-        var graphContext = new GraphContext(_graphDbContext.Map, _graphDbContext.GraphStore, _graphDbContext.ChangeTrace, context);
+        var graphContext = new GraphContext(_graphDbContext.Map, _graphDbContext.FileStore, _graphDbContext.ChangeTrace, context);
         var result = await GraphCommand.Execute(graphContext, graphQuery);
         if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
 

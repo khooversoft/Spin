@@ -55,6 +55,58 @@ public class GraphContextTraceTests
         trx.UpdateEdgeValue.Should().BeNull();
     }
 
+    [Fact]
+    public async Task SimpleAddNodeWithFile()
+    {
+        var map = new GraphMap();
+        var store = new InMemoryFileStore();
+        var trace = new InMemoryChangeTrace();
+        var shimmedFileStore = new FileStoreTraceShim(store, trace);
+        var graphContext = new GraphContext(map, shimmedFileStore, trace, NullScopeContext.Instance);
+
+        var addResult = await graphContext.ExecuteScalar("add node key=node1;");
+        addResult.IsOk().Should().BeTrue();
+
+        map.Nodes.Count.Should().Be(1);
+        map.Edges.Count.Should().Be(0);
+        var n1 = map.Nodes.First();
+        n1.Key.Should().Be("node1");
+
+        store.Count.Should().Be(0);
+        trace.Count.Should().Be(1);
+
+        var rec = new DummyClass("name1", 10);
+        const string fileName = "nodes/data/DummyClass.json";
+        var writeResult = await graphContext.Store!.Add(fileName, rec, NullScopeContext.Instance);
+        writeResult.IsOk().Should().BeTrue();
+
+        trace.Count.Should().Be(2);
+
+        var traces = trace.GetTraces();
+        traces[0].ToObject<ChangeTrx>().NotNull().Action(x =>
+        {
+            x.TrxType.Should().Be(ChangeTrxType.NodeAdd);
+            x.CurrentNodeValue.NotNull().Action(y =>
+            {
+                y.Key.Should().Be("node1");
+                y.Tags.Should().BeEmpty();
+            });
+            x.UpdateNodeValue.Should().BeNull();
+            x.CurrentEdgeValue.Should().BeNull();
+            x.UpdateEdgeValue.Should().BeNull();
+        });
+        traces[1].ToObject<ChangeTrx>().NotNull().Action(x =>
+        {
+            x.TrxType.Should().Be(ChangeTrxType.FileAdd);
+            x.FilePath.Should().Be(fileName);
+
+            var dataTag = rec.ToDataETag();
+            (x.FileData == dataTag).Should().BeTrue();
+        });
+
+    }
+
+    private record DummyClass(string Name, int Age);
 
     [Fact]
     public async Task FullNodeLifeCycle()
