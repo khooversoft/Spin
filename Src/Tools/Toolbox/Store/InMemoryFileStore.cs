@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
@@ -8,18 +9,32 @@ namespace Toolbox.Store;
 public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, DataETag>>
 {
     private readonly ConcurrentDictionary<string, DataETag> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _lock = new object();
 
     public int Count => _store.Count;
 
-    public Task<Option> Add(string path, DataETag data, ScopeContext context)
+    public Task<Option<string>> Add(string path, DataETag data, ScopeContext context)
     {
-        Option option = _store.TryAdd(path, data) switch
-        {
-            true => StatusCode.OK,
-            false => (StatusCode.Conflict, $"path={path} already exist"),
-        };
+        data = data.WithHash();
 
-        return option.ToTaskResult();
+        lock (_lock)
+        {
+            if (data.ETag.IsNotEmpty())
+            {
+                if (_store.TryGetValue(path, out var current))
+                {
+                    if (current.ETag != data.ETag) return new Option<string>(StatusCode.Conflict, $"ETag does not match").ToTaskResult();
+                }
+            }
+
+            Option<string> option = _store.TryAdd(path, data) switch
+            {
+                true => data.ETag.NotEmpty(),
+                false => (StatusCode.Conflict, $"path={path} already exist"),
+            };
+
+            return option.ToTaskResult();
+        }
     }
 
     public Task<Option> Delete(string path, ScopeContext context)
@@ -55,13 +70,31 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
         return option.ToTaskResult();
     }
 
-    public Task<Option> Set(string path, DataETag data, ScopeContext context)
+    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
     {
-        _store[path] = data;
-        return new Option(StatusCode.OK).ToTaskResult();
+        var paths = _store.Select(x => x.Key);
+        var result = paths.Match(pattern);
+        return result.ToTaskResult();
+    }
+
+    public Task<Option<string>> Set(string path, DataETag data, ScopeContext context)
+    {
+        lock (_lock)
+        {
+            if (data.ETag.IsNotEmpty())
+            {
+                if (_store.TryGetValue(path, out var current))
+                {
+                    if (current.ETag != data.ETag) return new Option<string>(StatusCode.Conflict, $"ETag does not match").ToTaskResult();
+                }
+            }
+
+            data = data.WithHash();
+            _store[path] = data;
+            return data.ETag.NotEmpty().ToOption().ToTaskResult();
+        }
     }
 
     public IEnumerator<KeyValuePair<string, DataETag>> GetEnumerator() => _store.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

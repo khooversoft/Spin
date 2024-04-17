@@ -9,11 +9,11 @@ namespace Toolbox.Orleans;
 
 public static class GraphActorExtensions
 {
-    public static IGraphActor GetDirectory(this IClusterClient clusterClient, string resourceId = "directory")
+    public static IDirectoryActor GetDirectory(this IClusterClient clusterClient, string resourceId = "directory")
     {
         clusterClient.NotNull();
         resourceId = resourceId.NotEmpty().ToLower();
 
-        return clusterClient.GetGrain<IGraphActor>(resourceId);
+        return clusterClient.GetGrain<IDirectoryActor>(resourceId);
     }
 }

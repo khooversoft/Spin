@@ -5,6 +5,15 @@ using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
+public readonly struct DataETag<T>
+{
+    [JsonConstructor]
+    public DataETag(T value, string? eTag = null) => (Value, ETag) = (value.NotNull(), eTag);
+
+    public T Value { get; }
+    public string? ETag { get; }
+}
+
 public readonly struct DataETag : IEquatable<DataETag>
 {
     public DataETag(byte[] data) => Data = ImmutableArray.Create<byte>(data.NotNull());
@@ -46,4 +55,10 @@ public static class DataETagExtensions
         string json = value.ToJson();
         return new DataETag(json.ToBytes());
     }
+
+    public static string ToHash(this DataETag data) => data.Data.ToHexHash();
+
+    public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
+
+    public static T ToObject<T>(this DataETag data) => data.Data.AsSpan().ToObject<T>().NotNull();
 }

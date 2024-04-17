@@ -31,7 +31,7 @@ public class InMemoryFileStoreTests
         await AddFile(store, pathText, dataText);
 
         DataETag data = new DataETag(dataText.ToBytes());
-        Option result = await store.Add(pathText, data, NullScopeContext.Instance);
+        Option<string> result = await store.Add(pathText, data, NullScopeContext.Instance);
         result.IsOk().Should().BeFalse();
         result.IsConflict().Should().BeTrue();
 
@@ -124,13 +124,13 @@ public class InMemoryFileStoreTests
         return AddOrSetFile(store, path, dataText, 0, (fileId, data) => store.Set(fileId, data, NullScopeContext.Instance));
     }
 
-    private async Task AddOrSetFile(IFileStore store, string path, string dataText, int increment, Func<string, DataETag, Task<Option>> func)
+    private async Task AddOrSetFile(IFileStore store, string path, string dataText, int increment, Func<string, DataETag, Task<Option<string>>> func)
     {
         DataETag data = new DataETag(dataText.ToBytes());
 
         int beginCount = ((InMemoryFileStore)store).Count;
 
-        Option result = await func(path, data);
+        Option<string> result = await func(path, data);
         result.IsOk().Should().BeTrue();
         ((InMemoryFileStore)store).Count.Should().Be(beginCount + increment);
         (await store.Exist(path, NullScopeContext.Instance)).Action(x => x.IsOk().Should().BeTrue());

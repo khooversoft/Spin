@@ -8,20 +8,20 @@ using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
-public interface IGraphActor : IGrainWithStringKey
+public interface IDirectoryActor : IGrainWithStringKey
 {
-    Task<Option> Clear(string traceId);
     Task<Option<GraphQueryResults>> Execute(string command, string traceId);
+    Task<Option<GraphQueryResult>> ExecuteScalar(string command, string traceId);
 }
 
-public class GraphActor : Grain, IGraphActor
+public class DirectoryActor : Grain, IDirectoryActor
 {
-    private readonly ILogger<GraphActor> _logger;
+    private readonly ILogger<DirectoryActor> _logger;
     private readonly ActorCacheState<GraphMap, GraphSerialization> _state;
 
-    public GraphActor(
+    public DirectoryActor(
         [PersistentState("json", OrleansConstants.StorageProviderName)] IPersistentState<GraphSerialization> state,
-        ILogger<GraphActor> logger
+        ILogger<DirectoryActor> logger
         )
     {
         _logger = logger.NotNull();
@@ -33,14 +33,6 @@ public class GraphActor : Grain, IGraphActor
     {
         if (!_state.RecordExists) await _state.SetState(new GraphMap(), new ScopeContext(_logger));
         await base.OnActivateAsync(cancellationToken);
-    }
-
-    public async Task<Option> Clear(string traceId)
-    {
-        var context = new ScopeContext(traceId, _logger);
-        context.Location().LogInformation("Clearing graph");
-
-        return await _state.Clear();
     }
 
     public async Task<Option<GraphQueryResults>> Execute(string command, string traceId)
@@ -61,5 +53,13 @@ public class GraphActor : Grain, IGraphActor
         await _state.SetState(map, context);
 
         return commandResult;
+    }
+
+    public async Task<Option<GraphQueryResult>> ExecuteScalar(string command, string traceId)
+    {
+        var result = await Execute(command, traceId);
+        if( result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
+
+        return result.Return().Items.First();
     }
 }

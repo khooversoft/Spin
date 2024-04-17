@@ -8,6 +8,6 @@ namespace Toolbox.Orleans;
 
 public static class OrleansConstants
 {
-    public const string StorageProviderName = "pathStore";
+    public const string StorageProviderName = "directory.store";
     public const string DirectoryActorKey = "directory";
 }

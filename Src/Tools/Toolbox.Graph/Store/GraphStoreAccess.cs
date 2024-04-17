@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphStoreAccess
+public class GraphStoreAccess : IGraphStoreAccess
 {
     private readonly GraphDbAccess _graphDbContext;
     private readonly IFileStore _graphFileStore;
@@ -45,9 +45,9 @@ public class GraphStoreAccess
     {
         string fileId = GraphTool.CreateFileId(nodeKey, name);
         var jsonOption = await _graphFileStore.Get<T>(fileId, context);
-        if (jsonOption.IsError()) return jsonOption;
+        if (jsonOption.IsError()) return jsonOption.ToOptionStatus<T>();
 
-        return jsonOption.Return();
+        return jsonOption.Return().Value;
     }
 
     public Task<Option<string>> Set<T>(string nodeKey, string name, T value, ScopeContext context) where T : class => AddOrUpdate(nodeKey, name, true, value, context);
@@ -64,7 +64,7 @@ public class GraphStoreAccess
             true => await _graphFileStore.Set<T>(fileId, value, context),
         };
 
-        if (addOption.IsError()) return addOption.ToOptionStatus<string>();
+        if (addOption.IsError()) return addOption;
 
         string cmd = $"update (key={nodeKey}) set link={fileId};";
         var updateResult = await _graphDbContext.Graph.ExecuteScalar(cmd, context);

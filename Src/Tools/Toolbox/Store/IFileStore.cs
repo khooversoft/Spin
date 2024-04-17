@@ -6,17 +6,18 @@ namespace Toolbox.Store;
 
 public interface IFileStore
 {
-    Task<Option> Add(string path, DataETag data, ScopeContext context);
+    Task<Option<string>> Add(string path, DataETag data, ScopeContext context);
     Task<Option> Exist(string path, ScopeContext context);
     Task<Option> Delete(string path, ScopeContext context);
+    Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context);
     Task<Option<DataETag>> Get(string path, ScopeContext context);
-    Task<Option> Set(string path, DataETag data, ScopeContext context);
+    Task<Option<string>> Set(string path, DataETag data, ScopeContext context);
 }
 
 
 public static class IFileStoreExtensions
 {
-    public static Task<Option> Add<T>(this IFileStore store, string path, T value, ScopeContext context) where T : class
+    public static Task<Option<string>> Add<T>(this IFileStore store, string path, T value, ScopeContext context) where T : class
     {
         string json = value.ToJson();
         DataETag data = new DataETag(json.ToBytes());
@@ -32,18 +33,25 @@ public static class IFileStoreExtensions
         return str;
     }
 
-    public static async Task<Option<T>> Get<T>(this IFileStore store, string path, ScopeContext context)
+    public static async Task<Option<DataETag<T>>> Get<T>(this IFileStore store, string path, ScopeContext context)
     {
-        Option<T> option = (await store.Get(path, context)) switch
+        try
         {
-            var v when v.IsOk() => v.Return().Data.AsSpan().ToObject<T>().NotNull(),
-            var v => v.ToOptionStatus<T>(),
-        };
+            Option<DataETag<T>> option = (await store.Get(path, context)) switch
+            {
+                var v when v.IsOk() => new DataETag<T>(v.Return().ToObject<T>().NotNull(), v.Return().ETag),
+                var v => v.ToOptionStatus<DataETag<T>>(),
+            };
 
-        return option;
+            return option;
+        }
+        catch
+        {
+            return StatusCode.InternalServerError;
+        }
     }
 
-    public static Task<Option> Set<T>(this IFileStore store, string path, T value, ScopeContext context) where T : class
+    public static Task<Option<string>> Set<T>(this IFileStore store, string path, T value, ScopeContext context) where T : class
     {
         DataETag data = value.ToDataETag();
         return store.Set(path, data, context);

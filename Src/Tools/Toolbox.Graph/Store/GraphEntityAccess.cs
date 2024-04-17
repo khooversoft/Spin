@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphEntityAccess
+public class GraphEntityAccess : IGraphEntityAccess
 {
     private readonly GraphDbAccess _graphDbContext;
     internal GraphEntityAccess(GraphDbAccess graphDbContext) => _graphDbContext = graphDbContext.NotNull();

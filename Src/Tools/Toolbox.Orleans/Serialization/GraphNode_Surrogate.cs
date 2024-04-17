@@ -2,7 +2,7 @@
 using Toolbox.Graph;
 using Toolbox.Types;
 
-namespace SpinCluster.sdk.Serialization;
+namespace Toolbox.Orleans;
 
 [GenerateSerializer]
 public struct GraphNode_Surrogate

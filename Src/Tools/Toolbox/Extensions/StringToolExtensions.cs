@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Toolbox.Tools;
 
 namespace Toolbox.Extensions;
 
@@ -74,6 +76,21 @@ public static class StringToolExtensions
         builder.Append('$');
 
         bool result = new Regex(builder.ToString(), RegexOptions.IgnoreCase).IsMatch(input);
+        return result;
+    }
+
+    public static IReadOnlyList<string> Match(this IEnumerable<string> files, params string[] patterns)
+    {
+        files.NotNull();
+        if (files.Count() == 0 || patterns.Length == 0) return Array.Empty<string>();
+
+        Matcher matcher = new();
+        patterns.ForEach(x => matcher.AddInclude(x));
+
+        var matchResult = matcher.Match(files);
+        if (!matchResult.HasMatches) return Array.Empty<string>();
+
+        var result = matchResult.Files.Select(x => x.Path).ToArray();
         return result;
     }
 

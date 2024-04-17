@@ -32,14 +32,15 @@ internal class GraphDbAccess
         var gsOption = await FileStore.Get<GraphSerialization>(_graphFileId, context);
         if (gsOption.IsError()) return gsOption.ToOptionStatus();
 
-        Map = gsOption.Return().FromSerialization();
+        Map = gsOption.Return().Value.FromSerialization();
         return StatusCode.OK;
     }
 
     public async Task<Option> WriteMapToStore(ScopeContext context)
     {
         var gs = Map.ToSerialization();
-        return await FileStore.Set(_graphFileId, gs, context);
+        var result = await FileStore.Set(_graphFileId, gs, context);
+        return result.ToOptionStatus();
     }
 }
 

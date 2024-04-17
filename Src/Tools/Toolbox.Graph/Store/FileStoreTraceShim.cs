@@ -15,7 +15,7 @@ internal class FileStoreTraceShim : IFileStore
         _changeTrace = changeTrace.NotNull();
     }
 
-    public async Task<Option> Add(string path, DataETag data, ScopeContext context)
+    public async Task<Option<string>> Add(string path, DataETag data, ScopeContext context)
     {
         var result = await _filestore.Add(path, data, context);
         if (result.IsOk())
@@ -41,8 +41,9 @@ internal class FileStoreTraceShim : IFileStore
 
     public Task<Option> Exist(string path, ScopeContext context) => _filestore.Exist(path, context);
     public Task<Option<DataETag>> Get(string path, ScopeContext context) => _filestore.Get(path, context);
+    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context) => _filestore.Search(pattern, context);
 
-    public async Task<Option> Set(string path, DataETag data, ScopeContext context)
+    public async Task<Option<string>> Set(string path, DataETag data, ScopeContext context)
     {
         var result = await _filestore.Set(path, data, context);
         if (result.IsOk())

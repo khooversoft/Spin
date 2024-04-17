@@ -7,7 +7,7 @@ namespace Toolbox.Orleans;
 public struct DataETag_Surrogate
 {
     public byte[] Data;
-    public ETag? ETag;
+    public string? ETag;
 }
 
 
@@ -18,7 +18,7 @@ public sealed class DataETag_SurrogateConverter : IConverter<DataETag, DataETag_
 
     public DataETag_Surrogate ConvertToSurrogate(in DataETag value) => new DataETag_Surrogate
     {
-        Data = value.Data,
+        Data = value.Data.ToArray(),
         ETag = value.ETag,
     };
 }

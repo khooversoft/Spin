@@ -16,15 +16,15 @@ public class IdentityActorConnector : IIdentityClient
         _clusterClient = clusterClient.NotNull();
     }
 
-    public Task<Option> Clear(string traceId)
-    {
-        var actor = _clusterClient.GetGrain<IGraphActor>(_resourceId);
-        return actor.Clear(traceId);
-    }
+    //public Task<Option> Clear(string traceId)
+    //{
+    //    var actor = _clusterClient.GetGrain<IGraphActor>(_resourceId);
+    //    return actor.Clear(traceId);
+    //}
 
     public Task<Option<GraphQueryResults>> Execute(string command, string traceId)
     {
-        var actor = _clusterClient.GetGrain<IGraphActor>(_resourceId);
+        var actor = _clusterClient.GetGrain<IDirectoryActor>(_resourceId);
         return actor.Execute(command, traceId);
     }
 

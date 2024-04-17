@@ -60,7 +60,7 @@ internal class DatalakeGrainStorageConnector : IGrainStorage
             };
 
             grainState.RecordExists = true;
-            grainState.ETag = result.Return().ETag.ToString();
+            grainState.ETag = result.Return().ETag.NotEmpty().ToString();
             context.LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
             return;
         }
@@ -79,16 +79,14 @@ internal class DatalakeGrainStorageConnector : IGrainStorage
         (string filePath, IDatalakeStore store) = GetStoreAndPath(grainId, stateName);
         context.Location().LogInformation("Writing state for filePath={filePath}", filePath);
 
-        ETag etag = new ETag(grainState.ETag);
-
         DataETag dataEtag = grainState.State switch
         {
-            DataETag v => new DataETag(v.Data, etag),
+            DataETag v => new DataETag(v.Data, grainState.ETag),
 
             var v => v
                 .ToJsonSafe(context.Location())
                 .ToBytes()
-                .Func(x => new DataETag(x, etag)),
+                .Func(x => new DataETag(x, grainState.ETag)),
         };
 
         var result = await store.Write(filePath, dataEtag, true, context);
