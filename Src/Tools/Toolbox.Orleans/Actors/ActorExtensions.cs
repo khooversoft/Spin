@@ -4,16 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
-public static class GraphActorExtensions
+public static class ActorExtensions
 {
     public static IDirectoryActor GetDirectory(this IClusterClient clusterClient, string resourceId = "directory")
     {
         clusterClient.NotNull();
-        resourceId = resourceId.NotEmpty().ToLower();
+        resourceId = resourceId.NotEmpty().ToLower().Assert(x => IdPatterns.IsName(x), "Invalid resourceId");
 
         return clusterClient.GetGrain<IDirectoryActor>(resourceId);
     }
+
+    public static IFileStoreSearchActor GetFileStoreSearch(this IClusterClient clusterClient) => clusterClient.NotNull().GetGrain<IFileStoreSearchActor>("*");
 }

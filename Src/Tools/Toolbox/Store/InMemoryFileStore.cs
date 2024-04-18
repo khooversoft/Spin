@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -10,11 +11,18 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
 {
     private readonly ConcurrentDictionary<string, DataETag> _store = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();
+    private readonly ILogger<InMemoryFileStore> _logger;
+    private readonly Guid _instanceKey = Guid.NewGuid();
+
+    public InMemoryFileStore(ILogger<InMemoryFileStore> logger) => _logger = logger.NotNull();
 
     public int Count => _store.Count;
 
     public Task<Option<string>> Add(string path, DataETag data, ScopeContext context)
     {
+        if (!FileStoreTool.IsPathValid(path)) return new Option<string>(StatusCode.BadRequest).ToTaskResult();
+        context = context.With(_logger);
+
         data = data.WithHash();
 
         lock (_lock)
@@ -23,7 +31,11 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
             {
                 if (_store.TryGetValue(path, out var current))
                 {
-                    if (current.ETag != data.ETag) return new Option<string>(StatusCode.Conflict, $"ETag does not match").ToTaskResult();
+                    if (current.ETag != data.ETag)
+                    {
+                        context.LogError("ETag for path={path} does not match, current.ETag={current.ETag}, data.ETag={data.ETag}", current.ETag, data.ETag);
+                        return new Option<string>(StatusCode.Conflict, $"ETag does not match").ToTaskResult();
+                    }
                 }
             }
 
@@ -33,27 +45,33 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
                 false => (StatusCode.Conflict, $"path={path} already exist"),
             };
 
+            option.LogStatus(context, "Add Path={path} with eTag={eTag}", path, data.ETag);
             return option.ToTaskResult();
         }
     }
 
     public Task<Option> Delete(string path, ScopeContext context)
     {
+        if (!FileStoreTool.IsPathValid(path)) return new Option(StatusCode.BadRequest).ToTaskResult();
+
         Option option = _store.TryRemove(path, out var _) switch
         {
             true => StatusCode.OK,
-            false => (StatusCode.NotFound, $"path={path} does not already exist"),
+            false => (StatusCode.NotFound, $"path={path} does not exist"),
         };
 
+        option.LogStatus(context, "Delete Path={path}", path);
         return option.ToTaskResult();
     }
 
     public Task<Option> Exist(string path, ScopeContext context)
     {
+        if (!FileStoreTool.IsPathValid(path)) return new Option(StatusCode.BadRequest).ToTaskResult();
+
         Option option = _store.ContainsKey(path) switch
         {
             true => StatusCode.OK,
-            false => (StatusCode.NotFound, $"path={path} does not already exist"),
+            false => (StatusCode.NotFound, $"path={path} does not exist"),
         };
 
         return option.ToTaskResult();
@@ -64,9 +82,10 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
         Option<DataETag> option = _store.TryGetValue(path, out var value) switch
         {
             true => value,
-            false => (StatusCode.NotFound, $"path={path} does not already exist"),
+            false => (StatusCode.NotFound, $"path={path} does not exist"),
         };
 
+        option.LogStatus(context, "Get Path={path}", path);
         return option.ToTaskResult();
     }
 
@@ -85,7 +104,11 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
             {
                 if (_store.TryGetValue(path, out var current))
                 {
-                    if (current.ETag != data.ETag) return new Option<string>(StatusCode.Conflict, $"ETag does not match").ToTaskResult();
+                    if (current.ETag != data.ETag)
+                    {
+                        context.LogError("ETag for path={path} does not match, current.ETag={current.ETag}, data.ETag={data.ETag}", current.ETag, data.ETag);
+                        return new Option<string>(StatusCode.Conflict, $"ETag does not match").ToTaskResult();
+                    }
                 }
             }
 

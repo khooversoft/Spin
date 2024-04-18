@@ -11,7 +11,7 @@ public static class StoreCollectionStartup
 
         services.AddSingleton<IStoreCollection>(services =>
         {
-            IStoreCollection storeCollection = new StoreCollection(services);
+            IStoreCollection storeCollection = ActivatorUtilities.CreateInstance<StoreCollection>(services);
             config(services, storeCollection);
 
             return storeCollection;

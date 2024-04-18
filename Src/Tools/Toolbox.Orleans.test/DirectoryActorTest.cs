@@ -1,7 +1,9 @@
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Orleans.test.Application;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -32,5 +34,11 @@ public class DirectoryActorTest : IClassFixture<ClusterFixture>
             x.Key.Should().Be("node1");
         });
 
+        IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearch();
+
+        var files = await fileStoreSearchActor.Search($"{OrleansConstants.DirectoryActorKey}/**/*", "trace");
+        files.Should().NotBeNull();
+        files.Count.Should().Be(1);
+        files[0].Should().Be("directory.json");
     }
 }
