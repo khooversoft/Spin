@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -15,7 +16,7 @@ public class InMemoryFileStoreTests
     {
         const string dataText = "data";
         const string pathText = "path";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
 
         await AddFile(store, pathText, dataText);
         await DeleteFile(store, pathText, 0);
@@ -26,7 +27,7 @@ public class InMemoryFileStoreTests
     {
         const string dataText = "data";
         const string pathText = "path";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
 
         await AddFile(store, pathText, dataText);
 
@@ -44,7 +45,7 @@ public class InMemoryFileStoreTests
         const string dataText = "data";
         const string dataText2 = "data2";
         const string pathText = "path";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
 
         await AddFile(store, pathText, dataText);
         await SetFile(store, pathText, dataText2);
@@ -59,7 +60,7 @@ public class InMemoryFileStoreTests
         const string pathText1 = "path";
         const string dataText2 = "data2";
         const string pathText2 = "path2";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
 
         await AddFile(store, pathText1, dataText1);
         await AddFile(store, pathText2, dataText2);
@@ -70,7 +71,7 @@ public class InMemoryFileStoreTests
     [Fact]
     public async Task AddManyFile()
     {
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         var rnd = new Random();
         const int size = 1000;
         var queue = new ConcurrentQueue<(string fileId, DataETag data)>();

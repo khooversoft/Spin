@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphStoreAccess : IGraphStoreAccess
+public class GraphStoreAccess
 {
     private readonly GraphDbAccess _graphDbContext;
     private readonly IFileStore _graphFileStore;

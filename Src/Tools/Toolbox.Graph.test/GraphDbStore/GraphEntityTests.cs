@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Types;
@@ -10,7 +11,7 @@ public class GraphEntityTests
     [Fact]
     public async Task AddEntityWithIndexes()
     {
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         IChangeTrace trace = new InMemoryChangeTrace();
         GraphDb db = new GraphDb(store, trace);
 
@@ -70,7 +71,7 @@ public class GraphEntityTests
     [Fact]
     public async Task DeleteEntityByNodeKey()
     {
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         IChangeTrace trace = new InMemoryChangeTrace();
         GraphDb db = new GraphDb(store, trace);
 

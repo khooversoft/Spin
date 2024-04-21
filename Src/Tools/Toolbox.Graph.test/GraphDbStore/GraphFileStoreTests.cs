@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Types;
@@ -27,7 +28,7 @@ public class GraphFileStoreTests
     [Fact]
     public async Task SingleFileWithoutNodeShouldFail()
     {
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         var data = new { Name = "Name1", Value = "Value1" };
@@ -42,7 +43,7 @@ public class GraphFileStoreTests
     public async Task SingleFileAddAndRemove()
     {
         const string nodeKey = "subscription/node1.json";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
@@ -89,7 +90,7 @@ public class GraphFileStoreTests
     public async Task MultipleFilesAddAndRemove()
     {
         const string nodeKey = "subscription/node1.json";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
@@ -165,7 +166,7 @@ public class GraphFileStoreTests
     public async Task SingleFileRoundTrip()
     {
         const string nodeKey = "subscription/node1.json";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
@@ -188,7 +189,7 @@ public class GraphFileStoreTests
     public async Task SingleFileNode()
     {
         const string nodeKey = "contract/company.com/node1.json";
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
 
         var data = new NameValue("Name1", 40);
@@ -210,7 +211,7 @@ public class GraphFileStoreTests
     [Fact]
     public async Task MultipleNodesAtScaleAddThenDelete()
     {
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
         int count = 100;
         var nodeKeys = new ConcurrentQueue<string>();
@@ -256,7 +257,7 @@ public class GraphFileStoreTests
     [Fact]
     public async Task MultipleNodesAtScaleAddAndDeleteByTasks()
     {
-        IFileStore store = new InMemoryFileStore();
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         GraphDb db = new GraphDb(store, new InMemoryChangeTrace());
         const int count = 10000;
         const int maxParallel = 20;

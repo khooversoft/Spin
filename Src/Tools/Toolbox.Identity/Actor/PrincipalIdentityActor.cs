@@ -42,7 +42,7 @@ public class PrincipalIdentityActor : Grain, IPrincipalIdentityActor
 
     public Task Clear() => _state.Clear();
 
-    public Task<Option<PrincipalIdentity>> Get() => _state.GetState(new ScopeContext(_logger));
+    public Task<Option<PrincipalIdentity>> Get() => _state.GetState();
 
     public async Task<Option> Set(PrincipalIdentity principalIdentity)
     {
@@ -52,6 +52,6 @@ public class PrincipalIdentityActor : Grain, IPrincipalIdentityActor
         string id = this.GetPrimaryKeyString().Split('/').Skip(1).Join('/');
         if (principalIdentity.Id != id) return (StatusCode.BadRequest, $"Actor Id={id} does not match PrincipalIdentity.Id={principalIdentity.Id}");
 
-        return await _state.SetState(principalIdentity, context);
+        return await _state.SetState(principalIdentity);
     }
 }

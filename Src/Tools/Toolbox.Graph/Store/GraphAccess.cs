@@ -22,6 +22,6 @@ public class GraphAccess
         var result = await GraphCommand.Execute(graphContext, graphQuery);
         if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
 
-        return result.Return().Items.First();
+        return result.Return().Items[0];
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Store;
@@ -27,7 +28,7 @@ public class GraphContextTraceTests
     public async Task SimpleAddNode()
     {
         var map = new GraphMap();
-        var store = new InMemoryFileStore();
+        var store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         var trace = new InMemoryChangeTrace();
         var graphContext = new GraphContext(map, store, trace, NullScopeContext.Instance);
 
@@ -59,7 +60,7 @@ public class GraphContextTraceTests
     public async Task SimpleAddNodeWithFile()
     {
         var map = new GraphMap();
-        var store = new InMemoryFileStore();
+        var store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         var trace = new InMemoryChangeTrace();
         var shimmedFileStore = new FileStoreTraceShim(store, trace);
         var graphContext = new GraphContext(map, shimmedFileStore, trace, NullScopeContext.Instance);
@@ -112,7 +113,7 @@ public class GraphContextTraceTests
     public async Task FullNodeLifeCycle()
     {
         var map = new GraphMap();
-        var store = new InMemoryFileStore();
+        var store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         var trace = new InMemoryChangeTrace();
         var graphContext = new GraphContext(map, store, trace, NullScopeContext.Instance);
 
@@ -169,7 +170,7 @@ public class GraphContextTraceTests
     public async Task SimpleAddEdge()
     {
         var map = new GraphMap();
-        var store = new InMemoryFileStore();
+        var store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         var trace = new InMemoryChangeTrace();
         var graphContext = new GraphContext(map, store, trace, NullScopeContext.Instance);
 
@@ -198,7 +199,7 @@ public class GraphContextTraceTests
     public async Task AddEdgeFullLifecycle()
     {
         var map = new GraphMap();
-        var store = new InMemoryFileStore();
+        var store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         var trace = new InMemoryChangeTrace();
         var graphContext = new GraphContext(map, store, trace, NullScopeContext.Instance);
 

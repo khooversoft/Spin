@@ -18,5 +18,9 @@ public static class ActorExtensions
         return clusterClient.GetGrain<IDirectoryActor>(resourceId);
     }
 
-    public static IFileStoreSearchActor GetFileStoreSearch(this IClusterClient clusterClient) => clusterClient.NotNull().GetGrain<IFileStoreSearchActor>("*");
+    public static IFileStoreSearchActor GetFileStoreSearchActor(this IClusterClient clusterClient) =>
+        clusterClient.NotNull().GetGrain<IFileStoreSearchActor>("*");
+
+    public static IFileStoreActor GetFileStoreActor(this IClusterClient clusterClient, string path) =>
+        clusterClient.NotNull().GetGrain<IFileStoreActor>(path.NotEmpty().ToLower());
 }

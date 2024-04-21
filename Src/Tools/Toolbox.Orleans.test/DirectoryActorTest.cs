@@ -34,7 +34,7 @@ public class DirectoryActorTest : IClassFixture<ClusterFixture>
             x.Key.Should().Be("node1");
         });
 
-        IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearch();
+        IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearchActor();
 
         var files = await fileStoreSearchActor.Search($"{OrleansConstants.DirectoryActorKey}/**/*", "trace");
         files.Should().NotBeNull();

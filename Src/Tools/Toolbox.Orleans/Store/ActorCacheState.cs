@@ -38,15 +38,16 @@ public class ActorCacheState<TState, TSerialize>
 
     public bool RecordExists => _state.RecordExists;
     public TSerialize State => _state.State;
+    public string ETag => _state.Etag;
     public Task<Option> Exist() => new Option(_state.RecordExists ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
 
-    public async Task<Option<TState>> GetState(ScopeContext context)
+    public async Task<Option<TState>> GetState()
     {
         if (_cacheObject.TryGetValue(out var value)) return value;
-        return await ReadFromStorage(context);
+        return await ReadFromStorage();
     }
 
-    public async Task<Option> SetState(TState state, ScopeContext context)
+    public async Task<Option> SetState(TState state)
     {
         _state.State = _toStorage(state);
         await _state.WriteStateAsync();
@@ -55,7 +56,7 @@ public class ActorCacheState<TState, TSerialize>
         return StatusCode.OK;
     }
 
-    private async Task<Option<TState>> ReadFromStorage(ScopeContext context)
+    private async Task<Option<TState>> ReadFromStorage()
     {
         if (!_state.RecordExists) return StatusCode.NotFound;
 

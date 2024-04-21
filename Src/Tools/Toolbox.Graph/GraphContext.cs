@@ -9,9 +9,8 @@ public class GraphContext
     public GraphContext(GraphMap map, ScopeContext context)
     {
         Map = map.NotNull();
-        Context = context.NotNull();
-
         ChangeLog = new ChangeLog(this);
+        Context = context.NotNull();
     }
 
     public GraphContext(GraphMap map, IFileStore store, IChangeTrace changeTrace, ScopeContext context)
