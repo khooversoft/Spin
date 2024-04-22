@@ -35,13 +35,13 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
 
             services.AddStoreCollection((services, config) =>
             {
-                config.Add(new StoreConfig(OrleansConstants.DirectoryActorKey, (services, config) =>
-                {
-                    return services.GetRequiredService<IFileStore>();
-                }));
+                config.Add(new StoreConfig(OrleansConstants.DirectoryActorKey, getFileStoreService));                
+                config.Add(new StoreConfig("contract", getFileStoreService));                
             });
 
             services.AddKeyedSingleton<IGrainStorage, GrainStorageFileStoreConnector>(OrleansConstants.StorageProviderName);
         });
+
+        static IFileStore getFileStoreService(IServiceProvider services, StoreConfig config) => services.GetRequiredService<IFileStore>();
     }
 }

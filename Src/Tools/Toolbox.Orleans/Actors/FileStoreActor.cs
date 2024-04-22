@@ -64,7 +64,14 @@ public class FileStoreActor : Grain, IFileStoreActor
     }
 
     public Task<Option> Exist(string traceId) => _state.Exist();
-    public Task<Option<DataETag>> Get(string traceId) => _state.GetState();
+    public async Task<Option<DataETag>> Get(string traceId)
+    {
+        Option<DataETag> state = await _state.GetState();
+        if (state.IsError()) return state;
+
+        return state.Return().WithETag(_state.ETag);
+    }
+
 
     public async Task<Option<string>> Set(DataETag data, string traceId)
     {

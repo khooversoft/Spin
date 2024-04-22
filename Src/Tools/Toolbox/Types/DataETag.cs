@@ -57,8 +57,8 @@ public static class DataETagExtensions
     }
 
     public static string ToHash(this DataETag data) => data.Data.ToHexHash();
-
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
+    public static DataETag WithETag(this DataETag data, string? etag) => new DataETag(data.Data, eTag);
 
     public static T ToObject<T>(this DataETag data) => data.Data.AsSpan().ToObject<T>().NotNull();
 }

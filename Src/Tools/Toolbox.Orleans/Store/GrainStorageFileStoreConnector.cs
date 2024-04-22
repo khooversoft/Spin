@@ -45,7 +45,7 @@ public class GrainStorageFileStoreConnector : IGrainStorage
         (string filePath, IFileStore store) = GetStoreAndPath(grainId, extension);
         context.LogInformation("Reading state for filePath={filePath}", filePath);
 
-        var result = await store.Get<T>(filePath, context);
+        var result = await store.Get(filePath, context);
         if (result.IsError())
         {
             result.LogStatus(context, "Reading file from datalake");
@@ -53,10 +53,27 @@ public class GrainStorageFileStoreConnector : IGrainStorage
             return;
         }
 
-        grainState.State = result.Return().Value;
-        grainState.RecordExists = true;
-        grainState.ETag = result.Return().ETag;
-        context.LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
+        try
+        {
+            DataETag dataETag = result.Return();
+
+            grainState.State = typeof(T) switch
+            {
+                Type v when v == typeof(DataETag) => dataETag.Cast<T>(),
+                _ => dataETag.Data.BytesToString().ToObject<T>().NotNull(),
+            };
+
+            grainState.RecordExists = true;
+            grainState.ETag = result.Return().ETag.NotEmpty().ToString();
+            context.LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
+            return;
+        }
+        catch (Exception ex)
+        {
+            context.Location().LogError("Failed to parse file path={path}, ex={ex}", filePath, ex.ToString());
+            ResetState(grainState);
+            return;
+        }
     }
 
     public async Task WriteStateAsync<T>(string extension, GrainId grainId, IGrainState<T> grainState)

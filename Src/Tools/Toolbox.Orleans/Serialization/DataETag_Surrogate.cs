@@ -6,8 +6,8 @@ namespace Toolbox.Orleans;
 [GenerateSerializer]
 public struct DataETag_Surrogate
 {
-    public byte[] Data;
-    public string? ETag;
+    [Id(0)] public byte[] Data;
+    [Id(1)] public string? ETag;
 }
 
 

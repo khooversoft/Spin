@@ -9,11 +9,11 @@ using Toolbox.Types;
 
 namespace Toolbox.Orleans.test;
 
-public class DirectoryActorTest : IClassFixture<ClusterFixture>
+public class DirectoryActorTests : IClassFixture<ClusterFixture>
 {
     private readonly ClusterFixture _clusterFixture;
 
-    public DirectoryActorTest(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
+    public DirectoryActorTests(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
 
     [Fact]
     public async Task CreateSimpleNode()
@@ -40,5 +40,21 @@ public class DirectoryActorTest : IClassFixture<ClusterFixture>
         files.Should().NotBeNull();
         files.Count.Should().Be(1);
         files[0].Should().Be("directory.json");
+
+        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor("directory");
+        var readOption = await fileStoreActor.Get("trace");
+        readOption.IsOk().Should().BeTrue();
+
+        DataETag read = readOption.Return();
+        var directoryObj = read.ToObject<GraphSerialization>();
+        directoryObj.Should().NotBeNull();
+        directoryObj.Nodes.Count.Should().Be(1);
+        directoryObj.Edges.Count.Should().Be(0);
+
+        IFileStore fileStore = ClusterFixture.FileStore;
+        var search = await fileStore.Search("*", NullScopeContext.Instance);
+        search.Should().NotBeNull();
+        search.Count.Should().Be(1);
+        search[0].Should().Be("directory.json");
     }
 }
