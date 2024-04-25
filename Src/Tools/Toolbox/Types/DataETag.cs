@@ -30,7 +30,7 @@ public readonly struct DataETag : IEquatable<DataETag>
     public static bool operator ==(DataETag left, DataETag right) => left.Equals(right);
     public static bool operator !=(DataETag left, DataETag right) => !(left == right);
     public override bool Equals(object? obj) => obj is DataETag tag && Equals(tag);
-    public bool Equals(DataETag other) => !other.Data.IsDefault && Data.SequenceEqual(other.Data) && ETag == other.ETag;
+    public bool Equals(DataETag other) => !other.Data.IsDefault && Data.SequenceEqual(other.Data);
     public override int GetHashCode() => HashCode.Combine(Data, ETag);
 
     public static IValidator<DataETag> Validator { get; } = new Validator<DataETag>()
@@ -52,13 +52,13 @@ public static class DataETagExtensions
 
     public static DataETag ToDataETag<T>(this T value) where T : class
     {
-        string json = value.ToJson();
-        return new DataETag(json.ToBytes());
+        var bytes = value.ToJson().ToBytes();
+        var hash = bytes.ToHexHash();
+        return new DataETag(bytes, hash);
     }
 
     public static string ToHash(this DataETag data) => data.Data.ToHexHash();
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
-    public static DataETag WithETag(this DataETag data, string? etag) => new DataETag(data.Data, eTag);
-
+    public static DataETag WithETag(this DataETag data, string eTag) => new DataETag(data.Data, eTag.NotEmpty());
     public static T ToObject<T>(this DataETag data) => data.Data.AsSpan().ToObject<T>().NotNull();
 }

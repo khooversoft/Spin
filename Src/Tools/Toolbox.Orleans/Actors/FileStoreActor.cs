@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -13,11 +8,11 @@ namespace Toolbox.Orleans;
 
 public interface IFileStoreActor : IGrainWithStringKey
 {
-    Task<Option<string>> Add(DataETag data, string traceId);
-    Task<Option> Exist(string traceId);
-    Task<Option> Delete(string traceId);
-    Task<Option<DataETag>> Get(string traceId);
-    Task<Option<string>> Set(DataETag data, string traceId);
+    Task<Option<string>> Add(DataETag data, ScopeContext context);
+    Task<Option> Exist(ScopeContext context);
+    Task<Option> Delete(ScopeContext context);
+    Task<Option<DataETag>> Get(ScopeContext context);
+    Task<Option<string>> Set(DataETag data, ScopeContext context);
 }
 
 public class FileStoreActor : Grain, IFileStoreActor
@@ -40,9 +35,9 @@ public class FileStoreActor : Grain, IFileStoreActor
         await base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option<string>> Add(DataETag data, string traceId)
+    public async Task<Option<string>> Add(DataETag data, ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
         if ((await _state.Exist()).IsOk())
         {
             context.LogError("Cannot add, ActorId={actorId} exist", this.GetPrimaryKeyString());
@@ -55,27 +50,28 @@ public class FileStoreActor : Grain, IFileStoreActor
         return _state.ETag;
     }
 
-    public async Task<Option> Delete(string traceId)
+    public async Task<Option> Delete(ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
         var clearOption = await _state.Clear();
         clearOption.LogStatus(context, "Clearing state for ActorId={actorId}", this.GetPrimaryKeyString());
         return clearOption;
     }
 
-    public Task<Option> Exist(string traceId) => _state.Exist();
-    public async Task<Option<DataETag>> Get(string traceId)
+    public Task<Option> Exist(ScopeContext _) => _state.Exist();
+
+    public async Task<Option<DataETag>> Get(ScopeContext _)
     {
         Option<DataETag> state = await _state.GetState();
         if (state.IsError()) return state;
 
-        return state.Return().WithETag(_state.ETag);
+        DataETag current = state.Return();
+        return current.WithETag(_state.ETag);
     }
 
-
-    public async Task<Option<string>> Set(DataETag data, string traceId)
+    public async Task<Option<string>> Set(DataETag data, ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
 
         var result = await _state.SetState(data);
         result.LogStatus(context, "Set state for ActorId={actorId}", this.GetPrimaryKeyString());

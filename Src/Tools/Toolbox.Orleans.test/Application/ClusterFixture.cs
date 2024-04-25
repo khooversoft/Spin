@@ -1,12 +1,18 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Orleans.Storage;
 using Orleans.TestingHost;
-using Toolbox.Azure;
 using Toolbox.Store;
 
 namespace Toolbox.Orleans.test.Application;
+
+//[CollectionDefinition("ClusterFixture")]
+//public class ClusterCollection : ICollectionFixture<ClusterFixture>
+//{
+//    // This class has no code, and is never created. Its purpose is simply
+//    // to be the place to apply [CollectionDefinition] and all the
+//    // ICollectionFixture<> interfaces.
+//}
 
 public sealed class ClusterFixture : IDisposable
 {
@@ -30,17 +36,16 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
         {
             services.AddLogging(config => config.AddDebug().AddConsole());
             services.AddSingleton<IFileStore>(ClusterFixture.FileStore);
-            services.AddSingleton<GrainStorageFileStoreConnector>();
-            services.AddSingleton<IStoreCollection, StoreCollection>();
 
+            services.AddGrainFileStorage();
             services.AddStoreCollection((services, config) =>
             {
-                config.Add(new StoreConfig(OrleansConstants.DirectoryActorKey, getFileStoreService));                
-                config.Add(new StoreConfig("contract", getFileStoreService));                
+                config.Add(new StoreConfig("system", getFileStoreService));
+                config.Add(new StoreConfig("contract", getFileStoreService));
             });
-
-            services.AddKeyedSingleton<IGrainStorage, GrainStorageFileStoreConnector>(OrleansConstants.StorageProviderName);
         });
+
+
 
         static IFileStore getFileStoreService(IServiceProvider services, StoreConfig config) => services.GetRequiredService<IFileStore>();
     }

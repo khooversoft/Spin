@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans.Concurrency;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -13,7 +8,7 @@ namespace Toolbox.Orleans;
 
 public interface IFileStoreSearchActor : IGrainWithStringKey
 {
-    Task<IReadOnlyList<string>> Search(string pattern, string traceId);
+    Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context);
 }
 
 [StatelessWorker]
@@ -28,9 +23,9 @@ public class FileStoreSearchActor : Grain, IFileStoreSearchActor
         _logger = logger.NotNull();
     }
 
-    public async Task<IReadOnlyList<string>> Search(string pattern, string traceId)
+    public async Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
         context.LogInformation("Searching file store pattern={pattern}", pattern);
 
         (string alias, string filePath) = _storeCollection.GetAliasAndPath(pattern);

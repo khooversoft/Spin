@@ -74,18 +74,4 @@ public class DataETagTests
 
         (e1 == e2).Should().BeTrue();
     }
-
-    [Fact]
-    public void SimpleDataETagNotMatch()
-    {
-        byte[] d1 = "simple".ToBytes();
-        ETag t1 = new ETag("hello");
-        DataETag e1 = new DataETag(d1, t1.ToString());
-
-        byte[] d2 = "simple".ToBytes();
-        ETag t2 = new ETag("hello2");
-        DataETag e2 = new DataETag(d2, t2.ToString());
-
-        (e1 == e2).Should().BeFalse();
-    }
 }

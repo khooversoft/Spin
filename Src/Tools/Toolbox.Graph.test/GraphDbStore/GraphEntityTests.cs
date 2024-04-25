@@ -13,7 +13,7 @@ public class GraphEntityTests
     {
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         IChangeTrace trace = new InMemoryChangeTrace();
-        GraphDb db = new GraphDb(store, trace);
+        GraphDbMemory db = new GraphDbMemory(store, trace);
 
         var entity = new TestEntity
         {
@@ -73,7 +73,7 @@ public class GraphEntityTests
     {
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         IChangeTrace trace = new InMemoryChangeTrace();
-        GraphDb db = new GraphDb(store, trace);
+        GraphDbMemory db = new GraphDbMemory(store, trace);
 
         var entity = new TestEntity
         {
@@ -129,7 +129,7 @@ public class GraphEntityTests
         await VerifyExist(db, $"select (key={nodeKey});", 0);
     }
 
-    private async Task TestIndex(GraphDb db, string cmd, string nodeKey, string indexKeyNode, string tags)
+    private async Task TestIndex(GraphDbMemory db, string cmd, string nodeKey, string indexKeyNode, string tags)
     {
         var userOption = await db.Graph.ExecuteScalar(cmd, NullScopeContext.Instance);
         userOption.IsOk().Should().BeTrue();
@@ -173,7 +173,7 @@ public class GraphEntityTests
         });
     }
 
-    private async Task VerifyExist(GraphDb db, string cmd, int expectedCount)
+    private async Task VerifyExist(GraphDbMemory db, string cmd, int expectedCount)
     {
         var result = await db.Graph.ExecuteScalar(cmd, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();

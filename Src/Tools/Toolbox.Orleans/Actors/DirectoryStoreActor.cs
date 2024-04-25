@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Orleans.Runtime;
+﻿using Microsoft.Extensions.Logging;
+using Orleans.Concurrency;
 using Toolbox.Graph;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -14,13 +9,14 @@ namespace Toolbox.Orleans;
 
 public interface IDirectoryStoreActor : IGrainWithStringKey
 {
-    Task<Option<string>> Add(string nodeKey, string name, DataETag value, string traceId);
-    Task<Option> Delete(string nodeKey, string name, string traceId);
-    Task<Option> Exist(string nodeKey, string name, string traceId);
-    Task<Option<DataETag>> Get(string nodeKey, string name, string traceId);
-    Task<Option<string>> Set(string nodeKey, string name, DataETag value, string traceId);
+    Task<Option<string>> Add(string nodeKey, string name, DataETag value, ScopeContext context);
+    Task<Option> Delete(string nodeKey, string name, ScopeContext context);
+    Task<Option> Exist(string nodeKey, string name, ScopeContext context);
+    Task<Option<DataETag>> Get(string nodeKey, string name, ScopeContext context);
+    Task<Option<string>> Set(string nodeKey, string name, DataETag value, ScopeContext context);
 }
 
+[StatelessWorker]
 public class DirectoryStoreActor : Grain, IDirectoryStoreActor
 {
     private readonly ILogger<DirectoryStoreActor> _logger;
@@ -38,68 +34,68 @@ public class DirectoryStoreActor : Grain, IDirectoryStoreActor
         await base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option<string>> Add(string nodeKey, string name, DataETag value, string traceId)
+    public async Task<Option<string>> Add(string nodeKey, string name, DataETag value, ScopeContext context)
     {
         string fileId = GraphTool.CreateFileId(nodeKey, name);
         IFileStoreActor fileStore = _clusterClient.GetFileStoreActor(fileId);
 
-        var addFileOption = await fileStore.Add(value, traceId);
+        var addFileOption = await fileStore.Add(value, context);
         if (addFileOption.IsError()) return addFileOption;
 
         string cmd = $"update (key={nodeKey}) set link=-{fileId};";
-        var updateResult = await ExecuteScalar(cmd, 1, traceId);
+        var updateResult = await ExecuteScalar(cmd, 1, context);
 
-        if (updateResult.StatusCode.IsError())
+        if (updateResult.IsError())
         {
-            await fileStore.Delete(traceId);
+            await fileStore.Delete(context);
             return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist for update");
         }
 
         return StatusCode.OK;
     }
 
-    public async Task<Option> Delete(string nodeKey, string name, string traceId)
+    public async Task<Option> Delete(string nodeKey, string name, ScopeContext context)
     {
         string fileId = GraphTool.CreateFileId(nodeKey, name);
 
         string cmd = $"update (key={nodeKey}) set link=-{fileId};";
-        var updateResult = await ExecuteScalar(cmd, 1, traceId);
+        var updateResult = await ExecuteScalar(cmd, 1, context);
         if (updateResult.StatusCode.IsError()) return updateResult.ToOptionStatus();
 
         IFileStoreActor fileStore = _clusterClient.GetFileStoreActor(fileId);
-        return await fileStore.Delete(traceId);
+        return await fileStore.Delete(context);
     }
 
-    public Task<Option> Exist(string nodeKey, string name, string traceId)
+    public Task<Option> Exist(string nodeKey, string name, ScopeContext context)
     {
         string fileId = GraphTool.CreateFileId(nodeKey, name);
         IFileStoreActor fileStore = _clusterClient.GetFileStoreActor(fileId);
-        return fileStore.Exist(traceId);
+        return fileStore.Exist(context);
     }
 
-    public Task<Option<DataETag>> Get(string nodeKey, string name, string traceId)
+    public Task<Option<DataETag>> Get(string nodeKey, string name, ScopeContext context)
     {
         string fileId = GraphTool.CreateFileId(nodeKey, name);
         IFileStoreActor fileStore = _clusterClient.GetFileStoreActor(fileId);
-        return fileStore.Get(traceId);
+        return fileStore.Get(context);
     }
 
-    public async Task<Option<string>> Set(string nodeKey, string name, DataETag value, string traceId)
+    public async Task<Option<string>> Set(string nodeKey, string name, DataETag value, ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
 
         string fileId = GraphTool.CreateFileId(nodeKey, name);
         IFileStoreActor fileStore = _clusterClient.GetFileStoreActor(fileId);
 
-        var addFileOption = await fileStore.Set(value, traceId);
+        var addFileOption = await fileStore.Set(value, context);
         if (addFileOption.IsError()) return addFileOption;
 
         string cmd = $"update (key={nodeKey}) set link=-{fileId};";
-        var updateResult = await ExecuteScalar(cmd, 1, traceId);
+        var updateResult = await ExecuteScalar(cmd, 1, context);
 
         if (updateResult.IsError())
         {
-            await fileStore.Delete(traceId);
+            await fileStore.Delete(context);
             context.LogError("NodeKey={nodeKey} does not exist for update", nodeKey);
             return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist for update");
         }
@@ -108,10 +104,10 @@ public class DirectoryStoreActor : Grain, IDirectoryStoreActor
         return StatusCode.OK;
     }
 
-    private async Task<Option<GraphQueryResult>> ExecuteScalar(string command, int resultCount, string traceId)
+    private async Task<Option<GraphQueryResult>> ExecuteScalar(string command, int resultCount, ScopeContext context)
     {
-        IDirectoryActor directoryActor = _clusterClient.GetDirectory();
-        var executeResultOption = await directoryActor.ExecuteScalar(command, traceId);
+        IDirectoryActor directoryActor = _clusterClient.GetDirectoryActor();
+        var executeResultOption = await directoryActor.ExecuteScalar(command, context);
         if (executeResultOption.IsError()) return executeResultOption;
 
         var result = resultCount switch

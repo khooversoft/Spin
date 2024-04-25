@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.FileSystemGlobbing;
+using Toolbox.Extensions;
 
 namespace Toolbox.Test.Framework;
 
@@ -29,7 +24,7 @@ public class MatcherTests
         result.Files.Count().Should().Be(0);
         result.HasMatches.Should().BeFalse();
     }
-    
+
     [Fact]
     public void MulfipleFilesMatcher()
     {

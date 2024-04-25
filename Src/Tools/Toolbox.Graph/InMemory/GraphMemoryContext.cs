@@ -5,26 +5,26 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal class GraphDbAccess
+internal class GraphMemoryContext
 {
     private const string _graphFileId = "directory.json";
 
-    public GraphDbAccess(IFileStore store, IChangeTrace changeTrace)
+    public GraphMemoryContext(IFileStore store, IChangeTrace changeTrace)
     {
         FileStore = store.NotNull();
         ChangeTrace = changeTrace.NotNull();
 
-        Graph = new GraphAccess(this);
-        Store = new GraphStoreAccess(this, store);
-        Entity = new GraphEntityAccess(this);
+        Graph = new GraphCommandMemory(this);
+        Store = new GraphStoreMemory(this, store);
+        Entity = new GraphEntityMemory(this);
     }
 
     public GraphMap Map { get; private set; } = new GraphMap();
     public IFileStore FileStore { get; }
     public IChangeTrace ChangeTrace { get; }
-    public GraphAccess Graph { get; }
-    public GraphStoreAccess Store { get; }
-    public GraphEntityAccess Entity { get; }
+    public IGraphCommand Graph { get; }
+    public IGraphStore Store { get; }
+    public IGraphEntity Entity { get; }
     public AsyncReaderWriterLock ReadWriterLock => Map.ReadWriterLock;
 
     public async Task<Option> ReadMapFromStore(ScopeContext context)

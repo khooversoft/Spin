@@ -4,10 +4,10 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphAccess
+public class GraphCommandMemory : IGraphCommand
 {
-    private readonly GraphDbAccess _graphDbContext;
-    internal GraphAccess(GraphDbAccess graphDbContext) => _graphDbContext = graphDbContext.NotNull();
+    private readonly GraphMemoryContext _graphDbContext;
+    internal GraphCommandMemory(GraphMemoryContext graphDbContext) => _graphDbContext = graphDbContext.NotNull();
 
     public async Task<Option<GraphQueryResults>> Execute(string graphQuery, ScopeContext context)
     {

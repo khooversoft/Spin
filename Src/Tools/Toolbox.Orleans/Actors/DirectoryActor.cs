@@ -2,8 +2,6 @@
 using Orleans.Runtime;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Orleans;
-using Toolbox.Orleans.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -11,8 +9,8 @@ namespace Toolbox.Orleans;
 
 public interface IDirectoryActor : IGrainWithStringKey
 {
-    Task<Option<GraphQueryResults>> Execute(string command, string traceId);
-    Task<Option<GraphQueryResult>> ExecuteScalar(string command, string traceId);
+    Task<Option<GraphQueryResults>> Execute(string command, ScopeContext context);
+    Task<Option<GraphQueryResult>> ExecuteScalar(string command, ScopeContext context);
 }
 
 public class DirectoryActor : Grain, IDirectoryActor
@@ -39,9 +37,9 @@ public class DirectoryActor : Grain, IDirectoryActor
         await base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option<GraphQueryResults>> Execute(string command, string traceId)
+    public async Task<Option<GraphQueryResults>> Execute(string command, ScopeContext context)
     {
-        var context = new ScopeContext(traceId, _logger);
+        context = context.With(_logger);
         if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
         context.Location().LogInformation("Command, search={search}", command);
 
@@ -61,10 +59,10 @@ public class DirectoryActor : Grain, IDirectoryActor
         return commandResult;
     }
 
-    public async Task<Option<GraphQueryResult>> ExecuteScalar(string command, string traceId)
+    public async Task<Option<GraphQueryResult>> ExecuteScalar(string command, ScopeContext context)
     {
-        var result = await Execute(command, traceId);
-        if( result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
+        var result = await Execute(command, context);
+        if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
 
         return result.Return().Items.First();
     }

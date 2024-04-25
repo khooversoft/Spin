@@ -2,7 +2,7 @@
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Orleans.Store;
+namespace Toolbox.Orleans;
 
 public class FileStoreActorConnector : IFileStore
 {

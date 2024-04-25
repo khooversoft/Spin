@@ -4,10 +4,10 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphEntityAccess
+public class GraphEntityMemory : IGraphEntity
 {
-    private readonly GraphDbAccess _graphDbContext;
-    internal GraphEntityAccess(GraphDbAccess graphDbContext) => _graphDbContext = graphDbContext.NotNull();
+    private readonly GraphMemoryContext _graphDbContext;
+    internal GraphEntityMemory(GraphMemoryContext graphDbContext) => _graphDbContext = graphDbContext.NotNull();
 
     public async Task<Option<string>> Set<T>(T subject, ScopeContext context) where T : class
     {

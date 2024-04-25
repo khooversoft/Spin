@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Orleans.test.Application;
@@ -9,6 +8,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Orleans.test;
 
+//[Collection("ClusterFixture")]
 public class DirectoryActorTests : IClassFixture<ClusterFixture>
 {
     private readonly ClusterFixture _clusterFixture;
@@ -18,14 +18,14 @@ public class DirectoryActorTests : IClassFixture<ClusterFixture>
     [Fact]
     public async Task CreateSimpleNode()
     {
-        var actor = _clusterFixture.Cluster.Client.GetDirectory();
+        var actor = _clusterFixture.Cluster.Client.GetDirectoryActor();
 
-        var result = await actor.ExecuteScalar("add node key=node1;", "trace");
+        var result = await actor.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
         result.Return().Items.Count.Should().Be(0);
 
-        result = await actor.ExecuteScalar("select (*);", "trace");
+        result = await actor.ExecuteScalar("select (*);", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
         result.Return().Items.Count.Should().Be(1);
@@ -36,13 +36,13 @@ public class DirectoryActorTests : IClassFixture<ClusterFixture>
 
         IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearchActor();
 
-        var files = await fileStoreSearchActor.Search($"{OrleansConstants.DirectoryActorKey}/**/*", "trace");
+        var files = await fileStoreSearchActor.Search($"system/**/*", NullScopeContext.Instance);
         files.Should().NotBeNull();
         files.Count.Should().Be(1);
-        files[0].Should().Be("directory.json");
+        files[0].Should().Be(OrleansConstants.DirectoryFilePath);
 
-        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor("directory");
-        var readOption = await fileStoreActor.Get("trace");
+        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(OrleansConstants.DirectoryFilePath);
+        var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
         readOption.IsOk().Should().BeTrue();
 
         DataETag read = readOption.Return();
@@ -52,9 +52,9 @@ public class DirectoryActorTests : IClassFixture<ClusterFixture>
         directoryObj.Edges.Count.Should().Be(0);
 
         IFileStore fileStore = ClusterFixture.FileStore;
-        var search = await fileStore.Search("*", NullScopeContext.Instance);
+        var search = await fileStore.Search("system/**/*", NullScopeContext.Instance);
         search.Should().NotBeNull();
         search.Count.Should().Be(1);
-        search[0].Should().Be("directory.json");
+        search[0].Should().Be("system/directory.json");
     }
 }

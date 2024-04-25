@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -67,8 +62,7 @@ public class StoreCollection : IStoreCollection
 
         (string alias, string path) result = parts switch
         {
-            { Length: 1 } => (parts[0], setExtensionIfRequired(parts[0])),
-            { Length: > 1 } => (parts[0], setExtensionIfRequired(parts.Skip(1).Join('/'))),
+            { Length: >= 2 } => (parts[0], setExtensionIfRequired(parts.Join('/')).ToLower()),
             _ => throw new ArgumentException($"Invalid grainId={sourcePath}"),
         };
 

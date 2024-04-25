@@ -5,18 +5,22 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphStoreAccess
+public class GraphStoreMemory : IGraphStore
 {
-    private readonly GraphDbAccess _graphDbContext;
+    private readonly GraphMemoryContext _graphDbContext;
     private readonly IFileStore _graphFileStore;
 
-    internal GraphStoreAccess(GraphDbAccess graphDbContext, IFileStore graphFileStore)
+    internal GraphStoreMemory(GraphMemoryContext graphDbContext, IFileStore graphFileStore)
     {
         _graphDbContext = graphDbContext.NotNull();
         _graphFileStore = graphFileStore.NotNull();
     }
 
-    public Task<Option<string>> Add<T>(string nodeKey, string name, T value, ScopeContext context) where T : class => AddOrUpdate(nodeKey, name, false, value, context);
+    public async Task<Option<string>> Add(string nodeKey, string name, DataETag data, ScopeContext context)
+    {
+        var result = await AddOrUpdate(nodeKey, name, false, data, context);
+        return result;
+    }
 
     public async Task<Option> Delete(string nodeKey, string name, ScopeContext context)
     {
@@ -41,18 +45,22 @@ public class GraphStoreAccess
         return _graphFileStore.Exist(fileId, context);
     }
 
-    public async Task<Option<T>> Get<T>(string nodeKey, string name, ScopeContext context)
+    public async Task<Option<DataETag>> Get(string nodeKey, string name, ScopeContext context)
     {
         string fileId = GraphTool.CreateFileId(nodeKey, name);
-        var jsonOption = await _graphFileStore.Get<T>(fileId, context);
-        if (jsonOption.IsError()) return jsonOption.ToOptionStatus<T>();
+        var dataOption = await _graphFileStore.Get(fileId, context);
+        if (dataOption.IsError()) return dataOption;
 
-        return jsonOption.Return().Value;
+        return dataOption.Return();
     }
 
-    public Task<Option<string>> Set<T>(string nodeKey, string name, T value, ScopeContext context) where T : class => AddOrUpdate(nodeKey, name, true, value, context);
+    public async Task<Option<string>> Set(string nodeKey, string name, DataETag data, ScopeContext context)
+    {
+        var result = await AddOrUpdate(nodeKey, name, true, data, context);
+        return result;
+    }
 
-    private async Task<Option<string>> AddOrUpdate<T>(string nodeKey, string name, bool upsert, T value, ScopeContext context) where T : class
+    private async Task<Option<string>> AddOrUpdate(string nodeKey, string name, bool upsert, DataETag data, ScopeContext context)
     {
         if (!_graphDbContext.Map.Nodes.ContainsKey(nodeKey)) return (StatusCode.NotFound, $"NodeKey={nodeKey} not found");
 
@@ -60,8 +68,8 @@ public class GraphStoreAccess
 
         var addOption = upsert switch
         {
-            false => await _graphFileStore.Add<T>(fileId, value, context),
-            true => await _graphFileStore.Set<T>(fileId, value, context),
+            false => await _graphFileStore.Add(fileId, data, context),
+            true => await _graphFileStore.Set(fileId, data, context),
         };
 
         if (addOption.IsError()) return addOption;

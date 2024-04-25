@@ -30,7 +30,7 @@ public static class FileStoreTool
 
     public static async Task<Option<DataETag<T>>> Get<T>(this IFileStore store, string path, ScopeContext context)
     {
-        if( !IsPathValid(path)) return StatusCode.BadRequest;
+        if (!IsPathValid(path)) return StatusCode.BadRequest;
 
         try
         {

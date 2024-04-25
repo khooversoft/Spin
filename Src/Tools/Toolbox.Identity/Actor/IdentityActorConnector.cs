@@ -1,4 +1,5 @@
-﻿using Toolbox.Graph;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using Toolbox.Graph;
 using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -25,7 +26,7 @@ public class IdentityActorConnector : IIdentityClient
     public Task<Option<GraphQueryResults>> Execute(string command, string traceId)
     {
         var actor = _clusterClient.GetGrain<IDirectoryActor>(_resourceId);
-        return actor.Execute(command, traceId);
+        return actor.Execute(command, new ScopeContext(traceId, NullLogger.Instance));
     }
 
     public IPrincipalIdentityActor GetPrincipalIdentityActor(string principalId) => _clusterClient.GetGrain<IPrincipalIdentityActor>(principalId.ToLower());
