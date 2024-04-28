@@ -4,37 +4,42 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphEntityMemory : IGraphEntity
+public class GraphEntity : IGraphEntity
 {
-    private readonly GraphMemoryContext _graphDbContext;
-    internal GraphEntityMemory(GraphMemoryContext graphDbContext) => _graphDbContext = graphDbContext.NotNull();
+    public GraphEntity(IGraphCommand command, IGraphStore store)
+    {
+        Command = command.NotNull();
+        Store = store.NotNull();
+    }
 
-    public async Task<Option<string>> Set<T>(T subject, ScopeContext context) where T : class
+    public IGraphCommand Command { get; }
+    public IGraphStore Store { get;}
+
+    public async Task<Option<string>> SetEntity<T>(T subject, ScopeContext context) where T : class
     {
         IReadOnlyList<IGraphEntityCommand> commands = subject.GetGraphCommands().ThrowOnError().Return();
         var entityNodeCommand = commands.GetEntityNodeCommand();
         if (entityNodeCommand.IsError()) return entityNodeCommand.ToOptionStatus<string>();
 
         string cmds = commands.Select(x => x.GetAddCommand()).Join(Environment.NewLine);
-        GraphQueryResult cmdResult = (await _graphDbContext.Graph.ExecuteScalar(cmds, context)).ThrowOnError().Return();
+        GraphQueryResult cmdResult = (await Command.ExecuteScalar(cmds, context)).ThrowOnError().Return();
         if (cmdResult.Status.IsError()) return cmdResult.Status.ToOptionStatus<string>();
 
         var nodeKey = commands.GetEntityNodeCommand().Return().NodeKey.NotEmpty();
-        var setStatus = await _graphDbContext.Store.Set<T>(nodeKey, GraphConstants.EntityName, subject, context);
+        var setStatus = await Store.Set<T>(nodeKey, GraphConstants.EntityName, subject, context);
 
         return setStatus;
     }
 
-    public async Task<Option> Delete<T>(T subject, ScopeContext context) where T : class
+    public async Task<Option> DeleteEntity<T>(T subject, ScopeContext context) where T : class
     {
         NodeCreateCommand entityNodeCommand = subject
             .GetGraphCommands().ThrowOnError().Return()
             .GetEntityNodeCommand().ThrowOnError().Return();
 
         string command = entityNodeCommand.GetDeleteCommand();
-        var result = await _graphDbContext.Graph.ExecuteScalar(command, context);
+        var result = await Command.ExecuteScalar(command, context);
 
         return result.ToOptionStatus();
     }
-
 }

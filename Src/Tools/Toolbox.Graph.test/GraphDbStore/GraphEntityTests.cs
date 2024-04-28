@@ -11,9 +11,7 @@ public class GraphEntityTests
     [Fact]
     public async Task AddEntityWithIndexes()
     {
-        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        IChangeTrace trace = new InMemoryChangeTrace();
-        GraphDbMemory db = new GraphDbMemory(store, trace);
+        GraphInMemory db = new GraphInMemory();
 
         var entity = new TestEntity
         {
@@ -28,7 +26,7 @@ public class GraphEntityTests
             ProviderKey = "user001-microsoft-id",
         };
 
-        var result = await db.Entity.Set(entity, NullScopeContext.Instance);
+        var result = await db.Entity.SetEntity(entity, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();
 
         string nodeKey = entity.GetNodeKey();
@@ -45,7 +43,7 @@ public class GraphEntityTests
         await TestIndex(db, logonProviderCmd, nodeKey, logonProviderNodeKey, nodeTags);
 
         // Delete node, should delete all other nodes and linked file
-        var deleteResult = await db.Entity.Delete(entity, NullScopeContext.Instance);
+        var deleteResult = await db.Entity.DeleteEntity(entity, NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());
 
         (await db.Store.Exist(nodeKey, GraphConstants.EntityName, NullScopeContext.Instance)).IsError().Should().BeTrue();
@@ -58,7 +56,7 @@ public class GraphEntityTests
         userResult.Alias.All(x => x.Value.Count == 0).Should().BeTrue();
 
         // Delete again should not return error
-        deleteResult = await db.Entity.Delete(entity, NullScopeContext.Instance);
+        deleteResult = await db.Entity.DeleteEntity(entity, NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());
 
         // Verify no nodes or edges are left
@@ -71,9 +69,7 @@ public class GraphEntityTests
     [Fact]
     public async Task DeleteEntityByNodeKey()
     {
-        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        IChangeTrace trace = new InMemoryChangeTrace();
-        GraphDbMemory db = new GraphDbMemory(store, trace);
+        GraphInMemory db = new GraphInMemory();
 
         var entity = new TestEntity
         {
@@ -88,7 +84,7 @@ public class GraphEntityTests
             ProviderKey = "user001-microsoft-id",
         };
 
-        var result = await db.Entity.Set(entity, NullScopeContext.Instance);
+        var result = await db.Entity.SetEntity(entity, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();
 
         string nodeKey = entity.GetNodeKey();
@@ -129,7 +125,7 @@ public class GraphEntityTests
         await VerifyExist(db, $"select (key={nodeKey});", 0);
     }
 
-    private async Task TestIndex(GraphDbMemory db, string cmd, string nodeKey, string indexKeyNode, string tags)
+    private async Task TestIndex(GraphInMemory db, string cmd, string nodeKey, string indexKeyNode, string tags)
     {
         var userOption = await db.Graph.ExecuteScalar(cmd, NullScopeContext.Instance);
         userOption.IsOk().Should().BeTrue();
@@ -173,7 +169,7 @@ public class GraphEntityTests
         });
     }
 
-    private async Task VerifyExist(GraphDbMemory db, string cmd, int expectedCount)
+    private async Task VerifyExist(GraphInMemory db, string cmd, int expectedCount)
     {
         var result = await db.Graph.ExecuteScalar(cmd, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();

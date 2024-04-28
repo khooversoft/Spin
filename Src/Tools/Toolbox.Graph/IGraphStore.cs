@@ -2,15 +2,6 @@
 
 namespace Toolbox.Graph;
 
-//public interface IGraphStore
-//{
-//    Task<Option<string>> Add<T>(string nodeKey, string name, T value, ScopeContext context) where T : class;
-//    Task<Option> Delete(string nodeKey, string name, ScopeContext context);
-//    Task<Option> Exist(string nodeKey, string name, ScopeContext context);
-//    Task<Option<T>> Get<T>(string nodeKey, string name, ScopeContext context);
-//    Task<Option<string>> Set<T>(string nodeKey, string name, T value, ScopeContext context) where T : class;
-//}
-
 public interface IGraphStore
 {
     Task<Option<string>> Add(string nodeKey, string name, DataETag data, ScopeContext context);

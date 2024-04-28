@@ -15,6 +15,8 @@ public class LsOption : LangBase<ILangSyntax>, ILangRoot
 
     public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? _ = null)
     {
+        var nodes = new LangNodes();
+
         while (pContext.TokensCursor.TryPeekValue(out var token))
         {
             foreach (var item in Children)
@@ -23,16 +25,22 @@ public class LsOption : LangBase<ILangSyntax>, ILangRoot
                 {
                     case ILangRoot root:
                         var result = root.MatchSyntaxSegement(nameof(LsOption), pContext);
-                        if (result.IsOk()) return result;
+                        if (result.IsError()) return new LangNodes();
+
+                        nodes += result.Return();
                         break;
 
                     case ILangSyntax syntax:
                         var syntaxCursor = syntax.CreateCursor();
 
                         var result2 = syntax.Process(pContext, syntaxCursor);
-                        if (result2.IsOk()) return result2;
+                        if (result2.IsError())
+                        {
+                            pContext.TokensCursor.Index--;
+                            return new LangNodes();
+                        }
 
-                        pContext.TokensCursor.Index--;
+                        nodes += result2.Return();
                         break;
                 }
             }
@@ -40,7 +48,7 @@ public class LsOption : LangBase<ILangSyntax>, ILangRoot
             break;
         }
 
-        return new LangNodes();
+        return nodes;
     }
 
     public override string ToString() => $"{nameof(LsOption)}: Name={Name}, nodes=[ {this.Select(x => x.ToString()).Join(' ')} ]";

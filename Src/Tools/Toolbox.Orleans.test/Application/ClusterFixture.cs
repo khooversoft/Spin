@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Orleans.TestingHost;
+using Toolbox.Graph;
 using Toolbox.Store;
 
 namespace Toolbox.Orleans.test.Application;
@@ -21,6 +23,7 @@ public sealed class ClusterFixture : IDisposable
 
     public TestCluster Cluster { get; } = new TestClusterBuilder()
         .AddSiloBuilderConfigurator<TestSiloConfigurations>()
+        .AddClientBuilderConfigurator<TestClientConfiguration>()
         .Build();
 
     void IDisposable.Dispose() => Cluster.StopAllSilos();
@@ -28,7 +31,15 @@ public sealed class ClusterFixture : IDisposable
     public IServiceProvider ServiceProvider => Cluster.ServiceProvider;
 }
 
-file sealed class TestSiloConfigurations : ISiloConfigurator
+file sealed class TestClientConfiguration : IClientBuilderConfigurator
+{
+    public void Configure(IConfiguration configuration, IClientBuilder clientBuilder)
+    {
+        clientBuilder.Services.AddDirectoryClient();
+    }
+}
+
+sealed class TestSiloConfigurations : ISiloConfigurator
 {
     public void Configure(ISiloBuilder siloBuilder)
     {
@@ -42,10 +53,9 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
             {
                 config.Add(new StoreConfig("system", getFileStoreService));
                 config.Add(new StoreConfig("contract", getFileStoreService));
+                config.Add(new StoreConfig("nodes", getFileStoreService));
             });
         });
-
-
 
         static IFileStore getFileStoreService(IServiceProvider services, StoreConfig config) => services.GetRequiredService<IFileStore>();
     }

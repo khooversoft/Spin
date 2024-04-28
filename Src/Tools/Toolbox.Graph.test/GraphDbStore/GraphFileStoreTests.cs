@@ -28,8 +28,7 @@ public class GraphFileStoreTests
     [Fact]
     public async Task SingleFileWithoutNodeShouldFail()
     {
-        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        GraphDbMemory db = new GraphDbMemory(store, new InMemoryChangeTrace());
+        GraphInMemory db = new GraphInMemory();
 
         var data = new { Name = "Name1", Value = "Value1" };
 
@@ -44,7 +43,7 @@ public class GraphFileStoreTests
     {
         const string nodeKey = "subscription/node1.json";
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        GraphDbMemory db = new GraphDbMemory(store, new InMemoryChangeTrace());
+        GraphInMemory db = new GraphInMemory(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
 
@@ -91,7 +90,7 @@ public class GraphFileStoreTests
     {
         const string nodeKey = "subscription/node1.json";
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        GraphDbMemory db = new GraphDbMemory(store, new InMemoryChangeTrace());
+        GraphInMemory db = new GraphInMemory(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
 
@@ -167,7 +166,7 @@ public class GraphFileStoreTests
     {
         const string nodeKey = "subscription/node1.json";
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        GraphDbMemory db = new GraphDbMemory(store, new InMemoryChangeTrace());
+        GraphInMemory db = new GraphInMemory(store, new InMemoryChangeTrace());
 
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
 
@@ -190,7 +189,7 @@ public class GraphFileStoreTests
     {
         const string nodeKey = "contract/company.com/node1.json";
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        GraphDbMemory db = new GraphDbMemory(store, new InMemoryChangeTrace());
+        GraphInMemory db = new GraphInMemory(store, new InMemoryChangeTrace());
 
         var data = new NameValue("Name1", 40);
         (await db.Graph.ExecuteScalar($"add node key={nodeKey};", NullScopeContext.Instance)).ThrowOnError();
@@ -212,7 +211,7 @@ public class GraphFileStoreTests
     public async Task MultipleNodesAtScaleAddThenDelete()
     {
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        GraphDbMemory db = new GraphDbMemory(store, new InMemoryChangeTrace());
+        GraphInMemory db = new GraphInMemory(store, new InMemoryChangeTrace());
         int count = 100;
         var nodeKeys = new ConcurrentQueue<string>();
 
@@ -258,7 +257,7 @@ public class GraphFileStoreTests
     public async Task MultipleNodesAtScaleAddAndDeleteByTasks()
     {
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
-        GraphDbMemory db = new GraphDbMemory(store, new InMemoryChangeTrace());
+        GraphInMemory db = new GraphInMemory(store, new InMemoryChangeTrace());
         const int count = 1000;
         const int maxParallel = 20;
 

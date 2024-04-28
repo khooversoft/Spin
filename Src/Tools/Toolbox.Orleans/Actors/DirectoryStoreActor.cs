@@ -42,7 +42,7 @@ public class DirectoryStoreActor : Grain, IDirectoryStoreActor
         var addFileOption = await fileStore.Add(value, context);
         if (addFileOption.IsError()) return addFileOption;
 
-        string cmd = $"update (key={nodeKey}) set link=-{fileId};";
+        string cmd = $"update (key={nodeKey}) set link={fileId};";
         var updateResult = await ExecuteScalar(cmd, 1, context);
 
         if (updateResult.IsError())
@@ -106,8 +106,7 @@ public class DirectoryStoreActor : Grain, IDirectoryStoreActor
 
     private async Task<Option<GraphQueryResult>> ExecuteScalar(string command, int resultCount, ScopeContext context)
     {
-        IDirectoryActor directoryActor = _clusterClient.GetDirectoryActor();
-        var executeResultOption = await directoryActor.ExecuteScalar(command, context);
+        var executeResultOption = await _clusterClient.GetDirectoryActor().ExecuteScalar(command, context);
         if (executeResultOption.IsError()) return executeResultOption;
 
         var result = resultCount switch

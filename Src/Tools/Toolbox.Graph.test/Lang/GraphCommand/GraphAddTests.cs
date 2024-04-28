@@ -33,6 +33,7 @@ public class GraphAddTests
     [InlineData("add node key=key1, t=v2, t2=v4;")]
     [InlineData("add node key=key1, t2, link=l1;")]
     [InlineData("add node key=key1, t2, link=l1, link=t2;")]
+    [InlineData("add node key=key1, data { 0xFF };")]
     public void AddNodeAreValid(string line)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);

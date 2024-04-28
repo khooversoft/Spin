@@ -1,10 +1,12 @@
-﻿using Toolbox.Tools;
+﻿using System.Diagnostics;
+using Toolbox.Tools;
 
 namespace Toolbox.LangTools;
 
 /// <summary>
 /// Token value extracted from data
 /// </summary>
+[DebuggerDisplay("TokenType={TokenType}, Token={Value}, IsSyntaxToken={IsSyntaxToken}")]
 public readonly struct TokenValue : IToken
 {
     public TokenValue(string value) => Value = value.NotNull();

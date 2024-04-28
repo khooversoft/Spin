@@ -66,7 +66,7 @@ public class GraphUpdateCommandTests
     public void SingleUpdateForNodeWithLink()
     {
         var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update (key=node3) set link=abc/def;", NullScopeContext.Instance);
+        var newMapOption = workMap.Execute("update (key=node3) set link=abc/def, link=name:nodes/contract/contract1.json;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -79,7 +79,7 @@ public class GraphUpdateCommandTests
         {
             x.Key.Should().Be("node3");
             x.Tags.ToString().Should().Be("lang=java,name=lop");
-            x.Links.Join(',').Should().Be("abc/def");
+            x.Links.Join(',').Should().Be("abc/def,name:nodes/contract/contract1.json");
         });
 
         commandResults.Items.Count.Should().Be(1);

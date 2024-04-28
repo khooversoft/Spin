@@ -25,6 +25,10 @@ public class DirectoryStoreActorConnector : IGraphStore
         .GetDirectoryStoreActor(nodeKey)
         .Get(nodeKey, name, context);
 
+    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context) => _clusterClient
+        .GetFileStoreSearchActor()
+        .Search(pattern, context);
+
     public Task<Option<string>> Set(string nodeKey, string name, DataETag data, ScopeContext context) => _clusterClient
         .GetDirectoryStoreActor(nodeKey)
         .Set(nodeKey, name, data, context);

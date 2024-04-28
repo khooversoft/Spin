@@ -1,7 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Orleans.test.Application;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -9,7 +11,6 @@ using Toolbox.Types;
 
 namespace Toolbox.Orleans.test;
 
-//[Collection("ClusterFixture")]
 public class FileStoreActorTests : IClassFixture<ClusterFixture>
 {
     private readonly ClusterFixture _clusterFixture;

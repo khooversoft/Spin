@@ -12,8 +12,7 @@ public static class FileStoreTool
     {
         if (!IsPathValid(path)) return StatusCode.BadRequest;
 
-        string json = value.ToJson();
-        DataETag data = new DataETag(json.ToBytes());
+        DataETag data = value.ToDataETag();
         return await store.Add(path, data, context);
     }
 

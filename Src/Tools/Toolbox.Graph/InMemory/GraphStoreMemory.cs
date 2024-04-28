@@ -27,7 +27,7 @@ public class GraphStoreMemory : IGraphStore
         string fileId = GraphTool.CreateFileId(nodeKey, name);
 
         string cmd = $"update (key={nodeKey}) set link=-{fileId};";
-        var updateResult = await _graphDbContext.Graph.ExecuteScalar(cmd, context);
+        var updateResult = await _graphDbContext.Command.ExecuteScalar(cmd, context);
         if (updateResult.StatusCode.IsError()) return updateResult.ToOptionStatus();
         if (updateResult.Return().Items.Count == 0) return StatusCode.NotFound;
 
@@ -54,6 +54,12 @@ public class GraphStoreMemory : IGraphStore
         return dataOption.Return();
     }
 
+    public async Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
+    {
+        var result = await _graphFileStore.Search(pattern, context);
+        return result;
+    }
+
     public async Task<Option<string>> Set(string nodeKey, string name, DataETag data, ScopeContext context)
     {
         var result = await AddOrUpdate(nodeKey, name, true, data, context);
@@ -75,7 +81,7 @@ public class GraphStoreMemory : IGraphStore
         if (addOption.IsError()) return addOption;
 
         string cmd = $"update (key={nodeKey}) set link={fileId};";
-        var updateResult = await _graphDbContext.Graph.ExecuteScalar(cmd, context);
+        var updateResult = await _graphDbContext.Command.ExecuteScalar(cmd, context);
         if (updateResult.StatusCode.IsError() || updateResult.Return().Items.Count == 0)
         {
             await _graphFileStore.Delete(fileId, context);

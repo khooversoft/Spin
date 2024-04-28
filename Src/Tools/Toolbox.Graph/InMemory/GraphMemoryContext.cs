@@ -14,15 +14,15 @@ internal class GraphMemoryContext
         FileStore = store.NotNull();
         ChangeTrace = changeTrace.NotNull();
 
-        Graph = new GraphCommandMemory(this);
+        Command = new GraphCommandMemory(this);
         Store = new GraphStoreMemory(this, store);
-        Entity = new GraphEntityMemory(this);
+        Entity = new GraphEntity(Command, Store);
     }
 
     public GraphMap Map { get; private set; } = new GraphMap();
     public IFileStore FileStore { get; }
     public IChangeTrace ChangeTrace { get; }
-    public IGraphCommand Graph { get; }
+    public IGraphCommand Command { get; }
     public IGraphStore Store { get; }
     public IGraphEntity Entity { get; }
     public AsyncReaderWriterLock ReadWriterLock => Map.ReadWriterLock;

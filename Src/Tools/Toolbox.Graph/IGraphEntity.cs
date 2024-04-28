@@ -4,6 +4,8 @@ namespace Toolbox.Graph;
 
 public interface IGraphEntity
 {
-    Task<Option> Delete<T>(T subject, ScopeContext context) where T : class;
-    Task<Option<string>> Set<T>(T subject, ScopeContext context) where T : class;
+    public IGraphCommand Command { get; }
+    public IGraphStore Store { get; }
+    Task<Option> DeleteEntity<T>(T subject, ScopeContext context) where T : class;
+    Task<Option<string>> SetEntity<T>(T subject, ScopeContext context) where T : class;
 }

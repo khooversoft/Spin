@@ -13,12 +13,18 @@ namespace Toolbox.Graph;
 /// search = { (...) | [...] } [-> { (...) | [...] ...}
 /// tag = {k | k=v}[, {k | k=v}...]
 /// link = {link=v}[, {link=v}...]
+/// data = {name} {{ base64 }}
+/// 
+/// data={name}:{base64}
+/// data={name}+{base64}
+/// data(name)={base64}
+/// name { base64 }
 /// 
 /// select search
-/// add {node | {unique? edge} } { tag, link }
-/// upsert {node | edge} { tag, link }
+/// add {node | {unique? edge} } { tag, link, data }
+/// upsert {node | edge} { tag, link, data }
 /// delete search [force]
-/// update search set { tag, link }
+/// update search set { tag, link, data }
 /// 
 /// "unique edge" constraint no duplicate for fromKey + toKey
 /// 
@@ -31,7 +37,7 @@ public static class GraphLangGrammar
         "edge",         "delete",       "update",
         "set",          "key",          "tags",
         "upsert",       "unique",       "link",
-        "force",
+        "force"
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))
@@ -39,19 +45,22 @@ public static class GraphLangGrammar
         + ("=", "equal")
         + new LsValue("rvalue");
 
-    public static ILangRoot TagParameters
-    {
-        get
-        {
-            var valueOnly = new LsRoot("valueOnly") + new LsValue("svalue");
+    public static ILangRoot ValueOnly { get; } = new LsRoot("valueOnly") + new LsValue("svalue");
+    public static ILangSyntax Term { get; } = new LsToken(";", "term");
+    public static ILangSyntax Delimiter { get; } = new LsToken(",", "delimiter", true);
 
-            var parameters = new LsRepeat(nameof(TagParameters))
-                + (new LsSwitch($"{nameof(TagParameters)}-or") + ValueAssignment + valueOnly)
-                + new LsToken(",", "delimiter", true);
+    public static ILangRoot DataParameter { get; } = new LsRoot(nameof(DataParameter))
+        + new LsValue("dataName")
+        + (new LsGroup("{", "}", "dataGroup")
+            + (new LsRepeat(nameof(TagParameters))
+                + (new LsSwitch($"{nameof(TagParameters)}-or") + ValueAssignment + ValueOnly)
+                + Delimiter
+                )
+            );
 
-            return parameters;
-        }
-    }
+    public static ILangRoot TagParameters { get; } = new LsRepeat(nameof(TagParameters))
+        + (new LsSwitch($"{nameof(TagParameters)}-or") + DataParameter + ValueAssignment + ValueOnly)
+        + Delimiter;
 
     public static ILangRoot SearchQuery
     {
@@ -65,12 +74,25 @@ public static class GraphLangGrammar
                 + (new LsGroup("[", "]", "edge-group") + TagParameters)
                 + new LsValue("alias", true);
 
-            var search = new LsRepeat(nameof(SearchQuery)) + (new LsSwitch($"{nameof(SearchQuery)}-or") + nodeSyntax + edgeSyntax) + new LsToken("->", "select-next", true);
+            var search = new LsRepeat(nameof(SearchQuery))
+                + (new LsSwitch($"{nameof(SearchQuery)}-or") + nodeSyntax + edgeSyntax)
+                + new LsToken("->", "select-next", true);
             return search;
         }
     }
 
-    public static ILangRoot Select { get; } = new LsRoot(nameof(Select)) + new LsSymbol("select") + SearchQuery + new LsToken(";", "term");
+    public static ILangRoot Return { get; } = new LsRoot(nameof(Return))
+        + new LsSymbol("return")
+        + (new LsRepeat("select-return-repeat")
+            + new LsValue("svalue")
+            + Delimiter
+        );
+
+    public static ILangRoot Select { get; } = new LsRoot(nameof(Select))
+        + new LsSymbol("select")
+        + SearchQuery
+        + (new LsOption("select-return-option") + Return)
+        + Term;
 
     public static ILangRoot AddOpr
     {
@@ -82,7 +104,10 @@ public static class GraphLangGrammar
             var uniqueAdd = new LsRoot("uniqueAdd") + new LsSymbol("unique") + new LsSymbol("edge");
             var edge = new LsRoot("addEdge") + (new LsSwitch("addEdge-Option") + uniqueAdd + onlyAdd) + TagParameters;
 
-            var rule = new LsRoot(nameof(AddOpr)) + new LsSymbol("add") + (new LsSwitch("add-sw") + node + edge) + new LsToken(";", "term");
+            var rule = new LsRoot(nameof(AddOpr))
+                + new LsSymbol("add")
+                + (new LsSwitch("add-sw") + node + edge)
+                + Term;
 
             return rule;
         }
@@ -95,7 +120,10 @@ public static class GraphLangGrammar
             var node = new LsRoot("addNode") + new LsSymbol("node") + TagParameters;
             var edge = new LsRoot("addEdge") + new LsSymbol("edge") + TagParameters;
 
-            var rule = new LsRoot(nameof(Upsert)) + new LsSymbol("upsert") + (new LsSwitch("upsert-sw") + node + edge) + new LsToken(";", "term");
+            var rule = new LsRoot(nameof(Upsert))
+                + new LsSymbol("upsert") 
+                + (new LsSwitch("upsert-sw") + node + edge)
+                + Term;
 
             return rule;
         }
@@ -107,8 +135,11 @@ public static class GraphLangGrammar
         {
             var normal = new LsRoot("delete-no-force") + SearchQuery;
             var force = new LsRoot("delete-force") + new LsSymbol("force") + SearchQuery;
-            var rule = new LsRoot(nameof(DeleteOpr)) + new LsSymbol("delete") + (new LsSwitch("delete-sw") + normal + force) + new LsToken(";", "term");
-            //var rule = new LsRoot(nameof(DeleteOpr)) + new LsSymbol("delete") + SearchQuery + new LsToken(";", "term");
+
+            var rule = new LsRoot(nameof(DeleteOpr))
+                + new LsSymbol("delete")
+                + (new LsSwitch("delete-sw") + normal + force)
+                + Term;
             return rule;
         }
     }
@@ -122,7 +153,7 @@ public static class GraphLangGrammar
                 + SearchQuery
                 + new LsSymbol("set", "update-set")
                 + TagParameters
-                + new LsToken(";", "term");
+                + Term;
 
             return rule;
         }
