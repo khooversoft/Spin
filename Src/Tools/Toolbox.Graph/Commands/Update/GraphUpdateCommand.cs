@@ -85,8 +85,8 @@ public static class GraphUpdateCommand
 
                     return new GraphNodeUpdate
                     {
-                        Tags = tags,
-                        Links = links,
+                        Tags = tags.ToTags(),
+                        Links = links.ToLinks(),
                     };
 
                 default: throw new UnreachableException($"Unknown langNode={langNode.GetType().FullName}");

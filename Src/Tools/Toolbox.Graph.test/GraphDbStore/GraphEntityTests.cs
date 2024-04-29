@@ -140,7 +140,7 @@ public class GraphEntityTests
             {
                 y.Length.Should().Be(1);
                 y[0].Key.Should().Be(indexKeyNode);
-                y[0].Tags.ToString().Should().Be(GraphConstants.UniqueIndexTag);
+                y[0].Tags.ToTagsString().Should().Be(GraphConstants.UniqueIndexTag);
             });
         });
 
@@ -164,7 +164,7 @@ public class GraphEntityTests
                 y.Length.Should().Be(1);
                 y[0].Key.Should().Be(nodeKey);
                 y[0].Tags.Count.Should().Be(2);
-                y[0].Tags.ToString().Should().Be(tags);
+                y[0].Tags.ToTagsString().Should().Be(tags);
             });
         });
     }

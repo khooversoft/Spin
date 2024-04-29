@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Map;
 

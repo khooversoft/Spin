@@ -1,10 +1,11 @@
-﻿using Toolbox.Types;
+﻿using System.Collections.Immutable;
+using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
 public record GraphNodeUpdate : IGraphQL
 {
-    public Tags Tags { get; init; } = new Tags();
+    public ImmutableDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
     public IReadOnlyList<IGraphQL> Search { get; init; } = Array.Empty<IGraphQL>();
-    public HashSet<string> Links { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public ImmutableHashSet<string> Links { get; init; } = ImmutableHashSet<string>.Empty;
 }

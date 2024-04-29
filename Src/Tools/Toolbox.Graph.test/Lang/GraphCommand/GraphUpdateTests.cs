@@ -51,7 +51,7 @@ public class GraphUpdateTests
         {
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid type");
 
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
             query.Search.Count.Should().Be(1);
             query.Search.Count.Should().Be(1);
 
@@ -79,14 +79,14 @@ public class GraphUpdateTests
         {
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid type");
 
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
             query.Search.Count.Should().Be(1);
             query.Search.Count.Should().Be(1);
 
             query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
             });
         });
     }
@@ -107,7 +107,7 @@ public class GraphUpdateTests
         {
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid type");
 
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
             query.Links.Join(',').Should().Be("l1");
             query.Search.Count.Should().Be(1);
             query.Search.Count.Should().Be(1);
@@ -115,7 +115,7 @@ public class GraphUpdateTests
             query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
             });
         });
     }
@@ -137,7 +137,7 @@ public class GraphUpdateTests
             if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
 
             query.EdgeType.Should().Be("et");
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
             query.Search.Count.Should().Be(1);
 
             query.Search[0].Cast<GraphEdgeSearch>().Action(x =>
@@ -146,7 +146,7 @@ public class GraphUpdateTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().Be("abc*");
-                x.Tags.ToString().Should().Be("schedulework:active"); ;
+                x.Tags.ToTagsString().Should().Be("schedulework:active"); ;
             });
         });
     }
@@ -169,7 +169,7 @@ public class GraphUpdateTests
             if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
 
             query.EdgeType.Should().Be("et");
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
             query.Search.Count.Should().Be(2);
 
             int idx = 0;
@@ -185,7 +185,7 @@ public class GraphUpdateTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().Be("abc*");
-                x.Tags.ToString().Should().Be("schedulework:active"); ;
+                x.Tags.ToTagsString().Should().Be("schedulework:active"); ;
             });
         });
     }

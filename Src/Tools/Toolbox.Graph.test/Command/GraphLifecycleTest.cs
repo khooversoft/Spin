@@ -23,7 +23,7 @@ public class GraphLifecycleTest
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node1");
-                x.Tags.ToString().Should().Be("t1,t2=v1");
+                x.Tags.ToTagsString().Should().Be("t1,t2=v1");
             });
         });
 
@@ -61,7 +61,7 @@ public class GraphLifecycleTest
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node1");
-                x.Tags.ToString().Should().Be("t1,t2=v1");
+                x.Tags.ToTagsString().Should().Be("t1,t2=v1");
             });
         });
 
@@ -72,7 +72,7 @@ public class GraphLifecycleTest
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node2");
-                x.Tags.ToString().Should().Be("t10,t20=v10");
+                x.Tags.ToTagsString().Should().Be("t10,t20=v10");
             });
         });
 
@@ -96,7 +96,7 @@ public class GraphLifecycleTest
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node2");
-                x.Tags.ToString().Should().Be("t10,t20=v10");
+                x.Tags.ToTagsString().Should().Be("t10,t20=v10");
             });
         });
 

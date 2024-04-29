@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -70,7 +71,9 @@ public static class GraphCommand
 
     private static GraphQueryResult AddNode(GraphNodeAdd addNode, GraphContext graphContext)
     {
-        var graphNode = new GraphNode(addNode.Key, addNode.Tags, addNode.Links);
+        var tags = addNode.Upsert ? addNode.Tags : addNode.Tags.RemoveCommands();
+
+        var graphNode = new GraphNode(addNode.Key, tags, addNode.Links);
 
         Option result = addNode.Upsert switch
         {

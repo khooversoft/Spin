@@ -48,19 +48,19 @@ public class GraphSelectCommandTests
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("lang=java,name=lop");
+                x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
             });
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node5");
-                x.Tags.ToString().Should().Be("lang=java,name=ripple");
+                x.Tags.ToTagsString().Should().Be("lang=java,name=ripple");
             });
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node7");
-                x.Tags.ToString().Should().Be("lang=java");
+                x.Tags.ToTagsString().Should().Be("lang=java");
             });
         });
     }
@@ -90,14 +90,14 @@ public class GraphSelectCommandTests
             {
                 x.FromKey.Should().Be("node1");
                 x.ToKey.Should().Be("node2");
-                x.Tags.ToString().Should().Be("knows,level=1");
+                x.Tags.ToTagsString().Should().Be("knows,level=1");
             });
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node1");
                 x.ToKey.Should().Be("node3");
-                x.Tags.ToString().Should().Be("knows,level=1");
+                x.Tags.ToTagsString().Should().Be("knows,level=1");
             });
         });
     }
@@ -128,14 +128,14 @@ public class GraphSelectCommandTests
             {
                 x.FromKey.Should().Be("node1");
                 x.ToKey.Should().Be("node2");
-                x.Tags.ToString().Should().Be("knows,level=1");
+                x.Tags.ToTagsString().Should().Be("knows,level=1");
             });
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node1");
                 x.ToKey.Should().Be("node3");
-                x.Tags.ToString().Should().Be("knows,level=1");
+                x.Tags.ToTagsString().Should().Be("knows,level=1");
             });
         });
 
@@ -151,21 +151,21 @@ public class GraphSelectCommandTests
             {
                 x.FromKey.Should().Be("node6");
                 x.ToKey.Should().Be("node3");
-                x.Tags.ToString().Should().Be("created");
+                x.Tags.ToTagsString().Should().Be("created");
             });
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node4");
                 x.ToKey.Should().Be("node5");
-                x.Tags.ToString().Should().Be("created");
+                x.Tags.ToTagsString().Should().Be("created");
             });
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
             {
                 x.FromKey.Should().Be("node4");
                 x.ToKey.Should().Be("node3");
-                x.Tags.ToString().Should().Be("created");
+                x.Tags.ToTagsString().Should().Be("created");
             });
         });
     }

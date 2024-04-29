@@ -4,6 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
+// TODO, try immutable dict and hashset
 [GenerateSerializer]
 public struct GraphNode_Surrogate
 {
@@ -19,15 +20,15 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
 {
     public GraphNode ConvertFromSurrogate(in GraphNode_Surrogate surrogate) => new GraphNode(
         surrogate.Key,
-        new Tags().Set(surrogate.Tags),
+        surrogate.Tags.ToTags(),
         surrogate.CreatedDate,
-        surrogate.Links.ToImmutableArray()
+        surrogate.Links.ToLinks()
         );
 
     public GraphNode_Surrogate ConvertToSurrogate(in GraphNode value) => new GraphNode_Surrogate
     {
         Key = value.Key,
-        Tags = value.Tags.ToString(),
+        Tags = value.Tags.ToTagsString(),
         CreatedDate = value.CreatedDate,
         Links = value.Links.ToArray(),
     };

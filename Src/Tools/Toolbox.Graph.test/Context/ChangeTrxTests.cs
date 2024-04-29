@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Context;
 
@@ -12,8 +13,8 @@ public class ChangeTrxTests
         DateTime dt = DateTime.UtcNow;
         Guid trxId = Guid.NewGuid();
         Guid logKey = Guid.NewGuid();
-        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1", dt, ["link1", "link2"]);
-        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1", dt, ["link1", "link2"]);
+        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
+        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
 
         (currentNode1 == currentNode2).Should().BeTrue();
 
@@ -33,10 +34,10 @@ public class ChangeTrxTests
         DateTime dt = DateTime.UtcNow;
         Guid trxId = Guid.NewGuid();
         Guid logKey = Guid.NewGuid();
-        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1", dt, ["link1", "link2"]);
-        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1", dt, ["link1", "link2"]);
-        GraphNode newValueNode1 = new GraphNode("node2", "tag1=v1", dt, ["link4", "link5"]);
-        GraphNode newValueNode2 = new GraphNode("node2", "tag1=v1", dt, ["link4", "link5"]);
+        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
+        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
+        GraphNode newValueNode1 = new GraphNode("node2", "tag1=v1".ToTags(), dt, ["link4", "link5"]);
+        GraphNode newValueNode2 = new GraphNode("node2", "tag1=v1".ToTags(), dt, ["link4", "link5"]);
 
         (currentNode1 == currentNode2).Should().BeTrue();
 

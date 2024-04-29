@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
@@ -93,9 +94,9 @@ public static class GraphAddCommand
                     return new GraphNodeAdd
                     {
                         Key = key,
-                        Tags = tags,
+                        Tags = tags.ToTags(),
                         Upsert = upsert,
-                        Links = links,
+                        Links = links.ToLinks(),
                     };
 
                 default:

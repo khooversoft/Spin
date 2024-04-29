@@ -80,7 +80,7 @@ public class GraphFileStoreTests
             x.Return().Items.OfType<GraphNode>().First().Action(y =>
             {
                 y.Key.Should().Be(nodeKey);
-                y.Links.Length.Should().Be(0);
+                y.Links.Count.Should().Be(0);
             });
         });
     }
@@ -156,7 +156,7 @@ public class GraphFileStoreTests
             x.Return().Items.OfType<GraphNode>().First().Action(y =>
             {
                 y.Key.Should().Be(nodeKey);
-                y.Links.Length.Should().Be(0);
+                y.Links.Count.Should().Be(0);
             });
         });
     }

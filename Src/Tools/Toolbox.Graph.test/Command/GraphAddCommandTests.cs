@@ -37,7 +37,7 @@ public class GraphAddCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");
-            x.Tags.ToString().Should().Be("newTags");
+            x.Tags.ToTagsString().Should().Be("newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -66,7 +66,7 @@ public class GraphAddCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");
-            x.Tags.ToString().Should().Be("");
+            x.Tags.ToTagsString().Should().Be("");
             x.Links.Join(',').Should().Be("ab/cd/ef");
         });
 
@@ -96,7 +96,7 @@ public class GraphAddCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");
-            x.Tags.ToString().Should().Be("label=client,newTags");
+            x.Tags.ToTagsString().Should().Be("label=client,newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -124,7 +124,7 @@ public class GraphAddCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");
-            x.Tags.ToString().Should().Be("label=client,newTags");
+            x.Tags.ToTagsString().Should().Be("label=client,newTags");
             x.Links.OrderBy(x => x).Join(',').Should().Be("a/b/c/d,config:/system/directory.json");
         });
 
@@ -155,7 +155,7 @@ public class GraphAddCommandTests
             x.FromKey.Should().Be("node7");
             x.ToKey.Should().Be("node1");
             x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.ToString().Should().Be("newTags");
+            x.Tags.ToTagsString().Should().Be("newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -185,7 +185,7 @@ public class GraphAddCommandTests
             x.FromKey.Should().Be("node7");
             x.ToKey.Should().Be("node1");
             x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.ToString().Should().Be("newTags");
+            x.Tags.ToTagsString().Should().Be("newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);

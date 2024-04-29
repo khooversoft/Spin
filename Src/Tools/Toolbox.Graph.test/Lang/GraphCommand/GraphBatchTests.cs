@@ -32,7 +32,7 @@ public class GraphBatchTests
             if (x is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
 
             query.Key.Should().Be("key1");
-            query.Tags.ToString().Should().Be("t1");
+            query.Tags.ToTagsString().Should().Be("t1");
         });
 
         list[index++].Action(x =>
@@ -42,14 +42,14 @@ public class GraphBatchTests
             query.FromKey.Should().Be("key1");
             query.ToKey.Should().Be("key2");
             query.EdgeType.Should().Be("et");
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
         });
 
         list[index++].Action(x =>
         {
             if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
 
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
             query.Search[0].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
@@ -62,7 +62,7 @@ public class GraphBatchTests
         {
             if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
 
-            query.Tags.ToString().Should().Be("t2");
+            query.Tags.ToTagsString().Should().Be("t2");
 
             query.Search.Count.Should().Be(2);
             query.Search[0].Cast<GraphNodeSearch>().Action(x =>

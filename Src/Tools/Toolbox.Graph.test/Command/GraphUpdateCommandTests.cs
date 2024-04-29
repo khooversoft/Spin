@@ -40,7 +40,7 @@ public class GraphUpdateCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node3");
-            x.Tags.ToString().Should().Be("lang=java,name=lop,t1");
+            x.Tags.ToTagsString().Should().Be("lang=java,name=lop,t1");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -56,7 +56,7 @@ public class GraphUpdateCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("lang=java,name=lop");
+                x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
             });
         });
     }
@@ -78,7 +78,7 @@ public class GraphUpdateCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node3");
-            x.Tags.ToString().Should().Be("lang=java,name=lop");
+            x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
             x.Links.Join(',').Should().Be("abc/def,name:nodes/contract/contract1.json");
         });
 
@@ -95,8 +95,8 @@ public class GraphUpdateCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("lang=java,name=lop");
-                x.Links.Length.Should().Be(0);
+                x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
+                x.Links.Count.Should().Be(0);
             });
         });
     }
@@ -117,7 +117,7 @@ public class GraphUpdateCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node3");
-            x.Tags.ToString().Should().Be("lang=java");
+            x.Tags.ToTagsString().Should().Be("lang=java");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -133,7 +133,7 @@ public class GraphUpdateCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node3");
-                x.Tags.ToString().Should().Be("lang=java,name=lop");
+                x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
             });
         });
     }
@@ -156,7 +156,7 @@ public class GraphUpdateCommandTests
             x.FromKey.Should().Be("node1");
             x.ToKey.Should().Be("node3");
             x.EdgeType.Should().Be("default");
-            x.Tags.ToString().Should().Be("level=1");
+            x.Tags.ToTagsString().Should().Be("level=1");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -174,7 +174,7 @@ public class GraphUpdateCommandTests
                 x.FromKey.Should().Be("node1");
                 x.ToKey.Should().Be("node3");
                 x.EdgeType.Should().Be("default");
-                x.Tags.ToString().Should().Be("knows,level=1");
+                x.Tags.ToTagsString().Should().Be("knows,level=1");
             });
         });
     }
@@ -197,7 +197,7 @@ public class GraphUpdateCommandTests
             x.FromKey.Should().Be("node4");
             x.ToKey.Should().Be("node5");
             x.EdgeType.Should().Be("default");
-            x.Tags.ToString().Should().Be("created,t1");
+            x.Tags.ToTagsString().Should().Be("created,t1");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -215,7 +215,7 @@ public class GraphUpdateCommandTests
                 x.FromKey.Should().Be("node4");
                 x.ToKey.Should().Be("node5");
                 x.EdgeType.Should().Be("default");
-                x.Tags.ToString().Should().Be("created");
+                x.Tags.ToTagsString().Should().Be("created");
             });
         });
     }

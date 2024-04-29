@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -16,6 +17,23 @@ public static class GraphTool
 
     private static string ToEncoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.chr, y.replace));
     private static string ToDecoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.replace, y.chr));
+
+    public static ImmutableHashSet<string> ToLinks(this IEnumerable<string> links) => links
+        .ToImmutableHashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    public static ImmutableHashSet<string> ProcessLinks(IEnumerable<string> links, IEnumerable<string> linkCommands)
+    {
+        links.NotNull();
+        linkCommands.NotNull();
+
+        var list = new HashSet<string>(links, StringComparer.OrdinalIgnoreCase);
+
+        linkCommands.Where(x => x.Length > 0 && x[0] == '-').Select(x => x[1..]).ForEach(x => list.Remove(x));
+        linkCommands.Where(x => x.Length > 0 && x[0] != '-').ForEach(x => list.Add(x));
+
+        var result = list.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+        return result;
+    }
 
     public static string CreateFileId(string nodeKey, string name, string extension = ".json")
     {

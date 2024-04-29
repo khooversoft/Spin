@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
@@ -10,6 +11,49 @@ public static class TagsTool
     private static FrozenSet<string> _delimiters = new string[] { ",", "=" }.ToFrozenSet();
     private static FrozenSet<char> _allowCharacters = new char[] { '*', '-', '.', ':' }.ToFrozenSet();
 
+    public static ImmutableDictionary<string, string?> ToTags(this string? tags) => TagsTool.Parse(tags)
+        .ThrowOnError().Return()
+        .ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+
+    public static ImmutableDictionary<string, string?> ToTags(this IReadOnlyDictionary<string, string?> tags) => tags
+        .ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+
+
+    public static ImmutableDictionary<string, string?> ProcessTags(this IEnumerable<KeyValuePair<string, string?>> tags, IEnumerable<KeyValuePair<string, string?>> tagCommands)
+    {
+        tagCommands.NotNull();
+
+        var dict = tags.NotNull().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+        tagCommands.Where(x => x.Key.IsNotEmpty()).ForEach(x => dict.ApplyTagCommand(x.Key, x.Value));
+
+        return dict.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+    }
+
+    public static void ApplyTagCommand(this IDictionary<string, string?> tags, string key, string? value)
+    {
+        if (key.IsEmpty()) return;
+
+        var removeKey = GetTagDeleteCommand(key, value);
+        if (removeKey.IsNotEmpty())
+        {
+            tags.Remove(removeKey);
+            return;
+        }
+
+        tags[key] = value;
+    }
+
+    public static string? GetTagDeleteCommand(string key, string? value) => (key, value) switch
+    {
+        (string k, null) when key.Length > 1 && key[0] == '-' && value.IsEmpty() => key[1..],
+        _ => null,
+    };
+
+    public static ImmutableDictionary<string, string?> RemoveCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
+        .Where(x => GetTagDeleteCommand(x.Key, x.Value).IsEmpty())
+        .ToImmutableDictionary();
+
     public static string? FormatTag(string key, string? value) => value.ToNullIfEmpty() switch
     {
         null => key,
@@ -18,6 +62,29 @@ public static class TagsTool
             true => $"{key}={value}",
             false => $"{key}='{value}'",
         }
+    };
+
+    public static string ToTagsString(this IEnumerable<KeyValuePair<string, string?>> tags) => tags
+        .OrderBy(x => x.Key)
+        .Select(x => TagsTool.FormatTag(x.Key, x.Value))
+        .Join(',');
+
+    public static bool Has(this IReadOnlyDictionary<string, string?> tags, string? value)
+    {
+        if (value.IsEmpty()) return false;
+        if (value == "*") return true;
+
+        var set = TagsTool.Parse(value).ThrowOnError().Return();
+
+        // Must find all tags
+        var find = set.All(x => tags.Has(x.Key, x.Value));
+        return find;
+    }
+
+    public static bool Has(this IReadOnlyDictionary<string, string?> tags, string key, string? value) => tags.TryGetValue(key, out var readValue) switch
+    {
+        false => false,
+        true => value == null || value == readValue,
     };
 
     public static Option<IReadOnlyList<KeyValuePair<string, string?>>> Parse(string? value)
@@ -32,7 +99,7 @@ public static class TagsTool
             .Reverse()
             .ToStack();
 
-        var result = new Sequence<KeyValuePair<string, string?>>();
+        var result = new Dictionary<string, string?>(StringComparer.Ordinal);
 
         while (tokens.Count > 0)
         {
@@ -46,7 +113,7 @@ public static class TagsTool
             if (assignment != null)
             {
                 if (!IsKeyValid(assignment.Value.Key, out Option v1)) return v1.ToOptionStatus<IReadOnlyList<KeyValuePair<string, string?>>>();
-                result.Add(assignment.Value);
+                result.Add(assignment.Value.Key, assignment.Value.Value);
                 continue;
             }
 
@@ -54,10 +121,11 @@ public static class TagsTool
             if (_delimiters.Contains(tag)) return (StatusCode.BadRequest, $"Invalid token={tag}");
             if (!IsKeyValid(tag, out Option v2)) return v2.ToOptionStatus<IReadOnlyList<KeyValuePair<string, string?>>>();
 
-            result.Add(new KeyValuePair<string, string?>(tag, null));
+            result.Add(tag, null);
         }
 
-        return result;
+        var dict = result.ToArray();
+        return dict;
 
         KeyValuePair<string, string?>? parseAssignment(Stack<IToken> tokens)
         {

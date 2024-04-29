@@ -40,21 +40,21 @@ public class GraphDeleteCommandTests
         index.NextValue().Return().Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node1");
-            x.Tags.ToString().Should().Be("age=29,name=marko");
+            x.Tags.ToTagsString().Should().Be("age=29,name=marko");
         });
 
         index.NextValue().Return().Cast<GraphEdge>().Action(x =>
         {
             x.FromKey.Should().Be("node1");
             x.ToKey.Should().Be("node2");
-            x.Tags.ToString().Should().Be("knows,level=1");
+            x.Tags.ToTagsString().Should().Be("knows,level=1");
         });
 
         index.NextValue().Return().Cast<GraphEdge>().Action(x =>
         {
             x.FromKey.Should().Be("node1");
             x.ToKey.Should().Be("node3");
-            x.Tags.ToString().Should().Be("knows,level=1");
+            x.Tags.ToTagsString().Should().Be("knows,level=1");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -70,7 +70,7 @@ public class GraphDeleteCommandTests
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
             {
                 x.Key.Should().Be("node1");
-                x.Tags.ToString().Should().Be("age=29,name=marko");
+                x.Tags.ToTagsString().Should().Be("age=29,name=marko");
             });
         });
     }

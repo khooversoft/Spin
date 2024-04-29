@@ -37,7 +37,7 @@ public class GraphUpsertCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node1");
-            x.Tags.ToString().Should().Be("age=29,name=marko,newTags");
+            x.Tags.ToTagsString().Should().Be("age=29,name=marko,newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -58,7 +58,7 @@ public class GraphUpsertCommandTests
         lookupResults.Get<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node1");
-            x.Tags.ToString().Should().Be("age=29,name=marko,newTags");
+            x.Tags.ToTagsString().Should().Be("age=29,name=marko,newTags");
         });
     }
 
@@ -76,7 +76,7 @@ public class GraphUpsertCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node1");
-            x.Tags.ToString().Should().Be("age=29,name=marko,newTags=v99");
+            x.Tags.ToTagsString().Should().Be("age=29,name=marko,newTags=v99");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -97,7 +97,7 @@ public class GraphUpsertCommandTests
         lookupResults.Get<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node1");
-            x.Tags.ToString().Should().Be("age=29,name=marko,newTags=v99");
+            x.Tags.ToTagsString().Should().Be("age=29,name=marko,newTags=v99");
         });
     }
 
@@ -115,7 +115,7 @@ public class GraphUpsertCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node6");
-            x.Tags.ToString().Should().Be("age=35");
+            x.Tags.ToTagsString().Should().Be("age=35");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -136,7 +136,7 @@ public class GraphUpsertCommandTests
         lookupResults.Get<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node6");
-            x.Tags.ToString().Should().Be("age=35");
+            x.Tags.ToTagsString().Should().Be("age=35");
         });
     }
 
@@ -156,7 +156,7 @@ public class GraphUpsertCommandTests
             x.FromKey.Should().Be("node6");
             x.ToKey.Should().Be("node3");
             x.EdgeType.Should().Be("default");
-            x.Tags.ToString().Should().Be("created,newTags");
+            x.Tags.ToTagsString().Should().Be("created,newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -184,7 +184,7 @@ public class GraphUpsertCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");
-            x.Tags.ToString().Should().Be("newTags");
+            x.Tags.ToTagsString().Should().Be("newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -212,7 +212,7 @@ public class GraphUpsertCommandTests
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");
-            x.Tags.ToString().Should().Be("label=client,newTags");
+            x.Tags.ToTagsString().Should().Be("label=client,newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -242,7 +242,7 @@ public class GraphUpsertCommandTests
             x.FromKey.Should().Be("node7");
             x.ToKey.Should().Be("node1");
             x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.ToString().Should().Be("newTags");
+            x.Tags.ToTagsString().Should().Be("newTags");
         });
 
         commandResults.Items.Count.Should().Be(1);

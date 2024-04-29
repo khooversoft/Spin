@@ -13,7 +13,7 @@ public class GraphContextTraceTests
     [Fact]
     public void ChangeTrxSerialization()
     {
-        var graphNode = new GraphNode("node1", "tag1=v1", DateTime.Now, ["link1", "link2"]);
+        var graphNode = new GraphNode("node1", "tag1=v1".ToTags(), DateTime.Now, ["link1", "link2"]);
         var graphData = graphNode.ToJson();
         GraphNode readGraphNode = graphData.ToObject<GraphNode>().NotNull();
         (graphNode == readGraphNode).Should().BeTrue();
@@ -158,7 +158,7 @@ public class GraphContextTraceTests
             x.CurrentNodeValue.NotNull().Action(y =>
             {
                 y.Key.Should().Be("node1");
-                y.Tags.ToString().Should().Be("t1=v1");
+                y.Tags.ToTagsString().Should().Be("t1=v1");
             });
             x.UpdateNodeValue.Should().BeNull();
             x.CurrentEdgeValue.Should().BeNull();
@@ -254,7 +254,7 @@ public class GraphContextTraceTests
             {
                 y.FromKey.Should().Be("node1");
                 y.ToKey.Should().Be("node2");
-                y.Tags.ToString().Should().Be("t1=v1");
+                y.Tags.ToTagsString().Should().Be("t1=v1");
             });
             x.UpdateEdgeValue.Should().BeNull();
         });
@@ -267,7 +267,7 @@ public class GraphContextTraceTests
         trx.CurrentNodeValue.NotNull().Action(y =>
         {
             y.Key.Should().Be(nodeKey);
-            y.Tags.ToString().Should().Be(tags);
+            y.Tags.ToTagsString().Should().Be(tags);
         });
         trx.UpdateNodeValue.Should().BeNull();
         trx.CurrentEdgeValue.Should().BeNull();
@@ -281,12 +281,12 @@ public class GraphContextTraceTests
         trx.CurrentNodeValue.NotNull().Action(y =>
         {
             y.Key.Should().Be(nodeKey);
-            y.Tags.ToString().Should().Be(tags);
+            y.Tags.ToTagsString().Should().Be(tags);
         });
         trx.UpdateNodeValue.NotNull().Action(y =>
         {
             y.Key.Should().Be(nodeKey);
-            y.Tags.ToString().Should().Be(updatedTags);
+            y.Tags.ToTagsString().Should().Be(updatedTags);
         });
         trx.CurrentEdgeValue.Should().BeNull();
         trx.UpdateEdgeValue.Should().BeNull();
@@ -302,7 +302,7 @@ public class GraphContextTraceTests
         {
             y.FromKey.Should().Be(fromNode);
             y.ToKey.Should().Be(toNode);
-            y.Tags.ToString().Should().Be(tags);
+            y.Tags.ToTagsString().Should().Be(tags);
         });
         trx.UpdateEdgeValue.Should().BeNull();
     }
@@ -317,13 +317,13 @@ public class GraphContextTraceTests
         {
             y.FromKey.Should().Be(fromNode);
             y.ToKey.Should().Be(toNode);
-            y.Tags.ToString().Should().Be(tags);
+            y.Tags.ToTagsString().Should().Be(tags);
         });
         trx.UpdateEdgeValue.NotNull().Action(y =>
         {
             y.FromKey.Should().Be(fromNode);
             y.ToKey.Should().Be(toNode);
-            y.Tags.ToString().Should().Be(updatedTags);
+            y.Tags.ToTagsString().Should().Be(updatedTags);
         });
     }
 }

@@ -66,7 +66,7 @@ public class GraphCommandSerializationTests
         r.Items[0].Items[1].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("key1");
-            x.Tags.ToString().Should().Be("t1");
+            x.Tags.ToTagsString().Should().Be("t1");
         });
     }
 }
