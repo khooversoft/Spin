@@ -132,7 +132,7 @@ public class GraphDeleteCommandTests
         {
             x.FromKey.Should().Be("node4");
             x.ToKey.Should().Be("node5");
-            x.Tags.ToString().Should().Be("created");
+            x.Tags.ToTagsString().Should().Be("created");
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -149,7 +149,7 @@ public class GraphDeleteCommandTests
             {
                 x.FromKey.Should().Be("node4");
                 x.ToKey.Should().Be("node5");
-                x.Tags.ToString().Should().Be("created");
+                x.Tags.ToTagsString().Should().Be("created");
             });
         });
     }

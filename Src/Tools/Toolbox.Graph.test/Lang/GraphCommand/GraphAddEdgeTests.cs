@@ -55,7 +55,7 @@ public class GraphAddEdgeTests
 
         query.FromKey.Should().Be("key1");
         query.ToKey.Should().Be("key2");
-        query.Tags.ToString().Should().Be("t1=v1,t2=v2");
+        query.Tags.ToTagsString().Should().Be("t1=v1,t2=v2");
         query.Unique.Should().BeTrue();
     }
 
@@ -76,6 +76,6 @@ public class GraphAddEdgeTests
         query.FromKey.Should().Be("key1");
         query.ToKey.Should().Be("key2");
         query.EdgeType.Should().Be("et");
-        query.Tags.ToString().Should().Be("t2");
+        query.Tags.ToTagsString().Should().Be("t2");
     }
 }

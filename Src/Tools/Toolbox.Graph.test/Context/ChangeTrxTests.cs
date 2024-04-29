@@ -62,8 +62,8 @@ public class ChangeTrxTests
         const string toKey = "toKey1";
         const string edgeType = "edgeType";
 
-        GraphEdge edge1 = new GraphEdge(key, fromKey, toKey, "tag1=v1", edgeType, dt);
-        GraphEdge edge2 = new GraphEdge(key, fromKey, toKey, "tag1=v1", edgeType, dt);
+        GraphEdge edge1 = new GraphEdge(key, fromKey, toKey, edgeType, "tag1=v1".ToTags(), dt);
+        GraphEdge edge2 = new GraphEdge(key, fromKey, toKey, edgeType, "tag1=v1".ToTags(), dt);
 
         (edge1 == edge2).Should().BeTrue();
 
@@ -91,10 +91,10 @@ public class ChangeTrxTests
         const string toKey2 = "toKey2";
         const string edgeType2 = "edgeType2";
 
-        GraphEdge currentEdge1 = new GraphEdge(key, fromKey1, toKey1, "tag1=v1", edgeType1, dt);
-        GraphEdge currentEdge2 = new GraphEdge(key, fromKey1, toKey1, "tag1=v1", edgeType1, dt);
-        GraphEdge newEdge1 = new GraphEdge(key, fromKey2, toKey2, "tag1=v1", edgeType2, dt);
-        GraphEdge newEdge2 = new GraphEdge(key, fromKey2, toKey2, "tag1=v1", edgeType2, dt);
+        GraphEdge currentEdge1 = new GraphEdge(key, fromKey1, toKey1, edgeType1, "tag1=v1".ToTags(), dt);
+        GraphEdge currentEdge2 = new GraphEdge(key, fromKey1, toKey1, edgeType1, "tag1=v1".ToTags(), dt);
+        GraphEdge newEdge1 = new GraphEdge(key, fromKey2, toKey2, edgeType2, "tag1=v1".ToTags(), dt);
+        GraphEdge newEdge2 = new GraphEdge(key, fromKey2, toKey2, edgeType2, "tag1=v1".ToTags(), dt);
 
         (currentEdge1 == currentEdge2).Should().BeTrue();
 

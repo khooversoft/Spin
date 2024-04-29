@@ -155,7 +155,7 @@ public static class GraphAddCommand
                         FromKey = fromKey,
                         ToKey = toKey,
                         EdgeType = edgeType,
-                        Tags = tags,
+                        Tags = tags.ToTags(),
                         Upsert = upsert,
                         Unique = unique,
                     };

@@ -79,7 +79,7 @@ public class GraphUpdateCommandTests
         {
             x.Key.Should().Be("node3");
             x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
-            x.Links.Join(',').Should().Be("abc/def,name:nodes/contract/contract1.json");
+            x.LinksString.Should().Be("abc/def,name:nodes/contract/contract1.json");
         });
 
         commandResults.Items.Count.Should().Be(1);

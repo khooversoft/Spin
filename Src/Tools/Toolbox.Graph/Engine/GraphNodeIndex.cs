@@ -60,7 +60,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             GraphNode? current;
             if (_index.TryGetValue(node.Key, out current))
             {
-                node = current.WithMerged(node);
+                node = current.With(node);
             }
 
             _index[node.Key] = node;

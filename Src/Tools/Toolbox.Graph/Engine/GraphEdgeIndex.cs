@@ -73,7 +73,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             if (_masterList.TryGetValue(edge, out var readEdge))
             {
-                readEdge = readEdge.WithMerged(edge);
+                readEdge = readEdge.With(edge);
                 _index[readEdge.Key] = readEdge;
                 graphContext?.ChangeLog.Push(new EdgeChange(readEdge, edge));
                 return StatusCode.OK;

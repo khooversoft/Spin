@@ -86,12 +86,14 @@ public static class GraphCommand
 
     private static GraphQueryResult AddEdge(GraphEdgeAdd addEdge, GraphContext graphContext)
     {
+        var tags = addEdge.Upsert ? addEdge.Tags : addEdge.Tags.RemoveCommands();
+
         var graphEdge = new GraphEdge
         {
             FromKey = addEdge.FromKey,
             ToKey = addEdge.ToKey,
             EdgeType = addEdge.EdgeType ?? "default",
-            Tags = new Tags(addEdge.Tags),
+            Tags = tags,
         };
 
         var result = addEdge.Upsert switch
@@ -110,11 +112,7 @@ public static class GraphCommand
         IReadOnlyList<GraphEdge> edges = searchResult.Edges();
         if (edges.Count == 0) return new GraphQueryResult(CommandType.UpdateEdge, StatusCode.NoContent);
 
-        graphContext.Map.Edges.Update(edges, x => x with
-        {
-            EdgeType = updateEdge.EdgeType ?? x.EdgeType,
-            Tags = x.Tags.Clone().Set(updateEdge.Tags.ToString()),
-        }, graphContext);
+        graphContext.Map.Edges.Update(edges, x => x.With(updateEdge.EdgeType, updateEdge.Tags), graphContext);
 
         return searchResult with { CommandType = CommandType.UpdateEdge };
     }

@@ -95,11 +95,15 @@ public static class DictionaryExtensions
         if (sourceList.Length != targetList.Length) return false;
 
         var zip = sourceList.Zip(targetList, (x, y) => (source: x, target: y));
-        var isEqual = zip.All(x => x.source.Key.Equals(x.target.Key, StringComparison.OrdinalIgnoreCase) && (x.source.Value, x.target.Value) switch
+        var isEqual = zip.All(x => x.source.Key.Equals(x.target.Key, StringComparison.OrdinalIgnoreCase) switch
         {
-            (null, null) => true,
-            (string s1, string s2) => s1.Equals(s2, StringComparison.OrdinalIgnoreCase),
-            _ => false,
+            false => false,
+            true => (x.source.Value, x.target.Value) switch
+            {
+                (null, null) => true,
+                (string s1, string s2) => s1.Equals(s2, StringComparison.OrdinalIgnoreCase),
+                _ => false,
+            }
         });
 
         return isEqual;

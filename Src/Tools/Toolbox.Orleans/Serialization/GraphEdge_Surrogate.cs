@@ -24,7 +24,7 @@ public sealed class GraphEdge_SurrogateConverter : IConverter<GraphEdge, GraphEd
         FromKey = surrogate.FromKey,
         ToKey = surrogate.ToKey,
         EdgeType = surrogate.EdgeType,
-        Tags = new Tags().Set(surrogate.Tags),
+        Tags = surrogate.Tags.ToTags(),
         CreatedDate = surrogate.CreatedDate,
     };
 
@@ -34,7 +34,7 @@ public sealed class GraphEdge_SurrogateConverter : IConverter<GraphEdge, GraphEd
         FromKey = value.FromKey,
         ToKey = value.ToKey,
         EdgeType = value.EdgeType,
-        Tags = value.Tags.ToString(),
+        Tags = value.Tags.ToTagsString(),
         CreatedDate = value.CreatedDate,
     };
 }

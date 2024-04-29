@@ -24,9 +24,7 @@ public class GraphAddNodesTests
         result.IsError().Should().BeTrue(result.ToString());
     }
 
-    [Fact(Skip = "not ready")]
-
-    [Theory]
+    [Theory(Skip = "not ready")]
     [InlineData("add node key=key1;")]
     [InlineData("add node key=key1, t2;")]
     [InlineData("add node key=key1, t1, t2;")]
