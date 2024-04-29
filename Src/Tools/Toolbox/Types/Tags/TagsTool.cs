@@ -10,6 +10,16 @@ public static class TagsTool
     private static FrozenSet<string> _delimiters = new string[] { ",", "=" }.ToFrozenSet();
     private static FrozenSet<char> _allowCharacters = new char[] { '*', '-', '.', ':' }.ToFrozenSet();
 
+    public static string? FormatTag(string key, string? value) => value.ToNullIfEmpty() switch
+    {
+        null => key,
+        var v => v.All(x => char.IsLetterOrDigit(x) || char.IsSymbol(x) || char.IsPunctuation(x) || x == '-' || x == '.') switch
+        {
+            true => $"{key}={value}",
+            false => $"{key}='{value}'",
+        }
+    };
+
     public static Option<IReadOnlyList<KeyValuePair<string, string?>>> Parse(string? value)
     {
         var tokens = new StringTokenizer()
@@ -60,43 +70,6 @@ public static class TagsTool
 
             return new KeyValuePair<string, string?>(key, value);
         }
-    }
-
-    public static bool TryGetValue(this IReadOnlyList<KeyValuePair<string, string?>> values, string key, out string? value)
-    {
-        values.NotNull();
-
-        var list = values
-            .Where(x => x.Key.EqualsIgnoreCase(key))
-            .Select(x => x.Value)
-            .ToArray();
-
-        value = list.Length == 0 ? null : list[0];
-        return list.Length != 0;
-    }
-
-    public static bool HasTag(string? tags, string tag, string? value = null)
-    {
-        if (tags.IsEmpty() || tag.IsEmpty()) return false;
-
-        bool found = Parse(tags)
-            .ThrowOnError()
-            .Return()
-            .TryGetValue(tag, out _);
-
-        return found;
-    }
-
-    public static T ToObject<T>(this Tags subject) where T : new()
-    {
-        subject.NotNull();
-
-        var dict = subject
-            .Select(x => new KeyValuePair<string, string?>(x.Key, x.Value ?? "true"))
-            .ToDictionary(x => x.Key, x => x.Value);
-
-        var result = DictionaryExtensions.ToObject<T>(dict);
-        return result;
     }
 
     public static bool IsKeyValid(string? key, out Option result)

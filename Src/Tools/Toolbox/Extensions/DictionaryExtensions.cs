@@ -78,4 +78,30 @@ public static class DictionaryExtensions
 
         return result;
     }
+
+    /// <summary>
+    /// Comparis two dictionaries (key value pairs)
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    public static bool DeepEquals(this IEnumerable<KeyValuePair<string, string?>>? source, IEnumerable<KeyValuePair<string, string?>>? target)
+    {
+        if (source == null && target == null) return true;
+        if (source == null || target == null) return false;
+
+        var sourceList = source.OrderBy(x => x.Key).ToArray();
+        var targetList = target.OrderBy(x => x.Key).ToArray();
+        if (sourceList.Length != targetList.Length) return false;
+
+        var zip = sourceList.Zip(targetList, (x, y) => (source: x, target: y));
+        var isEqual = zip.All(x => x.source.Key.Equals(x.target.Key, StringComparison.OrdinalIgnoreCase) && (x.source.Value, x.target.Value) switch
+        {
+            (null, null) => true,
+            (string s1, string s2) => s1.Equals(s2, StringComparison.OrdinalIgnoreCase),
+            _ => false,
+        });
+
+        return isEqual;
+    }
 }

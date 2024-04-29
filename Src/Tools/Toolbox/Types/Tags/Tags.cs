@@ -77,7 +77,7 @@ public class Tags : Dictionary<string, string?>
 
     public override string ToString() => this
         .OrderBy(x => x.Key)
-        .Select(x => Fmt(x.Key, x.Value))
+        .Select(x => TagsTool.FormatTag(x.Key, x.Value))
         .Join(',');
 
     public bool Equals(Tags? other) => other is not null &&
@@ -99,14 +99,5 @@ public class Tags : Dictionary<string, string?>
 
     public static implicit operator Tags(string? value) => new Tags(value);
     public static implicit operator string(Tags tags) => tags.ToString();
-
-    private static string? Fmt(string key, string? value) => value.ToNullIfEmpty() switch
-    {
-        null => key,
-        var v => v.All(x => char.IsLetterOrDigit(x) || char.IsSymbol(x) || char.IsPunctuation(x) || x == '-' || x == '.') switch
-        {
-            true => $"{key}={value}",
-            false => $"{key}='{value}'",
-        }
-    };
 }
+

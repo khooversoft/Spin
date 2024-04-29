@@ -37,6 +37,7 @@ public class TagsTests
         {
             _ = new Tags(key);
             _ = new Tags().Set(key);
+            //_ = new ImmutableTags(key);
             return;
         }
 
@@ -45,6 +46,9 @@ public class TagsTests
 
         Action act2 = () => new Tags().Set(key);
         act2.Should().Throw<ArgumentException>();
+
+        //Action act3 = () => new ImmutableTags(key);
+        //act3.Should().Throw<ArgumentException>();
     }
 
     [Theory]
@@ -71,6 +75,7 @@ public class TagsTests
         {
             _ = new Tags(key);
             _ = new Tags().Set(key);
+            //_ = new ImmutableTags(key);
             return;
         }
 
@@ -79,8 +84,10 @@ public class TagsTests
 
         Action act2 = () => new Tags().Set(key);
         act2.Should().Throw<ArgumentException>();
-    }
 
+        //Action act3 = () => new ImmutableTags(key);
+        //act3.Should().Throw<ArgumentException>();
+    }
 
     [Fact]
     public void ImplicitConversion()
@@ -110,22 +117,22 @@ public class TagsTests
     }
 
     [Theory]
-    [InlineData(null, true)]
-    [InlineData("", true)]
-    [InlineData("k", true)]
-    [InlineData("key=node1", true)]
-    [InlineData("key=node1, t1, t2=v2", true)]
-    [InlineData("key=node1, t1, t2=v2, i:logonProvider={LoginProvider}/{ProviderKey}", true)]
-    [InlineData("key=node1, t1, t2=v2, unique:logonProvider={LoginProvider}/{ProviderKey}", true)]
-    [InlineData("key=node1, t1, t2=v2, unique:logonProvider=microsoft/user001-microsoft-id", true)]
-    [InlineData("key=node1, t1, t2=v2, unique:logonProvider='microsoft user001-microsoft-id'", true)]
-    public void EqualPatterns(string? line, bool shouldExpect)
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("k")]
+    [InlineData("key=node1")]
+    [InlineData("key=node1, t1, t2=v2")]
+    [InlineData("key=node1, t1, t2=v2, i:logonProvider={LoginProvider}/{ProviderKey}")]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider={LoginProvider}/{ProviderKey}")]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider=microsoft/user001-microsoft-id")]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider='microsoft user001-microsoft-id'")]
+    public void EqualPatterns(string? line)
     {
         var t1 = new Tags(line);
         var t2 = new Tags(line);
 
-        (t1 == t2).Should().Be(shouldExpect);
-        (t1 != t2).Should().Be(!shouldExpect);
+        (t1 == t2).Should().BeTrue();
+        (t1 != t2).Should().BeFalse();
     }
 
     [Fact]

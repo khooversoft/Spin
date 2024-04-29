@@ -99,7 +99,7 @@ public static class GraphAddCommand
                     };
 
                 default:
-                    break;
+                    return (StatusCode.BadRequest, $"Unknown node, SyntaxNode.Name={langNode.SyntaxNode.Name}");
             }
         }
 
