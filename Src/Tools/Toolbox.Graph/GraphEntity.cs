@@ -13,7 +13,7 @@ public class GraphEntity : IGraphEntity
     }
 
     public IGraphCommand Command { get; }
-    public IGraphStore Store { get;}
+    public IGraphStore Store { get; }
 
     public async Task<Option<string>> SetEntity<T>(T subject, ScopeContext context) where T : class
     {

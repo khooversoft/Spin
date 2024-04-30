@@ -25,8 +25,8 @@ public class GraphMap : IEnumerable<IGraphCommon>
     public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges)
         : this()
     {
-        nodes.NotNull().ForEach(x => Nodes.Add(x.Copy()).ThrowOnError("Node add failed"));
-        edges.NotNull().ForEach(x => Edges.Add(x.Copy()).ThrowOnError("Edge add failed"));
+        nodes.NotNull().ForEach(x => Nodes.Add(x).ThrowOnError("Node add failed"));
+        edges.NotNull().ForEach(x => Edges.Add(x).ThrowOnError("Edge add failed"));
     }
 
     internal AsyncReaderWriterLock ReadWriterLock => _rwLock;

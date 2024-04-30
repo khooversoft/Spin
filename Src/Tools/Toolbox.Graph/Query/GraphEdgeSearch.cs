@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Collections.Immutable;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -9,7 +10,7 @@ public record GraphEdgeSearch : IGraphQL
     public string? FromKey { get; init; }
     public string? ToKey { get; init; }
     public string? EdgeType { get; init; }
-    public Tags Tags { get; init; } = new Tags();
+    public ImmutableDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
     public string? Alias { get; init; }
     public EdgeDirection Direction { get; init; } = EdgeDirection.Both;
 }

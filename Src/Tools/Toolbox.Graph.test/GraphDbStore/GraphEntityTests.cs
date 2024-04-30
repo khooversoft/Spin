@@ -1,7 +1,5 @@
 ﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
-using Toolbox.Store;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.GraphDbStore;

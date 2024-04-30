@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphUpdateCommandTests
+public class GraphUpdateNodeCommandTests
 {
     private static readonly GraphMap _map = new GraphMap()
     {
@@ -134,88 +134,6 @@ public class GraphUpdateCommandTests
             {
                 x.Key.Should().Be("node3");
                 x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
-            });
-        });
-    }
-
-    [Fact]
-    public void SingleUpdateForEdge()
-    {
-        var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update [fromKey=node1, toKey=node3] set -knows;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
-
-        compareMap.Count.Should().Be(1);
-        var index = compareMap.ToCursor();
-
-        index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-        {
-            x.FromKey.Should().Be("node1");
-            x.ToKey.Should().Be("node3");
-            x.EdgeType.Should().Be("default");
-            x.Tags.ToTagsString().Should().Be("level=1");
-        });
-
-        commandResults.Items.Count.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.UpdateEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Count.Should().Be(1);
-
-            var resultIndex = x.Items.NotNull().ToCursor();
-            resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node1");
-                x.ToKey.Should().Be("node3");
-                x.EdgeType.Should().Be("default");
-                x.Tags.ToTagsString().Should().Be("knows,level=1");
-            });
-        });
-    }
-
-    [Fact]
-    public void SingleRemoveTagForEdge()
-    {
-        var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update [fromKey=node4, toKey=node5] set t1;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
-
-        compareMap.Count.Should().Be(1);
-        var index = compareMap.ToCursor();
-
-        index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-        {
-            x.FromKey.Should().Be("node4");
-            x.ToKey.Should().Be("node5");
-            x.EdgeType.Should().Be("default");
-            x.Tags.ToTagsString().Should().Be("created,t1");
-        });
-
-        commandResults.Items.Count.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.UpdateEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Count.Should().Be(1);
-
-            var resultIndex = x.Items.NotNull().ToCursor();
-            resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node4");
-                x.ToKey.Should().Be("node5");
-                x.EdgeType.Should().Be("default");
-                x.Tags.ToTagsString().Should().Be("created");
             });
         });
     }

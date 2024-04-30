@@ -94,7 +94,7 @@ public class GraphQueryNodeTests
     [Fact]
     public void SpecificTagDefaultQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select ('name=marko');", NullScopeContext.Instance);
+        GraphQueryResult result = _map.ExecuteScalar("select (name=marko);", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue(result.Status.Error);
         result.Items.Count.Should().Be(1);

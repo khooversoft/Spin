@@ -27,8 +27,6 @@ public class GraphUpdateTests
     [InlineData("update [key=key1, set] set tags=t2;")]
     [InlineData("update [key=key1, set, t2] set tags=t2;")]
     [InlineData("update [key=key1, key, t2] set tags=t2;")]
-    [InlineData("update [key=key1, key, t2] set tags=t2, link=l1;")]
-    [InlineData("update [key=key1, key, t2] set tags=t2, link=l1, link=l2;")]
     public void AddNodeWithReserveTags(string line)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);

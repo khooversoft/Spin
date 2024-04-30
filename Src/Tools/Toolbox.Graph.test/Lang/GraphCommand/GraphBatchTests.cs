@@ -76,7 +76,7 @@ public class GraphBatchTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.ToString().Should().Be("t2");
+                x.Tags.ToTagsString().Should().Be("t2");
                 x.Alias.Should().BeNull();
             });
         });
@@ -92,7 +92,7 @@ public class GraphBatchTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.ToString().Should().Be("schedulework:active");
+                x.Tags.ToTagsString().Should().Be("schedulework:active");
                 x.Alias.Should().Be("a1");
             });
         });
@@ -109,7 +109,7 @@ public class GraphBatchTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.ToString().Should().Be("schedulework:active");
+                x.Tags.ToTagsString().Should().Be("schedulework:active");
                 x.Alias.Should().BeNull();
             });
 

@@ -65,7 +65,7 @@ public static class TagsTool
     };
 
     public static string ToTagsString(this IEnumerable<KeyValuePair<string, string?>> tags) => tags
-        .OrderBy(x => x.Key)
+        .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
         .Select(x => TagsTool.FormatTag(x.Key, x.Value))
         .Join(',');
 
@@ -81,11 +81,31 @@ public static class TagsTool
         return find;
     }
 
-    public static bool Has(this IReadOnlyDictionary<string, string?> tags, string key, string? value) => tags.TryGetValue(key, out var readValue) switch
+    public static bool Has(this IReadOnlyDictionary<string, string?> tags, IEnumerable<KeyValuePair<string, string?>> searchTags)
     {
-        false => false,
-        true => value == null || value == readValue,
+        tags.NotNull();
+        searchTags.NotNull();
+
+        // Must find all tags
+        var find = searchTags.All(x => tags.Has(x.Key, x.Value));
+        return find;
+    }
+
+    public static bool Has(this IReadOnlyDictionary<string, string?> tags, string key, string? value) => key switch
+    {
+        "*" => true,
+        _ => tags.TryGetValue(key, out var readValue) switch
+        {
+            false => false,
+            true => value == null || value == readValue,
+        },
     };
+
+    //public static bool Has(this IReadOnlyDictionary<string, string?> tags, string key, string? value) => key == "*" || tags.TryGetValue(key, out var readValue) switch
+    //{
+    //    false => false,
+    //    true => value == null || value == readValue,
+    //};
 
     public static Option<IReadOnlyList<KeyValuePair<string, string?>>> Parse(string? value)
     {

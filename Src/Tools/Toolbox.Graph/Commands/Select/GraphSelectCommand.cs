@@ -52,14 +52,14 @@ public static class GraphSelectCommand
     private static Option<GraphNodeSearch> ParseNode(Stack<LangNode> stack)
     {
         string? key = null;
-        var tags = new Tags();
+        var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Set(langNode.Value);
+                    if (!tags.TryAdd(langNode.Value, null)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -72,7 +72,7 @@ public static class GraphSelectCommand
                         case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
 
                         default:
-                            tags.Set(langNode.Value, rvalue.Value);
+                            if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                             break;
                     }
 
@@ -94,7 +94,7 @@ public static class GraphSelectCommand
                     return new GraphNodeSearch
                     {
                         Key = key,
-                        Tags = tags,
+                        Tags = tags.RemoveCommands().ToTags(),
                         Alias = alias,
                     };
 
@@ -112,14 +112,14 @@ public static class GraphSelectCommand
         string? fromKey = null!;
         string? toKey = null!;
         string? edgeType = null!;
-        var tags = new Tags();
+        var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Set(langNode.Value);
+                    if (!tags.TryAdd(langNode.Value, null)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -141,7 +141,7 @@ public static class GraphSelectCommand
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
                         default:
-                            tags.Set(langNode.Value, rvalue.Value);
+                            if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                             break;
                     }
                     break;
@@ -169,7 +169,7 @@ public static class GraphSelectCommand
                         FromKey = fromKey,
                         ToKey = toKey,
                         EdgeType = edgeType,
-                        Tags = tags,
+                        Tags = tags.RemoveCommands().ToTags(),
                         Alias = alias,
                     };
 

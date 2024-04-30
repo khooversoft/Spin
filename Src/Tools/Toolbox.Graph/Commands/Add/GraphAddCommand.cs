@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
@@ -54,7 +53,7 @@ public static class GraphAddCommand
     private static Option<GraphNodeAdd> ParseNode(Stack<LangNode> stack, bool upsert)
     {
         string? key = null;
-        var tags = new Tags();
+        var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
@@ -62,7 +61,7 @@ public static class GraphAddCommand
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Add(langNode.Value, null);
+                    if (!tags.TryAdd(langNode.Value, null)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -79,7 +78,7 @@ public static class GraphAddCommand
                             break;
 
                         default:
-                            tags.Set(langNode.Value, rvalue.Value);
+                            if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                             break;
                     }
 
@@ -112,14 +111,14 @@ public static class GraphAddCommand
         string? fromKey = null!;
         string? toKey = null!;
         string? edgeType = null!;
-        var tags = new Tags();
+        var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Add(langNode.Value, null);
+                    if (!tags.TryAdd(langNode.Value, null)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -137,8 +136,11 @@ public static class GraphAddCommand
                         case "edgetype" when edgeType == null: edgeType = rvalue.Value; break;
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
+                        case "link":
+                            return (StatusCode.BadRequest, "Link not allowed");
+
                         default:
-                            tags.Set(langNode.Value, rvalue.Value);
+                            if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                             break;
                     }
 

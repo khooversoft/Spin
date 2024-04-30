@@ -118,7 +118,7 @@ public static class GraphLangGrammar
             var edge = new LsRoot("addEdge") + new LsSymbol("edge") + TagParameters;
 
             var rule = new LsRoot(nameof(Upsert))
-                + new LsSymbol("upsert") 
+                + new LsSymbol("upsert")
                 + (new LsSwitch("upsert-sw") + node + edge)
                 + Term;
 

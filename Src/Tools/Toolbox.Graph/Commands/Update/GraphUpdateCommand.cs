@@ -49,7 +49,7 @@ public static class GraphUpdateCommand
 
     private static Option<GraphNodeUpdate> ParseNode(Stack<LangNode> stack)
     {
-        var tags = new Tags();
+        var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
@@ -57,7 +57,7 @@ public static class GraphUpdateCommand
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Add(langNode.Value, null);
+                    if (!tags.TryAdd(langNode.Value, null)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -71,7 +71,7 @@ public static class GraphUpdateCommand
                             break;
 
                         default:
-                            tags.Set(langNode.Value, rvalue.Value);
+                            if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                             break;
                     }
                     break;
@@ -99,14 +99,14 @@ public static class GraphUpdateCommand
     private static Option<GraphEdgeUpdate> ParseEdge(Stack<LangNode> stack)
     {
         string? edgeType = null!;
-        var tags = new Tags();
+        var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
                 case { SyntaxNode.Name: "svalue" }:
-                    tags.Add(langNode.Value, null);
+                    if (!tags.TryAdd(langNode.Value, null)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                     break;
 
                 case { SyntaxNode.Name: "lvalue" }:
@@ -119,7 +119,7 @@ public static class GraphUpdateCommand
                         case "edgetype" when edgeType != null: return (StatusCode.BadRequest, "EdgeType already specified");
 
                         default:
-                            tags.Set(langNode.Value, rvalue.Value);
+                            if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                             break;
                     }
 
@@ -134,7 +134,7 @@ public static class GraphUpdateCommand
                     return new GraphEdgeUpdate
                     {
                         EdgeType = edgeType,
-                        Tags = tags,
+                        Tags = tags.ToTags(),
                     };
 
                 default: throw new UnreachableException($"Unknown langNode={langNode.GetType().FullName}");

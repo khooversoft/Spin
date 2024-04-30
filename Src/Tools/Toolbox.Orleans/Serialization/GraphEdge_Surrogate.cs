@@ -18,15 +18,14 @@ public struct GraphEdge_Surrogate
 [RegisterConverter]
 public sealed class GraphEdge_SurrogateConverter : IConverter<GraphEdge, GraphEdge_Surrogate>
 {
-    public GraphEdge ConvertFromSurrogate(in GraphEdge_Surrogate surrogate) => new GraphEdge
-    {
-        Key = surrogate.Key,
-        FromKey = surrogate.FromKey,
-        ToKey = surrogate.ToKey,
-        EdgeType = surrogate.EdgeType,
-        Tags = surrogate.Tags.ToTags(),
-        CreatedDate = surrogate.CreatedDate,
-    };
+    public GraphEdge ConvertFromSurrogate(in GraphEdge_Surrogate surrogate) => new GraphEdge(
+        key: surrogate.Key,
+        fromKey: surrogate.FromKey,
+        toKey: surrogate.ToKey,
+        edgeType: surrogate.EdgeType,
+        tags: surrogate.Tags.ToTags(),
+        createdDate: surrogate.CreatedDate
+        );
 
     public GraphEdge_Surrogate ConvertToSurrogate(in GraphEdge value) => new GraphEdge_Surrogate
     {

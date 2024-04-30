@@ -55,7 +55,7 @@ public class GraphDeleteTests
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
                 x.Alias.Should().BeNull();
             });
         });
@@ -84,7 +84,7 @@ public class GraphDeleteTests
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
                 x.Alias.Should().BeNull();
             });
         });
@@ -111,7 +111,7 @@ public class GraphDeleteTests
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
                 x.Alias.Should().Be("a1");
             });
 
@@ -120,7 +120,7 @@ public class GraphDeleteTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.ToString().Should().Be("t2");
+                x.Tags.ToTagsString().Should().Be("t2");
                 x.Alias.Should().Be("a2");
             });
         });
@@ -149,7 +149,7 @@ public class GraphDeleteTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().Be("abc*");
-                x.Tags.ToString().Should().Be("schedulework:active");
+                x.Tags.ToTagsString().Should().Be("schedulework:active");
                 x.Alias.Should().BeNull();
             });
         });
@@ -178,7 +178,7 @@ public class GraphDeleteTests
                 x.FromKey.Should().Be("key1");
                 x.ToKey.Should().Be("key2");
                 x.EdgeType.Should().Be("abc*");
-                x.Tags.ToString().Should().Be("schedulework:active");
+                x.Tags.ToTagsString().Should().Be("schedulework:active");
                 x.Alias.Should().BeNull();
             });
         });
@@ -206,7 +206,7 @@ public class GraphDeleteTests
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key91");
-                x.Tags.ToString().Should().Be("t9=v99");
+                x.Tags.ToTagsString().Should().Be("t9=v99");
                 x.Alias.Should().Be("a1");
             });
 
@@ -215,7 +215,7 @@ public class GraphDeleteTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.ToString().Should().Be("schedulework:active");
+                x.Tags.ToTagsString().Should().Be("schedulework:active");
                 x.Alias.Should().Be("a2");
             });
         });

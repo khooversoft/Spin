@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using Toolbox.Types;
 
 namespace Toolbox.Graph;
 

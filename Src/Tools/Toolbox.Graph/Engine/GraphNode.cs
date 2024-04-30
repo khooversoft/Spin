@@ -11,8 +11,6 @@ namespace Toolbox.Graph;
 [DebuggerDisplay("Key={Key}, Tags={Tags.ToString()}, Links={LinksString}")]
 public sealed record GraphNode : IGraphCommon
 {
-    public GraphNode() { }
-
     public GraphNode(string key, string? tags = null)
     {
         Key = key.NotNull();
@@ -41,13 +39,11 @@ public sealed record GraphNode : IGraphCommon
         Links = links?.ToImmutableHashSet(StringComparer.Ordinal) ?? ImmutableHashSet<string>.Empty;
     }
 
-    public string Key { get; } = default!;
-    public ImmutableDictionary<string, string?> Tags { get; private init; } = ImmutableDictionary<string, string?>.Empty;
+    public string Key { get; }
+    public ImmutableDictionary<string, string?> Tags { get; private init; }
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
     public ImmutableHashSet<string> Links { get; private init; } = [];
-    public string LinksString => Links.OrderBy(x => x).Join(',');
-
-    public GraphNode Copy() => new GraphNode(Key, Tags, CreatedDate, Links);
+    public string LinksString => Links.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Join(',');
 
     public GraphNode With(GraphNode node) => this with
     {

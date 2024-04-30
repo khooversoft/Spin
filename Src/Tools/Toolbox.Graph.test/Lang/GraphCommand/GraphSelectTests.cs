@@ -55,7 +55,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
                 x.Alias.Should().BeNull();
             });
 
@@ -65,14 +65,14 @@ public class GraphSelectTests
                 x.FromKey.Should().Be("fromKey1");
                 x.ToKey.Should().Be("tokey1");
                 x.EdgeType.Should().Be("schedulework:active");
-                x.Tags.ToString().Should().Be("t2");
+                x.Tags.ToTagsString().Should().Be("t2");
                 x.Alias.Should().BeNull();
             });
 
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().BeNull();
-                x.Tags.ToString().Should().Be("schedule");
+                x.Tags.ToTagsString().Should().Be("schedule");
                 x.Alias.Should().BeNull();
             });
         });
@@ -100,7 +100,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
                 x.Alias.Should().Be("a1");
             });
 
@@ -110,14 +110,14 @@ public class GraphSelectTests
                 x.FromKey.Should().Be("fromKey1");
                 x.ToKey.Should().Be("tokey1");
                 x.EdgeType.Should().Be("schedulework:active");
-                x.Tags.ToString().Should().Be("t2");
+                x.Tags.ToTagsString().Should().Be("t2");
                 x.Alias.Should().Be("a2");
             });
 
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().BeNull();
-                x.Tags.ToString().Should().Be("schedule");
+                x.Tags.ToTagsString().Should().Be("schedule");
                 x.Alias.Should().Be("a3");
             });
         });
@@ -144,7 +144,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().BeNull();
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
             });
         });
     }
@@ -170,7 +170,7 @@ public class GraphSelectTests
             cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
                 x.Key.Should().Be("key1");
-                x.Tags.ToString().Should().Be("t1");
+                x.Tags.ToTagsString().Should().Be("t1");
             });
         });
     }
@@ -199,7 +199,7 @@ public class GraphSelectTests
                 x.FromKey.Should().BeNull();
                 x.ToKey.Should().BeNull();
                 x.EdgeType.Should().BeNull();
-                x.Tags.ToString().Should().Be("schedulework:active");
+                x.Tags.ToTagsString().Should().Be("schedulework:active");
             });
         });
     }
@@ -228,7 +228,7 @@ public class GraphSelectTests
                 x.FromKey.Should().Be("fromKey1");
                 x.ToKey.Should().Be("tokey1");
                 x.EdgeType.Should().Be("schedulework:active");
-                x.Tags.ToString().Should().Be("t2");
+                x.Tags.ToTagsString().Should().Be("t2");
             });
         });
     }

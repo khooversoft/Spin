@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -88,13 +87,14 @@ public static class GraphCommand
     {
         var tags = addEdge.Upsert ? addEdge.Tags : addEdge.Tags.RemoveCommands();
 
-        var graphEdge = new GraphEdge
-        {
-            FromKey = addEdge.FromKey,
-            ToKey = addEdge.ToKey,
-            EdgeType = addEdge.EdgeType ?? "default",
-            Tags = tags,
-        };
+        var graphEdge = new GraphEdge(
+            key: Guid.NewGuid(),
+            fromKey: addEdge.FromKey,
+            toKey: addEdge.ToKey,
+            edgeType: addEdge.EdgeType ?? "default",
+            tags: tags,
+            createdDate: DateTime.UtcNow
+            );
 
         var result = addEdge.Upsert switch
         {
