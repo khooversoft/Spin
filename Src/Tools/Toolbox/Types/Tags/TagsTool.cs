@@ -18,7 +18,6 @@ public static class TagsTool
     public static ImmutableDictionary<string, string?> ToTags(this IReadOnlyDictionary<string, string?> tags) => tags
         .ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 
-
     public static ImmutableDictionary<string, string?> ProcessTags(this IEnumerable<KeyValuePair<string, string?>> tags, IEnumerable<KeyValuePair<string, string?>> tagCommands)
     {
         tagCommands.NotNull();
@@ -30,7 +29,7 @@ public static class TagsTool
         return dict.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
-    public static void ApplyTagCommand(this IDictionary<string, string?> tags, string key, string? value)
+    public static void ApplyTagCommand(this Dictionary<string, string?> tags, string key, string? value = null)
     {
         if (key.IsEmpty()) return;
 
@@ -100,12 +99,6 @@ public static class TagsTool
             true => value == null || value == readValue,
         },
     };
-
-    //public static bool Has(this IReadOnlyDictionary<string, string?> tags, string key, string? value) => key == "*" || tags.TryGetValue(key, out var readValue) switch
-    //{
-    //    false => false,
-    //    true => value == null || value == readValue,
-    //};
 
     public static Option<IReadOnlyList<KeyValuePair<string, string?>>> Parse(string? value)
     {

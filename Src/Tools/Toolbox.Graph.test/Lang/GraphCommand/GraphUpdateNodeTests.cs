@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Lang.GraphCommand;
 
-public class GraphUpdateTests
+public class GraphUpdateNodeTests
 {
     [Theory]
     [InlineData("update (key=key1, tags=t1) set tags=t2;")]
@@ -17,16 +17,8 @@ public class GraphUpdateTests
     [InlineData("update (key=key1, set) set tags=t2;")]
     [InlineData("update (key=key1, set, t2) set tags=t2;")]
     [InlineData("update (key=key1, key, t2) set tags=t2;")]
-    [InlineData("update [key=key1, tags=t1) set tags=t2;")]
-    [InlineData("update [key=key1, tags=t, t1] set tags=t2;")]
-    [InlineData("update [key=key1, add, t2] set tags=t2;")]
-    [InlineData("update [key=key1, node, t2] set tags=t2;")]
-    [InlineData("update [key=key1, edge, t2] set tags=t2;")]
-    [InlineData("update [key=key1, delete=v2, t2] set tags=t2;")]
-    [InlineData("update [key=key1, update, t2] set tags=t2;")]
-    [InlineData("update [key=key1, set] set tags=t2;")]
-    [InlineData("update [key=key1, set, t2] set tags=t2;")]
-    [InlineData("update [key=key1, key, t2] set tags=t2;")]
+    [InlineData("update (key=key1, key, t2) set data { 0xFF };")]
+    [InlineData("update (key=key1, key, t2) set data { 0xFF }, contract { json=0x500, data=skdfajoefief };")]
     public void AddNodeWithReserveTags(string line)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);
@@ -117,11 +109,10 @@ public class GraphUpdateTests
             });
         });
     }
-
     [Fact]
-    public void UpdateEdge()
+    public void AddSingleData()
     {
-        var q = "update [edgeType=abc*, schedulework:active] set edgeType=et, t2;";
+        var q = "update (key=key1, t1) set entity { abc };";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -129,30 +120,25 @@ public class GraphUpdateTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        int index = 0;
-        list[index++].Action(x =>
+        if (list[0] is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
+
+        query.Tags.Count.Should().Be(0);
+        query.Links.Count.Should().Be(0);
+        query.DataMap.Count.Should().Be(1);
+
+        query.DataMap.Action(x =>
         {
-            if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
-
-            query.EdgeType.Should().Be("et");
-            query.Tags.ToTagsString().Should().Be("t2");
-            query.Search.Count.Should().Be(1);
-
-            query.Search[0].Cast<GraphEdgeSearch>().Action(x =>
-            {
-                x.NodeKey.Should().BeNull();
-                x.FromKey.Should().BeNull();
-                x.ToKey.Should().BeNull();
-                x.EdgeType.Should().Be("abc*");
-                x.Tags.ToTagsString().Should().Be("schedulework:active"); ;
-            });
+            x.TryGetValue("entity", out var entity).Should().BeTrue();
+            entity!.Count.Should().Be(1);
+            entity.TryGetValue("abc", out var value).Should().BeTrue();
+            value.Should().BeNull();
         });
     }
 
     [Fact]
-    public void UpdateEdgeViaNode()
+    public void AddTwoData()
     {
-        var q = "update (key=k*) -> [edgeType=abc*, schedulework:active] set edgeType=et,t2;";
+        var q = "update (key=key1, t1) set entity { abc }, contract { json, name=contractType, data=0xFA03ADF };";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -160,30 +146,41 @@ public class GraphUpdateTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        int index = 0;
+        if (list[0] is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
 
-        list[index++].Action(x =>
+        query.Tags.Count.Should().Be(0);
+        query.Links.Count.Should().Be(0);
+        query.DataMap.Count.Should().Be(2);
+
+        query.DataMap.Action(x =>
         {
-            if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
+            x.TryGetValue("entity", out var entity).Should().BeTrue();
+            entity!.Count.Should().Be(1);
+            entity.TryGetValue("abc", out var value).Should().BeTrue();
+            value.Should().BeNull();
+        });
 
-            query.EdgeType.Should().Be("et");
-            query.Tags.ToTagsString().Should().Be("t2");
-            query.Search.Count.Should().Be(2);
+        query.DataMap.Action(x =>
+        {
+            x.TryGetValue("contract", out var entity).Should().BeTrue();
+            entity!.Count.Should().Be(3);
 
-            int idx = 0;
-            query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
+            entity.Action(y =>
             {
-                x.Key.Should().Be("k*");
-                x.Tags.Count.Should().Be(0);
+                y.TryGetValue("json", out var value).Should().BeTrue();
+                value.Should().BeNull();
             });
 
-            query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
+            entity.Action(y =>
             {
-                x.NodeKey.Should().BeNull();
-                x.FromKey.Should().BeNull();
-                x.ToKey.Should().BeNull();
-                x.EdgeType.Should().Be("abc*");
-                x.Tags.ToTagsString().Should().Be("schedulework:active"); ;
+                y.TryGetValue("name", out var value).Should().BeTrue();
+                value.Should().Be("contractType");
+            });
+
+            entity.Action(y =>
+            {
+                y.TryGetValue("data", out var value).Should().BeTrue();
+                value.Should().Be("0xFA03ADF");
             });
         });
     }

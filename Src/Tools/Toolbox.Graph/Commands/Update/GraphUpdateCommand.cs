@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
@@ -51,6 +52,7 @@ public static class GraphUpdateCommand
     {
         var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var dataMap = new Dictionary<string, ImmutableDictionary<string, string?>>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -76,6 +78,13 @@ public static class GraphUpdateCommand
                     }
                     break;
 
+                case { SyntaxNode.Name: "dataName" }:
+                    var dataGroupOption = GraphCommandData.GetDataGroup(stack);
+                    if (dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GraphNodeUpdate>();
+
+                    ImmutableDictionary<string, string?> data = dataGroupOption.Return();
+                    dataMap.Add(langNode.Value, data);
+                    break;
 
                 case { SyntaxNode.Name: "delimiter" }:
                     break;
@@ -87,6 +96,7 @@ public static class GraphUpdateCommand
                     {
                         Tags = tags.ToTags(),
                         Links = links.ToLinks(),
+                        DataMap = dataMap.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
                     };
 
                 default: throw new UnreachableException($"Unknown langNode={langNode.GetType().FullName}");

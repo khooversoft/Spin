@@ -101,7 +101,7 @@ public class IdentityService
 
         // Build graph commands
         var cmds = new Sequence<string>();
-        cmds += $"upsert node key={ToUserKey(user.Id)}, {new Tags(tags)};";
+        cmds += $"upsert node key={ToUserKey(user.Id)}, {tags};";
 
         // User Name node -> user node
         if (user.UserName.IsNotEmpty())

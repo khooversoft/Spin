@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
@@ -55,6 +56,7 @@ public static class GraphAddCommand
         string? key = null;
         var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var dataMap = new Dictionary<string, ImmutableDictionary<string, string?>>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -84,6 +86,14 @@ public static class GraphAddCommand
 
                     break;
 
+                case { SyntaxNode.Name: "dataName" }:
+                    var dataGroupOption = GraphCommandData.GetDataGroup(stack);
+                    if( dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GraphNodeAdd>();
+
+                    ImmutableDictionary<string, string?> data = dataGroupOption.Return();
+                    dataMap.Add(langNode.Value, data);
+                    break;
+
                 case { SyntaxNode.Name: "delimiter" }:
                     break;
 
@@ -96,6 +106,7 @@ public static class GraphAddCommand
                         Tags = tags.ToTags(),
                         Upsert = upsert,
                         Links = links.ToLinks(),
+                        DataMap = dataMap.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
                     };
 
                 default:
