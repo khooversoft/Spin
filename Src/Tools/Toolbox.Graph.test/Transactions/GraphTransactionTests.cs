@@ -19,7 +19,7 @@ public class GraphTransactionTests
         map.Execute(q, NullScopeContext.Instance).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.OK, 0));
             x.Value.Items[1].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.OK, 0));
         });
@@ -30,7 +30,7 @@ public class GraphTransactionTests
         map.Execute("add node key=node1, t1, t2;", NullScopeContext.Instance).Action(x =>
         {
             x.IsConflict().Should().BeTrue(x.ToString());
-            x.Value.Items.Count.Should().Be(1);
+            x.Value.Items.Length.Should().Be(1);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.Conflict, 0));
         });
 
@@ -47,7 +47,7 @@ public class GraphTransactionTests
         map.Execute(q2, NullScopeContext.Instance).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
-            x.Value.Items.Count.Should().Be(4);
+            x.Value.Items.Length.Should().Be(4);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.OK, 0));
             x.Value.Items[1].Action(y => TestReturn(y, CommandType.AddEdge, StatusCode.OK, 0));
             x.Value.Items[2].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.OK, 0));
@@ -68,7 +68,7 @@ public class GraphTransactionTests
         map.Execute(q3, NullScopeContext.Instance).Action(x =>
         {
             x.IsError().Should().BeTrue(x.ToString());
-            x.Value.Items.Count.Should().Be(3);
+            x.Value.Items.Length.Should().Be(3);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.OK, 0));
             x.Value.Items[1].Action(y => TestReturn(y, CommandType.AddEdge, StatusCode.OK, 0));
             x.Value.Items[2].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.Conflict, 0));
@@ -85,6 +85,6 @@ public class GraphTransactionTests
     {
         graphResult.CommandType.Should().Be(commandType);
         graphResult.Status.StatusCode.Should().Be(statusCode, graphResult.Status.ToString());
-        graphResult.Items.Count.Should().Be(itemCount);
+        graphResult.Items.Length.Should().Be(itemCount);
     }
 }

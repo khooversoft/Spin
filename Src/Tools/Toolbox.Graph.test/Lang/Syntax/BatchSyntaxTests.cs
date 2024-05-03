@@ -2,7 +2,7 @@
 
 namespace Toolbox.Graph.test.Lang.Graph;
 
-public class GraphBatchTests
+public class BatchSyntaxTests
 {
     private readonly ILangRoot _root = GraphLangGrammar.Root;
 

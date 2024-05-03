@@ -29,7 +29,7 @@ public class GraphBatchTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+            if (x is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
             query.Key.Should().Be("key1");
             query.Tags.ToTagsString().Should().Be("t1");
@@ -37,7 +37,7 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeAdd query) throw new ArgumentException("Invalid node");
+            if (x is not GsEdgeAdd query) throw new ArgumentException("Invalid node");
 
             query.FromKey.Should().Be("key1");
             query.ToKey.Should().Be("key2");
@@ -47,7 +47,7 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeUpdate query) throw new ArgumentException("Invalid node");
+            if (x is not GsNodeUpdate query) throw new ArgumentException("Invalid node");
 
             query.Tags.ToTagsString().Should().Be("t2");
             query.Search[0].Cast<GraphNodeSearch>().Action(x =>
@@ -60,7 +60,7 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
+            if (x is not GsEdgeUpdate query) throw new ArgumentException("Invalid node");
 
             query.Tags.ToTagsString().Should().Be("t2");
 
@@ -83,10 +83,10 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsEdgeDelete query) throw new ArgumentException("Invalid type");
 
             var idx = query.Search.ToCursor();
-            query.Search.Count.Should().Be(1);
+            query.Search.Length.Should().Be(1);
             idx.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
             {
                 x.FromKey.Should().BeNull();
@@ -99,10 +99,10 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsNodeDelete query) throw new ArgumentException("Invalid type");
 
             var idx = query.Search.ToCursor();
-            query.Search.Count.Should().Be(2);
+            query.Search.Length.Should().Be(2);
 
             idx.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
             {
@@ -123,7 +123,7 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(1);
@@ -137,7 +137,7 @@ public class GraphBatchTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(1);
@@ -167,19 +167,19 @@ public class GraphBatchTests
 
         var cursor = list.ToCursor();
 
-        cursor.NextValue().Return().Cast<GraphNodeAdd>().Action(x =>
+        cursor.NextValue().Return().Cast<GsNodeAdd>().Action(x =>
         {
             x.Key.Should().Be("system:schedule-work");
             x.Tags.Count.Should().Be(0);
         });
 
-        cursor.NextValue().Return().Cast<GraphNodeAdd>().Action(x =>
+        cursor.NextValue().Return().Cast<GsNodeAdd>().Action(x =>
         {
             x.Key.Should().Be("schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed");
             x.Tags.Count.Should().Be(0);
         });
 
-        cursor.NextValue().Return().Cast<GraphEdgeAdd>().Action(x =>
+        cursor.NextValue().Return().Cast<GsEdgeAdd>().Action(x =>
         {
             x.FromKey.Should().Be("system:schedule-work");
             x.ToKey.Should().Be("schedulework:WKID-49bfafaf-0c87-4427-bfdc-9525fc4e86ed");

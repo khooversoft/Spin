@@ -57,14 +57,14 @@ public class GraphDeleteCommandTests
             x.Tags.ToTagsString().Should().Be("knows,level=1");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.DeleteNode);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Count.Should().Be(1);
+            x.Items.NotNull().Length.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
@@ -82,7 +82,7 @@ public class GraphDeleteCommandTests
         var copyMap = _map.Copy();
         var commandResults = _map.ExecuteScalar("delete [created] -> (lang=java);", NullScopeContext.Instance);
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
-        commandResults.Items.NotNull().Count.Should().Be(2);
+        commandResults.Items.NotNull().Length.Should().Be(2);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
 
         commandResults.Items.OfType<GraphNode>()
@@ -104,7 +104,7 @@ public class GraphDeleteCommandTests
         var copyMap = _map.Copy();
         var commandResults = _map.ExecuteScalar("delete [created] -> (marked=true);", NullScopeContext.Instance);
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
-        commandResults.Items.NotNull().Count.Should().Be(1);
+        commandResults.Items.NotNull().Length.Should().Be(1);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
 
         commandResults.Items.OfType<GraphNode>().First().Key.Should().Be("node5");
@@ -135,14 +135,14 @@ public class GraphDeleteCommandTests
             x.Tags.ToTagsString().Should().Be("created");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.DeleteEdge);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Count.Should().Be(1);
+            x.Items.NotNull().Length.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>

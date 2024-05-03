@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using System.Collections.Immutable;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -35,26 +36,27 @@ public record GraphQueryResult
     };
     public override string ToString() => $"{Status}, {nameof(CommandType)}={CommandType}";
 
-    public IReadOnlyList<IGraphCommon> Items { get; init; } = Array.Empty<IGraphCommon>();
-    public IReadOnlyDictionary<string, IReadOnlyList<IGraphCommon>> Alias { get; init; } = new Dictionary<string, IReadOnlyList<IGraphCommon>>(StringComparer.OrdinalIgnoreCase);
+    public ImmutableArray<IGraphCommon> Items { get; init; } = ImmutableArray<IGraphCommon>.Empty;
+    public ImmutableHashSet<string> ReturnNames { get; init; } = ImmutableHashSet<string>.Empty;
+    public ImmutableDictionary<string, ImmutableArray<IGraphCommon>> Alias { get; init; } = ImmutableDictionary<string, ImmutableArray<IGraphCommon>>.Empty;
 }
 
 public record GraphQueryResults
 {
-    public IReadOnlyList<GraphQueryResult> Items { get; init; } = Array.Empty<GraphQueryResult>();
+    public ImmutableArray<GraphQueryResult> Items { get; init; } = ImmutableArray<GraphQueryResult>.Empty;
     public bool IsMutating => Items.Any(x => x.IsMutating);
 }
 
 
 public static class GraphQueryResultExtensions
 {
-    public static IReadOnlyList<GraphEdge> Edges(this GraphQueryResult subject) => subject.NotNull().Items.OfType<GraphEdge>().ToArray();
-    public static IReadOnlyList<GraphNode> Nodes(this GraphQueryResult subject) => subject.NotNull().Items.OfType<GraphNode>().ToArray();
+    public static ImmutableArray<GraphEdge> Edges(this GraphQueryResult subject) => subject.NotNull().Items.OfType<GraphEdge>().ToImmutableArray();
+    public static ImmutableArray<GraphNode> Nodes(this GraphQueryResult subject) => subject.NotNull().Items.OfType<GraphNode>().ToImmutableArray();
 
-    public static IReadOnlyList<GraphEdge> AliasEdge(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphEdge>().ToArray();
-    public static IReadOnlyList<GraphNode> AliasNode(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphNode>().ToArray();
+    public static ImmutableArray<GraphEdge> AliasEdge(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphEdge>().ToImmutableArray();
+    public static ImmutableArray<GraphNode> AliasNode(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphNode>().ToImmutableArray();
 
-    public static bool HasScalarResult(this GraphQueryResults subject) => subject.NotNull().Items.Count == 1 && subject.Items.First().Items.Count == 1;
+    public static bool HasScalarResult(this GraphQueryResults subject) => subject.NotNull().Items.Length == 1 && subject.Items.First().Items.Length == 1;
 
     public static IReadOnlyList<T> Get<T>(this GraphQueryResults subject) => subject.NotNull()
         .Items.First()

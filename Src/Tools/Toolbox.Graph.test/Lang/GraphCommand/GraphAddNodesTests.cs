@@ -56,7 +56,7 @@ public class GraphAddNodesTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Key.Should().Be(key);
         query.Tags.ToTagsString().Should().Be(tags);
@@ -74,7 +74,7 @@ public class GraphAddNodesTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Key.Should().Be("key1");
         query.Tags.ToTagsString().Should().Be("t1");
@@ -83,7 +83,7 @@ public class GraphAddNodesTests
     [Fact]
     public void AddSingleData()
     {
-        var q = "add node key=key1, entity { abc };";
+        var q = "add node key=key1, entity { 'aGVsbG8=' };";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -91,7 +91,7 @@ public class GraphAddNodesTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Key.Should().Be("key1");
         query.Tags.Count.Should().Be(0);
@@ -101,16 +101,14 @@ public class GraphAddNodesTests
         query.DataMap.Action(x =>
         {
             x.TryGetValue("entity", out var entity).Should().BeTrue();
-            entity!.Count.Should().Be(1);
-            entity.TryGetValue("abc", out var value).Should().BeTrue();
-            value.Should().BeNull();
+            entity!.Validate().IsOk().Should().BeTrue();
         });
     }
 
     [Fact]
     public void AddTwoData()
     {
-        var q = "add node key=key1, entity { abc }, contract { json, name=contractType, data=0xFA03ADF };";
+        var q = "add node key=key1, entity { 'aGVsbG8=' }, contract { schema=xml, typeName=contractType, data64='aGVsbG8=' };";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -118,7 +116,7 @@ public class GraphAddNodesTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Key.Should().Be("key1");
         query.Tags.Count.Should().Be(0);
@@ -128,33 +126,20 @@ public class GraphAddNodesTests
         query.DataMap.Action(x =>
         {
             x.TryGetValue("entity", out var entity).Should().BeTrue();
-            entity!.Count.Should().Be(1);
-            entity.TryGetValue("abc", out var value).Should().BeTrue();
-            value.Should().BeNull();
+            entity!.Validate().IsOk().Should().BeTrue();
+            entity!.TypeName.Should().Be("default");
+            entity.Schema.Should().Be("json");
+            entity.Data64.Should().Be("aGVsbG8=");
         });
 
         query.DataMap.Action(x =>
         {
             x.TryGetValue("contract", out var entity).Should().BeTrue();
-            entity!.Count.Should().Be(3);
+            entity!.Validate().IsOk().Should().BeTrue();
 
-            entity.Action(y =>
-            {
-                y.TryGetValue("json", out var value).Should().BeTrue();
-                value.Should().BeNull();
-            });
-
-            entity.Action(y =>
-            {
-                y.TryGetValue("name", out var value).Should().BeTrue();
-                value.Should().Be("contractType");
-            });
-
-            entity.Action(y =>
-            {
-                y.TryGetValue("data", out var value).Should().BeTrue();
-                value.Should().Be("0xFA03ADF");
-            });
+            entity!.TypeName.Should().Be("contractType");
+            entity.Schema.Should().Be("xml");
+            entity.Data64.Should().Be("aGVsbG8=");
         });
     }
 
@@ -169,7 +154,7 @@ public class GraphAddNodesTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Key.Should().Be("key1");
         query.Tags.ToTagsString().Should().Be("t1=v1");
@@ -186,7 +171,7 @@ public class GraphAddNodesTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Key.Should().Be("key1");
         query.Tags.ToTagsString().Should().Be("t1=v1,t2");
@@ -203,10 +188,77 @@ public class GraphAddNodesTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphNodeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Key.Should().Be("key1");
         query.Tags.ToTagsString().Should().Be("t1=v1,t2");
         query.Links.OrderBy(x => x).Join(',').ToString().Should().Be("a/b/c,schema:path1/path2/path3");
+    }
+
+
+    [Fact]
+    public void Upsert()
+    {
+        var q = "upsert node key=node3, contract { 'aGVsbG8=' };";
+
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
+        result.IsOk().Should().BeTrue(result.ToString());
+
+        IReadOnlyList<IGraphQL> list = result.Return();
+        list.Count.Should().Be(1);
+
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
+
+        query.Tags.Count.Should().Be(0);
+        query.Links.Count.Should().Be(0);
+        query.DataMap.Count.Should().Be(1);
+
+        query.DataMap.Action(x =>
+        {
+            x.TryGetValue("contract", out var entity).Should().BeTrue();
+            entity!.Validate().IsOk().Should().BeTrue();
+
+            entity!.TypeName.Should().Be("default");
+            entity.Schema.Should().Be("json");
+            entity.Data64.Should().Be("aGVsbG8=");
+        });
+    }
+
+    [Fact]
+    public void UpsertWithTwoData()
+    {
+        var q = "upsert node key=key1, t1, entity { 'VGhpcyBpcyBhIHRlc3Q=' }, contract { schema=json, typeName=contractType, data64='aGVsbG8=' };";
+
+        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
+        result.IsOk().Should().BeTrue(result.ToString());
+
+        IReadOnlyList<IGraphQL> list = result.Return();
+        list.Count.Should().Be(1);
+
+        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
+
+        query.Tags.Count.Should().Be(1);
+        query.Tags.ToTagsString().Should().Be("t1");
+        query.Links.Count.Should().Be(0);
+        query.DataMap.Count.Should().Be(2);
+
+        query.DataMap.Action(x =>
+        {
+            x.TryGetValue("entity", out var entity).Should().BeTrue();
+            entity!.Validate().IsOk().Should().BeTrue();
+            entity!.TypeName.Should().Be("default");
+            entity.Schema.Should().Be("json");
+            entity.Data64.Should().Be("VGhpcyBpcyBhIHRlc3Q=");
+        });
+
+        query.DataMap.Action(x =>
+        {
+            x.TryGetValue("contract", out var entity).Should().BeTrue();
+            entity!.Validate().IsOk().Should().BeTrue();
+
+            entity!.TypeName.Should().Be("contractType");
+            entity.Schema.Should().Be("json");
+            entity.Data64.Should().Be("aGVsbG8=");
+        });
     }
 }

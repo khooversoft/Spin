@@ -37,7 +37,7 @@ public class GraphUpdateEdgeTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
+            if (x is not GsEdgeUpdate query) throw new ArgumentException("Invalid node");
 
             query.EdgeType.Should().Be("et");
             query.Tags.ToTagsString().Should().Be("t2");
@@ -69,7 +69,7 @@ public class GraphUpdateEdgeTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeUpdate query) throw new ArgumentException("Invalid node");
+            if (x is not GsEdgeUpdate query) throw new ArgumentException("Invalid node");
 
             query.EdgeType.Should().Be("et");
             query.Tags.ToTagsString().Should().Be("t2");

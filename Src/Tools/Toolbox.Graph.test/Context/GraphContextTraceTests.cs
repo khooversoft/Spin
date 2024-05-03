@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Immutable;
+using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Graph;
@@ -13,7 +14,7 @@ public class GraphContextTraceTests
     [Fact]
     public void ChangeTrxSerialization()
     {
-        var graphNode = new GraphNode("node1", "tag1=v1".ToTags(), DateTime.Now, ["link1", "link2"]);
+        var graphNode = new GraphNode("node1", "tag1=v1".ToTags(), DateTime.Now, ["link1", "link2"], ImmutableDictionary<string, GraphDataLink>.Empty);
         var graphData = graphNode.ToJson();
         GraphNode readGraphNode = graphData.ToObject<GraphNode>().NotNull();
         (graphNode == readGraphNode).Should().BeTrue();
@@ -225,7 +226,7 @@ public class GraphContextTraceTests
 
         var updateResult = await graphContext.ExecuteScalar("update [fromKey=node1, toKey=node2] set t1=v1;");
         updateResult.IsOk().Should().BeTrue();
-        updateResult.Return().Items.Count.Should().Be(1);
+        updateResult.Return().Items.Length.Should().Be(1);
 
         traces = trace.GetTraces();
         traces.Count.Should().Be(4);
@@ -236,7 +237,7 @@ public class GraphContextTraceTests
 
         var deleteResult = await graphContext.ExecuteScalar("delete [fromKey=node1, toKey=node2];");
         deleteResult.IsOk().Should().BeTrue();
-        deleteResult.Return().Items.Count.Should().Be(1);
+        deleteResult.Return().Items.Length.Should().Be(1);
 
         traces = trace.GetTraces();
         traces.Count.Should().Be(5);

@@ -29,7 +29,7 @@ public class GraphQueryEdgeTests
         GraphQueryResult result = _map.ExecuteScalar("select [*];", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(5);
+        result.Items.Length.Should().Be(5);
         result.Alias.Count.Should().Be(0);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -53,7 +53,7 @@ public class GraphQueryEdgeTests
         GraphQueryResult result = _map.ExecuteScalar("select [knows];", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(2);
+        result.Items.Length.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -70,7 +70,7 @@ public class GraphQueryEdgeTests
         GraphQueryResult result = _map.ExecuteScalar("select [knows];", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(2);
+        result.Items.Length.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -87,7 +87,7 @@ public class GraphQueryEdgeTests
         GraphQueryResult result = _map.ExecuteScalar("select [level=1];", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(2);
+        result.Items.Length.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -103,7 +103,7 @@ public class GraphQueryEdgeTests
         GraphQueryResult result = _map.ExecuteScalar("select [fromKey=node1, toKey=node2];", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(1);
+        result.Items.Length.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();

@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphUpsertCommandTests
+public class GraphUpsertCommandNodeTests
 {
     private readonly GraphMap _map = new GraphMap()
     {
@@ -40,7 +40,7 @@ public class GraphUpsertCommandTests
             x.Tags.ToTagsString().Should().Be("age=29,name=marko,newTags");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         Cursor<GraphQueryResult> resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -54,7 +54,7 @@ public class GraphUpsertCommandTests
         lookupOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults lookupResults = lookupOption.Return();
-        lookupResults.Items.Count.Should().Be(1);
+        lookupResults.Items.Length.Should().Be(1);
         lookupResults.Get<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node1");
@@ -79,7 +79,7 @@ public class GraphUpsertCommandTests
             x.Tags.ToTagsString().Should().Be("age=29,name=marko,newTags=v99");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         Cursor<GraphQueryResult> resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -93,11 +93,49 @@ public class GraphUpsertCommandTests
         lookupOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults lookupResults = lookupOption.Return();
-        lookupResults.Items.Count.Should().Be(1);
+        lookupResults.Items.Length.Should().Be(1);
         lookupResults.Get<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node1");
             x.Tags.ToTagsString().Should().Be("age=29,name=marko,newTags=v99");
+        });
+    }
+
+    [Fact]
+    public void SingleUpdateForNodeWithData()
+    {
+        var workMap = _map.Copy();
+        var newMapOption = workMap.Execute("upsert node key=node3, contract { 'aGVsbG8=' };", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
+
+        compareMap.Count.Should().Be(1);
+        var index = compareMap.ToCursor();
+
+        index.NextValue().Return().Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node3");
+            x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
+        });
+
+        commandResults.Items.Length.Should().Be(1);
+
+        GraphQueryResult search = workMap.ExecuteScalar("select (key=node3);", NullScopeContext.Instance);
+        search.Status.IsOk().Should().BeTrue();
+        search.Items.Length.Should().Be(1);
+        search.Items[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node3");
+            x.Tags.Count.Should().Be(2);
+            x.DataMap.Count.Should().Be(1);
+            x.DataMap.Values.First().Action(y =>
+            {
+                y.Schema.Should().Be("json");
+                y.TypeName.Should().Be("default");
+                y.Data64.Should().Be("aGVsbG8=");
+            });
         });
     }
 
@@ -118,7 +156,7 @@ public class GraphUpsertCommandTests
             x.Tags.ToTagsString().Should().Be("age=35");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         Cursor<GraphQueryResult> resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -132,41 +170,11 @@ public class GraphUpsertCommandTests
         lookupOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults lookupResults = lookupOption.Return();
-        lookupResults.Items.Count.Should().Be(1);
+        lookupResults.Items.Length.Should().Be(1);
         lookupResults.Get<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node6");
             x.Tags.ToTagsString().Should().Be("age=35");
-        });
-    }
-
-    [Fact]
-    public void UpsertForEdge()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert edge fromKey=node6, toKey=node3, edgeType=default, newTags;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
-
-        compareMap.Count.Should().Be(1);
-        compareMap[0].Cast<GraphEdge>().Action(x =>
-        {
-            x.FromKey.Should().Be("node6");
-            x.ToKey.Should().Be("node3");
-            x.EdgeType.Should().Be("default");
-            x.Tags.ToTagsString().Should().Be("created,newTags");
-        });
-
-        commandResults.Items.Count.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.Should().NotBeNull();
         });
     }
 
@@ -187,7 +195,7 @@ public class GraphUpsertCommandTests
             x.Tags.ToTagsString().Should().Be("newTags");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -215,42 +223,12 @@ public class GraphUpsertCommandTests
             x.Tags.ToTagsString().Should().Be("label=client,newTags");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.AddNode);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.Should().NotBeNull();
-        });
-    }
-
-    [Fact]
-    public void SingleAddWithUpsertForEdge()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
-
-        compareMap.Count.Should().Be(1);
-        compareMap[0].Cast<GraphEdge>().Action(x =>
-        {
-            x.FromKey.Should().Be("node7");
-            x.ToKey.Should().Be("node1");
-            x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.ToTagsString().Should().Be("newTags");
-        });
-
-        commandResults.Items.Count.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.AddEdge);
             x.Status.IsOk().Should().BeTrue();
             x.Items.Should().NotBeNull();
         });

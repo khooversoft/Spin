@@ -29,6 +29,8 @@ public static class TagsTool
         return dict.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
+    public static ImmutableDictionary<string, string?> Empty { get; } = ImmutableDictionary<string, string?>.Empty;
+
     public static void ApplyTagCommand(this Dictionary<string, string?> tags, string key, string? value = null)
     {
         if (key.IsEmpty()) return;

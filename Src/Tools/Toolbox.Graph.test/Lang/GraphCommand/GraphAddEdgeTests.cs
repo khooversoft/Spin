@@ -46,7 +46,7 @@ public class GraphAddEdgeTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphEdgeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsEdgeAdd query) throw new ArgumentException("Invalid node");
 
         query.FromKey.Should().Be("key1");
         query.ToKey.Should().Be("key2");
@@ -66,7 +66,7 @@ public class GraphAddEdgeTests
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
-        if (list[0] is not GraphEdgeAdd query) throw new ArgumentException("Invalid node");
+        if (list[0] is not GsEdgeAdd query) throw new ArgumentException("Invalid node");
 
         query.FromKey.Should().Be("key1");
         query.ToKey.Should().Be("key2");

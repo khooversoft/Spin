@@ -13,12 +13,12 @@ public static class GraphUpdateCommand
         var selectListOption = GraphSelectCommand.Parse(stack, "update");
         if (selectListOption.IsError()) return selectListOption.ToOptionStatus<IGraphQL>();
 
-        IReadOnlyList<IGraphQL> selectList = selectListOption.Return();
-        if (selectList.Count == 0) return (StatusCode.BadRequest, "No search for delete");
+        GsSelect selectList = selectListOption.Return();
+        if (selectList.Search.Length == 0) return (StatusCode.BadRequest, "No search for delete");
 
         if (!stack.TryPop(out var setCommand) || setCommand.SyntaxNode.Name != "update-set") return (StatusCode.BadRequest, "'set' command required");
 
-        switch (selectList.Last())
+        switch (selectList.Search.Last())
         {
             case GraphNodeSearch:
                 var nodeParse = ParseNode(stack);
@@ -26,7 +26,7 @@ public static class GraphUpdateCommand
                 {
                     return nodeParse.Return() with
                     {
-                        Search = selectListOption.Return(),
+                        Search = selectList.Search,
                     };
                 }
                 break;
@@ -37,7 +37,7 @@ public static class GraphUpdateCommand
                 {
                     return edgeParse.Return() with
                     {
-                        Search = selectListOption.Return(),
+                        Search = selectList.Search,
                     };
                 }
                 break;
@@ -48,11 +48,11 @@ public static class GraphUpdateCommand
         return (StatusCode.BadRequest, "No language nodes");
     }
 
-    private static Option<GraphNodeUpdate> ParseNode(Stack<LangNode> stack)
+    private static Option<GsNodeUpdate> ParseNode(Stack<LangNode> stack)
     {
         var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var dataMap = new Dictionary<string, ImmutableDictionary<string, string?>>(StringComparer.OrdinalIgnoreCase);
+        var dataMap = new Dictionary<string, GraphDataLink>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -79,10 +79,10 @@ public static class GraphUpdateCommand
                     break;
 
                 case { SyntaxNode.Name: "dataName" }:
-                    var dataGroupOption = GraphCommandData.GetDataGroup(stack);
-                    if (dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GraphNodeUpdate>();
+                    var dataGroupOption = GraphDataMapParser.GetGraphDataLink(stack);
+                    if (dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GsNodeUpdate>();
 
-                    ImmutableDictionary<string, string?> data = dataGroupOption.Return();
+                    var data = dataGroupOption.Return();
                     dataMap.Add(langNode.Value, data);
                     break;
 
@@ -92,7 +92,7 @@ public static class GraphUpdateCommand
                 case { SyntaxNode.Name: "term" }:
                     if (tags == null) return (StatusCode.BadRequest, "No key and tags must be specified");
 
-                    return new GraphNodeUpdate
+                    return new GsNodeUpdate
                     {
                         Tags = tags.ToTags(),
                         Links = links.ToLinks(),
@@ -106,7 +106,7 @@ public static class GraphUpdateCommand
         return (StatusCode.BadRequest, "No closure");
     }
 
-    private static Option<GraphEdgeUpdate> ParseEdge(Stack<LangNode> stack)
+    private static Option<GsEdgeUpdate> ParseEdge(Stack<LangNode> stack)
     {
         string? edgeType = null!;
         var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
@@ -141,7 +141,7 @@ public static class GraphUpdateCommand
                 case { SyntaxNode.Name: "term" }:
                     if (edgeType == null && tags == null) return (StatusCode.BadRequest, "No edgeType, tags are required");
 
-                    return new GraphEdgeUpdate
+                    return new GsEdgeUpdate
                     {
                         EdgeType = edgeType,
                         Tags = tags.ToTags(),

@@ -21,22 +21,22 @@ public static class GraphDeleteCommand
         var selectListOption = GraphSelectCommand.Parse(stack);
         if (selectListOption.IsError()) return selectListOption.ToOptionStatus<IGraphQL>();
 
-        IReadOnlyList<IGraphQL> selectList = selectListOption.Return();
-        if (selectList.Count == 0) return (StatusCode.BadRequest, "No search for delete");
+        GsSelect gsSelect = selectListOption.Return();
+        if (gsSelect.Search.Length == 0) return (StatusCode.BadRequest, "No search for delete");
 
-        switch (selectList.Last())
+        switch (gsSelect.Search.Last())
         {
             case GraphNodeSearch:
-                return new GraphNodeDelete
+                return new GsNodeDelete
                 {
-                    Search = selectList,
+                    Search = gsSelect.Search,
                     Force = force,
                 };
 
             case GraphEdgeSearch:
-                return new GraphEdgeDelete
+                return new GsEdgeDelete
                 {
-                    Search = selectList,
+                    Search = gsSelect.Search,
                 };
 
             case object v: throw new UnreachableException($"Unknown search type {v.GetType().FullName}");

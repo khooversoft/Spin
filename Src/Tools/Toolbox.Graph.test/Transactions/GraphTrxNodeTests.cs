@@ -31,7 +31,7 @@ public class GraphTrxNodeTests
         map.Execute(q2, NullScopeContext.Instance).Action(x =>
         {
             x.IsError().Should().BeTrue();
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.AddNode, StatusCode.OK, 0));
             x.Value.Items[1].Action(y => TestReturn(y, CommandType.AddEdge, StatusCode.Conflict, 0));
         });
@@ -61,7 +61,7 @@ public class GraphTrxNodeTests
 
         map.Execute(q2, NullScopeContext.Instance).Action(x =>
         {
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.UpdateNode, StatusCode.OK, 1));
             x.Value.Items[1].Action(y => TestReturn(y, CommandType.AddEdge, StatusCode.Conflict, 0));
         });
@@ -92,7 +92,7 @@ public class GraphTrxNodeTests
 
         map.Execute(q2, NullScopeContext.Instance).Action(x =>
         {
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.DeleteNode, StatusCode.OK, 1));
             x.Value.Items[1].Action(y => TestReturn(y, CommandType.AddEdge, StatusCode.Conflict, 0));
         });
@@ -102,6 +102,6 @@ public class GraphTrxNodeTests
     {
         graphResult.CommandType.Should().Be(commandType);
         graphResult.Status.StatusCode.Should().Be(statusCode, graphResult.Status.ToString());
-        graphResult.Items.Count.Should().Be(itemCount);
+        graphResult.Items.Length.Should().Be(itemCount);
     }
 }

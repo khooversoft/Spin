@@ -25,6 +25,104 @@ public class GraphSelectCommandTests
     };
 
     [Fact]
+    public void LookupSingleNode()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("select (key=node4);", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
+
+        commandResults.Items.Length.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.Select);
+            x.Status.IsOk().Should().BeTrue();
+            x.ReturnNames.Count.Should().Be(0);
+
+            x.Items.NotNull().Length.Should().Be(1);
+            var index = x.Items.NotNull().ToCursor();
+
+            index.NextValue().Return().Cast<GraphNode>().Action(x =>
+            {
+                x.Key.Should().Be("node4");
+                x.Tags.ToTagsString().Should().Be("age=32,name=josh");
+                x.Links.Count.Should().Be(0);
+                x.DataMap.Count.Should().Be(0);
+            });
+        });
+    }
+
+    [Fact]
+    public void LookupSingleNodeWithReturn()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("select (key=node4) return lease;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
+
+        commandResults.Items.Length.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.Select);
+            x.Status.IsOk().Should().BeTrue();
+            x.ReturnNames.Count.Should().Be(1);
+            Enumerable.SequenceEqual(x.ReturnNames.OrderBy(x => x), ["lease"]).Should().BeTrue();
+
+            x.Items.NotNull().Length.Should().Be(1);
+            var index = x.Items.NotNull().ToCursor();
+
+            index.NextValue().Return().Cast<GraphNode>().Action(x =>
+            {
+                x.Key.Should().Be("node4");
+                x.Tags.ToTagsString().Should().Be("age=32,name=josh");
+                x.Links.Count.Should().Be(0);
+                x.DataMap.Count.Should().Be(0);
+            });
+        });
+    }
+
+    [Fact]
+    public void LookupSingleNodeWithTwoReturn()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("select (key=node4) return lease, contract;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
+
+        commandResults.Items.Length.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.Select);
+            x.Status.IsOk().Should().BeTrue();
+            x.ReturnNames.Count.Should().Be(2);
+            Enumerable.SequenceEqual(x.ReturnNames.OrderBy(x => x), ["contract", "lease"]).Should().BeTrue();
+
+            x.Items.NotNull().Length.Should().Be(1);
+            var index = x.Items.NotNull().ToCursor();
+
+            index.NextValue().Return().Cast<GraphNode>().Action(x =>
+            {
+                x.Key.Should().Be("node4");
+                x.Tags.ToTagsString().Should().Be("age=32,name=josh");
+                x.Links.Count.Should().Be(0);
+                x.DataMap.Count.Should().Be(0);
+            });
+        });
+    }
+
+    [Fact]
     public void SingleSelectForNode()
     {
         var copyMap = _map.Copy();
@@ -34,7 +132,7 @@ public class GraphSelectCommandTests
         GraphQueryResults commandResults = newMapOption.Return();
         GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -42,7 +140,7 @@ public class GraphSelectCommandTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Count.Should().Be(3);
+            x.Items.NotNull().Length.Should().Be(3);
             var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
@@ -75,7 +173,7 @@ public class GraphSelectCommandTests
         GraphQueryResults commandResults = newMapOption.Return();
         GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -83,7 +181,7 @@ public class GraphSelectCommandTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Count.Should().Be(2);
+            x.Items.NotNull().Length.Should().Be(2);
 
             var index = x.Items.NotNull().ToCursor();
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -112,7 +210,7 @@ public class GraphSelectCommandTests
 
         GraphQueryResults commandResults = newMapOption.Return();
         GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
-        commandResults.Items.Count.Should().Be(2);
+        commandResults.Items.Length.Should().Be(2);
 
         var resultIndex = commandResults.Items.ToCursor();
 
@@ -121,7 +219,7 @@ public class GraphSelectCommandTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Count.Should().Be(2);
+            x.Items.NotNull().Length.Should().Be(2);
             var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -144,7 +242,7 @@ public class GraphSelectCommandTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Count.Should().Be(3);
+            x.Items.NotNull().Length.Should().Be(3);
             var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>

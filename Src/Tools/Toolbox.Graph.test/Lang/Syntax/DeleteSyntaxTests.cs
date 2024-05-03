@@ -2,7 +2,7 @@
 
 namespace Toolbox.Graph.test.Lang.Graph;
 
-public class GraphDeleteTests
+public class DeleteSyntaxTests
 {
     private readonly ILangRoot _root = GraphLangGrammar.Root;
 

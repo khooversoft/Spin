@@ -15,7 +15,7 @@ namespace Toolbox.Graph;
 /// link = {link=v}[, {link=v}...]
 /// data = {name} {{ k, k=v, ... }}
 /// 
-/// store data = {name} {{ type=typeName, data=base64 }}
+/// store data = {name} {{ [schema=json,] name=name, data64=base64 }}
 /// 
 /// select search
 /// add {node | {unique? edge} } { tag, link, data }

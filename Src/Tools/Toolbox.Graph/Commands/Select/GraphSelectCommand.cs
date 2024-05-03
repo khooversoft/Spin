@@ -1,11 +1,12 @@
-﻿using Toolbox.LangTools;
+﻿using System.Collections.Immutable;
+using Toolbox.LangTools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
 public static class GraphSelectCommand
 {
-    public static Option<IReadOnlyList<IGraphQL>> Parse(Stack<LangNode> stack, string? command = null)
+    public static Option<GsSelect> Parse(Stack<LangNode> stack, string? command = null)
     {
         var list = new List<IGraphQL>();
 
@@ -15,38 +16,56 @@ public static class GraphSelectCommand
             stack.Pop();
         }
 
+        ImmutableHashSet<string> gsReturn = ImmutableHashSet<string>.Empty;
+
         while (stack.TryPop(out var langNode))
         {
             switch (langNode)
             {
                 case { SyntaxNode.Name: "node-group" }:
                     Option<GraphNodeSearch> nodeParse = ParseNode(stack);
-                    if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
+                    if (nodeParse.IsError()) return nodeParse.ToOptionStatus<GsSelect>();
                     list.Add(nodeParse.Return());
                     break;
 
                 case { SyntaxNode.Name: "edge-group" }:
                     Option<GraphEdgeSearch> edgeParse = ParseEdge(stack);
-                    if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
+                    if (edgeParse.IsError()) return edgeParse.ToOptionStatus<GsSelect>();
                     list.Add(edgeParse.Return());
                     break;
 
                 case { SyntaxNode.Name: "select-next" }:
                     break;
 
+
+                case { SyntaxNode.Name: "return" }:
+                    var returnParse = GraphReturnParser.ParseReturnNames(stack);
+                    if (returnParse.IsError()) return returnParse.ToOptionStatus<GsSelect>();
+                    gsReturn = returnParse.Return();
+                    break;
+
                 case { SyntaxNode.Name: "term" }:
-                    return list;
+                    return new GsSelect
+                    {
+                        Search = list.ToImmutableArray(),
+                        ReturnNames = gsReturn,
+                    };
 
                 case { SyntaxNode.Name: "update-set" }:
                     stack.Push(langNode);
-                    return list;
+
+                    return new GsSelect
+                    {
+                        Search = list.ToImmutableArray(),
+                        ReturnNames = gsReturn,
+                    };
 
                 default:
                     throw new ArgumentException("Unknown language node");
             }
         }
 
-        return list;
+        return (StatusCode.BadRequest, "No terminate");
     }
 
     private static Option<GraphNodeSearch> ParseNode(Stack<LangNode> stack)

@@ -19,7 +19,7 @@ public class GraphLifecycleTest
         map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
         {
             x.Status.IsOk().Should().BeTrue();
-            x.Items.Count.Should().Be(1);
+            x.Items.Length.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node1");
@@ -35,7 +35,7 @@ public class GraphLifecycleTest
         map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
         {
             x.Status.IsOk().Should().BeTrue();
-            x.Items.Count.Should().Be(0);
+            x.Items.Length.Should().Be(0);
         });
     }
 
@@ -57,7 +57,7 @@ public class GraphLifecycleTest
         map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Count.Should().Be(1);
+            x.Items.Length.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node1");
@@ -68,7 +68,7 @@ public class GraphLifecycleTest
         map.ExecuteScalar("select (key=node2);", NullScopeContext.Instance).Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Count.Should().Be(1);
+            x.Items.Length.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node2");
@@ -86,13 +86,13 @@ public class GraphLifecycleTest
         map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Count.Should().Be(0);
+            x.Items.Length.Should().Be(0);
         });
 
         map.ExecuteScalar("select (key=node2);", NullScopeContext.Instance).Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Count.Should().Be(1);
+            x.Items.Length.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node2");
@@ -103,7 +103,7 @@ public class GraphLifecycleTest
         map.Execute("delete (key=node2);", NullScopeContext.Instance).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
-            x.Return().Items.Count.Should().Be(1);
+            x.Return().Items.Length.Should().Be(1);
         });
 
         map.Nodes.Count.Should().Be(0);
@@ -124,18 +124,18 @@ public class GraphLifecycleTest
         map.Execute(q, NullScopeContext.Instance).Action(x =>
         {
             x.IsError().Should().BeTrue(x.ToString());
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y =>
             {
                 y.CommandType.Should().Be(CommandType.AddNode);
                 y.Status.IsOk().Should().BeTrue();
-                y.Items.Count.Should().Be(0);
+                y.Items.Length.Should().Be(0);
             });
             x.Value.Items[1].Action(y =>
             {
                 y.CommandType.Should().Be(CommandType.AddNode);
                 y.Status.IsConflict().Should().BeTrue();
-                y.Items.Count.Should().Be(0);
+                y.Items.Length.Should().Be(0);
             });
         });
 
@@ -157,7 +157,7 @@ public class GraphLifecycleTest
         map.Execute(q, NullScopeContext.Instance).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
-            x.Return().Items.Count.Should().Be(3);
+            x.Return().Items.Length.Should().Be(3);
         });
 
         map.Nodes.Count.Should().Be(2);
@@ -165,7 +165,7 @@ public class GraphLifecycleTest
 
         var query = map.ExecuteScalar("select (key=node1) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance);
         query.Status.IsOk().Should().Be(true);
-        query.Items.Count.Should().Be(1);
+        query.Items.Length.Should().Be(1);
         query.Items.OfType<GraphNode>().Action(x =>
         {
             x.Count().Should().Be(1);
@@ -191,7 +191,7 @@ public class GraphLifecycleTest
         map.Execute(q, NullScopeContext.Instance).Action(x =>
         {
             x.IsOk().Should().BeTrue();
-            x.Return().Items.Count.Should().Be(7);
+            x.Return().Items.Length.Should().Be(7);
         });
 
         map.Nodes.Count.Should().Be(5);

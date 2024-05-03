@@ -48,9 +48,9 @@ public class GraphDeleteTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsNodeDelete query) throw new ArgumentException("Invalid type");
 
-            query.Search.Count.Should().Be(1);
+            query.Search.Length.Should().Be(1);
             int idx = 0;
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
@@ -75,9 +75,9 @@ public class GraphDeleteTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphNodeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsNodeDelete query) throw new ArgumentException("Invalid type");
 
-            query.Search.Count.Should().Be(1);
+            query.Search.Length.Should().Be(1);
             query.Force.Should().BeTrue();
 
             int idx = 0;
@@ -104,9 +104,9 @@ public class GraphDeleteTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsEdgeDelete query) throw new ArgumentException("Invalid type");
 
-            query.Search.Count.Should().Be(2);
+            query.Search.Length.Should().Be(2);
             int idx = 0;
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {
@@ -140,9 +140,9 @@ public class GraphDeleteTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsEdgeDelete query) throw new ArgumentException("Invalid type");
 
-            query.Search.Count.Should().Be(1);
+            query.Search.Length.Should().Be(1);
             int idx = 0;
             query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
             {
@@ -169,9 +169,9 @@ public class GraphDeleteTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsEdgeDelete query) throw new ArgumentException("Invalid type");
 
-            query.Search.Count.Should().Be(1);
+            query.Search.Length.Should().Be(1);
             int idx = 0;
             query.Search[idx++].Cast<GraphEdgeSearch>().Action(x =>
             {
@@ -199,9 +199,9 @@ public class GraphDeleteTests
 
         list[index++].Action(x =>
         {
-            if (x is not GraphEdgeDelete query) throw new ArgumentException("Invalid type");
+            if (x is not GsEdgeDelete query) throw new ArgumentException("Invalid type");
 
-            query.Search.Count.Should().Be(2);
+            query.Search.Length.Should().Be(2);
             int idx = 0;
             query.Search[idx++].Cast<GraphNodeSearch>().Action(x =>
             {

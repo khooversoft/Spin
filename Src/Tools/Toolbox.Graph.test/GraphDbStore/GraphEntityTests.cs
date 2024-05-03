@@ -49,9 +49,9 @@ public class GraphEntityTests
         var userOption = await db.Graph.ExecuteScalar(userCmd, NullScopeContext.Instance);
         userOption.IsOk().Should().BeTrue(userOption.ToString());
         var userResult = userOption.Return();
-        userResult.Items.Count.Should().Be(0);
+        userResult.Items.Length.Should().Be(0);
         userResult.Alias.Count.Should().Be(3);
-        userResult.Alias.All(x => x.Value.Count == 0).Should().BeTrue();
+        userResult.Alias.All(x => x.Value.Length == 0).Should().BeTrue();
 
         // Delete again should not return error
         deleteResult = await db.Entity.DeleteEntity(entity, NullScopeContext.Instance);
@@ -108,9 +108,9 @@ public class GraphEntityTests
         var userOption = await db.Graph.ExecuteScalar(userCmd, NullScopeContext.Instance);
         userOption.IsOk().Should().BeTrue(userOption.ToString());
         var userResult = userOption.Return();
-        userResult.Items.Count.Should().Be(0);
+        userResult.Items.Length.Should().Be(0);
         userResult.Alias.Count.Should().Be(3);
-        userResult.Alias.All(x => x.Value.Count == 0).Should().BeTrue();
+        userResult.Alias.All(x => x.Value.Length == 0).Should().BeTrue();
 
         // Delete again should not return error
         deleteResult = await db.Graph.ExecuteScalar(deleteCmd, NullScopeContext.Instance);
@@ -128,12 +128,12 @@ public class GraphEntityTests
         var userOption = await db.Graph.ExecuteScalar(cmd, NullScopeContext.Instance);
         userOption.IsOk().Should().BeTrue();
         GraphQueryResult userResult = userOption.Return();
-        userResult.Items.Count.Should().Be(1);
+        userResult.Items.Length.Should().Be(1);
         userResult.Alias.Count.Should().Be(3);
 
         userResult.Alias["a1"].Action(x =>
         {
-            x.Count.Should().Be(1);
+            x.Length.Should().Be(1);
             x.OfType<GraphNode>().ToArray().Action(y =>
             {
                 y.Length.Should().Be(1);
@@ -144,7 +144,7 @@ public class GraphEntityTests
 
         userResult.Alias["a2"].Action(x =>
         {
-            x.Count.Should().Be(1);
+            x.Length.Should().Be(1);
             x.OfType<GraphEdge>().ToArray().Action(y =>
             {
                 y.Length.Should().Be(1);
@@ -156,7 +156,7 @@ public class GraphEntityTests
 
         userResult.Alias["a3"].Action(x =>
         {
-            x.Count.Should().Be(1);
+            x.Length.Should().Be(1);
             x.OfType<GraphNode>().ToArray().Action(y =>
             {
                 y.Length.Should().Be(1);
@@ -171,7 +171,7 @@ public class GraphEntityTests
     {
         var result = await db.Graph.ExecuteScalar(cmd, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Count.Should().Be(expectedCount);
+        result.Return().Items.Length.Should().Be(expectedCount);
     }
 
     private sealed record TestEntity

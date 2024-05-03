@@ -24,9 +24,9 @@ public static class GraphLang
             {
                 case { SyntaxNode.Name: "select" }:
                     var nodeParse = GraphSelectCommand.Parse(stack, "select");
-                    if (nodeParse.IsError()) return nodeParse;
+                    if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IReadOnlyList<IGraphQL>>();
 
-                    var select = new GraphSelect { Search = nodeParse.Return() };
+                    var select = nodeParse.Return();
                     list.Add(select);
                     break;
 
@@ -63,14 +63,14 @@ public static class GraphLang
         var reserveWords = list
             .SelectMany(x => x switch
             {
-                GraphNodeAdd v => v.Tags.Select(x => x.Key),
-                GraphEdgeAdd v => v.Tags.Select(x => x.Key),
-                GraphEdgeUpdate v => v.Tags.Select(x => x.Key),
-                GraphNodeUpdate v => getNodeAndEdges(v.Search),
+                GsNodeAdd v => v.Tags.Select(x => x.Key),
+                GsEdgeAdd v => v.Tags.Select(x => x.Key),
+                GsEdgeUpdate v => v.Tags.Select(x => x.Key),
+                GsNodeUpdate v => getNodeAndEdges(v.Search),
 
-                GraphSelect v => getNodeAndEdges(v.Search),
-                GraphNodeDelete v => getNodeAndEdges(v.Search),
-                GraphEdgeDelete v => getNodeAndEdges(v.Search),
+                GsSelect v => getNodeAndEdges(v.Search),
+                GsNodeDelete v => getNodeAndEdges(v.Search),
+                GsEdgeDelete v => getNodeAndEdges(v.Search),
 
                 _ => throw new UnreachableException(),
             })

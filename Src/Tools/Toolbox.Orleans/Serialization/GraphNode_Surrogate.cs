@@ -1,4 +1,5 @@
-﻿using Toolbox.Graph;
+﻿using System.Collections.Immutable;
+using Toolbox.Graph;
 using Toolbox.Types;
 
 namespace Toolbox.Orleans;
@@ -11,6 +12,7 @@ public struct GraphNode_Surrogate
     [Id(1)] public string Tags;
     [Id(2)] public DateTime CreatedDate;
     [Id(3)] public string[] Links;
+    [Id(4)] public KeyValuePair<string, GraphDataLink>[] DataMap;
 }
 
 
@@ -21,7 +23,8 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         surrogate.Key,
         surrogate.Tags.ToTags(),
         surrogate.CreatedDate,
-        surrogate.Links.ToLinks()
+        surrogate.Links.ToLinks(),
+        surrogate.DataMap.ToImmutableDictionary(x => x.Key, x => x.Value)
         );
 
     public GraphNode_Surrogate ConvertToSurrogate(in GraphNode value) => new GraphNode_Surrogate
@@ -29,7 +32,8 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         Key = value.Key,
         Tags = value.Tags.ToTagsString(),
         CreatedDate = value.CreatedDate,
-        Links = value.Links.ToArray(),
+        Links = [.. value.Links],
+        DataMap = [.. value.DataMap],
     };
 }
 

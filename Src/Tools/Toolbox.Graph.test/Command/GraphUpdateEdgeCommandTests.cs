@@ -45,14 +45,14 @@ public class GraphUpdateEdgeCommandTests
             x.Tags.ToTagsString().Should().Be("level=1");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.UpdateEdge);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Count.Should().Be(1);
+            x.Items.NotNull().Length.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -86,14 +86,14 @@ public class GraphUpdateEdgeCommandTests
             x.Tags.ToTagsString().Should().Be("created,t1");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
             x.CommandType.Should().Be(CommandType.UpdateEdge);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Count.Should().Be(1);
+            x.Items.NotNull().Length.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>

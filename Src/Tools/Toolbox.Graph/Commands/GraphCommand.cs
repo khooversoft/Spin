@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -23,7 +24,7 @@ public static class GraphCommand
 
         var results = new Sequence<GraphQueryResult>();
 
-        bool write = commands.Any(x => x is GraphNodeAdd || x is GraphEdgeAdd || x is GraphEdgeUpdate || x is GraphNodeUpdate || x is GraphEdgeDelete || x is GraphNodeDelete);
+        bool write = commands.Any(x => x is GsNodeAdd || x is GsEdgeAdd || x is GsEdgeUpdate || x is GsNodeUpdate || x is GsEdgeDelete || x is GsNodeDelete);
 
         using (var release = write ? (await graphContext.Map.ReadWriterLock.WriterLockAsync()) : (await graphContext.Map.ReadWriterLock.ReaderLockAsync()))
         {
@@ -31,13 +32,13 @@ public static class GraphCommand
             {
                 GraphQueryResult qResult = cmd switch
                 {
-                    GraphNodeAdd addNode => AddNode(addNode, graphContext),
-                    GraphEdgeAdd addEdge => AddEdge(addEdge, graphContext),
-                    GraphEdgeUpdate updateEdge => UpdateEdge(updateEdge, graphContext),
-                    GraphNodeUpdate updateNode => UpdateNode(updateNode, graphContext),
-                    GraphEdgeDelete deleteEdge => DeleteEdge(deleteEdge, graphContext),
-                    GraphNodeDelete deleteNode => await DeleteNode(deleteNode, graphContext),
-                    GraphSelect select => Select(select, graphContext),
+                    GsNodeAdd addNode => AddNode(addNode, graphContext),
+                    GsEdgeAdd addEdge => AddEdge(addEdge, graphContext),
+                    GsEdgeUpdate updateEdge => UpdateEdge(updateEdge, graphContext),
+                    GsNodeUpdate updateNode => UpdateNode(updateNode, graphContext),
+                    GsEdgeDelete deleteEdge => DeleteEdge(deleteEdge, graphContext),
+                    GsNodeDelete deleteNode => await DeleteNode(deleteNode, graphContext),
+                    GsSelect select => Select(select, graphContext),
 
                     _ => throw new UnreachableException(),
                 };
@@ -62,17 +63,17 @@ public static class GraphCommand
 
         var mapResult = new GraphQueryResults
         {
-            Items = results,
+            Items = results.ToImmutableArray(),
         };
 
         return new Option<GraphQueryResults>(mapResult, option.StatusCode, option.Error);
     }
 
-    private static GraphQueryResult AddNode(GraphNodeAdd addNode, GraphContext graphContext)
+    private static GraphQueryResult AddNode(GsNodeAdd addNode, GraphContext graphContext)
     {
         var tags = addNode.Upsert ? addNode.Tags : addNode.Tags.RemoveCommands();
 
-        var graphNode = new GraphNode(addNode.Key, tags, addNode.Links);
+        var graphNode = new GraphNode(addNode.Key, tags, DateTime.UtcNow, addNode.Links, addNode.DataMap);
 
         Option result = addNode.Upsert switch
         {
@@ -83,7 +84,7 @@ public static class GraphCommand
         return new GraphQueryResult(CommandType.AddNode, result);
     }
 
-    private static GraphQueryResult AddEdge(GraphEdgeAdd addEdge, GraphContext graphContext)
+    private static GraphQueryResult AddEdge(GsEdgeAdd addEdge, GraphContext graphContext)
     {
         var tags = addEdge.Upsert ? addEdge.Tags : addEdge.Tags.RemoveCommands();
 
@@ -105,7 +106,7 @@ public static class GraphCommand
         return new GraphQueryResult(CommandType.AddEdge, result);
     }
 
-    private static GraphQueryResult UpdateEdge(GraphEdgeUpdate updateEdge, GraphContext graphContext)
+    private static GraphQueryResult UpdateEdge(GsEdgeUpdate updateEdge, GraphContext graphContext)
     {
         GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, updateEdge.Search);
 
@@ -117,19 +118,19 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.UpdateEdge };
     }
 
-    private static GraphQueryResult UpdateNode(GraphNodeUpdate updateNode, GraphContext graphContext)
+    private static GraphQueryResult UpdateNode(GsNodeUpdate updateNode, GraphContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, updateNode.Search);
 
         IReadOnlyList<GraphNode> nodes = searchResult.Nodes();
         if (nodes.Count == 0) return new GraphQueryResult(CommandType.UpdateNode, StatusCode.NoContent);
 
-        graphContext.Map.Nodes.Update(nodes, x => x.With(updateNode.Tags, updateNode.Links), graphContext);
+        graphContext.Map.Nodes.Update(nodes, x => x.With(updateNode.Tags, updateNode.Links, updateNode.DataMap), graphContext);
 
         return searchResult with { CommandType = CommandType.UpdateNode };
     }
 
-    private static GraphQueryResult DeleteEdge(GraphEdgeDelete deleteEdge, GraphContext graphContext)
+    private static GraphQueryResult DeleteEdge(GsEdgeDelete deleteEdge, GraphContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, deleteEdge.Search);
 
@@ -140,7 +141,7 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private static async Task<GraphQueryResult> DeleteNode(GraphNodeDelete deleteNode, GraphContext graphContext)
+    private static async Task<GraphQueryResult> DeleteNode(GsNodeDelete deleteNode, GraphContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, deleteNode.Search);
 
@@ -159,9 +160,13 @@ public static class GraphCommand
         return result;
     }
 
-    private static GraphQueryResult Select(GraphSelect select, GraphContext graphContext)
+    private static GraphQueryResult Select(GsSelect select, GraphContext graphContext)
     {
-        GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search);
+        GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search) with
+        {
+            ReturnNames = select.ReturnNames,
+        };
+
         return searchResult with { CommandType = CommandType.Select };
     }
 

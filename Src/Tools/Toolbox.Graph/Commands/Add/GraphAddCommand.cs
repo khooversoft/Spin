@@ -27,7 +27,7 @@ public static class GraphAddCommand
             switch (langNode)
             {
                 case { SyntaxNode.Name: "node" }:
-                    Option<GraphNodeAdd> nodeParse = ParseNode(stack, upsert);
+                    Option<GsNodeAdd> nodeParse = ParseNode(stack, upsert);
                     if (nodeParse.IsError()) return nodeParse.ToOptionStatus<IGraphQL>();
                     return nodeParse.Return();
 
@@ -36,7 +36,7 @@ public static class GraphAddCommand
                     continue;
 
                 case { SyntaxNode.Name: "edge" }:
-                    Option<GraphEdgeAdd> edgeParse = ParseEdge(stack, upsert, unique);
+                    Option<GsEdgeAdd> edgeParse = ParseEdge(stack, upsert, unique);
                     if (edgeParse.IsError()) return edgeParse.ToOptionStatus<IGraphQL>();
                     return edgeParse.Return();
 
@@ -51,12 +51,12 @@ public static class GraphAddCommand
         return (StatusCode.BadRequest, "Unknown language node");
     }
 
-    private static Option<GraphNodeAdd> ParseNode(Stack<LangNode> stack, bool upsert)
+    private static Option<GsNodeAdd> ParseNode(Stack<LangNode> stack, bool upsert)
     {
         string? key = null;
         var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var dataMap = new Dictionary<string, ImmutableDictionary<string, string?>>(StringComparer.OrdinalIgnoreCase);
+        var dataMap = new Dictionary<string, GraphDataLink>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -87,10 +87,10 @@ public static class GraphAddCommand
                     break;
 
                 case { SyntaxNode.Name: "dataName" }:
-                    var dataGroupOption = GraphCommandData.GetDataGroup(stack);
-                    if( dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GraphNodeAdd>();
+                    var dataGroupOption = GraphDataMapParser.GetGraphDataLink(stack);
+                    if (dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GsNodeAdd>();
 
-                    ImmutableDictionary<string, string?> data = dataGroupOption.Return();
+                    GraphDataLink data = dataGroupOption.Return();
                     dataMap.Add(langNode.Value, data);
                     break;
 
@@ -100,7 +100,7 @@ public static class GraphAddCommand
                 case { SyntaxNode.Name: "term" }:
                     if (key == null) return (StatusCode.BadRequest, "No key and tags must be specified");
 
-                    return new GraphNodeAdd
+                    return new GsNodeAdd
                     {
                         Key = key,
                         Tags = tags.ToTags(),
@@ -117,7 +117,7 @@ public static class GraphAddCommand
         return (StatusCode.BadRequest, "No closure");
     }
 
-    private static Option<GraphEdgeAdd> ParseEdge(Stack<LangNode> stack, bool upsert, bool unique)
+    private static Option<GsEdgeAdd> ParseEdge(Stack<LangNode> stack, bool upsert, bool unique)
     {
         string? fromKey = null!;
         string? toKey = null!;
@@ -163,7 +163,7 @@ public static class GraphAddCommand
                 case { SyntaxNode.Name: "term" }:
                     if (fromKey == null || toKey == null) return (StatusCode.BadRequest, "No fromKey, toKey are required");
 
-                    return new GraphEdgeAdd
+                    return new GsEdgeAdd
                     {
                         FromKey = fromKey,
                         ToKey = toKey,

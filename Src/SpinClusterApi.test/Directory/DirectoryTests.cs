@@ -39,16 +39,16 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         getNodeOption.IsOk().Should().BeTrue();
 
         GraphQueryResult response = getNodeOption.Return().Items.Single();
-        response.Items.Count.Should().Be(1);
-        response.Edges().Count.Should().Be(0);
+        response.Items.Length.Should().Be(1);
+        response.Edges().Length.Should().Be(0);
         response.Nodes().First().Key.Should().Be(nodeKey);
         response.Nodes().First().Tags.ToString().Should().Be("t1");
 
         getNodeOption = await dirClient.Execute("select (Key=*);", _context);
         getNodeOption.IsOk().Should().BeTrue();
         response = getNodeOption.Return().Items.Single();
-        response.Nodes().Count.Should().BeGreaterThanOrEqualTo(1);
-        response.Edges().Count.Should().Be(0);
+        response.Nodes().Length.Should().BeGreaterThanOrEqualTo(1);
+        response.Edges().Length.Should().Be(0);
 
         response.Nodes().Any(x => x.Key == nodeKey && x.Tags.ToString() == "t1").Should().BeTrue();
         //response.Nodes().First().Key.Should().Be(nodeKey);
@@ -57,8 +57,8 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         getNodeOption = await dirClient.Execute("select (Tags=t1);", _context);
         getNodeOption.IsOk().Should().BeTrue();
         response = getNodeOption.Return().Items.Single();
-        response.Nodes().Count.Should().Be(1);
-        response.Edges().Count.Should().Be(0);
+        response.Nodes().Length.Should().Be(1);
+        response.Edges().Length.Should().Be(0);
         response.Nodes().First().Key.Should().Be(nodeKey);
         response.Nodes().First().Tags.ToString().Should().Be("t1");
 
@@ -67,8 +67,8 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
 
         getNodeOption = await dirClient.Execute($"select (key={nodeKey});", _context);
         getNodeOption.IsOk().Should().BeTrue();
-        getNodeOption.Return().Items.Single().Nodes().Count.Should().Be(0);
-        getNodeOption.Return().Items.Single().Edges().Count.Should().Be(0);
+        getNodeOption.Return().Items.Single().Nodes().Length.Should().Be(0);
+        getNodeOption.Return().Items.Single().Edges().Length.Should().Be(0);
     }
 
     //[Fact]

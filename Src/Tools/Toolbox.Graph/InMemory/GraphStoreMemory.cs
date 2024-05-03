@@ -29,7 +29,7 @@ public class GraphStoreMemory : IGraphStore
         string cmd = $"update (key={nodeKey}) set link=-{fileId};";
         var updateResult = await _graphDbContext.Command.ExecuteScalar(cmd, context);
         if (updateResult.StatusCode.IsError()) return updateResult.ToOptionStatus();
-        if (updateResult.Return().Items.Count == 0) return StatusCode.NotFound;
+        if (updateResult.Return().Items.Length == 0) return StatusCode.NotFound;
 
         using (var scope = await _graphDbContext.ReadWriterLock.ReaderLockAsync())
         {
@@ -82,7 +82,7 @@ public class GraphStoreMemory : IGraphStore
 
         string cmd = $"update (key={nodeKey}) set link={fileId};";
         var updateResult = await _graphDbContext.Command.ExecuteScalar(cmd, context);
-        if (updateResult.StatusCode.IsError() || updateResult.Return().Items.Count == 0)
+        if (updateResult.StatusCode.IsError() || updateResult.Return().Items.Length == 0)
         {
             await _graphFileStore.Delete(fileId, context);
             return (StatusCode.Conflict, $"NodeKey={nodeKey} does not exist for update");

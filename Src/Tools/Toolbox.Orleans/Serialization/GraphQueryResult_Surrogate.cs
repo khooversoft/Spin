@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Collections.Immutable;
+using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Types;
 
@@ -30,8 +31,8 @@ public sealed class GraphQueryResult_SurrogateConverter : IConverter<GraphQueryR
         {
             Status = surrogate.Status,
             CommandType = surrogate.CommandType,
-            Items = surrogate.Nodes.OfType<IGraphCommon>().Concat(surrogate.Edges).ToArray(),
-            Alias = alias,
+            Items = surrogate.Nodes.OfType<IGraphCommon>().Concat(surrogate.Edges).ToImmutableArray(),
+            Alias = alias.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
         };
 
         return result;

@@ -19,7 +19,7 @@ public class GraphNodeTests
         n1.Tags.Count.Should().Be(0);
         n1.Links.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, ImmutableDictionary<string, string?>.Empty, createdDate: n1.CreatedDate, []);
+        var n2 = new GraphNode(key, TagsTool.Empty, n1.CreatedDate, [], GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -37,7 +37,7 @@ public class GraphNodeTests
         n1.Tags.ToTagsString().Should().Be("t1");
         n1.Links.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, []);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, [], GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -55,7 +55,7 @@ public class GraphNodeTests
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
         n1.Links.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, []);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, [], GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -67,13 +67,13 @@ public class GraphNodeTests
         string tags = "t1, t2=v2";
         string[] links = ["link1", "link2"];
 
-        var n1 = new GraphNode(key, tags.ToTags(), links.ToImmutableHashSet());
+        var n1 = new GraphNode(key, tags.ToTags(), DateTime.UtcNow, links.ToImmutableHashSet(), GraphDataLinkTool.Empty);
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
         n1.Links.Count.Should().Be(2);
 
-        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, links.ToImmutableHashSet());
+        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, links.ToImmutableHashSet(), GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -119,7 +119,13 @@ public class GraphNodeTests
     [Fact]
     public void SerializationGraphNode2()
     {
-        var node = new GraphNode("node1", tags: "t1,t2=v2".ToTags(), links: ["abc", "linke1/parent"]);
+        var node = new GraphNode(
+            "node1",
+            tags: "t1,t2=v2".ToTags(),
+            createdDate: DateTime.UtcNow,
+            links: ["abc", "linke1/parent"],
+            dataMap: GraphDataLinkTool.Empty
+            );
 
         string json = node.ToJson();
 

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Immutable;
+using FluentAssertions;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -36,7 +37,7 @@ public class GraphCommandResultSerialization
             {
                 new GraphNode("key1"),
                 new GraphEdge("key1", "key2"),
-            },
+            }.ToImmutableArray(),
         };
 
         string json = source.ToJson();

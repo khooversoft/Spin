@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Immutable;
+using FluentAssertions;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -29,18 +30,18 @@ public class GraphQueryResultTests
         var v = new GraphQueryResult
         {
             Status = (StatusCode.OK, "no error"),
-            Items = nodes.Concat(edges).ToArray(),
+            Items = nodes.Concat(edges).ToImmutableArray(),
             Alias = new Dictionary<string, IReadOnlyList<IGraphCommon>>
             {
                 ["a1"] = nodes,
                 ["b2"] = edges,
-            },
+            }.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
         };
 
         string json = v.ToJson();
 
         GraphQueryResult result = json.ToObject<GraphQueryResult>().NotNull();
-        result.Items.Count.Should().Be(nodes.Count + edges.Count);
+        result.Items.Length.Should().Be(nodes.Count + edges.Count);
         result.Alias.Count.Should().Be(2);
 
         var n = result.Items.OfType<GraphNode>().OrderBy(x => x.Key).ToArray();

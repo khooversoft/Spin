@@ -29,7 +29,7 @@ public class GraphQueryTests
         GraphQueryResult result = _map.ExecuteScalar("select (name) -> [knows];", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(2);
+        result.Items.Length.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -45,7 +45,7 @@ public class GraphQueryTests
         GraphQueryResult result = _map.ExecuteScalar("select (name) -> [knows] a1;", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(2);
+        result.Items.Length.Should().Be(2);
         result.Alias.Count.Should().Be(1);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -54,7 +54,7 @@ public class GraphQueryTests
         var inSet = _map.Edges.Where(x => x.Tags.Has("knows")).Select(x => x.Key).OrderBy(x => x).ToArray();
         edges.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
 
-        result.Alias.Values.First().Count.Should().Be(2);
+        result.Alias.Values.First().Length.Should().Be(2);
         edges = result.Alias.Values.First().Select(x => x.Cast<GraphEdge>()).OrderBy(x => x.Key).ToArray();
         edges.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
     }
@@ -65,7 +65,7 @@ public class GraphQueryTests
         GraphQueryResult result = _map.ExecuteScalar("select (name) -> [related] -> (name=lop);", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(1);
+        result.Items.Length.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -81,7 +81,7 @@ public class GraphQueryTests
         GraphQueryResult result = _map.ExecuteScalar("select [knows] -> (*);", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(2);
+        result.Items.Length.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -97,7 +97,7 @@ public class GraphQueryTests
         GraphQueryResult result = _map.ExecuteScalar("select (target) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(1);
+        result.Items.Length.Should().Be(1);
         result.Alias.Count.Should().Be(3);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -107,19 +107,19 @@ public class GraphQueryTests
         nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
 
         result.Alias.ContainsKey("a1").Should().BeTrue();
-        result.Alias["a1"].Count.Should().Be(2);
+        result.Alias["a1"].Length.Should().Be(2);
         nodes = result.Alias["a1"].Select(x => x.Cast<GraphNode>()).OrderBy(x => x.Key).ToArray();
         var inSetNode = _map.Nodes.Where(x => x.Tags.Has("target")).OrderBy(x => x.Key).ToArray();
         nodes.SequenceEqual(inSetNode).Should().BeTrue();
 
         result.Alias.ContainsKey("a2").Should().BeTrue();
-        result.Alias["a2"].Count.Should().Be(2);
+        result.Alias["a2"].Length.Should().Be(2);
         var edges = result.Alias["a2"].Select(x => x.Cast<GraphEdge>()).OrderBy(x => x.Key).ToArray();
         var inSetEdge = _map.Nodes.Where(x => x.Tags.Has("knows")).OrderBy(x => x.Key).ToArray();
         nodes.SequenceEqual(inSetNode).Should().BeTrue();
 
         result.Alias.ContainsKey("a3").Should().BeTrue();
-        result.Alias["a3"].Count.Should().Be(1);
+        result.Alias["a3"].Length.Should().Be(1);
         nodes = result.Alias["a3"].Select(x => x.Cast<GraphNode>()).OrderBy(x => x.Key).ToArray();
         inSetNode = _map.Nodes.Where(x => x.Tags.Has("age=27")).OrderBy(x => x.Key).ToArray();
         nodes.SequenceEqual(inSetNode).Should().BeTrue();
@@ -132,7 +132,7 @@ public class GraphQueryTests
         GraphQueryResult result = _map.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=29) a3;", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(0);
+        result.Items.Length.Should().Be(0);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class GraphQueryTests
         GraphQueryResult result = _map.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance);
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(1);
+        result.Items.Length.Should().Be(1);
         result.Alias.Count.Should().Be(3);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -151,19 +151,19 @@ public class GraphQueryTests
         nodes.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
 
         result.Alias.ContainsKey("a1").Should().BeTrue();
-        result.Alias["a1"].Count.Should().Be(1);
+        result.Alias["a1"].Length.Should().Be(1);
         nodes = result.Alias["a1"].Select(x => x.Cast<GraphNode>()).OrderBy(x => x.Key).ToArray();
         var inSetNode = _map.Nodes.Where(x => x.Key == "node1").OrderBy(x => x.Key).ToArray();
         nodes.SequenceEqual(inSetNode).Should().BeTrue();
 
         result.Alias.ContainsKey("a2").Should().BeTrue();
-        result.Alias["a2"].Count.Should().Be(2);
+        result.Alias["a2"].Length.Should().Be(2);
         var edges = result.Alias["a2"].Select(x => x.Cast<GraphEdge>()).OrderBy(x => x.Key).ToArray();
         var inSetEdge = _map.Nodes.Where(x => x.Tags.Has("knows")).OrderBy(x => x.Key).ToArray();
         nodes.SequenceEqual(inSetNode).Should().BeTrue();
 
         result.Alias.ContainsKey("a3").Should().BeTrue();
-        result.Alias["a3"].Count.Should().Be(1);
+        result.Alias["a3"].Length.Should().Be(1);
         nodes = result.Alias["a3"].Select(x => x.Cast<GraphNode>()).OrderBy(x => x.Key).ToArray();
         inSetNode = _map.Nodes.Where(x => x.Tags.Has("age=27")).OrderBy(x => x.Key).ToArray();
         nodes.SequenceEqual(inSetNode).Should().BeTrue();

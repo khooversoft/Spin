@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Lang.GraphCommand;
 
-public class GraphSelectTests
+public class GraphSelectNodeTests
 {
     [Theory]
     [InlineData("select (key=key1, tags=t1);")]
@@ -17,16 +17,6 @@ public class GraphSelectTests
     [InlineData("select (key=key1, set);")]
     [InlineData("select (key=key1, set, t2);")]
     [InlineData("select (key=key1, key, t2);")]
-    [InlineData("select [key=key1, tags=t1);")]
-    [InlineData("select [key=key1, tags=t, t1];")]
-    [InlineData("select [key=key1, add, t2];")]
-    [InlineData("select [key=key1, node, t2];")]
-    [InlineData("select [key=key1, edge, t2];")]
-    [InlineData("select [key=key1, delete=v2, t2];")]
-    [InlineData("select [key=key1, update, t2];")]
-    [InlineData("select [key=key1, set];")]
-    [InlineData("select [key=key1, set, t2];")]
-    [InlineData("select [key=key1, key, t2];")]
     public void AddNodeWithReserveTags(string line)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(line);
@@ -47,7 +37,7 @@ public class GraphSelectTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(3);
@@ -92,7 +82,7 @@ public class GraphSelectTests
         int index = 0;
         list[index++].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(3);
@@ -136,7 +126,7 @@ public class GraphSelectTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(1);
@@ -162,7 +152,7 @@ public class GraphSelectTests
 
         list[0].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(1);
@@ -176,59 +166,62 @@ public class GraphSelectTests
     }
 
     [Fact]
-    public void SingleEdgeTagSyntax()
+    public void SingleSyntaxWithReturn()
     {
-        var q = "select [schedulework:active];";
+        var q = "select (key=key1, t1) return contract;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
         list[0].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
+
+            query.Search.Length.Should().Be(1);
+            query.ReturnNames.Count.Should().Be(1);
+            Enumerable.SequenceEqual(["contract"], query.ReturnNames).Should().BeTrue();
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(1);
 
-            cursor.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
-                x.NodeKey.Should().BeNull();
-                x.FromKey.Should().BeNull();
-                x.ToKey.Should().BeNull();
-                x.EdgeType.Should().BeNull();
-                x.Tags.ToTagsString().Should().Be("schedulework:active");
+                x.Key.Should().Be("key1");
+                x.Tags.ToTagsString().Should().Be("t1");
             });
         });
     }
 
     [Fact]
-    public void SingleEdgeSyntax()
+    public void SingleSyntaxWithTwoReturn()
     {
-        var q = "select [NodeKey=key1, fromKey=fromKey1, toKey=tokey1, edgeType=schedulework:active, t2];";
+        var q = "select (key=key1, t1) return lease, contract;";
 
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().Should().BeTrue(result.ToString());
 
         IReadOnlyList<IGraphQL> list = result.Return();
         list.Count.Should().Be(1);
 
         list[0].Action(x =>
         {
-            if (x is not GraphSelect query) throw new ArgumentException("Invalid type");
+            if (x is not GsSelect query) throw new ArgumentException("Invalid type");
+
+            query.Search.Length.Should().Be(1);
+            query.ReturnNames.Count.Should().Be(2);
+
+            Enumerable.SequenceEqual(new[] { "lease", "contract" }.OrderBy(x => x), query.ReturnNames.OrderBy(x => x)).Should().BeTrue();
 
             var cursor = query.Search.ToCursor();
             cursor.List.Count.Should().Be(1);
 
-            cursor.NextValue().Return().Cast<GraphEdgeSearch>().Action(x =>
+            cursor.NextValue().Return().Cast<GraphNodeSearch>().Action(x =>
             {
-                x.NodeKey.Should().Be("key1");
-                x.FromKey.Should().Be("fromKey1");
-                x.ToKey.Should().Be("tokey1");
-                x.EdgeType.Should().Be("schedulework:active");
-                x.Tags.ToTagsString().Should().Be("t2");
+                x.Key.Should().Be("key1");
+                x.Tags.ToTagsString().Should().Be("t1");
             });
         });
     }

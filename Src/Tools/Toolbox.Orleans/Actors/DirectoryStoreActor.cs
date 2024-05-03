@@ -111,7 +111,7 @@ public class DirectoryStoreActor : Grain, IDirectoryStoreActor
 
         var result = resultCount switch
         {
-            int when executeResultOption.Return().Items.Count == resultCount => StatusCode.OK,
+            int when executeResultOption.Return().Items.Length == resultCount => StatusCode.OK,
             _ => StatusCode.NotFound,
         };
 

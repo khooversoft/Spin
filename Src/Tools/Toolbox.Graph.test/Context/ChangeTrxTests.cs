@@ -13,8 +13,8 @@ public class ChangeTrxTests
         DateTime dt = DateTime.UtcNow;
         Guid trxId = Guid.NewGuid();
         Guid logKey = Guid.NewGuid();
-        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
-        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
+        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"], GraphDataLinkTool.Empty);
+        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"], GraphDataLinkTool.Empty);
 
         (currentNode1 == currentNode2).Should().BeTrue();
 
@@ -34,10 +34,10 @@ public class ChangeTrxTests
         DateTime dt = DateTime.UtcNow;
         Guid trxId = Guid.NewGuid();
         Guid logKey = Guid.NewGuid();
-        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
-        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"]);
-        GraphNode newValueNode1 = new GraphNode("node2", "tag1=v1".ToTags(), dt, ["link4", "link5"]);
-        GraphNode newValueNode2 = new GraphNode("node2", "tag1=v1".ToTags(), dt, ["link4", "link5"]);
+        GraphNode currentNode1 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"], GraphDataLinkTool.Empty);
+        GraphNode currentNode2 = new GraphNode("node1", "tag1=v1".ToTags(), dt, ["link1", "link2"], GraphDataLinkTool.Empty);
+        GraphNode newValueNode1 = new GraphNode("node2", "tag1=v1".ToTags(), dt, ["link4", "link5"], GraphDataLinkTool.Empty);
+        GraphNode newValueNode2 = new GraphNode("node2", "tag1=v1".ToTags(), dt, ["link4", "link5"], GraphDataLinkTool.Empty);
 
         (currentNode1 == currentNode2).Should().BeTrue();
 

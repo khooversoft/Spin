@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphAddEdgeCommandTests
+public class GraphUpsertCommandEdgeTests
 {
     private readonly GraphMap _map = new GraphMap()
     {
@@ -24,11 +24,71 @@ public class GraphAddEdgeCommandTests
     };
 
     [Fact]
-    public void SingleAddForEdge()
+    public void UpsertForEdge()
     {
         var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
+        var newMapOption = _map.Execute("upsert edge fromKey=node6, toKey=node3, edgeType=default, newTags;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphEdge>().Action(x =>
+        {
+            x.FromKey.Should().Be("node6");
+            x.ToKey.Should().Be("node3");
+            x.EdgeType.Should().Be("default");
+            x.Tags.ToTagsString().Should().Be("created,newTags");
+        });
+
+        commandResults.Items.Length.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.AddEdge);
+            x.Status.IsOk().Should().BeTrue();
+            x.Items.Should().NotBeNull();
+        });
+    }
+
+    [Fact]
+    public void UpsertForEdgeWithRemoveTag()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("upsert edge fromKey=node1, toKey=node2, -knows;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphEdge>().Action(x =>
+        {
+            x.FromKey.Should().Be("node1");
+            x.ToKey.Should().Be("node2");
+            x.EdgeType.Should().Be("default");
+            x.Tags.ToTagsString().Should().Be("level=1");
+        });
+
+        commandResults.Items.Length.Should().Be(1);
+        var resultIndex = commandResults.Items.ToCursor();
+
+        resultIndex.NextValue().Return().Action(x =>
+        {
+            x.CommandType.Should().Be(CommandType.AddEdge);
+            x.Status.IsOk().Should().BeTrue();
+            x.Items.Should().NotBeNull();
+        });
+    }
+
+    [Fact]
+    public void SingleAddWithUpsertForEdge()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("upsert edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
@@ -50,90 +110,6 @@ public class GraphAddEdgeCommandTests
             x.CommandType.Should().Be(CommandType.AddEdge);
             x.Status.IsOk().Should().BeTrue();
             x.Items.Should().NotBeNull();
-        });
-    }
-
-    [Fact]
-    public void SingleAddForEdgeTagsCommand()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, -newTags;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
-
-        compareMap.Count.Should().Be(1);
-        compareMap[0].Cast<GraphEdge>().Action(x =>
-        {
-            x.FromKey.Should().Be("node7");
-            x.ToKey.Should().Be("node1");
-            x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.Count.Should().Be(0);
-        });
-
-        commandResults.Items.Length.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.Should().NotBeNull();
-        });
-    }
-
-    [Fact]
-    public void SingleUniqueAddForEdge()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add unique edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
-
-        compareMap.Count.Should().Be(1);
-        compareMap[0].Cast<GraphEdge>().Action(x =>
-        {
-            x.FromKey.Should().Be("node7");
-            x.ToKey.Should().Be("node1");
-            x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.ToTagsString().Should().Be("newTags");
-        });
-
-        commandResults.Items.Length.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.Should().NotBeNull();
-        });
-    }
-
-    [Fact]
-    public void UniqueAddForEdgeWithExistingEdge()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("add unique edge fromKey=node4, toKey=node5;", NullScopeContext.Instance);
-        newMapOption.IsError().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
-
-        compareMap.Count.Should().Be(0);
-
-        commandResults.Items.Length.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.StatusCode.Should().Be(StatusCode.Conflict);
-            x.Items.Should().NotBeNull();
-            x.Items.Length.Should().Be(0);
         });
     }
 }

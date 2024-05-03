@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -41,7 +42,7 @@ public static class GraphQuery
                     update(search, edge.Alias);
                     break;
 
-                case GraphSelect select:
+                case GsSelect select:
                     select.Search.Reverse().ForEach(x => stack.Push(x));
                     continue;
 
@@ -55,8 +56,8 @@ public static class GraphQuery
         return new GraphQueryResult
         {
             Status = StatusCode.OK,
-            Items = current,
-            Alias = aliasDict,
+            Items = current.ToImmutableArray(),
+            Alias = aliasDict.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray(), StringComparer.OrdinalIgnoreCase),
         };
 
         void update(SearchContext searchContext, string? alias)

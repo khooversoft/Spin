@@ -62,8 +62,8 @@ public class GraphDirectoryTests
         var map = GetMap();
         var search = map.ExecuteScalar("select [fromKey=system:schedule-work, edgeType=scheduleWorkType:*];", NullScopeContext.Instance);
         search.Should().NotBeNull();
-        search.Items.Count.Should().Be(2);
-        search.Edges().Count.Should().Be(2);
+        search.Items.Length.Should().Be(2);
+        search.Edges().Length.Should().Be(2);
 
         var index = search.Items.ToCursor();
 
@@ -104,10 +104,10 @@ public class GraphDirectoryTests
         result.IsOk().Should().BeTrue(result.ToString());
 
         GraphQueryResults searchResult = result.Return();
-        searchResult.Items.Count.Should().Be(1);
+        searchResult.Items.Length.Should().Be(1);
         searchResult.Items[0].Should().NotBeNull();
-        searchResult.Items[0].NotNull().Items.Count.Should().Be(1);
-        searchResult.Items[0].NotNull().Edges().Count.Should().Be(1);
+        searchResult.Items[0].NotNull().Items.Length.Should().Be(1);
+        searchResult.Items[0].NotNull().Edges().Length.Should().Be(1);
         searchResult.Items[0].NotNull().Edges()[0].Action(x =>
         {
             x.FromKey.Should().Be("system:schedule-work");
@@ -119,10 +119,10 @@ public class GraphDirectoryTests
         rOption.IsOk().Should().BeTrue();
 
         GraphQueryResults r = rOption.Return();
-        r.Items.Count.Should().Be(1);
+        r.Items.Length.Should().Be(1);
         r.Items[0].Should().NotBeNull();
-        r.Items[0].NotNull().Items.Count.Should().Be(1);
-        r.Items[0].NotNull().Edges().Count.Should().Be(1);
+        r.Items[0].NotNull().Items.Length.Should().Be(1);
+        r.Items[0].NotNull().Edges().Length.Should().Be(1);
         r.Items[0].NotNull().Edges()[0].Action(x =>
         {
             x.FromKey.Should().Be("system:schedule-work");

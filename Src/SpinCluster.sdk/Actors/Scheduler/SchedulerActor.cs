@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Agent;
 using SpinCluster.sdk.Actors.Directory;
@@ -122,7 +123,7 @@ public class SchedulerActor : Grain, ISchedulerActor
     {
         var context = new ScopeContext(traceId, _logger);
 
-        Option<IReadOnlyList<GraphEdge>> dirResponse = await GetSchedules(context);
+        Option<ImmutableArray<GraphEdge>> dirResponse = await GetSchedules(context);
         if (dirResponse.IsError()) return dirResponse.ToOptionStatus<SchedulesResponseModel>();
 
         IReadOnlyList<GraphEdge> items = dirResponse.Return();
@@ -200,17 +201,17 @@ public class SchedulerActor : Grain, ISchedulerActor
         return addResult.ToOptionStatus();
     }
 
-    private async Task<Option<IReadOnlyList<GraphEdge>>> GetSchedules(ScopeContext context)
+    private async Task<Option<ImmutableArray<GraphEdge>>> GetSchedules(ScopeContext context)
     {
         string command = $"select [fromKey={this.GetPrimaryKeyString()};edgeType={ScheduleEdgeTypeTool.EdgeTypeSearch}];";
 
         Option<GraphQueryResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
-        if (updateResult.IsError()) return updateResult.ToOptionStatus<IReadOnlyList<GraphEdge>>();
+        if (updateResult.IsError()) return updateResult.ToOptionStatus<ImmutableArray<GraphEdge>>();
 
         var graphCmdResult = updateResult.Return();
-        graphCmdResult.Items.Count.Assert(x => x == 1, $"Returned items count={graphCmdResult.Items.Count}");
+        graphCmdResult.Items.Length.Assert(x => x == 1, $"Returned items count={graphCmdResult.Items.Length}");
 
-        if (graphCmdResult.Items[0].Status == StatusCode.NoContent) return Array.Empty<GraphEdge>();
+        if (graphCmdResult.Items[0].Status == StatusCode.NoContent) return ImmutableArray<GraphEdge>.Empty;
         return updateResult.Return().Items[0].Edges().ToOption();
     }
 
@@ -223,7 +224,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         if (updateResult.IsError()) return updateResult.ToOptionStatus<IReadOnlyList<GraphEdge>>();
 
         GraphQueryResults result = updateResult.Return();
-        result.Items.Count.Assert(x => x == 1, "Multiple data sets was returned, expected only 1");
+        result.Items.Length.Assert(x => x == 1, "Multiple data sets was returned, expected only 1");
 
         return result.Items[0].Edges().OrderBy(x => x.CreatedDate).ToArray();
     }

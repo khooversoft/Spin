@@ -40,7 +40,7 @@ public class GraphAddNodeCommandTests
             x.Tags.ToTagsString().Should().Be("newTags");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -49,6 +49,62 @@ public class GraphAddNodeCommandTests
             x.Status.IsOk().Should().BeTrue();
             x.Status.Error.Should().BeNull();
             x.Items.Should().NotBeNull();
+        });
+
+        GraphQueryResult search = _map.ExecuteScalar("select (key=node99);", NullScopeContext.Instance);
+        search.Status.IsOk().Should().BeTrue();
+        search.Items.Length.Should().Be(1);
+        search.Items[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node99");
+            x.Tags.Count.Should().Be(1);
+            x.TagsString.Should().Be("newTags");
+            x.DataMap.Count.Should().Be(0);
+        });
+    }
+
+    [Fact]
+    public void SingleAddForNodeWithData()
+    {
+        var copyMap = _map.Copy();
+        var newMapOption = _map.Execute("add node key=node99, entity { 'aGVsbG8=' };", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        GraphQueryResults commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node99");
+            x.Tags.Count.Should().Be(0);
+            x.Links.Count.Should().Be(0);
+
+            x.DataMap.Count.Should().Be(1);
+            x.DataMap.Action(y =>
+            {
+                y.TryGetValue("entity", out var entity).Should().BeTrue();
+                entity!.Validate().IsOk().Should().BeTrue();
+                entity!.TypeName.Should().Be("default");
+                entity.Schema.Should().Be("json");
+                entity.Data64.Should().Be("aGVsbG8=");
+            });
+        });
+
+        GraphQueryResult search = _map.ExecuteScalar("select (key=node99);", NullScopeContext.Instance);
+        search.Status.IsOk().Should().BeTrue();
+        search.Items.Length.Should().Be(1);
+        search.Items[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("node99");
+            x.Tags.Count.Should().Be(0);
+            x.DataMap.Count.Should().Be(1);
+            x.DataMap.Values.First().Action(y =>
+            {
+                y.Schema.Should().Be("json");
+                y.TypeName.Should().Be("default");
+                y.Data64.Should().Be("aGVsbG8=");
+            });
         });
     }
 
@@ -69,7 +125,7 @@ public class GraphAddNodeCommandTests
             x.Tags.Count.Should().Be(0);
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -99,7 +155,7 @@ public class GraphAddNodeCommandTests
             x.Links.Join(',').Should().Be("ab/cd/ef");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -128,7 +184,7 @@ public class GraphAddNodeCommandTests
             x.Tags.ToTagsString().Should().Be("label=client,newTags");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
@@ -157,7 +213,7 @@ public class GraphAddNodeCommandTests
             x.LinksString.Should().Be("a/b/c/d,config:/system/directory.json");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>

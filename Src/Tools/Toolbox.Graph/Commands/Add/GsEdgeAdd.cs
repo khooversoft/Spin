@@ -2,7 +2,7 @@
 
 namespace Toolbox.Graph;
 
-public record GraphEdgeAdd : IGraphQL
+public record GsEdgeAdd : IGraphQL
 {
     public string FromKey { get; init; } = null!;
     public string ToKey { get; init; } = null!;

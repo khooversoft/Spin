@@ -24,12 +24,12 @@ public class DirectoryActorTests : IClassFixture<ClusterFixture>
         var result = await actor.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Count.Should().Be(0);
+        result.Return().Items.Length.Should().Be(0);
 
         result = await actor.ExecuteScalar("select (*);", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Count.Should().Be(1);
+        result.Return().Items.Length.Should().Be(1);
         result.Return().Items.OfType<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node1");
@@ -68,12 +68,12 @@ public class DirectoryActorTests : IClassFixture<ClusterFixture>
         var result = await actor.Command.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Count.Should().Be(0);
+        result.Return().Items.Length.Should().Be(0);
 
         result = await actor.Command.ExecuteScalar("select (*);", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Count.Should().Be(1);
+        result.Return().Items.Length.Should().Be(1);
         result.Return().Items.OfType<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node1");

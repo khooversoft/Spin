@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Immutable;
+using FluentAssertions;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -16,20 +17,27 @@ public class GraphCommandSerializationTests
             Items = new[]
             {
                 new GraphQueryResult(CommandType.Select, StatusCode.OK),
-            },
+            }.ToImmutableArray(),
         };
 
         string json = Json.Default.SerializePascal(g);
 
         GraphQueryResults r = json.ToObject<GraphQueryResults>().NotNull();
         r.Should().NotBeNull();
-        r.Items.Count.Should().Be(1);
+        r.Items.Length.Should().Be(1);
         r.Items[0].CommandType.Should().Be(CommandType.Select);
     }
 
     [Fact]
     public void GraphCommandResultsWithResult()
     {
+        ImmutableArray<IGraphCommon> items = new IGraphCommon[]
+        {
+            new GraphEdge("fromKey1", "toKey1", "edgeType2"),
+            new GraphNode("key1", "t1"),
+        }.ToImmutableArray<IGraphCommon>();
+
+
         var g = new GraphQueryResults
         {
             Items = new[]
@@ -42,20 +50,20 @@ public class GraphCommandSerializationTests
                     {
                         new GraphEdge("fromKey1", "toKey1", "edgeType2"),
                         new GraphNode("key1", "t1"),
-                    }
+                    }.ToImmutableArray(),
                 },
-            },
+            }.ToImmutableArray(),
         };
 
         string json = g.ToJson();
 
         GraphQueryResults r = json.ToObject<GraphQueryResults>().NotNull();
         r.Should().NotBeNull();
-        r.Items.Count.Should().Be(1);
+        r.Items.Length.Should().Be(1);
         r.Items[0].CommandType.Should().Be(CommandType.Select);
         r.Items[0].Should().NotBeNull();
         r.Items[0].Status.StatusCode.Should().Be(StatusCode.OK);
-        r.Items[0].Items.Count.Should().Be(2);
+        r.Items[0].Items.Length.Should().Be(2);
 
         r.Items[0].Items[0].Cast<GraphEdge>().Action(x =>
         {
