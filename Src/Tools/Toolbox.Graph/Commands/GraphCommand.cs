@@ -14,7 +14,7 @@ public static class GraphCommand
         return Execute(graphContext, graphQuery).Result;
     }
 
-    public static async Task<Option<GraphQueryResults>> Execute(GraphContext graphContext, string graphQuery)
+    public static async Task<Option<GraphQueryResults>> Execute(IGraphContext graphContext, string graphQuery)
     {
         graphContext.NotNull();
 

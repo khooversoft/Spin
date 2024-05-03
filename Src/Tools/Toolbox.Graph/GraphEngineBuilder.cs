@@ -29,14 +29,21 @@ public class GraphEngineBuilder
     public GraphEngine Build()
     {
         Map.NotNull("is required");
-        FileStore.NotNull("is required");
+        IFileStore fileStore = FileStore.NotNull("is required");
+
+        if (ChangeTrace != null)
+        {
+            fileStore = new FileStoreTraceShim(FileStore, ChangeTrace);
+        }
 
         var context = new GraphContext
         {
             ChangeTrace = ChangeTrace,
-            FileStore = FileStore,
+            FileStore = fileStore,
             Map = Map,
         };
+
+        return new GraphEngine(context);
     }
 }
 

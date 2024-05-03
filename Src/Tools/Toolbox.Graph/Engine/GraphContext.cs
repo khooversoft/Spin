@@ -22,9 +22,19 @@ public interface IGraphTrxContext : IGraphContext
 
 public class GraphContext : IGraphContext
 {
-    public GraphMap Map { get; init; } = null!;
-    public IChangeTrace? ChangeTrace { get; init; }
-    public IGraphCommand? Command { get; init; }
+    public GraphContext(GraphMap map, IChangeTrace? changeTrace, IGraphCommand? command, IGraphEntity? entity, IFileStore? fileStore, IGraphStore? graphStore)
+    {
+        Map = map;
+        ChangeTrace = changeTrace;
+        Command = command;
+        Entity = entity;
+        FileStore = fileStore;
+        GraphStore = graphStore;
+    }
+
+    public GraphMap Map { get; }
+    public IChangeTrace? ChangeTrace { get; }
+    public IGraphCommand? Command { get; }
     public IGraphEntity? Entity { get; init; }
     public IFileStore? FileStore { get; init; }
     public IGraphStore? GraphStore { get; init; }

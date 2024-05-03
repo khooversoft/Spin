@@ -25,3 +25,23 @@ public class GraphCommandMemory : IGraphCommand
         return result.Return().Items[0];
     }
 }
+
+public class GraphCommandClient : IGraphCommand
+{
+    private readonly IGraphContext _graphContext;
+    public GraphCommandClient(IGraphContext graphContext) => _graphContext = graphContext.NotNull();
+
+    public async Task<Option<GraphQueryResults>> Execute(string graphQuery, ScopeContext context)
+    {
+        var result = await GraphCommand.Execute(_graphContext, graphQuery);
+        return result;
+    }
+
+    public async Task<Option<GraphQueryResult>> ExecuteScalar(string graphQuery, ScopeContext context)
+    {
+        var result = await GraphCommand.Execute(_graphContext, graphQuery);
+        if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
+
+        return result.Return().Items[0];
+    }
+}
