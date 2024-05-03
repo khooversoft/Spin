@@ -79,7 +79,7 @@ public class GraphContextTraceTests
 
         var rec = new DummyClass("name1", 10);
         const string fileName = "nodes/data/DummyClass.json";
-        var writeResult = await graphContext.Store!.Add(fileName, rec, NullScopeContext.Instance);
+        var writeResult = await graphContext.FileStore!.Add(fileName, rec, NullScopeContext.Instance);
         writeResult.IsOk().Should().BeTrue();
 
         trace.Count.Should().Be(2);

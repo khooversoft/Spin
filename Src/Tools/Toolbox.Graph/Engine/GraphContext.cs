@@ -4,29 +4,46 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphContext
+public interface IGraphContext
 {
-    public GraphContext(GraphMap map, ScopeContext context)
-    {
-        Map = map.NotNull();
-        ChangeLog = new ChangeLog(this);
-        Context = context.NotNull();
-    }
+    GraphMap Map { get; }
+    IChangeTrace? ChangeTrace { get; }
+    IGraphCommand? Command { get; }
+    IGraphEntity? Entity { get; }
+    IFileStore? FileStore { get; }
+    IGraphStore? GraphStore { get; }
+    IGraphTrxContext CreateTrxContext();
+}
 
-    public GraphContext(GraphMap map, IFileStore store, IChangeTrace changeTrace, ScopeContext context)
-    {
-        Map = map.NotNull();
-        ChangeLog = new ChangeLog(this);
-        Store = store.NotNull();
-        ChangeTrace = changeTrace.NotNull();
-        Context = context.NotNull();
-    }
+public interface IGraphTrxContext : IGraphContext
+{
+    ChangeLog ChangeLog { get; }
+}
 
-    public GraphMap Map { get; }
-    public ChangeLog ChangeLog { get; }
-    public IFileStore? Store { get; }
-    public IChangeTrace? ChangeTrace { get; }
-    public ScopeContext Context { get; }
+public class GraphContext : IGraphContext
+{
+    public GraphMap Map { get; init; } = null!;
+    public IChangeTrace? ChangeTrace { get; init; }
+    public IGraphCommand? Command { get; init; }
+    public IGraphEntity? Entity { get; init; }
+    public IFileStore? FileStore { get; init; }
+    public IGraphStore? GraphStore { get; init; }
+
+    public IGraphTrxContext CreateTrxContext() => new GraphTrxContext
+    {
+        Map = Map,
+        FileStore = FileStore,
+        ChangeTrace = ChangeTrace,
+        Command = Command,
+        GraphStore = GraphStore,
+        Entity = Entity,
+        ChangeLog = new ChangeLog(this),
+    };
+}
+
+public class GraphTrxContext : GraphContext, IGraphTrxContext
+{
+    public ChangeLog ChangeLog { get; init; } = null!;
 }
 
 

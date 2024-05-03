@@ -172,7 +172,7 @@ public static class GraphCommand
 
     private static async Task<int> CustomLinkCount(IReadOnlyList<GraphNode> nodes, GraphContext graphContext)
     {
-        if (graphContext.Store == null) return 0;
+        if (graphContext.FileStore == null) return 0;
 
         var links = nodes
             .SelectMany(x => x.Links)
@@ -181,7 +181,7 @@ public static class GraphCommand
         int count = 0;
         foreach (var fileId in links)
         {
-            var existOption = await graphContext.Store.Exist(fileId, graphContext.Context);
+            var existOption = await graphContext.FileStore.Exist(fileId, graphContext.Context);
             if (existOption.IsOk()) count++;
         }
 
@@ -190,12 +190,12 @@ public static class GraphCommand
 
     private static async Task DeleteLinks(IReadOnlyList<GraphNode> nodes, GraphContext graphContext)
     {
-        if (graphContext.Store == null) return;
+        if (graphContext.FileStore == null) return;
 
         var linksToDelete = nodes.SelectMany(x => x.Links);
         foreach (var fileId in linksToDelete)
         {
-            var existOption = await graphContext.Store.Delete(fileId, graphContext.Context);
+            var existOption = await graphContext.FileStore.Delete(fileId, graphContext.Context);
             existOption.LogStatus(graphContext.Context.Location(), "Deleted link={fileId}", fileId);
         }
     }
