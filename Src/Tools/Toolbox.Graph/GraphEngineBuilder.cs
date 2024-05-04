@@ -36,22 +36,10 @@ public class GraphEngineBuilder
             fileStore = new FileStoreTraceShim(FileStore, ChangeTrace);
         }
 
-        var context = new GraphContext
-        {
-            ChangeTrace = ChangeTrace,
-            FileStore = fileStore,
-            Map = Map,
-        };
+        var context = new GraphContext(Map, ChangeTrace, fileStore);
 
         return new GraphEngine(context);
     }
-}
-
-public interface IGraphClient
-{
-    IGraphCommand? Command { get; }
-    IGraphEntity? Entity { get; }
-    IGraphStore? GraphStore { get; }
 }
 
 
@@ -63,4 +51,8 @@ public class GraphEngine
     }
 
     public IGraphContext GraphContext { get; }
+
+    public IGraphClient GetClient()
+    {
+    }
 }

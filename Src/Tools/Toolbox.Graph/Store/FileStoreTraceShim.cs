@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal class FileStoreTraceShim : IFileStore
+internal class FileStoreTraceShim : IGraphFileStore
 {
     private readonly IFileStore _filestore;
     private readonly IChangeTrace _changeTrace;
