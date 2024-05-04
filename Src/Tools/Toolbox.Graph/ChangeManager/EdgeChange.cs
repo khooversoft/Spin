@@ -18,7 +18,7 @@ public class EdgeChange : IChangeLog
     private GraphEdge CurrentValue { get; }
     private GraphEdge NewValue { get; }
 
-    public Option Undo(GraphContext graphContext)
+    public Option Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 

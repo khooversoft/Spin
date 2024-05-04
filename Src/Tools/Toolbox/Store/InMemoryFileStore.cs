@@ -12,7 +12,6 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
     private readonly ConcurrentDictionary<string, DataETag> _store = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();
     private readonly ILogger<InMemoryFileStore> _logger;
-    private readonly Guid _instanceKey = Guid.NewGuid();
 
     public InMemoryFileStore(ILogger<InMemoryFileStore> logger) => _logger = logger.NotNull();
 

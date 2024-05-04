@@ -42,7 +42,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public int Count => _index.Count;
 
-    internal Option Add(GraphEdge edge, bool unique = false, GraphContext? graphContext = null)
+    internal Option Add(GraphEdge edge, bool unique = false, IGraphTrxContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
@@ -63,7 +63,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    internal Option Set(GraphEdge edge, bool unique = false, GraphContext? graphContext = null)
+    internal Option Set(GraphEdge edge, bool unique = false, IGraphTrxContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
@@ -113,7 +113,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         return Query(new GraphEdgeSearch { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
     }
 
-    internal bool Remove(Guid edgeKey, GraphContext? graphContext = null)
+    internal bool Remove(Guid edgeKey, IGraphTrxContext? graphContext = null)
     {
         lock (_lock)
         {
@@ -128,7 +128,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    internal IReadOnlyList<string> Remove(string nodeKey, GraphContext? graphContext)
+    internal IReadOnlyList<string> Remove(string nodeKey, IGraphTrxContext? graphContext)
     {
         lock (_lock)
         {
@@ -172,7 +172,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public bool TryGetValue(Guid key, out GraphEdge? value) => _index.TryGetValue(key, out value);
 
-    internal Option Update(IReadOnlyList<GraphEdge> edges, Func<GraphEdge, GraphEdge> update, GraphContext? graphContext = null)
+    internal Option Update(IReadOnlyList<GraphEdge> edges, Func<GraphEdge, GraphEdge> update, IGraphTrxContext? graphContext = null)
     {
         edges.NotNull();
         update.NotNull();

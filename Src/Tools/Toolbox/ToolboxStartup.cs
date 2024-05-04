@@ -11,7 +11,7 @@ namespace Toolbox;
 
 public static class ToolboxStartup
 {
-    public static IServiceCollection AddInMemoryStore(this IServiceCollection services)
+    public static IServiceCollection AddInMemoryFileStore(this IServiceCollection services)
     {
         services.NotNull().AddSingleton<IFileStore, InMemoryFileStore>();
 

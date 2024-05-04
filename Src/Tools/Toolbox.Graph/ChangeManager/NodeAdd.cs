@@ -10,7 +10,7 @@ public class NodeAdd : IChangeLog
     public Guid LogKey { get; } = Guid.NewGuid();
     public GraphNode NewValue { get; }
 
-    public Option Undo(GraphContext graphContext)
+    public Option Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 

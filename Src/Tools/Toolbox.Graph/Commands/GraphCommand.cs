@@ -10,11 +10,11 @@ public static class GraphCommand
 {
     public static Option<GraphQueryResults> Execute(GraphMap map, string graphQuery, ScopeContext context)
     {
-        var graphContext = new GraphContext(map, context);
+        IGraphTrxContext graphContext = new GraphTrxContext(map, context);
         return Execute(graphContext, graphQuery).Result;
     }
 
-    public static async Task<Option<GraphQueryResults>> Execute(IGraphContext graphContext, string graphQuery)
+    public static async Task<Option<GraphQueryResults>> Execute(IGraphTrxContext graphContext, string graphQuery)
     {
         graphContext.NotNull();
 
@@ -69,7 +69,7 @@ public static class GraphCommand
         return new Option<GraphQueryResults>(mapResult, option.StatusCode, option.Error);
     }
 
-    private static GraphQueryResult AddNode(GsNodeAdd addNode, GraphContext graphContext)
+    private static GraphQueryResult AddNode(GsNodeAdd addNode, IGraphTrxContext graphContext)
     {
         var tags = addNode.Upsert ? addNode.Tags : addNode.Tags.RemoveCommands();
 
@@ -84,7 +84,7 @@ public static class GraphCommand
         return new GraphQueryResult(CommandType.AddNode, result);
     }
 
-    private static GraphQueryResult AddEdge(GsEdgeAdd addEdge, GraphContext graphContext)
+    private static GraphQueryResult AddEdge(GsEdgeAdd addEdge, IGraphTrxContext graphContext)
     {
         var tags = addEdge.Upsert ? addEdge.Tags : addEdge.Tags.RemoveCommands();
 
@@ -106,7 +106,7 @@ public static class GraphCommand
         return new GraphQueryResult(CommandType.AddEdge, result);
     }
 
-    private static GraphQueryResult UpdateEdge(GsEdgeUpdate updateEdge, GraphContext graphContext)
+    private static GraphQueryResult UpdateEdge(GsEdgeUpdate updateEdge, IGraphTrxContext graphContext)
     {
         GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, updateEdge.Search);
 
@@ -118,7 +118,7 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.UpdateEdge };
     }
 
-    private static GraphQueryResult UpdateNode(GsNodeUpdate updateNode, GraphContext graphContext)
+    private static GraphQueryResult UpdateNode(GsNodeUpdate updateNode, IGraphTrxContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, updateNode.Search);
 
@@ -130,7 +130,7 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.UpdateNode };
     }
 
-    private static GraphQueryResult DeleteEdge(GsEdgeDelete deleteEdge, GraphContext graphContext)
+    private static GraphQueryResult DeleteEdge(GsEdgeDelete deleteEdge, IGraphTrxContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, deleteEdge.Search);
 
@@ -141,7 +141,7 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.DeleteEdge };
     }
 
-    private static async Task<GraphQueryResult> DeleteNode(GsNodeDelete deleteNode, GraphContext graphContext)
+    private static async Task<GraphQueryResult> DeleteNode(GsNodeDelete deleteNode, IGraphTrxContext graphContext)
     {
         var searchResult = GraphQuery.Process(graphContext.Map, deleteNode.Search);
 
@@ -160,7 +160,7 @@ public static class GraphCommand
         return result;
     }
 
-    private static GraphQueryResult Select(GsSelect select, GraphContext graphContext)
+    private static GraphQueryResult Select(GsSelect select, IGraphTrxContext graphContext)
     {
         GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search) with
         {
@@ -170,7 +170,7 @@ public static class GraphCommand
         return searchResult with { CommandType = CommandType.Select };
     }
 
-    private static async Task<int> CustomLinkCount(IReadOnlyList<GraphNode> nodes, GraphContext graphContext)
+    private static async Task<int> CustomLinkCount(IReadOnlyList<GraphNode> nodes, IGraphTrxContext graphContext)
     {
         if (graphContext.FileStore == null) return 0;
 
@@ -188,7 +188,7 @@ public static class GraphCommand
         return count;
     }
 
-    private static async Task DeleteLinks(IReadOnlyList<GraphNode> nodes, GraphContext graphContext)
+    private static async Task DeleteLinks(IReadOnlyList<GraphNode> nodes, IGraphTrxContext graphContext)
     {
         if (graphContext.FileStore == null) return;
 

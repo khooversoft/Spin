@@ -11,7 +11,7 @@ public record NodeDelete : IChangeLog
     public Guid LogKey { get; } = Guid.NewGuid();
     public GraphNode CurrentValue { get; }
 
-    public Option Undo(GraphContext graphContext)
+    public Option Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 

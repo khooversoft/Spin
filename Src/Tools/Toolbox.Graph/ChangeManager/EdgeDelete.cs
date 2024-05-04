@@ -11,7 +11,7 @@ public record EdgeDelete : IChangeLog
     public Guid LogKey { get; } = Guid.NewGuid();
     private GraphEdge CurrentValue { get; }
 
-    public Option Undo(GraphContext graphContext)
+    public Option Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 

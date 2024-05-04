@@ -30,7 +30,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public int Count => _index.Count;
 
-    internal Option Add(GraphNode node, GraphContext? graphContext = null)
+    internal Option Add(GraphNode node, IGraphTrxContext? graphContext = null)
     {
         if (!node.Validate(out var v)) return v;
 
@@ -51,7 +51,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    internal Option Set(GraphNode node, GraphContext? graphContext = null)
+    internal Option Set(GraphNode node, IGraphTrxContext? graphContext = null)
     {
         if (!node.Validate(out var v)) return v;
 
@@ -84,7 +84,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    internal bool Remove(string key, GraphContext? graphContext = null)
+    internal bool Remove(string key, IGraphTrxContext? graphContext = null)
     {
         lock (_lock)
         {
@@ -101,7 +101,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
 
-    internal bool TryUpdate(string key, Func<GraphNode, GraphNode> update, GraphContext? graphContext = null)
+    internal bool TryUpdate(string key, Func<GraphNode, GraphNode> update, IGraphTrxContext? graphContext = null)
     {
         lock (_lock)
         {
@@ -116,7 +116,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    internal Option Update(IReadOnlyList<GraphNode> query, Func<GraphNode, GraphNode> update, GraphContext? graphContext = null)
+    internal Option Update(IReadOnlyList<GraphNode> query, Func<GraphNode, GraphNode> update, IGraphTrxContext? graphContext = null)
     {
         query.NotNull();
         update.NotNull();

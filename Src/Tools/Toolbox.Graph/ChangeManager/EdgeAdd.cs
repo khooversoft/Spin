@@ -10,7 +10,7 @@ public class EdgeAdd : IChangeLog
     public Guid LogKey { get; } = Guid.NewGuid();
     public GraphEdge NewValue { get; }
 
-    public Option Undo(GraphContext graphContext)
+    public Option Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 

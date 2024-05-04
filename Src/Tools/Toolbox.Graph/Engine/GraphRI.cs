@@ -8,7 +8,7 @@ internal class GraphRI
     public GraphNodeIndex GraphNodeIndex { get; set; } = null!;
     public GraphEdgeIndex GraphEdgeIndex { get; set; } = null!;
 
-    public bool RemovedNodeFromEdges(GraphNode graphNode, GraphContext? graphContext)
+    public bool RemovedNodeFromEdges(GraphNode graphNode, IGraphTrxContext? graphContext)
     {
         IReadOnlyList<string> removedSet = GraphEdgeIndex.Remove(graphNode.NotNull().Key, graphContext);
 

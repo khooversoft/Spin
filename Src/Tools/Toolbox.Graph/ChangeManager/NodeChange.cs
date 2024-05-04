@@ -17,7 +17,7 @@ public class NodeChange : IChangeLog
     public GraphNode CurrentValue { get; }
     public GraphNode NewValue { get; }
 
-    public Option Undo(GraphContext graphContext)
+    public Option Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 

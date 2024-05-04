@@ -1,26 +1,32 @@
 ﻿using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
 public interface IGraphClient
 {
-    IGraphCommand Command { get; }
-    IGraphEntity Entity { get; }
-    IGraphStore GraphStore { get; }
+    Task<Option<GraphQueryResults>> Execute(string command, ScopeContext context);
+    Task<Option<GraphQueryResult>> ExecuteScalar(string command, ScopeContext context);
 }
 
 public class GraphClient : IGraphClient
 {
-    public GraphClient(IGraphCommand command, IGraphEntity entity, IGraphStore graphStore)
+    private readonly IGraphContext _graphContext;
+    public GraphClient(IGraphContext graphContext) => _graphContext = graphContext.NotNull();
+
+    public Task<Option<GraphQueryResults>> Execute(string command, ScopeContext context)
     {
-        Command = command.NotNull();
-        Entity = entity.NotNull();
-        GraphStore = graphStore.NotNull();
+        var trxContext = _graphContext.CreateTrxContext(context);
+        var result = GraphCommand.Execute(trxContext, command);
+        return result;
     }
 
-    public IGraphCommand Command { get; }
+    public async Task<Option<GraphQueryResult>> ExecuteScalar(string command, ScopeContext context)
+    {
+        var trxContext = _graphContext.CreateTrxContext(context);
+        var result = await GraphCommand.Execute(trxContext, command);
+        if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
 
-    public IGraphEntity Entity { get; }
-
-    public IGraphStore GraphStore { get; }
+        return result.Return().Items[0];
+    }
 }

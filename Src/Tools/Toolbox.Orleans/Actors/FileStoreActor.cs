@@ -17,12 +17,12 @@ public interface IFileStoreActor : IGrainWithStringKey
 
 public class FileStoreActor : Grain, IFileStoreActor
 {
-    private readonly ILogger<DirectoryActor> _logger;
+    private readonly ILogger<FileStoreActor> _logger;
     private readonly ActorCacheState<DataETag> _state;
 
     public FileStoreActor(
         [PersistentState("json", OrleansConstants.StorageProviderName)] IPersistentState<DataETag> state,
-        ILogger<DirectoryActor> logger
+        ILogger<FileStoreActor> logger
         )
     {
         _state = new ActorCacheState<DataETag>(state, TimeSpan.FromMinutes(15));

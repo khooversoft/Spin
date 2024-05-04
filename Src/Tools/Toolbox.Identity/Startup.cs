@@ -14,10 +14,10 @@ public static class Startup
         builder.ConfigureServices(services =>
         {
             services.AddSingleton<IdentityService>();
-            services.AddSingleton<IIdentityClient>(service =>
-            {
-                return ActivatorUtilities.CreateInstance<IdentityActorConnector>(service, resourceId);
-            });
+            //services.AddSingleton<IIdentityClient>(service =>
+            //{
+            //    return ActivatorUtilities.CreateInstance<IdentityActorConnector>(service, resourceId);
+            //});
         });
 
         return builder;
