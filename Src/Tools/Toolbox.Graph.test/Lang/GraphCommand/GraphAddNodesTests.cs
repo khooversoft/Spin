@@ -32,7 +32,6 @@ public class GraphAddNodesTests
     [InlineData("add node key=key1, t=v2, t2;")]
     [InlineData("add node key=key1, t=v2, t2=v4;")]
     [InlineData("add node key=key1, t2, link=l1;")]
-    [InlineData("add node key=key1, t2, link=l1, link=t2;")]
     [InlineData("add node key=key1, data { 0xFF };")]
     [InlineData("add node key=key1, data { 0xFF }, contract { json=0x500, data=skdfajoefief };")]
     public void AddNodeAreValid(string line)
@@ -42,13 +41,12 @@ public class GraphAddNodesTests
     }
 
     [Theory]
-    [InlineData("add node key=key1;", "key1", "", "")]
-    [InlineData("add node key=key1, t1;", "key1", "t1", "")]
-    [InlineData("add node key=key1, t1, t2;", "key1", "t1,t2", "")]
-    [InlineData("add node key=key1, link=l1;", "key1", "", "l1")]
-    [InlineData("add node key=key1, link=l1, link=l2;", "key1", "", "l1,l2")]
-    [InlineData("add node key=key1, t1, t2, link=l1, link=l2;", "key1", "t1,t2", "l1,l2")]
-    public void AddNodeValidNodes(string cmd, string key, string tags, string links)
+    [InlineData("add node key=key1;", "key1", "")]
+    [InlineData("add node key=key1, t1;", "key1", "t1")]
+    [InlineData("add node key=key1, t1, t2;", "key1", "t1,t2")]
+    [InlineData("add node key=key1, link=l1;", "key1", "link=l1")]
+
+    public void AddNodeValidNodes(string cmd, string key, string tags)
     {
         Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(cmd);
         result.IsOk().Should().BeTrue(result.ToString());
@@ -60,7 +58,6 @@ public class GraphAddNodesTests
 
         query.Key.Should().Be(key);
         query.Tags.ToTagsString().Should().Be(tags);
-        query.Links.OrderBy(x => x).Join(',').Should().Be(links);
     }
 
     [Fact]
@@ -95,7 +92,6 @@ public class GraphAddNodesTests
 
         query.Key.Should().Be("key1");
         query.Tags.Count.Should().Be(0);
-        query.Links.Count.Should().Be(0);
         query.DataMap.Count.Should().Be(1);
 
         query.DataMap.Action(x =>
@@ -120,7 +116,6 @@ public class GraphAddNodesTests
 
         query.Key.Should().Be("key1");
         query.Tags.Count.Should().Be(0);
-        query.Links.Count.Should().Be(0);
         query.DataMap.Count.Should().Be(2);
 
         query.DataMap.Action(x =>
@@ -178,25 +173,6 @@ public class GraphAddNodesTests
     }
 
     [Fact]
-    public void AddNodeWithTagsAndLinks()
-    {
-        var q = "add node key=key1, t1=v1, t2, link=a/b/c, link=schema:path1/path2/path3;";
-
-        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
-        result.IsOk().Should().BeTrue(result.ToString());
-
-        IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(1);
-
-        if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
-
-        query.Key.Should().Be("key1");
-        query.Tags.ToTagsString().Should().Be("t1=v1,t2");
-        query.Links.OrderBy(x => x).Join(',').ToString().Should().Be("a/b/c,schema:path1/path2/path3");
-    }
-
-
-    [Fact]
     public void Upsert()
     {
         var q = "upsert node key=node3, contract { 'aGVsbG8=' };";
@@ -210,7 +186,6 @@ public class GraphAddNodesTests
         if (list[0] is not GsNodeAdd query) throw new ArgumentException("Invalid node");
 
         query.Tags.Count.Should().Be(0);
-        query.Links.Count.Should().Be(0);
         query.DataMap.Count.Should().Be(1);
 
         query.DataMap.Action(x =>
@@ -239,7 +214,6 @@ public class GraphAddNodesTests
 
         query.Tags.Count.Should().Be(1);
         query.Tags.ToTagsString().Should().Be("t1");
-        query.Links.Count.Should().Be(0);
         query.DataMap.Count.Should().Be(2);
 
         query.DataMap.Action(x =>

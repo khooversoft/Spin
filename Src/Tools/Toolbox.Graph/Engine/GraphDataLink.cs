@@ -8,19 +8,18 @@ namespace Toolbox.Graph;
 
 public sealed record GraphDataLink
 {
+    public string Name { get; init; } = null!;
     public string TypeName { get; init; } = null!;
     public string Schema { get; init; } = null!;
-    public string? FilePath { get; init; }
-    public string? Data64 { get; init; }
+    public string FileId { get; init; } = null!;
 
     public static IValidator<GraphDataLink> Validator { get; } = new Validator<GraphDataLink>()
+        .RuleFor(x => x.Name).ValidName()
         .RuleFor(x => x.TypeName).ValidName()
         .RuleFor(x => x.Schema).ValidName()
-        .RuleFor(x => x.FilePath).Must(x => x == null || IdPatterns.IsPath(x), x => $"Invalid File path={x}")
-        .RuleFor(x => x.Data64).Must(x => x == null || Base64.IsValid(x), x => $"Invalid base 64 data={x}")
+        .RuleFor(x => x.FileId).Must(x => IdPatterns.IsPath(x), x => $"Invalid File path={x}")
         .Build();
 }
-
 
 public static class GraphDataLinkTool
 {

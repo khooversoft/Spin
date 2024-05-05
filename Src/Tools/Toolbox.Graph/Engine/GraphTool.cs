@@ -18,51 +18,23 @@ public static class GraphTool
     private static string ToEncoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.chr, y.replace));
     private static string ToDecoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.replace, y.chr));
 
-    public static ImmutableHashSet<string> ToLinks(this IEnumerable<string> links) => links
-        .ToImmutableHashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-    public static ImmutableHashSet<string> ProcessLinks(IEnumerable<string> links, IEnumerable<string> linkCommands)
-    {
-        links.NotNull();
-        linkCommands.NotNull();
-
-        var list = new HashSet<string>(links, StringComparer.OrdinalIgnoreCase);
-
-        linkCommands.Where(x => x.Length > 0 && x[0] == '-').Select(x => x[1..]).ForEach(x => list.Remove(x));
-        linkCommands.Where(x => x.Length > 0 && x[0] != '-').ForEach(x => list.Add(x));
-
-        var result = list.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
-        return result;
-    }
 
     public static string CreateFileId(string nodeKey, string name, string extension = ".json")
     {
         nodeKey.NotEmpty();
         name.Assert(x => IdPatterns.IsName(x), x => $"{x} invalid name");
 
-        string file = ToEncoding(nodeKey.NotEmpty());
-        file = PathTool.SetExtension(file, ".json");
+        string file = PathTool.SetExtension(name, ".json");
+        string filePath = ToEncoding($"{nodeKey}/{file}");
 
         string storePath = nodeKey
             .Split(new char[] { ':', '/' }, StringSplitOptions.RemoveEmptyEntries)
-            .Func(x => x.Length > 1 ? x[0..(x.Length - 1)] : Array.Empty<string>())
+            .Select(x => ToEncoding(x))
+            .Prepend("nodes")
+            .Append(filePath)
             .Join('/');
 
-        string result = storePath.IsEmpty() switch
-        {
-            true => $"nodes/{name}/{file}",
-            false => $"nodes/{name}/{storePath}/{file}",
-        };
-
-        return result.ToLower();
-    }
-
-    public static Option<string> GetFileIdName(string fileId)
-    {
-        string[] parts = fileId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 3) return StatusCode.NotFound;
-
-        return parts[1];
+        return storePath.ToLower();
     }
 
     public static Option<(string nodeKey, string name, string file)> DecodeFileId(string fileId)
@@ -79,5 +51,3 @@ public static class GraphTool
         return result;
     }
 }
-
-

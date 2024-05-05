@@ -19,7 +19,6 @@ public class ChangeLog
         changeLog.NotNull();
 
         _commands.Push(changeLog);
-        _graphContext.ChangeTrace?.Log(changeLog.GetChangeTrx(TrxId));
     }
 
     public void Rollback()
@@ -27,7 +26,6 @@ public class ChangeLog
         while (_commands.TryPop(out var item))
         {
             item.Undo(_graphContext);
-            _graphContext.ChangeTrace?.Log(item.GetUndoChangeTrx(TrxId));
         }
     }
 

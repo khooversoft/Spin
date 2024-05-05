@@ -4,9 +4,9 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class EdgeChange : IChangeLog
+public class CmEdgeChange : IChangeLog
 {
-    public EdgeChange(GraphEdge currentValue, GraphEdge newValue)
+    public CmEdgeChange(GraphEdge currentValue, GraphEdge newValue)
     {
         CurrentValue = currentValue.NotNull();
         NewValue = newValue.NotNull();
@@ -18,16 +18,13 @@ public class EdgeChange : IChangeLog
     private GraphEdge CurrentValue { get; }
     private GraphEdge NewValue { get; }
 
-    public Option Undo(IGraphTrxContext graphContext)
+    public Task<Option> Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 
         graphContext.Map.Edges[CurrentValue.Key] = CurrentValue;
         graphContext.Context.LogInformation("Rollback Edge: restored edge logKey={logKey}, edgeKey={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
 
-        return StatusCode.OK;
+        return ((Option)StatusCode.OK).ToTaskResult();
     }
-
-    public ChangeTrx GetChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.EdgeChange, trxKey, LogKey, CurrentValue, NewValue);
-    public ChangeTrx GetUndoChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.UndoEdgeChange, trxKey, LogKey, CurrentValue, NewValue);
 }

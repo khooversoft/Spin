@@ -69,24 +69,25 @@ public class DirectoryActor : Grain, IDirectoryActor
         return StatusCode.OK;
     }
 
-    public async Task<Option<GraphQueryResults>> Execute(string command, string traceId)
+    public Task<Option<GraphQueryResults>> Execute(string command, string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
-        context.Location().LogInformation("Command, search={search}", command);
+        throw new NotImplementedException();
+        //var context = new ScopeContext(traceId, _logger);
+        //if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
+        //context.Location().LogInformation("Command, search={search}", command);
 
-        var commandOption = _map.Execute(command, context);
-        if (commandOption.StatusCode.IsError()) return commandOption;
+        //var commandOption = _map.Execute(command, context);
+        //if (commandOption.StatusCode.IsError()) return commandOption;
 
-        GraphQueryResults commandResult = commandOption.Return();
+        //GraphQueryResults commandResult = commandOption.Return();
 
-        bool isMapModified = commandResult.Items.Any(x => x.CommandType != CommandType.Select);
-        if (!isMapModified) return commandResult;
+        //bool isMapModified = commandResult.Items.Any(x => x.CommandType != CommandType.Select);
+        //if (!isMapModified) return commandResult;
 
-        context.Location().LogInformation("Directory command modified graph, writing changes");
+        //context.Location().LogInformation("Directory command modified graph, writing changes");
 
-        await SetGraphToStorage();
-        return commandResult;
+        //await SetGraphToStorage();
+        //return commandResult;
     }
 
     private async Task ReadGraphFromStorage(bool forceRead = false)

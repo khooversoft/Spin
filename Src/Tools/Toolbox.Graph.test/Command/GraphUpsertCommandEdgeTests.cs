@@ -24,14 +24,15 @@ public class GraphUpsertCommandEdgeTests
     };
 
     [Fact]
-    public void UpsertForEdge()
+    public async Task UpsertForEdge()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert edge fromKey=node6, toKey=node3, edgeType=default, newTags;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert edge fromKey=node6, toKey=node3, edgeType=default, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -54,14 +55,15 @@ public class GraphUpsertCommandEdgeTests
     }
 
     [Fact]
-    public void UpsertForEdgeWithRemoveTag()
+    public async Task UpsertForEdgeWithRemoveTag()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert edge fromKey=node1, toKey=node2, -knows;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert edge fromKey=node1, toKey=node2, -knows;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -84,10 +86,11 @@ public class GraphUpsertCommandEdgeTests
     }
 
     [Fact]
-    public void SingleAddWithUpsertForEdge()
+    public async Task SingleAddWithUpsertForEdge()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();

@@ -7,8 +7,7 @@ namespace Toolbox.Graph;
 public interface IGraphContext
 {
     GraphMap Map { get; }
-    IChangeTrace ChangeTrace { get; }
-    IFileStore FileStore { get; }
+    IGraphFileStore FileStore { get; }
 }
 
 public interface IGraphTrxContext : IGraphContext

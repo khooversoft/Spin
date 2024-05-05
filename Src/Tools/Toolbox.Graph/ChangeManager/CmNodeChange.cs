@@ -4,9 +4,9 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class NodeChange : IChangeLog
+public class CmNodeChange : IChangeLog
 {
-    public NodeChange(GraphNode currentValue, GraphNode newValue)
+    public CmNodeChange(GraphNode currentValue, GraphNode newValue)
     {
         CurrentValue = currentValue.NotNull();
         NewValue = newValue.NotNull();
@@ -17,15 +17,12 @@ public class NodeChange : IChangeLog
     public GraphNode CurrentValue { get; }
     public GraphNode NewValue { get; }
 
-    public Option Undo(IGraphTrxContext graphContext)
+    public Task<Option> Undo(IGraphTrxContext graphContext)
     {
         graphContext.NotNull();
 
         graphContext.Map.Nodes[CurrentValue.Key] = CurrentValue;
         graphContext.Context.LogInformation("Rollback Node: restored node logKey={logKey}, key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
-        return StatusCode.OK;
+        return ((Option)StatusCode.OK).ToTaskResult();
     }
-
-    public ChangeTrx GetChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.NodeChange, trxKey, LogKey, CurrentValue, NewValue);
-    public ChangeTrx GetUndoChangeTrx(Guid trxKey) => new ChangeTrx(ChangeTrxType.UndoNodeChange, trxKey, LogKey, CurrentValue, NewValue);
 }

@@ -11,20 +11,6 @@ namespace Toolbox.Graph.test.GraphDbStore;
 
 public class GraphEngineTests
 {
-    //private IGraphClient CreateEngine()
-    //{
-    //    var services = new ServiceCollection()
-    //        .AddLogging()
-    //        .AddInMemoryFileStore()
-    //        .AddGraphTrace()
-    //        .AddGraphFileStore()
-    //        .AddGraphEngine()
-    //        .BuildServiceProvider();
-
-    //    var graphClient = services.GetRequiredService<IGraphClient>();
-    //    return graphClient;
-    //}
-
     [Fact]
     public async Task AddNode()
     {

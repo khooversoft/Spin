@@ -57,10 +57,11 @@ public class GraphDirectoryTests
 
 
     [Fact]
-    public void DirectorySearchQuery()
+    public async Task DirectorySearchQuery()
     {
         var map = GetMap();
-        var search = map.ExecuteScalar("select [fromKey=system:schedule-work, edgeType=scheduleWorkType:*];", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(map);
+        var search = (await testClient.ExecuteScalar("select [fromKey=system:schedule-work, edgeType=scheduleWorkType:*];", NullScopeContext.Instance)).ThrowOnError().Return();
         search.Should().NotBeNull();
         search.Items.Length.Should().Be(2);
         search.Edges().Length.Should().Be(2);
@@ -87,9 +88,10 @@ public class GraphDirectoryTests
     }
 
     [Fact]
-    public void UpdateDirectoryEdge()
+    public async Task UpdateDirectoryEdge()
     {
         var map = GetMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost(map);
 
         var search = "[fromKey=system:schedule-work, toKey=schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129, edgeType=scheduleWorkType:*]";
 
@@ -99,7 +101,7 @@ public class GraphDirectoryTests
             .Add("set edgeType=scheduleWorkType:Completed")
             .Join(" ") + ";";
 
-        var result = map.Execute(command, NullScopeContext.Instance);
+        var result = await testClient.Execute(command, NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue(result.ToString());
 
@@ -115,7 +117,7 @@ public class GraphDirectoryTests
             x.EdgeType.Should().Be("scheduleWorkType:Active");
         });
 
-        Option<GraphQueryResults> rOption = map.Execute($"select {search};", NullScopeContext.Instance);
+        Option<GraphQueryResults> rOption = await testClient.Execute($"select {search};", NullScopeContext.Instance);
         rOption.IsOk().Should().BeTrue();
 
         GraphQueryResults r = rOption.Return();

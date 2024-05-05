@@ -55,8 +55,7 @@ public static class GraphAddCommand
     {
         string? key = null;
         var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-        var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var dataMap = new Dictionary<string, GraphDataLink>(StringComparer.OrdinalIgnoreCase);
+        var dataMap = new Dictionary<string, GraphDataSource>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -75,10 +74,6 @@ public static class GraphAddCommand
                         case "key" when key == null: key = rvalue.Value; break;
                         case "key" when key != null: return (StatusCode.BadRequest, "Key already specified");
 
-                        case "link":
-                            links.Add(rvalue.Value);
-                            break;
-
                         default:
                             if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                             break;
@@ -87,10 +82,10 @@ public static class GraphAddCommand
                     break;
 
                 case { SyntaxNode.Name: "dataName" }:
-                    var dataGroupOption = GraphDataMapParser.GetGraphDataLink(stack);
+                    var dataGroupOption = GraphDataMapParser.GetGraphDataLink(stack, langNode.Value);
                     if (dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GsNodeAdd>();
 
-                    GraphDataLink data = dataGroupOption.Return();
+                    GraphDataSource data = dataGroupOption.Return();
                     dataMap.Add(langNode.Value, data);
                     break;
 
@@ -105,7 +100,6 @@ public static class GraphAddCommand
                         Key = key,
                         Tags = tags.ToTags(),
                         Upsert = upsert,
-                        Links = links.ToLinks(),
                         DataMap = dataMap.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
                     };
 

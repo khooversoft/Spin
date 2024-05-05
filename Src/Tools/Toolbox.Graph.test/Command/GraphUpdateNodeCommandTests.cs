@@ -25,10 +25,11 @@ public class GraphUpdateNodeCommandTests
     };
 
     [Fact]
-    public void SingleUpdateForNode()
+    public async Task SingleUpdateForNode()
     {
-        var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update (key=node3) set t1;", NullScopeContext.Instance);
+        var workMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
+        var newMapOption = await testClient.Execute("update (key=node3) set t1;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -62,10 +63,11 @@ public class GraphUpdateNodeCommandTests
     }
 
     [Fact]
-    public void SingleUpdateForNodeWithData()
+    public async Task SingleUpdateForNodeWithData()
     {
-        var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update (key=node3) set contract { 'aGVsbG8=' };", NullScopeContext.Instance);
+        var workMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
+        var newMapOption = await testClient.Execute("update (key=node3) set contract { 'aGVsbG8=' };", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -82,7 +84,7 @@ public class GraphUpdateNodeCommandTests
 
         commandResults.Items.Length.Should().Be(1);
 
-        GraphQueryResult search = workMap.ExecuteScalar("select (key=node3);", NullScopeContext.Instance);
+        GraphQueryResult search = (await testClient.ExecuteScalar("select (key=node3);", NullScopeContext.Instance)).ThrowOnError().Return();
         search.Status.IsOk().Should().BeTrue();
         search.Items.Length.Should().Be(1);
         search.Items[0].Cast<GraphNode>().Action(x =>
@@ -94,55 +96,17 @@ public class GraphUpdateNodeCommandTests
             {
                 y.Schema.Should().Be("json");
                 y.TypeName.Should().Be("default");
-                y.Data64.Should().Be("aGVsbG8=");
+                y.FileId.Should().Be("nodes/node3/node3___contract.json");
             });
         });
     }
 
     [Fact]
-    public void SingleUpdateForNodeWithLink()
+    public async Task SingleRemoveTagForNode()
     {
-        var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update (key=node3) set link=abc/def, link=name:nodes/contract/contract1.json;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
-
-        compareMap.Count.Should().Be(1);
-        var index = compareMap.ToCursor();
-
-        index.NextValue().Return().Cast<GraphNode>().Action(x =>
-        {
-            x.Key.Should().Be("node3");
-            x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
-            x.LinksString.Should().Be("abc/def,name:nodes/contract/contract1.json");
-        });
-
-        commandResults.Items.Length.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.UpdateNode);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Length.Should().Be(1);
-
-            var resultIndex = x.Items.NotNull().ToCursor();
-            resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
-            {
-                x.Key.Should().Be("node3");
-                x.Tags.ToTagsString().Should().Be("lang=java,name=lop");
-                x.Links.Count.Should().Be(0);
-            });
-        });
-    }
-
-    [Fact]
-    public void SingleRemoveTagForNode()
-    {
-        var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("update (key=node3) set -name;", NullScopeContext.Instance);
+        var workMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
+        var newMapOption = await testClient.Execute("update (key=node3) set -name;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();

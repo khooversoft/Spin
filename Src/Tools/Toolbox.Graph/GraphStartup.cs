@@ -11,52 +11,30 @@ namespace Toolbox.Graph;
 
 public static class GraphStartup
 {
-    public static IServiceCollection AddGraphTrace(this IServiceCollection services)
+    //public static IServiceCollection AddGraphFileStore(this IServiceCollection services)
+    //{
+    //    services.NotNull().AddSingleton(services => (IGraphFileStore)services.GetRequiredService<IFileStore>());
+
+    //    return services;
+    //}
+
+    public static IServiceCollection AddGraphInMemoryFileStore(this IServiceCollection services)
     {
-        services.NotNull();
-        services.AddSingleton<IChangeTrace, InMemoryChangeTrace>();
-        services.AddSingleton<IGraphFileStore, FileStoreTraceShim>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddGraphFileStore(this IServiceCollection services)
-    {
-        services.NotNull().AddSingleton(services => (IGraphFileStore)services.GetRequiredService<IFileStore>());
-
-        return services;
-    }
-
-    public static IServiceCollection AddGraphEngine(this IServiceCollection services)
-    {
-        services.NotNull();
-        services.AddSingleton<GraphMap>();
-        services.AddSingleton<IGraphContext, GraphContext>();
-        services.AddSingleton<IGraphClient, GraphClient>();
-
+        services.NotNull().AddSingleton<IGraphFileStore, InMemoryGraphFileStore>();
         return services;
     }
 }
 
 public static class GraphTestStartup
 {
-    public static IServiceCollection AddGraphTestHost(this IServiceCollection services)
-    {
-        services.NotNull();
-
-        services.AddInMemoryFileStore();
-        services.AddGraphTrace();
-        services.AddGraphFileStore();
-        services.AddGraphEngine();
-
-        return services;
-    }
-
-    public static GraphTestClient CreateGraphTestHost()
+    public static GraphTestClient CreateGraphTestHost(GraphMap? graphMap = null)
     {
         var services = new ServiceCollection()
             .AddLogging()
-            .AddGraphTestHost()
+            .AddGraphInMemoryFileStore()
+            .AddSingleton<GraphMap>(graphMap ?? new GraphMap())
+            .AddSingleton<IGraphContext, GraphContext>()
+            .AddSingleton<IGraphClient, GraphClient>()
             .BuildServiceProvider();
 
         var graphClient = new GraphTestClient(services.GetRequiredService<IGraphContext>(), services);

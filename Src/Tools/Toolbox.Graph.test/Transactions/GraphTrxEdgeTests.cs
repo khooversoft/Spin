@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -8,9 +9,10 @@ public class GraphTrxEdgeTests
 {
 
     [Fact]
-    public void AddEdgeFailure()
+    public async Task AddEdgeFailure()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         string q = """
             add node key=node1;
@@ -19,7 +21,7 @@ public class GraphTrxEdgeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        map.Execute(q, NullScopeContext.Instance).IsOk().Should().BeTrue();
+        (await testClient.Execute(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
         map.Nodes.Count.Should().Be(3);
         map.Edges.Count.Should().Be(1);
@@ -29,7 +31,7 @@ public class GraphTrxEdgeTests
             add node key=node3;
             """;
 
-        map.Execute(q2, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.AddEdge, StatusCode.OK, 0));
@@ -41,9 +43,10 @@ public class GraphTrxEdgeTests
     }
 
     [Fact]
-    public void UpdateEdgeFailure()
+    public async Task UpdateEdgeFailure()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         string q = """
             add node key=node1;
@@ -53,7 +56,7 @@ public class GraphTrxEdgeTests
             add unique edge fromKey=node2, toKey=node3;
             """;
 
-        map.Execute(q, NullScopeContext.Instance).IsOk().Should().BeTrue();
+        (await testClient.Execute(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
         map.Nodes.Count.Should().Be(3);
         map.Edges.Count.Should().Be(2);
@@ -63,7 +66,7 @@ public class GraphTrxEdgeTests
             add node key=node2;
             """;
 
-        map.Execute(q2, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.UpdateEdge, StatusCode.OK, 1));
@@ -75,9 +78,10 @@ public class GraphTrxEdgeTests
     }
 
     [Fact]
-    public void DeleteEdgeFailure()
+    public async Task DeleteEdgeFailure()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         string q = """
             add node key=node1;
@@ -88,7 +92,7 @@ public class GraphTrxEdgeTests
             add unique edge fromKey=node2, toKey=node3;
             """;
 
-        map.Execute(q, NullScopeContext.Instance).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
+        (await testClient.Execute(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
         map.Nodes.Count.Should().Be(3);
         map.Edges.Count.Should().Be(2);
@@ -98,7 +102,7 @@ public class GraphTrxEdgeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        map.Execute(q2, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.DeleteEdge, StatusCode.OK, 1));

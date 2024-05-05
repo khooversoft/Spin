@@ -58,7 +58,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesFrom.Set(edge.FromKey, edge.Key);
             _edgesTo.Set(edge.ToKey, edge.Key);
 
-            graphContext?.ChangeLog.Push(new EdgeAdd(edge));
+            graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
             return StatusCode.OK;
         }
     }
@@ -75,14 +75,14 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             {
                 readEdge = readEdge.With(edge);
                 _index[readEdge.Key] = readEdge;
-                graphContext?.ChangeLog.Push(new EdgeChange(readEdge, edge));
+                graphContext?.ChangeLog.Push(new CmEdgeChange(readEdge, edge));
                 return StatusCode.OK;
             }
 
             _index[edge.Key] = edge;
             _masterList.Add(edge).Assert<bool, InvalidOperationException>(x => x == true, _ => "Failed to update edge on upsert");
 
-            graphContext?.ChangeLog.Push(new EdgeAdd(edge));
+            graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
         }
 
         _edgesFrom.Set(edge.FromKey, edge.Key);
@@ -123,7 +123,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesFrom.RemovePrimaryKey(nodeValue.Key);
             _edgesTo.RemovePrimaryKey(nodeValue.Key);
 
-            graphContext?.ChangeLog.Push(new EdgeDelete(nodeValue));
+            graphContext?.ChangeLog.Push(new CmEdgeDelete(nodeValue));
             return true;
         }
     }
@@ -190,7 +190,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
                 newValue.ToKey.EqualsIgnoreCase(currentValue.ToKey).Assert(x => x == true, "Cannot change the To key key");
                 _index[currentValue.Key] = newValue;
 
-                graphContext?.ChangeLog.Push(new EdgeChange(currentValue, newValue));
+                graphContext?.ChangeLog.Push(new CmEdgeChange(currentValue, newValue));
             });
 
             return StatusCode.OK;

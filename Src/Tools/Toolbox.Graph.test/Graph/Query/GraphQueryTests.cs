@@ -24,9 +24,10 @@ public class GraphQueryTests
     };
 
     [Fact]
-    public void NodeToEdge()
+    public async Task NodeToEdge()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (name) -> [knows];", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) -> [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -40,9 +41,10 @@ public class GraphQueryTests
     }
 
     [Fact]
-    public void NodeToEdgeWithAlias()
+    public async Task NodeToEdgeWithAlias()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (name) -> [knows] a1;", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) -> [knows] a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -60,9 +62,10 @@ public class GraphQueryTests
     }
 
     [Fact]
-    public void NodeToEdgeToNode()
+    public async Task NodeToEdgeToNode()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (name) -> [related] -> (name=lop);", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) -> [related] -> (name=lop);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);
@@ -76,9 +79,10 @@ public class GraphQueryTests
     }
 
     [Fact]
-    public void EdgeToNode()
+    public async Task EdgeToNode()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select [knows] -> (*);", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select [knows] -> (*);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -92,9 +96,10 @@ public class GraphQueryTests
     }
 
     [Fact]
-    public void NodeToEdgeToNodeWithAliases()
+    public async Task NodeToEdgeToNodeWithAliases()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (target) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (target) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);
@@ -127,18 +132,20 @@ public class GraphQueryTests
 
 
     [Fact]
-    public void IncorrectJoinOnEdgeShouldFail()
+    public async Task IncorrectJoinOnEdgeShouldFail()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=29) a3;", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=29) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(0);
     }
 
     [Fact]
-    public void KeyNodeToEdgeToNodeWithAliases()
+    public async Task KeyNodeToEdgeToNodeWithAliases()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);

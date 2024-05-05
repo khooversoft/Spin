@@ -17,9 +17,8 @@ public class GraphNodeTests
         var n1 = new GraphNode(key);
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(0);
-        n1.Links.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, TagsTool.Empty, n1.CreatedDate, [], GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, TagsTool.Empty, n1.CreatedDate, GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -35,9 +34,8 @@ public class GraphNodeTests
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(1);
         n1.Tags.ToTagsString().Should().Be("t1");
-        n1.Links.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, [], GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -53,9 +51,8 @@ public class GraphNodeTests
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
-        n1.Links.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, [], GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -65,15 +62,13 @@ public class GraphNodeTests
     {
         string key = "key2";
         string tags = "t1, t2=v2";
-        string[] links = ["link1", "link2"];
 
-        var n1 = new GraphNode(key, tags.ToTags(), DateTime.UtcNow, links.ToImmutableHashSet(), GraphDataLinkTool.Empty);
+        var n1 = new GraphNode(key, tags.ToTags(), DateTime.UtcNow, GraphDataLinkTool.Empty);
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
-        n1.Links.Count.Should().Be(2);
 
-        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, links.ToImmutableHashSet(), GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, GraphDataLinkTool.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -123,7 +118,6 @@ public class GraphNodeTests
             "node1",
             tags: "t1,t2=v2".ToTags(),
             createdDate: DateTime.UtcNow,
-            links: ["abc", "linke1/parent"],
             dataMap: GraphDataLinkTool.Empty
             );
 

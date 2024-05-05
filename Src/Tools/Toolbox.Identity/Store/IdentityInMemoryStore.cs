@@ -21,8 +21,9 @@ public class IdentityInMemoryStore : IIdentityClient
 
     public Task<Option<GraphQueryResults>> Execute(string command, string traceId)
     {
-        var context = new ScopeContext(traceId, _logger);
-        return _map.Execute(command, context).ToTaskResult();
+        throw new NotImplementedException();
+        //var context = new ScopeContext(traceId, _logger);
+        //return _map.Execute(command, context).ToTaskResult();
     }
 
     public IPrincipalIdentityActor GetPrincipalIdentityActor(string principalId)

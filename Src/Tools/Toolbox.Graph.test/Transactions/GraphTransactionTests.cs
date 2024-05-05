@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -7,16 +8,17 @@ namespace Toolbox.Graph.test.Transactions;
 public class GraphTransactionTests
 {
     [Fact]
-    public void SimpleSetOfCommandsWithFailuresKey()
+    public async Task SimpleSetOfCommandsWithFailuresKey()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         string q = """
             add node key=node1, t1;
             add node key=node2,t2,client;
             """;
 
-        map.Execute(q, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q, NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(2);
@@ -27,7 +29,7 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        map.Execute("add node key=node1, t1, t2;", NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute("add node key=node1, t1, t2;", NullScopeContext.Instance)).Action(x =>
         {
             x.IsConflict().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(1);
@@ -44,7 +46,7 @@ public class GraphTransactionTests
             add edge fromKey=node3, toKey=node4;
             """;
 
-        map.Execute(q2, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(4);
@@ -65,7 +67,7 @@ public class GraphTransactionTests
             add edge fromKey=node3, toKey=node4;
             """;
 
-        map.Execute(q3, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q3, NullScopeContext.Instance)).Action(x =>
         {
             x.IsError().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(3);

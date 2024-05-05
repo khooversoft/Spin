@@ -25,14 +25,15 @@ public class GraphDeleteCommandTests
     };
 
     [Fact]
-    public void SingleDeleteForNode()
+    public async Task SingleDeleteForNode()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("delete (key=node1);", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("delete (key=node1);", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(3);
         var index = compareMap.ToCursor();
@@ -77,10 +78,11 @@ public class GraphDeleteCommandTests
 
 
     [Fact]
-    public void SingleDeleteForEdgeToNode()
+    public async Task SingleDeleteForEdgeToNode()
     {
-        var copyMap = _map.Copy();
-        var commandResults = _map.ExecuteScalar("delete [created] -> (lang=java);", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var commandResults = (await testClient.ExecuteScalar("delete [created] -> (lang=java);", NullScopeContext.Instance)).ThrowOnError().Return();
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
         commandResults.Items.NotNull().Length.Should().Be(2);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
@@ -92,17 +94,18 @@ public class GraphDeleteCommandTests
             .All(x => x.First == x.Second)
             .Should().BeTrue();
 
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
         compareMap.Count.Should().Be(6);
         compareMap.OfType<GraphNode>().Count().Should().Be(2);
         compareMap.OfType<GraphEdge>().Count().Should().Be(4);
     }
 
     [Fact]
-    public void SingleDeleteForEdgeToNode2()
+    public async Task SingleDeleteForEdgeToNode2()
     {
-        var copyMap = _map.Copy();
-        var commandResults = _map.ExecuteScalar("delete [created] -> (marked=true);", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var commandResults = (await testClient.ExecuteScalar("delete [created] -> (marked=true);", NullScopeContext.Instance)).ThrowOnError().Return();
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
         commandResults.Items.NotNull().Length.Should().Be(1);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
@@ -116,14 +119,15 @@ public class GraphDeleteCommandTests
     }
 
     [Fact]
-    public void SingleDeleteForEdge()
+    public async Task SingleDeleteForEdge()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("delete [fromKey=node4, toKey=node5];", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("delete [fromKey=node4, toKey=node5];", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();

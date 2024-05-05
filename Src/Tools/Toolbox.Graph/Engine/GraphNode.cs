@@ -22,14 +22,12 @@ public sealed record GraphNode : IGraphCommon
         string key,
         ImmutableDictionary<string, string?> tags,
         DateTime createdDate,
-        ImmutableHashSet<string> links,
         ImmutableDictionary<string, GraphDataLink> dataMap
         )
     {
         Key = key.NotNull();
         Tags = tags?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, string?>.Empty;
         CreatedDate = createdDate;
-        Links = links?.ToImmutableHashSet(StringComparer.Ordinal) ?? ImmutableHashSet<string>.Empty;
         DataMap = dataMap?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, GraphDataLink>.Empty;
     }
 
@@ -37,26 +35,21 @@ public sealed record GraphNode : IGraphCommon
     public ImmutableDictionary<string, string?> Tags { get; private init; }
     public string TagsString => Tags.ToTagsString();
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
-    public ImmutableHashSet<string> Links { get; private init; } = [];
-    public string LinksString => Links.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Join(',');
     public ImmutableDictionary<string, GraphDataLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphDataLink>.Empty;
     public string DataMapString => DataMap.ToDataMapString();
 
     public GraphNode With(GraphNode node) => this with
     {
         Tags = TagsTool.ProcessTags(Tags, node.Tags),
-        Links = GraphTool.ProcessLinks(Links, node.Links),
         DataMap = DataMap.Concat(node.DataMap).Distinct().ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
     };
 
     public GraphNode With(
         IEnumerable<KeyValuePair<string, string?>> tagCommands,
-        IEnumerable<string> linkCommands,
         IEnumerable<KeyValuePair<string, GraphDataLink>> dataMap
         ) => this with
         {
             Tags = TagsTool.ProcessTags(Tags, tagCommands),
-            Links = GraphTool.ProcessLinks(Links, linkCommands),
             DataMap = DataMap.Concat(dataMap).Distinct().ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
         };
 
@@ -66,8 +59,6 @@ public sealed record GraphNode : IGraphCommon
             Key == subject.Key &&
             Tags.DeepEquals(subject.Tags) &&
             CreatedDate == subject.CreatedDate &&
-            Links.Count == subject.Links.Count &&
-            Links.SequenceEqual(subject.Links) &&
             DataMap.DeepEquals(subject.DataMap);
 
         return result;
@@ -78,7 +69,6 @@ public sealed record GraphNode : IGraphCommon
     public static IValidator<GraphNode> Validator { get; } = new Validator<GraphNode>()
         .RuleFor(x => x.Key).NotNull()
         .RuleFor(x => x.Tags).NotNull()
-        .RuleFor(x => x.Links).NotNull()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .Build();
 }

@@ -82,35 +82,6 @@ public class GraphUpdateNodeTests
     }
 
     [Fact]
-    public void updateNodeWithLink()
-    {
-        var q = "update (key=key1, t1) set t2, link=l1;";
-
-        Option<IReadOnlyList<IGraphQL>> result = GraphLang.Parse(q);
-        result.IsOk().Should().BeTrue(result.ToString());
-
-        IReadOnlyList<IGraphQL> list = result.Return();
-        list.Count.Should().Be(1);
-
-        int index = 0;
-        list[index++].Action(x =>
-        {
-            if (x is not GsNodeUpdate query) throw new ArgumentException("Invalid type");
-
-            query.Tags.ToTagsString().Should().Be("t2");
-            query.Links.Join(',').Should().Be("l1");
-            query.Search.Count.Should().Be(1);
-            query.Search.Count.Should().Be(1);
-
-            query.Search[0].Cast<GraphNodeSearch>().Action(x =>
-            {
-                x.Key.Should().Be("key1");
-                x.Tags.ToTagsString().Should().Be("t1");
-            });
-        });
-    }
-
-    [Fact]
     public void AddSingleData()
     {
         var q = "update (key=key1, t1) set entity { 'VGhpcyBpcyBhIHRlc3Q=' };";
@@ -124,7 +95,6 @@ public class GraphUpdateNodeTests
         if (list[0] is not GsNodeUpdate query) throw new ArgumentException("Invalid node");
 
         query.Tags.Count.Should().Be(0);
-        query.Links.Count.Should().Be(0);
         query.DataMap.Count.Should().Be(1);
 
         query.DataMap.Action(x =>
@@ -151,7 +121,6 @@ public class GraphUpdateNodeTests
         if (list[0] is not GsNodeUpdate query) throw new ArgumentException("Invalid node");
 
         query.Tags.Count.Should().Be(0);
-        query.Links.Count.Should().Be(0);
         query.DataMap.Count.Should().Be(2);
 
         query.DataMap.Action(x =>

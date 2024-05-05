@@ -51,8 +51,7 @@ public static class GraphUpdateCommand
     private static Option<GsNodeUpdate> ParseNode(Stack<LangNode> stack)
     {
         var tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-        var links = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var dataMap = new Dictionary<string, GraphDataLink>(StringComparer.OrdinalIgnoreCase);
+        var dataMap = new Dictionary<string, GraphDataSource>(StringComparer.OrdinalIgnoreCase);
 
         while (stack.TryPop(out var langNode))
         {
@@ -66,20 +65,11 @@ public static class GraphUpdateCommand
                     if (!stack.TryPop(out var equal) || equal.SyntaxNode.Name != "equal") return (StatusCode.BadRequest, "No equal");
                     if (!stack.TryPop(out var rvalue) || rvalue.SyntaxNode.Name != "rvalue") return (StatusCode.BadRequest, "No rvalue");
 
-                    switch (langNode.Value.ToLower())
-                    {
-                        case "link":
-                            links.Add(rvalue.Value);
-                            break;
-
-                        default:
-                            if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
-                            break;
-                    }
+                    if (!tags.TryAdd(langNode.Value, rvalue.Value)) return (StatusCode.BadRequest, $"Duplicate tag={langNode.Value}");
                     break;
 
                 case { SyntaxNode.Name: "dataName" }:
-                    var dataGroupOption = GraphDataMapParser.GetGraphDataLink(stack);
+                    var dataGroupOption = GraphDataMapParser.GetGraphDataLink(stack, langNode.Value);
                     if (dataGroupOption.IsError()) return dataGroupOption.ToOptionStatus<GsNodeUpdate>();
 
                     var data = dataGroupOption.Return();
@@ -95,7 +85,6 @@ public static class GraphUpdateCommand
                     return new GsNodeUpdate
                     {
                         Tags = tags.ToTags(),
-                        Links = links.ToLinks(),
                         DataMap = dataMap.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
                     };
 

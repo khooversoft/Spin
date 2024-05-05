@@ -25,9 +25,10 @@ public class GraphQueryNodeTests
 
 
     [Fact]
-    public void AllNodesQuery()
+    public async Task AllNodesQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (*);", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (*);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
@@ -35,9 +36,10 @@ public class GraphQueryNodeTests
     }
 
     [Fact]
-    public void NodeQuery()
+    public async Task NodeQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
@@ -52,9 +54,10 @@ public class GraphQueryNodeTests
     }
 
     [Fact]
-    public void QueryWithAlias()
+    public async Task QueryWithAlias()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (key=node1) a1;", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=node1) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);
@@ -76,9 +79,10 @@ public class GraphQueryNodeTests
     }
 
     [Fact]
-    public void TagDefaultQuery1()
+    public async Task TagDefaultQuery1()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (name) a1;", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(6);
@@ -92,9 +96,10 @@ public class GraphQueryNodeTests
     }
 
     [Fact]
-    public void SpecificTagDefaultQuery()
+    public async Task SpecificTagDefaultQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (name=marko);", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue(result.Status.Error);
         result.Items.Length.Should().Be(1);
@@ -108,9 +113,10 @@ public class GraphQueryNodeTests
     }
 
     [Fact]
-    public void TagWithTagKeywordQuery()
+    public async Task TagWithTagKeywordQuery()
     {
-        GraphQueryResult result = _map.ExecuteScalar("select (name=marko);", NullScopeContext.Instance);
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.ExecuteScalar("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue(result.Status.Error);
         result.Items.Length.Should().Be(1);
@@ -124,8 +130,10 @@ public class GraphQueryNodeTests
     }
 
     [Fact]
-    public void StarNodeSearch()
+    public async Task StarNodeSearch()
     {
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+
         var cmds = new (string query, Func<GraphNode, bool> filter, int count)[]
         {
             ("select (key=*);", x => true, 7),
@@ -134,7 +142,7 @@ public class GraphQueryNodeTests
 
         foreach (var cmd in cmds)
         {
-            GraphQueryResult result = _map.ExecuteScalar(cmd.query, NullScopeContext.Instance);
+            GraphQueryResult result = (await testClient.ExecuteScalar(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
 
             result.Status.IsOk().Should().BeTrue(result.Status.Error);
             result.Items.Length.Should().Be(cmd.count);
@@ -149,8 +157,10 @@ public class GraphQueryNodeTests
     }
 
     [Fact]
-    public void StarEdgeSearch()
+    public async Task StarEdgeSearch()
     {
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+
         var cmds = new (string query, Func<GraphEdge, bool> filter, int count)[]
         {
             ("select [fromKey=*];", x => true, 5),
@@ -168,7 +178,7 @@ public class GraphQueryNodeTests
 
         foreach (var cmd in cmds)
         {
-            GraphQueryResult result = _map.ExecuteScalar(cmd.query, NullScopeContext.Instance);
+            GraphQueryResult result = (await testClient.ExecuteScalar(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
 
             result.Status.IsOk().Should().BeTrue(result.Status.Error);
             result.Items.Length.Should().Be(cmd.count);

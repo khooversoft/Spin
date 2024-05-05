@@ -52,7 +52,13 @@ public static class DataETagExtensions
 
     public static DataETag ToDataETag<T>(this T value) where T : class
     {
-        var bytes = value.ToJson().ToBytes();
+        var bytes = value switch
+        {
+            null => throw new ArgumentNullException("value"),
+            string v => v.ToBytes(),
+            var v => v.ToJson().ToBytes(),
+        };
+
         var hash = bytes.ToHexHash();
         return new DataETag(bytes, hash);
     }

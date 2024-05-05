@@ -11,8 +11,7 @@ public struct GraphNode_Surrogate
     [Id(0)] public string Key;
     [Id(1)] public string Tags;
     [Id(2)] public DateTime CreatedDate;
-    [Id(3)] public string[] Links;
-    [Id(4)] public KeyValuePair<string, GraphDataLink>[] DataMap;
+    [Id(3)] public KeyValuePair<string, GraphDataLink>[] DataMap;
 }
 
 
@@ -23,7 +22,6 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         surrogate.Key,
         surrogate.Tags.ToTags(),
         surrogate.CreatedDate,
-        surrogate.Links.ToLinks(),
         surrogate.DataMap.ToImmutableDictionary(x => x.Key, x => x.Value)
         );
 
@@ -32,7 +30,6 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         Key = value.Key,
         Tags = value.Tags.ToTagsString(),
         CreatedDate = value.CreatedDate,
-        Links = [.. value.Links],
         DataMap = [.. value.DataMap],
     };
 }

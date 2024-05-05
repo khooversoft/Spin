@@ -24,14 +24,15 @@ public class GraphUpsertCommandNodeTests
     };
 
     [Fact]
-    public void UpsertForNode()
+    public async Task UpsertForNode()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert node key=node1, newTags;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert node key=node1, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -50,7 +51,7 @@ public class GraphUpsertCommandNodeTests
             x.Items.Should().NotBeNull();
         });
 
-        var lookupOption = _map.Execute("select (key=node1);", NullScopeContext.Instance);
+        var lookupOption = await testClient.Execute("select (key=node1);", NullScopeContext.Instance);
         lookupOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults lookupResults = lookupOption.Return();
@@ -63,14 +64,15 @@ public class GraphUpsertCommandNodeTests
     }
 
     [Fact]
-    public void UpsertForNodeWithTagValue()
+    public async Task UpsertForNodeWithTagValue()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert node key=node1, newTags=v99;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert node key=node1, newTags=v99;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -89,7 +91,7 @@ public class GraphUpsertCommandNodeTests
             x.Items.Should().NotBeNull();
         });
 
-        var lookupOption = _map.Execute("select (key=node1);", NullScopeContext.Instance);
+        var lookupOption = await testClient.Execute("select (key=node1);", NullScopeContext.Instance);
         lookupOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults lookupResults = lookupOption.Return();
@@ -102,14 +104,15 @@ public class GraphUpsertCommandNodeTests
     }
 
     [Fact]
-    public void SingleUpdateForNodeWithData()
+    public async Task SingleUpdateForNodeWithData()
     {
-        var workMap = _map.Copy();
-        var newMapOption = workMap.Execute("upsert node key=node3, contract { 'aGVsbG8=' };", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert node key=node3, contract { 'aGVsbG8=' };", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, workMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         var index = compareMap.ToCursor();
@@ -122,7 +125,7 @@ public class GraphUpsertCommandNodeTests
 
         commandResults.Items.Length.Should().Be(1);
 
-        GraphQueryResult search = workMap.ExecuteScalar("select (key=node3);", NullScopeContext.Instance);
+        GraphQueryResult search = (await testClient.ExecuteScalar("select (key=node3);", NullScopeContext.Instance)).ThrowOnError().Return();
         search.Status.IsOk().Should().BeTrue();
         search.Items.Length.Should().Be(1);
         search.Items[0].Cast<GraphNode>().Action(x =>
@@ -134,20 +137,21 @@ public class GraphUpsertCommandNodeTests
             {
                 y.Schema.Should().Be("json");
                 y.TypeName.Should().Be("default");
-                y.Data64.Should().Be("aGVsbG8=");
+                y.FileId.Should().Be("nodes/node3/node3___contract.json");
             });
         });
     }
 
     [Fact]
-    public void UpsertForNodeWithRemoveTag()
+    public async Task UpsertForNodeWithRemoveTag()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert node key=node6, -name;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert node key=node6, -name;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -166,7 +170,7 @@ public class GraphUpsertCommandNodeTests
             x.Items.Should().NotBeNull();
         });
 
-        var lookupOption = _map.Execute("select (key=node6);", NullScopeContext.Instance);
+        var lookupOption = await testClient.Execute("select (key=node6);", NullScopeContext.Instance);
         lookupOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults lookupResults = lookupOption.Return();
@@ -179,14 +183,15 @@ public class GraphUpsertCommandNodeTests
     }
 
     [Fact]
-    public void SingleAddWithUpsertForNode()
+    public async Task SingleAddWithUpsertForNode()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert node key=node99, newTags;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert node key=node99, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -207,14 +212,15 @@ public class GraphUpsertCommandNodeTests
     }
 
     [Fact]
-    public void SingleAddWithUpsertForNodeWithMultipleTags()
+    public async Task SingleAddWithUpsertForNodeWithMultipleTags()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("upsert node key=node99, newTags,label=client;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("upsert node key=node99, newTags,label=client;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>

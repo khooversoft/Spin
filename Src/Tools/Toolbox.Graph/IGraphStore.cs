@@ -12,7 +12,7 @@
 //}
 
 
-//public static class IGraphStore2Extensions
+//public static class IGraphStoreExtensions
 //{
 //    public static Task<Option<string>> Add<T>(this IGraphStore store, string nodeKey, string name, T value, ScopeContext context) where T : class
 //    {

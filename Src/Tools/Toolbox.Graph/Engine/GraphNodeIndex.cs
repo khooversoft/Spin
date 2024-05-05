@@ -44,7 +44,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
             if (option.IsOk())
             {
-                graphContext?.ChangeLog.Push(new NodeAdd(node));
+                graphContext?.ChangeLog.Push(new CmNodeAdd(node));
             }
 
             return option;
@@ -66,8 +66,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _index[node.Key] = node;
             graphContext?.ChangeLog.Push(current switch
             {
-                null => new NodeAdd(node),
-                not null => new NodeChange(current, node),
+                null => new CmNodeAdd(node),
+                not null => new CmNodeChange(current, node),
             });
 
             return StatusCode.OK;
@@ -91,7 +91,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             if (_index.Remove(key, out var oldValue))
             {
                 _graphRI.RemovedNodeFromEdges(oldValue!, graphContext);
-                graphContext?.ChangeLog.Push(new NodeDelete(oldValue));
+                graphContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
                 return true;
             }
 
@@ -111,7 +111,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             currentValue.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
             _index[key] = newValue;
 
-            graphContext?.ChangeLog.Push(new NodeChange(currentValue, newValue));
+            graphContext?.ChangeLog.Push(new CmNodeChange(currentValue, newValue));
             return true;
         }
     }
@@ -132,7 +132,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 x.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
                 _index[x.Key] = newValue;
 
-                graphContext?.ChangeLog.Push(new NodeChange(x, newValue));
+                graphContext?.ChangeLog.Push(new CmNodeChange(x, newValue));
             });
 
             return StatusCode.OK;

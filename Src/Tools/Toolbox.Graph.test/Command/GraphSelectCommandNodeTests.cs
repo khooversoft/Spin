@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphSelectCommandTests
+public class GraphSelectCommandNodeTests
 {
     private readonly GraphMap _map = new GraphMap()
     {
@@ -25,10 +25,12 @@ public class GraphSelectCommandTests
     };
 
     [Fact]
-    public void LookupSingleNode()
+    public async Task LookupSingleNode()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("select (key=node4);", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+
+        var newMapOption = await testClient.Execute("select (key=node4);", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -50,17 +52,18 @@ public class GraphSelectCommandTests
             {
                 x.Key.Should().Be("node4");
                 x.Tags.ToTagsString().Should().Be("age=32,name=josh");
-                x.Links.Count.Should().Be(0);
                 x.DataMap.Count.Should().Be(0);
             });
         });
     }
 
     [Fact]
-    public void LookupSingleNodeWithReturn()
+    public async Task LookupSingleNodeWithReturn()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("select (key=node4) return lease;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+
+        var newMapOption = await testClient.Execute("select (key=node4) return lease;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -83,17 +86,18 @@ public class GraphSelectCommandTests
             {
                 x.Key.Should().Be("node4");
                 x.Tags.ToTagsString().Should().Be("age=32,name=josh");
-                x.Links.Count.Should().Be(0);
                 x.DataMap.Count.Should().Be(0);
             });
         });
     }
 
     [Fact]
-    public void LookupSingleNodeWithTwoReturn()
+    public async Task LookupSingleNodeWithTwoReturn()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("select (key=node4) return lease, contract;", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+
+        var newMapOption = await testClient.Execute("select (key=node4) return lease, contract;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -116,17 +120,18 @@ public class GraphSelectCommandTests
             {
                 x.Key.Should().Be("node4");
                 x.Tags.ToTagsString().Should().Be("age=32,name=josh");
-                x.Links.Count.Should().Be(0);
                 x.DataMap.Count.Should().Be(0);
             });
         });
     }
 
     [Fact]
-    public void SingleSelectForNode()
+    public async Task SingleSelectForNode()
     {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("select (lang=java);", NullScopeContext.Instance);
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+
+        var newMapOption = await testClient.Execute("select (lang=java);", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -159,111 +164,6 @@ public class GraphSelectCommandTests
             {
                 x.Key.Should().Be("node7");
                 x.Tags.ToTagsString().Should().Be("lang=java");
-            });
-        });
-    }
-
-    [Fact]
-    public void SingleSelectForEdge()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("select [knows];", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
-
-        commandResults.Items.Length.Should().Be(1);
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.Select);
-            x.Status.IsOk().Should().BeTrue();
-
-            x.Items.NotNull().Length.Should().Be(2);
-
-            var index = x.Items.NotNull().ToCursor();
-            index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node1");
-                x.ToKey.Should().Be("node2");
-                x.Tags.ToTagsString().Should().Be("knows,level=1");
-            });
-
-            index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node1");
-                x.ToKey.Should().Be("node3");
-                x.Tags.ToTagsString().Should().Be("knows,level=1");
-            });
-        });
-    }
-
-
-    [Fact]
-    public void TwoSelectCommandQuery()
-    {
-        var copyMap = _map.Copy();
-        var newMapOption = _map.Execute("select [knows];select [created];", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
-
-        GraphQueryResults commandResults = newMapOption.Return();
-        GraphCommandTools.CompareMap(copyMap, _map).Count.Should().Be(0);
-        commandResults.Items.Length.Should().Be(2);
-
-        var resultIndex = commandResults.Items.ToCursor();
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.Select);
-            x.Status.IsOk().Should().BeTrue();
-
-            x.Items.NotNull().Length.Should().Be(2);
-            var index = x.Items.NotNull().ToCursor();
-
-            index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node1");
-                x.ToKey.Should().Be("node2");
-                x.Tags.ToTagsString().Should().Be("knows,level=1");
-            });
-
-            index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node1");
-                x.ToKey.Should().Be("node3");
-                x.Tags.ToTagsString().Should().Be("knows,level=1");
-            });
-        });
-
-        resultIndex.NextValue().Return().Action(x =>
-        {
-            x.CommandType.Should().Be(CommandType.Select);
-            x.Status.IsOk().Should().BeTrue();
-
-            x.Items.NotNull().Length.Should().Be(3);
-            var index = x.Items.NotNull().ToCursor();
-
-            index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node6");
-                x.ToKey.Should().Be("node3");
-                x.Tags.ToTagsString().Should().Be("created");
-            });
-
-            index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node4");
-                x.ToKey.Should().Be("node5");
-                x.Tags.ToTagsString().Should().Be("created");
-            });
-
-            index.NextValue().Return().Cast<GraphEdge>().Action(x =>
-            {
-                x.FromKey.Should().Be("node4");
-                x.ToKey.Should().Be("node3");
-                x.Tags.ToTagsString().Should().Be("created");
             });
         });
     }

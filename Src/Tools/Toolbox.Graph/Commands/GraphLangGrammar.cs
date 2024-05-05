@@ -12,16 +12,15 @@ namespace Toolbox.Graph;
 /// [...] = {* | v | k=v}
 /// search = { (...) | [...] } [-> { (...) | [...] ...}
 /// tag = {k | k=v}[, {k | k=v}...]
-/// link = {link=v}[, {link=v}...]
 /// data = {name} {{ k, k=v, ... }}
 /// 
 /// store data = {name} {{ [schema=json,] name=name, data64=base64 }}
 /// 
 /// select search
-/// add {node | {unique? edge} } { tag, link, data }
-/// upsert {node | edge} { tag, link, data }
+/// add {node | {unique? edge} } { tag, data }
+/// upsert {node | edge} { tag, data }
 /// delete search [force]
-/// update search set { tag, link, data }
+/// update search set { tag, data }
 /// 
 /// "unique edge" constraint no duplicate for fromKey + toKey
 /// 
@@ -33,8 +32,7 @@ public static class GraphLangGrammar
         "select",       "add",          "node",
         "edge",         "delete",       "update",
         "set",          "key",          "tags",
-        "upsert",       "unique",       "link",
-        "force"
+        "upsert",       "unique",       "force"
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))

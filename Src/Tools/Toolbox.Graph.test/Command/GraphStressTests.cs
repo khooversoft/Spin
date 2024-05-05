@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -10,10 +11,11 @@ public class GraphStressTests
     public async Task SerializeTasks()
     {
         const int count = 1000;
-        var map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
-        await AddNodes(map, 0, count);
-        await AddEdges(map, 0, count - 1);
+        await AddNodes(testClient, 0, count);
+        await AddEdges(testClient, 0, count - 1);
 
         map.Nodes.Count.Should().Be(count);
         map.Edges.Count.Should().Be(count - 1);
@@ -23,14 +25,15 @@ public class GraphStressTests
     public async Task ParallelTasks()
     {
         const int count = 1000;
-        var map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
-        await AddNodes(map, 0, count);
+        await AddNodes(testClient, 0, count);
         map.Nodes.Count.Should().Be(count);
 
         Task[] tasks = [
-            AddNodes(map, count, count),
-            AddEdges(map, 0, count - 1),
+            AddNodes(testClient, count, count),
+            AddEdges(testClient, 0, count - 1),
         ];
 
         await Task.WhenAll(tasks);
@@ -43,9 +46,10 @@ public class GraphStressTests
     public async Task SerializeBatchTasks()
     {
         const int count = 10;
-        var map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
-        await AddBatch(map, 0, count);
+        await AddBatch(testClient, 0, count);
 
         map.Nodes.Count.Should().Be(count);
         map.Edges.Count.Should().Be(count - 1);
@@ -57,10 +61,11 @@ public class GraphStressTests
     [InlineData(10, 1000)]
     public async Task ParallelBatchTasks(int batchCount, int count)
     {
-        var map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         var tasks = Enumerable.Range(0, batchCount)
-            .Select(x => AddBatch(map, x * count, count))
+            .Select(x => AddBatch(testClient, x * count, count))
             .ToArray();
 
         await Task.WhenAll(tasks);
@@ -69,7 +74,7 @@ public class GraphStressTests
         map.Edges.Count.Should().Be((batchCount * (count - 1)));
     }
 
-    private Task AddNodes(GraphMap map, int start, int count)
+    private async Task AddNodes(GraphTestClient testClient, int start, int count)
     {
         for (int i = 0; i < count; i++)
         {
@@ -77,14 +82,12 @@ public class GraphStressTests
             string tags = $"t1,t2=v{i + start}";
 
             string cmd = $"add node key={key}, {tags};";
-            var option = map.Execute(cmd, NullScopeContext.Instance);
+            var option = await testClient.Execute(cmd, NullScopeContext.Instance);
             option.IsOk().Should().BeTrue();
         }
-
-        return Task.CompletedTask;
     }
 
-    private Task AddEdges(GraphMap map, int start, int count)
+    private async Task AddEdges(GraphTestClient testClient, int start, int count)
     {
         for (int i = 0; i < count; i++)
         {
@@ -93,14 +96,12 @@ public class GraphStressTests
             string tags = $"t1,t2=v{i + start}";
 
             string cmd = $"add edge fromKey={fromKey}, toKey={toKey}, {tags};";
-            var option = map.Execute(cmd, NullScopeContext.Instance);
+            var option = await testClient.Execute(cmd, NullScopeContext.Instance);
             option.IsOk().Should().BeTrue(option.ToString());
         }
-
-        return Task.CompletedTask;
     }
 
-    private Task AddBatch(GraphMap map, int start, int count)
+    private async Task AddBatch(GraphTestClient testClient, int start, int count)
     {
         var cmds = new Sequence<string>();
 
@@ -121,8 +122,7 @@ public class GraphStressTests
         }
 
         string command = cmds.Join();
-        var option = map.Execute(command, NullScopeContext.Instance);
+        var option = await testClient.Execute(command, NullScopeContext.Instance);
         option.IsOk().Should().BeTrue(option.ToString());
-        return Task.CompletedTask;
     }
 }

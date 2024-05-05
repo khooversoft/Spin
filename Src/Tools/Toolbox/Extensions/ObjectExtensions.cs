@@ -18,6 +18,8 @@ public static class ObjectExtensions
         .ToArray();
 
     public static string ToJson<T>(this T subject) => Json.Default.Serialize(subject);
+    public static string ToJson64<T>(this T subject) => Convert.ToBase64String(subject.ToJson().ToBytes());
+    public static string ToJsonFromJson64(this string subject) => Convert.FromBase64String(subject).BytesToString();
 
     public static string ToJsonSafe<T>(this T subject, ScopeContextLocation context)
     {
@@ -65,6 +67,15 @@ public static class ObjectExtensions
             _ => Json.Default.Deserialize<T>(json),
         };
     }
+
+    //public static T? ToObjectFrom64<T>(this string json)
+    //{
+    //    return json switch
+    //    {
+    //        string v when v.IsEmpty() => default,
+    //        _ => Json.Default.Deserialize<T>(Convert.FromBase64String(json).BytesToString()),
+    //    };
+    //}
 
     /// <summary>
     /// Convert to Json formatted

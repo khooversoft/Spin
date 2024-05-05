@@ -8,10 +8,10 @@ namespace Toolbox.Graph;
 
 public static class GraphDataMapParser
 {
-    public static Option<GraphDataLink> GetGraphDataLink(Stack<LangNode> stack)
+    public static Option<GraphDataSource> GetGraphDataLink(Stack<LangNode> stack, string name)
     {
         var getOption = GetDataGroup(stack);
-        if (getOption.IsError()) return getOption.ToOptionStatus<GraphDataLink>();
+        if (getOption.IsError()) return getOption.ToOptionStatus<GraphDataSource>();
 
         var dataDict = getOption.Return();
 
@@ -30,14 +30,15 @@ public static class GraphDataMapParser
             false => dataDict.TryGetValue("data64", out var dv) ? dv.NotEmpty() : string.Empty
         };
 
-        var data = new GraphDataLink
+        var data = new GraphDataSource
         {
+            Name = name,
             TypeName = typeName,
             Schema = schemaValue,
             Data64 = dataValue,
         };
 
-        if (!data.Validate(out var r)) return r.ToOptionStatus<GraphDataLink>();
+        if (!data.Validate(out var r)) return r.ToOptionStatus<GraphDataSource>();
         return data;
     }
 

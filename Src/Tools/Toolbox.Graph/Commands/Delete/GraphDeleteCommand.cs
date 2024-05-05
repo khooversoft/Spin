@@ -12,12 +12,6 @@ public static class GraphDeleteCommand
         if (!stack.TryPeek(out var cmd) || cmd.SyntaxNode.Name != "delete") return (StatusCode.NotFound, $"Command delete not found");
         stack.Pop();
 
-        bool force = stack.TryPeek(out var forceCmd) switch
-        {
-            true when forceCmd.SyntaxNode.Name == "force" => true.Action(_ => stack.Pop()),
-            _ => false,
-        };
-
         var selectListOption = GraphSelectCommand.Parse(stack);
         if (selectListOption.IsError()) return selectListOption.ToOptionStatus<IGraphQL>();
 
@@ -30,7 +24,6 @@ public static class GraphDeleteCommand
                 return new GsNodeDelete
                 {
                     Search = gsSelect.Search,
-                    Force = force,
                 };
 
             case GraphEdgeSearch:

@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -7,16 +8,17 @@ namespace Toolbox.Graph.test.Command;
 public class GraphLifecycleTest
 {
     [Fact]
-    public void SingleNode()
+    public async Task SingleNode()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
-        Option<GraphQueryResults> addResult = map.Execute("add node key=node1, t1,t2=v1;", NullScopeContext.Instance);
+        Option<GraphQueryResults> addResult = await testClient.Execute("add node key=node1, t1,t2=v1;", NullScopeContext.Instance);
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
-        map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
+        (await testClient.ExecuteScalar("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue();
             x.Items.Length.Should().Be(1);
@@ -27,12 +29,12 @@ public class GraphLifecycleTest
             });
         });
 
-        Option<GraphQueryResults> removeResult = map.Execute("delete (key=node1);", NullScopeContext.Instance);
+        Option<GraphQueryResults> removeResult = await testClient.Execute("delete (key=node1);", NullScopeContext.Instance);
         removeResult.IsOk().Should().BeTrue(removeResult.ToString());
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
 
-        map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
+        (await testClient.ExecuteScalar("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue();
             x.Items.Length.Should().Be(0);
@@ -40,21 +42,22 @@ public class GraphLifecycleTest
     }
 
     [Fact]
-    public void TwoNodes()
+    public async Task TwoNodes()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
-        Option<GraphQueryResults> addResult1 = map.Execute("add node key=node1, t1,t2=v1;", NullScopeContext.Instance);
+        Option<GraphQueryResults> addResult1 = await testClient.Execute("add node key=node1, t1,t2=v1;", NullScopeContext.Instance);
         addResult1.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
-        Option<GraphQueryResults> addResult2 = map.Execute("add node key=node2, t10,t20=v10;", NullScopeContext.Instance);
+        Option<GraphQueryResults> addResult2 = await testClient.Execute("add node key=node2, t10,t20=v10;", NullScopeContext.Instance);
         addResult2.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
+        (await testClient.ExecuteScalar("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
             x.Items.Length.Should().Be(1);
@@ -65,7 +68,7 @@ public class GraphLifecycleTest
             });
         });
 
-        map.ExecuteScalar("select (key=node2);", NullScopeContext.Instance).Action(x =>
+        (await testClient.ExecuteScalar("select (key=node2);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
             x.Items.Length.Should().Be(1);
@@ -76,20 +79,20 @@ public class GraphLifecycleTest
             });
         });
 
-        map.Execute("delete (key=node1);", NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute("delete (key=node1);", NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             map.Nodes.Count.Should().Be(1);
             map.Edges.Count.Should().Be(0);
         });
 
-        map.ExecuteScalar("select (key=node1);", NullScopeContext.Instance).Action(x =>
+        (await testClient.ExecuteScalar("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
             x.Items.Length.Should().Be(0);
         });
 
-        map.ExecuteScalar("select (key=node2);", NullScopeContext.Instance).Action(x =>
+        (await testClient.ExecuteScalar("select (key=node2);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
             x.Items.Length.Should().Be(1);
@@ -100,7 +103,7 @@ public class GraphLifecycleTest
             });
         });
 
-        map.Execute("delete (key=node2);", NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute("delete (key=node2);", NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Return().Items.Length.Should().Be(1);
@@ -111,9 +114,10 @@ public class GraphLifecycleTest
     }
 
     [Fact]
-    public void FailOnDuplicateTagKey()
+    public async Task FailOnDuplicateTagKey()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         string q = """
             add node key=node1, t1;
@@ -121,7 +125,7 @@ public class GraphLifecycleTest
             """;
 
 
-        map.Execute(q, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q, NullScopeContext.Instance)).Action(x =>
         {
             x.IsError().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(2);
@@ -144,9 +148,10 @@ public class GraphLifecycleTest
     }
 
     [Fact]
-    public void TwoNodesWithRelationship()
+    public async Task TwoNodesWithRelationship()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         string q = """
             add node key=node1, t1;
@@ -154,7 +159,7 @@ public class GraphLifecycleTest
             add edge fromKey=node1,toKey=node2,edgeType=et,e2, worksFor;
             """;
 
-        map.Execute(q, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q, NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Return().Items.Length.Should().Be(3);
@@ -163,7 +168,7 @@ public class GraphLifecycleTest
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(1);
 
-        var query = map.ExecuteScalar("select (key=node1) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance);
+        var query = (await testClient.ExecuteScalar("select (key=node1) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance)).ThrowOnError().Return();
         query.Status.IsOk().Should().Be(true);
         query.Items.Length.Should().Be(1);
         query.Items.OfType<GraphNode>().Action(x =>
@@ -174,9 +179,10 @@ public class GraphLifecycleTest
     }
 
     [Fact]
-    public void TwoNodesWithRelationshipLargerSet()
+    public async Task TwoNodesWithRelationshipLargerSet()
     {
-        GraphMap map = new GraphMap();
+        var testClient = GraphTestStartup.CreateGraphTestHost();
+        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
         string q = """
             add node key=node1,t1;
@@ -188,7 +194,7 @@ public class GraphLifecycleTest
             add edge fromKey=node3,toKey=node4,edgeType=et,e2,worksFor;
             """;
 
-        map.Execute(q, NullScopeContext.Instance).Action(x =>
+        (await testClient.Execute(q, NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Items.Length.Should().Be(7);
@@ -197,7 +203,7 @@ public class GraphLifecycleTest
         map.Nodes.Count.Should().Be(5);
         map.Edges.Count.Should().Be(2);
 
-        map.ExecuteScalar("select (key=node3) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance).Action(x =>
+        (await testClient.ExecuteScalar("select (key=node3) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().Be(true);
             x.Items.OfType<GraphNode>().Action(x =>

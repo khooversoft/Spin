@@ -54,10 +54,6 @@ public class GraphMap : IEnumerable<IGraphCommon>
         }
     }
 
-    public GraphMap Copy() => new GraphMap(_nodes, _edges);
-    public GraphQueryResult ExecuteScalar(string graphQuery, ScopeContext context) => GraphCommand.Execute(this, graphQuery, context).Return().Items.First();
-    public Option<GraphQueryResults> Execute(string graphQuery, ScopeContext context) => GraphCommand.Execute(this, graphQuery, context);
-
     public IEnumerator<IGraphCommon> GetEnumerator()
     {
         foreach (var item in Nodes.OfType<IGraphCommon>()) yield return item;
@@ -70,4 +66,9 @@ public class GraphMap : IEnumerable<IGraphCommon>
         json.ToObject<GraphSerialization>()
         .NotNull()
         .FromSerialization();
+}
+
+public static class GraphMapExtensions
+{
+    public static GraphMap Clone(this GraphMap subject) => new GraphMap(subject.Nodes, subject.Edges);
 }
