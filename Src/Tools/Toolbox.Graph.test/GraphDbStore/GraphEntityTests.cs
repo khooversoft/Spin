@@ -1,4 +1,5 @@
 ﻿//using FluentAssertions;
+//using Microsoft.Extensions.DependencyInjection;
 //using Toolbox.Extensions;
 //using Toolbox.Types;
 
@@ -9,7 +10,9 @@
 //    [Fact]
 //    public async Task AddEntityWithIndexes()
 //    {
-//        GraphInMemory db = new GraphInMemory();
+//        GraphTestClient testClient = GraphTestStartup.CreateGraphTestHost();
+//        GraphMap map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
+//        IGraphFileStore fileStore = testClient.ServiceProvider.GetRequiredService<IGraphFileStore>();
 
 //        var entity = new TestEntity
 //        {
@@ -24,7 +27,7 @@
 //            ProviderKey = "user001-microsoft-id",
 //        };
 
-//        var result = await db.Entity.SetEntity(entity, NullScopeContext.Instance);
+//        var result = await testClient.SetEntity(entity, NullScopeContext.Instance);
 //        result.IsOk().Should().BeTrue();
 
 //        string nodeKey = entity.GetNodeKey();
@@ -32,7 +35,7 @@
 //        string logonProviderNodeKey = "logonProvider:microsoft/user001-microsoft-id";
 //        string nodeTags = "Name=name1-user001,userEmail=user@domain.com";
 
-//        (await db.Store.Exist(nodeKey, GraphConstants.EntityName, NullScopeContext.Instance)).ThrowOnError();
+//        (await fileStore.Store.Exist(nodeKey, GraphConstants.EntityName, NullScopeContext.Instance)).ThrowOnError();
 
 //        var userCmd = $"select (key={normalizeUserNameNodeKey}) a1 -> [*] a2 -> (*) a3;";
 //        await TestIndex(db, userCmd, nodeKey, normalizeUserNameNodeKey, nodeTags);

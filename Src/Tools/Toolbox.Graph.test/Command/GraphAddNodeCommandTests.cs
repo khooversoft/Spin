@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -28,8 +29,12 @@ public class GraphAddNodeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
+
         var newMapOption = await testClient.Execute("add node key=node99, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
+        map.Nodes.Count.Should().Be(8);
+        map.Edges.Count.Should().Be(5);
 
         GraphQueryResults commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
@@ -65,6 +70,15 @@ public class GraphAddNodeCommandTests
             x.TagsString.Should().Be("newTags");
             x.DataMap.Count.Should().Be(0);
         });
+
+        var deleteOption = await testClient.Execute("delete (key=node99);", NullScopeContext.Instance);
+        deleteOption.IsOk().Should().BeTrue();
+        map.Nodes.Count.Should().Be(7);
+        map.Edges.Count.Should().Be(5);
+
+        searchOption = await testClient.ExecuteScalar("select (key=node99);", NullScopeContext.Instance);
+        searchOption.IsOk().Should().BeTrue();
+        searchOption.Return().Items.Length.Should().Be(0);
     }
 
     [Fact]

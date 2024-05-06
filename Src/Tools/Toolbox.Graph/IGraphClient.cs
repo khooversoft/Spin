@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -28,5 +29,17 @@ public class GraphClient : IGraphClient
         if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
 
         return result.Return().Items[0];
+    }
+
+    public async Task<Option<GraphQueryResult>> SetEntity<T>(T subject, ScopeContext context) where T : class
+    {
+        IReadOnlyList<IGraphEntityCommand> commands = subject.GetGraphCommands().ThrowOnError().Return();
+        var entityNodeCommand = commands.GetEntityNodeCommand();
+        if (entityNodeCommand.IsError()) return entityNodeCommand.ToOptionStatus<GraphQueryResult>();
+
+        string cmds = commands.Select(x => x.GetAddCommand()).Join(Environment.NewLine);
+
+        var result = await ExecuteScalar(cmds, context);
+        return result;
     }
 }

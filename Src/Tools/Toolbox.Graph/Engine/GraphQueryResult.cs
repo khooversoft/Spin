@@ -37,7 +37,7 @@ public record GraphQueryResult
     public override string ToString() => $"{Status}, {nameof(CommandType)}={CommandType}";
 
     public ImmutableArray<IGraphCommon> Items { get; init; } = ImmutableArray<IGraphCommon>.Empty;
-    public ImmutableHashSet<string> ReturnNames { get; init; } = ImmutableHashSet<string>.Empty;
+    public ImmutableDictionary<string, DataETag> ReturnNames { get; init; } = ImmutableDictionary<string, DataETag>.Empty;
     public ImmutableDictionary<string, ImmutableArray<IGraphCommon>> Alias { get; init; } = ImmutableDictionary<string, ImmutableArray<IGraphCommon>>.Empty;
 }
 

@@ -33,8 +33,8 @@ public static class GraphCommand
                     GsEdgeAdd addEdge => GraphCommandEdge.Add(addEdge, graphContext),
                     GsEdgeUpdate updateEdge => GraphCommandEdge.Update(updateEdge, graphContext),
                     GsEdgeDelete deleteEdge => GraphCommandEdge.Delete(deleteEdge, graphContext),
-                    
-                    GsSelect select => Select(select, graphContext),
+
+                    GsSelect select => await Select(select, graphContext),
 
                     _ => throw new UnreachableException(),
                 };
@@ -66,13 +66,35 @@ public static class GraphCommand
     }
 
 
-    private static GraphQueryResult Select(GsSelect select, IGraphTrxContext graphContext)
+    private static async Task<GraphQueryResult> Select(GsSelect select, IGraphTrxContext graphContext)
     {
-        GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search) with
+        GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search);
+
+        Dictionary<string, DataETag> readData = new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var node in searchResult.Items.OfType<GraphNode>())
         {
-            ReturnNames = select.ReturnNames,
+            foreach (var data in node.DataMap)
+            {
+                if (readData.ContainsKey(data.Key)) continue;
+
+                var readOption = await graphContext.FileStore.Get(data.Value.FileId, graphContext.Context);
+                if (readOption.IsError())
+                {
+                    graphContext.Context.LogError("Cannot read fileId={fileId}, error={error}", data.Value.FileId, readOption.Error);
+                    return new GraphQueryResult(CommandType.Select, StatusCode.NotFound);
+                }
+
+                readData.Add(data.Key, readOption.Return());
+            }
+        }
+
+        searchResult = searchResult with
+        {
+            CommandType = CommandType.Select,
+            ReturnNames = readData.ToImmutableDictionary(),
         };
 
-        return searchResult with { CommandType = CommandType.Select };
+        return searchResult;
     }
 }

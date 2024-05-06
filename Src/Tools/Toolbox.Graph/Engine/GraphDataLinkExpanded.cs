@@ -1,5 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -14,14 +13,14 @@ public sealed record GraphDataLinkExpanded
 
 public static class GraphDataLinkExpandedExtensions
 {
-    public static GraphDataLinkExpanded ToGraphDataLink(this GraphDataSource subject, string nodeKey)
+    public static GraphDataLinkExpanded ExpandGraphDataSource(this GraphDataSource subject, string nodeKey)
     {
         subject.NotNull();
         nodeKey.NotEmpty();
 
         var fileId = GraphTool.CreateFileId(nodeKey, subject.Name);
 
-        return new GraphDataLinkExpanded
+        var result = new GraphDataLinkExpanded
         {
             DataSource = subject,
             DataLink = new GraphDataLink
@@ -31,7 +30,9 @@ public static class GraphDataLinkExpandedExtensions
                 Schema = subject.Schema,
                 FileId = fileId,
             },
-            DataETag = subject.Data64.ToBytes().ToDataETag(),
+            DataETag = Convert.FromBase64String(subject.Data64).ToDataETag(),
         };
+
+        return result;
     }
 }

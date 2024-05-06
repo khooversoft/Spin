@@ -98,6 +98,7 @@ public class GraphAddNodesTests
         {
             x.TryGetValue("entity", out var entity).Should().BeTrue();
             entity!.Validate().IsOk().Should().BeTrue();
+            entity!.Data64.Should().Be("aGVsbG8=");
         });
     }
 

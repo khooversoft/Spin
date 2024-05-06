@@ -1,10 +1,5 @@
-﻿using System;
-using System.Buffers.Text;
-using System.Collections.Generic;
+﻿using System.Buffers.Text;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -17,7 +12,7 @@ internal static class GraphCommandNode
         var tags = addNode.Upsert ? addNode.Tags : addNode.Tags.RemoveCommands();
 
         if (!addNode.DataMap.All(x => Base64.IsValid(x.Value.Data64))) return new GraphQueryResult(CommandType.AddNode, StatusCode.BadRequest);
-        var map = addNode.DataMap.Select(x => x.Value.ToGraphDataLink(addNode.Key)).ToArray();
+        var map = addNode.DataMap.Select(x => x.Value.ExpandGraphDataSource(addNode.Key)).ToArray();
 
         var updatedMap = map.Select(x => x.DataLink).ToImmutableDictionary(x => x.Name, x => x);
         var graphNode = new GraphNode(addNode.Key, tags, DateTime.UtcNow, updatedMap);
@@ -50,7 +45,7 @@ internal static class GraphCommandNode
 
         foreach (var node in nodes)
         {
-            var map = updateNode.DataMap.Select(x => x.Value.ToGraphDataLink(node.Key)).ToArray();
+            var map = updateNode.DataMap.Select(x => x.Value.ExpandGraphDataSource(node.Key)).ToArray();
             var updatedMap = map.Select(x => x.DataLink).ToImmutableDictionary(x => x.Name, x => x);
 
             graphContext.Map.Nodes.Update(nodes, x => x.With(updateNode.Tags, updatedMap), graphContext);
@@ -82,14 +77,11 @@ internal static class GraphCommandNode
     private static async Task<Option> SetNodeData(IGraphTrxContext graphContext, string fileId, DataETag dataETag)
     {
         var readOption = await graphContext.FileStore.Get(fileId, graphContext.Context);
-        if (readOption.IsOk())
-        {
-            graphContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.Return()));
-        }
 
         var writeOption = await graphContext.FileStore.Set(fileId, dataETag, graphContext.Context);
+        if (writeOption.IsError()) return writeOption.ToOptionStatus();
 
-        graphContext.ChangeLog.Push(new CmNodeDataSet(fileId));
+        graphContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));
         return StatusCode.OK;
     }
 
@@ -99,10 +91,7 @@ internal static class GraphCommandNode
         if (readOption.IsNotFound()) return StatusCode.OK;
         if (readOption.IsError()) return readOption.ToOptionStatus();
 
-        if (readOption.IsOk())
-        {
-            graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
-        }
+        graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
 
         var deleteOption = await graphContext.FileStore.Delete(fileId, graphContext.Context);
         return deleteOption;
