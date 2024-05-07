@@ -47,13 +47,18 @@ public static class TagsTool
 
     public static string? GetTagDeleteCommand(string key, string? value) => (key, value) switch
     {
-        (string k, null) when key.Length > 1 && key[0] == '-' && value.IsEmpty() => key[1..],
+        (string, null) when key.Length > 1 && key[0] == '-' => key[1..],
         _ => null,
     };
 
     public static ImmutableDictionary<string, string?> RemoveCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
         .Where(x => GetTagDeleteCommand(x.Key, x.Value).IsEmpty())
         .ToImmutableDictionary();
+
+    public static ImmutableArray<string> GetTagCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
+        .Select(x => GetTagDeleteCommand(x.Key, x.Value))
+        .OfType<string>()
+        .ToImmutableArray();
 
     public static string? FormatTag(string key, string? value) => value.ToNullIfEmpty() switch
     {

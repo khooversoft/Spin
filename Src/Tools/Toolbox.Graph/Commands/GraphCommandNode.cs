@@ -45,15 +45,32 @@ internal static class GraphCommandNode
 
         foreach (var node in nodes)
         {
-            var map = updateNode.DataMap.Select(x => x.Value.ExpandGraphDataSource(node.Key)).ToArray();
-            var updatedMap = map.Select(x => x.DataLink).ToImmutableDictionary(x => x.Name, x => x);
+            var dataToRemoveKeys = TagsTool.GetTagCommands(updateNode.Tags)
+                .Intersect(node.DataMap.Select(x => x.Key))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            graphContext.Map.Nodes.Update(nodes, x => x.With(updateNode.Tags, updatedMap), graphContext);
+            var map = updateNode.DataMap
+                .Where(x => !dataToRemoveKeys.Contains(x.Key))
+                .Select(x => x.Value.ExpandGraphDataSource(node.Key))
+                .ToArray();
+
+            var updatedMap = map
+                .Select(x => x.DataLink)
+                .Concat(node.DataMap.Values.Where(x => !dataToRemoveKeys.Contains(x.Name)))
+                .ToImmutableDictionary(x => x.Name, x => x);
+
+            var updateOption = graphContext.Map.Nodes.Update(node, updateNode.Tags, updatedMap, graphContext);
+            if (updateOption.IsError()) return new GraphQueryResult(CommandType.UpdateNode, StatusCode.Conflict);
 
             foreach (var item in map)
             {
                 var writeResult = await SetNodeData(graphContext, item.DataLink.FileId, item.DataETag);
                 if (writeResult.IsError()) return new GraphQueryResult(CommandType.UpdateNode, writeResult);
+            }
+
+            foreach (var key in dataToRemoveKeys)
+            {
+                await DeleteNodeData(node.DataMap[key].FileId, graphContext);
             }
         }
 
@@ -85,7 +102,19 @@ internal static class GraphCommandNode
         return StatusCode.OK;
     }
 
-    public static async Task<Option> DeleteNodeData(IGraphTrxContext graphContext, string fileId)
+    private static async Task DeleteData(IReadOnlyList<GraphNode> nodes, IGraphTrxContext graphContext)
+    {
+        if (graphContext.FileStore == null) return;
+
+        var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
+        foreach (var fileId in linksToDelete)
+        {
+            await DeleteNodeData(fileId, graphContext);
+            var existOption = await graphContext.FileStore.Delete(fileId, graphContext.Context);
+        }
+    }
+
+    private static async Task<Option> DeleteNodeData(string fileId, IGraphTrxContext graphContext)
     {
         var readOption = await graphContext.FileStore.Get(fileId, graphContext.Context);
         if (readOption.IsNotFound()) return StatusCode.OK;
@@ -94,18 +123,8 @@ internal static class GraphCommandNode
         graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
 
         var deleteOption = await graphContext.FileStore.Delete(fileId, graphContext.Context);
+        deleteOption.LogStatus(graphContext.Context.Location(), "Deleted data map={fileId}", fileId);
+
         return deleteOption;
-    }
-
-    private static async Task DeleteData(IReadOnlyList<GraphNode> nodes, IGraphTrxContext graphContext)
-    {
-        if (graphContext.FileStore == null) return;
-
-        var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
-        foreach (var fileId in linksToDelete)
-        {
-            var existOption = await graphContext.FileStore.Delete(fileId, graphContext.Context);
-            existOption.LogStatus(graphContext.Context.Location(), "Deleted data map={fileId}", fileId);
-        }
     }
 }

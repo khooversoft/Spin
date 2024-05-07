@@ -82,7 +82,7 @@ public static class GraphCommand
                 if (readOption.IsError())
                 {
                     graphContext.Context.LogError("Cannot read fileId={fileId}, error={error}", data.Value.FileId, readOption.Error);
-                    return new GraphQueryResult(CommandType.Select, StatusCode.NotFound);
+                    return new GraphQueryResult(CommandType.Select, StatusCode.Conflict);
                 }
 
                 readData.Add(data.Key, readOption.Return());

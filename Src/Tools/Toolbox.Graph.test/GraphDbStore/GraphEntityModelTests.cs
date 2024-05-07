@@ -132,7 +132,7 @@ public class GraphEntityModelTests
 
         var result = entity.GetGraphCommands();
         result.IsOk().Should().BeTrue();
-        result.Return().Count.Should().Be(3);
+        result.Return().Length.Should().Be(3);
     }
 
     [Fact]

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
@@ -21,24 +22,24 @@ public static class GraphEntityTool
         return commands.GetEntityNodeCommand().ThrowOnError().Return().NodeKey.NotEmpty();
     }
 
-    public static Option<NodeCreateCommand> GetEntityNodeCommand(this IReadOnlyList<IGraphEntityCommand> commands) => commands
+    public static Option<NodeCreateCommand> GetEntityNodeCommand(this IEnumerable<IGraphEntityCommand> commands) => commands
         .OfType<NodeCreateCommand>()
         .Where(x => x.IsEntityNode)
         .FirstOrDefaultOption(returnNotFound: true);
 
-    public static Option<IReadOnlyList<IGraphEntityCommand>> GetGraphCommands<T>(this T value)
+    public static Option<ImmutableArray<IGraphEntityCommand>> GetGraphCommands<T>(this T value)
     {
         value.NotNull();
         PropertyValue[] propertiesValues = BuildPropertyValues<T>(value);
 
         var nodeCommands = GetKeyCommand(propertiesValues);
-        if (nodeCommands.IsError()) return nodeCommands.ToOptionStatus<IReadOnlyList<IGraphEntityCommand>>();
+        if (nodeCommands.IsError()) return nodeCommands.ToOptionStatus<ImmutableArray<IGraphEntityCommand>>();
         NodeCreateCommand setKeyNode = nodeCommands.Return();
 
         var indexCommands = GetIndexCommands(propertiesValues, setKeyNode.NodeKey);
 
-        IReadOnlyList<IGraphEntityCommand> set = [setKeyNode, .. indexCommands];
-        return set.ToOption();
+        ImmutableArray<IGraphEntityCommand> set = [setKeyNode, .. indexCommands];
+        return set;
     }
 
     private static PropertyValue[] BuildPropertyValues<T>(T value)

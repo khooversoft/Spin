@@ -116,25 +116,26 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    internal Option Update(IReadOnlyList<GraphNode> query, Func<GraphNode, GraphNode> update, IGraphTrxContext? graphContext = null)
+    internal Option Update(GraphNode node,
+        IEnumerable<KeyValuePair<string, string?>> tagCommands,
+        IEnumerable<KeyValuePair<string, GraphDataLink>> dataMap,
+        IGraphTrxContext graphContext
+        )
     {
-        query.NotNull();
-        update.NotNull();
-        if (query.Count == 0) return StatusCode.NoContent;
+        node.NotNull();
+        tagCommands.NotNull();
+        dataMap.NotNull();
+        graphContext.NotNull();
 
         lock (_lock)
         {
-            query.ForEach(x =>
-            {
-                _index.ContainsKey(x.Key).Assert(x => x == true, $"Node key={x.Key} does not exist");
+            _index.ContainsKey(node.Key).Assert(x => x == true, $"Node key={node.Key} does not exist");
 
-                var newValue = update(x);
-                x.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
-                _index[x.Key] = newValue;
+            var newValue = node.With(tagCommands, dataMap);
+            node.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
+            _index[node.Key] = newValue;
 
-                graphContext?.ChangeLog.Push(new CmNodeChange(x, newValue));
-            });
-
+            graphContext?.ChangeLog.Push(new CmNodeChange(node, newValue));
             return StatusCode.OK;
         }
     }

@@ -33,7 +33,10 @@ public class GraphClient : IGraphClient
 
     public async Task<Option<GraphQueryResult>> SetEntity<T>(T subject, ScopeContext context) where T : class
     {
-        IReadOnlyList<IGraphEntityCommand> commands = subject.GetGraphCommands().ThrowOnError().Return();
+        var commandsOption = subject.GetGraphCommands();
+        if (commandsOption.IsError()) return commandsOption.ToOptionStatus<GraphQueryResult>();
+
+        var commands = commandsOption.Return();
         var entityNodeCommand = commands.GetEntityNodeCommand();
         if (entityNodeCommand.IsError()) return entityNodeCommand.ToOptionStatus<GraphQueryResult>();
 

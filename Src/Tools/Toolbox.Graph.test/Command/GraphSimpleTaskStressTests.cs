@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphStressTests
+public class GraphSimpleTaskStressTests
 {
     [Fact]
     public async Task SerializeTasks()

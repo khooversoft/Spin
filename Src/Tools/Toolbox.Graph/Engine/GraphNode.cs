@@ -8,7 +8,7 @@ using Toolbox.Types;
 namespace Toolbox.Graph;
 
 
-[DebuggerDisplay("Key={Key}, Tags={TagsString}, Links={LinksString}, DataMap={DataMapString}")]
+[DebuggerDisplay("Key={Key}, Tags={TagsString}, DataMap={DataMapString}")]
 public sealed record GraphNode : IGraphCommon
 {
     public GraphNode(string key, string? tags = null)
@@ -50,7 +50,7 @@ public sealed record GraphNode : IGraphCommon
         ) => this with
         {
             Tags = TagsTool.ProcessTags(Tags, tagCommands),
-            DataMap = DataMap.Concat(dataMap).Distinct().ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
+            DataMap = dataMap.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
         };
 
     public bool Equals(GraphNode? obj)
