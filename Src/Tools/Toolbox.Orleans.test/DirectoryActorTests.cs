@@ -1,103 +1,98 @@
-//using FluentAssertions;
-//using Microsoft.Extensions.DependencyInjection;
-//using Toolbox.Extensions;
-//using Toolbox.Graph;
-//using Toolbox.Orleans.test.Application;
-//using Toolbox.Store;
-//using Toolbox.Tools;
-//using Toolbox.Types;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Extensions;
+using Toolbox.Graph;
+using Toolbox.Orleans.test.Application;
+using Toolbox.Store;
+using Toolbox.Tools;
+using Toolbox.Types;
 
-//namespace Toolbox.Orleans.test;
+namespace Toolbox.Orleans.test;
 
-////[Collection("ClusterFixture")]
-//public class DirectoryActorTests : IClassFixture<ClusterFixture>
-//{
-//    private readonly ClusterFixture _clusterFixture;
+public class DirectoryActorTests : IClassFixture<ClusterFixture>
+{
+    private readonly ClusterFixture _clusterFixture;
 
-//    public DirectoryActorTests(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
+    public DirectoryActorTests(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
 
-//    [Fact]
-//    public async Task CreateSimpleNode()
-//    {
-//        var actor = _clusterFixture.Cluster.Client.GetDirectoryActor();
+    [Fact]
+    public async Task VerifyDirectoryDbFile()
+    {
+        var actor = _clusterFixture.Cluster.Client.GetDirectoryActor();
 
-//        var result = await actor.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
-//        result.Should().NotBeNull();
-//        result.IsOk().Should().BeTrue();
-//        result.Return().Items.Length.Should().Be(0);
+        var result = await actor.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
+        result.Should().NotBeNull();
+        result.IsOk().Should().BeTrue();
+        result.Return().Items.Length.Should().Be(0);
 
-//        result = await actor.ExecuteScalar("select (*);", NullScopeContext.Instance);
-//        result.Should().NotBeNull();
-//        result.IsOk().Should().BeTrue();
-//        result.Return().Items.Length.Should().Be(1);
-//        result.Return().Items.OfType<GraphNode>().First().Action(x =>
-//        {
-//            x.Key.Should().Be("node1");
-//        });
+        IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearchActor();
+        var files = await fileStoreSearchActor.Search($"system/**/*", NullScopeContext.Instance);
+        files.Should().NotBeNull();
+        files.Count.Should().Be(1);
+        files[0].Should().Be(OrleansConstants.DirectoryFilePath);
 
-//        IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearchActor();
+        var deleteResult = await actor.ExecuteScalar("delete (key=node1);", NullScopeContext.Instance);
+        deleteResult.IsOk().Should().BeTrue();
 
-//        var files = await fileStoreSearchActor.Search($"system/**/*", NullScopeContext.Instance);
-//        files.Should().NotBeNull();
-//        files.Count.Should().Be(1);
-//        files[0].Should().Be(OrleansConstants.DirectoryFilePath);
+        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(OrleansConstants.DirectoryFilePath);
+        var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
+        readOption.IsOk().Should().BeTrue();
 
-//        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(OrleansConstants.DirectoryFilePath);
-//        var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
-//        readOption.IsOk().Should().BeTrue();
+        DataETag read = readOption.Return();
+        var directoryObj = read.ToObject<GraphSerialization>();
+        directoryObj.Should().NotBeNull();
+
+        IFileStore fileStore = ClusterFixture.FileStore;
+        var search = await fileStore.Search("system/**/*", NullScopeContext.Instance);
+        search.Should().NotBeNull();
+        search.Count.Should().Be(1);
+        search[0].Should().Be("system/directory.json");
+    }
 
 
-//        DataETag read = readOption.Return();
-//        var directoryObj = read.ToObject<GraphSerialization>();
-//        directoryObj.Should().NotBeNull();
-//        directoryObj.Nodes.Count.Should().Be(1);
-//        directoryObj.Edges.Count.Should().Be(0);
+    [Fact]
+    public async Task CreateSimpleNode()
+    {
+        var actor = _clusterFixture.Cluster.Client.GetDirectoryActor();
 
-//        IFileStore fileStore = ClusterFixture.FileStore;
-//        var search = await fileStore.Search("system/**/*", NullScopeContext.Instance);
-//        search.Should().NotBeNull();
-//        search.Count.Should().Be(1);
-//        search[0].Should().Be("system/directory.json");
-//    }
+        var result = await actor.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
+        result.Should().NotBeNull();
+        result.IsOk().Should().BeTrue();
+        result.Return().Items.Length.Should().Be(0);
 
-//    [Fact]
-//    public async Task CreateSimpleNodeWithEntity()
-//    {
-//        var actor = _clusterFixture.Cluster.ServiceProvider.GetRequiredService<IGraphEntity>();
+        result = await actor.ExecuteScalar("select (*);", NullScopeContext.Instance);
+        result.Should().NotBeNull();
+        result.IsOk().Should().BeTrue();
+        result.Return().Items.Length.Should().Be(1);
+        result.Return().Items.OfType<GraphNode>().First().Action(x =>
+        {
+            x.Key.Should().Be("node1");
+        });
 
-//        var result = await actor.Command.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
-//        result.Should().NotBeNull();
-//        result.IsOk().Should().BeTrue();
-//        result.Return().Items.Length.Should().Be(0);
+        var deleteResult = await actor.ExecuteScalar("delete (key=node1);", NullScopeContext.Instance);
+        deleteResult.IsOk().Should().BeTrue();
+    }
 
-//        result = await actor.Command.ExecuteScalar("select (*);", NullScopeContext.Instance);
-//        result.Should().NotBeNull();
-//        result.IsOk().Should().BeTrue();
-//        result.Return().Items.Length.Should().Be(1);
-//        result.Return().Items.OfType<GraphNode>().First().Action(x =>
-//        {
-//            x.Key.Should().Be("node1");
-//        });
+    [Fact]
+    public async Task CreateSimpleNodeWithClient()
+    {
+        var graphClient = _clusterFixture.Cluster.ServiceProvider.GetRequiredService<IGraphClient>();
 
-//        //var files = await actor.Store.Search($"system/**/*", NullScopeContext.Instance);
-//        //files.Should().NotBeNull();
-//        //files.Count.Should().Be(1);
-//        //files[0].Should().Be(OrleansConstants.DirectoryFilePath);
+        var result = await graphClient.ExecuteScalar("add node key=node1;", NullScopeContext.Instance);
+        result.Should().NotBeNull();
+        result.IsOk().Should().BeTrue(result.ToString());
+        result.Return().Items.Length.Should().Be(0);
 
-//        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(OrleansConstants.DirectoryFilePath);
-//        var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
-//        readOption.IsOk().Should().BeTrue();
+        result = await graphClient.ExecuteScalar("select (*);", NullScopeContext.Instance);
+        result.Should().NotBeNull();
+        result.IsOk().Should().BeTrue();
+        result.Return().Items.Length.Should().Be(1);
+        result.Return().Items.OfType<GraphNode>().First().Action(x =>
+        {
+            x.Key.Should().Be("node1");
+        });
 
-//        DataETag read = readOption.Return();
-//        var directoryObj = read.ToObject<GraphSerialization>();
-//        directoryObj.Should().NotBeNull();
-//        directoryObj.Nodes.Count.Should().Be(1);
-//        directoryObj.Edges.Count.Should().Be(0);
-
-//        IFileStore fileStore = ClusterFixture.FileStore;
-//        var search = await fileStore.Search("system/**/*", NullScopeContext.Instance);
-//        search.Should().NotBeNull();
-//        search.Count.Should().Be(1);
-//        search[0].Should().Be("system/directory.json");
-//    }
-//}
+        var deleteResult = await graphClient.ExecuteScalar("delete (key=node1);", NullScopeContext.Instance);
+        deleteResult.IsOk().Should().BeTrue();
+    }
+}

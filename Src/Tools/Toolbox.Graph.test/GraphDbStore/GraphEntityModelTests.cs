@@ -60,8 +60,10 @@ public class GraphEntityModelTests
 
         commands.Select(x => x.GetAddCommand()).ToArray().Action(x =>
         {
+            string base64 = entity.ToJson64();
+
             x.Length.Should().Be(3);
-            x[0].Should().Be("upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001;");
+            x[0].Should().Be($"upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001, entity {{ '{base64}' }};");
             x[1].Should().Be("upsert node key=logonProvider:microsoft/user001-microsoft-id, uniqueIndex;");
             x[2].Should().Be("add unique edge fromKey=logonProvider:microsoft/user001-microsoft-id, toKey=user:user001, edgeType=uniqueIndex;");
         });
@@ -105,8 +107,10 @@ public class GraphEntityModelTests
 
         commands.Select(x => x.GetAddCommand()).ToArray().Action(x =>
         {
+            string base64 = entity.ToJson64();
+
             x.Length.Should().Be(5);
-            x[0].Should().Be("upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001;");
+            x[0].Should().Be($"upsert node key=user:user001, userEmail=user@domain.com,Name=name1-user001, entity {{ '{base64}' }};");
             x[1].Should().Be("upsert node key=userNormalizedUserName:user001-normalized, uniqueIndex;");
             x[2].Should().Be("add unique edge fromKey=userNormalizedUserName:user001-normalized, toKey=user:user001, edgeType=uniqueIndex;");
             x[3].Should().Be("upsert node key=logonProvider:microsoft/user001-microsoft-id, uniqueIndex;");

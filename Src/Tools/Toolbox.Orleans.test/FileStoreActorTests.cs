@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Threading.Tasks.Dataflow;
+﻿using System.Threading.Tasks.Dataflow;
 using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Graph;
@@ -59,11 +58,12 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
     [Fact]
     public async Task ScaleTest()
     {
-        const int fileCount = 1000;
-        const int maxParallelCount = 5;
-        var addPaths = new ConcurrentQueue<string>();
-        var getPaths = new ConcurrentQueue<string>();
-        var deletePaths = new ConcurrentQueue<string>();
+        const int fileCount = 10000;
+        const int maxParallelCount = 1;
+        int addPathCount = 0;
+        int getPathCount = 0;
+        int deletePathCount = 0;
+        var dataflowBlockOptions = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount };
 
         var deleteBlock = new ActionBlock<string>(async path =>
         {
@@ -71,8 +71,8 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             var deleteOption = await fileStoreActor.Delete(NullScopeContext.Instance);
             deleteOption.IsOk().Should().BeTrue();
 
-            deletePaths.Enqueue(path);
-        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
+            Interlocked.Increment(ref deletePathCount);
+        }, dataflowBlockOptions);
 
         var getBlock = new ActionBlock<string>(async path =>
         {
@@ -85,8 +85,9 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             readRecord.Name.Should().NotBeNullOrEmpty();
             readRecord.Count.Should().Be(10);
 
-            getPaths.Enqueue(path);
-        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
+            Interlocked.Increment(ref getPathCount);
+            deleteBlock.Post(path);
+        }, dataflowBlockOptions);
 
         var addBlock = new ActionBlock<string>(async path =>
         {
@@ -98,8 +99,9 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             var writeOption = await fileStoreActor.Add(writeDataEtag, NullScopeContext.Instance);
             writeOption.IsOk().Should().BeTrue();
 
-            addPaths.Enqueue(path);
-        }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
+            Interlocked.Increment(ref addPathCount);
+            getBlock.Post(path);
+        }, dataflowBlockOptions);
 
         var files = await ClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
         files.Count.Should().Be(0);
@@ -107,17 +109,15 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
         Enumerable.Range(0, fileCount).ForEach(x => addBlock.Post($"contract/scale_company.com/contract{x}.json"));
         addBlock.Complete();
         await addBlock.Completion;
-        addPaths.Count.Should().Be(fileCount);
+        addPathCount.Should().Be(fileCount);
 
-        addPaths.ForEach(x => getBlock.Post(x));
         getBlock.Complete();
         await getBlock.Completion;
-        getPaths.Count.Should().Be(fileCount);
+        getPathCount.Should().Be(fileCount);
 
-        getPaths.ForEach(x => deleteBlock.Post(x));
         deleteBlock.Complete();
         await deleteBlock.Completion;
-        deletePaths.Count.Should().Be(fileCount);
+        deletePathCount.Should().Be(fileCount);
 
         files = await ClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
         files.Count.Should().Be(0);
@@ -128,9 +128,9 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
     {
         const int fileCount = 1000;
         const int maxParallelCount = 5;
-        var addPaths = new ConcurrentQueue<string>();
-        var getPaths = new ConcurrentQueue<string>();
-        var deletePaths = new ConcurrentQueue<string>();
+        int addPathCount = 0;
+        int getPathCount = 0;
+        int deletePathCount = 0;
 
         var deleteBlock = new ActionBlock<string>(async path =>
         {
@@ -138,7 +138,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             var deleteOption = await fileStoreActor.Delete(NullScopeContext.Instance);
             deleteOption.IsOk().Should().BeTrue();
 
-            deletePaths.Enqueue(path);
+            Interlocked.Increment(ref deletePathCount);
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
 
         var getBlock = new ActionBlock<string>(async path =>
@@ -152,7 +152,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             readRecord.Name.Should().NotBeNullOrEmpty();
             readRecord.Count.Should().Be(10);
 
-            getPaths.Enqueue(path);
+            Interlocked.Increment(ref getPathCount);
             await deleteBlock.SendAsync(path);
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
 
@@ -166,7 +166,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             var writeOption = await fileStoreActor.Add(writeDataEtag, NullScopeContext.Instance);
             writeOption.IsOk().Should().BeTrue();
 
-            addPaths.Enqueue(path);
+            Interlocked.Increment(ref addPathCount);
             await getBlock.SendAsync(path);
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
 
@@ -183,9 +183,9 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
         deleteBlock.Complete();
         await deleteBlock.Completion;
 
-        addPaths.Count.Should().Be(fileCount);
-        getPaths.Count.Should().Be(fileCount);
-        deletePaths.Count.Should().Be(fileCount);
+        addPathCount.Should().Be(fileCount);
+        getPathCount.Should().Be(fileCount);
+        deletePathCount.Should().Be(fileCount);
 
         files = await ClusterFixture.FileStore.Search("contract/stress_company/**/*", NullScopeContext.Instance);
         files.Count.Should().Be(0);

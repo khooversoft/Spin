@@ -1,18 +1,22 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Graph;
+using Toolbox.Orleans.test.Application;
+using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Graph.test.GraphDbStore;
+namespace Toolbox.Orleans.test;
 
-public class GraphEntityTests
+public class DirectoryEntityTests : IClassFixture<ClusterFixture>
 {
+    private readonly ClusterFixture _clusterFixture;
+    public DirectoryEntityTests(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
+
     [Fact]
     public async Task AddEntityWithIndexes()
     {
-        GraphTestClient testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
-        IGraphFileStore fileStore = testClient.ServiceProvider.GetRequiredService<IGraphFileStore>();
+        var graphClient = _clusterFixture.Cluster.ServiceProvider.GetRequiredService<IGraphClient>();
 
         var entity = new TestEntity
         {
@@ -27,10 +31,8 @@ public class GraphEntityTests
             ProviderKey = "user001-microsoft-id",
         };
 
-        var result = await testClient.SetEntity(entity, NullScopeContext.Instance);
+        var result = await graphClient.SetEntity(entity, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(2);
 
         string nodeKey = entity.GetNodeKey();
         string normalizeUserNameNodeKey = "userNormalizedUserName:user001-normalized";
@@ -38,26 +40,26 @@ public class GraphEntityTests
         string nodeTags = "Name=name1-user001,userEmail=user@domain.com";
 
         var userCmd = $"select (key={normalizeUserNameNodeKey}) a1 -> [*] a2 -> (*) a3;";
-        await TestIndex(testClient, userCmd, nodeKey, normalizeUserNameNodeKey, nodeTags);
+        await TestIndex(graphClient, userCmd, nodeKey, normalizeUserNameNodeKey, nodeTags);
 
         var logonProviderCmd = $"select (key={logonProviderNodeKey}) a1 -> [*] a2 -> (*) a3;";
-        await TestIndex(testClient, logonProviderCmd, nodeKey, logonProviderNodeKey, nodeTags);
+        await TestIndex(graphClient, logonProviderCmd, nodeKey, logonProviderNodeKey, nodeTags);
 
         // Verify entity json file
-        var readFileOption = await fileStore.Get("nodes/user/user001/user__user001___entity.json", NullScopeContext.Instance);
+        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor("nodes/user/user001/user__user001___entity.json");
+        var readFileOption = await fileStoreActor.Get(NullScopeContext.Instance);
         readFileOption.IsOk().Should().BeTrue();
         var readTestEntity = readFileOption.Return().ToObject<TestEntity>();
         (entity == readTestEntity).Should().BeTrue();
 
         // Delete node, should delete all other nodes and linked file
-        (await testClient.ExecuteScalar($"delete (key={nodeKey});", NullScopeContext.Instance)).IsOk().Should().BeTrue();
-        map.Nodes.Count.Should().Be(0);
-        map.Edges.Count.Should().Be(0);
+        (await graphClient.ExecuteScalar($"delete (key={nodeKey});", NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
-        readFileOption = await fileStore.Get("nodes/user/user001/user__user001___entity.json", NullScopeContext.Instance);
+        fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor("nodes/user/user001/user__user001___entity.json");
+        readFileOption = await fileStoreActor.Get(NullScopeContext.Instance);
         readFileOption.IsNotFound().Should().BeTrue();
 
-        var userOption = await testClient.ExecuteScalar(userCmd, NullScopeContext.Instance);
+        var userOption = await graphClient.ExecuteScalar(userCmd, NullScopeContext.Instance);
         userOption.IsOk().Should().BeTrue(userOption.ToString());
         var userResult = userOption.Return();
         userResult.Items.Length.Should().Be(0);
@@ -65,13 +67,13 @@ public class GraphEntityTests
         userResult.Alias.All(x => x.Value.Length == 0).Should().BeTrue();
 
         // Verify no nodes or edges are left
-        await VerifyExist(testClient, $"select (key={normalizeUserNameNodeKey});", 0);
-        await VerifyExist(testClient, $"select (key={logonProviderNodeKey});", 0);
-        await VerifyExist(testClient, "select [*];", 0);
-        await VerifyExist(testClient, $"select (key={nodeKey});", 0);
+        await VerifyExist(graphClient, $"select (key={normalizeUserNameNodeKey});", 0);
+        await VerifyExist(graphClient, $"select (key={logonProviderNodeKey});", 0);
+        await VerifyExist(graphClient, "select [*];", 0);
+        await VerifyExist(graphClient, $"select (key={nodeKey});", 0);
     }
 
-    private async Task TestIndex(GraphTestClient testClient, string cmd, string nodeKey, string indexKeyNode, string tags)
+    private async Task TestIndex(IGraphClient testClient, string cmd, string nodeKey, string indexKeyNode, string tags)
     {
         var userOption = await testClient.ExecuteScalar(cmd, NullScopeContext.Instance);
         userOption.IsOk().Should().BeTrue();
@@ -115,7 +117,7 @@ public class GraphEntityTests
         });
     }
 
-    private async Task VerifyExist(GraphTestClient testClient, string cmd, int expectedCount)
+    private async Task VerifyExist(IGraphClient testClient, string cmd, int expectedCount)
     {
         var result = await testClient.ExecuteScalar(cmd, NullScopeContext.Instance);
         result.IsOk().Should().BeTrue();

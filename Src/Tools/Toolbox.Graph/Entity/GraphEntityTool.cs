@@ -32,7 +32,7 @@ public static class GraphEntityTool
         value.NotNull();
         PropertyValue[] propertiesValues = BuildPropertyValues<T>(value);
 
-        var nodeCommands = GetKeyCommand(propertiesValues);
+        var nodeCommands = GetKeyCommand(value, propertiesValues);
         if (nodeCommands.IsError()) return nodeCommands.ToOptionStatus<ImmutableArray<IGraphEntityCommand>>();
         NodeCreateCommand setKeyNode = nodeCommands.Return();
 
@@ -65,7 +65,7 @@ public static class GraphEntityTool
         bool isGraphAttribute(Attribute x) => x is GraphKeyAttribute || x is GraphTagAttribute || x is GraphNodeIndexAttribute;
     }
 
-    private static Option<NodeCreateCommand> GetKeyCommand(PropertyValue[] propertiesValues)
+    private static Option<NodeCreateCommand> GetKeyCommand<T>(T value, PropertyValue[] propertiesValues)
     {
         bool allHasValue = propertiesValues
             .Where(x => x.Attribute is GraphTagAttribute)
@@ -78,10 +78,12 @@ public static class GraphEntityTool
             .Select(x => getTag(x))
             .Join(',');
 
+        string base64 = value.ToJson64();
+
         var cmds = propertiesValues
             .Where(x => x.Attribute is GraphKeyAttribute && x.Value.IsNotEmpty())
             .Select(getNodeKey)
-            .Select(x => new NodeCreateCommand(x, tags, isEntityNode: true))
+            .Select(x => new NodeCreateCommand(x, tags, base64))
             .Take(1)
             .ToArray();
 

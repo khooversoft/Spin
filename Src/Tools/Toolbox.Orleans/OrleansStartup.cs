@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Orleans.Storage;
 using Toolbox.Azure;
+using Toolbox.Graph;
 
 namespace Toolbox.Orleans;
 
@@ -12,19 +13,16 @@ public static class OrleansStartup
     //        services.AddKeyedSingleton<IGrainStorage, DatalakeGrainStorageConnector>(OrleansConstants.StorageProviderName);
     //    });
 
-    public static IServiceCollection AddGrainFileStorage(this IServiceCollection services)
+    public static IServiceCollection AddGrainFileStore(this IServiceCollection services)
     {
         services.AddKeyedSingleton<IGrainStorage, GrainStorageFileStoreConnector>(OrleansConstants.StorageProviderName);
-
+        services.AddSingleton<IGraphFileStore, GraphFileStoreActorConnector>();
         return services;
     }
 
     public static IServiceCollection AddDirectoryClient(this IServiceCollection services)
     {
-        //services.AddSingleton<IGraphStore, DirectoryStoreActorConnector>();
-        //services.AddSingleton<IGraphCommand, DirectoryActorConnector>();
-        //services.AddSingleton<IGraphEntity, GraphEntity>();
-
+        services.AddSingleton<IGraphClient, GraphClientActor>();
         return services;
     }
 }

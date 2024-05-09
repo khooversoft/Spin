@@ -1,13 +1,13 @@
-﻿using Toolbox.Store;
+﻿using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
-public class FileStoreActorConnector : IFileStore
+public class GraphFileStoreActorConnector : IGraphFileStore
 {
     private readonly IClusterClient _clusterClient;
-    public FileStoreActorConnector(IClusterClient clusterClient) => _clusterClient = clusterClient.NotNull();
+    public GraphFileStoreActorConnector(IClusterClient clusterClient) => _clusterClient = clusterClient.NotNull();
 
     public Task<Option<string>> Add(string path, DataETag data, ScopeContext context)
     {

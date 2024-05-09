@@ -105,7 +105,7 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
                 {
                     if (current.ETag != data.ETag)
                     {
-                        context.LogError("ETag for path={path} does not match, current.ETag={current.ETag}, data.ETag={data.ETag}", current.ETag, data.ETag);
+                        context.LogError("ETag for path={path} does not match, current.ETag={current.ETag}, data.ETag={data.ETag}", path, current.ETag, data.ETag);
                         return new Option<string>(StatusCode.Conflict, $"ETag does not match").ToTaskResult();
                     }
                 }

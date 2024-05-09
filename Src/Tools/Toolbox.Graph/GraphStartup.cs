@@ -28,7 +28,7 @@ public static class GraphTestStartup
             .AddGraphInMemoryFileStore()
             .AddSingleton<GraphMap>(graphMap ?? new GraphMap())
             .AddSingleton<IGraphContext, GraphContext>()
-            .AddSingleton<IGraphClient, GraphClient>()
+            .AddSingleton<IGraphClient, GraphClientInMemory>()
             .BuildServiceProvider();
 
         var graphClient = new GraphTestClient(services.GetRequiredService<IGraphContext>(), services);
@@ -36,7 +36,7 @@ public static class GraphTestStartup
     }
 }
 
-public class GraphTestClient : GraphClient, IGraphClient
+public class GraphTestClient : GraphClientInMemory, IGraphClient
 {
     public GraphTestClient(IGraphContext graphContext, IServiceProvider serviceProvider)
         : base(graphContext)
