@@ -31,7 +31,7 @@ public class GraphAddNodeCommandTests
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         GraphMap map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
 
-        var newMapOption = await testClient.Execute("add node key=node99, newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node99, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(8);
         map.Edges.Count.Should().Be(5);
@@ -57,7 +57,7 @@ public class GraphAddNodeCommandTests
             x.Items.Should().NotBeNull();
         });
 
-        var searchOption = await testClient.ExecuteScalar("select (key=node99);", NullScopeContext.Instance);
+        var searchOption = await testClient.Execute("select (key=node99);", NullScopeContext.Instance);
         searchOption.IsOk().Should().BeTrue();
 
         GraphQueryResult search = searchOption.Return();
@@ -71,12 +71,12 @@ public class GraphAddNodeCommandTests
             x.DataMap.Count.Should().Be(0);
         });
 
-        var deleteOption = await testClient.Execute("delete (key=node99);", NullScopeContext.Instance);
+        var deleteOption = await testClient.ExecuteBatch("delete (key=node99);", NullScopeContext.Instance);
         deleteOption.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(7);
         map.Edges.Count.Should().Be(5);
 
-        searchOption = await testClient.ExecuteScalar("select (key=node99);", NullScopeContext.Instance);
+        searchOption = await testClient.Execute("select (key=node99);", NullScopeContext.Instance);
         searchOption.IsOk().Should().BeTrue();
         searchOption.Return().Items.Length.Should().Be(0);
     }
@@ -86,7 +86,7 @@ public class GraphAddNodeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add node key=node99, entity { 'aGVsbG8=' };", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node99, entity { 'aGVsbG8=' };", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -109,7 +109,7 @@ public class GraphAddNodeCommandTests
             });
         });
 
-        var searchOption = await testClient.ExecuteScalar("select (key=node99);", NullScopeContext.Instance);
+        var searchOption = await testClient.Execute("select (key=node99);", NullScopeContext.Instance);
         searchOption.IsOk().Should().BeTrue();
 
         GraphQueryResult search = searchOption.Return();
@@ -134,7 +134,7 @@ public class GraphAddNodeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add node key=node99, -newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node99, -newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -164,7 +164,7 @@ public class GraphAddNodeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add node key=node99, link=ab/cd/ef;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node99, link=ab/cd/ef;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -194,7 +194,7 @@ public class GraphAddNodeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add node key=node99, newTags,label=client;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node99, newTags,label=client;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -225,7 +225,7 @@ public class GraphAddNodeCommandTests
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
 
         string cmd = "upsert node key=user:44b5533a-31dd-463b-8712-2df9d8ee0780, AccessFailedCount=0,ConcurrencyStamp=3c03450e-0180-4281-8dbd-1f283e58a89e,Email='userName1@domain.com',EmailConfirmed=False,Id=44b5533a-31dd-463b-8712-2df9d8ee0780,LockoutEnabled=False,PhoneNumberConfirmed=False,SecurityStamp=b881724c-5f2b-4183-9b65-3faf75a1adf7,TwoFactorEnabled=False,UserName=userName1;";
-        var option = await testClient.Execute(cmd, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
         option.IsOk().Should().BeTrue(option.ToString());
     }
 }

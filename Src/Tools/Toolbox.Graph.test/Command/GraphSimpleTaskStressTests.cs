@@ -82,7 +82,7 @@ public class GraphSimpleTaskStressTests
             string tags = $"t1,t2=v{i + start}";
 
             string cmd = $"add node key={key}, {tags};";
-            var option = await testClient.Execute(cmd, NullScopeContext.Instance);
+            var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
             option.IsOk().Should().BeTrue();
         }
     }
@@ -96,7 +96,7 @@ public class GraphSimpleTaskStressTests
             string tags = $"t1,t2=v{i + start}";
 
             string cmd = $"add edge fromKey={fromKey}, toKey={toKey}, {tags};";
-            var option = await testClient.Execute(cmd, NullScopeContext.Instance);
+            var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
             option.IsOk().Should().BeTrue(option.ToString());
         }
     }
@@ -122,7 +122,7 @@ public class GraphSimpleTaskStressTests
         }
 
         string command = cmds.Join();
-        var option = await testClient.Execute(command, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(command, NullScopeContext.Instance);
         option.IsOk().Should().BeTrue(option.ToString());
     }
 }

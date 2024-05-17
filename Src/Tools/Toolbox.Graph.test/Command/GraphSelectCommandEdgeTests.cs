@@ -30,7 +30,7 @@ public class GraphSelectCommandEdgeTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
 
-        var newMapOption = await testClient.Execute("select [knows];", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("select [knows];", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -69,7 +69,7 @@ public class GraphSelectCommandEdgeTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
 
-        var newMapOption = await testClient.Execute("select [knows];select [created];", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("select [knows];select [created];", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();

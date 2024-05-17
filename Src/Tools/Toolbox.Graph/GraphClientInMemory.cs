@@ -9,14 +9,14 @@ public class GraphClientInMemory : IGraphClient
     private readonly IGraphContext _graphContext;
     public GraphClientInMemory(IGraphContext graphContext) => _graphContext = graphContext.NotNull();
 
-    public Task<Option<GraphQueryResults>> Execute(string command, ScopeContext context)
+    public Task<Option<GraphQueryResults>> ExecuteBatch(string command, ScopeContext context)
     {
         var trxContext = _graphContext.CreateTrxContext(context);
         var result = GraphCommand.Execute(trxContext, command);
         return result;
     }
 
-    public async Task<Option<GraphQueryResult>> ExecuteScalar(string command, ScopeContext context)
+    public async Task<Option<GraphQueryResult>> Execute(string command, ScopeContext context)
     {
         var trxContext = _graphContext.CreateTrxContext(context);
         var result = await GraphCommand.Execute(trxContext, command);

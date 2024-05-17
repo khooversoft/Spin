@@ -28,7 +28,7 @@ public class GraphAddEdgeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -59,7 +59,7 @@ public class GraphAddEdgeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, -newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, -newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -90,7 +90,7 @@ public class GraphAddEdgeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add unique edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add unique edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -121,7 +121,7 @@ public class GraphAddEdgeCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("add unique edge fromKey=node4, toKey=node5;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add unique edge fromKey=node4, toKey=node5;", NullScopeContext.Instance);
         newMapOption.IsError().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -48,5 +49,45 @@ public static class GraphTool
         };
 
         return result;
+    }
+
+    public static string CreateNode(string nodeKey, string? tags, string? base64)
+    {
+        nodeKey.NotEmpty();
+
+        string?[] cmds = [
+            $"upsert node key={nodeKey}",
+            tags,
+            base64 != null ? $"entity {{ '{base64}' }}" : null,
+            ];
+
+        string cmd = cmds.Where(x => x.IsNotEmpty()).Join(", ") + ';';
+        return cmd;
+    }
+
+    public static string CreateEdge(string fromKey, string toKey, string? tags)
+    {
+        fromKey.NotEmpty();
+        toKey.NotEmpty();
+
+        string?[] cmds = [
+            $"add unique edge fromKey={fromKey}, toKey={toKey}, edgeType={GraphConstants.UniqueIndexTag}",
+            tags,
+            ];
+
+        string cmd = cmds.Where(x => x.IsNotEmpty()).Join(", ") + ';';
+        return cmd;
+    }
+
+    public static ImmutableArray<string> CreateIndex(string indexKey, string nodeKey)
+    {
+        nodeKey.NotEmpty();
+        indexKey.NotEmpty();
+
+        return
+        [
+            $"upsert node key={indexKey}, {GraphConstants.UniqueIndexTag};",
+            $"add unique edge fromKey={indexKey}, toKey={nodeKey}, edgeType={GraphConstants.UniqueIndexTag};",
+        ];
     }
 }

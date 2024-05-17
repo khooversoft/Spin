@@ -20,7 +20,7 @@ public class GraphTrxNodeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        (await testClient.Execute(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(1);
@@ -30,7 +30,7 @@ public class GraphTrxNodeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.IsError().Should().BeTrue();
             x.Value.Items.Length.Should().Be(2);
@@ -52,7 +52,7 @@ public class GraphTrxNodeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        (await testClient.Execute(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(1);
@@ -62,7 +62,7 @@ public class GraphTrxNodeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.UpdateNode, StatusCode.OK, 1));
@@ -84,7 +84,7 @@ public class GraphTrxNodeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        (await testClient.Execute(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
         map.Nodes.Count.Should().Be(3);
         map.Edges.Count.Should().Be(1);
@@ -94,7 +94,7 @@ public class GraphTrxNodeTests
             add unique edge fromKey=node1, toKey=node2;
             """;
 
-        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.Value.Items.Length.Should().Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, CommandType.DeleteNode, StatusCode.OK, 1));

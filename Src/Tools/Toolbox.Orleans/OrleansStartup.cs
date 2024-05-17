@@ -20,9 +20,9 @@ public static class OrleansStartup
         return services;
     }
 
-    public static IServiceCollection AddDirectoryClient(this IServiceCollection services)
-    {
-        services.AddSingleton<IGraphClient, GraphClientActor>();
-        return services;
-    }
+    //public static IServiceCollection AddDirectoryClient(this IServiceCollection services)
+    //{
+    //    services.AddSingleton<IDirectoryActorClient, DirectoryActorClient>();
+    //    return services;
+    //}
 }

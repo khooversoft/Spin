@@ -13,12 +13,12 @@ public static class ActorExtensions
         return clusterClient.GetGrain<IDirectoryActor>(resourceId);
     }
 
-    //public static IDirectoryStoreActor GetDirectoryStoreActor(this IClusterClient clusterClient, string resourceId = "system/directory") =>
-    //    clusterClient.NotNull().GetGrain<IDirectoryStoreActor>(resourceId.NotEmpty().ToLower());
-
     public static IFileStoreSearchActor GetFileStoreSearchActor(this IClusterClient clusterClient) =>
         clusterClient.NotNull().GetGrain<IFileStoreSearchActor>("*");
 
     public static IFileStoreActor GetFileStoreActor(this IClusterClient clusterClient, string path) =>
         clusterClient.NotNull().GetGrain<IFileStoreActor>(path.NotEmpty().ToLower());
+
+    public static IIdentityActor GetIdentityActor(this IClusterClient clusterClient) =>
+        clusterClient.NotNull().GetGrain<IIdentityActor>("*");
 }

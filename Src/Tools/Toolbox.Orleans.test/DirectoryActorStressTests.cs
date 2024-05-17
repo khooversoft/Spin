@@ -1,13 +1,13 @@
 ﻿using System.Threading.Tasks.Dataflow;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Orleans.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
-namespace Toolbox.Graph.test.GraphDbStore;
+namespace Toolbox.Orleans.test;
 
 public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
 {
@@ -28,12 +28,12 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
     {
         const int count = 1000;
         const int maxDegree = 5;
-        var graphClient = _clusterFixture.Cluster.ServiceProvider.GetRequiredService<IGraphClient>();
+        var graphClient = _clusterFixture.Cluster.Client.GetDirectoryActor();
 
         await ActionParallel.Run(x => AddNodes(graphClient, x), Enumerable.Range(0, count), maxDegree);
         await ActionParallel.Run(x => AddEdges(graphClient, x), Enumerable.Range(0, count - 1), maxDegree);
 
-        var nodeList = await graphClient.ExecuteScalar("select (*);", NullScopeContext.Instance);
+        var nodeList = await graphClient.Execute("select (*);", NullScopeContext.Instance);
         nodeList.IsOk().Should().BeTrue();
         nodeList.Return().Action(x =>
         {
@@ -50,7 +50,7 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
             });
         });
 
-        var edgeList = await graphClient.Execute("select [*];", NullScopeContext.Instance);
+        var edgeList = await graphClient.ExecuteBatch("select [*];", NullScopeContext.Instance);
         edgeList.IsOk().Should().BeTrue();
         edgeList.Return().Action(x =>
         {
@@ -68,16 +68,16 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
             });
         });
 
-        (await graphClient.ExecuteScalar("delete (*);", NullScopeContext.Instance)).IsOk().Should().BeTrue();
+        (await graphClient.Execute("delete (*);", NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
-        (await graphClient.Execute("select (*);", NullScopeContext.Instance)).Action(x =>
+        (await graphClient.ExecuteBatch("select (*);", NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Items.Length.Should().Be(1);
             x.Return().Items[0].Items.Length.Should().Be(0);
         });
 
-        (await graphClient.Execute("select [*];", NullScopeContext.Instance)).Action(x =>
+        (await graphClient.ExecuteBatch("select [*];", NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Items.Length.Should().Be(1);
@@ -91,7 +91,7 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
         const int count = 1000;
         const int maxDegree = 5;
         var blockConfig = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxDegree };
-        var graphClient = _clusterFixture.Cluster.ServiceProvider.GetRequiredService<IGraphClient>();
+        var graphClient = _clusterFixture.Cluster.Client.GetDirectoryActor();
         int sucessCount = 0;
         int retryCount = 0;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim();
@@ -129,21 +129,21 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
         edgeBlock.Complete();
         await edgeBlock.Completion;
 
-        (await graphClient.ExecuteScalar("select (*);", NullScopeContext.Instance))
+        (await graphClient.Execute("select (*);", NullScopeContext.Instance))
             .ThrowOnError().Return()
             .Items.Length.Should().Be(count);
 
-        (await graphClient.ExecuteScalar("select [*];", NullScopeContext.Instance))
+        (await graphClient.Execute("select [*];", NullScopeContext.Instance))
             .ThrowOnError().Return()
             .Items.Length.Should().Be(count - 1);
 
-        (await graphClient.ExecuteScalar("delete (*);", NullScopeContext.Instance)).IsOk().Should().BeTrue();
+        (await graphClient.Execute("delete (*);", NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
-        (await graphClient.ExecuteScalar("select (*);", NullScopeContext.Instance))
+        (await graphClient.Execute("select (*);", NullScopeContext.Instance))
             .ThrowOnError().Return()
             .Items.Length.Should().Be(0);
 
-        (await graphClient.ExecuteScalar("select [*];", NullScopeContext.Instance))
+        (await graphClient.Execute("select [*];", NullScopeContext.Instance))
             .ThrowOnError().Return()
             .Items.Length.Should().Be(0);
 
@@ -156,7 +156,7 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"add node key={key}, {tags};";
-        var option = await testClient.Execute(cmd, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
         option.IsOk().Should().BeTrue();
     }
 
@@ -167,7 +167,7 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"add edge fromKey={fromKey}, toKey={toKey}, {tags};";
-        var option = await testClient.Execute(cmd, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
         return option.ToOptionStatus();
     }
 
@@ -189,7 +189,7 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
         }
 
         string command = cmds.Join();
-        var option = await testClient.Execute(command, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(command, NullScopeContext.Instance);
         return option.ToOptionStatus();
     }
 }

@@ -79,7 +79,7 @@ public sealed record GraphEdge : IGraphCommon
         .Build();
 }
 
-public static class GraphEdgeTool2
+public static class GraphEdgeTool
 {
     public static Option Validate(this GraphEdge subject) => GraphEdge.Validator.Validate(subject).ToOptionStatus();
 

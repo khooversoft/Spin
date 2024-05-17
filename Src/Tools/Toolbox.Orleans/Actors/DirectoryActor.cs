@@ -7,28 +7,23 @@ using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
-public interface IDirectoryActor : IGrainWithStringKey
+public interface IDirectoryActor : IGraphClient, IGrainWithStringKey
 {
-    Task<Option<GraphQueryResults>> Execute(string command, ScopeContext context);
-    Task<Option<GraphQueryResult>> ExecuteScalar(string command, ScopeContext context);
 }
 
 public class DirectoryActor : Grain, IDirectoryActor
 {
     private readonly ILogger<DirectoryActor> _logger;
     private readonly ActorCacheState<GraphMap, GraphSerialization> _state;
-    private readonly IClusterClient _clusterClient;
     private readonly IGraphFileStore _graphFileStore;
 
     public DirectoryActor(
         [PersistentState("json", OrleansConstants.StorageProviderName)] IPersistentState<GraphSerialization> state,
-        IClusterClient clusterClient,
         IGraphFileStore graphFileStore,
         ILogger<DirectoryActor> logger
         )
     {
         _logger = logger.NotNull();
-        _clusterClient = clusterClient.NotNull();
         _graphFileStore = graphFileStore.NotNull();
 
         _state = new ActorCacheState<GraphMap, GraphSerialization>(state, x => x.ToSerialization(), x => x.FromSerialization(), TimeSpan.FromMinutes(15));
@@ -40,7 +35,15 @@ public class DirectoryActor : Grain, IDirectoryActor
         await base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task<Option<GraphQueryResults>> Execute(string command, ScopeContext context)
+    public async Task<Option<GraphQueryResult>> Execute(string command, ScopeContext context)
+    {
+        var result = await ExecuteBatch(command, context);
+        if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
+
+        return result.Return().Items.First();
+    }
+
+    public async Task<Option<GraphQueryResults>> ExecuteBatch(string command, ScopeContext context)
     {
         context = context.With(_logger);
         if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
@@ -49,7 +52,6 @@ public class DirectoryActor : Grain, IDirectoryActor
         GraphMap map = (await _state.GetState()).ThrowOnError("Failed to get state").Return();
         var graphContext = new GraphTrxContext(map, _graphFileStore, context);
         var commandOption = await GraphCommand.Execute(graphContext, command);
-        Console.WriteLine("dd");
         if (commandOption.IsError()) return commandOption;
 
         GraphQueryResults commandResult = commandOption.Return();
@@ -59,13 +61,5 @@ public class DirectoryActor : Grain, IDirectoryActor
         await _state.SetState(map);
 
         return commandResult;
-    }
-
-    public async Task<Option<GraphQueryResult>> ExecuteScalar(string command, ScopeContext context)
-    {
-        var result = await Execute(command, context);
-        if (result.IsError()) return result.ToOptionStatus<GraphQueryResult>();
-
-        return result.Return().Items.First();
     }
 }

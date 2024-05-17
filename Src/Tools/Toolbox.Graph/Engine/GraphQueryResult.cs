@@ -56,6 +56,16 @@ public static class GraphQueryResultExtensions
     public static ImmutableArray<GraphEdge> AliasEdge(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphEdge>().ToImmutableArray();
     public static ImmutableArray<GraphNode> AliasNode(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphNode>().ToImmutableArray();
 
+    public static Option<T> ReturnNameToObject<T>(this ImmutableDictionary<string, DataETag> subject, string returnName)
+    {
+        if (!subject.TryGetValue(returnName, out var dataETag)) return (StatusCode.NotFound, $"returnName={returnName} not found in 'ReturnNames'");
+
+        var entity = dataETag.ToObject<T>();
+        if (entity == null) return (StatusCode.Conflict, $"returnName={returnName} cannot be deserialized");
+
+        return entity;
+    }
+
     public static bool HasScalarResult(this GraphQueryResults subject) => subject.NotNull().Items.Length == 1 && subject.Items.First().Items.Length == 1;
 
     public static IReadOnlyList<T> Get<T>(this GraphQueryResults subject) => subject.NotNull()

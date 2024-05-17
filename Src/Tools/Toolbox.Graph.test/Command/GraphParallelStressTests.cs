@@ -115,7 +115,7 @@ public class GraphParallelStressTests
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"add node key={key}, {tags};";
-        var option = await testClient.Execute(cmd, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
         option.IsOk().Should().BeTrue();
     }
 
@@ -126,7 +126,7 @@ public class GraphParallelStressTests
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"add edge fromKey={fromKey}, toKey={toKey}, {tags};";
-        var option = await testClient.Execute(cmd, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
         return option.ToOptionStatus();
     }
 
@@ -148,7 +148,7 @@ public class GraphParallelStressTests
         }
 
         string command = cmds.Join();
-        var option = await testClient.Execute(command, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(command, NullScopeContext.Instance);
         return option.ToOptionStatus();
     }
 }

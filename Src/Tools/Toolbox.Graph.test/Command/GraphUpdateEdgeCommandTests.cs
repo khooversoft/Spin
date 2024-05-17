@@ -29,7 +29,7 @@ public class GraphUpdateEdgeCommandTests
     {
         var workMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
-        var newMapOption = await testClient.Execute("update [fromKey=node1, toKey=node3] set -knows;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("update [fromKey=node1, toKey=node3] set -knows;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -71,7 +71,7 @@ public class GraphUpdateEdgeCommandTests
     {
         var workMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
-        var newMapOption = await testClient.Execute("update [fromKey=node4, toKey=node5] set t1;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("update [fromKey=node4, toKey=node5] set t1;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();

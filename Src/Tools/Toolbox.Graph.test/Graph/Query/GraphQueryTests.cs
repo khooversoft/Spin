@@ -27,7 +27,7 @@ public class GraphQueryTests
     public async Task NodeToEdge()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) -> [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (name) -> [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -44,7 +44,7 @@ public class GraphQueryTests
     public async Task NodeToEdgeWithAlias()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) -> [knows] a1;", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (name) -> [knows] a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -65,7 +65,7 @@ public class GraphQueryTests
     public async Task NodeToEdgeToNode()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) -> [related] -> (name=lop);", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (name) -> [related] -> (name=lop);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);
@@ -82,7 +82,7 @@ public class GraphQueryTests
     public async Task EdgeToNode()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select [knows] -> (*);", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select [knows] -> (*);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -99,7 +99,7 @@ public class GraphQueryTests
     public async Task NodeToEdgeToNodeWithAliases()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (target) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (target) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);
@@ -135,7 +135,7 @@ public class GraphQueryTests
     public async Task IncorrectJoinOnEdgeShouldFail()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=29) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (key=Node1) a1 -> [knows] a2 -> (age=29) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(0);
@@ -145,7 +145,7 @@ public class GraphQueryTests
     public async Task KeyNodeToEdgeToNodeWithAliases()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=Node1) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (key=Node1) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);

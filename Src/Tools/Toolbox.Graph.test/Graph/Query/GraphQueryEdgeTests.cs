@@ -27,7 +27,7 @@ public class GraphQueryEdgeTests
     public async Task AllEdgesQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select [*];", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select [*];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(5);
@@ -52,7 +52,7 @@ public class GraphQueryEdgeTests
     public async Task TagDefaultQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -70,7 +70,7 @@ public class GraphQueryEdgeTests
     public async Task TagWithKeywordQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -88,7 +88,7 @@ public class GraphQueryEdgeTests
     public async Task TagWithKeywordForSpecificQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select [level=1];", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select [level=1];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(2);
@@ -105,7 +105,7 @@ public class GraphQueryEdgeTests
     public async Task TagWithFromAndToQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select [fromKey=node1, toKey=node2];", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select [fromKey=node1, toKey=node2];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);

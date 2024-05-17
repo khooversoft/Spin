@@ -29,7 +29,7 @@ public class GraphDeleteCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("delete (key=node1);", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("delete (key=node1);", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -82,7 +82,7 @@ public class GraphDeleteCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var commandResults = (await testClient.ExecuteScalar("delete [created] -> (lang=java);", NullScopeContext.Instance)).ThrowOnError().Return();
+        var commandResults = (await testClient.Execute("delete [created] -> (lang=java);", NullScopeContext.Instance)).ThrowOnError().Return();
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
         commandResults.Items.NotNull().Length.Should().Be(2);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
@@ -105,7 +105,7 @@ public class GraphDeleteCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var commandResults = (await testClient.ExecuteScalar("delete [created] -> (marked=true);", NullScopeContext.Instance)).ThrowOnError().Return();
+        var commandResults = (await testClient.Execute("delete [created] -> (marked=true);", NullScopeContext.Instance)).ThrowOnError().Return();
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
         commandResults.Items.NotNull().Length.Should().Be(1);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
@@ -123,7 +123,7 @@ public class GraphDeleteCommandTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("delete [fromKey=node4, toKey=node5];", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("delete [fromKey=node4, toKey=node5];", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();

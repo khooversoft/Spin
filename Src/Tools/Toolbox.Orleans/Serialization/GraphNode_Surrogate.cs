@@ -30,7 +30,7 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         Key = value.Key,
         Tags = value.Tags.ToTagsString(),
         CreatedDate = value.CreatedDate,
-        DataMap = [.. value.DataMap],
+        DataMap = value.DataMap.ToArray(),
     };
 }
 

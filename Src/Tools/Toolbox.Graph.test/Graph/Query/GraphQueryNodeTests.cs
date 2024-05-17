@@ -28,7 +28,7 @@ public class GraphQueryNodeTests
     public async Task AllNodesQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (*);", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (*);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
@@ -39,7 +39,7 @@ public class GraphQueryNodeTests
     public async Task NodeQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
@@ -57,7 +57,7 @@ public class GraphQueryNodeTests
     public async Task QueryWithAlias()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (key=node1) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (key=node1) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(1);
@@ -82,7 +82,7 @@ public class GraphQueryNodeTests
     public async Task TagDefaultQuery1()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (name) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (name) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
         result.Items.Length.Should().Be(6);
@@ -99,7 +99,7 @@ public class GraphQueryNodeTests
     public async Task SpecificTagDefaultQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue(result.Status.Error);
         result.Items.Length.Should().Be(1);
@@ -116,7 +116,7 @@ public class GraphQueryNodeTests
     public async Task TagWithTagKeywordQuery()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost(_map);
-        GraphQueryResult result = (await testClient.ExecuteScalar("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult result = (await testClient.Execute("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue(result.Status.Error);
         result.Items.Length.Should().Be(1);
@@ -142,7 +142,7 @@ public class GraphQueryNodeTests
 
         foreach (var cmd in cmds)
         {
-            GraphQueryResult result = (await testClient.ExecuteScalar(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
+            GraphQueryResult result = (await testClient.Execute(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
 
             result.Status.IsOk().Should().BeTrue(result.Status.Error);
             result.Items.Length.Should().Be(cmd.count);
@@ -178,7 +178,7 @@ public class GraphQueryNodeTests
 
         foreach (var cmd in cmds)
         {
-            GraphQueryResult result = (await testClient.ExecuteScalar(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
+            GraphQueryResult result = (await testClient.Execute(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
 
             result.Status.IsOk().Should().BeTrue(result.Status.Error);
             result.Items.Length.Should().Be(cmd.count);

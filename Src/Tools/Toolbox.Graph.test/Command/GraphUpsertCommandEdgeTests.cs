@@ -28,7 +28,7 @@ public class GraphUpsertCommandEdgeTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("upsert edge fromKey=node6, toKey=node3, edgeType=default, newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("upsert edge fromKey=node6, toKey=node3, edgeType=default, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -59,7 +59,7 @@ public class GraphUpsertCommandEdgeTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("upsert edge fromKey=node1, toKey=node2, -knows;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("upsert edge fromKey=node1, toKey=node2, -knows;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -90,7 +90,7 @@ public class GraphUpsertCommandEdgeTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("upsert edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("upsert edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         GraphQueryResults commandResults = newMapOption.Return();

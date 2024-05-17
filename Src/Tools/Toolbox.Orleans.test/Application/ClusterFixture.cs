@@ -35,7 +35,7 @@ file sealed class TestClientConfiguration : IClientBuilderConfigurator
 {
     public void Configure(IConfiguration configuration, IClientBuilder clientBuilder)
     {
-        clientBuilder.Services.AddDirectoryClient();
+        //clientBuilder.Services.AddDirectoryClient();
     }
 }
 

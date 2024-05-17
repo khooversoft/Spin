@@ -2,6 +2,7 @@
 
 namespace Toolbox.Orleans.Serialization;
 
+[GenerateSerializer]
 public struct GraphDataLink_Surrogate
 {
     [Id(0)] public string Name;
@@ -11,7 +12,7 @@ public struct GraphDataLink_Surrogate
 }
 
 [RegisterConverter]
-public sealed class raphDataLink_SurrogateConverter : IConverter<GraphDataLink, GraphDataLink_Surrogate>
+public sealed class GraphDataLink_SurrogateConverter : IConverter<GraphDataLink, GraphDataLink_Surrogate>
 {
     public GraphDataLink ConvertFromSurrogate(in GraphDataLink_Surrogate surrogate) => new GraphDataLink
     {

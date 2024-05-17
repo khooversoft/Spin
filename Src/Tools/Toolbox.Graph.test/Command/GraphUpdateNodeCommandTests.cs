@@ -29,7 +29,7 @@ public class GraphUpdateNodeCommandTests
     {
         var workMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
-        var newMapOption = await testClient.Execute("update (key=node3) set t1;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("update (key=node3) set t1;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -67,7 +67,7 @@ public class GraphUpdateNodeCommandTests
     {
         var workMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
-        var newMapOption = await testClient.Execute("update (key=node3) set contract { 'aGVsbG8=' };", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("update (key=node3) set contract { 'aGVsbG8=' };", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();
@@ -84,7 +84,7 @@ public class GraphUpdateNodeCommandTests
 
         commandResults.Items.Length.Should().Be(1);
 
-        GraphQueryResult search = (await testClient.ExecuteScalar("select (key=node3);", NullScopeContext.Instance)).ThrowOnError().Return();
+        GraphQueryResult search = (await testClient.Execute("select (key=node3);", NullScopeContext.Instance)).ThrowOnError().Return();
         search.Status.IsOk().Should().BeTrue();
         search.Items.Length.Should().Be(1);
         search.Items[0].Cast<GraphNode>().Action(x =>
@@ -106,7 +106,7 @@ public class GraphUpdateNodeCommandTests
     {
         var workMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(workMap);
-        var newMapOption = await testClient.Execute("update (key=node3) set -name;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("update (key=node3) set -name;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         GraphQueryResults commandResults = newMapOption.Return();

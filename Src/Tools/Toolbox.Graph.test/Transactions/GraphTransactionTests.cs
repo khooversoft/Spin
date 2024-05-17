@@ -18,7 +18,7 @@ public class GraphTransactionTests
             add node key=node2,t2,client;
             """;
 
-        (await testClient.Execute(q, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(2);
@@ -29,7 +29,7 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        (await testClient.Execute("add node key=node1, t1, t2;", NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch("add node key=node1, t1, t2;", NullScopeContext.Instance)).Action(x =>
         {
             x.IsConflict().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(1);
@@ -46,7 +46,7 @@ public class GraphTransactionTests
             add edge fromKey=node3, toKey=node4;
             """;
 
-        (await testClient.Execute(q2, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(4);
@@ -67,7 +67,7 @@ public class GraphTransactionTests
             add edge fromKey=node3, toKey=node4;
             """;
 
-        (await testClient.Execute(q3, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q3, NullScopeContext.Instance)).Action(x =>
         {
             x.IsError().Should().BeTrue(x.ToString());
             x.Value.Items.Length.Should().Be(3);
