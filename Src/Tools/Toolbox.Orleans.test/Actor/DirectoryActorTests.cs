@@ -17,22 +17,29 @@ public class DirectoryActorTests : IClassFixture<ActorClusterFixture>
     public async Task CreateSimpleNode()
     {
         var actor = _actorCluster.Cluster.Client.GetDirectoryActor();
+        const string nodeKey = "node_simple";
 
-        var result = await actor.Execute("add node key=node2;", NullScopeContext.Instance);
+        await actor.Execute($"delete (key={nodeKey});", NullScopeContext.Instance);
+
+        var result = await actor.Execute($"add node key={nodeKey};", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
         result.Return().Items.Length.Should().Be(0);
 
-        result = await actor.Execute("select (*);", NullScopeContext.Instance);
+        result = await actor.Execute($"select (key={nodeKey});", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
         result.Return().Items.Length.Should().Be(1);
         result.Return().Items.OfType<GraphNode>().First().Action(x =>
         {
-            x.Key.Should().Be("node1");
+            x.Key.Should().Be(nodeKey);
         });
 
-        var deleteResult = await actor.Execute("delete (key=node2);", NullScopeContext.Instance);
-        deleteResult.IsOk().Should().BeTrue();
+        (await actor.Execute($"delete (key={nodeKey});", NullScopeContext.Instance)).IsOk().Should().BeTrue();
+
+        // Verify can read directory
+        IFileStoreActor fileStoreActor = _actorCluster.Cluster.Client.GetFileStoreActor("system/directory.json");
+        var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
+        readOption.IsOk().Should().BeTrue(readOption.ToString());
     }
 }

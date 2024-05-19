@@ -60,7 +60,7 @@ public class GrainStorageFileStoreConnector : IGrainStorage
 
             grainState.RecordExists = true;
             grainState.ETag = result.Return().ETag.NotEmpty().ToString();
-            context.LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
+            context.LogInformation("File has been read, filePath={filePath}, length={length}, ETag={etag}", filePath, dataETag.Data.Length, grainState.ETag);
             return;
         }
         catch (Exception ex)

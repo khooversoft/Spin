@@ -156,18 +156,20 @@ public class DatalakeStore : IDatalakeStore
             using MemoryStream memory = new MemoryStream();
             await response.Value.Content.CopyToAsync(memory);
 
-            context.Location().LogInformation("Read file {path}", path);
-            return new DataETag(memory.ToArray(), response.Value.Properties.ETag.ToString()).ToOption();
+            byte[] data = memory.ToArray();
+            string etag = response.Value.Properties.ETag.ToString();
+            context.Location().LogInformation("Read file {path}, size={size}, eTag={etag}", path, data.Length, etag);
+            return new DataETag(data, etag);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
             context.Location().LogInformation("File not found {path}", path);
-            return new Option<DataETag>(StatusCode.NotFound);
+            return (StatusCode.NotFound, $"File not found, path={path}");
         }
         catch (Exception ex)
         {
             context.Location().LogError(ex, "Failed to read file {path}", path);
-            return new Option<DataETag>(StatusCode.BadRequest, ex.ToString());
+            return (StatusCode.BadRequest, ex.ToString());
         }
     }
 

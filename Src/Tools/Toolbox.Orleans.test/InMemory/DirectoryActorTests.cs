@@ -10,21 +10,21 @@ namespace Toolbox.Orleans.test.InMemory;
 
 public class DirectoryActorTests : IClassFixture<InMemoryClusterFixture>
 {
-    private readonly InMemoryClusterFixture _clusterFixture;
+    private readonly InMemoryClusterFixture _inMemoryFixture;
 
-    public DirectoryActorTests(InMemoryClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
+    public DirectoryActorTests(InMemoryClusterFixture clusterFixture) => _inMemoryFixture = clusterFixture.NotNull();
 
     [Fact]
     public async Task VerifyDirectoryDbFile()
     {
-        var actor = _clusterFixture.Cluster.Client.GetDirectoryActor();
+        var actor = _inMemoryFixture.Cluster.Client.GetDirectoryActor();
 
         var result = await actor.Execute("add node key=node1;", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
         result.Return().Items.Length.Should().Be(0);
 
-        IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearchActor();
+        IFileStoreSearchActor fileStoreSearchActor = _inMemoryFixture.Cluster.Client.GetFileStoreSearchActor();
         var files = await fileStoreSearchActor.Search($"system/**/*", NullScopeContext.Instance);
         files.Should().NotBeNull();
         files.Length.Should().Be(1);
@@ -33,7 +33,7 @@ public class DirectoryActorTests : IClassFixture<InMemoryClusterFixture>
         var deleteResult = await actor.Execute("delete (key=node1);", NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue();
 
-        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(OrleansConstants.DirectoryFilePath);
+        IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(OrleansConstants.DirectoryFilePath);
         var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
         readOption.IsOk().Should().BeTrue();
 
@@ -51,7 +51,7 @@ public class DirectoryActorTests : IClassFixture<InMemoryClusterFixture>
     [Fact]
     public async Task CreateSimpleNode()
     {
-        var actor = _clusterFixture.Cluster.Client.GetDirectoryActor();
+        var actor = _inMemoryFixture.Cluster.Client.GetDirectoryActor();
 
         var result = await actor.Execute("add node key=node1;", NullScopeContext.Instance);
         result.Should().NotBeNull();

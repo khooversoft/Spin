@@ -18,7 +18,7 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
 
         var userIdentity = new PrincipalIdentity
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = "User001",
             UserName = "userName1",
             Email = "userName1@domain.com",
             LoginProvider = "ms",
@@ -26,6 +26,7 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
         };
 
         userIdentity.Validate().IsOk().Should().BeTrue();
+        await service.Delete(userIdentity.Id, NullScopeContext.Instance);
 
         (await service.Set(userIdentity, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
@@ -61,12 +62,13 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
     {
         var service = _actorFixture.Cluster.Client.GetIdentityActor();
 
+        const string userId1 = "user001";
         const string userName1 = "userName1";
+        const string userId2 = "user002";
         const string userName2 = "userName2";
 
-        await addIdentity(userName1, "userName1@domain.com", "providerkey1");
-        await addIdentity(userName2, "userName2@domain.com", "providerkey2");
-
+        await addIdentity(userId1, userName1, "userName1@domain.com", "providerkey1");
+        await addIdentity(userId2, userName2, "userName2@domain.com", "providerkey2");
 
         (await service.GetByUserName(userName1, NullScopeContext.Instance)).Action(async x =>
         {
@@ -82,11 +84,14 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
             deleteResult.IsOk().Should().BeTrue();
         });
 
-        async Task addIdentity(string userName, string email, string providerKey)
+        (await service.Delete(userId1, NullScopeContext.Instance)).IsOk().Should().BeTrue();
+        (await service.Delete(userId2, NullScopeContext.Instance)).IsOk().Should().BeTrue();
+
+        async Task addIdentity(string userId, string userName, string email, string providerKey)
         {
             var userIdentity = new PrincipalIdentity
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = userId,
                 UserName = userName,
                 Email = email,
                 LoginProvider = "ms",
@@ -94,6 +99,7 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
             };
 
             userIdentity.Validate().IsOk().Should().BeTrue();
+            await service.Delete(userIdentity.Id, NullScopeContext.Instance);
 
             (await service.Set(userIdentity, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 

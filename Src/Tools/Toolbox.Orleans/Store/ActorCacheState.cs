@@ -16,16 +16,16 @@ public class ActorCacheState<T> : ActorCacheState<T, T>
 public class ActorCacheState<TState, TSerialize>
 {
     private readonly IPersistentState<TSerialize> _state;
-    private readonly Func<TState, TSerialize> _toStorage;
-    private readonly Func<TSerialize, TState> _fromStorage;
+    private readonly Func<TState, TSerialize> _toStorageFormat;
+    private readonly Func<TSerialize, TState> _fromStorageFormat;
     private readonly CacheObject<TState> _cacheObject = new(TimeSpan.FromMinutes(15));
     private int _firstRead = 0;
 
     public ActorCacheState(IPersistentState<TSerialize> state, Func<TState, TSerialize> toStorage, Func<TSerialize, TState> fromStorage, TimeSpan? cacheTime = null)
     {
         _state = state.NotNull();
-        _toStorage = toStorage.NotNull();
-        _fromStorage = fromStorage.NotNull();
+        _toStorageFormat = toStorage.NotNull();
+        _fromStorageFormat = fromStorage.NotNull();
     }
 
     public async Task<Option> Clear()
@@ -49,7 +49,7 @@ public class ActorCacheState<TState, TSerialize>
 
     public async Task<Option> SetState(TState state)
     {
-        _state.State = _toStorage(state);
+        _state.State = _toStorageFormat(state);
         await _state.WriteStateAsync();
 
         _cacheObject.Set(state);
@@ -62,7 +62,7 @@ public class ActorCacheState<TState, TSerialize>
 
         if (Interlocked.CompareExchange(ref _firstRead, 1, 0) == 0 && _state.RecordExists)
         {
-            TState? f1 = _fromStorage(_state.State);
+            TState? f1 = _fromStorageFormat(_state.State);
             _cacheObject.Set(f1);
             return f1;
         }
@@ -72,7 +72,7 @@ public class ActorCacheState<TState, TSerialize>
 
         if (!_state.RecordExists) return StatusCode.NotFound;
 
-        TState? f2 = _fromStorage(_state.State);
+        TState? f2 = _fromStorageFormat(_state.State);
         _cacheObject.Set(f2);
         return f2;
     }
