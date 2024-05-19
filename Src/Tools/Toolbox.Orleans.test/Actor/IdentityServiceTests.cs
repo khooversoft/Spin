@@ -4,17 +4,17 @@ using Toolbox.Orleans.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Orleans.test;
+namespace Toolbox.Orleans.test.Actor;
 
-public class IdentityServiceTests : IClassFixture<ClusterFixture>
+public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
 {
-    private readonly ClusterFixture _clusterFixture;
-    public IdentityServiceTests(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
+    private readonly ActorClusterFixture _actorFixture;
+    public IdentityServiceTests(ActorClusterFixture clusterFixture) => _actorFixture = clusterFixture.NotNull();
 
     [Fact]
     public async Task AddIdentity()
     {
-        var service = _clusterFixture.Cluster.Client.GetIdentityActor();
+        var service = _actorFixture.Cluster.Client.GetIdentityActor();
 
         var userIdentity = new PrincipalIdentity
         {
@@ -59,7 +59,7 @@ public class IdentityServiceTests : IClassFixture<ClusterFixture>
     [Fact]
     public async Task AddTwoIdentity()
     {
-        var service = _clusterFixture.Cluster.Client.GetIdentityActor();
+        var service = _actorFixture.Cluster.Client.GetIdentityActor();
 
         const string userName1 = "userName1";
         const string userName2 = "userName2";

@@ -22,10 +22,17 @@ public record ClientSecretOption
 }
 
 
-public static class ClientSecretOptionExtensions
+public static class ClientSecretOptionTool
 {
     public static Option Validate(this ClientSecretOption subject) => ClientSecretOption.Validator.Validate(subject).ToOptionStatus();
 
     public static TokenCredential ToTokenCredential(this ClientSecretOption subject) =>
         new ClientSecretCredential(subject.TenantId, subject.ClientId, subject.ClientSecret);
+
+    public static ClientSecretOption Create(string connectionString)
+    {
+        var dict = connectionString.ToDictionaryFromString();
+        var option = dict.ToObject<ClientSecretOption>();
+        return option;
+    }
 }

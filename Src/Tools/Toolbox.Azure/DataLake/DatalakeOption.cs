@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Storage.Files.DataLake;
 using Toolbox.Azure.Identity;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -23,7 +24,7 @@ public record DatalakeOption
 }
 
 
-public static class DatalakeOptionValidator
+public static class DatalakeOptionTool
 {
     public static Option Validate(this DatalakeOption subject) => DatalakeOption.Validator.Validate(subject).ToOptionStatus();
 
@@ -41,5 +42,22 @@ public static class DatalakeOptionValidator
         TokenCredential credential = subject.Credentials.ToTokenCredential();
 
         return new DataLakeServiceClient(serviceUri, credential);
+    }
+
+    public static DatalakeOption Create(string datalakeConnectionString, string clientSecretConnectionString)
+    {
+        var datalakeOptionDict = datalakeConnectionString.ToDictionaryFromString();
+        var datalakeOption = datalakeOptionDict.ToObject<DatalakeOption>();
+
+        var dictClientSecretDict = clientSecretConnectionString.ToDictionaryFromString();
+        var clientSecretOption = dictClientSecretDict.ToObject<ClientSecretOption>();
+
+        datalakeOption = datalakeOption with
+        {
+            Credentials = clientSecretOption,
+        };
+
+        datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption, correct connection strings");
+        return datalakeOption;
     }
 }

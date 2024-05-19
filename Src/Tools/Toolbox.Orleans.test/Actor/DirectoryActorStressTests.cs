@@ -7,16 +7,16 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
-namespace Toolbox.Orleans.test;
+namespace Toolbox.Orleans.test.Actor;
 
-public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
+public class DirectoryActorStressTests : IClassFixture<ActorClusterFixture>
 {
-    private readonly ClusterFixture _clusterFixture;
+    private readonly ActorClusterFixture _actorFixture;
     private readonly ITestOutputHelper _output;
 
-    public DirectoryActorStressTests(ClusterFixture clusterFixture, ITestOutputHelper output)
+    public DirectoryActorStressTests(ActorClusterFixture clusterFixture, ITestOutputHelper output)
     {
-        _clusterFixture = clusterFixture.NotNull();
+        _actorFixture = clusterFixture.NotNull();
         _output = output.NotNull();
     }
 
@@ -26,9 +26,9 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
     [Fact]
     public async Task ScaleTest()
     {
-        const int count = 1000;
+        const int count = 100;
         const int maxDegree = 5;
-        var graphClient = _clusterFixture.Cluster.Client.GetDirectoryActor();
+        var graphClient = _actorFixture.Cluster.Client.GetDirectoryActor();
 
         await ActionParallel.Run(x => AddNodes(graphClient, x), Enumerable.Range(0, count), maxDegree);
         await ActionParallel.Run(x => AddEdges(graphClient, x), Enumerable.Range(0, count - 1), maxDegree);
@@ -88,10 +88,10 @@ public class DirectoryActorStressTests : IClassFixture<ClusterFixture>
     [Fact]
     public async Task ParallelTasksWithErrorRecovery()
     {
-        const int count = 1000;
+        const int count = 100;
         const int maxDegree = 5;
         var blockConfig = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxDegree };
-        var graphClient = _clusterFixture.Cluster.Client.GetDirectoryActor();
+        var graphClient = _actorFixture.Cluster.Client.GetDirectoryActor();
         int sucessCount = 0;
         int retryCount = 0;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim();

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -58,6 +59,9 @@ public static class GraphQueryResultExtensions
 
     public static Option<T> ReturnNameToObject<T>(this ImmutableDictionary<string, DataETag> subject, string returnName)
     {
+        if (subject == null) Debugger.Break();
+
+        subject.NotNull();
         if (!subject.TryGetValue(returnName, out var dataETag)) return (StatusCode.NotFound, $"returnName={returnName} not found in 'ReturnNames'");
 
         var entity = dataETag.ToObject<T>();

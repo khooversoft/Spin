@@ -180,11 +180,20 @@ public class DatalakeStore : IDatalakeStore
 
         var collection = new List<DatalakePathItem>();
 
+        string basePath = queryParameter.Filter
+            .Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .TakeWhile(x => x.IndexOf('*') < 0)
+            .Join('/');
+
+        bool hasWildcard = queryParameter.Filter != basePath;
+
         int index = -1;
         try
         {
-            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.Filter, queryParameter.Recurse, cancellationToken: context))
+            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(basePath, queryParameter.Recurse, cancellationToken: context))
             {
+                if (hasWildcard && !pathItem.Name.Match(queryParameter.Filter)) continue;
+
                 index++;
                 if (index < queryParameter.Index) continue;
 
@@ -263,8 +272,8 @@ public class DatalakeStore : IDatalakeStore
 
     private string RemoveBaseRoot(string path)
     {
-        string newPath = path.Substring(_azureStoreOption.BasePath?.Length ?? 0);
-        if (newPath.StartsWith("/")) newPath = newPath.Substring(1);
+        string newPath = path[(_azureStoreOption.BasePath?.Length ?? 0)..];
+        if (newPath.StartsWith("/")) newPath = newPath[1..];
 
         return newPath;
     }

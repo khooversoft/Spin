@@ -72,7 +72,7 @@ public class MatcherTests
     public void UseMatchPatterns(string file, string pattern, int count, string[] files)
     {
         var result = file.ToEnumerable().Match(pattern);
-        result.Count.Should().Be(count);
+        result.Length.Should().Be(count);
 
         result.Should().BeEquivalentTo(files);
     }

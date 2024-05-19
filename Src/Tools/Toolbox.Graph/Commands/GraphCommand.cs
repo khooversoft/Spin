@@ -71,12 +71,13 @@ public static class GraphCommand
         GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search);
 
         Dictionary<string, DataETag> readData = new(StringComparer.OrdinalIgnoreCase);
+        var nodes = searchResult.Items.OfType<GraphNode>().ToArray();
 
-        foreach (var node in searchResult.Items.OfType<GraphNode>())
+        foreach (var node in nodes)
         {
             foreach (var data in node.DataMap)
             {
-                if (readData.ContainsKey(data.Key)) continue;
+                readData.ContainsKey(data.Key).Assert(x => x == false, $"Key={data.Key} already exists");
 
                 var readOption = await graphContext.FileStore.Get(data.Value.FileId, graphContext.Context);
                 if (readOption.IsError())

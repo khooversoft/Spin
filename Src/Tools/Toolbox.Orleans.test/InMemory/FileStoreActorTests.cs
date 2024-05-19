@@ -7,13 +7,12 @@ using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Orleans.test;
+namespace Toolbox.Orleans.test.InMemory;
 
-public class FileStoreActorTests : IClassFixture<ClusterFixture>
+public class FileStoreActorTests : IClassFixture<InMemoryClusterFixture>
 {
-    private readonly ClusterFixture _clusterFixture;
-
-    public FileStoreActorTests(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
+    private readonly InMemoryClusterFixture _inMemoryFixture;
+    public FileStoreActorTests(InMemoryClusterFixture inMemoryFixture) => _inMemoryFixture = inMemoryFixture.NotNull();
 
     private record TestRecord(string Name, DateTime CreatedDate, int Count);
 
@@ -22,8 +21,9 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
     {
         const string path = "contract/company1.com/contract1.json";
 
-        IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(path);
+        IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(path);
         var rec = new TestRecord("name1", DateTime.UtcNow, 10);
+        await fileStoreActor.Delete(NullScopeContext.Instance);
 
         DataETag writeDataEtag = rec.ToJson().ToDataETag();
         var writeOption = await fileStoreActor.Add(writeDataEtag, NullScopeContext.Instance);
@@ -33,15 +33,15 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
         readOption.IsOk().Should().BeTrue();
         readOption.Return().ETag.Should().NotBeNullOrEmpty();
 
-        IFileStoreSearchActor searchActor = _clusterFixture.Cluster.Client.GetFileStoreSearchActor();
+        IFileStoreSearchActor searchActor = _inMemoryFixture.Cluster.Client.GetFileStoreSearchActor();
         var searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Count.Should().Be(1);
+        searchList.Length.Should().Be(1);
         searchList[0].Should().Be(path);
 
-        IFileStore fileStore = ClusterFixture.FileStore;
+        IFileStore fileStore = InMemoryClusterFixture.FileStore;
         var search = await fileStore.Search("contract/company1.com/**/*", NullScopeContext.Instance);
         search.Should().NotBeNull();
-        search.Count.Should().Be(1);
+        search.Length.Should().Be(1);
         search[0].Should().Be(path);
 
         var deleteOption = await fileStoreActor.Delete(NullScopeContext.Instance);
@@ -49,10 +49,10 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
 
         search = await fileStore.Search("contract/company1.com/**/*", NullScopeContext.Instance);
         search.Should().NotBeNull();
-        search.Count.Should().Be(0);
+        search.Length.Should().Be(0);
 
         searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Count.Should().Be(0);
+        searchList.Length.Should().Be(0);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
 
         var deleteBlock = new ActionBlock<string>(async path =>
         {
-            IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(path);
+            IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(path);
             var deleteOption = await fileStoreActor.Delete(NullScopeContext.Instance);
             deleteOption.IsOk().Should().BeTrue();
 
@@ -76,7 +76,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
 
         var getBlock = new ActionBlock<string>(async path =>
         {
-            IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(path);
+            IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(path);
             var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
             readOption.IsOk().Should().BeTrue();
 
@@ -92,7 +92,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
         var addBlock = new ActionBlock<string>(async path =>
         {
             string name = path.Split('/').Last();
-            IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(path);
+            IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(path);
 
             var rec = new TestRecord(name, DateTime.UtcNow, 10);
             DataETag writeDataEtag = rec.ToDataETag();
@@ -103,8 +103,8 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             getBlock.Post(path);
         }, dataflowBlockOptions);
 
-        var files = await ClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
-        files.Count.Should().Be(0);
+        var files = await InMemoryClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
+        files.Length.Should().Be(0);
 
         Enumerable.Range(0, fileCount).ForEach(x => addBlock.Post($"contract/scale_company.com/contract{x}.json"));
         addBlock.Complete();
@@ -119,8 +119,8 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
         await deleteBlock.Completion;
         deletePathCount.Should().Be(fileCount);
 
-        files = await ClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
-        files.Count.Should().Be(0);
+        files = await InMemoryClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
+        files.Length.Should().Be(0);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
 
         var deleteBlock = new ActionBlock<string>(async path =>
         {
-            IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(path);
+            IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(path);
             var deleteOption = await fileStoreActor.Delete(NullScopeContext.Instance);
             deleteOption.IsOk().Should().BeTrue();
 
@@ -143,7 +143,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
 
         var getBlock = new ActionBlock<string>(async path =>
         {
-            IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(path);
+            IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(path);
             var readOption = await fileStoreActor.Get(NullScopeContext.Instance);
             readOption.IsOk().Should().BeTrue();
 
@@ -159,7 +159,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
         var addBlock = new ActionBlock<string>(async path =>
         {
             string name = path.Split('/').Last();
-            IFileStoreActor fileStoreActor = _clusterFixture.Cluster.Client.GetFileStoreActor(path);
+            IFileStoreActor fileStoreActor = _inMemoryFixture.Cluster.Client.GetFileStoreActor(path);
 
             var rec = new TestRecord(name, DateTime.UtcNow, 10);
             DataETag writeDataEtag = rec.ToDataETag();
@@ -170,8 +170,8 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
             await getBlock.SendAsync(path);
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
 
-        var files = await ClusterFixture.FileStore.Search("contract/stress_company/**/*", NullScopeContext.Instance);
-        files.Count.Should().Be(0);
+        var files = await InMemoryClusterFixture.FileStore.Search("contract/stress_company/**/*", NullScopeContext.Instance);
+        files.Length.Should().Be(0);
 
         Enumerable.Range(0, fileCount).ForEach(x => addBlock.Post($"contract/stress_company.com/contract{x}.json"));
         addBlock.Complete();
@@ -187,7 +187,7 @@ public class FileStoreActorTests : IClassFixture<ClusterFixture>
         getPathCount.Should().Be(fileCount);
         deletePathCount.Should().Be(fileCount);
 
-        files = await ClusterFixture.FileStore.Search("contract/stress_company/**/*", NullScopeContext.Instance);
-        files.Count.Should().Be(0);
+        files = await InMemoryClusterFixture.FileStore.Search("contract/stress_company/**/*", NullScopeContext.Instance);
+        files.Length.Should().Be(0);
     }
 }

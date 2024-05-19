@@ -1,0 +1,3 @@
+{
+  "datalakeConnectionString": "account=devspinstore;container=test;basePath=orleans-tests"
+}

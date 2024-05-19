@@ -16,10 +16,10 @@ namespace Toolbox.Orleans.test.Application;
 //    // ICollectionFixture<> interfaces.
 //}
 
-public sealed class ClusterFixture : IDisposable
+public sealed class InMemoryClusterFixture : IDisposable
 {
     public static IGraphFileStore FileStore { get; } = new InMemoryGraphFileStore(new NullLogger<InMemoryFileStore>());
-    public ClusterFixture() => Cluster.Deploy();
+    public InMemoryClusterFixture() => Cluster.Deploy();
 
     public TestCluster Cluster { get; } = new TestClusterBuilder()
         .AddSiloBuilderConfigurator<TestSiloConfigurations>()
@@ -39,15 +39,15 @@ file sealed class TestClientConfiguration : IClientBuilderConfigurator
     }
 }
 
-sealed class TestSiloConfigurations : ISiloConfigurator
+file sealed class TestSiloConfigurations : ISiloConfigurator
 {
     public void Configure(ISiloBuilder siloBuilder)
     {
         siloBuilder.ConfigureServices(static services =>
         {
             services.AddLogging(config => config.AddDebug().AddConsole());
-            services.AddSingleton<IFileStore>(ClusterFixture.FileStore);
-            services.AddSingleton<IGraphFileStore>(ClusterFixture.FileStore);
+            services.AddSingleton<IFileStore>(InMemoryClusterFixture.FileStore);
+            //services.AddSingleton<IGraphFileStore>(InMemoryClusterFixture.FileStore);
 
             services.AddGrainFileStore();
             services.AddStoreCollection((services, config) =>

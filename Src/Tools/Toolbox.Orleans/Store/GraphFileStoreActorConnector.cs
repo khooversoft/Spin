@@ -1,4 +1,5 @@
-﻿using Toolbox.Graph;
+﻿using System.Collections.Immutable;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -29,7 +30,7 @@ public class GraphFileStoreActorConnector : IGraphFileStore
         return _clusterClient.GetFileStoreActor(path).Get(context);
     }
 
-    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
+    public Task<ImmutableArray<string>> Search(string pattern, ScopeContext context)
     {
         return _clusterClient.GetFileStoreSearchActor().Search(pattern, context);
     }

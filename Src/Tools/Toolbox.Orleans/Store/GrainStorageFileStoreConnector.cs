@@ -102,6 +102,7 @@ public class GrainStorageFileStoreConnector : IGrainStorage
 
     private (string filePath, IFileStore store) GetStoreAndPath(GrainId grainId, string extension)
     {
+        // Remove grain root name
         string path = grainId.ToString()
             .Split('/', StringSplitOptions.RemoveEmptyEntries)
             .Skip(1)

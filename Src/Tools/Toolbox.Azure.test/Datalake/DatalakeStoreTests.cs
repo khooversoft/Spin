@@ -117,7 +117,7 @@ public class DatalakeStoreTests
         await dataSet
             .ForEachAsync(async x => await _dataLakeStore.Write(x.path, x.data.ToBytes(), true, _context));
 
-        Option<QueryResponse<DatalakePathItem>> subSearchList = await _dataLakeStore.Search(new QueryParameter { Filter = "data" }, _context);
+        Option<QueryResponse<DatalakePathItem>> subSearchList = await _dataLakeStore.Search(new QueryParameter { Filter = "data/**/*" }, _context);
         subSearchList.IsOk().Should().BeTrue();
         subSearchList.Return().Items.Count.Should().Be(dataSet.Where(x => x.path.StartsWith("data/")).Count());
 

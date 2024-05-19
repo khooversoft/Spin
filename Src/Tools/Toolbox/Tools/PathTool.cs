@@ -1,13 +1,26 @@
-﻿using Toolbox.Extensions;
+﻿using System.Collections.Frozen;
+using Toolbox.Extensions;
 
 namespace Toolbox.Tools;
 
 public static class PathTool
 {
+    private static FrozenSet<(string chr, string replace)> _replaceMap = new[]
+    {
+        ( "/", "___" ),
+        ( ":", "__" ),
+        ( "$", "_DLR_" ),
+    }.ToFrozenSet();
+
+    private static string ToEncoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.chr, y.replace));
+    private static string ToDecoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.replace, y.chr));
+
     public static string ToExtension(string extension) => extension.NotEmpty().StartsWith(".") ? extension : "." + extension;
 
-    public static string SetExtension(string path, string extension)
+    public static string SetExtension(string path, string? extension)
     {
+        if (extension.IsEmpty()) return path;
+
         path.NotEmpty();
         extension = ToExtension(extension);
 
@@ -57,4 +70,21 @@ public static class PathTool
 
         return path;
     }
+
+    //public static string CreateFileId(string path, string? extension = null)
+    //{
+    //    string[] parts = path.NotEmpty().Split('/', StringSplitOptions.RemoveEmptyEntries).ToArray();
+    //    if (parts.Length < 2) return PathTool.SetExtension(path, extension);
+
+    //    string f1 = PathTool.SetExtension(parts[^1], extension);
+    //    string newPath = parts[..^1].Append(f1).Join('/');
+    //    string encodedPath = ToEncoding(newPath);
+
+    //    string storePath = parts[..^1]
+    //        .Select(x => ToEncoding(x))
+    //        .Append(encodedPath)
+    //        .Join('/');
+
+    //    return storePath.ToLower();
+    //}
 }

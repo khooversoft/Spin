@@ -6,13 +6,13 @@ using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Orleans.test;
+namespace Toolbox.Orleans.test.InMemory;
 
-public class DirectoryActorTests : IClassFixture<ClusterFixture>
+public class DirectoryActorTests : IClassFixture<InMemoryClusterFixture>
 {
-    private readonly ClusterFixture _clusterFixture;
+    private readonly InMemoryClusterFixture _clusterFixture;
 
-    public DirectoryActorTests(ClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
+    public DirectoryActorTests(InMemoryClusterFixture clusterFixture) => _clusterFixture = clusterFixture.NotNull();
 
     [Fact]
     public async Task VerifyDirectoryDbFile()
@@ -27,7 +27,7 @@ public class DirectoryActorTests : IClassFixture<ClusterFixture>
         IFileStoreSearchActor fileStoreSearchActor = _clusterFixture.Cluster.Client.GetFileStoreSearchActor();
         var files = await fileStoreSearchActor.Search($"system/**/*", NullScopeContext.Instance);
         files.Should().NotBeNull();
-        files.Count.Should().Be(1);
+        files.Length.Should().Be(1);
         files[0].Should().Be(OrleansConstants.DirectoryFilePath);
 
         var deleteResult = await actor.Execute("delete (key=node1);", NullScopeContext.Instance);
@@ -41,13 +41,12 @@ public class DirectoryActorTests : IClassFixture<ClusterFixture>
         var directoryObj = read.ToObject<GraphSerialization>();
         directoryObj.Should().NotBeNull();
 
-        IFileStore fileStore = ClusterFixture.FileStore;
+        IFileStore fileStore = InMemoryClusterFixture.FileStore;
         var search = await fileStore.Search("system/**/*", NullScopeContext.Instance);
         search.Should().NotBeNull();
-        search.Count.Should().Be(1);
+        search.Length.Should().Be(1);
         search[0].Should().Be("system/directory.json");
     }
-
 
     [Fact]
     public async Task CreateSimpleNode()

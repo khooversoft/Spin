@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -88,7 +89,7 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
         return option.ToTaskResult();
     }
 
-    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
+    public Task<ImmutableArray<string>> Search(string pattern, ScopeContext context)
     {
         var paths = _store.Select(x => x.Key);
         var result = paths.Match(pattern);

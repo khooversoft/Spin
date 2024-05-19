@@ -76,7 +76,7 @@ public class IdentityActor : Grain, IIdentityActor
         var resultOption = await directoryActor.Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
 
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<PrincipalIdentity>("entity");
+        var principalIdentity = resultOption.Return().ReturnNames.NotNull().ReturnNameToObject<PrincipalIdentity>("entity");
         return principalIdentity;
     }
 

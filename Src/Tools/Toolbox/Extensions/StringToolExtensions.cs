@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.FileSystemGlobbing;
@@ -79,19 +80,43 @@ public static class StringToolExtensions
         return result;
     }
 
-    public static IReadOnlyList<string> Match(this IEnumerable<string> files, params string[] patterns)
+    /// <summary>
+    /// Match using files globbing support
+    /// </summary>
+    /// <param name="files"></param>
+    /// <param name="patterns"></param>
+    /// <returns>list of items that match</returns>
+    public static ImmutableArray<string> Match(this IEnumerable<string> files, params string[] patterns)
     {
         files.NotNull();
-        if (files.Count() == 0 || patterns.Length == 0) return Array.Empty<string>();
+        if (files.Count() == 0 || patterns.Length == 0) return ImmutableArray<string>.Empty;
 
         Matcher matcher = new();
         patterns.ForEach(x => matcher.AddInclude(x));
 
         var matchResult = matcher.Match(files);
-        if (!matchResult.HasMatches) return Array.Empty<string>();
+        if (!matchResult.HasMatches) return ImmutableArray<string>.Empty;
 
         var result = matchResult.Files.Select(x => x.Path).ToArray();
-        return result;
+        return result.ToImmutableArray<string>();
+    }
+
+    /// <summary>
+    /// Match using file globbing support
+    /// </summary>
+    /// <param name="file"></param>
+    /// <param name="patterns"></param>
+    /// <returns></returns>
+    public static bool Match(this string file, params string[] patterns)
+    {
+        file.NotEmpty();
+        if (patterns.Length == 0) return false;
+
+        Matcher matcher = new();
+        patterns.ForEach(x => matcher.AddInclude(x));
+
+        var matchResult = matcher.Match(file);
+        return matchResult.HasMatches;
     }
 
     /// <summary>

@@ -1,10 +1,12 @@
-﻿using Toolbox.Store;
+﻿using System.Collections.Immutable;
+using Toolbox.Graph;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Azure;
 
-public class DatalakeFileStoreConnector : IFileStore
+public class DatalakeFileStoreConnector : IFileStore, IGraphFileStore
 {
     private readonly IDatalakeStore _datalakeStore;
     public DatalakeFileStoreConnector(IDatalakeStore datalakeStore) => _datalakeStore = datalakeStore.NotNull();
@@ -26,13 +28,13 @@ public class DatalakeFileStoreConnector : IFileStore
     public async Task<Option> Exist(string path, ScopeContext context) => new Option(await _datalakeStore.Exist(path, context));
     public Task<Option<DataETag>> Get(string path, ScopeContext context) => _datalakeStore.Read(path, context);
 
-    public async Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
+    public async Task<ImmutableArray<string>> Search(string pattern, ScopeContext context)
     {
         var query = new QueryParameter { Filter = pattern };
         var result = await _datalakeStore.Search(query, context);
-        if (result.IsError()) return Array.Empty<string>();
+        if (result.IsError()) return ImmutableArray<string>.Empty;
 
-        var list = result.Return().Items.Select(x => x.Name).ToArray();
+        var list = result.Return().Items.Select(x => x.Name).ToImmutableArray();
         return list;
     }
 
