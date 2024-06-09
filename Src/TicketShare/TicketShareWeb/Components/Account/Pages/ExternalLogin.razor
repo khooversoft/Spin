@@ -6,7 +6,7 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using Toolbox.Identity
+@using Toolbox.Orleans
 
 @inject SignInManager<PrincipalIdentity> SignInManager
 @inject UserManager<PrincipalIdentity> UserManager
@@ -124,11 +124,9 @@
 
     private async Task OnValidSubmitAsync()
     {
-        // var emailStore = GetEmailStore();
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        // await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
@@ -173,15 +171,6 @@
                 $"Ensure that '{nameof(PrincipalIdentity)}' is not an abstract class and has a parameterless constructor");
         }
     }
-
-    // private IUserEmailStore<PrincipalIdentity> GetEmailStore()
-    // {
-    //     if (!UserManager.SupportsUserEmail)
-    //     {
-    //         throw new NotSupportedException("The default UI requires a user store with email support.");
-    //     }
-    //     return (IUserEmailStore<PrincipalIdentity>)UserStore;
-    // }
 
     private sealed class InputModel
     {

@@ -26,21 +26,11 @@ public sealed record PrincipalIdentity : IIdentity
         .RuleFor(x => x.UserName).NotNull()
         .RuleFor(x => x.Email).ValidEmail()
         .Build();
-
-    //public static IGraphSchema<PrincipalIdentity> GraphSchema { get; } = new GraphSchema<PrincipalIdentity>()
-    //    .Node(x => PrincipalIdentityTool.ToUserKey(x.Id))
-    //    .Index("userName", x => PrincipalIdentityTool.ToUserNameIndex(x.UserName))
-    //    .Index("email", x => PrincipalIdentityTool.ToEmailIndex(x.Email))
-    //    .Tags("emailTag", x => PrincipalIdentityTool.ToEmailTag(x.Email))
-    //    .Index("logonProvider", x => PrincipalIdentityTool.ToLogonProvider(x.LoginProvider, x.ProviderKey))
-    //    .Build();
 }
 
 
 public static class PrincipalIdentityTool
 {
-    //private static FrozenSet<string> _ns = new string[] { "user", "userName", "userEmail", "logonProvider" }.ToFrozenSet();
-    //public static string RemoveNs(string key) => _ns.Aggregate(key, (a, x) => key.StartsWith(x) ? key[0..(x.Length - 1)] : key);
     public static Option Validate(this PrincipalIdentity subject) => PrincipalIdentity.Validator.Validate(subject).ToOptionStatus();
 
     public static bool Validate(this PrincipalIdentity subject, out Option result)
@@ -48,18 +38,4 @@ public static class PrincipalIdentityTool
         result = subject.Validate();
         return result.IsOk();
     }
-
-    //public static string ToUserKey(string id) => $"user:{id.NotEmpty().ToLower()}";
-    //public static string ToUserNameIndex(string userName) => $"userName:{userName.NotEmpty().ToLower()}";
-    //public static string ToEmailIndex(string userName) => $"userEmail:{userName.NotEmpty().ToLower()}";
-    //public static string ToEmailTag(string email) => $"email={email.NotEmpty().ToLower()}";
-    //public static string ToLogonProvider(string provider, string providerKey) => $"logonProvider:{provider.NotEmpty().ToLower() + "/" + providerKey.NotEmpty().ToLower()}";
-
-    //public static Option<string> GenerateAddNodeCommands(this PrincipalIdentity subject)
-    //{
-    //    if (!subject.Validate(out var r)) return r.ToOptionStatus<string>();
-
-    //    var commands = subject.GraphSchema.CreateAddCommands(subject);
-    //    return commands;
-    //}
 }

@@ -1,0 +1,1 @@
+& az appconfig kv import -n biz-bricks-prod-configuration --label Development -s file --path app-config-prod.json --format json --yes

@@ -33,7 +33,6 @@ public static class ConfigurationBuilderExtensions
 
         // Add source
         configurationBuilder.AddSource(_ => new ResolverConfigurationProvider(configuration, configuration.BuildResolver()));
-
         return configurationBuilder;
     }
 

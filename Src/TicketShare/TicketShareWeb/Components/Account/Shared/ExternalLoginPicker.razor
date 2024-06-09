@@ -1,6 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using Toolbox.Identity
+@using Toolbox.Orleans
 
 @inject SignInManager<PrincipalIdentity> SignInManager
 @inject IdentityRedirectManager RedirectManager
@@ -18,7 +18,6 @@
 }
 else
 {
-    <p>Or, log on with one of the providers below</p>
     <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
         <div>
             <AntiforgeryToken />

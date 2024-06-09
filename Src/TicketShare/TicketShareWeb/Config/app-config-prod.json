@@ -1,0 +1,7 @@
+{
+  "TicketShare:Storage:Credentials:ClientSecret": {
+    "uri": "https://biz-bricks-prod.vault.azure.net/secrets/TicketShare-Server-ClientSecret"
+  },
+  "TicketShare:Storage:AccountConnection": "Account=ticketsharestore;Container=data;BasePath=v1",
+  "TicketShare:Storage:Credentials": "ClientId=6c712a74-f425-41fa-aa2e-78da30dfe791;TenantId=33470f72-2b3b-4a0b-837d-4ba9ba499d69;ClientSecret={TicketShare:Storage:Credentials:ClientSecret}"
+}

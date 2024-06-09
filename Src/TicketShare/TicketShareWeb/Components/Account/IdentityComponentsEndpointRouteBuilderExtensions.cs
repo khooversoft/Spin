@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using TicketShareWeb.Components.Account.Pages;
 using TicketShareWeb.Components.Account.Pages.Manage;
-using Toolbox.Identity;
+using Toolbox.Orleans;
 
 namespace Microsoft.AspNetCore.Routing;
 internal static class IdentityComponentsEndpointRouteBuilderExtensions

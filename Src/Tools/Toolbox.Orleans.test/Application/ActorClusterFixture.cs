@@ -30,21 +30,19 @@ public sealed class ActorClusterFixture : IDisposable
 
     public TestCluster Cluster { get; } = new TestClusterBuilder()
         .AddSiloBuilderConfigurator<TestSiloConfigurations>()
-        //.AddClientBuilderConfigurator<TestClientConfiguration>()
+        .AddClientBuilderConfigurator<TestClientConfiguration>()
         .Build();
 
     void IDisposable.Dispose() => Cluster.StopAllSilos();
-
-    public IServiceProvider ServiceProvider => Cluster.ServiceProvider;
 }
 
-//file sealed class TestClientConfiguration : IClientBuilderConfigurator
-//{
-//    public void Configure(IConfiguration configuration, IClientBuilder clientBuilder)
-//    {
-//        //clientBuilder.Services.AddDirectoryClient();
-//    }
-//}
+file sealed class TestClientConfiguration : IClientBuilderConfigurator
+{
+    public void Configure(IConfiguration configuration, IClientBuilder clientBuilder)
+    {
+        clientBuilder.Services.AddSingleton<UserStore>();
+    }
+}
 
 file sealed class TestSiloConfigurations : ISiloConfigurator
 {

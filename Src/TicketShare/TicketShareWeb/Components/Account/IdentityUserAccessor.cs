@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Toolbox.Identity;
+using Toolbox.Orleans;
 
 namespace TicketShareWeb.Components.Account;
 internal sealed class IdentityUserAccessor(UserManager<PrincipalIdentity> userManager, IdentityRedirectManager redirectManager)

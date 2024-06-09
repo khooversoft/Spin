@@ -16,11 +16,11 @@ public class GraphAddEdgeCommandTests
         new GraphNode("node6", tags: "name=peter,age=35"),
         new GraphNode("node7", tags: "lang=java"),
 
-        new GraphEdge("node1", "node2", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", tags: "created"),
-        new GraphEdge("node4", "node5", tags: "created"),
-        new GraphEdge("node4", "node3", tags: "created"),
+        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
+        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
+        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
     };
 
     [Fact]

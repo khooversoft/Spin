@@ -119,10 +119,10 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         user.NotNull();
         normalizedName.NotEmpty();
 
+        user.Id = normalizedName;
         user.NormalizedUserName = normalizedName;
         return Task.CompletedTask;
     }
-
 
     public Task SetUserNameAsync(PrincipalIdentity user, string? userName, CancellationToken cancellationToken)
     {
@@ -131,11 +131,18 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         userName.NotEmpty();
 
         user.UserName = userName;
+        user.Email = userName;
         return Task.CompletedTask;
     }
 
-    public Task<IdentityResult> UpdateAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+    public async Task<IdentityResult> UpdateAsync(PrincipalIdentity user, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        cancellationToken.ThrowIfCancellationRequested();
+        user.NotNull();
+        var context = new ScopeContext(_logger);
+        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
+
+        var identityResult = (await identityActor.Set(user, context)).ToIdentityResult();
+        return identityResult;
     }
 }

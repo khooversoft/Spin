@@ -20,8 +20,8 @@ internal static class GraphCommandEdge
 
         var result = addEdge.Upsert switch
         {
-            false => graphContext.Map.Edges.Add(graphEdge, unique: addEdge.Unique, graphContext),
-            true => graphContext.Map.Edges.Set(graphEdge, unique: addEdge.Unique, graphContext),
+            false => graphContext.Map.Edges.Add(graphEdge, addEdge, graphContext),
+            true => graphContext.Map.Edges.Set(graphEdge, addEdge, graphContext),
         };
 
         return new GraphQueryResult(CommandType.AddEdge, result);

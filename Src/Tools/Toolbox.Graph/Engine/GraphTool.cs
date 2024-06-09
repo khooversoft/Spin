@@ -51,7 +51,7 @@ public static class GraphTool
         return result;
     }
 
-    public static string CreateNode(string nodeKey, string? tags, string? base64)
+    public static string CreateNodeCommand(string nodeKey, string? tags, string? base64)
     {
         nodeKey.NotEmpty();
 
@@ -65,7 +65,7 @@ public static class GraphTool
         return cmd;
     }
 
-    public static string CreateEdge(string fromKey, string toKey, string? tags)
+    public static string CreateEdgeCommand(string fromKey, string toKey, string? tags)
     {
         fromKey.NotEmpty();
         toKey.NotEmpty();
@@ -79,7 +79,7 @@ public static class GraphTool
         return cmd;
     }
 
-    public static ImmutableArray<string> CreateIndex(string indexKey, string nodeKey)
+    public static ImmutableArray<string> CreateIndexCommands(string indexKey, string nodeKey)
     {
         nodeKey.NotEmpty();
         indexKey.NotEmpty();

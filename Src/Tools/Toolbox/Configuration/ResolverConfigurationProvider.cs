@@ -1,36 +1,35 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Toolbox.Tools;
 
-namespace Toolbox.Configuration
+namespace Toolbox.Configuration;
+
+public class ResolverConfigurationProvider : ConfigurationProvider
 {
-    public class ResolverConfigurationProvider : ConfigurationProvider
+    private readonly IConfiguration _configuration;
+    private readonly IPropertyResolver _propertyResolver;
+
+    public ResolverConfigurationProvider(IConfiguration configuration, IPropertyResolver propertyResolver)
     {
-        private readonly IConfiguration _configuration;
-        private readonly IPropertyResolver _propertyResolver;
+        configuration.NotNull();
+        propertyResolver.NotNull();
 
-        public ResolverConfigurationProvider(IConfiguration configuration, IPropertyResolver propertyResolver)
+        _configuration = configuration;
+        _propertyResolver = propertyResolver;
+    }
+
+    public override void Load()
+    {
+        IReadOnlyList<KeyValuePair<string, string>> list = _configuration
+            .AsEnumerable()
+            .Where(x => x.Value != null)
+            .OfType<KeyValuePair<string, string>>()
+            .ToArray();
+
+        foreach (KeyValuePair<string, string> item in list)
         {
-            configuration.NotNull();
-            propertyResolver.NotNull();
+            if (!_propertyResolver.HasProperty(item.Value)) continue;
 
-            _configuration = configuration;
-            _propertyResolver = propertyResolver;
-        }
-
-        public override void Load()
-        {
-            IReadOnlyList<KeyValuePair<string, string>> list = _configuration
-                .AsEnumerable()
-                .Where(x => x.Value != null)
-                .OfType<KeyValuePair<string, string>>()
-                .ToArray();
-
-            foreach (KeyValuePair<string, string> item in list)
-            {
-                if (!_propertyResolver.HasProperty(item.Value)) continue;
-
-                Data[item.Key] = _propertyResolver.Resolve(item.Value);
-            }
+            Data[item.Key] = _propertyResolver.Resolve(item.Value);
         }
     }
 }

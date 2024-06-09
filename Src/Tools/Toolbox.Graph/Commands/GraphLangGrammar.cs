@@ -18,7 +18,7 @@ namespace Toolbox.Graph;
 /// 
 /// select search
 /// add {node | {unique? edge} } { tag, data }
-/// upsert {node | edge} { tag, data }
+/// upsert {node | {unique? edge} } { tag, data }
 /// delete search [force]
 /// update search set { tag, data }
 /// 
@@ -113,7 +113,12 @@ public static class GraphLangGrammar
         get
         {
             var node = new LsRoot("addNode") + new LsSymbol("node") + TagParameters;
-            var edge = new LsRoot("addEdge") + new LsSymbol("edge") + TagParameters;
+
+            var onlyAdd = new LsRoot("onlyAdd") + new LsSymbol("edge");
+            var uniqueAdd = new LsRoot("uniqueAdd") + new LsSymbol("unique") + new LsSymbol("edge");
+            var edge = new LsRoot("addEdge") + (new LsSwitch("addEdge-Option") + uniqueAdd + onlyAdd) + TagParameters;
+
+            //var edge = new LsRoot("addEdge") + new LsSymbol("edge") + TagParameters;
 
             var rule = new LsRoot(nameof(Upsert))
                 + new LsSymbol("upsert")

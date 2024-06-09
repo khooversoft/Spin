@@ -14,25 +14,26 @@
                     <img class="icon-image" src="/images/TicketShare.icon2.webp" alt="Ticket Share" />
                     <div>Ticket Share</div>
                 </div>
-                <div class="dialog-title">
-                    Enter your email to log on or to create a new account.
+                @*                 <div class="dialog-title">
+                Enter your email to log on or to create a new account.
                 </div>
                 <FluentTextField @bind-Value=value2 Placeholder="Email" class="email-input"></FluentTextField>
+                <FluentButton BackgroundColor="#CCF4DD" class="x-btn agree-button">Submit</FluentButton>
+                *@
+                @* <FluentDivider Style="width: 100%;margin: 20px 0 10px 0;" Role="DividerRole.Presentation"></FluentDivider> *@
+                <p style="margin-top: 20px">Log on with one of the following providers...</p>
+                <ExternalLoginPicker />
                 <div class="agree-text">
-                    By clicking Submit, you agree to these <a href="/">terms and conditions</a> and
+                    By selecting a logon provider, you agree to these <a href="/">terms and conditions</a> and
                     allow Ticket-Share to get your user and tenant details. <a href="/">Ticket-Share Privacy Statement</a>
                 </div>
-                <FluentButton BackgroundColor="#CCF4DD" class="x-btn agree-button">Submit</FluentButton>
-
-                <FluentDivider Style="width: 100%;margin: 20px 0 10px 0;" Role="DividerRole.Presentation"></FluentDivider>
-                <ExternalLoginPicker />
                 @*                 <div class="row-provider">
-                    <FluentButton Appearance="Appearance.Accent" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
-                    <FluentButton Appearance="Appearance.Lightweight" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
-                    <FluentButton Appearance="Appearance.Outline" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
-                    <FluentButton Appearance="Appearance.Stealth" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
-                    <FluentButton BackgroundColor="var(--highlight-bg)" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
-                    <FluentButton BackgroundColor="#CCF4DD" class="x-btn use-google-logon">Log on with Google</FluentButton>
+                <FluentButton Appearance="Appearance.Accent" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton Appearance="Appearance.Lightweight" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton Appearance="Appearance.Outline" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton Appearance="Appearance.Stealth" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton BackgroundColor="var(--highlight-bg)" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton BackgroundColor="#CCF4DD" class="x-btn use-google-logon">Log on with Google</FluentButton>
                 </div> *@
             </div>
 
@@ -149,5 +150,5 @@
 
 
 @code {
-    private string value2;
+    private string? value2;
 }

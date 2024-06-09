@@ -5,7 +5,6 @@ namespace Toolbox.Graph.test.Lang.GraphCommand;
 
 public class GraphAddEdgeTests
 {
-
     [Theory]
     [InlineData("add edge fromKey=key1, toKey=key2, tags=t1, t2;")]
     [InlineData("add edge fromKey=key1, toKey=key2, select, t2;")]
@@ -28,6 +27,11 @@ public class GraphAddEdgeTests
     [InlineData("add edge fromKey=key1, toKey=t1, t1=v1;")]
     [InlineData("add edge fromKey=key1, toKey=t1, t1=v1, t2;")]
     [InlineData("add edge fromKey=key1, toKey=t1, t1=v1, t2=v2;")]
+    [InlineData("add unique edge fromKey=key1, toKey=t1;")]
+    [InlineData("add unique edge fromKey=key1, toKey=t1, t1;")]
+    [InlineData("add unique edge fromKey=key1, toKey=t1, t1=v1;")]
+    [InlineData("add unique edge fromKey=key1, toKey=t1, t1=v1, t2;")]
+    [InlineData("add unique edge fromKey=key1, toKey=t1, t1=v1, t2=v2;")]
     [InlineData("add unique edge fromKey=key1, toKey=key2;")]
     public void AddEdgeAreValid(string line)
     {
@@ -72,5 +76,6 @@ public class GraphAddEdgeTests
         query.ToKey.Should().Be("key2");
         query.EdgeType.Should().Be("et");
         query.Tags.ToTagsString().Should().Be("t2");
+        query.Unique.Should().BeFalse();
     }
 }

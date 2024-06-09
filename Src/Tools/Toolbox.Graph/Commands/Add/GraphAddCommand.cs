@@ -9,6 +9,7 @@ namespace Toolbox.Graph;
 public static class GraphAddCommand
 {
     private static FrozenSet<string> _validNames = new string[] { "add", "upsert" }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
     public static Option<IGraphQL> Parse(Stack<LangNode> stack, bool upsert = false)
     {
         var list = new List<IGraphQL>();
@@ -16,8 +17,8 @@ public static class GraphAddCommand
         if (
             !stack.TryPeek(out var cmd) ||
             cmd.SyntaxNode.Name.IsEmpty() ||
-            !_validNames.Contains(cmd.SyntaxNode.Name))
-            return StatusCode.NotFound;
+            !_validNames.Contains(cmd.SyntaxNode.Name)
+        ) return StatusCode.NotFound;
 
         stack.Pop();
         bool unique = false;

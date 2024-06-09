@@ -6,9 +6,8 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
-using Toolbox.Identity;
-using Toolbox.Identity.Store;
 using Toolbox.Orleans;
+using Toolbox.Tools;
 
 Console.WriteLine($"Ticket Share Web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();
@@ -34,8 +33,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddMicrosoftAccount(opt =>
     {
-        opt.ClientId = builder.Configuration[TsConstants.Authentication.ClientId]!;
-        opt.ClientSecret = builder.Configuration[TsConstants.Authentication.ClientSecret]!;
+        opt.ClientId = builder.Configuration[TsConstants.Authentication.ClientId].NotEmpty();
+        opt.ClientSecret = builder.Configuration[TsConstants.Authentication.ClientSecret].NotEmpty();
 
         // Adding the prompt parameter
         opt.Events = new OAuthEvents

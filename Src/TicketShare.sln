@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Graph", "Tools\Tool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Graph.test", "Tools\Toolbox.Graph.test\Toolbox.Graph.test.csproj", "{756EE499-1B22-4D89-A332-C2B176EEC3FE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Orleans.test", "Tools\Toolbox.Orleans.test\Toolbox.Orleans.test.csproj", "{7DC0D869-72A9-438E-8EC3-14EA0A014882}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{756EE499-1B22-4D89-A332-C2B176EEC3FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{756EE499-1B22-4D89-A332-C2B176EEC3FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{756EE499-1B22-4D89-A332-C2B176EEC3FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DC0D869-72A9-438E-8EC3-14EA0A014882}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DC0D869-72A9-438E-8EC3-14EA0A014882}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DC0D869-72A9-438E-8EC3-14EA0A014882}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DC0D869-72A9-438E-8EC3-14EA0A014882}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -84,6 +90,7 @@ Global
 		{A5DD6002-1867-4A63-9BBB-DD6235432366} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
 		{5D629F27-F905-4DFC-8B09-60FB04B7B741} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
 		{756EE499-1B22-4D89-A332-C2B176EEC3FE} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
+		{7DC0D869-72A9-438E-8EC3-14EA0A014882} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C6C4D84E-C816-45E6-AE2A-10688A98827C}

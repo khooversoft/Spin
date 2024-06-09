@@ -1,8 +1,13 @@
-﻿using Toolbox.LangTools;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Toolbox.LangTools;
 
-namespace Toolbox.Graph.test.Lang.Graph;
+namespace Toolbox.Graph.test.Lang.Syntax;
 
-public class AddEdgeSyntaxTests
+public class UpsertEdgeTests
 {
     private readonly ILangRoot _root = GraphLangGrammar.Root;
 
@@ -11,10 +16,10 @@ public class AddEdgeSyntaxTests
     {
         var test = new QueryTest
         {
-            RawData = "add edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;",
+            RawData = "upsert edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("upsert"),
                 new QueryResult<LsSymbol>("edge"),
 
                 new QueryResult<LsValue>("fromKey","lvalue"),
@@ -48,10 +53,10 @@ public class AddEdgeSyntaxTests
     {
         var test = new QueryTest
         {
-            RawData = "add unique edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;",
+            RawData = "upsert unique edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("upsert"),
                 new QueryResult<LsSymbol>("unique"),
                 new QueryResult<LsSymbol>("edge"),
 
@@ -86,10 +91,10 @@ public class AddEdgeSyntaxTests
     {
         var test = new QueryTest
         {
-            RawData = "add edge fromKey=key1,toKey=key2, t1;",
+            RawData = "upsert edge fromKey=key1,toKey=key2, t1;",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("upsert"),
                 new QueryResult<LsSymbol>("edge"),
 
                 new QueryResult<LsValue>("fromKey","lvalue"),
@@ -115,10 +120,10 @@ public class AddEdgeSyntaxTests
     {
         var test = new QueryTest
         {
-            RawData = "add edge fromKey=key1,toKey=key2, t1, t2;",
+            RawData = "upsert edge fromKey=key1,toKey=key2, t1, t2;",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("upsert"),
                 new QueryResult<LsSymbol>("edge"),
 
                 new QueryResult<LsValue>("fromKey","lvalue"),
@@ -147,10 +152,10 @@ public class AddEdgeSyntaxTests
     {
         var test = new QueryTest
         {
-            RawData = "add edge fromKey=key1,toKey=key2, t1 = v;",
+            RawData = "upsert edge fromKey=key1,toKey=key2, t1 = v;",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("upsert"),
                 new QueryResult<LsSymbol>("edge"),
 
                 new QueryResult<LsValue>("fromKey","lvalue"),
@@ -174,14 +179,14 @@ public class AddEdgeSyntaxTests
     }
 
     [Fact]
-    public void AddUniqueEdge()
+    public void SingleUniqueTagWithValue()
     {
         var test = new QueryTest
         {
-            RawData = "add unique edge fromKey=key1,toKey=key2,edgeType=et,tags=t2;",
+            RawData = "upsert unique edge fromKey=key1,toKey=key2, t1 = v;",
             Results = new List<IQueryResult>()
             {
-                new QueryResult<LsSymbol>("add"),
+                new QueryResult<LsSymbol>("upsert"),
                 new QueryResult<LsSymbol>("unique"),
                 new QueryResult<LsSymbol>("edge"),
 
@@ -195,15 +200,9 @@ public class AddEdgeSyntaxTests
                 new QueryResult<LsValue>("key2", "rvalue"),
                 new QueryResult<LsToken>(",", "delimiter"),
 
-                new QueryResult<LsValue>("edgeType","lvalue"),
-                new QueryResult<LsToken>("=", "equal"),
-                new QueryResult<LsValue>("et", "rvalue"),
-                new QueryResult<LsToken>(",", "delimiter"),
-
-                new QueryResult<LsValue>("tags","lvalue"),
-                new QueryResult<LsToken>("=", "equal"),
-                new QueryResult<LsValue>("t2", "rvalue"),
-
+                new QueryResult<LsValue>("t1","lvalue"),
+                new QueryResult<LsToken>("=","equal"),
+                new QueryResult<LsValue>("v","rvalue"),
                 new QueryResult<LsToken>(";", "term"),
             }
         };
