@@ -17,13 +17,16 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         _logger = logger.NotNull();
     }
 
-    public Task AddLoginAsync(PrincipalIdentity user, UserLoginInfo login, CancellationToken cancellationToken)
+    public async Task AddLoginAsync(PrincipalIdentity user, UserLoginInfo login, CancellationToken cancellationToken)
     {
+        var context = new ScopeContext(_logger);
+        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
+        
         user.LoginProvider = login.LoginProvider;
         user.ProviderKey = login.ProviderKey;
         user.ProviderDisplayName = login.ProviderDisplayName;
 
-        return Task.CompletedTask;
+        var identityResult = (await identityActor.Set(user, context)).ToIdentityResult();
     }
 
     public async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)

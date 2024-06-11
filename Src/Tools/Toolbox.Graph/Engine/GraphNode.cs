@@ -36,7 +36,7 @@ public sealed record GraphNode : IGraphCommon
     public string TagsString => Tags.ToTagsString();
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
     public ImmutableDictionary<string, GraphDataLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphDataLink>.Empty;
-    public string DataMapString => DataMap.ToDataMapString();
+    [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
 
     public GraphNode With(GraphNode node) => this with
     {

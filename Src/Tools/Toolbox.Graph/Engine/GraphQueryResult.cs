@@ -60,6 +60,7 @@ public static class GraphQueryResultExtensions
     {
         subject.NotNull();
         if (!subject.TryGetValue(returnName, out var dataETag)) return (StatusCode.NotFound, $"returnName={returnName} not found in 'ReturnNames'");
+        if (dataETag.Data.Length == 0) return (StatusCode.NoContent, $"returnName={returnName} has no content");
 
         var entity = dataETag.ToObject<T>();
         if (entity == null) return (StatusCode.Conflict, $"returnName={returnName} cannot be deserialized");

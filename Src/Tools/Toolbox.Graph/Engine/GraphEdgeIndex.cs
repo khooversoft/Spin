@@ -216,15 +216,9 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
         if (addEdge?.Unique == true && DoesExist(edge.FromKey, edge.ToKey, addEdge.EdgeType))
         {
-            result = (StatusCode.Conflict, $"Edge already exist between {edge.FromKey} and {edge.ToKey}");
+            result = (StatusCode.Conflict, $"Edge already exist between FromKey={edge.FromKey} and ToKey={edge.ToKey} and EdgeType={addEdge.EdgeType}");
             return false;
         }
-
-        //if (addEdge?.Unique == true && GetIntersect(edge.FromKey, edge.ToKey, EdgeDirection.Both).Count > 0)
-        //{
-        //    result = (StatusCode.Conflict, $"Edge already exist between {edge.FromKey} and {edge.ToKey}"); 
-        //    return false;
-        //}
 
         result = StatusCode.OK;
         return true;

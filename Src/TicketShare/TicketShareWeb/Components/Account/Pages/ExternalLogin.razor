@@ -7,6 +7,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Toolbox.Orleans
+@using Toolbox.Tools
 
 @inject SignInManager<PrincipalIdentity> SignInManager
 @inject UserManager<PrincipalIdentity> UserManager
@@ -23,7 +24,7 @@
 <h2>Associate your @ProviderDisplayName account.</h2>
 <hr />
 
-<div  class="alert alert-info">
+<div class="alert alert-info">
     You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
     Please enter an email address for this site below and click the Register button to finish
     logging in.
@@ -34,7 +35,9 @@
         <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
             <DataAnnotationsValidator />
             <FluentValidationSummary class="text-danger" role="alert" />
-            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;"/>
+            <FluentTextField Name="Input.Name" @bind-Value="Input.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
+            <FluentValidationMessage For="() => Input.Name" />
+            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
             <FluentValidationMessage For="() => Input.Email" />
             <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">Register</FluentButton>
         </EditForm>
@@ -116,6 +119,10 @@
         }
 
         // If the user does not have an account, then ask the user to create an account.
+        if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Name))
+        {
+            Input.Name = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Name) ?? "";
+        }
         if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
         {
             Input.Email = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
@@ -124,9 +131,9 @@
 
     private async Task OnValidSubmitAsync()
     {
-        var user = CreateUser();
+        var user = CreateUser(Input.Email, Input.Name);
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        await UserStore.SetUserNameAsync(user, user.UserName, CancellationToken.None);
 
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
@@ -136,34 +143,56 @@
             {
                 Logger.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
 
-                var userId = await UserManager.GetUserIdAsync(user);
-                var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                // var userId = await UserManager.GetUserIdAsync(user);
+                // var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+                // code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-                    NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                    new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-                // await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+                // var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                //     NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                //     new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
+                // // await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-                // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                {
-                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
-                }
+                // // If account confirmation is required, we need to show the link if we don't have a real email sender
+                // if (UserManager.Options.SignIn.RequireConfirmedAccount)
+                // {
+                //     RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+                // }
 
                 await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
                 RedirectManager.RedirectTo(ReturnUrl);
             }
         }
 
+        if( result.Errors.Where(x => x.Code == "DuplicateUserName").Any() )
+        {
+            await UserManager.AddLoginAsync(user, externalLoginInfo);
+            await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+
         message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
     }
 
-    private PrincipalIdentity CreateUser()
+    private PrincipalIdentity CreateUser(string email, string name)
     {
         try
         {
-            return Activator.CreateInstance<PrincipalIdentity>();
+            string externalLogonEmail = externalLoginInfo.Principal
+                .FindFirstValue(ClaimTypes.Email)
+                .NotNull("Email claim not found")
+                .Trim()
+                .ToLower();
+
+            var subject = Activator.CreateInstance<PrincipalIdentity>() with
+                {
+                    Id = externalLogonEmail,
+                    UserName = externalLogonEmail,
+                    Email = email,
+                    Name = name,
+                    EmailConfirmed = true,
+                };
+
+            return subject;
         }
         catch
         {
@@ -175,7 +204,10 @@
     private sealed class InputModel
     {
         [Required]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
         [EmailAddress]
-        public string Email { get; set; } = "";
+        public string Email { get; set; } = string.Empty;
     }
 }

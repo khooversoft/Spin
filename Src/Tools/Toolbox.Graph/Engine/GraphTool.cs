@@ -71,7 +71,7 @@ public static class GraphTool
         toKey.NotEmpty();
 
         string?[] cmds = [
-            $"add unique edge fromKey={fromKey}, toKey={toKey}, edgeType={GraphConstants.UniqueIndexTag}",
+            $"upsert edge fromKey={fromKey}, toKey={toKey}, edgeType={GraphConstants.UniqueIndexTag}",
             tags,
             ];
 
@@ -87,7 +87,7 @@ public static class GraphTool
         return
         [
             $"upsert node key={indexKey}, {GraphConstants.UniqueIndexTag};",
-            $"add unique edge fromKey={indexKey}, toKey={nodeKey}, edgeType={GraphConstants.UniqueIndexTag};",
+            $"upsert edge fromKey={indexKey}, toKey={nodeKey}, edgeType={GraphConstants.UniqueIndexTag};",
         ];
     }
 }
