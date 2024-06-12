@@ -47,7 +47,7 @@ builder.Services.AddAuthentication(options =>
         };
     }).AddIdentityCookies();
 
-builder.Services.AddIdentityCore<PrincipalIdentity>(/*options => options.SignIn.RequireConfirmedAccount = true*/)
+builder.Services.AddIdentityCore<PrincipalIdentity>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 

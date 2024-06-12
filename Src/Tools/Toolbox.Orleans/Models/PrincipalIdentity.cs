@@ -22,8 +22,8 @@ public sealed record PrincipalIdentity : IIdentity
     [Id(11)] public string? ProviderDisplayName { get; set; }
 
     public static IValidator<PrincipalIdentity> Validator { get; } = new Validator<PrincipalIdentity>()
-        .RuleFor(x => x.Id).NotNull()
-        .RuleFor(x => x.UserName).NotNull()
+        .RuleFor(x => x.Id).NotEmpty()
+        .RuleFor(x => x.UserName).NotEmpty()
         .RuleFor(x => x.Email).ValidEmail()
         .Build();
 }
