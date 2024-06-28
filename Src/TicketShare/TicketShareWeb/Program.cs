@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
+using TicketShareWeb.Application;
 using TicketShareWeb.Components;
-using TicketShareWeb.Components.Account;
 using Toolbox.Orleans;
 using Toolbox.Tools;
 
@@ -21,39 +21,8 @@ builder.AddApplicationConfiguration();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
 
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<IdentityUserAccessor>();
-builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddMicrosoftAccount(opt =>
-    {
-        opt.ClientId = builder.Configuration[TsConstants.Authentication.ClientId].NotEmpty();
-        opt.ClientSecret = builder.Configuration[TsConstants.Authentication.ClientSecret].NotEmpty();
-
-        // Adding the prompt parameter
-        opt.Events = new OAuthEvents
-        {
-            OnRedirectToAuthorizationEndpoint = context =>
-            {
-                context.Response.Redirect(context.RedirectUri + "&prompt=select_account");
-                return Task.CompletedTask;
-            }
-        };
-    }).AddIdentityCookies();
-
-builder.Services.AddIdentityCore<PrincipalIdentity>()
-    .AddSignInManager()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddTransient<IUserStore<PrincipalIdentity>, UserStore>();
-
-//builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.AddTicketShareAuthentication();
+builder.Services.AddTicketShareServices();
 
 builder.Host.UseOrleans((context, silo) =>
 {
@@ -66,7 +35,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    //var x = new Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware()
+    //app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }

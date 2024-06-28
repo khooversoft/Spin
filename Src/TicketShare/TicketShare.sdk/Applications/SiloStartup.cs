@@ -51,6 +51,7 @@ public static class SiloStartup
         builder.Services.AddSingleton(datalakeOption);
         builder.Services.AddSingleton<IDatalakeStore, DatalakeStore>();
         builder.Services.AddSingleton<IFileStore, DatalakeFileStoreConnector>();
+        builder.Services.AddSingleton<AccountConnector>();
 
         builder.Services.AddGrainFileStore();
         builder.Services.AddStoreCollection((services, config) =>

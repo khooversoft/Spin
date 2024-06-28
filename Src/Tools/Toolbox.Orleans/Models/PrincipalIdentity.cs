@@ -8,7 +8,7 @@ namespace Toolbox.Orleans;
 [GenerateSerializer]
 public sealed record PrincipalIdentity : IIdentity
 {
-    [Id(0)] public string Id { get; set; } = null!;
+    [Id(0)] public string PrincipalId { get; set; } = null!;
     [Id(1)] public string UserName { get; set; } = null!;
     [Id(2)] public string Email { get; set; } = null!;
     [Id(3)] public bool EmailConfirmed { get; set; }
@@ -22,7 +22,7 @@ public sealed record PrincipalIdentity : IIdentity
     [Id(11)] public string? ProviderDisplayName { get; set; }
 
     public static IValidator<PrincipalIdentity> Validator { get; } = new Validator<PrincipalIdentity>()
-        .RuleFor(x => x.Id).NotEmpty()
+        .RuleFor(x => x.PrincipalId).NotEmpty()
         .RuleFor(x => x.UserName).NotEmpty()
         .RuleFor(x => x.Email).ValidEmail()
         .Build();

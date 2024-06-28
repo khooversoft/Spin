@@ -33,7 +33,7 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context = context.With(_logger);
 
-        string command = $"delete (key={ToUserKey(id)});";
+        string command = $"delete (key={IdentityTool.ToUserKey(id)});";
         Option<GraphQueryResult> resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus();
 
@@ -44,56 +44,38 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context = context.With(_logger);
 
-        string command = $"select (key={ToUserKey(id)}) return entity;";
-        var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
-        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
-
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<PrincipalIdentity>("entity");
-        return principalIdentity;
+        string command = $"select (key={IdentityTool.ToUserKey(id)}) return entity;";
+        return await Exec(command, context);
     }
 
     public async Task<Option<PrincipalIdentity>> GetByLogin(string loginProvider, string providerKey, ScopeContext context)
     {
         context = context.With(_logger);
 
-        string command = $"select (key={ToLoginIndex(loginProvider, providerKey)}) -> [*] -> (*) return entity;";
-        var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
-        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
-
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<PrincipalIdentity>("entity");
-        return principalIdentity;
+        string command = $"select (key={IdentityTool.ToLoginIndex(loginProvider, providerKey)}) -> [*] -> (*) return entity;";
+        return await Exec(command, context);
     }
 
     public async Task<Option<PrincipalIdentity>> GetByUserName(string userName, ScopeContext context)
     {
         context = context.With(_logger);
 
-        string command = $"select (key={ToUserNameIndex(userName)}) -> [*] -> (*) return entity;";
-        var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
-        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
-
-        var principalIdentity = resultOption.Return().ReturnNames.NotNull().ReturnNameToObject<PrincipalIdentity>("entity");
-        return principalIdentity;
+        string command = $"select (key={IdentityTool.ToUserNameIndex(userName)}) -> [*] -> (*) return entity;";
+        return await Exec(command, context);
     }
 
     public async Task<Option<PrincipalIdentity>> GetByEmail(string email, ScopeContext context)
     {
         context = context.With(_logger);
 
-        string command = $"select (key={ToEmailIndex(email)}) -> [*] -> (*) return entity;";
-        var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
-        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
-
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<PrincipalIdentity>("entity");
-        if (principalIdentity.IsError()) return principalIdentity.LogStatus(context, command);
-
-        return principalIdentity;
+        string command = $"select (key={IdentityTool.ToEmailIndex(email)}) -> [*] -> (*) return entity;";
+        return await Exec(command, context);
     }
 
     public async Task<Option> Set(PrincipalIdentity user, ScopeContext context)
     {
         context.With(_logger);
-        if (user.Validate().LogStatus(context, $"UserId={user.Id}").IsError(out Option v)) return v;
+        if (user.Validate().LogStatus(context, $"UserId={user.PrincipalId}").IsError(out Option v)) return v;
         var directoryActor = _clusterClient.GetDirectoryActor();
 
         // Build graph commands
@@ -101,16 +83,16 @@ public class IdentityActor : Grain, IIdentityActor
         string base64 = user.ToJson64();
         string? tags = user.Email.IsNotEmpty() ? $"email={user.Email}" : null;
 
-        cmds += GraphTool.CreateNodeCommand(ToUserKey(user.Id), tags, base64);
+        cmds += GraphTool.CreateNodeCommand(IdentityTool.ToUserKey(user.PrincipalId), tags, base64);
 
         // User Name node -> user node
-        if (user.UserName.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(ToUserNameIndex(user.UserName), ToUserKey(user.Id));
+        if (user.UserName.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(IdentityTool.ToUserNameIndex(user.UserName), IdentityTool.ToUserKey(user.PrincipalId));
 
         // Email node -> user node
-        if (user.Email.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(ToEmailIndex(user.Email), ToUserKey(user.Id));
+        if (user.Email.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(IdentityTool.ToEmailIndex(user.Email), IdentityTool.ToUserKey(user.PrincipalId));
 
         // Login node -> user node
-        if (user.LoginProvider.IsNotEmpty() && user.ProviderKey.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(ToLoginIndex(user.LoginProvider, user.ProviderKey), ToUserKey(user.Id));
+        if (user.LoginProvider.IsNotEmpty() && user.ProviderKey.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(IdentityTool.ToLoginIndex(user.LoginProvider, user.ProviderKey), IdentityTool.ToUserKey(user.PrincipalId));
 
         string command = cmds.Join(Environment.NewLine);
         var result = await directoryActor.ExecuteBatch(command, context);
@@ -119,8 +101,14 @@ public class IdentityActor : Grain, IIdentityActor
         return StatusCode.OK;
     }
 
-    private static string ToUserKey(string id) => $"user:{id.NotEmpty().ToLower()}";
-    private static string ToUserNameIndex(string userName) => $"userName:{userName.NotEmpty().ToLower()}";
-    private static string ToEmailIndex(string userName) => $"userEmail:{userName.NotEmpty().ToLower()}";
-    private static string ToLoginIndex(string provider, string providerKey) => $"logonProvider:{provider.NotEmpty().ToLower() + "/" + providerKey.NotEmpty().ToLower()}";
+    private async Task<Option<PrincipalIdentity>> Exec(string command, ScopeContext context)
+    {
+        var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
+        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
+
+        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<PrincipalIdentity>("entity");
+        if (principalIdentity.IsError()) return principalIdentity.LogStatus(context, command);
+        if (!principalIdentity.Return().Validate(out var r)) return r.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
+        return principalIdentity;
+    }
 }

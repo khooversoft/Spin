@@ -9,45 +9,40 @@ namespace Toolbox.Orleans;
 public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<PrincipalIdentity>
 {
     private readonly ILogger<UserStore> _logger;
-    private readonly IClusterClient _clusterClient;
+    private readonly IdentityConnector _identityConnector;
 
-    public UserStore(IClusterClient clusterClient, ILogger<UserStore> logger)
+    public UserStore(IdentityConnector identityConnector, ILogger<UserStore> logger)
     {
-        _clusterClient = clusterClient.NotNull();
+        _identityConnector = identityConnector.NotNull();
         _logger = logger.NotNull();
     }
 
     public async Task AddLoginAsync(PrincipalIdentity user, UserLoginInfo login, CancellationToken cancellationToken)
     {
         var context = new ScopeContext(_logger);
-        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
         
         user.LoginProvider = login.LoginProvider;
         user.ProviderKey = login.ProviderKey;
         user.ProviderDisplayName = login.ProviderDisplayName;
 
-        var identityResult = (await identityActor.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _identityConnector.Set(user, context)).ToIdentityResult();
     }
 
     public async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        user.NotNull();
         var context = new ScopeContext(_logger);
-        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
 
-        var identityResult = (await identityActor.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _identityConnector.Set(user, context)).ToIdentityResult();
         return identityResult;
     }
 
     public async Task<IdentityResult> DeleteAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        user.NotNull();
         var context = new ScopeContext(_logger);
-        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
 
-        var identityResult = (await identityActor.Delete(user.Id, context)).ToIdentityResult();
+        var identityResult = (await _identityConnector.Delete(user.NotNull().PrincipalId, context)).ToIdentityResult();
         return identityResult;
     }
 
@@ -56,34 +51,27 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
     public async Task<PrincipalIdentity?> FindByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        userId.NotEmpty();
         var context = new ScopeContext(_logger);
-        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
 
-        var result = await identityActor.GetById(userId, context);
+        var result = await _identityConnector.GetById(userId, context);
         return result.IsOk() ? result.Return() : null;
     }
 
     public async Task<PrincipalIdentity?> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        loginProvider.NotEmpty();
-        providerKey.NotEmpty();
         var context = new ScopeContext(_logger);
-        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
 
-        var result = await identityActor.GetByLogin(loginProvider, providerKey, context);
+        var result = await _identityConnector.GetByLogin(loginProvider, providerKey, context);
         return result.IsOk() ? result.Return() : null;
     }
 
     public async Task<PrincipalIdentity?> FindByNameAsync(string userName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        userName.NotEmpty();
         var context = new ScopeContext(_logger);
-        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
 
-        var result = await identityActor.GetByUserName(userName, context);
+        var result = await _identityConnector.GetByUserName(userName, context);
         return result.IsOk() ? result.Return() : null;
     }
 
@@ -100,7 +88,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         cancellationToken.ThrowIfCancellationRequested();
         user.NotNull();
 
-        return user.Id.ToTaskResult();
+        return user.PrincipalId.NotEmpty().ToTaskResult();
     }
 
     public Task<string?> GetUserNameAsync(PrincipalIdentity user, CancellationToken cancellationToken)
@@ -122,7 +110,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         user.NotNull();
         normalizedName.NotEmpty();
 
-        user.Id = normalizedName;
+        user.PrincipalId = normalizedName;
         user.NormalizedUserName = normalizedName;
         return Task.CompletedTask;
     }
@@ -141,11 +129,9 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
     public async Task<IdentityResult> UpdateAsync(PrincipalIdentity user, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        user.NotNull();
         var context = new ScopeContext(_logger);
-        IIdentityActor identityActor = _clusterClient.GetIdentityActor();
 
-        var identityResult = (await identityActor.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _identityConnector.Set(user, context)).ToIdentityResult();
         return identityResult;
     }
 }

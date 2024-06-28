@@ -8,6 +8,8 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Toolbox.Orleans
 @using Toolbox.Tools
+@using TicketShareWeb.Components.Shared;
+@using TicketShareWeb.Application;
 
 @inject SignInManager<PrincipalIdentity> SignInManager
 @inject UserManager<PrincipalIdentity> UserManager
@@ -19,30 +21,41 @@
 
 <PageTitle>Register</PageTitle>
 
-<StatusMessage Message="@message" />
-<h1>Register</h1>
-<h2>Associate your @ProviderDisplayName account.</h2>
-<hr />
+<div style="margin: 10px;max-width: 500px;">
+    <h1>User</h1>
 
-<div class="alert alert-info">
-    You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
+    <div style="margin-top:10px" class="alert alert-success">
+        You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
+        Please enter an email address for this site below and click the Register button to finish
+        logging in.
+    </div>
+
+    <StatusMessage Message="@message" />
+
+    <div style="margin-top:20px">
+        <FluentGrid>
+            <FluentGridItem xs="12" sm="12">
+                <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
+                    <DataAnnotationsValidator />
+                    <FluentValidationSummary class="text-danger" role="alert" />
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.Name" @bind-Value="Input.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Name" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Email" />
+                    </div>
+                    <div style="margin-top:10px">
+                        <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">Register</FluentButton>
+                    </div>
+                </EditForm>
+            </FluentGridItem>
+        </FluentGrid>
+    </div>
 </div>
-
-<FluentGrid>
-    <FluentGridItem xs="8" sm="4">
-        <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
-            <DataAnnotationsValidator />
-            <FluentValidationSummary class="text-danger" role="alert" />
-            <FluentTextField Name="Input.Name" @bind-Value="Input.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
-            <FluentValidationMessage For="() => Input.Name" />
-            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
-            <FluentValidationMessage For="() => Input.Email" />
-            <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">Register</FluentButton>
-        </EditForm>
-    </FluentGridItem>
-</FluentGrid>
 
 @code {
     public const string LoginCallbackAction = "LoginCallback";
@@ -147,7 +160,7 @@
             }
         }
 
-        if( result.Errors.Where(x => x.Code == "DuplicateUserName").Any() )
+        if (result.Errors.Where(x => x.Code == "DuplicateUserName").Any())
         {
             await UserManager.AddLoginAsync(user, externalLoginInfo);
             await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
@@ -173,7 +186,7 @@
 
             var subject = Activator.CreateInstance<PrincipalIdentity>() with
                 {
-                    Id = externalLogonEmail,
+                    PrincipalId = externalLogonEmail,
                     UserName = externalLogonEmail,
                     Email = email,
                     Name = name,

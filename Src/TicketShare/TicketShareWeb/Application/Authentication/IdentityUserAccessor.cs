@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Toolbox.Orleans;
 
-namespace TicketShareWeb.Components.Account;
+namespace TicketShareWeb.Application;
 internal sealed class IdentityUserAccessor(UserManager<PrincipalIdentity> userManager, IdentityRedirectManager redirectManager)
 {
     public async Task<PrincipalIdentity> GetRequiredUserAsync(HttpContext context)

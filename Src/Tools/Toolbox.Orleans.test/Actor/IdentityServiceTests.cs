@@ -18,7 +18,7 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
 
         var userIdentity = new PrincipalIdentity
         {
-            Id = "User001",
+            PrincipalId = "User001",
             UserName = "userName1",
             Email = "userName1@domain.com",
             LoginProvider = "ms",
@@ -26,11 +26,11 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
         };
 
         userIdentity.Validate().IsOk().Should().BeTrue();
-        await service.Delete(userIdentity.Id, NullScopeContext.Instance);
+        await service.Delete(userIdentity.PrincipalId, NullScopeContext.Instance);
 
         (await service.Set(userIdentity, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
-        (await service.GetById(userIdentity.Id, NullScopeContext.Instance)).Action(x =>
+        (await service.GetById(userIdentity.PrincipalId, NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             (userIdentity == x.Return()).Should().BeTrue();
@@ -54,7 +54,7 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
             (userIdentity == x.Return()).Should().BeTrue();
         });
 
-        (await service.Delete(userIdentity.Id, NullScopeContext.Instance)).IsOk().Should().BeTrue();
+        (await service.Delete(userIdentity.PrincipalId, NullScopeContext.Instance)).IsOk().Should().BeTrue();
     }
 
     [Fact]
@@ -73,14 +73,14 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
         (await service.GetByUserName(userName1, NullScopeContext.Instance)).Action(async x =>
         {
             x.IsOk().Should().BeTrue();
-            var deleteResult = await service.Delete(x.Return().Id, NullScopeContext.Instance);
+            var deleteResult = await service.Delete(x.Return().PrincipalId, NullScopeContext.Instance);
             deleteResult.IsOk().Should().BeTrue();
         });
 
         (await service.GetByUserName(userName2, NullScopeContext.Instance)).Action(async x =>
         {
             x.IsOk().Should().BeTrue();
-            var deleteResult = await service.Delete(x.Return().Id, NullScopeContext.Instance);
+            var deleteResult = await service.Delete(x.Return().PrincipalId, NullScopeContext.Instance);
             deleteResult.IsOk().Should().BeTrue();
         });
 
@@ -91,7 +91,7 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
         {
             var userIdentity = new PrincipalIdentity
             {
-                Id = userId,
+                PrincipalId = userId,
                 UserName = userName,
                 Email = email,
                 LoginProvider = "ms",
@@ -99,11 +99,11 @@ public class IdentityServiceTests : IClassFixture<ActorClusterFixture>
             };
 
             userIdentity.Validate().IsOk().Should().BeTrue();
-            await service.Delete(userIdentity.Id, NullScopeContext.Instance);
+            await service.Delete(userIdentity.PrincipalId, NullScopeContext.Instance);
 
             (await service.Set(userIdentity, NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
-            (await service.GetById(userIdentity.Id, NullScopeContext.Instance)).Action(x =>
+            (await service.GetById(userIdentity.PrincipalId, NullScopeContext.Instance)).Action(x =>
             {
                 x.IsOk().Should().BeTrue();
                 (userIdentity == x.Return()).Should().BeTrue();

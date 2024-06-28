@@ -1,30 +1,62 @@
-﻿//using Azure.Identity;
-//using Microsoft.Extensions.Configuration.AzureAppConfiguration;
-//using Toolbox.Azure.Identity;
-//using Toolbox.Tools;
+﻿using Azure.Identity;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using Toolbox.Azure.Identity;
+using Toolbox.Tools;
+using Microsoft.AspNetCore.Identity;
+using TicketShare.sdk;
+using Toolbox.Orleans;
+using Microsoft.AspNetCore.Authentication.OAuth;
 
-//namespace TicketShareWeb.Application;
+namespace TicketShareWeb.Application;
 
-//public static class Setup
-//{
-//    public static void AddApplicationConfiguration(this WebApplicationBuilder builder)
-//    {
-//        string connectionString = builder.Configuration.GetConnectionString("AppConfig").NotNull();
-//        ClientSecretCredential credential = ClientCredential.ToClientSecretCredential(connectionString);
+public static class Setup
+{
+    public static WebApplicationBuilder AddTicketShareAuthentication(this WebApplicationBuilder builder)
+    {
+        builder.NotNull();
 
-//        var appConfigEndpoint = "https://biz-bricks-prod-configuration.azconfig.io";
+        builder.Services.AddCascadingAuthenticationState();
+        builder.Services.AddScoped<IdentityUserAccessor>();
+        builder.Services.AddScoped<IdentityRedirectManager>();
+        builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-//        // Build configuration
-//        builder.Configuration.AddAzureAppConfiguration(options =>
-//        {
-//            options.Connect(new Uri(appConfigEndpoint), credential)
-//                .ConfigureKeyVault(kv =>
-//                {
-//                    kv.SetCredential(credential);
-//                })
-//                .Select(TicketShareConstants.ConfigurationFilter, LabelFilter.Null)
-//                .Select(TicketShareConstants.ConfigurationFilter, builder.Environment.EnvironmentName);
-//        });
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = IdentityConstants.ApplicationScheme;
+            options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+        })
+            .AddMicrosoftAccount(opt =>
+            {
+                opt.ClientId = builder.Configuration[TsConstants.Authentication.ClientId].NotEmpty();
+                opt.ClientSecret = builder.Configuration[TsConstants.Authentication.ClientSecret].NotEmpty();
 
-//    }
-//}
+                // Adding the prompt parameter
+                opt.Events = new OAuthEvents
+                {
+                    OnRedirectToAuthorizationEndpoint = context =>
+                    {
+                        context.Response.Redirect(context.RedirectUri + "&prompt=select_account");
+                        return Task.CompletedTask;
+                    }
+                };
+            }).AddIdentityCookies();
+
+        builder.Services.AddIdentityCore<PrincipalIdentity>()
+            .AddSignInManager()
+            .AddDefaultTokenProviders();
+        
+        builder.Services.AddTransient<IUserStore<PrincipalIdentity>, UserStore>();
+        return builder;
+    }
+
+    public static IServiceCollection AddTicketShareServices(this IServiceCollection services)
+    {
+        services.NotNull();
+
+        services.AddSingleton<AccountConnector>();
+        services.AddTransient<AuthenticationConnector>();
+
+        return services;
+    }
+}

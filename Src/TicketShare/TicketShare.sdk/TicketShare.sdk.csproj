@@ -20,12 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Markdig" Version="0.36.2" />
-    <PackageReference Include="Markdown.ColorCode" Version="2.2.1" />
-    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.1.0" />
-    <PackageReference Include="Microsoft.Orleans.Client" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Orleans.Sdk" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
+    <PackageReference Include="Markdig" Version="0.37.0" />
+    <PackageReference Include="Markdown.ColorCode" Version="2.2.2" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="8.1.0" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="8.1.0" />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="8.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,10 +33,6 @@
     <ProjectReference Include="..\..\Tools\Toolbox.Identity\Toolbox.Identity.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Actors\" />
   </ItemGroup>
 
 </Project>

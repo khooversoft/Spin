@@ -51,14 +51,14 @@ public static class GraphTool
         return result;
     }
 
-    public static string CreateNodeCommand(string nodeKey, string? tags, string? base64)
+    public static string CreateNodeCommand(string nodeKey, string? tags, string? base64, string? dataName = "entity")
     {
         nodeKey.NotEmpty();
 
         string?[] cmds = [
             $"upsert node key={nodeKey}",
             tags,
-            base64 != null ? $"entity {{ '{base64}' }}" : null,
+            base64 != null ? $"{dataName} {{ '{base64}' }}" : null,
             ];
 
         string cmd = cmds.Where(x => x.IsNotEmpty()).Join(", ") + ';';

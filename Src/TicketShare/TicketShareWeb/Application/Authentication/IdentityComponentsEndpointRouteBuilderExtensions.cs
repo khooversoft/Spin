@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using TicketShareWeb.Components.Account.Pages;
-using TicketShareWeb.Components.Account.Pages.Manage;
+using TicketShareWeb.Components.Account;
 using Toolbox.Orleans;
 
 namespace Microsoft.AspNetCore.Routing;

@@ -24,13 +24,13 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
 
         var userIdentity = new PrincipalIdentity
         {
-            Id = id,
+            PrincipalId = id,
             UserName = "userName1",
             Email = "user@domain.com",
         };
 
         await userStore.AddLoginAsync(userIdentity, info, default);
-        userIdentity.Id.Should().Be(id);
+        userIdentity.PrincipalId.Should().Be(id);
         userIdentity.UserName.Should().Be("userName1");
         userIdentity.Email.Should().Be("user@domain.com");
         userIdentity.LoginProvider.Should().Be("loginProvider");
@@ -47,7 +47,7 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
         IdentityResult deleteResult = await userStore.DeleteAsync(userIdentity, NullScopeContext.Instance);
         deleteResult.Succeeded.Should().BeTrue();
 
-        (await userStore.FindByIdAsync(userIdentity.Id, NullScopeContext.Instance)).Should().BeNull();
+        (await userStore.FindByIdAsync(userIdentity.PrincipalId, NullScopeContext.Instance)).Should().BeNull();
         (await userStore.FindByLoginAsync("logonAuth", "providerKey1", default)).Should().BeNull();
         (await userStore.FindByNameAsync(userIdentity.UserName, NullScopeContext.Instance)).Should().BeNull();
     }
@@ -64,7 +64,7 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
         {
             x.Succeeded.Should().BeTrue();
 
-            (await userStore.FindByIdAsync(userIdentity1.Id, NullScopeContext.Instance)).Should().BeNull();
+            (await userStore.FindByIdAsync(userIdentity1.PrincipalId, NullScopeContext.Instance)).Should().BeNull();
             (await userStore.FindByLoginAsync("logonAuth", "providerKey1", default)).Should().BeNull();
             (await userStore.FindByNameAsync(userIdentity1.UserName, NullScopeContext.Instance)).Should().BeNull();
         });
@@ -73,7 +73,7 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
         {
             x.Succeeded.Should().BeTrue();
 
-            (await userStore.FindByIdAsync(userIdentity2.Id, NullScopeContext.Instance)).Should().BeNull();
+            (await userStore.FindByIdAsync(userIdentity2.PrincipalId, NullScopeContext.Instance)).Should().BeNull();
             (await userStore.FindByLoginAsync("logonAuth", "providerKey2", default)).Should().BeNull();
             (await userStore.FindByNameAsync(userIdentity2.UserName, NullScopeContext.Instance)).Should().BeNull();
         });
@@ -85,7 +85,7 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
 
         var userIdentity = new PrincipalIdentity
         {
-            Id = id,
+            PrincipalId = id,
             UserName = userName,
             Email = userEmail,
             LoginProvider = "logonAuth",
@@ -98,7 +98,7 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
         IdentityResult addResult = await userStore.CreateAsync(userIdentity, NullScopeContext.Instance);
         addResult.Succeeded.Should().BeTrue();
 
-        PrincipalIdentity? idLookupIdentity = await userStore.FindByIdAsync(userIdentity.Id, NullScopeContext.Instance);
+        PrincipalIdentity? idLookupIdentity = await userStore.FindByIdAsync(userIdentity.PrincipalId, NullScopeContext.Instance);
         idLookupIdentity.Should().NotBeNull();
         (userIdentity == idLookupIdentity).Should().BeTrue();
 
