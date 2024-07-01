@@ -49,14 +49,4 @@ public static class Setup
         builder.Services.AddTransient<IUserStore<PrincipalIdentity>, UserStore>();
         return builder;
     }
-
-    public static IServiceCollection AddTicketShareServices(this IServiceCollection services)
-    {
-        services.NotNull();
-
-        services.AddSingleton<AccountConnector>();
-        services.AddTransient<AuthenticationConnector>();
-
-        return services;
-    }
 }

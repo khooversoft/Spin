@@ -12,7 +12,7 @@ public static class OrleansStartup
         services.AddKeyedSingleton<IGrainStorage, GrainStorageFileStoreConnector>(OrleansConstants.StorageProviderName);
         services.AddSingleton<IGraphFileStore, GraphFileStoreActorConnector>();
 
-        services.AddSingleton<IdentityConnector>();
+        services.AddSingleton<IdentityActorConnector>();
         return services;
     }
 }

@@ -9,9 +9,9 @@ namespace Toolbox.Orleans;
 public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<PrincipalIdentity>
 {
     private readonly ILogger<UserStore> _logger;
-    private readonly IdentityConnector _identityConnector;
+    private readonly IdentityActorConnector _identityConnector;
 
-    public UserStore(IdentityConnector identityConnector, ILogger<UserStore> logger)
+    public UserStore(IdentityActorConnector identityConnector, ILogger<UserStore> logger)
     {
         _identityConnector = identityConnector.NotNull();
         _logger = logger.NotNull();

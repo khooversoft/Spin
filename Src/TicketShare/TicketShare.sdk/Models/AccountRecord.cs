@@ -31,4 +31,34 @@ public static class AccountRecordExtensions
         result = subject.Validate();
         return result.IsOk();
     }
+
+    public static AccountRecord Merge(this AccountRecord subject, IEnumerable<ContactRecord> contactRecords)
+    {
+        contactRecords.NotNull();
+
+        subject = subject with
+        {
+            ContactItems = subject.ContactItems
+                .Where(x => !contactRecords.Any(y => y.Type != x.Type))
+                .Concat(contactRecords)
+                .ToFrozenSet()
+        };
+
+        return subject;
+    }
+
+    public static AccountRecord Merge(this AccountRecord subject, IEnumerable<AddressRecord> addressRecords)
+    {
+        addressRecords.NotNull();
+
+        subject = subject with
+        {
+            Address = subject.Address
+                .Where(x => !addressRecords.Any(y => y.IsMatch(x)))
+                .Concat(addressRecords)
+                .ToFrozenSet()
+        };
+
+        return subject;
+    }
 }

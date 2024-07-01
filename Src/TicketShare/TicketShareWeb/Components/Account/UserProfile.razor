@@ -11,30 +11,61 @@
 
 <PageTitle>User</PageTitle>
 
-<div style="margin: 10px;max-width: 500px;">
+<div style="margin: 10px;max-width: 900px;">
     <h3>User Profile</h3>
 
     <StatusMessage Message="@errorMessage" />
 
-    <div style="margin-top:20px">
+    <div style="margin-top:20px;">
         <FluentGrid>
-            <FluentGridItem xs="12" sm="12">
+            <FluentGridItem xs="12" sm="12" Style="min-width:300px">
                 <EditForm Model="Input" OnValidSubmit="SetUser" FormName="confirmation" method="post">
                     <input type="hidden" name="ReturnUrl" value="@PrincipalId" />
                     <DataAnnotationsValidator />
                     <FluentValidationSummary class="text-danger" role="alert" />
 
-                    <div style="margin-top:10px">
+                    <div style="margin-top:10px;">
                         <FluentTextField Name="Input.Name" @bind-Value="Input.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
                         <FluentValidationMessage For="() => Input.Name" />
                     </div>
 
-                    <div style="margin-top:10px">
+@*                     <div style="margin-top:10px">
                         <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
                         <FluentValidationMessage For="() => Input.Email" />
                     </div>
+
                     <div style="margin-top:10px">
-                        <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">Register</FluentButton>
+                        <FluentTextField Name="Input.PhoneNumber" @bind-Value="Input.PhoneNumber" AutoComplete="PhoneNumber" Placeholder="Please enter your phone number." Label="Phone Number" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.PhoneNumber" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.Address1" @bind-Value="Input.Address1" AutoComplete="Address1" Placeholder="Please enter your address." Label="Address" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Address1" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.Address2" @bind-Value="Input.Address2" AutoComplete="Address2" Placeholder="Please enter your address." Label="Address" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Address2" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.City" @bind-Value="Input.City" AutoComplete="City" Placeholder="Please enter your city." Label="City" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.City" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.State" @bind-Value="Input.State" AutoComplete="State" Placeholder="Please enter your state." Label="State" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.State" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.ZipCode" @bind-Value="Input.ZipCode" AutoComplete="ZipCode" Placeholder="Please enter your zip code." Label="Zip Code" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.ZipCode" />
+                    </div> *@
+
+                    <div style="margin-top:10px">
+                        <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 80px;">Update</FluentButton>
                     </div>
                 </EditForm>
             </FluentGridItem>
@@ -42,105 +73,3 @@
     </div>
 </div>
 
-@code {
-    [Inject] AuthenticationConnector _accountConnector { get; set; } = default!;
-    [Inject] NavigationManager _navigationManager { get; set; } = default!;
-    [Inject] ILogger<UserProfile> _logger { get; set; } = default!;
-
-    [SupplyParameterFromForm] private InputModel Input { get; set; } = new();
-    [SupplyParameterFromQuery] private string? PrincipalId { get; set; }
-
-    private string? errorMessage;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        var context = new ScopeContext(_logger);
-
-        var accountOption = await _accountConnector.Get(context);
-        if (accountOption.IsError() && !accountOption.IsNotFound())
-        {
-            errorMessage = accountOption.Error;
-            return;
-        }
-
-        AccountRecord accountRecord = accountOption.Return();
-        AddressRecord? addressRecord = accountRecord.Address.FirstOrDefault();
-
-        var input = new InputModel
-            {
-                Name = accountRecord.Name,
-                Email = accountRecord.ContactItems.Where(x => x.Type == ContactType.Email).FirstOrDefault()?.Value,
-                PhoneNumber = accountRecord.ContactItems.Where(x => x.Type == ContactType.Cell).FirstOrDefault()?.Value,
-                Address1 = addressRecord?.Address1,
-                Address2 = addressRecord?.Address2,
-                City = addressRecord?.City,
-                State = addressRecord?.State,
-                ZipCode = addressRecord?.ZipCode,
-            };
-    }
-
-    public async Task SetUser()
-    {
-        var context = new ScopeContext(_logger);
-
-        var account = await _accountConnector.Get(context);
-        if (account.IsError() && !account.IsNotFound())
-        {
-            errorMessage = account.Error;
-            return;
-        }
-
-        // // This doesn't count login failures towards account lockout
-        // // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-        // var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-        // if (result.Succeeded)
-        // {
-        //     Logger.LogInformation("User logged in.");
-        //     RedirectManager.RedirectTo(ReturnUrl);
-        // }
-        // else if (result.RequiresTwoFactor)
-        // {
-        //     RedirectManager.RedirectTo(
-        //         "Account/LoginWith2fa",
-        //         new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
-        // }
-        // else if (result.IsLockedOut)
-        // {
-        //     Logger.LogWarning("User account locked out.");
-        //     RedirectManager.RedirectTo("Account/Lockout");
-        // }
-        // else
-        // {
-        //     errorMessage = "Error: Invalid login attempt.";
-        // }
-    }
-
-    private sealed class InputModel
-    {
-        [Display(Name = "Name")]
-        public string? Name { get; set; } = null!;
-
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string? Email { get; set; } = null!;
-
-        [Display(Name = "Phone number")]
-        public string? PhoneNumber { get; set; } = null!;
-
-        [Display(Name = "Address 1")]
-        public string? Address1 { get; set; } = null!;
-
-        [Display(Name = "Address 2")]
-        public string? Address2 { get; set; } = null!;
-
-        [Display(Name = "City")]
-        public string? City { get; set; } = null!;
-
-        [Display(Name = "State")]
-        public string? State { get; set; } = null!;
-
-        [Display(Name = "Zip Code")]
-        public string? ZipCode { get; set; } = null!;
-    }
-}

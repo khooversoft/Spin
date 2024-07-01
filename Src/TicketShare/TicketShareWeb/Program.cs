@@ -22,7 +22,6 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
 
 builder.AddTicketShareAuthentication();
-builder.Services.AddTicketShareServices();
 
 builder.Host.UseOrleans((context, silo) =>
 {

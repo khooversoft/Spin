@@ -5,12 +5,12 @@ using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
-public class IdentityConnector
+public class IdentityActorConnector
 {
-    private readonly ILogger<IdentityConnector> _logger;
+    private readonly ILogger<IdentityActorConnector> _logger;
     private readonly IClusterClient _clusterClient;
 
-    public IdentityConnector(IClusterClient clusterClient, ILogger<IdentityConnector> logger)
+    public IdentityActorConnector(IClusterClient clusterClient, ILogger<IdentityActorConnector> logger)
     {
         _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();
