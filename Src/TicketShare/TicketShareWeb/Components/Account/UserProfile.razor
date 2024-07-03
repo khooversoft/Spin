@@ -1,15 +1,15 @@
 ﻿@page "/Account/UserProfile"
 
-@using System.ComponentModel.DataAnnotations
+@* @using System.ComponentModel.DataAnnotations
 @using TicketShare.sdk
 @using TicketShareWeb.Application
 @using TicketShareWeb.Components.Shared;
 @using Toolbox.Orleans
 @using Toolbox.Tools
-@using Toolbox.Types
+@using Toolbox.Types *@
 
 
-<PageTitle>User</PageTitle>
+@* <PageTitle>User</PageTitle>
 
 <div style="margin: 10px;max-width: 900px;">
     <h3>User Profile</h3>
@@ -29,7 +29,7 @@
                         <FluentValidationMessage For="() => Input.Name" />
                     </div>
 
-@*                     <div style="margin-top:10px">
+                    <div style="margin-top:10px">
                         <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
                         <FluentValidationMessage For="() => Input.Email" />
                     </div>
@@ -62,7 +62,7 @@
                     <div style="margin-top:10px">
                         <FluentTextField Name="Input.ZipCode" @bind-Value="Input.ZipCode" AutoComplete="ZipCode" Placeholder="Please enter your zip code." Label="Zip Code" Style="width: 100%;" />
                         <FluentValidationMessage For="() => Input.ZipCode" />
-                    </div> *@
+                    </div>
 
                     <div style="margin-top:10px">
                         <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 80px;">Update</FluentButton>
@@ -73,3 +73,4 @@
     </div>
 </div>
 
+ *@

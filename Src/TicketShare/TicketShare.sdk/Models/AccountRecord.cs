@@ -1,6 +1,8 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Extensions;
 
 namespace TicketShare.sdk;
 
@@ -10,14 +12,15 @@ public record AccountRecord
     [Id(0)] public string PrincipalId { get; init; } = null!;
     [Id(1)] public string Name { get; init; } = null!;
 
-    [Id(2)] public FrozenSet<ContactRecord> ContactItems { get; init; } = FrozenSet<ContactRecord>.Empty;
-    [Id(3)] public FrozenSet<AddressRecord> Address { get; init; } = FrozenSet<AddressRecord>.Empty;
-    [Id(4)] public FrozenSet<CalendarRecord> CalendarItems { get; init; } = FrozenSet<CalendarRecord>.Empty;
+    [Id(2)] public IReadOnlyList<ContactRecord> ContactItems { get; init; } = ImmutableArray<ContactRecord>.Empty;
+    [Id(3)] public IReadOnlyList<AddressRecord> Address { get; init; } = ImmutableArray<AddressRecord>.Empty;
+    [Id(4)] public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = ImmutableArray<CalendarRecord>.Empty;
 
     public static IValidator<AccountRecord> Validator { get; } = new Validator<AccountRecord>()
         .RuleFor(x => x.PrincipalId).NotEmpty()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleForEach(x => x.ContactItems).Validate(ContactRecord.Validator)
+        .RuleForEach(x => x.Address).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
         .Build();
 }
@@ -41,24 +44,29 @@ public static class AccountRecordExtensions
             ContactItems = subject.ContactItems
                 .Where(x => !contactRecords.Any(y => y.Type != x.Type))
                 .Concat(contactRecords)
-                .ToFrozenSet()
+                .ToImmutableArray(),
         };
 
         return subject;
     }
 
-    public static AccountRecord Merge(this AccountRecord subject, IEnumerable<AddressRecord> addressRecords)
+    public static AccountRecord Merge(this AccountRecord currentRecord, IEnumerable<AddressRecord> newAddressRecords)
     {
-        addressRecords.NotNull();
+        newAddressRecords.NotNull();
 
-        subject = subject with
+        var newRecords = newAddressRecords
+            .GroupBy(x => x.Label, StringComparer.OrdinalIgnoreCase)
+            .Select(x => x.First())
+            .ToArray();
+
+        currentRecord = currentRecord with
         {
-            Address = subject.Address
-                .Where(x => !addressRecords.Any(y => y.IsMatch(x)))
-                .Concat(addressRecords)
-                .ToFrozenSet()
+            Address = currentRecord.Address
+                .Where(x => newRecords.Any(y => x.Label.EqualsIgnoreCase(y.Label)))
+                .Concat(newAddressRecords)
+                .ToImmutableArray(),
         };
 
-        return subject;
+        return currentRecord;
     }
 }

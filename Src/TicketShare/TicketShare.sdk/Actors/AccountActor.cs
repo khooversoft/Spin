@@ -48,7 +48,7 @@ public class AccountActor : Grain, IAccountActor
         var cmds = new Sequence<string>();
         string base64 = user.ToJson64();
 
-        cmds += GraphTool.CreateNodeCommand(IdentityTool.ToUserKey(user.PrincipalId), null, base64);
+        cmds += GraphTool.CreateNodeCommand(IdentityTool.ToUserKey(user.PrincipalId), null, base64, "user");
 
         string command = cmds.Join(Environment.NewLine);
         var result = await _clusterClient.GetDirectoryActor().ExecuteBatch(command, context);

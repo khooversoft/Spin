@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -62,8 +63,8 @@ public class AccountConnector
                 Name = principalIdentity.Name ?? userId,
                 ContactItems = (principalIdentity.Email ?? email).ToNullIfEmpty() switch
                 {
-                    null => FrozenSet<ContactRecord>.Empty,
-                    string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToFrozenSet(),
+                    null => ImmutableArray<ContactRecord>.Empty,
+                    string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToImmutableArray(),
                 },
             }
         };
@@ -76,8 +77,8 @@ public class AccountConnector
             Name = name ?? principalId,
             ContactItems = email.ToNullIfEmpty() switch
             {
-                null => FrozenSet<ContactRecord>.Empty,
-                string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToFrozenSet(),
+                null => ImmutableArray<ContactRecord>.Empty,
+                string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToImmutableArray(),
             },
         };
     }

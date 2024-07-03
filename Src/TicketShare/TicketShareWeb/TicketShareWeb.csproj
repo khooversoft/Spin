@@ -36,8 +36,12 @@
   </ItemGroup>
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Components\Account\Old\Pages\UserProfile.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\UserProfilePanel.razor" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Components\Account\UserProfile.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Account\UserProfilePanel.razor" />
   </ItemGroup>
 </Project>

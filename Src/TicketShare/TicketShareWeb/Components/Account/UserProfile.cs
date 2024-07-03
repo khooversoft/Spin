@@ -1,111 +1,159 @@
-﻿using System.Collections.Frozen;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Components;
-using TicketShare.sdk;
-using Toolbox.Extensions;
-using Toolbox.Types;
+﻿//using System.Collections.Frozen;
+//using System.ComponentModel.DataAnnotations;
+//using Microsoft.AspNetCore.Components;
+//using Microsoft.FluentUI.AspNetCore.Components;
+//using TicketShare.sdk;
+//using Toolbox.Extensions;
+//using Toolbox.Types;
 
-namespace TicketShareWeb.Components.Account;
+//namespace TicketShareWeb.Components.Account;
 
-public partial class UserProfile
-{
-    [Inject] AccountConnector _accountConnector { get; set; } = default!;
-    [Inject] NavigationManager _navigationManager { get; set; } = default!;
-    [Inject] ILogger<UserProfile> _logger { get; set; } = default!;
+//public partial class UserProfile
+//{
+//    [Inject] AccountConnector _accountConnector { get; set; } = default!;
+//    [Inject] NavigationManager _navigationManager { get; set; } = default!;
+//    [Inject] ILogger<UserProfile> _logger { get; set; } = default!;
+//    [Inject] IDialogService _dialogService { get; set; } = default!;
+//    [Inject] IToastService _toastService { get; set; } = default!;
 
-    [SupplyParameterFromForm] private InputModel Input { get; set; } = new();
-    [SupplyParameterFromQuery] private string? PrincipalId { get; set; }
 
-    private string? errorMessage;
+//    //[SupplyParameterFromForm] private UserProfileModel Input { get; set; } = new();
+//    //[SupplyParameterFromQuery] private string? PrincipalId { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        var context = new ScopeContext(_logger);
+//    private string? errorMessage;
+//    private IDialogReference? _dialog;
 
-        var accountOption = await _accountConnector.Get(context);
-        if (accountOption.IsError() && !accountOption.IsNotFound())
-        {
-            errorMessage = accountOption.Error;
-            return;
-        }
+//    protected override async Task OnInitializedAsync()
+//    {
+//        var context = new ScopeContext(_logger);
 
-        AccountRecord accountRecord = accountOption.Return();
-        AddressRecord? addressRecord = accountRecord.Address.FirstOrDefault();
+//        var inputOption = await ReadProfile(context);
+//        if (inputOption.IsError()) return;
 
-        Input = new InputModel
-        {
-            Name = accountRecord.Name,
-            Email = accountRecord.ContactItems.Where(x => x.Type == ContactType.Email).FirstOrDefault()?.Value,
-            PhoneNumber = accountRecord.ContactItems.Where(x => x.Type == ContactType.Cell).FirstOrDefault()?.Value,
-            Address1 = addressRecord?.Address1,
-            Address2 = addressRecord?.Address2,
-            City = addressRecord?.City,
-            State = addressRecord?.State,
-            ZipCode = addressRecord?.ZipCode,
-        };
-    }
+//        UserProfileModel input = inputOption.Return();
 
-    public async Task SetUser()
-    {
-        var context = new ScopeContext(_logger);
+//        var dialogParameters = new DialogParameters<UserProfileModel>
+//        {
+//            Content = input,
+//            Alignment = HorizontalAlignment.Right,
+//            Title = "Edit User Profile",
+//            PrimaryAction = "Yes",
+//            SecondaryAction = "No",
+//        };
 
-        var accountOption = await _accountConnector.Get(context);
-        if (accountOption.IsError() && !accountOption.IsNotFound())
-        {
-            errorMessage = accountOption.Error;
-            return;
-        }
+//        _dialog = await _dialogService.ShowPanelAsync<UserProfilePanel>(input, dialogParameters);
+//        DialogResult result = await _dialog.Result;
 
-        AccountRecord account = accountOption.Return()
-            .Merge(createContacts(Input))
-            .Merge(createAddress(Input));
+//        if (!result.Cancelled)
+//        {
+//            _navigationManager.NavigateTo("/", true);
+//            return;
+//        }
+//    }
 
-        var result = await _accountConnector.Set(account, context);
-        return;
+//    private async Task<Toolbox.Types.Option<UserProfileModel>> ReadProfile(ScopeContext context)
+//    {
+//        var accountOption = await _accountConnector.Get(context);
+//        if (accountOption.IsError() && !accountOption.IsNotFound())
+//        {
+//            _toastService.ShowError($"Error: {accountOption.Error} [{typeof(UserProfile).Name}]");
+//            return StatusCode.BadRequest;
+//        }
 
-        static IEnumerable<ContactRecord> createContacts(InputModel inputModel) => new[]
-        {
-            inputModel.Email.IsNotEmpty() ? new ContactRecord { Type = ContactType.Email, Value = inputModel.Email } : null,
-            inputModel.PhoneNumber.IsNotEmpty() ? new ContactRecord { Type = ContactType.Cell, Value = inputModel.PhoneNumber } : null,
-        }.OfType<ContactRecord>();
+//        AccountRecord accountRecord = accountOption.Return();
+//        AddressRecord? addressRecord = accountRecord.Address.FirstOrDefault();
 
-        static IEnumerable<AddressRecord> createAddress(InputModel inputModel) => [
-            new AddressRecord
-            {
-                Address1 = inputModel.Address1,
-                Address2 = inputModel.Address2,
-                City = inputModel.City,
-                State = inputModel.State,
-                ZipCode = inputModel.ZipCode,
-            }
-        ];
-    }
+//        UserProfileModel Input = new UserProfileModel
+//        {
+//            Name = accountRecord.Name,
+//            Email = accountRecord.ContactItems.Where(x => x.Type == ContactType.Email).FirstOrDefault()?.Value,
+//            PhoneNumber = accountRecord.ContactItems.Where(x => x.Type == ContactType.Cell).FirstOrDefault()?.Value,
+//            Address1 = addressRecord?.Address1,
+//            Address2 = addressRecord?.Address2,
+//            City = addressRecord?.City,
+//            State = addressRecord?.State,
+//            ZipCode = addressRecord?.ZipCode,
+//        };
 
-    private sealed class InputModel
-    {
-        [Display(Name = "Name")]
-        public string? Name { get; set; } = null!;
+//        return Input;
+//    }
 
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string? Email { get; set; } = null!;
+//    private async Task WriteProfile(UserProfileModel input, ScopeContext context)
+//    {
+//        var accountOption = await _accountConnector.Get(context);
+//        if (accountOption.IsError() && !accountOption.IsNotFound())
+//        {
+//            _toastService.ShowError($"Error: {accountOption.Error} [{typeof(UserProfile).Name}]");
+//            return;
+//        }
 
-        [Display(Name = "Phone number")]
-        public string? PhoneNumber { get; set; } = null!;
+//        AccountRecord accountRecord = accountOption.Return();
 
-        [Display(Name = "Address 1")]
-        public string? Address1 { get; set; } = null!;
+//        AccountRecord account = accountRecord
+//            .Merge(createContacts(input))
+//            .Merge(createAddress(input));
 
-        [Display(Name = "Address 2")]
-        public string? Address2 { get; set; } = null!;
+//        var result = await _accountConnector.Set(account, context);
+//        if (result.IsError())
+//        {
+//            _toastService.ShowError($"User profile failed to updated - Error:{result.Error}");
+//            return;
+//        }
 
-        [Display(Name = "City")]
-        public string? City { get; set; } = null!;
+//        _toastService.ShowSuccess("User profile updated");
+//        return;
 
-        [Display(Name = "State")]
-        public string? State { get; set; } = null!;
+//        static IEnumerable<ContactRecord> createContacts(UserProfileModel inputModel) => new[]
+//        {
+//                inputModel.Email.IsNotEmpty() ? new ContactRecord { Type = ContactType.Email, Value = inputModel.Email } : null,
+//                inputModel.PhoneNumber.IsNotEmpty() ? new ContactRecord { Type = ContactType.Cell, Value = inputModel.PhoneNumber } : null,
+//            }.OfType<ContactRecord>();
 
-        [Display(Name = "Zip Code")]
-        public string? ZipCode { get; set; } = null!;
-    }
-}
+//        static IEnumerable<AddressRecord> createAddress(UserProfileModel inputModel) => [
+//            new AddressRecord
+//                {
+//                    Address1 = inputModel.Address1,
+//                    Address2 = inputModel.Address2,
+//                    City = inputModel.City,
+//                    State = inputModel.State,
+//                    ZipCode = inputModel.ZipCode,
+//                }
+//        ];
+//    }
+
+//    //public async Task SetUser()
+//    //{
+//    //    var context = new ScopeContext(_logger);
+
+//    //    var accountOption = await _accountConnector.Get(context);
+//    //    if (accountOption.IsError() && !accountOption.IsNotFound())
+//    //    {
+//    //        errorMessage = accountOption.Error;
+//    //        return;
+//    //    }
+
+//    //    AccountRecord account = accountOption.Return()
+//    //        .Merge(createContacts(Input))
+//    //        .Merge(createAddress(Input));
+
+//    //    var result = await _accountConnector.Set(account, context);
+//    //    return;
+
+//    //    static IEnumerable<ContactRecord> createContacts(UserProfileModel inputModel) => new[]
+//    //    {
+//    //        inputModel.Email.IsNotEmpty() ? new ContactRecord { Type = ContactType.Email, Value = inputModel.Email } : null,
+//    //        inputModel.PhoneNumber.IsNotEmpty() ? new ContactRecord { Type = ContactType.Cell, Value = inputModel.PhoneNumber } : null,
+//    //    }.OfType<ContactRecord>();
+
+//    //    static IEnumerable<AddressRecord> createAddress(UserProfileModel inputModel) => [
+//    //        new AddressRecord
+//    //        {
+//    //            Address1 = inputModel.Address1,
+//    //            Address2 = inputModel.Address2,
+//    //            City = inputModel.City,
+//    //            State = inputModel.State,
+//    //            ZipCode = inputModel.ZipCode,
+//    //        }
+//    //    ];
+//    //}
+//}
