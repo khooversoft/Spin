@@ -13,8 +13,9 @@
             <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
                 <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
                     <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavLink>
+                    <FluentNavLink Href="/partnerships" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size24.EarthLeaf())" IconColor="Color.Accent">Partnerships</FluentNavLink>
 
-                    <FluentNavGroup Title="Partnerships" Tooltip="List of engagements" Icon="@(new Icons.Regular.Size24.EarthLeaf())">
+@*                     <FluentNavGroup Title="Partnerships" Tooltip="List of engagements" Icon="@(new Icons.Regular.Size24.EarthLeaf())">
                         <FluentNavLink Icon="@(new Icons.Regular.Size24.LeafOne())" Tooltip="Manage my profile"></FluentNavLink>
                         <FluentNavLink Icon="@(new Icons.Regular.Size24.LeafTwo())" Tooltip="Manage by availability">Calendar</FluentNavLink>
                         <FluentNavLink Icon="@(new Icons.Regular.Size24.LeafTwo())" Tooltip="Manage by availability">Tickets</FluentNavLink>
@@ -31,7 +32,7 @@
                         <FluentNavLink Icon="@(new Icons.Regular.Size24.LeafTwo())" Tooltip="Manage Games">Games</FluentNavLink>
                         <FluentNavLink Icon="@(new Icons.Regular.Size24.LeafTwo())" Tooltip="League">Leagues</FluentNavLink>
                     </FluentNavGroup>
-
+ *@
                     <div style="margin-top:20px">
                         <FluentButton OnClick="@EditUserProfile" Style="width: 100%">@context.User.Identity?.Name</FluentButton>
                         @* <FluentNavLink Href="Account/UserProfile">@context.User.Identity?.Name</FluentNavLink> *@

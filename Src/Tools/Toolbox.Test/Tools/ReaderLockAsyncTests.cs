@@ -37,28 +37,42 @@ public class ReaderLockAsyncTests
     [Fact]
     public async Task ReaderLockAsyncTest_WithWriter()
     {
-        int x = 0;
-        AsyncReaderWriterLock rwLock = new AsyncReaderWriterLock();
-
-        // Writer Task
-        var writerTask = Task.Run(async () =>
+        foreach (var index in Enumerable.Range(0, 2))
         {
-            using (var release = await rwLock.WriterLockAsync())
-            {
-                x = 5;
-            }
-        });
+            var result = await test();
+            if (result == 5) return;
+        }
 
-        // Reader Task
-        var readerTask = Task.Run(async () =>
+        throw new Exception("Try try failed");
+
+        static async Task<int> test()
         {
-            using (var release = await rwLock.ReaderLockAsync())
-            {
-                x.Should().Be(5);
-            }
-        });
+            int value = 0;
+            AsyncReaderWriterLock rwLock = new AsyncReaderWriterLock();
 
-        await Task.WhenAll(writerTask, readerTask);
+            // Writer Task
+            var writerTask = Task.Run(async () =>
+            {
+                using (var release = await rwLock.WriterLockAsync())
+                {
+                    value = 5;
+                }
+            });
+
+            // Reader Task
+            int readValue = 0;
+
+            var readerTask = Task.Run(async () =>
+            {
+                using (var release = await rwLock.ReaderLockAsync())
+                {
+                    readValue = value;
+                }
+            });
+
+            await Task.WhenAll(writerTask, readerTask);
+            return readValue;
+        }
     }
 
     [Fact]

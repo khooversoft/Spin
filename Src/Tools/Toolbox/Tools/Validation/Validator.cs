@@ -10,7 +10,7 @@ public interface IValidator<T>
 
 public class Validator<T> : IValidator<T>
 {
-    private readonly IList<IPropertyRuleBase<T>> _rules = new List<IPropertyRuleBase<T>>();
+    private readonly List<IPropertyRuleBase<T>> _rules = new List<IPropertyRuleBase<T>>();
 
     public Rule<T, T> RuleForObject(Func<T, T> func)
     {

@@ -1,11 +1,15 @@
-﻿using System.Security.Principal;
+﻿using System.Collections.Frozen;
+using System.Security.Principal;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
+
 [GenerateSerializer]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "ORLEANS0010:Add missing [Alias]", Justification = "<Pending>")]
 public sealed record PrincipalIdentity : IIdentity
 {
     [Id(0)] public string PrincipalId { get; set; } = null!;
@@ -25,6 +29,18 @@ public sealed record PrincipalIdentity : IIdentity
         .RuleFor(x => x.PrincipalId).NotEmpty()
         .RuleFor(x => x.UserName).NotEmpty()
         .RuleFor(x => x.Email).ValidEmail()
+        .Build();
+
+    public static IGraphSchema<PrincipalIdentity> Schema { get; } = new GraphSchemaBuilder<PrincipalIdentity>()
+        .Node(x => x.PrincipalId, x => IdentityTool.ToUserKey(x))
+        .Tag(x => x.Email, x => x.IsNotEmpty() ? $"email={x}" : "-email")
+        .Index(x => x.UserName, x => IdentityTool.ToUserNameIndex(x))
+        .Index(x => x.Email, x => IdentityTool.ToEmailIndex(x))
+        .Index(x => x.LoginProvider, x => x.ProviderKey, (x, y) => (x, y) switch
+        {
+            (string v1, string v2) => IdentityTool.ToLoginIndex(v1, v2),
+            _ => null,
+        })
         .Build();
 }
 

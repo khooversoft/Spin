@@ -51,43 +51,63 @@ public static class GraphTool
         return result;
     }
 
-    public static string CreateNodeCommand(string nodeKey, string? tags, string? base64, string? dataName = "entity")
+    public static string SetNodeCommand(string nodeKey, string? tags, string? base64, string? dataName = null)
     {
         nodeKey.NotEmpty();
+        dataName = dataName.ToNullIfEmpty() ?? "entity";
 
         string?[] cmds = [
             $"upsert node key={nodeKey}",
             tags,
             base64 != null ? $"{dataName} {{ '{base64}' }}" : null,
-            ];
+        ];
 
         string cmd = cmds.Where(x => x.IsNotEmpty()).Join(", ") + ';';
         return cmd;
     }
 
-    public static string CreateEdgeCommand(string fromKey, string toKey, string? tags)
+    public static string DeleteNodeCommand(string indexKey) => $"delete (key={indexKey.NotEmpty()});";
+
+    public static IReadOnlyList<string> CreateEdgeCommands(string fromKey, string toKey, string edgeType, string? tags)
     {
         fromKey.NotEmpty();
         toKey.NotEmpty();
+        edgeType.NotEmpty();
 
         string?[] cmds = [
-            $"upsert edge fromKey={fromKey}, toKey={toKey}, edgeType={GraphConstants.UniqueIndexTag}",
+            $"upsert edge fromKey={fromKey}, toKey={toKey}, edgeType={edgeType}",
             tags,
-            ];
+        ];
 
         string cmd = cmds.Where(x => x.IsNotEmpty()).Join(", ") + ';';
-        return cmd;
+        return [cmd];
     }
 
-    public static ImmutableArray<string> CreateIndexCommands(string indexKey, string nodeKey)
+    public static IReadOnlyList<string> DeleteEdgeCommands(string nodeKey, string indexKey, string edgeType) => [
+        $"delete [fromKey={nodeKey.NotEmpty()}, toKey={indexKey.NotEmpty()}, edgeType={edgeType.NotEmpty()}];"
+        ];
+
+    public static IReadOnlyList<string> CreateIndexCommands(string nodeKey, string indexKey)
     {
         nodeKey.NotEmpty();
         indexKey.NotEmpty();
 
-        return
-        [
+        return [
             $"upsert node key={indexKey}, {GraphConstants.UniqueIndexTag};",
-            $"upsert edge fromKey={indexKey}, toKey={nodeKey}, edgeType={GraphConstants.UniqueIndexTag};",
+            $"upsert edge fromKey={nodeKey}, toKey={indexKey}, edgeType={GraphConstants.UniqueIndexTag};",
         ];
+    }
+
+    public static string SelectNodeCommand(string nodeKey, string? dataName = null)
+    {
+        nodeKey.NotEmpty();
+
+        var cmd = dataName switch
+        {
+            string v => $"select (key={nodeKey}) return {v};",
+            null => $"select (key={nodeKey});",
+        };
+
+        return cmd;
     }
 }

@@ -76,26 +76,19 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context.With(_logger);
         if (user.Validate().LogStatus(context, $"UserId={user.PrincipalId}").IsError(out Option v)) return v;
-        var directoryActor = _clusterClient.GetDirectoryActor();
 
         // Build graph commands
         var cmds = new Sequence<string>();
-        string base64 = user.ToJson64();
-        string? tags = user.Email.IsNotEmpty() ? $"email={user.Email}" : null;
 
-        cmds += GraphTool.CreateNodeCommand(IdentityTool.ToUserKey(user.PrincipalId), tags, base64);
-
-        // User Name node -> user node
-        if (user.UserName.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(IdentityTool.ToUserNameIndex(user.UserName), IdentityTool.ToUserKey(user.PrincipalId));
-
-        // Email node -> user node
-        if (user.Email.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(IdentityTool.ToEmailIndex(user.Email), IdentityTool.ToUserKey(user.PrincipalId));
-
-        // Login node -> user node
-        if (user.LoginProvider.IsNotEmpty() && user.ProviderKey.IsNotEmpty()) cmds += GraphTool.CreateIndexCommands(IdentityTool.ToLoginIndex(user.LoginProvider, user.ProviderKey), IdentityTool.ToUserKey(user.PrincipalId));
+        var currentRecordOption = await GetById(user.PrincipalId, context);
+        cmds += currentRecordOption.IsOk() switch
+        {
+            true => PrincipalIdentity.Schema.Code(user).SetCurrent(currentRecordOption.Return()).BuildSetCommands(),
+            false => PrincipalIdentity.Schema.Code(user).BuildSetCommands(),
+        };
 
         string command = cmds.Join(Environment.NewLine);
-        var result = await directoryActor.ExecuteBatch(command, context);
+        var result = await _clusterClient.GetDirectoryActor().ExecuteBatch(command, context);
         if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
 
         return StatusCode.OK;

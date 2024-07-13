@@ -83,21 +83,7 @@ public class AccountConnector
         };
     }
 
-    public async Task<Option<AccountRecord>> Get(string principalId, ScopeContext context)
-    {
-        principalId.NotEmpty();
-        context = context.With(_logger);
-        IAccountActor userActor = _clusterClient.GetUserActor();
+    public Task<Option<AccountRecord>> Get(string principalId, ScopeContext context) => _clusterClient.GetUserActor().Get(principalId, context);
 
-        return await userActor.Get(principalId, context);
-    }
-
-    public async Task<Option> Set(AccountRecord accountRecord, ScopeContext context)
-    {
-        if( !accountRecord.Validate(out var r)) return r; 
-        context = context.With(_logger);
-        IAccountActor userActor = _clusterClient.GetUserActor();
-
-        return await userActor.Set(accountRecord, context);
-    }
+    public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => _clusterClient.GetUserActor().Set(accountRecord, context);
 }

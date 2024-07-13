@@ -3,7 +3,6 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using Toolbox.Orleans
-@using TicketShareWeb.Components.Shared;
 @using TicketShareWeb.Application;
 
 @inject UserManager<PrincipalIdentity> UserManager
@@ -14,7 +13,7 @@
 
 <PageTitle>Manage your external logins</PageTitle>
 
-<StatusMessage />
+<ErrorStatusMessage />
 @if (currentLogins?.Count > 0)
 {
     <h3>Registered Logins</h3>

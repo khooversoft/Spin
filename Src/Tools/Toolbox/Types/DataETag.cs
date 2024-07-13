@@ -64,6 +64,8 @@ public static class DataETagExtensions
         return new DataETag(bytes, hash);
     }
 
+    public static DataETag StripETag(this DataETag data) => new DataETag([.. data.Data]);
+
     public static string ToHash(this DataETag data) => data.Data.ToHexHash();
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
     public static DataETag WithETag(this DataETag data, string eTag) => new DataETag(data.Data, eTag.NotEmpty());

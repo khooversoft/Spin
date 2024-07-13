@@ -117,13 +117,16 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     {
         lock (_lock)
         {
-            if (!_index.Remove(edgeKey, out var nodeValue)) return false;
+            if (!_index.Remove(edgeKey, out var edgeValue)) return false;
 
-            _masterList.Remove(nodeValue);
-            _edgesFrom.RemovePrimaryKey(nodeValue.Key);
-            _edgesTo.RemovePrimaryKey(nodeValue.Key);
+            _masterList.Remove(edgeValue);
+            _edgesFrom.RemovePrimaryKey(edgeValue.Key);
+            _edgesTo.RemovePrimaryKey(edgeValue.Key);
 
-            graphContext?.ChangeLog.Push(new CmEdgeDelete(nodeValue));
+            var nodeKeys = new[] { edgeValue.FromKey, edgeValue.ToKey }.Where(x => x.IsNotEmpty()).ToArray();
+            _graphRI.RemoveUniqueIndexNodes(nodeKeys, graphContext);
+
+            graphContext?.ChangeLog.Push(new CmEdgeDelete(edgeValue));
             return true;
         }
     }

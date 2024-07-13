@@ -29,6 +29,7 @@ public class AccountActor : Grain, IAccountActor
 
     public async Task<Option<AccountRecord>> Get(string principalId, ScopeContext context)
     {
+        if (principalId.IsEmpty()) return StatusCode.BadRequest;
         context = context.With(_logger);
 
         string command = $"select (key={IdentityTool.ToUserKey(principalId)}) return user;";
@@ -45,12 +46,8 @@ public class AccountActor : Grain, IAccountActor
         if (user.Validate().LogStatus(context, $"UserId={user.PrincipalId}").IsError(out Option v)) return v;
 
         // Build graph commands
-        var cmds = new Sequence<string>();
-        string base64 = user.ToJson64();
+        string command = AccountRecord.Schema.Code(user).BuildSetCommands().Join(Environment.NewLine);
 
-        cmds += GraphTool.CreateNodeCommand(IdentityTool.ToUserKey(user.PrincipalId), null, base64, "user");
-
-        string command = cmds.Join(Environment.NewLine);
         var result = await _clusterClient.GetDirectoryActor().ExecuteBatch(command, context);
         if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
 

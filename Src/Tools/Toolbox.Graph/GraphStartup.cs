@@ -5,13 +5,6 @@ namespace Toolbox.Graph;
 
 public static class GraphStartup
 {
-    //public static IServiceCollection AddGraphFileStore(this IServiceCollection services)
-    //{
-    //    services.NotNull().AddSingleton(services => (IGraphFileStore)services.GetRequiredService<IFileStore>());
-
-    //    return services;
-    //}
-
     public static IServiceCollection AddGraphInMemoryFileStore(this IServiceCollection services)
     {
         services.NotNull().AddSingleton<IGraphFileStore, InMemoryGraphFileStore>();

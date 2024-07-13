@@ -3,6 +3,8 @@ using System.Collections.Immutable;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Toolbox.Extensions;
+using Toolbox.Graph;
+using Toolbox.Orleans;
 
 namespace TicketShare.sdk;
 
@@ -22,6 +24,11 @@ public record AccountRecord
         .RuleForEach(x => x.ContactItems).Validate(ContactRecord.Validator)
         .RuleForEach(x => x.Address).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
+        .Build();
+
+    public static IGraphSchema<AccountRecord> Schema { get; } = new GraphSchemaBuilder<AccountRecord>()
+        .DataName("account")
+        .Node(x => x.PrincipalId, x => IdentityTool.ToUserKey(x))
         .Build();
 }
 
@@ -62,7 +69,7 @@ public static class AccountRecordExtensions
         currentRecord = currentRecord with
         {
             Address = currentRecord.Address
-                .Where(x => newRecords.Any(y => x.Label.EqualsIgnoreCase(y.Label)))
+                .Where(x => !newRecords.Any(y => x.Label.EqualsIgnoreCase(y.Label)))
                 .Concat(newAddressRecords)
                 .ToImmutableArray(),
         };

@@ -95,7 +95,7 @@ internal static class GraphCommandNode
     {
         var readOption = await graphContext.FileStore.Get(fileId, graphContext.Context);
 
-        var writeOption = await graphContext.FileStore.Set(fileId, dataETag, graphContext.Context);
+        var writeOption = await graphContext.FileStore.Set(fileId, dataETag.StripETag(), graphContext.Context);
         if (writeOption.IsError()) return writeOption.ToOptionStatus();
 
         graphContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));

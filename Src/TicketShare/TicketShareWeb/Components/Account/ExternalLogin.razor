@@ -8,7 +8,6 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Toolbox.Orleans
 @using Toolbox.Tools
-@using TicketShareWeb.Components.Shared;
 @using TicketShareWeb.Application;
 
 @inject SignInManager<PrincipalIdentity> SignInManager
@@ -30,7 +29,7 @@
         logging in.
     </div>
 
-    <StatusMessage Message="@message" />
+    <ErrorStatusMessage Message="@message" />
 
     <div style="margin-top:20px">
         <FluentGrid>

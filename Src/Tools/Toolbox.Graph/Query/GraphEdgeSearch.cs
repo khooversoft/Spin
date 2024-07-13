@@ -6,7 +6,9 @@ namespace Toolbox.Graph;
 
 public record GraphEdgeSearch : IGraphQL
 {
+    // This will match to FromKey or ToKey
     public string? NodeKey { get; init; }
+
     public string? FromKey { get; init; }
     public string? ToKey { get; init; }
     public string? EdgeType { get; init; }
