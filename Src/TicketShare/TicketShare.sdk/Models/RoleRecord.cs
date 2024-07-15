@@ -13,11 +13,11 @@ public enum RolePermission
 
 public record RoleRecord
 {
-    [Id(0)] public string RoleId { get; init; } = null!;
+    [Id(0)] public string PrincipalId { get; init; } = null!;
     [Id(1)] public RolePermission MemberRole { get; init; } = RolePermission.None;
 
     public static IValidator<RoleRecord> Validator { get; } = new Validator<RoleRecord>()
-        .RuleFor(x => x.RoleId).NotEmpty()
+        .RuleFor(x => x.PrincipalId).NotEmpty()
         .RuleFor(x => x.MemberRole).ValidEnum()
         .Build();
 }

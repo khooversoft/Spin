@@ -1,13 +1,8 @@
 using System.Reflection;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
 using TicketShareWeb.Application;
 using TicketShareWeb.Components;
-using Toolbox.Orleans;
-using Toolbox.Tools;
 
 Console.WriteLine($"Ticket Share Web Server - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();

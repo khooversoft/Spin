@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -43,7 +38,7 @@ public class GraphCode<T>
     public IReadOnlyList<string> SetNodeCommand()
     {
         string nodeKey = _graphSchema.SchemaValues.GetNodeKey(_subject);
-        string? dataName = _graphSchema.SchemaValues.GetNodeDataName(_subject);
+        string? dataName = _graphSchema.SchemaValues.GetNodeDataName();
         string? tags = _graphSchema.SchemaValues.GetTags(_subject);
 
         string base64 = _subject.ToJson64();

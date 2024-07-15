@@ -1,5 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Security.Principal;
+﻿using System.Security.Principal;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;

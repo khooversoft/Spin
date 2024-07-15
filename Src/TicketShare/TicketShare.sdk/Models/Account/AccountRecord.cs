@@ -1,10 +1,9 @@
-﻿using System.Collections.Frozen;
-using System.Collections.Immutable;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Orleans;
+using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
@@ -27,8 +26,8 @@ public record AccountRecord
         .Build();
 
     public static IGraphSchema<AccountRecord> Schema { get; } = new GraphSchemaBuilder<AccountRecord>()
-        .DataName("account")
-        .Node(x => x.PrincipalId, x => IdentityTool.ToUserKey(x))
+        .Node(x => x.PrincipalId, x => TicketShareTool.ToAccountKey(x))
+        .Select(x => x.PrincipalId, x => $"select (key={TicketShareTool.ToAccountKey(x)}) return entity;")
         .Build();
 }
 

@@ -1,13 +1,10 @@
-﻿using Azure.Identity;
+﻿using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
-using Toolbox.Azure.Identity;
-using Toolbox.Tools;
 using Microsoft.AspNetCore.Identity;
 using TicketShare.sdk;
-using Toolbox.Orleans;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using TicketShareWeb.Components.Account;
+using Toolbox.Orleans;
+using Toolbox.Tools;
 
 namespace TicketShareWeb.Application;
 
@@ -48,7 +45,7 @@ public static class Setup
         builder.Services.AddIdentityCore<PrincipalIdentity>()
             .AddSignInManager()
             .AddDefaultTokenProviders();
-        
+
         builder.Services.AddTransient<IUserStore<PrincipalIdentity>, UserStore>();
         return builder;
     }

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using TicketShare.sdk.Actors;
@@ -24,9 +18,9 @@ public class AccountConnector
     private readonly AuthenticationStateProvider _authenticationStateProvider;
 
     public AccountConnector(
-        IClusterClient clusterClient, 
-        AuthenticationStateProvider authenticationStateProvider, 
-        IdentityActorConnector identityConnector, 
+        IClusterClient clusterClient,
+        AuthenticationStateProvider authenticationStateProvider,
+        IdentityActorConnector identityConnector,
         ILogger<AccountConnector> logger)
     {
         _clusterClient = clusterClient.NotNull();

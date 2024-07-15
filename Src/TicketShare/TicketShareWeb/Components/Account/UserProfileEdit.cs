@@ -1,8 +1,8 @@
 ﻿using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Extensions;
 
 namespace TicketShareWeb.Components.Account;
 
@@ -99,7 +99,7 @@ public class UserProfileEdit
 
         static IEnumerable<AddressRecord> createAddress(UserProfileModel inputModel) => new AddressRecord
         {
-            Label = "default",            
+            Label = "default",
             Address1 = inputModel.Address1,
             Address2 = inputModel.Address2,
             City = inputModel.City,

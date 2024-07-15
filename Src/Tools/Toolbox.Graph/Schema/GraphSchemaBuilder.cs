@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using System.Linq.Expressions;
 using Toolbox.Tools;
 
 namespace Toolbox.Graph;
@@ -41,13 +35,16 @@ public class GraphSchemaBuilder<T>
     public GraphSchemaBuilder<T> Reference<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format, string attribute) =>
         AddExpression(expression, SchemaType.Reference, format, attribute);
 
+    public GraphSchemaBuilder<T> Reference<TProperty>(Expression<Func<T, IEnumerable<TProperty>>> expression, Func<TProperty, IReadOnlyList<string>> format, string attribute) =>
+        AddExpression(expression, SchemaType.Reference, format, attribute);
+
     public GraphSchemaBuilder<T> Select<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format, string queryName = "default") =>
         AddExpression(expression, SchemaType.Select, format, queryName);
 
     public GraphSchemaBuilder<T> Select<TProperty>(
-        Expression<Func<T, TProperty>> expr1, 
-        Expression<Func<T, TProperty>> expr2, 
-        Func<TProperty, TProperty, string?> format, 
+        Expression<Func<T, TProperty>> expr1,
+        Expression<Func<T, TProperty>> expr2,
+        Func<TProperty, TProperty, string?> format,
         string queryName = "default"
         ) =>
         AddExpression(expr1, expr2, SchemaType.Select, x =>
@@ -64,11 +61,32 @@ public class GraphSchemaBuilder<T>
     {
         Func<T, TProperty> propertyFunc = expression.NotNull().Compile();
 
+        Func<T, TProperty> xx = propertyFunc;
+        Func<T, IEnumerable<TProperty>> yy = x => [xx(x)];
+
         var value = new SchemaValue<T, TProperty>
         {
             Type = valueType,
             GetSourceValues = [propertyFunc],
+            GetCollection = _ => Array.Empty<TProperty>(),
             FormatValue = x => format.NotNull()(x[0]),
+            Attribute = attribute,
+        };
+
+        _graphCodes.Add(value);
+        return this;
+    }
+
+    private GraphSchemaBuilder<T> AddExpression<TProperty>(Expression<Func<T, IEnumerable<TProperty>>> expression, SchemaType valueType, Func<TProperty, string?> format, string? attribute = null)
+    {
+        Func<T, IEnumerable<TProperty>> propertyFunc = expression.NotNull().Compile();
+
+        var value = new SchemaValue<T, TProperty>
+        {
+            Type = valueType,
+            GetSourceValues = [],
+            GetCollection = propertyFunc,
+            FormatValue = x => format.NotNull()(x),
             Attribute = attribute,
         };
 

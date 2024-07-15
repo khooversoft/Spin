@@ -95,7 +95,7 @@ public class GraphUpsertCommandEdgeTests
         GraphQueryResults commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
         compareMap.Count.Should().Be(1);
-        
+
         compareMap[0].Cast<GraphEdge>().Action(x =>
         {
             x.FromKey.Should().Be("node6");
@@ -157,7 +157,7 @@ public class GraphUpsertCommandEdgeTests
             x.ToKey.Should().Be("node1");
             x.EdgeType.Should().Be("newEdgeType");
             x.Tags.ToTagsString().Should().Be("newTags");
-        }); 
+        });
 
         commandResults.Items.Length.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();

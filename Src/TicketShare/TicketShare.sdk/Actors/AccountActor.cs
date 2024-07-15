@@ -11,6 +11,7 @@ namespace TicketShare.sdk.Actors;
 public interface IAccountActor : IGrainWithStringKey
 {
     Task<Option<AccountRecord>> Get(string principalId, ScopeContext context);
+    Task<Option> Delete(string principalId, ScopeContext context);
     Task<Option> Set(AccountRecord accountName, ScopeContext context);
 }
 
@@ -32,18 +33,35 @@ public class AccountActor : Grain, IAccountActor
         if (principalId.IsEmpty()) return StatusCode.BadRequest;
         context = context.With(_logger);
 
-        string command = $"select (key={IdentityTool.ToUserKey(principalId)}) return user;";
+        string command = AccountRecord.Schema.Code(new AccountRecord { PrincipalId = principalId }).BuildSelectCommand();
+
         var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<AccountRecord>();
 
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<AccountRecord>("user");
+        var principalIdentity = AccountRecord.Schema.GetSubject(resultOption.Return());
         return principalIdentity;
+    }
+
+    public async Task<Option> Delete(string principalId, ScopeContext context)
+    {
+        if (principalId.IsEmpty()) return StatusCode.BadRequest;
+        context = context.With(_logger);
+
+        string command = AccountRecord.Schema
+            .Code(new AccountRecord { PrincipalId = principalId })
+            .BuildDeleteCommands()
+            .Join(Environment.NewLine);
+
+        var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
+        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus();
+
+        return StatusCode.OK;
     }
 
     public async Task<Option> Set(AccountRecord user, ScopeContext context)
     {
         context.With(_logger);
-        if (user.Validate().LogStatus(context, $"UserId={user.PrincipalId}").IsError(out Option v)) return v;
+        if (user.Validate().LogStatus(context, "principalId={principalId}", user.PrincipalId).IsError(out Option v)) return v;
 
         // Build graph commands
         string command = AccountRecord.Schema.Code(user).BuildSetCommands().Join(Environment.NewLine);

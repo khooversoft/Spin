@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -30,6 +25,7 @@ public class SchemaValue<T, TProperty> : ISchemaValue<T>
 {
     public SchemaType Type { get; init; }
     public IReadOnlyList<Func<T, TProperty>> GetSourceValues { get; init; } = null!;
+    public Func<T, IEnumerable<TProperty>> GetCollection { get; init; } = null!;
     public Func<IReadOnlyList<TProperty>, string?> FormatValue { get; init; } = null!;
     public string? GetResolvedValue(T subject) => FormatValue(GetSourceValues.Select(x => x(subject)).ToArray());
     public string? Attribute { get; init; }
@@ -51,13 +47,9 @@ public static class SchemaValueExtensions
         return result.IsOk();
     }
 
-    public static string GetNodeKey<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject) => graphValues.NotNull()
-        .Where(x => x.Type == SchemaType.Node)
-        .Select(x => x.GetResolvedValue(subject))
-        .FirstOrDefault()
-        .Assert(x => x != null, "node key not found")!;
+    public static string GetNodeKey<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject) => graphValues.GetCommand(subject, SchemaType.Node, null);
 
-    public static string? GetNodeDataName<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject) => graphValues.NotNull()
+    public static string? GetNodeDataName<T>(this IReadOnlyList<ISchemaValue<T>> graphValues) => graphValues.NotNull()
         .Where(x => x.Type == SchemaType.DataName)
         .Select(x => x.Attribute)
         .FirstOrDefault();
@@ -67,10 +59,13 @@ public static class SchemaValueExtensions
         .Select(x => x.GetResolvedValue(subject))
         .Join(",");
 
-    public static string GetSelectCommand<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject, string queryName = "default") => graphValues.NotNull()
-        .Where(x => x.Type == SchemaType.Select && x.Attribute == queryName)
+    public static string GetSelectCommand<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject, string queryName = "default") =>
+        graphValues.GetCommand(subject, SchemaType.Select, queryName);
+
+    public static string GetCommand<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject, SchemaType schemaType, string? queryName) => graphValues.NotNull()
+        .Where(x => x.Type == schemaType && (queryName == null || x.Attribute == queryName))
         .Select(x => x.GetResolvedValue(subject))
         .OfType<string>()
         .FirstOrDefault()
-        .NotEmpty($"Select command not found for query name: {queryName}");
+        .NotEmpty($"query name: {queryName} for {schemaType} not found");
 }

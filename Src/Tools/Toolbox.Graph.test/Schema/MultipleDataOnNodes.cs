@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -118,7 +113,7 @@ public class MultipleDataOnNodes
         public string City { get; init; } = null!;
         public int Temp { get; init; }
         public static IGraphSchema<Weather> Schema { get; } = new GraphSchemaBuilder<Weather>()
-            .DataName(x => x, _ => "weather")
+            .DataName("weather")
             .Node(x => x.Key, x => x.IsNotEmpty() ? $"data:{x}" : null)
             .Build();
     }

@@ -20,7 +20,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
     public async Task AddLoginAsync(PrincipalIdentity user, UserLoginInfo login, CancellationToken cancellationToken)
     {
         var context = new ScopeContext(_logger);
-        
+
         user.LoginProvider = login.LoginProvider;
         user.ProviderKey = login.ProviderKey;
         user.ProviderDisplayName = login.ProviderDisplayName;

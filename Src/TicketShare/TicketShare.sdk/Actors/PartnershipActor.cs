@@ -10,8 +10,8 @@ namespace TicketShare.sdk.Actors;
 
 public interface IPartnershipActor : IGrainWithStringKey
 {
-    Task<Option<PartnershipRecord>> Get(string patnershipId, ScopeContext context);
-    Task<Option> Set(PartnershipRecord accountName, ScopeContext context);
+    Task<Option<SeasonTicketRecord>> Get(string patnershipId, ScopeContext context);
+    Task<Option> Set(SeasonTicketRecord accountName, ScopeContext context);
 }
 
 [StatelessWorker]
@@ -27,28 +27,28 @@ public class PartnershipActor : Grain, IPartnershipActor
     }
 
 
-    public async Task<Option<PartnershipRecord>> Get(string patnershipId, ScopeContext context)
+    public async Task<Option<SeasonTicketRecord>> Get(string patnershipId, ScopeContext context)
     {
         if (patnershipId.IsEmpty()) return StatusCode.BadRequest;
         context = context.With(_logger);
 
-        string command = $"select (key={TicketShareTool.ToPartnershipKey(patnershipId)}) return entity;";
+        string command = $"select (key={TicketShareTool.ToSeasonTicketKey(patnershipId)}) return entity;";
         var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
-        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PartnershipRecord>();
+        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<SeasonTicketRecord>();
 
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<PartnershipRecord>("entity");
+        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<SeasonTicketRecord>("entity");
         return principalIdentity;
     }
 
-    public async Task<Option> Set(PartnershipRecord partnership, ScopeContext context)
+    public async Task<Option> Set(SeasonTicketRecord partnership, ScopeContext context)
     {
         context.With(_logger);
-        if (partnership.Validate().LogStatus(context, $"patnershipId={partnership.Id}").IsError(out Option v)) return v;
+        if (partnership.Validate().LogStatus(context, $"patnershipId={partnership.SeasonTicketId}").IsError(out Option v)) return v;
 
         // Build graph commands 
         var cmds = new Sequence<string>();
         string base64 = partnership.ToJson64();
-        string nodeKey = TicketShareTool.ToPartnershipKey(partnership.Id);
+        string nodeKey = TicketShareTool.ToSeasonTicketKey(partnership.SeasonTicketId);
 
         //var currentRecordOption = await Get(partnership.Id, context);
         //var updateIndexCmds = currentRecordOption.IsOk() switch
