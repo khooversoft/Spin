@@ -14,9 +14,9 @@ public class MultipleDataOnNodes
 
         // Create
         var d = new Data { Key = "key1" };
-        var cmds = Data.Schema.Code(d).BuildSetCommands().Join(Environment.NewLine);
+        var dataCmds = Data.Schema.Code(d).BuildSetCommands().Join(Environment.NewLine);
 
-        var newMapOption = await testClient.ExecuteBatch(cmds, NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch(dataCmds, NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         graph.Nodes.Count.Should().Be(1);
@@ -36,8 +36,8 @@ public class MultipleDataOnNodes
 
         // Attached data
         var w = new Weather { Key = "key1" };
-        cmds = Weather.Schema.Code(w).BuildSetCommands().Join(Environment.NewLine);
-        newMapOption = await testClient.ExecuteBatch(cmds, NullScopeContext.Instance);
+        var weatherCmds = Weather.Schema.Code(w).BuildSetCommands().Join(Environment.NewLine);
+        newMapOption = await testClient.ExecuteBatch(weatherCmds, NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         graph.Nodes.Count.Should().Be(1);
@@ -78,9 +78,9 @@ public class MultipleDataOnNodes
 
 
         // Delete
-        cmds = Data.Schema.Code(d).BuildDeleteCommands().Join(Environment.NewLine);
+        dataCmds = Data.Schema.Code(d).BuildDeleteCommands().Join(Environment.NewLine);
 
-        newMapOption = await testClient.ExecuteBatch(cmds, NullScopeContext.Instance);
+        newMapOption = await testClient.ExecuteBatch(dataCmds, NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
         graph.Nodes.Count.Should().Be(0);

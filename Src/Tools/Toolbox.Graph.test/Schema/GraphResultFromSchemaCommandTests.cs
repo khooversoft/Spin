@@ -182,7 +182,7 @@ public class GraphResultFromSchemaCommandTests
         public string? ProviderKey { get; init; }
 
         public static IGraphSchema<Data> Schema { get; } = new GraphSchemaBuilder<Data>()
-            .Node(x => x.Key, x => x.IsNotEmpty() ? GraphTool.SelectNodeCommand($"data:{x}") : null)
+            .Node(x => x.Key, x => x.IsNotEmpty() ? $"data:{x}" : null)
             .Index(x => x.Name, x => x.IsNotEmpty() ? $"index:{x}" : null)
             .Reference(x => x.Age, x => x > 0 ? $"age:{x}" : null, "ageGroup")
             .Index(x => x.Provider, x => x.ProviderKey, (x, y) => (x, y) switch

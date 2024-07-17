@@ -32,6 +32,7 @@ public sealed record PrincipalIdentity : IIdentity
 
     public static IGraphSchema<PrincipalIdentity> Schema { get; } = new GraphSchemaBuilder<PrincipalIdentity>()
         .Node(x => x.PrincipalId, x => IdentityTool.ToUserKey(x))
+        .Select(x => x.PrincipalId, x => GraphTool.SelectNodeCommand(IdentityTool.ToUserKey(x), "entity"))
         .Tag(x => x.Email, x => x.IsNotEmpty() ? $"email={x}" : "-email")
         .Index(x => x.UserName, x => IdentityTool.ToUserNameIndex(x))
         .Index(x => x.Email, x => IdentityTool.ToEmailIndex(x))

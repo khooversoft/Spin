@@ -6,13 +6,13 @@ namespace Toolbox.Graph;
 
 public class GraphSchemaBuilder<T>
 {
-    private readonly List<ISchemaValue<T>> _graphCodes = new List<ISchemaValue<T>>();
+    private readonly List<ISchemaValue> _graphCodes = new List<ISchemaValue>();
 
-    public GraphSchemaBuilder<T> DataName<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format) =>
-        AddExpression(expression, SchemaType.DataName, format);
-
-    public GraphSchemaBuilder<T> DataName(string dataName) =>
-        AddExpression(_ => dataName, SchemaType.DataName, x => x);
+    public GraphSchemaBuilder<T> DataName(string dataName)
+    {
+        _graphCodes.Add(new SchemaConstant { Type = SchemaType.DataName, Attribute = dataName });
+        return this;
+    }
 
     public GraphSchemaBuilder<T> Node<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format) =>
         AddExpression(expression, SchemaType.Node, format);
@@ -23,19 +23,13 @@ public class GraphSchemaBuilder<T>
     public GraphSchemaBuilder<T> Index<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format) =>
         AddExpression(expression, SchemaType.Index, format);
 
-    public GraphSchemaBuilder<T> Index<TProperty>(Expression<Func<T, TProperty>> expr1, Expression<Func<T, TProperty>> expr2, Func<TProperty, TProperty, string?> format)
-    {
-        return AddExpression(expr1, expr2, SchemaType.Index, x =>
-        {
-            x.Count.Assert(x => x == 2, x => $"count={x}");
-            return format(x[0], x[1]);
-        });
-    }
+    public GraphSchemaBuilder<T> Index<TProperty>(Expression<Func<T, TProperty>> expr1, Expression<Func<T, TProperty>> expr2, Func<TProperty, TProperty, string?> format) =>
+        AddExpression(expr1, expr2, SchemaType.Index, format);
 
     public GraphSchemaBuilder<T> Reference<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format, string attribute) =>
         AddExpression(expression, SchemaType.Reference, format, attribute);
 
-    public GraphSchemaBuilder<T> Reference<TProperty>(Expression<Func<T, IEnumerable<TProperty>>> expression, Func<TProperty, IReadOnlyList<string>> format, string attribute) =>
+    public GraphSchemaBuilder<T> ReferenceCollection<TProperty>(Expression<Func<T, IEnumerable<TProperty>>> expression, Func<TProperty, string?> format, string attribute) =>
         AddExpression(expression, SchemaType.Reference, format, attribute);
 
     public GraphSchemaBuilder<T> Select<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format, string queryName = "default") =>
@@ -46,13 +40,7 @@ public class GraphSchemaBuilder<T>
         Expression<Func<T, TProperty>> expr2,
         Func<TProperty, TProperty, string?> format,
         string queryName = "default"
-        ) =>
-        AddExpression(expr1, expr2, SchemaType.Select, x =>
-        {
-            x.Count.Assert(x => x == 2, x => $"count={x}");
-            return format(x[0], x[1]);
-        }, queryName);
-
+        ) => AddExpression(expr1, expr2, SchemaType.Select, format, queryName);
 
     public IGraphSchema<T> Build() => new GraphSchema<T>(_graphCodes);
 
@@ -61,15 +49,11 @@ public class GraphSchemaBuilder<T>
     {
         Func<T, TProperty> propertyFunc = expression.NotNull().Compile();
 
-        Func<T, TProperty> xx = propertyFunc;
-        Func<T, IEnumerable<TProperty>> yy = x => [xx(x)];
-
         var value = new SchemaValue<T, TProperty>
         {
             Type = valueType,
-            GetSourceValues = [propertyFunc],
-            GetCollection = _ => Array.Empty<TProperty>(),
-            FormatValue = x => format.NotNull()(x[0]),
+            GetSourceValue = propertyFunc,
+            FormatValue = format.NotNull(),
             Attribute = attribute,
         };
 
@@ -81,12 +65,11 @@ public class GraphSchemaBuilder<T>
     {
         Func<T, IEnumerable<TProperty>> propertyFunc = expression.NotNull().Compile();
 
-        var value = new SchemaValue<T, TProperty>
+        var value = new SchemaValues<T, TProperty>
         {
             Type = valueType,
-            GetSourceValues = [],
-            GetCollection = propertyFunc,
-            FormatValue = x => format.NotNull()(x),
+            GetSourceValues = propertyFunc,
+            FormatValue = format.NotNull(),
             Attribute = attribute,
         };
 
@@ -98,17 +81,18 @@ public class GraphSchemaBuilder<T>
         Expression<Func<T, TProperty>> expr1,
         Expression<Func<T, TProperty>> expr2,
         SchemaType valueType,
-        Func<IReadOnlyList<TProperty>, string?> format,
+        Func<TProperty, TProperty, string?> format,
         string? attribute = null)
     {
         Func<T, TProperty> propertyFunc1 = expr1.NotNull().Compile();
         Func<T, TProperty> propertyFunc2 = expr2.NotNull().Compile();
 
-        var value = new SchemaValue<T, TProperty>
+        var value = new SchemaTwoValues<T, TProperty>
         {
             Type = valueType,
-            GetSourceValues = [propertyFunc1, propertyFunc2],
-            FormatValue = x => format.NotNull()(x),
+            GetSourceValue1 = propertyFunc1,
+            GetSourceValue2 = propertyFunc2,
+            FormatValue = format.NotNull(),
             Attribute = attribute,
         };
 

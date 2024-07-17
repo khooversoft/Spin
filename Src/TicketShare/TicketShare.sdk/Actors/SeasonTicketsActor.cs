@@ -8,19 +8,19 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk.Actors;
 
-public interface IPartnershipActor : IGrainWithStringKey
+public interface ISeasonTicketsActor : IGrainWithStringKey
 {
     Task<Option<SeasonTicketRecord>> Get(string patnershipId, ScopeContext context);
     Task<Option> Set(SeasonTicketRecord accountName, ScopeContext context);
 }
 
 [StatelessWorker]
-public class PartnershipActor : Grain, IPartnershipActor
+public class SeasonTicketsActor : Grain, ISeasonTicketsActor
 {
-    private readonly ILogger<PartnershipActor> _logger;
+    private readonly ILogger<SeasonTicketsActor> _logger;
     private readonly IClusterClient _clusterClient;
 
-    public PartnershipActor(IClusterClient clusterClient, ILogger<PartnershipActor> logger)
+    public SeasonTicketsActor(IClusterClient clusterClient, ILogger<SeasonTicketsActor> logger)
     {
         _clusterClient = clusterClient.NotNull();
         _logger = logger.NotNull();

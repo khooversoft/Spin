@@ -31,17 +31,11 @@ public record SeasonTicketRecord
 
     public static IGraphSchema<SeasonTicketRecord> Schema { get; } = new GraphSchemaBuilder<SeasonTicketRecord>()
         .Node(x => x.SeasonTicketId, x => TicketShareTool.ToSeasonTicketKey(x))
+        .Select(x => x.SeasonTicketId, x => GraphTool.SelectNodeCommand(TicketShareTool.ToSeasonTicketKey(x), "entity"))
         .Reference(x => x.OwnerPrincipalId, x => IdentityTool.ToUserKey(x), TicketShareTool.SeasonTicketToIdentity())
-        .Reference(x => x.Members.Select(y => y.PrincipalId), x => x.Select(y => IdentityTool.ToUserKey(y)), TicketShareTool.SeasonTicketToIdentity())
+        .ReferenceCollection(x => x.Members.Select(y => y.PrincipalId), x => IdentityTool.ToUserKey(x), TicketShareTool.SeasonTicketToIdentity())
         .Build();
-
-    //public IReadOnlyList<string> GetIndexKeys() => new string?[]
-    //{
-    //    UserName.IsNotEmpty() ? IdentityTool.ToUserNameIndex(UserName) : null,
-    //    Email.IsNotEmpty() ? IdentityTool.ToEmailIndex(Email) : null,
-    //    LoginProvider.IsNotEmpty() && ProviderKey.IsNotEmpty() ? IdentityTool.ToLoginIndex(LoginProvider, ProviderKey) : null
-    //}.OfType<string>().ToArray();
-}2
+}
 
 
 public static class PartnershipRecordExtensions

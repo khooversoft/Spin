@@ -28,13 +28,6 @@ public class GraphSchemaTests
             x.Count.Should().Be(0);
         });
 
-        Data.Schema.SchemaValues.GetValues(d, SchemaType.DataName).Action(x =>
-        {
-            x.Should().NotBeNull();
-            x.Count.Should().Be(1);
-            x[0].Should().Be("entity");
-        });
-
         Data.Schema.SchemaValues.GetValues(d, SchemaType.Select).Action(x =>
         {
             x.Should().NotBeNull();
@@ -67,13 +60,6 @@ public class GraphSchemaTests
         {
             x.Should().NotBeNull();
             x.Count.Should().Be(0);
-        });
-
-        Data.Schema.SchemaValues.GetValues(d, SchemaType.DataName).Action(x =>
-        {
-            x.Should().NotBeNull();
-            x.Count.Should().Be(1);
-            x[0].Should().Be("entity");
         });
 
         Data.Schema.SchemaValues.GetValues(d, SchemaType.Select).Action(x =>
@@ -319,7 +305,6 @@ public class GraphSchemaTests
         public int Age { get; init; }
 
         public static IGraphSchema<Data> Schema { get; } = new GraphSchemaBuilder<Data>()
-            .DataName(x => x, _ => "entity")
             .Select(x => x.Key, x => x.IsNotEmpty() ? $"select (key={x}) return entity;" : null)
             .Node(x => x.Key, x => x.IsNotEmpty() ? $"data:{x}" : null)
             .Index(x => x.Name, x => x.IsNotEmpty() ? $"index:{x}" : null)

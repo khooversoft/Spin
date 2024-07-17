@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -119,24 +118,35 @@ public static class GraphCodeCommands
 {
     public static GraphCode<T> Code<T>(this IGraphSchema<T> graphSchema, T subject) => new GraphCode<T>(subject, graphSchema);
 
-    public static IReadOnlyList<string> GetValues<T>(this IReadOnlyList<ISchemaValue<T>> graphValue, T? subject, SchemaType schemaType) => subject switch
+    public static IReadOnlyList<string> GetValues<T>(this IReadOnlyList<ISchemaValue> graphValue, T? subject, SchemaType schemaType)
     {
-        null => ImmutableArray<string>.Empty,
-
-        _ => schemaType switch
+        var result = subject switch
         {
-            SchemaType.Reference => graphValue.NotNull()
-                .Where(x => x.Type == schemaType)
-                .Select(x => (value: x.GetResolvedValue(subject), attribute: x.Attribute))
-                .Where(x => x.value.IsNotEmpty() && x.attribute.IsNotEmpty())
-                .Select(x => $"{x.attribute}`{x.value}")
-                .ToImmutableArray(),
+            null => Array.Empty<string>(),
 
-            _ => graphValue.NotNull()
-                .Where(x => x.Type == schemaType)
-                .Select(x => x.GetResolvedValue(subject))
-                .OfType<string>()
-                .ToImmutableArray(),
-        }
-    };
+            _ => schemaType switch
+            {
+                SchemaType.Reference => graphValue.NotNull()
+                    .Where(x => x.Type == schemaType)
+                    .SelectMany(x => resolve(x, subject).Select(y => (value: y, attribute: x.Attribute)))
+                    .Where(x => x.value.IsNotEmpty() && x.attribute.IsNotEmpty())
+                    .Select(x => $"{x.attribute}`{x.value}")
+                    .ToArray(),
+
+                _ => graphValue.NotNull()
+                    .Where(x => x.Type == schemaType)
+                    .SelectMany(x => resolve(x, subject))
+                    .ToArray(),
+            },
+        };
+
+        return result;
+
+        static IEnumerable<string> resolve(ISchemaValue value, T subject) => value switch
+        {
+            ISchemaScalar<T> v => new[] { v.GetScalarValue(subject) }.Where(x => x.IsNotEmpty()).OfType<string>(),
+            ISchemaCollection<T> v => v.GetCollectionValues(subject).Where(x => x.IsNotEmpty()).OfType<string>(),
+            _ => throw new InvalidOperationException("Invalid schema value"),
+        };
+    }
 }

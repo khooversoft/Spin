@@ -6,14 +6,14 @@ namespace Toolbox.Graph;
 
 public interface IGraphSchema<T>
 {
-    IReadOnlyList<ISchemaValue<T>> SchemaValues { get; }
+    IReadOnlyList<ISchemaValue> SchemaValues { get; }
     Option<T> GetSubject(GraphQueryResult graphQueryResult);
 }
 
 public record GraphSchema<T> : IGraphSchema<T>
 {
-    public GraphSchema(IEnumerable<ISchemaValue<T>> graphValues) => SchemaValues = graphValues.NotNull().ToImmutableArray();
-    public IReadOnlyList<ISchemaValue<T>> SchemaValues { get; }
+    public GraphSchema(IEnumerable<ISchemaValue> graphValues) => SchemaValues = graphValues.NotNull().ToImmutableArray();
+    public IReadOnlyList<ISchemaValue> SchemaValues { get; }
 
     public Option<T> GetSubject(GraphQueryResult graphQueryResult)
     {

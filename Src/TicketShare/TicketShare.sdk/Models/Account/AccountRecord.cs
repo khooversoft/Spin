@@ -27,7 +27,7 @@ public record AccountRecord
 
     public static IGraphSchema<AccountRecord> Schema { get; } = new GraphSchemaBuilder<AccountRecord>()
         .Node(x => x.PrincipalId, x => TicketShareTool.ToAccountKey(x))
-        .Select(x => x.PrincipalId, x => $"select (key={TicketShareTool.ToAccountKey(x)}) return entity;")
+        .Select(x => x.PrincipalId, x => GraphTool.SelectNodeCommand(TicketShareTool.ToAccountKey(x), "entity"))
         .Build();
 }
 

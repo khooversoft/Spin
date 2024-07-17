@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
@@ -14,58 +13,92 @@ public enum SchemaType
     Select,
 }
 
-public interface ISchemaValue<T>
+public interface ISchemaValue
 {
     SchemaType Type { get; init; }
-    string? GetResolvedValue(T subject);
-    public string? Attribute { get; init; }
+    string? Attribute { get; init; }
 }
 
-public class SchemaValue<T, TProperty> : ISchemaValue<T>
+public interface ISchemaScalar<T> : ISchemaValue
+{
+    string? GetScalarValue(T subject);
+}
+
+public interface ISchemaCollection<T> : ISchemaValue
+{
+    IReadOnlyList<string> GetCollectionValues(T subject);
+}
+
+public record SchemaConstant : ISchemaValue
 {
     public SchemaType Type { get; init; }
-    public IReadOnlyList<Func<T, TProperty>> GetSourceValues { get; init; } = null!;
-    public Func<T, IEnumerable<TProperty>> GetCollection { get; init; } = null!;
-    public Func<IReadOnlyList<TProperty>, string?> FormatValue { get; init; } = null!;
-    public string? GetResolvedValue(T subject) => FormatValue(GetSourceValues.Select(x => x(subject)).ToArray());
     public string? Attribute { get; init; }
-
-    public static IValidator<SchemaValue<T, TProperty>> Validator { get; } = new Validator<SchemaValue<T, TProperty>>()
-        .RuleFor(x => x.Type).ValidEnum()
-        .RuleFor(x => x.GetSourceValues).NotNull()
-        .RuleFor(x => x.FormatValue).NotNull()
-        .Build();
 }
 
-public static class SchemaValueExtensions
+public record SchemaValue<T, TProperty> : ISchemaScalar<T>
 {
-    public static Option Validate<T, TProperty>(this SchemaValue<T, TProperty> subject) => SchemaValue<T, TProperty>.Validator.Validate(subject).ToOptionStatus();
+    public SchemaType Type { get; init; }
+    public Func<T, TProperty> GetSourceValue { get; init; } = null!;
+    public Func<TProperty, string?> FormatValue { get; init; } = null!;
+    public string? Attribute { get; init; }
 
-    public static bool Validate<T, TProperty>(this SchemaValue<T, TProperty> subject, out Option result)
+    public string? GetScalarValue(T subject) => FormatValue(GetSourceValue(subject));
+}
+
+public record SchemaTwoValues<T, TProperty> : ISchemaScalar<T>
+{
+    public SchemaType Type { get; init; }
+    public Func<T, TProperty> GetSourceValue1 { get; init; } = null!;
+    public Func<T, TProperty> GetSourceValue2 { get; init; } = null!;
+    public Func<TProperty, TProperty, string?> FormatValue { get; init; } = null!;
+    public string? Attribute { get; init; }
+    public string? GetScalarValue(T subject) => FormatValue(GetSourceValue1(subject), GetSourceValue2(subject));
+}
+
+public record SchemaValues<T, TProperty> : ISchemaCollection<T>
+{
+    public SchemaType Type { get; init; }
+    public Func<T, IEnumerable<TProperty>> GetSourceValues { get; init; } = null!;
+    public Func<TProperty, string?> FormatValue { get; init; } = null!;
+    public string? Attribute { get; init; }
+
+    public IReadOnlyList<string> GetCollectionValues(T subject)
     {
-        result = subject.Validate();
-        return result.IsOk();
+        var values = GetSourceValues(subject);
+        var list = values.Select(x => FormatValue(x).ToNullIfEmpty()).OfType<string>().ToArray();
+        return list;
     }
+}
 
-    public static string GetNodeKey<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject) => graphValues.GetCommand(subject, SchemaType.Node, null);
-
-    public static string? GetNodeDataName<T>(this IReadOnlyList<ISchemaValue<T>> graphValues) => graphValues.NotNull()
-        .Where(x => x.Type == SchemaType.DataName)
-        .Select(x => x.Attribute)
-        .FirstOrDefault();
-
-    public static string GetTags<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject) => graphValues.NotNull()
-        .Where(x => x.Type == SchemaType.Tags)
-        .Select(x => x.GetResolvedValue(subject))
-        .Join(",");
-
-    public static string GetSelectCommand<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject, string queryName = "default") =>
-        graphValues.GetCommand(subject, SchemaType.Select, queryName);
-
-    public static string GetCommand<T>(this IReadOnlyList<ISchemaValue<T>> graphValues, T subject, SchemaType schemaType, string? queryName) => graphValues.NotNull()
-        .Where(x => x.Type == schemaType && (queryName == null || x.Attribute == queryName))
-        .Select(x => x.GetResolvedValue(subject))
+public static class SchemaValueTool
+{
+    //public static string GetNodeKey<T>(this IReadOnlyList<ISchemaValue> graphValues, T subject) => graphValues.GetCommand(subject, SchemaType.Node, null);
+    public static string GetNodeKey<T>(this IReadOnlyList<ISchemaValue> graphValues, T subject) => graphValues.NotNull()
+        .Where(x => x.Type == SchemaType.Node)
+        .OfType<ISchemaScalar<T>>()
+        .Select(x => x.GetScalarValue(subject))
         .OfType<string>()
         .FirstOrDefault()
-        .NotEmpty($"query name: {queryName} for {schemaType} not found");
+        .NotEmpty("Schema definition for Node is not found");
+
+    public static string? GetNodeDataName(this IReadOnlyList<ISchemaValue> graphValues) => graphValues.NotNull()
+        .Where(x => x.Type == SchemaType.DataName)
+        .OfType<SchemaConstant>()
+        .Select(x => x.Attribute)
+        .Where(x => x.IsNotEmpty())
+        .FirstOrDefault();
+
+    public static string GetTags<T>(this IReadOnlyList<ISchemaValue> graphValues, T subject) => graphValues.NotNull()
+        .Where(x => x.Type == SchemaType.Tags)
+        .OfType<ISchemaScalar<T>>()
+        .Select(x => x.GetScalarValue(subject))
+        .Join(",");
+
+    public static string GetSelectCommand<T>(this IReadOnlyList<ISchemaValue> graphValues, T subject, string queryName = "default") => graphValues.NotNull()
+        .Where(x => x.Type == SchemaType.Select && (x.Attribute == null || x.Attribute.EqualsIgnoreCase(queryName)))
+        .OfType<ISchemaScalar<T>>()
+        .Select(x => x.GetScalarValue(subject))
+        .OfType<string>()
+        .FirstOrDefault()
+        .NotEmpty($"Schema definition for select queryName={queryName}");
 }
