@@ -63,7 +63,7 @@ public class GraphCommandSerializationTests
         r.Items[0].CommandType.Should().Be(CommandType.Select);
         r.Items[0].Should().NotBeNull();
         r.Items[0].Status.StatusCode.Should().Be(StatusCode.OK);
-        r.Items[0].Items.Length.Should().Be(2);
+        r.Items[0].Items.Count.Should().Be(2);
 
         r.Items[0].Items[0].Cast<GraphEdge>().Action(x =>
         {

@@ -62,7 +62,7 @@ public class GraphAddNodeCommandTests
 
         GraphQueryResult search = searchOption.Return();
         search.Status.IsOk().Should().BeTrue();
-        search.Items.Length.Should().Be(1);
+        search.Items.Count.Should().Be(1);
         search.Items[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");
@@ -78,7 +78,7 @@ public class GraphAddNodeCommandTests
 
         searchOption = await testClient.Execute("select (key=node99);", NullScopeContext.Instance);
         searchOption.IsOk().Should().BeTrue();
-        searchOption.Return().Items.Length.Should().Be(0);
+        searchOption.Return().Items.Count.Should().Be(0);
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class GraphAddNodeCommandTests
 
         GraphQueryResult search = searchOption.Return();
         search.Status.IsOk().Should().BeTrue();
-        search.Items.Length.Should().Be(1);
+        search.Items.Count.Should().Be(1);
         search.Items[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node99");

@@ -127,7 +127,7 @@ public class GraphUpsertCommandNodeTests
 
         GraphQueryResult search = (await testClient.Execute("select (key=node3);", NullScopeContext.Instance)).ThrowOnError().Return();
         search.Status.IsOk().Should().BeTrue();
-        search.Items.Length.Should().Be(1);
+        search.Items.Count.Should().Be(1);
         search.Items[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node3");

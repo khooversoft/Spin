@@ -42,13 +42,13 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
     public async Task AddIdentity()
     {
         var userStore = _actorCluster.Cluster.ServiceProvider.GetRequiredService<UserStore>();
-        var userIdentity = await TestUser(Guid.NewGuid().ToString(), "userName1", "userName1@domain.com", "providerKey1");
+        var userIdentity = await TestUser(Guid.NewGuid().ToString(), "userName1-p1", "userName1-p1@domain.com", "providerKey1-p1");
 
         IdentityResult deleteResult = await userStore.DeleteAsync(userIdentity, NullScopeContext.Instance);
         deleteResult.Succeeded.Should().BeTrue();
 
         (await userStore.FindByIdAsync(userIdentity.PrincipalId, NullScopeContext.Instance)).Should().BeNull();
-        (await userStore.FindByLoginAsync("logonAuth", "providerKey1", default)).Should().BeNull();
+        (await userStore.FindByLoginAsync("logonAuth", "providerKey1-p1", default)).Should().BeNull();
         (await userStore.FindByNameAsync(userIdentity.UserName, NullScopeContext.Instance)).Should().BeNull();
     }
 
@@ -57,15 +57,15 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
     {
         var userStore = _actorCluster.Cluster.ServiceProvider.GetRequiredService<UserStore>();
 
-        var userIdentity1 = await TestUser(Guid.NewGuid().ToString(), "userName1", "userName1@domain.com", "providerKey1");
-        var userIdentity2 = await TestUser(Guid.NewGuid().ToString(), "userName2", "userName2@domain.com", "providerKey2");
+        var userIdentity1 = await TestUser(Guid.NewGuid().ToString(), "userName1-p2", "userName1-p2@domain.com", "providerKey1-p2");
+        var userIdentity2 = await TestUser(Guid.NewGuid().ToString(), "userName2-p2", "userName2-p2@domain.com", "providerKey2-p2");
 
         (await userStore.DeleteAsync(userIdentity1, NullScopeContext.Instance)).Action(async x =>
         {
             x.Succeeded.Should().BeTrue();
 
             (await userStore.FindByIdAsync(userIdentity1.PrincipalId, NullScopeContext.Instance)).Should().BeNull();
-            (await userStore.FindByLoginAsync("logonAuth", "providerKey1", default)).Should().BeNull();
+            (await userStore.FindByLoginAsync("logonAuth", "providerKey1-p2", default)).Should().BeNull();
             (await userStore.FindByNameAsync(userIdentity1.UserName, NullScopeContext.Instance)).Should().BeNull();
         });
 
@@ -74,7 +74,7 @@ public class UserStoreTests : IClassFixture<ActorClusterFixture>
             x.Succeeded.Should().BeTrue();
 
             (await userStore.FindByIdAsync(userIdentity2.PrincipalId, NullScopeContext.Instance)).Should().BeNull();
-            (await userStore.FindByLoginAsync("logonAuth", "providerKey2", default)).Should().BeNull();
+            (await userStore.FindByLoginAsync("logonAuth", "providerKey2-p2", default)).Should().BeNull();
             (await userStore.FindByNameAsync(userIdentity2.UserName, NullScopeContext.Instance)).Should().BeNull();
         });
     }

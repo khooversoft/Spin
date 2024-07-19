@@ -41,7 +41,7 @@ public class GraphQueryResultTests
         string json = v.ToJson();
 
         GraphQueryResult result = json.ToObject<GraphQueryResult>().NotNull();
-        result.Items.Length.Should().Be(nodes.Count + edges.Count);
+        result.Items.Count.Should().Be(nodes.Count + edges.Count);
         result.Alias.Count.Should().Be(2);
 
         var n = result.Items.OfType<GraphNode>().OrderBy(x => x.Key).ToArray();

@@ -44,7 +44,7 @@ public class GraphSelectCommandEdgeTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Length.Should().Be(2);
+            x.Items.NotNull().Count.Should().Be(2);
 
             var index = x.Items.NotNull().ToCursor();
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -83,7 +83,7 @@ public class GraphSelectCommandEdgeTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Length.Should().Be(2);
+            x.Items.NotNull().Count.Should().Be(2);
             var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -106,7 +106,7 @@ public class GraphSelectCommandEdgeTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Length.Should().Be(3);
+            x.Items.NotNull().Count.Should().Be(3);
             var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphEdge>().Action(x =>

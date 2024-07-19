@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Types;
@@ -34,11 +29,11 @@ public class PrincipalIdentitySchemaTests
         string[] matchTo = [
             "upsert node key=user:user1@domain.com, email=user1Email@domain.com, entity { 'eyJwcmluY2lwYWxJZCI6InVzZXIxQGRvbWFpbi5jb20iLCJ1c2VyTmFtZSI6Im5hbWUxIiwiZW1haWwiOiJ1c2VyMUVtYWlsQGRvbWFpbi5jb20iLCJlbWFpbENvbmZpcm1lZCI6ZmFsc2UsInBhc3N3b3JkSGFzaCI6bnVsbCwibm9ybWFsaXplZFVzZXJOYW1lIjpudWxsLCJhdXRoZW50aWNhdGlvblR5cGUiOm51bGwsImlzQXV0aGVudGljYXRlZCI6ZmFsc2UsIm5hbWUiOm51bGwsImxvZ2luUHJvdmlkZXIiOiJsb2dvblByb3ZpZGVyMSIsInByb3ZpZGVyS2V5IjoicHJvdmlkZXJLZXkxIiwicHJvdmlkZXJEaXNwbGF5TmFtZSI6bnVsbH0=' };",
             "upsert node key=userName:name1, uniqueIndex;",
-            "upsert edge fromKey=user:user1@domain.com, toKey=userName:name1, edgeType=uniqueIndex;",
+            "upsert edge fromKey=userName:name1, toKey=user:user1@domain.com, edgeType=uniqueIndex;",
             "upsert node key=userEmail:user1email@domain.com, uniqueIndex;",
-            "upsert edge fromKey=user:user1@domain.com, toKey=userEmail:user1email@domain.com, edgeType=uniqueIndex;",
+            "upsert edge fromKey=userEmail:user1email@domain.com, toKey=user:user1@domain.com, edgeType=uniqueIndex;",
             "upsert node key=logonProvider:logonprovider1/providerkey1, uniqueIndex;",
-            "upsert edge fromKey=user:user1@domain.com, toKey=logonProvider:logonprovider1/providerkey1, edgeType=uniqueIndex;",
+            "upsert edge fromKey=logonProvider:logonprovider1/providerkey1, toKey=user:user1@domain.com, edgeType=uniqueIndex;",
             ];
 
         var cmdsMatchTo = matchTo.Join(Environment.NewLine);
@@ -75,9 +70,9 @@ public class PrincipalIdentitySchemaTests
         });
 
         graph.Edges.Count.Should().Be(3);
-        graph.Edges.Get("user:user1@domain.com", "userName:name1", direction: EdgeDirection.Both, "uniqueIndex").Count.Should().Be(1);
-        graph.Edges.Get("user:user1@domain.com", "userEmail:user1email@domain.com", direction: EdgeDirection.Both, "uniqueIndex").Count.Should().Be(1);
-        graph.Edges.Get("user:user1@domain.com", "logonProvider:logonprovider1/providerkey1", direction: EdgeDirection.Both, "uniqueIndex").Count.Should().Be(1);
+        graph.Edges.Get("userName:name1", "user:user1@domain.com", direction: EdgeDirection.Both, "uniqueIndex").Count.Should().Be(1);
+        graph.Edges.Get("userEmail:user1email@domain.com", "user:user1@domain.com", direction: EdgeDirection.Both, "uniqueIndex").Count.Should().Be(1);
+        graph.Edges.Get("logonProvider:logonprovider1/providerkey1", "user:user1@domain.com", direction: EdgeDirection.Both, "uniqueIndex").Count.Should().Be(1);
 
         // Select
         string selectCmd = PrincipalIdentity.Schema.Code(d).BuildSelectCommand();
@@ -95,5 +90,4 @@ public class PrincipalIdentitySchemaTests
         graph.Nodes.Count.Should().Be(0);
         graph.Edges.Count.Should().Be(0);
     }
-
 }

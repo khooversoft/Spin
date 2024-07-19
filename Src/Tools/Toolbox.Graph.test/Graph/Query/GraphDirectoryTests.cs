@@ -63,7 +63,7 @@ public class GraphDirectoryTests
         var testClient = GraphTestStartup.CreateGraphTestHost(map);
         var search = (await testClient.Execute("select [fromKey=system:schedule-work, edgeType=scheduleWorkType:*];", NullScopeContext.Instance)).ThrowOnError().Return();
         search.Should().NotBeNull();
-        search.Items.Length.Should().Be(2);
+        search.Items.Count.Should().Be(2);
         search.Edges().Length.Should().Be(2);
 
         var index = search.Items.ToCursor();
@@ -108,7 +108,7 @@ public class GraphDirectoryTests
         GraphQueryResults searchResult = result.Return();
         searchResult.Items.Length.Should().Be(1);
         searchResult.Items[0].Should().NotBeNull();
-        searchResult.Items[0].NotNull().Items.Length.Should().Be(1);
+        searchResult.Items[0].NotNull().Items.Count.Should().Be(1);
         searchResult.Items[0].NotNull().Edges().Length.Should().Be(1);
         searchResult.Items[0].NotNull().Edges()[0].Action(x =>
         {
@@ -123,7 +123,7 @@ public class GraphDirectoryTests
         GraphQueryResults r = rOption.Return();
         r.Items.Length.Should().Be(1);
         r.Items[0].Should().NotBeNull();
-        r.Items[0].NotNull().Items.Length.Should().Be(1);
+        r.Items[0].NotNull().Items.Count.Should().Be(1);
         r.Items[0].NotNull().Edges().Length.Should().Be(1);
         r.Items[0].NotNull().Edges()[0].Action(x =>
         {

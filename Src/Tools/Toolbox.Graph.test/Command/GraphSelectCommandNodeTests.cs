@@ -43,9 +43,9 @@ public class GraphSelectCommandNodeTests
         {
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
-            x.ReturnNames.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
 
-            x.Items.NotNull().Length.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
             var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>
@@ -77,7 +77,7 @@ public class GraphSelectCommandNodeTests
             x.CommandType.Should().Be(CommandType.Select);
             x.Status.IsOk().Should().BeTrue();
 
-            x.Items.NotNull().Length.Should().Be(3);
+            x.Items.NotNull().Count.Should().Be(3);
             var index = x.Items.NotNull().ToCursor();
 
             index.NextValue().Return().Cast<GraphNode>().Action(x =>

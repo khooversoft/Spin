@@ -11,7 +11,7 @@ public struct GraphNode_Surrogate
     [Id(0)] public string Key;
     [Id(1)] public string Tags;
     [Id(2)] public DateTime CreatedDate;
-    [Id(3)] public KeyValuePair<string, GraphDataLink>[] DataMap;
+    [Id(3)] public KeyValuePair<string, GraphLink>[] DataMap;
 }
 
 

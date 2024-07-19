@@ -87,6 +87,6 @@ public class GraphTransactionTests
     {
         graphResult.CommandType.Should().Be(commandType);
         graphResult.Status.StatusCode.Should().Be(statusCode, graphResult.Status.ToString());
-        graphResult.Items.Length.Should().Be(itemCount);
+        graphResult.Items.Count.Should().Be(itemCount);
     }
 }

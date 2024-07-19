@@ -32,7 +32,7 @@ public class GraphQueryNodeTests
 
         result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
-        result.Items.Length.Should().Be(7);
+        result.Items.Count.Should().Be(7);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class GraphQueryNodeTests
 
         result.Status.IsOk().Should().BeTrue();
         result.Alias.Count.Should().Be(0);
-        result.Items.Length.Should().Be(1);
+        result.Items.Count.Should().Be(1);
 
         GraphNode node = result.Items[0].Cast<GraphNode>();
 
@@ -60,7 +60,7 @@ public class GraphQueryNodeTests
         GraphQueryResult result = (await testClient.Execute("select (key=node1) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(1);
 
         GraphNode node = result.Items[0].Cast<GraphNode>();
@@ -85,7 +85,7 @@ public class GraphQueryNodeTests
         GraphQueryResult result = (await testClient.Execute("select (name) a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(6);
+        result.Items.Count.Should().Be(6);
         result.Alias.Count.Should().Be(1);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -102,7 +102,7 @@ public class GraphQueryNodeTests
         GraphQueryResult result = (await testClient.Execute("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue(result.Status.Error);
-        result.Items.Length.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -119,7 +119,7 @@ public class GraphQueryNodeTests
         GraphQueryResult result = (await testClient.Execute("select (name=marko);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue(result.Status.Error);
-        result.Items.Length.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -145,7 +145,7 @@ public class GraphQueryNodeTests
             GraphQueryResult result = (await testClient.Execute(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
 
             result.Status.IsOk().Should().BeTrue(result.Status.Error);
-            result.Items.Length.Should().Be(cmd.count);
+            result.Items.Count.Should().Be(cmd.count);
             result.Alias.Count.Should().Be(0);
 
             var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -181,7 +181,7 @@ public class GraphQueryNodeTests
             GraphQueryResult result = (await testClient.Execute(cmd.query, NullScopeContext.Instance)).ThrowOnError().Return();
 
             result.Status.IsOk().Should().BeTrue(result.Status.Error);
-            result.Items.Length.Should().Be(cmd.count);
+            result.Items.Count.Should().Be(cmd.count);
             result.Alias.Count.Should().Be(0);
 
             var nodes = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();

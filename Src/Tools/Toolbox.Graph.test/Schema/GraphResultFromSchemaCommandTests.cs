@@ -59,7 +59,7 @@ public class GraphResultFromSchemaCommandTests
         graph.Nodes["index:name1"].DataMap.Count.Should().Be(0);
 
         graph.Edges.Count.Should().Be(1);
-        graph.Edges.Where(x => x.FromKey == "data:key1" && x.ToKey == "index:name1").Should().HaveCount(1);
+        graph.Edges.Where(x => x.FromKey == "index:name1" && x.ToKey == "data:key1").Should().HaveCount(1);
 
 
         // Update
@@ -76,7 +76,7 @@ public class GraphResultFromSchemaCommandTests
         graph.Nodes["index:name2"].DataMap.Count.Should().Be(0);
 
         graph.Edges.Count.Should().Be(1);
-        graph.Edges.Where(x => x.FromKey == "data:key1" && x.ToKey == "index:name2").Should().HaveCount(1);
+        graph.Edges.Where(x => x.FromKey == "index:name2" && x.ToKey == "data:key1").Should().HaveCount(1);
 
 
         // Delete
@@ -109,7 +109,7 @@ public class GraphResultFromSchemaCommandTests
         graph.Nodes["provider:provider1/provider1-key"].DataMap.Count.Should().Be(0);
 
         graph.Edges.Count.Should().Be(1);
-        graph.Edges.Where(x => x.FromKey == "data:key1" && x.ToKey == "provider:provider1/provider1-key").Should().HaveCount(1);
+        graph.Edges.Where(x => x.FromKey == "provider:provider1/provider1-key" && x.ToKey == "data:key1").Should().HaveCount(1);
 
         // Update
         var d2 = new Data { Key = "key1", Provider = "provider1", ProviderKey = "provider1-key2" };
@@ -125,7 +125,7 @@ public class GraphResultFromSchemaCommandTests
         graph.Nodes["provider:provider1/provider1-key2"].DataMap.Count.Should().Be(0);
 
         graph.Edges.Count.Should().Be(1);
-        graph.Edges.Where(x => x.FromKey == "data:key1" && x.ToKey == "provider:provider1/provider1-key2").Should().HaveCount(1);
+        graph.Edges.Where(x => x.FromKey == "provider:provider1/provider1-key2" && x.ToKey == "data:key1").Should().HaveCount(1);
 
 
         // Delete

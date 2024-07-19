@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
-    <ProjectReference Include="..\..\Tools\Toolbox.Identity\Toolbox.Identity.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>

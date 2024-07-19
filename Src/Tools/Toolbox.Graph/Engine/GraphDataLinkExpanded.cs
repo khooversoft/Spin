@@ -6,7 +6,7 @@ namespace Toolbox.Graph;
 public sealed record GraphDataLinkExpanded
 {
     public GraphDataSource DataSource { get; init; } = null!;
-    public GraphDataLink DataLink { get; init; } = null!;
+    public GraphLink DataLink { get; init; } = null!;
     public DataETag DataETag { get; init; }
 }
 
@@ -23,8 +23,9 @@ public static class GraphDataLinkExpandedExtensions
         var result = new GraphDataLinkExpanded
         {
             DataSource = subject,
-            DataLink = new GraphDataLink
+            DataLink = new GraphLink
             {
+                NodeKey = nodeKey,
                 Name = subject.Name,
                 TypeName = subject.TypeName,
                 Schema = subject.Schema,

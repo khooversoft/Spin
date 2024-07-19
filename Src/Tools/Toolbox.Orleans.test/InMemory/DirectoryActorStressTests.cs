@@ -37,7 +37,7 @@ public class DirectoryActorStressTests : IClassFixture<InMemoryClusterFixture>
         nodeList.IsOk().Should().BeTrue();
         nodeList.Return().Action(x =>
         {
-            x.Items.Length.Should().Be(count);
+            x.Items.Count.Should().Be(count);
             x.Items.OfType<GraphNode>().ToArray().Action(y =>
             {
                 y.Length.Should().Be(count);
@@ -57,7 +57,7 @@ public class DirectoryActorStressTests : IClassFixture<InMemoryClusterFixture>
             x.Items.Length.Should().Be(1);
             x.Items.First().Action(y =>
             {
-                y.Items.Length.Should().Be(count - 1);
+                y.Items.Count.Should().Be(count - 1);
                 y.Items.OfType<GraphEdge>().Count().Should().Be(count - 1);
 
                 var list = y.Items.OfType<GraphEdge>()
@@ -74,14 +74,14 @@ public class DirectoryActorStressTests : IClassFixture<InMemoryClusterFixture>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Items.Length.Should().Be(1);
-            x.Return().Items[0].Items.Length.Should().Be(0);
+            x.Return().Items[0].Items.Count.Should().Be(0);
         });
 
         (await graphClient.ExecuteBatch("select [*];", NullScopeContext.Instance)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Items.Length.Should().Be(1);
-            x.Return().Items[0].Items.Length.Should().Be(0);
+            x.Return().Items[0].Items.Count.Should().Be(0);
         });
     }
 
@@ -131,21 +131,21 @@ public class DirectoryActorStressTests : IClassFixture<InMemoryClusterFixture>
 
         (await graphClient.Execute("select (*);", NullScopeContext.Instance))
             .ThrowOnError().Return()
-            .Items.Length.Should().Be(count);
+            .Items.Count.Should().Be(count);
 
         (await graphClient.Execute("select [*];", NullScopeContext.Instance))
             .ThrowOnError().Return()
-            .Items.Length.Should().Be(count - 1);
+            .Items.Count.Should().Be(count - 1);
 
         (await graphClient.Execute("delete (*);", NullScopeContext.Instance)).IsOk().Should().BeTrue();
 
         (await graphClient.Execute("select (*);", NullScopeContext.Instance))
             .ThrowOnError().Return()
-            .Items.Length.Should().Be(0);
+            .Items.Count.Should().Be(0);
 
         (await graphClient.Execute("select [*];", NullScopeContext.Instance))
             .ThrowOnError().Return()
-            .Items.Length.Should().Be(0);
+            .Items.Count.Should().Be(0);
 
         _output.WriteLine($"Retry count={retryCount}");
     }

@@ -99,7 +99,7 @@ public class IdentityActor : Grain, IIdentityActor
         var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
 
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<PrincipalIdentity>("entity");
+        var principalIdentity = resultOption.Return().DataLinks.DataLinkToObject<PrincipalIdentity>("entity");
         if (principalIdentity.IsError()) return principalIdentity.LogStatus(context, command);
         if (!principalIdentity.Return().Validate(out var r)) return r.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
         return principalIdentity;

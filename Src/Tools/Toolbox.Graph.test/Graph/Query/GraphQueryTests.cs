@@ -30,7 +30,7 @@ public class GraphQueryTests
         GraphQueryResult result = (await testClient.Execute("select (name) -> [knows];", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -47,7 +47,7 @@ public class GraphQueryTests
         GraphQueryResult result = (await testClient.Execute("select (name) -> [knows] a1;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(1);
 
         var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
@@ -68,7 +68,7 @@ public class GraphQueryTests
         GraphQueryResult result = (await testClient.Execute("select (name) -> [related] -> (name=lop);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(0);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -85,7 +85,7 @@ public class GraphQueryTests
         GraphQueryResult result = (await testClient.Execute("select [knows] -> (*);", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(2);
+        result.Items.Count.Should().Be(2);
         result.Alias.Count.Should().Be(0);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -102,7 +102,7 @@ public class GraphQueryTests
         GraphQueryResult result = (await testClient.Execute("select (target) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(3);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
@@ -138,7 +138,7 @@ public class GraphQueryTests
         GraphQueryResult result = (await testClient.Execute("select (key=Node1) a1 -> [knows] a2 -> (age=29) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(0);
+        result.Items.Count.Should().Be(0);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class GraphQueryTests
         GraphQueryResult result = (await testClient.Execute("select (key=Node1) a1 -> [knows] a2 -> (age=27) a3;", NullScopeContext.Instance)).ThrowOnError().Return();
 
         result.Status.IsOk().Should().BeTrue();
-        result.Items.Length.Should().Be(1);
+        result.Items.Count.Should().Be(1);
         result.Alias.Count.Should().Be(3);
 
         var nodes = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();

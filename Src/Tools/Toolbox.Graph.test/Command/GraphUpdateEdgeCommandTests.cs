@@ -53,7 +53,7 @@ public class GraphUpdateEdgeCommandTests
         {
             x.CommandType.Should().Be(CommandType.UpdateEdge);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Length.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>
@@ -95,7 +95,7 @@ public class GraphUpdateEdgeCommandTests
         {
             x.CommandType.Should().Be(CommandType.UpdateEdge);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Length.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>

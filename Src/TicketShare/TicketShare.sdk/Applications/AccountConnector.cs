@@ -14,17 +14,14 @@ public class AccountConnector
 {
     private readonly ILogger<AccountConnector> _logger;
     private readonly IClusterClient _clusterClient;
-    private readonly IdentityActorConnector _identityConnector;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
 
     public AccountConnector(
         IClusterClient clusterClient,
         AuthenticationStateProvider authenticationStateProvider,
-        IdentityActorConnector identityConnector,
         ILogger<AccountConnector> logger)
     {
         _clusterClient = clusterClient.NotNull();
-        _identityConnector = identityConnector.NotNull();
         _authenticationStateProvider = authenticationStateProvider.NotNull();
         _logger = logger.NotNull();
     }
@@ -39,7 +36,7 @@ public class AccountConnector
         string userId = claimsPrincipal.FindFirst(ClaimTypes.Name)!.Value.NotEmpty();
         string? email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
 
-        var principalIdentityOption = await _identityConnector.GetById(userId, context);
+        var principalIdentityOption = await _clusterClient.GetIdentityActor().GetById(userId, context);
         if (principalIdentityOption.IsNotFound()) return createAccount(userId, userId, email);
 
         if (principalIdentityOption.IsError()) return principalIdentityOption.LogOnError(context, $"Cannot lookup userId={userId}").ToOptionStatus<AccountRecord>();

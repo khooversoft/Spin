@@ -12,9 +12,9 @@ public struct GraphDataLink_Surrogate
 }
 
 [RegisterConverter]
-public sealed class GraphDataLink_SurrogateConverter : IConverter<GraphDataLink, GraphDataLink_Surrogate>
+public sealed class GraphDataLink_SurrogateConverter : IConverter<GraphLink, GraphDataLink_Surrogate>
 {
-    public GraphDataLink ConvertFromSurrogate(in GraphDataLink_Surrogate surrogate) => new GraphDataLink
+    public GraphLink ConvertFromSurrogate(in GraphDataLink_Surrogate surrogate) => new GraphLink
     {
         Name = surrogate.Name,
         TypeName = surrogate.TypeName,
@@ -22,7 +22,7 @@ public sealed class GraphDataLink_SurrogateConverter : IConverter<GraphDataLink,
         FileId = surrogate.FileId,
     };
 
-    public GraphDataLink_Surrogate ConvertToSurrogate(in GraphDataLink value) => new GraphDataLink_Surrogate
+    public GraphDataLink_Surrogate ConvertToSurrogate(in GraphLink value) => new GraphDataLink_Surrogate
     {
         Name = value.Name,
         TypeName = value.TypeName,

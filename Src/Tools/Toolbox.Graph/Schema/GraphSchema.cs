@@ -18,7 +18,7 @@ public record GraphSchema<T> : IGraphSchema<T>
     public Option<T> GetSubject(GraphQueryResult graphQueryResult)
     {
         string dataName = SchemaValues.GetNodeDataName() ?? "entity";
-        return graphQueryResult.ReturnNames.ReturnNameToObject<T>(dataName);
+        return graphQueryResult.DataLinks.DataLinkToObject<T>(dataName);
     }
 }
 

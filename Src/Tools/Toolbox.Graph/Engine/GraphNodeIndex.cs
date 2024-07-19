@@ -118,7 +118,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     internal Option Update(GraphNode node,
         IEnumerable<KeyValuePair<string, string?>> tagCommands,
-        IEnumerable<KeyValuePair<string, GraphDataLink>> dataMap,
+        IEnumerable<KeyValuePair<string, GraphLink>> dataMap,
         IGraphTrxContext graphContext
         )
     {

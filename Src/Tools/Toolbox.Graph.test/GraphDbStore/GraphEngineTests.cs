@@ -44,21 +44,22 @@ public class GraphEngineTests
         selectResultOption.IsOk().Should().BeTrue();
 
         GraphQueryResult selectResult = selectResultOption.Return();
-        selectResult.Items.Length.Should().Be(1);
+        selectResult.Items.Count.Should().Be(1);
         var node = selectResult.Items.OfType<GraphNode>().First();
         node.Key.Should().Be("node1");
 
-        selectResult.ReturnNames.Count.Should().Be(1);
-        selectResult.ReturnNames.First().Action((Action<KeyValuePair<string, DataETag>>)(x =>
+        selectResult.DataLinks.Count.Should().Be(1);
+        selectResult.DataLinks.First().Action(x =>
         {
-            x.Key.Should().Be("contract");
-            x.Value.Should().NotBeNull();
+            x.NodeKey.Should().Be("node1");
+            x.Name.Should().Be("contract");
+            x.Data.Should().NotBeNull();
 
-            TestContractRecord readRec = x.Value.ToObject<TestContractRecord>();
+            TestContractRecord readRec = x.Data.ToObject<TestContractRecord>();
             readRec.NotNull();
             readRec.Name.Should().Be(rec.Name);
             readRec.Age.Should().Be(rec.Age);
-        }));
+        });
 
         // Delete node and verify data was deleted as well (RI rules)
         var deleteResult = await engine.Execute("delete (key=node1);", NullScopeContext.Instance);
@@ -71,7 +72,7 @@ public class GraphEngineTests
 
         selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
         selectResultOption.IsOk().Should().BeTrue();
-        selectResultOption.Return().Items.Length.Should().Be(0);
+        selectResultOption.Return().Items.Count.Should().Be(0);
     }
 
 
@@ -114,7 +115,7 @@ public class GraphEngineTests
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
             {
-                y.Items.Length.Should().Be(1);
+                y.Items.Count.Should().Be(1);
                 var n = y.Items.OfType<GraphNode>().First();
                 n.DataMap.Count.Should().Be(0);
             });
@@ -125,11 +126,11 @@ public class GraphEngineTests
         selectResultOption.IsOk().Should().BeTrue();
         selectResultOption.Return().Action(x =>
         {
-            x.Items.Length.Should().Be(1);
+            x.Items.Count.Should().Be(1);
             var nodes = x.Items.OfType<GraphNode>().ToArray();
             nodes.Length.Should().Be(1);
             nodes[0].DataMap.Count.Should().Be(0);
-            x.ReturnNames.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
     }
 
@@ -173,21 +174,38 @@ public class GraphEngineTests
         selectResultOption.IsOk().Should().BeTrue();
 
         GraphQueryResult selectResult = selectResultOption.Return();
-        selectResult.Items.Length.Should().Be(1);
+        selectResult.Items.Count.Should().Be(1);
         var node = selectResult.Items.OfType<GraphNode>().First();
         node.Key.Should().Be("node1");
 
-        selectResult.ReturnNames.Count.Should().Be(2);
-        selectResult.ReturnNames["contract"].Action(x =>
+        selectResult.DataLinks.Count.Should().Be(1);
+        selectResult.DataLinks.Get("contract").ThrowOnError().Return().Action(x =>
         {
-            TestContractRecord readRec = x.ToObject<TestContractRecord>();
+            TestContractRecord readRec = x.Data.ToObject<TestContractRecord>();
             readRec.NotNull();
             readRec.Name.Should().Be(contractRec.Name);
             readRec.Age.Should().Be(contractRec.Age);
         });
-        selectResult.ReturnNames["lease"].Action(x =>
+
+        selectResultOption = await engine.Execute("select (key=node1) return contract, lease;", NullScopeContext.Instance);
+        selectResultOption.IsOk().Should().BeTrue();
+
+        selectResult = selectResultOption.Return();
+        selectResult.Items.Count.Should().Be(1);
+        node = selectResult.Items.OfType<GraphNode>().First();
+        node.Key.Should().Be("node1");
+
+        selectResult.DataLinks.Count.Should().Be(2);
+        selectResult.DataLinks.Get("contract").ThrowOnError().Return().Action(x =>
         {
-            TestLeaseRecord readRec = x.ToObject<TestLeaseRecord>();
+            TestContractRecord readRec = x.Data.ToObject<TestContractRecord>();
+            readRec.NotNull();
+            readRec.Name.Should().Be(contractRec.Name);
+            readRec.Age.Should().Be(contractRec.Age);
+        });
+        selectResult.DataLinks.Get("lease").ThrowOnError().Return().Action(x =>
+        {
+            TestLeaseRecord readRec = x.Data.ToObject<TestLeaseRecord>();
             readRec.NotNull();
             readRec.LeaseId.Should().Be(leaseRec.LeaseId);
             readRec.Amount.Should().Be(leaseRec.Amount);
@@ -202,7 +220,7 @@ public class GraphEngineTests
 
         selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
         selectResultOption.IsOk().Should().BeTrue();
-        selectResultOption.Return().Items.Length.Should().Be(0);
+        selectResultOption.Return().Items.Count.Should().Be(0);
     }
 
 
@@ -268,7 +286,7 @@ public class GraphEngineTests
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
             {
-                y.Items.Length.Should().Be(1);
+                y.Items.Count.Should().Be(1);
                 var n = y.Items.OfType<GraphNode>().First();
                 n.DataMap.Count.Should().Be(1);
                 n.DataMap.ContainsKey("lease").Should().BeTrue();
@@ -284,6 +302,6 @@ public class GraphEngineTests
 
         var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
         selectResultOption.IsOk().Should().BeTrue();
-        selectResultOption.Return().Items.Length.Should().Be(0);
+        selectResultOption.Return().Items.Count.Should().Be(0);
     }
 }

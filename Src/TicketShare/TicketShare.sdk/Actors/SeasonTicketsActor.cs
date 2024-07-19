@@ -36,7 +36,7 @@ public class SeasonTicketsActor : Grain, ISeasonTicketsActor
         var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<SeasonTicketRecord>();
 
-        var principalIdentity = resultOption.Return().ReturnNames.ReturnNameToObject<SeasonTicketRecord>("entity");
+        var principalIdentity = resultOption.Return().DataLinks.DataLinkToObject<SeasonTicketRecord>("entity");
         return principalIdentity;
     }
 
@@ -46,22 +46,11 @@ public class SeasonTicketsActor : Grain, ISeasonTicketsActor
         if (partnership.Validate().LogStatus(context, $"patnershipId={partnership.SeasonTicketId}").IsError(out Option v)) return v;
 
         // Build graph commands 
-        var cmds = new Sequence<string>();
         string base64 = partnership.ToJson64();
         string nodeKey = TicketShareTool.ToSeasonTicketKey(partnership.SeasonTicketId);
 
-        //var currentRecordOption = await Get(partnership.Id, context);
-        //var updateIndexCmds = currentRecordOption.IsOk() switch
-        //{
-        //    true => GraphIndexTool.BuildIndexCommands(nodeKey, currentRecordOption.Return().GetIndexKeys(), partnership.GetIndexKeys()),
-        //    false => GraphIndexTool.BuildIndexCommands(nodeKey, partnership.GetIndexKeys()),
-        //};
+        string command = SeasonTicketRecord.Schema.Code(partnership).BuildSetCommands().Join(Environment.NewLine);
 
-        cmds += GraphTool.SetNodeCommand(nodeKey, null, base64, "entity");
-
-        // Create indexes to users, in role
-
-        string command = cmds.Join(Environment.NewLine);
         var result = await _clusterClient.GetDirectoryActor().ExecuteBatch(command, context);
         if (result.IsError()) return result.LogStatus(context, command).ToOptionStatus();
 

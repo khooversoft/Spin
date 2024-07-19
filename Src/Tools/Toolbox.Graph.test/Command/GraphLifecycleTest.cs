@@ -21,7 +21,7 @@ public class GraphLifecycleTest
         (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue();
-            x.Items.Length.Should().Be(1);
+            x.Items.Count.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node1");
@@ -37,7 +37,7 @@ public class GraphLifecycleTest
         (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue();
-            x.Items.Length.Should().Be(0);
+            x.Items.Count.Should().Be(0);
         });
     }
 
@@ -60,7 +60,7 @@ public class GraphLifecycleTest
         (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Length.Should().Be(1);
+            x.Items.Count.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node1");
@@ -71,7 +71,7 @@ public class GraphLifecycleTest
         (await testClient.Execute("select (key=node2);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Length.Should().Be(1);
+            x.Items.Count.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node2");
@@ -89,13 +89,13 @@ public class GraphLifecycleTest
         (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Length.Should().Be(0);
+            x.Items.Count.Should().Be(0);
         });
 
         (await testClient.Execute("select (key=node2);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
         {
             x.Status.IsOk().Should().BeTrue(x.ToString());
-            x.Items.Length.Should().Be(1);
+            x.Items.Count.Should().Be(1);
             x.Items.OfType<GraphNode>().First().Action(x =>
             {
                 x.Key.Should().Be("node2");
@@ -133,13 +133,13 @@ public class GraphLifecycleTest
             {
                 y.CommandType.Should().Be(CommandType.AddNode);
                 y.Status.IsOk().Should().BeTrue();
-                y.Items.Length.Should().Be(0);
+                y.Items.Count.Should().Be(0);
             });
             x.Value.Items[1].Action(y =>
             {
                 y.CommandType.Should().Be(CommandType.AddNode);
                 y.Status.IsConflict().Should().BeTrue();
-                y.Items.Length.Should().Be(0);
+                y.Items.Count.Should().Be(0);
             });
         });
 
@@ -170,7 +170,7 @@ public class GraphLifecycleTest
 
         var query = (await testClient.Execute("select (key=node1) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance)).ThrowOnError().Return();
         query.Status.IsOk().Should().Be(true);
-        query.Items.Length.Should().Be(1);
+        query.Items.Count.Should().Be(1);
         query.Items.OfType<GraphNode>().Action(x =>
         {
             x.Count().Should().Be(1);

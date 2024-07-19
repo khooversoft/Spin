@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Orleans.TestingHost;
 using Toolbox.Azure;
 using Toolbox.Configuration;
+using Toolbox.Orleans.test.Store;
 using Toolbox.Store;
 using Toolbox.Tools;
 
@@ -26,7 +27,12 @@ public sealed class ActorClusterFixture : IDisposable
         DatalakeOption = DatalakeOptionTool.Create(datalakeConnectionString, clientSecretConnectionString);
     }
 
-    public ActorClusterFixture() => Cluster.Deploy();
+    public ActorClusterFixture()
+    {
+        Cluster.Deploy();
+        var clean = Cluster.ServiceProvider.GetRequiredService<CleanDirectoryAction>();
+        var result = clean.Clean().Result;
+    }
 
     public TestCluster Cluster { get; } = new TestClusterBuilder()
         .AddSiloBuilderConfigurator<TestSiloConfigurations>()
@@ -41,6 +47,7 @@ file sealed class TestClientConfiguration : IClientBuilderConfigurator
     public void Configure(IConfiguration configuration, IClientBuilder clientBuilder)
     {
         clientBuilder.Services.AddSingleton<UserStore>();
+        clientBuilder.Services.AddSingleton<CleanDirectoryAction>();
     }
 }
 
@@ -65,6 +72,6 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
             });
         });
 
-        static IFileStore getFileStoreService(IServiceProvider services, StoreConfig config) => services.GetRequiredService<IFileStore>();
+        static IFileStore getFileStoreService(IServiceProvider services, StoreConfig _) => services.GetRequiredService<IFileStore>();
     }
 }

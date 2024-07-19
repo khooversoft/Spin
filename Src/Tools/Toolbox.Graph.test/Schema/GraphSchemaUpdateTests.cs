@@ -84,7 +84,7 @@ public class GraphSchemaUpdateTests
             "upsert node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMjV9' };",
             "delete (key=external:name1/11);",
             "upsert node key=external:name1/125, uniqueIndex;",
-            "upsert edge fromKey=data:key1, toKey=external:name1/125, edgeType=uniqueIndex;",
+            "upsert edge fromKey=external:name1/125, toKey=data:key1, edgeType=uniqueIndex;",
             "delete [fromKey=data:key1, toKey=age:11, edgeType=ageGroup];",
             "upsert edge fromKey=data:key1, toKey=age:125, edgeType=ageGroup;",
             ];
@@ -117,9 +117,9 @@ public class GraphSchemaUpdateTests
             "delete (key=index:name1);",
             "delete (key=external:name1/11);",
             "upsert node key=index:name2, uniqueIndex;",
-            "upsert edge fromKey=data:key1, toKey=index:name2, edgeType=uniqueIndex;",
+            "upsert edge fromKey=index:name2, toKey=data:key1, edgeType=uniqueIndex;",
             "upsert node key=external:name2/11, uniqueIndex;",
-            "upsert edge fromKey=data:key1, toKey=external:name2/11, edgeType=uniqueIndex;",
+            "upsert edge fromKey=external:name2/11, toKey=data:key1, edgeType=uniqueIndex;",
             ];
 
         var nodeCommands = graphCode.BuildSetCommands();

@@ -24,12 +24,12 @@ public class DirectoryActorTests : IClassFixture<ActorClusterFixture>
         var result = await actor.Execute($"add node key={nodeKey};", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Length.Should().Be(0);
+        result.Return().Items.Count.Should().Be(0);
 
         result = await actor.Execute($"select (key={nodeKey});", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Length.Should().Be(1);
+        result.Return().Items.Count.Should().Be(1);
         result.Return().Items.OfType<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be(nodeKey);

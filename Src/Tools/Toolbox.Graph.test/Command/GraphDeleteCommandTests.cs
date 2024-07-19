@@ -65,7 +65,7 @@ public class GraphDeleteCommandTests
         {
             x.CommandType.Should().Be(CommandType.DeleteNode);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Length.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
@@ -84,7 +84,7 @@ public class GraphDeleteCommandTests
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var commandResults = (await testClient.Execute("delete [created] -> (lang=java);", NullScopeContext.Instance)).ThrowOnError().Return();
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
-        commandResults.Items.NotNull().Length.Should().Be(2);
+        commandResults.Items.NotNull().Count.Should().Be(2);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
 
         commandResults.Items.OfType<GraphNode>()
@@ -107,7 +107,7 @@ public class GraphDeleteCommandTests
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var commandResults = (await testClient.Execute("delete [created] -> (marked=true);", NullScopeContext.Instance)).ThrowOnError().Return();
         commandResults.Status.IsOk().Should().BeTrue(commandResults.ToString());
-        commandResults.Items.NotNull().Length.Should().Be(1);
+        commandResults.Items.NotNull().Count.Should().Be(1);
         commandResults.CommandType.Should().Be(CommandType.DeleteNode);
 
         commandResults.Items.OfType<GraphNode>().First().Key.Should().Be("node5");
@@ -146,7 +146,7 @@ public class GraphDeleteCommandTests
         {
             x.CommandType.Should().Be(CommandType.DeleteEdge);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Length.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphEdge>().Action(x =>

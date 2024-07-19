@@ -137,7 +137,7 @@ public class GraphAddEdgeCommandTests
             x.CommandType.Should().Be(CommandType.AddEdge);
             x.Status.StatusCode.Should().Be(StatusCode.Conflict);
             x.Items.Should().NotBeNull();
-            x.Items.Length.Should().Be(0);
+            x.Items.Count.Should().Be(0);
         });
     }
 }

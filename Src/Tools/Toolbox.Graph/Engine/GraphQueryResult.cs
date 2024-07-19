@@ -17,6 +17,12 @@ public enum CommandType
 }
 
 
+public record GraphQueryResults
+{
+    public ImmutableArray<GraphQueryResult> Items { get; init; } = ImmutableArray<GraphQueryResult>.Empty;
+    public bool IsMutating => Items.Any(x => x.IsMutating);
+}
+
 public record GraphQueryResult
 {
     public GraphQueryResult() { }
@@ -36,17 +42,10 @@ public record GraphQueryResult
     };
     public override string ToString() => $"{Status}, {nameof(CommandType)}={CommandType}";
 
-    public ImmutableArray<IGraphCommon> Items { get; init; } = ImmutableArray<IGraphCommon>.Empty;
-    public ImmutableDictionary<string, DataETag> ReturnNames { get; init; } = ImmutableDictionary<string, DataETag>.Empty;
+    public IReadOnlyList<IGraphCommon> Items { get; init; } = ImmutableArray<IGraphCommon>.Empty;
+    public IReadOnlyList<GraphLinkData> DataLinks { get; init; } = Array.Empty<GraphLinkData>();
     public ImmutableDictionary<string, ImmutableArray<IGraphCommon>> Alias { get; init; } = ImmutableDictionary<string, ImmutableArray<IGraphCommon>>.Empty;
 }
-
-public record GraphQueryResults
-{
-    public ImmutableArray<GraphQueryResult> Items { get; init; } = ImmutableArray<GraphQueryResult>.Empty;
-    public bool IsMutating => Items.Any(x => x.IsMutating);
-}
-
 
 public static class GraphQueryResultExtensions
 {
@@ -56,19 +55,28 @@ public static class GraphQueryResultExtensions
     public static ImmutableArray<GraphEdge> AliasEdge(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphEdge>().ToImmutableArray();
     public static ImmutableArray<GraphNode> AliasNode(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphNode>().ToImmutableArray();
 
-    public static Option<T> ReturnNameToObject<T>(this ImmutableDictionary<string, DataETag> subject, string returnName)
+    public static Option<GraphLinkData> Get(this IReadOnlyList<GraphLinkData> subject, string returnName)
     {
         subject.NotNull();
-        if (!subject.TryGetValue(returnName, out var dataETag)) return (StatusCode.NotFound, $"returnName={returnName} not found in 'ReturnNames'");
-        if (dataETag.Data.Length == 0) return (StatusCode.NoContent, $"returnName={returnName} has no content");
+        var graphLinkData = subject.Where(x => x.Name == returnName).ToArray();
+        if (graphLinkData.Length == 0) return (StatusCode.NotFound, $"returnName={returnName} not found");
+        if (graphLinkData.Length != 1) return (StatusCode.NotFound, $"returnName={returnName} has more then 1 records, length={graphLinkData.Length}");
 
-        var entity = dataETag.ToObject<T>();
+        return graphLinkData[0];
+    }
+
+    public static Option<T> DataLinkToObject<T>(this IReadOnlyList<GraphLinkData> subject, string returnName)
+    {
+        var result = subject.Get(returnName);
+        if (result.IsError()) return result.ToOptionStatus<T>();
+
+        var entity = result.Return().Data.ToObject<T>();
         if (entity == null) return (StatusCode.Conflict, $"returnName={returnName} cannot be deserialized");
 
         return entity;
     }
 
-    public static bool HasScalarResult(this GraphQueryResults subject) => subject.NotNull().Items.Length == 1 && subject.Items.First().Items.Length == 1;
+    public static bool HasScalarResult(this GraphQueryResults subject) => subject.NotNull().Items.Length == 1 && subject.Items.First().Items.Count == 1;
 
     public static IReadOnlyList<T> Get<T>(this GraphQueryResults subject) => subject.NotNull()
         .Items.First()

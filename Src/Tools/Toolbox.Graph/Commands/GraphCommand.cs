@@ -70,30 +70,54 @@ public static class GraphCommand
     {
         GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search);
 
-        Dictionary<string, DataETag> readData = new(StringComparer.OrdinalIgnoreCase);
+        var readData = new Sequence<GraphLinkData>();
         var nodes = searchResult.Items.OfType<GraphNode>().ToArray();
 
-        foreach (var node in nodes)
+        var map = select.ReturnNames
+            .Join(
+                nodes.SelectMany(x => x.DataMap.Values),
+                x => x,
+                x => x.Name,
+                (o, i) => (key: $"{i.NodeKey}:{i.Name}", dataMap: i),
+                StringComparer.OrdinalIgnoreCase
+                )
+            .ToArray();
+
+        foreach (var data in map)
         {
-            foreach (var data in node.DataMap)
+            var readOption = await graphContext.FileStore.Get(data.dataMap.FileId, graphContext.Context);
+            if (readOption.IsError())
             {
-                readData.ContainsKey(data.Key).Assert(x => x == false, $"Key={data.Key} already exists");
-
-                var readOption = await graphContext.FileStore.Get(data.Value.FileId, graphContext.Context);
-                if (readOption.IsError())
-                {
-                    graphContext.Context.LogError("Cannot read fileId={fileId}, error={error}", data.Value.FileId, readOption.Error);
-                    return new GraphQueryResult(CommandType.Select, StatusCode.Conflict);
-                }
-
-                readData.Add(data.Key, readOption.Return());
+                graphContext.Context.LogError("Cannot read fileId={fileId}, error={error}", data.dataMap.FileId, readOption.Error);
+                return new GraphQueryResult(CommandType.Select, StatusCode.Conflict);
             }
+
+            var linkData = data.dataMap.ConvertTo(readOption.Return());
+            readData += linkData;
         }
+
+        //foreach (var node in nodes)
+        //{
+
+        //    foreach (var data in map)
+        //    {
+        //        readData.ContainsKey(data.Name).Assert(x => x == false, $"Key={data.Name} already exists");
+
+        //        var readOption = await graphContext.FileStore.Get(data.FileId, graphContext.Context);
+        //        if (readOption.IsError())
+        //        {
+        //            graphContext.Context.LogError("Cannot read fileId={fileId}, error={error}", data.FileId, readOption.Error);
+        //            return new GraphQueryResult(CommandType.Select, StatusCode.Conflict);
+        //        }
+
+        //        readData.Add(data.Name, readOption.Return());
+        //    }
+        //}
 
         searchResult = searchResult with
         {
             CommandType = CommandType.Select,
-            ReturnNames = readData.ToImmutableDictionary(),
+            DataLinks = readData.ToImmutableArray(),
         };
 
         return searchResult;

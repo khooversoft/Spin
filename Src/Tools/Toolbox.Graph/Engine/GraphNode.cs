@@ -22,20 +22,20 @@ public sealed record GraphNode : IGraphCommon
         string key,
         ImmutableDictionary<string, string?> tags,
         DateTime createdDate,
-        ImmutableDictionary<string, GraphDataLink> dataMap
+        ImmutableDictionary<string, GraphLink> dataMap
         )
     {
         Key = key.NotNull();
         Tags = tags?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, string?>.Empty;
         CreatedDate = createdDate;
-        DataMap = dataMap?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, GraphDataLink>.Empty;
+        DataMap = dataMap?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, GraphLink>.Empty;
     }
 
     public string Key { get; }
     public ImmutableDictionary<string, string?> Tags { get; private init; }
     public string TagsString => Tags.ToTagsString();
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
-    public ImmutableDictionary<string, GraphDataLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphDataLink>.Empty;
+    public ImmutableDictionary<string, GraphLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphLink>.Empty;
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
 
     public GraphNode With(GraphNode node) => this with
@@ -46,7 +46,7 @@ public sealed record GraphNode : IGraphCommon
 
     public GraphNode With(
         IEnumerable<KeyValuePair<string, string?>> tagCommands,
-        IEnumerable<KeyValuePair<string, GraphDataLink>> dataMap
+        IEnumerable<KeyValuePair<string, GraphLink>> dataMap
         ) => this with
         {
             Tags = TagsTool.ProcessTags(Tags, tagCommands),
@@ -67,7 +67,7 @@ public sealed record GraphNode : IGraphCommon
     public override int GetHashCode() => HashCode.Combine(Key, Tags, CreatedDate);
 
     public static IValidator<GraphNode> Validator { get; } = new Validator<GraphNode>()
-        .RuleFor(x => x.Key).NotNull()
+        .RuleFor(x => x.Key).NotEmpty()
         .RuleFor(x => x.Tags).NotNull()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .Build();

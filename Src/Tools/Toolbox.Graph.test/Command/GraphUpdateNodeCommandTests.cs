@@ -51,7 +51,7 @@ public class GraphUpdateNodeCommandTests
         {
             x.CommandType.Should().Be(CommandType.UpdateNode);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Length.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>
@@ -86,7 +86,7 @@ public class GraphUpdateNodeCommandTests
 
         GraphQueryResult search = (await testClient.Execute("select (key=node3);", NullScopeContext.Instance)).ThrowOnError().Return();
         search.Status.IsOk().Should().BeTrue();
-        search.Items.Length.Should().Be(1);
+        search.Items.Count.Should().Be(1);
         search.Items[0].Cast<GraphNode>().Action(x =>
         {
             x.Key.Should().Be("node3");
@@ -128,7 +128,7 @@ public class GraphUpdateNodeCommandTests
         {
             x.CommandType.Should().Be(CommandType.UpdateNode);
             x.Status.IsOk().Should().BeTrue();
-            x.Items.NotNull().Length.Should().Be(1);
+            x.Items.NotNull().Count.Should().Be(1);
 
             var resultIndex = x.Items.NotNull().ToCursor();
             resultIndex.NextValue().Return().Cast<GraphNode>().Action(x =>

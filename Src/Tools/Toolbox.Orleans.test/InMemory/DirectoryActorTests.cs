@@ -22,7 +22,7 @@ public class DirectoryActorTests : IClassFixture<InMemoryClusterFixture>
         var result = await actor.Execute("add node key=node1;", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Length.Should().Be(0);
+        result.Return().Items.Count.Should().Be(0);
 
         IFileStoreSearchActor fileStoreSearchActor = _inMemoryFixture.Cluster.Client.GetFileStoreSearchActor();
         var files = await fileStoreSearchActor.Search($"system/**/*", NullScopeContext.Instance);
@@ -56,12 +56,12 @@ public class DirectoryActorTests : IClassFixture<InMemoryClusterFixture>
         var result = await actor.Execute("add node key=node1;", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Length.Should().Be(0);
+        result.Return().Items.Count.Should().Be(0);
 
         result = await actor.Execute("select (*);", NullScopeContext.Instance);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().Items.Length.Should().Be(1);
+        result.Return().Items.Count.Should().Be(1);
         result.Return().Items.OfType<GraphNode>().First().Action(x =>
         {
             x.Key.Should().Be("node1");

@@ -9,12 +9,12 @@ namespace Toolbox.Orleans;
 public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<PrincipalIdentity>
 {
     private readonly ILogger<UserStore> _logger;
-    private readonly IdentityActorConnector _identityConnector;
+    private readonly IClusterClient _clusterClient;
 
-    public UserStore(IdentityActorConnector identityConnector, ILogger<UserStore> logger)
+    public UserStore(IClusterClient clusterClient, ILogger<UserStore> logger)
     {
-        _identityConnector = identityConnector.NotNull();
         _logger = logger.NotNull();
+        _clusterClient = clusterClient.NotNull();
     }
 
     public async Task AddLoginAsync(PrincipalIdentity user, UserLoginInfo login, CancellationToken cancellationToken)
@@ -25,7 +25,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         user.ProviderKey = login.ProviderKey;
         user.ProviderDisplayName = login.ProviderDisplayName;
 
-        var identityResult = (await _identityConnector.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _clusterClient.GetIdentityActor().Set(user, context)).ToIdentityResult();
     }
 
     public async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
@@ -33,7 +33,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var identityResult = (await _identityConnector.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _clusterClient.GetIdentityActor().Set(user, context)).ToIdentityResult();
         return identityResult;
     }
 
@@ -42,7 +42,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var identityResult = (await _identityConnector.Delete(user.NotNull().PrincipalId, context)).ToIdentityResult();
+        var identityResult = (await _clusterClient.GetIdentityActor().Delete(user.NotNull().PrincipalId, context)).ToIdentityResult();
         return identityResult;
     }
 
@@ -53,7 +53,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var result = await _identityConnector.GetById(userId, context);
+        var result = await _clusterClient.GetIdentityActor().GetById(userId, context);
         return result.IsOk() ? result.Return() : null;
     }
 
@@ -62,7 +62,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var result = await _identityConnector.GetByLogin(loginProvider, providerKey, context);
+        var result = await _clusterClient.GetIdentityActor().GetByLogin(loginProvider, providerKey, context);
         return result.IsOk() ? result.Return() : null;
     }
 
@@ -71,7 +71,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var result = await _identityConnector.GetByUserName(userName, context);
+        var result = await _clusterClient.GetIdentityActor().GetByUserName(userName, context);
         return result.IsOk() ? result.Return() : null;
     }
 
@@ -131,7 +131,7 @@ public class UserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<Principa
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var identityResult = (await _identityConnector.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _clusterClient.GetIdentityActor().Set(user, context)).ToIdentityResult();
         return identityResult;
     }
 }

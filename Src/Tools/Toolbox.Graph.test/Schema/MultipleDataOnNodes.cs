@@ -31,7 +31,7 @@ public class MultipleDataOnNodes
         var readOption = await testClient.ExecuteBatch("select (key=data:key1) return entity;", NullScopeContext.Instance);
         readOption.IsOk().Should().BeTrue();
         readOption.Return().Items.Length.Should().Be(1);
-        var d_read = readOption.Return().Items.First().ReturnNames["entity"].ToObject<Data>();
+        var d_read = readOption.Return().Items.First().DataLinks.DataLinkToObject<Data>("entity").ThrowOnError().Return();
         (d == d_read).Should().BeTrue();
 
         // Attached data
@@ -52,25 +52,25 @@ public class MultipleDataOnNodes
         readOption = await testClient.ExecuteBatch("select (key=data:key1) return entity;", NullScopeContext.Instance);
         readOption.IsOk().Should().BeTrue();
         readOption.Return().Items.Length.Should().Be(1);
-        d_read = readOption.Return().Items.First().ReturnNames["entity"].ToObject<Data>();
+        d_read = readOption.Return().Items.First().DataLinks.DataLinkToObject<Data>("entity").ThrowOnError().Return();
         (d == d_read).Should().BeTrue();
 
         readOption = await testClient.ExecuteBatch("select (key=data:key1) return weather;", NullScopeContext.Instance);
         readOption.IsOk().Should().BeTrue();
         readOption.Return().Items.Length.Should().Be(1);
-        var w_read = readOption.Return().Items.First().ReturnNames["weather"].ToObject<Weather>();
+        var w_read = readOption.Return().Items.First().DataLinks.DataLinkToObject<Weather>("weather").ThrowOnError().Return();
         (w == w_read).Should().BeTrue();
 
-        readOption = await testClient.ExecuteBatch("select (key=data:key1) return weather, data;", NullScopeContext.Instance);
+        readOption = await testClient.ExecuteBatch("select (key=data:key1) return weather, entity;", NullScopeContext.Instance);
         readOption.IsOk().Should().BeTrue();
         readOption.Return().Action(x =>
         {
             x.Items.Length.Should().Be(1);
             x.Items.First().Action(y =>
             {
-                y.ReturnNames.Count.Should().Be(2);
-                var r1 = y.ReturnNames["entity"].ToObject<Data>();
-                var r2 = y.ReturnNames["weather"].ToObject<Weather>();
+                y.DataLinks.Count.Should().Be(2);
+                var r1 = y.DataLinks.DataLinkToObject<Data>("entity").ThrowOnError().Return();
+                var r2 = y.DataLinks.DataLinkToObject<Weather>("weather").ThrowOnError().Return();
                 (d == r1).Should().BeTrue();
                 (w == r2).Should().BeTrue();
             });

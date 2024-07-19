@@ -5,14 +5,16 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public sealed record GraphDataLink
+public sealed record GraphLink
 {
+    public string NodeKey { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string TypeName { get; init; } = null!;
     public string Schema { get; init; } = null!;
     public string FileId { get; init; } = null!;
 
-    public static IValidator<GraphDataLink> Validator { get; } = new Validator<GraphDataLink>()
+    public static IValidator<GraphLink> Validator { get; } = new Validator<GraphLink>()
+        .RuleFor(x => x.NodeKey).NotEmpty()
         .RuleFor(x => x.Name).ValidName()
         .RuleFor(x => x.TypeName).ValidName()
         .RuleFor(x => x.Schema).ValidName()
@@ -22,17 +24,17 @@ public sealed record GraphDataLink
 
 public static class GraphDataLinkTool
 {
-    public static Option Validate(this GraphDataLink subject) => GraphDataLink.Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this GraphLink subject) => GraphLink.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this GraphDataLink subject, out Option result)
+    public static bool Validate(this GraphLink subject, out Option result)
     {
         result = subject.Validate();
         return result.IsOk();
     }
 
-    public static ImmutableDictionary<string, GraphDataLink> Empty { get; } = ImmutableDictionary<string, GraphDataLink>.Empty;
+    public static ImmutableDictionary<string, GraphLink> Empty { get; } = ImmutableDictionary<string, GraphLink>.Empty;
 
-    public static bool DeepEquals(this IEnumerable<KeyValuePair<string, GraphDataLink>> source, IEnumerable<KeyValuePair<string, GraphDataLink>> target)
+    public static bool DeepEquals(this IEnumerable<KeyValuePair<string, GraphLink>> source, IEnumerable<KeyValuePair<string, GraphLink>> target)
     {
         if (source == null && target == null) return true;
         if (source == null || target == null) return false;
@@ -48,7 +50,7 @@ public static class GraphDataLinkTool
             true => (x.source.Value, x.target.Value) switch
             {
                 (null, null) => true,
-                (GraphDataLink s1, GraphDataLink s2) => (s1 == s2),
+                (GraphLink s1, GraphLink s2) => (s1 == s2),
                 _ => false,
             }
         });
@@ -56,7 +58,7 @@ public static class GraphDataLinkTool
         return isEqual;
     }
 
-    public static string ToDataMapString(this IEnumerable<KeyValuePair<string, GraphDataLink>> subject)
+    public static string ToDataMapString(this IEnumerable<KeyValuePair<string, GraphLink>> subject)
     {
         subject.NotNull();
         return subject

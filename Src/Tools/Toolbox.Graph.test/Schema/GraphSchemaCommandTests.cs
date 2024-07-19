@@ -20,9 +20,9 @@ public class GraphSchemaCommandTests
         IReadOnlyList<string> matchTo = [
             "upsert node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMX0=' };",
             "upsert node key=index:name1, uniqueIndex;",
-            "upsert edge fromKey=data:key1, toKey=index:name1, edgeType=uniqueIndex;",
+            "upsert edge fromKey=index:name1, toKey=data:key1, edgeType=uniqueIndex;",
             "upsert node key=external:name1/11, uniqueIndex;",
-            "upsert edge fromKey=data:key1, toKey=external:name1/11, edgeType=uniqueIndex;",
+            "upsert edge fromKey=external:name1/11, toKey=data:key1, edgeType=uniqueIndex;",
             "upsert edge fromKey=data:key1, toKey=age:11, edgeType=ageGroup;",
             ];
 
