@@ -45,7 +45,7 @@ internal class Contract : ICommandRoute
         context.LogInformation("Dumping account ID {contractId}, principalId={principalId}", contractId, principalId);
 
         var response = await _client.Delete(contractId, context);
-        response.LogOnError(context, "Delete failed");
+        response.LogStatus(context, "Delete failed");
         return;
     }
 
@@ -61,7 +61,7 @@ internal class Contract : ICommandRoute
 
         Option<ContractQueryResponse> result = await _client.Query(contractId, query, context);
         context.LogTrace("Dumping contract {contractId}", contractId);
-        result.LogOnError(context, "Query failed to contract failed");
+        result.LogStatus(context, "Query failed to contract failed");
 
         ContractQueryResponse response = result.Return();
 

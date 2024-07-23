@@ -4,11 +4,12 @@ using Microsoft.Extensions.Logging;
 using Orleans.TestingHost;
 using Toolbox.Azure;
 using Toolbox.Configuration;
+using Toolbox.Orleans;
 using Toolbox.Orleans.Testing;
 using Toolbox.Store;
 using Toolbox.Tools;
 
-namespace Toolbox.Orleans.test.Application;
+namespace TicketShare.sdk.test.Application;
 
 public sealed class ActorClusterFixture : IDisposable
 {
@@ -17,7 +18,7 @@ public sealed class ActorClusterFixture : IDisposable
     static ActorClusterFixture()
     {
         var config = new ConfigurationBuilder()
-            .AddResourceStream(typeof(ActorClusterFixture), "Toolbox.Orleans.test.Application.test-appsettings.json")
+            .AddResourceStream(typeof(ActorClusterFixture), "TicketShare.sdk.test.Application.test-appsettings.json")
             .AddUserSecrets("Toolbox-Azure-test")
             .Build();
 
@@ -55,7 +56,6 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
 {
     public void Configure(ISiloBuilder siloBuilder)
     {
-
         siloBuilder.ConfigureServices(services =>
         {
             services.AddLogging(config => config.AddDebug().AddConsole());

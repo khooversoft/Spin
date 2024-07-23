@@ -32,7 +32,7 @@ public sealed record PrincipalIdentity : IIdentity
 
     public static IGraphSchema<PrincipalIdentity> Schema { get; } = new GraphSchemaBuilder<PrincipalIdentity>()
         .Node(x => x.PrincipalId, x => IdentityTool.ToUserKey(x))
-        .Select(x => x.PrincipalId, x => GraphTool.SelectNodeCommand(IdentityTool.ToUserKey(x), "entity"))
+        .Select(x => x.PrincipalId, x => SelectNode(x))
         .Tag(x => x.Email, x => x.IsNotEmpty() ? $"email={x}" : "-email")
         .Index(x => x.UserName, x => IdentityTool.ToUserNameIndex(x))
         .Index(x => x.Email, x => IdentityTool.ToEmailIndex(x))
@@ -42,6 +42,14 @@ public sealed record PrincipalIdentity : IIdentity
             _ => null,
         })
         .Build();
+
+    public static string SelectNode(string principalId) => GraphTool.SelectNodeCommand(IdentityTool.ToUserKey(principalId), "entity");
+    public static string DeleteNode(string principalId) => GraphTool.DeleteNodeCommand(IdentityTool.ToUserKey(principalId));
+    public static string GetById(string id) => $"select (key={IdentityTool.ToUserKey(id)}) return entity;";
+    public static string GetByLogin(string loginProvider, string providerKey) => $"select (key={IdentityTool.ToLoginIndex(loginProvider, providerKey)}) -> [*] -> (*) return entity;";
+    public static string GetByUserName(string userName) => $"select (key={IdentityTool.ToUserNameIndex(userName)}) -> [*] -> (*) return entity;";
+    public static string GetByEmail(string email) => $"select (key={IdentityTool.ToEmailIndex(email)}) -> [*] -> (*) return entity;";
+
 }
 
 

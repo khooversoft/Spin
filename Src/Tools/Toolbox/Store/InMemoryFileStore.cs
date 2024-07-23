@@ -39,13 +39,15 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
                 }
             }
 
+            context.LogInformation("Add Path={path} with eTag={eTag}", path, data.ETag);
+
             Option<string> option = _store.TryAdd(path, data) switch
             {
                 true => data.ETag.NotEmpty(),
                 false => (StatusCode.Conflict, $"path={path} already exist"),
             };
 
-            option.LogStatus(context, "Add Path={path} with eTag={eTag}", path, data.ETag);
+            option.LogStatus(context, "Add Path");
             return option.ToTaskResult();
         }
     }
@@ -60,7 +62,7 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
             false => (StatusCode.NotFound, $"path={path} does not exist"),
         };
 
-        option.LogStatus(context, "Delete Path={path}", path);
+        option.LogStatus(context, "Delete");
         return option.ToTaskResult();
     }
 
@@ -85,7 +87,7 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
             false => (StatusCode.NotFound, $"path={path} does not exist"),
         };
 
-        option.LogStatus(context, "Get Path={path}", path);
+        option.LogStatus(context, "Get Path");
         return option.ToTaskResult();
     }
 

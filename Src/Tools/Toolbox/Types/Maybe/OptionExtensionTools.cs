@@ -54,7 +54,8 @@ public static class OptionExtensionTools
             x => $"Message={message}, StatusCode= {x.StatusCode}, Error={x.Error}", function: function, path: path, lineNumber: lineNumber, name: name
             );
 
-    public static Option LogOnError(this Option option,
+    public static Option LogStatus(
+        this Option option,
         ScopeContext context,
         string? message = "< no message >",
         [CallerMemberName] string function = "",
@@ -63,16 +64,20 @@ public static class OptionExtensionTools
         [CallerArgumentExpression("option")] string name = ""
         )
     {
+        var location = context.Location(function: function, path: path, lineNumber: lineNumber);
+
         if (option.IsError())
         {
-            string msg = $"Message={message}, StatusCode={option.StatusCode}, Error={option.Error}";
-            context.Location(function: function, path: path, lineNumber: lineNumber).LogError(msg);
+            location.LogError("Message={message}, StatusCode={statusCode}, Error={error}", message, option.StatusCode, option.Error);
+            return option;
         }
 
+        location.LogInformation("Message={message}, StatusCode={statusCode}", message, option.StatusCode);
         return option;
     }
 
-    public static Option<T> LogOnError<T>(this Option<T> option,
+    public static Option<T> LogStatus<T>(
+        this Option<T> option,
         ScopeContext context,
         string? message = "< no message >",
         [CallerMemberName] string function = "",
@@ -81,24 +86,15 @@ public static class OptionExtensionTools
         [CallerArgumentExpression("option")] string name = ""
         )
     {
+        var location = context.Location(function: function, path: path, lineNumber: lineNumber);
+
         if (option.IsError())
         {
-            string msg = $"Message={message}, StatusCode={option.StatusCode}, Error={option.Error}";
-            context.Location(function: function, path: path, lineNumber: lineNumber).LogError(msg);
+            location.LogError("Message={message}, StatusCode={statusCode}, Error={error}", message, option.StatusCode, option.Error);
+            return option;
         }
 
-        return option;
-    }
-
-    public static Option LogStatus(this Option option, ILoggingContext context, string message, params object?[] args)
-    {
-        LogStatusInternal(option.StatusCode, option.Error, context, message, args);
-        return option;
-    }
-
-    public static Option<T> LogStatus<T>(this Option<T> option, ILoggingContext context, string message, params object?[] args)
-    {
-        LogStatusInternal(option.StatusCode, option.Error, context, message, args);
+        location.LogInformation("Message={message}, StatusCode={statusCode}", message, option.StatusCode);
         return option;
     }
 

@@ -67,16 +67,15 @@ internal class AgentRegistration : ICommandRoute
         if (readResult.IsError()) return;
 
         AgentModel model = readResult.Return();
-
-        Option response = await _client.Set(model, context);
-        response.LogStatus(context, "Creating/Updating agent, model={model}", model);
+        context.LogInformation("Creating/Updating agent, model={model}", model);
+        (await _client.Set(model, context)).LogStatus(context, "Creating/Updating agent");
     }
 
     public async Task Remove(string agentId)
     {
         var context = new ScopeContext(_logger);
 
-        Option response = await _client.Delete(agentId, context);
-        response.LogStatus(context, "Deleted agent, agentId={agentId}", agentId);
+        context.LogInformation("Deleting agentId={agentId}", agentId);
+        (await _client.Delete(agentId, context)).LogStatus(context, "delete agent");
     }
 }

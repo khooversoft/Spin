@@ -39,7 +39,7 @@ public class DirectoryTests : IClassFixture<ClusterApiFixture>
         getNodeOption.IsOk().Should().BeTrue();
 
         GraphQueryResult response = getNodeOption.Return().Items.Single();
-        response.Items.Length.Should().Be(1);
+        response.Items.Count.Should().Be(1);
         response.Edges().Length.Should().Be(0);
         response.Nodes().First().Key.Should().Be(nodeKey);
         response.Nodes().First().Tags.ToString().Should().Be("t1");

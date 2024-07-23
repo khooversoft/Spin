@@ -39,7 +39,7 @@ public class AccountConnector
         var principalIdentityOption = await _clusterClient.GetIdentityActor().GetById(userId, context);
         if (principalIdentityOption.IsNotFound()) return createAccount(userId, userId, email);
 
-        if (principalIdentityOption.IsError()) return principalIdentityOption.LogOnError(context, $"Cannot lookup userId={userId}").ToOptionStatus<AccountRecord>();
+        if (principalIdentityOption.IsError()) return principalIdentityOption.LogStatus(context, $"Cannot lookup userId={userId}").ToOptionStatus<AccountRecord>();
         var principalIdentity = principalIdentityOption.Return();
 
         var accountRecordOption = await Get(userId, context);

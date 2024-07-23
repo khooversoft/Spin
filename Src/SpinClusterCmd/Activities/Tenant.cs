@@ -78,7 +78,8 @@ internal class Tenant : ICommandRoute
 
         TenantModel model = readResult.Return();
 
+        context.LogInformation("Creating/Updating Tenant, model={model}", model);
         Option response = await _client.Set(model, context);
-        response.LogStatus(context, "Creating/Updating Tenant, model={model}", model);
+        response.LogStatus(context, "Creating/Updating Tenant");
     }
 }

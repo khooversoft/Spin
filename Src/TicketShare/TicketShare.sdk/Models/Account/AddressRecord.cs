@@ -5,6 +5,7 @@ using Toolbox.Types;
 namespace TicketShare.sdk;
 
 [GenerateSerializer]
+[Alias("TicketShare.sdk.AddressRecord")]
 public record AddressRecord
 {
     [Id(0)] public string Label { get; init; } = null!;

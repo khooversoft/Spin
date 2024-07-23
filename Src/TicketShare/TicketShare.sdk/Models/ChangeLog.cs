@@ -1,16 +1,29 @@
 ﻿using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Extensions;
 
 namespace TicketShare.sdk;
 
-public record ChangeLog
+[GenerateSerializer]
+public sealed record ChangeLog : IEquatable<ChangeLog>
 {
-    public DateTime Date { get; init; } = DateTime.UtcNow;
-    public string ChangedByPrincipalId { get; init; } = null!;
-    public string Description { get; init; } = null!;
-    public string? PropertyName { get; init; }
-    public string? OldValue { get; init; }
-    public string? NewValue { get; init; }
+    [Id(0)] public DateTime Date { get; init; } = DateTime.UtcNow;
+    [Id(1)] public string ChangedByPrincipalId { get; init; } = null!;
+    [Id(2)] public string Description { get; init; } = null!;
+    [Id(3)] public string? PropertyName { get; init; }
+    [Id(4)] public string? OldValue { get; init; }
+    [Id(5)] public string? NewValue { get; init; }
+
+    public bool Equals(ChangeLog? other) =>
+        other != null &&
+        Date == other.Date &&
+        ChangedByPrincipalId.Equals(other.ChangedByPrincipalId) &&
+        Description.Equals(other.Description) &&
+        PropertyName.EqualsOption(other.PropertyName) &&
+        OldValue.EqualsOption(other.OldValue) &&
+        NewValue.EqualsOption(other.NewValue);
+
+    public override int GetHashCode() => HashCode.Combine(Date, ChangedByPrincipalId, Description);
 
     public static IValidator<ChangeLog> Validator { get; } = new Validator<ChangeLog>()
         .RuleFor(x => x.Date).ValidDateTime()

@@ -3,7 +3,7 @@ using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Orleans.test.Store;
+namespace Toolbox.Orleans.Testing;
 
 public class CleanDirectoryAction
 {

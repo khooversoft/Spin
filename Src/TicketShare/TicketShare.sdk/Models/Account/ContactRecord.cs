@@ -11,6 +11,7 @@ public enum ContactType
 }
 
 [GenerateSerializer]
+[Alias("TicketShare.sdk.ContactRecord")]
 public record ContactRecord
 {
     [Id(0)] public ContactType Type { get; init; } = ContactType.Cell;

@@ -17,9 +17,9 @@ public class GraphQueryEdgeTests
         new GraphNode("node7", tags: "lang=java"),
 
         new GraphEdge("node1", "node2", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", tags: "knows,level=1"),
+        new GraphEdge("node1", "node3", tags: "knows,level=1", edgeType: "edge1"),
         new GraphEdge("node6", "node3", tags: "created"),
-        new GraphEdge("node4", "node5", tags: "created"),
+        new GraphEdge("node4", "node5", tags: "created", edgeType: "edge1"),
         new GraphEdge("node4", "node3", tags: "created"),
     };
 
@@ -115,6 +115,57 @@ public class GraphQueryEdgeTests
         edges.Length.Should().Be(1);
 
         var inSet = _map.Edges.Where(x => x.FromKey == "node1" && x.ToKey == "node2").Select(x => x.Key).ToArray();
+        edges.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EdgeTypeQuery()
+    {
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.Execute("select [edgeType=edge1];", NullScopeContext.Instance)).ThrowOnError().Return();
+
+        result.Status.IsOk().Should().BeTrue();
+        result.Items.Count.Should().Be(2);
+        result.Alias.Count.Should().Be(0);
+
+        var edges = result.Items.Select(x => x.Cast<GraphEdge>()).ToArray();
+        edges.Length.Should().Be(2);
+
+        var inSet = _map.Edges.Where(x => x.EdgeType == "edge1").Select(x => x.Key).OrderBy(x => x).ToArray();
+        edges.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EdgeTypeDirectedQuery()
+    {
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.Execute("select (key=node1) -> [edgeType=edge1] -> (*);", NullScopeContext.Instance)).ThrowOnError().Return();
+
+        result.Status.IsOk().Should().BeTrue();
+        result.Items.Count.Should().Be(1);
+        result.Alias.Count.Should().Be(0);
+
+        var edges = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
+        edges.Length.Should().Be(1);
+
+        var inSet = _map.Nodes.Where(x => x.Key == "node3").Select(x => x.Key).OrderBy(x => x).ToArray();
+        edges.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EdgeTypeBothQuery()
+    {
+        var testClient = GraphTestStartup.CreateGraphTestHost(_map);
+        GraphQueryResult result = (await testClient.Execute("select (key=node3) -> [edgeType=edge1] -> (*);", NullScopeContext.Instance)).ThrowOnError().Return();
+
+        result.Status.IsOk().Should().BeTrue();
+        result.Items.Count.Should().Be(1);
+        result.Alias.Count.Should().Be(0);
+
+        var edges = result.Items.Select(x => x.Cast<GraphNode>()).ToArray();
+        edges.Length.Should().Be(1);
+
+        var inSet = _map.Nodes.Where(x => x.Key == "node1").Select(x => x.Key).OrderBy(x => x).ToArray();
         edges.Select(x => x.Key).OrderBy(y => y).SequenceEqual(inSet).Should().BeTrue();
     }
 }

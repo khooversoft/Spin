@@ -26,8 +26,8 @@ public class GraphSchemaBuilder<T>
     public GraphSchemaBuilder<T> Index<TProperty>(Expression<Func<T, TProperty>> expr1, Expression<Func<T, TProperty>> expr2, Func<TProperty, TProperty, string?> format) =>
         AddExpression(expr1, expr2, SchemaType.Index, format);
 
-    public GraphSchemaBuilder<T> Reference<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format, string attribute) =>
-        AddExpression(expression, SchemaType.Reference, format, attribute);
+    public GraphSchemaBuilder<T> Reference<TProperty>(Expression<Func<T, TProperty>> expression, Func<TProperty, string?> format, string edgeType) =>
+        AddExpression(expression, SchemaType.Reference, format, edgeType);
 
     public GraphSchemaBuilder<T> ReferenceCollection<TProperty>(Expression<Func<T, IEnumerable<TProperty>>> expression, Func<TProperty, string?> format, string attribute) =>
         AddExpression(expression, SchemaType.Reference, format, attribute);

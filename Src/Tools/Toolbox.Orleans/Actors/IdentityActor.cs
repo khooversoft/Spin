@@ -33,7 +33,7 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context = context.With(_logger);
 
-        string command = $"delete (key={IdentityTool.ToUserKey(id)});";
+        string command = PrincipalIdentity.DeleteNode(id);
         Option<GraphQueryResult> resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus();
 
@@ -44,7 +44,7 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context = context.With(_logger);
 
-        string command = $"select (key={IdentityTool.ToUserKey(id)}) return entity;";
+        string command = PrincipalIdentity.GetById(id);
         return await Exec(command, context);
     }
 
@@ -52,7 +52,7 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context = context.With(_logger);
 
-        string command = $"select (key={IdentityTool.ToLoginIndex(loginProvider, providerKey)}) -> [*] -> (*) return entity;";
+        string command = PrincipalIdentity.GetByLogin(loginProvider, providerKey);
         return await Exec(command, context);
     }
 
@@ -60,7 +60,7 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context = context.With(_logger);
 
-        string command = $"select (key={IdentityTool.ToUserNameIndex(userName)}) -> [*] -> (*) return entity;";
+        string command = PrincipalIdentity.GetByUserName(userName);
         return await Exec(command, context);
     }
 
@@ -68,7 +68,7 @@ public class IdentityActor : Grain, IIdentityActor
     {
         context = context.With(_logger);
 
-        string command = $"select (key={IdentityTool.ToEmailIndex(email)}) -> [*] -> (*) return entity;";
+        string command = PrincipalIdentity.GetByEmail(email);
         return await Exec(command, context);
     }
 

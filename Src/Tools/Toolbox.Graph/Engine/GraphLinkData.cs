@@ -34,6 +34,8 @@ public static class GraphLinkDataTool
 
     public static GraphLinkData ConvertTo(this GraphLink subject, DataETag data)
     {
+        subject.NotNull();
+
         var result = new GraphLinkData
         {
             NodeKey = subject.NodeKey,

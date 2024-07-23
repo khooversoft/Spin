@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Types;
 
-namespace TicketShare.sdk.test;
+namespace TicketShare.sdk.test.Schema;
 
 public class AccountSchemaTests
 {

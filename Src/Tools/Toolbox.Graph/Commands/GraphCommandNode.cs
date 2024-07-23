@@ -122,8 +122,9 @@ internal static class GraphCommandNode
 
         graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
 
+        graphContext.Context.LogInformation("Deleting data map={fileId}", fileId);
         var deleteOption = await graphContext.FileStore.Delete(fileId, graphContext.Context);
-        deleteOption.LogStatus(graphContext.Context.Location(), "Deleted data map={fileId}", fileId);
+        deleteOption.LogStatus(graphContext.Context, "Deleted data map");
 
         return deleteOption;
     }

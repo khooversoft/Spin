@@ -8,6 +8,7 @@ using Toolbox.Types;
 namespace TicketShare.sdk;
 
 [GenerateSerializer]
+[Alias("TicketShare.sdk.AccountRecord")]
 public record AccountRecord
 {
     [Id(0)] public string PrincipalId { get; init; } = null!;
@@ -27,8 +28,10 @@ public record AccountRecord
 
     public static IGraphSchema<AccountRecord> Schema { get; } = new GraphSchemaBuilder<AccountRecord>()
         .Node(x => x.PrincipalId, x => TicketShareTool.ToAccountKey(x))
-        .Select(x => x.PrincipalId, x => GraphTool.SelectNodeCommand(TicketShareTool.ToAccountKey(x), "entity"))
+        .Select(x => x.PrincipalId, x => SelectNode(x))
         .Build();
+
+    public static string SelectNode(string principalId) => GraphTool.SelectNodeCommand(TicketShareTool.ToAccountKey(principalId), "entity");
 }
 
 public static class AccountRecordExtensions

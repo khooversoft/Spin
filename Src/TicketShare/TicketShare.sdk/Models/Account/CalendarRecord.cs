@@ -10,6 +10,7 @@ public enum CalendarRecordType
 }
 
 [GenerateSerializer]
+[Alias("TicketShare.sdk.CalendarRecord")]
 public record CalendarRecord
 {
     [Id(0)] public CalendarRecordType Type { get; init; }

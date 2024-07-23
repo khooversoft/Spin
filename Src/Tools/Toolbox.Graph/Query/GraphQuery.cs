@@ -36,7 +36,7 @@ public static class GraphQuery
                     search = first switch
                     {
                         true => search.Edges(x => edge.IsMatch(x)),
-                        false => search.HasEdge(x => edge.IsMatch(x)),
+                        false => search.HasEdge(x => edge.IsMatch(x), edge.Direction),
                     };
 
                     update(search, edge.Alias);

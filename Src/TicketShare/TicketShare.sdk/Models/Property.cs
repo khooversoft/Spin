@@ -1,12 +1,21 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public readonly struct Property
+[GenerateSerializer]
+public sealed record Property : IEquatable<Property>
 {
-    public string Key { get; init; }
-    public string? Value { get; init; }
+    [Id(0)] public string Key { get; init; } = null!;
+    [Id(1)] public string? Value { get; init; }
+
+    public bool Equals(Property? other) =>
+        other != null &&
+        Key.EqualsIgnoreCase(other.Key) &&
+        Value.EqualsIgnoreCaseOption(other.Value);
+
+    public override int GetHashCode() => HashCode.Combine(Key, Value);
 
     public static IValidator<Property> Validator { get; } = new Validator<Property>()
         .RuleFor(x => x.Key).NotEmpty()

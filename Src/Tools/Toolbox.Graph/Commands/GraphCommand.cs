@@ -65,7 +65,6 @@ public static class GraphCommand
         return new Option<GraphQueryResults>(mapResult, option.StatusCode, option.Error);
     }
 
-
     private static async Task<GraphQueryResult> Select(GsSelect select, IGraphTrxContext graphContext)
     {
         GraphQueryResult searchResult = GraphQuery.Process(graphContext.Map, select.Search);
@@ -95,24 +94,6 @@ public static class GraphCommand
             var linkData = data.dataMap.ConvertTo(readOption.Return());
             readData += linkData;
         }
-
-        //foreach (var node in nodes)
-        //{
-
-        //    foreach (var data in map)
-        //    {
-        //        readData.ContainsKey(data.Name).Assert(x => x == false, $"Key={data.Name} already exists");
-
-        //        var readOption = await graphContext.FileStore.Get(data.FileId, graphContext.Context);
-        //        if (readOption.IsError())
-        //        {
-        //            graphContext.Context.LogError("Cannot read fileId={fileId}, error={error}", data.FileId, readOption.Error);
-        //            return new GraphQueryResult(CommandType.Select, StatusCode.Conflict);
-        //        }
-
-        //        readData.Add(data.Name, readOption.Return());
-        //    }
-        //}
 
         searchResult = searchResult with
         {

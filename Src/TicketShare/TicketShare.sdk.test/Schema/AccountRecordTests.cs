@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using FluentAssertions;
 using Toolbox.Types;
 
-namespace TicketShare.sdk.text;
+namespace TicketShare.sdk.test.Schema;
 
 public class AccountRecordTests
 {

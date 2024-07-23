@@ -58,7 +58,7 @@ internal class Schedule : ICommandRoute
         var queueResult = await _schedulerClient.CreateSchedule(model, context);
         if (queueResult.IsError())
         {
-            queueResult.LogStatus(context, "Failed to add scehdule, model={model}", model);
+            queueResult.LogStatus(context, "Failed to add scehdule");
             return;
         }
 

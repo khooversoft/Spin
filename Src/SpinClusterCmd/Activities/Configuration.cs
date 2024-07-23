@@ -58,8 +58,9 @@ internal class Configuration : ICommandRoute
 
         ConfigModel model = readResult.Return();
 
+        context.LogInformation("Creating/Updating Tenant from jsonFile={jsonFile}", jsonFile);
         Option response = await _client.Set(model, context);
-        response.LogStatus(context, "Creating/Updating configuration, model={model}", model);
+        response.LogStatus(context, "Creating/Updating Tenant");
     }
 
     public async Task SetProperty(string configId, string key, string value)
@@ -73,6 +74,7 @@ internal class Configuration : ICommandRoute
             Value = value,
         };
 
+        context.LogInformation("Set property, configId={configId}, key={key}, value={value}", configId, key, value);
         var response = await _client.SetProperty(request, context);
         response.LogStatus(context, "Set property");
     }
@@ -87,6 +89,7 @@ internal class Configuration : ICommandRoute
             Key = key,
         };
 
+        context.LogInformation("Remove property, configId={configId}, key={key}", configId, key);
         var response = await _client.RemoveProperty(request, context);
         response.LogStatus(context, "Remove property");
     }
