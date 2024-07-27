@@ -57,11 +57,11 @@ public class StringTokenizer
                         .Slice((int)dataStart, index - (int)dataStart)
                         .ToString();
 
-                    tokenList.Add(new TokenValue(dataValue));
+                    tokenList.Add(new TokenValue(dataValue, dataStart.Value));
                     dataStart = null;
                 }
 
-                IToken token = syntaxRules[syntaxIndex].CreateToken(span.Slice(index, (int)matchLength));
+                IToken token = syntaxRules[syntaxIndex].CreateToken(span.Slice(index, (int)matchLength), index);
                 tokenList.Add(token);
                 break;
             }
@@ -81,7 +81,7 @@ public class StringTokenizer
                 .Slice((int)dataStart, span.Length - (int)dataStart)
                 .ToString();
 
-            tokenList.Add(new TokenValue(dataValue));
+            tokenList.Add(new TokenValue(dataValue, dataStart.Value));
         }
 
         if (_filter != null) tokenList = tokenList.Where(x => _filter(x)).ToList();

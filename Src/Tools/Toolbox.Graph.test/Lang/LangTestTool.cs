@@ -22,7 +22,7 @@ internal static class LangTestTools
         pass.Should().Be(true, test.RawData);
         if (test.Results.Count == 0) return;
 
-        LangNodes nodes = tree.LangNodes.NotNull();
+        LangNodes nodes = tree.LangNodes.NotNull(); 
         test.Results.Count.Should().Be(nodes.Children.Count);
 
         var zip = nodes.Children.Zip(test.Results);

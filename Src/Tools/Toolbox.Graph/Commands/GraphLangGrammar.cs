@@ -11,6 +11,7 @@ namespace Toolbox.Graph;
 /// (...) = {* | v | k=v}
 /// [...] = {* | v | k=v}
 /// search = { (...) | [...] } [-> { (...) | [...] ...}
+/// search = { (...) | [...] } [- { (...) | [...] ...}
 /// tag = {k | k=v}[, {k | k=v}...]
 /// data = {name} {{ k, k=v, ... }}
 /// 
@@ -69,9 +70,25 @@ public static class GraphLangGrammar
                 + (new LsGroup("[", "]", "edge-group") + TagParameters)
                 + new LsValue("alias", true);
 
-            var search = new LsRepeat(nameof(SearchQuery))
+            var directedSearch = new LsRoot("directed-search")
                 + (new LsSwitch($"{nameof(SearchQuery)}-or") + nodeSyntax + edgeSyntax)
                 + new LsToken("->", "select-next", true);
+
+            var fullSearch = new LsRoot("full-search")
+                + (new LsSwitch($"{nameof(SearchQuery)}-or") + nodeSyntax + edgeSyntax)
+                + new LsToken("<->", "select-next", true);
+
+            var search = new LsRepeat(true, nameof(SearchQuery))
+                + (new LsSwitch($"{nameof(SearchQuery)}-or") + directedSearch + fullSearch);
+                //+ new LsToken("->", "select-next", true);
+                //+ new LsToken("<->", "select-both", true);
+
+            //+ (new LsOption("select-next-option")
+            //    + (new LsSwitch($"{nameof(SearchQuery)}-select")
+            //        + new LsToken("->", "select-next", true)
+            //        + new LsToken("-", "select-both", true)
+            //        )
+            //    );
             return search;
         }
     }

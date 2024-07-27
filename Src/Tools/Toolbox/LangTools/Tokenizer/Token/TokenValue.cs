@@ -6,12 +6,14 @@ namespace Toolbox.LangTools;
 /// <summary>
 /// Token value extracted from data
 /// </summary>
-[DebuggerDisplay("TokenType={TokenType}, Token={Value}, IsSyntaxToken={IsSyntaxToken}")]
+[DebuggerDisplay("TokenType={TokenType}, Token={Value}, IsSyntaxToken={IsSyntaxToken}, Index={Index}")]
 public readonly struct TokenValue : IToken
 {
     public TokenValue(string value) => Value = value.NotNull();
+    public TokenValue(string value, int index) => (Value, Index) = (value.NotNull(), index);
 
     public string Value { get; init; }
+    public int? Index { get; init; }
     public bool IsSyntaxToken { get; init; }
     public TokenType TokenType { get; init; } = TokenType.Token;
 

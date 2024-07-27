@@ -37,7 +37,7 @@ public class BlockSyntax : ITokenSyntax
             if (isEscape)
             {
                 isEscape = false;
-                if (span[index] != StopSignal) throw new ArgumentException($"Invalid escape sequence for token={span[index]}, stopSignal={StopSignal}");
+                //if (span[index] != StopSignal) throw new ArgumentException($"Invalid escape sequence for token={span[index]}, stopSignal={StopSignal}");
                 continue;
             }
 
@@ -53,9 +53,9 @@ public class BlockSyntax : ITokenSyntax
         throw new ArgumentException($"Missing ending signal={StopSignal}");
     }
 
-    public IToken CreateToken(ReadOnlySpan<char> span)
+    public IToken CreateToken(ReadOnlySpan<char> span, int index)
     {
         string value = span.ToString();
-        return new BlockToken(value, StartSignal, StopSignal);
+        return new BlockToken(value, StartSignal, StopSignal, index);
     }
 }

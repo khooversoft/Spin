@@ -190,6 +190,7 @@ public static class GraphSelectCommand
                         EdgeType = edgeType,
                         Tags = tags.RemoveCommands().ToTags(),
                         Alias = alias,
+                        Direction = EdgeDirection.Directed,
                     };
 
                 default:

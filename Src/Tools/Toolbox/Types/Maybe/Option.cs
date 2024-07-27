@@ -40,7 +40,7 @@ public static class OptionExtensions
     public static bool IsNotFound(this Option subject) => subject.StatusCode.IsNotFound();
     public static bool IsError(this Option subject) => subject.StatusCode.IsError();
     public static bool IsConflict(this Option subject) => subject.StatusCode.IsConflict();
-
+    public static bool IsNoContent(this Option subject) => subject.StatusCode.IsNoContent();
 
     [DebuggerStepThrough]
     public static bool IsError(this Option subject, out Option result)

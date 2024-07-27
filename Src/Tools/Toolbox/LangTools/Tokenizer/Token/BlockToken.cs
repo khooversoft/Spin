@@ -5,10 +5,10 @@ namespace Toolbox.LangTools;
 /// <summary>
 /// Block token that has been extracted from the data.
 /// </summary>
-[DebuggerDisplay("TokenType={TokenType}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}")]
+[DebuggerDisplay("TokenType={TokenType}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}, Index={Index}")]
 public struct BlockToken : IToken
 {
-    public BlockToken(string value, char startSignal, char stopSignal)
+    public BlockToken(string value, char startSignal, char stopSignal, int index)
     {
         StartSignal = startSignal;
         StopSignal = stopSignal;
@@ -18,6 +18,7 @@ public struct BlockToken : IToken
         if (value[^1] != StopSignal) throw new ArgumentException("Stop signal does not match");
 
         Value = value.Substring(1, value.Length - 2);
+        Index = index;
     }
 
     public char StartSignal { get; }
@@ -25,6 +26,7 @@ public struct BlockToken : IToken
 
     public string Value { get; }
     public TokenType TokenType { get; } = TokenType.Block;
+    public int Index { get; }
 
     public override string ToString() => Value;
     public override int GetHashCode() => Value.GetHashCode();

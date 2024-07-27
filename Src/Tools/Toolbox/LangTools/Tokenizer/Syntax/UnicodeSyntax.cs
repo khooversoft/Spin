@@ -24,9 +24,9 @@ public class UnicodeSyntax : ITokenSyntax
         return null;
     }
 
-    public IToken CreateToken(ReadOnlySpan<char> span)
+    public IToken CreateToken(ReadOnlySpan<char> span, int index)
     {
         string value = span.ToString();
-        return new TokenValue(value) { IsSyntaxToken = true, TokenType = TokenType.Unicode };
+        return new TokenValue(value, index) { IsSyntaxToken = true, TokenType = TokenType.Unicode };
     }
 }

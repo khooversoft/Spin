@@ -27,7 +27,7 @@ public class LangParserContext
     public FinalizeScope<LangParserContext> PushWithScope(ILangRoot langRoot)
     {
         Push(langRoot);
-        return new FinalizeScope<LangParserContext>(this, x => x.Pop());
+        return new FinalizeScope<LangParserContext>(this, x => x.Pop(), x => x.RemovePush());
     }
 
     public void Push(ILangRoot langRoot)

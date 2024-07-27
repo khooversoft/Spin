@@ -8,7 +8,7 @@ public class WhiteSpaceSyntax : ITokenSyntax
 {
     public int Priority { get; }
 
-    public IToken CreateToken(ReadOnlySpan<char> span) => new TokenValue(" ");
+    public IToken CreateToken(ReadOnlySpan<char> span, int index) => new TokenValue(" ", index);
 
     public int? Match(ReadOnlySpan<char> span)
     {
