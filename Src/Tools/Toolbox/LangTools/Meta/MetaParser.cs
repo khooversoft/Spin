@@ -147,7 +147,7 @@ public static class MetaParser
 
             if (pContext.Nodes.TryGetValue(token.Value, out var syntax))
             {
-                rule.Children.Add(new ProductionRuleReference { Name = $"{CreateName(rule.Name)}-{tokensProcessed}-{token.Value}", ReferenceSyntax = syntax });
+                rule.Children.Add(new ProductionRuleReference { Name = $"{CreateName(rule.Name)}-{tokensProcessed}-{token.Value}", ReferenceSyntax = syntax.Name });
                 continue;
             }
 

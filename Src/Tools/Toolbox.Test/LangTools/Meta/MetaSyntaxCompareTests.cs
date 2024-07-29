@@ -65,7 +65,7 @@ public class MetaSyntaxCompareTests
                 EvaluationType = EvaluationType.Sequence,
                 Children = new IMetaSyntax[]
                 {
-                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = new TerminalSymbol() },
+                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
                 },
             },
         };
@@ -95,7 +95,7 @@ public class MetaSyntaxCompareTests
                 EvaluationType = EvaluationType.Sequence,
                 Children = new IMetaSyntax[]
                 {
-                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = new TerminalSymbol() },
+                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
                 },
             },
         };
@@ -127,7 +127,7 @@ public class MetaSyntaxCompareTests
                 EvaluationType = EvaluationType.Sequence,
                 Children = new IMetaSyntax[]
                 {
-                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = new TerminalSymbol() },
+                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
                 },
             },
             new ProductionRule
@@ -137,7 +137,7 @@ public class MetaSyntaxCompareTests
                 EvaluationType = EvaluationType.Sequence,
                 Children = new IMetaSyntax[]
                 {
-                    new ProductionRuleReference { Name = "_tag-1-symbol", ReferenceSyntax = new TerminalSymbol() },
+                    new ProductionRuleReference { Name = "_tag-1-symbol", ReferenceSyntax = "symbol" },
                     new ProductionRule
                     {
                         Name = "_tag-3-OptionGroup",
@@ -146,7 +146,7 @@ public class MetaSyntaxCompareTests
                         Children = new IMetaSyntax[]
                         {
                             new VirtualTerminalSymbol { Name = "_tag-3-OptionGroup-1", Text = "=" },
-                            new ProductionRuleReference { Name = "_tag-3-OptionGroup-3-symbol", ReferenceSyntax = new TerminalSymbol() },
+                            new ProductionRuleReference { Name = "_tag-3-OptionGroup-3-symbol", ReferenceSyntax = "symbol" },
                         },
                     },
                 },

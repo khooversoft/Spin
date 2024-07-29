@@ -98,7 +98,7 @@ internal static class MetaTestTool
 
     private static string GenerateProductionRuleReference(ProductionRuleReference productionRuleReference)
     {
-        return $"new ProductionRuleReference {{ Name = \"{productionRuleReference.Name}\", ReferenceSyntax = new TerminalSymbol() }},";
+        return $"new ProductionRuleReference {{ Name = \"{productionRuleReference.Name}\", ReferenceSyntax = \"{productionRuleReference.ReferenceSyntax}\" }},";
     }
 
     private static string GenerateVirtualTerminalSymbol(VirtualTerminalSymbol virtualTerminalSymbol)

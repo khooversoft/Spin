@@ -38,16 +38,16 @@ public class ModelEqualTests
     [Fact]
     public void CompareProductionRuleReference()
     {
-        var p1 = new ProductionRuleReference { Name = "number", ReferenceSyntax = new TerminalSymbol() };
-        var p2 = new ProductionRuleReference { Name = "number", ReferenceSyntax = new TerminalSymbol(), Index = 1 };
+        var p1 = new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol" };
+        var p2 = new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol", Index = 1 };
         (p1 == p2).Should().BeTrue();
         p1.Equals(p2).Should().BeTrue();
 
-        p2 = new ProductionRuleReference { Name = null!, ReferenceSyntax = new TerminalSymbol() };
+        p2 = new ProductionRuleReference { Name = null!, ReferenceSyntax = "symbol" };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new ProductionRuleReference { Name = "number1", ReferenceSyntax = new TerminalSymbol() };
+        p2 = new ProductionRuleReference { Name = "number1", ReferenceSyntax = "symbol" };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
     }
@@ -104,7 +104,7 @@ public class ModelEqualTests
             Children = new IMetaSyntax[]
             {
                 new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true },
-                new ProductionRuleReference { Name = "number", ReferenceSyntax = new TerminalSymbol() },
+                new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol" },
             },
         };
 
@@ -115,7 +115,7 @@ public class ModelEqualTests
             Children = new IMetaSyntax[]
             {
                 new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true, Index = 1 },
-                new ProductionRuleReference { Name = "number", ReferenceSyntax = new TerminalSymbol(), Index = 1 },
+                new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol", Index = 1 },
             },
         };
 
@@ -128,7 +128,7 @@ public class ModelEqualTests
             Type = ProductionRuleType.Repeat,
             Children = new IMetaSyntax[]
             {
-                new ProductionRuleReference { Name = "number", ReferenceSyntax = new TerminalSymbol() },
+                new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol" },
             },
         };
 
@@ -142,7 +142,7 @@ public class ModelEqualTests
             Children = new IMetaSyntax[]
             {
                 new TerminalSymbol { Name = "number1", Text = "[+-]?[0-9]+", Regex = true },
-                new ProductionRuleReference { Name = "number", ReferenceSyntax = new TerminalSymbol() },
+                new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol" },
             },
         };
 
