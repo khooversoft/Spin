@@ -5,7 +5,7 @@ namespace Toolbox.LangTools;
 /// <summary>
 /// Block token that has been extracted from the data.
 /// </summary>
-[DebuggerDisplay("TokenType={TokenType}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}, Index={Index}")]
+[DebuggerDisplay("TokenType={TokenType}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}2, Index={Index}")]
 public struct BlockToken : IToken
 {
     public BlockToken(string value, char startSignal, char stopSignal, int index)
@@ -26,7 +26,7 @@ public struct BlockToken : IToken
 
     public string Value { get; }
     public TokenType TokenType { get; } = TokenType.Block;
-    public int Index { get; }
+    public int? Index { get; }
 
     public override string ToString() => Value;
     public override int GetHashCode() => Value.GetHashCode();

@@ -37,7 +37,6 @@ public class BlockSyntax : ITokenSyntax
             if (isEscape)
             {
                 isEscape = false;
-                //if (span[index] != StopSignal) throw new ArgumentException($"Invalid escape sequence for token={span[index]}, stopSignal={StopSignal}");
                 continue;
             }
 

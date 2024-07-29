@@ -1,12 +1,8 @@
-// Test grammar for the graph query language
 
-number              = regex: [+-]?['0'-'9']+ ;
-symbol              = regex: [a-zA-Z][a-zA-Z0-9\-/]* ;
-base64              = regex: [a-zA-Z][a-zA-Z0-9\-/]* ;
+number              = regex: '[+-]?[0-9]+' ;
+symbol              = regex: '[a-zA-Z][a-zA-Z0-9\-/]*' ;
+base64              = regex: '[a-zA-Z][a-zA-Z0-9\-/]*' ;
 equal               = '=' ;
-tag                 = symbol ['=' symbol ] ;
-tags                = { }
-alias               = symbol ;
 join-left           = '->' ;
 join-inner          = '<->' ;
 node-sym            = 'node' ;
@@ -27,12 +23,15 @@ close-brace         = '}' ;
 comma               = ',' ;
 term                = ';' ;
 
+alias               = symbol ;
+tag                 = symbol, ['=', symbol ] ;
+tags                = { comma, tag } ;
 node-spec           = open-param, tag, { comma, tag }, close-param, [ symbol ] ;
 edge-spec           = open-bracket, tag, { comma, tag }, close-bracket, [ symbol ] ;
 join                = [ join-left | join-inner ] ;
 return-query        = return-sym, symbol, { comma, symbol } ;
 entity-data         = symbol, open-brace, base64, close-brace ;
-set-cmd             = set-sym, tag, { comma, tag }
+set-cmd             = set-sym, tag, { comma, tag } ;
 
 select-node-query   = node-spec, { join, edge-spec } ;
 edge-node-query     = edge-spec, { join, node-spec } ;
@@ -40,4 +39,4 @@ edge-node-query     = edge-spec, { join, node-spec } ;
 addCommand          = add-sym, ( node-sym | edge-sym ), { comma, tag }, [ entity-data ], term ;
 updateCommand       = update-sym, ( node-sym | edge-sym ), ( select-node-query | edge-node-query ), set-cmd, term;
 deleteCommand       = delete-sym, ( node-sym | edge-sym ), ( select-node-query | edge-node-query ), term;
-selectCommand       = select-sym, ( node-sym | edge-sym ), ( select-node-query | edge-node-query ), [ returnQuery ], term ;
+selectCommand       = select-sym, ( node-sym | edge-sym ), ( select-node-query | edge-node-query ), [ return-query ], term ;

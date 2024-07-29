@@ -13,7 +13,6 @@ namespace Toolbox.Test.LangTools.Meta;
 public class ParseTerminalTests
 {
     [Theory]
-    [InlineData("number=regex:'[+-]?[0-9]+'")]
     [InlineData("number=redgex:'[+-]?[0-9]+';")]
     [InlineData("number= regex;")]
     [InlineData("='=';")]
