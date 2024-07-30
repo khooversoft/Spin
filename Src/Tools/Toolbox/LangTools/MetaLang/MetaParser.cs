@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -49,20 +41,30 @@ public static class MetaParser
     private static Option ParseTerminal(MetaParserContext pContext)
     {
         using var scope = pContext.PushWithScope();
-        bool isRegex = false;
 
         if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
         if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
         if (!pContext.TokensCursor.TryNextValue(out IToken? valueToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected value token"));
 
-        if (valueToken.Value.EqualsIgnoreCase("regex:"))
+        TerminalType terminalType = TerminalType.Token;
+
+        switch (valueToken.Value)
         {
-            if (!pContext.TokensCursor.TryNextValue(out IToken? regexToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected regex token"));
-            isRegex = true;
-            valueToken = regexToken;
+            case "string":
+                terminalType = TerminalType.String;
+                break;
+
+            case "regex":
+                if (!pContext.TokensCursor.TryNextValue(out IToken? regexToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected regex token"));
+                terminalType = TerminalType.Regex;
+                valueToken = regexToken;
+                goto default;
+
+            default:
+                if (valueToken.TokenType != TokenType.Block) return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literial"));
+                break;
         }
 
-        if (valueToken.TokenType != TokenType.Block) return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literial"));
         if (!pContext.TokensCursor.TryNextValue(out IToken? termSymbol) || termSymbol.Value != ";") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected value token"));
 
         scope.Cancel();
@@ -71,7 +73,7 @@ public static class MetaParser
         {
             Name = nameToken.Value.NotEmpty(),
             Text = valueToken.Value.NotEmpty(),
-            Regex = isRegex,
+            Type = terminalType,
             Index = pContext.TokensCursor.Current.Index,
         };
 

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
@@ -17,14 +12,14 @@ public class ProductionRuleTests
     public void NonTerminalRule1()
     {
         string[] rules = [
-            "symbol = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "alias = symbol ;",
             ];
 
         test(rules);
 
         rules = [
-            "symbol=regex:'[a-zA-Z][a-zA-Z0-9\\-/]*';",
+            "symbol=regex'[a-zA-Z][a-zA-Z0-9\\-/]*';",
             "alias=symbol;",
             ];
 
@@ -43,7 +38,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("symbol");
                 x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Regex.Should().BeTrue();
+                x.Type.Should().Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as ProductionRule).Action(x =>
@@ -64,14 +59,14 @@ public class ProductionRuleTests
     public void NonTerminalRule2()
     {
         string[] rules = [
-            "symbol = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "tag = symbol, ['=', symbol ] ;",
             ];
 
         test(rules);
 
         rules = [
-            "symbol=regex:'[a-zA-Z][a-zA-Z0-9\\-/]*';",
+            "symbol=regex'[a-zA-Z][a-zA-Z0-9\\-/]*';",
             "tag=symbol,['=',symbol];",
             ];
 
@@ -90,7 +85,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("symbol");
                 x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Regex.Should().BeTrue();
+                x.Type.Should().Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as ProductionRule).Action(x =>
@@ -132,7 +127,7 @@ public class ProductionRuleTests
     public void NonTerminalRule3()
     {
         string[] rules = [
-            "symbol = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "comma = ',' ;",
             "tag = symbol, ['=', symbol ] ;",
             "tags = { comma, tag } ;",
@@ -153,7 +148,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("symbol");
                 x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Regex.Should().BeTrue();
+                x.Type.Should().Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as TerminalSymbol).Action(x =>
@@ -161,7 +156,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("comma");
                 x.Text.Should().Be(",");
-                x.Regex.Should().BeFalse();
+                x.Type.Should().Be(TerminalType.Token);
             });
 
             (root.Rule.Children[2] as ProductionRule).Action(x =>
@@ -239,7 +234,7 @@ public class ProductionRuleTests
     public void OptionalOrRule3()
     {
         string[] rules = [
-            "symbol      = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol      = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "join-left   = '->' ;",
             "join-inner  = '<->' ;",
             "join        = [ join-left | join-inner | symbol ] ;",
@@ -260,7 +255,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("symbol");
                 x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Regex.Should().BeTrue();
+                x.Type.Should().Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as TerminalSymbol).Action(x =>
@@ -268,7 +263,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("join-left");
                 x.Text.Should().Be("->");
-                x.Regex.Should().BeFalse();
+                x.Type.Should().Be(TerminalType.Token);
             });
 
             (root.Rule.Children[2] as TerminalSymbol).Action(x =>
@@ -276,7 +271,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("join-inner");
                 x.Text.Should().Be("<->");
-                x.Regex.Should().BeFalse();
+                x.Type.Should().Be(TerminalType.Token);
             });
 
             (root.Rule.Children[3] as ProductionRule).Action(x =>
@@ -326,7 +321,7 @@ public class ProductionRuleTests
     public void GroupRule1()
     {
         string[] rules = [
-            "symbol      = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol      = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "join-left   = '->' ;",
             "join-inner  = '<->' ;",
             "group       = ( join-left | join-inner | symbol ) ;",
@@ -347,7 +342,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("symbol");
                 x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Regex.Should().BeTrue();
+                x.Type.Should().Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as TerminalSymbol).Action(x =>
@@ -355,7 +350,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("join-left");
                 x.Text.Should().Be("->");
-                x.Regex.Should().BeFalse();
+                x.Type.Should().Be(TerminalType.Token);
             });
 
             (root.Rule.Children[2] as TerminalSymbol).Action(x =>
@@ -363,7 +358,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("join-inner");
                 x.Text.Should().Be("<->");
-                x.Regex.Should().BeFalse();
+                x.Type.Should().Be(TerminalType.Token);
             });
 
             (root.Rule.Children[3] as ProductionRule).Action(x =>

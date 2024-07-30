@@ -80,8 +80,8 @@ public static class GraphLangGrammar
 
             var search = new LsRepeat(true, nameof(SearchQuery))
                 + (new LsSwitch($"{nameof(SearchQuery)}-or") + directedSearch + fullSearch);
-                //+ new LsToken("->", "select-next", true);
-                //+ new LsToken("<->", "select-both", true);
+            //+ new LsToken("->", "select-next", true);
+            //+ new LsToken("<->", "select-both", true);
 
             //+ (new LsOption("select-next-option")
             //    + (new LsSwitch($"{nameof(SearchQuery)}-select")

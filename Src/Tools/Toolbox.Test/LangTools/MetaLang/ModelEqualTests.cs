@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.LangTools;
 
 namespace Toolbox.Test.LangTools.Meta;
@@ -13,24 +8,24 @@ public class ModelEqualTests
     [Fact]
     public void CompareTerminal()
     {
-        var p1 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true };
-        var p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true, Index = 1 };
+        var p1 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex };
+        var p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Index = 1 };
         (p1 == p2).Should().BeTrue();
         p1.Equals(p2).Should().BeTrue();
 
-        p2 = new TerminalSymbol { Name = null!, Text = "[+-]?[0-9]+", Regex = true };
+        p2 = new TerminalSymbol { Name = null!, Text = "[+-]?[0-9]+", Type = TerminalType.Regex };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new TerminalSymbol { Name = "numberx", Text = "[+-]?[0-9]+", Regex = true };
+        p2 = new TerminalSymbol { Name = "numberx", Text = "[+-]?[0-9]+", Type = TerminalType.Regex };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new TerminalSymbol { Name = "number", Text = "x[+-]?[0-9]+", Regex = true };
+        p2 = new TerminalSymbol { Name = "number", Text = "x[+-]?[0-9]+", Type = TerminalType.Regex };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = false };
+        p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Token };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
     }
@@ -48,23 +43,6 @@ public class ModelEqualTests
         p1.Equals(p2).Should().BeFalse();
 
         p2 = new ProductionRuleReference { Name = "number1", ReferenceSyntax = "symbol" };
-        (p1 == p2).Should().BeFalse();
-        p1.Equals(p2).Should().BeFalse();
-    }
-
-    [Fact]
-    public void CompareGroupOperator()
-    {
-        var p1 = new GroupOperator { Name = "number" };
-        var p2 = new GroupOperator { Name = "number", Index = 1 };
-        (p1 == p2).Should().BeTrue();
-        p1.Equals(p2).Should().BeTrue();
-
-        p2 = new GroupOperator { Name = null! };
-        (p1 == p2).Should().BeFalse();
-        p1.Equals(p2).Should().BeFalse();
-
-        p2 = new GroupOperator { Name = "number1" };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
     }
@@ -89,7 +67,7 @@ public class ModelEqualTests
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Group, EvaluationType = EvaluationType.Or};
+        p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Group, EvaluationType = EvaluationType.Or };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
     }
@@ -103,7 +81,7 @@ public class ModelEqualTests
             Type = ProductionRuleType.Repeat,
             Children = new IMetaSyntax[]
             {
-                new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true },
+                new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
                 new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol" },
             },
         };
@@ -114,7 +92,7 @@ public class ModelEqualTests
             Type = ProductionRuleType.Repeat,
             Children = new IMetaSyntax[]
             {
-                new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true, Index = 1 },
+                new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Index = 1 },
                 new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol", Index = 1 },
             },
         };
@@ -141,7 +119,7 @@ public class ModelEqualTests
             Type = ProductionRuleType.Repeat,
             Children = new IMetaSyntax[]
             {
-                new TerminalSymbol { Name = "number1", Text = "[+-]?[0-9]+", Regex = true },
+                new TerminalSymbol { Name = "number1", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
                 new ProductionRuleReference { Name = "number", ReferenceSyntax = "symbol" },
             },
         };

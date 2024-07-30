@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="LangTools\Meta\GraphLanguage.txt" />
+    <None Remove="LangTools\MetaLang\GraphLanguage.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="LangTools\Meta\GraphLanguage.txt" />
+    <EmbeddedResource Include="LangTools\MetaLang\GraphLanguage.txt" />
   </ItemGroup>
 
   <ItemGroup>

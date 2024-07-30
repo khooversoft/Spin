@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
@@ -26,10 +21,10 @@ public class ParseTerminalTests
     [Fact]
     public void TerminalRule()
     {
-        var rule = "number  = regex: '[+-]?[0-9]+' ;";
+        var rule = "number  = regex '[+-]?[0-9]+' ;";
         test(rule);
 
-        rule = "number=regex:'[+-]?[0-9]+';";
+        rule = "number=regex'[+-]?[0-9]+';";
         test(rule);
 
         static void test(string rule)
@@ -42,7 +37,7 @@ public class ParseTerminalTests
             {
                 x.Name.Should().Be("number");
                 x.Text.Should().Be("[+-]?[0-9]+");
-                x.Regex.Should().BeTrue();
+                x.Type.Should().Be(TerminalType.Regex);
             });
         }
     }
@@ -66,7 +61,7 @@ public class ParseTerminalTests
             {
                 x.Name.Should().Be("equal");
                 x.Text.Should().Be("=");
-                x.Regex.Should().BeFalse();
+                x.Type.Should().Be(TerminalType.Token);
             });
         }
     }
@@ -90,7 +85,7 @@ public class ParseTerminalTests
             {
                 x.Name.Should().Be("add-sym");
                 x.Text.Should().Be("add");
-                x.Regex.Should().BeFalse();
+                x.Type.Should().Be(TerminalType.Token);
             });
         }
     }

@@ -1,5 +1,5 @@
-﻿using Toolbox.Types;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
+using Toolbox.Types;
 
 namespace Toolbox.LangTools;
 

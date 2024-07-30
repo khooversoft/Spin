@@ -19,7 +19,7 @@ public enum EvaluationType
     Or,
 }
 
-[DebuggerDisplay("ProductionRule: Name={Name}, Type={Type}, Children.Count={Children.Count} Index={Index}")]
+[DebuggerDisplay("ProductionRule: Name={Name}, Type={Type}, Children.Count={Children.Count}, Index={Index}")]
 public sealed record ProductionRule : IMetaSyntax
 {
     public string Name { get; init; } = null!;
@@ -44,6 +44,19 @@ public sealed record ProductionRule : IMetaSyntax
     public override string ToString() => $"ProductionRule [ Name={Name}, Type={Type}, Index={Index}, ChildrenCount={Children.Count} ]".ToEnumerable()
         .Concat(Children.Select(x => x.ToString()))
         .Join(Environment.NewLine);
+
+    public IEnumerable<T> GetAll<T>() where T : IMetaSyntax
+    {
+        foreach (var item in Children)
+        {
+            if (item is T resolved) yield return resolved;
+
+            if (item is ProductionRule rule)
+            {
+                foreach (var pr in rule.GetAll<T>()) yield return pr;
+            }
+        }
+    }
 }
 
 [DebuggerDisplay("ProductionRuleReference: Name={Name}, Index={Index}")]

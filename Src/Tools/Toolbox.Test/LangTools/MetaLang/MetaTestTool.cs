@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -13,7 +7,7 @@ namespace Toolbox.Test.LangTools.Meta;
 
 internal static class MetaTestTool
 {
-    public static string ReadGraphLanauge() => AssemblyResource.GetResourceString("Toolbox.Test.LangTools.Meta.GraphLanguage.txt", typeof(MetaTestTool)).NotNull();
+    public static string ReadGraphLanauge() => AssemblyResource.GetResourceString("Toolbox.Test.LangTools.MetaLang.GraphLanguage.txt", typeof(MetaTestTool)).NotNull();
 
     public static IReadOnlyList<string> GenerateTestCodeFromProductionRule(this ProductionRule subject)
     {
@@ -54,7 +48,7 @@ internal static class MetaTestTool
         foreach (var item in lines)
         {
             string line = item.Trim();
-            if ( line.StartsWith("}")) indent--;
+            if (line.StartsWith("}")) indent--;
 
             output += new string(' ', indent * 4) + line;
 
@@ -93,7 +87,7 @@ internal static class MetaTestTool
 
     private static string GenerateTerminalSymbol(TerminalSymbol terminalSymbol)
     {
-        return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Regex = {terminalSymbol.Regex.ToString().ToLower() } }},";
+        return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Type = TerminalType.{terminalSymbol.Type} }},";
     }
 
     private static string GenerateProductionRuleReference(ProductionRuleReference productionRuleReference)

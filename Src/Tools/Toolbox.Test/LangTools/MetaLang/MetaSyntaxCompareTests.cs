@@ -1,35 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
-using Toolbox.Extensions;
 
 namespace Toolbox.Test.LangTools.Meta;
 
 public class MetaSyntaxCompareTests
 {
     [Fact]
-    public void TerminalRuleTree()
+    public void TerminalRuleString()
     {
-        var rule = "number  = regex: '[+-]?[0-9]+' ;";
+        var rule = "number  = regex '[+-]?[0-9]+' ;";
 
         var root = MetaParser.ParseRules(rule);
         root.StatusCode.IsOk().Should().BeTrue();
 
         var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true },
+            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
         };
 
         Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
     }
 
     [Fact]
-    public void TerminalRuleTreeTestFail()
+    public void TerminalRuleRegex()
+    {
+        var rule = "number  = regex '[+-]?[0-9]+' ;";
+
+        var root = MetaParser.ParseRules(rule);
+        root.StatusCode.IsOk().Should().BeTrue();
+
+        var tree = new IMetaSyntax[]
+        {
+            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
+        };
+
+        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TerminalRuleTestFail()
     {
         var rule = "number  = '[+-]?[0-9]+' ;";
 
@@ -38,7 +49,7 @@ public class MetaSyntaxCompareTests
 
         var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+ *", Regex = true },
+            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+ *", Type = TerminalType.Regex },
         };
 
         Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeFalse();
@@ -48,7 +59,7 @@ public class MetaSyntaxCompareTests
     public void TerminalAndProductionRule()
     {
         string[] rules = [
-            "symbol = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "alias = symbol ;",
             ];
 
@@ -57,7 +68,7 @@ public class MetaSyntaxCompareTests
 
         var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Regex = true },
+            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
             new ProductionRule
             {
                 Name = "alias",
@@ -78,7 +89,7 @@ public class MetaSyntaxCompareTests
     public void TerminalAndProductionRuleFail()
     {
         string[] rules = [
-            "symbol = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "alias = symbol ;",
             ];
 
@@ -87,7 +98,7 @@ public class MetaSyntaxCompareTests
 
         var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Regex = true },
+            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
             new ProductionRule
             {
                 Name = "alias",
@@ -108,7 +119,7 @@ public class MetaSyntaxCompareTests
     public void TerminalAndProductionRuleWithSubRules()
     {
         string[] rules = [
-            "symbol = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "alias = symbol ;",
             "tag = symbol, ['=', symbol ] ;",
             ];
@@ -119,7 +130,7 @@ public class MetaSyntaxCompareTests
 
         var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Regex = true },
+            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
             new ProductionRule
             {
                 Name = "alias",
@@ -160,9 +171,9 @@ public class MetaSyntaxCompareTests
     public void ManyTerminalCommands()
     {
         string[] rules = [
-            "number              = regex: '[+-]?[0-9]+' ;",
-            "symbol              = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
-            "base64              = regex: '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "number              = regex '[+-]?[0-9]+' ;",
+            "symbol              = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
+            "base64              = string ;",
             "equal               = '=' ;",
             "join-left           = '->' ;",
             "join-inner          = '<->' ;",
@@ -186,13 +197,13 @@ public class MetaSyntaxCompareTests
             ];
 
         var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
-        root.StatusCode.IsOk().Should().BeTrue();
+        root.StatusCode.IsOk().Should().BeTrue(root.Error);
 
         var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true },
-            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Regex = true },
-            new TerminalSymbol { Name = "base64", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Regex = true },
+            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "base64", Text = "string", Type = TerminalType.String },
             new TerminalSymbol { Name = "equal", Text = "=" },
             new TerminalSymbol { Name = "join-left", Text = "->" },
             new TerminalSymbol { Name = "join-inner", Text = "<->" },
@@ -215,6 +226,6 @@ public class MetaSyntaxCompareTests
             new TerminalSymbol { Name = "term", Text = ";" },
         };
 
-        Enumerable.SequenceEqual(root.Rule.Children.OrderBy(x => x.Name), tree.OrderBy(x => x.Name)).Should().BeTrue();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
     }
 }

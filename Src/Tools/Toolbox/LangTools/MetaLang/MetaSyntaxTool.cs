@@ -2,7 +2,7 @@
 
 namespace Toolbox.LangTools;
 
-public static class MetaSyntaxTool
+internal static class MetaSyntaxTool
 {
     public readonly struct GroupToken
     {

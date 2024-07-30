@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
-using Toolbox.Extensions;
 
 namespace Toolbox.Test.LangTools.Meta;
 
@@ -29,29 +24,29 @@ public class SampleMetaSyntaxTest
     {
         var tree = new TreeNode<IMetaSyntax>
         {
-            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Regex = true },
-            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Regex = true },
-            new TerminalSymbol { Name = "base64", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Regex = true },
-            new TerminalSymbol { Name = "equal", Text = "=", Regex = false },
-            new TerminalSymbol { Name = "join-left", Text = "->", Regex = false },
-            new TerminalSymbol { Name = "join-inner", Text = "<->", Regex = false },
-            new TerminalSymbol { Name = "node-sym", Text = "node", Regex = false },
-            new TerminalSymbol { Name = "edge-sym", Text = "edge", Regex = false },
-            new TerminalSymbol { Name = "return-sym", Text = "return", Regex = false },
-            new TerminalSymbol { Name = "select-sym", Text = "select", Regex = false },
-            new TerminalSymbol { Name = "delete-sym", Text = "delete", Regex = false },
-            new TerminalSymbol { Name = "update-sym", Text = "update", Regex = false },
-            new TerminalSymbol { Name = "upsert-syn", Text = "upsert", Regex = false },
-            new TerminalSymbol { Name = "add-sym", Text = "add", Regex = false },
-            new TerminalSymbol { Name = "set-sym", Text = "set", Regex = false },
-            new TerminalSymbol { Name = "open-param", Text = "(", Regex = false },
-            new TerminalSymbol { Name = "close-param", Text = ")", Regex = false },
-            new TerminalSymbol { Name = "open-bracket", Text = "[", Regex = false },
-            new TerminalSymbol { Name = "close-bracket", Text = "]", Regex = false },
-            new TerminalSymbol { Name = "open-brace", Text = "{", Regex = false },
-            new TerminalSymbol { Name = "close-brace", Text = "}", Regex = false },
-            new TerminalSymbol { Name = "comma", Text = ",", Regex = false },
-            new TerminalSymbol { Name = "term", Text = ";", Regex = false },
+            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "base64", Text = "string", Type = TerminalType.String },
+            new TerminalSymbol { Name = "equal", Text = "=", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "join-left", Text = "->", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "join-inner", Text = "<->", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "node-sym", Text = "node", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "edge-sym", Text = "edge", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "return-sym", Text = "return", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "select-sym", Text = "select", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "delete-sym", Text = "delete", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "update-sym", Text = "update", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "upsert-syn", Text = "upsert", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "add-sym", Text = "add", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "set-sym", Text = "set", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "open-param", Text = "(", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "close-param", Text = ")", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "open-bracket", Text = "[", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "close-bracket", Text = "]", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "open-brace", Text = "{", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "close-brace", Text = "}", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "comma", Text = ",", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "term", Text = ";", Type = TerminalType.Token },
             new ProductionRule
             {
                 Name = "alias",
