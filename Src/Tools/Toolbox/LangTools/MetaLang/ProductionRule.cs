@@ -27,6 +27,7 @@ public sealed record ProductionRule : IMetaSyntax
     public EvaluationType EvaluationType { get; set; } = EvaluationType.Sequence;
     public Sequence<IMetaSyntax> Children { get; init; } = new Sequence<IMetaSyntax>();
     public int? Index { get; init; }
+    public IReadOnlyList<string> Tags { get; init; } = Array.Empty<string>();
 
     public bool Equals(ProductionRule? obj)
     {
@@ -34,7 +35,8 @@ public sealed record ProductionRule : IMetaSyntax
             Name == subject.Name &&
             Type == subject.Type &&
             EvaluationType == subject.EvaluationType &&
-            Enumerable.SequenceEqual(Children, subject.Children);
+            Enumerable.SequenceEqual(Children, subject.Children) &&
+            Enumerable.SequenceEqual(Tags.OrderBy(x => x), subject.Tags.OrderBy(x => x));
 
         return result;
     }

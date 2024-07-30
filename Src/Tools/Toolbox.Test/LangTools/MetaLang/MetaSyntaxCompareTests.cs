@@ -196,8 +196,11 @@ public class MetaSyntaxCompareTests
             "term                = ';' ;",
             ];
 
-        var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
+        string rule = rules.Join(Environment.NewLine);
+        var root = MetaParser.ParseRules(rule);
         root.StatusCode.IsOk().Should().BeTrue(root.Error);
+
+        var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
         var tree = new IMetaSyntax[]
         {

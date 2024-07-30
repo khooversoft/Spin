@@ -1,4 +1,6 @@
-﻿using Toolbox.Extensions;
+﻿using System.Collections.Immutable;
+using System.Text.RegularExpressions;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -6,6 +8,9 @@ namespace Toolbox.LangTools;
 
 public static class MetaParser
 {
+    private const string _pattern = @"^[a-zA-Z][-\w]*\w$";
+    private static readonly Regex _tagRegex = new Regex(_pattern);
+
     public static MetaSyntaxRoot ParseRules(string rules)
     {
         var tokens = new StringTokenizer()
@@ -44,37 +49,59 @@ public static class MetaParser
 
         if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
         if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
-        if (!pContext.TokensCursor.TryNextValue(out IToken? valueToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected value token"));
 
         TerminalType terminalType = TerminalType.Token;
 
-        switch (valueToken.Value)
+        bool isTerm = false;
+        IToken? valueToken = null;
+        var tags = new Sequence<string>();
+
+        while (pContext.TokensCursor.TryNextValue(out IToken? token))
         {
-            case "string":
-                terminalType = TerminalType.String;
-                break;
+            switch (token)
+            {
+                case var v when v.TokenType == TokenType.Token && v.Value == "string":
+                    if (terminalType != TerminalType.Token) return (StatusCode.BadRequest, pContext.ErrorMessage("Modifier already specified, like 'regex'"));
+                    terminalType = TerminalType.String;
+                    continue;
 
-            case "regex":
-                if (!pContext.TokensCursor.TryNextValue(out IToken? regexToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected regex token"));
-                terminalType = TerminalType.Regex;
-                valueToken = regexToken;
-                goto default;
+                case var v when v.TokenType == TokenType.Token && v.Value == "regex":
+                    if (terminalType != TerminalType.Token) return (StatusCode.BadRequest, pContext.ErrorMessage("Modifier already specified, like 'string'"));
+                    terminalType = TerminalType.Regex;
+                    continue;
 
-            default:
-                if (valueToken.TokenType != TokenType.Block) return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literial"));
-                break;
+                case var v when v.TokenType == TokenType.Token && v.Value == ";":
+                    isTerm = true;
+                    break;
+
+                case var v when v.TokenType == TokenType.Token && v.Value.StartsWith("#"):
+                    if( !IsTag(v.Value[1..])) return (StatusCode.BadRequest, pContext.ErrorMessage("Invalid tag"));
+                    tags += v.Value[1..];
+                    continue;
+
+                default:
+                    if (valueToken != null) return (StatusCode.BadRequest, pContext.ErrorMessage("Value token already specified"));
+                    if (token.TokenType != TokenType.Block) return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literial"));
+                    if (token.Value.IsEmpty()) return (StatusCode.BadRequest, pContext.ErrorMessage("Token is empty"));
+                    valueToken = token;
+                    continue;
+            }
+
+            break;
         }
 
-        if (!pContext.TokensCursor.TryNextValue(out IToken? termSymbol) || termSymbol.Value != ";") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected value token"));
+        if (!isTerm) return (StatusCode.BadRequest, pContext.ErrorMessage("No term ';' token"));
+        if (terminalType != TerminalType.String && valueToken == null) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected value token"));
 
         scope.Cancel();
 
         var syntax = new TerminalSymbol
         {
             Name = nameToken.Value.NotEmpty(),
-            Text = valueToken.Value.NotEmpty(),
+            Text = terminalType == TerminalType.String ? "string" : valueToken.NotNull().Value.NotEmpty(),
             Type = terminalType,
             Index = pContext.TokensCursor.Current.Index,
+            Tags = tags.ToImmutableArray(),
         };
 
         pContext.Add(syntax);
@@ -177,4 +204,5 @@ public static class MetaParser
     }
 
     private static string CreateName(string name) => name.Length > 0 && name[0] == '_' ? name : $"_{name}";
+    private static bool IsTag(string input) => _tagRegex.IsMatch(input);
 }

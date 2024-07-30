@@ -8,24 +8,41 @@ public class ModelEqualTests
     [Fact]
     public void CompareTerminal()
     {
-        var p1 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex };
-        var p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Index = 1 };
+        var p1 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Tags = ["t1"] };
+        var p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Tags = ["t1"], Index = 1 };
         (p1 == p2).Should().BeTrue();
         p1.Equals(p2).Should().BeTrue();
 
-        p2 = new TerminalSymbol { Name = null!, Text = "[+-]?[0-9]+", Type = TerminalType.Regex };
+        // Name
+        p2 = new TerminalSymbol { Name = null!, Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Tags = ["t1"] };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new TerminalSymbol { Name = "numberx", Text = "[+-]?[0-9]+", Type = TerminalType.Regex };
+        // Name
+        p2 = new TerminalSymbol { Name = "numberx", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Tags = ["t1"] };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new TerminalSymbol { Name = "number", Text = "x[+-]?[0-9]+", Type = TerminalType.Regex };
+        // Text
+        p2 = new TerminalSymbol { Name = "number", Text = "x[+-]?[0-9]+", Type = TerminalType.Regex, Tags = ["t1"] };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Token };
+        // Terminal type
+        p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Token, Tags = ["t1"] };
+        (p1 == p2).Should().BeFalse();
+        p1.Equals(p2).Should().BeFalse();
+
+        // Tags
+        p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex };
+        (p1 == p2).Should().BeFalse();
+        p1.Equals(p2).Should().BeFalse();
+
+        p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Tags = ["t2"] };
+        (p1 == p2).Should().BeFalse();
+        p1.Equals(p2).Should().BeFalse();
+
+        p2 = new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex, Tags = ["t1", "t2"] };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
     }

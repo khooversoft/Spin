@@ -87,7 +87,8 @@ internal static class MetaTestTool
 
     private static string GenerateTerminalSymbol(TerminalSymbol terminalSymbol)
     {
-        return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Type = TerminalType.{terminalSymbol.Type} }},";
+        string tags = terminalSymbol.Tags.Count == 0 ? string.Empty : $", Tags = [{(terminalSymbol.Tags.Select(x => $"\"{x}\"").Join(','))}]";
+        return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Type=TerminalType.{terminalSymbol.Type}{tags} }},";
     }
 
     private static string GenerateProductionRuleReference(ProductionRuleReference productionRuleReference)

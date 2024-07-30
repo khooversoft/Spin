@@ -30,7 +30,7 @@ public class SyntaxParser
 
         while (pContext.TokensCursor.TryPeekValue(out var _))
         {
-
+            var status2 = ProcessRules(pContext);
         }
 
         Option status = pContext.TokensCursor.TryPeekValue(out var _) switch
@@ -41,6 +41,45 @@ public class SyntaxParser
 
         return status;
     }
+
+    private Option ProcessRules(SyntaxParserContext pContext)
+    {
+        foreach (var child in _syntaxRoot.Rule.Children)
+        {
+            Option status = child switch
+            {
+                TerminalSymbol terminal => ProcessTerminal(pContext, terminal),
+                ProductionRule productionRule => ProcessRules(pContext, productionRule),
+
+                _ => (StatusCode.BadRequest, pContext.ErrorMessage("Unknown token")),
+            };
+
+            if (!status.IsOk()) return status;
+        }
+
+        return StatusCode.OK;
+    }
+
+    private Option ProcessTerminal(SyntaxParserContext pContext, TerminalSymbol terminal)
+    {
+        using var scope = pContext.PushWithScope();
+
+        if( pContext.TokensCursor.Current.Value != terminal.Text) return (StatusCode.BadRequest, pContext.ErrorMessage($"Expected '{terminal.Text}'"));
+        pContext.Pairs.Add(new SyntaxPair { MetaSyntax = terminal, Text = terminal.Text });
+
+        return StatusCode.OK;
+    }
+
+    private Option ProcessRules(SyntaxParserContext pContext, ProductionRule productionRule)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public record SyntaxPair
+{
+    public IMetaSyntax MetaSyntax { get; init; } = null!;
+    public string Text { get; init; } = null!;
 }
 
 

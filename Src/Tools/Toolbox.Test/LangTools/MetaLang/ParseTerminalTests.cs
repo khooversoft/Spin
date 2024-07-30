@@ -89,4 +89,30 @@ public class ParseTerminalTests
             });
         }
     }
+
+    [Fact]
+    public void WithTag()
+    {
+        var rule = "add-sym = 'add' #tag ;";
+        test(rule);
+
+        rule = "add-sym='add'#tag;";
+        test(rule);
+
+        static void test(string rule)
+        {
+            var root = MetaParser.ParseRules(rule);
+            root.StatusCode.IsOk().Should().BeTrue();
+
+            root.Rule.Children.Count.Should().Be(1);
+            root.Rule.Children.OfType<TerminalSymbol>().First().Action(x =>
+            {
+                x.Name.Should().Be("add-sym");
+                x.Text.Should().Be("add");
+                x.Type.Should().Be(TerminalType.Token);
+                Enumerable.SequenceEqual(x.Tags, ["tag"]).Should().BeTrue();
+                Enumerable.SequenceEqual(x.Tags, ["taxg"]).Should().BeFalse();
+            });
+        }
+    }
 }

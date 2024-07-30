@@ -10,6 +10,7 @@ public class SyntaxParserContext
     public SyntaxParserContext(IReadOnlyList<IToken> tokens) => TokensCursor = new Cursor<IToken>(tokens.ToImmutableArray());
 
     public Cursor<IToken> TokensCursor { get; }
+    public Sequence<SyntaxPair> Pairs { get; } = new Sequence<SyntaxPair>();
 
     public FinalizeScope<SyntaxParserContext> PushWithScope()
     {

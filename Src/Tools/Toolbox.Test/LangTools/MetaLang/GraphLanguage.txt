@@ -14,12 +14,12 @@ update-sym          = 'update' ;
 upsert-syn          = 'upsert' ;
 add-sym             = 'add' ;
 set-sym             = 'set' ;
-open-param          = '(' ;
-close-param         = ')' ;
-open-bracket        = '[' ;
-close-bracket       = ']' ;
-open-brace          = '{' ;
-close-brace         = '}' ;
+open-param          = '(' #node-start;
+close-param         = ')' #node-end ;
+open-bracket        = '[' #edge-start ;
+close-bracket       = ']' #edge-start ;
+open-brace          = '{' #data-start ;
+close-brace         = '}' #data-end ;
 comma               = ',' ;
 term                = ';' ;
 
@@ -36,7 +36,7 @@ set-cmd             = set-sym, tag, { comma, tag } ;
 select-node-query   = node-spec, { join, edge-spec } ;
 edge-node-query     = edge-spec, { join, node-spec } ;
 
-addCommand          = add-sym, ( node-sym | edge-sym ), { comma, tag }, [ entity-data ], term ;
+addCommand          = add-sym, ( node-sym | edge-sym ), tag, { comma, tag }, [ entity-data ], term ;
 updateCommand       = update-sym, ( node-sym | edge-sym ), ( select-node-query | edge-node-query ), set-cmd, term;
 deleteCommand       = delete-sym, ( node-sym | edge-sym ), ( select-node-query | edge-node-query ), term;
 selectCommand       = select-sym, ( node-sym | edge-sym ), ( select-node-query | edge-node-query ), [ return-query ], term ;

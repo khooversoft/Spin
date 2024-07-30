@@ -17,36 +17,38 @@ public class SampleMetaSyntaxTest
 
         var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
-        CompareToExpected(root, ExpectedTree());
+        var expected = ExpectedTree();
+        root.Rule.Children.Count.Should().Be(expected.Count);
+        Enumerable.SequenceEqual(root.Rule.Children, expected).Should().BeTrue();
     }
 
-    private TreeNode<IMetaSyntax> ExpectedTree()
+    private IReadOnlyList<IMetaSyntax> ExpectedTree()
     {
-        var tree = new TreeNode<IMetaSyntax>
+        var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
-            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
-            new TerminalSymbol { Name = "base64", Text = "string", Type = TerminalType.String },
-            new TerminalSymbol { Name = "equal", Text = "=", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "join-left", Text = "->", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "join-inner", Text = "<->", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "node-sym", Text = "node", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "edge-sym", Text = "edge", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "return-sym", Text = "return", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "select-sym", Text = "select", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "delete-sym", Text = "delete", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "update-sym", Text = "update", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "upsert-syn", Text = "upsert", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "add-sym", Text = "add", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "set-sym", Text = "set", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "open-param", Text = "(", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "close-param", Text = ")", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "open-bracket", Text = "[", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "close-bracket", Text = "]", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "open-brace", Text = "{", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "close-brace", Text = "}", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "comma", Text = ",", Type = TerminalType.Token },
-            new TerminalSymbol { Name = "term", Text = ";", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type=TerminalType.Regex },
+            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type=TerminalType.Regex },
+            new TerminalSymbol { Name = "base64", Text = "string", Type=TerminalType.String },
+            new TerminalSymbol { Name = "equal", Text = "=", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "join-left", Text = "->", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "join-inner", Text = "<->", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "node-sym", Text = "node", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "edge-sym", Text = "edge", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "return-sym", Text = "return", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "select-sym", Text = "select", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "delete-sym", Text = "delete", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "update-sym", Text = "update", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "upsert-syn", Text = "upsert", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "add-sym", Text = "add", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "set-sym", Text = "set", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "open-param", Text = "(", Type=TerminalType.Token, Tags = ["node-start"] },
+            new TerminalSymbol { Name = "close-param", Text = ")", Type=TerminalType.Token, Tags = ["node-end"] },
+            new TerminalSymbol { Name = "open-bracket", Text = "[", Type=TerminalType.Token, Tags = ["edge-start"] },
+            new TerminalSymbol { Name = "close-bracket", Text = "]", Type=TerminalType.Token, Tags = ["edge-start"] },
+            new TerminalSymbol { Name = "open-brace", Text = "{", Type=TerminalType.Token, Tags = ["data-start"] },
+            new TerminalSymbol { Name = "close-brace", Text = "}", Type=TerminalType.Token, Tags = ["data-end"] },
+            new TerminalSymbol { Name = "comma", Text = ",", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "term", Text = ";", Type=TerminalType.Token },
             new ProductionRule
             {
                 Name = "alias",
@@ -302,28 +304,29 @@ public class SampleMetaSyntaxTest
                             new ProductionRuleReference { Name = "_addCommand-3-Group-3-edge-sym", ReferenceSyntax = "edge-sym" },
                         },
                     },
+                    new ProductionRuleReference { Name = "_addCommand-5-tag", ReferenceSyntax = "tag" },
                     new ProductionRule
                     {
-                        Name = "_addCommand-5-RepeatGroup",
+                        Name = "_addCommand-7-RepeatGroup",
                         Type = ProductionRuleType.Repeat,
                         EvaluationType = EvaluationType.Sequence,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_addCommand-5-RepeatGroup-1-comma", ReferenceSyntax = "comma" },
-                            new ProductionRuleReference { Name = "_addCommand-5-RepeatGroup-3-tag", ReferenceSyntax = "tag" },
+                            new ProductionRuleReference { Name = "_addCommand-7-RepeatGroup-1-comma", ReferenceSyntax = "comma" },
+                            new ProductionRuleReference { Name = "_addCommand-7-RepeatGroup-3-tag", ReferenceSyntax = "tag" },
                         },
                     },
                     new ProductionRule
                     {
-                        Name = "_addCommand-7-OptionGroup",
+                        Name = "_addCommand-9-OptionGroup",
                         Type = ProductionRuleType.Optional,
                         EvaluationType = EvaluationType.None,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_addCommand-7-OptionGroup-1-entity-data", ReferenceSyntax = "entity-data" },
+                            new ProductionRuleReference { Name = "_addCommand-9-OptionGroup-1-entity-data", ReferenceSyntax = "entity-data" },
                         },
                     },
-                    new ProductionRuleReference { Name = "_addCommand-9-term", ReferenceSyntax = "term" },
+                    new ProductionRuleReference { Name = "_addCommand-11-term", ReferenceSyntax = "term" },
                 },
             },
             new ProductionRule
@@ -439,15 +442,5 @@ public class SampleMetaSyntaxTest
         };
 
         return tree;
-    }
-
-    private void CompareToExpected(MetaSyntaxRoot root, TreeNode<IMetaSyntax> expectedTree)
-    {
-        CompareChildren(root.Rule.Children, expectedTree.Children);
-    }
-
-    void CompareChildren(IReadOnlyList<IMetaSyntax> ruleChildren, IReadOnlyList<TreeNode<IMetaSyntax>> expectedChildren)
-    {
-        ruleChildren.Count.Should().Be(expectedChildren.Count);
     }
 }
