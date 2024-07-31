@@ -9,7 +9,7 @@ public class SyntaxParseTests
 {
     private MetaSyntaxRoot? _root;
 
-    [Fact(Skip = "dkdk")]
+    [Fact]
     public void SimpleGraphRuleParse()
     {
         var root = GetSyntaxRoot();

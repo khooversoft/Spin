@@ -84,7 +84,6 @@ public class MetaSyntaxCompareTests
         Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
     }
 
-
     [Fact]
     public void TerminalAndProductionRuleFail()
     {
@@ -113,7 +112,6 @@ public class MetaSyntaxCompareTests
 
         Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
     }
-
 
     [Fact]
     public void TerminalAndProductionRuleWithSubRules()
@@ -163,6 +161,8 @@ public class MetaSyntaxCompareTests
                 },
             },
         };
+
+        tree.FlattenMatch(tree);
 
         Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
     }

@@ -28,7 +28,7 @@ public class SyntaxParser
 
         var pContext = new SyntaxParserContext(tokens);
 
-        while (pContext.TokensCursor.TryPeekValue(out var _))
+        while (pContext.TokensCursor.TryNextValue(out var _))
         {
             var status2 = ProcessRules(pContext);
         }
@@ -44,17 +44,27 @@ public class SyntaxParser
 
     private Option ProcessRules(SyntaxParserContext pContext)
     {
-        foreach (var child in _syntaxRoot.Rule.Children)
+        var rules = _syntaxRoot.Rule.Children.OfType<ProductionRule>();
+
+        foreach (var child in rules)
         {
-            Option status = child switch
-            {
-                TerminalSymbol terminal => ProcessTerminal(pContext, terminal),
-                ProductionRule productionRule => ProcessRules(pContext, productionRule),
+            Option status = ProcessRule(pContext, child);
 
-                _ => (StatusCode.BadRequest, pContext.ErrorMessage("Unknown token")),
-            };
+            if (status.IsNotFound()) continue;
+            if (!status.IsError()) return status;
+        }
 
-            if (!status.IsOk()) return status;
+        return StatusCode.OK;
+    }
+    private Option ProcessRule(SyntaxParserContext pContext, ProductionRule productionRule)
+    {
+        using var scope = pContext.PushWithScope();
+        var ruleCursor = productionRule.Children.ToCursor();
+
+        while (pContext.TokensCursor.TryNextValue(out var token))
+        {
+
+
         }
 
         return StatusCode.OK;
@@ -62,17 +72,15 @@ public class SyntaxParser
 
     private Option ProcessTerminal(SyntaxParserContext pContext, TerminalSymbol terminal)
     {
-        using var scope = pContext.PushWithScope();
+        switch (pContext.TokensCursor.Current)
+        {
+            case var v when v.TokenType == TokenType.Token && v.Value == terminal.Text:
+                pContext.Pairs.Add(new SyntaxPair { MetaSyntax = terminal, Text = terminal.Text });
+                return StatusCode.OK;
 
-        if( pContext.TokensCursor.Current.Value != terminal.Text) return (StatusCode.BadRequest, pContext.ErrorMessage($"Expected '{terminal.Text}'"));
-        pContext.Pairs.Add(new SyntaxPair { MetaSyntax = terminal, Text = terminal.Text });
-
-        return StatusCode.OK;
-    }
-
-    private Option ProcessRules(SyntaxParserContext pContext, ProductionRule productionRule)
-    {
-        throw new NotImplementedException();
+            default:
+                return StatusCode.NotFound;
+        };
     }
 }
 

@@ -17,6 +17,8 @@ public class SampleMetaSyntaxTest
 
         var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
+        ExpectedTree().FlattenMatch(root.Rule.Children);
+
         var expected = ExpectedTree();
         root.Rule.Children.Count.Should().Be(expected.Count);
         Enumerable.SequenceEqual(root.Rule.Children, expected).Should().BeTrue();
@@ -26,29 +28,29 @@ public class SampleMetaSyntaxTest
     {
         var tree = new IMetaSyntax[]
         {
-            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type=TerminalType.Regex },
-            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type=TerminalType.Regex },
-            new TerminalSymbol { Name = "base64", Text = "string", Type=TerminalType.String },
-            new TerminalSymbol { Name = "equal", Text = "=", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "join-left", Text = "->", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "join-inner", Text = "<->", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "node-sym", Text = "node", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "edge-sym", Text = "edge", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "return-sym", Text = "return", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "select-sym", Text = "select", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "delete-sym", Text = "delete", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "update-sym", Text = "update", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "upsert-syn", Text = "upsert", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "add-sym", Text = "add", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "set-sym", Text = "set", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "open-param", Text = "(", Type=TerminalType.Token, Tags = ["node-start"] },
-            new TerminalSymbol { Name = "close-param", Text = ")", Type=TerminalType.Token, Tags = ["node-end"] },
-            new TerminalSymbol { Name = "open-bracket", Text = "[", Type=TerminalType.Token, Tags = ["edge-start"] },
-            new TerminalSymbol { Name = "close-bracket", Text = "]", Type=TerminalType.Token, Tags = ["edge-start"] },
-            new TerminalSymbol { Name = "open-brace", Text = "{", Type=TerminalType.Token, Tags = ["data-start"] },
-            new TerminalSymbol { Name = "close-brace", Text = "}", Type=TerminalType.Token, Tags = ["data-end"] },
-            new TerminalSymbol { Name = "comma", Text = ",", Type=TerminalType.Token },
-            new TerminalSymbol { Name = "term", Text = ";", Type=TerminalType.Token },
+            new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "base64", Text = "string", Type = TerminalType.String },
+            new TerminalSymbol { Name = "equal", Text = "=", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "join-left", Text = "->", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "join-inner", Text = "<->", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "return-sym", Text = "return", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "select-sym", Text = "select", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "delete-sym", Text = "delete", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "update-sym", Text = "update", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "upsert-syn", Text = "upsert", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "node-sym", Text = "node", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "edge-sym", Text = "edge", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "add-sym", Text = "add", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "set-sym", Text = "set", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "open-param", Text = "(", Type = TerminalType.Token, Tags = ["group-start","node"] },
+            new TerminalSymbol { Name = "close-param", Text = ")", Type = TerminalType.Token, Tags = ["group-end","node"] },
+            new TerminalSymbol { Name = "open-bracket", Text = "[", Type = TerminalType.Token, Tags = ["group-start","edge"] },
+            new TerminalSymbol { Name = "close-bracket", Text = "]", Type = TerminalType.Token, Tags = ["group-end","edge"] },
+            new TerminalSymbol { Name = "open-brace", Text = "{", Type = TerminalType.Token, Tags = ["group-start","data"] },
+            new TerminalSymbol { Name = "close-brace", Text = "}", Type = TerminalType.Token, Tags = ["group-end","data"] },
+            new TerminalSymbol { Name = "comma", Text = ",", Type = TerminalType.Token },
+            new TerminalSymbol { Name = "term", Text = ";", Type = TerminalType.Token },
             new ProductionRule
             {
                 Name = "alias",

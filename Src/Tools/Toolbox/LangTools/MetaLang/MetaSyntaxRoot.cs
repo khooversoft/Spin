@@ -19,7 +19,7 @@ public static class MetaSyntaxRootExtensions
     {
         StatusCode = option.StatusCode,
         Error = option.Error,
-        Rule = subject.RootRule,
+        Rule = subject.RootRule.ConvertTo(),
         Nodes = subject.Nodes.ToImmutableDictionary(),
     };
 }

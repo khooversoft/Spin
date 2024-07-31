@@ -115,4 +115,30 @@ public class ParseTerminalTests
             });
         }
     }
+
+    [Fact]
+    public void With2Tag()
+    {
+        var rule = "add-sym = 'add' #start-group #group ;";
+        test(rule);
+
+        // Tags are not token parsed, just data so you can't have a space between them
+        rule = "add-sym='add' #start-group #group;";
+        test(rule);
+
+        static void test(string rule)
+        {
+            var root = MetaParser.ParseRules(rule);
+            root.StatusCode.IsOk().Should().BeTrue();
+
+            root.Rule.Children.Count.Should().Be(1);
+            root.Rule.Children.OfType<TerminalSymbol>().First().Action(x =>
+            {
+                x.Name.Should().Be("add-sym");
+                x.Text.Should().Be("add");
+                x.Type.Should().Be(TerminalType.Token);
+                Enumerable.SequenceEqual(x.Tags, ["start-group", "group"]).Should().BeTrue();
+            });
+        }
+    }
 }

@@ -25,7 +25,7 @@ public sealed record ProductionRule : IMetaSyntax
     public string Name { get; init; } = null!;
     public ProductionRuleType Type { get; init; } = ProductionRuleType.Root;
     public EvaluationType EvaluationType { get; set; } = EvaluationType.Sequence;
-    public Sequence<IMetaSyntax> Children { get; init; } = new Sequence<IMetaSyntax>();
+    public IReadOnlyList<IMetaSyntax> Children { get; init; } = Array.Empty<IMetaSyntax>();
     public int? Index { get; init; }
     public IReadOnlyList<string> Tags { get; init; } = Array.Empty<string>();
 

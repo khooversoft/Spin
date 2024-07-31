@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -88,7 +89,7 @@ internal static class MetaTestTool
     private static string GenerateTerminalSymbol(TerminalSymbol terminalSymbol)
     {
         string tags = terminalSymbol.Tags.Count == 0 ? string.Empty : $", Tags = [{(terminalSymbol.Tags.Select(x => $"\"{x}\"").Join(','))}]";
-        return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Type=TerminalType.{terminalSymbol.Type}{tags} }},";
+        return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Type = TerminalType.{terminalSymbol.Type}{tags} }},";
     }
 
     private static string GenerateProductionRuleReference(ProductionRuleReference productionRuleReference)
@@ -100,4 +101,37 @@ internal static class MetaTestTool
     {
         return $"new VirtualTerminalSymbol {{ Name = \"{virtualTerminalSymbol.Name}\", Text = \"{virtualTerminalSymbol.Text}\" }},";
     }
+
+    public static void FlattenMatch(this IReadOnlyList<IMetaSyntax> syntaxes, IReadOnlyList<IMetaSyntax> expected)
+    {
+        var matchTo = syntaxes.Flatten();
+        var matchFrom = expected.Flatten();
+        matchTo.Count.Should().Be(matchFrom.Count);
+
+        foreach (var (to, from) in matchTo.Zip(matchFrom))
+        {
+            bool match = to.Equals(from);
+            match.Should().BeTrue($"to: {to}, from: {from}");
+        }
+    }
+
+    public static IReadOnlyList<IMetaSyntax> Flatten(this IEnumerable<IMetaSyntax> syntaxes)
+    {
+        var seq = new Sequence<IMetaSyntax>();
+
+        foreach (var syntax in syntaxes)
+        {
+            if (syntax is ProductionRule rule)
+            {
+                seq += rule;
+                seq += rule.Children.Flatten();
+            }
+            else
+            {
+                seq += syntax;
+            }
+        }
+
+        return seq;
+    }   
 }

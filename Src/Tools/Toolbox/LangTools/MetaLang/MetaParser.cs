@@ -113,14 +113,16 @@ public static class MetaParser
         if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
         if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
 
-        var rule = new ProductionRule { Name = nameToken.Value, Index = pContext.TokensCursor.Current.Index };
-        pContext.Add(rule);
+        var rule = new ProductionRuleBuilder { Name = nameToken.Value, Index = pContext.TokensCursor.Current.Index };
 
         var result = ParseProductionRule(pContext, rule);
+        if (result.IsError()) return result;
+
+        pContext.Add(rule.ConvertTo());
         return result;
     }
 
-    private static Option ParseProductionRule(MetaParserContext pContext, ProductionRule rule, string? endToken = null)
+    private static Option ParseProductionRule(MetaParserContext pContext, ProductionRuleBuilder rule, string? endToken = null)
     {
         int tokensProcessed = 0;
         bool requireDelimiter = false;
@@ -189,16 +191,16 @@ public static class MetaParser
         {
             if (!MetaSyntaxTool.TryGetGroupToken(token.Value, out var groupToken)) return StatusCode.NoContent;
 
-            var newRule = new ProductionRule
+            var newRule = new ProductionRuleBuilder
             {
                 Name = $"{CreateName(rule.Name)}-{tokensProcessed}-{groupToken.Label}",
                 Type = groupToken.Type,
                 Index = pContext.TokensCursor.Current.Index,
             };
 
-            rule.Children.Add(newRule);
-
             var ruleResult = ParseProductionRule(pContext, newRule, groupToken.CloseSymbol);
+            rule.Children.Add(newRule.ConvertTo());
+
             return ruleResult;
         }
     }
