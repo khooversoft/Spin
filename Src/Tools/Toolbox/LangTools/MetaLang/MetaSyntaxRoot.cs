@@ -22,4 +22,30 @@ public static class MetaSyntaxRootExtensions
         Rule = subject.RootRule.ConvertTo(),
         Nodes = subject.Nodes.ToImmutableDictionary(),
     };
+
+    public static IReadOnlyList<string> GetParseTokens(this MetaSyntaxRoot syntaxRoot) => syntaxRoot.Rule
+        .GetAll<TerminalSymbol>()
+        .Where(x => x.Type == TerminalType.Token)
+        .Select(x => x.Text)
+        .ToImmutableArray();
+
+    public static IReadOnlyList<ProductionRule> GetRootRules(this MetaSyntaxRoot syntaxRoot)
+    {
+        var ruleDependencies = syntaxRoot.Rule.Children.OfType<ProductionRule>()
+            .SelectMany(x => syntaxRoot.GetDependencies(x), (o, i) => i.ReferenceSyntax)
+            .Distinct()
+            .ToHashSet();
+
+        var ruleNoOneDependsOn = syntaxRoot.Rule.Children.OfType<ProductionRule>()
+            .Where(x => !ruleDependencies.Contains(x.Name))
+            .Select(x => syntaxRoot.Nodes[x.Name])
+            .OfType<ProductionRule>()
+            .ToImmutableArray();
+
+        return ruleNoOneDependsOn;
+    }
+
+    public static IReadOnlyList<ProductionRuleReference> GetDependencies(this MetaSyntaxRoot syntaxRoot, ProductionRule rule) => rule
+        .GetAll<ProductionRuleReference>()
+        .ToImmutableArray();
 }

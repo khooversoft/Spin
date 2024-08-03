@@ -12,5 +12,6 @@ public interface IToken
 {
     string Value { get; }
     TokenType TokenType { get; }
-    public int? Index { get; }
+    int? Index { get; }
+    string GetDebuggerDisplay();
 }

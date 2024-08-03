@@ -8,8 +8,8 @@ namespace Toolbox.LangTools;
 
 public static class MetaParser
 {
-    private const string _pattern = @"^[a-zA-Z][-\w]*\w$";
-    private static readonly Regex _tagRegex = new Regex(_pattern);
+    private const string _tagPattern = @"^[a-zA-Z][-\w]*\w$";
+    private static readonly Regex _tagRegex = new Regex(_tagPattern);
 
     public static MetaSyntaxRoot ParseRules(string rules)
     {

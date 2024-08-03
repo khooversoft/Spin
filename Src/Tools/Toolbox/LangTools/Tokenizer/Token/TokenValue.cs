@@ -6,7 +6,7 @@ namespace Toolbox.LangTools;
 /// <summary>
 /// Token value extracted from data
 /// </summary>
-[DebuggerDisplay("TokenType={TokenType}, Token={Value}, IsSyntaxToken={IsSyntaxToken}, Index={Index}")]
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct TokenValue : IToken
 {
     public TokenValue(string value) => Value = value.NotNull();
@@ -26,4 +26,7 @@ public readonly struct TokenValue : IToken
     public static bool operator !=(TokenValue left, TokenValue right) => !(left == right);
 
     public static explicit operator string(TokenValue tokenValue) => tokenValue.Value;
+
+    public string GetDebuggerDisplay() => $"TokenValue: Type={TokenType}, Value={Value}, Index={Index}, IsSyntaxToken={IsSyntaxToken}";
 }
+

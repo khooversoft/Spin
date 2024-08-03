@@ -5,7 +5,7 @@ namespace Toolbox.LangTools;
 /// <summary>
 /// Block token that has been extracted from the data.
 /// </summary>
-[DebuggerDisplay("TokenType={TokenType}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}2, Index={Index}")]
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public struct BlockToken : IToken
 {
     public BlockToken(string value, char startSignal, char stopSignal, int index)
@@ -38,4 +38,7 @@ public struct BlockToken : IToken
 
     public static bool operator ==(BlockToken left, BlockToken right) => left.Equals(right);
     public static bool operator !=(BlockToken left, BlockToken right) => !(left == right);
+
+    public string GetDebuggerDisplay() => $"BlockToken: TokenType={TokenType}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}2, Index={Index}";
+
 }

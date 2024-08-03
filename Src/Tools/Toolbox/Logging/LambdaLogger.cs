@@ -24,6 +24,13 @@ public static class LambdaLoggerProviderExtension
 }
 
 
+public class LambdaLogger<T> : LambdaLogger, ILogger<T>
+{
+    public LambdaLogger(Action<string> redirect, string categoryName) : base(redirect, categoryName)
+    {
+    }
+}
+
 
 public class LambdaLogger : ILogger
 {

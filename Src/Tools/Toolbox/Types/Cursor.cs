@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -8,6 +9,7 @@ namespace Toolbox.Types;
 /// Provides cursor capability to a collection
 /// </summary>
 /// <typeparam name="T">list type</typeparam>
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class Cursor<T>
 {
     private int _cursor = -1;
@@ -108,7 +110,31 @@ public class Cursor<T>
         return new Option<T>(hasValue, value!);
     }
 
+    /// <summary>
+    /// Peek the next set of values
+    /// </summary>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    public IEnumerable<T> PeekValues(int count = 3)
+    {
+        int current = Math.Min(_cursor + 1, _list.Count);
+        int max = Math.Min(current + count, _list.Count);
+
+        for (int i = current; i < max; i++)
+        {
+            yield return _list[i];
+        }
+    }
+
+    public string PeeKValuesToString(int count = 3) => PeekValues(count).Select(x => Quote(x?.ToString())).Join(", ");
+    public string GetDebuggerDisplay() => $"Cursor: Index={Index}, _list.Count={_list.Count}, Current={Current?.ToString() ?? "<null>"}, Peek= {PeeKValuesToString()}";
     private int Track(int value) => value.Action(x => MaxIndex = Math.Max(MaxIndex, x));
+
+    private static string Quote(string? value) => value switch
+    {
+        null => "<null>",
+        var v => $"'{v}'",
+    };
 }
 
 
