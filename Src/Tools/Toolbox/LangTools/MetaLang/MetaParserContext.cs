@@ -12,7 +12,7 @@ public class MetaParserContext
     public MetaParserContext(IEnumerable<IToken> tokens) => TokensCursor = new Cursor<IToken>(tokens.ToImmutableArray());
 
     public Cursor<IToken> TokensCursor { get; }
-    public ProductionRuleBuilder RootRule { get; init; } = new ProductionRuleBuilder { Name = "Root", Type = ProductionRuleType.Root };
+    public ProductionRuleBuilder RootRule { get; } = new ProductionRuleBuilder { Name = "Root", Type = ProductionRuleType.Root };
     public Dictionary<string, IMetaSyntax> Nodes { get; init; } = new Dictionary<string, IMetaSyntax>(StringComparer.OrdinalIgnoreCase);
 
     public void Add(IMetaSyntax syntax)

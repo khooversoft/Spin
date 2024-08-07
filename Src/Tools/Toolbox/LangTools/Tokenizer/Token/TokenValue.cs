@@ -27,6 +27,6 @@ public readonly struct TokenValue : IToken
 
     public static explicit operator string(TokenValue tokenValue) => tokenValue.Value;
 
-    public string GetDebuggerDisplay() => $"TokenValue: Type={TokenType}, Value={Value}, Index={Index}, IsSyntaxToken={IsSyntaxToken}";
+    public string GetDebuggerDisplay() => $"TokenValue: Type={TokenType.ToString()}, Value={Value}, Index={Index}, IsSyntaxToken={IsSyntaxToken}";
 }
 

@@ -40,6 +40,6 @@ public sealed record TerminalSymbol : IMetaSyntax, IEquatable<TerminalSymbol>
     }
 
     public override int GetHashCode() => HashCode.Combine(Name, Text, Type, Index);
-    public override string ToString() => $"TerminalSymbol [ Name={Name}, Text={Text}, Type={Type}, Index={Index}, Tags={Tags.Join(";")} ]";
-    public string GetDebuggerDisplay() => $"TerminalSymbol: Name={Name}, Text={Text}, Type={Type}, Index={Index}, Tags={TagStrings}";
+    public override string ToString() => $"TerminalSymbol [ Name={Name}, Text={Text}, Type={Type.ToString()}, Index={Index}, Tags={Tags.Join(";")} ]";
+    public string GetDebuggerDisplay() => $"TerminalSymbol: Name={Name}, Text={Text}, Type={Type.ToString()}, Index={Index}, Tags={TagStrings}";
 }

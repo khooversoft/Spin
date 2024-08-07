@@ -59,5 +59,7 @@ public sealed record ProductionRule : IMetaSyntax
             }
         }
     }
-    public string GetDebuggerDisplay() => $"ProductionRule: Name={Name}, Type={Type}, EvaluationType={EvaluationType}, Children.Count={Children.Count}, Index={Index}";
+
+    public string GetDebuggerDisplay() =>
+        $"ProductionRule: Name={Name}, Type={Type.ToString()}, EvaluationType={EvaluationType.ToString()}, Children.Count={Children.Count}, Index={Index}";
 }

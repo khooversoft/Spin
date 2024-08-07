@@ -25,7 +25,6 @@ public static class MetaSyntaxRootExtensions
 
     public static IReadOnlyList<string> GetParseTokens(this MetaSyntaxRoot syntaxRoot) => syntaxRoot.Rule
         .GetAll<TerminalSymbol>()
-        .Where(x => x.Type == TerminalType.Token)
         .Select(x => x.Text)
         .ToImmutableArray();
 

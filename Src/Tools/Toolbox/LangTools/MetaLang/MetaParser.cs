@@ -199,7 +199,7 @@ public static class MetaParser
             };
 
             var ruleResult = ParseProductionRule(pContext, newRule, groupToken.CloseSymbol);
-            rule.Children.Add(newRule.ConvertTo());
+            if (ruleResult.StatusCode.IsOk()) rule.Children.Add(newRule.ConvertTo());
 
             return ruleResult;
         }

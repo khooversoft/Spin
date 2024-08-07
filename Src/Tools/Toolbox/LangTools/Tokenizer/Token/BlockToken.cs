@@ -39,6 +39,6 @@ public struct BlockToken : IToken
     public static bool operator ==(BlockToken left, BlockToken right) => left.Equals(right);
     public static bool operator !=(BlockToken left, BlockToken right) => !(left == right);
 
-    public string GetDebuggerDisplay() => $"BlockToken: TokenType={TokenType}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}2, Index={Index}";
+    public string GetDebuggerDisplay() => $"BlockToken: TokenType={TokenType.ToString()}, Token={Value}, StartSignal={StartSignal}, StopSignal={StopSignal}2, Index={Index}";
 
 }

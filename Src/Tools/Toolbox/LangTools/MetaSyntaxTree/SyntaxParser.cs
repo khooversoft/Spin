@@ -17,13 +17,12 @@ public class SyntaxParser
     public SyntaxParser(MetaSyntaxRoot syntaxRoot)
     {
         _syntaxRoot = syntaxRoot.NotNull();
-        _parseTokens = _syntaxRoot.GetParseTokens();
+        _parseTokens = _syntaxRoot.GetParseTokens().Assert(x => x.Count > 0, "No parse tokens found in meta schema");
         _rootRules = _syntaxRoot.GetRootRules().Assert(x => x.Count > 0, "No root rules");
     }
 
-    public Option Parse(string rawData, ScopeContext context)
+    public Option<SyntaxResponse> Parse(string rawData, ScopeContext context)
     {
-        _parseTokens.Count.Assert(x => x > 0, "No parse tokens found in meta schema");
         context.LogInformation("Parsing rawData={rawData}", rawData);
 
         var tokens = new StringTokenizer()
@@ -53,7 +52,16 @@ public class SyntaxParser
             true => (StatusCode.BadRequest, pContext.ErrorMessage("End of tokens reached before completing")),
         };
 
-        return status.LogStatus(context, "Parse exist");
+        status.LogStatus(context, "Parse completed");
+
+        var result = new SyntaxResponse
+        {
+            StatusCode = status.StatusCode,
+            Error = status.Error,
+            SyntaxTree = pContext.SyntaxTree.ConvertTo(),
+        };
+
+        return result;
     }
 
     private Option ProcessRules(SyntaxParserContext pContext, ScopeContext context)
@@ -62,153 +70,83 @@ public class SyntaxParser
 
         foreach (var rule in _rootRules)
         {
-            Option status = ProcessRule(pContext, rule, context);
+            Option status = ProcessRule(pContext, rule, pContext.SyntaxTree, context);
 
             if (status.IsNotFound()) continue;
-            if (!status.IsOk()) return status;
+            if (status.IsError()) return status;
         }
 
         return StatusCode.OK;
     }
-    private Option ProcessRule(SyntaxParserContext pContext, IMetaSyntax metaSyntax, ScopeContext context)
+
+    private Option ProcessRule(SyntaxParserContext pContext, IMetaSyntax parentMetaSyntax, SyntaxTreeBuilder tree, ScopeContext context)
     {
         using var scope = pContext.PushWithScope();
-        context.LogInformation("ProcessRule: pContext{pContext}, metaSyntax=[{metaSyntax}]", pContext.GetDebuggerDisplay(true), metaSyntax.GetDebuggerDisplay());
+        context.LogInformation("ProcessRule: pContext{pContext}, metaSyntax=[{metaSyntax}]", pContext.GetDebuggerDisplay(true), parentMetaSyntax.GetDebuggerDisplay());
 
-        switch (metaSyntax)
+        var stack = new Stack<IMetaSyntax>(GetMetaSyntaxList(parentMetaSyntax).Reverse());
+        ProductionRule? parentRule = parentMetaSyntax as ProductionRule;
+
+        bool success = false;
+        while (!success && stack.TryPop(out var syntax))
         {
-            case TerminalSymbol terminal:
-                var s1 = ProcessTerminal(pContext, terminal, context);
-                if (s1.IsError()) return s1;
-                break;
+            switch (syntax)
+            {
+                case TerminalSymbol terminal:
+                    var s1 = ProcessTerminal(pContext, terminal, tree, context);
+                    if (s1.IsError() && parentRule?.EvaluationType == EvaluationType.Or) continue;
+                    if (s1.IsError()) return s1;
+                    if (s1.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
+                    break;
 
-            case ProductionRule productionRule when productionRule.EvaluationType == EvaluationType.Sequence:
-                var ruleCursor = productionRule.Children.ToCursor();
-                var s2 = ProcessRuleChildren(pContext, ruleCursor, context);
-                if (s2.IsError()) return s2;
-                break;
+                case VirtualTerminalSymbol virtualTerminal:
+                    var s2 = ProcessVirtualTerminal(pContext, virtualTerminal, tree, context);
+                    if (s2.IsError() && parentRule?.EvaluationType == EvaluationType.Or) continue;
+                    if (s2.IsError()) return s2;
+                    if (s2.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
+                    break;
 
-            case ProductionRule productionOrRule when productionOrRule.EvaluationType == EvaluationType.Or:
-                var ruleOrCursor = productionOrRule.Children.ToCursor();
-                var s3 = ProcessRuleOrChildren(pContext, ruleOrCursor, context);
-                if (s3.IsError()) return s3;
-                break;
+                case ProductionRule rule:
+                    var ruleTree = new SyntaxTreeBuilder { MetaSyntax = rule };
+                    var s3 = ProcessRule(pContext, syntax, ruleTree, context);
+                    if (s3.IsError() && parentRule?.EvaluationType == EvaluationType.Or) continue;
+                    if (s3.IsError()) return s3;
+                    if (s3.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
+                    if( s3.IsOk()) tree.Children.Add(ruleTree.ConvertTo());
+                    break;
 
-            case ProductionRule productionOptionalRule when productionOptionalRule.Type == ProductionRuleType.Optional:
-                var ruleOptionalCursor = productionOptionalRule.Children.ToCursor();
-                var s4 = ProcessRuleChildren(pContext, ruleOptionalCursor, context);
-                if (s4.IsError())
-                {
-                    context.LogInformation(
-                        "ProcessRule: Optional rule not found, ignoring, tokensCursor.Index={tokensCursorIndex}, metaSyntax=[{metaSyntax}]",
-                        pContext.TokensCursor.Index, metaSyntax.GetDebuggerDisplay()
-                        );
-                }
+                case ProductionRuleReference referenceRule:
+                    if (!_syntaxRoot.Nodes.TryGetValue(referenceRule.ReferenceSyntax, out var referenceSyntax))
+                    {
+                        context.LogError("ProcessRule: Reference syntax={referenceSyntax} not found", referenceRule.ReferenceSyntax);
+                        return (StatusCode.NotFound, pContext.ErrorMessage($"Reference syntax={referenceRule.ReferenceSyntax} not found"));
+                    }
 
-                return StatusCode.NotFound;
+                    stack.Push(referenceSyntax);
+                    break;
 
-            default:
-                throw new UnreachableException();
+                default:
+                    throw new UnreachableException();
+            }
         }
 
         scope.Cancel();
         context.LogInformation("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay(true));
         return StatusCode.OK;
-    }
 
-    private Option ProcessRuleChildren(SyntaxParserContext pContext, Cursor<IMetaSyntax> ruleCursor, ScopeContext context)
-    {
-        context.LogInformation("ProcessRuleChildren: enter - pContext{pContext}", pContext.GetDebuggerDisplay(true));
-
-        while (pContext.TokensCursor.TryNextValue(out var token) && ruleCursor.TryNextValue(out var rule))
+        static IReadOnlyList<IMetaSyntax> GetMetaSyntaxList(IMetaSyntax metaSyntax)
         {
-            context.LogInformation("ProcessRuleChildren: token=[{token}], rule=[{rule}]", token.GetDebuggerDisplay(), rule.GetDebuggerDisplay());
-            context.LogInformation("ProcessRuleChildren: tryNextValue - pContext{pContext}", pContext.GetDebuggerDisplay(true));
+            if (metaSyntax is TerminalSymbol terminalSymbol) return [terminalSymbol];
+            if (metaSyntax is ProductionRuleReference productionRuleReference) return [productionRuleReference];
+            if (metaSyntax is ProductionRule productionRule) return productionRule.Children;
 
-            switch (rule)
-            {
-                case ProductionRuleReference reference:
-                    if (!_syntaxRoot.Nodes.TryGetValue(reference.ReferenceSyntax, out var syntax))
-                    {
-                        context.LogError("ProcessRuleChildren: Reference syntax={referenceSyntax} not found", reference.ReferenceSyntax);
-                        return (StatusCode.NotFound, pContext.ErrorMessage($"Reference syntax={reference.ReferenceSyntax} not found"));
-                    }
-
-                    var s0 = ProcessRule(pContext, syntax, context);
-                    if (s0.IsError()) return s0;
-                    break;
-
-                case TerminalSymbol terminal:
-                    var s1 = ProcessTerminal(pContext, terminal, context);
-                    if (s1.IsError()) return s1;
-                    break;
-
-                case ProductionRule productionRule:
-                    var s2 = ProcessRule(pContext, rule, context);
-                    if (s2.IsNotFound()) continue;
-                    if (s2.IsError()) return s2;
-                    break;
-
-                default:
-                    throw new UnreachableException();
-            }
-        }
-
-        return StatusCode.OK;
-    }
-
-    private Option ProcessRuleOrChildren(SyntaxParserContext pContext, Cursor<IMetaSyntax> ruleCursor, ScopeContext context)
-    {
-        context.LogInformation("ProcessRuleOrChildren: enter - pContext{pContext}", pContext.GetDebuggerDisplay(true));
-
-        while (ruleCursor.TryNextValue(out var rule))
-        {
-            IToken token = pContext.TokensCursor.Current;
-
-            switch (rule)
-            {
-                case ProductionRuleReference reference:
-                    if (!_syntaxRoot.Nodes.TryGetValue(reference.ReferenceSyntax, out var syntax))
-                    {
-                        context.LogError("ProcessRuleOrChildren: Reference syntax={referenceSyntax} not found", reference.ReferenceSyntax);
-                        return (StatusCode.NotFound, pContext.ErrorMessage($"Reference syntax={reference.ReferenceSyntax} not found"));
-                    }
-
-                    var s0 = ProcessRule(pContext, syntax, context);
-                    if (s0.IsOk()) return s0;
-                    break;
-
-                case TerminalSymbol terminal:
-                    var s1 = ProcessTerminal(pContext, terminal, context);
-                    if (s1.IsOk()) return s1;
-                    break;
-
-                case ProductionRule productionRule:
-                    var s2 = ProcessRule(pContext, rule, context);
-                    if (s2.IsOk()) return s2;
-                    break;
-
-                default:
-                    throw new UnreachableException();
-            }
-        }
-
-        return StatusCode.OK;
-    }
-
-    private Option ProcessTerminal(SyntaxParserContext pContext, TerminalSymbol terminal, ScopeContext context)
-    {
-        switch (pContext.TokensCursor.Current)
-        {
-            case var v when v.TokenType == TokenType.Token && isTokenMatch(v.Value):
-                pContext.Pairs.Add(new SyntaxPair { Token = v, MetaSyntax = terminal });
-                context.LogInformation("Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
-                return StatusCode.OK;
-
-            default:
-                context.LogError("ProcessTerminal: Not a terminal, pContext{pContext}", pContext.GetDebuggerDisplay(true));
-                return StatusCode.NotFound;
+            throw new ArgumentException($"Unknown metaSyntax type, metaSyntax.Type={metaSyntax.GetType().FullName}");
         };
+    }
+
+    private Option ProcessTerminal(SyntaxParserContext pContext, TerminalSymbol terminal, SyntaxTreeBuilder tree, ScopeContext context)
+    {
+        return ProcessTerminalValue(pContext, terminal, tree, isTokenMatch, context);
 
         bool isTokenMatch(string value) => terminal.Type switch
         {
@@ -219,13 +157,30 @@ public class SyntaxParser
             _ => throw new UnreachableException(),
         };
     }
-}
 
-[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public readonly struct SyntaxPair
-{
-    public IToken Token { get; init; }
-    public IMetaSyntax MetaSyntax { get; init; }
+    private Option ProcessVirtualTerminal(SyntaxParserContext pContext, VirtualTerminalSymbol terminal, SyntaxTreeBuilder tree, ScopeContext context)
+    {
+        return ProcessTerminalValue(pContext, terminal, tree, x => x == terminal.Text, context);
+    }
 
-    public string GetDebuggerDisplay() => $"Token={Token.Value}, MetaSyntax.Name={MetaSyntax.Name}";
+    private Option ProcessTerminalValue(SyntaxParserContext pContext, IMetaSyntax terminal, SyntaxTreeBuilder tree, Func<string, bool> isTokenMatch, ScopeContext context)
+    {
+        if (!pContext.TokensCursor.TryNextValue(out var current))
+        {
+            context.LogError("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay(true));
+            return (StatusCode.BadRequest, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay(true)}");
+        }
+
+        switch (current)
+        {
+            case var v when v.TokenType == TokenType.Token && isTokenMatch(v.Value):
+                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntax = terminal });
+                context.LogInformation("Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
+                return StatusCode.OK;
+
+            default:
+                context.LogError("ProcessTerminal: Not a terminal, pContext={pContext}", pContext.GetDebuggerDisplay(true));
+                return StatusCode.NotFound;
+        };
+    }
 }

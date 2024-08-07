@@ -18,7 +18,7 @@ internal static class MetaTestTool
         return formattedLines;
     }
 
-    private static IReadOnlyList<string> ScanSyntaxTree(IEnumerable<IMetaSyntax> children)
+    public static IReadOnlyList<string> ScanSyntaxTree(IEnumerable<IMetaSyntax> children)
     {
         var seq = new Sequence<string>();
 
@@ -40,7 +40,7 @@ internal static class MetaTestTool
         return seq;
     }
 
-    private static IReadOnlyList<string> HandleIndent(IReadOnlyList<string> lines)
+    public static IReadOnlyList<string> HandleIndent(IReadOnlyList<string> lines)
     {
         int indent = 0;
 
@@ -59,7 +59,7 @@ internal static class MetaTestTool
         return output;
     }
 
-    private static IReadOnlyList<string> GenerateProductionRule(ProductionRule rule)
+    public static IReadOnlyList<string> GenerateProductionRule(ProductionRule rule)
     {
         var template = new string?[]
             {
@@ -86,18 +86,18 @@ internal static class MetaTestTool
         return lines;
     }
 
-    private static string GenerateTerminalSymbol(TerminalSymbol terminalSymbol)
+    public static string GenerateTerminalSymbol(TerminalSymbol terminalSymbol)
     {
         string tags = terminalSymbol.Tags.Count == 0 ? string.Empty : $", Tags = [{(terminalSymbol.Tags.Select(x => $"\"{x}\"").Join(','))}]";
         return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Type = TerminalType.{terminalSymbol.Type}{tags} }},";
     }
 
-    private static string GenerateProductionRuleReference(ProductionRuleReference productionRuleReference)
+    public static string GenerateProductionRuleReference(ProductionRuleReference productionRuleReference)
     {
         return $"new ProductionRuleReference {{ Name = \"{productionRuleReference.Name}\", ReferenceSyntax = \"{productionRuleReference.ReferenceSyntax}\" }},";
     }
 
-    private static string GenerateVirtualTerminalSymbol(VirtualTerminalSymbol virtualTerminalSymbol)
+    public static string GenerateVirtualTerminalSymbol(VirtualTerminalSymbol virtualTerminalSymbol)
     {
         return $"new VirtualTerminalSymbol {{ Name = \"{virtualTerminalSymbol.Name}\", Text = \"{virtualTerminalSymbol.Text}\" }},";
     }
