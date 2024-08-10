@@ -16,7 +16,7 @@ public class LedgerItemBuilder : IObjectBuilder
         foreach (var ledgerItem in option.LedgerItems)
         {
             var addResponse = await client.Value.AddLedgerItem(ledgerItem.AccountId, ledgerItem, context);
-            addResponse.LogStatus(context, "Add ledger item accountId={accountId}, amount={amount}", ledgerItem.AccountId, ledgerItem.Amount);
+            addResponse.LogStatus(context, "Add ledger item accountId={accountId}, amount={amount}", ledgerItem.AccountId, ledgerItem.Amount.ToString());
             test.Test(() => addResponse);
         }
 

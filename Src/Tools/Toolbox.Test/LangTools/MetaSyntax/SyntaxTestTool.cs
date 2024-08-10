@@ -36,7 +36,10 @@ internal static class SyntaxTestTool
                 _ => throw new InvalidOperationException(),
             };
 
+            seq += "Children = new ISyntaxTree[]";
+            seq += "{";
             seq += lines;
+            seq += "}";
         }
 
         seq += "}";
@@ -71,7 +74,7 @@ internal static class SyntaxTestTool
 
     private static string GenerateToken(IToken token) => token switch
     {
-        TokenValue v => $"new TokenValue('{v.Value}')",
+        TokenValue v => $"new TokenValue(\"{v.Value}\")",
         _ => throw new ArgumentException(),
     };
 

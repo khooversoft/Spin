@@ -9,7 +9,7 @@ public class Sequence<T> : List<T>
     public Sequence(IEnumerable<T> values) : base(values.ToList()) { }
 
     public new Sequence<T> Add(T value) => this.Action(_ => base.Add(value));
-    public Sequence<T> Add(IEnumerable<T> value) => this.Action(_ => base.AddRange(value));
+    //public Sequence<T> AddRange(IEnumerable<T> value) => this.Action(_ => base.AddRange(value));
 
     public override bool Equals(object? obj)
     {

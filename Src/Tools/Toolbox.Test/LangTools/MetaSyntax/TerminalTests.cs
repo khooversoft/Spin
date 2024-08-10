@@ -34,14 +34,16 @@ public class TerminalTests
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(root).Join(Environment.NewLine);
 
         var expectedTree = new SyntaxTree
-{
-    new SyntaxPair
-    {
-        Token = new TokenValue('3'),
-        MetaSyntax = new TerminalSymbol { Name = "number", Text = "^[+-]?[0-9]+$", Type = TerminalType.Regex },
-    }
-}
-
+        {
+            Children = new ISyntaxTree[]
+            {
+                new SyntaxPair
+                {
+                    Token = new TokenValue("3"),
+                    MetaSyntax = new TerminalSymbol { Name = "number", Text = "^[+-]?[0-9]+$", Type = TerminalType.Regex },
+                }
+            }
+        };
 
         (root == expectedTree).Should().BeTrue();
     }
