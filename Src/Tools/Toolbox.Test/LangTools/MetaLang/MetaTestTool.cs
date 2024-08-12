@@ -133,5 +133,5 @@ internal static class MetaTestTool
         }
 
         return seq;
-    }   
+    }
 }

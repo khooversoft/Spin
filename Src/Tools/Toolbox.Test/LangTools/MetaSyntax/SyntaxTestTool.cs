@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.LangTools.Meta;
 using Toolbox.Types;
@@ -26,11 +21,9 @@ internal static class SyntaxTestTool
         seq += "new SyntaxTree";
         seq += "{";
 
-        if (rootTree.MetaSyntax != null)
+        if (rootTree.MetaSyntaxName != null)
         {
-            IReadOnlyList<string> metaSyntaxLines = GenerateMetaSyntax(rootTree.MetaSyntax);
-            seq += "MetaSyntax = " + metaSyntaxLines[0];
-            seq += metaSyntaxLines.Skip(1);
+            seq += $"MetaSyntaxName = \"{rootTree.MetaSyntaxName}\",";
         }
 
         seq += "Children = new ISyntaxTree[]";
@@ -57,24 +50,14 @@ internal static class SyntaxTestTool
 
     private static IReadOnlyList<string> GenerateSyntaxPair(SyntaxPair pair)
     {
-        var metaSyntaxLines = GenerateMetaSyntax(pair.MetaSyntax)
-            .Select((x, i) => i == 0 ? "MetaSyntax = " + x : x)
-            .ToArray();
-
-        var lines = new string[][]
+        var lines = new string[]
         {
-            new string[]
-            {
-                "new SyntaxPair",
-                "{",
-                $"Token = {GenerateToken(pair.Token)},"
-            },
-            metaSyntaxLines,
-            new string[]
-            {
-                "},",
-            }
-        }.SelectMany(x => x)
+            "new SyntaxPair",
+            "{",
+            $"Token = {GenerateToken(pair.Token)},",
+            $"MetaSyntaxName = \"{pair.MetaSyntaxName}\",",
+            "},",
+        }
         .ToArray();
 
         return lines;

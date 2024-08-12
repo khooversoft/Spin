@@ -14,7 +14,7 @@ public static class SyntaxTreeExtensions
 {
     public static SyntaxTree ConvertTo(this SyntaxTreeBuilder subject) => new SyntaxTree
     {
-        MetaSyntax = subject.MetaSyntax,
+        MetaSyntaxName = subject.MetaSyntax?.Name,
         Children = subject.Children.ToImmutableArray(),
     };
 }

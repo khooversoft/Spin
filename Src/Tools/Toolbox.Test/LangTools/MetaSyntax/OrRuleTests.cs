@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -48,27 +41,17 @@ public class OrRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntax = new ProductionRule
-                    {
-                        Name = "_addCommand-1-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
-                        Children = new IMetaSyntax[]
-                        {
-                            new ProductionRuleReference { Name = "_addCommand-1-Group-1-node-sym", ReferenceSyntax = "node-sym" },
-                            new ProductionRuleReference { Name = "_addCommand-1-Group-3-edge-sym", ReferenceSyntax = "edge-sym" },
-                        },
-                    },
+                    MetaSyntaxName = "_addCommand-1-Group",
                     Children = new ISyntaxTree[]
                     {
                         new SyntaxPair
                         {
                             Token = new TokenValue("node"),
-                            MetaSyntax = new TerminalSymbol { Name = "node-sym", Text = "node", Type = TerminalType.Token },
-                        }
-                    }
-                }
-            }
+                            MetaSyntaxName = "node-sym",
+                        },
+                    },
+                },
+            },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
@@ -91,27 +74,17 @@ public class OrRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntax = new ProductionRule
-                    {
-                        Name = "_addCommand-1-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
-                        Children = new IMetaSyntax[]
-                        {
-                            new ProductionRuleReference { Name = "_addCommand-1-Group-1-node-sym", ReferenceSyntax = "node-sym" },
-                            new ProductionRuleReference { Name = "_addCommand-1-Group-3-edge-sym", ReferenceSyntax = "edge-sym" },
-                        },
-                    },
+                    MetaSyntaxName = "_addCommand-1-Group",
                     Children = new ISyntaxTree[]
                     {
                         new SyntaxPair
                         {
                             Token = new TokenValue("edge"),
-                            MetaSyntax = new TerminalSymbol { Name = "edge-sym", Text = "edge", Type = TerminalType.Token },
-                        }
-                    }
-                }
-            }
+                            MetaSyntaxName = "edge-sym",
+                        },
+                    },
+                },
+            },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.LangTools;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
@@ -22,13 +17,8 @@ public class ModelEqualTests
     [Fact]
     public void SyntaxTreeEqualJustMetaSyntax()
     {
-        var s1 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        var s2 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        (s1 == s2).Should().BeTrue();
-        s1.Should().Be(s2);
-
-        var v1 = new SyntaxTree { MetaSyntax = s1 };
-        var v2 = new SyntaxTree { MetaSyntax = s2 };
+        var v1 = new SyntaxTree { MetaSyntaxName = "hello" };
+        var v2 = new SyntaxTree { MetaSyntaxName = "hello" };
         (v1 == v2).Should().BeTrue();
         v1.Should().Be(v2);
     }
@@ -36,13 +26,8 @@ public class ModelEqualTests
     [Fact]
     public void SyntaxTreeNotEqualJustMetaSyntax()
     {
-        var s1 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        var s2 = new TerminalSymbol { Name = "hello2", Type = TerminalType.String, Text = "world" };
-        (s1 == s2).Should().BeFalse();
-        s1.Should().NotBe(s2);
-
-        var v1 = new SyntaxTree { MetaSyntax = s1 };
-        var v2 = new SyntaxTree { MetaSyntax = s2 };
+        var v1 = new SyntaxTree { MetaSyntaxName = "hello" };
+        var v2 = new SyntaxTree { MetaSyntaxName = "hello2" };
         (v1 == v2).Should().BeFalse();
         v1.Should().NotBe(v2);
     }
@@ -50,18 +35,13 @@ public class ModelEqualTests
     [Fact]
     public void SyntaxPairEqual()
     {
-        var s1 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        var s2 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        (s1 == s2).Should().BeTrue();
-        s1.Should().Be(s2);
-
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
         (t1 == t2).Should().BeTrue();
         t1.Should().Be(t2);
 
-        var v1 = new SyntaxPair { Token = t1, MetaSyntax = s1 };
-        var v2 = new SyntaxPair { Token = t2, MetaSyntax = s2 };
+        var v1 = new SyntaxPair { Token = t1, MetaSyntaxName = "hello" };
+        var v2 = new SyntaxPair { Token = t2, MetaSyntaxName = "hello" };
         (v1 == v2).Should().BeTrue();
         v1.Should().Be(v2);
     }
@@ -69,18 +49,13 @@ public class ModelEqualTests
     [Fact]
     public void SyntaxTreeWithChildren()
     {
-        var s1 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        var s2 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        (s1 == s2).Should().BeTrue();
-        s1.Should().Be(s2);
-
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
         (t1 == t2).Should().BeTrue();
         t1.Should().Be(t2);
 
-        var v1 = new SyntaxPair { Token = t1, MetaSyntax = s1 };
-        var v2 = new SyntaxPair { Token = t2, MetaSyntax = s2 };
+        var v1 = new SyntaxPair { Token = t1, MetaSyntaxName = "hello" };
+        var v2 = new SyntaxPair { Token = t2, MetaSyntaxName = "hello" };
         (v1 == v2).Should().BeTrue();
         v1.Should().Be(v2);
 
@@ -101,20 +76,15 @@ public class ModelEqualTests
     [Fact]
     public void SyntaxTreeWithTwoChildren()
     {
-        var s1 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        var s2 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        (s1 == s2).Should().BeTrue();
-        s1.Should().Be(s2);
-
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
         (t1 == t2).Should().BeTrue();
         t1.Should().Be(t2);
 
-        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" } };
-        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" } };
-        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" } };
-        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" } };
+        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
+        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
+        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
+        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
         (v1 == v2).Should().BeTrue();
         v1.Should().Be(v2);
 
@@ -149,20 +119,15 @@ public class ModelEqualTests
     [Fact]
     public void SyntaxTreeWithTwoNotChildren()
     {
-        var s1 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        var s2 = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" };
-        (s1 == s2).Should().BeTrue();
-        s1.Should().Be(s2);
-
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
         (t1 == t2).Should().BeTrue();
         t1.Should().Be(t2);
 
-        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" } };
-        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" } };
-        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello", Type = TerminalType.String, Text = "world" } };
-        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntax = new TerminalSymbol { Name = "hello2", Type = TerminalType.String, Text = "world" } };
+        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
+        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
+        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
+        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello2" };
         (v1 == v2).Should().BeTrue();
         v1.Should().Be(v2);
 

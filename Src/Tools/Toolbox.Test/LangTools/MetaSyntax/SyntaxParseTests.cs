@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.LangTools;
 using Toolbox.Logging;
 using Toolbox.Test.LangTools.Meta;
@@ -18,7 +17,7 @@ public class SyntaxParseTests
 
     public SyntaxParseTests(ITestOutputHelper output) => _output = output.NotNull();
 
-    [Fact(Skip ="not")]
+    [Fact(Skip = "not")]
     public void SimpleGraphRuleParse()
     {
         var services = new ServiceCollection()

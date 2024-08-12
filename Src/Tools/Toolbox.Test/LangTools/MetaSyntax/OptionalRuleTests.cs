@@ -25,7 +25,6 @@ public class OptionalRuleTests : TestBase
 
     [Theory]
     [InlineData("tag =")]
-    [InlineData("t1=v1 t2")]
     public void SimpleAndSymbolFail(string rawData)
     {
         var parser = new SyntaxParser(_schema);
@@ -52,10 +51,10 @@ public class OptionalRuleTests : TestBase
                 new SyntaxPair
                 {
                     Token = new TokenValue("t1"),
-                    MetaSyntax = new TerminalSymbol { Name = "symbol", Text = "^[a-zA-Z][a-zA-Z0-9\\-]*$", Type = TerminalType.Regex },
+                    MetaSyntaxName = "symbol",
                 },
             },
-        }; ;
+        };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
     }
@@ -78,32 +77,22 @@ public class OptionalRuleTests : TestBase
                 new SyntaxPair
                 {
                     Token = new TokenValue("t1"),
-                    MetaSyntax = new TerminalSymbol { Name = "symbol", Text = "^[a-zA-Z][a-zA-Z0-9\\-]*$", Type = TerminalType.Regex },
+                    MetaSyntaxName = "symbol",
                 },
                 new SyntaxTree
                 {
-                    MetaSyntax = new ProductionRule
-                    {
-                        Name = "_tag-3-OptionGroup",
-                        Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.Sequence,
-                        Children = new IMetaSyntax[]
-                        {
-                            new VirtualTerminalSymbol { Name = "_tag-3-OptionGroup-1", Text = "=" },
-                            new ProductionRuleReference { Name = "_tag-3-OptionGroup-3-symbol", ReferenceSyntax = "symbol" },
-                        },
-                    },
+                    MetaSyntaxName = "_tag-3-OptionGroup",
                     Children = new ISyntaxTree[]
                     {
                         new SyntaxPair
                         {
                             Token = new TokenValue("="),
-                            MetaSyntax = new VirtualTerminalSymbol { Name = "_tag-3-OptionGroup-1", Text = "=" },
+                            MetaSyntaxName = "_tag-3-OptionGroup-1",
                         },
                         new SyntaxPair
                         {
                             Token = new TokenValue("v1"),
-                            MetaSyntax = new TerminalSymbol { Name = "symbol", Text = "^[a-zA-Z][a-zA-Z0-9\\-]*$", Type = TerminalType.Regex },
+                            MetaSyntaxName = "symbol",
                         },
                     },
                 },

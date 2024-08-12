@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Types;
@@ -18,6 +13,7 @@ public class TerminalTests
         string schemaText = new[]
         {
             "number = regex '^[+-]?[0-9]+$' ;",
+            "term = ';' ;",
             "alias = number ;"
         }.Join(Environment.NewLine);
 
@@ -38,9 +34,9 @@ public class TerminalTests
                 new SyntaxPair
                 {
                     Token = new TokenValue("3"),
-                    MetaSyntax = new TerminalSymbol { Name = "number", Text = "^[+-]?[0-9]+$", Type = TerminalType.Regex },
-                }
-            }
+                    MetaSyntaxName = "number",
+                },
+            },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
@@ -52,6 +48,7 @@ public class TerminalTests
         string schemaText = new[]
         {
             "number = regex '^[+-]?[0-9]+$' ;",
+            "term = ';' ;",
             "alias = number ;"
         }.Join(Environment.NewLine);
 

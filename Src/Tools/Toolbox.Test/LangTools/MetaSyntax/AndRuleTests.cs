@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
-using Toolbox.Types;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
+using Toolbox.Types;
 using Xunit.Abstractions;
-using FluentAssertions;
-using Toolbox.Tools;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
@@ -65,27 +59,27 @@ public class AndRuleTests : TestBase
                 new SyntaxPair
                 {
                     Token = new TokenValue("alias"),
-                    MetaSyntax = new TerminalSymbol { Name = "symbol", Text = "^[a-zA-Z][a-zA-Z0-9\\-]*$", Type = TerminalType.Regex },
+                    MetaSyntaxName = "symbol",
                 },
                 new SyntaxPair
                 {
                     Token = new TokenValue("{"),
-                    MetaSyntax = new TerminalSymbol { Name = "open-brace", Text = "{", Type = TerminalType.Token, Tags = ["group-start","data"] },
+                    MetaSyntaxName = "open-brace",
                 },
                 new SyntaxPair
                 {
                     Token = new TokenValue("hello"),
-                    MetaSyntax = new TerminalSymbol { Name = "base64", Text = "string", Type = TerminalType.String },
+                    MetaSyntaxName = "base64",
                 },
                 new SyntaxPair
                 {
                     Token = new TokenValue("}"),
-                    MetaSyntax = new TerminalSymbol { Name = "close-brace", Text = "}", Type = TerminalType.Token, Tags = ["group-end","data"] },
+                    MetaSyntaxName = "close-brace",
                 },
                 new SyntaxPair
                 {
                     Token = new TokenValue(";"),
-                    MetaSyntax = new TerminalSymbol { Name = "term", Text = ";", Type = TerminalType.Token },
+                    MetaSyntaxName = "term",
                 },
             },
         };
@@ -111,27 +105,27 @@ public class AndRuleTests : TestBase
                 new SyntaxPair
                 {
                     Token = new TokenValue("data"),
-                    MetaSyntax = new TerminalSymbol { Name = "symbol", Text = "^[a-zA-Z][a-zA-Z0-9\\-]*$", Type = TerminalType.Regex },
+                    MetaSyntaxName = "symbol",
                 },
                 new SyntaxPair
                 {
                     Token = new TokenValue("{"),
-                    MetaSyntax = new TerminalSymbol { Name = "open-brace", Text = "{", Type = TerminalType.Token, Tags = ["group-start","data"] },
+                    MetaSyntaxName = "open-brace",
                 },
                 new SyntaxPair
                 {
                     Token = new BlockToken("'this is a test'", '\'', '\'', 7),
-                    MetaSyntax = new TerminalSymbol { Name = "base64", Text = "string", Type = TerminalType.String },
+                    MetaSyntaxName = "base64",
                 },
                 new SyntaxPair
                 {
                     Token = new TokenValue("}"),
-                    MetaSyntax = new TerminalSymbol { Name = "close-brace", Text = "}", Type = TerminalType.Token, Tags = ["group-end","data"] },
+                    MetaSyntaxName = "close-brace",
                 },
                 new SyntaxPair
                 {
                     Token = new TokenValue(";"),
-                    MetaSyntax = new TerminalSymbol { Name = "term", Text = ";", Type = TerminalType.Token },
+                    MetaSyntaxName = "term",
                 },
             },
         };

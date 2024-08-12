@@ -23,10 +23,19 @@ public static class MetaSyntaxRootExtensions
         Nodes = subject.Nodes.ToImmutableDictionary(),
     };
 
-    public static IReadOnlyList<string> GetParseTokens(this MetaSyntaxRoot syntaxRoot) => syntaxRoot.Rule
-        .GetAll<TerminalSymbol>()
-        .Select(x => x.Text)
-        .ToImmutableArray();
+    public static IReadOnlyList<string> GetParseTokens(this MetaSyntaxRoot syntaxRoot)
+    {
+        var terminalSymbols = syntaxRoot.Rule
+            .GetAll<TerminalSymbol>()
+            .Where(x => x.Type == TerminalType.Token)
+            .Select(x => x.Text);
+
+        var virtualSymbols = syntaxRoot.Rule
+            .GetAll<VirtualTerminalSymbol>()
+            .Select(x => x.Text);
+
+        return terminalSymbols.Concat(virtualSymbols).Distinct().ToImmutableArray();
+    }
 
     public static IReadOnlyList<ProductionRule> GetRootRules(this MetaSyntaxRoot syntaxRoot)
     {

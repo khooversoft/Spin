@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
@@ -123,7 +122,12 @@ public class SyntaxParser
                     if (s3.IsError()) return s3;
                     if (s3.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
                     if (s3.IsOk()) tree.Children.Add(ruleTree.ConvertTo());
-                    if (rule.Type == ProductionRuleType.Repeat) continue;
+
+                    if (s3.IsOk() && rule.Type == ProductionRuleType.Repeat)
+                    {
+                        stack.Push(syntax);
+                        continue;
+                    }
                     break;
 
                 case ProductionRuleReference referenceRule:
@@ -193,13 +197,13 @@ public class SyntaxParser
         switch (current)
         {
             case var v when v.TokenType == TokenType.Token && isTokenMatch(v.Value):
-                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntax = terminal });
+                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntaxName = terminal.Name });
                 context.LogInformation("Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
                 scope.Cancel();
                 return StatusCode.OK;
 
             case var v when v.TokenType == TokenType.Block && isTokenMatch(v.Value):
-                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntax = terminal });
+                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntaxName = terminal.Name });
                 context.LogInformation("Add Terminal: block=[{block}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
                 scope.Cancel();
                 return StatusCode.OK;
