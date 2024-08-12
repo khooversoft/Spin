@@ -20,26 +20,8 @@ public class MetaParserContext
         syntax.NotNull();
         RootRule.NotNull();
 
-        switch (syntax)
-        {
-            case ProductionRule rule:
-                Nodes.TryAdd(rule.Name, syntax).Assert(x => x == true, $"Syntax node '{rule.Name}' already exists");
-                RootRule.Children.Add(syntax);
-                return;
-
-            case ProductionRuleReference:
-            case VirtualTerminalSymbol:
-                RootRule.Children.Add(syntax);
-                return;
-
-            case TerminalSymbol terminalSymbol:
-                Nodes.TryAdd(terminalSymbol.Name, syntax).Assert(x => x == true, $"Syntax node '{terminalSymbol.Name}' already exists");
-                RootRule.Children.Add(syntax);
-                return;
-
-            default:
-                throw new UnreachableException();
-        }
+        Nodes.TryAdd(syntax.Name, syntax).Assert(x => x == true, $"Syntax node '{syntax.Name}' already exists");
+        RootRule.Children.Add(syntax);
     }
 
     public FinalizeScope<MetaParserContext> PushWithScope()

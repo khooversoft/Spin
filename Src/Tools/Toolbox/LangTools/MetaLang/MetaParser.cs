@@ -75,7 +75,7 @@ public static class MetaParser
                     break;
 
                 case var v when v.TokenType == TokenType.Token && v.Value.StartsWith("#"):
-                    if( !IsTag(v.Value[1..])) return (StatusCode.BadRequest, pContext.ErrorMessage("Invalid tag"));
+                    if (!IsTag(v.Value[1..])) return (StatusCode.BadRequest, pContext.ErrorMessage("Invalid tag"));
                     tags += v.Value[1..];
                     continue;
 
@@ -199,7 +199,14 @@ public static class MetaParser
             };
 
             var ruleResult = ParseProductionRule(pContext, newRule, groupToken.CloseSymbol);
-            if (ruleResult.StatusCode.IsOk()) rule.Children.Add(newRule.ConvertTo());
+            if (ruleResult.StatusCode.IsOk())
+            {
+                ProductionRule newRuleConverted = newRule.ConvertTo();
+                rule.Children.Add(newRuleConverted);
+
+                pContext.Nodes.TryAdd(newRuleConverted.Name, newRuleConverted)
+                    .Assert(x => x == true, $"Syntax node '{newRuleConverted.Name}' already exists");
+            }
 
             return ruleResult;
         }

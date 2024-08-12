@@ -26,6 +26,16 @@ internal static class SyntaxTestTool
         seq += "new SyntaxTree";
         seq += "{";
 
+        if (rootTree.MetaSyntax != null)
+        {
+            IReadOnlyList<string> metaSyntaxLines = GenerateMetaSyntax(rootTree.MetaSyntax);
+            seq += "MetaSyntax = " + metaSyntaxLines[0];
+            seq += metaSyntaxLines.Skip(1);
+        }
+
+        seq += "Children = new ISyntaxTree[]";
+        seq += "{";
+
         foreach (var child in rootTree.Children)
         {
             IReadOnlyList<string> lines = child switch
@@ -36,13 +46,11 @@ internal static class SyntaxTestTool
                 _ => throw new InvalidOperationException(),
             };
 
-            seq += "Children = new ISyntaxTree[]";
-            seq += "{";
             seq += lines;
-            seq += "}";
         }
 
-        seq += "}";
+        seq += "},";
+        seq += "},";
 
         return seq;
     }
@@ -64,7 +72,7 @@ internal static class SyntaxTestTool
             metaSyntaxLines,
             new string[]
             {
-                "}",
+                "},",
             }
         }.SelectMany(x => x)
         .ToArray();
@@ -75,13 +83,21 @@ internal static class SyntaxTestTool
     private static string GenerateToken(IToken token) => token switch
     {
         TokenValue v => $"new TokenValue(\"{v.Value}\")",
+        BlockToken v => $"new BlockToken(\"{v.StartSignal}{v.Value}{v.StopSignal}\", '{HandleChar(v.StartSignal)}', '{HandleChar(v.StopSignal)}', {v.Index})",
         _ => throw new ArgumentException(),
+    };
+
+    private static string HandleChar(char chr) => chr switch
+    {
+        '\'' => @"\'",
+        _ => chr.ToString(),
     };
 
     private static IReadOnlyList<string> GenerateMetaSyntax(IMetaSyntax metaSyntax) => metaSyntax switch
     {
         ProductionRule v => MetaTestTool.GenerateProductionRule(v),
         TerminalSymbol v => MetaTestTool.GenerateTerminalSymbol(v).ToEnumerable().ToArray(),
+        VirtualTerminalSymbol v => MetaTestTool.GenerateVirtualTerminalSymbol(v).ToEnumerable().ToArray(),
 
         _ => throw new InvalidOperationException(),
     };

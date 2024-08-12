@@ -27,11 +27,9 @@ public class TerminalTests
         var parser = new SyntaxParser(schema);
 
         var parse = parser.Parse("3", NullScopeContext.Instance);
-        parse.IsOk().Should().BeTrue();
+        parse.StatusCode.IsOk().Should().BeTrue();
 
-        var root = parse.Return().SyntaxTree;
-
-        var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(root).Join(Environment.NewLine);
+        var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
         var expectedTree = new SyntaxTree
         {
@@ -45,6 +43,25 @@ public class TerminalTests
             }
         };
 
-        (root == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TerminalSymbolRegexFail()
+    {
+        string schemaText = new[]
+        {
+            "number = regex '^[+-]?[0-9]+$' ;",
+            "alias = number ;"
+        }.Join(Environment.NewLine);
+
+        var schema = MetaParser.ParseRules(schemaText);
+        schema.StatusCode.IsOk().Should().BeTrue();
+
+        var parser = new SyntaxParser(schema);
+
+        var parse = parser.Parse("A", NullScopeContext.Instance);
+        parse.StatusCode.IsOk().Should().BeFalse(parse.Error);
+        parse.Error.Should().Be("No rules matched");
     }
 }

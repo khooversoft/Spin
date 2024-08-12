@@ -21,7 +21,7 @@ public class SyntaxParser
         _rootRules = _syntaxRoot.GetRootRules().Assert(x => x.Count > 0, "No root rules");
     }
 
-    public Option<SyntaxResponse> Parse(string rawData, ScopeContext context)
+    public SyntaxResponse Parse(string rawData, ScopeContext context)
     {
         context.LogInformation("Parsing rawData={rawData}", rawData);
 
@@ -46,10 +46,14 @@ public class SyntaxParser
 
         status2.LogStatus(context, "Parsing rules exit");
 
-        Option status = (status2.IsOk() && pContext.TokensCursor.TryPeekValue(out var _)) switch
+        Option status = status2.IsError() switch
         {
-            false => StatusCode.OK,
-            true => (StatusCode.BadRequest, pContext.ErrorMessage("End of tokens reached before completing")),
+            true => status2,
+            false => pContext.TokensCursor.TryPeekValue(out var _) switch
+            {
+                true => (StatusCode.BadRequest, pContext.ErrorMessage("End of tokens reached before completing")),
+                false => StatusCode.OK,
+            }
         };
 
         status.LogStatus(context, "Parse completed");
@@ -73,16 +77,19 @@ public class SyntaxParser
             Option status = ProcessRule(pContext, rule, pContext.SyntaxTree, context);
 
             if (status.IsNotFound()) continue;
-            if (status.IsError()) return status;
+            return status;
         }
 
-        return StatusCode.OK;
+        return (StatusCode.BadRequest, "No rules matched");
     }
 
     private Option ProcessRule(SyntaxParserContext pContext, IMetaSyntax parentMetaSyntax, SyntaxTreeBuilder tree, ScopeContext context)
     {
         using var scope = pContext.PushWithScope();
-        context.LogInformation("ProcessRule: pContext{pContext}, metaSyntax=[{metaSyntax}]", pContext.GetDebuggerDisplay(true), parentMetaSyntax.GetDebuggerDisplay());
+        context.LogInformation(
+            "ProcessRule: pContext{pContext}, metaSyntax=[{metaSyntax}]",
+            pContext.GetDebuggerDisplay(true), parentMetaSyntax.GetDebuggerDisplay()
+            );
 
         var stack = new Stack<IMetaSyntax>(GetMetaSyntaxList(parentMetaSyntax).Reverse());
         ProductionRule? parentRule = parentMetaSyntax as ProductionRule;
@@ -94,25 +101,29 @@ public class SyntaxParser
             {
                 case TerminalSymbol terminal:
                     var s1 = ProcessTerminal(pContext, terminal, tree, context);
-                    if (s1.IsError() && parentRule?.EvaluationType == EvaluationType.Or) continue;
+                    if (s1.IsNotFound() && parentRule?.EvaluationType == EvaluationType.Or) continue;
                     if (s1.IsError()) return s1;
                     if (s1.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
                     break;
 
                 case VirtualTerminalSymbol virtualTerminal:
                     var s2 = ProcessVirtualTerminal(pContext, virtualTerminal, tree, context);
-                    if (s2.IsError() && parentRule?.EvaluationType == EvaluationType.Or) continue;
+                    if (s2.IsNotFound() && parentRule?.EvaluationType == EvaluationType.Or) continue;
                     if (s2.IsError()) return s2;
                     if (s2.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
                     break;
 
                 case ProductionRule rule:
                     var ruleTree = new SyntaxTreeBuilder { MetaSyntax = rule };
-                    var s3 = ProcessRule(pContext, syntax, ruleTree, context);
-                    if (s3.IsError() && parentRule?.EvaluationType == EvaluationType.Or) continue;
+                    Option s3 = ProcessRule(pContext, syntax, ruleTree, context);
+
+                    if (s3.IsError() && rule.Type == ProductionRuleType.Repeat) continue;
+                    if (s3.IsNotFound() && parentRule?.EvaluationType == EvaluationType.Or) continue;
+                    if (s3.IsError() && rule.Type == ProductionRuleType.Optional) continue;
                     if (s3.IsError()) return s3;
                     if (s3.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
-                    if( s3.IsOk()) tree.Children.Add(ruleTree.ConvertTo());
+                    if (s3.IsOk()) tree.Children.Add(ruleTree.ConvertTo());
+                    if (rule.Type == ProductionRuleType.Repeat) continue;
                     break;
 
                 case ProductionRuleReference referenceRule:
@@ -128,6 +139,12 @@ public class SyntaxParser
                 default:
                     throw new UnreachableException();
             }
+        }
+
+        if (parentRule?.EvaluationType == EvaluationType.Or && !success)
+        {
+            context.LogError("ProcessRule: No rules matched, pContext{pContext}", pContext.GetDebuggerDisplay(true));
+            return StatusCode.NotFound;
         }
 
         scope.Cancel();
@@ -165,10 +182,12 @@ public class SyntaxParser
 
     private Option ProcessTerminalValue(SyntaxParserContext pContext, IMetaSyntax terminal, SyntaxTreeBuilder tree, Func<string, bool> isTokenMatch, ScopeContext context)
     {
+        using var scope = pContext.PushWithScope();
+
         if (!pContext.TokensCursor.TryNextValue(out var current))
         {
-            context.LogError("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay(true));
-            return (StatusCode.BadRequest, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay(true)}");
+            context.LogWarning("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay(true));
+            return (StatusCode.NotFound, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay(true)}");
         }
 
         switch (current)
@@ -176,10 +195,17 @@ public class SyntaxParser
             case var v when v.TokenType == TokenType.Token && isTokenMatch(v.Value):
                 tree.Children.Add(new SyntaxPair { Token = v, MetaSyntax = terminal });
                 context.LogInformation("Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
+                scope.Cancel();
+                return StatusCode.OK;
+
+            case var v when v.TokenType == TokenType.Block && isTokenMatch(v.Value):
+                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntax = terminal });
+                context.LogInformation("Add Terminal: block=[{block}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
+                scope.Cancel();
                 return StatusCode.OK;
 
             default:
-                context.LogError("ProcessTerminal: Not a terminal, pContext={pContext}", pContext.GetDebuggerDisplay(true));
+                context.LogWarning("ProcessTerminal: Not a terminal, pContext={pContext}", pContext.GetDebuggerDisplay(true));
                 return StatusCode.NotFound;
         };
     }
