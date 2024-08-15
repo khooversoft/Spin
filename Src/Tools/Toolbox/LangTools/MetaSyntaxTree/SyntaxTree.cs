@@ -26,3 +26,19 @@ public sealed record SyntaxTree : ISyntaxTree
 
     public override int GetHashCode() => HashCode.Combine(MetaSyntaxName, Children);
 }
+
+public static class SyntaxTreeExtensions
+{
+    public static IEnumerable<SyntaxPair> GetAllSyntaxPairs(this SyntaxTree tree)
+    {
+        foreach (var item in tree.Children)
+        {
+            if (item is SyntaxPair resolved) yield return resolved;
+
+            if (item is SyntaxTree syntaxTree)
+            {
+                foreach (var st in syntaxTree.GetAllSyntaxPairs()) yield return st;
+            }
+        }
+    }
+}

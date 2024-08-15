@@ -36,7 +36,7 @@ public class SyntaxParser
 
         var pContext = new SyntaxParserContext(tokens, context);
 
-        Option status2 = StatusCode.OK;
+        Option status2 = (StatusCode.BadRequest, "No tokens");
         while (pContext.TokensCursor.TryPeekValue(out var _))
         {
             status2 = ProcessRules(pContext, context);

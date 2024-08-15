@@ -15,6 +15,19 @@ internal static class SyntaxTestTool
         return formattedLines;
     }
 
+    public static IReadOnlyList<string> GenerateSyntaxPairs(this IReadOnlyList<SyntaxPair> pairs)
+    {
+        var seq = new Sequence<string>();
+
+        foreach (var pair in pairs)
+        {
+            IReadOnlyList<string> lines = GenerateSyntaxPair(pair);
+            seq += lines;
+        }
+
+        return seq;
+    }
+
     private static IReadOnlyList<string> GenerateSyntaxTree(SyntaxTree rootTree)
     {
         var seq = new Sequence<string>();
@@ -52,13 +65,8 @@ internal static class SyntaxTestTool
     {
         var lines = new string[]
         {
-            "new SyntaxPair",
-            "{",
-            $"Token = {GenerateToken(pair.Token)},",
-            $"MetaSyntaxName = \"{pair.MetaSyntaxName}\",",
-            "},",
-        }
-        .ToArray();
+            $"new SyntaxPair {{ Token = {GenerateToken(pair.Token)}, MetaSyntaxName = \"{pair.MetaSyntaxName}\" }},",
+        };
 
         return lines;
     }

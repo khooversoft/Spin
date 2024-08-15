@@ -10,7 +10,7 @@ public class SyntaxTreeBuilder
 }
 
 
-public static class SyntaxTreeExtensions
+public static class SyntaxTreeBuilderExtensions
 {
     public static SyntaxTree ConvertTo(this SyntaxTreeBuilder subject) => new SyntaxTree
     {
