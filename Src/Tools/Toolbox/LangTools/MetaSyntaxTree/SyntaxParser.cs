@@ -121,7 +121,7 @@ public class SyntaxParser
                     if (s3.IsError() && rule.Type == ProductionRuleType.Optional) continue;
                     if (s3.IsError()) return s3;
                     if (s3.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
-                    if (s3.IsOk()) tree.Children.Add(ruleTree.ConvertTo());
+                    if (s3.IsOk()) tree.Children.Add(ruleTree.Assert(x => x.Children.Count > 0, "0 children").ConvertTo());
 
                     if (s3.IsOk() && rule.Type == ProductionRuleType.Repeat)
                     {
