@@ -9,7 +9,7 @@ namespace Toolbox.Test.LangTools.Meta;
 public class ProductionRuleTests
 {
     [Fact]
-    public void NonTerminalRule1()
+    public void MatchingRule()
     {
         string[] rules = [
             "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
@@ -60,7 +60,7 @@ public class ProductionRuleTests
     {
         string[] rules = [
             "symbol = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
-            "tag = symbol, ['=', symbol ] ;",
+            "tag = symbol, [ '=', symbol ] ;",
             ];
 
         test(rules);

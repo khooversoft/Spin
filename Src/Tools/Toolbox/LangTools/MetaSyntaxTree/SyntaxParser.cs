@@ -93,6 +93,7 @@ public class SyntaxParser
         var stack = new Stack<IMetaSyntax>(GetMetaSyntaxList(parentMetaSyntax).Reverse());
         ProductionRule? parentRule = parentMetaSyntax as ProductionRule;
 
+        //Option returnStatus = (StatusCode.BadRequest, "No rules to process");
         bool success = false;
         while (!success && stack.TryPop(out var syntax))
         {

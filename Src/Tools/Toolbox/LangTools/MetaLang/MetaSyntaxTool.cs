@@ -26,5 +26,5 @@ internal static class MetaSyntaxTool
     public static bool TryGetGroupToken(string token, out GroupToken groupToken) => GroupTokens.TryGetValue(token, out groupToken);
 
     public static string ErrorMessage(this MetaParserContext parserContext, string message) =>
-        $"Error: {message} at '{parserContext.TokensCursor.Current.Index}', token='{parserContext.TokensCursor.Current.Value}'";
+        $"Error: {message} at '{parserContext.TokensCursor.Current?.Index ?? -1}', token='{(parserContext.TokensCursor.Current?.Value ?? "< null >")}'";
 }
