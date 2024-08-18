@@ -5,16 +5,9 @@ namespace Toolbox.LangTools;
 
 public enum ProductionRuleType
 {
-    Root,
-    Group,
-    Repeat,
-    Optional,
-}
-
-public enum EvaluationType
-{
-    None,
     Sequence,
+    Optional,
+    Repeat,
     Or,
 }
 
@@ -22,8 +15,7 @@ public enum EvaluationType
 public sealed record ProductionRule : IMetaSyntax
 {
     public string Name { get; init; } = null!;
-    public ProductionRuleType Type { get; init; } = ProductionRuleType.Root;
-    public EvaluationType EvaluationType { get; set; } = EvaluationType.Sequence;
+    public ProductionRuleType Type { get; init; } = ProductionRuleType.Sequence;
     public IReadOnlyList<IMetaSyntax> Children { get; init; } = Array.Empty<IMetaSyntax>();
     public int? Index { get; init; }
     public IReadOnlyList<string> Tags { get; init; } = Array.Empty<string>();
@@ -33,7 +25,6 @@ public sealed record ProductionRule : IMetaSyntax
         bool result = obj is ProductionRule subject &&
             Name == subject.Name &&
             Type == subject.Type &&
-            EvaluationType == subject.EvaluationType &&
             Enumerable.SequenceEqual(Children, subject.Children) &&
             Enumerable.SequenceEqual(Tags.OrderBy(x => x), subject.Tags.OrderBy(x => x));
 
@@ -59,6 +50,5 @@ public sealed record ProductionRule : IMetaSyntax
         }
     }
 
-    public string GetDebuggerDisplay() =>
-        $"ProductionRule: Name={Name}, Type={Type.ToString()}, EvaluationType={EvaluationType.ToString()}, Children.Count={Children.Count}, Index={Index}";
+    public string GetDebuggerDisplay() => $"ProductionRule: Name={Name}, Type={Type.ToString()}, Children.Count={Children.Count}, Index={Index}";
 }

@@ -43,14 +43,17 @@ public class RepeatRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tag",
+                    MetaSyntaxName = "tags",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair
+                        new SyntaxTree
                         {
-                            Token = new TokenValue("t1"),
-                            MetaSyntaxName = "symbol",
-                        }
+                            MetaSyntaxName = "tag",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                            },
+                        },
                     },
                 },
             },
@@ -86,35 +89,30 @@ public class RepeatRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tag",
+                    MetaSyntaxName = "tags",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair
-                        {
-                            Token = new TokenValue("t1"),
-                            MetaSyntaxName = "symbol",
-                        },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_tags-3-RepeatGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair
-                        {
-                            Token = new TokenValue(","),
-                            MetaSyntaxName = "comma",
-                        },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair
+                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_tags-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxTree
                                 {
-                                    Token = new TokenValue("t2"),
-                                    MetaSyntaxName = "symbol",
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                    },
                                 },
                             },
                         },
@@ -152,25 +150,32 @@ public class RepeatRuleTests : TestBase
         var expectedTree = new SyntaxTree
         {
             Children = new ISyntaxTree[]
-    {
-        new SyntaxTree
-        {
-            MetaSyntaxName = "tag",
-            Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_tag-3-OptionGroup",
+                    MetaSyntaxName = "tags",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "tag",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "_tag-3-OptionGroup",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },
-        },
-    },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
@@ -205,33 +210,40 @@ public class RepeatRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tag",
+                    MetaSyntaxName = "tags",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "_tag-3-OptionGroup",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-                            },
-                        },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_tags-3-RepeatGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "_tag-3-OptionGroup",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                    },
+                                },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_tags-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                    },
+                                },
                             },
                         },
                     },
@@ -273,40 +285,47 @@ public class RepeatRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tag",
+                    MetaSyntaxName = "tags",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "_tag-3-OptionGroup",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-                            },
-                        },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_tags-3-RepeatGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
                                         new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                    },
+                                },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_tags-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_tag-3-OptionGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
+                                            },
+                                        },
                                     },
                                 },
                             },
@@ -352,65 +371,72 @@ public class RepeatRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tag",
+                    MetaSyntaxName = "tags",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "_tag-3-OptionGroup",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-                            },
-                        },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_tags-3-RepeatGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
                                         new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
                                     },
                                 },
                             },
                         },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_tags-3-RepeatGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "tag",
+                            MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
                                 new SyntaxTree
                                 {
-                                    MetaSyntaxName = "_tag-3-OptionGroup",
+                                    MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_tag-3-OptionGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_tags-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_tag-3-OptionGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+                                            },
+                                        },
                                     },
                                 },
                             },
@@ -460,56 +486,63 @@ public class RepeatRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tag",
+                    MetaSyntaxName = "tags",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "_tag-3-OptionGroup",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-                            },
-                        },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_tags-3-RepeatGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
-                            },
-                        },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_tags-3-RepeatGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "tag",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
                                         new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                    },
+                                },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_tags-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                    },
+                                },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_tags-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_tag-3-OptionGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+                                            },
+                                        },
                                     },
                                 },
                             },

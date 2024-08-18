@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.LangTools;
-using Toolbox.Types;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
+using Toolbox.LangTools;
 using Toolbox.Test.Application;
+using Toolbox.Types;
 using Xunit.Abstractions;
-using FluentAssertions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
@@ -34,8 +29,8 @@ public class SelectNodeQueryTests : TestBase
             "join-inner          = '<->' ;",
             "node-spec           = open-param, tags, close-param, [ alias ] ;",
             "edge-spec           = open-bracket, tags, close-bracket, [ alias ] ;",
-            "join                = [ join-left | join-inner ] ;",
-            "node-edge-query     = [ node-spec | edge-spec ] ;",
+            "join                = ( join-left | join-inner ) ;",
+            "node-edge-query     = ( node-spec | edge-spec ) ;",
             "select-node-query   = node-spec, { join, node-edge-query } ;",
         }.Join(Environment.NewLine);
 
@@ -75,54 +70,15 @@ public class SelectNodeQueryTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "node-spec",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "tags",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "tag",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-                                    },
-                                },
-                            },
-                        },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_select-node-query-3-RepeatGroup",
+                    MetaSyntaxName = "select-node-query",
                     Children = new ISyntaxTree[]
                     {
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "join",
+                            MetaSyntaxName = "node-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "_join-1-OptionGroup",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-                                    },
-                                },
-                            },
-                        },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "edge-spec",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -138,7 +94,7 @@ public class SelectNodeQueryTests : TestBase
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
                             },
                         },
                     },
@@ -156,10 +112,6 @@ public class SelectNodeQueryTests : TestBase
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
@@ -182,54 +134,15 @@ public class SelectNodeQueryTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "node-spec",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "tags",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "tag",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-                                    },
-                                },
-                            },
-                        },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_select-node-query-3-RepeatGroup",
+                    MetaSyntaxName = "select-node-query",
                     Children = new ISyntaxTree[]
                     {
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "join",
+                            MetaSyntaxName = "node-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "_join-1-OptionGroup",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-                                    },
-                                },
-                            },
-                        },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "edge-spec",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -245,7 +158,67 @@ public class SelectNodeQueryTests : TestBase
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_select-node-query-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "join",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_join-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                            },
+                                        },
+                                    },
+                                },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "node-edge-query",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_node-edge-query-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxTree
+                                                {
+                                                    MetaSyntaxName = "edge-spec",
+                                                    Children = new ISyntaxTree[]
+                                                    {
+                                                        new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                                        new SyntaxTree
+                                                        {
+                                                            MetaSyntaxName = "tags",
+                                                            Children = new ISyntaxTree[]
+                                                            {
+                                                                new SyntaxTree
+                                                                {
+                                                                    MetaSyntaxName = "tag",
+                                                                    Children = new ISyntaxTree[]
+                                                                    {
+                                                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                                                    },
+                                                                },
+                                                            },
+                                                        },
+                                                        new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -289,54 +262,15 @@ public class SelectNodeQueryTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "node-spec",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "tags",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "tag",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-                                    },
-                                },
-                            },
-                        },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-                    },
-                },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_select-node-query-3-RepeatGroup",
+                    MetaSyntaxName = "select-node-query",
                     Children = new ISyntaxTree[]
                     {
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "join",
+                            MetaSyntaxName = "node-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "_join-1-OptionGroup",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-                                    },
-                                },
-                            },
-                        },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "edge-spec",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -352,7 +286,67 @@ public class SelectNodeQueryTests : TestBase
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_select-node-query-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "join",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_join-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                            },
+                                        },
+                                    },
+                                },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "node-edge-query",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_node-edge-query-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxTree
+                                                {
+                                                    MetaSyntaxName = "edge-spec",
+                                                    Children = new ISyntaxTree[]
+                                                    {
+                                                        new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                                        new SyntaxTree
+                                                        {
+                                                            MetaSyntaxName = "tags",
+                                                            Children = new ISyntaxTree[]
+                                                            {
+                                                                new SyntaxTree
+                                                                {
+                                                                    MetaSyntaxName = "tag",
+                                                                    Children = new ISyntaxTree[]
+                                                                    {
+                                                                        new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
+                                                                    },
+                                                                },
+                                                            },
+                                                        },
+                                                        new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -372,7 +366,7 @@ public class SelectNodeQueryTests : TestBase
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
             new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
             new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
         };
 
@@ -392,7 +386,109 @@ public class SelectNodeQueryTests : TestBase
 
         var expectedTree = new SyntaxTree
         {
-
+            Children = new ISyntaxTree[]
+            {
+                new SyntaxTree
+                {
+                    MetaSyntaxName = "select-node-query",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "node-spec",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tags",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "tag",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+                                                new SyntaxTree
+                                                {
+                                                    MetaSyntaxName = "_tag-3-OptionGroup",
+                                                    Children = new ISyntaxTree[]
+                                                    {
+                                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                                        new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                            },
+                        },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_select-node-query-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "join",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_join-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                            },
+                                        },
+                                    },
+                                },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "node-edge-query",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_node-edge-query-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxTree
+                                                {
+                                                    MetaSyntaxName = "edge-spec",
+                                                    Children = new ISyntaxTree[]
+                                                    {
+                                                        new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                                        new SyntaxTree
+                                                        {
+                                                            MetaSyntaxName = "tags",
+                                                            Children = new ISyntaxTree[]
+                                                            {
+                                                                new SyntaxTree
+                                                                {
+                                                                    MetaSyntaxName = "tag",
+                                                                    Children = new ISyntaxTree[]
+                                                                    {
+                                                                        new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
+                                                                    },
+                                                                },
+                                                            },
+                                                        },
+                                                        new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
@@ -403,11 +499,13 @@ public class SelectNodeQueryTests : TestBase
         var expectedPairs = new[]
         {
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
             new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
             new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
         };
 

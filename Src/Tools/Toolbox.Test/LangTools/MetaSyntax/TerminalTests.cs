@@ -31,15 +31,28 @@ public class TerminalTests
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair
+                new SyntaxTree
                 {
-                    Token = new TokenValue("3"),
-                    MetaSyntaxName = "number",
+                    MetaSyntaxName = "alias",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxPair { Token = new TokenValue("3"), MetaSyntaxName = "number" },
+                    },
                 },
             },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("3"), MetaSyntaxName = "number" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 
     [Fact]
@@ -58,7 +71,7 @@ public class TerminalTests
         var parser = new SyntaxParser(schema);
 
         var parse = parser.Parse("A", NullScopeContext.Instance);
-        parse.StatusCode.IsOk().Should().BeFalse(parse.Error);
+        parse.StatusCode.IsError().Should().BeTrue(parse.Error);
         parse.Error.Should().Be("No rules matched");
     }
 }

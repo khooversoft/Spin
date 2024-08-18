@@ -2,9 +2,21 @@
 
 There are 2 elements to the language syntax definitions, terminal where the search ends, and rule that governs the search.
 
+All rules must end with `;` semicolon.
+
+1. Terminal match
+1. Sequence rule `'s, ...'` - all match or not found
+1. Optional rule `'[ s, ... ]'` - all match or not found
+1. Repetition rule `'{ delimeter, s, ... }` - repeat does not require any sequence
+1. One of "or" rule `'( a | b ... )'` - return the first match
+
+
+
 
 ## Terminal Symbol
 Terminal defines the end of the matching search, either exact match or matches some criteria such as regex.
+
+name = 'literal' | regex 'expression' | string ;
 
 There are 3 types of terminal symbols:
 1. Exact match: `terminal = 'exact match' ;`
@@ -13,20 +25,15 @@ There are 3 types of terminal symbols:
 
 Examples...
 
-#### add = 'add' ;
-The "add" terminal matches 'add';
-
-#### number = regex '^[+-]?[0-9]+$' ;
-The "number" terminal matches the regex expression '...';
-
-#### base64 = string ;
-The "base64" terminal matches any string;
-
-#### open-param = '(' #group-start #node;
-The "open-param" terminal matches '(' with tags "group-start" and "node";
+| Example                                | Description                      |
+| -------------------------------------  | -------------------------------- |
+| `add = 'add' ;`                        | The "add" terminal matches 'add' |
+| `number = regex '^[+-]?[0-9]+$' ;`     | The "number" terminal matches the regex expression '...'; |
+| `base64 = string ;`                    | The "base64" terminal matches any string; |
+| `open-param = '(' #group-start #node;` | The "open-param" terminal matches '(' with tags "group-start" and "node"; |
 
 
-## Rule
+## Rules
 Rule matches patters such as optional, sequence, and repetition.
 
 There are 3 types of rules:
@@ -60,4 +67,4 @@ Tags as defined above and have 1 or n number of tags.  This is like the argument
 * Sequence - OK, NotFound, all rules must match
 * Optional - OK, NotFound, any match returns OK
 * Sequence
-* Repeat - OK
+* Repeat - OK, NotFound, all rules must match for each segment

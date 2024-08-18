@@ -72,8 +72,7 @@ public class MetaSyntaxCompareTests
             new ProductionRule
             {
                 Name = "alias",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
@@ -101,8 +100,7 @@ public class MetaSyntaxCompareTests
             new ProductionRule
             {
                 Name = "alias",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
@@ -132,8 +130,7 @@ public class MetaSyntaxCompareTests
             new ProductionRule
             {
                 Name = "alias",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
@@ -142,8 +139,7 @@ public class MetaSyntaxCompareTests
             new ProductionRule
             {
                 Name = "tag",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_tag-1-symbol", ReferenceSyntax = "symbol" },
@@ -151,7 +147,6 @@ public class MetaSyntaxCompareTests
                     {
                         Name = "_tag-3-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.Sequence,
                         Children = new IMetaSyntax[]
                         {
                             new VirtualTerminalSymbol { Name = "_tag-3-OptionGroup-1", Text = "=" },

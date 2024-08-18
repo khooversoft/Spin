@@ -13,7 +13,7 @@ internal static class MetaSyntaxTool
 
     public static readonly FrozenDictionary<string, GroupToken> GroupTokens = new Dictionary<string, GroupToken>
     {
-        ["("] = new GroupToken { Type = ProductionRuleType.Group, CloseSymbol = ")", Label = "Group" },
+        ["("] = new GroupToken { Type = ProductionRuleType.Or, CloseSymbol = ")", Label = "OrGroup" },
         ["["] = new GroupToken { Type = ProductionRuleType.Optional, CloseSymbol = "]", Label = "OptionGroup" },
         ["{"] = new GroupToken { Type = ProductionRuleType.Repeat, CloseSymbol = "}", Label = "RepeatGroup" },
     }.ToFrozenDictionary();

@@ -7,18 +7,17 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class OptionalWithSuffix : TestBase
+public class RepeatBaseRuleTests : TestBase
 {
     private readonly MetaSyntaxRoot _schema;
 
-    public OptionalWithSuffix(ITestOutputHelper output) : base(output)
+    public RepeatBaseRuleTests(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
 {
-            "symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;",
-            "join-left           = '->' ;",
-            "join-inner          = '<->' ;",
-            "join                = [ (join-left | join-inner) ], symbol ;",
+            "symbol              = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;",
+            "comma               = ',' ;",
+            "array               = symbol, { comma, symbol } ;",
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
@@ -26,12 +25,12 @@ public class OptionalWithSuffix : TestBase
     }
 
     [Fact]
-    public void NoJoin()
+    public void SimpleRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OptionalRuleOnly>();
+        var logger = GetScopeContext<OrRuleTests>();
 
-        var parse = parser.Parse("first", logger);
+        var parse = parser.Parse("t1", logger);
         parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -42,10 +41,10 @@ public class OptionalWithSuffix : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "join",
+                    MetaSyntaxName = "array",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
                     },
                 },
             },
@@ -58,19 +57,19 @@ public class OptionalWithSuffix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 
     [Fact]
-    public void LeftJoin()
+    public void SimpleTwoRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OptionalRuleOnly>();
+        var logger = GetScopeContext<OrRuleTests>();
 
-        var parse = parser.Parse("-> first", logger);
+        var parse = parser.Parse("t1, t2", logger);
         parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -81,25 +80,19 @@ public class OptionalWithSuffix : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "join",
+                    MetaSyntaxName = "array",
                     Children = new ISyntaxTree[]
                     {
+                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "_join-1-OptionGroup",
+                            MetaSyntaxName = "_array-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "_join-1-OptionGroup-1-OrGroup",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-                                    },
-                                },
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
                     },
                 },
             },
@@ -112,20 +105,21 @@ public class OptionalWithSuffix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 
     [Fact]
-    public void InnerJoin()
+    public void SimpleWithValueRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OptionalRuleOnly>();
+        var logger = GetScopeContext<OrRuleTests>();
 
-        var parse = parser.Parse("<-> first", logger);
+        var parse = parser.Parse("t1, v1, t2", logger);
         parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -136,25 +130,28 @@ public class OptionalWithSuffix : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "join",
+                    MetaSyntaxName = "array",
                     Children = new ISyntaxTree[]
                     {
+                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "_join-1-OptionGroup",
+                            MetaSyntaxName = "_array-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "_join-1-OptionGroup-1-OrGroup",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
-                                    },
-                                },
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_array-3-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                            },
+                        },
                     },
                 },
             },
@@ -167,8 +164,11 @@ public class OptionalWithSuffix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();

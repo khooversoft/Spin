@@ -29,8 +29,10 @@ public class SampleMetaSyntaxTest
         var tree = new IMetaSyntax[]
         {
             new TerminalSymbol { Name = "number", Text = "^[+-]?[0-9]+$", Type = TerminalType.Regex },
-            new TerminalSymbol { Name = "symbol", Text = "^[a-zA-Z][a-zA-Z0-9\\-]*$", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "symbol", Text = "^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$", Type = TerminalType.Regex },
+            new TerminalSymbol { Name = "alias", Text = "^[a-zA-Z][a-zA-Z0-9\\-]*$", Type = TerminalType.Regex },
             new TerminalSymbol { Name = "base64", Text = "string", Type = TerminalType.String },
+            new TerminalSymbol { Name = "tagValue", Text = "string", Type = TerminalType.String },
             new TerminalSymbol { Name = "equal", Text = "=", Type = TerminalType.Token },
             new TerminalSymbol { Name = "join-left", Text = "->", Type = TerminalType.Token },
             new TerminalSymbol { Name = "join-inner", Text = "<->", Type = TerminalType.Token },
@@ -53,19 +55,8 @@ public class SampleMetaSyntaxTest
             new TerminalSymbol { Name = "term", Text = ";", Type = TerminalType.Token },
             new ProductionRule
             {
-                Name = "alias",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
-                Children = new IMetaSyntax[]
-                {
-                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
-                },
-            },
-            new ProductionRule
-            {
                 Name = "tag",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_tag-1-symbol", ReferenceSyntax = "symbol" },
@@ -73,11 +64,10 @@ public class SampleMetaSyntaxTest
                     {
                         Name = "_tag-3-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.Sequence,
                         Children = new IMetaSyntax[]
                         {
                             new VirtualTerminalSymbol { Name = "_tag-3-OptionGroup-1", Text = "=" },
-                            new ProductionRuleReference { Name = "_tag-3-OptionGroup-3-symbol", ReferenceSyntax = "symbol" },
+                            new ProductionRuleReference { Name = "_tag-3-OptionGroup-3-tagValue", ReferenceSyntax = "tagValue" },
                         },
                     },
                 },
@@ -85,8 +75,7 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "tags",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_tags-1-tag", ReferenceSyntax = "tag" },
@@ -94,7 +83,6 @@ public class SampleMetaSyntaxTest
                     {
                         Name = "_tags-3-RepeatGroup",
                         Type = ProductionRuleType.Repeat,
-                        EvaluationType = EvaluationType.Sequence,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_tags-3-RepeatGroup-1-comma", ReferenceSyntax = "comma" },
@@ -106,8 +94,7 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "return-query",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_return-query-1-return-sym", ReferenceSyntax = "return-sym" },
@@ -116,7 +103,6 @@ public class SampleMetaSyntaxTest
                     {
                         Name = "_return-query-5-RepeatGroup",
                         Type = ProductionRuleType.Repeat,
-                        EvaluationType = EvaluationType.Sequence,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_return-query-5-RepeatGroup-1-comma", ReferenceSyntax = "comma" },
@@ -128,8 +114,7 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "entity-data",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_entity-data-1-symbol", ReferenceSyntax = "symbol" },
@@ -141,8 +126,7 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "set-cmd",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_set-cmd-1-set-sym", ReferenceSyntax = "set-sym" },
@@ -152,32 +136,19 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "node-spec",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_node-spec-1-open-param", ReferenceSyntax = "open-param" },
-                    new ProductionRuleReference { Name = "_node-spec-3-tag", ReferenceSyntax = "tag" },
+                    new ProductionRuleReference { Name = "_node-spec-3-tags", ReferenceSyntax = "tags" },
+                    new ProductionRuleReference { Name = "_node-spec-5-close-param", ReferenceSyntax = "close-param" },
                     new ProductionRule
                     {
-                        Name = "_node-spec-5-RepeatGroup",
-                        Type = ProductionRuleType.Repeat,
-                        EvaluationType = EvaluationType.Sequence,
-                        Children = new IMetaSyntax[]
-                        {
-                            new ProductionRuleReference { Name = "_node-spec-5-RepeatGroup-1-comma", ReferenceSyntax = "comma" },
-                            new ProductionRuleReference { Name = "_node-spec-5-RepeatGroup-3-tag", ReferenceSyntax = "tag" },
-                        },
-                    },
-                    new ProductionRuleReference { Name = "_node-spec-7-close-param", ReferenceSyntax = "close-param" },
-                    new ProductionRule
-                    {
-                        Name = "_node-spec-9-OptionGroup",
+                        Name = "_node-spec-7-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.None,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_node-spec-9-OptionGroup-1-alias", ReferenceSyntax = "alias" },
+                            new ProductionRuleReference { Name = "_node-spec-7-OptionGroup-1-alias", ReferenceSyntax = "alias" },
                         },
                     },
                 },
@@ -185,32 +156,19 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "edge-spec",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_edge-spec-1-open-bracket", ReferenceSyntax = "open-bracket" },
-                    new ProductionRuleReference { Name = "_edge-spec-3-tag", ReferenceSyntax = "tag" },
+                    new ProductionRuleReference { Name = "_edge-spec-3-tags", ReferenceSyntax = "tags" },
+                    new ProductionRuleReference { Name = "_edge-spec-5-close-bracket", ReferenceSyntax = "close-bracket" },
                     new ProductionRule
                     {
-                        Name = "_edge-spec-5-RepeatGroup",
-                        Type = ProductionRuleType.Repeat,
-                        EvaluationType = EvaluationType.Sequence,
-                        Children = new IMetaSyntax[]
-                        {
-                            new ProductionRuleReference { Name = "_edge-spec-5-RepeatGroup-1-comma", ReferenceSyntax = "comma" },
-                            new ProductionRuleReference { Name = "_edge-spec-5-RepeatGroup-3-tag", ReferenceSyntax = "tag" },
-                        },
-                    },
-                    new ProductionRuleReference { Name = "_edge-spec-7-close-bracket", ReferenceSyntax = "close-bracket" },
-                    new ProductionRule
-                    {
-                        Name = "_edge-spec-9-OptionGroup",
+                        Name = "_edge-spec-7-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.None,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_edge-spec-9-OptionGroup-1-alias", ReferenceSyntax = "alias" },
+                            new ProductionRuleReference { Name = "_edge-spec-7-OptionGroup-1-alias", ReferenceSyntax = "alias" },
                         },
                     },
                 },
@@ -218,15 +176,13 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "join",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRule
                     {
                         Name = "_join-1-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.Or,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_join-1-OptionGroup-1-join-left", ReferenceSyntax = "join-left" },
@@ -238,8 +194,7 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "select-node-query",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_select-node-query-1-node-spec", ReferenceSyntax = "node-spec" },
@@ -247,7 +202,6 @@ public class SampleMetaSyntaxTest
                     {
                         Name = "_select-node-query-3-RepeatGroup",
                         Type = ProductionRuleType.Repeat,
-                        EvaluationType = EvaluationType.Sequence,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_select-node-query-3-RepeatGroup-1-join", ReferenceSyntax = "join" },
@@ -259,8 +213,7 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "select-edge-query",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_select-edge-query-1-edge-spec", ReferenceSyntax = "edge-spec" },
@@ -268,7 +221,6 @@ public class SampleMetaSyntaxTest
                     {
                         Name = "_select-edge-query-3-RepeatGroup",
                         Type = ProductionRuleType.Repeat,
-                        EvaluationType = EvaluationType.Sequence,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_select-edge-query-3-RepeatGroup-1-join", ReferenceSyntax = "join" },
@@ -280,27 +232,24 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "addCommand",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_addCommand-1-add-sym", ReferenceSyntax = "add-sym" },
                     new ProductionRule
                     {
-                        Name = "_addCommand-3-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
+                        Name = "_addCommand-3-OrGroup",
+                        Type = ProductionRuleType.Or,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_addCommand-3-Group-1-node-sym", ReferenceSyntax = "node-sym" },
-                            new ProductionRuleReference { Name = "_addCommand-3-Group-3-edge-sym", ReferenceSyntax = "edge-sym" },
+                            new ProductionRuleReference { Name = "_addCommand-3-OrGroup-1-node-sym", ReferenceSyntax = "node-sym" },
+                            new ProductionRuleReference { Name = "_addCommand-3-OrGroup-3-edge-sym", ReferenceSyntax = "edge-sym" },
                         },
                     },
                     new ProductionRule
                     {
                         Name = "_addCommand-5-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.None,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_addCommand-5-OptionGroup-1-tags", ReferenceSyntax = "tags" },
@@ -310,7 +259,6 @@ public class SampleMetaSyntaxTest
                     {
                         Name = "_addCommand-7-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.None,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_addCommand-7-OptionGroup-1-entity-data", ReferenceSyntax = "entity-data" },
@@ -322,31 +270,28 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "updateCommand",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_updateCommand-1-update-sym", ReferenceSyntax = "update-sym" },
                     new ProductionRule
                     {
-                        Name = "_updateCommand-3-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
+                        Name = "_updateCommand-3-OrGroup",
+                        Type = ProductionRuleType.Or,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_updateCommand-3-Group-1-node-sym", ReferenceSyntax = "node-sym" },
-                            new ProductionRuleReference { Name = "_updateCommand-3-Group-3-edge-sym", ReferenceSyntax = "edge-sym" },
+                            new ProductionRuleReference { Name = "_updateCommand-3-OrGroup-1-node-sym", ReferenceSyntax = "node-sym" },
+                            new ProductionRuleReference { Name = "_updateCommand-3-OrGroup-3-edge-sym", ReferenceSyntax = "edge-sym" },
                         },
                     },
                     new ProductionRule
                     {
-                        Name = "_updateCommand-5-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
+                        Name = "_updateCommand-5-OrGroup",
+                        Type = ProductionRuleType.Or,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_updateCommand-5-Group-1-select-node-query", ReferenceSyntax = "select-node-query" },
-                            new ProductionRuleReference { Name = "_updateCommand-5-Group-3-select-edge-query", ReferenceSyntax = "select-edge-query" },
+                            new ProductionRuleReference { Name = "_updateCommand-5-OrGroup-1-select-node-query", ReferenceSyntax = "select-node-query" },
+                            new ProductionRuleReference { Name = "_updateCommand-5-OrGroup-3-select-edge-query", ReferenceSyntax = "select-edge-query" },
                         },
                     },
                     new ProductionRuleReference { Name = "_updateCommand-7-set-cmd", ReferenceSyntax = "set-cmd" },
@@ -356,31 +301,28 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "deleteCommand",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_deleteCommand-1-delete-sym", ReferenceSyntax = "delete-sym" },
                     new ProductionRule
                     {
-                        Name = "_deleteCommand-3-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
+                        Name = "_deleteCommand-3-OrGroup",
+                        Type = ProductionRuleType.Or,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_deleteCommand-3-Group-1-node-sym", ReferenceSyntax = "node-sym" },
-                            new ProductionRuleReference { Name = "_deleteCommand-3-Group-3-edge-sym", ReferenceSyntax = "edge-sym" },
+                            new ProductionRuleReference { Name = "_deleteCommand-3-OrGroup-1-node-sym", ReferenceSyntax = "node-sym" },
+                            new ProductionRuleReference { Name = "_deleteCommand-3-OrGroup-3-edge-sym", ReferenceSyntax = "edge-sym" },
                         },
                     },
                     new ProductionRule
                     {
-                        Name = "_deleteCommand-5-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
+                        Name = "_deleteCommand-5-OrGroup",
+                        Type = ProductionRuleType.Or,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_deleteCommand-5-Group-1-select-node-query", ReferenceSyntax = "select-node-query" },
-                            new ProductionRuleReference { Name = "_deleteCommand-5-Group-3-select-edge-query", ReferenceSyntax = "select-edge-query" },
+                            new ProductionRuleReference { Name = "_deleteCommand-5-OrGroup-1-select-node-query", ReferenceSyntax = "select-node-query" },
+                            new ProductionRuleReference { Name = "_deleteCommand-5-OrGroup-3-select-edge-query", ReferenceSyntax = "select-edge-query" },
                         },
                     },
                     new ProductionRuleReference { Name = "_deleteCommand-7-term", ReferenceSyntax = "term" },
@@ -389,38 +331,34 @@ public class SampleMetaSyntaxTest
             new ProductionRule
             {
                 Name = "selectCommand",
-                Type = ProductionRuleType.Root,
-                EvaluationType = EvaluationType.Sequence,
+                Type = ProductionRuleType.Sequence,
                 Children = new IMetaSyntax[]
                 {
                     new ProductionRuleReference { Name = "_selectCommand-1-select-sym", ReferenceSyntax = "select-sym" },
                     new ProductionRule
                     {
-                        Name = "_selectCommand-3-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
+                        Name = "_selectCommand-3-OrGroup",
+                        Type = ProductionRuleType.Or,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_selectCommand-3-Group-1-node-sym", ReferenceSyntax = "node-sym" },
-                            new ProductionRuleReference { Name = "_selectCommand-3-Group-3-edge-sym", ReferenceSyntax = "edge-sym" },
+                            new ProductionRuleReference { Name = "_selectCommand-3-OrGroup-1-node-sym", ReferenceSyntax = "node-sym" },
+                            new ProductionRuleReference { Name = "_selectCommand-3-OrGroup-3-edge-sym", ReferenceSyntax = "edge-sym" },
                         },
                     },
                     new ProductionRule
                     {
-                        Name = "_selectCommand-5-Group",
-                        Type = ProductionRuleType.Group,
-                        EvaluationType = EvaluationType.Or,
+                        Name = "_selectCommand-5-OrGroup",
+                        Type = ProductionRuleType.Or,
                         Children = new IMetaSyntax[]
                         {
-                            new ProductionRuleReference { Name = "_selectCommand-5-Group-1-select-node-query", ReferenceSyntax = "select-node-query" },
-                            new ProductionRuleReference { Name = "_selectCommand-5-Group-3-select-edge-query", ReferenceSyntax = "select-edge-query" },
+                            new ProductionRuleReference { Name = "_selectCommand-5-OrGroup-1-select-node-query", ReferenceSyntax = "select-node-query" },
+                            new ProductionRuleReference { Name = "_selectCommand-5-OrGroup-3-select-edge-query", ReferenceSyntax = "select-edge-query" },
                         },
                     },
                     new ProductionRule
                     {
                         Name = "_selectCommand-7-OptionGroup",
                         Type = ProductionRuleType.Optional,
-                        EvaluationType = EvaluationType.None,
                         Children = new IMetaSyntax[]
                         {
                             new ProductionRuleReference { Name = "_selectCommand-7-OptionGroup-1-return-query", ReferenceSyntax = "return-query" },
@@ -430,8 +368,6 @@ public class SampleMetaSyntaxTest
                 },
             },
         };
-
-
 
         return tree;
     }

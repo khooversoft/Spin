@@ -52,8 +52,15 @@ public class ReturnDataTests : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
-                new SyntaxPair { Token = new TokenValue("d1"), MetaSyntaxName = "symbol" },
+                new SyntaxTree
+                {
+                    MetaSyntaxName = "return-query",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
+                        new SyntaxPair { Token = new TokenValue("d1"), MetaSyntaxName = "symbol" },
+                    },
+                },
             },
         };
 
@@ -87,15 +94,22 @@ public class ReturnDataTests : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
-                new SyntaxPair { Token = new TokenValue("d1"), MetaSyntaxName = "symbol" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_return-query-5-RepeatGroup",
+                    MetaSyntaxName = "return-query",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-                        new SyntaxPair { Token = new TokenValue("d2"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
+                        new SyntaxPair { Token = new TokenValue("d1"), MetaSyntaxName = "symbol" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_return-query-5-RepeatGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue("d2"), MetaSyntaxName = "symbol" },
+                            },
+                        },
                     },
                 },
             },

@@ -126,7 +126,6 @@ public static class MetaParser
     {
         int tokensProcessed = 0;
         bool requireDelimiter = false;
-        EvaluationType evalType = EvaluationType.None;
 
         while (pContext.TokensCursor.TryNextValue(out IToken? token))
         {
@@ -141,29 +140,28 @@ public static class MetaParser
 
             if (endToken != null && token.Value == endToken)
             {
-                rule.EvaluationType = evalType;
                 return StatusCode.OK;
             }
 
             switch (requireDelimiter)
             {
                 case false when token.Value == "," || token.Value == "|": return (StatusCode.BadRequest, pContext.ErrorMessage("Not expecting ','"));
+                case false: break;
 
-                case true when evalType == EvaluationType.None && token.Value == ",":
-                    evalType = EvaluationType.Sequence;
+                case true when rule.Type == ProductionRuleType.Sequence && token.Value == ",":
+                case true when rule.Type == ProductionRuleType.Optional && token.Value == ",":
+                case true when rule.Type == ProductionRuleType.Repeat && token.Value == ",":
                     requireDelimiter = false;
                     continue;
 
-                case true when evalType == EvaluationType.None && token.Value == "|":
-                    evalType = EvaluationType.Or;
+                case true when rule.Type == ProductionRuleType.Or && token.Value == "|":
                     requireDelimiter = false;
                     continue;
 
-                case true when evalType == EvaluationType.Sequence && token.Value != ",": return (StatusCode.BadRequest, pContext.ErrorMessage("Not Expected"));
-                case true when evalType == EvaluationType.Or && token.Value != "|": return (StatusCode.BadRequest, pContext.ErrorMessage("Not Expected"));
-
-                case true: requireDelimiter = false; continue;
+                default:
+                    return (StatusCode.BadRequest, pContext.ErrorMessage("Not Expected"));
             }
+
             requireDelimiter = true;
 
             var t2 = tryProcessGroup(token);

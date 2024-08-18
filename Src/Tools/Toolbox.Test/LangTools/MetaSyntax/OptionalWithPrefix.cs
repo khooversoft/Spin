@@ -18,7 +18,8 @@ public class OptionalWithPrefix : TestBase
             "symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;",
             "join-left           = '->' ;",
             "join-inner          = '<->' ;",
-            "join                = symbol, [ join-left | join-inner ] ;",
+            "join                = ( join-left | join-inner ) ;",
+            "select              = symbol, [ join ] ;",
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
@@ -40,7 +41,14 @@ public class OptionalWithPrefix : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                new SyntaxTree
+                {
+                    MetaSyntaxName = "select",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                    },
+                },
             },
         };
 
@@ -72,13 +80,34 @@ public class OptionalWithPrefix : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_join-3-OptionGroup",
+                    MetaSyntaxName = "select",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_select-3-OptionGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "join",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_join-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -113,13 +142,34 @@ public class OptionalWithPrefix : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_join-3-OptionGroup",
+                    MetaSyntaxName = "select",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_select-3-OptionGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "join",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_join-1-OrGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },

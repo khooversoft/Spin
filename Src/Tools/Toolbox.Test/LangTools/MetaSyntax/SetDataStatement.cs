@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Types;
 using Toolbox.Test.Application;
+using Toolbox.Types;
 using Xunit.Abstractions;
-using FluentAssertions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
@@ -64,10 +59,17 @@ public class SetDataStatement : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "symbol" },
-                new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-                new SyntaxPair { Token = new TokenValue("base64data"), MetaSyntaxName = "base64" },
-                new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
+                new SyntaxTree
+                {
+                    MetaSyntaxName = "entity-data",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
+                        new SyntaxPair { Token = new TokenValue("base64data"), MetaSyntaxName = "base64" },
+                        new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
+                    },
+                },
             },
         };
 

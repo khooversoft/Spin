@@ -41,13 +41,16 @@ public class OrRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_addCommand-1-Group",
+                    MetaSyntaxName = "addCommand",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair
+                        new SyntaxTree
                         {
-                            Token = new TokenValue("node"),
-                            MetaSyntaxName = "node-sym",
+                            MetaSyntaxName = "_addCommand-1-OrGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
+                            },
                         },
                     },
                 },
@@ -55,6 +58,16 @@ public class OrRuleTests : TestBase
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 
     [Fact]
@@ -74,13 +87,16 @@ public class OrRuleTests : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_addCommand-1-Group",
+                    MetaSyntaxName = "addCommand",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair
+                        new SyntaxTree
                         {
-                            Token = new TokenValue("edge"),
-                            MetaSyntaxName = "edge-sym",
+                            MetaSyntaxName = "_addCommand-1-OrGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("edge"), MetaSyntaxName = "edge-sym" },
+                            },
                         },
                     },
                 },
@@ -88,8 +104,17 @@ public class OrRuleTests : TestBase
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
-    }
 
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("edge"), MetaSyntaxName = "edge-sym" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+    }
 
     [Fact]
     public void SimpleOrSymbolFail()

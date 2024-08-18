@@ -67,7 +67,6 @@ internal static class MetaTestTool
             "{",
            $"    Name = \"{rule.Name}\",",
            $"    Type = ProductionRuleType.{rule.Type},",
-           $"    EvaluationType = EvaluationType.{rule.EvaluationType},",
             "    Children = new IMetaSyntax[]",
             "    {",
             null,

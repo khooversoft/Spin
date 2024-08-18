@@ -1,9 +1,11 @@
 
 number              = regex '^[+-]?[0-9]+$' ;
-symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;
-alias               = regex '^[a-zA-Z][a-zA-Z0-9\-]*$' ;
+symbol              = regex '^[a-zA-Z\*][a-zA-Z0-9\-\*]*$' ;
+name                = regex '^[a-zA-Z][a-zA-Z0-9\-]*$' ;
+alias               = name
 base64              = string ;
 tagValue            = string ;
+dataName            = name ;
 equal               = '=' ;
 join-left           = '->' ;
 join-inner          = '<->' ;
@@ -25,7 +27,6 @@ close-brace         = '}' #group-end #data ;
 comma               = ',' ;
 term                = ';' ;
 
-alias               = symbol ;
 tag                 = symbol, [ '=', tagValue ] ;
 tags                = tag, { comma, tag } ;
 return-query        = return-sym, symbol, { comma, symbol } ;
@@ -33,7 +34,7 @@ entity-data         = symbol, open-brace, base64, close-brace ;
 set-cmd             = set-sym, tags ;
 node-spec           = open-param, tags, close-param, [ alias ] ;
 edge-spec           = open-bracket, tags, close-bracket, [ alias ] ;
-join                = [ join-left | join-inner ] ;
+join                = [ join-left, join-inner ] ;
 
 select-node-query   = node-spec, { join, edge-spec } ;
 select-edge-query   = edge-spec, { join, node-spec } ;

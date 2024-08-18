@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Types;
 using Toolbox.Test.Application;
+using Toolbox.Types;
 using Xunit.Abstractions;
-using FluentAssertions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
@@ -62,23 +57,30 @@ public class NodeSpecStatement : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tags",
+                    MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
+                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "tag",
+                            MetaSyntaxName = "tags",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                    },
+                                },
                             },
                         },
+                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
                     },
                 },
-                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
             },
         };
 
@@ -112,29 +114,36 @@ public class NodeSpecStatement : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tags",
+                    MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
+                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "tag",
+                            MetaSyntaxName = "tags",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                    },
+                                },
                             },
                         },
-                    },
-                },
-                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_node-spec-7-OptionGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
+                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_node-spec-7-OptionGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
+                            },
+                        },
                     },
                 },
             },
@@ -171,23 +180,30 @@ public class NodeSpecStatement : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tags",
+                    MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
+                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "tag",
+                            MetaSyntaxName = "tags",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "tag",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                    },
+                                },
                             },
                         },
+                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
                     },
                 },
-                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
             },
         };
 
@@ -221,32 +237,39 @@ public class NodeSpecStatement : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tags",
+                    MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
+                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "tag",
+                            MetaSyntaxName = "tags",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
                                 new SyntaxTree
                                 {
-                                    MetaSyntaxName = "_tag-3-OptionGroup",
+                                    MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_tag-3-OptionGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                            },
+                                        },
                                     },
                                 },
                             },
                         },
+                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
                     },
                 },
-                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
             },
         };
 
@@ -282,54 +305,61 @@ public class NodeSpecStatement : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "tags",
+                    MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
+                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
                         new SyntaxTree
                         {
-                            MetaSyntaxName = "tag",
+                            MetaSyntaxName = "tags",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
-                                new SyntaxTree
-                                {
-                                    MetaSyntaxName = "_tag-3-OptionGroup",
-                                    Children = new ISyntaxTree[]
-                                    {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-                                    },
-                                },
-                            },
-                        },
-                        new SyntaxTree
-                        {
-                            MetaSyntaxName = "_tags-3-RepeatGroup",
-                            Children = new ISyntaxTree[]
-                            {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "_tag-3-OptionGroup",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                            },
+                                        },
+                                    },
+                                },
+                                new SyntaxTree
+                                {
+                                    MetaSyntaxName = "_tags-3-RepeatGroup",
+                                    Children = new ISyntaxTree[]
+                                    {
+                                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                        new SyntaxTree
+                                        {
+                                            MetaSyntaxName = "tag",
+                                            Children = new ISyntaxTree[]
+                                            {
+                                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                            },
+                                        },
                                     },
                                 },
                             },
                         },
-                    },
-                },
-                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-                new SyntaxTree
-                {
-                    MetaSyntaxName = "_node-spec-7-OptionGroup",
-                    Children = new ISyntaxTree[]
-                    {
-                        new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
+                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_node-spec-7-OptionGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
+                            },
+                        },
                     },
                 },
             },

@@ -163,8 +163,7 @@ public class ProductionRuleTests
             {
                 x.NotNull();
                 x.Name.Should().Be("tag");
-                x.Type.Should().Be(ProductionRuleType.Root);
-                x.EvaluationType.Should().Be(EvaluationType.Sequence);
+                x.Type.Should().Be(ProductionRuleType.Sequence);
                 x.Children.Count.Should().Be(2);
                 (x.Children[0] as ProductionRuleReference).Action(y =>
                 {
@@ -178,7 +177,6 @@ public class ProductionRuleTests
                     y.NotNull();
                     y.Name.Should().Be("_tag-3-OptionGroup");
                     y.Type.Should().Be(ProductionRuleType.Optional);
-                    y.EvaluationType.Should().Be(EvaluationType.Sequence);
                     y.Children.Count.Should().Be(2);
                     (y.Children[0] as VirtualTerminalSymbol).Action(z =>
                     {
@@ -207,7 +205,6 @@ public class ProductionRuleTests
                     y.NotNull();
                     y.Name.Should().Be("_tags-1-RepeatGroup");
                     y.Type.Should().Be(ProductionRuleType.Repeat);
-                    y.EvaluationType.Should().Be(EvaluationType.Sequence);
                     y.Children.Count.Should().Be(2);
 
                     (y.Children[0] as ProductionRuleReference).Action(z =>
@@ -237,7 +234,7 @@ public class ProductionRuleTests
             "symbol      = regex '[a-zA-Z][a-zA-Z0-9\\-/]*' ;",
             "join-left   = '->' ;",
             "join-inner  = '<->' ;",
-            "join        = [ join-left | join-inner | symbol ] ;",
+            "join        = [ join-left, join-inner, symbol ] ;",
             ];
 
         test(rules);
@@ -278,7 +275,7 @@ public class ProductionRuleTests
             {
                 x.NotNull();
                 x.Name.Should().Be("join");
-                x.Type.Should().Be(ProductionRuleType.Root);
+                x.Type.Should().Be(ProductionRuleType.Sequence);
                 x.Children.Count.Should().Be(1);
 
                 (x.Children[0] as ProductionRule).Action(x =>
@@ -286,7 +283,6 @@ public class ProductionRuleTests
                     x.NotNull();
                     x.Name.Should().Be("_join-1-OptionGroup");
                     x.Type.Should().Be(ProductionRuleType.Optional);
-                    x.EvaluationType.Should().Be(EvaluationType.Or);
                     x.Children.Count.Should().Be(3);
 
                     (x.Children[0] as ProductionRuleReference).Action(y =>
@@ -365,21 +361,20 @@ public class ProductionRuleTests
             {
                 x.NotNull();
                 x.Name.Should().Be("group");
-                x.Type.Should().Be(ProductionRuleType.Root);
+                x.Type.Should().Be(ProductionRuleType.Sequence);
                 x.Children.Count.Should().Be(1);
 
                 (x.Children[0] as ProductionRule).Action(x =>
                 {
                     x.NotNull();
-                    x.Name.Should().Be("_group-1-Group");
-                    x.Type.Should().Be(ProductionRuleType.Group);
-                    x.EvaluationType.Should().Be(EvaluationType.Or);
+                    x.Name.Should().Be("_group-1-OrGroup");
+                    x.Type.Should().Be(ProductionRuleType.Or);
                     x.Children.Count.Should().Be(3);
 
                     (x.Children[0] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_group-1-Group-1-join-left");
+                        y.Name.Should().Be("_group-1-OrGroup-1-join-left");
                         y.ReferenceSyntax.Should().NotBeNull();
                         y.ReferenceSyntax.Should().Be("join-left");
                     });
@@ -387,7 +382,7 @@ public class ProductionRuleTests
                     (x.Children[1] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_group-1-Group-3-join-inner");
+                        y.Name.Should().Be("_group-1-OrGroup-3-join-inner");
                         y.ReferenceSyntax.Should().NotBeNull();
                         y.ReferenceSyntax.Should().Be("join-inner");
                     });
@@ -395,7 +390,7 @@ public class ProductionRuleTests
                     (x.Children[2] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_group-1-Group-5-symbol");
+                        y.Name.Should().Be("_group-1-OrGroup-5-symbol");
                         y.ReferenceSyntax.Should().NotBeNull();
                         y.ReferenceSyntax.Should().Be("symbol");
                     });

@@ -23,16 +23,6 @@ public class OptionalRuleTests : TestBase
         _schema.StatusCode.IsOk().Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("tag =")]
-    public void SimpleAndSymbolFail(string rawData)
-    {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
-
-        parser.Parse(rawData, logger).StatusCode.IsError().Should().BeTrue();
-    }
-
     [Fact]
     public void OnlyRequiredOfOptional()
     {
@@ -48,15 +38,28 @@ public class OptionalRuleTests : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair
+                new SyntaxTree
                 {
-                    Token = new TokenValue("t1"),
-                    MetaSyntaxName = "symbol",
+                    MetaSyntaxName = "tag",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                    },
                 },
             },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 
     [Fact]
@@ -74,25 +77,20 @@ public class OptionalRuleTests : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair
-                {
-                    Token = new TokenValue("t1"),
-                    MetaSyntaxName = "symbol",
-                },
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_tag-3-OptionGroup",
+                    MetaSyntaxName = "tag",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair
+                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                        new SyntaxTree
                         {
-                            Token = new TokenValue("="),
-                            MetaSyntaxName = "_tag-3-OptionGroup-1",
-                        },
-                        new SyntaxPair
-                        {
-                            Token = new TokenValue("v1"),
-                            MetaSyntaxName = "symbol",
+                            MetaSyntaxName = "_tag-3-OptionGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
+                            },
                         },
                     },
                 },
@@ -100,5 +98,17 @@ public class OptionalRuleTests : TestBase
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 }

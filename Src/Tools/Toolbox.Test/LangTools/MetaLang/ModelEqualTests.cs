@@ -67,24 +67,24 @@ public class ModelEqualTests
     [Fact]
     public void CompareSimpleProductionRule()
     {
-        var p1 = new ProductionRule { Name = "number", Type = ProductionRuleType.Group, EvaluationType = EvaluationType.Sequence };
-        var p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Group, EvaluationType = EvaluationType.Sequence, Index = 1 };
+        var p1 = new ProductionRule { Name = "number", Type = ProductionRuleType.Or, };
+        var p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Or, Index = 1 };
         (p1 == p2).Should().BeTrue();
         p1.Equals(p2).Should().BeTrue();
 
-        p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Root, EvaluationType = EvaluationType.Sequence };
+        p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Sequence, };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new ProductionRule { Name = null!, Type = ProductionRuleType.Group, EvaluationType = EvaluationType.Sequence };
+        p2 = new ProductionRule { Name = null!, Type = ProductionRuleType.Or };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new ProductionRule { Name = "number1", Type = ProductionRuleType.Group, EvaluationType = EvaluationType.Sequence };
+        p2 = new ProductionRule { Name = "number1", Type = ProductionRuleType.Sequence };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
 
-        p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Group, EvaluationType = EvaluationType.Or };
+        p2 = new ProductionRule { Name = "number", Type = ProductionRuleType.Repeat };
         (p1 == p2).Should().BeFalse();
         p1.Equals(p2).Should().BeFalse();
     }

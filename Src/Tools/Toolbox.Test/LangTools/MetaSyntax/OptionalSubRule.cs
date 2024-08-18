@@ -17,12 +17,12 @@ public class OptionalSubRule : TestBase
     public void LeftJoin()
     {
         string schemaText = new[]
-{
+        {
             "symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;",
             "join-left           = '->' ;",
             "join-inner          = '<->' ;",
-            "join                = [ join-left | join-inner ] ;",
-            "select              = symbol, join",
+            "join                = ( join-left | join-inner ) ;",
+            "select              = symbol, [ join ] ;",
         }.Join(Environment.NewLine);
 
         var schema = MetaParser.ParseRules(schemaText);
@@ -42,10 +42,10 @@ public class OptionalSubRule : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_join-1-OptionGroup",
+                    MetaSyntaxName = "select",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                        new SyntaxPair { Token = new TokenValue("sym"), MetaSyntaxName = "symbol" },
                     },
                 },
             },
@@ -58,11 +58,9 @@ public class OptionalSubRule : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+            new SyntaxPair { Token = new TokenValue("sym"), MetaSyntaxName = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
-
-
 }

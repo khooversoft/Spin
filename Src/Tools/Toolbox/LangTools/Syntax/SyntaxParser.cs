@@ -73,7 +73,9 @@ public class SyntaxParser
 
         foreach (var rule in _rootRules)
         {
-            Option status = ProcessRule(pContext, rule, pContext.SyntaxTree, context);
+            var treeBuilder = new SyntaxTreeBuilder { MetaSyntax = rule };
+            Option status = ProcessRule(pContext, rule, treeBuilder, context);
+            if (status.IsOk() && treeBuilder.Children.Count > 0) pContext.SyntaxTree.Children.Add(treeBuilder.ConvertTo());
 
             if (status.IsNotFound()) continue;
             return status;
@@ -93,42 +95,42 @@ public class SyntaxParser
         var stack = new Stack<IMetaSyntax>(GetMetaSyntaxList(parentMetaSyntax).Reverse());
         ProductionRule? parentRule = parentMetaSyntax as ProductionRule;
 
-        //Option returnStatus = (StatusCode.BadRequest, "No rules to process");
-        bool success = false;
-        while (!success && stack.TryPop(out var syntax))
+        Option returnStatus = (StatusCode.BadRequest, "No rules to process");
+        while (stack.TryPop(out var syntax))
         {
             switch (syntax)
             {
                 case TerminalSymbol terminal:
-                    var s1 = ProcessTerminal(pContext, terminal, tree, context);
-                    if (s1.IsNotFound() && parentRule?.EvaluationType == EvaluationType.Or) continue;
-                    if (s1.IsError()) return s1;
-                    if (s1.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
+                    returnStatus = ProcessTerminal(pContext, terminal, tree, context);
                     break;
 
                 case VirtualTerminalSymbol virtualTerminal:
-                    var s2 = ProcessVirtualTerminal(pContext, virtualTerminal, tree, context);
-                    if (s2.IsNotFound() && parentRule?.EvaluationType == EvaluationType.Or) continue;
-                    if (s2.IsError()) return s2;
-                    if (s2.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
+                    returnStatus = ProcessVirtualTerminal(pContext, virtualTerminal, tree, context);
                     break;
 
                 case ProductionRule rule:
-                    var ruleTree = new SyntaxTreeBuilder { MetaSyntax = rule };
-                    Option s3 = ProcessRule(pContext, syntax, ruleTree, context);
+                    var treeBuilder = new SyntaxTreeBuilder { MetaSyntax = rule };
+                    returnStatus = ProcessRule(pContext, syntax, treeBuilder, context);
+                    if (returnStatus.IsOk() && treeBuilder.Children.Count > 0) tree.Children.Add(treeBuilder.ConvertTo());
 
-                    if (s3.IsError() && rule.Type == ProductionRuleType.Repeat) continue;
-                    if (s3.IsNotFound() && parentRule?.EvaluationType == EvaluationType.Or) continue;
-                    if (s3.IsError() && rule.Type == ProductionRuleType.Optional) continue;
-                    if (s3.IsError()) return s3;
-                    if (s3.IsOk() && parentRule?.EvaluationType == EvaluationType.Or) success = true;
-                    if (s3.IsOk()) tree.Children.Add(ruleTree.Assert(x => x.Children.Count > 0, "0 children").ConvertTo());
+                    if (returnStatus.IsNotFound() && rule.Type == ProductionRuleType.Optional)
+                    {
+                        returnStatus = StatusCode.OK;
+                        continue;
+                    }
 
-                    if (s3.IsOk() && rule.Type == ProductionRuleType.Repeat)
+                    if (returnStatus.IsOk() && rule.Type == ProductionRuleType.Repeat)
                     {
                         stack.Push(syntax);
                         continue;
                     }
+
+                    if (returnStatus.IsNotFound() && rule.Type == ProductionRuleType.Repeat)
+                    {
+                        returnStatus = StatusCode.OK;
+                        break;
+                    }
+
                     break;
 
                 case ProductionRuleReference referenceRule:
@@ -139,22 +141,27 @@ public class SyntaxParser
                     }
 
                     stack.Push(referenceSyntax);
-                    break;
+                    continue;
 
                 default:
                     throw new UnreachableException();
             }
+
+            if (parentRule?.Type == ProductionRuleType.Or && returnStatus.IsOk()) break;
+            if (parentRule?.Type == ProductionRuleType.Or && returnStatus.IsNotFound()) continue;
+            if (returnStatus.IsError()) break;
         }
 
-        if (parentRule?.EvaluationType == EvaluationType.Or && !success)
+        if (returnStatus.IsError())
         {
-            context.LogError("ProcessRule: No rules matched, pContext{pContext}", pContext.GetDebuggerDisplay(true));
+            returnStatus.LogStatus(context, "ProcessRule: Error");
+            context.LogError("ProcessRule: Failed to match rule, pContext{pContext}", pContext.GetDebuggerDisplay(true));
             return StatusCode.NotFound;
         }
 
         scope.Cancel();
         context.LogInformation("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay(true));
-        return StatusCode.OK;
+        return returnStatus;
 
         static IReadOnlyList<IMetaSyntax> GetMetaSyntaxList(IMetaSyntax metaSyntax)
         {

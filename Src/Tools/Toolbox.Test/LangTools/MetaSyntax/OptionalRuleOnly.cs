@@ -17,11 +17,24 @@ public class OptionalRuleOnly : TestBase
 {
             "join-left           = '->' ;",
             "join-inner          = '<->' ;",
-            "join                = [ join-left | join-inner ] ;",
+            "join                = ( join-left | join-inner ) ;",
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("=")]
+    [InlineData("<-")]
+    [InlineData("raw")]
+    public void FailMatches(string rawValue)
+    {
+        var parser = new SyntaxParser(_schema);
+        var logger = GetScopeContext<OrRuleTests>();
+
+        var parse = parser.Parse(rawValue, logger);
+        parse.StatusCode.IsError().Should().BeTrue(parse.Error);
     }
 
     [Fact]
@@ -41,10 +54,17 @@ public class OptionalRuleOnly : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_join-1-OptionGroup",
+                    MetaSyntaxName = "join",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_join-1-OrGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                            },
+                        },
                     },
                 },
             },
@@ -80,10 +100,17 @@ public class OptionalRuleOnly : TestBase
             {
                 new SyntaxTree
                 {
-                    MetaSyntaxName = "_join-1-OptionGroup",
+                    MetaSyntaxName = "join",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_join-1-OrGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+                            },
+                        },
                     },
                 },
             },
@@ -101,5 +128,4 @@ public class OptionalRuleOnly : TestBase
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
-
 }

@@ -56,35 +56,36 @@ public class AndRuleTests : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair
+                new SyntaxTree
                 {
-                    Token = new TokenValue("alias"),
-                    MetaSyntaxName = "symbol",
-                },
-                new SyntaxPair
-                {
-                    Token = new TokenValue("{"),
-                    MetaSyntaxName = "open-brace",
-                },
-                new SyntaxPair
-                {
-                    Token = new TokenValue("hello"),
-                    MetaSyntaxName = "base64",
-                },
-                new SyntaxPair
-                {
-                    Token = new TokenValue("}"),
-                    MetaSyntaxName = "close-brace",
-                },
-                new SyntaxPair
-                {
-                    Token = new TokenValue(";"),
-                    MetaSyntaxName = "term",
+                    MetaSyntaxName = "entity-data",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxPair { Token = new TokenValue("alias"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
+                        new SyntaxPair { Token = new TokenValue("hello"), MetaSyntaxName = "base64" },
+                        new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
+                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+                    },
                 },
             },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("alias"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
+            new SyntaxPair { Token = new TokenValue("hello"), MetaSyntaxName = "base64" },
+            new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
+            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 
     [Fact]
@@ -102,34 +103,35 @@ public class AndRuleTests : TestBase
         {
             Children = new ISyntaxTree[]
             {
-                new SyntaxPair
+                new SyntaxTree
                 {
-                    Token = new TokenValue("data"),
-                    MetaSyntaxName = "symbol",
-                },
-                new SyntaxPair
-                {
-                    Token = new TokenValue("{"),
-                    MetaSyntaxName = "open-brace",
-                },
-                new SyntaxPair
-                {
-                    Token = new BlockToken("'this is a test'", '\'', '\'', 7),
-                    MetaSyntaxName = "base64",
-                },
-                new SyntaxPair
-                {
-                    Token = new TokenValue("}"),
-                    MetaSyntaxName = "close-brace",
-                },
-                new SyntaxPair
-                {
-                    Token = new TokenValue(";"),
-                    MetaSyntaxName = "term",
+                    MetaSyntaxName = "entity-data",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
+                        new SyntaxPair { Token = new BlockToken("'this is a test'", '\'', '\'', 7), MetaSyntaxName = "base64" },
+                        new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
+                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+                    },
                 },
             },
         };
 
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
+            new SyntaxPair { Token = new BlockToken("'this is a test'", '\'', '\'', 7), MetaSyntaxName = "base64" },
+            new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
+            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
     }
 }
