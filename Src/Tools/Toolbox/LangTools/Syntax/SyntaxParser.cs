@@ -16,7 +16,7 @@ public class SyntaxParser
     public SyntaxParser(MetaSyntaxRoot syntaxRoot)
     {
         _syntaxRoot = syntaxRoot.NotNull();
-        _parseTokens = _syntaxRoot.GetParseTokens().Assert(x => x.Count > 0, "No parse tokens found in meta schema");
+        _parseTokens = _syntaxRoot.Delimiters.Assert(x => x.Count > 0, "No parse tokens found in meta schema");
         _rootRules = _syntaxRoot.GetRootRules().Assert(x => x.Count > 0, "No root rules");
     }
 
@@ -69,7 +69,7 @@ public class SyntaxParser
 
     private Option ProcessRules(SyntaxParserContext pContext, ScopeContext context)
     {
-        context.LogInformation("ProcessingRules: pContext{pContext}", pContext.GetDebuggerDisplay(true));
+        context.LogInformation("ProcessingRules: pContext{pContext}", pContext.GetDebuggerDisplay());
 
         foreach (var rule in _rootRules)
         {
@@ -89,7 +89,7 @@ public class SyntaxParser
         using var scope = pContext.PushWithScope();
         context.LogInformation(
             "ProcessRule: pContext{pContext}, metaSyntax=[{metaSyntax}]",
-            pContext.GetDebuggerDisplay(true), parentMetaSyntax.GetDebuggerDisplay()
+            pContext.GetDebuggerDisplay(), parentMetaSyntax.GetDebuggerDisplay()
             );
 
         var stack = new Stack<IMetaSyntax>(GetMetaSyntaxList(parentMetaSyntax).Reverse());
@@ -155,21 +155,21 @@ public class SyntaxParser
         if (returnStatus.IsError())
         {
             returnStatus.LogStatus(context, "ProcessRule: Error");
-            context.LogError("ProcessRule: Failed to match rule, pContext{pContext}", pContext.GetDebuggerDisplay(true));
+            context.LogError("ProcessRule: Failed to match rule, pContext{pContext}", pContext.GetDebuggerDisplay());
             return StatusCode.NotFound;
         }
 
         scope.Cancel();
-        context.LogInformation("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay(true));
+        context.LogInformation("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay());
         return returnStatus;
 
-        static IReadOnlyList<IMetaSyntax> GetMetaSyntaxList(IMetaSyntax metaSyntax)
+        static IReadOnlyList<IMetaSyntax> GetMetaSyntaxList(IMetaSyntax metaSyntax) => metaSyntax switch
         {
-            if (metaSyntax is TerminalSymbol terminalSymbol) return [terminalSymbol];
-            if (metaSyntax is ProductionRuleReference productionRuleReference) return [productionRuleReference];
-            if (metaSyntax is ProductionRule productionRule) return productionRule.Children;
+            TerminalSymbol terminalSymbol => [terminalSymbol],
+            ProductionRuleReference productionRuleReference => [productionRuleReference],
+            ProductionRule productionRule => productionRule.Children,
 
-            throw new ArgumentException($"Unknown metaSyntax type, metaSyntax.Type={metaSyntax.GetType().FullName}");
+            _ => throw new ArgumentException($"Unknown metaSyntax type, metaSyntax.Type={metaSyntax.GetType().FullName}")
         };
     }
 
@@ -181,10 +181,12 @@ public class SyntaxParser
         {
             TerminalType.String => true,
             TerminalType.Token => value == terminal.Text,
-            TerminalType.Regex => Regex.IsMatch(value, terminal.Text),
+            TerminalType.Regex => !isReserveWord(value) && Regex.IsMatch(value, terminal.Text),
 
             _ => throw new UnreachableException(),
         };
+
+        bool isReserveWord(string value) => _syntaxRoot.ReserveWords.Contains(value);
     }
 
     private Option ProcessVirtualTerminal(SyntaxParserContext pContext, VirtualTerminalSymbol terminal, SyntaxTreeBuilder tree, ScopeContext context)
@@ -198,8 +200,8 @@ public class SyntaxParser
 
         if (!pContext.TokensCursor.TryNextValue(out var current))
         {
-            context.LogWarning("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay(true));
-            return (StatusCode.NotFound, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay(true)}");
+            context.LogWarning("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay());
+            return (StatusCode.NotFound, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay()}");
         }
 
         switch (current)
@@ -217,7 +219,7 @@ public class SyntaxParser
                 return StatusCode.OK;
 
             default:
-                context.LogWarning("ProcessTerminal: Not a terminal, pContext={pContext}", pContext.GetDebuggerDisplay(true));
+                context.LogWarning("ProcessTerminal: Not a terminal, pContext={pContext}", pContext.GetDebuggerDisplay());
                 return StatusCode.NotFound;
         };
     }

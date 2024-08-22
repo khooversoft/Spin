@@ -41,17 +41,12 @@ public class ProductionRuleTests
                 x.Type.Should().Be(TerminalType.Regex);
             });
 
-            (root.Rule.Children[1] as ProductionRule).Action(x =>
+            (root.Rule.Children[1] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
                 x.Name.Should().Be("alias");
-                x.Children.Count.Should().Be(1);
-                x.Children.OfType<ProductionRuleReference>().First().Action(y =>
-                {
-                    y.ReferenceSyntax.Should().NotBeNull();
-                    y.ReferenceSyntax.Should().Be("symbol");
-                });
-            });
+                x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
+               });
         }
     }
 

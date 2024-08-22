@@ -14,7 +14,8 @@ public class OptionalRuleOnly : TestBase
     public OptionalRuleOnly(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
-{
+        {
+            "delimiters          = -> <-> ( ) ;",
             "join-left           = '->' ;",
             "join-inner          = '<->' ;",
             "join                = ( join-left | join-inner ) ;",

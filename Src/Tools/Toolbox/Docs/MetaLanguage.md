@@ -4,13 +4,27 @@ There are 2 elements to the language syntax definitions, terminal where the sear
 
 All rules must end with `;` semicolon.
 
-1. Terminal match
+1. Terminal which has 3 types; regex, string, or exact value
 1. Sequence rule `'s, ...'` - all match or not found
 1. Optional rule `'[ s, ... ]'` - all match or not found
 1. Repetition rule `'{ delimeter, s, ... }` - repeat does not require any sequence
 1. One of "or" rule `'( a | b ... )'` - return the first match
+1. Special commands
 
 
+## Special commands
+1. `delimiters = ... ;` - define the delimiters for phase token parser
+
+
+### Delimiters
+Delimiters is a list of strings that define how the initial token parser breaks up the source into tokens.
+
+Note: To add ";" emicolon as a delimiter, wrap with single quote like ';'.
+
+the format is d1 ... ;
+
+Example: `delimiters = ( ) [ ] ';' ;`
+The "(", ")", "[", "]", ";" are added as delimiters
 
 
 ## Terminal Symbol
@@ -31,6 +45,7 @@ Examples...
 | `number = regex '^[+-]?[0-9]+$' ;`     | The "number" terminal matches the regex expression '...'; |
 | `base64 = string ;`                    | The "base64" terminal matches any string; |
 | `open-param = '(' #group-start #node;` | The "open-param" terminal matches '(' with tags "group-start" and "node"; |
+| `UserId = number ;`                    | The "UserId" terminal matches a what the 'number' terminal does; |
 
 
 ## Rules

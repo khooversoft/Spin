@@ -37,9 +37,5 @@ public class SyntaxParserContext
 
     public void RemovePush() => _postionStack.TryPop(out var _).Assert(x => x == true, "Empty stack");
 
-    public string GetDebuggerDisplay(bool newLine = false) => new string[]
-    {
-        $"PostionStack.Count={_postionStack.Count}",
-        $"TokensCursor={TokensCursor.GetDebuggerDisplay()}",
-    }.Join(newLine ? Environment.NewLine : ", ");
+    public string GetDebuggerDisplay() => $"PostionStack.Count={_postionStack.Count}, TokensCursor={TokensCursor.GetDebuggerDisplay()}";
 }

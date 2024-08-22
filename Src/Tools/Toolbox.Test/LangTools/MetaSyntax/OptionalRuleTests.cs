@@ -14,7 +14,8 @@ public class OptionalRuleTests : TestBase
     public OptionalRuleTests(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
-{
+        {
+            "delimiters          = [ ] = ;",
             "symbol              = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;",
             "tag                 = symbol, [ '=', symbol ] ;",
         }.Join(Environment.NewLine);

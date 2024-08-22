@@ -66,18 +66,12 @@ public class MetaSyntaxCompareTests
         var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
         root.StatusCode.IsOk().Should().BeTrue();
 
+        var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
+
         var tree = new IMetaSyntax[]
         {
             new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
-            new ProductionRule
-            {
-                Name = "alias",
-                Type = ProductionRuleType.Sequence,
-                Children = new IMetaSyntax[]
-                {
-                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
-                },
-            },
+            new TerminalSymbol { Name = "alias", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
         };
 
         Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
@@ -94,18 +88,12 @@ public class MetaSyntaxCompareTests
         var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
         root.StatusCode.IsOk().Should().BeTrue();
 
+        var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
+
         var tree = new IMetaSyntax[]
         {
             new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
-            new ProductionRule
-            {
-                Name = "alias",
-                Type = ProductionRuleType.Sequence,
-                Children = new IMetaSyntax[]
-                {
-                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
-                },
-            },
+            new TerminalSymbol { Name = "alias", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
         };
 
         Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
@@ -122,20 +110,13 @@ public class MetaSyntaxCompareTests
 
         var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
         root.StatusCode.IsOk().Should().BeTrue();
-        string c = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
+
+        string lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
         var tree = new IMetaSyntax[]
         {
             new TerminalSymbol { Name = "symbol", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
-            new ProductionRule
-            {
-                Name = "alias",
-                Type = ProductionRuleType.Sequence,
-                Children = new IMetaSyntax[]
-                {
-                    new ProductionRuleReference { Name = "_alias-1-symbol", ReferenceSyntax = "symbol" },
-                },
-            },
+            new TerminalSymbol { Name = "alias", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
             new ProductionRule
             {
                 Name = "tag",

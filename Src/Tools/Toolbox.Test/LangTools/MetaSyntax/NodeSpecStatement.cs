@@ -15,6 +15,7 @@ public class NodeSpecStatement : TestBase
     {
         string schemaText = new[]
 {
+            "delimiters          = , [ ] = { } ( ) ;",
             "symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;",
             "alias               = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;",
             "tagValue            = string ;",

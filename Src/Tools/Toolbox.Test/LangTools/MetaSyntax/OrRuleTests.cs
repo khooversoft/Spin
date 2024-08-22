@@ -14,7 +14,8 @@ public class OrRuleTests : TestBase
     public OrRuleTests(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
-{
+        {
+            "delimiters = ( ) ;",
             "node-sym = 'node' ;",
             "edge-sym = 'edge' ;",
             "addCommand = ( node-sym | edge-sym ) ;"

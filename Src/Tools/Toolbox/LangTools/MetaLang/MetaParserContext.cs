@@ -13,6 +13,8 @@ public class MetaParserContext
     public Cursor<IToken> TokensCursor { get; }
     public ProductionRuleBuilder RootRule { get; } = new ProductionRuleBuilder { Name = "Root", Type = ProductionRuleType.Sequence };
     public Dictionary<string, IMetaSyntax> Nodes { get; init; } = new Dictionary<string, IMetaSyntax>(StringComparer.OrdinalIgnoreCase);
+    public HashSet<string> Delimiters { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public HashSet<string> ReserveWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public void Add(IMetaSyntax syntax)
     {

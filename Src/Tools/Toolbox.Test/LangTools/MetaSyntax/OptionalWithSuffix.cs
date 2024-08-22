@@ -14,7 +14,8 @@ public class OptionalWithSuffix : TestBase
     public OptionalWithSuffix(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
-{
+        {
+            "delimiters          = -> <-> [ ] ( ) ;",
             "symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;",
             "join-left           = '->' ;",
             "join-inner          = '<->' ;",

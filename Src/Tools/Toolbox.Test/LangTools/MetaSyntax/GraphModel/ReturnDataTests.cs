@@ -5,7 +5,7 @@ using Toolbox.Test.Application;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.LangTools.MetaSyntax;
+namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel;
 
 public class ReturnDataTests : TestBase
 {
@@ -14,7 +14,8 @@ public class ReturnDataTests : TestBase
     public ReturnDataTests(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
-{
+        {
+            "delimiters          = , { } ;",
             "symbol              = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;",
             "comma               = ',' ;",
             "return-sym          = 'return' ;",
@@ -46,7 +47,7 @@ public class ReturnDataTests : TestBase
         var parse = parser.Parse("return d1", logger);
         parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
 
-        var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
+        var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
         var expectedTree = new SyntaxTree
         {
@@ -67,7 +68,7 @@ public class ReturnDataTests : TestBase
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
-        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+        var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
 
         var expectedPairs = new[]
         {
@@ -75,7 +76,7 @@ public class ReturnDataTests : TestBase
             new SyntaxPair { Token = new TokenValue("d1"), MetaSyntaxName = "symbol" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
     }
 
 
@@ -88,7 +89,7 @@ public class ReturnDataTests : TestBase
         var parse = parser.Parse("return d1, d2", logger);
         parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
 
-        var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
+        var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
         var expectedTree = new SyntaxTree
         {
@@ -118,7 +119,7 @@ public class ReturnDataTests : TestBase
         (parse.SyntaxTree == expectedTree).Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
-        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+        var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
 
         var expectedPairs = new[]
         {
@@ -128,7 +129,7 @@ public class ReturnDataTests : TestBase
             new SyntaxPair { Token = new TokenValue("d2"), MetaSyntaxName = "symbol" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
     }
 
 }

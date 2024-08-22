@@ -12,17 +12,18 @@ public class TerminalTests
     {
         string schemaText = new[]
         {
+            "delimiters = ';' ;",
             "number = regex '^[+-]?[0-9]+$' ;",
             "term = ';' ;",
-            "alias = number ;"
+            "alias = number, term ;"
         }.Join(Environment.NewLine);
 
         var schema = MetaParser.ParseRules(schemaText);
-        schema.StatusCode.IsOk().Should().BeTrue();
+        schema.StatusCode.IsOk().Should().BeTrue(schema.Error);
 
         var parser = new SyntaxParser(schema);
 
-        var parse = parser.Parse("3", NullScopeContext.Instance);
+        var parse = parser.Parse("3;", NullScopeContext.Instance);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -37,6 +38,7 @@ public class TerminalTests
                     Children = new ISyntaxTree[]
                     {
                         new SyntaxPair { Token = new TokenValue("3"), MetaSyntaxName = "number" },
+                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
                     },
                 },
             },
@@ -50,6 +52,7 @@ public class TerminalTests
         var expectedPairs = new[]
         {
             new SyntaxPair { Token = new TokenValue("3"), MetaSyntaxName = "number" },
+            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
@@ -60,9 +63,10 @@ public class TerminalTests
     {
         string schemaText = new[]
         {
+            "delimiters = ';' ;",
             "number = regex '^[+-]?[0-9]+$' ;",
             "term = ';' ;",
-            "alias = number ;"
+            "alias = number, term ;"
         }.Join(Environment.NewLine);
 
         var schema = MetaParser.ParseRules(schemaText);
@@ -70,7 +74,7 @@ public class TerminalTests
 
         var parser = new SyntaxParser(schema);
 
-        var parse = parser.Parse("A", NullScopeContext.Instance);
+        var parse = parser.Parse("A ;", NullScopeContext.Instance);
         parse.StatusCode.IsError().Should().BeTrue(parse.Error);
         parse.Error.Should().Be("No rules matched");
     }

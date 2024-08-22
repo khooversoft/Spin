@@ -1,10 +1,12 @@
-﻿namespace Toolbox.LangTools;
+﻿using System.Diagnostics;
+
+namespace Toolbox.LangTools;
 
 public interface ISyntaxTree
 {
 }
 
-
+[DebuggerDisplay("MetaSyntaxName={MetaSyntaxName}, Children.Count={Children.Count}")]
 public sealed record SyntaxTree : ISyntaxTree
 {
     public string? MetaSyntaxName { get; init; }

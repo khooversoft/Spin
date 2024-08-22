@@ -1,0 +1,41 @@
+delimiters          = , ';' = '->' '<->' ( ) [ ] { } ;
+reserve-words       = select, upsert, update, delete, set, return ;
+
+symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;
+name                = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;
+open-param          = '(' #group-start #node ;
+close-param         = ')' #group-end #node ;
+open-brace          = '{' #group-start #data ;
+close-brace         = '}' #group-end #data ;
+
+tagKey              = symbol ;
+tagValue            = string ;
+dataName            = name ;
+base64              = string ;
+comma               = ',' ;
+term                = ';' ;
+equal               = '=' ;
+set-sym             = 'set' ;
+add-sym             = 'add' ;
+upsert-sym          = 'upsert' ;
+update-sym          = 'update' ;
+select-sym          = 'select' ;
+delete-sym          = 'delete' ;
+return-sym          = 'return' ;
+node-sym            = 'node' ;
+key-sym             = 'key' ;
+keyValue            = string ;
+alias               = name ;
+
+entity-data         = dataName, open-brace, base64, close-brace ;
+tag                 = tagKey, [ '=', tagValue ] ;
+set-data            = [ set-sym, ( entity-data | tag ), { comma, ( entity-data | tag ) } ] ;
+select-node         = open-param, tag, { comma, tag }, close-param, [ alias ] ;
+return-data         = return-sym, dataName, { comma, dataName } ;
+
+command             = ( add-sym | upsert-sym | update-sym | select-sym | delete-sym ) ;
+
+addNode             = command, node-sym, key-sym, equal, keyValue, set-data, term ;
+
+select              = select-sym, select-node, [ return-data ], term ;
+delete              = delete-sym, select-node, term ;

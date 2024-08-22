@@ -1,9 +1,11 @@
+delimiters          = , ';' = '->' '<->' ( ) [ ] { } ;
 
 number              = regex '^[+-]?[0-9]+$' ;
 symbol              = regex '^[a-zA-Z\*][a-zA-Z0-9\-\*]*$' ;
 name                = regex '^[a-zA-Z][a-zA-Z0-9\-]*$' ;
-alias               = name
+alias               = name ;
 base64              = string ;
+tagKey              = symbol ;
 tagValue            = string ;
 dataName            = name ;
 equal               = '=' ;
@@ -27,19 +29,19 @@ close-brace         = '}' #group-end #data ;
 comma               = ',' ;
 term                = ';' ;
 
-tag                 = symbol, [ '=', tagValue ] ;
+tag                 = tagKey, [ '=', tagValue ] ;
 tags                = tag, { comma, tag } ;
-return-query        = return-sym, symbol, { comma, symbol } ;
-entity-data         = symbol, open-brace, base64, close-brace ;
+return-query        = return-sym, dataName, { comma, dataName } ;
+entity-data         = dataName, open-brace, base64, close-brace ;
 set-cmd             = set-sym, tags ;
 node-spec           = open-param, tags, close-param, [ alias ] ;
 edge-spec           = open-bracket, tags, close-bracket, [ alias ] ;
-join                = [ join-left, join-inner ] ;
+join                = ( join-left | join-inner ) ;
 
 select-node-query   = node-spec, { join, edge-spec } ;
 select-edge-query   = edge-spec, { join, node-spec } ;
 
-addCommand          = add-sym, ( node-sym | edge-sym ), [ tags ], [ entity-data ], term ;
+addCommand          = add-sym, ( node-sym | edge-sym ), [ open-param, tags, close-param ], [ entity-data ], term ;
 updateCommand       = update-sym, ( node-sym | edge-sym ), ( select-node-query | select-edge-query ), set-cmd, term;
 deleteCommand       = delete-sym, ( node-sym | edge-sym ), ( select-node-query | select-edge-query ), term;
 selectCommand       = select-sym, ( node-sym | edge-sym ), ( select-node-query | select-edge-query ), [ return-query ], term ;

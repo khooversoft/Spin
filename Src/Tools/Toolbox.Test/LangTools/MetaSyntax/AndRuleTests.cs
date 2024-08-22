@@ -14,7 +14,8 @@ public class AndRuleTests : TestBase
     public AndRuleTests(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
-{
+        {
+            "delimiters          = { } ';' ;",
             "symbol              = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;",
             "open-brace          = '{' #group-start #data ;",
             "close-brace         = '}' #group-end #data ;",

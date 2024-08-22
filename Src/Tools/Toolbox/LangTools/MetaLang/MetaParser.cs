@@ -25,11 +25,17 @@ public static class MetaParser
 
         while (pContext.TokensCursor.TryPeekValue(out var _))
         {
-            var s1 = ParseTerminal(pContext);
+            var s0 = ParseDelimitersCommands(pContext);
+            if (s0.IsOk()) continue; 
+            
+            var s1 = ParseReserveWordsCommands(pContext);
             if (s1.IsOk()) continue;
 
-            var s2 = ParseProductionRule(pContext);
-            if (s2.IsError()) return pContext.ConvertTo(s2);
+            var s2 = ParseTerminal(pContext);
+            if (s2.IsOk()) continue;
+
+            var s3 = ParseProductionRule(pContext);
+            if (s3.IsError()) return pContext.ConvertTo(s3);
         }
 
         Option status = pContext.TokensCursor.TryPeekValue(out var _) switch
@@ -42,6 +48,42 @@ public static class MetaParser
     }
 
     private static Option CreateError(string message, IToken token) => (StatusCode.BadRequest, message);
+
+    private static Option ParseDelimitersCommands(MetaParserContext pContext)
+    {
+        using var scope = pContext.PushWithScope();
+
+        if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
+        if (nameToken.Value != "delimiters") return StatusCode.NotFound;
+        if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
+
+        while (pContext.TokensCursor.TryNextValue(out IToken? token))
+        {
+            if (token.Value == ";" && token.TokenType == TokenType.Token) break;
+            pContext.Delimiters.Add(token.Value);
+        }
+
+        scope.Cancel();
+        return StatusCode.OK;
+    }
+
+    private static Option ParseReserveWordsCommands(MetaParserContext pContext)
+    {
+        using var scope = pContext.PushWithScope();
+
+        if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
+        if (nameToken.Value != "reserve-words") return StatusCode.NotFound;
+        if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
+
+        while (pContext.TokensCursor.TryNextValue(out IToken? token))
+        {
+            if (token.Value == ";" && token.TokenType == TokenType.Token) break;
+            pContext.ReserveWords.Add(token.Value);
+        }
+
+        scope.Cancel();
+        return StatusCode.OK;
+    }
 
     private static Option ParseTerminal(MetaParserContext pContext)
     {
@@ -81,10 +123,27 @@ public static class MetaParser
 
                 default:
                     if (valueToken != null) return (StatusCode.BadRequest, pContext.ErrorMessage("Value token already specified"));
-                    if (token.TokenType != TokenType.Block) return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literial"));
-                    if (token.Value.IsEmpty()) return (StatusCode.BadRequest, pContext.ErrorMessage("Token is empty"));
-                    valueToken = token;
-                    continue;
+
+                    switch (token.TokenType)
+                    {
+                        case TokenType.Token when token.Value.IsNotEmpty():
+                            if (!pContext.Nodes.TryGetValue(token.Value, out var referenceTerminal)) goto default;
+                            if (referenceTerminal is TerminalSymbol terminalSymbol)
+                            {
+                                valueToken = new TokenValue(terminalSymbol.Text);
+                                terminalType = terminalSymbol.Type;
+                                continue;
+                            }
+
+                            return (StatusCode.BadRequest, pContext.ErrorMessage($"Cannot find terminal reference '{token.Value}'"));
+
+                        case TokenType.Block:
+                            valueToken = token;
+                            continue;
+
+                        default:
+                            return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literial or a terminal reference"));
+                    };
             }
 
             break;

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -115,30 +116,31 @@ public class Cursor<T>
     /// </summary>
     /// <param name="count"></param>
     /// <returns></returns>
-    public IEnumerable<T> PeekValues(int count = 3)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public string PeekValues(int count = 5)
     {
         int current = Math.Min(_cursor + 1, _list.Count);
         int max = Math.Min(current + count, _list.Count);
 
-        for (int i = current; i < max; i++)
-        {
-            yield return _list[i];
-        }
+        var list = _list.Skip(current)
+            .Take(max - current)
+            .Select(x => CursorTool.Quote(x?.ToString()))
+            .Join(", ");
+
+        return list;
     }
 
-    public string PeeKValuesToString(int count = 3) => PeekValues(count).Select(x => Quote(x?.ToString())).Join(", ");
-    public string GetDebuggerDisplay() => $"Cursor: Index={Index}, _list.Count={_list.Count}, Current={Current?.ToString() ?? "<null>"}, Peek= {PeeKValuesToString()}";
+    public string PeekValueString => TryPeekValue(out T? value) ? value.NotNull().ToString()! : "<null>";
+
+    public string PeeKValuesToString => PeekValues();
+    public string GetDebuggerDisplay() => $"Cursor: Index={Index}, _list.Count={_list.Count}, Current={Current?.ToString() ?? "<null>"}, Peek= {PeekValues()}";
     private int Track(int value) => value.Action(x => MaxIndex = Math.Max(MaxIndex, x));
 
-    private static string Quote(string? value) => value switch
-    {
-        null => "<null>",
-        var v => $"'{v}'",
-    };
+
 }
 
 
-public static class CursorExtensions
+public static class CursorTool
 {
     public static Cursor<T> ToCursor<T>(this IReadOnlyList<T> collection) => new Cursor<T>(collection);
 
@@ -150,5 +152,22 @@ public static class CursorExtensions
         var data = subject.List.Skip(subject.Index).Take(maxSize).ToArray();
         return data;
     }
+
+    public static string DebugCursorLocation<T>(this Cursor<T> subject)
+    {
+        int startIndex = Math.Max(0, subject.Index - 5);
+
+        return subject.List.Skip(startIndex)
+            .Take(8)
+            .Select((x, i) => $"{i+startIndex}={CursorTool.Quote(x?.ToString())}")
+            .Prepend($"Index={subject.Index}")
+            .Join(", ");        
+    }
+
+    public static string Quote(string? value) => value switch
+    {
+        null => "<null>",
+        var v => $"'{v}'",
+    };
 }
 

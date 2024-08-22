@@ -11,10 +11,12 @@
 
   <ItemGroup>
     <None Remove="LangTools\MetaLang\GraphLanguage.txt" />
+    <None Remove="LangTools\MetaLang\GraphLanguage2.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="LangTools\MetaLang\GraphLanguage.txt" />
+    <EmbeddedResource Include="LangTools\MetaSyntax\GraphModel\GraphLanguage2.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +39,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Toolbox.TestApi\Toolbox.TestApi.csproj" />
     <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="LangTools\MetaSyntax\GraphModel\Edges\" />
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,8 @@ public record MetaSyntaxRoot
     public StatusCode StatusCode { get; init; }
     public string? Error { get; init; }
     public ProductionRule Rule { get; init; } = null!;
+    public IReadOnlyList<string> Delimiters { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<string> ReserveWords { get; init; } = Array.Empty<string>();
 
     public IReadOnlyDictionary<string, IMetaSyntax> Nodes { get; init; } = ImmutableDictionary<string, IMetaSyntax>.Empty;
 }
@@ -21,21 +23,9 @@ public static class MetaSyntaxRootExtensions
         Error = option.Error,
         Rule = subject.RootRule.ConvertTo(),
         Nodes = subject.Nodes.ToImmutableDictionary(),
+        Delimiters = subject.Delimiters.ToImmutableArray(),
+        ReserveWords = subject.ReserveWords.ToImmutableArray(),
     };
-
-    public static IReadOnlyList<string> GetParseTokens(this MetaSyntaxRoot syntaxRoot)
-    {
-        var terminalSymbols = syntaxRoot.Rule
-            .GetAll<TerminalSymbol>()
-            .Where(x => x.Type == TerminalType.Token)
-            .Select(x => x.Text);
-
-        var virtualSymbols = syntaxRoot.Rule
-            .GetAll<VirtualTerminalSymbol>()
-            .Select(x => x.Text);
-
-        return terminalSymbols.Concat(virtualSymbols).Distinct().ToImmutableArray();
-    }
 
     public static IReadOnlyList<ProductionRule> GetRootRules(this MetaSyntaxRoot syntaxRoot)
     {

@@ -18,6 +18,7 @@ public class OptionalSubRule : TestBase
     {
         string schemaText = new[]
         {
+            "delimiters          = -> <-> ( ) [ ] ;",
             "symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;",
             "join-left           = '->' ;",
             "join-inner          = '<->' ;",

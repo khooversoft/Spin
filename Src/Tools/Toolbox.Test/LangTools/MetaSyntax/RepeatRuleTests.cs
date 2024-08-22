@@ -14,7 +14,8 @@ public class RepeatRuleTests : TestBase
     public RepeatRuleTests(ITestOutputHelper output) : base(output)
     {
         string schemaText = new[]
-{
+        {
+            "delimiters          = , [ ] = { } ;",
             "symbol              = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;",
             "tagValue            = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;",
             "comma               = ',' ;",
