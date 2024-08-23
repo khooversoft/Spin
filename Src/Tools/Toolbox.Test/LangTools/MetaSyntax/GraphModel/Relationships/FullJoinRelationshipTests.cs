@@ -6,16 +6,17 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
+
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Relationships;
 
-public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
+public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 {
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
     private readonly ScopeContext _context;
 
-    public DeleteRelationshipTests(ITestOutputHelper output) : base(output)
+    public FullJoinRelationshipTests(ITestOutputHelper output) : base(output)
     {
         _output = output.NotNull();
 
@@ -27,10 +28,11 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
         _parser = new SyntaxParser(_root);
     }
 
+
     [Fact]
-    public void DeleteNodesRelationship()
+    public void SelectNodesToEdgeRelationship()
     {
-        var parse = _parser.Parse("delete (*) ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -38,28 +40,11 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
-        };
-
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
-    }
-
-    [Fact]
-    public void DeleteAllRelationshipsAndReturnDataCommand()
-    {
-        var parse = _parser.Parse("delete [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
-
-        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
-        var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
-
-        var expectedPairs = new[]
-        {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
             new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
@@ -70,9 +55,9 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     }
 
     [Fact]
-    public void DeleteNodesToEdgeRelationship()
+    public void SelectNodesWithAliasToEdgeRelationship()
     {
-        var parse = _parser.Parse("delete (*) -> [*] ;", _context);
+        var parse = _parser.Parse("select (*) a1 <-> [*] ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -80,37 +65,12 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
-        };
-
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
-    }
-
-    [Fact]
-    public void DeleteNodesWithAliasToEdgeRelationship()
-    {
-        var parse = _parser.Parse("delete (*) a1 -> [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
-
-        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
-        var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
-
-        var expectedPairs = new[]
-        {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
             new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
             new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
@@ -121,9 +81,9 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     }
 
     [Fact]
-    public void DeleteNodesToEdgeToNodeRelationship()
+    public void SelectNodesToEdgeToNodeRelationship()
     {
-        var parse = _parser.Parse("delete (*) -> [*] -> (*) ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -131,7 +91,37 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
+            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
+            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+        };
+
+        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+    }
+
+
+    [Fact]
+    public void SelectNodesToEdgeToNodePartialRelationship()
+    {
+        var parse = _parser.Parse("select (*) -> [*] <-> (*) ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
@@ -139,7 +129,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
             new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
@@ -150,9 +140,9 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     }
 
     [Fact]
-    public void DeleteNodesToEdgeToNodeWithAliasRelationship()
+    public void SelectNodesToEdgeToNodeWithAliasRelationship()
     {
-        var parse = _parser.Parse("delete (*) a1 -> [*] a2 -> (*) a3 ;", _context);
+        var parse = _parser.Parse("select (*) a1 <-> [*] a2 <-> (*) a3 ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -160,17 +150,17 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
             new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
             new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
             new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
@@ -182,9 +172,9 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     }
 
     [Fact]
-    public void DeleteNotCorrectButWorksRelationship()
+    public void SelectNodesToEdgeToNodeRelationshipWithDataReturn()
     {
-        var parse = _parser.Parse("delete  (*) -> (*) -> (*) ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] <-> (*) return entity, data ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -192,11 +182,44 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
+            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
+            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
+            new SyntaxPair { Token = new TokenValue("entity"), MetaSyntaxName = "dataName" },
+            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "dataName" },
+            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+        };
+
+        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SelectNotCorrectButWorksRelationship()
+    {
+        var parse = _parser.Parse("select (*) <-> (*) -> (*) ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
             new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },

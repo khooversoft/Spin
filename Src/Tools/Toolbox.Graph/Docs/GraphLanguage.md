@@ -18,7 +18,7 @@ Add or update a node to the graph, primary key is "key".  If node already exist,
 Minimual required... <br>
 
 ```
-add node key={key} set ( data | tag ), { comma, ( data | tag ) } ;
+add node key={key} [ set ( data | tag ), { comma, ( data | tag ) } ] ;
 
 upsert node key={key} set ( data | tag ), { comma, ( data | tag ) } ;
 
@@ -26,7 +26,12 @@ update node key={key} set ( data | tag ), { comma, ( data | tag ) } ;
 
 delete node ( [key={key}], { comma, tag } ) ;
 
-select ( key={key}, { comma, tag } ) [ alias ] return { comma, dataName }
+select ( tag, { comma, tag } ) [ alias ] return dataName, { comma, dataName }
+
+--- Rules
+
+data = { base64 }
+tag = symbol, [ ",", symbol ]
 
 ```
 
@@ -54,15 +59,15 @@ Example: add node key={key}, t1, t2, t3=v3, {dataName} {{ {base64} }} ;
 Add or udpate edge to graph, primary key is "fromKey", "toKey", and "edgeType".
 
 ```
-add edge fromKey={fromKey}, toKey={toKey}, edgeType={edgeType} set tag { comma, tag } ;
+add edge from={fromKey}, to={toKey}, type={edgeType} set tag { comma, tag } ;
 
-upsert edge fromKey={fromKey}, toKey={toKey}, edgeType={edgeType} set tag { comma, tag } ;
+upsert edge from={fromKey}, to={toKey}, type={edgeType} set tag { comma, tag } ;
 
-update edge fromKey={fromKey}, toKey={toKey}, edgeType={edgeType} set tag { comma, tag } ;
+update edge from={fromKey}, to={toKey}, type={edgeType} set tag { comma, tag } ;
 
-select [[ [fromkey={fromKey}], [toKey={toKey}], [edgeType={edgeType}], [tags] ]] ;
+select [[ [from={fromKey}], [to={toKey}], [type={edgeType}], [tags] ]] ;
 
-delete [[ [fromkey={fromKey}], [toKey={toKey}], [edgeType={edgeType}], [tags] ]];
+delete [[ [from={fromKey}], [to={toKey}], [type={edgeType}], [tags] ]];
 
 ```
 
