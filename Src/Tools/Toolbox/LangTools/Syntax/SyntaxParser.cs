@@ -73,11 +73,18 @@ public class SyntaxParser
 
         foreach (var rule in _rootRules)
         {
+            context.LogInformation("[Rule] processing: pContext{pContext}", rule.GetDebuggerDisplay());
+
             var treeBuilder = new SyntaxTreeBuilder { MetaSyntax = rule };
             Option status = ProcessRule(pContext, rule, treeBuilder, context);
             if (status.IsOk() && treeBuilder.Children.Count > 0) pContext.SyntaxTree.Children.Add(treeBuilder.ConvertTo());
 
-            if (status.IsNotFound()) continue;
+            if (status.IsNotFound())
+            {
+                context.LogWarning("[Rule] - no match - processing: pContext{pContext}", rule.GetDebuggerDisplay());
+                continue;
+            }
+
             return status;
         }
 
@@ -206,20 +213,17 @@ public class SyntaxParser
 
         switch (current)
         {
-            case var v when v.TokenType == TokenType.Token && isTokenMatch(v.Value):
+            case var v when isTokenMatch(v.Value):
                 tree.Children.Add(new SyntaxPair { Token = v, MetaSyntaxName = terminal.Name });
-                context.LogInformation("Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
-                scope.Cancel();
-                return StatusCode.OK;
-
-            case var v when v.TokenType == TokenType.Block && isTokenMatch(v.Value):
-                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntaxName = terminal.Name });
-                context.LogInformation("Add Terminal: block=[{block}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
+                context.LogInformation("ProcessTerminal: Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
                 scope.Cancel();
                 return StatusCode.OK;
 
             default:
-                context.LogWarning("ProcessTerminal: Not a terminal, pContext={pContext}", pContext.GetDebuggerDisplay());
+                context.LogWarning("ProcessTerminal: Terminal does not match, currentToken={tokenValue}, terminal={terminal} pContext={pContext}",
+                    current.Value, terminal.GetDebuggerDisplay(), pContext.GetDebuggerDisplay()
+                    );
+
                 return StatusCode.NotFound;
         };
     }

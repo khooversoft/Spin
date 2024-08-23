@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Nodes;
 
-public class NodeUpsertTests : TestBase
+public class NodeUpsertTests : TestBase<NodeUpsertTests>
 {
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
@@ -26,18 +26,7 @@ public class NodeUpsertTests : TestBase
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
 
-        var services = new ServiceCollection()
-            .AddLogging(x =>
-            {
-                x.AddLambda(_output.WriteLine);
-                x.AddDebug();
-                x.AddConsole();
-            })
-            .BuildServiceProvider();
-
-        var logger = services.GetService<ILogger<NodeAddTests>>().NotNull();
-        _context = new ScopeContext(logger);
-
+        _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
     }
 
@@ -57,7 +46,7 @@ public class NodeUpsertTests : TestBase
             new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
             new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "key-sym" },
             new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "equal" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "keyValue" },
+            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "key-value" },
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
@@ -79,7 +68,7 @@ public class NodeUpsertTests : TestBase
             new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
             new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "key-sym" },
             new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "equal" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "keyValue" },
+            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "key-value" },
             new SyntaxPair { Token = new TokenValue("set"), MetaSyntaxName = "set-sym" },
             new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "tagKey" },
             new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },

@@ -22,6 +22,8 @@ public class ReturnDataTests : TestBase
             "return-query        = return-sym, symbol, { comma, symbol } ;",
         }.Join(Environment.NewLine);
 
+        string schema = GraphModelTool.ReadGraphLanauge2();
+
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().Should().BeTrue();
     }
