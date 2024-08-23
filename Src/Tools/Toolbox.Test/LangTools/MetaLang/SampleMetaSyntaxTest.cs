@@ -7,7 +7,7 @@ namespace Toolbox.Test.LangTools.Meta;
 
 public class SampleMetaSyntaxTest
 {
-    [Fact(Skip ="skip")]
+    [Fact(Skip = "skip")]
     public void SampleMetaSyntax()
     {
         string metaSyntax = MetaTestTool.ReadGraphLanauge();

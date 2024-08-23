@@ -159,9 +159,9 @@ public static class CursorTool
 
         return subject.List.Skip(startIndex)
             .Take(8)
-            .Select((x, i) => $"{i+startIndex}={CursorTool.Quote(x?.ToString())}")
+            .Select((x, i) => $"{i + startIndex}={CursorTool.Quote(x?.ToString())}")
             .Prepend($"Index={subject.Index}")
-            .Join(", ");        
+            .Join(", ");
     }
 
     public static string Quote(string? value) => value switch

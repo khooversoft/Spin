@@ -46,7 +46,7 @@ public class ProductionRuleTests
                 x.NotNull();
                 x.Name.Should().Be("alias");
                 x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-               });
+            });
         }
     }
 

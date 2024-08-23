@@ -1,9 +1,6 @@
 ﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Logging;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;

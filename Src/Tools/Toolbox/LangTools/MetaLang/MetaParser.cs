@@ -26,8 +26,8 @@ public static class MetaParser
         while (pContext.TokensCursor.TryPeekValue(out var _))
         {
             var s0 = ParseDelimitersCommands(pContext);
-            if (s0.IsOk()) continue; 
-            
+            if (s0.IsOk()) continue;
+
             var s1 = ParseReserveWordsCommands(pContext);
             if (s1.IsOk()) continue;
 

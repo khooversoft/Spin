@@ -27,6 +27,8 @@ return-sym          = 'return' ;
 node-sym            = 'node' ;
 edge-sym            = 'edge' ;
 alias               = name ;
+left-join           = '->' ;
+full-join           = '<->' ;
 
 key-sym             = 'key' ;
 key-value           = name ;
@@ -54,5 +56,5 @@ command             = ( add-sym | upsert-sym | update-sym | select-sym | delete-
 node-add-command    = command, node-sym, key-sym, equal, key-value, set-data, term ;
 edge-add-command    = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
 
-select-command      = select-sym, ( select-node | select-edge ), [ return-data ], term ;
-delete-command      = delete-sym, ( select-node | select-edge ), term ;
+select-command      = select-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, [ return-data ], term ;
+delete-command      = delete-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, term ;
