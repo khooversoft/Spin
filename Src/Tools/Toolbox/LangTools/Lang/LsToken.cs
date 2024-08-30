@@ -29,7 +29,7 @@ public class LsToken : ILangSyntax
     {
         syntaxCursor.NotNull();
 
-        if (!pContext.TokensCursor.TryNextValue(out var token)) return failStatus();
+        if (!pContext.TokensCursor.TryGetValue(out var token)) return failStatus();
 
         switch (token)
         {

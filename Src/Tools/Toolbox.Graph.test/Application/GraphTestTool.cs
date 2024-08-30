@@ -1,0 +1,231 @@
+﻿using Toolbox.Extensions;
+using Toolbox.Types;
+
+namespace Toolbox.Graph.test.Application;
+
+public static class GraphTestTool
+{
+    public static IReadOnlyList<string> GenerateTestCodeSyntaxTree(this IReadOnlyList<IGraphInstruction> subject)
+    {
+        var seq = new Sequence<string>();
+
+        foreach (var item in subject)
+        {
+            var instructions = item switch
+            {
+                GiNode v => BuildGiNode(v),
+                GiEdge v => BuildGiEdge(v),
+                GiSelect v => BuildGiSelect(v),
+                _ => throw new InvalidOperationException(),
+            };
+
+            seq += instructions;
+        }
+
+        var formattedLines = HandleIndent(seq);
+
+        var lines = new string[][]
+        {
+            ["IGraphInstruction[] expected = ["],
+            [.. formattedLines],
+            ["];"],
+        };
+
+        return lines.SelectMany(x => x).ToArray();
+    }
+
+    private static IReadOnlyList<string> BuildGiNode(GiNode node)
+    {
+        IReadOnlyList<string> tags = CreateTags(node.Tags);
+
+        var lines = new string?[][]
+        {
+            ["new GiNode"],
+            ["{"],
+            [$"ChangeType = GiChangeType.{node.ChangeType},"],
+            [$"Key = \"{node.Key}\","],
+            [.. tags],
+            [.. CreateData(node.Data)],
+            ["}"]
+        };
+
+        return lines
+            .SelectMany(x => x)
+            .Where(x => x.IsNotEmpty())
+            .OfType<string>()
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> BuildGiEdge(GiEdge edge)
+    {
+        IReadOnlyList<string> tags = CreateTags(edge.Tags);
+
+        var lines = new string?[][]
+        {
+            ["new GiEdge"],
+            ["{"],
+            [$"ChangeType = GiChangeType.{edge.ChangeType},"],
+            [$"From = \"{edge.From}\","],
+            [$"To = \"{edge.To}\","],
+            [$"Type = \"{edge.Type}\","],
+            [.. tags],
+            ["}"]
+        };
+
+        return lines
+            .SelectMany(x => x)
+            .Where(x => x.IsNotEmpty())
+            .OfType<string>()
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> BuildGiSelect(GiSelect select)
+    {
+        var buildLines = select.Instructions
+            .SelectMany(x => x switch
+            {
+                GiNodeSelect v => BuildGiNodeSelect(v),
+                GiEdgeSelect v => BuildGiEdgeSelect(v),
+                GiLeftJoin v => BuildGiLeftJoin(v),
+                GiFullJoin v => BuildGiFullJoin(v),
+                GiReturnNames v => BuildReturnNames(v),
+                _ => throw new InvalidOperationException(),
+            });
+
+        var lines = new string?[][]
+        {
+            ["new GiSelect"],
+            ["{"],
+            ["Instructions = ["],
+            [.. buildLines],
+            ["],"],
+            ["}"]
+        };
+
+        return lines
+            .SelectMany(x => x)
+            .Where(x => x.IsNotEmpty())
+            .OfType<string>()
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> BuildGiNodeSelect(GiNodeSelect select)
+    {
+        IReadOnlyList<string> tags = CreateTags(select.Tags);
+
+        var lines = new string?[][]
+        {
+            ["new GiNodeSelect"],
+            ["{"],
+            [(select.Key.IsNotEmpty() ? $"Key = \"{select.Key}\"," : null)],
+            [.. tags],
+            [(select.Alias.IsNotEmpty() ? $"Alias = \"{select.Alias}\"," : null)],
+            ["},"]
+        };
+
+        return lines
+            .SelectMany(x => x)
+            .Where(x => x.IsNotEmpty())
+            .OfType<string>()
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> BuildGiEdgeSelect(GiEdgeSelect select)
+    {
+        IReadOnlyList<string> tags = CreateTags(select.Tags);
+
+        var lines = new string?[][]
+        {
+            ["new GiEdgeSelect"],
+            ["{"],
+            [(select.From.IsNotEmpty() ? $"From = \"{select.From}\"," : null)],
+            [(select.To.IsNotEmpty() ? $"To = \"{select.To}\"," : null)],
+            [(select.Type.IsNotEmpty() ? $"From = \"{select.Type}\"," : null)],
+            [.. tags],
+            [(select.Alias.IsNotEmpty() ? $"Alias = \"{select.Alias}\"," : null)],
+            ["},"]
+        };
+
+        return lines
+            .SelectMany(x => x)
+            .Where(x => x.IsNotEmpty())
+            .OfType<string>()
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> BuildGiLeftJoin(GiLeftJoin leftJoin) => ["new GiLeftJoin(),"];
+
+    private static IReadOnlyList<string> BuildGiFullJoin(GiFullJoin leftJoin) => ["new GiFullJoin(),"];
+
+    private static IReadOnlyList<string> CreateTags(IReadOnlyDictionary<string, string?> tags)
+    {
+        if (tags.Count == 0) return Array.Empty<string>();
+
+        var seq = new Sequence<string>();
+        seq += "Tags = new Dictionary<string, string?>";
+        seq += "{";
+
+        foreach (var item in tags)
+        {
+            string tag = item.Value == null ? $"[\"{item.Key}\"] = null," : $"[\"{item.Key}\"] = \"{item.Value}\",";
+            seq += tag;
+        }
+
+        seq += "},";
+        return seq;
+    }
+
+    private static IReadOnlyList<string> CreateData(IReadOnlyDictionary<string, string> data)
+    {
+        if (data.Count == 0) return Array.Empty<string>();
+
+        var seq = new Sequence<string>();
+        seq += "Data = new Dictionary<string, string>";
+        seq += "{";
+
+        foreach (var item in data)
+        {
+            string tag = $"[\"{item.Key}\"] = \"{item.Value}\",";
+            seq += tag;
+        }
+
+        seq += "},";
+        return seq;
+    }
+
+    private static IReadOnlyList<string> BuildReturnNames(GiReturnNames returnNames)
+    {
+        var lines = new string?[][]
+        {
+            ["new GiReturnNames"],
+            ["{"],
+            ["ReturnNames = [ " + returnNames.ReturnNames.Select(x => $"\"{x}\"").Join(", ") + " ]," ],
+            ["},"]
+        };
+
+        return lines
+            .SelectMany(x => x)
+            .Where(x => x.IsNotEmpty())
+            .OfType<string>()
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> HandleIndent(IReadOnlyList<string> lines)
+    {
+        int indent = 1;
+
+        var output = new Sequence<string>();
+
+        foreach (var item in lines)
+        {
+            string line = item.Trim();
+            if (line.StartsWith("}") || (line == "]" || line == "],")) indent--;
+
+            output += new string(' ', indent * 4) + line;
+
+            if (line.StartsWith("{") || line.EndsWith("= [")) indent++;
+        }
+
+        return output;
+    }
+}

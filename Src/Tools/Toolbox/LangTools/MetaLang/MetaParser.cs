@@ -53,11 +53,11 @@ public static class MetaParser
     {
         using var scope = pContext.PushWithScope();
 
-        if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
         if (nameToken.Value != "delimiters") return StatusCode.NotFound;
-        if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
 
-        while (pContext.TokensCursor.TryNextValue(out IToken? token))
+        while (pContext.TokensCursor.TryGetValue(out IToken? token))
         {
             if (token.Value == ";" && token.TokenType == TokenType.Token) break;
             pContext.Delimiters.Add(token.Value);
@@ -71,11 +71,11 @@ public static class MetaParser
     {
         using var scope = pContext.PushWithScope();
 
-        if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
         if (nameToken.Value != "reserve-words") return StatusCode.NotFound;
-        if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
 
-        while (pContext.TokensCursor.TryNextValue(out IToken? token))
+        while (pContext.TokensCursor.TryGetValue(out IToken? token))
         {
             if (token.Value == ";" && token.TokenType == TokenType.Token) break;
             pContext.ReserveWords.Add(token.Value);
@@ -89,8 +89,8 @@ public static class MetaParser
     {
         using var scope = pContext.PushWithScope();
 
-        if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
-        if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
 
         TerminalType terminalType = TerminalType.Token;
 
@@ -98,7 +98,7 @@ public static class MetaParser
         IToken? valueToken = null;
         var tags = new Sequence<string>();
 
-        while (pContext.TokensCursor.TryNextValue(out IToken? token))
+        while (pContext.TokensCursor.TryGetValue(out IToken? token))
         {
             switch (token)
             {
@@ -169,8 +169,8 @@ public static class MetaParser
 
     public static Option ParseProductionRule(MetaParserContext pContext)
     {
-        if (!pContext.TokensCursor.TryNextValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
-        if (!pContext.TokensCursor.TryNextValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? nameToken)) return (StatusCode.BadRequest, pContext.ErrorMessage("Expected name token"));
+        if (!pContext.TokensCursor.TryGetValue(out IToken? equalToken) || equalToken.Value != "=") return (StatusCode.BadRequest, pContext.ErrorMessage("Expected '='"));
 
         var rule = new ProductionRuleBuilder { Name = nameToken.Value, Index = pContext.TokensCursor.Current.Index };
 
@@ -186,7 +186,7 @@ public static class MetaParser
         int tokensProcessed = 0;
         bool requireDelimiter = false;
 
-        while (pContext.TokensCursor.TryNextValue(out IToken? token))
+        while (pContext.TokensCursor.TryGetValue(out IToken? token))
         {
             tokensProcessed++;
 

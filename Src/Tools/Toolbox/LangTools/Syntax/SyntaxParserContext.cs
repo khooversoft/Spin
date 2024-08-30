@@ -8,7 +8,7 @@ namespace Toolbox.LangTools;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class SyntaxParserContext
 {
-    private readonly Stack<int> _postionStack = new Stack<int>();
+    private readonly Stack<int> _position = new Stack<int>();
     private readonly ScopeContext _context;
 
     public SyntaxParserContext(IReadOnlyList<IToken> tokens, ScopeContext context)
@@ -26,15 +26,15 @@ public class SyntaxParserContext
         return new FinalizeScope<SyntaxParserContext>(this, x => x.Pop(), x => RemovePush());
     }
 
-    public void Push() => _postionStack.Push(TokensCursor.Index);
+    public void Push() => _position.Push(TokensCursor.Index);
 
     public void Pop()
     {
-        _postionStack.TryPop(out var position).Assert(x => x == true, "Empty stack");
+        _position.TryPop(out var position).Assert(x => x == true, "Empty stack");
         TokensCursor.Index = position;
     }
 
-    public void RemovePush() => _postionStack.TryPop(out var _).Assert(x => x == true, "Empty stack");
+    public void RemovePush() => _position.TryPop(out var _).Assert(x => x == true, "Empty stack");
 
-    public string GetDebuggerDisplay() => $"PostionStack.Count={_postionStack.Count}, TokensCursor={TokensCursor.GetDebuggerDisplay()}";
+    public string GetDebuggerDisplay() => $"PostionStack.Count={_position.Count}, TokensCursor={TokensCursor.GetDebuggerDisplay()}";
 }

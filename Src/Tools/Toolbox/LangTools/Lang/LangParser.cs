@@ -67,7 +67,7 @@ public static class LangParser
         using var pScope = pContext.PushWithScope(langRoot);
         var nodes = new LangNodes();
 
-        while (syntaxCursor.TryNextValue(out var syntax))
+        while (syntaxCursor.TryGetValue(out var syntax))
         {
             Option<LangNodes> state = syntax.Process(pContext, syntaxCursor);
             if (state.IsError()) return state;
@@ -75,7 +75,7 @@ public static class LangParser
             if (state.IsOk()) nodes += state.Return();
         }
 
-        if (syntaxCursor.TryNextValue(out _))
+        if (syntaxCursor.TryGetValue(out _))
         {
             return (StatusCode.BadRequest, "Syntax error, end");
         }

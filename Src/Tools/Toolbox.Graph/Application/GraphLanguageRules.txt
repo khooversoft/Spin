@@ -1,0 +1,60 @@
+delimiters          = , ';' = '->' '<->' ( ) [ ] { } ;
+reserve-words       = select, upsert, update, delete, set, return ;
+
+symbol              = regex '^[a-zA-Z\\*][a-zA-Z0-9\\-\\*]*$' ;
+name                = regex '^[a-zA-Z][a-zA-Z0-9\\-]*$' ;
+open-param          = '(' #group-start #node ;
+close-param         = ')' #group-end #node ;
+open-brace          = '{' #group-start #data ;
+close-brace         = '}' #group-end #data ;
+open-bracket        = '[' #group-start #edge ;
+close-bracket       = ']' #group-end #edge ;
+
+tagKey              = regex '^[a-zA-Z\\*\\-][a-zA-Z0-9\\-\\*]*$' ;
+tagValue            = string ;
+dataName            = name ;
+base64              = string ;
+comma               = ',' ;
+term                = ';' ;
+equal               = '=' ;
+set-sym             = 'set' ;
+add-sym             = 'add' ;
+upsert-sym          = 'upsert' ;
+update-sym          = 'update' ;
+select-sym          = 'select' ;
+delete-sym          = 'delete' ;
+return-sym          = 'return' ;
+node-sym            = 'node' ;
+edge-sym            = 'edge' ;
+alias               = name ;
+left-join           = '->' ;
+full-join           = '<->' ;
+
+key-sym             = 'key' ;
+key-value           = name ;
+fromKey-sym         = 'from' ;
+fromKey-value       = name ;
+toKey-sym           = 'to' ;
+toKey-value         = name ;
+edgeType-sym        = 'type' ;
+edgeType-value      = name ;
+
+entity-data         = dataName, open-brace, base64, close-brace ;
+tag                 = tagKey, [ '=', tagValue ] ;
+set-data            = [ set-sym, ( entity-data | tag ), { comma, ( entity-data | tag ) } ] ;
+set-tags            = [ set-sym, tag, { comma, tag } ] ;
+select-node         = open-param, tag, { comma, tag }, close-param, [ alias ] ;
+select-edge         = open-bracket, tag, { comma, tag }, close-bracket, [ alias ] ;
+return-data         = return-sym, dataName, { comma, dataName } ;
+tokey-data          = toKey-sym, equal, toKey-value ;
+fromkey-data        = fromKey-sym, equal, fromKey-value ;
+edgetype-data       = edgeType-sym, equal, edgeType-value ;
+
+command             = ( add-sym | upsert-sym | update-sym | select-sym | delete-sym ) ;
+
+
+node-add-command    = command, node-sym, key-sym, equal, key-value, set-data, term ;
+edge-add-command    = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
+
+select-command      = select-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, [ return-data ], term ;
+delete-command      = delete-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, term ;

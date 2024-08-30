@@ -205,7 +205,7 @@ public class SyntaxParser
     {
         using var scope = pContext.PushWithScope();
 
-        if (!pContext.TokensCursor.TryNextValue(out var current))
+        if (!pContext.TokensCursor.TryGetValue(out var current))
         {
             context.LogWarning("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay());
             return (StatusCode.NotFound, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay()}");

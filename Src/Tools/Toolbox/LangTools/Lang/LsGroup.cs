@@ -35,7 +35,7 @@ public class LsGroup : LangBase<ILangSyntax>, ILangRoot
 
         nodes += result.Return();
 
-        if (!pContext.TokensCursor.TryNextValue(out var lastToken)) return (StatusCode.BadRequest, "No ending token");
+        if (!pContext.TokensCursor.TryGetValue(out var lastToken)) return (StatusCode.BadRequest, "No ending token");
         if (lastToken.Value != EndToken) return (StatusCode.BadRequest, $"No ending token={lastToken.Value}");
         nodes += new LangNode(this, lastToken.Value);
 

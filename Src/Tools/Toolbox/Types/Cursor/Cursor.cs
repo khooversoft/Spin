@@ -15,6 +15,7 @@ public class Cursor<T>
 {
     private int _cursor = -1;
     private readonly IReadOnlyList<T> _list;
+    private IndexScope<T>? _indexScope;
 
     /// <summary>
     /// Bind cursor to collection
@@ -41,6 +42,9 @@ public class Cursor<T>
     /// </summary>
     public T Current => _cursor >= 0 && _cursor < _list.Count ? _list[_cursor] : default!;
 
+    // Scope stack for cursor index
+    public IndexScope<T> IndexScope => _indexScope ??= new IndexScope<T>(this);
+
     /// <summary>
     /// Is cursor at the end of the collection
     /// </summary>
@@ -58,19 +62,30 @@ public class Cursor<T>
     }
 
     /// <summary>
+    /// Move cursor to next index
+    /// </summary>
+    /// <returns>if in range, true, if not false</returns>
+    public bool MoveNext()
+    {
+        if (_list.Count == 0) return false;
+
+        int current = Math.Max(Math.Min(Interlocked.Increment(ref _cursor), _list.Count), 0);
+        if (current >= _list.Count) return false;
+
+        return true;
+    }
+
+    /// <summary>
     /// Try to get the next value and increment cursor if value is returned
     /// </summary>
     /// <param name="value">value to return</param>
     /// <returns>true if returned value, false if not</returns>
-    public bool TryNextValue([MaybeNullWhen(returnValue: false)] out T value)
+    public bool TryGetValue([MaybeNullWhen(returnValue: false)] out T value)
     {
         value = default;
-        if (_list.Count == 0) return false;
+        if (!MoveNext()) return false;
 
-        int current = Math.Min(Interlocked.Increment(ref _cursor), _list.Count);
-        if (current >= _list.Count) return false;
-
-        value = _list[Track(current)];
+        value = Current;
         return true;
     }
 
@@ -80,7 +95,7 @@ public class Cursor<T>
     /// <returns>Option with hasValue set</returns>
     public Option<T> NextValue()
     {
-        bool hasValue = TryNextValue(out T? value);
+        bool hasValue = TryGetValue(out T? value);
         return new Option<T>(hasValue, value!);
     }
 
@@ -130,44 +145,9 @@ public class Cursor<T>
         return list;
     }
 
-    public string PeekValueString => TryPeekValue(out T? value) ? value.NotNull().ToString()! : "<null>";
+    public T? PeekValueString => TryPeekValue(out T? value) ? value : default;
 
     public string PeeKValuesToString => PeekValues();
     public string GetDebuggerDisplay() => $"Cursor: Index={Index}, _list.Count={_list.Count}, Current={Current?.ToString() ?? "<null>"}, Peek= {PeekValues()}";
     private int Track(int value) => value.Action(x => MaxIndex = Math.Max(MaxIndex, x));
-
-
 }
-
-
-public static class CursorTool
-{
-    public static Cursor<T> ToCursor<T>(this IReadOnlyList<T> collection) => new Cursor<T>(collection);
-
-    public static IReadOnlyList<T> FromCursor<T>(this Cursor<T> subject, int maxSize)
-    {
-        int available = subject.List.Count - subject.Index;
-        if (available <= 0) return Array.Empty<T>();
-
-        var data = subject.List.Skip(subject.Index).Take(maxSize).ToArray();
-        return data;
-    }
-
-    public static string DebugCursorLocation<T>(this Cursor<T> subject)
-    {
-        int startIndex = Math.Max(0, subject.Index - 5);
-
-        return subject.List.Skip(startIndex)
-            .Take(8)
-            .Select((x, i) => $"{i + startIndex}={CursorTool.Quote(x?.ToString())}")
-            .Prepend($"Index={subject.Index}")
-            .Join(", ");
-    }
-
-    public static string Quote(string? value) => value switch
-    {
-        null => "<null>",
-        var v => $"'{v}'",
-    };
-}
-

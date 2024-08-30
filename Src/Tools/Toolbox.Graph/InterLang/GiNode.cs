@@ -1,0 +1,68 @@
+﻿using System.Collections.Immutable;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace Toolbox.Graph;
+
+
+internal sealed record GiNode : IGraphInstruction
+{
+    public GiChangeType ChangeType { get; init; } = GiChangeType.None;
+    public string Key { get; init; } = null!;
+    public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public IReadOnlyDictionary<string, string> Data { get; init; } = ImmutableDictionary<string, string>.Empty;
+
+    public bool Equals(GiNode? obj)
+    {
+        bool result = obj is GiNode subject &&
+            ChangeType == subject.ChangeType &&
+            Key == subject.Key &&
+            Tags.DeepEquals(subject.Tags) &&
+            Enumerable.SequenceEqual(Data.OrderBy(x => x.Key), subject.Data.OrderBy(x => x.Key));
+
+        return result;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(ChangeType, Key, Tags, Data);
+}
+
+internal static class GiNodeTool
+{
+    public static Option<IGraphInstruction> Build(InterContext interContext)
+    {
+        using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
+
+        // add node key={key}
+        if (!interContext.Cursor.TryGetValue(out var changeTypeSyntaxPair)) return (StatusCode.NotFound, "no add/upsert/update");
+        if (!changeTypeSyntaxPair.Token.Value.TryToEnum<GiChangeType>(out var changeType, true)) return (StatusCode.BadRequest, "Invalid change type");
+
+        // node
+        if (!interContext.Cursor.TryGetValue(out var nodeValue) || nodeValue.Token.Value != "node") return (StatusCode.NotFound, "no node");
+
+        // key={key}
+        if (!InterLangTool.TryGetValue(interContext, "key", out var nodeKey)) return (StatusCode.NotFound, "Cannot find key=node");
+
+        // Set
+        Dictionary<string, string?>? tags = null;
+        Dictionary<string, string>? data = null;
+
+        var tagsAndData = InterLangTool.GetTagsAndData(interContext);
+        if (tagsAndData.IsOk())
+        {
+            tags = tagsAndData.Value.Tags;
+            data = tagsAndData.Value.Data;
+        }
+
+        if (!interContext.Cursor.TryGetValue(out var term) || term.Token.Value != ";") return (StatusCode.NotFound, "term ';'");
+
+        scope.Cancel();
+        return new GiNode
+        {
+            ChangeType = changeType,
+            Key = nodeKey,
+            Tags = tags?.ToImmutableDictionary() ?? ImmutableDictionary<string, string?>.Empty,
+            Data = data?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty,
+        };
+    }
+}
