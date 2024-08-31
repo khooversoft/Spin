@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class SelectNodesTests : TestBase<EdgeTests>
+public class SelectNodesTests : TestBase<SelectNodesTests>
 {
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
@@ -166,6 +166,7 @@ public class SelectNodesTests : TestBase<EdgeTests>
                     new GiNodeSelect
                     {
                         Key = "user:k1",
+
                         Tags = new Dictionary<string, string?>
                         {
                             ["t1"] = "first*",

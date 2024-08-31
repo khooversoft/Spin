@@ -8,14 +8,14 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
+public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
 {
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
     private readonly ScopeContext _context;
 
-    public SelectNodesAndEdges(ITestOutputHelper output) : base(output)
+    public DeleteNodeAndEdges(ITestOutputHelper output) : base(output)
     {
         _output = output.NotNull();
 
@@ -29,9 +29,9 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
 
 
     [Fact]
-    public void SelectAllNodesToEdges()
+    public void DeleteAllNodes()
     {
-        var parse = _parser.Parse("select (*) -> [*] ;", _context);
+        var parse = _parser.Parse("delete (*) ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -41,7 +41,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
         IGraphInstruction[] expected = [
-            new GiSelect
+            new GiDelete
             {
                 Instructions = [
                     new GiNodeSelect
@@ -49,6 +49,96 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
                         Tags = new Dictionary<string, string?>
                         {
                             ["*"] = null,
+                        },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void DeleteAllEdges()
+    {
+        var parse = _parser.Parse("delete [*] ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiDelete
+            {
+                Instructions = [
+                    new GiEdgeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void DeleteEdgesWithTag()
+    {
+        var parse = _parser.Parse("delete [user] ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiDelete
+            {
+                Instructions = [
+                    new GiEdgeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["user"] = null,
+                        },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void DeleteUserEdges()
+    {
+        var parse = _parser.Parse("delete (user) -> [*] ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiDelete
+            {
+                Instructions = [
+                    new GiNodeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["user"] = null,
                         },
                     },
                     new GiLeftJoin(),
@@ -67,9 +157,9 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     }
 
     [Fact]
-    public void SelectAllNodesToEdgesToNodes()
+    public void DeleteAllNodesToEdgesToNodes()
     {
-        var parse = _parser.Parse("select (*) -> [*] -> (*) ;", _context);
+        var parse = _parser.Parse("delete (*) -> [*] -> (*) ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -79,7 +169,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
         IGraphInstruction[] expected = [
-            new GiSelect
+            new GiDelete
             {
                 Instructions = [
                     new GiNodeSelect
@@ -113,9 +203,9 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     }
 
     [Fact]
-    public void SelectFullNodesToEdgesToNodes()
+    public void deleteFullNodesToEdgesToNodes()
     {
-        var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;", _context);
+        var parse = _parser.Parse("delete (*) <-> [*] <-> (*) ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -125,7 +215,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
         IGraphInstruction[] expected = [
-            new GiSelect
+            new GiDelete
             {
                 Instructions = [
                     new GiNodeSelect
@@ -159,9 +249,9 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     }
 
     [Fact]
-    public void SelectAllIncorrectJoinsShouldFailAnalysis()
+    public void DeleteAllIncorrectJoinsShouldFailAnalysis()
     {
-        var parse = _parser.Parse("select (*) -> (*) -> (*) ;", _context);
+        var parse = _parser.Parse("delete (*) -> (*) -> (*) ;", _context);
         parse.StatusCode.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

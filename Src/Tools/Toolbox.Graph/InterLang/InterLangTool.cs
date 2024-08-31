@@ -13,6 +13,7 @@ public static class InterLangTool
         GiNodeTool.Build,
         GiEdgeTool.Build,
         GiSelectTool.Build,
+        GiDeleteTool.Build,
     ];
 
     public static Option<IReadOnlyList<IGraphInstruction>> Build(IEnumerable<SyntaxPair> syntaxPairs)
@@ -37,6 +38,9 @@ public static class InterLangTool
             if (result.IsError()) return (StatusCode.BadRequest, "Failed to parse");
             instructions += result.Return();
         }
+
+        Option analysis = InterLangAnalysis.ValidateInstructions(instructions);
+        if (analysis.IsError()) return analysis.ToOptionStatus<IReadOnlyList<IGraphInstruction>>();
 
         return instructions.ToImmutableArray();
     }

@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class SelectEdgeTests : TestBase<EdgeTests>
+public class SelectEdgeTests : TestBase<SelectEdgeTests>
 {
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
@@ -26,7 +26,6 @@ public class SelectEdgeTests : TestBase<EdgeTests>
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
     }
-
 
     [Fact]
     public void SelectAllEdges()
@@ -50,6 +49,106 @@ public class SelectEdgeTests : TestBase<EdgeTests>
                         {
                             ["*"] = null,
                         },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SelectEdge()
+    {
+        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user] ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiSelect
+            {
+                Instructions = [
+                    new GiEdgeSelect
+                    {
+                        From = "user:f1",
+                        To = "t1",
+                        Type = "user",
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SelectEdgeWithTag()
+    {
+        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiSelect
+            {
+                Instructions = [
+                    new GiEdgeSelect
+                    {
+                        From = "user:f1",
+                        To = "t1",
+                        Type = "user",
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["t1"] = "contact*",
+                        },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+
+    [Fact]
+    public void SelectEdgeWithData()
+    {
+        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] return entity, data ;", _context);
+        parse.StatusCode.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiSelect
+            {
+                Instructions = [
+                    new GiEdgeSelect
+                    {
+                        From = "user:f1",
+                        To = "t1",
+                        Type = "user",
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["t1"] = "contact*",
+                        },
+                    },
+                    new GiReturnNames
+                    {
+                        ReturnNames = [ "entity", "data" ],
                     },
                 ],
             }

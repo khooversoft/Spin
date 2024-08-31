@@ -13,9 +13,10 @@ public static class GraphTestTool
         {
             var instructions = item switch
             {
-                GiNode v => BuildGiNode(v),
-                GiEdge v => BuildGiEdge(v),
-                GiSelect v => BuildGiSelect(v),
+                GiNode v => BuildNode(v),
+                GiEdge v => BuildEdge(v),
+                GiSelect v => BuildSelect(v),
+                GiDelete v => BuildDelete(v),
                 _ => throw new InvalidOperationException(),
             };
 
@@ -34,7 +35,7 @@ public static class GraphTestTool
         return lines.SelectMany(x => x).ToArray();
     }
 
-    private static IReadOnlyList<string> BuildGiNode(GiNode node)
+    private static IReadOnlyList<string> BuildNode(GiNode node)
     {
         IReadOnlyList<string> tags = CreateTags(node.Tags);
 
@@ -56,7 +57,7 @@ public static class GraphTestTool
             .ToArray();
     }
 
-    private static IReadOnlyList<string> BuildGiEdge(GiEdge edge)
+    private static IReadOnlyList<string> BuildEdge(GiEdge edge)
     {
         IReadOnlyList<string> tags = CreateTags(edge.Tags);
 
@@ -79,14 +80,14 @@ public static class GraphTestTool
             .ToArray();
     }
 
-    private static IReadOnlyList<string> BuildGiSelect(GiSelect select)
+    private static IReadOnlyList<string> BuildSelect(GiSelect select)
     {
         var buildLines = select.Instructions
             .SelectMany(x => x switch
             {
-                GiNodeSelect v => BuildGiNodeSelect(v),
-                GiEdgeSelect v => BuildGiEdgeSelect(v),
-                GiLeftJoin v => BuildGiLeftJoin(v),
+                GiNodeSelect v => BuildNodeSelect(v),
+                GiEdgeSelect v => BuildEdgeSelect(v),
+                GiLeftJoin v => BuildLeftJoin(v),
                 GiFullJoin v => BuildGiFullJoin(v),
                 GiReturnNames v => BuildReturnNames(v),
                 _ => throw new InvalidOperationException(),
@@ -109,7 +110,36 @@ public static class GraphTestTool
             .ToArray();
     }
 
-    private static IReadOnlyList<string> BuildGiNodeSelect(GiNodeSelect select)
+    private static IReadOnlyList<string> BuildDelete(GiDelete select)
+    {
+        var buildLines = select.Instructions
+            .SelectMany(x => x switch
+            {
+                GiNodeSelect v => BuildNodeSelect(v),
+                GiEdgeSelect v => BuildEdgeSelect(v),
+                GiLeftJoin v => BuildLeftJoin(v),
+                GiFullJoin v => BuildGiFullJoin(v),
+                _ => throw new InvalidOperationException(),
+            });
+
+        var lines = new string?[][]
+        {
+            ["new GiDelete"],
+            ["{"],
+            ["Instructions = ["],
+            [.. buildLines],
+            ["],"],
+            ["}"]
+        };
+
+        return lines
+            .SelectMany(x => x)
+            .Where(x => x.IsNotEmpty())
+            .OfType<string>()
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> BuildNodeSelect(GiNodeSelect select)
     {
         IReadOnlyList<string> tags = CreateTags(select.Tags);
 
@@ -130,7 +160,7 @@ public static class GraphTestTool
             .ToArray();
     }
 
-    private static IReadOnlyList<string> BuildGiEdgeSelect(GiEdgeSelect select)
+    private static IReadOnlyList<string> BuildEdgeSelect(GiEdgeSelect select)
     {
         IReadOnlyList<string> tags = CreateTags(select.Tags);
 
@@ -140,7 +170,7 @@ public static class GraphTestTool
             ["{"],
             [(select.From.IsNotEmpty() ? $"From = \"{select.From}\"," : null)],
             [(select.To.IsNotEmpty() ? $"To = \"{select.To}\"," : null)],
-            [(select.Type.IsNotEmpty() ? $"From = \"{select.Type}\"," : null)],
+            [(select.Type.IsNotEmpty() ? $"Type = \"{select.Type}\"," : null)],
             [.. tags],
             [(select.Alias.IsNotEmpty() ? $"Alias = \"{select.Alias}\"," : null)],
             ["},"]
@@ -153,7 +183,7 @@ public static class GraphTestTool
             .ToArray();
     }
 
-    private static IReadOnlyList<string> BuildGiLeftJoin(GiLeftJoin leftJoin) => ["new GiLeftJoin(),"];
+    private static IReadOnlyList<string> BuildLeftJoin(GiLeftJoin leftJoin) => ["new GiLeftJoin(),"];
 
     private static IReadOnlyList<string> BuildGiFullJoin(GiFullJoin leftJoin) => ["new GiFullJoin(),"];
 

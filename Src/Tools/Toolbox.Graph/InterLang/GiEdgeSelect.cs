@@ -59,7 +59,7 @@ internal static class GiEdgeSelectTool
                     break;
 
                 case ("type", string value):
-                    if (from.IsNotEmpty()) return (StatusCode.BadRequest, "Multiple 'from' specified");
+                    if (edgeType.IsNotEmpty()) return (StatusCode.BadRequest, "Multiple 'from' specified");
                     edgeType = value;
                     break;
 

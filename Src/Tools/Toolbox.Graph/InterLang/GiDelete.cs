@@ -5,13 +5,13 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal sealed record GiSelect : IGraphInstruction
+internal sealed record GiDelete : IGraphInstruction
 {
     public IReadOnlyList<ISelectInstruction> Instructions { get; init; } = Array.Empty<ISelectInstruction>();
 
-    public bool Equals(GiSelect? obj)
+    public bool Equals(GiDelete? obj)
     {
-        bool result = obj is GiSelect subject &&
+        bool result = obj is GiDelete subject &&
             Enumerable.SequenceEqual(Instructions, subject.Instructions);
 
         return result;
@@ -20,21 +20,20 @@ internal sealed record GiSelect : IGraphInstruction
     public override int GetHashCode() => HashCode.Combine(Instructions);
 }
 
-internal static class GiSelectTool
+internal static class GiDeleteTool
 {
     private static readonly Func<InterContext, Option<ISelectInstruction>>[] _call = [
         GiNodeSelectTool.Build,
         GiEdgeSelectTool.Build,
         GiFullJoinTool.Build,
         GiLeftJoinTool.Build,
-        GiReturnNamesTool.Build,
     ];
 
     public static Option<IGraphInstruction> Build(InterContext interContext)
     {
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
-        if (!interContext.Cursor.TryGetValue(out var selectValue) || selectValue.Token.Value != "select") return (StatusCode.NotFound, "no 'select' command found");
+        if (!interContext.Cursor.TryGetValue(out var selectValue) || selectValue.Token.Value != "delete") return (StatusCode.NotFound, "no 'delete' command found");
 
         var instructions = new Sequence<ISelectInstruction>();
 
@@ -53,9 +52,10 @@ internal static class GiSelectTool
         }
 
         scope.Cancel();
-        return new GiSelect
+        return new GiDelete
         {
             Instructions = instructions.ToImmutableArray(),
         };
     }
 }
+
