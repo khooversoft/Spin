@@ -33,7 +33,7 @@ public class OptionalWithSuffix : TestBase
         var logger = GetScopeContext<OptionalRuleOnly>();
 
         var parse = parser.Parse("first", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -72,7 +72,7 @@ public class OptionalWithSuffix : TestBase
         var logger = GetScopeContext<OptionalRuleOnly>();
 
         var parse = parser.Parse("-> first", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -127,7 +127,7 @@ public class OptionalWithSuffix : TestBase
         var logger = GetScopeContext<OptionalRuleOnly>();
 
         var parse = parser.Parse("<-> first", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 

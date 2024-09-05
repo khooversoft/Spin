@@ -33,8 +33,6 @@ public static class GraphDataMapParser
         var data = new GraphDataSource
         {
             Name = name,
-            TypeName = typeName,
-            Schema = schemaValue,
             Data64 = dataValue,
         };
 

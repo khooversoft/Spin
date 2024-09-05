@@ -32,7 +32,7 @@ public class OrRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("node", logger);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -78,7 +78,7 @@ public class OrRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("edge", logger);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -124,6 +124,6 @@ public class OrRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("edxxxge", logger);
-        parse.StatusCode.IsError().Should().BeTrue();
+        parse.Status.IsError().Should().BeTrue();
     }
 }

@@ -31,7 +31,7 @@ public class NodeTests : TestBase<NodeTests>
     public void MinAddNode()
     {
         var parse = _parser.Parse("add node key=k1;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -48,7 +48,7 @@ public class NodeTests : TestBase<NodeTests>
     public void UpsertNode()
     {
         var parse = _parser.Parse("upsert node key=k1 set t1, t2=v2;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -76,7 +76,7 @@ public class NodeTests : TestBase<NodeTests>
     public void UpsertNodeRemoveTagCommand()
     {
         var parse = _parser.Parse("upsert node key=k1 set -t1, t2=v2;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -103,8 +103,8 @@ public class NodeTests : TestBase<NodeTests>
     [Fact]
     public void AddNodeCommand()
     {
-        var parse = _parser.Parse("add node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 };", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        var parse = _parser.Parse("add node key=k1 set t1, entity { 'aGVsbG8=' }, t2=v3, t3, data { 'aGVsbG8y' };", _context);
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -125,8 +125,8 @@ public class NodeTests : TestBase<NodeTests>
                 },
                 Data = new Dictionary<string, string>
                 {
-                    ["data"] = "base64",
-                    ["entity"] = "entityBase64",
+                    ["data"] = "aGVsbG8y",
+                    ["entity"] = "aGVsbG8=",
                 },
             }
         ];
@@ -138,7 +138,7 @@ public class NodeTests : TestBase<NodeTests>
     public void UpdateNodeCommand()
     {
         var parse = _parser.Parse("update node key=k1 set t1, entity { entityBase64 }, t2=v3, -t3, t5=v5, -data;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);

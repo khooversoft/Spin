@@ -33,7 +33,7 @@ public class OptionalSubRule : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("sym", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 

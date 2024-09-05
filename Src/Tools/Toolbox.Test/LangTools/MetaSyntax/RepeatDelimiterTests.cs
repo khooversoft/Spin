@@ -48,7 +48,7 @@ public class RepeatDelimiterTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
-        parse.StatusCode.IsError().Should().BeTrue(parse.Error);
+        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class RepeatDelimiterTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("(t1) ;", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -124,7 +124,7 @@ public class RepeatDelimiterTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("(key=k1) data { 'data section' } ;", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 

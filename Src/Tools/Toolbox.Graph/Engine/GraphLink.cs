@@ -9,15 +9,12 @@ public sealed record GraphLink
 {
     public string NodeKey { get; init; } = null!;
     public string Name { get; init; } = null!;
-    public string TypeName { get; init; } = null!;
-    public string Schema { get; init; } = null!;
+
     public string FileId { get; init; } = null!;
 
     public static IValidator<GraphLink> Validator { get; } = new Validator<GraphLink>()
         .RuleFor(x => x.NodeKey).NotEmpty()
         .RuleFor(x => x.Name).ValidName()
-        .RuleFor(x => x.TypeName).ValidName()
-        .RuleFor(x => x.Schema).ValidName()
         .RuleFor(x => x.FileId).Must(x => IdPatterns.IsPath(x), x => $"Invalid File path={x}")
         .Build();
 }

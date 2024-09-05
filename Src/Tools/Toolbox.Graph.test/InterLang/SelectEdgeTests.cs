@@ -31,7 +31,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     public void SelectAllEdges()
     {
         var parse = _parser.Parse("select [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -61,7 +61,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     public void SelectEdge()
     {
         var parse = _parser.Parse("select [from=user:f1, to=t1, type=user] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -90,7 +90,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     public void SelectEdgeWithTag()
     {
         var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -124,7 +124,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     public void SelectEdgeWithData()
     {
         var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] return entity, data ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);

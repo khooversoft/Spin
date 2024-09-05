@@ -31,7 +31,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     public void DeleteNodesRelationship()
     {
         var parse = _parser.Parse("delete (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -52,7 +52,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     public void DeleteAllRelationshipsAndReturnDataCommand()
     {
         var parse = _parser.Parse("delete [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -73,7 +73,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     public void DeleteNodesToEdgeRelationship()
     {
         var parse = _parser.Parse("delete (*) -> [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -98,7 +98,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     public void DeleteNodesWithAliasToEdgeRelationship()
     {
         var parse = _parser.Parse("delete (*) a1 -> [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -124,7 +124,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     public void DeleteNodesToEdgeToNodeRelationship()
     {
         var parse = _parser.Parse("delete (*) -> [*] -> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -153,7 +153,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     public void DeleteNodesToEdgeToNodeWithAliasRelationship()
     {
         var parse = _parser.Parse("delete (*) a1 -> [*] a2 -> (*) a3 ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -185,7 +185,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     public void DeleteNotCorrectButWorksRelationship()
     {
         var parse = _parser.Parse("delete  (*) -> (*) -> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);

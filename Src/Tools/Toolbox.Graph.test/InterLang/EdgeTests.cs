@@ -31,7 +31,7 @@ public class EdgeTests : TestBase<EdgeTests>
     public void MinAddEdge()
     {
         var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -56,7 +56,7 @@ public class EdgeTests : TestBase<EdgeTests>
     public void AddEdgeWithTag()
     {
         var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1=v1;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -85,7 +85,7 @@ public class EdgeTests : TestBase<EdgeTests>
     public void UpsertNode()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -110,7 +110,7 @@ public class EdgeTests : TestBase<EdgeTests>
     public void UpdateNodeTagCommand()
     {
         var parse = _parser.Parse("update edge from=fkey1, to=tkey1, type=label set t1;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -139,7 +139,7 @@ public class EdgeTests : TestBase<EdgeTests>
     public void UpsertNodeRemoveTagCommand()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set -t1, t2=v2;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);

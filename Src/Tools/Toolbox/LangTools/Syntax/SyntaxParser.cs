@@ -59,8 +59,7 @@ public class SyntaxParser
 
         var result = new SyntaxResponse
         {
-            StatusCode = status.StatusCode,
-            Error = status.Error,
+            Status = status,
             SyntaxTree = pContext.SyntaxTree.ConvertTo(),
         };
 

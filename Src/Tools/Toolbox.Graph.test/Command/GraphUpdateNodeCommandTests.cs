@@ -94,8 +94,6 @@ public class GraphUpdateNodeCommandTests
             x.DataMap.Count.Should().Be(1);
             x.DataMap.Values.First().Action(y =>
             {
-                y.Schema.Should().Be("json");
-                y.TypeName.Should().Be("default");
                 y.FileId.Should().Be("nodes/node3/node3___contract.json");
             });
         });

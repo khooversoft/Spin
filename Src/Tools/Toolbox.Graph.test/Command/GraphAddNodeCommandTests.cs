@@ -103,9 +103,7 @@ public class GraphAddNodeCommandTests
             {
                 y.TryGetValue("entity", out var entity).Should().BeTrue();
                 entity!.Validate().IsOk().Should().BeTrue();
-                entity!.TypeName.Should().Be("default");
-                entity.Schema.Should().Be("json");
-                entity.FileId.Should().Be("nodes/node99/node99___entity.json");
+                entity!.FileId.Should().Be("nodes/node99/node99___entity.json");
             });
         });
 
@@ -122,8 +120,6 @@ public class GraphAddNodeCommandTests
             x.DataMap.Count.Should().Be(1);
             x.DataMap.Values.First().Action(y =>
             {
-                y.Schema.Should().Be("json");
-                y.TypeName.Should().Be("default");
                 y.FileId.Should().Be("nodes/node99/node99___entity.json");
             });
         });

@@ -39,7 +39,7 @@ public class AndRuleTests : TestBase
         var parser = new SyntaxParser(_schema);
         var logger = GetScopeContext<OrRuleTests>();
 
-        parser.Parse(rawData, logger).StatusCode.IsError().Should().BeTrue();
+        parser.Parse(rawData, logger).Status.IsError().Should().BeTrue();
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class AndRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("alias { hello };", logger);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -96,7 +96,7 @@ public class AndRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("data { 'this is a test' };", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 

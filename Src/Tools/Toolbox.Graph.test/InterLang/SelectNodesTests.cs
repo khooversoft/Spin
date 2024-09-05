@@ -32,7 +32,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     public void SelectAllNodes()
     {
         var parse = _parser.Parse("select (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -62,7 +62,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     public void SelectNodeWithTag()
     {
         var parse = _parser.Parse("select (key=k1, t1) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -93,7 +93,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     public void SelectNode()
     {
         var parse = _parser.Parse("select (key=k1) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -120,7 +120,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     public void SelectNodeAndTag()
     {
         var parse = _parser.Parse("select (key=user:k1, t1=first*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -151,7 +151,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     public void SelectNodeAndTag2AndData()
     {
         var parse = _parser.Parse("select (key=user:k1, t1=first*, t2) return data ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);

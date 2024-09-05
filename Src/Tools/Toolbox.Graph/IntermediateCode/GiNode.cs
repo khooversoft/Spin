@@ -25,6 +25,8 @@ internal sealed record GiNode : IGraphInstruction
     }
 
     public override int GetHashCode() => HashCode.Combine(ChangeType, Key, Tags, Data);
+
+    public override string ToString() => $"ChangeType={ChangeType}, Key={Key}, Tags={Tags.ToTagsString()}, Data={Data.Select(x => x.Key).Join(";")}";
 }
 
 internal static class GiNodeTool
@@ -65,4 +67,15 @@ internal static class GiNodeTool
             Data = data?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty,
         };
     }
+
+    public static IReadOnlyList<GraphLinkData> GetLinkData(this GiNode subject) => subject.Data
+        .Select(x => new GraphLinkData
+        {
+            NodeKey = subject.Key,
+            Name = x.Key,
+            FileId = GraphTool.CreateFileId(subject.Key, x.Key),
+            Data = Convert.FromBase64String(x.Value).ToDataETag(),
+        }).ToImmutableArray();
+
+
 }

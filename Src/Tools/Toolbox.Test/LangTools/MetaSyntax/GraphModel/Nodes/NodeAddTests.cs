@@ -38,14 +38,14 @@ public class NodeAddTests : TestBase<NodeAddTests>
     public void FailedReturn(string command)
     {
         var parse = _parser.Parse(command, _context);
-        parse.StatusCode.IsError().Should().BeTrue(parse.Error);
+        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void MinAddCommand()
     {
         var parse = _parser.Parse("add node key=k1;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -67,7 +67,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     public void AddCommandWithTag()
     {
         var parse = _parser.Parse("add node key=k1 set t1;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -91,7 +91,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     public void AddCommandWithTwoTag()
     {
         var parse = _parser.Parse("add node key=k1 set t1, t2=v2 ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -119,7 +119,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     public void AddCommandWithData()
     {
         var parse = _parser.Parse("add node key=k1 set data { base64 } ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -146,7 +146,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     public void AddCommandWithTwoData()
     {
         var parse = _parser.Parse("add node key=k1 set data { base64 }, entity { entityData64 } ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -178,7 +178,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     public void AddCommandWithTagsData()
     {
         var parse = _parser.Parse("add node key=k1 set t1, t2=v3, t3, data { base64 } ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -213,7 +213,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     public void AddCommandWithTagsTwoData()
     {
         var parse = _parser.Parse("add node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);

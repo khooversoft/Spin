@@ -125,9 +125,7 @@ public class GraphAddNodeTests
         {
             x.TryGetValue("entity", out var entity).Should().BeTrue();
             entity!.Validate().IsOk().Should().BeTrue();
-            entity!.TypeName.Should().Be("default");
-            entity.Schema.Should().Be("json");
-            entity.Data64.Should().Be("aGVsbG8=");
+            entity!.Data64.Should().Be("aGVsbG8=");
         });
 
         query.DataMap.Action(x =>
@@ -135,9 +133,7 @@ public class GraphAddNodeTests
             x.TryGetValue("contract", out var entity).Should().BeTrue();
             entity!.Validate().IsOk().Should().BeTrue();
 
-            entity!.TypeName.Should().Be("contractType");
-            entity.Schema.Should().Be("xml");
-            entity.Data64.Should().Be("aGVsbG8=");
+            entity!.Data64.Should().Be("aGVsbG8=");
         });
     }
 

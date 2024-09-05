@@ -31,7 +31,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     public void DeleteAll()
     {
         var parse = _parser.Parse("delete (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -52,7 +52,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     public void DeleteNodeByKey()
     {
         var parse = _parser.Parse("delete (key=k1) a1 ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -76,7 +76,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     public void DeleteNodeByKeyAndTag()
     {
         var parse = _parser.Parse("delete (key=k1, t2) a1 ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);

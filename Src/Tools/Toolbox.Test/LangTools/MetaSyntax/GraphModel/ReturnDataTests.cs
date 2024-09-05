@@ -37,7 +37,7 @@ public class ReturnDataTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
-        parse.StatusCode.IsError().Should().BeTrue(parse.Error);
+        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class ReturnDataTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("return d1", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -89,7 +89,7 @@ public class ReturnDataTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("return d1, d2", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 

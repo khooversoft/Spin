@@ -43,14 +43,14 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
     public void FailedReturn(string command)
     {
         var parse = _parser.Parse(command, _context);
-        parse.StatusCode.IsError().Should().BeTrue(parse.Error);
+        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void MinAddCommand()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -80,7 +80,7 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
     public void AddWithSetTagCommand()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -112,7 +112,7 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
     public void AddWithSetMultipleTagCommand()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1, t2=v3, t3;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);

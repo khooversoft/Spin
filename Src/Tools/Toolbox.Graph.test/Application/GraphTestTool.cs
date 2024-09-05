@@ -47,7 +47,7 @@ public static class GraphTestTool
             [$"Key = \"{node.Key}\","],
             [.. tags],
             [.. CreateData(node.Data)],
-            ["}"]
+            ["},"]
         };
 
         return lines
@@ -70,7 +70,7 @@ public static class GraphTestTool
             [$"To = \"{edge.To}\","],
             [$"Type = \"{edge.Type}\","],
             [.. tags],
-            ["}"]
+            ["},"]
         };
 
         return lines
@@ -100,7 +100,7 @@ public static class GraphTestTool
             ["Instructions = ["],
             [.. buildLines],
             ["],"],
-            ["}"]
+            ["},"]
         };
 
         return lines
@@ -129,7 +129,7 @@ public static class GraphTestTool
             ["Instructions = ["],
             [.. buildLines],
             ["],"],
-            ["}"]
+            ["},"]
         };
 
         return lines

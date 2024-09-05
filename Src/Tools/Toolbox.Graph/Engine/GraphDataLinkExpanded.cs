@@ -27,8 +27,6 @@ public static class GraphDataLinkExpandedExtensions
             {
                 NodeKey = nodeKey,
                 Name = subject.Name,
-                TypeName = subject.TypeName,
-                Schema = subject.Schema,
                 FileId = fileId,
             },
             DataETag = Convert.FromBase64String(subject.Data64).ToDataETag(),

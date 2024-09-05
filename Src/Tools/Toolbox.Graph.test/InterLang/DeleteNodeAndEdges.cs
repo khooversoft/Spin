@@ -32,7 +32,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void DeleteAllNodes()
     {
         var parse = _parser.Parse("delete (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -62,7 +62,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void DeleteAllEdges()
     {
         var parse = _parser.Parse("delete [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -92,7 +92,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void DeleteEdgesWithTag()
     {
         var parse = _parser.Parse("delete [user] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -122,7 +122,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void DeleteUserEdges()
     {
         var parse = _parser.Parse("delete (user) -> [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -160,7 +160,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void DeleteAllNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("delete (*) -> [*] -> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -206,7 +206,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void deleteFullNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("delete (*) <-> [*] <-> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -252,7 +252,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void DeleteAllIncorrectJoinsShouldFailAnalysis()
     {
         var parse = _parser.Parse("delete (*) -> (*) -> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -263,7 +263,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void SelectRelationship()
     {
         var parse = _parser.Parse("select (key=userEmail:user.com, index) <-> [userProfile] -> (*) return data, entity, player ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);

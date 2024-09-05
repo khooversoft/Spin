@@ -31,7 +31,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     public void DeleteAllCommand()
     {
         var parse = _parser.Parse("delete [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -52,7 +52,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     public void DeleteByLabel()
     {
         var parse = _parser.Parse("delete [person] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -73,7 +73,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     public void DeleteCommand()
     {
         var parse = _parser.Parse("delete [key=k1] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -96,7 +96,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     public void DeleteExact()
     {
         var parse = _parser.Parse("delete [from=k1, to=k1, type=t1] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);

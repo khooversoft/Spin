@@ -39,7 +39,7 @@ public class SetTagsValuesStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
-        parse.StatusCode.IsError().Should().BeTrue(parse.Error);
+        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class SetTagsValuesStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("set t1", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -105,7 +105,7 @@ public class SetTagsValuesStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("set t1, t2", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -179,7 +179,7 @@ public class SetTagsValuesStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("set t1=v1, t2, t3=v3", logger);
-        parse.StatusCode.IsOk().Should().BeTrue(parse.Error);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 

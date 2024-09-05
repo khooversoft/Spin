@@ -20,9 +20,9 @@ public sealed record GraphNode : IGraphCommon
     [JsonConstructor]
     public GraphNode(
         string key,
-        ImmutableDictionary<string, string?> tags,
+        IReadOnlyDictionary<string, string?> tags,
         DateTime createdDate,
-        ImmutableDictionary<string, GraphLink> dataMap
+        IReadOnlyDictionary<string, GraphLink> dataMap
         )
     {
         Key = key.NotNull();
@@ -32,10 +32,10 @@ public sealed record GraphNode : IGraphCommon
     }
 
     public string Key { get; }
-    public ImmutableDictionary<string, string?> Tags { get; private init; }
+    public IReadOnlyDictionary<string, string?> Tags { get; private init; }
     public string TagsString => Tags.ToTagsString();
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
-    public ImmutableDictionary<string, GraphLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphLink>.Empty;
+    public IReadOnlyDictionary<string, GraphLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphLink>.Empty;
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
 
     public GraphNode With(GraphNode node) => this with

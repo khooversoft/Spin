@@ -32,7 +32,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     public void SelectAllNodesCommand()
     {
         var parse = _parser.Parse("select [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -53,7 +53,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     public void SelectExact()
     {
         var parse = _parser.Parse("select [from=k1, to=k2, type=label] a1 ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -85,7 +85,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     public void SelectNodeAndReturnDataCommand()
     {
         var parse = _parser.Parse("select [key=k1, t2] a1 ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -111,7 +111,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     public void SelectNodeByTypeCommand()
     {
         var parse = _parser.Parse("select [label] a1 ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);

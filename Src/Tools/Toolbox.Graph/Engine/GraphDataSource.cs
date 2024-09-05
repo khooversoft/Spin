@@ -9,14 +9,10 @@ namespace Toolbox.Graph;
 public sealed record GraphDataSource
 {
     public string Name { get; init; } = null!;
-    public string TypeName { get; init; } = null!;
-    public string Schema { get; init; } = null!;
     public string Data64 { get; init; } = null!;
 
     public static IValidator<GraphDataSource> Validator { get; } = new Validator<GraphDataSource>()
         .RuleFor(x => x.Name).ValidName()
-        .RuleFor(x => x.TypeName).ValidName()
-        .RuleFor(x => x.Schema).ValidName()
         .RuleFor(x => x.Data64).Must(x => Base64.IsValid(x), x => $"Invalid base 64 data={x}")
         .Build();
 }

@@ -101,9 +101,7 @@ public class GraphUpdateNodeTests
         {
             x.TryGetValue("entity", out var entity).Should().BeTrue();
             entity!.Validate().IsOk().Should().BeTrue();
-            entity!.TypeName.Should().Be("default");
-            entity.Schema.Should().Be("json");
-            entity.Data64.Should().Be("VGhpcyBpcyBhIHRlc3Q=");
+            entity!.Data64.Should().Be("VGhpcyBpcyBhIHRlc3Q=");
         });
     }
 
@@ -127,9 +125,7 @@ public class GraphUpdateNodeTests
         {
             x.TryGetValue("entity", out var entity).Should().BeTrue();
             entity!.Validate().IsOk().Should().BeTrue();
-            entity!.TypeName.Should().Be("default");
-            entity.Schema.Should().Be("json");
-            entity.Data64.Should().Be("VGhpcyBpcyBhIHRlc3Q=");
+            entity!.Data64.Should().Be("VGhpcyBpcyBhIHRlc3Q=");
         });
 
         query.DataMap.Action(x =>
@@ -137,9 +133,7 @@ public class GraphUpdateNodeTests
             x.TryGetValue("contract", out var entity).Should().BeTrue();
             entity!.Validate().IsOk().Should().BeTrue();
 
-            entity!.TypeName.Should().Be("contractType");
-            entity.Schema.Should().Be("json");
-            entity.Data64.Should().Be("aGVsbG8=");
+            entity!.Data64.Should().Be("aGVsbG8=");
         });
     }
 }

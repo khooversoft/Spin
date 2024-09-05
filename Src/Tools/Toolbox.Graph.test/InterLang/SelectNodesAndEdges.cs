@@ -32,7 +32,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     public void SelectAllNodesToEdges()
     {
         var parse = _parser.Parse("select (*) -> [*] ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -70,7 +70,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     public void SelectAllNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("select (*) -> [*] -> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -116,7 +116,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     public void SelectFullNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -162,7 +162,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     public void SelectAllIncorrectJoinsShouldFailAnalysis()
     {
         var parse = _parser.Parse("select (*) -> (*) -> (*) ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -173,7 +173,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     public void SelectRelationship()
     {
         var parse = _parser.Parse("select (key=userEmail:user.com, index) <-> [userProfile] -> (*) return data, entity, player ;", _context);
-        parse.StatusCode.IsOk().Should().BeTrue();
+        parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);

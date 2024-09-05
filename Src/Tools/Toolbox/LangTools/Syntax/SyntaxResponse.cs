@@ -4,7 +4,6 @@ namespace Toolbox.LangTools;
 
 public record SyntaxResponse
 {
-    public StatusCode StatusCode { get; init; }
-    public string? Error { get; init; }
+    public Option Status { get; init; }
     public SyntaxTree SyntaxTree { get; init; } = null!;
 }
