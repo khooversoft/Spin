@@ -17,6 +17,8 @@ internal static class NodeInstruction
             _ => throw new InvalidOperationException("Invalid change type"),
         };
 
+        pContext.AddQueryResult(result);
+
         result.LogStatus(pContext.GraphContext.Context, $"Completed processing of giNode={giNode}");
         return result;
     }

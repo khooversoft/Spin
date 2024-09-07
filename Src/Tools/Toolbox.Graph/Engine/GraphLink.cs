@@ -9,7 +9,6 @@ public sealed record GraphLink
 {
     public string NodeKey { get; init; } = null!;
     public string Name { get; init; } = null!;
-
     public string FileId { get; init; } = null!;
 
     public static IValidator<GraphLink> Validator { get; } = new Validator<GraphLink>()

@@ -56,4 +56,17 @@ public static class GraphLinkDataTool
 
         return result;
     }
+
+    public static Option<GraphLinkData> Get(this IReadOnlyList<GraphLinkData> subject, string returnName)
+    {
+        subject.NotNull();
+
+        Option<GraphLinkData> result = subject.Where(x => x.Name == returnName).FirstOrDefault() switch
+        {
+            null => (StatusCode.NotFound, $"returnName={returnName} not found"),
+            GraphLinkData v => v,
+        };
+
+        return result;
+    }
 }

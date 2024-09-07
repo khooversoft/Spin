@@ -41,10 +41,10 @@ public static class QueryExecution
                 var queryResult = graphInstruction switch
                 {
                     GiNode giNode => await NodeInstruction.Process(giNode, pContext),
+                    GiSelect giSelect => await SelectInstruction.Process(giSelect, pContext),
+                    GiDelete giDelete => await DeleteInstruction.Process(giDelete, pContext),
                     _ => throw new UnreachableException(),
                 };
-
-                pContext.AddTrace(queryResult);
 
                 if (queryResult.IsError())
                 {

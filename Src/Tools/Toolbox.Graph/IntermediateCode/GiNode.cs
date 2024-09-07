@@ -76,6 +76,4 @@ internal static class GiNodeTool
             FileId = GraphTool.CreateFileId(subject.Key, x.Key),
             Data = Convert.FromBase64String(x.Value).ToDataETag(),
         }).ToImmutableArray();
-
-
 }

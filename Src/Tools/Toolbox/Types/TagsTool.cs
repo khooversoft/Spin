@@ -55,7 +55,7 @@ public static class TagsTool
         .Where(x => GetTagDeleteCommand(x.Key, x.Value).IsEmpty())
         .ToImmutableDictionary();
 
-    public static ImmutableArray<string> GetTagCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
+    public static IReadOnlyList<string> GetTagCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
         .Select(x => GetTagDeleteCommand(x.Key, x.Value))
         .OfType<string>()
         .ToImmutableArray();

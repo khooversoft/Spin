@@ -55,15 +55,18 @@ public static class GraphQueryResultExtensions
     public static ImmutableArray<GraphEdge> AliasEdge(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphEdge>().ToImmutableArray();
     public static ImmutableArray<GraphNode> AliasNode(this GraphQueryResult subject, string key) => subject.NotNull().Alias[key].OfType<GraphNode>().ToImmutableArray();
 
-    public static Option<GraphLinkData> Get(this IReadOnlyList<GraphLinkData> subject, string returnName)
-    {
-        subject.NotNull();
-        var graphLinkData = subject.Where(x => x.Name == returnName).ToArray();
-        if (graphLinkData.Length == 0) return (StatusCode.NotFound, $"returnName={returnName} not found");
-        if (graphLinkData.Length != 1) return (StatusCode.NotFound, $"returnName={returnName} has more then 1 records, length={graphLinkData.Length}");
+    //public static Option<GraphLinkData> Get(this IReadOnlyList<GraphLinkData> subject, string returnName)
+    //{
+    //    subject.NotNull();
 
-        return graphLinkData[0];
-    }
+    //    Option<GraphLinkData> result = subject.Where(x => x.Name == returnName).FirstOrDefault() switch
+    //    {
+    //        null => (StatusCode.NotFound, $"returnName={returnName} not found"),
+    //        GraphLinkData v => v,
+    //    };
+
+    //    return result;
+    //}
 
     public static Option<T> DataLinkToObject<T>(this IReadOnlyList<GraphLinkData> subject, string returnName)
     {

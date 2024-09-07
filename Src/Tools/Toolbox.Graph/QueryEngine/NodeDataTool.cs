@@ -22,6 +22,22 @@ internal static class NodeDataTool
         return dataMap.Select(x => x.ConvertTo()).ToImmutableArray();
     }
 
+    public static async Task<Option<GraphLinkData>> GetData(GraphLink graphLink, QueryExecutionContext pContext)
+    {
+        var readOption = await GetData(graphLink.FileId, pContext);
+        if (readOption.IsError()) return readOption.ToOptionStatus<GraphLinkData>();
+
+        var result = graphLink.ConvertTo(readOption.Return());
+        return result;
+    }
+
+    public static async Task<Option<DataETag>> GetData(string fileId, QueryExecutionContext pContext)
+    {
+        var readOption = await pContext.GraphContext.FileStore.Get(fileId, pContext.GraphContext.Context);
+        readOption.LogStatus(pContext.GraphContext.Context, $" Get node data fileId={fileId}");
+        return readOption;
+    }
+
     public static async Task<Option<IReadOnlyList<GraphLink>>> MergeData(GiNode giNode, GraphNode graphNode, QueryExecutionContext pContext)
     {
         giNode.NotNull();
@@ -30,15 +46,14 @@ internal static class NodeDataTool
 
         var dataMapOption = await AddData(giNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption;
-        IReadOnlyList<GraphLink> dataMap = dataMapOption.Return();
 
         var removeDataNames = giNode.Tags.GetTagCommands();
 
         var validGraphDataLinks = graphNode.DataMap.Values
-            .Select(x => (graphLink: x, isOk: !removeDataNames.Contains(x.Name)))
+            .Select(x => (graphLink: x, remove: removeDataNames.Contains(x.Name)))
             .ToArray();
 
-        foreach (var dataLink in validGraphDataLinks.Where(x => x.isOk))
+        foreach (var dataLink in validGraphDataLinks.Where(x => x.remove))
         {
             var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext.GraphContext);
 
@@ -47,26 +62,14 @@ internal static class NodeDataTool
                     .ToOptionStatus<IReadOnlyList<GraphLink>>();
         }
 
-        var result = dataMap
-            .Concat(validGraphDataLinks.Where(x => x.isOk).Select(x => x.graphLink))
+        var result = validGraphDataLinks.Where(x => !x.remove)
+            .Select(x => x.graphLink)
             .ToImmutableArray();
 
         return result;
     }
 
-    private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
-    {
-        pContext.GraphContext.Context.LogInformation("Writing node data fileId={fileId}", fileId);
-        var readOption = await pContext.GraphContext.FileStore.Get(fileId, pContext.GraphContext.Context);
-
-        var writeOption = await pContext.GraphContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.GraphContext.Context);
-        if (writeOption.IsError()) return writeOption.LogStatus(pContext.GraphContext.Context, $"Write node data fileId={fileId} failed").ToOptionStatus();
-
-        pContext.GraphContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));
-        return StatusCode.OK;
-    }
-
-    private static async Task<Option> DeleteNodeData(string fileId, IGraphTrxContext graphContext)
+    public static async Task<Option> DeleteNodeData(string fileId, IGraphTrxContext graphContext)
     {
         var readOption = await graphContext.FileStore.Get(fileId, graphContext.Context);
         if (readOption.IsNotFound()) return StatusCode.OK;
@@ -79,5 +82,16 @@ internal static class NodeDataTool
         deleteOption.LogStatus(graphContext.Context, "Deleted data map");
 
         return deleteOption;
+    }
+    private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
+    {
+        pContext.GraphContext.Context.LogInformation("Writing node data fileId={fileId}", fileId);
+        var readOption = await pContext.GraphContext.FileStore.Get(fileId, pContext.GraphContext.Context);
+
+        var writeOption = await pContext.GraphContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.GraphContext.Context);
+        if (writeOption.IsError()) return writeOption.LogStatus(pContext.GraphContext.Context, $"Write node data fileId={fileId} failed").ToOptionStatus();
+
+        pContext.GraphContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));
+        return StatusCode.OK;
     }
 }
