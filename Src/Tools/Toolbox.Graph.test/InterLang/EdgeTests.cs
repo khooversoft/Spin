@@ -27,6 +27,16 @@ public class EdgeTests : TestBase<EdgeTests>
         _parser = new SyntaxParser(_root);
     }
 
+    [Theory]
+    [InlineData("upsert edge from=fkey1, to=tkey1;")]
+    [InlineData("upsert edge to=tkey1, type=label;")]
+    [InlineData("upsert unique edge from=fkey1, to=tkey1, type=label;")]
+    public void FailTest(string command)
+    {
+        var parse = _parser.Parse(command, _context);
+        parse.Status.IsError().Should().BeTrue();
+    }
+
     [Fact]
     public void MinAddEdge()
     {
@@ -46,6 +56,33 @@ public class EdgeTests : TestBase<EdgeTests>
                 From = "fkey1",
                 To = "tkey1",
                 Type = "label",
+                Unique = false,
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void AddUniqueEdge()
+    {
+        var parse = _parser.Parse("add unique edge from=fkey1, to=tkey1, type=label;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiEdge
+            {
+                ChangeType = GiChangeType.Add,
+                From = "fkey1",
+                To = "tkey1",
+                Type = "label",
+                Unique = true,
             }
         ];
 
@@ -75,6 +112,36 @@ public class EdgeTests : TestBase<EdgeTests>
                 {
                     ["t1"] = "v1",
                 },
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void AddUniqueEdgeWithTag()
+    {
+        var parse = _parser.Parse("add unique edge from=fkey1, to=tkey1, type=label set t1=v1;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiEdge
+            {
+                ChangeType = GiChangeType.Add,
+                From = "fkey1",
+                To = "tkey1",
+                Type = "label",
+                Tags = new Dictionary<string, string?>
+                {
+                    ["t1"] = "v1",
+                },
+                Unique = true,
             }
         ];
 

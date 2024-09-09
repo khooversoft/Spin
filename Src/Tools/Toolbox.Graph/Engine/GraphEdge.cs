@@ -28,6 +28,17 @@ public sealed record GraphEdge : IGraphCommon
         this.Validate().ThrowOnError("Edge is invalid");
     }
 
+    public GraphEdge(string fromKey, string toKey, string edgeType, IReadOnlyDictionary<string, string?> tags, DateTime? createdDate)
+    {
+        FromKey = fromKey.NotEmpty();
+        ToKey = toKey.NotEmpty();
+        EdgeType = edgeType.NotEmpty();
+        Tags = tags?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, string?>.Empty;
+        CreatedDate = createdDate ?? DateTime.UtcNow;
+
+        this.Validate().ThrowOnError("Edge is invalid");
+    }
+
     [JsonConstructor]
     public GraphEdge(Guid key, string fromKey, string toKey, string edgeType, ImmutableDictionary<string, string?> tags, DateTime createdDate)
     {

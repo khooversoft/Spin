@@ -32,7 +32,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         {
             lock (_lock)
             {
-                if (!ValidateNodes(value, null, out var option)) option.ThrowOnError("Invalid edge");
+                if (!ValidateNodes(value, false, out var option)) option.ThrowOnError("Invalid edge");
 
                 Remove(value.Key);
                 Add(value);
@@ -42,13 +42,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public int Count => _index.Count;
 
-    internal Option Add(GraphEdge edge, GsEdgeAdd? addEdge = null, IGraphTrxContext? graphContext = null)
+    internal Option Add(GraphEdge edge, bool unique, IGraphTrxContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
         lock (_lock)
         {
-            if (!ValidateNodes(edge, addEdge, out var v2)) return v2;
+            if (!ValidateNodes(edge, unique, out var v2)) return v2;
 
             if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
             if (_masterList.Contains(edge)) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
@@ -63,13 +63,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    internal Option Set(GraphEdge edge, GsEdgeAdd? addEdge = null, IGraphTrxContext? graphContext = null)
+    internal Option Set(GraphEdge edge, bool unique, IGraphTrxContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
         lock (_lock)
         {
-            if (!ValidateNodes(edge, addEdge, out var v2)) return v2;
+            if (!ValidateNodes(edge, unique, out var v2)) return v2;
 
             if (_masterList.TryGetValue(edge, out var readEdge))
             {
@@ -203,7 +203,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     public IEnumerator<GraphEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private bool ValidateNodes(GraphEdge edge, GsEdgeAdd? addEdge, out Option result)
+    private bool ValidateNodes(GraphEdge edge, bool unique, out Option result)
     {
         if (!_graphRI.IsNodeExist(edge.FromKey))
         {
@@ -217,9 +217,9 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             return false;
         }
 
-        if (addEdge?.Unique == true && DoesExist(edge.FromKey, edge.ToKey, addEdge.EdgeType))
+        if (unique && DoesExist(edge.FromKey, edge.ToKey, edge.EdgeType))
         {
-            result = (StatusCode.Conflict, $"Edge already exist between FromKey={edge.FromKey} and ToKey={edge.ToKey} and EdgeType={addEdge.EdgeType}");
+            result = (StatusCode.Conflict, $"Edge already exist between FromKey={edge.FromKey} and ToKey={edge.ToKey} and EdgeType={edge.EdgeType}");
             return false;
         }
 
@@ -241,7 +241,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         _ => throw new InvalidOperationException($"Invalid direction, {direction}")
     };
 
-    public bool DoesExist(string fromKey, string toKey, string? edgeType)
+    private bool DoesExist(string fromKey, string toKey, string? edgeType)
     {
         var intersect = GetIntersect(fromKey, toKey, EdgeDirection.Both);
         if (edgeType.IsEmpty() && intersect.Count > 0) return true;

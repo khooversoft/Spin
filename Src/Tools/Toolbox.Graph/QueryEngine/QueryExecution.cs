@@ -41,6 +41,7 @@ public static class QueryExecution
                 var queryResult = graphInstruction switch
                 {
                     GiNode giNode => await NodeInstruction.Process(giNode, pContext),
+                    //GiEdge giEdge => await EdgeInstruction.Process(giEdge, pContext),
                     GiSelect giSelect => await SelectInstruction.Process(giSelect, pContext),
                     GiDelete giDelete => await DeleteInstruction.Process(giDelete, pContext),
                     _ => throw new UnreachableException(),

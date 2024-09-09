@@ -26,6 +26,7 @@ delete-sym          = 'delete' ;
 return-sym          = 'return' ;
 node-sym            = 'node' ;
 edge-sym            = 'edge' ;
+unique-sym          = 'unique' ;
 alias               = name ;
 left-join           = '->' ;
 full-join           = '<->' ;
@@ -50,11 +51,12 @@ tokey-data          = toKey-sym, equal, toKey-value ;
 fromkey-data        = fromKey-sym, equal, fromKey-value ;
 edgetype-data       = edgeType-sym, equal, edgeType-value ;
 
-command             = ( add-sym | upsert-sym | update-sym | select-sym | delete-sym ) ;
+nodeCommand         = ( add-sym | upsert-sym | update-sym ) ;
+edgeCommand         = ( upsert-sym | update-sym ) ;
 
-
-node-add-command    = command, node-sym, key-sym, equal, key-value, set-data, term ;
-edge-add-command    = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
+node-add-command    = nodeCommand, node-sym, key-sym, equal, key-value, set-data, term ;
+edge-add-command    = add-sym, [ unique-sym ], edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
+edge-add-command2   = edgeCommand, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
 
 select-command      = select-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, [ return-data ], term ;
 delete-command      = delete-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, term ;

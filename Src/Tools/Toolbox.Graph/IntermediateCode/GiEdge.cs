@@ -12,6 +12,7 @@ internal sealed record GiEdge : IGraphInstruction
     public string To { get; init; } = null!;
     public string Type { get; init; } = null!;
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public bool Unique { get; init; }
 
     public bool Equals(GiEdge? obj)
     {
@@ -20,12 +21,13 @@ internal sealed record GiEdge : IGraphInstruction
             From == subject.From &&
             To == subject.To &&
             Type == subject.Type &&
-            Tags.DeepEquals(subject.Tags);
+            Tags.DeepEquals(subject.Tags) &&
+            Unique == subject.Unique;
 
         return result;
     }
 
-    public override int GetHashCode() => HashCode.Combine(ChangeType, From, To, Type, Tags);
+    public override int GetHashCode() => HashCode.Combine(ChangeType, From, To, Type, Tags, Unique);
 }
 
 internal static class GiEdgeTool
@@ -33,13 +35,21 @@ internal static class GiEdgeTool
     public static Option<IGraphInstruction> Build(InterContext interContext)
     {
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
+        bool unique = false;
 
-        // add edge from=fkey1, to=tkey1, type=label;
+        // add [ unique ] edge from=fkey1, to=tkey1, type=label;
         if (!interContext.Cursor.TryGetValue(out var changeTypeSyntaxPair)) return (StatusCode.NotFound, "no add/upsert/update");
         if (!changeTypeSyntaxPair.Token.Value.TryToEnum<GiChangeType>(out var changeType, true)) return (StatusCode.BadRequest, "Invalid change type");
 
+        // Unique
+        if (interContext.Cursor.TryPeekValue(out var uniqueValue) && uniqueValue.Token.Value == "unique")
+        {
+            unique = true;
+            interContext.Cursor.MoveNext();
+        }
+
         // Edge
-        if (!interContext.Cursor.TryGetValue(out var nodeValue) || nodeValue.Token.Value != "edge") return (StatusCode.NotFound, "no node");
+        if (!interContext.Cursor.TryGetValue(out var edgeValue) || edgeValue.Token.Value != "edge") return (StatusCode.NotFound, "no node");
 
         // from={key}
         if (!InterLangTool.TryGetValue(interContext, "from", out var fromNodeId)) return (StatusCode.NotFound, "Cannot find from=nodeKey");
@@ -71,6 +81,7 @@ internal static class GiEdgeTool
             To = toNodeId,
             Type = edgeType,
             Tags = tags?.ToImmutableDictionary() ?? ImmutableDictionary<string, string?>.Empty,
+            Unique = unique,
         };
     }
 }
