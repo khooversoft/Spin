@@ -7,7 +7,7 @@ namespace Toolbox.Graph;
 public interface IGraphSchema<T>
 {
     IReadOnlyList<ISchemaValue> SchemaValues { get; }
-    Option<T> GetSubject(GraphQueryResult graphQueryResult);
+    Option<T> GetSubject(QueryBatchResult graphQueryResult);
 }
 
 public record GraphSchema<T> : IGraphSchema<T>
@@ -15,10 +15,11 @@ public record GraphSchema<T> : IGraphSchema<T>
     public GraphSchema(IEnumerable<ISchemaValue> graphValues) => SchemaValues = graphValues.NotNull().ToImmutableArray();
     public IReadOnlyList<ISchemaValue> SchemaValues { get; }
 
-    public Option<T> GetSubject(GraphQueryResult graphQueryResult)
+    public Option<T> GetSubject(QueryBatchResult graphQueryResult)
     {
         string dataName = SchemaValues.GetNodeDataName() ?? "entity";
-        return graphQueryResult.DataLinks.DataLinkToObject<T>(dataName);
+        throw new NotImplementedException();
+        //return graphQueryResult.DataLinks.DataLinkToObject<T>(dataName);
     }
 }
 

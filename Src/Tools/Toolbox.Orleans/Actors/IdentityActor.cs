@@ -34,7 +34,7 @@ public class IdentityActor : Grain, IIdentityActor
         context = context.With(_logger);
 
         string command = PrincipalIdentity.DeleteNode(id);
-        Option<GraphQueryResult> resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
+        Option<QueryResult> resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus();
 
         return resultOption.ToOptionStatus();
@@ -99,9 +99,11 @@ public class IdentityActor : Grain, IIdentityActor
         var resultOption = await _clusterClient.GetDirectoryActor().Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
 
-        var principalIdentity = resultOption.Return().DataLinks.DataLinkToObject<PrincipalIdentity>("entity");
-        if (principalIdentity.IsError()) return principalIdentity.LogStatus(context, command);
-        if (!principalIdentity.Return().Validate(out var r)) return r.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
-        return principalIdentity;
+        throw new NotImplementedException();
+
+        //var principalIdentity = resultOption.Return().DataLinks.DataLinkToObject<PrincipalIdentity>("entity");
+        //if (principalIdentity.IsError()) return principalIdentity.LogStatus(context, command);
+        //if (!principalIdentity.Return().Validate(out var r)) return r.LogStatus(context, command).ToOptionStatus<PrincipalIdentity>();
+        //return principalIdentity;
     }
 }

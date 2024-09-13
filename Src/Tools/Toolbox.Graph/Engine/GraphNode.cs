@@ -38,21 +38,6 @@ public sealed record GraphNode : IGraphCommon
     public IReadOnlyDictionary<string, GraphLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphLink>.Empty;
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
 
-    public GraphNode With(GraphNode node) => this with
-    {
-        Tags = TagsTool.ProcessTags(Tags, node.Tags),
-        DataMap = DataMap.Concat(node.DataMap).Distinct().ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
-    };
-
-    public GraphNode With(
-        IEnumerable<KeyValuePair<string, string?>> tagCommands,
-        IEnumerable<KeyValuePair<string, GraphLink>> dataMap
-        ) => this with
-        {
-            Tags = TagsTool.ProcessTags(Tags, tagCommands),
-            DataMap = dataMap.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
-        };
-
     public bool Equals(GraphNode? obj)
     {
         bool result = obj is GraphNode subject &&

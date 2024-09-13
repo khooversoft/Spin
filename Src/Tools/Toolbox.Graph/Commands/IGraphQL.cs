@@ -1,6 +1,6 @@
-﻿namespace Toolbox.Graph;
+﻿//namespace Toolbox.Graph;
 
-public interface IGraphQL
-{
-}
+//public interface IGraphQL
+//{
+//}
 

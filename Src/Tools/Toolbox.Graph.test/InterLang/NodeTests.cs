@@ -27,6 +27,17 @@ public class NodeTests : TestBase<NodeTests>
         _parser = new SyntaxParser(_root);
     }
 
+
+    [Theory]
+    [InlineData("add node;")]
+    [InlineData("delete node key=k1 set t1, entity { entityBase64 }, t2=v3, -t3, t5=v5, -data;")]
+    [InlineData("upsert node key=k1 set t1, t2=v2;")]
+    public void FailTest(string command)
+    {
+        var parse = _parser.Parse(command, _context);
+        parse.Status.IsError().Should().BeTrue();
+    }
+
     [Fact]
     public void MinAddNode()
     {
@@ -45,9 +56,26 @@ public class NodeTests : TestBase<NodeTests>
     }
 
     [Fact]
-    public void UpsertNode()
+    public void MinDeleteNode()
     {
-        var parse = _parser.Parse("upsert node key=k1 set t1, t2=v2;", _context);
+        var parse = _parser.Parse("delete node key=k1;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue();
+
+        IGraphInstruction[] expected = [
+            new GiNode { ChangeType = GiChangeType.Delete, Key="k1" },
+            ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetNode()
+    {
+        var parse = _parser.Parse("set node key=k1 set t1, t2=v2;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -59,7 +87,7 @@ public class NodeTests : TestBase<NodeTests>
         IGraphInstruction[] expected = [
             new GiNode
             {
-                ChangeType = GiChangeType.Upsert,
+                ChangeType = GiChangeType.Set,
                 Key = "k1",
                 Tags = new Dictionary<string, string?>
                 {
@@ -73,9 +101,9 @@ public class NodeTests : TestBase<NodeTests>
     }
 
     [Fact]
-    public void UpsertNodeRemoveTagCommand()
+    public void SetNodeRemoveTagCommand()
     {
-        var parse = _parser.Parse("upsert node key=k1 set -t1, t2=v2;", _context);
+        var parse = _parser.Parse("set node key=k1 set -t1, t2=v2;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -87,7 +115,7 @@ public class NodeTests : TestBase<NodeTests>
         IGraphInstruction[] expected = [
             new GiNode
             {
-                ChangeType = GiChangeType.Upsert,
+                ChangeType = GiChangeType.Set,
                 Key = "k1",
                 Tags = new Dictionary<string, string?>
                 {
@@ -135,9 +163,9 @@ public class NodeTests : TestBase<NodeTests>
     }
 
     [Fact]
-    public void UpdateNodeCommand()
+    public void SetNodeCommand()
     {
-        var parse = _parser.Parse("update node key=k1 set t1, entity { entityBase64 }, t2=v3, -t3, t5=v5, -data;", _context);
+        var parse = _parser.Parse("set node key=k1 set t1, entity { entityBase64 }, t2=v3, -t3, t5=v5, -data;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -149,7 +177,7 @@ public class NodeTests : TestBase<NodeTests>
         IGraphInstruction[] expected = [
             new GiNode
             {
-                ChangeType = GiChangeType.Update,
+                ChangeType = GiChangeType.Set,
                 Key = "k1",
                 Tags = new Dictionary<string, string?>
                 {
@@ -164,6 +192,33 @@ public class NodeTests : TestBase<NodeTests>
                     ["entity"] = "entityBase64",
                 },
             }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetCommand2()
+    {
+        var parse = _parser.Parse("set node key=data:key1 set entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6bnVsbCwiYWdlIjpudWxsLCJwcm92aWRlciI6bnVsbCwicHJvdmlkZXJLZXkiOm51bGx9' };", _context);
+        parse.Status.IsOk().Should().BeTrue(parse.ToString());
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue();
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiNode
+            {
+                ChangeType = GiChangeType.Set,
+                Key = "data:key1",
+                Data = new Dictionary<string, string>
+                {
+                    ["entity"] = "eyJrZXkiOiJrZXkxIiwibmFtZSI6bnVsbCwiYWdlIjpudWxsLCJwcm92aWRlciI6bnVsbCwicHJvdmlkZXJLZXkiOm51bGx9",
+                },
+            },
         ];
 
         Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();

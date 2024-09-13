@@ -17,7 +17,7 @@ public class GraphEngine2Tests
     [Fact]
     public async Task AddNodeWithData()
     {
-        GraphTestClient2 engine = GraphTestStartup.CreateGraphTestHost2();
+        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
         IGraphFileStore fileStore = engine.ServiceProvider.GetRequiredService<IGraphFileStore>();
 
@@ -84,7 +84,7 @@ public class GraphEngine2Tests
     [Fact]
     public async Task AddNodeWithDataAndDeleteData()
     {
-        GraphTestClient2 engine = GraphTestStartup.CreateGraphTestHost2();
+        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
         IGraphFileStore fileStore = engine.ServiceProvider.GetRequiredService<IGraphFileStore>();
 
@@ -142,7 +142,7 @@ public class GraphEngine2Tests
     [Fact]
     public async Task AddNodeWithTwoData()
     {
-        GraphTestClient2 engine = GraphTestStartup.CreateGraphTestHost2();
+        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
         IGraphFileStore fileStore = engine.ServiceProvider.GetRequiredService<IGraphFileStore>();
 
@@ -236,7 +236,7 @@ public class GraphEngine2Tests
     [Fact]
     public async Task AddNodeWithTwoDataDeletingOne()
     {
-        GraphTestClient2 engine = GraphTestStartup.CreateGraphTestHost2();
+        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
         IGraphFileStore fileStore = engine.ServiceProvider.GetRequiredService<IGraphFileStore>();
 

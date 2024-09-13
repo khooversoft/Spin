@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Immutable;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -6,12 +7,13 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
+
 public class GraphEdgeIndex : IEnumerable<GraphEdge>
 {
-    private readonly Dictionary<Guid, GraphEdge> _index;
-    private readonly SecondaryIndex<string, Guid> _edgesFrom;
-    private readonly SecondaryIndex<string, Guid> _edgesTo;
-    private readonly HashSet<GraphEdge> _masterList = new HashSet<GraphEdge>(new GraphEdgeComparer());
+    private readonly Dictionary<GraphEdgePrimaryKey, GraphEdge> _index;
+    private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesFrom;
+    private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesTo;
+    private readonly Dictionary<string, GraphEdgePrimaryKey> _graphEdges;
     private readonly object _lock;
     private readonly GraphRI _graphRI;
 
@@ -20,190 +22,153 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         _lock = syncLock.NotNull();
         _graphRI = graphRI.NotNull();
 
-        _index = new Dictionary<Guid, GraphEdge>();
-        _edgesFrom = new SecondaryIndex<string, Guid>(keyComparer);
-        _edgesTo = new SecondaryIndex<string, Guid>(keyComparer);
-    }
-
-    public GraphEdge this[Guid key]
-    {
-        get => _index[key];
-        internal set
-        {
-            lock (_lock)
-            {
-                if (!ValidateNodes(value, false, out var option)) option.ThrowOnError("Invalid edge");
-
-                Remove(value.Key);
-                Add(value);
-            }
-        }
+        _index = new Dictionary<GraphEdgePrimaryKey, GraphEdge>(GraphEdgePrimaryKeyComparer.Default);
+        _edgesFrom = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
+        _edgesTo = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
+        _graphEdges = new Dictionary<string, GraphEdgePrimaryKey>(StringComparer.OrdinalIgnoreCase);
     }
 
     public int Count => _index.Count;
 
-    internal Option Add(GraphEdge edge, bool unique, IGraphTrxContext? graphContext = null)
+    public GraphEdge this[GraphEdgePrimaryKey key]
+    {
+        get => _index[key];
+        set => Set(value).ThrowOnError();
+    }
+
+    public Option Add(GraphEdge edge, IGraphTrxContext? graphContext = null)
     {
         if (!edge.Validate(out var v1)) return v1;
 
         lock (_lock)
         {
-            if (!ValidateNodes(edge, unique, out var v2)) return v2;
+            if (!ValidateNodes(edge, out var v2)) return v2;
 
-            if (!_index.TryAdd(edge.Key, edge)) return (StatusCode.Conflict, $"key={edge.Key} already exist");
-            if (_masterList.Contains(edge)) return (StatusCode.Conflict, $"Edge {edge} already exist (from key + to key + direction + tags)");
+            var pk = edge.GetPrimaryKey();
+            if (!_index.TryAdd(pk, edge)) return (StatusCode.Conflict, $"key={pk} already exist");
 
-            _masterList.Add(edge).Assert(x => x == true, "Failed to add edge to master list");
-
-            _edgesFrom.Set(edge.FromKey, edge.Key);
-            _edgesTo.Set(edge.ToKey, edge.Key);
+            _edgesFrom.Set(edge.FromKey, pk);
+            _edgesTo.Set(edge.ToKey, pk);
+            _graphEdges[edge.EdgeType] = pk;
 
             graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
             return StatusCode.OK;
         }
     }
 
-    internal Option Set(GraphEdge edge, bool unique, IGraphTrxContext? graphContext = null)
-    {
-        if (!edge.Validate(out var v1)) return v1;
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(params string[] nodeKeys) => nodeKeys
+        .SelectMany(x => _edgesFrom.Lookup(x))
+        .Concat(nodeKeys.SelectMany(x => _edgesTo.Lookup(x)))
+        .Distinct(GraphEdgePrimaryKeyComparer.Default)
+        .ToImmutableArray();
 
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(params string[] fromNodesKeys) => fromNodesKeys
+        .SelectMany(x => _edgesFrom.Lookup(x))
+        .Distinct(GraphEdgePrimaryKeyComparer.Default)
+        .ToImmutableArray();
+
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(params string[] toNodesKeys) => toNodesKeys
+        .SelectMany(x => _edgesTo.Lookup(x))
+        .Distinct(GraphEdgePrimaryKeyComparer.Default)
+        .ToImmutableArray();
+
+    public Option Remove(GraphEdgePrimaryKey edgeKey, IGraphTrxContext? graphContext = null)
+    {
         lock (_lock)
         {
-            if (!ValidateNodes(edge, unique, out var v2)) return v2;
+            if (!_index.Remove(edgeKey, out var edgeValue)) return (StatusCode.NotFound, $"Key={edgeKey} does not exist");
 
-            if (_masterList.TryGetValue(edge, out var readEdge))
+            _edgesFrom.Remove(edgeValue.FromKey, edgeKey);
+            _edgesTo.Remove(edgeValue.ToKey, edgeKey);
+            _graphEdges.Remove(edgeKey.EdgeType);
+
+            graphContext?.ChangeLog.Push(new CmEdgeDelete(edgeValue));
+            return StatusCode.OK;
+        }
+    }
+
+    public Option RemoveNodes(IEnumerable<string> nodeKeys, IGraphTrxContext? graphContext = null)
+    {
+        lock (_lock)
+        {
+            var edgePrimaryKeys = LookupByNodeKey(nodeKeys.ToArray());
+
+            edgePrimaryKeys
+                .ForEach(x => Remove(x, graphContext)
+                .Assert(x => x.IsError(), $"{x} failed to remove"));
+
+            return StatusCode.OK;
+        }
+    }
+
+    public Option Set(GraphEdge edge, IGraphTrxContext? graphContext = null)
+    {
+        lock (_lock)
+        {
+            if (!ValidateNodes(edge, out var v2)) return v2;
+
+            var pk = edge.GetPrimaryKey();
+            var addResult = tryAdd(pk, edge);
+            if (addResult.IsOk()) return addResult;
+
+            var updateResult = update(edge, graphContext);
+            return updateResult;
+        }
+
+        StatusCode tryAdd(GraphEdgePrimaryKey pk, GraphEdge edge)
+        {
+            if (!_index.TryAdd(pk, edge)) return StatusCode.NotFound;
+
+            _edgesFrom.Set(edge.FromKey, pk);
+            _edgesTo.Set(edge.ToKey, pk);
+            graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
+
+            return StatusCode.OK;
+        }
+
+        Option update(GraphEdge edge, IGraphTrxContext? graphContext = null)
+        {
+            lock (_lock)
             {
-                readEdge = readEdge.With(edge);
-                _index[readEdge.Key] = readEdge;
+                if (!ValidateNodes(edge, out var v2)) return v2;
+
+                var pk = edge.GetPrimaryKey();
+                if (!_index.ContainsKey(pk)) return (StatusCode.NotFound, $"Key={pk} does not exist");
+
+                var readEdge = _index[pk];
+                _index[pk] = edge;
+
+                if (edge.FromKey != readEdge.FromKey)
+                {
+                    _edgesFrom.Remove(readEdge.FromKey, pk);
+                    _edgesFrom.Set(edge.FromKey, pk);
+                }
+
+                if (edge.ToKey != readEdge.ToKey)
+                {
+                    _edgesTo.Remove(readEdge.ToKey, pk);
+                    _edgesTo.Set(edge.ToKey, pk);
+                }
+
+                if (edge.EdgeType != readEdge.EdgeType)
+                {
+                    _graphEdges.Remove(readEdge.EdgeType);
+                    _graphEdges[edge.EdgeType] = pk;
+                }
+
                 graphContext?.ChangeLog.Push(new CmEdgeChange(readEdge, edge));
                 return StatusCode.OK;
             }
-
-            _index[edge.Key] = edge;
-            _masterList.Add(edge).Assert<bool, InvalidOperationException>(x => x == true, _ => "Failed to update edge on upsert");
-
-            graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
-        }
-
-        _edgesFrom.Set(edge.FromKey, edge.Key);
-        _edgesTo.Set(edge.ToKey, edge.Key);
-        return StatusCode.OK;
-    }
-
-    internal void Clear()
-    {
-        lock (_lock)
-        {
-            _index.Clear();
-            _edgesFrom.Clear();
-            _edgesTo.Clear();
-            _masterList.Clear();
         }
     }
 
-    public bool ContainsKey(Guid edgeKey) => _index.ContainsKey(edgeKey);
-
-    public IReadOnlyList<GraphEdge> Get(string nodeKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
-    {
-        return Query(new GraphEdgeSearch { NodeKey = nodeKey, Direction = direction, EdgeType = matchEdgeType });
-    }
-
-    public IReadOnlyList<GraphEdge> Get(string fromKey, string toKey, EdgeDirection direction = EdgeDirection.Both, string? matchEdgeType = null)
-    {
-        return Query(new GraphEdgeSearch { FromKey = fromKey, ToKey = toKey, Direction = direction, EdgeType = matchEdgeType });
-    }
-
-    internal bool Remove(Guid edgeKey, IGraphTrxContext? graphContext = null)
-    {
-        lock (_lock)
-        {
-            if (!_index.Remove(edgeKey, out var edgeValue)) return false;
-
-            _masterList.Remove(edgeValue);
-            _edgesFrom.RemovePrimaryKey(edgeValue.Key);
-            _edgesTo.RemovePrimaryKey(edgeValue.Key);
-
-            var nodeKeys = new[] { edgeValue.FromKey, edgeValue.ToKey }.Where(x => x.IsNotEmpty()).ToArray();
-            _graphRI.RemoveUniqueIndexNodes(nodeKeys, graphContext);
-
-            graphContext?.ChangeLog.Push(new CmEdgeDelete(edgeValue));
-            return true;
-        }
-    }
-
-    internal IReadOnlyList<string> Remove(string nodeKey, IGraphTrxContext? graphContext)
-    {
-        lock (_lock)
-        {
-            var query = new GraphEdgeSearch { NodeKey = nodeKey };
-            IReadOnlyList<GraphEdge> keys = Query(query);
-            if (keys.Count == 0) return Array.Empty<string>();
-
-            keys.ForEach(x => Remove(x.Key, graphContext).Assert(x => x == true, $"{x.Key} failed to remove"));
-
-            var set = keys.Select(x => x.FromKey != nodeKey ? x.FromKey : x.ToKey).ToArray();
-            return set;
-        }
-    }
-
-    internal IReadOnlyList<GraphEdge> Query(GraphEdgeSearch query)
-    {
-        lock (_lock)
-        {
-            query.NotNull();
-
-            IReadOnlyList<Guid> result = (query.NodeKey, query.FromKey, query.ToKey) switch
-            {
-                (string nodeKey, null, null) => GetInclusive(nodeKey, query.Direction),
-                (null, string fromKey, null) => _edgesFrom.Lookup(fromKey),
-                (null, null, string toKey) => _edgesTo.Lookup(toKey),
-                (null, string fromKey, string toKey) => GetIntersect(fromKey, toKey, query.Direction),
-                (null, null, null) => _index.Values.Select(x => x.Key).Distinct().ToArray(),
-
-                _ => Array.Empty<Guid>()
-            };
-
-            var edges = result
-                .Select(x => _index[x])
-                .Where(x => query.EdgeType == null || x.EdgeType.Like(query.EdgeType))
-                .Where(x => query.Tags.Count == 0 || query.Tags.Has(query.Tags))
-                .ToArray();
-
-            return edges;
-        }
-    }
-
-    public bool TryGetValue(Guid key, out GraphEdge? value) => _index.TryGetValue(key, out value);
-
-    internal Option Update(IReadOnlyList<GraphEdge> edges, Func<GraphEdge, GraphEdge> update, IGraphTrxContext? graphContext = null)
-    {
-        edges.NotNull();
-        update.NotNull();
-        if (edges.Count == 0) return StatusCode.OK;
-
-        lock (_lock)
-        {
-            edges.ForEach(currentValue =>
-            {
-                _index.ContainsKey(currentValue.Key).Assert(x => x == true, $"Key={currentValue.Key} does not exist");
-
-                GraphEdge newValue = update(currentValue);
-                (newValue.Key == currentValue.Key).Assert(x => x == true, "Cannot change the primary key");
-                newValue.FromKey.EqualsIgnoreCase(currentValue.FromKey).Assert(x => x == true, "Cannot change the From key key");
-                newValue.ToKey.EqualsIgnoreCase(currentValue.ToKey).Assert(x => x == true, "Cannot change the To key key");
-                _index[currentValue.Key] = newValue;
-
-                graphContext?.ChangeLog.Push(new CmEdgeChange(currentValue, newValue));
-            });
-
-            return StatusCode.OK;
-        }
-    }
+    public bool TryGetValue(GraphEdgePrimaryKey key, out GraphEdge? edge) => _index.TryGetValue(key, out edge);
 
     public IEnumerator<GraphEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private bool ValidateNodes(GraphEdge edge, bool unique, out Option result)
+
+    private bool ValidateNodes(GraphEdge edge, out Option result)
     {
         if (!_graphRI.IsNodeExist(edge.FromKey))
         {
@@ -217,40 +182,15 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             return false;
         }
 
-        if (unique && DoesExist(edge.FromKey, edge.ToKey, edge.EdgeType))
-        {
-            result = (StatusCode.Conflict, $"Edge already exist between FromKey={edge.FromKey} and ToKey={edge.ToKey} and EdgeType={edge.EdgeType}");
-            return false;
-        }
-
         result = StatusCode.OK;
         return true;
     }
+}
 
-    private IReadOnlyList<Guid> GetInclusive(string key, EdgeDirection direction) => direction switch
-    {
-        EdgeDirection.Both => _edgesFrom.Lookup(key).Concat(_edgesTo.Lookup(key)).Distinct().ToArray(),
-        EdgeDirection.Directed => _edgesFrom.Lookup(key).Distinct().ToArray(),
-        _ => throw new InvalidOperationException($"Invalid direction, {direction}")
-    };
-
-    private IReadOnlyList<Guid> GetIntersect(string fromKey, string toKey, EdgeDirection direction) => direction switch
-    {
-        EdgeDirection.Both => _edgesFrom.Lookup(fromKey).Intersect(_edgesTo.Lookup(toKey)).Distinct().ToArray(),
-        EdgeDirection.Directed => _edgesFrom.Lookup(fromKey).Distinct().ToArray(),
-        _ => throw new InvalidOperationException($"Invalid direction, {direction}")
-    };
-
-    private bool DoesExist(string fromKey, string toKey, string? edgeType)
-    {
-        var intersect = GetIntersect(fromKey, toKey, EdgeDirection.Both);
-        if (edgeType.IsEmpty() && intersect.Count > 0) return true;
-
-        var match = intersect
-            .Select(x => _index[x])
-            .Where(x => x.EdgeType.EqualsIgnoreCase(edgeType!))
-            .Any();
-
-        return match;
-    }
+public static class GraphEdgeIndexExtensions
+{
+    public static IReadOnlyList<GraphEdge> Lookup(this GraphEdgeIndex subject, params GraphEdgePrimaryKey[] keys) => keys
+        .Select(x => subject.TryGetValue(x, out var data) ? data : null)
+        .OfType<GraphEdge>()
+        .ToImmutableArray();
 }

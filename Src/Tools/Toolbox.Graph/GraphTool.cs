@@ -36,54 +36,36 @@ public static class GraphTool
         return storePath.ToLower();
     }
 
-    public static Option<(string nodeKey, string name, string file)> DecodeFileId(string fileId)
-    {
-        string[] parts = fileId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 3) return StatusCode.Conflict;
-
-        (string nodeKey, string name, string file) result = parts.Length switch
-        {
-            3 => (ToDecoding(parts[2]), parts[1], ToDecoding(parts[2])),
-            _ => (ToDecoding(parts[2] + "/" + parts[3]), parts[1], ToDecoding(parts[3])),
-        };
-
-        return result;
-    }
-
     public static string SetNodeCommand(string nodeKey, string? tags, string? base64, string? dataName = null)
     {
         nodeKey.NotEmpty();
         dataName = dataName.ToNullIfEmpty() ?? "entity";
+        var set = tags.IsNotEmpty() || base64.IsNotEmpty() ? " set " : null;
 
-        string?[] cmds = [
-            $"upsert node key={nodeKey}",
+        string?[] parts = [
             tags,
             base64 != null ? $"{dataName} {{ '{base64}' }}" : null,
         ];
 
-        string cmd = cmds.Where(x => x.IsNotEmpty()).Join(", ") + ';';
+        string cmd = $"set node key={nodeKey}{set}" + parts.Where(x => x.IsNotEmpty()).Join(", ") + ';';
         return cmd;
     }
 
-    public static string DeleteNodeCommand(string indexKey) => $"delete (key={indexKey.NotEmpty()});";
+    public static string DeleteNodeCommand(string indexKey) => $"delete node key={indexKey.NotEmpty()};";
 
     public static IReadOnlyList<string> CreateEdgeCommands(string fromKey, string toKey, string edgeType, string? tags)
     {
         fromKey.NotEmpty();
         toKey.NotEmpty();
         edgeType.NotEmpty();
+        var set = tags.IsNotEmpty() ? " set " + tags : null;
 
-        string?[] cmds = [
-            $"upsert edge fromKey={fromKey}, toKey={toKey}, edgeType={edgeType}",
-            tags,
-        ];
-
-        string cmd = cmds.Where(x => x.IsNotEmpty()).Join(", ") + ';';
+        string cmd = $"set edge from={fromKey}, to={toKey}, type={edgeType}{set};";
         return [cmd];
     }
 
     public static IReadOnlyList<string> DeleteEdgeCommands(string fromKey, string toKey, string edgeType) => [
-        $"delete [fromKey={fromKey.NotEmpty()}, toKey={toKey.NotEmpty()}, edgeType={edgeType.NotEmpty()}];"
+        $"delete edge from={fromKey.NotEmpty()}, to={toKey.NotEmpty()}, type={edgeType.NotEmpty()};"
         ];
 
     public static IReadOnlyList<string> CreateIndexCommands(string nodeKey, string indexKey)
@@ -92,13 +74,13 @@ public static class GraphTool
         indexKey.NotEmpty();
 
         return [
-            $"upsert node key={indexKey}, {GraphConstants.UniqueIndexTag};",
-            $"upsert edge fromKey={indexKey}, toKey={nodeKey}, edgeType={GraphConstants.UniqueIndexTag};",
+            $"set node key={indexKey} set {GraphConstants.UniqueIndexTag};",
+            $"set edge from={indexKey}, to={nodeKey}, type={GraphConstants.UniqueIndexTag};",
         ];
     }
 
     public static IReadOnlyList<string> DeleteIndexCommands(string nodeKey, string indexKey, string edgeType) => [
-        $"delete [fromKey={indexKey.NotEmpty()}, toKey={nodeKey.NotEmpty()}, edgeType={edgeType.NotEmpty()}];"
+        $"delete edge from={indexKey.NotEmpty()}, to={nodeKey.NotEmpty()}, type={edgeType.NotEmpty()};"
     ];
 
 

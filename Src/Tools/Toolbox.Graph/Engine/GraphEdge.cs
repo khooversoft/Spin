@@ -40,9 +40,8 @@ public sealed record GraphEdge : IGraphCommon
     }
 
     [JsonConstructor]
-    public GraphEdge(Guid key, string fromKey, string toKey, string edgeType, ImmutableDictionary<string, string?> tags, DateTime createdDate)
+    public GraphEdge(string fromKey, string toKey, string edgeType, ImmutableDictionary<string, string?> tags, DateTime createdDate)
     {
-        Key = key;
         FromKey = fromKey.NotNull();
         ToKey = toKey.NotNull();
         EdgeType = edgeType.NotEmpty();
@@ -52,33 +51,22 @@ public sealed record GraphEdge : IGraphCommon
         this.Validate().ThrowOnError("Edge is invalid");
     }
 
-    public Guid Key { get; } = Guid.NewGuid();
     public string FromKey { get; }
     public string ToKey { get; }
-    public string EdgeType { get; private init; } = "default";
-    public ImmutableDictionary<string, string?> Tags { get; private init; } = ImmutableDictionary<string, string?>.Empty;
+    public string EdgeType { get; private init; }
+    public ImmutableDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
 
-    public GraphEdge With(GraphEdge edge) => this with
-    {
-        Tags = TagsTool.ProcessTags(Tags, edge.Tags),
-    };
-
-    public GraphEdge With(string? edgeType, IEnumerable<KeyValuePair<string, string?>> tagCommands) => this with
-    {
-        EdgeType = edgeType ?? EdgeType,
-        Tags = TagsTool.ProcessTags(Tags, tagCommands),
-    };
-
     public bool Equals(GraphEdge? obj) => obj is GraphEdge subject &&
-        Key.Equals(subject.Key) &&
         FromKey.EqualsIgnoreCase(subject.FromKey) &&
         ToKey.EqualsIgnoreCase(subject.ToKey) &&
-        EdgeType.Equals(subject.EdgeType, StringComparison.OrdinalIgnoreCase) &&
+        EdgeType.EqualsIgnoreCase(subject.EdgeType) &&
         Tags.DeepEquals(subject.Tags) &&
         CreatedDate == subject.CreatedDate;
 
-    public override int GetHashCode() => HashCode.Combine(Key, FromKey, ToKey, EdgeType, CreatedDate);
+    public override int GetHashCode() => HashCode.Combine(FromKey, ToKey, EdgeType, CreatedDate);
+
+    public override string ToString() => $"{{ FromKey={FromKey} -> ToKey={ToKey} ({EdgeType}) }}";
 
     public static IValidator<GraphEdge> Validator { get; } = new Validator<GraphEdge>()
         .RuleFor(x => x.FromKey).NotNull()

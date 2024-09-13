@@ -4,7 +4,7 @@ using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Test.LangTools.Meta;
+namespace Toolbox.Test.Application;
 
 internal static class MetaTestTool
 {
@@ -87,7 +87,7 @@ internal static class MetaTestTool
 
     public static string GenerateTerminalSymbol(TerminalSymbol terminalSymbol)
     {
-        string tags = terminalSymbol.Tags.Count == 0 ? string.Empty : $", Tags = [{(terminalSymbol.Tags.Select(x => $"\"{x}\"").Join(','))}]";
+        string tags = terminalSymbol.Tags.Count == 0 ? string.Empty : $", Tags = [{terminalSymbol.Tags.Select(x => $"\"{x}\"").Join(',')}]";
         return $"new TerminalSymbol {{ Name = \"{terminalSymbol.Name}\", Text = \"{terminalSymbol.Text}\", Type = TerminalType.{terminalSymbol.Type}{tags} }},";
     }
 

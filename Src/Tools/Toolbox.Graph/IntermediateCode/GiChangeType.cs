@@ -4,6 +4,6 @@ internal enum GiChangeType
 {
     None,
     Add,
-    Upsert,
-    Update
+    Set,
+    Delete
 }

@@ -1,8 +1,8 @@
-﻿using System.Collections.Immutable;
+﻿//using System.Collections.Immutable;
 
-namespace Toolbox.Graph;
+//namespace Toolbox.Graph;
 
-public record GsNodeDelete : IGraphQL
-{
-    public ImmutableArray<IGraphQL> Search { get; init; } = ImmutableArray<IGraphQL>.Empty;
-}
+//public record GsNodeDelete : IGraphQL
+//{
+//    public ImmutableArray<IGraphQL> Search { get; init; } = ImmutableArray<IGraphQL>.Empty;
+//}

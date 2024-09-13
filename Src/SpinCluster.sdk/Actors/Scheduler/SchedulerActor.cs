@@ -168,7 +168,7 @@ public class SchedulerActor : Grain, ISchedulerActor
         new ScopeContext(traceId, _logger).Location().LogInformation("Delete workId={workId}", workId);
 
         string command = $"delete (key={workId});";
-        Option<GraphQueryResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
+        Option<QueryBatchResult> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
 
         return updateResult.ToOptionStatus();
     }
@@ -205,14 +205,16 @@ public class SchedulerActor : Grain, ISchedulerActor
     {
         string command = $"select [fromKey={this.GetPrimaryKeyString()};edgeType={ScheduleEdgeTypeTool.EdgeTypeSearch}];";
 
-        Option<GraphQueryResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
+        Option<QueryBatchResult> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
         if (updateResult.IsError()) return updateResult.ToOptionStatus<ImmutableArray<GraphEdge>>();
 
-        var graphCmdResult = updateResult.Return();
-        graphCmdResult.Items.Length.Assert(x => x == 1, $"Returned items count={graphCmdResult.Items.Length}");
+        throw new NotImplementedException();
 
-        if (graphCmdResult.Items[0].Status == StatusCode.NoContent) return ImmutableArray<GraphEdge>.Empty;
-        return updateResult.Return().Items[0].Edges().ToOption();
+        //var graphCmdResult = updateResult.Return();
+        //graphCmdResult.Items.Length.Assert(x => x == 1, $"Returned items count={graphCmdResult.Items.Length}");
+
+        //if (graphCmdResult.Items[0].Status == StatusCode.NoContent) return ImmutableArray<GraphEdge>.Empty;
+        //return updateResult.Return().Items[0].Edges().ToOption();
     }
 
     private async Task<Option<IReadOnlyList<GraphEdge>>> GetActiveSchedules(ScopeContext context)
@@ -220,13 +222,15 @@ public class SchedulerActor : Grain, ISchedulerActor
         context.Location().LogInformation("Getting active schedules");
         string command = $"select [fromKey={this.GetPrimaryKeyString()};edgeType={ScheduleEdgeType.Active.GetEdgeType()}];";
 
-        Option<GraphQueryResults> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
+        Option<QueryBatchResult> updateResult = await _clusterClient.GetDirectoryActor().Execute(command, context.TraceId);
         if (updateResult.IsError()) return updateResult.ToOptionStatus<IReadOnlyList<GraphEdge>>();
 
-        GraphQueryResults result = updateResult.Return();
-        result.Items.Length.Assert(x => x == 1, "Multiple data sets was returned, expected only 1");
+        throw new NotImplementedException();
 
-        return result.Items[0].Edges().OrderBy(x => x.CreatedDate).ToArray();
+        //QueryBatchResult result = updateResult.Return();
+        //result.Items.Length.Assert(x => x == 1, "Multiple data sets was returned, expected only 1");
+
+        //return result.Items[0].Edges().OrderBy(x => x.CreatedDate).ToArray();
     }
 }
 

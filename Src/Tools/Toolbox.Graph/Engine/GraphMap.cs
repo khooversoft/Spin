@@ -45,15 +45,6 @@ public class GraphMap : IEnumerable<IGraphCommon>
         return this;
     }
 
-    public void Clear()
-    {
-        lock (_lock)
-        {
-            _nodes.Clear();
-            _edges.Clear();
-        }
-    }
-
     public IEnumerator<IGraphCommon> GetEnumerator()
     {
         foreach (var item in Nodes.OfType<IGraphCommon>()) yield return item;

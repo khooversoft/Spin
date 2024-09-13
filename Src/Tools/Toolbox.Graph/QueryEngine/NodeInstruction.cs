@@ -12,8 +12,8 @@ internal static class NodeInstruction
         var result = giNode.ChangeType switch
         {
             GiChangeType.Add => await Add(giNode, pContext),
-            GiChangeType.Update => await Update(giNode, pContext),
-            GiChangeType.Upsert => await Upsert(giNode, pContext),
+            GiChangeType.Set => await Set(giNode, pContext),
+            GiChangeType.Delete => await Delete(giNode, pContext),
             _ => throw new InvalidOperationException("Invalid change type"),
         };
 
@@ -43,25 +43,27 @@ internal static class NodeInstruction
         return StatusCode.OK;
     }
 
-    private static async Task<Option> Update(GiNode giNode, QueryExecutionContext pContext)
+    private static async Task<Option> Delete(GiNode giNode, QueryExecutionContext pContext)
     {
-        if (!pContext.GraphContext.Map.Nodes.TryGetValue(giNode.Key, out var currentGraphNode)) return (StatusCode.NotFound, $"Node key={giNode.Key} not found");
+        giNode.NotNull();
+        pContext.NotNull();
 
-        pContext.GraphContext.Context.LogInformation("Updating giNode={giNode}", giNode);
+        pContext.GraphContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
 
-        var dataMapOption = await NodeDataTool.MergeData(giNode, currentGraphNode, pContext);
-        if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
-        var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
+        if (pContext.GraphContext.Map.Nodes.TryGetValue(giNode.Key, out var readGraphNode))
+        {
+            var dataMapOption = await NodeDataTool.DeleteData([readGraphNode], pContext.GraphContext);
+            if (dataMapOption.IsError()) return dataMapOption;
+        }
 
-        var graphNode = new GraphNode(giNode.Key, giNode.Tags, DateTime.UtcNow, dataMap);
+        var graphResult = pContext.GraphContext.Map.Nodes.Remove(giNode.Key, pContext.GraphContext);
+        if (graphResult.IsError()) return graphResult;
 
-        var updateOption = pContext.GraphContext.Map.Nodes.Update(graphNode, graphNode.Tags, dataMap, pContext.GraphContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.GraphContext.Context, $"Failed to update node key={giNode.Key}");
-
+        pContext.GraphContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
-    private static async Task<Option> Upsert(GiNode giNode, QueryExecutionContext pContext)
+    private static async Task<Option> Set(GiNode giNode, QueryExecutionContext pContext)
     {
         if (!pContext.GraphContext.Map.Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
         {
@@ -77,8 +79,8 @@ internal static class NodeInstruction
 
         var graphNode = new GraphNode(giNode.Key, giNode.Tags, DateTime.UtcNow, dataMap);
 
-        var updateOption = pContext.GraphContext.Map.Nodes.Update(graphNode, graphNode.Tags, dataMap, pContext.GraphContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.GraphContext.Context, $"Failed to update node key={giNode.Key}");
+        var updateOption = pContext.GraphContext.Map.Nodes.Set(graphNode, pContext.GraphContext);
+        if (updateOption.IsError()) return updateOption.LogStatus(pContext.GraphContext.Context, $"Failed to upsert node key={giNode.Key}");
 
         return StatusCode.OK;
     }

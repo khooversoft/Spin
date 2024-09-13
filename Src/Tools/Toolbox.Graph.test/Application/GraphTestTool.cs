@@ -70,7 +70,6 @@ public static class GraphTestTool
             [$"To = \"{edge.To}\","],
             [$"Type = \"{edge.Type}\","],
             [.. tags],
-            ["Unique = " + edge.Unique.ToString() + ","],
             ["},"]
         };
 

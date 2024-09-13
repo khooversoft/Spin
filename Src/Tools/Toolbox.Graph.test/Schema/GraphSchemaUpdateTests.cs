@@ -25,7 +25,7 @@ public class GraphSchemaUpdateTests
         var graphCode = Data.Schema.Code(d1).SetCurrent(d);
 
         IReadOnlyList<string> matchTo = [
-            "upsert node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMX0=' };",
+            "set node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMX0=' };",
             ];
 
         var nodeCommands = graphCode.BuildSetCommands();

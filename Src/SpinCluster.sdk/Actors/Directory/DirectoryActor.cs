@@ -10,7 +10,7 @@ namespace SpinCluster.sdk.Actors.Directory;
 public interface IDirectoryActor : IGrainWithStringKey
 {
     Task<Option> Clear(string principalId, string traceId);
-    Task<Option<GraphQueryResults>> Execute(string command, string traceId);
+    Task<Option<QueryBatchResult>> Execute(string command, string traceId);
 }
 
 public class DirectoryActor : Grain, IDirectoryActor
@@ -61,13 +61,13 @@ public class DirectoryActor : Grain, IDirectoryActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Clearing graph");
 
-        _map.Clear();
+        _map = new GraphMap();
         await SetGraphToStorage();
 
         return StatusCode.OK;
     }
 
-    public Task<Option<GraphQueryResults>> Execute(string command, string traceId)
+    public Task<Option<QueryBatchResult>> Execute(string command, string traceId)
     {
         throw new NotImplementedException();
         //var context = new ScopeContext(traceId, _logger);

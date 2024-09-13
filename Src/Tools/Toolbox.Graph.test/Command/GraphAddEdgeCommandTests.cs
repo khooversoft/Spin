@@ -29,9 +29,9 @@ public class GraphAddEdgeCommandTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
-        GraphQueryResults commandResults = newMapOption.Return();
+        QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
@@ -43,14 +43,15 @@ public class GraphAddEdgeCommandTests
             x.Tags.ToTagsString().Should().Be("newTags");
         });
 
-        commandResults.Items.Length.Should().Be(1);
+        commandResults.Items.Count.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.Should().NotBeNull();
+            x.Option.IsOk().Should().BeTrue();
+            x.Nodes.Count.Should().Be(0);
+            x.Edges.Count.Should().Be(1);
+            x.Data.Count.Should().Be(0);
         });
     }
 
@@ -62,7 +63,7 @@ public class GraphAddEdgeCommandTests
         var newMapOption = await testClient.ExecuteBatch("add edge fromKey=node7, toKey=node1, edgeType=newEdgeType, -newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
-        GraphQueryResults commandResults = newMapOption.Return();
+        QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
@@ -74,14 +75,15 @@ public class GraphAddEdgeCommandTests
             x.Tags.Count.Should().Be(0);
         });
 
-        commandResults.Items.Length.Should().Be(1);
+        commandResults.Items.Count.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.Should().NotBeNull();
+            x.Option.IsOk().Should().BeTrue();
+            x.Nodes.Count.Should().Be(0);
+            x.Edges.Count.Should().Be(1);
+            x.Data.Count.Should().Be(0);
         });
     }
 
@@ -93,7 +95,7 @@ public class GraphAddEdgeCommandTests
         var newMapOption = await testClient.ExecuteBatch("add unique edge fromKey=node7, toKey=node1, edgeType=newEdgeType, newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue();
 
-        GraphQueryResults commandResults = newMapOption.Return();
+        QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
@@ -105,14 +107,15 @@ public class GraphAddEdgeCommandTests
             x.Tags.ToTagsString().Should().Be("newTags");
         });
 
-        commandResults.Items.Length.Should().Be(1);
+        commandResults.Items.Count.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.IsOk().Should().BeTrue();
-            x.Items.Should().NotBeNull();
+            x.Option.IsOk().Should().BeTrue();
+            x.Nodes.Count.Should().Be(0);
+            x.Edges.Count.Should().Be(1);
+            x.Data.Count.Should().Be(0);
         });
     }
 
@@ -124,20 +127,20 @@ public class GraphAddEdgeCommandTests
         var newMapOption = await testClient.ExecuteBatch("add unique edge fromKey=node4, toKey=node5;", NullScopeContext.Instance);
         newMapOption.IsError().Should().BeTrue();
 
-        GraphQueryResults commandResults = newMapOption.Return();
+        QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(copyMap, _map);
 
         compareMap.Count.Should().Be(0);
 
-        commandResults.Items.Length.Should().Be(1);
+        commandResults.Items.Count.Should().Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
-            x.CommandType.Should().Be(CommandType.AddEdge);
-            x.Status.StatusCode.Should().Be(StatusCode.Conflict);
-            x.Items.Should().NotBeNull();
-            x.Items.Count.Should().Be(0);
+            x.Option.IsOk().Should().BeTrue();
+            x.Nodes.Count.Should().Be(0);
+            x.Edges.Count.Should().Be(1);
+            x.Data.Count.Should().Be(0);
         });
     }
 }

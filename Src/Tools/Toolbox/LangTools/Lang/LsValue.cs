@@ -1,55 +1,55 @@
-﻿using System.Diagnostics;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using System.Diagnostics;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.LangTools;
+//namespace Toolbox.LangTools;
 
-[DebuggerDisplay("Name={Name}")]
-public class LsValue : ILangSyntax
-{
-    public LsValue(bool optional = false) => Optional = optional;
+//[DebuggerDisplay("Name={Name}")]
+//public class LsValue : ILangSyntax
+//{
+//    public LsValue(bool optional = false) => Optional = optional;
 
-    public LsValue(string? name, bool optional = false)
-    {
-        Name = name;
-        Optional = optional;
-    }
+//    public LsValue(string? name, bool optional = false)
+//    {
+//        Name = name;
+//        Optional = optional;
+//    }
 
-    public string? Name { get; }
-    public bool Optional { get; }
+//    public string? Name { get; }
+//    public bool Optional { get; }
 
 
-    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
-    {
-        syntaxCursor.NotNull();
+//    public Option<LangNodes> Process(LangParserContext pContext, Cursor<ILangSyntax>? syntaxCursor)
+//    {
+//        syntaxCursor.NotNull();
 
-        if (!pContext.TokensCursor.TryGetValue(out var token)) return failStatus();
+//        if (!pContext.TokensCursor.TryGetValue(out var token)) return failStatus();
 
-        switch (token)
-        {
-            case TokenValue tokenValue when !tokenValue.IsSyntaxToken:
-                if (pContext.Symbols.Contains(tokenValue.Value))
-                {
-                    if (Optional) pContext.TokensCursor.Index--;
-                    return (failStatus(), $"token {tokenValue.Value} is a symbol");
-                }
+//        switch (token)
+//        {
+//            case TokenValue tokenValue when !tokenValue.IsSyntaxToken:
+//                if (pContext.Symbols.Contains(tokenValue.Value))
+//                {
+//                    if (Optional) pContext.TokensCursor.Index--;
+//                    return (failStatus(), $"token {tokenValue.Value} is a symbol");
+//                }
 
-                return new LangNodes() + new LangNode(syntaxCursor.Current, tokenValue.Value);
+//                return new LangNodes() + new LangNode(syntaxCursor.Current, tokenValue.Value);
 
-            case BlockToken blockToken:
-                return new LangNodes() + new LangNode(syntaxCursor.Current, blockToken.Value);
+//            case BlockToken blockToken:
+//                return new LangNodes() + new LangNode(syntaxCursor.Current, blockToken.Value);
 
-            default:
-                if (Optional) pContext.TokensCursor.Index--;
-                return (failStatus(), $"Syntax error: unknown token={token.Value}");
-        }
+//            default:
+//                if (Optional) pContext.TokensCursor.Index--;
+//                return (failStatus(), $"Syntax error: unknown token={token.Value}");
+//        }
 
-        StatusCode failStatus() => Optional switch
-        {
-            false => StatusCode.BadRequest,
-            true => StatusCode.NoContent,
-        };
-    }
+//        StatusCode failStatus() => Optional switch
+//        {
+//            false => StatusCode.BadRequest,
+//            true => StatusCode.NoContent,
+//        };
+//    }
 
-    public override string ToString() => $"{nameof(LsValue)}: Name={Name}";
-}
+//    public override string ToString() => $"{nameof(LsValue)}: Name={Name}";
+//}

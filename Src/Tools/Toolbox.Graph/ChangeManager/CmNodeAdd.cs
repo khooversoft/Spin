@@ -15,7 +15,7 @@ public class CmNodeAdd : IChangeLog
     {
         graphContext.NotNull();
 
-        if (!graphContext.Map.Nodes.Remove(NewValue.Key))
+        if (graphContext.Map.Nodes.Remove(NewValue.Key).IsError())
         {
             graphContext.Context.LogError("Rollback: logKey={logKey}, Failed to remove node key={key}", LogKey, NewValue.Key);
             return ((Option)(StatusCode.Conflict, $"Failed to remove node key={NewValue.Key}")).ToTaskResult();

@@ -36,7 +36,9 @@ public class BatchTests : TestBase<BatchTests>
             "add node key=k2 set entity { 'aGVsbG9CYXNlNjQ=' };",
             "add edge from=k1, to=k2, type=user set k2=v2;",
             "select (userEmail) a1 -> [roles] a2 -> (*) a3 return data, entity;",
-            "delete (userEmail) ;"
+            "delete (userEmail);",
+            "delete node key=k2;",
+            "delete edge from=k1, to=k2, type=user;",
         }.Join(Environment.NewLine);
 
         var parse = _parser.Parse(lines, _context);
@@ -120,6 +122,18 @@ public class BatchTests : TestBase<BatchTests>
                         },
                     },
                 ],
+            },
+            new GiNode
+            {
+                ChangeType = GiChangeType.Delete,
+                Key = "k2",
+            },
+            new GiEdge
+            {
+                ChangeType = GiChangeType.Delete,
+                From = "k1",
+                To = "k2",
+                Type = "user",
             },
         ];
 

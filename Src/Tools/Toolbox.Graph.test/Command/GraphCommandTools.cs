@@ -26,15 +26,15 @@ public static class GraphCommandTools
 
         var edgeDelta2 = newMap.Edges.Where(x =>
         {
-            if (!currentMap.Edges.TryGetValue(x.Key, out var node)) return true;
+            if (!currentMap.Edges.TryGetValue(x.GetPrimaryKey(), out var node)) return true;
             return x != node;
         }).ToArray();
 
         var edgeDelta1 = currentMap.Edges.Where(x =>
         {
-            if (edgeDelta2.Any(y => y.Key == x.Key)) return false;
+            if (edgeDelta2.Any(y => y.GetPrimaryKey() == x.GetPrimaryKey())) return false;
 
-            if (!newMap.Edges.TryGetValue(x.Key, out var node)) return true;
+            if (!newMap.Edges.TryGetValue(x.GetPrimaryKey(), out var node)) return true;
             return x != node;
         }).ToArray();
 

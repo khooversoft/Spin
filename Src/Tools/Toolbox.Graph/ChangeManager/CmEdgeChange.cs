@@ -22,8 +22,9 @@ public class CmEdgeChange : IChangeLog
     {
         graphContext.NotNull();
 
-        graphContext.Map.Edges[CurrentValue.Key] = CurrentValue;
-        graphContext.Context.LogInformation("Rollback Edge: restored edge logKey={logKey}, edgeKey={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
+        var pk = CurrentValue.GetPrimaryKey();
+        graphContext.Map.Edges[pk] = CurrentValue;
+        graphContext.Context.LogInformation("Rollback Edge: restored edge logKey={logKey}, edgeKey={key}, value={value}", LogKey, CurrentValue, CurrentValue.ToJson());
 
         return ((Option)StatusCode.OK).ToTaskResult();
     }

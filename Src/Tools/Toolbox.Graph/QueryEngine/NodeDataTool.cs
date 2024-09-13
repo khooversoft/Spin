@@ -22,6 +22,18 @@ internal static class NodeDataTool
         return dataMap.Select(x => x.ConvertTo()).ToImmutableArray();
     }
 
+    public static async Task<Option> DeleteData(IReadOnlyList<GraphNode> nodes, IGraphTrxContext graphContext)
+    {
+        var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
+        foreach (var fileId in linksToDelete)
+        {
+            var result = await NodeDataTool.DeleteNodeData(fileId, graphContext);
+            if (result.IsError()) return result;
+        }
+
+        return StatusCode.OK;
+    }
+
     public static async Task<Option<GraphLinkData>> GetData(GraphLink graphLink, QueryExecutionContext pContext)
     {
         var readOption = await GetData(graphLink.FileId, pContext);
@@ -47,13 +59,13 @@ internal static class NodeDataTool
         var dataMapOption = await AddData(giNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption;
 
-        var removeDataNames = giNode.Tags.GetTagCommands();
+        var removeDataNames = giNode.Tags.GetTagDeleteCommands();
 
-        var validGraphDataLinks = graphNode.DataMap.Values
+        var dataLinks = graphNode.DataMap.Values
             .Select(x => (graphLink: x, remove: removeDataNames.Contains(x.Name)))
             .ToArray();
 
-        foreach (var dataLink in validGraphDataLinks.Where(x => x.remove))
+        foreach (var dataLink in dataLinks.Where(x => x.remove))
         {
             var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext.GraphContext);
 
@@ -62,7 +74,7 @@ internal static class NodeDataTool
                     .ToOptionStatus<IReadOnlyList<GraphLink>>();
         }
 
-        var result = validGraphDataLinks.Where(x => !x.remove)
+        var result = dataLinks.Where(x => !x.remove)
             .Select(x => x.graphLink)
             .ToImmutableArray();
 

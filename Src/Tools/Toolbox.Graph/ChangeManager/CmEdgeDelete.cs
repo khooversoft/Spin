@@ -16,7 +16,7 @@ public record CmEdgeDelete : IChangeLog
         graphContext.NotNull();
 
         graphContext.Map.Add(CurrentValue);
-        graphContext.Context.LogInformation("Rollback: restored edge logKey={logKey}, Edge key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
+        graphContext.Context.LogInformation("Rollback: restored edge logKey={logKey}, Edge key={key}, value={value}", LogKey, CurrentValue, CurrentValue.ToJson());
         return ((Option)StatusCode.OK).ToTaskResult();
     }
 }

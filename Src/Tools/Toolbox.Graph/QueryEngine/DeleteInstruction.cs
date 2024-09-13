@@ -35,13 +35,14 @@ internal static class DeleteInstruction
     {
         foreach (var edge in edges)
         {
-            bool success = pContext.GraphContext.Map.Edges.Remove(edge.Key, pContext.GraphContext);
-            if (!success)
+            var success = pContext.GraphContext.Map.Edges.Remove(edge.GetPrimaryKey(), pContext.GraphContext);
+            if (success.IsError())
             {
-                pContext.GraphContext.Context.LogWarning("Cannot remove edge key={edge.Key}", edge.Key);
+                pContext.GraphContext.Context.LogWarning("Cannot remove edge key={edge.Key}", edge);
+                continue;
             }
 
-            pContext.GraphContext.Context.LogInformation("Removed edge key={edge.Key}", edge.Key);
+            pContext.GraphContext.Context.LogInformation("Removed edge key={edge.Key}", edge);
         }
 
         return StatusCode.OK;
@@ -51,10 +52,11 @@ internal static class DeleteInstruction
     {
         foreach (var node in nodes)
         {
-            bool success = pContext.GraphContext.Map.Nodes.Remove(node.Key, pContext.GraphContext);
-            if (!success)
+            var result = pContext.GraphContext.Map.Nodes.Remove(node.Key, pContext.GraphContext);
+            if (result.IsError())
             {
                 pContext.GraphContext.Context.LogWarning("Cannot remove node key={node.Key}", node.Key);
+                continue;
             }
 
             pContext.GraphContext.Context.LogInformation("Removed node key={node.Key}", node.Key);

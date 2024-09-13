@@ -29,8 +29,9 @@ public class EdgeTests : TestBase<EdgeTests>
 
     [Theory]
     [InlineData("upsert edge from=fkey1, to=tkey1;")]
-    [InlineData("upsert edge to=tkey1, type=label;")]
-    [InlineData("upsert unique edge from=fkey1, to=tkey1, type=label;")]
+    [InlineData("set edge from=fkey1, to=tkey1;")]
+    [InlineData("set edge to=tkey1, type=label;")]
+    [InlineData("delete edge from=fkey1, to=tkey1, type=label set t1;")]
     public void FailTest(string command)
     {
         var parse = _parser.Parse(command, _context);
@@ -56,7 +57,6 @@ public class EdgeTests : TestBase<EdgeTests>
                 From = "fkey1",
                 To = "tkey1",
                 Type = "label",
-                Unique = false,
             }
         ];
 
@@ -64,9 +64,9 @@ public class EdgeTests : TestBase<EdgeTests>
     }
 
     [Fact]
-    public void AddUniqueEdge()
+    public void MinSetEdge()
     {
-        var parse = _parser.Parse("add unique edge from=fkey1, to=tkey1, type=label;", _context);
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -78,11 +78,35 @@ public class EdgeTests : TestBase<EdgeTests>
         IGraphInstruction[] expected = [
             new GiEdge
             {
-                ChangeType = GiChangeType.Add,
+                ChangeType = GiChangeType.Set,
                 From = "fkey1",
                 To = "tkey1",
                 Type = "label",
-                Unique = true,
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void MinDeleteEdge()
+    {
+        var parse = _parser.Parse("delete edge from=fkey1, to=tkey1, type=label;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiEdge
+            {
+                ChangeType = GiChangeType.Delete,
+                From = "fkey1",
+                To = "tkey1",
+                Type = "label",
             }
         ];
 
@@ -119,39 +143,9 @@ public class EdgeTests : TestBase<EdgeTests>
     }
 
     [Fact]
-    public void AddUniqueEdgeWithTag()
+    public void SetEdge()
     {
-        var parse = _parser.Parse("add unique edge from=fkey1, to=tkey1, type=label set t1=v1;", _context);
-        parse.Status.IsOk().Should().BeTrue();
-
-        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
-        var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
-
-        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
-
-        IGraphInstruction[] expected = [
-            new GiEdge
-            {
-                ChangeType = GiChangeType.Add,
-                From = "fkey1",
-                To = "tkey1",
-                Type = "label",
-                Tags = new Dictionary<string, string?>
-                {
-                    ["t1"] = "v1",
-                },
-                Unique = true,
-            }
-        ];
-
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
-    }
-
-    [Fact]
-    public void UpsertNode()
-    {
-        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label;", _context);
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -163,7 +157,7 @@ public class EdgeTests : TestBase<EdgeTests>
         IGraphInstruction[] expected = [
             new GiEdge
             {
-                ChangeType = GiChangeType.Upsert,
+                ChangeType = GiChangeType.Set,
                 From = "fkey1",
                 To = "tkey1",
                 Type = "label",
@@ -174,9 +168,9 @@ public class EdgeTests : TestBase<EdgeTests>
     }
 
     [Fact]
-    public void UpdateNodeTagCommand()
+    public void SetEdge2()
     {
-        var parse = _parser.Parse("update edge from=fkey1, to=tkey1, type=label set t1;", _context);
+        var parse = _parser.Parse("set edge from=index:name1, to=data:key1, type=uniqueIndex;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -188,7 +182,32 @@ public class EdgeTests : TestBase<EdgeTests>
         IGraphInstruction[] expected = [
             new GiEdge
             {
-                ChangeType = GiChangeType.Update,
+                ChangeType = GiChangeType.Set,
+                From = "index:name1",
+                To = "data:key1",
+                Type = "uniqueIndex",
+            },
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetEdgeTagCommand()
+    {
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set t1;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue();
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiEdge
+            {
+                ChangeType = GiChangeType.Set,
                 From = "fkey1",
                 To = "tkey1",
                 Type = "label",
@@ -203,9 +222,9 @@ public class EdgeTests : TestBase<EdgeTests>
     }
 
     [Fact]
-    public void UpsertNodeRemoveTagCommand()
+    public void SetEdgeRemoveTagCommand()
     {
-        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set -t1, t2=v2;", _context);
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set -t1, t2=v2;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -217,7 +236,7 @@ public class EdgeTests : TestBase<EdgeTests>
         IGraphInstruction[] expected = [
             new GiEdge
             {
-                ChangeType = GiChangeType.Upsert,
+                ChangeType = GiChangeType.Set,
                 From = "fkey1",
                 To = "tkey1",
                 Type = "label",

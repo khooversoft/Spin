@@ -29,6 +29,9 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     }
 
     public int Count => _index.Count;
+    public bool ContainsKey(string key) => _index.ContainsKey(key);
+    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
+
 
     internal Option Add(GraphNode node, IGraphTrxContext? graphContext = null)
     {
@@ -51,31 +54,6 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    internal Option Set(GraphNode node, IGraphTrxContext? graphContext = null)
-    {
-        if (!node.Validate(out var v)) return v;
-
-        lock (_lock)
-        {
-            GraphNode? current;
-            if (_index.TryGetValue(node.Key, out current))
-            {
-                node = current.With(node);
-            }
-
-            _index[node.Key] = node;
-            graphContext?.ChangeLog.Push(current switch
-            {
-                null => new CmNodeAdd(node),
-                not null => new CmNodeChange(current, node),
-            });
-
-            return StatusCode.OK;
-        }
-    }
-
-    public bool ContainsKey(string key) => _index.ContainsKey(key);
-
     internal void Clear()
     {
         lock (_lock)
@@ -84,62 +62,36 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    internal bool Remove(string key, IGraphTrxContext? graphContext = null)
+    internal Option Remove(string key, IGraphTrxContext? graphContext = null)
     {
         lock (_lock)
         {
-            if (_index.Remove(key, out var oldValue))
-            {
-                _graphRI.RemovedNodeFromEdges(oldValue!, graphContext);
-                graphContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
-                return true;
-            }
+            if (!_index.Remove(key, out var oldValue)) return StatusCode.NotFound;
 
-            return false;
-        }
-    }
-
-    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
-
-    internal bool TryUpdate(string key, Func<GraphNode, GraphNode> update, IGraphTrxContext? graphContext = null)
-    {
-        lock (_lock)
-        {
-            if (!_index.TryGetValue(key, out var currentValue)) return false;
-
-            GraphNode newValue = update(currentValue);
-            currentValue.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
-            _index[key] = newValue;
-
-            graphContext?.ChangeLog.Push(new CmNodeChange(currentValue, newValue));
-            return true;
-        }
-    }
-
-    internal Option Update(GraphNode node,
-        IEnumerable<KeyValuePair<string, string?>> tagCommands,
-        IEnumerable<KeyValuePair<string, GraphLink>> dataMap,
-        IGraphTrxContext graphContext
-        )
-    {
-        node.NotNull();
-        tagCommands.NotNull();
-        dataMap.NotNull();
-        graphContext.NotNull();
-
-        lock (_lock)
-        {
-            _index.ContainsKey(node.Key).Assert(x => x == true, $"Node key={node.Key} does not exist");
-
-            var newValue = node.With(tagCommands, dataMap);
-            node.Key.Equals(newValue.Key).Assert(x => x == true, "Cannot change the primary key");
-            _index[node.Key] = newValue;
-
-            graphContext?.ChangeLog.Push(new CmNodeChange(node, newValue));
+            _graphRI.RemovedNodeFromEdges(oldValue!, graphContext);
+            graphContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
             return StatusCode.OK;
         }
     }
 
+    internal Option Set(GraphNode node, IGraphTrxContext? graphContext = null)
+    {
+        if (!node.Validate(out var v)) return v;
+
+        lock (_lock)
+        {
+            bool exist = _index.TryGetValue(node.Key, out GraphNode? current);
+
+            _index[node.Key] = node;
+            graphContext?.ChangeLog.Push(exist switch
+            {
+                false  => new CmNodeAdd(node),
+                true => new CmNodeChange(current!, node),
+            });
+
+            return StatusCode.OK;
+        }
+    }
 
     public IEnumerator<GraphNode> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

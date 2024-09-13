@@ -22,10 +22,10 @@ public class CleanDirectoryAction
         var directory = _clusterClient.GetDirectoryActor();
 
         string command = "select (*);";
-        Option<GraphQueryResult> resultOption = await directory.Execute(command, context);
+        Option<QueryResult> resultOption = await directory.Execute(command, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus();
 
-        var nodes = resultOption.Return().Items.OfType<GraphNode>().ToArray();
+        var nodes = resultOption.Return().Nodes.ToArray();
         if (nodes.Length == 0) return StatusCode.OK;
 
         foreach (var node in nodes)

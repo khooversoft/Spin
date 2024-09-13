@@ -1,65 +1,65 @@
-﻿using System.Collections.Frozen;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using System.Collections.Frozen;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.LangTools;
+//namespace Toolbox.LangTools;
 
-public class LangParserContext
-{
-    private readonly Stack<Position> _postionStack = new Stack<Position>();
+//public class LangParserContext
+//{
+//    private readonly Stack<Position> _postionStack = new Stack<Position>();
 
-    public LangParserContext(ILangRoot root, IReadOnlyList<IToken> tokens)
-    {
-        Root = root;
-        TokensCursor = tokens.ToCursor();
+//    public LangParserContext(ILangRoot root, IReadOnlyList<IToken> tokens)
+//    {
+//        Root = root;
+//        TokensCursor = tokens.ToCursor();
 
-        Symbols = root.GetChildrenRecursive()
-            .OfType<LsSymbol>()
-            .Select(x => x.Symbol)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-    }
+//        Symbols = root.GetChildrenRecursive()
+//            .OfType<LsSymbol>()
+//            .Select(x => x.Symbol)
+//            .Distinct(StringComparer.OrdinalIgnoreCase)
+//            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+//    }
 
-    public ILangRoot Root { get; private set; }
-    public Cursor<IToken> TokensCursor { get; }
-    public FrozenSet<string> Symbols { get; }
+//    public ILangRoot Root { get; private set; }
+//    public Cursor<IToken> TokensCursor { get; }
+//    public FrozenSet<string> Symbols { get; }
 
-    public FinalizeScope<LangParserContext> PushWithScope(ILangRoot langRoot)
-    {
-        Push(langRoot);
-        return new FinalizeScope<LangParserContext>(this, x => x.Pop(), x => x.RemovePush());
-    }
+//    public FinalizeScope<LangParserContext> PushWithScope(ILangRoot langRoot)
+//    {
+//        Push(langRoot);
+//        return new FinalizeScope<LangParserContext>(this, x => x.Pop(), x => x.RemovePush());
+//    }
 
-    public void Push(ILangRoot langRoot)
-    {
-        var postion = new Position
-        {
-            Root = Root,
-            TokensCursorIndex = TokensCursor.Index,
-        };
+//    public void Push(ILangRoot langRoot)
+//    {
+//        var postion = new Position
+//        {
+//            Root = Root,
+//            TokensCursorIndex = TokensCursor.Index,
+//        };
 
-        _postionStack.Push(postion);
+//        _postionStack.Push(postion);
 
-        Root = langRoot.NotNull();
-    }
+//        Root = langRoot.NotNull();
+//    }
 
-    public void Pop()
-    {
-        _postionStack.Count.Assert(x => x > 0, "Stack empty");
+//    public void Pop()
+//    {
+//        _postionStack.Count.Assert(x => x > 0, "Stack empty");
 
-        var position = _postionStack.Pop();
-        Root = position.Root;
-        TokensCursor.Index = position.TokensCursorIndex;
-    }
+//        var position = _postionStack.Pop();
+//        Root = position.Root;
+//        TokensCursor.Index = position.TokensCursorIndex;
+//    }
 
-    public void RemovePush()
-    {
-        if (_postionStack.Count > 0) _postionStack.Pop();
-    }
+//    public void RemovePush()
+//    {
+//        if (_postionStack.Count > 0) _postionStack.Pop();
+//    }
 
-    private readonly record struct Position
-    {
-        public ILangRoot Root { get; init; }
-        public int TokensCursorIndex { get; init; }
-    }
-}
+//    private readonly record struct Position
+//    {
+//        public ILangRoot Root { get; init; }
+//        public int TokensCursorIndex { get; init; }
+//    }
+//}
