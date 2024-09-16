@@ -13,7 +13,7 @@ public static class QueryExecution
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
 
         var graphQueryResult = await ExecuteInstruction(pContextOption.Return());
-        return graphQueryResult;
+        return new Option<QueryBatchResult>(graphQueryResult, graphQueryResult.Option.StatusCode, graphQueryResult.Option.Error);
     }
 
     private static Option<QueryExecutionContext> ParseQuery(string graphQuery, IGraphTrxContext graphContext)

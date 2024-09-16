@@ -12,6 +12,7 @@ internal sealed record GiNode : IGraphInstruction
     public string Key { get; init; } = null!;
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
     public IReadOnlyDictionary<string, string> Data { get; init; } = ImmutableDictionary<string, string>.Empty;
+    public bool IfExist { get; init; }
 
     public bool Equals(GiNode? obj)
     {
@@ -19,13 +20,13 @@ internal sealed record GiNode : IGraphInstruction
             ChangeType == subject.ChangeType &&
             Key == subject.Key &&
             Tags.DeepEquals(subject.Tags) &&
-            Enumerable.SequenceEqual(Data.OrderBy(x => x.Key), subject.Data.OrderBy(x => x.Key));
+            Enumerable.SequenceEqual(Data.OrderBy(x => x.Key), subject.Data.OrderBy(x => x.Key)) &&
+            IfExist == subject.IfExist;
 
         return result;
     }
 
     public override int GetHashCode() => HashCode.Combine(ChangeType, Key, Tags, Data);
-
     public override string ToString() => $"ChangeType={ChangeType}, Key={Key}, Tags={Tags.ToTagsString()}, Data={Data.Select(x => x.Key).Join(";")}";
 }
 
@@ -41,6 +42,14 @@ internal static class GiNodeTool
 
         // node
         if (!interContext.Cursor.TryGetValue(out var nodeValue) || nodeValue.Token.Value != "node") return (StatusCode.NotFound, "no node");
+
+        // IfExist, optional
+        bool ifExist = false;
+        if (interContext.Cursor.TryPeekValue(out var ifExistToken) && ifExistToken.Token.Value == "ifexist")
+        {
+            interContext.Cursor.MoveNext();
+            ifExist = true;
+        }
 
         // key={key}
         if (!InterLangTool.TryGetValue(interContext, "key", out var nodeKey)) return (StatusCode.NotFound, "Cannot find key=node");
@@ -65,6 +74,7 @@ internal static class GiNodeTool
             Key = nodeKey,
             Tags = tags?.ToImmutableDictionary() ?? ImmutableDictionary<string, string?>.Empty,
             Data = data?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty,
+            IfExist = ifExist,
         };
     }
 

@@ -7,7 +7,7 @@ public sealed class GraphEdgeComparer : IEqualityComparer<GraphEdge>
 {
     public bool Equals(GraphEdge? x, GraphEdge? y)
     {
-        if( ReferenceEquals(x, y)) return true;
+        if (ReferenceEquals(x, y)) return true;
 
         if (x is null || y is null) return false;
 

@@ -80,7 +80,7 @@ public class GraphResultFromSchemaCommandTests
 
 
         // Delete
-        cmds = Data.Schema.Code(d).BuildDeleteCommands().Join(Environment.NewLine);
+        cmds = Data.Schema.Code(d2).BuildDeleteCommands().Join(Environment.NewLine);
 
         newMapOption = await testClient.ExecuteBatch(cmds, NullScopeContext.Instance);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
@@ -144,7 +144,7 @@ public class GraphResultFromSchemaCommandTests
         var graph = new GraphMap();
         var testClient = GraphTestStartup.CreateGraphTestHost(graph);
 
-        var addAgeNodeOption = await testClient.ExecuteBatch("upsert node key=age:12;", NullScopeContext.Instance);
+        var addAgeNodeOption = await testClient.ExecuteBatch("set node key=age:12;", NullScopeContext.Instance);
         addAgeNodeOption.IsOk().Should().BeTrue(addAgeNodeOption.ToString());
 
         var d = new Data { Key = "key1", Age = 12 };

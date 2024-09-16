@@ -14,6 +14,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesFrom;
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesTo;
     private readonly Dictionary<string, GraphEdgePrimaryKey> _graphEdges;
+    private readonly TagIndex<GraphEdgePrimaryKey> _tagIndex;
     private readonly object _lock;
     private readonly GraphRI _graphRI;
 
@@ -26,6 +27,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         _edgesFrom = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
         _edgesTo = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
         _graphEdges = new Dictionary<string, GraphEdgePrimaryKey>(StringComparer.OrdinalIgnoreCase);
+        _tagIndex = new TagIndex<GraphEdgePrimaryKey>(GraphEdgePrimaryKeyComparer.Default);
     }
 
     public int Count => _index.Count;
@@ -56,18 +58,18 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(params string[] nodeKeys) => nodeKeys
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(IEnumerable<string> nodeKeys) => nodeKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
         .Concat(nodeKeys.SelectMany(x => _edgesTo.Lookup(x)))
         .Distinct(GraphEdgePrimaryKeyComparer.Default)
         .ToImmutableArray();
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(params string[] fromNodesKeys) => fromNodesKeys
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(IEnumerable<string> fromNodesKeys) => fromNodesKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
         .Distinct(GraphEdgePrimaryKeyComparer.Default)
         .ToImmutableArray();
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(params string[] toNodesKeys) => toNodesKeys
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(IEnumerable<string> toNodesKeys) => toNodesKeys
         .SelectMany(x => _edgesTo.Lookup(x))
         .Distinct(GraphEdgePrimaryKeyComparer.Default)
         .ToImmutableArray();
@@ -189,7 +191,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
 public static class GraphEdgeIndexExtensions
 {
-    public static IReadOnlyList<GraphEdge> Lookup(this GraphEdgeIndex subject, params GraphEdgePrimaryKey[] keys) => keys
+    public static IReadOnlyList<GraphEdge> Lookup(this GraphEdgeIndex subject, IEnumerable<GraphEdgePrimaryKey> keys) => keys.NotNull()
         .Select(x => subject.TryGetValue(x, out var data) ? data : null)
         .OfType<GraphEdge>()
         .ToImmutableArray();

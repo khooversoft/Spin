@@ -12,6 +12,7 @@ namespace Toolbox.Graph;
 public class GraphNodeIndex : IEnumerable<GraphNode>
 {
     private readonly Dictionary<string, GraphNode> _index;
+    private readonly TagIndex<string> _tagIndex;
     private readonly object _lock;
     private readonly GraphRI _graphRI;
 
@@ -20,6 +21,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         _lock = syncLock.NotNull();
         _graphRI = graphRI.NotNull();
         _index = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
+        _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
     }
 
     public GraphNode this[string key]
@@ -31,6 +33,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     public int Count => _index.Count;
     public bool ContainsKey(string key) => _index.ContainsKey(key);
     public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
+    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag);
 
 
     internal Option Add(GraphNode node, IGraphTrxContext? graphContext = null)
@@ -44,6 +47,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 true => StatusCode.OK,
                 false => (StatusCode.Conflict, $"Node key={node.Key} already exist"),
             };
+
+            _tagIndex.Set(node.Key, node.Tags);
 
             if (option.IsOk())
             {
@@ -59,6 +64,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         lock (_lock)
         {
             _index.Clear();
+            _tagIndex.Clear();
         }
     }
 
@@ -68,7 +74,9 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         {
             if (!_index.Remove(key, out var oldValue)) return StatusCode.NotFound;
 
+            _tagIndex.Remove(key);
             _graphRI.RemovedNodeFromEdges(oldValue!, graphContext);
+
             graphContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
             return StatusCode.OK;
         }
@@ -80,12 +88,14 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
         lock (_lock)
         {
+            _tagIndex.Set(node.Key, node.Tags);
+
             bool exist = _index.TryGetValue(node.Key, out GraphNode? current);
 
             _index[node.Key] = node;
             graphContext?.ChangeLog.Push(exist switch
             {
-                false  => new CmNodeAdd(node),
+                false => new CmNodeAdd(node),
                 true => new CmNodeChange(current!, node),
             });
 

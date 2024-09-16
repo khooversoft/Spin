@@ -51,7 +51,7 @@ public static class GraphTool
         return cmd;
     }
 
-    public static string DeleteNodeCommand(string indexKey) => $"delete node key={indexKey.NotEmpty()};";
+    public static string DeleteNodeCommand(string indexKey) => $"delete node ifexist key={indexKey.NotEmpty()};";
 
     public static IReadOnlyList<string> CreateEdgeCommands(string fromKey, string toKey, string edgeType, string? tags)
     {
@@ -65,7 +65,7 @@ public static class GraphTool
     }
 
     public static IReadOnlyList<string> DeleteEdgeCommands(string fromKey, string toKey, string edgeType) => [
-        $"delete edge from={fromKey.NotEmpty()}, to={toKey.NotEmpty()}, type={edgeType.NotEmpty()};"
+        $"delete edge ifexist from={fromKey.NotEmpty()}, to={toKey.NotEmpty()}, type={edgeType.NotEmpty()};"
         ];
 
     public static IReadOnlyList<string> CreateIndexCommands(string nodeKey, string indexKey)
@@ -80,7 +80,7 @@ public static class GraphTool
     }
 
     public static IReadOnlyList<string> DeleteIndexCommands(string nodeKey, string indexKey, string edgeType) => [
-        $"delete edge from={indexKey.NotEmpty()}, to={nodeKey.NotEmpty()}, type={edgeType.NotEmpty()};"
+        $"delete edge ifexist from={indexKey.NotEmpty()}, to={nodeKey.NotEmpty()}, type={edgeType.NotEmpty()};"
     ];
 
 

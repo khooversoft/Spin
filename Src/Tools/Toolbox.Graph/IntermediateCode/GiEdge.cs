@@ -12,6 +12,7 @@ internal sealed record GiEdge : IGraphInstruction
     public string To { get; init; } = null!;
     public string Type { get; init; } = null!;
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public bool IfExist { get; init; }
 
     public bool Equals(GiEdge? obj)
     {
@@ -20,13 +21,13 @@ internal sealed record GiEdge : IGraphInstruction
             From == subject.From &&
             To == subject.To &&
             Type == subject.Type &&
-            Tags.DeepEquals(subject.Tags);
+            Tags.DeepEquals(subject.Tags) &&
+            IfExist == subject.IfExist;
 
         return result;
     }
 
     public override int GetHashCode() => HashCode.Combine(ChangeType, From, To, Type, Tags);
-
     public override string ToString() => $"{{ From={From} -> To={To} ({Type}) }}";
 }
 
@@ -49,6 +50,14 @@ internal static class GiEdgeTool
 
         // Edge
         if (!interContext.Cursor.TryGetValue(out var edgeValue) || edgeValue.Token.Value != "edge") return (StatusCode.NotFound, "no node");
+
+        // IfExist, optional
+        bool ifExist = false;
+        if (interContext.Cursor.TryPeekValue(out var ifExistToken) && ifExistToken.Token.Value == "ifexist")
+        {
+            interContext.Cursor.MoveNext();
+            ifExist = true;
+        }
 
         // from={key}
         if (!InterLangTool.TryGetValue(interContext, "from", out var fromNodeId)) return (StatusCode.NotFound, "Cannot find from=nodeKey");
@@ -80,6 +89,7 @@ internal static class GiEdgeTool
             To = toNodeId,
             Type = edgeType,
             Tags = tags?.ToImmutableDictionary() ?? ImmutableDictionary<string, string?>.Empty,
+            IfExist = ifExist,
         };
     }
 }

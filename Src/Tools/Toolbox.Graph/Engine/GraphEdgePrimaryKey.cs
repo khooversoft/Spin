@@ -11,7 +11,7 @@ public sealed record GraphEdgePrimaryKey
     public string ToKey { get; init; } = null!;
     public string EdgeType { get; init; } = null!;
 
-    public override string ToString() =>$"{{ FromKey={FromKey} -> ToKey={ToKey} ({EdgeType}) }}";
+    public override string ToString() => $"{{ FromKey={FromKey} -> ToKey={ToKey} ({EdgeType}) }}";
 
     public bool Equals(GraphEdge? obj) => obj is GraphEdge subject &&
         FromKey.EqualsIgnoreCase(subject.FromKey) &&
@@ -19,6 +19,13 @@ public sealed record GraphEdgePrimaryKey
         EdgeType.EqualsIgnoreCase(subject.EdgeType);
 
     public override int GetHashCode() => HashCode.Combine(FromKey, ToKey, EdgeType);
+
+    public static implicit operator GraphEdgePrimaryKey((string fromKey, string toKey, string edgeType) subject) => new GraphEdgePrimaryKey
+    {
+        FromKey = subject.fromKey,
+        ToKey = subject.toKey,
+        EdgeType = subject.edgeType,
+    };
 
     public static IValidator<GraphEdgePrimaryKey> Validator { get; } = new Validator<GraphEdgePrimaryKey>()
         .RuleFor(x => x.FromKey).NotNull()

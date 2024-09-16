@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -27,9 +28,9 @@ internal static class SelectInstruction
             result = selectInstruction switch
             {
                 GiNodeSelect nodeSelect => SelectNode(nodeSelect, pContext),
-                GiEdgeSelect edgeSelect => StatusCode.BadRequest,
-                GiLeftJoin leftJoin => StatusCode.BadRequest,
-                GiFullJoin fullJoin => StatusCode.BadRequest,
+                GiEdgeSelect edgeSelect => SelectEdge(edgeSelect, pContext),
+                GiLeftJoin leftJoin => StatusCode.OK.Action(_ => pContext.LastJoin.Set(leftJoin)),
+                GiFullJoin fullJoin => StatusCode.OK.Action(_ => pContext.LastJoin.Set(fullJoin)),
                 GiReturnNames returnNames => await ReturnNames(returnNames, pContext),
 
                 _ => (StatusCode.BadRequest, $"Unknown instuction type={selectInstruction.GetType()}"),
@@ -48,30 +49,80 @@ internal static class SelectInstruction
 
     private static Option SelectNode(GiNodeSelect giNodeSelect, QueryExecutionContext pContext)
     {
-        var nodes = findNodes(giNodeSelect.Key).Where(x => IsMatch(giNodeSelect, x));
+        IEnumerable<GraphNode> nodes = pContext.LastJoin.GetAndClear() switch
+        {
+            null => findRootNodes(),
+            GiLeftJoin left => pContext.GetLastQueryResult().NotNull().Edges.Select(x => pContext.GraphContext.Map.Nodes[x.ToKey]),
+            GiFullJoin full => pContext.GetLastQueryResult().NotNull().Edges.SelectMany(x => (IEnumerable<GraphNode>)[
+                pContext.GraphContext.Map.Nodes[x.FromKey],
+                pContext.GraphContext.Map.Nodes[x.ToKey] ]
+                ),
+
+            _ => throw new UnreachableException()
+        };
+
+        nodes = nodes.Where(x => IsMatch(giNodeSelect, x));
 
         var queryResult = new QueryResult
         {
             Option = StatusCode.OK,
             Alias = giNodeSelect.Alias,
-            Nodes = nodes.ToImmutableArray(),
+            Nodes = nodes.GroupBy(x => x.Key).Select(x => x.First()).ToImmutableArray(),
         };
 
         pContext.AddQueryResult(queryResult);
         return StatusCode.OK;
 
 
-        IEnumerable<GraphNode> findNodes(string? key) => key switch
+        IEnumerable<GraphNode> findRootNodes() => giNodeSelect switch
         {
-            null => [],
-            string v when v.IndexOfAny(['*', '?'], 0) < 0 => pContext.GraphContext.Map.Nodes.TryGetValue(v, out var gn) ? [gn] : [],
-            string v => [.. pContext.GraphContext.Map.Nodes.Where(x => IsMatch(giNodeSelect, x))],
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.GraphContext.Map.Nodes,
+            { Key: string v } when !HasWildCard(v) => pContext.GraphContext.Map.Nodes.TryGetValue(v, out var gn) ? [gn] : [],
+            _ => pContext.GraphContext.Map.Nodes,
         };
+    }
+
+    private static Option SelectEdge(GiEdgeSelect giEdgeSelect, QueryExecutionContext pContext)
+    {
+        IEnumerable<GraphEdge> edges = pContext.LastJoin.GetAndClear() switch
+        {
+            null => findRootEdges(),
+            GiLeftJoin left => lookupFromKeys(),
+            GiFullJoin full => lookupNodeKeys(),
+
+            _ => throw new UnreachableException()
+        };
+
+        edges = edges.Where(x => IsMatch(giEdgeSelect, x));
+
+        var queryResult = new QueryResult
+        {
+            Option = StatusCode.OK,
+            Alias = giEdgeSelect.Alias,
+            Edges = edges.GroupBy(x => x.GetPrimaryKey(), GraphEdgePrimaryKeyComparer.Default).Select(x => x.First()).ToImmutableArray(),
+        };
+
+        pContext.AddQueryResult(queryResult);
+        return StatusCode.OK;
+
+        IEnumerable<GraphEdge> findRootEdges() => giEdgeSelect switch
+        {
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.GraphContext.Map.Edges,
+            { From: string v1, To: string v2, Type: string v3 } when !HasWildCard(v1) && !HasWildCard(v2) && !HasWildCard(v3) => lookupEdge(v1, v2, v3),
+            _ => pContext.GraphContext.Map.Edges,
+        };
+
+        IEnumerable<GraphEdge> lookupEdge(string from, string to, string edgeType) =>
+            pContext.GraphContext.Map.Edges.TryGetValue((from, to, edgeType), out GraphEdge? ge) ? [ge.NotNull()] : [];
+
+        IEnumerable<string> getLastNodeResultKeys() => pContext.GetLastQueryResult().NotNull().Nodes.Select(x => x.Key);
+        IEnumerable<GraphEdge> lookupNodeKeys() => pContext.GraphContext.Map.Edges.Lookup(pContext.GraphContext.Map.Edges.LookupByNodeKey(getLastNodeResultKeys()));
+        IEnumerable<GraphEdge> lookupFromKeys() => pContext.GraphContext.Map.Edges.Lookup(pContext.GraphContext.Map.Edges.LookupByFromKey(getLastNodeResultKeys()));
     }
 
     private static async Task<Option> ReturnNames(GiReturnNames giReturnNames, QueryExecutionContext pContext)
     {
-        var latest = pContext.GetLatestQueryResult();
+        var latest = pContext.GetLastQueryResult();
         if (latest == null)
         {
             pContext.GraphContext.Context.LogError("No data set found for giReturnNames={giReturnNames}");
@@ -98,6 +149,14 @@ internal static class SelectInstruction
         pContext.UpdateLastQueryResult(seq);
         return StatusCode.OK;
     }
+
+    private static bool HasWildCard(string? value) => value switch
+    {
+        null => false,
+        string v when v.IsEmpty() => false,
+        string v when v.IndexOfAny(['*', '?'], 0) >= 0 => true,
+        _ => false,
+    };
 
     private static bool IsMatch(this GiNodeSelect subject, GraphNode node)
     {

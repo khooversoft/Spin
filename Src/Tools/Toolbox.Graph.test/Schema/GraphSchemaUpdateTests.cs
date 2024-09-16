@@ -25,7 +25,7 @@ public class GraphSchemaUpdateTests
         var graphCode = Data.Schema.Code(d1).SetCurrent(d);
 
         IReadOnlyList<string> matchTo = [
-            "set node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMX0=' };",
+            "set node key=data:key1 set entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMX0=' };",
             ];
 
         var nodeCommands = graphCode.BuildSetCommands();
@@ -52,9 +52,9 @@ public class GraphSchemaUpdateTests
         var graphCode = Data.Schema.Code(d1).SetCurrent(d);
 
         IReadOnlyList<string> matchTo = [
-            "upsert node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6bnVsbCwiYWdlIjoxMX0=' };",
-            "delete (key=index:name1);",
-            "delete (key=external:name1/11);",
+            "set node key=data:key1 set entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6bnVsbCwiYWdlIjoxMX0=' };",
+            "delete node ifexist key=index:name1;",
+            "delete node ifexist key=external:name1/11;",
             ];
 
         var nodeCommands = graphCode.BuildSetCommands();
@@ -81,12 +81,12 @@ public class GraphSchemaUpdateTests
         var graphCode = Data.Schema.Code(d1).SetCurrent(d);
 
         IReadOnlyList<string> matchTo = [
-            "upsert node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMjV9' };",
-            "delete (key=external:name1/11);",
-            "upsert node key=external:name1/125, uniqueIndex;",
-            "upsert edge fromKey=external:name1/125, toKey=data:key1, edgeType=uniqueIndex;",
-            "delete [fromKey=data:key1, toKey=age:11, edgeType=ageGroup];",
-            "upsert edge fromKey=data:key1, toKey=age:125, edgeType=ageGroup;",
+            "set node key=data:key1 set entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMjV9' };",
+            "delete node ifexist key=external:name1/11;",
+            "set node key=external:name1/125 set uniqueIndex;",
+            "set edge from=external:name1/125, to=data:key1, type=uniqueIndex;",
+            "delete edge ifexist from=data:key1, to=age:11, type=ageGroup;",
+            "set edge from=data:key1, to=age:125, type=ageGroup;",
             ];
 
         var nodeCommands = graphCode.BuildSetCommands();
@@ -113,13 +113,13 @@ public class GraphSchemaUpdateTests
         var graphCode = Data.Schema.Code(d1).SetCurrent(d);
 
         IReadOnlyList<string> matchTo = [
-            "upsert node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUyIiwiYWdlIjoxMX0=' };",
-            "delete (key=index:name1);",
-            "delete (key=external:name1/11);",
-            "upsert node key=index:name2, uniqueIndex;",
-            "upsert edge fromKey=index:name2, toKey=data:key1, edgeType=uniqueIndex;",
-            "upsert node key=external:name2/11, uniqueIndex;",
-            "upsert edge fromKey=external:name2/11, toKey=data:key1, edgeType=uniqueIndex;",
+            "set node key=data:key1 set entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUyIiwiYWdlIjoxMX0=' };",
+            "delete node ifexist key=index:name1;",
+            "delete node ifexist key=external:name1/11;",
+            "set node key=index:name2 set uniqueIndex;",
+            "set edge from=index:name2, to=data:key1, type=uniqueIndex;",
+            "set node key=external:name2/11 set uniqueIndex;",
+            "set edge from=external:name2/11, to=data:key1, type=uniqueIndex;",
             ];
 
         var nodeCommands = graphCode.BuildSetCommands();

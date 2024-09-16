@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -36,7 +30,7 @@ internal class EdgeInstruction
 
         pContext.GraphContext.Context.LogInformation("Adding giEdge={giEdge}", giEdge);
 
-        var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, giEdge.Tags, DateTime.UtcNow);
+        var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, giEdge.Tags.RemoveDeleteCommands(), DateTime.UtcNow);
 
         var graphResult = pContext.GraphContext.Map.Edges.Add(graphEdge, pContext.GraphContext);
         if (graphResult.IsError()) return graphResult;
@@ -53,7 +47,7 @@ internal class EdgeInstruction
         pContext.GraphContext.Context.LogInformation("Deleting giEdge={giEdge}", giEdge);
 
         var graphResult = pContext.GraphContext.Map.Edges.Remove(giEdge.GetPrimaryKey(), pContext.GraphContext);
-        if (graphResult.IsError()) return graphResult;
+        if (!giEdge.IfExist && graphResult.IsError()) return graphResult;
 
         pContext.GraphContext.Context.LogInformation("Deleting giEdge={giEdge}", giEdge);
         return StatusCode.OK;
@@ -64,7 +58,7 @@ internal class EdgeInstruction
         pContext.GraphContext.Context.LogInformation("Updating giEdge={giEdge}", giEdge);
 
         IReadOnlyDictionary<string, string?> tags = giEdge.Tags;
-        if(pContext.GraphContext.Map.Edges.TryGetValue(giEdge.GetPrimaryKey(), out var readGraphEdge))
+        if (pContext.GraphContext.Map.Edges.TryGetValue(giEdge.GetPrimaryKey(), out var readGraphEdge))
         {
             tags = TagsTool.ProcessTags(readGraphEdge.NotNull().Tags, giEdge.Tags);
         }

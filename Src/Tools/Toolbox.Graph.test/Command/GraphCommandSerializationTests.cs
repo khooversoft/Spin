@@ -1,80 +1,97 @@
-﻿//using System.Collections.Immutable;
-//using FluentAssertions;
-//using Toolbox.Data;
-//using Toolbox.Extensions;
-//using Toolbox.Tools;
-//using Toolbox.Types;
+﻿using System.Collections.Immutable;
+using FluentAssertions;
+using Toolbox.Data;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
 
-//namespace Toolbox.Graph.test.Command;
+namespace Toolbox.Graph.test.Command;
 
-//public class GraphCommandSerializationTests
-//{
-//    [Fact]
-//    public void GraphCommandResults()
-//    {
-//        var g = new GraphQueryResults
-//        {
-//            Items = new[]
-//            {
-//                new GraphQueryResult(CommandType.Select, StatusCode.OK),
-//            }.ToImmutableArray(),
-//        };
+public class GraphCommandSerializationTests
+{
+    private readonly GraphMap _map = new GraphMap()
+    {
+        new GraphNode("node1", tags: "name=marko,age=29"),
+        new GraphNode("node2", tags: "name=vadas,age=27"),
+        new GraphNode("node3", tags: "name=lop,lang=java;"),
+        new GraphNode("node4", tags: "name=josh,age=32,user"),
+        new GraphNode("node5", tags: "name=ripple,lang=java"),
+        new GraphNode("node6", tags: "name=peter,age=35"),
+        new GraphNode("node7", tags: "lang=java"),
 
-//        string json = Json.Default.SerializePascal(g);
+        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
+        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
+        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
+        new GraphEdge("node5", "node4", edgeType : "et1", tags: "created"),
+    };
 
-//        GraphQueryResults r = json.ToObject<GraphQueryResults>().NotNull();
-//        r.Should().NotBeNull();
-//        r.Items.Length.Should().Be(1);
-//        r.Items[0].CommandType.Should().Be(CommandType.Select);
-//    }
+    [Fact]
+    public void SimpleGraphResults()
+    {
+        var g = new QueryBatchResult
+        {
+            Items = new[]
+            {
+                new QueryResult
+                {
+                    Option = StatusCode.OK,
+                    QueryNumber = 1,
+                    Alias = "alias1",
+                },
+            }.ToImmutableArray(),
+        };
 
-//    [Fact]
-//    public void GraphCommandResultsWithResult()
-//    {
-//        ImmutableArray<IGraphCommon> items = new IGraphCommon[]
-//        {
-//            new GraphEdge("fromKey1", "toKey1", "edgeType2"),
-//            new GraphNode("key1", "t1"),
-//        }.ToImmutableArray<IGraphCommon>();
+        string json = Json.Default.SerializePascal(g);
+
+        QueryBatchResult r = json.ToObject<QueryBatchResult>().NotNull();
+        r.Should().NotBeNull();
+        r.Items.Count.Should().Be(1);
+        r.Items[0].Option.StatusCode.Should().Be(StatusCode.OK);
+        r.Items[0].QueryNumber.Should().Be(1);
+        r.Items[0].Alias.Should().Be("alias1");
+    }
 
 
-//        var g = new GraphQueryResults
-//        {
-//            Items = new[]
-//            {
-//                new GraphQueryResult
-//                {
-//                    CommandType = CommandType.Select,
-//                    Status = StatusCode.OK,
-//                    Items = new IGraphCommon[]
-//                    {
-//                        new GraphEdge("fromKey1", "toKey1", "edgeType2"),
-//                        new GraphNode("key1", "t1"),
-//                    }.ToImmutableArray(),
-//                },
-//            }.ToImmutableArray(),
-//        };
+    [Fact]
+    public async Task SelectDirectedNodeToEdgeToNodeWithAlias()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
-//        string json = g.ToJson();
+        QueryBatchResult r1 = newMapOption.Return();
 
-//        GraphQueryResults r = json.ToObject<GraphQueryResults>().NotNull();
-//        r.Should().NotBeNull();
-//        r.Items.Length.Should().Be(1);
-//        r.Items[0].CommandType.Should().Be(CommandType.Select);
-//        r.Items[0].Should().NotBeNull();
-//        r.Items[0].Status.StatusCode.Should().Be(StatusCode.OK);
-//        r.Items[0].Items.Count.Should().Be(2);
+        string json = Json.Default.SerializePascal(r1);
 
-//        r.Items[0].Items[0].Cast<GraphEdge>().Action(x =>
-//        {
-//            x.FromKey.Should().Be("fromKey1");
-//            x.ToKey.Should().Be("toKey1");
-//            x.EdgeType.Should().Be("edgeType2");
-//        });
-//        r.Items[0].Items[1].Cast<GraphNode>().Action(x =>
-//        {
-//            x.Key.Should().Be("key1");
-//            x.Tags.ToTagsString().Should().Be("t1");
-//        });
-//    }
-//}
+        QueryBatchResult result = json.ToObject<QueryBatchResult>().NotNull();
+        result.Should().NotBeNull();
+
+        result.Option.IsOk().Should().BeTrue();
+        result.Items.Count.Should().Be(3);
+        result.Items.Select(x => x.Alias).Should().BeEquivalentTo("a1", "a2", "a3");
+
+        result.Items[0].Action(x =>
+        {
+            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3", "node4", "node5", "node6", "node7");
+            x.Edges.Count.Should().Be(0);
+            x.Data.Count.Should().Be(0);
+        });
+
+        result.Items[1].Action(x =>
+        {
+            x.Nodes.Count.Should().Be(0);
+            x.Edges.Count.Should().Be(6);
+            x.Data.Count.Should().Be(0);
+        });
+
+        result.Items[2].Action(x =>
+        {
+            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
+            x.Edges.Count.Should().Be(0);
+            x.Data.Count.Should().Be(0);
+        });
+    }
+}

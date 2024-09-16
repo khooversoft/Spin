@@ -34,7 +34,7 @@ internal static class NodeInstruction
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
-        var graphNode = new GraphNode(giNode.Key, giNode.Tags, DateTime.UtcNow, dataMap);
+        var graphNode = new GraphNode(giNode.Key, giNode.Tags.RemoveDeleteCommands(), DateTime.UtcNow, dataMap);
 
         var graphResult = pContext.GraphContext.Map.Nodes.Add(graphNode, pContext.GraphContext);
         if (graphResult.IsError()) return graphResult;
@@ -57,7 +57,7 @@ internal static class NodeInstruction
         }
 
         var graphResult = pContext.GraphContext.Map.Nodes.Remove(giNode.Key, pContext.GraphContext);
-        if (graphResult.IsError()) return graphResult;
+        if (!giNode.IfExist && graphResult.IsError()) return graphResult;
 
         pContext.GraphContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
         return StatusCode.OK;
@@ -77,7 +77,8 @@ internal static class NodeInstruction
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
-        var graphNode = new GraphNode(giNode.Key, giNode.Tags, DateTime.UtcNow, dataMap);
+        var tags = TagsTool.ProcessTags(currentGraphNode.Tags, giNode.Tags);
+        var graphNode = new GraphNode(giNode.Key, tags, DateTime.UtcNow, dataMap);
 
         var updateOption = pContext.GraphContext.Map.Nodes.Set(graphNode, pContext.GraphContext);
         if (updateOption.IsError()) return updateOption.LogStatus(pContext.GraphContext.Context, $"Failed to upsert node key={giNode.Key}");

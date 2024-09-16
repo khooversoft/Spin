@@ -239,7 +239,7 @@ public class GraphSchemaTests
         var nodeCommands = graphCode.SetNodeCommand();
         nodeCommands.Should().NotBeNull();
         nodeCommands.Count.Should().Be(1);
-        nodeCommands[0].Should().Be("upsert node key=data:key1, entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMX0=' };");
+        nodeCommands[0].Should().Be("set node key=data:key1 set entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6Im5hbWUxIiwiYWdlIjoxMX0=' };");
     }
 
     [Fact]
@@ -255,10 +255,10 @@ public class GraphSchemaTests
         var graphCode = Data.Schema.Code(d);
 
         IReadOnlyList<string> matchTo = [
-            "upsert node key=index:name1, uniqueIndex;",
-            "upsert edge fromKey=index:name1, toKey=data:key1, edgeType=uniqueIndex;",
-            "upsert node key=external:name1/11, uniqueIndex;",
-            "upsert edge fromKey=external:name1/11, toKey=data:key1, edgeType=uniqueIndex;",
+            "set node key=index:name1 set uniqueIndex;",
+            "set edge from=index:name1, to=data:key1, type=uniqueIndex;",
+            "set node key=external:name1/11 set uniqueIndex;",
+            "set edge from=external:name1/11, to=data:key1, type=uniqueIndex;",
             ];
 
         var nodeCommands = graphCode.SetIndexCommands();
@@ -278,7 +278,7 @@ public class GraphSchemaTests
         var graphCode = Data.Schema.Code(d);
 
         IReadOnlyList<string> matchTo = [
-            "upsert edge fromKey=data:key1, toKey=age:11, edgeType=ageGroup;",
+            "set edge from=data:key1, to=age:11, type=ageGroup;",
             ];
 
         var nodeCommands = graphCode.SetReferenceCommands();

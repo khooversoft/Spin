@@ -22,6 +22,6 @@ public class GraphClientInMemory : IGraphClient
         var result = await QueryExecution.Execute(trxContext, command);
         if (result.IsError()) return result.ToOptionStatus<QueryResult>();
 
-        return result.Return().Items[0];
+        return result.Return().Items.Last();
     }
 }

@@ -51,7 +51,7 @@ public static class TagsTool
         _ => null,
     };
 
-    public static ImmutableDictionary<string, string?> RemoveCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
+    public static ImmutableDictionary<string, string?> RemoveDeleteCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
         .Where(x => GetTagDeleteCommand(x.Key, x.Value).IsEmpty())
         .ToImmutableDictionary();
 
@@ -59,6 +59,7 @@ public static class TagsTool
         .Select(x => GetTagDeleteCommand(x.Key, x.Value))
         .OfType<string>()
         .ToImmutableArray();
+
 
     public static string? FormatTag(string key, string? value) => value.ToNullIfEmpty() switch
     {
@@ -146,6 +147,7 @@ public static class TagsTool
 
         var dict = result.ToArray();
         return dict;
+
 
         KeyValuePair<string, string?>? parseAssignment(Stack<IToken> tokens)
         {

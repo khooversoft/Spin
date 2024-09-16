@@ -107,7 +107,7 @@ public class GraphEngine2Tests
         readRec.Age.Should().Be(rec.Age);
 
         // Remove data from node and verify
-        var removeData = await engine.Execute("update node key=node1 set -contract;", NullScopeContext.Instance);
+        var removeData = await engine.Execute("set node key=node1 set -contract;", NullScopeContext.Instance);
         removeData.IsOk().Should().BeTrue(removeData.ToString());
         ((InMemoryGraphFileStore)fileStore).Count.Should().Be(0);
         map.Nodes.Count.Should().Be(1);
@@ -216,7 +216,7 @@ public class GraphEngine2Tests
             readRec.Amount.Should().Be(leaseRec.Amount);
         });
 
-        var deleteResult = await engine.Execute("delete (key=node1);", NullScopeContext.Instance);
+        var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue();
 
         ((InMemoryGraphFileStore)fileStore).Count.Should().Be(0);
@@ -270,14 +270,14 @@ public class GraphEngine2Tests
         });
 
         // Delete data "contract" and verify data was deleted
-        var removeDataOption = await engine.Execute("update node key=node1 set -contract, t2=v2;", NullScopeContext.Instance);
+        var removeDataOption = await engine.Execute("set node key=node1 set -contract, t2=v2;", NullScopeContext.Instance);
         removeDataOption.IsOk().Should().BeTrue(removeDataOption.ToString());
         ((InMemoryGraphFileStore)fileStore).Count.Should().Be(1);
         map.Nodes.Count.Should().Be(1);
         map.Nodes["node1"].Action(x =>
         {
             x.DataMap.Count.Should().Be(1);
-            x.Tags.Count.Should().Be(2);
+            x.Tags.Count.Should().Be(1);
             x.Tags.TryGetValue("t2", out var value).Should().BeTrue();
             value.Should().Be("v2");
         });
@@ -308,7 +308,7 @@ public class GraphEngine2Tests
             });
         });
 
-        var deleteResult = await engine.Execute("delete (key=node1);", NullScopeContext.Instance);
+        var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue();
 
         ((InMemoryGraphFileStore)fileStore).Count.Should().Be(0);

@@ -1,5 +1,4 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -16,8 +15,33 @@ internal class GraphRI
     /// <param name="graphNode"></param>
     /// <param name="graphContext"></param>
     /// <returns></returns>
-    public void RemovedNodeFromEdges(GraphNode graphNode, IGraphTrxContext? graphContext) =>
-        GraphEdgeIndex.LookupByNodeKey(graphNode.Key).ForEach(x => GraphEdgeIndex.Remove(x, graphContext));
+    //public void RemovedNodeFromEdges(GraphNode graphNode, IGraphTrxContext? graphContext) =>
+    //    GraphEdgeIndex.LookupByNodeKey([ graphNode.Key ]).ForEach(x => GraphEdgeIndex.Remove(x, graphContext));
+
+    public bool RemovedNodeFromEdges(GraphNode graphNode, IGraphTrxContext? graphContext)
+    {
+        var edges = GraphEdgeIndex.LookupByNodeKey([graphNode.Key]);
+        edges.ForEach(x => GraphEdgeIndex.Remove(x, graphContext));
+
+        string[] nodesToRemove = [.. edges.Select(x => x.FromKey), .. edges.Select(x => x.ToKey)];
+        RemoveUniqueIndexNodes(nodesToRemove, graphContext);
+
+        return nodesToRemove.Any();
+    }
 
     public Func<string, bool> IsNodeExist => x => GraphNodeIndex.ContainsKey(x);
+
+    public void RemoveUniqueIndexNodes(IReadOnlyList<string> removedNodes, IGraphTrxContext? graphContext)
+    {
+        var indexNodesToRemove = GraphNodeIndex.LookupTag(GraphConstants.UniqueIndexTag)
+            .Join(removedNodes, x => x, x => x, (o, i) => i);
+
+        foreach (var nodeKey in indexNodesToRemove)
+        {
+            if (!GraphNodeIndex.TryGetValue(nodeKey, out GraphNode? node)) continue;
+            if (!node.Tags.Has(GraphConstants.UniqueIndexTag)) continue;
+
+            GraphNodeIndex.Remove(nodeKey, graphContext);
+        }
+    }
 }

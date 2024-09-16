@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphAddEdgeCommandTests
+public class EdgeInstructionTests
 {
     private readonly GraphMap _map = new GraphMap()
     {
@@ -24,7 +24,8 @@ public class GraphAddEdgeCommandTests
     };
 
     [Theory]
-    [InlineData("add edge fromKey=node4, toKey=node5;")]
+    [InlineData("add edge from=node4, to=node5;")]
+    [InlineData("add edge from=node4, to=node5, type=et1;")]
     public async Task Failures(string query)
     {
         var copyMap = _map.Clone();
@@ -37,7 +38,7 @@ public class GraphAddEdgeCommandTests
     }
 
     [Fact]
-    public async Task SingleAddForEdge()
+    public async Task AddEdge()
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
@@ -69,7 +70,7 @@ public class GraphAddEdgeCommandTests
     }
 
     [Fact]
-    public async Task SingleAddForEdgeTagsCommand()
+    public async Task AddEdgeWithRemoveTagCommandFilterOut()
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
@@ -92,7 +93,7 @@ public class GraphAddEdgeCommandTests
     }
 
     [Fact]
-    public async Task SingleUniqueAddForEdge()
+    public async Task AddEdgeWithTag()
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
@@ -109,6 +110,96 @@ public class GraphAddEdgeCommandTests
             x.ToKey.Should().Be("node1");
             x.EdgeType.Should().Be("newEdgeType");
             x.Tags.ToTagsString().Should().Be("newTags");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task DeleteEdge()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch("delete edge from=node1, to=node3, type=et1 ;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        QueryBatchResult commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphEdge>().Action(x =>
+        {
+            x.FromKey.Should().Be("node1");
+            x.ToKey.Should().Be("node3");
+            x.EdgeType.Should().Be("et1");
+            x.Tags.ToTagsString().Should().Be("knows,level=1");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task DeleteEdgeIfExist()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+
+        // Verify delete will fail
+        var newMapOption = await testClient.ExecuteBatch("delete edge from=node7, to=node2, type=et1 ;", NullScopeContext.Instance);
+        newMapOption.IsError().Should().BeTrue(newMapOption.ToString());
+
+        // Delet should not fail because of 'ifexist'
+        newMapOption = await testClient.ExecuteBatch("delete edge ifexist from=node7, to=node2, type=et1 ;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        QueryBatchResult commandResults = newMapOption.Return();
+        commandResults.Items.Count.Should().Be(1);
+
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        compareMap.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SetEdge()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch("set edge from=node4, to=node3, type=et1 set t1, t2=v2 ;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        QueryBatchResult commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphEdge>().Action(x =>
+        {
+            x.FromKey.Should().Be("node4");
+            x.ToKey.Should().Be("node3");
+            x.EdgeType.Should().Be("et1");
+            x.Tags.ToTagsString().Should().Be("created,t1,t2=v2");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SetEdgeRemoveTag()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch("set edge from=node1, to=node2, type=et1 set t1, t2=v2, -knows ;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue();
+
+        QueryBatchResult commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphEdge>().Action(x =>
+        {
+            x.FromKey.Should().Be("node1");
+            x.ToKey.Should().Be("node2");
+            x.EdgeType.Should().Be("et1");
+            x.Tags.ToTagsString().Should().Be("level=1,t1,t2=v2");
         });
 
         commandResults.Items.Count.Should().Be(1);

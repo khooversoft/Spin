@@ -11,7 +11,7 @@ internal static class DeleteInstruction
         var selectResultOption = await SelectInstruction.Select(giDelete.Instructions, pContext);
         if (selectResultOption.IsError()) return selectResultOption;
 
-        var lastQueryResult = pContext.GetLatestQueryResult();
+        var lastQueryResult = pContext.GetLastQueryResult();
         if (lastQueryResult == null)
         {
             pContext.GraphContext.Context.LogError("No query result found for delete");
