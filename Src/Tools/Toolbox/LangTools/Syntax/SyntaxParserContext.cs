@@ -6,7 +6,7 @@ using Toolbox.Types;
 namespace Toolbox.LangTools;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public class SyntaxParserContext
+internal class SyntaxParserContext
 {
     private readonly Stack<int> _position = new Stack<int>();
     private readonly ScopeContext _context;
