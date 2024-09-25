@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -18,13 +18,22 @@ public record QueryResult
     public string? Alias { get; init; }
     public IReadOnlyList<GraphNode> Nodes { get; init; } = Array.Empty<GraphNode>();
     public IReadOnlyList<GraphEdge> Edges { get; init; } = Array.Empty<GraphEdge>();
-    public IReadOnlyList<GraphLinkData> Data { get; init; } = Array.Empty<GraphLinkData>();
+    public IReadOnlyList<GraphLinkData> DataLinks { get; init; } = Array.Empty<GraphLinkData>();
 }
 
 public static class QueryResultTool
 {
     public static QueryResult? Query(this QueryBatchResult subject, int queryNumber) => subject.NotNull().Items.SingleOrDefault(x => x.QueryNumber == queryNumber);
     public static QueryResult? Alias(this QueryBatchResult subject, string alias) => subject.NotNull().Items.SingleOrDefault(x => x.Alias == alias);
-    public static IReadOnlyList<GraphNode> Nodes(this QueryBatchResult subject) => subject.NotNull().Items.Take(1).SelectMany(x => x.Nodes).ToImmutableArray();
-    public static IReadOnlyList<GraphEdge> Edges(this QueryBatchResult subject) => subject.NotNull().Items.Take(1).SelectMany(x => x.Edges).ToImmutableArray();
+
+    public static Option<T> DataLinkToObject<T>(this QueryResult subject, string dataName)
+    {
+        subject.NotNull();
+        dataName.NotEmpty();
+
+        var dataLink = subject.DataLinks.SingleOrDefault(x => x.Name.EqualsIgnoreCase(dataName));
+        if (dataLink == null) return StatusCode.NotFound;
+
+        return dataLink.Data.ToObject<T>();
+    }
 }

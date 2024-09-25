@@ -35,7 +35,7 @@ public class DeleteInstructionTests
         result.Option.IsOk().Should().BeTrue();
         result.Nodes.Count.Should().Be(7);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         copyMap.Nodes.Count.Should().Be(0);
         copyMap.Edges.Count.Should().Be(0);
@@ -53,7 +53,7 @@ public class DeleteInstructionTests
         result.Option.IsOk().Should().BeTrue();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(5);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         copyMap.Nodes.Count.Should().Be(7);
         copyMap.Edges.Count.Should().Be(0);
@@ -72,7 +72,7 @@ public class DeleteInstructionTests
         result.Alias.Should().Be("a1");
         result.Nodes.Count.Should().Be(1);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
@@ -100,7 +100,7 @@ public class DeleteInstructionTests
         result.Option.IsOk().Should().BeTrue();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(1);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
@@ -124,7 +124,7 @@ public class DeleteInstructionTests
         result.Option.IsOk().Should().BeTrue();
         result.Nodes.Count.Should().Be(1);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 

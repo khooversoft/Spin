@@ -9,6 +9,7 @@ namespace Toolbox.Store;
 public interface IStoreCollection
 {
     IStoreCollection Add(StoreConfig storeConfig);
+    IStoreCollection Add(string alias, Func<IServiceProvider, StoreConfig, IFileStore> create);
     IFileStore Get(string alias);
     (string alias, string filePath) GetAliasAndPath(string path, string? extension = null);
 }
@@ -28,6 +29,8 @@ public class StoreCollection : IStoreCollection
 
         _context = new ScopeContext(_logger);
     }
+
+    public IStoreCollection Add(string alias, Func<IServiceProvider, StoreConfig, IFileStore> create) => Add(new StoreConfig(alias, create));
 
     public IStoreCollection Add(StoreConfig storeConfig)
     {

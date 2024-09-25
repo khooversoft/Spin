@@ -2,14 +2,13 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Orleans.TestingHost;
-using Toolbox.Graph;
 using Toolbox.Store;
 
 namespace Toolbox.Orleans.test.Application;
 
 public sealed class InMemoryClusterFixture : IDisposable
 {
-    public static IGraphFileStore FileStore { get; } = new InMemoryGraphFileStore(new NullLogger<InMemoryFileStore>());
+    public static IFileStore FileStore { get; } = new InMemoryFileStore(new NullLogger<InMemoryFileStore>());
     public InMemoryClusterFixture() => Cluster.Deploy();
 
     public TestCluster Cluster { get; } = new TestClusterBuilder()
@@ -31,9 +30,9 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
             services.AddGrainFileStore();
             services.AddStoreCollection((services, config) =>
             {
-                config.Add(new StoreConfig("system", getFileStoreService));
-                config.Add(new StoreConfig("contract", getFileStoreService));
-                config.Add(new StoreConfig("nodes", getFileStoreService));
+                config.Add("system", getFileStoreService);
+                config.Add("contract", getFileStoreService);
+                config.Add("nodes", getFileStoreService);
             });
         });
 

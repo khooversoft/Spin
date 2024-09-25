@@ -1,10 +1,12 @@
-﻿namespace Toolbox.Graph;
+﻿using Toolbox.Store;
+
+namespace Toolbox.Graph;
 
 public class Journal
 {
-    private readonly IGraphFileStore _fileStore;
+    private readonly IFileStore _fileStore;
 
-    public Journal(IGraphFileStore fileStore)
+    public Journal(IFileStore fileStore)
     {
         _fileStore = fileStore;
     }

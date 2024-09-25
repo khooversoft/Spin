@@ -23,7 +23,7 @@ public class GraphLifecycleTest
             x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
 
             x.Nodes[0].Action(x =>
             {
@@ -42,7 +42,7 @@ public class GraphLifecycleTest
             x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
     }
 
@@ -67,7 +67,7 @@ public class GraphLifecycleTest
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
 
             x.Nodes[0].Action(x =>
             {
@@ -81,7 +81,7 @@ public class GraphLifecycleTest
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
 
             x.Nodes[0].Action(x =>
             {
@@ -102,7 +102,7 @@ public class GraphLifecycleTest
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
 
         (await testClient.Execute("select (key=node2);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
@@ -110,7 +110,7 @@ public class GraphLifecycleTest
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
 
             x.Nodes[0].Action(x =>
             {
@@ -193,7 +193,7 @@ public class GraphLifecycleTest
             x.Alias.Should().Be("a0");
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
             x.Nodes[0].Key.Should().Be("node1");
             x.Nodes[0].Tags.ToTagsString().Should().Be("t1");
         });
@@ -203,7 +203,7 @@ public class GraphLifecycleTest
             x.Alias.Should().Be("a1");
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(1);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
             x.Edges[0].FromKey.Should().Be("node1");
             x.Edges[0].ToKey.Should().Be("node2");
             x.Edges[0].EdgeType.Should().Be("et");
@@ -215,7 +215,7 @@ public class GraphLifecycleTest
             x.Alias.Should().Be("a2");
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
             x.Nodes[0].Key.Should().Be("node2");
             x.Nodes[0].Tags.ToTagsString().Should().Be("client,t2");
         });
@@ -251,7 +251,7 @@ public class GraphLifecycleTest
             x.Alias.Should().Be("a0");
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
             x.Nodes[0].Key.Should().Be("node2");
             x.Nodes[0].Tags.ToTagsString().Should().Be("client,t2");
         });
@@ -261,7 +261,7 @@ public class GraphLifecycleTest
             x.Alias.Should().Be("a1");
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(1);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
             x.Edges[0].FromKey.Should().Be("node1");
             x.Edges[0].ToKey.Should().Be("node2");
             x.Edges[0].EdgeType.Should().Be("et");
@@ -273,7 +273,7 @@ public class GraphLifecycleTest
             x.Alias.Should().Be("a2");
             x.Nodes.Count.Should().Be(2);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
             x.Nodes.OrderBy(x => x.Key).ToArray().Action(y =>
             {
                 y[0].Key.Should().Be("node1");
@@ -319,7 +319,7 @@ public class GraphLifecycleTest
                 x.Alias.Should().Be("a0");
                 x.Nodes.Count.Should().Be(1);
                 x.Edges.Count.Should().Be(0);
-                x.Data.Count.Should().Be(0);
+                x.DataLinks.Count.Should().Be(0);
                 x.Nodes[0].Key.Should().Be("node3");
                 x.Nodes[0].Tags.ToTagsString().Should().Be("client,t3");
             });
@@ -329,7 +329,7 @@ public class GraphLifecycleTest
                 x.Alias.Should().Be("a1");
                 x.Nodes.Count.Should().Be(0);
                 x.Edges.Count.Should().Be(1);
-                x.Data.Count.Should().Be(0);
+                x.DataLinks.Count.Should().Be(0);
                 x.Edges[0].FromKey.Should().Be("node3");
                 x.Edges[0].ToKey.Should().Be("node4");
                 x.Edges[0].EdgeType.Should().Be("et");
@@ -341,7 +341,7 @@ public class GraphLifecycleTest
                 x.Alias.Should().Be("a2");
                 x.Nodes.Count.Should().Be(1);
                 x.Edges.Count.Should().Be(0);
-                x.Data.Count.Should().Be(0);
+                x.DataLinks.Count.Should().Be(0);
                 x.Nodes.OrderBy(x => x.Key).ToArray().Action(y =>
                 {
                     y[0].Key.Should().Be("node4");

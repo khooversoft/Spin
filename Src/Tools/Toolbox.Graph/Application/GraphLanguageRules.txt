@@ -2,7 +2,7 @@ delimiters              = , ';' = '->' '<->' ( ) [ ] { } ;
 reserve-words           = select, set, delete, return, ifexist ;
 
 symbol                  = regex '^[a-zA-Z\\*][a-zA-Z0-9\/\-\\*]*$' ;
-name                    = regex '^[a-zA-Z][a-zA-Z0-9\/\-\:]*$' ;
+name                    = regex '^[a-zA-Z][a-zA-Z0-9\/\-\:\@\.]*$' ;
 open-param              = '(' #group-start #node ;
 close-param             = ')' #group-end #node ;
 open-brace              = '{' #group-start #data ;

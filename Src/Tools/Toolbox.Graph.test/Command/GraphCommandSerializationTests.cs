@@ -77,21 +77,21 @@ public class GraphCommandSerializationTests
         {
             x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3", "node4", "node5", "node6", "node7");
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
 
         result.Items[1].Action(x =>
         {
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(6);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
 
         result.Items[2].Action(x =>
         {
             x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
     }
 }

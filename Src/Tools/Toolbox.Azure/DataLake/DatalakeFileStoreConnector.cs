@@ -1,12 +1,11 @@
 ﻿using System.Collections.Immutable;
-using Toolbox.Graph;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Azure;
 
-public class DatalakeFileStoreConnector : IFileStore, IGraphFileStore
+public class DatalakeFileStoreConnector : IFileStore
 {
     private readonly IDatalakeStore _datalakeStore;
     public DatalakeFileStoreConnector(IDatalakeStore datalakeStore) => _datalakeStore = datalakeStore.NotNull();

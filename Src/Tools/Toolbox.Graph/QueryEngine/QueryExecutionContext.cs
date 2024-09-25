@@ -39,7 +39,7 @@ internal class QueryExecutionContext
 
         queryResult = queryResult with
         {
-            Data = graphLinkDatas.ToImmutableArray(),
+            DataLinks = graphLinkDatas.ToImmutableArray(),
         };
 
         _queryResult[_queryResult.Count - 1] = queryResult;

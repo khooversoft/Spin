@@ -38,7 +38,7 @@ public class SelectInstructionTests
         result.Alias.Should().Be("a1");
         result.Nodes.Count.Should().Be(1);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         result.Nodes[0].Key.Should().Be("node2");
         result.Nodes[0].Tags.ToTagsString().Should().Be("age=27,name=vadas");
@@ -57,7 +57,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(1);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         result.Nodes[0].Key.Should().Be("node4");
         result.Nodes[0].Tags.ToTagsString().Should().Be("age=32,name=josh,user");
@@ -76,7 +76,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(7);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3", "node4", "node5", "node6", "node7");
     }
@@ -94,7 +94,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(4);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node4", "node6");
     }
@@ -112,7 +112,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(6);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         var expected = new List<(string FromKey, string ToKey, string EdgeType)>
         {
@@ -140,7 +140,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(2);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         var expected = new List<(string FromKey, string ToKey, string EdgeType)>
         {
@@ -164,7 +164,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(6);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         var expected = new List<(string FromKey, string ToKey, string EdgeType)>
         {
@@ -192,7 +192,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(4);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
     }
@@ -210,7 +210,7 @@ public class SelectInstructionTests
         result.Alias.Should().NotBeNullOrWhiteSpace();
         result.Nodes.Count.Should().Be(4);
         result.Edges.Count.Should().Be(0);
-        result.Data.Count.Should().Be(0);
+        result.DataLinks.Count.Should().Be(0);
 
         result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
     }
@@ -232,21 +232,21 @@ public class SelectInstructionTests
         {
             x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3", "node4", "node5", "node6", "node7");
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
 
         result.Items[1].Action(x =>
         {
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(6);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
 
         result.Items[2].Action(x =>
         {
             x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
     }
 
@@ -266,7 +266,7 @@ public class SelectInstructionTests
         {
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(3);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
 
             var expected = new List<(string FromKey, string ToKey)>
             {
@@ -295,7 +295,7 @@ public class SelectInstructionTests
         {
             x.Nodes.Count.Should().Be(3);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
             x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3");
         });
     }

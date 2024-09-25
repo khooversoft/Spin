@@ -1,11 +1,12 @@
-﻿using Toolbox.Types;
+﻿using Toolbox.Store;
+using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
 public interface IGraphContext
 {
     GraphMap Map { get; }
-    IGraphFileStore FileStore { get; }
+    IFileStore FileStore { get; }
 }
 
 public interface IGraphTrxContext : IGraphContext

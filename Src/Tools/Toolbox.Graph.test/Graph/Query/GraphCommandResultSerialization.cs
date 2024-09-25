@@ -1,47 +1,49 @@
-﻿//using System.Collections.Immutable;
-//using FluentAssertions;
-//using Toolbox.Data;
-//using Toolbox.Extensions;
-//using Toolbox.Tools;
-//using Toolbox.Types;
+﻿using FluentAssertions;
+using Toolbox.Data;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
 
-//namespace Toolbox.Graph.test.Graph.Query;
+namespace Toolbox.Graph.test.Graph.Query;
 
-//public class GraphCommandResultSerialization
-//{
-//    [Fact]
-//    public void SimpleSerialization()
-//    {
-//        GraphQueryResult source = new GraphQueryResult
-//        {
-//            CommandType = CommandType.AddEdge,
-//            Status = (StatusCode.Conflict, "error"),
-//        };
+public class GraphCommandResultSerialization
+{
+    [Fact]
+    public void SimpleSerialization()
+    {
+        QueryBatchResult source = new QueryBatchResult
+        {
+            Option = (StatusCode.Conflict, "error"),
+            Items = [
+                new QueryResult { Option = StatusCode.OK, QueryNumber = 1, Alias = "a1" },
+                new QueryResult { Option = (StatusCode.InternalServerError, "oops"), QueryNumber = 2, Alias = "b1" },
+                ],
+        };
 
-//        string json = source.ToJson();
+        string json = source.ToJson();
 
-//        GraphQueryResult result = json.ToObject<GraphQueryResult>().NotNull();
+        QueryBatchResult result = json.ToObject<QueryBatchResult>().NotNull();
 
-//        result.CommandType.Should().Be(CommandType.AddEdge);
-//        result.Status.StatusCode.Should().Be(StatusCode.Conflict);
-//        result.Status.Error.Should().Be("error");
-//    }
+        result.Option.Should().Be(source.Option);
+        result.Items.Count.Should().Be(2);
 
-//    [Fact]
-//    public void WithResultSerialization()
-//    {
-//        GraphQueryResult source = new GraphQueryResult
-//        {
-//            Status = (StatusCode.OK, "no error"),
-//            Items = new IGraphCommon[]
-//            {
-//                new GraphNode("key1"),
-//                new GraphEdge("key1", "key2"),
-//            }.ToImmutableArray(),
-//        };
+        var cursor = result.Items.ToCursor();
+        cursor.MoveNext().Should().BeTrue();
+        cursor.Current.Action(x =>
+        {
+            x.Option.StatusCode.Should().Be(StatusCode.OK);
+            x.Option.Error.Should().BeNull();
+            x.QueryNumber.Should().Be(1);
+            x.Alias.Should().Be("a1");
+        });
 
-//        string json = source.ToJson();
-
-//        GraphQueryResult result = json.ToObject<GraphQueryResult>().NotNull();
-//    }
-//}
+        cursor.MoveNext().Should().BeTrue();
+        cursor.Current.Action(x =>
+        {
+            x.Option.StatusCode.Should().Be(StatusCode.InternalServerError);
+            x.Option.Error.Should().Be("oops");
+            x.QueryNumber.Should().Be(2);
+            x.Alias.Should().Be("b1");
+        });
+    }
+}

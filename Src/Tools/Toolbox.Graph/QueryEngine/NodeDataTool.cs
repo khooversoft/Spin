@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -60,8 +61,11 @@ internal static class NodeDataTool
         if (dataMapOption.IsError()) return dataMapOption;
 
         var removeDataNames = giNode.Tags.GetTagDeleteCommands();
+        var addedData = dataMapOption.Return();
+        var currentData = graphNode.DataMap.Values.Where(x => !addedData.Any(y => y.Name.EqualsIgnoreCase(x.Name)));
 
-        var dataLinks = graphNode.DataMap.Values
+        var dataLinks = currentData
+            .Concat(addedData)
             .Select(x => (graphLink: x, remove: removeDataNames.Contains(x.Name)))
             .ToArray();
 
@@ -95,6 +99,7 @@ internal static class NodeDataTool
 
         return deleteOption;
     }
+
     private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
     {
         pContext.GraphContext.Context.LogInformation("Writing node data fileId={fileId}", fileId);

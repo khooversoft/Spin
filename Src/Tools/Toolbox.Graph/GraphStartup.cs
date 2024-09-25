@@ -3,14 +3,14 @@ using Toolbox.Tools;
 
 namespace Toolbox.Graph;
 
-public static class GraphStartup
-{
-    public static IServiceCollection AddGraphInMemoryFileStore(this IServiceCollection services)
-    {
-        services.NotNull().AddSingleton<IGraphFileStore, InMemoryGraphFileStore>();
-        return services;
-    }
-}
+//public static class GraphStartup
+//{
+//    public static IServiceCollection AddGraphInMemoryFileStore(this IServiceCollection services)
+//    {
+//        services.NotNull().AddSingleton<IGraphFileStore, InMemoryGraphFileStore>();
+//        return services;
+//    }
+//}
 
 public static class GraphTestStartup
 {
@@ -18,7 +18,7 @@ public static class GraphTestStartup
     {
         var services = new ServiceCollection()
             .AddLogging()
-            .AddGraphInMemoryFileStore()
+            .AddInMemoryFileStore()
             .AddSingleton<GraphMap>(graphMap ?? new GraphMap())
             .AddSingleton<IGraphContext, GraphContext>()
             .AddSingleton<IGraphClient, GraphClientInMemory>()

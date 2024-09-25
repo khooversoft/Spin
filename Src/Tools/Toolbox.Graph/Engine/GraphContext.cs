@@ -8,14 +8,14 @@ namespace Toolbox.Graph;
 
 public class GraphContext : IGraphContext
 {
-    public GraphContext(GraphMap map, IGraphFileStore fileStore)
+    public GraphContext(GraphMap map, IFileStore fileStore)
     {
         Map = map.NotNull();
         FileStore = fileStore.NotNull();
     }
 
     public GraphMap Map { get; private init; }
-    public IGraphFileStore FileStore { get; private init; }
+    public IFileStore FileStore { get; private init; }
 }
 
 public class GraphTrxContext : IGraphTrxContext
@@ -23,12 +23,12 @@ public class GraphTrxContext : IGraphTrxContext
     public GraphTrxContext(GraphMap map, ScopeContext context)
     {
         Map = map.NotNull();
-        FileStore = new InMemoryGraphFileStore(NullLogger<InMemoryFileStore>.Instance);
+        FileStore = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
         ChangeLog = new ChangeLog(this);
         Context = context;
     }
 
-    public GraphTrxContext(GraphMap map, IGraphFileStore fileStore, ScopeContext context)
+    public GraphTrxContext(GraphMap map, IFileStore fileStore, ScopeContext context)
     {
         Map = map.NotNull();
         FileStore = fileStore.NotNull();
@@ -37,7 +37,7 @@ public class GraphTrxContext : IGraphTrxContext
     }
 
     public ChangeLog ChangeLog { get; }
-    public IGraphFileStore FileStore { get; }
+    public IFileStore FileStore { get; }
     public GraphMap Map { get; }
     public ScopeContext Context { get; }
 }

@@ -65,7 +65,7 @@ public class EdgeInstructionTests
             x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(0);
-            x.Data.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
         });
     }
 

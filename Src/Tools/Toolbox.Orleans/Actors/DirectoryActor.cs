@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -14,11 +15,11 @@ public class DirectoryActor : Grain, IDirectoryActor
 {
     private readonly ILogger<DirectoryActor> _logger;
     private readonly ActorCacheState<GraphMap, GraphSerialization> _state;
-    private readonly IGraphFileStore _graphFileStore;
+    private readonly IFileStore _graphFileStore;
 
     public DirectoryActor(
         [PersistentState("json", OrleansConstants.StorageProviderName)] IPersistentState<GraphSerialization> state,
-        IGraphFileStore graphFileStore,
+        IFileStore graphFileStore,
         ILogger<DirectoryActor> logger
         )
     {

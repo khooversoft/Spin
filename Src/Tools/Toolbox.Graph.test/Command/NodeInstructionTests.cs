@@ -201,6 +201,27 @@ public class NodeInstructionTests
     }
 
     [Fact]
+    public async Task SetNodeWithNamespace()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch("set node key=role:owner@domain.com;", NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        QueryBatchResult commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("role:owner@domain.com");
+            x.Tags.Count.Should().Be(0);
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+    }
+
+    [Fact]
     public async Task UpdateNodeTags()
     {
         var copyMap = _map.Clone();

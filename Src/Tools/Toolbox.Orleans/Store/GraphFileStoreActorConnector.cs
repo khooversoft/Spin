@@ -1,10 +1,10 @@
-﻿using Toolbox.Graph;
+﻿using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Orleans;
 
-public class GraphFileStoreActorConnector : IGraphFileStore
+public class GraphFileStoreActorConnector : IFileStore
 {
     private readonly IClusterClient _clusterClient;
     public GraphFileStoreActorConnector(IClusterClient clusterClient) => _clusterClient = clusterClient.NotNull();
