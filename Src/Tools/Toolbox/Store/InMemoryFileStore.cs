@@ -51,6 +51,22 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
             return option.ToTaskResult();
         }
     }
+    public Task<Option> Append(string path, DataETag data, ScopeContext context)
+    {
+        lock (_lock)
+        {
+            DataETag value = data;
+
+            if (_store.TryGetValue(path, out DataETag readValue))
+            {
+                value = readValue.Data.Concat(data.Data).ToArray();
+            };
+
+            _store[path] = value;
+            context.LogInformation("Append Path={path} with {length} bytes", path, data.Data.Length);
+            return new Option(StatusCode.OK).ToTaskResult();
+        }
+    }
 
     public Task<Option> Delete(string path, ScopeContext context)
     {
@@ -91,11 +107,18 @@ public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, Da
         return option.ToTaskResult();
     }
 
-    public Task<ImmutableArray<string>> Search(string pattern, ScopeContext context)
+    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
     {
-        var paths = _store.Select(x => x.Key);
-        var result = paths.Match(pattern);
-        return result.ToTaskResult();
+        var query = QueryParameter.Parse(pattern).GetMatcher();
+
+        if (pattern == "*") return ((IReadOnlyList<string>)_store.Keys).ToTaskResult();
+
+        var paths = _store
+            .Select(x => x.Key)
+            .Where(x => query.IsMatch(x, false))
+            .ToImmutableArray();
+
+        return ((IReadOnlyList<string>)paths).ToTaskResult();
     }
 
     public Task<Option<string>> Set(string path, DataETag data, ScopeContext context)

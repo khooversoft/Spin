@@ -19,6 +19,16 @@ public class InMemoryFileStoreTests
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
 
         await AddFile(store, pathText, dataText);
+        (await store.Search("*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x[0].Should().Be(pathText);
+        });
+        (await store.Search("**/*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x[0].Should().Be(pathText);
+        });
         await DeleteFile(store, pathText, 0);
     }
 
@@ -48,7 +58,28 @@ public class InMemoryFileStoreTests
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
 
         await AddFile(store, pathText, dataText);
+        (await store.Search("*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x[0].Should().Be(pathText);
+        });
+        (await store.Search("**/*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x[0].Should().Be(pathText);
+        });
+
         await SetFile(store, pathText, dataText2);
+        (await store.Search("*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x[0].Should().Be(pathText);
+        });
+        (await store.Search("**/*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x[0].Should().Be(pathText);
+        });
 
         await DeleteFile(store, pathText, 0);
     }
@@ -63,9 +94,52 @@ public class InMemoryFileStoreTests
         IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
 
         await AddFile(store, pathText1, dataText1);
+        (await store.Search("*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(1);
+            x[0].Should().Be(pathText1);
+        });
+
         await AddFile(store, pathText2, dataText2);
+        (await store.Search("*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(2);
+            x.Should().BeEquivalentTo(pathText1, pathText2);
+        });
+
         await DeleteFile(store, pathText1, 1);
         await DeleteFile(store, pathText2, 0);
+    }
+
+    [Fact]
+    public async Task AppendFile()
+    {
+        const string pathText1 = "path";
+        const string dataText1 = "data";
+        const string dataText2 = "data2";
+        IFileStore store = new InMemoryFileStore(NullLogger<InMemoryFileStore>.Instance);
+
+        DataETag data = new DataETag(dataText1.ToBytes());
+        Option<string> result = await store.Add(pathText1, data, NullScopeContext.Instance);
+        result.IsOk().Should().BeTrue();
+        (await store.Search("*", NullScopeContext.Instance)).Count.Should().Be(1);
+
+        DataETag data2 = new DataETag(dataText2.ToBytes());
+        Option result2 = await store.Append(pathText1, data2, NullScopeContext.Instance);
+        result2.IsOk().Should().BeTrue();
+        (await store.Search("*", NullScopeContext.Instance)).Count.Should().Be(1);
+
+        var readOption = await store.Get(pathText1, NullScopeContext.Instance);
+        readOption.IsOk().Should().BeTrue();
+
+        var read = readOption.Return().Data;
+        var expected = data.Data.Concat(data2.Data).ToArray();
+        read.Length.Should().Be(expected.Length);
+
+        Enumerable.SequenceEqual(expected, read).Should().BeTrue();
+        ((InMemoryFileStore)store).Count.Should().Be(1);
+
+        await DeleteFile(store, pathText1, 0);
     }
 
     [Fact]
@@ -95,6 +169,12 @@ public class InMemoryFileStoreTests
         ((InMemoryFileStore)store).Count.Should().Be(size);
         queue.Count.Should().Be(size);
 
+        (await store.Search("*", NullScopeContext.Instance)).Action(x =>
+        {
+            x.Count.Should().Be(size);
+            x.Should().BeEquivalentTo(queue.Select(x => x.fileId));
+        });
+
         KeyValuePair<string, DataETag>[] storeList = ((InMemoryFileStore)store).OrderBy(x => x.Key).ToArray();
         (string fileId, DataETag data)[] queueList = queue.OrderBy(x => x.fileId).ToArray();
         storeList.Length.Should().Be(queueList.Length);
@@ -113,6 +193,7 @@ public class InMemoryFileStoreTests
         });
 
         ((InMemoryFileStore)store).Count.Should().Be(0);
+        (await store.Search("*", NullScopeContext.Instance)).Count.Should().Be(0);
     }
 
     private Task AddFile(IFileStore store, string path, string dataText)

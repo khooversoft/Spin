@@ -1,6 +1,6 @@
 ﻿namespace Toolbox.Graph;
 
-internal enum GiChangeType
+public enum GiChangeType
 {
     None,
     Add,

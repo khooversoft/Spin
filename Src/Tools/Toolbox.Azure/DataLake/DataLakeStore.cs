@@ -28,26 +28,27 @@ public class DatalakeStore : IDatalakeStore
         _fileSystem.Exists().Assert(x => x == true, $"Datalake file system does not exist, containerName={azureStoreOption.Container}");
     }
 
-    public async Task<StatusCode> Append(string path, byte[] data, ScopeContext context)
+    public async Task<Option> Append(string path, DataETag data, ScopeContext context)
     {
         context = context.With(_logger);
 
         path = WithBasePath(path);
-        context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Length);
+        context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Data.Length);
 
-        data.NotNull().Assert(x => x.Length > 0, $"{nameof(data)} length must be greater then 0, path={path}");
+        data.NotNull().Assert(x => x.Data.Length > 0, $"{nameof(data)} length must be greater then 0, path={path}");
 
-        using var memoryBuffer = new MemoryStream(data.ToArray());
+        using var memoryBuffer = new MemoryStream(data.Data.ToArray());
 
         try
         {
-            Option<DatalakePathProperties> properties = await InternalGetPathProperties(path, context);
-            if (properties.IsError()) return StatusCode.NotFound;
+            Option<DatalakePathProperties> propertiesOption = await InternalGetPathPropertiesOrCreate(path, context);
+            if (propertiesOption.IsError()) return propertiesOption.ToOptionStatus();
+            var properties = propertiesOption.Return();
 
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
 
-            await file.AppendAsync(memoryBuffer, properties.Return().ContentLength, cancellationToken: context);
-            await file.FlushAsync(properties.Return().ContentLength + data.Length);
+            await file.AppendAsync(memoryBuffer, properties.ContentLength, cancellationToken: context);
+            await file.FlushAsync(properties.ContentLength + data.Data.Length);
 
             context.Location().LogInformation("Appended to path={path}", path);
         }
@@ -62,13 +63,13 @@ public class DatalakeStore : IDatalakeStore
         catch (Exception ex)
         {
             context.Location().LogError(ex, "Failed to append file {path}", path);
-            return StatusCode.BadRequest;
+            return (StatusCode.BadRequest, $"Failed to append file {path}");
         }
 
         return StatusCode.OK;
     }
 
-    public async Task<StatusCode> Delete(string path, ScopeContext context)
+    public async Task<Option> Delete(string path, ScopeContext context)
     {
         context = context.With(_logger);
 
@@ -91,7 +92,7 @@ public class DatalakeStore : IDatalakeStore
         }
     }
 
-    public async Task<StatusCode> DeleteDirectory(string path, ScopeContext context)
+    public async Task<Option> DeleteDirectory(string path, ScopeContext context)
     {
         context = context.With(_logger);
 
@@ -101,7 +102,8 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
-            await directoryClient.DeleteAsync(cancellationToken: context);
+            var response = await directoryClient.DeleteAsync(cancellationToken: context);
+            if (response.Status != 200) return (StatusCode.Conflict, response.ReasonPhrase);
 
             return StatusCode.OK;
         }
@@ -112,7 +114,7 @@ public class DatalakeStore : IDatalakeStore
         }
     }
 
-    public async Task<StatusCode> Exist(string path, ScopeContext context)
+    public async Task<Option> Exist(string path, ScopeContext context)
     {
         context = context.With(_logger);
 
@@ -177,24 +179,22 @@ public class DatalakeStore : IDatalakeStore
     {
         context = context.With(_logger);
         queryParameter.NotNull();
-        queryParameter = queryParameter with { Filter = WithBasePath(queryParameter.Filter) };
+        queryParameter = queryParameter with
+        {
+            Filter = WithBasePath(queryParameter.Filter),
+            BasePath = WithBasePath(queryParameter.BasePath),
+        };
         context.Location().LogTrace("Searching {queryParameter}", queryParameter);
 
         var collection = new List<DatalakePathItem>();
-
-        string basePath = queryParameter.Filter
-            .Split('/', StringSplitOptions.RemoveEmptyEntries)
-            .TakeWhile(x => x.IndexOf('*') < 0)
-            .Join('/');
-
-        bool hasWildcard = queryParameter.Filter != basePath;
+        var matcher = queryParameter.GetMatcher();
 
         int index = -1;
         try
         {
-            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(basePath, queryParameter.Recurse, cancellationToken: context))
+            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.BasePath, queryParameter.Recurse, cancellationToken: context))
             {
-                if (hasWildcard && !pathItem.Name.Match(queryParameter.Filter)) continue;
+                if (!matcher.IsMatch(pathItem.Name, pathItem.IsDirectory == true)) continue;
 
                 index++;
                 if (index < queryParameter.Index) continue;
@@ -227,7 +227,7 @@ public class DatalakeStore : IDatalakeStore
         catch (Exception ex)
         {
             context.Location().LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
-            return new Option<QueryResponse<DatalakePathItem>>(StatusCode.BadRequest, ex.ToString());
+            return (StatusCode.BadRequest, ex.ToString());
         }
     }
 
@@ -246,7 +246,7 @@ public class DatalakeStore : IDatalakeStore
         return await Upload(path, memoryBuffer, overwrite, data, context);
     }
 
-    public async Task<bool> TestConnection(ScopeContext context)
+    public async Task<Option> TestConnection(ScopeContext context)
     {
         context = context.With(_logger);
         context.Location().LogTrace("Testing connection");
@@ -255,22 +255,24 @@ public class DatalakeStore : IDatalakeStore
         {
             Response<bool> response = await _fileSystem.ExistsAsync(cancellationToken: context);
             context.Location().LogInformation("Testing exist of file system, exists={fileSystemExist}", response.Value);
-            return response.Value;
+            return response.Value ? StatusCode.OK : StatusCode.ServiceUnavailable;
         }
         catch (Exception ex)
         {
             context.Location().LogWarning(ex, "Failed exist for file systgem");
-            return false;
+            return StatusCode.ServiceUnavailable;
         }
     }
 
-    private string WithBasePath(string? path) => new[]
+    private string WithBasePath(string? path) => (_azureStoreOption.BasePath, path) switch
     {
-        _azureStoreOption.BasePath,
-        path,
-    }.Where(x => x.IsNotEmpty())
-    .Join('/')
-    .RemoveTrailing('/');
+        (string v, null) => v,
+        (string v1, string v2) => (v1 + "/" + v2)
+            .Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Join('/'),
+
+        _ => throw new ArgumentException("BasePath and Path is null"),
+    };
 
     private string RemoveBaseRoot(string path)
     {
@@ -310,6 +312,15 @@ public class DatalakeStore : IDatalakeStore
     }
 
 
+    private async Task<Option<DatalakePathProperties>> InternalGetPathPropertiesOrCreate(string path, ScopeContext context)
+    {
+        var properties = await InternalGetPathProperties(path, context);
+        if (properties.IsOk()) return properties;
+
+        await _fileSystem.GetFileClient(path).CreateIfNotExistsAsync(PathResourceType.File);
+        return await InternalGetPathProperties(path, context);
+    }
+
     private async Task<Option<DatalakePathProperties>> InternalGetPathProperties(string path, ScopeContext context)
     {
         context.Location().LogTrace("Getting path {path} properties", path);
@@ -324,7 +335,7 @@ public class DatalakeStore : IDatalakeStore
         catch (Exception ex)
         {
             context.Location().LogError(ex, "Failed to GetPathProperties for file {path}", path);
-            return new Option<DatalakePathProperties>(StatusCode.BadRequest);
+            return new Option<DatalakePathProperties>(StatusCode.NotFound);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Toolbox.Graph;
+﻿using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -13,6 +12,11 @@ public class GraphFileStoreActorConnector : IGraphFileStore
     public Task<Option<string>> Add(string path, DataETag data, ScopeContext context)
     {
         return _clusterClient.GetFileStoreActor(path).Add(data, context);
+    }
+
+    public Task<Option> Append(string path, DataETag data, ScopeContext context)
+    {
+        throw new NotImplementedException();
     }
 
     public Task<Option> Delete(string path, ScopeContext context)
@@ -30,7 +34,7 @@ public class GraphFileStoreActorConnector : IGraphFileStore
         return _clusterClient.GetFileStoreActor(path).Get(context);
     }
 
-    public Task<ImmutableArray<string>> Search(string pattern, ScopeContext context)
+    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
     {
         return _clusterClient.GetFileStoreSearchActor().Search(pattern, context);
     }

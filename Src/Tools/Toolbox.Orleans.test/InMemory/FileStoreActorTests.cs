@@ -35,13 +35,13 @@ public class FileStoreActorTests : IClassFixture<InMemoryClusterFixture>
 
         IFileStoreSearchActor searchActor = _inMemoryFixture.Cluster.Client.GetFileStoreSearchActor();
         var searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(1);
+        searchList.Count.Should().Be(1);
         searchList[0].Should().Be(path);
 
         IFileStore fileStore = InMemoryClusterFixture.FileStore;
         var search = await fileStore.Search("contract/company1.com/**/*", NullScopeContext.Instance);
         search.Should().NotBeNull();
-        search.Length.Should().Be(1);
+        search.Count.Should().Be(1);
         search[0].Should().Be(path);
 
         var deleteOption = await fileStoreActor.Delete(NullScopeContext.Instance);
@@ -49,10 +49,10 @@ public class FileStoreActorTests : IClassFixture<InMemoryClusterFixture>
 
         search = await fileStore.Search("contract/company1.com/**/*", NullScopeContext.Instance);
         search.Should().NotBeNull();
-        search.Length.Should().Be(0);
+        search.Count.Should().Be(0);
 
         searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(0);
+        searchList.Count.Should().Be(0);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class FileStoreActorTests : IClassFixture<InMemoryClusterFixture>
         }, dataflowBlockOptions);
 
         var files = await InMemoryClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
-        files.Length.Should().Be(0);
+        files.Count.Should().Be(0);
 
         Enumerable.Range(0, fileCount).ForEach(x => addBlock.Post($"contract/scale_company.com/contract{x}.json"));
         addBlock.Complete();
@@ -120,7 +120,7 @@ public class FileStoreActorTests : IClassFixture<InMemoryClusterFixture>
         deletePathCount.Should().Be(fileCount);
 
         files = await InMemoryClusterFixture.FileStore.Search("contract/scale_company/**/*", NullScopeContext.Instance);
-        files.Length.Should().Be(0);
+        files.Count.Should().Be(0);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class FileStoreActorTests : IClassFixture<InMemoryClusterFixture>
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxParallelCount });
 
         var files = await InMemoryClusterFixture.FileStore.Search("contract/stress_company/**/*", NullScopeContext.Instance);
-        files.Length.Should().Be(0);
+        files.Count.Should().Be(0);
 
         Enumerable.Range(0, fileCount).ForEach(x => addBlock.Post($"contract/stress_company.com/contract{x}.json"));
         addBlock.Complete();
@@ -188,6 +188,6 @@ public class FileStoreActorTests : IClassFixture<InMemoryClusterFixture>
         deletePathCount.Should().Be(fileCount);
 
         files = await InMemoryClusterFixture.FileStore.Search("contract/stress_company/**/*", NullScopeContext.Instance);
-        files.Length.Should().Be(0);
+        files.Count.Should().Be(0);
     }
 }

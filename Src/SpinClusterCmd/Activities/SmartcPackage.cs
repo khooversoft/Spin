@@ -118,7 +118,7 @@ internal class SmartcPackage : ICommandRoute
         {
             using var zipArchive = new ZipArchive(stream, ZipArchiveMode.Create, false);
 
-            zipArchive.CompressFiles(copy, context.Token);
+            zipArchive.CompressFiles(copy, context.CancellationToken);
         }
 
         if (verbose) dump(copy);

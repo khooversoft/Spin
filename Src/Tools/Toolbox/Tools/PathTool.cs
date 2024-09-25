@@ -70,21 +70,4 @@ public static class PathTool
 
         return path;
     }
-
-    //public static string CreateFileId(string path, string? extension = null)
-    //{
-    //    string[] parts = path.NotEmpty().Split('/', StringSplitOptions.RemoveEmptyEntries).ToArray();
-    //    if (parts.Length < 2) return PathTool.SetExtension(path, extension);
-
-    //    string f1 = PathTool.SetExtension(parts[^1], extension);
-    //    string newPath = parts[..^1].Append(f1).Join('/');
-    //    string encodedPath = ToEncoding(newPath);
-
-    //    string storePath = parts[..^1]
-    //        .Select(x => ToEncoding(x))
-    //        .Append(encodedPath)
-    //        .Join('/');
-
-    //    return storePath.ToLower();
-    //}
 }

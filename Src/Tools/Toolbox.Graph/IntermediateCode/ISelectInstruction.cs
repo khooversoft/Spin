@@ -1,5 +1,5 @@
 ﻿namespace Toolbox.Graph;
 
-internal interface ISelectInstruction
+public interface ISelectInstruction
 {
 }

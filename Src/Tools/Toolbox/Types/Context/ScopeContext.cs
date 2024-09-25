@@ -19,7 +19,7 @@ public readonly record struct ScopeContext : ILoggingContext
     public ScopeContext(ILogger logger, CancellationToken token = default)
     {
         Logger = logger.NotNull();
-        Token = token;
+        CancellationToken = token;
 
         TraceId = Guid.NewGuid().ToString();
     }
@@ -28,13 +28,13 @@ public readonly record struct ScopeContext : ILoggingContext
     {
         TraceId = traceId.NotEmpty();
         Logger = logger.NotNull();
-        Token = token;
+        CancellationToken = token;
     }
 
     public string TraceId { get; }
 
-    [JsonIgnore] public bool IsCancellationRequested => Token.IsCancellationRequested;
-    [JsonIgnore] public CancellationToken Token { get; init; }
+    [JsonIgnore] public bool IsCancellationRequested => CancellationToken.IsCancellationRequested;
+    [JsonIgnore] public CancellationToken CancellationToken { get; init; }
     [JsonIgnore] public ILogger Logger { get; }
     [JsonIgnore] public ScopeContext Context => this;
 
@@ -45,7 +45,7 @@ public readonly record struct ScopeContext : ILoggingContext
         return (ScopeContextTools.AppendMessage(message, "traceId={traceId}"), ScopeContextTools.AppendArgs(args, TraceId));
     }
 
-    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger.NotNull(), Token);
+    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger.NotNull(), CancellationToken);
 
-    public static implicit operator CancellationToken(ScopeContext context) => context.Token;
+    public static implicit operator CancellationToken(ScopeContext context) => context.CancellationToken;
 }

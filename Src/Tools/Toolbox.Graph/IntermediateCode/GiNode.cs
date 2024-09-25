@@ -6,7 +6,7 @@ using Toolbox.Types;
 namespace Toolbox.Graph;
 
 
-internal sealed record GiNode : IGraphInstruction
+public sealed record GiNode : IGraphInstruction
 {
     public GiChangeType ChangeType { get; init; } = GiChangeType.None;
     public string Key { get; init; } = null!;

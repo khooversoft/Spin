@@ -19,18 +19,25 @@ public class DatalakeFileStoreConnector : IFileStore, IGraphFileStore
         return result.Return().ToString();
     }
 
+    public async Task<Option> Append(string path, DataETag data, ScopeContext context)
+    {
+        var result = await _datalakeStore.Append(path, data, context);
+        return result;
+    }
+
     public async Task<Option> Delete(string path, ScopeContext context)
     {
         var result = await _datalakeStore.Delete(path, context);
-        return new Option(result);
+        return result;
     }
 
-    public async Task<Option> Exist(string path, ScopeContext context) => new Option(await _datalakeStore.Exist(path, context));
+    public async Task<Option> Exist(string path, ScopeContext context) => await _datalakeStore.Exist(path, context);
+
     public Task<Option<DataETag>> Get(string path, ScopeContext context) => _datalakeStore.Read(path, context);
 
-    public async Task<ImmutableArray<string>> Search(string pattern, ScopeContext context)
+    public async Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
     {
-        var query = new QueryParameter { Filter = pattern };
+        var query = QueryParameter.Parse(pattern);
         var result = await _datalakeStore.Search(query, context);
         if (result.IsError()) return ImmutableArray<string>.Empty;
 

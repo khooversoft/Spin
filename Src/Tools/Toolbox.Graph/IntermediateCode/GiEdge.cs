@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal sealed record GiEdge : IGraphInstruction
+public sealed record GiEdge : IGraphInstruction
 {
     public GiChangeType ChangeType { get; init; } = GiChangeType.None;
     public string From { get; init; } = null!;

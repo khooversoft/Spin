@@ -86,7 +86,7 @@ public static class StringToolExtensions
     /// <param name="files"></param>
     /// <param name="patterns"></param>
     /// <returns>list of items that match</returns>
-    public static ImmutableArray<string> Match(this IEnumerable<string> files, params string[] patterns)
+    public static IReadOnlyList<string> Match(this IEnumerable<string> files, params string[] patterns)
     {
         files.NotNull();
         if (files.Count() == 0 || patterns.Length == 0) return ImmutableArray<string>.Empty;
@@ -115,7 +115,7 @@ public static class StringToolExtensions
         Matcher matcher = new();
         patterns.ForEach(x => matcher.AddInclude(x));
 
-        var matchResult = matcher.Match(file);
+        var matchResult = matcher.Match(file, "/");
         return matchResult.HasMatches;
     }
 

@@ -34,14 +34,14 @@ public class FileStoreActorTests : IClassFixture<ActorClusterFixture>
 
         IFileStoreSearchActor searchActor = _actorFixture.Cluster.Client.GetFileStoreSearchActor();
         var searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(1);
+        searchList.Count.Should().Be(1);
         searchList[0].Should().Be(path);
 
         var deleteOption = await fileStoreActor.Delete(NullScopeContext.Instance);
         deleteOption.IsOk().Should().BeTrue();
 
         searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(0);
+        searchList.Count.Should().Be(0);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class FileStoreActorTests : IClassFixture<ActorClusterFixture>
 
         IFileStoreSearchActor searchActor = _actorFixture.Cluster.Client.GetFileStoreSearchActor();
         var searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(0);
+        searchList.Count.Should().Be(0);
 
         Enumerable.Range(0, fileCount).ForEach(x => addBlock.Post($"contract/scale_company.com/contract{x}.json"));
         addBlock.Complete();
@@ -110,7 +110,7 @@ public class FileStoreActorTests : IClassFixture<ActorClusterFixture>
         deletePathCount.Should().Be(fileCount);
 
         searchList = await searchActor.Search("contract/company1.com/**.*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(0);
+        searchList.Count.Should().Be(0);
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public class FileStoreActorTests : IClassFixture<ActorClusterFixture>
 
         IFileStoreSearchActor searchActor = _actorFixture.Cluster.Client.GetFileStoreSearchActor();
         var searchList = await searchActor.Search("contract/stress_company/**/*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(0);
+        searchList.Count.Should().Be(0);
 
         Enumerable.Range(0, fileCount).ForEach(x => addBlock.Post($"contract/stress_company.com/contract{x}.json"));
         addBlock.Complete();
@@ -179,6 +179,6 @@ public class FileStoreActorTests : IClassFixture<ActorClusterFixture>
         deletePathCount.Should().Be(fileCount);
 
         searchList = await searchActor.Search("contract/stress_company/**/*", NullScopeContext.Instance);
-        searchList.Length.Should().Be(0);
+        searchList.Count.Should().Be(0);
     }
 }

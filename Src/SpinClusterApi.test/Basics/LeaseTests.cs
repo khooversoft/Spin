@@ -40,7 +40,7 @@ public class LeaseTests : IClassFixture<ClusterApiFixture>
         leaseDataOption.IsOk().Should().BeTrue();
         (leaseData == leaseDataOption.Return()).Should().BeTrue();
 
-        var listResponse = await client.List(QueryParameter.Default, _context);
+        var listResponse = await client.List(QueryParameter.Parse("**/*"), _context);
         listResponse.IsOk().Should().BeTrue();
         listResponse.Return().Count().Should().Be(1);
         (leaseData == listResponse.Return().First()).Should().BeTrue();
@@ -86,7 +86,7 @@ public class LeaseTests : IClassFixture<ClusterApiFixture>
             (leaseData == leaseDataOption.Return()).Should().BeTrue();
         }
 
-        var listResponse = await client.List(QueryParameter.Default, _context);
+        var listResponse = await client.List(QueryParameter.Parse("**/*"), _context);
         listResponse.IsOk().Should().BeTrue();
         listResponse.Return().Count().Should().Be(4);
 

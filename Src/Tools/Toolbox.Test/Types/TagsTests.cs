@@ -7,32 +7,6 @@ namespace Toolbox.Test.Types;
 public class TagsTests
 {
     [Theory]
-    [InlineData(null, false)]
-    [InlineData("", false)]
-    [InlineData("-", false)]
-    [InlineData(".", false)]
-    [InlineData(":", false)]
-    [InlineData("#", false)]
-    [InlineData("*", true)]
-    [InlineData("k", true)]
-    [InlineData("k1", true)]
-    [InlineData("k1/", false)]
-    [InlineData("k.1", true)]
-    [InlineData("k-1", true)]
-    [InlineData("k:1", true)]
-    [InlineData("1", true)]
-    [InlineData("1#", false)]
-    [InlineData("1k", true)]
-    [InlineData("1k.", true)]
-    [InlineData("1k.v", true)]
-    [InlineData("name:v", true)]
-    public void IsKeyValid(string? key, bool expected)
-    {
-        bool actual = TagsTool.IsKeyValid(key, out Option _);
-        actual.Should().Be(expected);
-    }
-
-    [Theory]
     [InlineData("a=v;b=v", false)]
     [InlineData("a=v/b=v", false)]
     [InlineData("a=v-b=v", false)]

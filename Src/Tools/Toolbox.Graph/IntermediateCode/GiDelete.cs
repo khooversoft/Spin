@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal sealed record GiDelete : IGraphInstruction
+public sealed record GiDelete : IGraphInstruction
 {
     public IReadOnlyList<ISelectInstruction> Instructions { get; init; } = Array.Empty<ISelectInstruction>();
 
