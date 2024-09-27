@@ -29,7 +29,7 @@ public static class GraphTool
         string storePath = nodeKey
             .Split(new char[] { ':', '/' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(x => ToEncoding(x))
-            .Prepend("nodes")
+            .Prepend(GraphConstants.NodesDataBasePath)
             .Append(filePath)
             .Join('/');
 

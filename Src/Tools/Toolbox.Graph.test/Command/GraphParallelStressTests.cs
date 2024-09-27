@@ -13,7 +13,7 @@ public class GraphParallelStressTests
     {
         const int count = 1000;
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        var map = testClient.ServiceProvider.GetRequiredService<GraphMap>();
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
 
         await ActionParallel.Run(x => AddNodes(testClient, x), Enumerable.Range(0, count), 5);
         await ActionParallel.Run(x => AddEdges(testClient, x), Enumerable.Range(0, count - 1), 5);

@@ -18,5 +18,24 @@ public static class TransactionLogStartup
 
         return services;
     }
+
+    public static IServiceCollection AddTransactionLogProvider(this IServiceCollection services, string connectionString)
+    {
+        services.NotNull();
+        connectionString.NotEmpty();
+
+        services.AddSingleton(new TransactionLogFileOption { ConnectionString = connectionString });
+        services.AddSingleton<ITransactionLogWriter, TransactionLogFile>();
+
+        services.NotNull().AddSingleton<ITransactionLog, TransactionLogProvider>((service) =>
+        {
+            var writer = service.GetRequiredService<ITransactionLogWriter>();
+            var provider = new TransactionLogProvider();
+            provider.Add(writer);
+            return provider;
+        });
+
+        return services;
+    }
 }
 

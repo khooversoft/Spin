@@ -7,7 +7,7 @@ internal static class NodeInstruction
 {
     public static async Task<Option> Process(GiNode giNode, QueryExecutionContext pContext)
     {
-        pContext.GraphContext.Context.Location().LogInformation("Process giNode={giNode}", giNode);
+        pContext.TrxContext.Context.Location().LogInformation("Process giNode={giNode}", giNode);
 
         var result = giNode.ChangeType switch
         {
@@ -19,7 +19,7 @@ internal static class NodeInstruction
 
         pContext.AddQueryResult(result);
 
-        result.LogStatus(pContext.GraphContext.Context, $"Completed processing of giNode={giNode}");
+        result.LogStatus(pContext.TrxContext.Context, $"Completed processing of giNode={giNode}");
         return result;
     }
 
@@ -28,7 +28,7 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.GraphContext.Context.LogInformation("Adding giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogInformation("Adding giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.AddData(giNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -36,10 +36,10 @@ internal static class NodeInstruction
 
         var graphNode = new GraphNode(giNode.Key, giNode.Tags.RemoveDeleteCommands(), DateTime.UtcNow, dataMap);
 
-        var graphResult = pContext.GraphContext.Map.Nodes.Add(graphNode, pContext.GraphContext);
+        var graphResult = pContext.TrxContext.Map.Nodes.Add(graphNode, pContext.TrxContext);
         if (graphResult.IsError()) return graphResult;
 
-        pContext.GraphContext.Context.LogInformation("Added giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogInformation("Added giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
@@ -48,30 +48,30 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.GraphContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
 
-        if (pContext.GraphContext.Map.Nodes.TryGetValue(giNode.Key, out var readGraphNode))
+        if (pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var readGraphNode))
         {
-            var dataMapOption = await NodeDataTool.DeleteData([readGraphNode], pContext.GraphContext);
+            var dataMapOption = await NodeDataTool.DeleteData([readGraphNode], pContext.TrxContext);
             if (dataMapOption.IsError()) return dataMapOption;
         }
 
-        var graphResult = pContext.GraphContext.Map.Nodes.Remove(giNode.Key, pContext.GraphContext);
+        var graphResult = pContext.TrxContext.Map.Nodes.Remove(giNode.Key, pContext.TrxContext);
         if (!giNode.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.GraphContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
     private static async Task<Option> Set(GiNode giNode, QueryExecutionContext pContext)
     {
-        if (!pContext.GraphContext.Map.Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
+        if (!pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
         {
-            pContext.GraphContext.Context.LogInformation("Node key={key} not found, adding node for upsert", giNode.Key);
+            pContext.TrxContext.Context.LogInformation("Node key={key} not found, adding node for upsert", giNode.Key);
             return await Add(giNode, pContext);
         }
 
-        pContext.GraphContext.Context.LogInformation("Updating giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogInformation("Updating giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.MergeData(giNode, currentGraphNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -80,8 +80,8 @@ internal static class NodeInstruction
         var tags = TagsTool.ProcessTags(currentGraphNode.Tags, giNode.Tags);
         var graphNode = new GraphNode(giNode.Key, tags, DateTime.UtcNow, dataMap);
 
-        var updateOption = pContext.GraphContext.Map.Nodes.Set(graphNode, pContext.GraphContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.GraphContext.Context, $"Failed to upsert node key={giNode.Key}");
+        var updateOption = pContext.TrxContext.Map.Nodes.Set(graphNode, pContext.TrxContext);
+        if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, $"Failed to upsert node key={giNode.Key}");
 
         return StatusCode.OK;
     }

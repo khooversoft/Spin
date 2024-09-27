@@ -14,12 +14,12 @@ internal class QueryExecutionContext
     {
         Instructions = graphInstructions.NotNull().ToList();
         Cursor = new Cursor<IGraphInstruction>(Instructions);
-        GraphContext = graphContext.NotNull();
+        TrxContext = graphContext.NotNull();
     }
 
     public List<IGraphInstruction> Instructions { get; }
     public Cursor<IGraphInstruction> Cursor { get; }
-    public IGraphTrxContext GraphContext { get; }
+    public IGraphTrxContext TrxContext { get; }
     public bool IsMutating => Instructions.Any(x => x is GiNode || x is GiEdge || x is GiDelete);
     public int NextQueryNumber() => Interlocked.Increment(ref _queryNumber);
     public IReadOnlyList<QueryResult> QueryResult => _queryResult;
@@ -52,12 +52,6 @@ internal class QueryExecutionContext
         public void Set(ISelectInstruction instruction) => Interlocked.Exchange(ref _lastJoinInstruction, instruction);
         public ISelectInstruction? GetAndClear() => Interlocked.Exchange(ref _lastJoinInstruction, null);
     }
-}
-
-internal record QueryTrace
-{
-    public int QueryNumber { get; init; }
-    public Option Option { get; init; }
 }
 
 internal static class QueryExecutionContextTool

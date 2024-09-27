@@ -66,9 +66,9 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
             services.AddGrainFileStore();
             services.AddStoreCollection((services, config) =>
             {
-                config.Add(new StoreConfig("system", getFileStoreService));
-                config.Add(new StoreConfig("contract", getFileStoreService));
-                config.Add(new StoreConfig("nodes", getFileStoreService));
+                config.Add("system", getFileStoreService);
+                config.Add("contract", getFileStoreService);
+                config.Add("nodes", getFileStoreService);
             });
         });
 

@@ -46,8 +46,8 @@ internal static class NodeDataTool
 
     public static async Task<Option<DataETag>> GetData(string fileId, QueryExecutionContext pContext)
     {
-        var readOption = await pContext.GraphContext.FileStore.Get(fileId, pContext.GraphContext.Context);
-        readOption.LogStatus(pContext.GraphContext.Context, $" Get node data fileId={fileId}");
+        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context);
+        readOption.LogStatus(pContext.TrxContext.Context, $" Get node data fileId={fileId}");
         return readOption;
     }
 
@@ -71,10 +71,10 @@ internal static class NodeDataTool
 
         foreach (var dataLink in dataLinks.Where(x => x.remove))
         {
-            var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext.GraphContext);
+            var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext.TrxContext);
 
             if (deleteOption.IsError()) return deleteOption
-                    .LogStatus(pContext.GraphContext.Context, $"Cannot delete fileId={dataLink.graphLink.FileId}")
+                    .LogStatus(pContext.TrxContext.Context, $"Cannot delete fileId={dataLink.graphLink.FileId}")
                     .ToOptionStatus<IReadOnlyList<GraphLink>>();
         }
 
@@ -102,13 +102,13 @@ internal static class NodeDataTool
 
     private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
     {
-        pContext.GraphContext.Context.LogInformation("Writing node data fileId={fileId}", fileId);
-        var readOption = await pContext.GraphContext.FileStore.Get(fileId, pContext.GraphContext.Context);
+        pContext.TrxContext.Context.LogInformation("Writing node data fileId={fileId}", fileId);
+        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context);
 
-        var writeOption = await pContext.GraphContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.GraphContext.Context);
-        if (writeOption.IsError()) return writeOption.LogStatus(pContext.GraphContext.Context, $"Write node data fileId={fileId} failed").ToOptionStatus();
+        var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.TrxContext.Context);
+        if (writeOption.IsError()) return writeOption.LogStatus(pContext.TrxContext.Context, $"Write node data fileId={fileId} failed").ToOptionStatus();
 
-        pContext.GraphContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));
+        pContext.TrxContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));
         return StatusCode.OK;
     }
 }

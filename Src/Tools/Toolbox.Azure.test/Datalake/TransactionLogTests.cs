@@ -35,7 +35,7 @@ public class TransactionLogTests
                 };
 
                 TransactionLogFile writer = ActivatorUtilities.CreateInstance<TransactionLogFile>(service, option);
-                provider.Add("journal1", writer);
+                provider.Add(writer);
             })
             .BuildServiceProvider();
 

@@ -8,7 +8,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, DataETag>>
+public sealed class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<string, DataETag>>
 {
     private readonly ConcurrentDictionary<string, DataETag> _store = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();

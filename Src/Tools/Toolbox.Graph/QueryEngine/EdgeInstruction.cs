@@ -7,7 +7,7 @@ internal class EdgeInstruction
 {
     public static Option Process(GiEdge giEdge, QueryExecutionContext pContext)
     {
-        pContext.GraphContext.Context.Location().LogInformation("Process giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.Location().LogInformation("Process giEdge={giEdge}", giEdge);
 
         var result = giEdge.ChangeType switch
         {
@@ -19,7 +19,7 @@ internal class EdgeInstruction
 
         pContext.AddQueryResult(result);
 
-        result.LogStatus(pContext.GraphContext.Context, $"Completed processing of giEdge={giEdge}");
+        result.LogStatus(pContext.TrxContext.Context, $"Completed processing of giEdge={giEdge}");
         return result;
     }
 
@@ -28,14 +28,14 @@ internal class EdgeInstruction
         giEdge.NotNull();
         pContext.NotNull();
 
-        pContext.GraphContext.Context.LogInformation("Adding giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogInformation("Adding giEdge={giEdge}", giEdge);
 
         var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, giEdge.Tags.RemoveDeleteCommands(), DateTime.UtcNow);
 
-        var graphResult = pContext.GraphContext.Map.Edges.Add(graphEdge, pContext.GraphContext);
+        var graphResult = pContext.TrxContext.Map.Edges.Add(graphEdge, pContext.TrxContext);
         if (graphResult.IsError()) return graphResult;
 
-        pContext.GraphContext.Context.LogInformation("Added giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogInformation("Added giEdge={giEdge}", giEdge);
         return StatusCode.OK;
     }
 
@@ -44,29 +44,29 @@ internal class EdgeInstruction
         giEdge.NotNull();
         pContext.NotNull();
 
-        pContext.GraphContext.Context.LogInformation("Deleting giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogInformation("Deleting giEdge={giEdge}", giEdge);
 
-        var graphResult = pContext.GraphContext.Map.Edges.Remove(giEdge.GetPrimaryKey(), pContext.GraphContext);
+        var graphResult = pContext.TrxContext.Map.Edges.Remove(giEdge.GetPrimaryKey(), pContext.TrxContext);
         if (!giEdge.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.GraphContext.Context.LogInformation("Deleting giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogInformation("Deleting giEdge={giEdge}", giEdge);
         return StatusCode.OK;
     }
 
     private static Option Set(GiEdge giEdge, QueryExecutionContext pContext)
     {
-        pContext.GraphContext.Context.LogInformation("Updating giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogInformation("Updating giEdge={giEdge}", giEdge);
 
         IReadOnlyDictionary<string, string?> tags = giEdge.Tags;
-        if (pContext.GraphContext.Map.Edges.TryGetValue(giEdge.GetPrimaryKey(), out var readGraphEdge))
+        if (pContext.TrxContext.Map.Edges.TryGetValue(giEdge.GetPrimaryKey(), out var readGraphEdge))
         {
             tags = TagsTool.ProcessTags(readGraphEdge.NotNull().Tags, giEdge.Tags);
         }
 
         var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, tags, DateTime.UtcNow);
 
-        var updateOption = pContext.GraphContext.Map.Edges.Set(graphEdge, pContext.GraphContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.GraphContext.Context, $"Failed to update node key={giEdge}");
+        var updateOption = pContext.TrxContext.Map.Edges.Set(graphEdge, pContext.TrxContext);
+        if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, $"Failed to update node key={giEdge}");
 
         return StatusCode.OK;
     }

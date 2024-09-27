@@ -19,7 +19,7 @@ public class GraphEngine2Tests
     public async Task AddNodeWithData()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         // Add node with data
@@ -86,7 +86,7 @@ public class GraphEngine2Tests
     public async Task AddNodeWithDataAndDeleteData()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         // Add node with data
@@ -144,7 +144,7 @@ public class GraphEngine2Tests
     public async Task AddNodeWithTwoData()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         var contractRec = new TestContractRecord("marko", 29);
@@ -238,7 +238,7 @@ public class GraphEngine2Tests
     public async Task AddNodeWithTwoDataDeletingOne()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<GraphMap>();
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         var contractRec = new TestContractRecord("marko", 29);

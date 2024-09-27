@@ -1,30 +1,45 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
+using Toolbox.TransactionLog;
 
 namespace Toolbox.Graph;
 
-//public static class GraphStartup
-//{
-//    public static IServiceCollection AddGraphInMemoryFileStore(this IServiceCollection services)
-//    {
-//        services.NotNull().AddSingleton<IGraphFileStore, InMemoryGraphFileStore>();
-//        return services;
-//    }
-//}
+public static class GraphStartup
+{
+    public static IServiceCollection AddGraphEngine(this IServiceCollection services, string? mapDatabasePath = null)
+    {
+        services.NotNull();
+
+        services.AddSingleton<IGraphContext, GraphContext>();
+        services.AddTransactionLogProvider("journal=/journal/data");
+        services.AddSingleton<IGraphClient, GraphClientInMemory>();
+
+        services.AddSingleton<IGraphMapStore, GraphMapStore>(s =>
+        {
+            var path = mapDatabasePath ?? GraphConstants.MapDatabasePath;
+            var graphStore = ActivatorUtilities.CreateInstance<GraphMapStore>(s, path);
+            return graphStore;
+        });
+
+        return services;
+    }
+}
 
 public static class GraphTestStartup
 {
     public static GraphTestClient CreateGraphTestHost(GraphMap? graphMap = null)
     {
         var services = new ServiceCollection()
-            .AddLogging()
+            .AddLogging(config => config.AddDebug())
             .AddInMemoryFileStore()
-            .AddSingleton<GraphMap>(graphMap ?? new GraphMap())
-            .AddSingleton<IGraphContext, GraphContext>()
-            .AddSingleton<IGraphClient, GraphClientInMemory>()
+            .AddGraphEngine()
             .BuildServiceProvider();
 
-        var graphClient = new GraphTestClient(services.GetRequiredService<IGraphContext>(), services);
+        IGraphContext graphContext = services.GetRequiredService<IGraphContext>();
+        if (graphMap != null) graphContext.SetMap(graphMap);
+
+        var graphClient = new GraphTestClient(graphContext, services);
         return graphClient;
     }
 }

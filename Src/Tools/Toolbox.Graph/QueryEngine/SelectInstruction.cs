@@ -10,11 +10,11 @@ internal static class SelectInstruction
 {
     public static async Task<Option> Process(GiSelect giSelect, QueryExecutionContext pContext)
     {
-        pContext.GraphContext.Context.Location().LogInformation("Process giSelect={giSelect}", giSelect);
+        pContext.TrxContext.Context.Location().LogInformation("Process giSelect={giSelect}", giSelect);
         var result = await Select(giSelect.Instructions, pContext);
-        result.LogStatus(pContext.GraphContext.Context, "Select return status");
+        result.LogStatus(pContext.TrxContext.Context, "Select return status");
 
-        pContext.GraphContext.Context.LogInformation("Completed processing of giSelect={giSelect}", giSelect);
+        pContext.TrxContext.Context.LogInformation("Completed processing of giSelect={giSelect}", giSelect);
         return result;
     }
 
@@ -38,12 +38,12 @@ internal static class SelectInstruction
 
             if (result.IsError())
             {
-                result.LogStatus(pContext.GraphContext.Context, $"Error in processing of selectInstruction={selectInstruction}");
+                result.LogStatus(pContext.TrxContext.Context, $"Error in processing of selectInstruction={selectInstruction}");
                 break;
             }
         }
 
-        pContext.GraphContext.Context.LogInformation("Completed processing select, count={count}", instructions.Count);
+        pContext.TrxContext.Context.LogInformation("Completed processing select, count={count}", instructions.Count);
         return result;
     }
 
@@ -52,10 +52,10 @@ internal static class SelectInstruction
         IEnumerable<GraphNode> nodes = pContext.LastJoin.GetAndClear() switch
         {
             null => findRootNodes(),
-            GiLeftJoin left => pContext.GetLastQueryResult().NotNull().Edges.Select(x => pContext.GraphContext.Map.Nodes[x.ToKey]),
+            GiLeftJoin left => pContext.GetLastQueryResult().NotNull().Edges.Select(x => pContext.TrxContext.Map.Nodes[x.ToKey]),
             GiFullJoin full => pContext.GetLastQueryResult().NotNull().Edges.SelectMany(x => (IEnumerable<GraphNode>)[
-                pContext.GraphContext.Map.Nodes[x.FromKey],
-                pContext.GraphContext.Map.Nodes[x.ToKey] ]
+                pContext.TrxContext.Map.Nodes[x.FromKey],
+                pContext.TrxContext.Map.Nodes[x.ToKey] ]
                 ),
 
             _ => throw new UnreachableException()
@@ -76,9 +76,9 @@ internal static class SelectInstruction
 
         IEnumerable<GraphNode> findRootNodes() => giNodeSelect switch
         {
-            var v when v.Tags.Any(x => x.Key == "*") => pContext.GraphContext.Map.Nodes,
-            { Key: string v } when !HasWildCard(v) => pContext.GraphContext.Map.Nodes.TryGetValue(v, out var gn) ? [gn] : [],
-            _ => pContext.GraphContext.Map.Nodes,
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Nodes,
+            { Key: string v } when !HasWildCard(v) => pContext.TrxContext.Map.Nodes.TryGetValue(v, out var gn) ? [gn] : [],
+            _ => pContext.TrxContext.Map.Nodes,
         };
     }
 
@@ -107,17 +107,17 @@ internal static class SelectInstruction
 
         IEnumerable<GraphEdge> findRootEdges() => giEdgeSelect switch
         {
-            var v when v.Tags.Any(x => x.Key == "*") => pContext.GraphContext.Map.Edges,
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Edges,
             { From: string v1, To: string v2, Type: string v3 } when !HasWildCard(v1) && !HasWildCard(v2) && !HasWildCard(v3) => lookupEdge(v1, v2, v3),
-            _ => pContext.GraphContext.Map.Edges,
+            _ => pContext.TrxContext.Map.Edges,
         };
 
         IEnumerable<GraphEdge> lookupEdge(string from, string to, string edgeType) =>
-            pContext.GraphContext.Map.Edges.TryGetValue((from, to, edgeType), out GraphEdge? ge) ? [ge.NotNull()] : [];
+            pContext.TrxContext.Map.Edges.TryGetValue((from, to, edgeType), out GraphEdge? ge) ? [ge.NotNull()] : [];
 
         IEnumerable<string> getLastNodeResultKeys() => pContext.GetLastQueryResult().NotNull().Nodes.Select(x => x.Key);
-        IEnumerable<GraphEdge> lookupNodeKeys() => pContext.GraphContext.Map.Edges.Lookup(pContext.GraphContext.Map.Edges.LookupByNodeKey(getLastNodeResultKeys()));
-        IEnumerable<GraphEdge> lookupFromKeys() => pContext.GraphContext.Map.Edges.Lookup(pContext.GraphContext.Map.Edges.LookupByFromKey(getLastNodeResultKeys()));
+        IEnumerable<GraphEdge> lookupNodeKeys() => pContext.TrxContext.Map.Edges.Lookup(pContext.TrxContext.Map.Edges.LookupByNodeKey(getLastNodeResultKeys()));
+        IEnumerable<GraphEdge> lookupFromKeys() => pContext.TrxContext.Map.Edges.Lookup(pContext.TrxContext.Map.Edges.LookupByFromKey(getLastNodeResultKeys()));
     }
 
     private static async Task<Option> ReturnNames(GiReturnNames giReturnNames, QueryExecutionContext pContext)
@@ -125,7 +125,7 @@ internal static class SelectInstruction
         var latest = pContext.GetLastQueryResult();
         if (latest == null)
         {
-            pContext.GraphContext.Context.LogError("No data set found for giReturnNames={giReturnNames}");
+            pContext.TrxContext.Context.LogError("No data set found for giReturnNames={giReturnNames}");
             return (StatusCode.BadRequest, "No data set found");
         }
 
@@ -139,7 +139,7 @@ internal static class SelectInstruction
             var readOption = await NodeDataTool.GetData(item, pContext);
             if (readOption.IsError())
             {
-                pContext.GraphContext.Context.LogError("Cannot get data for fileId={item.FileId} for nodeKey={nodeKey}", item.FileId, item.NodeKey);
+                pContext.TrxContext.Context.LogError("Cannot get data for fileId={item.FileId} for nodeKey={nodeKey}", item.FileId, item.NodeKey);
                 continue;
             }
 

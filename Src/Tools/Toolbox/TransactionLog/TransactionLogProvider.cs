@@ -12,6 +12,7 @@ public interface ITransactionLog
 
 public interface ITransactionLogWriter
 {
+    public string Name { get; }
     Task<Option> Write(JournalEntry journalEntry, ScopeContext context);
 }
 
@@ -24,13 +25,12 @@ public class TransactionLogProvider : ITransactionLog
 
     public IReadOnlyDictionary<string, ITransactionLogWriter> Journals => _journals;
 
-    public void Add(string name, ITransactionLogWriter transactionLogWriter)
+    public void Add(ITransactionLogWriter transactionLogWriter)
     {
-        name.NotEmpty();
         transactionLogWriter.NotNull();
 
-        var result = _journals.TryAdd(name, transactionLogWriter);
-        result.Assert(x => x == true, $"Attempting to add duplicate journal name={name}");
+        var result = _journals.TryAdd(transactionLogWriter.Name, transactionLogWriter);
+        result.Assert(x => x == true, $"Attempting to add duplicate journal name={transactionLogWriter.Name}");
     }
 
     public async Task<Option<ILogicalTrx>> StartTransaction(ScopeContext context)

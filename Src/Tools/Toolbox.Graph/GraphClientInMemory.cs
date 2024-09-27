@@ -11,15 +11,13 @@ public class GraphClientInMemory : IGraphClient
 
     public Task<Option<QueryBatchResult>> ExecuteBatch(string command, ScopeContext context)
     {
-        var trxContext = _graphContext.CreateTrxContext(context);
-        var result = QueryExecution.Execute(trxContext, command);
+        var result = QueryExecution.Execute(_graphContext, command, context);
         return result;
     }
 
     public async Task<Option<QueryResult>> Execute(string command, ScopeContext context)
     {
-        var trxContext = _graphContext.CreateTrxContext(context);
-        var result = await QueryExecution.Execute(trxContext, command);
+        var result = await QueryExecution.Execute(_graphContext, command, context);
         if (result.IsError()) return result.ToOptionStatus<QueryResult>();
 
         return result.Return().Items.Last();

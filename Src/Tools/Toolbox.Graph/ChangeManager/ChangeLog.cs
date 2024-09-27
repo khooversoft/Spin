@@ -15,7 +15,6 @@ public class ChangeLog
     public void Push(IChangeLog changeLog)
     {
         changeLog.NotNull();
-
         _commands.Push(changeLog);
     }
 

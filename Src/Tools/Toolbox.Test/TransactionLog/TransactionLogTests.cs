@@ -20,12 +20,7 @@ public class TransactionLogTests
         _services = new ServiceCollection()
             .AddInMemoryFileStore()
             .AddLogging(config => config.AddDebug())
-            .AddTransactionLogProvider((service, provider) =>
-            {
-                var option = new TransactionLogFileOption { ConnectionString = "journal1=/journal1/data" };
-                TransactionLogFile writer = ActivatorUtilities.CreateInstance<TransactionLogFile>(service, option);
-                provider.Add("journal1", writer);
-            })
+            .AddTransactionLogProvider("journal1=/journal1/data")
             .BuildServiceProvider();
 
         _logger = _services.GetRequiredService<ILogger<TransactionLogTests>>();

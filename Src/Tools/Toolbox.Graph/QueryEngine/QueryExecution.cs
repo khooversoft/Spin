@@ -7,9 +7,11 @@ namespace Toolbox.Graph;
 
 public static class QueryExecution
 {
-    public static async Task<Option<QueryBatchResult>> Execute(IGraphTrxContext graphContext, string graphQuery)
+    public static async Task<Option<QueryBatchResult>> Execute(IGraphContext graphContext, string graphQuery, ScopeContext context)
     {
-        var pContextOption = ParseQuery(graphQuery, graphContext);
+        var graphTrxContext = new GraphTrxContext(graphContext, context);
+
+        var pContextOption = ParseQuery(graphQuery, graphTrxContext);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
 
         var graphQueryResult = await ExecuteInstruction(pContextOption.Return());
@@ -22,7 +24,7 @@ public static class QueryExecution
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphContext.Context);
         if (parse.Status.IsError()) return parse.Status.ToOptionStatus<QueryExecutionContext>();
 
-        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();
         var instructions = InterLangTool.Build(syntaxPairs);
         if (instructions.IsError()) return instructions.LogStatus(graphContext.Context, $"Parsing query: {graphQuery}").ToOptionStatus<QueryExecutionContext>();
 
@@ -33,7 +35,7 @@ public static class QueryExecution
     {
         bool write = pContext.IsMutating;
 
-        GraphMap map = pContext.GraphContext.Map;
+        GraphMap map = pContext.TrxContext.Map;
         using (var release = write ? (await map.ReadWriterLock.WriterLockAsync()) : (await map.ReadWriterLock.ReaderLockAsync()))
         {
             while (pContext.Cursor.TryGetValue(out var graphInstruction))
@@ -49,8 +51,8 @@ public static class QueryExecution
 
                 if (queryResult.IsError())
                 {
-                    pContext.GraphContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.GraphContext.Context, queryResult.ToString());
-                    pContext.GraphContext.ChangeLog.Rollback();
+                    pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
+                    pContext.TrxContext.ChangeLog.Rollback();
                     break;
                 }
             }
