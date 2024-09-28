@@ -9,12 +9,19 @@ public static class QueryExecution
 {
     public static async Task<Option<QueryBatchResult>> Execute(IGraphContext graphContext, string graphQuery, ScopeContext context)
     {
-        var graphTrxContext = new GraphTrxContext(graphContext, context);
+        var trxContextOption = await graphContext.TransactionLog.StartTransaction(context);
+        if (trxContextOption.IsError()) return trxContextOption.ToOptionStatus<QueryBatchResult>();
+        var trxContext = trxContextOption.Return();
+
+        var graphTrxContext = new GraphTrxContext(graphContext, trxContext, context);
 
         var pContextOption = ParseQuery(graphQuery, graphTrxContext);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
 
-        var graphQueryResult = await ExecuteInstruction(pContextOption.Return());
+        var graphQueryResultOption = await ExecuteInstruction(pContextOption.Return());
+        if (graphQueryResultOption.IsError()) return graphQueryResultOption;
+        var graphQueryResult = graphQueryResultOption.Return();
+
         return new Option<QueryBatchResult>(graphQueryResult, graphQueryResult.Option.StatusCode, graphQueryResult.Option.Error);
     }
 
@@ -31,7 +38,7 @@ public static class QueryExecution
         return new QueryExecutionContext(instructions.Return(), graphContext);
     }
 
-    private static async Task<QueryBatchResult> ExecuteInstruction(QueryExecutionContext pContext)
+    private static async Task<Option<QueryBatchResult>> ExecuteInstruction(QueryExecutionContext pContext)
     {
         bool write = pContext.IsMutating;
 
@@ -52,7 +59,7 @@ public static class QueryExecution
                 if (queryResult.IsError())
                 {
                     pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
-                    pContext.TrxContext.ChangeLog.Rollback();
+                    await pContext.TrxContext.ChangeLog.Rollback();
                     break;
                 }
             }

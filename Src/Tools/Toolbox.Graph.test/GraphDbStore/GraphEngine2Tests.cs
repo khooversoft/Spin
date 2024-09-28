@@ -30,7 +30,7 @@ public class GraphEngine2Tests
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
-        ((InMemoryFileStore)fileStore).Count.Should().Be(1);
+        await CheckFileStoreCount(fileStore, 1);
 
         // Verify data was writen correctly
         var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance);
@@ -66,7 +66,7 @@ public class GraphEngine2Tests
         // Delete node and verify data was deleted as well (RI rules)
         var deleteResult = await engine.Execute("delete (key=node1);", NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue();
-        ((InMemoryFileStore)fileStore).Count.Should().Be(0);
+        await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
         readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance);
@@ -97,7 +97,7 @@ public class GraphEngine2Tests
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
-        ((InMemoryFileStore)fileStore).Count.Should().Be(1);
+        await CheckFileStoreCount(fileStore, 1);
 
         // Verify data was writen correctly
         var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance);
@@ -110,7 +110,7 @@ public class GraphEngine2Tests
         // Remove data from node and verify
         var removeData = await engine.Execute("set node key=node1 set -contract;", NullScopeContext.Instance);
         removeData.IsOk().Should().BeTrue(removeData.ToString());
-        ((InMemoryFileStore)fileStore).Count.Should().Be(0);
+        await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
@@ -156,7 +156,7 @@ public class GraphEngine2Tests
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
-        ((InMemoryFileStore)fileStore).Count.Should().Be(2);
+        await CheckFileStoreCount(fileStore, 2);
 
         (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance)).Action((Action<Option<DataETag>>)(x =>
         {
@@ -220,7 +220,7 @@ public class GraphEngine2Tests
         var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue();
 
-        ((InMemoryFileStore)fileStore).Count.Should().Be(0);
+        await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
 
@@ -250,7 +250,7 @@ public class GraphEngine2Tests
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
-        ((InMemoryFileStore)fileStore).Count.Should().Be(2);
+        await CheckFileStoreCount(fileStore, 2);
 
         (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance)).Action((Action<Option<DataETag>>)(x =>
         {
@@ -273,7 +273,7 @@ public class GraphEngine2Tests
         // Delete data "contract" and verify data was deleted
         var removeDataOption = await engine.Execute("set node key=node1 set -contract, t2=v2;", NullScopeContext.Instance);
         removeDataOption.IsOk().Should().BeTrue(removeDataOption.ToString());
-        ((InMemoryFileStore)fileStore).Count.Should().Be(1);
+        await CheckFileStoreCount(fileStore, 1);
         map.Nodes.Count.Should().Be(1);
         map.Nodes["node1"].Action(x =>
         {
@@ -312,7 +312,7 @@ public class GraphEngine2Tests
         var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Instance);
         deleteResult.IsOk().Should().BeTrue();
 
-        ((InMemoryFileStore)fileStore).Count.Should().Be(0);
+        await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
 
@@ -324,5 +324,10 @@ public class GraphEngine2Tests
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
         });
+    }
+
+    private async Task CheckFileStoreCount(IFileStore fileStore, int count)
+    {
+        (await ((InMemoryFileStore)fileStore).Search("nodes/**/*", NullScopeContext.Instance)).Count.Should().Be(count);
     }
 }

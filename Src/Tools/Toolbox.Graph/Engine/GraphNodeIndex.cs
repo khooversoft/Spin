@@ -50,11 +50,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
             _tagIndex.Set(node.Key, node.Tags);
 
-            if (option.IsOk())
-            {
-                graphContext?.ChangeLog.Push(new CmNodeAdd(node));
-            }
-
+            if (option.IsOk()) graphContext?.ChangeLog.Push(new CmNodeAdd(node));
             return option;
         }
     }

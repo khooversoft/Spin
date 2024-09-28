@@ -29,7 +29,7 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
     private readonly SemaphoreSlim _resetEvent = new SemaphoreSlim(1, 1);
     private readonly TransactionLogFileOption _transactionLogFileOption;
     private int _journalNumber = 0;
-    private Writer? _writer;
+    private Writer _writer;
 
     public TransactionLogFile(TransactionLogFileOption transactionLogFileOption, IFileStore fileStore, ILogger<TransactionLogFile> logger)
     {
@@ -40,6 +40,8 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
         var values = PropertyStringSchema.ConnectionString.Parse(_transactionLogFileOption.ConnectionString).ThrowOnError().Return();
         Name = values.Single().Key.NotEmpty();
         _basePath = values.Single().Value.NotEmpty();
+
+        _writer = new Writer(_fileStore, Name, _basePath);
     }
 
     public string Name { get; }
@@ -47,8 +49,6 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
     public async Task<Option> Write(JournalEntry journalEntry, ScopeContext context)
     {
         context = context.With(_logger);
-        _writer ??= new Writer(_fileStore, Name, _basePath);
-
         await _resetEvent.WaitAsync(context.CancellationToken);
 
         try
@@ -60,7 +60,7 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
             if (_writer.Count > _transactionLogFileOption.MaxCount)
             {
                 context.LogInformation("Closing writer due to max count reached name={name}, count={count}", Name, _writer.Count);
-                _writer = null;
+                _writer = new Writer(_fileStore, Name, _basePath);
             }
 
             return result;

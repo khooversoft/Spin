@@ -1,4 +1,6 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -11,10 +13,24 @@ public class CmNodeDataSet : IChangeLog
         OldData = oldData;
     }
 
+    public Guid LogKey { get; } = Guid.NewGuid();
     public string FileId { get; }
     public DataETag? OldData { get; }
 
-    public Guid LogKey { get; } = Guid.NewGuid();
+
+    public JournalEntry CreateJournal()
+    {
+        var dataMap = new Dictionary<string, string?>
+        {
+            { GraphConstants.Trx.ChangeType, this.GetType().Name },
+            { GraphConstants.Trx.CurrentData, OldData?.ToJson() ?? "<nodata>" },
+            { GraphConstants.Trx.LogKey, LogKey.ToString() },
+            { GraphConstants.Trx.FileId, FileId.ToString() }
+        };
+
+        var journal = JournalEntry.Create(JournalType.Action, dataMap);
+        return journal;
+    }
 
     public async Task<Option> Undo(IGraphTrxContext graphContext)
     {
