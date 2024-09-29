@@ -69,14 +69,13 @@ internal class VirtualLogReceiver : ILogicalTrx, IDisposable
 
     public Task<Option> Write(JournalEntry journalEntry)
     {
-        if (_active != running)
+        if (_active != running && journalEntry.Type != JournalType.Revert)
         {
             _context.LogError("Cannot write to transaction becuase it closed, transactionId={transactionId}", _transactionId);
             throw new InvalidOperationException($"Cannot write to transaction becuase it closed, transactionId={_transactionId}");
         }
 
         _context.LogInformation("Write, transactionId={transactionId}", _transactionId);
-
         return _writeJournal(journalEntry with { TransactionId = _transactionId }, _context);
     }
 

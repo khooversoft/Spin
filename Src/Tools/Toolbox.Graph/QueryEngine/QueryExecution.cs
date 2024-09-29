@@ -25,17 +25,17 @@ public static class QueryExecution
         return new Option<QueryBatchResult>(graphQueryResult, graphQueryResult.Option.StatusCode, graphQueryResult.Option.Error);
     }
 
-    private static Option<QueryExecutionContext> ParseQuery(string graphQuery, IGraphTrxContext graphContext)
+    private static Option<QueryExecutionContext> ParseQuery(string graphQuery, IGraphTrxContext graphTrxContext)
     {
-        graphContext.Context.LogInformation("Parsing query: {graphQuery}", graphQuery);
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphContext.Context);
+        graphTrxContext.Context.LogInformation("Parsing query: {graphQuery}", graphQuery);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphTrxContext.Context);
         if (parse.Status.IsError()) return parse.Status.ToOptionStatus<QueryExecutionContext>();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();
         var instructions = InterLangTool.Build(syntaxPairs);
-        if (instructions.IsError()) return instructions.LogStatus(graphContext.Context, $"Parsing query: {graphQuery}").ToOptionStatus<QueryExecutionContext>();
+        if (instructions.IsError()) return instructions.LogStatus(graphTrxContext.Context, $"Parsing query: {graphQuery}").ToOptionStatus<QueryExecutionContext>();
 
-        return new QueryExecutionContext(instructions.Return(), graphContext);
+        return new QueryExecutionContext(instructions.Return(), graphTrxContext);
     }
 
     private static async Task<Option<QueryBatchResult>> ExecuteInstruction(QueryExecutionContext pContext)
@@ -47,6 +47,8 @@ public static class QueryExecution
         {
             while (pContext.Cursor.TryGetValue(out var graphInstruction))
             {
+                await graphInstruction.CreateJournals().ForEachAsync(async x => await pContext.TrxContext.LogicalTrx.Write(x));
+
                 var queryResult = graphInstruction switch
                 {
                     GiNode giNode => await NodeInstruction.Process(giNode, pContext),
@@ -59,12 +61,14 @@ public static class QueryExecution
                 if (queryResult.IsError())
                 {
                     pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
+                    await pContext.TrxContext.LogicalTrx.RollbackTransaction();
                     await pContext.TrxContext.ChangeLog.Rollback();
-                    break;
+                    return pContext.BuildQueryResult();
                 }
             }
-        }
 
-        return pContext.BuildQueryResult();
+            await pContext.TrxContext.LogicalTrx.CommitTransaction();
+            return pContext.BuildQueryResult();
+        }
     }
 }

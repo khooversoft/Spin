@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -8,6 +9,18 @@ namespace Toolbox.Graph;
 public sealed record GiDelete : IGraphInstruction
 {
     public IReadOnlyList<ISelectInstruction> Instructions { get; init; } = Array.Empty<ISelectInstruction>();
+
+    public IReadOnlyList<JournalEntry> CreateJournals()
+    {
+        var journals = new JournalEntry[][]
+        {
+            [ JournalEntry.Create(JournalType.Action, [new KeyValuePair<string, string?>(GraphConstants.Trx.CmType, this.GetType().Name)]) ],
+            [.. Instructions.Select(x => x.CreateJournal())],
+        }.SelectMany(x => x)
+        .ToImmutableArray();
+
+        return journals;
+    }
 
     public bool Equals(GiDelete? obj)
     {

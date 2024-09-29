@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
+using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -7,6 +9,18 @@ namespace Toolbox.Graph;
 internal sealed record GiReturnNames : ISelectInstruction
 {
     public IReadOnlyList<string> ReturnNames { get; init; } = Array.Empty<string>();
+
+    public JournalEntry CreateJournal()
+    {
+        var dataMap = new Dictionary<string, string?>
+        {
+            { GraphConstants.Trx.GiType, this.GetType().Name },
+            { GraphConstants.Trx.GiData, this.ToJson() },
+        };
+
+        var journal = JournalEntry.Create(JournalType.Command, dataMap);
+        return journal;
+    }
 
     public bool Equals(GiReturnNames? obj)
     {

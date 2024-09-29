@@ -22,10 +22,10 @@ public class CmNodeDataDelete : IChangeLog
     {
         var dataMap = new Dictionary<string, string?>
         {
-            { GraphConstants.Trx.ChangeType, this.GetType().Name },
-            { GraphConstants.Trx.CurrentData, OldData.ToJson() },
+            { GraphConstants.Trx.CmType, this.GetType().Name },
             { GraphConstants.Trx.LogKey, LogKey.ToString() },
-            { GraphConstants.Trx.FileId, FileId.ToString() }
+            { GraphConstants.Trx.FileId, FileId.ToString() },
+            { GraphConstants.Trx.CurrentData, OldData.ToJson() },
         };
 
         var journal = JournalEntry.Create(JournalType.Action, dataMap);

@@ -8,17 +8,11 @@ using Toolbox.Types;
 
 namespace Toolbox.TransactionLog;
 
-// Log format
-//
-//  rootpath/translogName/yyyymm/yyyymmdd-hh.tranLog.json
-//
-// Connection string = {name}={basePath}
-//
-
-public record TransactionLogFileOption
+public interface ITransactionLogWriter
 {
-    public string ConnectionString { get; init; } = null!;
-    public int MaxCount { get; init; } = 1000;
+    public string Name { get; }
+    Task<Option> Write(JournalEntry journalEntry, ScopeContext context);
+    Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context);
 }
 
 public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
@@ -41,7 +35,7 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
         Name = values.Single().Key.NotEmpty();
         _basePath = values.Single().Value.NotEmpty();
 
-        _writer = new Writer(_fileStore, Name, _basePath);
+        _writer = new Writer(_fileStore, Name, _basePath, _journalNumber);
     }
 
     public string Name { get; }
@@ -60,7 +54,7 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
             if (_writer.Count > _transactionLogFileOption.MaxCount)
             {
                 context.LogInformation("Closing writer due to max count reached name={name}, count={count}", Name, _writer.Count);
-                _writer = new Writer(_fileStore, Name, _basePath);
+                _writer = new Writer(_fileStore, Name, _basePath, _journalNumber);
             }
 
             return result;
@@ -71,6 +65,12 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
         }
     }
 
+    public async Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context)
+    {
+        var result = await TransactionLogTool.ReadAndParseJournals(_fileStore, _basePath, context);
+        return result;
+    }
+
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     private class Writer
@@ -79,18 +79,19 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
         private readonly string _name;
         private readonly string _path;
         private readonly string _basePath;
+        private readonly int _journalNumber;
         private int _count = 0;
 
-        public Writer(IFileStore fileStore, string name, string basePath)
+        public Writer(IFileStore fileStore, string name, string basePath, int journalNumber)
         {
             _fileStore = fileStore.NotNull();
             _name = name.NotEmpty();
             _basePath = basePath.NotEmpty();
+            _journalNumber = journalNumber;
 
-            byte[] four_bytes = RandomNumberGenerator.GetBytes(4);
-            string randString = BitConverter.ToUInt32(four_bytes, 0).ToString("X8");
+            string randString = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
 
-            _path = $"{_basePath}/{DateTime.UtcNow:yyyyMM}/{DateTime.UtcNow:yyyyMMdd-HH}-{randString}.tranLog.json";
+            _path = $"{_basePath}/{DateTime.UtcNow:yyyyMM}/{DateTime.UtcNow:yyyyMMdd-HH}-{_journalNumber:d04}-{randString}.tranLog.json";
         }
 
         public int Count => _count;

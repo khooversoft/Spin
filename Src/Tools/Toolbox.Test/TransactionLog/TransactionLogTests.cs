@@ -53,18 +53,8 @@ public class TransactionLogTests
 
         await trx.CommitTransaction();
 
-        search = await fileStore.Search("*", _context);
-        search.Count.Should().Be(1);
-        search[0].Should().StartWith("/journal1/data");
-        search[0].Should().EndWith(".tranLog.json");
+        var journals = await transactionLog.ReadJournals("journal1", _context);
 
-        var readOption = await fileStore.Get(search[0], _context);
-        readOption.IsOk().Should().BeTrue();
-
-        DataETag read = readOption.Return();
-        read.Data.Length.Should().BeGreaterThan(10);
-        string data = read.Data.BytesToString();
-        IReadOnlyList<JournalEntry> journals = TransactionLogTool.ParseJournals(data);
         journals.Action(x =>
         {
             x.Count.Should().Be(3);

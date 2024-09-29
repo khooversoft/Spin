@@ -18,7 +18,6 @@ public class CmNodeAdd : IChangeLog
         {
             { GraphConstants.Trx.NewNode, NewValue.ToJson() },
             { GraphConstants.Trx.LogKey, LogKey.ToString() },
-            { GraphConstants.Trx.Primarykey, NewValue.Key }
         };
 
         var journal = JournalEntry.Create(JournalType.Action, dataMap);

@@ -22,11 +22,10 @@ public class CmNodeChange : IChangeLog
     {
         var dataMap = new Dictionary<string, string?>
         {
-            { GraphConstants.Trx.ChangeType, this.GetType().Name },
+            { GraphConstants.Trx.CmType, this.GetType().Name },
+            { GraphConstants.Trx.LogKey, LogKey.ToString() },
             { GraphConstants.Trx.NewNode, NewValue.ToJson() },
             { GraphConstants.Trx.CurrentNode, CurrentValue.ToJson() },
-            { GraphConstants.Trx.LogKey, LogKey.ToString() },
-            { GraphConstants.Trx.Primarykey, NewValue.Key.ToString() }
         };
 
         var journal = JournalEntry.Create(JournalType.Action, dataMap);

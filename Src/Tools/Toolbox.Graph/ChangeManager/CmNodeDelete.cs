@@ -16,10 +16,9 @@ public record CmNodeDelete : IChangeLog
     {
         var dataMap = new Dictionary<string, string?>
         {
-            { GraphConstants.Trx.ChangeType, this.GetType().Name },
-            { GraphConstants.Trx.CurrentNode, CurrentValue.ToJson() },
+            { GraphConstants.Trx.CmType, this.GetType().Name },
             { GraphConstants.Trx.LogKey, LogKey.ToString() },
-            { GraphConstants.Trx.Primarykey, CurrentValue.Key.ToString() }
+            { GraphConstants.Trx.CurrentNode, CurrentValue.ToJson() },
         };
 
         var journal = JournalEntry.Create(JournalType.Action, dataMap);

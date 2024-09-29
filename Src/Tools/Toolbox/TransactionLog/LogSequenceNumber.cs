@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using Toolbox.Extensions;
 
 namespace Toolbox.TransactionLog;
 
@@ -12,9 +13,9 @@ public class LogSequenceNumber
     {
         var counter = Interlocked.Increment(ref _counter);
 
-        byte[] four_bytes = RandomNumberGenerator.GetBytes(2);
-        string randString = BitConverter.ToUInt16(four_bytes, 0).ToString("X4");
+        string randString = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
 
-        return $"{DateTime.UtcNow:yyyyMMdd-HH}-{counter.ToString("d04")}-{randString}";
+        var result = $"{DateTime.UtcNow:yyyyMMdd-HH}-{counter.ToString("d10")}-{randString}";
+        return result;
     }
 }

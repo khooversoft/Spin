@@ -29,6 +29,8 @@ public class ChangeLog
         changeLog.NotNull();
         _commands.Push(changeLog);
         _graphTrxContext.Context.LogInformation("Push changeLog={changeLog}", changeLog.LogKey);
+
+        _graphTrxContext.LogicalTrx.Write(changeLog.CreateJournal()).Wait();
     }
 
     public async Task Rollback()
@@ -37,8 +39,11 @@ public class ChangeLog
 
         while (_commands.TryPop(out var changeLog))
         {
+            await _graphTrxContext.LogicalTrx.Write(changeLog.CreateJournal() with { Type = JournalType.Revert });
+
             var result = await changeLog.Undo(_graphTrxContext);
             result.LogStatus(_graphTrxContext.Context, $"Undo changeLog={changeLog}");
+
             _graphTrxContext.Context.LogWarning("Rolling back changeLog={changeLog}", changeLog.LogKey);
         }
     }

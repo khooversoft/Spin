@@ -8,13 +8,9 @@ namespace Toolbox.TransactionLog;
 public interface ITransactionLog
 {
     Task<Option<ILogicalTrx>> StartTransaction(ScopeContext context);
+    Task<IReadOnlyList<JournalEntry>> ReadJournals(string name, ScopeContext context);
 }
 
-public interface ITransactionLogWriter
-{
-    public string Name { get; }
-    Task<Option> Write(JournalEntry journalEntry, ScopeContext context);
-}
 
 
 public class TransactionLogProvider : ITransactionLog
@@ -47,6 +43,18 @@ public class TransactionLogProvider : ITransactionLog
 
         return new VirtualLogReceiver(trxId, Write, context);
     }
+
+    public async Task<IReadOnlyList<JournalEntry>> ReadJournals(string name, ScopeContext context)
+    {
+        if (!_journals.TryGetValue(name, out ITransactionLogWriter? journal))
+        {
+            context.LogError("Journal not found, name={name}", name);
+            return Array.Empty<JournalEntry>();
+        }
+
+        return await journal.ReadJournals(context);
+    }
+
 
     private async Task<Option> Write(JournalEntry journalEntry, ScopeContext context)
     {

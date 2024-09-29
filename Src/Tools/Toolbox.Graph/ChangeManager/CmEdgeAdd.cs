@@ -16,10 +16,9 @@ public class CmEdgeAdd : IChangeLog
     {
         var dataMap = new Dictionary<string, string?>
         {
-            { GraphConstants.Trx.ChangeType, this.GetType().Name },
-            { GraphConstants.Trx.NewEdge, NewValue.ToJson() },
+            { GraphConstants.Trx.CmType, this.GetType().Name },
             { GraphConstants.Trx.LogKey, LogKey.ToString() },
-            { GraphConstants.Trx.Primarykey, NewValue.GetPrimaryKey().ToString() }
+            { GraphConstants.Trx.NewEdge, NewValue.ToJson() },
         };
 
         var journal = JournalEntry.Create(JournalType.Action, dataMap);

@@ -9,19 +9,23 @@ public static class GraphConstants
 
     public const string NodesDataBasePath = "nodes";
     public const string MapDatabasePath = "graphMap/graphMap.gdb.json";
+    public const string JournalName = "journal";
+    public const string JournalConnectionString = "journal=/journal/data";
 
     public static class Trx
     {
-        public static string LogKey = "logKey";
-        public static string Primarykey = "primaryKey";
-        public static string FileId = "fileId";
-        public static string ChangeType = "changeType";
-        public static string NewNode = "new:node";
-        public static string CurrentNode = "current:node";
-        public static string NewEdge = "new:edge";
-        public static string CurrentEdge = "current:edge";
-        public static string CurrentData = "current:data";
-        public static string NewData = "new:data";
-    }
+        public const string LogKey = "logKey";
+        public const string FileId = "fileId";
+        public const string CmType = "cmType";
+        public const string NewNode = "new:node";
+        public const string CurrentNode = "current:node";
+        public const string NewEdge = "new:edge";
+        public const string CurrentEdge = "current:edge";
+        public const string CurrentData = "current:data";
+        public const string NewData = "new:data";
 
+        public const string GiType = "gi:type";
+        public const string GiChangeType = "gi:changeType";
+        public const string GiData = "gi:data";
+    }
 }

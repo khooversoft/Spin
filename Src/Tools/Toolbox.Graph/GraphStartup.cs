@@ -12,7 +12,7 @@ public static class GraphStartup
         services.NotNull();
 
         services.AddSingleton<IGraphContext, GraphContext>();
-        services.AddTransactionLogProvider("journal=/journal/data");
+        services.AddTransactionLogProvider(GraphConstants.JournalConnectionString);
         services.AddSingleton<IGraphClient, GraphClientInMemory>();
 
         services.AddSingleton<IGraphMapStore, GraphMapStore>(s =>
