@@ -33,13 +33,13 @@ internal class GraphRI
 
     public void RemoveUniqueIndexNodes(IReadOnlyList<string> removedNodes, IGraphTrxContext? graphContext)
     {
-        var indexNodesToRemove = GraphNodeIndex.LookupTag(GraphConstants.UniqueIndexTag)
+        var indexNodesToRemove = GraphNodeIndex.LookupTag(GraphConstants.UniqueIndexEdgeType)
             .Join(removedNodes, x => x, x => x, (o, i) => i);
 
         foreach (var nodeKey in indexNodesToRemove)
         {
             if (!GraphNodeIndex.TryGetValue(nodeKey, out GraphNode? node)) continue;
-            if (!node.Tags.Has(GraphConstants.UniqueIndexTag)) continue;
+            if (!node.Tags.Has(GraphConstants.UniqueIndexEdgeType)) continue;
 
             GraphNodeIndex.Remove(nodeKey, graphContext);
         }

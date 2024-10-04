@@ -7,7 +7,7 @@ namespace Toolbox.Graph;
 
 public static class QueryExecution
 {
-    public static async Task<Option<QueryBatchResult>> Execute(IGraphContext graphContext, string graphQuery, ScopeContext context)
+    public static async Task<Option<QueryBatchResult>> Execute(IGraphHost graphContext, string graphQuery, ScopeContext context)
     {
         var trxContextOption = await graphContext.TransactionLog.StartTransaction(context);
         if (trxContextOption.IsError()) return trxContextOption.ToOptionStatus<QueryBatchResult>();

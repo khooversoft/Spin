@@ -108,4 +108,18 @@ public static class StringExtensions
         string v when v.Length < count * 2 => $"***{v.Length}",
         string v => value[0..count] + "..." + value[^count..],
     };
+
+    /// <summary>
+    /// Convert string to base64 encoding
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static string ToBase64(this string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+
+    /// <summary>
+    /// Convert base64 to string
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static string FromBase64(this string value) => Encoding.UTF8.GetString(Convert.FromBase64String(value));
 }

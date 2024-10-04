@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Extensions;
 
@@ -17,47 +15,6 @@ public static class ObjectExtensions
         .Select(x => new KeyValuePair<string, object?>(x.Name, x.GetValue(obj)))
         .ToArray();
 
-    public static string ToJson<T>(this T subject) => Json.Default.Serialize(subject);
-    public static string ToJson64<T>(this T subject) => Convert.ToBase64String(subject.ToJson().ToBytes());
-    public static string ToJsonFromJson64(this string subject) => Convert.FromBase64String(subject).BytesToString();
-
-    public static string ToJsonSafe<T>(this T subject, ScopeContextLocation context)
-    {
-        try
-        {
-            return subject switch
-            {
-                null => string.Empty,
-                string v => v,
-                var v => Json.Default.Serialize(v),
-            };
-        }
-        catch (Exception ex)
-        {
-            context.LogError(ex, "Json serialzation error");
-            return string.Empty;
-        }
-    }
-
-    public static string ToJsonPascal<T>(this T subject) => Json.Default.SerializePascal(subject);
-
-    public static string? ToJsonPascalSafe<T>(this T subject, ScopeContext context)
-    {
-        try
-        {
-            return subject switch
-            {
-                null => string.Empty,
-                string v => v,
-                var v => v.ToJsonPascal(),
-            };
-        }
-        catch (Exception ex)
-        {
-            context.Location().LogError(ex, "Json serialzation error");
-            return string.Empty;
-        }
-    }
 
     public static T? ToObject<T>(this string json)
     {
@@ -67,23 +24,6 @@ public static class ObjectExtensions
             _ => Json.Default.Deserialize<T>(json),
         };
     }
-
-    //public static T? ToObjectFrom64<T>(this string json)
-    //{
-    //    return json switch
-    //    {
-    //        string v when v.IsEmpty() => default,
-    //        _ => Json.Default.Deserialize<T>(Convert.FromBase64String(json).BytesToString()),
-    //    };
-    //}
-
-    /// <summary>
-    /// Convert to Json formatted
-    /// </summary>
-    /// <typeparam name="T">type</typeparam>
-    /// <param name="subject">subject</param>
-    /// <returns>json</returns>
-    public static string ToJsonFormat<T>(this T subject) => Json.Default.SerializeFormat(subject);
 
     public static T SafeCast<T>(this object subject)
     {

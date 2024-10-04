@@ -22,21 +22,18 @@ public class TransactionLogTests
     {
         _dataLakeStore = TestApplication.GetDatalake("datastore-tests");
 
+        var option = new TransactionLogFileOption
+        {
+            ConnectionString = "journal1=journal1/data",
+            MaxCount = 10,
+        };
+
         _services = new ServiceCollection()
             .AddSingleton<IDatalakeStore>(_dataLakeStore)
             .AddSingleton<IFileStore, DatalakeFileStoreConnector>()
             .AddLogging(config => config.AddDebug())
-            .AddTransactionLogProvider((service, provider) =>
-            {
-                var option = new TransactionLogFileOption
-                {
-                    ConnectionString = "journal1=journal1/data",
-                    MaxCount = 10,
-                };
-
-                TransactionLogFile writer = ActivatorUtilities.CreateInstance<TransactionLogFile>(service, option);
-                provider.Add(writer);
-            })
+            .AddSingleton(option)
+            .AddTransactionLogProvider()
             .BuildServiceProvider();
 
         _logger = _services.GetRequiredService<ILogger<TransactionLogTests>>();

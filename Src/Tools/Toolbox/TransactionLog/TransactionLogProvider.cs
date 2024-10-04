@@ -12,12 +12,16 @@ public interface ITransactionLog
 }
 
 
-
 public class TransactionLogProvider : ITransactionLog
 {
     private readonly ConcurrentDictionary<string, ITransactionLogWriter> _journals = new(StringComparer.OrdinalIgnoreCase);
     private readonly LogSequenceNumber _logSequenceNumber = new LogSequenceNumber();
     private readonly object _lock = new object();
+
+    public TransactionLogProvider(IEnumerable<ITransactionLogWriter> writers)
+    {
+        writers.NotNull().ForEach(x => Add(x));
+    }
 
     public IReadOnlyDictionary<string, ITransactionLogWriter> Journals => _journals;
 
@@ -54,7 +58,6 @@ public class TransactionLogProvider : ITransactionLog
 
         return await journal.ReadJournals(context);
     }
-
 
     private async Task<Option> Write(JournalEntry journalEntry, ScopeContext context)
     {

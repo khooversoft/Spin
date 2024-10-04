@@ -6,8 +6,8 @@ namespace Toolbox.Graph;
 
 public class GraphClientInMemory : IGraphClient
 {
-    private readonly IGraphContext _graphContext;
-    public GraphClientInMemory(IGraphContext graphContext) => _graphContext = graphContext.NotNull();
+    private readonly IGraphHost _graphContext;
+    public GraphClientInMemory(IGraphHost graphContext) => _graphContext = graphContext.NotNull();
 
     public Task<Option<QueryBatchResult>> ExecuteBatch(string command, ScopeContext context)
     {

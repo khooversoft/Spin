@@ -19,12 +19,12 @@ public class GraphEngine2Tests
     public async Task AddNodeWithData()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphHost>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         // Add node with data
         var rec = new TestContractRecord("marko", 29);
-        var recBase64 = rec.ToJson64();
+        var recBase64 = rec.ToJson().ToBase64();
 
         var addResult = await engine.Execute($"add node key=node1 set contract {{ '{recBase64}' }};", NullScopeContext.Instance);
         addResult.IsOk().Should().BeTrue();
@@ -86,12 +86,12 @@ public class GraphEngine2Tests
     public async Task AddNodeWithDataAndDeleteData()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphHost>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         // Add node with data
         var rec = new TestContractRecord("marko", 29);
-        var recBase64 = rec.ToJson64();
+        var recBase64 = rec.ToJson().ToBase64();
 
         var addResult = await engine.Execute($"add node key=node1 set contract {{ '{recBase64}' }};", NullScopeContext.Instance);
         addResult.IsOk().Should().BeTrue();
@@ -144,13 +144,13 @@ public class GraphEngine2Tests
     public async Task AddNodeWithTwoData()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphHost>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         var contractRec = new TestContractRecord("marko", 29);
-        var contractBase64 = contractRec.ToJson64();
+        var contractBase64 = contractRec.ToJson().ToBase64();
         var leaseRec = new TestLeaseRecord("lease#1", 100.0m);
-        var leaseBase64 = leaseRec.ToJson64();
+        var leaseBase64 = leaseRec.ToJson().ToBase64();
 
         var addResult = await engine.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};", NullScopeContext.Instance);
         addResult.IsOk().Should().BeTrue();
@@ -238,13 +238,13 @@ public class GraphEngine2Tests
     public async Task AddNodeWithTwoDataDeletingOne()
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphHost>().Map;
         IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
 
         var contractRec = new TestContractRecord("marko", 29);
-        var contractBase64 = contractRec.ToJson64();
+        var contractBase64 = contractRec.ToJson().ToBase64();
         var leaseRec = new TestLeaseRecord("lease#1", 100.0m);
-        var leaseBase64 = leaseRec.ToJson64();
+        var leaseBase64 = leaseRec.ToJson().ToBase64();
 
         var addResult = await engine.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};", NullScopeContext.Instance);
         addResult.IsOk().Should().BeTrue();

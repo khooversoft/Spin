@@ -12,7 +12,7 @@ public class GraphTrxEdgeTests
     public async Task AddEdgeFailure()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         string q = """
             add node key=node1;
@@ -46,7 +46,7 @@ public class GraphTrxEdgeTests
     public async Task UpdateEdgeFailure()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         string q = """
             add node key=node1;
@@ -81,7 +81,7 @@ public class GraphTrxEdgeTests
     public async Task DeleteEdgeFailure()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         string q = """
             add node key=node1;

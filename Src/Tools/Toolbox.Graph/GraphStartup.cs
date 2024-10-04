@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
+using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
@@ -11,16 +12,9 @@ public static class GraphStartup
     {
         services.NotNull();
 
-        services.AddSingleton<IGraphContext, GraphContext>();
+        services.AddSingleton<IGraphHost, GraphHost>();
         services.AddTransactionLogProvider(GraphConstants.JournalConnectionString);
         services.AddSingleton<IGraphClient, GraphClientInMemory>();
-
-        services.AddSingleton<IGraphMapStore, GraphMapStore>(s =>
-        {
-            var path = mapDatabasePath ?? GraphConstants.MapDatabasePath;
-            var graphStore = ActivatorUtilities.CreateInstance<GraphMapStore>(s, path);
-            return graphStore;
-        });
 
         return services;
     }
@@ -28,15 +22,17 @@ public static class GraphStartup
 
 public static class GraphTestStartup
 {
-    public static GraphTestClient CreateGraphTestHost(GraphMap? graphMap = null)
+    public static GraphTestClient CreateGraphTestHost(GraphMap? graphMap = null, Action<IServiceCollection>? config = null)
     {
-        var services = new ServiceCollection()
+        var servicesCollection = new ServiceCollection()
             .AddLogging(config => config.AddDebug())
             .AddInMemoryFileStore()
-            .AddGraphEngine()
-            .BuildServiceProvider();
+            .AddGraphEngine();
 
-        IGraphContext graphContext = services.GetRequiredService<IGraphContext>();
+        config?.Invoke(servicesCollection);
+        var services = servicesCollection.BuildServiceProvider();
+
+        IGraphHost graphContext = services.GetRequiredService<IGraphHost>();
         if (graphMap != null) graphContext.SetMap(graphMap);
 
         var graphClient = new GraphTestClient(graphContext, services);
@@ -46,11 +42,17 @@ public static class GraphTestStartup
 
 public class GraphTestClient : GraphClientInMemory, IGraphClient
 {
-    public GraphTestClient(IGraphContext graphContext, IServiceProvider serviceProvider)
+    public GraphTestClient(IGraphHost graphContext, IServiceProvider serviceProvider)
         : base(graphContext)
     {
         ServiceProvider = serviceProvider.NotNull();
     }
 
     public IServiceProvider ServiceProvider { get; }
+
+    public ScopeContext GetScopeContext<T>()
+    {
+        var logger = ServiceProvider.GetRequiredService<ILogger<T>>();
+        return new ScopeContext(logger);
+    }
 }

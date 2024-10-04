@@ -11,7 +11,7 @@ public class GraphLifecycleTest
     public async Task SingleNode()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         Option<QueryBatchResult> addResult = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Instance);
         addResult.IsOk().Should().BeTrue();
@@ -50,7 +50,7 @@ public class GraphLifecycleTest
     public async Task TwoNodes()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         Option<QueryBatchResult> addResult1 = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Instance);
         addResult1.IsOk().Should().BeTrue();
@@ -133,7 +133,7 @@ public class GraphLifecycleTest
     public async Task UpdateTags()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         string q = """
             set node key=node1 set t1;
@@ -167,7 +167,7 @@ public class GraphLifecycleTest
     public async Task TwoNodesWithRelationship()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         string q = """
             set node key=node1 set t1;
@@ -225,7 +225,7 @@ public class GraphLifecycleTest
     public async Task TwoNodesWithFullRelationship()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         string q = """
             set node key=node1 set t1;
@@ -288,7 +288,7 @@ public class GraphLifecycleTest
     public async Task TwoNodesWithRelationshipLargerSet()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         string q = """
             set node key=node1 set t1;

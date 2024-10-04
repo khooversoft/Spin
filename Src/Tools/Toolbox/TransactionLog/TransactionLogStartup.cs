@@ -1,39 +1,22 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.TransactionLog;
 
 public static class TransactionLogStartup
 {
-    public static IServiceCollection AddTransactionLogProvider(this IServiceCollection services, Action<IServiceProvider, TransactionLogProvider> config)
-    {
-        config.NotNull();
-
-        services.NotNull().AddSingleton<ITransactionLog, TransactionLogProvider>((service) =>
-        {
-            var provider = new TransactionLogProvider();
-            config.Invoke(service, provider);
-            return provider;
-        });
-
-        return services;
-    }
-
-    public static IServiceCollection AddTransactionLogProvider(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddTransactionLogProvider(this IServiceCollection services, string? connectionString = null, int? maxCount = 1000)
     {
         services.NotNull();
-        connectionString.NotEmpty();
 
-        services.AddSingleton(new TransactionLogFileOption { ConnectionString = connectionString });
-        services.AddSingleton<ITransactionLogWriter, TransactionLogFile>();
-
-        services.NotNull().AddSingleton<ITransactionLog, TransactionLogProvider>((service) =>
+        services.TryAddSingleton(new TransactionLogFileOption
         {
-            var writer = service.GetRequiredService<ITransactionLogWriter>();
-            var provider = new TransactionLogProvider();
-            provider.Add(writer);
-            return provider;
+            ConnectionString = connectionString ?? "journal=/journal/data",
+            MaxCount = maxCount ?? 1000
         });
+        services.AddSingleton<ITransactionLogWriter, TransactionLogFile>();
+        services.AddSingleton<ITransactionLog, TransactionLogProvider>();
 
         return services;
     }

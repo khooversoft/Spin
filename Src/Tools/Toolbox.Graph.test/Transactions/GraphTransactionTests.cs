@@ -14,7 +14,7 @@ public class GraphTransactionTests
     public async Task SimpleSetOfCommandsWithFailuresKey()
     {
         var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphContext>().Map;
+        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
         IFileStore fileStore = testClient.ServiceProvider.GetRequiredService<IFileStore>();
         ITransactionLog transactionLog = testClient.ServiceProvider.GetRequiredService<ITransactionLog>();
         ILogger<GraphTransactionTests> logger = testClient.ServiceProvider.GetRequiredService<ILogger<GraphTransactionTests>>();

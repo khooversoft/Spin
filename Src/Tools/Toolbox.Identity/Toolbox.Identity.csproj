@@ -7,23 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="GraphLanguage.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Application\GraphLanguageRules.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\Toolbox.Graph\Toolbox.Graph.csproj" />
     <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Docs\" />
+    <Reference Include="Orleans.Serialization.Abstractions">
+      <HintPath>..\..\..\..\..\.nuget\microsoft.orleans.serialization.abstractions\8.2.0\lib\net8.0\Orleans.Serialization.Abstractions.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

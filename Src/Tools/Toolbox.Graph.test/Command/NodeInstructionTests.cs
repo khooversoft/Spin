@@ -37,6 +37,18 @@ public class NodeInstructionTests
         copyMap.Edges.Count.Should().Be(5);
     }
 
+    [Theory]
+    [InlineData("set node key=user:username1@company.com set email=userEmail:username1@domain1.com,loginProvider=userEmail:username1@domain1.com ;")]
+    [InlineData("set node key=userEmail:username1@domain1.com ;")]
+    [InlineData("set edge from=user:username1@company.com, to=userEmail:username1@domain1.com, type=uniqueIndex ;")]
+    [InlineData("set node key=logonProvider:loginprovider/loginprovider.key1 ;")]
+    [InlineData("set edge from=user:username1@company.com, to=logonProvider:loginprovider/loginprovider.key1, type=uniqueIndex ;")]
+    public void SyntaxShouldPass(string query)
+    {
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(query, NullScopeContext.Instance);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
     [Fact]
     public async Task AddNode()
     {
