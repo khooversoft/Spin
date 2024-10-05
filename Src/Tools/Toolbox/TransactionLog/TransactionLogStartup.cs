@@ -15,6 +15,7 @@ public static class TransactionLogStartup
             ConnectionString = connectionString ?? "journal=/journal/data",
             MaxCount = maxCount ?? 1000
         });
+
         services.AddSingleton<ITransactionLogWriter, TransactionLogFile>();
         services.AddSingleton<ITransactionLog, TransactionLogProvider>();
 

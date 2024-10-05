@@ -12,7 +12,7 @@ public class UpdateStoreTests
     public UpdateStoreTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper.NotNull();
 
     [Fact]
-    public async Task UpdateUserInfo()
+    public async Task UpdateUserEmailInfo()
     {
         var engineContext = TestTool.CreateGraphEngineHost(_outputHelper);
 

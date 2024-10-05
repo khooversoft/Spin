@@ -30,6 +30,8 @@ internal class GraphMapStore
             context.LogInformation("Reading graph data file={mapDatabasePath}", _mapDatabasePath);
 
             var readMapSerializer = await _graphContext.FileStore.Get(_mapDatabasePath, context);
+            if (readMapSerializer.IsNotFound()) return await Set(context);
+
             if (readMapSerializer.IsError()) return readMapSerializer.ToOptionStatus();
 
             GraphSerialization graphSerialization = readMapSerializer.Return().ToObject<GraphSerialization>();

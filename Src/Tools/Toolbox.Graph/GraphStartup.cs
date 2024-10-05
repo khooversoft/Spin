@@ -8,7 +8,7 @@ namespace Toolbox.Graph;
 
 public static class GraphStartup
 {
-    public static IServiceCollection AddGraphEngine(this IServiceCollection services, string? mapDatabasePath = null)
+    public static IServiceCollection AddGraphEngine(this IServiceCollection services)
     {
         services.NotNull();
 
