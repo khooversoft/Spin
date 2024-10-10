@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using System.Collections.Frozen;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -34,7 +35,7 @@ internal static class NodeInstruction
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
-        var graphNode = new GraphNode(giNode.Key, giNode.Tags.RemoveDeleteCommands(), DateTime.UtcNow, dataMap);
+        var graphNode = new GraphNode(giNode.Key, giNode.Tags.RemoveDeleteCommands(), DateTime.UtcNow, dataMap, FrozenSet<string>.Empty);
 
         var graphResult = pContext.TrxContext.Map.Nodes.Add(graphNode, pContext.TrxContext);
         if (graphResult.IsError()) return graphResult;
@@ -78,7 +79,7 @@ internal static class NodeInstruction
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
         var tags = TagsTool.ProcessTags(currentGraphNode.Tags, giNode.Tags);
-        var graphNode = new GraphNode(giNode.Key, tags, DateTime.UtcNow, dataMap);
+        var graphNode = new GraphNode(giNode.Key, tags, DateTime.UtcNow, dataMap, FrozenSet<string>.Empty);
 
         var updateOption = pContext.TrxContext.Map.Nodes.Set(graphNode, pContext.TrxContext);
         if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, $"Failed to upsert node key={giNode.Key}");

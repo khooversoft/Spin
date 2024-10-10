@@ -15,7 +15,7 @@ public class DictionaryList<TKey, T> : IEnumerable<T> where TKey : notnull
     public DictionaryList(Func<T, TKey> getKey, IEqualityComparer<TKey>? keyComparer = null)
     {
         _getKey = getKey.NotNull();
-        _keyComparer = keyComparer.ComparerFor();
+        _keyComparer = keyComparer.EqualityComparerFor();
         _dictionary = new Dictionary<TKey, T>(_keyComparer);
     }
 

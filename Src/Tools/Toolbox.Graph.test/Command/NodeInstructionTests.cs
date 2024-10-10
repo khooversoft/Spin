@@ -39,6 +39,7 @@ public class NodeInstructionTests
 
     [Theory]
     [InlineData("set node key=user:username1@company.com set email=userEmail:username1@domain1.com,loginProvider=userEmail:username1@domain1.com ;")]
+    [InlineData("set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider;")]
     [InlineData("set node key=userEmail:username1@domain1.com ;")]
     [InlineData("set edge from=user:username1@company.com, to=userEmail:username1@domain1.com, type=uniqueIndex ;")]
     [InlineData("set node key=logonProvider:loginprovider/loginprovider.key1 ;")]
@@ -316,4 +317,26 @@ public class NodeInstructionTests
 
         commandResults.Items.Count.Should().Be(1);
     }
+
+    //[Fact]
+    //public async Task SetNodeWithIndex()
+    //{
+    //    var cmd = "set node key=user:username1@company.com index loginProvider=userEmail:username1@domain1.com set email=userEmail:username1@domain1.com ;";
+    //    var copyMap = _map.Clone();
+    //    var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+    //    var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
+    //    newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+    //    QueryBatchResult commandResults = newMapOption.Return();
+    //    var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+
+    //    compareMap.Count.Should().Be(1);
+    //    compareMap[0].Cast<GraphNode>().Action(x =>
+    //    {
+    //        x.Key.Should().Be("provider:provider1/provider1-key");
+    //        x.Tags.ToTagsString().Should().Be("uniqueIndex");
+    //    });
+
+    //    commandResults.Items.Count.Should().Be(1);
+    //}
 }

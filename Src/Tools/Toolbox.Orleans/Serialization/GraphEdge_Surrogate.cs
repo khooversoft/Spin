@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using Toolbox.Graph;
 
 namespace Toolbox.Orleans;
@@ -21,7 +21,7 @@ public sealed class GraphEdge_SurrogateConverter : IConverter<GraphEdge, GraphEd
         fromKey: surrogate.FromKey,
         toKey: surrogate.ToKey,
         edgeType: surrogate.EdgeType,
-        tags: surrogate.Tags.ToImmutableDictionary<string, string?>(),
+        tags: surrogate.Tags.ToFrozenDictionary(),
         createdDate: surrogate.CreatedDate
         );
 

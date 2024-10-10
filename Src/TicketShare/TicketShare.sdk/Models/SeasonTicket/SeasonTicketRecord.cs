@@ -1,7 +1,5 @@
-﻿using System.Collections.Immutable;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -9,23 +7,23 @@ namespace TicketShare.sdk;
 
 public sealed record SeasonTicketRecord : IEquatable<SeasonTicketRecord>
 {
-    public string SeasonTicketId { get; init; } = null!;
+    public string SeasonTicketId { get; init; } = null!;   // seasonTicket:{id}
     public string Name { get; init; } = null!;
     public string? Description { get; init; }
     public string OwnerPrincipalId { get; init; } = null!;
     public string? Tags { get; init; }
-    public IReadOnlyList<Property> Properties { get; init; } = ImmutableArray<Property>.Empty;
-    public IReadOnlyList<RoleRecord> Members { get; init; } = ImmutableArray<RoleRecord>.Empty;
-    public IReadOnlyList<SeatRecord> Seats { get; init; } = ImmutableArray<SeatRecord>.Empty;
-    public IReadOnlyList<ChangeLog> ChangeLogs { get; init; } = ImmutableArray<ChangeLog>.Empty;
+    public IReadOnlyList<Property> Properties { get; init; } = Array.Empty<Property>();
+    public IReadOnlyList<RoleRecord> Members { get; init; } = Array.Empty<RoleRecord>();
+    public IReadOnlyList<SeatRecord> Seats { get; init; } = Array.Empty<SeatRecord>();
+    public IReadOnlyList<ChangeLog> ChangeLogs { get; init; } = Array.Empty<ChangeLog>();
 
     public bool Equals(SeasonTicketRecord? other) =>
         other != null &&
         SeasonTicketId.Equals(other.SeasonTicketId) &&
         Name.Equals(other.Name) &&
-        ((Description == null && other.Description == null) || Description?.Equals(other.Description) == true) &&
+        Description.Equals(other.Description) &&
         OwnerPrincipalId.Equals(other.OwnerPrincipalId) &&
-        ((Tags == null && other.Tags == null) || Tags?.Equals(other.Tags) == true) &&
+        Tags.Equals(other.Tags) &&
         Enumerable.SequenceEqual(Properties.OrderBy(x => x.Key), other.Properties.OrderBy(x => x.Key)) &&
         Enumerable.SequenceEqual(Members.OrderBy(x => x.PrincipalId), other.Members.OrderBy(x => x.PrincipalId)) &&
         Enumerable.SequenceEqual(Seats.OrderBy(x => x.SeatId), other.Seats.OrderBy(x => x.SeatId)) &&
@@ -42,22 +40,10 @@ public sealed record SeasonTicketRecord : IEquatable<SeasonTicketRecord>
         .RuleForEach(x => x.Seats).Validate(SeatRecord.Validator)
         .RuleForEach(x => x.ChangeLogs).Validate(ChangeLog.Validator)
         .Build();
-
-    public static IGraphSchema<SeasonTicketRecord> Schema { get; } = new GraphSchemaBuilder<SeasonTicketRecord>()
-        .Node(x => x.SeasonTicketId, x => TicketShareTool.ToSeasonTicketKey(x))
-        .Select(x => x.SeasonTicketId, x => SelectNodeCommand(x))
-        .Reference(x => x.OwnerPrincipalId, x => IdentityTool.ToUserKey(x), TicketShareTool.SeasonTicketToIdentity)
-        .ReferenceCollection(x => x.Members.Select(y => y.PrincipalId), x => IdentityTool.ToUserKey(x), TicketShareTool.SeasonTicketToIdentity)
-        .Build();
-
-    public static string SelectNodeCommand(string seasonTicketId) => GraphTool.SelectNodeCommand(TicketShareTool.ToSeasonTicketKey(seasonTicketId), "entity");
-
-    public static string GetSeasonTicketsForUser(string principalId) =>
-        $"select (key={IdentityTool.ToUserKey(principalId)}) -> [edgeType={TicketShareTool.SeasonTicketToIdentity}] -> (*);";
 }
 
 
-public static class PartnershipRecordExtensions
+public static class SeasonTicketRecordTool
 {
     public static Option Validate(this SeasonTicketRecord subject) => SeasonTicketRecord.Validator.Validate(subject).ToOptionStatus();
 
@@ -66,4 +52,6 @@ public static class PartnershipRecordExtensions
         result = subject.Validate();
         return result.IsOk();
     }
+
+    public static string ToSeasonTicketKey(string id) => $"seasonTicket:{id.NotEmpty().ToLower()}";
 }

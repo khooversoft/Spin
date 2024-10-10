@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -11,7 +10,7 @@ namespace TicketShare.sdk;
 [Alias("TicketShare.sdk.AccountRecord")]
 public record AccountRecord
 {
-    [Id(0)] public string PrincipalId { get; init; } = null!;
+    [Id(0)] public string PrincipalId { get; init; } = null!;   // Owner
     [Id(1)] public string Name { get; init; } = null!;
 
     [Id(2)] public IReadOnlyList<ContactRecord> ContactItems { get; init; } = ImmutableArray<ContactRecord>.Empty;
@@ -26,15 +25,10 @@ public record AccountRecord
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
         .Build();
 
-    public static IGraphSchema<AccountRecord> Schema { get; } = new GraphSchemaBuilder<AccountRecord>()
-        .Node(x => x.PrincipalId, x => TicketShareTool.ToAccountKey(x))
-        .Select(x => x.PrincipalId, x => SelectNode(x))
-        .Build();
-
     public static string SelectNode(string principalId) => GraphTool.SelectNodeCommand(TicketShareTool.ToAccountKey(principalId), "entity");
 }
 
-public static class AccountRecordExtensions
+public static class AccountRecordTool
 {
     public static Option Validate(this AccountRecord subject) => AccountRecord.Validator.Validate(subject).ToOptionStatus();
 
@@ -46,6 +40,7 @@ public static class AccountRecordExtensions
 
     public static AccountRecord Merge(this AccountRecord subject, IEnumerable<ContactRecord> contactRecords)
     {
+        subject.NotNull();
         contactRecords.NotNull();
 
         subject = subject with
@@ -78,4 +73,6 @@ public static class AccountRecordExtensions
 
         return currentRecord;
     }
+
+    public static string ToAccountKey(string id) => $"account:{id.NotEmpty().ToLower()}";
 }

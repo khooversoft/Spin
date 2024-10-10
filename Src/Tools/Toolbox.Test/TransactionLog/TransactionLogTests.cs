@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -46,7 +46,7 @@ public class TransactionLogTests
             {
                 ["key1"] = "value1",
                 ["key2"] = "value2",
-            }.ToImmutableDictionary(),
+            }.ToFrozenDictionary(),
         };
 
         await trx.Write(journalEntry);
@@ -89,7 +89,7 @@ public class TransactionLogTests
                 {
                     ["key1"] = "value1",
                     ["key2"] = "value2",
-                }.ToImmutableDictionary(),
+                }.ToFrozenDictionary(),
             };
 
             createdJournals += journalEntry;

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using Toolbox.Extensions;
 
 namespace Toolbox.TransactionLog;
@@ -20,7 +20,7 @@ public sealed record JournalEntry
     public string TransactionId { get; init; } = Guid.NewGuid().ToString();
     public DateTime TimeStamp { get; init; } = DateTime.UtcNow;
     public JournalType Type { get; init; }
-    public IReadOnlyDictionary<string, string?> Data { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public IReadOnlyDictionary<string, string?> Data { get; init; } = FrozenDictionary<string, string?>.Empty;
 
     public bool Equals(JournalEntry? subject) => subject is JournalEntry &&
         LogSequenceNumber == subject.LogSequenceNumber &&
@@ -36,7 +36,7 @@ public sealed record JournalEntry
     public static JournalEntry Create(JournalType type, IEnumerable<KeyValuePair<string, string?>> data) => new JournalEntry
     {
         Type = type,
-        Data = data.ToImmutableDictionary(),
+        Data = data.ToFrozenDictionary(),
     };
 }
 

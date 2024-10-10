@@ -37,6 +37,8 @@ public class WordTokenComparer : IEqualityComparer<WordToken>
 
     public bool Equals(WordToken? x, WordToken? y)
     {
+        if (ReferenceEquals(x, y)) return true;
+
         if (x == null || y == null) return false;
 
         return x.Word.EqualsIgnoreCase(y.Word) &&

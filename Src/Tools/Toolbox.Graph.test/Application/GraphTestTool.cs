@@ -47,6 +47,7 @@ public static class GraphTestTool
             [$"Key = \"{node.Key}\","],
             [.. tags],
             [.. CreateData(node.Data)],
+            [.. CreateIndex(node.Indexes)],
             ["},"]
         };
 
@@ -198,6 +199,24 @@ public static class GraphTestTool
         foreach (var item in tags)
         {
             string tag = item.Value == null ? $"[\"{item.Key}\"] = null," : $"[\"{item.Key}\"] = \"{item.Value}\",";
+            seq += tag;
+        }
+
+        seq += "},";
+        return seq;
+    }
+
+    private static IReadOnlyList<string> CreateIndex(IReadOnlySet<string> data)
+    {
+        if (data.Count == 0) return Array.Empty<string>();
+
+        var seq = new Sequence<string>();
+        seq += "Indexes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)";
+        seq += "{";
+
+        foreach (var item in data)
+        {
+            string tag = $"\"{item}\",";
             seq += tag;
         }
 

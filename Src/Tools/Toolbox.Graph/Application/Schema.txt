@@ -1,0 +1,16 @@
+
+
+entity {entityName} = {
+    loginProviderId = '{LoginProvider}/{ProviderKey}',
+
+    NodeKey 'user:{PrincipalId}',
+    Tag 'email:{Email}',
+    Tag 'userName:{NormalizedUserName}',
+    Tag loginProviderId,
+
+    Index 'email:{Email}',
+    Index 'userName:{NormalizedUserName}',
+    Index loginProviderId
+} ;
+
+

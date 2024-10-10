@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
@@ -11,8 +12,9 @@ public sealed record GiNode : IGraphInstruction
 {
     public GiChangeType ChangeType { get; init; } = GiChangeType.None;
     public string Key { get; init; } = null!;
-    public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
-    public IReadOnlyDictionary<string, string> Data { get; init; } = ImmutableDictionary<string, string>.Empty;
+    public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
+    public IReadOnlyDictionary<string, string> Data { get; init; } = FrozenDictionary<string, string>.Empty;
+    public IReadOnlySet<string> Indexes { get; init; } = FrozenSet<string>.Empty;
     public bool IfExist { get; init; }
 
     public IReadOnlyList<JournalEntry> CreateJournals()
@@ -34,6 +36,7 @@ public sealed record GiNode : IGraphInstruction
             Key == subject.Key &&
             Tags.DeepEquals(subject.Tags) &&
             Enumerable.SequenceEqual(Data.OrderBy(x => x.Key), subject.Data.OrderBy(x => x.Key)) &&
+            Enumerable.SequenceEqual(Indexes.OrderBy(x => x), subject.Indexes.OrderBy(x => x)) &&
             IfExist == subject.IfExist;
 
         return result;
@@ -78,6 +81,13 @@ internal static class GiNodeTool
             data = tagsAndData.Value.Data;
         }
 
+        // index {tagKey}[, {tagKey}..]
+        HashSet<string>? indexes = InterLangTool.GetIndexes(interContext) switch
+        {
+            { StatusCode: StatusCode.OK } v => v.Return(),
+            _ => null,
+        };
+
         if (!interContext.Cursor.TryGetValue(out var term) || term.Token.Value != ";") return (StatusCode.NotFound, "term ';'");
 
         scope.Cancel();
@@ -85,8 +95,9 @@ internal static class GiNodeTool
         {
             ChangeType = changeType,
             Key = nodeKey,
-            Tags = tags?.ToImmutableDictionary() ?? ImmutableDictionary<string, string?>.Empty,
-            Data = data?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty,
+            Tags = tags?.ToFrozenDictionary() ?? FrozenDictionary<string, string?>.Empty,
+            Data = data?.ToFrozenDictionary() ?? FrozenDictionary<string, string>.Empty,
+            Indexes = indexes?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty,
             IfExist = ifExist,
         };
     }

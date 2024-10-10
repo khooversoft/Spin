@@ -1,37 +1,11 @@
 ﻿using FluentAssertions;
-using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Graph;
 using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
 public class GraphMapSerializationTests
 {
-    [Fact]
-    public void GraphNode()
-    {
-        var v = new GraphNode("Node1", "t1=v");
-
-        string json = v.ToJson();
-        json.Should().NotBeNullOrEmpty();
-
-        var v2 = json.ToObject<GraphNode>();
-        (v == v2).Should().BeTrue();
-    }
-
-    [Fact]
-    public void GraphEdge()
-    {
-        var v = new GraphEdge("Node1", "Node2", "edgeType", "t1=v");
-
-        string json = v.ToJson();
-        json.Should().NotBeNullOrEmpty();
-
-        var v2 = json.ToObject<GraphEdge>();
-        (v == v2).Should().BeTrue();
-    }
-
     [Fact]
     public void EmptyMapString()
     {
@@ -166,61 +140,5 @@ public class GraphMapSerializationTests
         var e1 = map.Edges.Select(x => x.ToString()).OrderBy(x => x).ToArray();
         var e2 = mapRead.Edges.Select(x => x.ToString()).OrderBy(x => x).ToArray();
         e1.SequenceEqual(e2).Should().BeTrue();
-    }
-
-    [Fact]
-    public void NodeSerialization()
-    {
-        new GraphNode("node1").Action(x =>
-        {
-            string json = x.ToJson();
-
-            var graphNode = json.ToObject<GraphNode>();
-            graphNode.Should().NotBeNull();
-            graphNode!.Key.Should().Be("node1");
-            graphNode.Tags.Should().NotBeNull();
-        });
-
-        new GraphNode("node1", tags: "t1,t2=v2").Action(x =>
-        {
-            string json = x.ToJson();
-
-            var graphNode = json.ToObject<GraphNode>();
-            graphNode.Should().NotBeNull();
-            graphNode!.Key.Should().Be("node1");
-            graphNode.Tags.Should().NotBeNull();
-            graphNode.Tags.Count.Should().Be(2);
-            graphNode.Tags["t1"].Should().BeNull();
-            graphNode.Tags["t2"].Should().Be("v2");
-        });
-    }
-
-    [Fact]
-    public void EdgeSerialization()
-    {
-        new GraphEdge("node1", "node2").Action(x =>
-        {
-            string json = x.ToJson();
-
-            var graphEdge = json.ToObject<GraphEdge>();
-            graphEdge.Should().NotBeNull();
-            graphEdge!.FromKey.Should().Be("node1");
-            graphEdge!.ToKey.Should().Be("node2");
-            graphEdge.Tags.Should().NotBeNull();
-        });
-
-        new GraphEdge("node1", "node2", tags: "t1,t2=v2").Action(x =>
-        {
-            string json = x.ToJson();
-
-            var graphEdge = json.ToObject<GraphEdge>();
-            graphEdge.Should().NotBeNull();
-            graphEdge!.FromKey.Should().Be("node1");
-            graphEdge!.ToKey.Should().Be("node2");
-            graphEdge.Tags.Should().NotBeNull();
-            graphEdge.Tags.Count.Should().Be(2);
-            graphEdge.Tags["t1"].Should().BeNull();
-            graphEdge.Tags["t2"].Should().Be("v2");
-        });
     }
 }

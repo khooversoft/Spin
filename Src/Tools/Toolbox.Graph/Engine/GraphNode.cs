@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using Toolbox.Extensions;
@@ -11,10 +11,11 @@ namespace Toolbox.Graph;
 [DebuggerDisplay("Key={Key}, Tags={TagsString}, DataMap={DataMapString}")]
 public sealed record GraphNode : IGraphCommon
 {
-    public GraphNode(string key, string? tags = null)
+    public GraphNode(string key, string? tags = null, string? indexes = null)
     {
         Key = key.NotNull();
-        Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        Indexes = indexes?.Split(',')?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty;
     }
 
     [JsonConstructor]
@@ -22,20 +23,23 @@ public sealed record GraphNode : IGraphCommon
         string key,
         IReadOnlyDictionary<string, string?> tags,
         DateTime createdDate,
-        IReadOnlyDictionary<string, GraphLink> dataMap
+        IReadOnlyDictionary<string, GraphLink> dataMap,
+        IReadOnlyCollection<string> indexes
         )
     {
         Key = key.NotNull();
-        Tags = tags?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, string?>.Empty;
+        Tags = tags?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
         CreatedDate = createdDate;
-        DataMap = dataMap?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, GraphLink>.Empty;
+        DataMap = dataMap?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, GraphLink>.Empty;
+        Indexes = indexes?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty;
     }
 
     public string Key { get; }
-    public IReadOnlyDictionary<string, string?> Tags { get; private init; }
-    public string TagsString => Tags.ToTagsString();
+    public IReadOnlyDictionary<string, string?> Tags { get; }
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
-    public IReadOnlyDictionary<string, GraphLink> DataMap { get; private set; } = ImmutableDictionary<string, GraphLink>.Empty;
+    public IReadOnlyDictionary<string, GraphLink> DataMap { get; } = FrozenDictionary<string, GraphLink>.Empty;
+    public IReadOnlyCollection<string> Indexes { get; } = FrozenSet<string>.Empty;
+    [JsonIgnore] public string TagsString => Tags.ToTagsString();
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
 
     public bool Equals(GraphNode? obj)
@@ -44,7 +48,8 @@ public sealed record GraphNode : IGraphCommon
             Key == subject.Key &&
             Tags.DeepEquals(subject.Tags) &&
             CreatedDate == subject.CreatedDate &&
-            DataMap.DeepEquals(subject.DataMap);
+            DataMap.DeepEquals(subject.DataMap) &&
+            Enumerable.SequenceEqual(Indexes.OrderBy(x => x), subject.Indexes.OrderBy(x => x));
 
         return result;
     }
@@ -55,6 +60,8 @@ public sealed record GraphNode : IGraphCommon
         .RuleFor(x => x.Key).NotEmpty()
         .RuleFor(x => x.Tags).NotNull()
         .RuleFor(x => x.CreatedDate).ValidDateTime()
+        .RuleFor(x => x.DataMap).NotNull().Must(x => x.All(y => y.Key.IsNotEmpty() && y.Value.Validate().IsOk()), _ => "Graph link does not validate")
+        .RuleFor(x => x.Indexes).NotNull().Must(x => x.All(x => x.IsNotEmpty()), _ => "Indexed data key must not be empty")
         .Build();
 }
 

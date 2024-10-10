@@ -262,7 +262,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void SelectRelationship()
     {
-        var parse = _parser.Parse("select (key=userEmail:user.com, index) <-> [userProfile] -> (*) return data, entity, player ;", _context);
+        var parse = _parser.Parse("select (key=userEmail:user.com, indexer) <-> [userProfile] -> (*) return data, entity, player ;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -280,7 +280,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
                         Key = "userEmail:user.com",
                         Tags = new Dictionary<string, string?>
                         {
-                            ["index"] = null,
+                            ["indexer"] = null,
                         },
                     },
                     new GiFullJoin(),

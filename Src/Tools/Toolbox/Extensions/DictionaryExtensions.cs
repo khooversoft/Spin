@@ -85,25 +85,54 @@ public static class DictionaryExtensions
     /// <param name="source"></param>
     /// <param name="target"></param>
     /// <returns></returns>
-    public static bool DeepEquals(this IEnumerable<KeyValuePair<string, string?>>? source, IEnumerable<KeyValuePair<string, string?>>? target)
+    //public static bool DeepEquals(this IEnumerable<KeyValuePair<string, string?>>? source, IEnumerable<KeyValuePair<string, string?>>? target)
+    //{
+    //    if (source == null && target == null) return true;
+    //    if (source == null || target == null) return false;
+
+    //    var sourceList = source.OrderBy(x => x.Key).ToArray();
+    //    var targetList = target.OrderBy(x => x.Key).ToArray();
+    //    if (sourceList.Length != targetList.Length) return false;
+
+    //    var zip = sourceList.Zip(targetList, (x, y) => (source: x, target: y));
+    //    var isEqual = zip.All(x => x.source.Key.Equals(x.target.Key, StringComparison.OrdinalIgnoreCase) switch
+    //    {
+    //        false => false,
+    //        true => (x.source.Value, x.target.Value) switch
+    //        {
+    //            (null, null) => true,
+    //            (string s1, string s2) => s1.Equals(s2, StringComparison.OrdinalIgnoreCase),
+    //            _ => false,
+    //        }
+    //    });
+
+    //    return isEqual;
+    //}
+
+    public static bool DeepEquals<TKey, TValue>(
+        this IEnumerable<KeyValuePair<TKey, TValue>>? source, IEnumerable<KeyValuePair<TKey, TValue>>? target,
+        IComparer<TKey>? keyComparer = null, IComparer<TValue>? valueComparer = null
+        )
     {
         if (source == null && target == null) return true;
         if (source == null || target == null) return false;
 
-        var sourceList = source.OrderBy(x => x.Key).ToArray();
+        keyComparer = keyComparer.ComparerFor();
+        valueComparer = valueComparer.ComparerFor();
+
+        var sourceList = source.OrderBy(x => x.Key, keyComparer).ToArray();
         var targetList = target.OrderBy(x => x.Key).ToArray();
         if (sourceList.Length != targetList.Length) return false;
 
         var zip = sourceList.Zip(targetList, (x, y) => (source: x, target: y));
-        var isEqual = zip.All(x => x.source.Key.Equals(x.target.Key, StringComparison.OrdinalIgnoreCase) switch
+        var isEqual = zip.All(x => keyComparer.Compare(x.source.Key, x.target.Key) switch
         {
-            false => false,
-            true => (x.source.Value, x.target.Value) switch
+            0 => valueComparer.Compare(x.source.Value, x.target.Value) switch
             {
-                (null, null) => true,
-                (string s1, string s2) => s1.Equals(s2, StringComparison.OrdinalIgnoreCase),
+                0 => true,
                 _ => false,
-            }
+            },
+            _ => false,
         });
 
         return isEqual;

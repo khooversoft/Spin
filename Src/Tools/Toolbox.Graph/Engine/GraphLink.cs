@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -27,8 +26,6 @@ public static class GraphDataLinkTool
         result = subject.Validate();
         return result.IsOk();
     }
-
-    public static ImmutableDictionary<string, GraphLink> Empty { get; } = ImmutableDictionary<string, GraphLink>.Empty;
 
     public static bool DeepEquals(this IEnumerable<KeyValuePair<string, GraphLink>> source, IEnumerable<KeyValuePair<string, GraphLink>> target)
     {

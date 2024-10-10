@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -137,12 +138,14 @@ public class Cursor<T>
         int current = Math.Min(_cursor + 1, _list.Count);
         int max = Math.Min(current + count, _list.Count);
 
-        var list = _list.Skip(current)
-            .Take(max - current)
-            .Select(x => CursorTool.Quote(x?.ToString()))
-            .Join(", ");
+        var sb = new StringBuilder();
+        for (int i = current; i < max; i++)
+        {
+            if (sb.Length > 0) sb.Append(", ");
+            sb.Append(CursorTool.Quote(_list[i]?.ToString()));
+        }
 
-        return list;
+        return sb.ToString();
     }
 
     public T? PeekValueString => TryPeekValue(out T? value) ? value : default;

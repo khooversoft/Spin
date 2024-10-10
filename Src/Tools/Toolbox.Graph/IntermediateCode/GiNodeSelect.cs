@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
@@ -9,7 +9,7 @@ namespace Toolbox.Graph;
 internal sealed record GiNodeSelect : ISelectInstruction
 {
     public string? Key { get; init; }
-    public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public string? Alias { get; init; }
 
     public JournalEntry CreateJournal()
@@ -78,7 +78,7 @@ internal static class GiNodeSelectTool
         return new GiNodeSelect
         {
             Key = key,
-            Tags = tags.ToImmutableSortedDictionary(),
+            Tags = tags.ToFrozenDictionary(),
             Alias = alias,
         };
     }

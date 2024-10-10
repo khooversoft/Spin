@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using Toolbox.Graph;
 using Toolbox.Types;
 
@@ -12,6 +12,7 @@ public struct GraphNode_Surrogate
     [Id(1)] public string Tags;
     [Id(2)] public DateTime CreatedDate;
     [Id(3)] public KeyValuePair<string, GraphLink>[] DataMap;
+    [Id(4)] public string[] Indexes;
 }
 
 
@@ -22,7 +23,8 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         surrogate.Key,
         surrogate.Tags.ToTags(),
         surrogate.CreatedDate,
-        surrogate.DataMap.ToImmutableDictionary(x => x.Key, x => x.Value)
+        surrogate.DataMap.ToDictionary(x => x.Key, x => x.Value),
+        surrogate.Indexes.ToFrozenSet()
         );
 
     public GraphNode_Surrogate ConvertToSurrogate(in GraphNode value) => new GraphNode_Surrogate
@@ -31,6 +33,7 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         Tags = value.Tags.ToTagsString(),
         CreatedDate = value.CreatedDate,
         DataMap = value.DataMap.ToArray(),
+        Indexes = value.Indexes.ToArray(),
     };
 }
 

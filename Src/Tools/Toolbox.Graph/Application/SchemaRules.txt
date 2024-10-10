@@ -1,0 +1,28 @@
+delimiters              = , ';' = '->' '<->' ( ) [ ] { } ;
+reserve-words           = select, set, delete, return, ifexist ;
+
+name                    = regex '^[a-zA-Z\\*][a-zA-Z0-9\/\-]*$' ;
+symbol                  = regex '^[a-zA-Z\\*][a-zA-Z0-9\/\-\\*]*$' ;
+open-param              = '(' #group-start #node ;
+close-param             = ')' #group-end #node ;
+open-brace              = '{' #group-start #data ;
+close-brace             = '}' #group-end #data ;
+
+comma                   = ',' ;
+term                    = ';' ;
+equal                   = '=' ;
+value                   = string ;
+
+nodeKey-sym             = 'set' ;
+tag-sym                 = 'add' ;
+index-sym               = 'select' ;
+
+
+nodeKey                 = nodeKey-sym, value ;
+tag                     = tag-sym, value ;
+index                   = index-sym, value ;
+property                = name, equal, value ;
+
+commands                = ( nodeKey | tag | index | property ) ;
+
+entityDefinition        = name, equal, open-brace, commands, { comma, commands }, close-brace, term ;

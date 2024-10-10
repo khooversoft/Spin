@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Text;
-using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -26,8 +25,6 @@ public static class GraphDataSourceTool
         result = subject.Validate();
         return result.IsOk();
     }
-
-    public static ImmutableDictionary<string, GraphDataSource> Empty { get; } = ImmutableDictionary<string, GraphDataSource>.Empty;
 
     public static bool DeepEquals(this IEnumerable<KeyValuePair<string, GraphDataSource>> source, IEnumerable<KeyValuePair<string, GraphDataSource>> target)
     {

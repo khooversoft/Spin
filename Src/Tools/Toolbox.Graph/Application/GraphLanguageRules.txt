@@ -1,7 +1,7 @@
 delimiters              = , ';' = '->' '<->' ( ) [ ] { } ;
-reserve-words           = select, set, delete, return, ifexist ;
+reserve-words           = select, set, delete, return, ifexist, index ;
 
-symbol                  = regex '^[a-zA-Z\\*][a-zA-Z0-9\/\-\\*]*$' ;
+symbol                  = regex '^[a-zA-Z\*][a-zA-Z0-9\/\-\*]*$' ;
 name                    = regex '^[a-zA-Z][a-zA-Z0-9\/\-\:\@\.]*$' ;
 open-param              = '(' #group-start #node ;
 close-param             = ')' #group-end #node ;
@@ -10,7 +10,7 @@ close-brace             = '}' #group-end #data ;
 open-bracket            = '[' #group-start #edge ;
 close-bracket           = ']' #group-end #edge ;
 
-tagKey                  = regex '^[a-zA-Z\\*\\-][a-zA-Z0-9\\-\\*]*$' ;
+tagKey                  = regex '^[a-zA-Z\*\-][a-zA-Z0-9\-\.\*]*$' ;
 tagValue                = string ;
 dataName                = name ;
 base64                  = string ;
@@ -40,6 +40,10 @@ toKey-value             = name ;
 edgeType-sym            = 'type' ;
 edgeType-value          = name ;
 
+index-sym               = 'index' ;
+indexKey                = regex '^[a-zA-Z\-][a-zA-Z0-9\-\.]*$' ;
+indexes                 = [ index-sym, indexKey, { comma, indexKey } ];
+
 entity-data             = dataName, open-brace, base64, close-brace ;
 tag                     = tagKey, [ '=', tagValue ] ;
 set-data                = [ set-sym, ( entity-data | tag ), { comma, ( entity-data | tag ) } ] ;
@@ -53,7 +57,7 @@ command                 = ( add-sym | set-sym ) ;
 select-node             = open-param, tag, { comma, tag }, close-param, [ alias ] ;
 select-edge             = open-bracket, tag, { comma, tag }, close-bracket, [ alias ] ;
 
-node-add-command        = command, node-sym, key-sym, equal, key-value, set-data, term ;
+node-add-command        = command, node-sym, key-sym, equal, key-value, set-data, indexes, term ;
 node-delete-command     = delete-sym, node-sym, [ ifexist ], key-sym, equal, key-value, term ;
 edge-add-command        = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
 edge-delete-command     = delete-sym, edge-sym, [ ifexist ], fromkey-data, comma, tokey-data, comma, edgetype-data, term ;

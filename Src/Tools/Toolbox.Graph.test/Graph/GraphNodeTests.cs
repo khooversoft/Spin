@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Frozen;
+using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;
@@ -8,6 +9,9 @@ namespace Toolbox.Graph.test.Graph;
 
 public class GraphNodeTests
 {
+    private static IReadOnlyDictionary<string, string?> emptyTags = FrozenDictionary<string, string?>.Empty;
+    private static IReadOnlyDictionary<string, GraphLink> emptyData = FrozenDictionary<string, GraphLink>.Empty;
+
     [Fact]
     public void SimpleEqual()
     {
@@ -17,7 +21,7 @@ public class GraphNodeTests
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, TagsTool.Empty, n1.CreatedDate, GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, emptyTags, n1.CreatedDate, emptyData, FrozenSet<string>.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -34,7 +38,7 @@ public class GraphNodeTests
         n1.Tags.Count.Should().Be(1);
         n1.Tags.ToTagsString().Should().Be("t1");
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, emptyData, FrozenSet<string>.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -51,7 +55,7 @@ public class GraphNodeTests
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, emptyData, FrozenSet<string>.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -62,12 +66,12 @@ public class GraphNodeTests
         string key = "key2";
         string tags = "t1, t2=v2";
 
-        var n1 = new GraphNode(key, tags.ToTags(), DateTime.UtcNow, GraphDataLinkTool.Empty);
+        var n1 = new GraphNode(key, tags.ToTags(), DateTime.UtcNow, emptyData, FrozenSet<string>.Empty);
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
 
-        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, GraphDataLinkTool.Empty);
+        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, emptyData, FrozenSet<string>.Empty);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -117,7 +121,8 @@ public class GraphNodeTests
             "node1",
             tags: "t1,t2=v2".ToTags(),
             createdDate: DateTime.UtcNow,
-            dataMap: GraphDataLinkTool.Empty
+            dataMap: emptyData,
+            indexes: FrozenSet<string>.Empty
             );
 
         string json = node.ToJson();

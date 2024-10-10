@@ -4,6 +4,12 @@ using Toolbox.Tools;
 
 namespace Toolbox.Graph;
 
+/// <summary>
+/// Tag indexer
+///   Normal index = Tags => NodeKey or EdgeKey, no restrictions
+///   Node Unique index = Tags => NodeKey is unique
+/// </summary>
+/// <typeparam name="TPrimaryKey"></typeparam>
 internal class TagIndex<TPrimaryKey> where TPrimaryKey : notnull
 {
     private readonly SecondaryIndex<string, TPrimaryKey> _index;

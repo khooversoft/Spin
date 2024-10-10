@@ -112,9 +112,10 @@ public static class InterLangTool
 
         while (interContext.Cursor.TryPeekValue(out var nextValue))
         {
-            if (nextValue.Token.Value == ";") break;
+            if (IsGroupBreak(nextValue)) break;
+            //if (nextValue.Token.Value == ";") break;
 
-            if (nextValue.Token.Value == ",")
+            if (nextValue.MetaSyntaxName == "comma")
             {
                 interContext.Cursor.MoveNext();
                 continue;
@@ -136,8 +137,8 @@ public static class InterLangTool
 
     internal static Option<(Dictionary<string, string?> Tags, Dictionary<string, string> Data)> GetTagsAndData(InterContext interContext)
     {
-        Dictionary<string, string?> tags = new Dictionary<string, string?>();
-        Dictionary<string, string> data = new Dictionary<string, string>();
+        Dictionary<string, string?> tags = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, string> data = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
@@ -145,9 +146,10 @@ public static class InterLangTool
 
         while (interContext.Cursor.TryPeekValue(out var nextValue))
         {
-            if (nextValue.Token.Value == ";") break;
+            if (IsGroupBreak(nextValue)) break;
+            //if (nextValue.Token.Value == ";") break;
 
-            if (nextValue.Token.Value == ",")
+            if (nextValue.MetaSyntaxName == "comma")
             {
                 interContext.Cursor.MoveNext();
                 continue;
@@ -174,9 +176,36 @@ public static class InterLangTool
         return (tags, data);
     }
 
+    internal static Option<HashSet<string>> GetIndexes(InterContext interContext)
+    {
+        HashSet<string> indexes = new(StringComparer.OrdinalIgnoreCase);
+
+        using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
+
+        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != "index") return (StatusCode.NotFound, "No 'index' or ';'");
+
+        while (interContext.Cursor.TryPeekValue(out var nextValue))
+        {
+            if (IsGroupBreak(nextValue)) break;
+            //if (nextValue.Token.Value == ";" || nextValue.Token.Value == "set") break;thanks
+
+            if (nextValue.MetaSyntaxName == "comma")
+            {
+                interContext.Cursor.MoveNext();
+                continue;
+            }
+
+            interContext.Cursor.MoveNext();
+            indexes.Add(nextValue.Token.Value);
+        }
+
+        scope.Cancel();
+        return indexes;
+    }
+
     internal static Option<string> GetValue(InterContext interContext, string keyValueToMatch)
     {
-        var kvOption = InterLangTool.GetKeyValue(interContext, true);
+        var kvOption = GetKeyValue(interContext, true);
         if (kvOption.IsError() || kvOption.Return().Func(x => x.Key != keyValueToMatch || x.Value.IsEmpty())) return (StatusCode.NotFound, "Cannot find key=nodeKey");
 
         return kvOption.Return().Value.NotNull();
@@ -194,4 +223,10 @@ public static class InterLangTool
         value = kvOption.Return().NotEmpty();
         return true;
     }
+
+    internal static bool IsGroupBreak(SyntaxPair syntaxPair) => syntaxPair switch
+    {
+        { MetaSyntaxName: "term" } => true,
+        var v => GraphLanguageTool.GetMetaSyntaxRoot().IsReserveWord(v.Token.Value),
+    };
 }

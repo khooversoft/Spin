@@ -79,7 +79,12 @@ public static class StringExtensions
     /// <param name="subject">subject to compare</param>
     /// <param name="value">value to compare to</param>
     /// <returns>true or false</returns>
-    public static bool EqualsIgnoreCase(this string subject, string value) => subject.Equals(value, StringComparison.OrdinalIgnoreCase);
+    public static bool EqualsIgnoreCase(this string? subject, string? value) => (subject, value) switch
+    {
+        (null, null) => true,
+        (string v1, string v2) => v1.Equals(v2, StringComparison.OrdinalIgnoreCase),
+        _ => false,
+    };
 
     /// <summary>
     /// Truncate a string based on max length value

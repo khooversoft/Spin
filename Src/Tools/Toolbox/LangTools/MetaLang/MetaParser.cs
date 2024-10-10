@@ -78,6 +78,8 @@ public static class MetaParser
         while (pContext.TokensCursor.TryGetValue(out IToken? token))
         {
             if (token.Value == ";" && token.TokenType == TokenType.Token) break;
+            if (token.Value == ",") continue;
+
             pContext.ReserveWords.Add(token.Value);
         }
 

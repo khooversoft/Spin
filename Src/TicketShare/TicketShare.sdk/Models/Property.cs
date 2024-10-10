@@ -12,8 +12,8 @@ public sealed record Property : IEquatable<Property>
 
     public bool Equals(Property? other) =>
         other != null &&
-        Key.EqualsIgnoreCase(other.Key) &&
-        Value.EqualsIgnoreCaseOption(other.Value);
+        Key.Equals(other.Key) &&
+        Value?.Equals(other.Value) == true;
 
     public override int GetHashCode() => HashCode.Combine(Key, Value);
 

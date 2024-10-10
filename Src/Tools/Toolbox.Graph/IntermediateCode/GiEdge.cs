@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
@@ -12,7 +13,7 @@ public sealed record GiEdge : IGraphInstruction
     public string From { get; init; } = null!;
     public string To { get; init; } = null!;
     public string Type { get; init; } = null!;
-    public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public bool IfExist { get; init; }
 
     public IReadOnlyList<JournalEntry> CreateJournals()
@@ -101,7 +102,7 @@ internal static class GiEdgeTool
             From = fromNodeId,
             To = toNodeId,
             Type = edgeType,
-            Tags = tags?.ToImmutableDictionary() ?? ImmutableDictionary<string, string?>.Empty,
+            Tags = tags?.ToFrozenDictionary() ?? FrozenDictionary<string, string?>.Empty,
             IfExist = ifExist,
         };
     }

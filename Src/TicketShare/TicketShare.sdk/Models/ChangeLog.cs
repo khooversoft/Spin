@@ -1,6 +1,6 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Extensions;
 
 namespace TicketShare.sdk;
 
@@ -19,9 +19,9 @@ public sealed record ChangeLog : IEquatable<ChangeLog>
         Date == other.Date &&
         ChangedByPrincipalId.Equals(other.ChangedByPrincipalId) &&
         Description.Equals(other.Description) &&
-        PropertyName.EqualsOption(other.PropertyName) &&
-        OldValue.EqualsOption(other.OldValue) &&
-        NewValue.EqualsOption(other.NewValue);
+        PropertyName.EqualsIgnoreCase(other.PropertyName) &&
+        OldValue.EqualsIgnoreCase(other.OldValue) &&
+        NewValue.EqualsIgnoreCase(other.NewValue);
 
     public override int GetHashCode() => HashCode.Combine(Date, ChangedByPrincipalId, Description);
 

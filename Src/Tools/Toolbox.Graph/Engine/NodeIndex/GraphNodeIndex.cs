@@ -15,6 +15,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     private readonly TagIndex<string> _tagIndex;
     private readonly object _lock;
     private readonly GraphRI _graphRI;
+    private readonly GraphUniqueIndex _uniqueIndex;
 
     internal GraphNodeIndex(object syncLock, GraphRI graphRI)
     {
@@ -22,6 +23,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         _graphRI = graphRI.NotNull();
         _index = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
+        _uniqueIndex = new GraphUniqueIndex(_lock);
     }
 
     public GraphNode this[string key]
@@ -42,16 +44,14 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
         lock (_lock)
         {
-            Option option = _index.TryAdd(node.Key, node) switch
-            {
-                true => StatusCode.OK,
-                false => (StatusCode.Conflict, $"Node key={node.Key} already exist"),
-            };
+            if (_uniqueIndex.Verify(node.Key, node.Tags, node.Indexes).IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
+            if (!_index.TryAdd(node.Key, node)) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
 
             _tagIndex.Set(node.Key, node.Tags);
+            _uniqueIndex.Set(node.Key, node.Tags, node.Indexes);
 
-            if (option.IsOk()) graphContext?.ChangeLog.Push(new CmNodeAdd(node));
-            return option;
+            graphContext?.ChangeLog.Push(new CmNodeAdd(node));
+            return StatusCode.OK;
         }
     }
 
@@ -71,6 +71,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             if (!_index.Remove(key, out var oldValue)) return StatusCode.NotFound;
 
             _tagIndex.Remove(key);
+            _uniqueIndex.RemoveNodeKey(key);
             _graphRI.RemovedNodeFromEdges(oldValue!, graphContext);
 
             graphContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
@@ -84,7 +85,10 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
         lock (_lock)
         {
+            if (_uniqueIndex.Verify(node.Key, node.Tags, node.Indexes).IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
+
             _tagIndex.Set(node.Key, node.Tags);
+            _uniqueIndex.Set(node.Key, node.Tags, node.Indexes);
 
             bool exist = _index.TryGetValue(node.Key, out GraphNode? current);
 

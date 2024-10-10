@@ -223,4 +223,104 @@ public class NodeTests : TestBase<NodeTests>
 
         Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
     }
+
+    [Fact]
+    public void SetIndex()
+    {
+        var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider ;";
+        var parse = _parser.Parse(cmd, _context);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.ToString());
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.ToString());
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiNode
+            {
+                ChangeType = GiChangeType.Set,
+                Key = "user:username1@company.com",
+                Tags = new Dictionary<string, string?>
+                {
+                    ["email"] = "userEmail:username1@domain1.com",
+                    ["loginProvider"] = "userEmail:username1@domain1.com",
+                },
+                Indexes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "loginProvider",
+                },
+            },
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void RemoveIndex()
+    {
+        var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index -loginProvider ;";
+        var parse = _parser.Parse(cmd, _context);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.ToString());
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.ToString());
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiNode
+            {
+                ChangeType = GiChangeType.Set,
+                Key = "user:username1@company.com",
+                Tags = new Dictionary<string, string?>
+                {
+                    ["email"] = "userEmail:username1@domain1.com",
+                    ["loginProvider"] = "userEmail:username1@domain1.com",
+                },
+                Indexes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "-loginProvider",
+                },
+            },
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetIndex2()
+    {
+        var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider, email ;";
+        var parse = _parser.Parse(cmd, _context);
+        parse.Status.IsOk().Should().BeTrue(parse.Status.ToString());
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.ToString());
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiNode
+            {
+                ChangeType = GiChangeType.Set,
+                Key = "user:username1@company.com",
+                Tags = new Dictionary<string, string?>
+                {
+                    ["email"] = "userEmail:username1@domain1.com",
+                    ["loginProvider"] = "userEmail:username1@domain1.com",
+                },
+                Indexes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "email",
+                    "loginProvider",
+                },
+            },
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
 }

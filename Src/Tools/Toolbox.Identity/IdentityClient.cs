@@ -41,9 +41,9 @@ public class IdentityClient : IIdentityClient
         seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToEmailIndex(user.Email));
         seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToUserNameIndex(user.NormalizedUserName));
 
-        if ((user.LoginProvider.IsNotEmpty() && user.ProviderKey.IsNotEmpty()))
+        if (user.HasLoginProvider())
         {
-            seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToLoginIndex(user.LoginProvider, user.ProviderKey));
+            seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToLoginIndex(user.LoginProvider!, user.ProviderKey!));
         }
 
         string cmds = seq.Join(Environment.NewLine);

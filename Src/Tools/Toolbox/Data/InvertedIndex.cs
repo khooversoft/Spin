@@ -12,8 +12,8 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
 
     public InvertedIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
     {
-        KeyComparer = keyComparer.ComparerFor();
-        ReferenceComparer = referenceComparer.ComparerFor();
+        KeyComparer = keyComparer.EqualityComparerFor();
+        ReferenceComparer = referenceComparer.EqualityComparerFor();
 
         _index = new Dictionary<TKey, HashSet<TReferenceKey>>(KeyComparer);
     }

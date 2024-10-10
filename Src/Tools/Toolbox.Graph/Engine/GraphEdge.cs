@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using Toolbox.Extensions;
@@ -22,7 +22,7 @@ public sealed record GraphEdge : IGraphCommon
         FromKey = fromKey.NotNull();
         ToKey = toKey.NotNull();
         EdgeType = edgeType ?? "default";
-        Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
         CreatedDate = createdDate ?? DateTime.UtcNow;
 
         this.Validate().ThrowOnError("Edge is invalid");
@@ -33,19 +33,19 @@ public sealed record GraphEdge : IGraphCommon
         FromKey = fromKey.NotEmpty();
         ToKey = toKey.NotEmpty();
         EdgeType = edgeType.NotEmpty();
-        Tags = tags?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, string?>.Empty;
+        Tags = tags?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
         CreatedDate = createdDate ?? DateTime.UtcNow;
 
         this.Validate().ThrowOnError("Edge is invalid");
     }
 
     [JsonConstructor]
-    public GraphEdge(string fromKey, string toKey, string edgeType, ImmutableDictionary<string, string?> tags, DateTime createdDate)
+    public GraphEdge(string fromKey, string toKey, string edgeType, IReadOnlyDictionary<string, string?> tags, DateTime createdDate)
     {
         FromKey = fromKey.NotNull();
         ToKey = toKey.NotNull();
         EdgeType = edgeType.NotEmpty();
-        Tags = tags.NotNull().ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        Tags = tags.NotNull().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
         CreatedDate = createdDate;
 
         this.Validate().ThrowOnError("Edge is invalid");
@@ -54,7 +54,7 @@ public sealed record GraphEdge : IGraphCommon
     public string FromKey { get; }
     public string ToKey { get; }
     public string EdgeType { get; private init; }
-    public ImmutableDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
 
     public bool Equals(GraphEdge? obj) => obj is GraphEdge subject &&

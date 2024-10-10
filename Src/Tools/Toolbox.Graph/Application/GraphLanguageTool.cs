@@ -22,4 +22,6 @@ public static class GraphLanguageTool
         .NotNull();
 
     public static SyntaxParser GetSyntaxRoot() => _parse;
+
+    public static MetaSyntaxRoot GetMetaSyntaxRoot() => _root;
 }

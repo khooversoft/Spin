@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TicketShare.sdk.test", "Tic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.TestApi", "Tools\Toolbox.TestApi\Toolbox.TestApi.csproj", "{AAA748CD-0AC0-4A93-A907-F4E8E2DCAF76}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Identity", "Tools\Toolbox.Identity\Toolbox.Identity.csproj", "{A6D362E6-AA23-4614-8511-A491389F61E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{AAA748CD-0AC0-4A93-A907-F4E8E2DCAF76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAA748CD-0AC0-4A93-A907-F4E8E2DCAF76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAA748CD-0AC0-4A93-A907-F4E8E2DCAF76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6D362E6-AA23-4614-8511-A491389F61E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6D362E6-AA23-4614-8511-A491389F61E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6D362E6-AA23-4614-8511-A491389F61E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6D362E6-AA23-4614-8511-A491389F61E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +96,7 @@ Global
 		{756EE499-1B22-4D89-A332-C2B176EEC3FE} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
 		{7DC0D869-72A9-438E-8EC3-14EA0A014882} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
 		{AAA748CD-0AC0-4A93-A907-F4E8E2DCAF76} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
+		{A6D362E6-AA23-4614-8511-A491389F61E6} = {8B7E0C03-8298-4DEA-9837-E08C54101711}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C6C4D84E-C816-45E6-AE2A-10688A98827C}

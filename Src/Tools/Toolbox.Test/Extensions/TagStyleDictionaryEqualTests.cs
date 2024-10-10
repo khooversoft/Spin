@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 
 namespace Toolbox.Test.Extensions;
 
-public class DictionaryExtensionsTests
+public class TagStyleDictionaryEqualTests
 {
     [Fact]
     public void EmptyList()
@@ -79,6 +79,24 @@ public class DictionaryExtensionsTests
         list1.DeepEquals(list2).Should().BeTrue();
     }
 
+
+    [Fact]
+    public void NotEqualCounts()
+    {
+        Dictionary<string, string?> list1 = new()
+        {
+            ["key1"] = "value1",
+            ["key2"] = "value2",
+        };
+        Dictionary<string, string?> list2 = new()
+        {
+            ["key1"] = "value1",
+            ["key2"] = "value2-x",
+            ["key3"] = "value2-x",
+        };
+
+        list1.DeepEquals(list2).Should().BeFalse();
+    }
 
     [Fact]
     public void NotEqualValues()

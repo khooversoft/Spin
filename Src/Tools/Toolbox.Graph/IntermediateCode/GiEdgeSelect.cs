@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
@@ -11,7 +11,7 @@ internal sealed record GiEdgeSelect : ISelectInstruction
     public string? From { get; init; }
     public string? To { get; init; }
     public string? Type { get; init; }
-    public IReadOnlyDictionary<string, string?> Tags { get; init; } = ImmutableDictionary<string, string?>.Empty;
+    public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public string? Alias { get; init; }
 
     public JournalEntry CreateJournal()
@@ -96,7 +96,7 @@ internal static class GiEdgeSelectTool
             From = from,
             To = to,
             Type = edgeType,
-            Tags = tags.ToImmutableSortedDictionary(),
+            Tags = tags.ToFrozenDictionary(),
             Alias = alias,
         };
     }

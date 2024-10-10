@@ -10,14 +10,14 @@ public static class TagsTool
     private static FrozenSet<string> _delimiters = new string[] { ",", "=" }.ToFrozenSet();
     private static FrozenSet<char> _allowCharacters = new char[] { '*', '-', '.', ':' }.ToFrozenSet();
 
-    public static ImmutableDictionary<string, string?> ToTags(this string? tags) => TagsTool.Parse(tags)
+    public static IReadOnlyDictionary<string, string?> ToTags(this string? tags) => TagsTool.Parse(tags)
         .ThrowOnError().Return()
-        .ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
-    public static ImmutableDictionary<string, string?> ToTags(this IReadOnlyDictionary<string, string?> tags) => tags
-        .ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+    public static IReadOnlyDictionary<string, string?> ToTags(this IReadOnlyDictionary<string, string?> tags) => tags
+        .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
-    public static ImmutableDictionary<string, string?> ProcessTags(this IEnumerable<KeyValuePair<string, string?>> tags, IEnumerable<KeyValuePair<string, string?>> tagCommands)
+    public static IReadOnlyDictionary<string, string?> ProcessTags(this IEnumerable<KeyValuePair<string, string?>> tags, IEnumerable<KeyValuePair<string, string?>> tagCommands)
     {
         tagCommands.NotNull();
 
@@ -25,10 +25,8 @@ public static class TagsTool
 
         tagCommands.Where(x => x.Key.IsNotEmpty()).ForEach(x => dict.ApplyTagCommand(x.Key, x.Value));
 
-        return dict.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        return dict.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
-
-    public static ImmutableDictionary<string, string?> Empty { get; } = ImmutableDictionary<string, string?>.Empty;
 
     public static void ApplyTagCommand(this Dictionary<string, string?> tags, string key, string? value = null)
     {
@@ -50,9 +48,9 @@ public static class TagsTool
         _ => null,
     };
 
-    public static ImmutableDictionary<string, string?> RemoveDeleteCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
+    public static IReadOnlyDictionary<string, string?> RemoveDeleteCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
         .Where(x => GetTagDeleteCommand(x.Key, x.Value).IsEmpty())
-        .ToImmutableDictionary();
+        .ToFrozenDictionary();
 
     public static IReadOnlyList<string> GetTagDeleteCommands(this IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
         .Select(x => GetTagDeleteCommand(x.Key, x.Value))
