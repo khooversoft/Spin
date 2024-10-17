@@ -105,7 +105,6 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             (bool exist, GraphNode updatedNode) = _index.TryGetValue(node.Key, out GraphNode? current) switch
             {
                 false => (false, new GraphNode(node.Key, node.Tags.RemoveDeleteCommands(), node.CreatedDate, node.DataMap, node.Indexes.RemoveDeleteCommands())),
-                //true => (true, new GraphNode(node.Key, node.Tags.RemoveDeleteCommands(), current.CreatedDate, node.DataMap, node.Indexes.MergeIndexes(current.Indexes))),
                 true => (true, new GraphNode(node.Key, node.Tags.MergeAndFilter(current.Tags), current.CreatedDate, node.DataMap, node.Indexes.MergeIndexes(current.Indexes))),
             };
 
