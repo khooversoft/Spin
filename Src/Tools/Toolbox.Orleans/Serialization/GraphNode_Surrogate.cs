@@ -6,6 +6,7 @@ namespace Toolbox.Orleans;
 
 // TODO, try immutable dict and hashset
 [GenerateSerializer]
+[Alias("Toolbox.Orleans.GraphNode_Surrogate")]
 public struct GraphNode_Surrogate
 {
     [Id(0)] public string Key;
@@ -32,8 +33,8 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         Key = value.Key,
         Tags = value.Tags.ToTagsString(),
         CreatedDate = value.CreatedDate,
-        DataMap = value.DataMap.ToArray(),
-        Indexes = value.Indexes.ToArray(),
+        DataMap = [.. value.DataMap],
+        Indexes = [.. value.Indexes],
     };
 }
 

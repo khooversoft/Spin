@@ -8,14 +8,23 @@ using Toolbox.Types;
 namespace Toolbox.Graph;
 
 
-[DebuggerDisplay("Key={Key}, Tags={TagsString}, DataMap={DataMapString}")]
+[DebuggerDisplay("Key={Key}, Tags={TagsString}, DataMap={DataMapString}, Indexes={IndexesString}")]
 public sealed record GraphNode : IGraphCommon
 {
     public GraphNode(string key, string? tags = null, string? indexes = null)
     {
         Key = key.NotNull();
         Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        Indexes = indexes?.Split(',')?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty;
+
+        Indexes = indexes switch
+        {
+            null => FrozenSet<string>.Empty,
+
+            string v => v.Split(',')
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToFrozenSet(StringComparer.OrdinalIgnoreCase),
+        };
     }
 
     [JsonConstructor]
@@ -28,10 +37,16 @@ public sealed record GraphNode : IGraphCommon
         )
     {
         Key = key.NotNull();
+
         Tags = tags?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
         CreatedDate = createdDate;
         DataMap = dataMap?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, GraphLink>.Empty;
-        Indexes = indexes?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty;
+
+        Indexes = indexes switch
+        {
+            null => FrozenSet<string>.Empty,
+            var v => v.Distinct(StringComparer.OrdinalIgnoreCase).ToFrozenSet(StringComparer.OrdinalIgnoreCase),
+        };
     }
 
     public string Key { get; }
@@ -41,6 +56,7 @@ public sealed record GraphNode : IGraphCommon
     public IReadOnlyCollection<string> Indexes { get; } = FrozenSet<string>.Empty;
     [JsonIgnore] public string TagsString => Tags.ToTagsString();
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
+    [JsonIgnore] public string IndexesString => Indexes.Join(',');
 
     public bool Equals(GraphNode? obj)
     {

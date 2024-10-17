@@ -1,59 +1,68 @@
-﻿using System.Collections.Immutable;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
+/// <summary>
+/// Index to lookup unique keys associagted with an index (tag key) + tagValue + nodekey
+/// 
+/// Lookup -
+///   tagKey + tagValue -> nodeKeys
+///   
+/// </summary>
 public class GraphUniqueIndex
 {
     private readonly object _syncLock;
 
-    // IndexName (tag name) -> Value (tag value) -> UniqueIndex
-    private Dictionary<string, Dictionary<string, UniqueIndex>> _index = new(StringComparer.OrdinalIgnoreCase);
-    private NodeKeyLookup _nodeKeyLookup = new();
+    private readonly TagValueIndex _tagIndex = new TagValueIndex(); // Master index
 
     public GraphUniqueIndex(object syncLock) => _syncLock = syncLock.NotNull();
 
-    public Option<IReadOnlyList<string>> Set(string nodeKey, IEnumerable<KeyValuePair<string, string?>> tagsWithValue, IEnumerable<string> indexes)
+    public Option Set(GraphNode newNode, GraphNode? currentNode, IGraphTrxContext? trxContext)
     {
-        tagsWithValue.NotNull();
-        indexes.NotNull();
+        newNode.NotNull();
 
         lock (_syncLock)
         {
-            var list = GetIndexValues(tagsWithValue, indexes);
+            var verifyOption = Verify(newNode, currentNode, trxContext);
+            if (verifyOption.IsError()) return verifyOption;
 
-            foreach (var item in list)
-            {
-                var result = item switch
-                {
-                    (false, var indexName, var tagValue) => Add(new UniqueIndex { IndexName = indexName, Value = tagValue, NodeKey = nodeKey }),
-                    (true, var indexName, var tagValue) => Remove(indexName, tagValue),
-                };
-
-                if (result.IsError() && !result.IsNotFound()) return result.ToOptionStatus<IReadOnlyList<string>>();
-            }
-
-            return list.Where(x => !x.isRemove).Select(x => x.indexName).ToImmutableArray();
+            AddToIndex(newNode, currentNode, trxContext);
+            return StatusCode.OK;
         }
     }
 
-    public Option Verify(string nodeKey, IEnumerable<KeyValuePair<string, string?>> tagsWithValue, IEnumerable<string> indexes)
+    public Option<UniqueIndex> Lookup(string indexName, string value) => _tagIndex.Lookup(indexName, value);
+
+    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _tagIndex.LookupByNodeKey(nodeKey);
+
+    public Option Verify(GraphNode newNode, GraphNode? currentNode, IGraphTrxContext? trxContext)
     {
+        newNode.NotNull();
+
+        if (currentNode != null && !newNode.Key.EqualsIgnoreCase(currentNode.Key)) return (StatusCode.BadRequest, "Node keys do not match");
+
+        // Verify that unique contraints are not violated
         lock (_syncLock)
         {
-            var list = GetIndexValues(tagsWithValue, indexes);
+            // Node cannot have an indexed value that another node has
+            var indexedTags = GetIndexedTags(newNode, currentNode);
 
-            var errorList = list
-                .Where(x => !x.isRemove)
-                .Select(x => (x, lookup: Lookup(x.indexName, x.tagValue)))
-                .Where(x => x.lookup.IsOk() && x.lookup.Return() != nodeKey)
+            var lookupResult = indexedTags
+                .Select(x => _tagIndex.Lookup(x.Key, x.Value))
+                .Where(x => x.IsOk())
+                .Select(x => x.Return())
                 .ToArray();
 
-            if (errorList.Length != 0)
+            var indexedTagsByOtherNodes = lookupResult
+                .Where(x => !x.NodeKey.EqualsIgnoreCase(newNode.Key))
+                .ToArray();
+
+            if (indexedTagsByOtherNodes.Length != 0)
             {
-                string msg = errorList.Select(x => $"NodeKey={nodeKey}, {x.x.indexName}={x.x.tagValue}").Join(",");
+                string msg = indexedTagsByOtherNodes.Select(x => $"NodeKey={newNode.Key}, {x.IndexName}={x.Value}").Join(",");
                 return (StatusCode.BadRequest, msg);
             }
 
@@ -61,68 +70,72 @@ public class GraphUniqueIndex
         }
     }
 
-    public void RemoveNodeKey(string nodeKey)
+    public void RemoveNodeKey(string nodeKey, IGraphTrxContext? trxContext)
     {
         lock (_syncLock)
         {
-            var list = _nodeKeyLookup.Lookup(nodeKey);
-            list.ForEach(x => Remove(x.IndexName, x.Value));
+            var status = _tagIndex.RemoveNodeKey(nodeKey);
+
+            trxContext?.Context.Log(
+                status ? LogLevel.Information : LogLevel.Warning,
+                status ? "Removed" : "Failed to remove" + " nodeKey={nodeKey}", nodeKey
+                );
         }
     }
 
-    private Option<string> Lookup(string indexName, string value)
+    private void AddToIndex(GraphNode newNode, GraphNode? currentNode, IGraphTrxContext? trxContext)
     {
-        lock (_syncLock)
+        var indexedTags = GetIndexedTags(newNode, currentNode);
+
+        // Remove node indexes
+        var status = _tagIndex.RemoveNodeKey(newNode.Key);
+
+        indexedTags.ForEach(x =>
         {
-            if (!_index.TryGetValue(indexName, out var index)) return new Option<string>();
+            var option = _tagIndex.Add(x.Key, x.Value, newNode.Key);
 
-            if (!index.TryGetValue(value, out var uniqueIndex)) return new Option<string>();
-
-            return uniqueIndex.NodeKey;
-        }
+            trxContext?.Context.Log(
+                option.IsOk() ? LogLevel.Information : LogLevel.Warning,
+                option.IsOk() ? "Added" : "Failed to add" + " key={key}={value} for nodeKey={nodeKey}", x.Key, x.Value, newNode.Key
+                );
+        });
     }
 
-    private Option Remove(string indexName, string value)
+    private static IReadOnlyList<KeyValuePair<string, string>> GetIndexedTags(GraphNode newNode, GraphNode? currentNode) => GetActiveTags(newNode, currentNode)
+        .Join(GetActiveIndexes(newNode, currentNode), x => x.Key, y => y, (tag, index) => tag, StringComparer.OrdinalIgnoreCase)
+        .Distinct(TagsComparer.Default)
+        .ToArray();
+
+    private static IReadOnlyList<string> GetActiveIndexes(GraphNode newNode, GraphNode? currentNode) => newNode.Indexes
+        .Concat(currentNode?.Indexes ?? Array.Empty<string>())
+        .Where(x => !TagsTool.HasRemoveFlag(x))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
+    private static IReadOnlyList<KeyValuePair<string, string>> GetActiveTags(GraphNode newNode, GraphNode? currentNode)
     {
-        lock (_syncLock)
-        {
-            if (!_index.TryGetValue(indexName, out var index)) return StatusCode.NotFound;
+        newNode.NotNull();
 
-            return index.Remove(value) ? StatusCode.OK : StatusCode.NotFound;
-        }
-    }
+        var deleteTabCommands = TagsTool.GetTagDeleteCommands(newNode.Tags);
+        var deleteIndexCommands = UniqueIndexTool.GetDeleteCommands(newNode.Indexes);
 
-    private Option Add(UniqueIndex uniqueIndex)
-    {
-        lock (_syncLock)
-        {
-            if (!_index.TryGetValue(uniqueIndex.IndexName, out var index))
-            {
-                index = new Dictionary<string, UniqueIndex>(StringComparer.OrdinalIgnoreCase);
-                _index[uniqueIndex.IndexName] = index;
-            }
-
-            if (index.ContainsKey(uniqueIndex.Value)) return (StatusCode.Conflict, $"Index={uniqueIndex.IndexName} value={uniqueIndex.Value} already exist");
-            index[uniqueIndex.Value] = uniqueIndex;
-
-            _nodeKeyLookup.Add(uniqueIndex);
-            return StatusCode.OK;
-        }
-    }
-
-    private IEnumerable<(bool isRemove, string indexName, string tagValue)> GetIndexValues(IEnumerable<KeyValuePair<string, string?>> tagsWithValue, IEnumerable<string> indexes)
-    {
-        var list = indexes.Where(x => x.IsNotEmpty() && x != "-")
-            .Select(x => (isRemove: x[0] == '-', indexName: x[0] == '-' ? x[1..] : x))
-            .Join(
-                tagsWithValue.Where(x => x.Value.IsNotEmpty()),
-                x => x.indexName,
-                x => x.Key,
-                (i, tag) => (i.isRemove, i.indexName, tagValue: tag.Value.NotEmpty()),
-                StringComparer.OrdinalIgnoreCase
-                )
+        var list = GetTagPairs(newNode.NotNull().Tags)
+            .Concat(currentNode != null ? GetTagPairs(currentNode.Tags) : Array.Empty<KeyValuePair<string, string>>())
+            .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(x => x.First())
+            .Distinct(TagsComparer.Default)
+            .Where(x => !isDeleted(x.Key))
             .ToArray();
 
         return list;
+
+        bool isDeleted(string value) =>
+            deleteTabCommands.Contains(value, StringComparer.OrdinalIgnoreCase) ||
+            deleteIndexCommands.Contains(value, StringComparer.OrdinalIgnoreCase);
     }
+
+    private static IEnumerable<KeyValuePair<string, string>> GetTagPairs(IEnumerable<KeyValuePair<string, string?>> tags) => tags.NotNull()
+        .Where(x => !TagsTool.HasRemoveFlag(x.Key))
+        .Where(x => x.Value.IsNotEmpty())
+        .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()));
 }

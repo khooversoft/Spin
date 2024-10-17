@@ -78,6 +78,7 @@ internal static class SelectInstruction
         {
             var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Nodes,
             { Key: string v } when !HasWildCard(v) => pContext.TrxContext.Map.Nodes.TryGetValue(v, out var gn) ? [gn] : [],
+            { Tags: { Count: 1 } v } when v.Values.First().IsNotEmpty() => pContext.TrxContext.Map.Nodes.LookupTaggedNodes(v.Keys.First()),
             _ => pContext.TrxContext.Map.Nodes,
         };
     }

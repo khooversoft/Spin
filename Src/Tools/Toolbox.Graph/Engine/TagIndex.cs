@@ -19,9 +19,11 @@ internal class TagIndex<TPrimaryKey> where TPrimaryKey : notnull
     public bool Remove(TPrimaryKey primarykey) => _index.RemovePrimaryKey(primarykey);
     public IReadOnlyList<TPrimaryKey> Lookup(string key) => _index.Lookup(key);
     public IReadOnlyList<string> LookupPrimaryKey(TPrimaryKey pkey) => _index.LookupPrimaryKey(pkey);
+
     public void Set(TPrimaryKey primaryKey, IReadOnlyDictionary<string, string?> tags)
     {
         _index.RemovePrimaryKey(primaryKey);
+
         tags.NotNull().ForEach(x => _index.Set(x.Key, primaryKey));
     }
 }

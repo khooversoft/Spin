@@ -31,6 +31,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     }
 
     public int Count => _index.Count;
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupTag(string tag) => _tagIndex.Lookup(tag);
 
     public GraphEdge this[GraphEdgePrimaryKey key]
     {
@@ -52,6 +53,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesFrom.Set(edge.FromKey, pk);
             _edgesTo.Set(edge.ToKey, pk);
             _graphEdges[edge.EdgeType] = pk;
+            _tagIndex.Set(pk, edge.Tags);
 
             graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
             return StatusCode.OK;
@@ -83,6 +85,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesFrom.Remove(edgeValue.FromKey, edgeKey);
             _edgesTo.Remove(edgeValue.ToKey, edgeKey);
             _graphEdges.Remove(edgeKey.EdgeType);
+            _tagIndex.Remove(edgeKey);
 
             graphContext?.ChangeLog.Push(new CmEdgeDelete(edgeValue));
             return StatusCode.OK;
@@ -123,6 +126,8 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             _edgesFrom.Set(edge.FromKey, pk);
             _edgesTo.Set(edge.ToKey, pk);
+            _tagIndex.Set(pk, edge.Tags);
+
             graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
 
             return StatusCode.OK;
@@ -138,7 +143,9 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
                 if (!_index.ContainsKey(pk)) return (StatusCode.NotFound, $"Key={pk} does not exist");
 
                 var readEdge = _index[pk];
+
                 _index[pk] = edge;
+                _tagIndex.Set(pk, edge.Tags);
 
                 if (edge.FromKey != readEdge.FromKey)
                 {

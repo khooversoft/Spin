@@ -13,7 +13,8 @@ public static class GraphCommandTools
         var nodeDelta2 = newMap.Nodes.Where(x =>
         {
             if (!currentMap.Nodes.TryGetValue(x.Key, out var node)) return true;
-            return x != node;
+            bool status = x != node;
+            return status;
         }).ToArray();
 
         var nodeDelta1 = currentMap.Nodes.Where(x =>

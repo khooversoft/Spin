@@ -1,7 +1,9 @@
-﻿using Toolbox.LangTools;
+﻿using System.Runtime.CompilerServices;
+using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
 
+[assembly: InternalsVisibleTo("Toolbox.Graph.test")]
 namespace Toolbox.Graph;
 
 public static class GraphLanguageTool

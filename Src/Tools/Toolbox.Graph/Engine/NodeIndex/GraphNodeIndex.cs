@@ -36,21 +36,25 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     public bool ContainsKey(string key) => _index.ContainsKey(key);
     public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
     public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag);
+    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue);
+    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey);
 
-
-    internal Option Add(GraphNode node, IGraphTrxContext? graphContext = null)
+    internal Option Add(GraphNode node, IGraphTrxContext? trxContext = null)
     {
         if (!node.Validate(out var v)) return v;
 
         lock (_lock)
         {
-            if (_uniqueIndex.Verify(node.Key, node.Tags, node.Indexes).IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
-            if (!_index.TryAdd(node.Key, node)) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
+            var activeIndexesOption = _uniqueIndex.Verify(node, null, trxContext);
+            if (activeIndexesOption.IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
+
+            var newNode = new GraphNode(node.Key, node.Tags.RemoveDeleteCommands(), node.CreatedDate, node.DataMap, node.Indexes.RemoveDeleteCommands());
+            if (!_index.TryAdd(newNode.Key, newNode)) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
 
             _tagIndex.Set(node.Key, node.Tags);
-            _uniqueIndex.Set(node.Key, node.Tags, node.Indexes);
+            _uniqueIndex.Set(node, null, trxContext).ThrowOnError();
 
-            graphContext?.ChangeLog.Push(new CmNodeAdd(node));
+            trxContext?.ChangeLog.Push(new CmNodeAdd(node));
             return StatusCode.OK;
         }
     }
@@ -64,39 +68,55 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         }
     }
 
-    internal Option Remove(string key, IGraphTrxContext? graphContext = null)
+    public IReadOnlyList<GraphNode> LookupTaggedNodes(string tag)
+    {
+        lock (_lock)
+        {
+            var nodes = _tagIndex.Lookup(tag);
+            var list = nodes.Select(x => _index[x]).ToArray();
+            return list;
+        }
+    }
+
+    internal Option Remove(string key, IGraphTrxContext? trxContext = null)
     {
         lock (_lock)
         {
             if (!_index.Remove(key, out var oldValue)) return StatusCode.NotFound;
 
             _tagIndex.Remove(key);
-            _uniqueIndex.RemoveNodeKey(key);
-            _graphRI.RemovedNodeFromEdges(oldValue!, graphContext);
+            _uniqueIndex.RemoveNodeKey(key, trxContext);
+            _graphRI.RemovedNodeFromEdges(oldValue!, trxContext);
 
-            graphContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
+            trxContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
             return StatusCode.OK;
         }
     }
 
-    internal Option Set(GraphNode node, IGraphTrxContext? graphContext = null)
+    internal Option Set(GraphNode node, IGraphTrxContext? trxContext = null)
     {
         if (!node.Validate(out var v)) return v;
 
         lock (_lock)
         {
-            if (_uniqueIndex.Verify(node.Key, node.Tags, node.Indexes).IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
+            var activeIndexesOption = _uniqueIndex.Verify(node, null, trxContext);
+            if (activeIndexesOption.IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
 
-            _tagIndex.Set(node.Key, node.Tags);
-            _uniqueIndex.Set(node.Key, node.Tags, node.Indexes);
-
-            bool exist = _index.TryGetValue(node.Key, out GraphNode? current);
-
-            _index[node.Key] = node;
-            graphContext?.ChangeLog.Push(exist switch
+            (bool exist, GraphNode updatedNode) = _index.TryGetValue(node.Key, out GraphNode? current) switch
             {
-                false => new CmNodeAdd(node),
-                true => new CmNodeChange(current!, node),
+                false => (false, new GraphNode(node.Key, node.Tags.RemoveDeleteCommands(), node.CreatedDate, node.DataMap, node.Indexes.RemoveDeleteCommands())),
+                //true => (true, new GraphNode(node.Key, node.Tags.RemoveDeleteCommands(), current.CreatedDate, node.DataMap, node.Indexes.MergeIndexes(current.Indexes))),
+                true => (true, new GraphNode(node.Key, node.Tags.MergeAndFilter(current.Tags), current.CreatedDate, node.DataMap, node.Indexes.MergeIndexes(current.Indexes))),
+            };
+
+            _index[node.Key] = updatedNode;
+            _tagIndex.Set(node.Key, node.Tags);
+            _uniqueIndex.Set(node, current, trxContext).ThrowOnError();
+
+            trxContext?.ChangeLog.Push(exist switch
+            {
+                false => new CmNodeAdd(updatedNode),
+                true => new CmNodeChange(current!, updatedNode),
             });
 
             return StatusCode.OK;

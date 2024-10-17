@@ -318,25 +318,50 @@ public class NodeInstructionTests
         commandResults.Items.Count.Should().Be(1);
     }
 
-    //[Fact]
-    //public async Task SetNodeWithIndex()
-    //{
-    //    var cmd = "set node key=user:username1@company.com index loginProvider=userEmail:username1@domain1.com set email=userEmail:username1@domain1.com ;";
-    //    var copyMap = _map.Clone();
-    //    var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-    //    var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
-    //    newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+    [Fact]
+    public async Task SetNodeWithIndex()
+    {
+        var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider ;";
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
-    //    QueryBatchResult commandResults = newMapOption.Return();
-    //    var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        QueryBatchResult commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
-    //    compareMap.Count.Should().Be(1);
-    //    compareMap[0].Cast<GraphNode>().Action(x =>
-    //    {
-    //        x.Key.Should().Be("provider:provider1/provider1-key");
-    //        x.Tags.ToTagsString().Should().Be("uniqueIndex");
-    //    });
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("user:username1@company.com");
+            x.Tags.ToTagsString().Should().Be("email=userEmail:username1@domain1.com,loginProvider=userEmail:username1@domain1.com");
+            x.Indexes.Should().Contain("loginProvider");
+        });
 
-    //    commandResults.Items.Count.Should().Be(1);
-    //}
+        commandResults.Items.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SetNodeWithTwoIndex()
+    {
+        var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider, email ;";
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        QueryBatchResult commandResults = newMapOption.Return();
+        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+
+        compareMap.Count.Should().Be(1);
+        compareMap[0].Cast<GraphNode>().Action(x =>
+        {
+            x.Key.Should().Be("user:username1@company.com");
+            x.Tags.ToTagsString().Should().Be("email=userEmail:username1@domain1.com,loginProvider=userEmail:username1@domain1.com");
+            x.Indexes.Should().Contain("loginProvider");
+            x.Indexes.Should().Contain("email");
+        });
+
+        commandResults.Items.Count.Should().Be(1);
+    }
 }

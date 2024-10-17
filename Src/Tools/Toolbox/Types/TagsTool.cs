@@ -106,4 +106,41 @@ public static class TagsTool
     };
 
     public static Option<IReadOnlyList<KeyValuePair<string, string?>>> Parse(string? value) => PropertyStringSchema.Tags.Parse(value);
+
+    public static IReadOnlyDictionary<string, string?> Merge(this IEnumerable<KeyValuePair<string, string?>> source1, IEnumerable<KeyValuePair<string, string?>>? source2)
+    {
+        source1.NotNull();
+        IEnumerable<KeyValuePair<string, string?>> currentTags = (source2 ??= Array.Empty<KeyValuePair<string, string?>>());
+
+        var list = source1
+            .Concat(source2)
+            .GroupBy(x => x.Key)
+            .Select(x => x.First())
+            .ToFrozenDictionary();
+
+        return list;
+    }
+
+    public static IReadOnlyDictionary<string, string?> MergeAndFilter(
+        this IEnumerable<KeyValuePair<string, string?>> newTags,
+        IEnumerable<KeyValuePair<string, string?>>? currentTagsValue
+        )
+    {
+        newTags.NotNull();
+        IEnumerable<KeyValuePair<string, string?>> currentTags = (currentTagsValue ??= Array.Empty<KeyValuePair<string, string?>>());
+
+        var removeTags = newTags.GetTagDeleteCommands();
+
+        var list = newTags
+            .Concat(currentTags)
+            .Where(x => !HasRemoveFlag(x.Key))
+            .Where(x => !removeTags.Contains(x.Key))
+            .GroupBy(x => x.Key)
+            .Select(x => x.First())
+            .ToFrozenDictionary();
+
+        return list;
+    }
+
+    public static bool HasRemoveFlag(string value) => value.IsNotEmpty() && value.Length > 1 && value[0] == '-';
 }

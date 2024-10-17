@@ -102,7 +102,6 @@ public static class GraphTool
         $"delete edge ifexist from={indexKey.NotEmpty()}, to={nodeKey.NotEmpty()}, type={edgeType.NotEmpty()};"
     ];
 
-
     public static string SelectNodeCommand(string nodeKey, string? dataName = null)
     {
         nodeKey.NotEmpty();
