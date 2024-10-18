@@ -1,0 +1,21 @@
+﻿@page "/"
+@using TicketShare.sdk
+@using TicketShareWeb.Components.Account.Shared
+
+<PageTitle>Ticket Share</PageTitle>
+
+<AuthorizeView>
+
+    <NotAuthorized>
+        <Wellcome />
+    </NotAuthorized>
+
+</AuthorizeView>
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+}

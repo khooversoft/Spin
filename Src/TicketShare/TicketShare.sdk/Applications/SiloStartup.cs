@@ -8,7 +8,6 @@ using Toolbox.Azure;
 using Toolbox.Azure.Identity;
 using Toolbox.Configuration;
 using Toolbox.Extensions;
-using Toolbox.Orleans;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -51,9 +50,9 @@ public static class SiloStartup
         builder.Services.AddSingleton(datalakeOption);
         builder.Services.AddSingleton<IDatalakeStore, DatalakeStore>();
         builder.Services.AddSingleton<IFileStore, DatalakeFileStoreConnector>();
-        builder.Services.AddScoped<AccountConnector>();
+        //builder.Services.AddScoped<AccountConnector>();
 
-        builder.Services.AddGrainFileStore();
+        //builder.Services.AddGrainFileStore();
         builder.Services.AddStoreCollection((services, config) =>
         {
             config.Add(new StoreConfig("system", getFileStoreService));

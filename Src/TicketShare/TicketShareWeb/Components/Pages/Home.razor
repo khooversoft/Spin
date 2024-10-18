@@ -1,21 +1,7 @@
 ﻿@page "/"
-@using TicketShare.sdk
-@using TicketShareWeb.Components.Account.Shared
 
-<PageTitle>Ticket Share</PageTitle>
+<PageTitle>Home</PageTitle>
 
-<AuthorizeView>
+<h1>Hello, world!</h1>
 
-    <NotAuthorized>
-        <Wellcome />
-    </NotAuthorized>
-
-</AuthorizeView>
-
-
-@code {
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-    }
-}
+Welcome to your new Fluent Blazor app.

@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using TicketShare.sdk;
 using TicketShareWeb.Components.Account;
-using Toolbox.Orleans;
+using Toolbox.Identity;
 using Toolbox.Tools;
 
 namespace TicketShareWeb.Application;
 
-public static class Setup
+internal static class Setup
 {
     public static WebApplicationBuilder AddTicketShareAuthentication(this WebApplicationBuilder builder)
     {
@@ -19,7 +19,7 @@ public static class Setup
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-        builder.Services.AddScoped<UserProfileEdit>();
+        //builder.Services.AddScoped<UserProfileEdit>();
 
         builder.Services.AddAuthentication(options =>
         {

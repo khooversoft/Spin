@@ -81,12 +81,12 @@ public class UserProfileEdit
             .Merge(createContacts(input))
             .Merge(createAddress(input).Where(x => x.HasData()));
 
-        var result = await _accountConnector.Set(account, context);
-        if (result.IsError())
-        {
-            _toastService.ShowError($"User profile failed to updated - Error:{result.Error}");
-            return;
-        }
+        //var result = await _accountConnector.Set(account, context);
+        //if (result.IsError())
+        //{
+        //    _toastService.ShowError($"User profile failed to updated - Error:{result.Error}");
+        //    return;
+        //}
 
         _toastService.ShowSuccess("User profile updated");
         return;

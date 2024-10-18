@@ -1,10 +1,6 @@
-﻿using System.Collections.Immutable;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
-using TicketShare.sdk.Actors;
-using Toolbox.Extensions;
-using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -36,45 +32,45 @@ public class AccountConnector
         string userId = claimsPrincipal.FindFirst(ClaimTypes.Name)!.Value.NotEmpty();
         string? email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
 
-        var principalIdentityOption = await _clusterClient.GetIdentityActor().GetById(userId, context);
-        if (principalIdentityOption.IsNotFound()) return createAccount(userId, userId, email);
+        //var principalIdentityOption = await _clusterClient.GetIdentityActor().GetById(userId, context);
+        //if (principalIdentityOption.IsNotFound()) return createAccount(userId, userId, email);
 
-        if (principalIdentityOption.IsError()) return principalIdentityOption.LogStatus(context, $"Cannot lookup userId={userId}").ToOptionStatus<AccountRecord>();
-        var principalIdentity = principalIdentityOption.Return();
+        //if (principalIdentityOption.IsError()) return principalIdentityOption.LogStatus(context, $"Cannot lookup userId={userId}").ToOptionStatus<AccountRecord>();
+        //var principalIdentity = principalIdentityOption.Return();
 
-        var accountRecordOption = await Get(userId, context);
+        //var accountRecordOption = await Get(userId, context);
 
-        AccountRecord accountRecord = accountRecordOption switch
-        {
-            { StatusCode: StatusCode.OK } => accountRecordOption.Return(),
+        //AccountRecord accountRecord = accountRecordOption switch
+        //{
+        //    { StatusCode: StatusCode.OK } => accountRecordOption.Return(),
 
-            _ => new AccountRecord
-            {
-                PrincipalId = userId,
-                Name = principalIdentity.Name ?? userId,
-                ContactItems = (principalIdentity.Email ?? email).ToNullIfEmpty() switch
-                {
-                    null => ImmutableArray<ContactRecord>.Empty,
-                    string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToImmutableArray(),
-                },
-            }
-        };
+        //    _ => new AccountRecord
+        //    {
+        //        PrincipalId = userId,
+        //        //Name = principalIdentity.Name ?? userId,
+        //        //ContactItems = (principalIdentity.Email ?? email).ToNullIfEmpty() switch
+        //        //{
+        //        //    null => ImmutableArray<ContactRecord>.Empty,
+        //        //    string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToImmutableArray(),
+        //        //},
+        //    }
+        //};
 
-        return accountRecord;
+        return default;// accountRecord;
 
-        static AccountRecord createAccount(string principalId, string? name, string? email) => new AccountRecord
-        {
-            PrincipalId = principalId,
-            Name = name ?? principalId,
-            ContactItems = email.ToNullIfEmpty() switch
-            {
-                null => ImmutableArray<ContactRecord>.Empty,
-                string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToImmutableArray(),
-            },
-        };
+        //static AccountRecord createAccount(string principalId, string? name, string? email) => new AccountRecord
+        //{
+        //    PrincipalId = principalId,
+        //    Name = name ?? principalId,
+        //    ContactItems = email.ToNullIfEmpty() switch
+        //    {
+        //        null => ImmutableArray<ContactRecord>.Empty,
+        //        string v => new[] { new ContactRecord { Type = ContactType.Email, Value = v } }.ToImmutableArray(),
+        //    },
+        //};
     }
 
-    public Task<Option<AccountRecord>> Get(string principalId, ScopeContext context) => _clusterClient.GetUserActor().Get(principalId, context);
+    //public Task<Option<AccountRecord>> Get(string principalId, ScopeContext context) => _clusterClient.GetUserActor().Get(principalId, context);
 
-    public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => _clusterClient.GetUserActor().Set(accountRecord, context);
+    //public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => _clusterClient.GetUserActor().Set(accountRecord, context);
 }

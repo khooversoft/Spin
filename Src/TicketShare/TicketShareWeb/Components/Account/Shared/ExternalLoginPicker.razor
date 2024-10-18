@@ -1,19 +1,16 @@
 ﻿@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using Toolbox.Orleans
-@using TicketShareWeb.Application;
+@using TicketShareWeb.Data
 
-@inject SignInManager<PrincipalIdentity> SignInManager
+@inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
 
 @if (externalLogins.Length == 0)
 {
     <div>
         <p>
-            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">
-                article
-                about setting up this ASP.NET application to support logging in via external services
-            </a>.
+            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
+            about setting up this ASP.NET application to support logging in via external services</a>.
         </p>
     </div>
 }
@@ -23,19 +20,13 @@ else
         <div>
             <AntiforgeryToken />
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-            <div class="row-provider">
+            <p>
                 @foreach (var provider in externalLogins)
                 {
-                    <FluentButton class="x-btn"
-                                  Type="ButtonType.Submit"
-                                  BackgroundColor="#CCF4DD"
-                                  Color="black"
-                                  Appearance="Appearance.Accent"
-                                  Name="provider"
-                                  Value="@provider.Name"
-                                  Title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</FluentButton>
+                    <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Name="provider" Value="@provider.Name" Title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</FluentButton>
+                    <text>&nbsp;</text>
                 }
-            </div>
+            </p>
         </div>
     </form>
 }
