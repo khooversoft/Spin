@@ -14,9 +14,6 @@ public static class TagsTool
         .ThrowOnError().Return()
         .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
-    public static IReadOnlyDictionary<string, string?> ToTags(this IReadOnlyDictionary<string, string?> tags) => tags
-        .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-
     public static IReadOnlyDictionary<string, string?> ProcessTags(this IEnumerable<KeyValuePair<string, string?>> tags, IEnumerable<KeyValuePair<string, string?>> tagCommands)
     {
         tagCommands.NotNull();

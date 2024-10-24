@@ -31,24 +31,18 @@ public class IdentityClient : IIdentityClient
         principalId.NotEmpty();
         context = context.With(_logger);
 
-        var readOption = await Get(principalId, context);
-        if (readOption.IsError()) return readOption.LogStatus(context, "Get principalId").ToOptionStatus();
+        var cmd = new DeleteCommandBuilder()
+            .SetIfExist()
+            .SetNodeKey(PrincipalIdentityTool.ToUserKey(principalId))
+            .Build();
 
-        PrincipalIdentity user = readOption.Return();
-        var seq = new Sequence<string>();
-
-        seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToUserKey(user.PrincipalId));
-        seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToEmailIndex(user.Email));
-        seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToUserNameIndex(user.NormalizedUserName));
-
-        if (user.HasLoginProvider())
+        var result = await _graphClient.Execute(cmd, context);
+        if (result.IsError())
         {
-            seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToLoginIndex(user.LoginProvider!, user.ProviderKey!));
+            context.LogError("Failed to delete principalId={principalId}", principalId);
+            return result.LogStatus(context, $"principalId={principalId}").ToOptionStatus();
         }
 
-        string cmds = seq.Join(Environment.NewLine);
-
-        var result = await _graphClient.ExecuteBatch(cmds, context);
         result.LogStatus(context, $"Deleting principalId={principalId}");
         return result.ToOptionStatus();
     }
@@ -75,7 +69,7 @@ public class IdentityClient : IIdentityClient
         providerKey.NotEmpty();
         context = context.With(_logger);
 
-        var cmd = $"select (key={PrincipalIdentityTool.ToLoginIndex(loginProvider, providerKey)}) -> [*] -> (*) return entity ;";
+        var cmd = $"select ({ConstructLoginProviderTag(loginProvider, providerKey)}) return entity ;";
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())
         {
@@ -91,7 +85,7 @@ public class IdentityClient : IIdentityClient
         normalizedUserName.NotEmpty();
         context = context.With(_logger);
 
-        var cmd = $"select (key={PrincipalIdentityTool.ToUserNameIndex(normalizedUserName)}) -> [*] -> (*) return entity ;";
+        var cmd = $"select ({ConstructUserNameTag(normalizedUserName)}) return entity ;";
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())
         {
@@ -108,58 +102,31 @@ public class IdentityClient : IIdentityClient
         if (!user.Validate(out var r)) return r.LogStatus(context, nameof(PrincipalIdentity));
 
         string nodeKey = PrincipalIdentityTool.ToUserKey(user.PrincipalId);
-        string userNameNodeKey = PrincipalIdentityTool.ToUserNameIndex(user.NormalizedUserName);
-        string emailNodeKey = PrincipalIdentityTool.ToEmailIndex(user.Email);
 
-        string emailTag = $"email={emailNodeKey}";
-        string userNameNameTag = $"userName={userNameNodeKey}";
+        string emailTag = ConstructEmailTag(user.Email);
+        string userNameNameTag = ConstructUserNameTag(user.NormalizedUserName);
+        string loginProviderTag = ConstructLoginProviderTag(user.LoginProvider, user.ProviderKey) ?? "-loginProvider";
 
-        string? loginProviderKey = user.HasLoginProvider() ? PrincipalIdentityTool.ToLoginIndex(user.LoginProvider!, user.ProviderKey!) : null;
-        string? loginProviderTag = user.HasLoginProvider() ? $"loginProvider={loginProviderKey}" : "-loginProvider";
+        var cmd = new NodeCommandBuilder()
+            .UseSet()
+            .AddTag(emailTag)
+            .AddTag(userNameNameTag)
+            .AddTag(loginProviderTag)
+            .AddData("entity", user)
+            .Build();
 
-        var seq = new Sequence<string>();
-        seq += await GetChangeCommands(user, context);
-
-        string tags = new[] { emailTag, userNameNameTag, loginProviderTag }.Where(x => x != null).Join(',');
-        seq += GraphTool.SetNodeCommand(nodeKey, tags, user.ToJson().ToBase64(), "entity");
-
-        seq += GraphTool.SetNodeCommand(userNameNodeKey);
-        seq += GraphTool.SetEdgeCommands(userNameNodeKey, nodeKey, GraphConstants.UniqueIndexEdgeType);
-
-        seq += GraphTool.SetNodeCommand(emailNodeKey);
-        seq += GraphTool.SetEdgeCommands(emailNodeKey, nodeKey, GraphConstants.UniqueIndexEdgeType);
-
-        if (loginProviderKey.IsNotEmpty())
-        {
-            seq += GraphTool.SetNodeCommand(loginProviderKey);
-            seq += GraphTool.SetEdgeCommands(loginProviderKey, nodeKey, GraphConstants.UniqueIndexEdgeType);
-        }
-
-        var cmds = seq.Join(Environment.NewLine);
-
-        var result = await _graphClient.Execute(cmds, context);
+        var result = await _graphClient.Execute(cmd, context);
         return result.ToOptionStatus();
     }
 
-    private async Task<IEnumerable<string>> GetChangeCommands(PrincipalIdentity user, ScopeContext context)
+    private static string ConstructEmailTag(string value) => $"email={value.ToLower()}";
+    private static string ConstructUserNameTag(string value) => $"userName={value.ToLower()}";
+    private static string? ConstructLoginProviderTag(string? loginProvider, string? providerKey)
     {
-        var seq = new Sequence<string>();
-
-        var currentRecordOption = await Get(user.PrincipalId, context);
-        if (currentRecordOption.IsError()) return seq;
-
-        PrincipalIdentity current = currentRecordOption.Return();
-
-        if (current.Email != user.Email)
+        return (loginProvider.IsNotEmpty() && providerKey.IsNotEmpty()) switch
         {
-            seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToEmailIndex(current.Email));
-        }
-
-        if (current.NormalizedUserName != user.NormalizedUserName)
-        {
-            seq += GraphTool.DeleteNodeCommand(PrincipalIdentityTool.ToUserNameIndex(current.NormalizedUserName));
-        }
-
-        return seq;
+            false => null,
+            true => $"loginProvider={loginProvider.ToLower()}/{providerKey.ToLower()}",
+        };
     }
 }

@@ -27,7 +27,7 @@ public class GraphTransactionTests
             add node key=node2 set t2,client;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Value.Items.Count.Should().Be(2);
@@ -42,7 +42,7 @@ public class GraphTransactionTests
         IReadOnlyList<JournalEntry> journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
         journals.Count.Should().Be(expectedJournalCount);
 
-        (await testClient.ExecuteBatch("add node key=node1 set t1, t2;", NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch("add node key=node1 set t1, t2;", NullScopeContext.Default)).Action(x =>
         {
             x.IsConflict().Should().BeTrue(x.ToString());
             x.Value.Items.Count.Should().Be(1);
@@ -63,7 +63,7 @@ public class GraphTransactionTests
             add edge from=node3, to=node4, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Value.Items.Count.Should().Be(4);
@@ -88,7 +88,7 @@ public class GraphTransactionTests
             add edge from=node3, to=node4, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q3, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q3, NullScopeContext.Default)).Action(x =>
         {
             x.IsError().Should().BeTrue(x.ToString());
             x.Value.Items.Count.Should().Be(3);

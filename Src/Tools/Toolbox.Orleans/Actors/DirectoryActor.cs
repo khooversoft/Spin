@@ -13,11 +13,16 @@ public class DirectoryActor : Grain, IDirectoryActor
 {
     private readonly ILogger<DirectoryActor> _logger;
     private readonly IGraphHost _graphHost;
+    private readonly IPersistentState<DataETag> _state;
 
-    public DirectoryActor(IGraphHost graphHost, ILogger<DirectoryActor> logger)
+    public DirectoryActor(
+        IGraphHost graphHost,
+        [PersistentState("json", OrleansConstants.StorageProviderName)] IPersistentState<DataETag> state,
+        ILogger<DirectoryActor> logger)
     {
-        _logger = logger.NotNull();
         _graphHost = graphHost.NotNull();
+        _state = state.NotNull();
+        _logger = logger.NotNull();
     }
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
@@ -29,13 +34,15 @@ public class DirectoryActor : Grain, IDirectoryActor
 
     public async Task<Option<QueryResult>> Execute(string command, ScopeContext context)
     {
-        var result = await Execute(command, context);
-        return result;
+        var result = await QueryExecution.Execute(_graphHost, command, context);
+        if (result.IsError()) return result.ToOptionStatus<QueryResult>();
+
+        return result.Return().Items.Last();
     }
 
     public async Task<Option<QueryBatchResult>> ExecuteBatch(string command, ScopeContext context)
     {
-        var result = await ExecuteBatch(command, context);
+        var result = await QueryExecution.Execute(_graphHost, command, context);
         return result;
     }
 }

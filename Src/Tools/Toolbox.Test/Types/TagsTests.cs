@@ -84,7 +84,7 @@ public class TagsTests
         {
             ["key1"] = "value1",
             ["key2"] = "value2",
-        }.ToTags();
+        };
 
         tags.Count.Should().Be(2);
         tags.ContainsKey("key1").Should().BeTrue();
@@ -102,7 +102,7 @@ public class TagsTests
         {
             ["key1"] = "value1",
             ["key2"] = "value2",
-        }.ToTags();
+        };
 
         tags.ContainsKey("key1").Should().BeTrue();
         tags.ContainsKey("key2").Should().BeTrue();

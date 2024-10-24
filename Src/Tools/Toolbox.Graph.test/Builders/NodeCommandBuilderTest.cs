@@ -1,0 +1,195 @@
+﻿using FluentAssertions;
+using Toolbox.Types;
+
+namespace Toolbox.Graph.test.Builders;
+
+public class NodeCommandBuilderTest
+{
+    [Fact]
+    public void AddNodeOnly()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetNodeOnly()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .UseSet()
+            .SetNodeKey("nodeKey1")
+            .Build();
+
+        graphQuery.Should().Be("set node key=nodeKey1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Tags()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("tag", "value")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set tag=value ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void TagWithNoValue()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("t1")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set t1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void TagFormat()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("t1=v1")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set t1=v1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void TagFormat2()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("t1=v1")
+            .AddTag("t2=v2")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set t1=v1,t2=v2 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void TagRemove()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .UseSet()
+            .SetNodeKey("nodeKey1")
+            .AddTag("-t1")
+            .Build();
+
+        graphQuery.Should().Be("set node key=nodeKey1 set -t1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void TwoTags()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("tag1", "value1")
+            .AddTag("tag2", "value2")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set tag1=value1,tag2=value2 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Data()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddData("data", "value")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set data { 'value' } ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void TwoData()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddData("data1", "value1")
+            .AddData("data2", "value2")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set data1 { 'value1' }, data2 { 'value2' } ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Indexes()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddIndex("t1")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 index t1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void TwoIndexes()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddIndex("t1")
+            .AddIndex("t2")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 index t1, t2 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Full()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("tag", "value")
+            .AddData("data", "value")
+            .AddIndex("t1")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set tag=value, data { 'value' } index t1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+}

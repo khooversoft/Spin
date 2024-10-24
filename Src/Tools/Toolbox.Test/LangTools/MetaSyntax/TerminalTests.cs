@@ -23,7 +23,7 @@ public class TerminalTests
 
         var parser = new SyntaxParser(schema);
 
-        var parse = parser.Parse("3;", NullScopeContext.Instance);
+        var parse = parser.Parse("3;", NullScopeContext.Default);
         parse.Status.IsOk().Should().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -74,7 +74,7 @@ public class TerminalTests
 
         var parser = new SyntaxParser(schema);
 
-        var parse = parser.Parse("A ;", NullScopeContext.Instance);
+        var parse = parser.Parse("A ;", NullScopeContext.Default);
         parse.Status.IsError().Should().BeTrue(parse.Status.Error);
         parse.Status.Error.Should().Be("No rules matched");
     }

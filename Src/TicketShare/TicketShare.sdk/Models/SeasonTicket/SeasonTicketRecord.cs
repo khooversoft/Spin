@@ -12,7 +12,6 @@ public sealed record SeasonTicketRecord : IEquatable<SeasonTicketRecord>
     public string? Description { get; init; }
     public string OwnerPrincipalId { get; init; } = null!;
     public string? Tags { get; init; }
-    public IReadOnlyList<Property> Properties { get; init; } = Array.Empty<Property>();
     public IReadOnlyList<RoleRecord> Members { get; init; } = Array.Empty<RoleRecord>();
     public IReadOnlyList<SeatRecord> Seats { get; init; } = Array.Empty<SeatRecord>();
     public IReadOnlyList<ChangeLog> ChangeLogs { get; init; } = Array.Empty<ChangeLog>();
@@ -24,7 +23,6 @@ public sealed record SeasonTicketRecord : IEquatable<SeasonTicketRecord>
         Description.Equals(other.Description) &&
         OwnerPrincipalId.Equals(other.OwnerPrincipalId) &&
         Tags.Equals(other.Tags) &&
-        Enumerable.SequenceEqual(Properties.OrderBy(x => x.Key), other.Properties.OrderBy(x => x.Key)) &&
         Enumerable.SequenceEqual(Members.OrderBy(x => x.PrincipalId), other.Members.OrderBy(x => x.PrincipalId)) &&
         Enumerable.SequenceEqual(Seats.OrderBy(x => x.SeatId), other.Seats.OrderBy(x => x.SeatId)) &&
         Enumerable.SequenceEqual(ChangeLogs.OrderBy(x => x.Date), other.ChangeLogs.OrderBy(x => x.Date));
@@ -35,7 +33,6 @@ public sealed record SeasonTicketRecord : IEquatable<SeasonTicketRecord>
         .RuleFor(x => x.SeasonTicketId).NotEmpty()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.OwnerPrincipalId).NotEmpty()
-        .RuleForEach(x => x.Properties).Validate(Property.Validator)
         .RuleForEach(x => x.Members).Validate(RoleRecord.Validator)
         .RuleForEach(x => x.Seats).Validate(SeatRecord.Validator)
         .RuleForEach(x => x.ChangeLogs).Validate(ChangeLog.Validator)

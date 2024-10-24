@@ -13,12 +13,12 @@ public class GraphLifecycleTest
         var testClient = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
-        Option<QueryBatchResult> addResult = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Instance);
+        Option<QueryBatchResult> addResult = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
-        (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
+        (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(1);
@@ -32,12 +32,12 @@ public class GraphLifecycleTest
             });
         });
 
-        Option<QueryBatchResult> removeResult = await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Instance);
+        Option<QueryBatchResult> removeResult = await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Default);
         removeResult.IsOk().Should().BeTrue(removeResult.ToString());
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
 
-        (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
+        (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(0);
@@ -52,17 +52,17 @@ public class GraphLifecycleTest
         var testClient = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
-        Option<QueryBatchResult> addResult1 = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Instance);
+        Option<QueryBatchResult> addResult1 = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
         addResult1.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
-        Option<QueryBatchResult> addResult2 = await testClient.ExecuteBatch("set node key=node2 set t10,t20=v10;", NullScopeContext.Instance);
+        Option<QueryBatchResult> addResult2 = await testClient.ExecuteBatch("set node key=node2 set t10,t20=v10;", NullScopeContext.Default);
         addResult2.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
+        (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(1);
@@ -76,7 +76,7 @@ public class GraphLifecycleTest
             });
         });
 
-        (await testClient.Execute("select (key=node2);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
+        (await testClient.Execute("select (key=node2);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(1);
@@ -90,14 +90,14 @@ public class GraphLifecycleTest
             });
         });
 
-        (await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             map.Nodes.Count.Should().Be(1);
             map.Edges.Count.Should().Be(0);
         });
 
-        (await testClient.Execute("select (key=node1);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
+        (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(0);
@@ -105,7 +105,7 @@ public class GraphLifecycleTest
             x.DataLinks.Count.Should().Be(0);
         });
 
-        (await testClient.Execute("select (key=node2);", NullScopeContext.Instance)).ThrowOnError().Return().Action(x =>
+        (await testClient.Execute("select (key=node2);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().Should().BeTrue(x.ToString());
             x.Nodes.Count.Should().Be(1);
@@ -119,7 +119,7 @@ public class GraphLifecycleTest
             });
         });
 
-        (await testClient.ExecuteBatch("delete node key=node2;", NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch("delete node key=node2;", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Return().Items.Count.Should().Be(1);
@@ -140,7 +140,7 @@ public class GraphLifecycleTest
             set node key=node1 set t2,client;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Value.Items.Count.Should().Be(2);
@@ -175,7 +175,7 @@ public class GraphLifecycleTest
             set edge from=node1 ,to=node2, type=et set e2, worksFor;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Return().Items.Count.Should().Be(3);
@@ -184,7 +184,7 @@ public class GraphLifecycleTest
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(1);
 
-        QueryBatchResult batch = (await testClient.ExecuteBatch("select (key=node1) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance)).ThrowOnError().Return();
+        QueryBatchResult batch = (await testClient.ExecuteBatch("select (key=node1) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Default)).ThrowOnError().Return();
         batch.Option.IsOk().Should().Be(true);
         batch.Items.Count.Should().Be(3);
 
@@ -233,7 +233,7 @@ public class GraphLifecycleTest
             set edge from=node1 ,to=node2, type=et set e2, worksFor;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
             x.Return().Items.Count.Should().Be(3);
@@ -242,7 +242,7 @@ public class GraphLifecycleTest
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(1);
 
-        QueryBatchResult batch = (await testClient.ExecuteBatch("select (key=node2) a0 <-> [*] a1 <-> (*) a2;", NullScopeContext.Instance)).ThrowOnError().Return();
+        QueryBatchResult batch = (await testClient.ExecuteBatch("select (key=node2) a0 <-> [*] a1 <-> (*) a2;", NullScopeContext.Default)).ThrowOnError().Return();
         batch.Option.IsOk().Should().Be(true);
         batch.Items.Count.Should().Be(3);
 
@@ -300,7 +300,7 @@ public class GraphLifecycleTest
             set edge from=node3,to=node4,type=et set e3,worksFor;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).Action(x =>
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Items.Count.Should().Be(7);
@@ -309,7 +309,7 @@ public class GraphLifecycleTest
         map.Nodes.Count.Should().Be(5);
         map.Edges.Count.Should().Be(2);
 
-        (await testClient.ExecuteBatch("select (key=node3) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Instance)).ThrowOnError().Return().Action(batch =>
+        (await testClient.ExecuteBatch("select (key=node3) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Default)).ThrowOnError().Return().Action(batch =>
         {
             batch.Option.IsOk().Should().Be(true);
             batch.Items.Count.Should().Be(3);

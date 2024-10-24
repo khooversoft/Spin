@@ -6,16 +6,14 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-[GenerateSerializer]
-[Alias("TicketShare.sdk.AccountRecord")]
 public record AccountRecord
 {
-    [Id(0)] public string PrincipalId { get; init; } = null!;   // Owner
-    [Id(1)] public string Name { get; init; } = null!;
+    public string PrincipalId { get; init; } = null!;   // Owner
+    public string Name { get; init; } = null!;
 
-    [Id(2)] public IReadOnlyList<ContactRecord> ContactItems { get; init; } = ImmutableArray<ContactRecord>.Empty;
-    [Id(3)] public IReadOnlyList<AddressRecord> Address { get; init; } = ImmutableArray<AddressRecord>.Empty;
-    [Id(4)] public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = ImmutableArray<CalendarRecord>.Empty;
+    public IReadOnlyList<ContactRecord> ContactItems { get; init; } = ImmutableArray<ContactRecord>.Empty;
+    public IReadOnlyList<AddressRecord> Address { get; init; } = ImmutableArray<AddressRecord>.Empty;
+    public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = ImmutableArray<CalendarRecord>.Empty;
 
     public static IValidator<AccountRecord> Validator { get; } = new Validator<AccountRecord>()
         .RuleFor(x => x.PrincipalId).NotEmpty()

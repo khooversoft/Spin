@@ -28,7 +28,7 @@
 //            ("src=\"FanHappy.webp\"", "src=\"data:image/webp;base64," + GetImage("FanHappy").GetBase64() + "\""),
 //        ];
 
-//        foreach(var replacement in replacements)
+//        foreach (var replacement in replacements)
 //        {
 //            html = html.Replace(replacement.searchFor, replacement.replaceWith);
 //        }

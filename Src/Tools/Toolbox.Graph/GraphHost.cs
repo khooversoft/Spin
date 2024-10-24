@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
 using Toolbox.Types;
@@ -9,7 +8,7 @@ namespace Toolbox.Graph;
 public interface IGraphHost
 {
     GraphMap Map { get; }
-    IFileStore FileStore { get; }
+    IGraphStore FileStore { get; }
     ITransactionLog TransactionLog { get; }
     void SetMap(GraphMap map);
     Task<Option> LoadMap(ScopeContext context);
@@ -21,7 +20,7 @@ public class GraphHost : IGraphHost
     private readonly GraphMapStore _mapStore;
     private readonly ILogger<GraphHost> _logger;
     private GraphMap _map = new GraphMap();
-    public GraphHost(IFileStore fileStore, ITransactionLog transactionLog, ILogger<GraphHost> logger)
+    public GraphHost(IGraphStore fileStore, ITransactionLog transactionLog, ILogger<GraphHost> logger)
     {
         FileStore = fileStore.NotNull();
         TransactionLog = transactionLog.NotNull();
@@ -31,7 +30,7 @@ public class GraphHost : IGraphHost
     }
 
     public GraphMap Map => _map;
-    public IFileStore FileStore { get; }
+    public IGraphStore FileStore { get; }
     public ITransactionLog TransactionLog { get; }
 
     public void SetMap(GraphMap map) => Interlocked.Exchange(ref _map, map.NotNull());

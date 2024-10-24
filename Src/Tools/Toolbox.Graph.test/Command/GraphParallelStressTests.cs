@@ -28,7 +28,7 @@ public class GraphParallelStressTests
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"set node key={key} set {tags};";
-        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
         option.IsOk().Should().BeTrue();
     }
 
@@ -39,7 +39,7 @@ public class GraphParallelStressTests
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"set edge from={fromKey}, to={toKey}, type=et set {tags};";
-        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
         option.IsOk().Should().BeTrue(option.ToString());
         return option.ToOptionStatus();
     }
@@ -62,7 +62,7 @@ public class GraphParallelStressTests
         }
 
         string command = cmds.Join();
-        var option = await testClient.ExecuteBatch(command, NullScopeContext.Instance);
+        var option = await testClient.ExecuteBatch(command, NullScopeContext.Default);
         option.IsOk().Should().BeTrue();
         return option.ToOptionStatus();
     }

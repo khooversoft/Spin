@@ -72,7 +72,7 @@ public static class SiloStartup
             throw new InvalidOperationException("Startup failed");
         }
 
-        context.Location().LogWarning("Startup has completed");
+        context.Location().LogInformation("Startup has completed");
     }
 
     private static async Task<Option> SetupDatalakeSchemaResources(PlanContext planContext, ScopeContext context)

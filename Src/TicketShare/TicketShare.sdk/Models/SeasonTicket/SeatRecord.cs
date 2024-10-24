@@ -3,13 +3,11 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-[GenerateSerializer]
-[Alias("TicketShare.sdk.SeatRecord")]
 public sealed record SeatRecord : IEquatable<SeatRecord>
 {
-    [Id(0)] public string SeatId { get; init; } = null!;
-    [Id(1)] public DateTime Date { get; init; } = DateTime.Now;
-    [Id(2)] public string? AssignedToPrincipalId { get; init; }
+    public string SeatId { get; init; } = null!;
+    public DateTime Date { get; init; } = DateTime.Now;
+    public string? AssignedToPrincipalId { get; init; }
 
     public bool Equals(SeatRecord? other) =>
         other != null &&

@@ -11,16 +11,10 @@ public enum RolePermission
     ReadOnly,               // Can only view
 }
 
-[GenerateSerializer]
 public sealed record RoleRecord : IEquatable<RoleRecord>
 {
-    [Id(0)] public string PrincipalId { get; init; } = null!;
-    [Id(1)] public RolePermission MemberRole { get; init; } = RolePermission.None;
-
-    public static IValidator<RoleRecord> Validator { get; } = new Validator<RoleRecord>()
-        .RuleFor(x => x.PrincipalId).NotEmpty()
-        .RuleFor(x => x.MemberRole).ValidEnum()
-        .Build();
+    public string PrincipalId { get; init; } = null!;
+    public RolePermission MemberRole { get; init; } = RolePermission.None;
 
     public bool Equals(RoleRecord? other) =>
         other != null &&
@@ -28,6 +22,11 @@ public sealed record RoleRecord : IEquatable<RoleRecord>
         MemberRole == other.MemberRole;
 
     public override int GetHashCode() => HashCode.Combine(PrincipalId, MemberRole);
+
+    public static IValidator<RoleRecord> Validator { get; } = new Validator<RoleRecord>()
+        .RuleFor(x => x.PrincipalId).NotEmpty()
+        .RuleFor(x => x.MemberRole).ValidEnum()
+        .Build();
 }
 
 public static class MembershipRecordExtensions

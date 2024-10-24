@@ -36,40 +36,6 @@ public static class GraphTool
         return storePath.ToLower();
     }
 
-    public static string SetNodeCommand(string nodeKey, string? tags = null, string? base64 = null, string? dataName = null)
-    {
-        nodeKey.NotEmpty();
-        dataName = dataName.ToNullIfEmpty() ?? "entity";
-        var set = tags.IsNotEmpty() || base64.IsNotEmpty() ? "set " : null;
-
-        string?[] parts = [
-            tags,
-            base64 != null ? $"{dataName} {{ '{base64}' }}" : null,
-        ];
-
-        string cmd = $"set node key={nodeKey} {set}" + parts.Where(x => x.IsNotEmpty()).Join(", ") + ';';
-        return cmd;
-    }
-
-    public static string SetNodeCommand<T>(string nodeKey, T subject, string? tags = null, string? dataName = null)
-    {
-        nodeKey.NotEmpty();
-        subject.NotNull();
-
-        string base64 = subject.ToJson().ToBase64();
-        dataName = dataName.ToNullIfEmpty() ?? "entity";
-
-        var set = tags.IsNotEmpty() || base64.IsNotEmpty() ? "set " : null;
-
-        string?[] parts = [
-            tags,
-            base64 != null ? $"{dataName} {{ '{base64}' }}" : null,
-        ];
-
-        string cmd = $"set node key={nodeKey} {set}" + parts.Where(x => x.IsNotEmpty()).Join(", ") + ';';
-        return cmd;
-    }
-
     public static string DeleteNodeCommand(string indexKey) => $"delete node ifexist key={indexKey.NotEmpty()};";
 
     public static IReadOnlyList<string> SetEdgeCommands(string fromKey, string toKey, string edgeType, string? tags = null)

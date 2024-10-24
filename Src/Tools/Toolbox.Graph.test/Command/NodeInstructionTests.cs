@@ -30,7 +30,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
         newMapOption.IsError().Should().BeTrue();
 
         copyMap.Nodes.Count.Should().Be(7);
@@ -46,7 +46,7 @@ public class NodeInstructionTests
     [InlineData("set edge from=user:username1@company.com, to=logonProvider:loginprovider/loginprovider.key1, type=uniqueIndex ;")]
     public void SyntaxShouldPass(string query)
     {
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(query, NullScopeContext.Instance);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(query, NullScopeContext.Default);
         parse.Status.IsOk().Should().BeTrue();
     }
 
@@ -55,7 +55,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -76,7 +76,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node9 set newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node9 set newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -97,7 +97,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node10 set -newTags;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node10 set -newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -118,7 +118,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set newTags, t2=v2;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set newTags, t2=v2;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -139,7 +139,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("delete node key=node1 ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("delete node key=node1 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -178,11 +178,11 @@ public class NodeInstructionTests
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
 
         // Verify delete will fail
-        var newMapOption = await testClient.ExecuteBatch("delete node key=node11 ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("delete node key=node11 ;", NullScopeContext.Default);
         newMapOption.IsError().Should().BeTrue(newMapOption.ToString());
 
         // Delet should not fail because of 'ifexist'
-        newMapOption = await testClient.ExecuteBatch("delete node ifexist key=node111 ;", NullScopeContext.Instance);
+        newMapOption = await testClient.ExecuteBatch("delete node ifexist key=node111 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -197,7 +197,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("set node key=node8 ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("set node key=node8 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -218,7 +218,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("set node key=role:owner@domain.com;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("set node key=role:owner@domain.com;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -239,7 +239,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("set node key=node11 set t1, t2=v2 ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("set node key=node11 set t1, t2=v2 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -260,7 +260,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("set node key=node4 set t1, t2=v2 ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("set node key=node4 set t1, t2=v2 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -281,7 +281,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("set node key=node4 set -age ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("set node key=node4 set -age ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -302,7 +302,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -324,7 +324,7 @@ public class NodeInstructionTests
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider ;";
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -347,7 +347,7 @@ public class NodeInstructionTests
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider, email ;";
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult commandResults = newMapOption.Return();

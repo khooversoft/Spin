@@ -30,7 +30,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (key=node2) a1 ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select (key=node2) a1 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -49,7 +49,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (user) ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select (user) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -68,7 +68,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (*) ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -86,7 +86,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (age) ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select (age) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -104,7 +104,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select [*] ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select [*] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -132,7 +132,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select [*, level=1] ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select [*, level=1] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -156,7 +156,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (*) -> [*] ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select (*) -> [*] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -184,7 +184,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select [*] -> (*) ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select [*] -> (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -202,7 +202,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (*) -> [*] -> (*) ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.Execute("select (*) -> [*] -> (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -220,7 +220,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult result = newMapOption.Return();
@@ -255,7 +255,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select (key=node4) <-> [*] ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("select (key=node4) <-> [*] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult result = newMapOption.Return();
@@ -284,7 +284,7 @@ public class SelectInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select [knows] <-> (*) ;", NullScopeContext.Instance);
+        var newMapOption = await testClient.ExecuteBatch("select [knows] <-> (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         QueryBatchResult result = newMapOption.Return();

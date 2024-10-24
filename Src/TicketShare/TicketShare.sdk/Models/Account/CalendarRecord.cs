@@ -9,13 +9,11 @@ public enum CalendarRecordType
     Busy
 }
 
-[GenerateSerializer]
-[Alias("TicketShare.sdk.CalendarRecord")]
 public record CalendarRecord
 {
-    [Id(0)] public CalendarRecordType Type { get; init; }
-    [Id(1)] public DateTime FromDate { get; init; }
-    [Id(2)] public DateTime ToDate { get; init; }
+    public CalendarRecordType Type { get; init; }
+    public DateTime FromDate { get; init; }
+    public DateTime ToDate { get; init; }
 
     public static IValidator<CalendarRecord> Validator { get; } = new Validator<CalendarRecord>()
         .RuleFor(x => x.Type).ValidEnum()

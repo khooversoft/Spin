@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
@@ -14,7 +16,9 @@ public static class GraphStartup
 
         services.AddSingleton<IGraphHost, GraphHost>();
         services.AddTransactionLogProvider(GraphConstants.JournalConnectionString);
-        services.AddSingleton<IGraphClient, GraphClientInMemory>();
+        services.TryAddSingleton<IGraphClient, GraphClientInMemory>();
+        services.TryAddSingleton<IGraphStore, GraphFileStoreCache>();
+        services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
         return services;
     }

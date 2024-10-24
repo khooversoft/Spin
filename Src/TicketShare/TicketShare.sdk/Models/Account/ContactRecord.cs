@@ -10,12 +10,10 @@ public enum ContactType
     Text
 }
 
-[GenerateSerializer]
-[Alias("TicketShare.sdk.ContactRecord")]
 public record ContactRecord
 {
-    [Id(0)] public ContactType Type { get; init; } = ContactType.Cell;
-    [Id(1)] public string Value { get; init; } = null!;
+    public ContactType Type { get; init; } = ContactType.Cell;
+    public string Value { get; init; } = null!;
 
     public static IValidator<ContactRecord> Validator { get; } = new Validator<ContactRecord>()
         .RuleFor(x => x.Type).ValidEnum()

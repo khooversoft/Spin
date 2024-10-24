@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>474c100e-ddd9-4555-ae62-1f97fd04055f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +34,10 @@
     <ProjectReference Include="..\..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Client\" />
   </ItemGroup>
 
 </Project>

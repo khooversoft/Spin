@@ -10,7 +10,7 @@ namespace Toolbox.Graph.test.GraphDbStore;
 /// <summary>
 /// TODO: Add test case for updating multiple Nodes with the same data (lower priority)
 /// </summary>
-public class GraphEngine2Tests
+public class GraphEngineTests
 {
     private record TestContractRecord(string Name, int Age);
     private record TestLeaseRecord(string LeaseId, decimal Amount);
@@ -26,14 +26,14 @@ public class GraphEngine2Tests
         var rec = new TestContractRecord("marko", 29);
         var recBase64 = rec.ToJson().ToBase64();
 
-        var addResult = await engine.Execute($"add node key=node1 set contract {{ '{recBase64}' }};", NullScopeContext.Instance);
+        var addResult = await engine.Execute($"add node key=node1 set contract {{ '{recBase64}' }};", NullScopeContext.Default);
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
         await CheckFileStoreCount(fileStore, 1);
 
         // Verify data was writen correctly
-        var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance);
+        var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Default);
         readDataOption.IsOk().Should().BeTrue();
         TestContractRecord readRec = readDataOption.Return().ToObject<TestContractRecord>();
         readRec.NotNull();
@@ -41,7 +41,7 @@ public class GraphEngine2Tests
         readRec.Age.Should().Be(rec.Age);
 
         // Return data from graph and verify
-        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
+        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Default);
         selectResultOption.IsOk().Should().BeTrue();
 
         QueryResult selectResult = selectResultOption.Return();
@@ -64,15 +64,15 @@ public class GraphEngine2Tests
         });
 
         // Delete node and verify data was deleted as well (RI rules)
-        var deleteResult = await engine.Execute("delete (key=node1);", NullScopeContext.Instance);
+        var deleteResult = await engine.Execute("delete (key=node1);", NullScopeContext.Default);
         deleteResult.IsOk().Should().BeTrue();
         await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
-        readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance);
+        readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Default);
         readDataOption.IsNotFound().Should().BeTrue();
 
-        selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
+        selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Default);
         selectResultOption.IsOk().Should().BeTrue();
         selectResultOption.Return().Action(x =>
         {
@@ -93,14 +93,14 @@ public class GraphEngine2Tests
         var rec = new TestContractRecord("marko", 29);
         var recBase64 = rec.ToJson().ToBase64();
 
-        var addResult = await engine.Execute($"add node key=node1 set contract {{ '{recBase64}' }};", NullScopeContext.Instance);
+        var addResult = await engine.Execute($"add node key=node1 set contract {{ '{recBase64}' }};", NullScopeContext.Default);
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
         await CheckFileStoreCount(fileStore, 1);
 
         // Verify data was writen correctly
-        var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance);
+        var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Default);
         readDataOption.IsOk().Should().BeTrue();
         TestContractRecord readRec = readDataOption.Return().ToObject<TestContractRecord>();
         readRec.NotNull();
@@ -108,15 +108,15 @@ public class GraphEngine2Tests
         readRec.Age.Should().Be(rec.Age);
 
         // Remove data from node and verify
-        var removeData = await engine.Execute("set node key=node1 set -contract;", NullScopeContext.Instance);
+        var removeData = await engine.Execute("set node key=node1 set -contract;", NullScopeContext.Default);
         removeData.IsOk().Should().BeTrue(removeData.ToString());
         await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
         // Verify data has been deleted
-        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance)).IsNotFound().Should().BeTrue();
-        (await engine.Execute("select (key=node1);", NullScopeContext.Instance)).Action(x =>
+        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Default)).IsNotFound().Should().BeTrue();
+        (await engine.Execute("select (key=node1);", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -129,7 +129,7 @@ public class GraphEngine2Tests
         });
 
         // Verify data map has been updated
-        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
+        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Default);
         selectResultOption.IsOk().Should().BeTrue();
         selectResultOption.Return().Action(x =>
         {
@@ -152,13 +152,13 @@ public class GraphEngine2Tests
         var leaseRec = new TestLeaseRecord("lease#1", 100.0m);
         var leaseBase64 = leaseRec.ToJson().ToBase64();
 
-        var addResult = await engine.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};", NullScopeContext.Instance);
+        var addResult = await engine.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};", NullScopeContext.Default);
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
         await CheckFileStoreCount(fileStore, 2);
 
-        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance)).Action((Action<Option<DataETag>>)(x =>
+        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Default)).Action((Action<Option<DataETag>>)(x =>
         {
             x.IsOk().Should().BeTrue();
             TestContractRecord readRec = x.Return().ToObject<TestContractRecord>();
@@ -167,7 +167,7 @@ public class GraphEngine2Tests
             readRec.Age.Should().Be(contractRec.Age);
         }));
 
-        (await fileStore.Get("nodes/node1/node1___lease.json", NullScopeContext.Instance)).Action(x =>
+        (await fileStore.Get("nodes/node1/node1___lease.json", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             TestLeaseRecord readRec = x.Return().ToObject<TestLeaseRecord>();
@@ -176,7 +176,7 @@ public class GraphEngine2Tests
             readRec.Amount.Should().Be(leaseRec.Amount);
         });
 
-        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
+        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Default);
         selectResultOption.IsOk().Should().BeTrue();
 
         var selectResult = selectResultOption.Return();
@@ -192,7 +192,7 @@ public class GraphEngine2Tests
             readRec.Age.Should().Be(contractRec.Age);
         });
 
-        selectResultOption = await engine.Execute("select (key=node1) return contract, lease;", NullScopeContext.Instance);
+        selectResultOption = await engine.Execute("select (key=node1) return contract, lease;", NullScopeContext.Default);
         selectResultOption.IsOk().Should().BeTrue();
 
         selectResult = selectResultOption.Return();
@@ -217,14 +217,14 @@ public class GraphEngine2Tests
             readRec.Amount.Should().Be(leaseRec.Amount);
         });
 
-        var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Instance);
+        var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Default);
         deleteResult.IsOk().Should().BeTrue();
 
         await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
 
-        selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
+        selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Default);
         selectResultOption.IsOk().Should().BeTrue();
 
         selectResult = selectResultOption.Return();
@@ -246,13 +246,13 @@ public class GraphEngine2Tests
         var leaseRec = new TestLeaseRecord("lease#1", 100.0m);
         var leaseBase64 = leaseRec.ToJson().ToBase64();
 
-        var addResult = await engine.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};", NullScopeContext.Instance);
+        var addResult = await engine.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};", NullScopeContext.Default);
         addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
         await CheckFileStoreCount(fileStore, 2);
 
-        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance)).Action((Action<Option<DataETag>>)(x =>
+        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Default)).Action((Action<Option<DataETag>>)(x =>
         {
             x.IsOk().Should().BeTrue();
             TestContractRecord readRec = x.Return().ToObject<TestContractRecord>();
@@ -261,7 +261,7 @@ public class GraphEngine2Tests
             readRec.Age.Should().Be(contractRec.Age);
         }));
 
-        (await fileStore.Get("nodes/node1/node1___lease.json", NullScopeContext.Instance)).Action(x =>
+        (await fileStore.Get("nodes/node1/node1___lease.json", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             TestLeaseRecord readRec = x.Return().ToObject<TestLeaseRecord>();
@@ -271,7 +271,7 @@ public class GraphEngine2Tests
         });
 
         // Delete data "contract" and verify data was deleted
-        var removeDataOption = await engine.Execute("set node key=node1 set -contract, t2=v2;", NullScopeContext.Instance);
+        var removeDataOption = await engine.Execute("set node key=node1 set -contract, t2=v2;", NullScopeContext.Default);
         removeDataOption.IsOk().Should().BeTrue(removeDataOption.ToString());
         await CheckFileStoreCount(fileStore, 1);
         map.Nodes.Count.Should().Be(1);
@@ -285,10 +285,10 @@ public class GraphEngine2Tests
         map.Edges.Count.Should().Be(0);
 
         // Verify data has been deleted
-        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Instance)).IsNotFound().Should().BeTrue();
+        (await fileStore.Get("nodes/node1/node1___contract.json", NullScopeContext.Default)).IsNotFound().Should().BeTrue();
 
         // Verify data should still exist
-        (await fileStore.Get("nodes/node1/node1___lease.json", NullScopeContext.Instance)).Action(x =>
+        (await fileStore.Get("nodes/node1/node1___lease.json", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             TestLeaseRecord readRec = x.Return().ToObject<TestLeaseRecord>();
@@ -298,7 +298,7 @@ public class GraphEngine2Tests
         });
 
         // Verify node
-        (await engine.Execute("select (key=node1);", NullScopeContext.Instance)).Action(x =>
+        (await engine.Execute("select (key=node1);", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -309,14 +309,14 @@ public class GraphEngine2Tests
             });
         });
 
-        var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Instance);
+        var deleteResult = await engine.Execute("delete node key=node1;", NullScopeContext.Default);
         deleteResult.IsOk().Should().BeTrue();
 
         await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
 
-        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Instance);
+        var selectResultOption = await engine.Execute("select (key=node1) return contract;", NullScopeContext.Default);
         selectResultOption.IsOk().Should().BeTrue();
         selectResultOption.Return().Action(x =>
         {
@@ -328,6 +328,6 @@ public class GraphEngine2Tests
 
     private async Task CheckFileStoreCount(IFileStore fileStore, int count)
     {
-        (await ((InMemoryFileStore)fileStore).Search("nodes/**/*", NullScopeContext.Instance)).Count.Should().Be(count);
+        (await ((InMemoryFileStore)fileStore).Search("nodes/**/*", NullScopeContext.Default)).Count.Should().Be(count);
     }
 }

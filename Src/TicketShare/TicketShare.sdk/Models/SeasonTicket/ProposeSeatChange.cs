@@ -3,21 +3,19 @@ using Toolbox.Tools;
 
 namespace TicketShare.sdk;
 
-[GenerateSerializer]
-[Alias("TicketShare.sdk.ProposeSeatChange")]
 public sealed record ProposeSeatChange
 {
-    [Id(0)] public string SeatId { get; init; } = null!;
-    [Id(1)] public DateTime Date { get; init; } = DateTime.Now;
-    [Id(2)] public string AssignedToPrincipalId { get; init; } = null!;
-    [Id(3)] public SeatChangeConfirmed? Confirm { get; init; }
+    public string SeatId { get; init; } = null!;
+    public DateTime Date { get; init; } = DateTime.Now;
+    public string AssignedToPrincipalId { get; init; } = null!;
+    public SeatChangeConfirmed? Confirm { get; init; }
 
     public bool Equals(ProposeSeatChange? other) =>
         other != null &&
         SeatId.EqualsIgnoreCase(other.SeatId) &&
         Date == other.Date &&
         AssignedToPrincipalId.EqualsIgnoreCase(other.AssignedToPrincipalId) &&
-        ((Confirm == null && other.Confirm == null) || (Confirm == other.Confirm));
+        Confirm == other.Confirm;
 
     public override int GetHashCode() => HashCode.Combine(SeatId, Date, AssignedToPrincipalId);
 
