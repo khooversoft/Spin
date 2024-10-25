@@ -46,8 +46,7 @@ public class PrincipalIdentityStoreTests
         engineContext.Map.Nodes.First().Action(x =>
         {
             x.Key.Should().Be("user:username1@company.com");
-            x.TagsString.Should().Be("");
-            //x.Indexes.
+            x.TagsString.Should().Be("email=username1@domain1.com,loginProvider=loginprovider/loginprovider.key1,userName=username1");
         });
 
         engineContext.Map.Edges.Count.Should().Be(0);
@@ -87,8 +86,8 @@ public class PrincipalIdentityStoreTests
         user.Validate().IsOk().Should().BeTrue();
 
         await TestTool.CreateAndVerify(user, engineContext);
-        engineContext.Map.Nodes.Count.Should().Be(3);
-        engineContext.Map.Edges.Count.Should().Be(2);
+        engineContext.Map.Nodes.Count.Should().Be(1);
+        engineContext.Map.Edges.Count.Should().Be(0);
 
         var deleteResult = await engineContext.IdentityClient.Delete(userId, engineContext.Context);
         deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());

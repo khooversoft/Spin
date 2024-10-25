@@ -19,7 +19,7 @@ public class UpdateStoreTests
         var userId = "userName1@company.com";
         var userEmail = "userName1@domain1.com";
         var userName = "userName1";
-        var loginProvider = "loginProvider";
+        var loginProvider = "loginProviderNet";
         var providerKey = "loginProvider.key1";
 
         var user = new PrincipalIdentity
@@ -41,42 +41,32 @@ public class UpdateStoreTests
         user.Validate().IsOk().Should().BeTrue();
 
         await TestTool.CreateAndVerify(user, engineContext);
-        engineContext.Map.Nodes.Count.Should().Be(4);
-        engineContext.Map.Edges.Count.Should().Be(3);
+        engineContext.Map.Nodes.Count.Should().Be(1);
+        engineContext.Map.Edges.Count.Should().Be(0);
 
-        engineContext.Map.Nodes.Select(x => x.Key).OrderBy(x => x).Should().BeEquivalentTo([
-            "logonProvider:loginprovider/loginprovider.key1",
-            "user:username1@company.com",
-            "userEmail:username1@domain1.com",
-            "userName:username1",
-            ]);
+        var list = new (string indexName, string key)[]
+        {
+            ("email", "username1@domain1.com"),
+            ("loginProvider", "loginprovidernet/loginprovider.key1"),
+            ("userName", "userName1"),
+        };
 
-        engineContext.Map.Edges.Count.Should().Be(3);
-        engineContext.Map.Edges.Select(x => $"{x.FromKey},{x.ToKey},{x.EdgeType}").OrderBy(x => x).Should().BeEquivalentTo([
-            "logonProvider:loginprovider/loginprovider.key1,user:username1@company.com,uniqueIndex",
-            "userEmail:username1@domain1.com,user:username1@company.com,uniqueIndex",
-            "userName:username1,user:username1@company.com,uniqueIndex",
-            ]);
+        VerifyIndex(engineContext, list);
 
         var updatedUser = user with { Email = "newUserName@domainNew.com" };
 
         await TestTool.CreateAndVerify(updatedUser, engineContext);
-        engineContext.Map.Nodes.Count.Should().Be(4);
-        engineContext.Map.Edges.Count.Should().Be(3);
+        engineContext.Map.Nodes.Count.Should().Be(1);
+        engineContext.Map.Edges.Count.Should().Be(0);
 
-        engineContext.Map.Nodes.Select(x => x.Key).OrderBy(x => x).Should().BeEquivalentTo([
-            "logonProvider:loginprovider/loginprovider.key1",
-            "user:username1@company.com",
-            "userEmail:newusername@domainnew.com",
-            "userName:username1",
-            ]);
+        list = new (string indexName, string key)[]
+        {
+            ("email", "newUserName@domainNew.com"),
+            ("loginProvider", "loginprovidernet/loginprovider.key1"),
+            ("userName", "userName1"),
+        };
 
-        engineContext.Map.Edges.Count.Should().Be(3);
-        engineContext.Map.Edges.Select(x => $"{x.FromKey},{x.ToKey},{x.EdgeType}").OrderBy(x => x).Should().BeEquivalentTo([
-            "logonProvider:loginprovider/loginprovider.key1,user:username1@company.com,uniqueIndex",
-            "userEmail:newusername@domainnew.com,user:username1@company.com,uniqueIndex",
-            "userName:username1,user:username1@company.com,uniqueIndex",
-            ]);
+        VerifyIndex(engineContext, list);
 
         var deleteResult = await engineContext.IdentityClient.Delete(userId, engineContext.Context);
         deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());
@@ -90,5 +80,16 @@ public class UpdateStoreTests
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(0);
         });
+    }
+
+    private static void VerifyIndex(TestContext engineContext, (string indexName, string key)[] list)
+    {
+        foreach (var item in list)
+        {
+            var r = engineContext.Map.Nodes.LookupIndex(item.indexName, item.key);
+            r.IsOk().Should().BeTrue(item.ToString());
+            var rv = r.Return();
+            rv.NodeKey.Should().Be("user:username1@company.com");
+        }
     }
 }

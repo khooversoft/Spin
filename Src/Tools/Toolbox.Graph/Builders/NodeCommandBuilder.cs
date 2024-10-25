@@ -6,42 +6,22 @@ namespace Toolbox.Graph;
 
 public class NodeCommandBuilder
 {
+    private TagCollection _tagCollection = new TagCollection();
+
     public bool Set { get; set; }
     public string NodeKey { get; private set; } = null!;
-    public IDictionary<string, string?> Tags { get; } = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+    public IDictionary<string, string?> Tags => _tagCollection.Tags;
     public IDictionary<string, string> Data { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     public HashSet<string> Indexes { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public NodeCommandBuilder UseAdd() => this.Action(x => x.Set = false);
     public NodeCommandBuilder UseSet() => this.Action(x => x.Set = true);
+    public NodeCommandBuilder AddTag(string tag) => this.Action(_ => _tagCollection.AddTag(tag));
+    public NodeCommandBuilder AddTag(string tag, string? value) => this.Action(_ => _tagCollection.AddTag(tag, value));
 
     public NodeCommandBuilder SetNodeKey(string nodeKey)
     {
         NodeKey = nodeKey.NotEmpty();
-        return this;
-    }
-
-    public NodeCommandBuilder AddTag(string tag)
-    {
-        tag.NotEmpty();
-
-        (string key, string? value) = tag.Split('=') switch
-        {
-            { Length: 1 } => (tag, null),
-            { Length: 2 } v => (v[0], v[1]),
-            _ => throw new ArgumentException("Invalid format"),
-        };
-
-        Tags[key] = value;
-        return this;
-    }
-
-    public NodeCommandBuilder AddTag(string tag, string? value)
-    {
-        tag.NotEmpty();
-        value.NotEmpty();
-
-        Tags[tag] = value;
         return this;
     }
 

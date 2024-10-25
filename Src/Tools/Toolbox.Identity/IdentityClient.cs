@@ -52,7 +52,11 @@ public class IdentityClient : IIdentityClient
         principalId.NotEmpty();
         context = context.With(_logger);
 
-        var cmd = $"select (key={PrincipalIdentityTool.ToUserKey(principalId)}) return entity ;";
+        var cmd = new SelectCommandBuilder()
+            .AddNodeSearch(x => x.SetNodeKey(PrincipalIdentityTool.ToUserKey(principalId)))
+            .AddDataName("entity")
+            .Build();
+
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())
         {
@@ -69,7 +73,11 @@ public class IdentityClient : IIdentityClient
         providerKey.NotEmpty();
         context = context.With(_logger);
 
-        var cmd = $"select ({ConstructLoginProviderTag(loginProvider, providerKey)}) return entity ;";
+        var cmd = new SelectCommandBuilder()
+            .AddNodeSearch(x => x.AddTag(ConstructLoginProviderTag(loginProvider, providerKey).NotEmpty()))
+            .AddDataName("entity")
+            .Build();
+
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())
         {
@@ -85,7 +93,11 @@ public class IdentityClient : IIdentityClient
         normalizedUserName.NotEmpty();
         context = context.With(_logger);
 
-        var cmd = $"select ({ConstructUserNameTag(normalizedUserName)}) return entity ;";
+        var cmd = new SelectCommandBuilder()
+            .AddNodeSearch(x => x.AddTag(ConstructUserNameTag(normalizedUserName)))
+            .AddDataName("entity")
+            .Build();
+
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())
         {
@@ -109,13 +121,25 @@ public class IdentityClient : IIdentityClient
 
         var cmd = new NodeCommandBuilder()
             .UseSet()
+            .SetNodeKey(nodeKey)
             .AddTag(emailTag)
             .AddTag(userNameNameTag)
             .AddTag(loginProviderTag)
             .AddData("entity", user)
+            .AddIndex("email")
+            .AddIndex("userName")
+            .Action(x =>
+            {
+                if (user.HasLoginProvider()) x.AddIndex("loginProvider");
+            })
             .Build();
 
         var result = await _graphClient.Execute(cmd, context);
+        if (result.IsError())
+        {
+            context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
+            return result.LogStatus(context, $"nodeKey={nodeKey}").ToOptionStatus();
+        }
         return result.ToOptionStatus();
     }
 

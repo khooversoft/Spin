@@ -1,42 +1,30 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types;
 
-namespace Toolbox.Graph.Builders;
+namespace Toolbox.Graph;
 
 public class SelectCommandBuilder
 {
-    public string? NodeKey { get; private set; }
-    public IDictionary<string, string?> Tags { get; } = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
     public HashSet<string> DataNames { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public IList<ISelectSearch> Searches { get; } = new List<ISelectSearch>();
 
-    public SelectCommandBuilder SetNodeKey(string nodeKey)
+    public SelectCommandBuilder AddSearch(ISelectSearch search) => this.Action(_ => Searches.Add(search.NotNull()));
+    public SelectCommandBuilder AddLeftJoin() => this.Action(_ => Searches.Add(new LeftJoinSearch()));
+    public SelectCommandBuilder AddFullJoin() => this.Action(_ => Searches.Add(new FullJoinSearch()));
+
+    public SelectCommandBuilder AddNodeSearch(Action<NodeSearch> search)
     {
-        NodeKey = nodeKey.NotEmpty();
+        var nodeSearch = new NodeSearch();
+        search(nodeSearch);
+        Searches.Add(nodeSearch);
         return this;
     }
 
-    public SelectCommandBuilder AddTag(string tag)
+    public SelectCommandBuilder AddEdgeSearch(Action<EdgeSearch> search)
     {
-        tag.NotEmpty();
-
-        (string key, string? value) = tag.Split('=') switch
-        {
-            { Length: 1 } => (tag, null),
-            { Length: 2 } v => (v[0], v[1]),
-            _ => throw new ArgumentException("Invalid format"),
-        };
-
-        Tags[key] = value;
-        return this;
-    }
-
-    public SelectCommandBuilder AddTag(string tag, string? value)
-    {
-        tag.NotEmpty();
-        value.NotEmpty();
-
-        Tags[tag] = value;
+        var edgeSearch = new EdgeSearch();
+        search(edgeSearch);
+        Searches.Add(edgeSearch);
         return this;
     }
 
@@ -50,82 +38,19 @@ public class SelectCommandBuilder
 
     public string Build()
     {
-        string? nodeKey = NodeKey.IsNotEmpty() ? $"key={NodeKey}" : null;
+        string dataNames = DataNames.OrderBy(x => x).Join(",");
 
-        string tags = Tags.ToTagsString();
-        string dataNames = DataNames.Join(", ");
+        string? returnOpr = dataNames.IsNotEmpty() ? "return " + dataNames : null;
 
-        string search = new[] { nodeKey, tags }.Join(", ");
-        string? returnOpr = dataNames.IsNotEmpty() ? "return" : null;
-
-        var seq = new[]
+        var seq = new string?[][]
         {
-            "select",
-            "(",
-            search,
-            ")",
-            returnOpr,
-            ";"
+            ["select"],
+            [.. Searches.Select(x => x.Build())],
+            [returnOpr],
+            [";"]
         };
 
-        string cmd = seq.Where(x => x.IsNotEmpty()).Join(" ");
-        return cmd;
-    }
-}
-
-public interface ISelectSearch
-{
-    string Build();
-}
-
-public class NodeSearch : ISelectSearch
-{
-    public string? NodeKey { get; private set; }
-    public IDictionary<string, string?> Tags { get; } = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-
-    public string Build()
-    {
-        string? nodeKey = NodeKey.IsNotEmpty() ? $"key={NodeKey}" : null;
-        string tags = Tags.ToTagsString();
-
-        string search = new[] { nodeKey, tags }.Join(", ");
-
-        var seq = new[]
-        {
-            "(",
-            search,
-            ")",
-        };
-
-        string cmd = seq.Where(x => x.IsNotEmpty()).Join(" ");
-        return cmd;
-    }
-}
-
-public class EdgeSearch : ISelectSearch
-{
-    public string? FromKey { get; private set; }
-    public string? ToKey { get; private set; }
-    public string? EdgeType { get; private set; }
-    public IDictionary<string, string?> Tags { get; } = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-
-    public string Build()
-    {
-        string? fromKey = FromKey.IsNotEmpty() ? $"key={FromKey}" : null;
-        string? toKey = ToKey.IsNotEmpty() ? $"key={ToKey}" : null;
-        string? edgeType = EdgeType.IsNotEmpty() ? $"type={EdgeType}" : null;
-        string tags = Tags.ToTagsString();
-
-        string search = new[] { fromKey, toKey, edgeType, tags }.Join(", ");
-
-        var seq = new[]
-        {
-            "[",
-            search,
-            "]",
-        };
-
-        string cmd = seq.Where(x => x.IsNotEmpty()).Join(" ");
+        string cmd = seq.SelectMany(x => x).Where(x => x.IsNotEmpty()).Join(" ");
         return cmd;
     }
 }
