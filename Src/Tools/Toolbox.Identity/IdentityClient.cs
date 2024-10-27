@@ -6,16 +6,8 @@ using Toolbox.Types;
 
 namespace Toolbox.Identity;
 
-public interface IIdentityClient
-{
-    Task<Option> Delete(string principalId, ScopeContext context);
-    Task<Option<PrincipalIdentity>> Get(string principalId, ScopeContext context);
-    Task<Option<PrincipalIdentity>> GetByLogin(string loginProvider, string providerKey, ScopeContext context);
-    Task<Option<PrincipalIdentity>> GetByName(string normalizedUserName, ScopeContext context);
-    Task<Option> Set(PrincipalIdentity user, ScopeContext context);
-}
 
-public class IdentityClient : IIdentityClient
+public class IdentityClient
 {
     private readonly IGraphClient _graphClient;
     private readonly ILogger<IdentityClient> _logger;
@@ -29,83 +21,33 @@ public class IdentityClient : IIdentityClient
     public async Task<Option> Delete(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
-        context = context.With(_logger);
-
-        var cmd = new DeleteCommandBuilder()
-            .SetIfExist()
-            .SetNodeKey(PrincipalIdentityTool.ToUserKey(principalId))
-            .Build();
-
-        var result = await _graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to delete principalId={principalId}", principalId);
-            return result.LogStatus(context, $"principalId={principalId}").ToOptionStatus();
-        }
-
-        result.LogStatus(context, $"Deleting principalId={principalId}");
-        return result.ToOptionStatus();
+        return await _graphClient.DeleteNode(ToUserKey(principalId), context);
     }
 
-    public async Task<Option<PrincipalIdentity>> Get(string principalId, ScopeContext context)
+    public async Task<Option<PrincipalIdentity>> GetByPrincipalId(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
-        context = context.With(_logger);
-
-        var cmd = new SelectCommandBuilder()
-            .AddNodeSearch(x => x.SetNodeKey(PrincipalIdentityTool.ToUserKey(principalId)))
-            .AddDataName("entity")
-            .Build();
-
-        var result = await _graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to find principalId={principalId}", principalId);
-            return result.LogStatus(context, $"principalId={principalId}").ToOptionStatus<PrincipalIdentity>();
-        }
-
-        return result.Return().DataLinkToObject<PrincipalIdentity>("entity");
+        return await _graphClient.GetNode<PrincipalIdentity>(ToUserKey(principalId), context);
     }
 
     public async Task<Option<PrincipalIdentity>> GetByLogin(string loginProvider, string providerKey, ScopeContext context)
     {
         loginProvider.NotEmpty();
         providerKey.NotEmpty();
-        context = context.With(_logger);
 
-        var cmd = new SelectCommandBuilder()
-            .AddNodeSearch(x => x.AddTag(ConstructLoginProviderTag(loginProvider, providerKey).NotEmpty()))
-            .AddDataName("entity")
-            .Build();
+        return await _graphClient.GetByTag<PrincipalIdentity>(ConstructLoginProviderTag(loginProvider, providerKey).NotEmpty(), context);
+    }
 
-        var result = await _graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to find login, loginProvider={loginProvider},providerKey={providerKey}", loginProvider, providerKey);
-            return result.LogStatus(context, $"login={loginProvider}").ToOptionStatus<PrincipalIdentity>();
-        }
-
-        return result.Return().DataLinkToObject<PrincipalIdentity>("entity");
+    public async Task<Option<PrincipalIdentity>> GetByEmail(string email, ScopeContext context)
+    {
+        email.NotEmpty();
+        return await _graphClient.GetByTag<PrincipalIdentity>(ConstructEmailTag(email), context);
     }
 
     public async Task<Option<PrincipalIdentity>> GetByName(string normalizedUserName, ScopeContext context)
     {
         normalizedUserName.NotEmpty();
-        context = context.With(_logger);
-
-        var cmd = new SelectCommandBuilder()
-            .AddNodeSearch(x => x.AddTag(ConstructUserNameTag(normalizedUserName)))
-            .AddDataName("entity")
-            .Build();
-
-        var result = await _graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to find by userName={userName}", normalizedUserName);
-            return result.LogStatus(context, $"userName={normalizedUserName}").ToOptionStatus<PrincipalIdentity>();
-        }
-
-        return result.Return().DataLinkToObject<PrincipalIdentity>("entity");
+        return await _graphClient.GetByTag<PrincipalIdentity>(ConstructUserNameTag(normalizedUserName), context);
     }
 
     public async Task<Option> Set(PrincipalIdentity user, ScopeContext context)
@@ -113,7 +55,7 @@ public class IdentityClient : IIdentityClient
         context = context.With(_logger);
         if (!user.Validate(out var r)) return r.LogStatus(context, nameof(PrincipalIdentity));
 
-        string nodeKey = PrincipalIdentityTool.ToUserKey(user.PrincipalId);
+        string nodeKey = ToUserKey(user.PrincipalId);
 
         string emailTag = ConstructEmailTag(user.Email);
         string userNameNameTag = ConstructUserNameTag(user.NormalizedUserName);
@@ -140,9 +82,11 @@ public class IdentityClient : IIdentityClient
             context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
             return result.LogStatus(context, $"nodeKey={nodeKey}").ToOptionStatus();
         }
+
         return result.ToOptionStatus();
     }
 
+    private static string ToUserKey(string id) => $"user:{id.NotEmpty().ToLower()}";
     private static string ConstructEmailTag(string value) => $"email={value.ToLower()}";
     private static string ConstructUserNameTag(string value) => $"userName={value.ToLower()}";
     private static string? ConstructLoginProviderTag(string? loginProvider, string? providerKey)

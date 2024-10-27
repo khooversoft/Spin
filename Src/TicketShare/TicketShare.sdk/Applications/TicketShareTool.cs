@@ -1,12 +1,12 @@
-﻿using Toolbox.Tools;
+﻿//using Toolbox.Tools;
 
-namespace TicketShare.sdk;
+//namespace TicketShare.sdk;
 
 
-public static class TicketShareTool
-{
-    public static string ToAccountKey(string id) => $"account:{id.NotEmpty().ToLower()}";
-    public static string ToSeasonTicketKey(string id) => $"seasonTicket:{id.NotEmpty().ToLower()}";
+//public static class TicketShareTool
+//{
+//    public static string ToAccountKey(string id) => $"account:{id.NotEmpty().ToLower()}";
+//    public static string ToSeasonTicketKey(string id) => $"seasonTicket:{id.NotEmpty().ToLower()}";
 
-    public static string SeasonTicketToIdentity = "seasonTicket-identity-to-identity";
-}
+//    public static string SeasonTicketToIdentity = "seasonTicket-identity-to-identity";
+//}

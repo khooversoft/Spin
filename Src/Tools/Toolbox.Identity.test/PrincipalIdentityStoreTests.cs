@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
@@ -56,7 +57,9 @@ public class PrincipalIdentityStoreTests
         engineContext.Map.Nodes.Count.Should().Be(0);
         engineContext.Map.Edges.Count.Should().Be(0);
 
-        var deleteOption = await engineContext.GraphClient.Execute($"select (key={PrincipalIdentityTool.ToUserKey(userId)}) ;", engineContext.Context);
+        var selectCmd = new SelectCommandBuilder().AddNodeSearch(x => x.SetNodeKey(userId)).Build();
+
+        var deleteOption = await engineContext.GraphClient.Execute(selectCmd, engineContext.Context);
         deleteOption.IsOk().Should().BeTrue();
         deleteOption.Return().Action(x =>
         {
@@ -94,7 +97,9 @@ public class PrincipalIdentityStoreTests
         engineContext.Map.Nodes.Count.Should().Be(0);
         engineContext.Map.Edges.Count.Should().Be(0);
 
-        var deleteOption = await engineContext.GraphClient.Execute($"select (key={PrincipalIdentityTool.ToUserKey(userId)}) ;", engineContext.Context);
+        var selectCmd = new SelectCommandBuilder().AddNodeSearch(x => x.SetNodeKey(userId)).Build();
+
+        var deleteOption = await engineContext.GraphClient.Execute(selectCmd, engineContext.Context);
         deleteOption.IsOk().Should().BeTrue();
         deleteOption.Return().Action(x =>
         {

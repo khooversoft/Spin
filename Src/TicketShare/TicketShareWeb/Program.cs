@@ -1,12 +1,19 @@
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
 using TicketShareWeb.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
+
+builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
 
 var app = builder.Build();
 
@@ -23,7 +30,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 
 app.Run();

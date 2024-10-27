@@ -6,6 +6,26 @@ namespace Toolbox.Graph.test.Builders;
 public class SelectCommandBuilderTests
 {
     [Fact]
+    public void SelectNodeWildCard()
+    {
+        var graphQuery = new SelectCommandBuilder()
+            .AddNodeSearch()
+            .Build();
+
+        Verify(graphQuery, "select (*) ;");
+    }
+
+    [Fact]
+    public void SelectEdgeWildcard()
+    {
+        var graphQuery = new SelectCommandBuilder()
+            .AddEdgeSearch()
+            .Build();
+
+        Verify(graphQuery, "select [*] ;");
+    }
+
+    [Fact]
     public void SelectNode()
     {
         var graphQuery = new SelectCommandBuilder()

@@ -20,8 +20,8 @@ public class EdgeCommandBuilder
     public EdgeCommandBuilder SetFromKey(string fromKey) => this.Action(_ => FromKey = fromKey.NotEmpty());
     public EdgeCommandBuilder SetToKey(string toKey) => this.Action(_ => ToKey = toKey.NotEmpty());
     public EdgeCommandBuilder SetEdgeType(string edgeType) => this.Action(_ => EdgeType = edgeType.NotEmpty());
-    public EdgeCommandBuilder SetTag(string tag) => this.Action(_ => _tagCollection.AddTag(tag));
-    public EdgeCommandBuilder SetTag(string tag, string? value) => this.Action(_ => _tagCollection.AddTag(tag, value));
+    public EdgeCommandBuilder AddTag(string tag) => this.Action(_ => _tagCollection.AddTag(tag));
+    public EdgeCommandBuilder AddTag(string tag, string? value) => this.Action(_ => _tagCollection.AddTag(tag, value));
 
     public string Build()
     {
@@ -30,13 +30,13 @@ public class EdgeCommandBuilder
         string tags = Tags.ToTagsString();
         string? setCmd = tags.IsNotEmpty() ? "set" : null;
 
+        string keys = new[] { $"from={FromKey}", $"to={ToKey}", $"type={EdgeType}" }.Join(", ");
+
         var seq = new[]
         {
             opr,
             "edge",
-            $"from={FromKey}",
-            $"to={ToKey}",
-            $"type={EdgeType}",
+            keys,
             setCmd,
             tags,
             ";"

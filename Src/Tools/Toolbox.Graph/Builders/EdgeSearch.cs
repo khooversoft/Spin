@@ -25,7 +25,12 @@ public class EdgeSearch : ISelectSearch
         string? edgeType = EdgeType.IsNotEmpty() ? $"type={EdgeType}" : null;
         string tags = Tags.ToTagsString();
 
-        string search = new[] { fromKey, toKey, edgeType, tags }.Where(x => x.IsNotEmpty()).Join(", ");
+        string search = (fromKey.IsNotEmpty() || toKey.IsNotEmpty() || edgeType.IsNotEmpty() || tags.IsNotEmpty()) switch
+        {
+            true => new[] { fromKey, toKey, edgeType, tags }.Where(x => x.IsNotEmpty()).Join(", "),
+            false => "*",
+        };
+
         string cmd = "[" + search + "]";
         return cmd;
     }

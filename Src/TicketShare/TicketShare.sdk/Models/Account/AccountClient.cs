@@ -6,14 +6,7 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public interface IAccountClient
-{
-    Task<Option<AccountRecord>> Get(string principalId, ScopeContext context);
-    Task<Option> Delete(string principalId, ScopeContext context);
-    Task<Option> Set(AccountRecord accountName, ScopeContext context);
-}
-
-public class AccountClient : IAccountClient
+public class AccountClient
 {
     private readonly IGraphClient _graphClient;
     private readonly ILogger<AccountClient> _logger;
@@ -27,29 +20,17 @@ public class AccountClient : IAccountClient
     public async Task<Option> Delete(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
-        context = context.With(_logger);
-
-        string cmd = GraphTool.DeleteNodeCommand(AccountRecordTool.ToAccountKey(principalId));
-
-        var result = await _graphClient.ExecuteBatch(cmd, context);
-        result.LogStatus(context, $"Deleting principalId={principalId}");
-        return result.ToOptionStatus();
+        return await _graphClient.DeleteNode(ToAccountKey(principalId), context);
     }
 
     public async Task<Option<AccountRecord>> Get(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
-        context = context.With(_logger);
+        return await _graphClient.GetNode<AccountRecord>(ToAccountKey(principalId), context);
+    }
 
-        var cmd = $"select (key={AccountRecordTool.ToAccountKey(principalId)}) return entity ;";
-        var result = await _graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to find principalId={principalId}", principalId);
-            return result.LogStatus(context, $"principalId={principalId}").ToOptionStatus<AccountRecord>();
-        }
-
-        return result.Return().DataLinkToObject<AccountRecord>("entity");
+    public async Task<Option<IReadOnlyList<AccountRecord>> GetAccounts(string principalId, ScopeContext context)
+    {
     }
 
     public async Task<Option> Set(AccountRecord accountRecord, ScopeContext context)
@@ -57,9 +38,27 @@ public class AccountClient : IAccountClient
         context = context.With(_logger);
         if (!accountRecord.Validate(out var r)) return r.LogStatus(context, nameof(AccountRecord));
 
-        string cmd = GraphTool.SetNodeCommand(AccountRecordTool.ToAccountKey(accountRecord.PrincipalId), base64: accountRecord.ToJson().ToBase64(), dataName: "entity");
+        string nodeKey = ToAccountKey(accountRecord.PrincipalId);
+        string reserveTag = accountRecord.GetReserveTag();
+
+        var cmd = new NodeCommandBuilder()
+            .UseSet()
+            .SetNodeKey(nodeKey)
+            .AddTag(reserveTag)
+            .AddData("entity", accountRecord)
+            .AddIndex("reserve")
+            .AddIndex("userName")
+            .Build();
 
         var result = await _graphClient.Execute(cmd, context);
+        if (result.IsError())
+        {
+            context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
+            return result.LogStatus(context, $"nodeKey={nodeKey}").ToOptionStatus();
+        }
+
         return result.ToOptionStatus();
     }
+
+    private static string ToAccountKey(string id) => $"account:{id.NotEmpty().ToLower()}";
 }

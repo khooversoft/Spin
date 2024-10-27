@@ -12,6 +12,10 @@ public class SelectCommandBuilder
     public SelectCommandBuilder AddLeftJoin() => this.Action(_ => Searches.Add(new LeftJoinSearch()));
     public SelectCommandBuilder AddFullJoin() => this.Action(_ => Searches.Add(new FullJoinSearch()));
 
+    // Add wildcard (*) or [*}
+    public SelectCommandBuilder AddNodeSearch() => this.Action(_ => Searches.Add(new NodeSearch()));
+    public SelectCommandBuilder AddEdgeSearch() => this.Action(_ => Searches.Add(new EdgeSearch()));
+
     public SelectCommandBuilder AddNodeSearch(Action<NodeSearch> search)
     {
         var nodeSearch = new NodeSearch();

@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.TestApi", "Tools\To
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Identity", "Tools\Toolbox.Identity\Toolbox.Identity.csproj", "{A6D362E6-AA23-4614-8511-A491389F61E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketShareWeb", "TicketShare\TicketShareWeb\TicketShareWeb.csproj", "{D476CCA4-466F-4DE3-92F3-964189AE16A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TicketShareWeb", "TicketShare\TicketShareWeb\TicketShareWeb.csproj", "{D476CCA4-466F-4DE3-92F3-964189AE16A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

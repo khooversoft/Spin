@@ -20,18 +20,15 @@ public sealed record PrincipalIdentity : IIdentity
     [Id(0)] public string PrincipalId { get; set; } = null!;
     [Id(1)] public string UserName { get; set; } = null!;
 
-    // Index - Email - ToEmailIndex()
     [Id(2)] public string Email { get; set; } = null!;
     [Id(3)] public bool EmailConfirmed { get; set; }
     [Id(4)] public string PasswordHash { get; set; } = null!;
 
-    // Index - UserName - ToUserNameIndex()
     [Id(5)] public string NormalizedUserName { get; set; } = null!;
     [Id(6)] public string AuthenticationType { get; set; } = null!;
     [Id(7)] public bool IsAuthenticated { get; set; }
     [Id(8)] public string Name { get; set; } = null!;
 
-    // Index - LoginProvider/ProviderKey - ToLoginIndex()
     [Id(9)] public string? LoginProvider { get; set; } = null!;
     [Id(10)] public string? ProviderKey { get; set; } = null!;
     [Id(11)] public string? ProviderDisplayName { get; set; }
@@ -57,8 +54,4 @@ public static class PrincipalIdentityTool
 
     public static bool HasLoginProvider(this PrincipalIdentity subject) => subject.NotNull().LoginProvider.IsNotEmpty() && subject.ProviderKey.IsNotEmpty();
 
-    public static string ToUserKey(string id) => $"user:{id.NotEmpty().ToLower()}";
-    //public static string ToUserNameIndex(string userName) => $"userName:{userName.NotEmpty().ToLower()}";
-    //public static string ToEmailIndex(string userName) => $"userEmail:{userName.NotEmpty().ToLower()}";
-    //public static string ToLoginIndex(string provider, string providerKey) => $"logonProvider:{provider.NotEmpty().ToLower() + "/" + providerKey.NotEmpty().ToLower()}";
 }

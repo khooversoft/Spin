@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Collections.Immutable;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -21,19 +22,56 @@ public record QueryResult
     public IReadOnlyList<GraphLinkData> DataLinks { get; init; } = Array.Empty<GraphLinkData>();
 }
 
+public record NodeDataLinkObject<T>
+{
+    public string NodeKey { get; init; } = null!;
+    public string Name { get; init; } = null!;
+    public T Data { get; init; } = default!;
+}
+
 public static class QueryResultTool
 {
     public static QueryResult? Query(this QueryBatchResult subject, int queryNumber) => subject.NotNull().Items.SingleOrDefault(x => x.QueryNumber == queryNumber);
     public static QueryResult? Alias(this QueryBatchResult subject, string alias) => subject.NotNull().Items.SingleOrDefault(x => x.Alias == alias);
+
+    public static IReadOnlyList<NodeDataLinkObject<T>> DataLinkToObjects<T>(this QueryResult subject, string dataName)
+    {
+        subject.NotNull();
+        dataName.NotEmpty();
+
+        var list = subject.DataLinks
+            .Where(x => x.Name.EqualsIgnoreCase(dataName))
+            .Select(x => new NodeDataLinkObject<T>
+            {
+                NodeKey = x.NodeKey,
+                Name = x.Name,
+                Data = x.Data.ToObject<T>(),
+            })
+            .ToImmutableArray();
+
+        return list;
+    }
 
     public static Option<T> DataLinkToObject<T>(this QueryResult subject, string dataName)
     {
         subject.NotNull();
         dataName.NotEmpty();
 
-        var dataLink = subject.DataLinks.SingleOrDefault(x => x.Name.EqualsIgnoreCase(dataName));
-        if (dataLink == null) return StatusCode.NotFound;
+        if (subject.DataLinks.Count != 1) return (StatusCode.Conflict, "There is more then 1 data link, must specify the node key");
 
-        return dataLink.Data.ToObject<T>();
+        var list = subject.DataLinkToObjects<T>(dataName);
+        if (list.Count == 0) return StatusCode.NotFound;
+
+        return list[0].Data;
+    }
+
+    public static Option<T> DataLinkToObject<T>(this QueryResult subject, string dataName, string nodeKey)
+    {
+        nodeKey.NotEmpty();
+
+        var item = subject.DataLinkToObjects<T>(dataName).FirstOrDefault(x => x.NodeKey.EqualsIgnoreCase(nodeKey));
+        if (item == null) return StatusCode.NotFound;
+
+        return item.Data;
     }
 }

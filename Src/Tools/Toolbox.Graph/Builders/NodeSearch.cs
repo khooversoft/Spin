@@ -20,7 +20,12 @@ public class NodeSearch : ISelectSearch
         string? nodeKey = NodeKey.IsNotEmpty() ? $"key={NodeKey}" : null;
         string tags = Tags.ToTagsString();
 
-        string search = new[] { nodeKey, tags }.Where(x => x.IsNotEmpty()).Join(", ");
+        string search = (nodeKey.IsNotEmpty() || tags.IsNotEmpty()) switch
+        {
+            true => new[] { nodeKey, tags }.Where(x => x.IsNotEmpty()).Join(", "),
+            false => "*",
+        };
+
         string cmd = "(" + search + ")";
         return cmd;
     }

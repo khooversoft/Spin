@@ -9,7 +9,7 @@ namespace TicketShare.sdk;
 public record AccountRecord
 {
     public string PrincipalId { get; init; } = null!;   // Owner
-    public string Name { get; init; } = null!;
+    public string Name { get; init; } = null!;          // Not index
 
     public IReadOnlyList<ContactRecord> ContactItems { get; init; } = ImmutableArray<ContactRecord>.Empty;
     public IReadOnlyList<AddressRecord> Address { get; init; } = ImmutableArray<AddressRecord>.Empty;
@@ -22,8 +22,6 @@ public record AccountRecord
         .RuleForEach(x => x.Address).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
         .Build();
-
-    public static string SelectNode(string principalId) => GraphTool.SelectNodeCommand(TicketShareTool.ToAccountKey(principalId), "entity");
 }
 
 public static class AccountRecordTool
@@ -35,6 +33,9 @@ public static class AccountRecordTool
         result = subject.Validate();
         return result.IsOk();
     }
+
+    public static string GetReserveTag(this AccountRecord subject) =>
+        $"reserve:{subject.NotNull().PrincipalId.ToLowerInvariant()}/{subject.Name.ToLowerInvariant()}";
 
     public static AccountRecord Merge(this AccountRecord subject, IEnumerable<ContactRecord> contactRecords)
     {
@@ -71,6 +72,4 @@ public static class AccountRecordTool
 
         return currentRecord;
     }
-
-    public static string ToAccountKey(string id) => $"account:{id.NotEmpty().ToLower()}";
 }

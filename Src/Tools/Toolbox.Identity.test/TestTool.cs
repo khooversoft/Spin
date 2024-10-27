@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph;
@@ -14,7 +13,7 @@ public record TestContext
 {
     public GraphTestClient Engine { get; init; } = null!;
     public IGraphClient GraphClient { get; init; } = null!;
-    public IIdentityClient IdentityClient { get; init; } = null!;
+    public IdentityClient IdentityClient { get; init; } = null!;
     public GraphMap Map { get; init; } = null!;
     public ScopeContext Context { get; init; }
 }
@@ -25,15 +24,15 @@ internal static class TestTool
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost(config: x =>
         {
-            x.AddSingleton<IIdentityClient, IdentityClient>();
-            x.AddSingleton<IUserStore<PrincipalIdentity>, UserStore>();
+            x.AddSingleton<IdentityClient, IdentityClient>();
+            //x.AddSingleton<IUserStore<PrincipalIdentity>, UserStore>();
             x.AddLogging(y => y.AddLambda(outputHelper.WriteLine));
         });
 
         var context = engine.GetScopeContext<PrincipalIdentityStoreTests>();
 
         IGraphClient graphClient = engine.ServiceProvider.GetRequiredService<IGraphClient>();
-        IIdentityClient identityClient = engine.ServiceProvider.GetRequiredService<IIdentityClient>();
+        IdentityClient identityClient = engine.ServiceProvider.GetRequiredService<IdentityClient>();
         GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         var result = new TestContext
@@ -56,7 +55,7 @@ internal static class TestTool
         var result = await testContext.IdentityClient.Set(user, testContext.Context);
         result.IsOk().Should().BeTrue();
 
-        var readPrincipalIdentityOption = await testContext.IdentityClient.Get(user.PrincipalId, testContext.Context);
+        var readPrincipalIdentityOption = await testContext.IdentityClient.GetByPrincipalId(user.PrincipalId, testContext.Context);
         readPrincipalIdentityOption.IsOk().Should().BeTrue(readPrincipalIdentityOption.ToString());
         (user == readPrincipalIdentityOption.Return()).Should().BeTrue();
 

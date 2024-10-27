@@ -1,15 +1,16 @@
 ﻿using FluentAssertions;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Identity.test;
 
-public class UpdateStoreTests
+public class UpdateIdentityTests
 {
     private ITestOutputHelper _outputHelper;
-    public UpdateStoreTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper.NotNull();
+    public UpdateIdentityTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper.NotNull();
 
     [Fact]
     public async Task UpdateUserEmailInfo()
@@ -73,7 +74,9 @@ public class UpdateStoreTests
         engineContext.Map.Nodes.Count.Should().Be(0);
         engineContext.Map.Edges.Count.Should().Be(0);
 
-        var deleteOption = await engineContext.GraphClient.Execute($"select (key={PrincipalIdentityTool.ToUserKey(userId)}) ;", engineContext.Context);
+        var selectCmd = new SelectCommandBuilder().AddNodeSearch(x => x.SetNodeKey(userId)).Build();
+
+        var deleteOption = await engineContext.GraphClient.Execute(selectCmd, engineContext.Context);
         deleteOption.IsOk().Should().BeTrue();
         deleteOption.Return().Action(x =>
         {
