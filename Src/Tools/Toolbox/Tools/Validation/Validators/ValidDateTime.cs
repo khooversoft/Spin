@@ -10,6 +10,16 @@ public class ValidDateTime<T> : ValidatorBase<T, DateTime>
     private static bool ValidateSubject(DateTime subject) => ValidDateTimeTool.IsValidDateTime(subject);
 }
 
+public class ValidDateTimeOption<T> : ValidatorBase<T, DateTime?>
+{
+    public ValidDateTimeOption(IPropertyRule<T, DateTime?> rule, string errorMessage)
+        : base(rule, errorMessage, ValidateSubject)
+    {
+    }
+
+    private static bool ValidateSubject(DateTime? subject) => ValidDateTimeTool.IsValidDateTime(subject);
+}
+
 public static class ValidDateTimeTool
 {
     private static readonly DateTime _minRange = new DateTime(1900, 1, 1);
@@ -18,6 +28,12 @@ public static class ValidDateTimeTool
     public static Rule<T, DateTime> ValidDateTime<T>(this Rule<T, DateTime> rule, string errorMessage = "valid DateTime is required, range 1900-01-01 to 2100-01-01")
     {
         rule.PropertyRule.Validators.Add(new ValidDateTime<T>(rule.PropertyRule, errorMessage));
+        return rule;
+    }
+
+    public static Rule<T, DateTime?> ValidDateTimeOption<T>(this Rule<T, DateTime?> rule, string errorMessage = "valid DateTime is required, range 1900-01-01 to 2100-01-01")
+    {
+        rule.PropertyRule.Validators.Add(new ValidDateTimeOption<T>(rule.PropertyRule, errorMessage));
         return rule;
     }
 

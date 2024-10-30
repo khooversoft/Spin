@@ -1,0 +1,71 @@
+﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Identity;
+using Toolbox.Types;
+
+namespace TicketShare.sdk.Applications;
+
+internal static class TestTool
+{
+    public static async Task AddIdentityUser(string principalId, TestHost testHost, ScopeContext context)
+    {
+        var client = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
+
+        PrincipalIdentity user = new PrincipalIdentity
+        {
+            PrincipalId = principalId,
+            Email = "email@domain.com",
+            UserName = "user1",
+            NormalizedUserName = "user1",
+        };
+
+        var result = await client.Set(user, context);
+        result.IsOk().Should().BeTrue(result.ToString());
+    }
+
+    public static async Task AddAccount(AccountRecord accountRecord, TestHost testHost, ScopeContext context)
+    {
+        var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
+
+        var result = await client.Add(accountRecord, context);
+        result.IsOk().Should().BeTrue(result.ToString());
+    }
+
+    public static AccountRecord Create(string principalId)
+    {
+        var rec = new AccountRecord
+        {
+            PrincipalId = principalId,
+            Name = "name",
+            ContactItems = new[]
+            {
+                new ContactRecord { Type = ContactType.Email, Value = "email" },
+            },
+            Address = new[]
+            {
+                new AddressRecord
+                {
+                    Label = "label",
+                    Address1 = "address1",
+                    City = "city",
+                    State = "state",
+                    ZipCode = "zipCode",
+                },
+            },
+            CalendarItems = new[]
+            {
+                new CalendarRecord
+                {
+                    Type = CalendarRecordType.Busy,
+                    FromDate = DateTime.Now,
+                    ToDate = DateTime.Now.AddDays(1),
+                },
+            },
+        };
+
+        var option = rec.Validate();
+        option.IsOk().Should().BeTrue();
+
+        return rec;
+    }
+}

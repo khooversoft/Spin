@@ -18,11 +18,11 @@ public sealed record SeasonTicketRecord : IEquatable<SeasonTicketRecord>
 
     public bool Equals(SeasonTicketRecord? other) =>
         other != null &&
-        SeasonTicketId.Equals(other.SeasonTicketId) &&
-        Name.Equals(other.Name) &&
-        Description.Equals(other.Description) &&
-        OwnerPrincipalId.Equals(other.OwnerPrincipalId) &&
-        Tags.Equals(other.Tags) &&
+        SeasonTicketId == other.SeasonTicketId &&
+        Name == other.Name &&
+        Description == other.Description &&
+        OwnerPrincipalId == other.OwnerPrincipalId &&
+        Tags == other.Tags &&
         Enumerable.SequenceEqual(Members.OrderBy(x => x.PrincipalId), other.Members.OrderBy(x => x.PrincipalId)) &&
         Enumerable.SequenceEqual(Seats.OrderBy(x => x.SeatId), other.Seats.OrderBy(x => x.SeatId)) &&
         Enumerable.SequenceEqual(ChangeLogs.OrderBy(x => x.Date), other.ChangeLogs.OrderBy(x => x.Date));

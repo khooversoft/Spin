@@ -1,10 +1,11 @@
 using System.Collections.Immutable;
 using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Schema;
 
-public class AccountRecordTests
+public class AccountRecordSerializationTests
 {
     [Fact]
     public void SimpleValidation()
@@ -17,6 +18,11 @@ public class AccountRecordTests
 
         var option = rec.Validate();
         option.IsOk().Should().BeTrue();
+
+        var json = rec.ToJson();
+        var rec2 = json.ToObject<AccountRecord>();
+        rec2.Should().NotBeNull();
+        (rec == rec2).Should().BeTrue();
     }
 
     [Fact]
@@ -54,5 +60,10 @@ public class AccountRecordTests
 
         var option = rec.Validate();
         option.IsOk().Should().BeTrue();
+
+        var json = rec.ToJson();
+        var rec2 = json.ToObject<AccountRecord>();
+        rec2.Should().NotBeNull();
+        (rec == rec2).Should().BeTrue();
     }
 }

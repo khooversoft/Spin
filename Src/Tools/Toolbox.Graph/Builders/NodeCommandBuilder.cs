@@ -15,7 +15,7 @@ public class NodeCommandBuilder
     public HashSet<string> Indexes { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public NodeCommandBuilder UseAdd() => this.Action(x => x.Set = false);
-    public NodeCommandBuilder UseSet() => this.Action(x => x.Set = true);
+    public NodeCommandBuilder UseSet(bool useSet = true) => this.Action(x => x.Set = useSet);
     public NodeCommandBuilder AddTag(string tag) => this.Action(_ => _tagCollection.AddTag(tag));
     public NodeCommandBuilder AddTag(string tag, string? value) => this.Action(_ => _tagCollection.AddTag(tag, value));
 

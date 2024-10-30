@@ -34,7 +34,7 @@ public static class QueryResultTool
     public static QueryResult? Query(this QueryBatchResult subject, int queryNumber) => subject.NotNull().Items.SingleOrDefault(x => x.QueryNumber == queryNumber);
     public static QueryResult? Alias(this QueryBatchResult subject, string alias) => subject.NotNull().Items.SingleOrDefault(x => x.Alias == alias);
 
-    public static IReadOnlyList<NodeDataLinkObject<T>> DataLinkToObjects<T>(this QueryResult subject, string dataName)
+    public static IReadOnlyList<NodeDataLinkObject<T>> GetDataLinks<T>(this QueryResult subject, string dataName)
     {
         subject.NotNull();
         dataName.NotEmpty();
@@ -52,6 +52,19 @@ public static class QueryResultTool
         return list;
     }
 
+    public static IReadOnlyList<T> DataLinkToObjects<T>(this QueryResult subject, string dataName)
+    {
+        subject.NotNull();
+        dataName.NotEmpty();
+
+        var list = subject.DataLinks
+            .Where(x => x.Name.EqualsIgnoreCase(dataName))
+            .Select(x => x.Data.ToObject<T>())
+            .ToImmutableArray();
+
+        return list;
+    }
+
     public static Option<T> DataLinkToObject<T>(this QueryResult subject, string dataName)
     {
         subject.NotNull();
@@ -59,7 +72,7 @@ public static class QueryResultTool
 
         if (subject.DataLinks.Count != 1) return (StatusCode.Conflict, "There is more then 1 data link, must specify the node key");
 
-        var list = subject.DataLinkToObjects<T>(dataName);
+        var list = subject.GetDataLinks<T>(dataName);
         if (list.Count == 0) return StatusCode.NotFound;
 
         return list[0].Data;
@@ -69,7 +82,7 @@ public static class QueryResultTool
     {
         nodeKey.NotEmpty();
 
-        var item = subject.DataLinkToObjects<T>(dataName).FirstOrDefault(x => x.NodeKey.EqualsIgnoreCase(nodeKey));
+        var item = subject.GetDataLinks<T>(dataName).FirstOrDefault(x => x.NodeKey.EqualsIgnoreCase(nodeKey));
         if (item == null) return StatusCode.NotFound;
 
         return item.Data;

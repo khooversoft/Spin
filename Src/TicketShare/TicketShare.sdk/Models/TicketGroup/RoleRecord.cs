@@ -3,7 +3,7 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public enum RolePermission
+public enum RoleType
 {
     None,                   // Invalid    
     Owner,                  // Make any modifications, including adding a removing members    
@@ -14,7 +14,7 @@ public enum RolePermission
 public sealed record RoleRecord : IEquatable<RoleRecord>
 {
     public string PrincipalId { get; init; } = null!;
-    public RolePermission MemberRole { get; init; } = RolePermission.None;
+    public RoleType MemberRole { get; init; } = RoleType.None;
 
     public bool Equals(RoleRecord? other) =>
         other != null &&

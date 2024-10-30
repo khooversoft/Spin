@@ -17,7 +17,7 @@ public class RoleRecordTests
         var p1 = new RoleRecord
         {
             PrincipalId = "key1",
-            MemberRole = RolePermission.Owner,
+            MemberRole = RoleType.Owner,
         };
 
         p1.Validate().IsOk().Should().BeTrue();
@@ -32,13 +32,13 @@ public class RoleRecordTests
         var p1 = new RoleRecord
         {
             PrincipalId = "key1",
-            MemberRole = RolePermission.Owner,
+            MemberRole = RoleType.Owner,
         };
 
         var p2 = new RoleRecord
         {
             PrincipalId = "key1",
-            MemberRole = RolePermission.Owner,
+            MemberRole = RoleType.Owner,
         };
 
         (p1 == p2).Should().BeTrue();
@@ -50,13 +50,13 @@ public class RoleRecordTests
         var p1 = new RoleRecord
         {
             PrincipalId = "key1",
-            MemberRole = RolePermission.Contributor,
+            MemberRole = RoleType.Contributor,
         };
 
         var p2 = new RoleRecord
         {
             PrincipalId = "key1",
-            MemberRole = RolePermission.Owner,
+            MemberRole = RoleType.Owner,
         };
 
         (p1 == p2).Should().BeFalse();
@@ -68,13 +68,13 @@ public class RoleRecordTests
         var p1 = new RoleRecord
         {
             PrincipalId = "key2",
-            MemberRole = RolePermission.Owner,
+            MemberRole = RoleType.Owner,
         };
 
         var p2 = new RoleRecord
         {
             PrincipalId = "key1",
-            MemberRole = RolePermission.Owner,
+            MemberRole = RoleType.Owner,
         };
 
         (p1 == p2).Should().BeFalse();

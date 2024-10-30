@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Identity;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -17,6 +18,8 @@ public class AccountClient
         _logger = logger.NotNull();
     }
 
+    public Task<Option> Add(AccountRecord accountRecord, ScopeContext context) => AddOrSet(false, accountRecord, context);
+
     public async Task<Option> Delete(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
@@ -29,26 +32,31 @@ public class AccountClient
         return await _graphClient.GetNode<AccountRecord>(ToAccountKey(principalId), context);
     }
 
-    public async Task<Option<IReadOnlyList<AccountRecord>> GetAccounts(string principalId, ScopeContext context)
-    {
-    }
+    public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => AddOrSet(true, accountRecord, context);
 
-    public async Task<Option> Set(AccountRecord accountRecord, ScopeContext context)
+    private async Task<Option> AddOrSet(bool useSet, AccountRecord accountRecord, ScopeContext context)
     {
         context = context.With(_logger);
         if (!accountRecord.Validate(out var r)) return r.LogStatus(context, nameof(AccountRecord));
 
         string nodeKey = ToAccountKey(accountRecord.PrincipalId);
-        string reserveTag = accountRecord.GetReserveTag();
 
-        var cmd = new NodeCommandBuilder()
-            .UseSet()
+        var seq = new Sequence<string>();
+
+        seq += new NodeCommandBuilder()
+            .UseSet(useSet)
             .SetNodeKey(nodeKey)
-            .AddTag(reserveTag)
             .AddData("entity", accountRecord)
-            .AddIndex("reserve")
-            .AddIndex("userName")
             .Build();
+
+        seq += new EdgeCommandBuilder()
+            .UseSet()
+            .SetFromKey(IdentityClient.ToUserKey(accountRecord.PrincipalId))
+            .SetToKey(nodeKey)
+            .SetEdgeType("owns")
+            .Build();
+
+        string cmd = seq.Join(Environment.NewLine);
 
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())
@@ -60,5 +68,5 @@ public class AccountClient
         return result.ToOptionStatus();
     }
 
-    private static string ToAccountKey(string id) => $"account:{id.NotEmpty().ToLower()}";
+    private static string ToAccountKey(string principalId) => $"account:{principalId.NotEmpty().ToLowerInvariant()}";
 }

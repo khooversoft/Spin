@@ -27,11 +27,4 @@ public static class AddressRecordExtensions
         result = subject.Validate();
         return result.IsOk();
     }
-
-    public static bool HasData(this AddressRecord subject) =>
-        subject.Address1.IsNotEmpty() ||
-        subject.Address2.IsNotEmpty() ||
-        subject.City.IsNotEmpty() ||
-        subject.State.IsNotEmpty() ||
-        subject.ZipCode.IsNotEmpty();
 }

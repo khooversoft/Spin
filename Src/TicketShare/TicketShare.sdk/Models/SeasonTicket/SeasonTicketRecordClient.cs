@@ -58,9 +58,9 @@ public class SeasonTicketRecordClient : ISeasonTicketRecordClient
         if (!seasonTicketId.Validate(out var r)) return r.LogStatus(context, nameof(AccountRecord));
 
         string base64 = seasonTicketId.ToJson().ToBase64();
-        string cmd = GraphTool.SetNodeCommand(AccountRecordTool.ToAccountKey(seasonTicketId.PrincipalId), base64: base64, dataName: "entity");
+        //string cmd = GraphTool.SetNodeCommand(AccountRecordTool.ToAccountKey(seasonTicketId.PrincipalId), base64: base64, dataName: "entity");
 
-        var result = await _graphClient.Execute(cmd, context);
+        var result = await _graphClient.Execute("", context);
         return result.ToOptionStatus();
     }
 }

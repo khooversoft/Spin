@@ -9,11 +9,11 @@ public sealed record SeatRecord : IEquatable<SeatRecord>
     public DateTime Date { get; init; } = DateTime.Now;
     public string? AssignedToPrincipalId { get; init; }
 
-    public bool Equals(SeatRecord? other) =>
-        other != null &&
-        SeatId.Equals(other.SeatId) &&
-        Date == other.Date &&
-        AssignedToPrincipalId?.Equals(other.AssignedToPrincipalId) == true;
+    public bool Equals(SeatRecord? obj) =>
+        obj is SeatRecord subject &&
+        SeatId == subject.SeatId &&
+        Date == subject.Date &&
+        AssignedToPrincipalId == subject.AssignedToPrincipalId == true;
 
     public override int GetHashCode() => HashCode.Combine(SeatId, Date, AssignedToPrincipalId);
 

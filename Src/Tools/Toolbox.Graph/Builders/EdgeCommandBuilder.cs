@@ -15,7 +15,7 @@ public class EdgeCommandBuilder
     public IDictionary<string, string?> Tags => _tagCollection.Tags;
 
     public EdgeCommandBuilder UseAdd() => this.Action(x => x.Set = false);
-    public EdgeCommandBuilder UseSet() => this.Action(x => x.Set = true);
+    public EdgeCommandBuilder UseSet(bool useSet = true) => this.Action(x => x.Set = useSet);
 
     public EdgeCommandBuilder SetFromKey(string fromKey) => this.Action(_ => FromKey = fromKey.NotEmpty());
     public EdgeCommandBuilder SetToKey(string toKey) => this.Action(_ => ToKey = toKey.NotEmpty());

@@ -64,6 +64,7 @@ public class IdentityClient
         var cmd = new NodeCommandBuilder()
             .UseSet()
             .SetNodeKey(nodeKey)
+            .AddTag(NodeTypeTag)
             .AddTag(emailTag)
             .AddTag(userNameNameTag)
             .AddTag(loginProviderTag)
@@ -86,7 +87,8 @@ public class IdentityClient
         return result.ToOptionStatus();
     }
 
-    private static string ToUserKey(string id) => $"user:{id.NotEmpty().ToLower()}";
+    public static string ToUserKey(string id) => $"user:{id.NotEmpty().ToLower()}";
+    public static string NodeTypeTag { get; } = nameof(PrincipalIdentity).ToLowerInvariant();
     private static string ConstructEmailTag(string value) => $"email={value.ToLower()}";
     private static string ConstructUserNameTag(string value) => $"userName={value.ToLower()}";
     private static string? ConstructLoginProviderTag(string? loginProvider, string? providerKey)

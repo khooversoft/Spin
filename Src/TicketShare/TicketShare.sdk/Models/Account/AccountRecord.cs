@@ -6,14 +6,29 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public record AccountRecord
+/// <summary>
+/// PrincipalId can only own 1 account record
+/// All users must have an account
+/// </summary>
+public sealed record AccountRecord
 {
     public string PrincipalId { get; init; } = null!;   // Owner
-    public string Name { get; init; } = null!;          // Not index
+    public string Name { get; init; } = null!;          // Principal Id name, not index
 
-    public IReadOnlyList<ContactRecord> ContactItems { get; init; } = ImmutableArray<ContactRecord>.Empty;
-    public IReadOnlyList<AddressRecord> Address { get; init; } = ImmutableArray<AddressRecord>.Empty;
-    public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = ImmutableArray<CalendarRecord>.Empty;
+    public IReadOnlyList<ContactRecord> ContactItems { get; init; } = Array.Empty<ContactRecord>();
+    public IReadOnlyList<AddressRecord> Address { get; init; } = Array.Empty<AddressRecord>();
+    public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = Array.Empty<CalendarRecord>();
+    public IReadOnlyList<MessageRecord> Messages { get; init; } = Array.Empty<MessageRecord>();
+
+    public bool Equals(AccountRecord? obj) => obj is AccountRecord subject &&
+        PrincipalId == subject.PrincipalId &&
+        Name == subject.Name &&
+        Enumerable.SequenceEqual(ContactItems, subject.ContactItems) &&
+        Enumerable.SequenceEqual(Address, subject.Address) &&
+        Enumerable.SequenceEqual(CalendarItems, subject.CalendarItems) &&
+        Enumerable.SequenceEqual(Messages, subject.Messages);
+
+    public override int GetHashCode() => HashCode.Combine(PrincipalId, Name, ContactItems, Address, CalendarItems);
 
     public static IValidator<AccountRecord> Validator { get; } = new Validator<AccountRecord>()
         .RuleFor(x => x.PrincipalId).NotEmpty()
@@ -21,6 +36,7 @@ public record AccountRecord
         .RuleForEach(x => x.ContactItems).Validate(ContactRecord.Validator)
         .RuleForEach(x => x.Address).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
+        .RuleForEach(x => x.Messages).Validate(MessageRecord.Validator)
         .Build();
 }
 
@@ -33,9 +49,6 @@ public static class AccountRecordTool
         result = subject.Validate();
         return result.IsOk();
     }
-
-    public static string GetReserveTag(this AccountRecord subject) =>
-        $"reserve:{subject.NotNull().PrincipalId.ToLowerInvariant()}/{subject.Name.ToLowerInvariant()}";
 
     public static AccountRecord Merge(this AccountRecord subject, IEnumerable<ContactRecord> contactRecords)
     {
