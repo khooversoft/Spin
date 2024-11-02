@@ -2,6 +2,7 @@
 using SpinCluster.abstraction;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -38,7 +39,7 @@ public class RunWorkActivity : ICommandRoute
         var scheduleWorkModelOption = await _scheduleWorkClient.Get(workId, context);
         if (scheduleWorkModelOption.IsError())
         {
-            scheduleWorkModelOption.LogStatus(context);
+            scheduleWorkModelOption.LogStatus(context, nameof(RunWork));
             context.Location().LogError("failed to get workId={workId}", workId);
             return;
         }

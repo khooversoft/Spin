@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using System.Collections.Frozen;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk;
@@ -18,6 +19,7 @@ public sealed record TicketGroupRecord
     public IReadOnlyList<RoleRecord> Roles { get; init; } = Array.Empty<RoleRecord>();
     public IReadOnlyList<SeatRecord> Seats { get; init; } = Array.Empty<SeatRecord>();
     public IReadOnlyList<ChangeLog> ChangeLogs { get; init; } = Array.Empty<ChangeLog>();
+    public IReadOnlyDictionary<string, ProposalRecord> Proposals { get; init; } = FrozenDictionary<string, ProposalRecord>.Empty;
 
     public bool Equals(TicketGroupRecord? obj) => obj is TicketGroupRecord subject &&
         TicketGroupId == subject.TicketGroupId &&
@@ -27,7 +29,8 @@ public sealed record TicketGroupRecord
         Tags == obj.Tags &&
         Enumerable.SequenceEqual(Roles, obj.Roles) &&
         Enumerable.SequenceEqual(Seats, obj.Seats) &&
-        Enumerable.SequenceEqual(ChangeLogs, obj.ChangeLogs);
+        Enumerable.SequenceEqual(ChangeLogs, obj.ChangeLogs) &&
+        Enumerable.SequenceEqual(Proposals.Values.OrderBy(x => x.ProposalId), subject.Proposals.Values.OrderBy(x => x.ProposalId));
 
     public override int GetHashCode() => HashCode.Combine(TicketGroupId, Name, Description, OwnerPrincipalId, Tags);
 

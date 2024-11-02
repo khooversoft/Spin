@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -19,7 +20,7 @@ internal static class NodeInstruction
 
         pContext.AddQueryResult(result);
 
-        result.LogStatus(pContext.TrxContext.Context, $"Completed processing of giNode={giNode}");
+        result.LogStatus(pContext.TrxContext.Context, "Completed processing of giNode={giNode}", [giNode]);
         return result;
     }
 
@@ -81,7 +82,7 @@ internal static class NodeInstruction
         var graphNode = new GraphNode(giNode.Key, tags, currentGraphNode.CreatedDate, dataMap, [.. giNode.Indexes, .. currentGraphNode.Indexes]);
 
         var updateOption = pContext.TrxContext.Map.Nodes.Set(graphNode, pContext.TrxContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, $"Failed to upsert node key={giNode.Key}");
+        if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, "Failed to upsert node nodeKey={nodeKey}", [giNode.Key]);
 
         return StatusCode.OK;
     }

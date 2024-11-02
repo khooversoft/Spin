@@ -6,6 +6,7 @@ using SpinCluster.sdk.Actors.Scheduler;
 using SpinClusterCmd.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 

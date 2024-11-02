@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -53,7 +54,7 @@ public class FileStoreActor : Grain, IFileStoreActor
     {
         context = context.With(_logger);
         var clearOption = await _state.Clear();
-        clearOption.LogStatus(context, "Clearing state for ActorId={actorId}", this.GetPrimaryKeyString());
+        clearOption.LogStatus(context, "Clearing state for ActorId={actorId}", [this.GetPrimaryKeyString()]);
         return clearOption;
     }
 
@@ -73,7 +74,7 @@ public class FileStoreActor : Grain, IFileStoreActor
         context = context.With(_logger);
 
         var result = await _state.SetState(data);
-        result.LogStatus(context, "Set state for ActorId={actorId}", this.GetPrimaryKeyString());
+        result.LogStatus(context, "Set state for ActorId={actorId}", [this.GetPrimaryKeyString()]);
         if (result.IsError()) return result.ToOptionStatus<string>();
 
         return _state.ETag;

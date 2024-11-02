@@ -40,7 +40,7 @@ public readonly record struct ScopeContext : ILoggingContext
 
     public override string ToString() => "TraceId=" + TraceId;
 
-    public (string? message, object?[] args) AppendContext(string? message, object?[] args)
+    public (string message, object?[] args) AppendContext(string? message, object?[] args)
     {
         return (ScopeContextTools.AppendMessage(message, "traceId={traceId}"), ScopeContextTools.AppendArgs(args, TraceId));
     }

@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
 using Toolbox.Types;
@@ -37,13 +38,13 @@ public class CmNodeDataSet : IChangeLog
         if (OldData == null)
         {
             var deleteOption = await graphContext.FileStore.Delete(FileId, graphContext.Context);
-            return deleteOption.LogStatus(graphContext.Context, $"Undo - delete fileId={FileId}");
+            return deleteOption.LogStatus(graphContext.Context, "Undo - delete fileId={fileId}", [FileId]);
         }
 
         var writeOption = await graphContext.FileStore.Set(FileId, OldData.Value, graphContext.Context);
 
         return writeOption
-            .LogStatus(graphContext.Context, $"Undo - Rollback to oldData for fileId={FileId}")
+            .LogStatus(graphContext.Context, "Undo - Rollback to oldData for fileId={fileId}", [FileId])
             .ToOptionStatus();
     }
 }

@@ -14,12 +14,12 @@ public record ProposalResponse
 {
     public PropsoalStatus Status { get; init; }
     public string ByPrincipalId { get; init; } = null!;
-    public DateTime AcceptedDate { get; init; }
+    public DateTime Date { get; init; }
 
     public static IValidator<ProposalResponse> Validator { get; } = new Validator<ProposalResponse>()
         .RuleFor(x => x.Status).ValidEnum()
         .RuleFor(x => x.ByPrincipalId).NotEmpty()
-        .RuleFor(x => x.AcceptedDate).ValidDateTime()
+        .RuleFor(x => x.Date).ValidDateTime()
         .Build();
 }
 

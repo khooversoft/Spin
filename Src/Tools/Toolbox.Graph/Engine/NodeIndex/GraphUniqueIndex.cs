@@ -34,8 +34,8 @@ public class GraphUniqueIndex
         }
     }
 
+    public void Clear() => _tagIndex.Clear();
     public Option<UniqueIndex> Lookup(string indexName, string value) => _tagIndex.Lookup(indexName, value);
-
     public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _tagIndex.LookupByNodeKey(nodeKey);
 
     public Option Verify(GraphNode newNode, GraphNode? currentNode, IGraphTrxContext? trxContext)

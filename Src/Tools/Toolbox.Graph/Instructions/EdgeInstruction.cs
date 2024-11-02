@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -19,7 +20,7 @@ internal class EdgeInstruction
 
         pContext.AddQueryResult(result);
 
-        result.LogStatus(pContext.TrxContext.Context, $"Completed processing of giEdge={giEdge}");
+        result.LogStatus(pContext.TrxContext.Context, "Completed processing of giEdge={giEdge}", [giEdge]);
         return result;
     }
 
@@ -66,7 +67,7 @@ internal class EdgeInstruction
         var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, tags, DateTime.UtcNow);
 
         var updateOption = pContext.TrxContext.Map.Edges.Set(graphEdge, pContext.TrxContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, $"Failed to update node key={giEdge}");
+        if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, "Failed to update node key={giEdge}", [giEdge]);
 
         return StatusCode.OK;
     }

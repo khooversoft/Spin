@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
 using Toolbox.Types;
@@ -42,7 +43,7 @@ public class ChangeLog
             await _graphTrxContext.LogicalTrx.Write(changeLog.CreateJournal() with { Type = JournalType.Revert });
 
             var result = await changeLog.Undo(_graphTrxContext);
-            result.LogStatus(_graphTrxContext.Context, $"Undo changeLog={changeLog}");
+            result.LogStatus(_graphTrxContext.Context, "Undo changeLog={changeLog}", [changeLog]);
 
             _graphTrxContext.Context.LogWarning("Rolling back changeLog={changeLog}", changeLog.LogKey);
         }

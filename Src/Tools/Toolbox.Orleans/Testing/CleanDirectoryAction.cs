@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Graph;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -23,7 +24,7 @@ public class CleanDirectoryAction
 
         string command = "select (*);";
         Option<QueryResult> resultOption = await directory.Execute(command, context);
-        if (resultOption.IsError()) return resultOption.LogStatus(context, command).ToOptionStatus();
+        if (resultOption.IsError()) return resultOption.LogStatus(context, "Graph error, command={command}", [command]).ToOptionStatus();
 
         var nodes = resultOption.Return().Nodes;
         if (nodes.Count == 0) return StatusCode.OK;
@@ -31,7 +32,7 @@ public class CleanDirectoryAction
         foreach (var node in nodes)
         {
             var deleteOption = await directory.Execute($"delete (key={node.Key});", NullScopeContext.Default);
-            if (deleteOption.IsError()) return deleteOption.LogStatus(context, $"Failed to delete key={node.Key}").ToOptionStatus();
+            if (deleteOption.IsError()) return deleteOption.LogStatus(context, "Failed to delete nodeKey={nodeKey}", [node.Key]).ToOptionStatus();
         }
 
         return StatusCode.OK;

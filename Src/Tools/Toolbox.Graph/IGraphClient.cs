@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -20,11 +21,7 @@ public static class GraphClientExtensions
             .Build();
 
         var result = await graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to find by tag={tag}", nodeKey);
-            return result.LogStatus(context, $"tag={nodeKey}").ToOptionStatus<T>();
-        }
+        if (result.IsError()) return result.LogStatus(context, "Failed to find nodeKey={nodeKey}", [nodeKey]).ToOptionStatus<T>();
 
         return result.Return().DataLinkToObject<T>("entity");
     }
@@ -37,11 +34,7 @@ public static class GraphClientExtensions
             .Build();
 
         var result = await graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to find by tag={tag}", tag);
-            return result.LogStatus(context, $"tag={tag}").ToOptionStatus<T>();
-        }
+        if (result.IsError()) return result.LogStatus(context, "Failed to find by tag={tag}", [tag]).ToOptionStatus<T>();
 
         return result.Return().DataLinkToObject<T>("entity");
     }
@@ -57,13 +50,7 @@ public static class GraphClientExtensions
             .Build();
 
         var result = await graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to delete nodeKey={nodeKey}", nodeKey);
-            return result.LogStatus(context, $"nodeKey={nodeKey}").ToOptionStatus();
-        }
-
-        result.LogStatus(context, $"Deleting nodeKey={nodeKey}");
+        result.LogStatus(context, "Delete nodeKey={nodeKey}", [nodeKey]);
         return result.ToOptionStatus();
     }
 }

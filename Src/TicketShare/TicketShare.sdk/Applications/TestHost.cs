@@ -16,7 +16,6 @@ public class TestHost
             service.AddSingleton<IdentityClient>();
             service.AddSingleton<AccountClient>();
             service.AddSingleton<TicketGroupClient>();
-            service.AddSingleton<ProposalClient>();
         });
     }
 

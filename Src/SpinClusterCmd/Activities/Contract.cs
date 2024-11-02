@@ -3,6 +3,7 @@ using SpinClient.sdk;
 using SpinCluster.abstraction;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 

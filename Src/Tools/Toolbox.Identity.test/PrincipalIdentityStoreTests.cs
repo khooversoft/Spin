@@ -47,7 +47,7 @@ public class PrincipalIdentityStoreTests
         engineContext.Map.Nodes.First().Action(x =>
         {
             x.Key.Should().Be("user:username1@company.com");
-            x.TagsString.Should().Be("email=username1@domain1.com,loginProvider=loginprovider/loginprovider.key1,userName=username1");
+            x.TagsString.Should().Be("email=username1@domain1.com,loginProvider=loginprovider/loginprovider.key1,principalidentity,userName=username1");
         });
 
         engineContext.Map.Edges.Count.Should().Be(0);

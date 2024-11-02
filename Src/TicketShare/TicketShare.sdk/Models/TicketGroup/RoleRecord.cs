@@ -6,7 +6,7 @@ namespace TicketShare.sdk;
 public enum RoleType
 {
     None,                   // Invalid    
-    Owner,                  // Make any modifications, including adding a removing members    
+    Owner,                  // Can add user and set roles, permissions
     Contributor,            // Can propose agreement modifications, and accept from other    
     ReadOnly,               // Can only view
 }

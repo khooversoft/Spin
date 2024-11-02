@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.TransactionLog;
 using Toolbox.Types;
@@ -35,7 +36,7 @@ public class CmNodeDataDelete : IChangeLog
     public async Task<Option> Undo(IGraphTrxContext graphContext)
     {
         var writeOption = await graphContext.FileStore.Set(FileId, OldData, graphContext.Context);
-        writeOption.LogStatus(graphContext.Context, $"Undo - Rollback to oldData for fileId={FileId}").ToOptionStatus();
+        writeOption.LogStatus(graphContext.Context, "Undo - Rollback to oldData for fileId={fileId}", [FileId]).ToOptionStatus();
         return StatusCode.OK;
     }
 }

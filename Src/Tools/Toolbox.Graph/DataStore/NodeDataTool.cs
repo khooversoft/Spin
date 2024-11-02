@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -106,7 +107,10 @@ internal static class NodeDataTool
         var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context);
 
         var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.TrxContext.Context);
-        if (writeOption.IsError()) return writeOption.LogStatus(pContext.TrxContext.Context, $"Write node data fileId={fileId} failed").ToOptionStatus();
+
+        if (writeOption.IsError()) return writeOption
+                .LogStatus(pContext.TrxContext.Context, "Write node data fileId={fileId} failed", [fileId])
+                .ToOptionStatus();
 
         pContext.TrxContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));
         return StatusCode.OK;

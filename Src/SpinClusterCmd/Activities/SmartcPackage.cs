@@ -6,6 +6,7 @@ using SpinClusterCmd.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -149,8 +150,11 @@ internal class SmartcPackage : ICommandRoute
 
         Option uploadOption = await _storageClient.Set(blob, context);
 
-        uploadOption.LogStatus(context, "Upload blob to storage, smartcExeId={smartcExeId}, smartcPackageFile={smartcPackageFile}",
-            option.SmartcExeId, option.SmartcPackageFile);
+        uploadOption.LogStatus(
+            context,
+            "Upload blob to storage, smartcExeId={smartcExeId}, smartcPackageFile={smartcPackageFile}",
+            [option.SmartcExeId, option.SmartcPackageFile]
+            );
 
         return blob.BlobHash;
     }
@@ -170,7 +174,7 @@ internal class SmartcPackage : ICommandRoute
 
         var setOption = await _smartcClient.Set(model, context);
 
-        setOption.LogStatus(context, "Set SmartC, smartcId={smartcId}, smartcExeId={smartcExeId}", option.SmartcId, option.SmartcExeId);
+        setOption.LogStatus(context, "Set SmartC, smartcId={smartcId}, smartcExeId={smartcExeId}", [option.SmartcId, option.SmartcExeId]);
         return setOption;
     }
 

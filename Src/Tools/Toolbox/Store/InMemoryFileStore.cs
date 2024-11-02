@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -47,7 +48,7 @@ public sealed class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<str
                 false => (StatusCode.Conflict, $"path={path} already exist"),
             };
 
-            option.LogStatus(context, "Add Path");
+            option.LogStatus(context, "Add Path={path}", [path]);
             return option.ToTaskResult();
         }
     }
@@ -78,7 +79,7 @@ public sealed class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<str
             false => (StatusCode.NotFound, $"path={path} does not exist"),
         };
 
-        option.LogStatus(context, "Delete");
+        option.LogStatus(context, "Delete, path={path}", [path]);
         return option.ToTaskResult();
     }
 
@@ -103,7 +104,7 @@ public sealed class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<str
             false => (StatusCode.NotFound, $"path={path} does not exist"),
         };
 
-        option.LogStatus(context, "Get Path");
+        option.LogStatus(context, "Get Path", [path]);
         return option.ToTaskResult();
     }
 

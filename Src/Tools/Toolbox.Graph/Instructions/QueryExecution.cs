@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
+using Toolbox.Logging;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -33,7 +34,10 @@ public static class QueryExecution
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();
         var instructions = InterLangTool.Build(syntaxPairs);
-        if (instructions.IsError()) return instructions.LogStatus(graphTrxContext.Context, $"Parsing query: {graphQuery}").ToOptionStatus<QueryExecutionContext>();
+
+        if (instructions.IsError()) return instructions
+                .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
+                .ToOptionStatus<QueryExecutionContext>();
 
         return new QueryExecutionContext(instructions.Return(), graphTrxContext);
     }

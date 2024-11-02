@@ -7,6 +7,8 @@ internal class NodeKeyIndex
 {
     private Dictionary<string, HashSet<UniqueIndex>> _index = new(StringComparer.OrdinalIgnoreCase);
 
+    public void Clear() => _index.Clear();
+
     public void Set(UniqueIndex uniqueIndex)
     {
         if (!_index.TryGetValue(uniqueIndex.NodeKey, out var nodeKeyLookup))

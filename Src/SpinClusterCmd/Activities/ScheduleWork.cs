@@ -2,6 +2,7 @@
 using SpinClient.sdk;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -46,7 +47,7 @@ internal class ScheduleWork : ICommandRoute
         var clearOption = await _client.Delete(workId, context);
         if (clearOption.IsError())
         {
-            clearOption.LogStatus(context, "Failed to delete workId={workId}", workId);
+            clearOption.LogStatus(context, "Failed to delete workId={workId}", [workId]);
             return;
         }
     }
@@ -59,7 +60,7 @@ internal class ScheduleWork : ICommandRoute
         var scheduleWorkModel = await _client.Get(workId, context);
         if (scheduleWorkModel.IsError())
         {
-            scheduleWorkModel.LogStatus(context, "Failed to get workId={workId}", workId);
+            scheduleWorkModel.LogStatus(context, "Failed to get workId={workId}", [workId]);
             return;
         }
 
@@ -80,7 +81,7 @@ internal class ScheduleWork : ICommandRoute
         var releaseOption = await _client.ReleaseAssign(workId, force, context);
         if (releaseOption.IsError())
         {
-            releaseOption.LogStatus(context, "Failed to delete workId={workId}", workId);
+            releaseOption.LogStatus(context, "Failed to delete workId={workId}", [workId]);
             return;
         }
 

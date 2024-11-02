@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Storage;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -40,12 +41,8 @@ public class GrainStorageFileStoreConnector : IGrainStorage
         context.LogInformation("Reading state for filePath={filePath}", filePath);
 
         var result = await store.Get(filePath, context);
-        if (result.IsError())
-        {
-            result.LogStatus(context, "Reading file from datalake");
-            ResetState(grainState);
-            return;
-        }
+        result.LogStatus(context, "Reading file from datalake, filePath={filePath}", [filePath]);
+        if (result.IsError()) return;
 
         try
         {
@@ -90,7 +87,7 @@ public class GrainStorageFileStoreConnector : IGrainStorage
         var result = await store.Set(filePath, dataEtag, context);
         if (result.IsError())
         {
-            context.Location().LogError("Failed to write state file, filePath={filePath}", filePath);
+            result.LogStatus(context, "Failed to write state file, filePath={filePath}", [filePath]);
             ResetState(grainState);
             return;
         }

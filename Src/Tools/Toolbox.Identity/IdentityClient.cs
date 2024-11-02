@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -78,11 +79,7 @@ public class IdentityClient
             .Build();
 
         var result = await _graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
-            return result.LogStatus(context, $"nodeKey={nodeKey}").ToOptionStatus();
-        }
+        result.LogStatus(context, "Set principal user, nodeKey={nodeKey}", [nodeKey]);
 
         return result.ToOptionStatus();
     }

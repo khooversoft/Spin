@@ -1,6 +1,8 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Frozen;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using TicketShare.sdk.Applications;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Scenarios;
@@ -17,11 +19,13 @@ public class OwnerAssign
     private const string _principalId = "sam@domain.com";
     private const string _ticketGroupId = "sam/2020/hockey";
     private const string _proposalId = "sam/initial-proposal";
+    private const string _friend1 = "friend1@otherDomain.com";
+    private const string _friend2 = "friend2@otherDomain.com";
 
     private readonly RoleRecord[] _users = [
         new RoleRecord { PrincipalId = _principalId, MemberRole = RoleType.Owner },
-        new RoleRecord { PrincipalId = "friend1@otherDomain.com", MemberRole =RoleType.Contributor },
-        new RoleRecord { PrincipalId = "friend2@farDomain.com", MemberRole = RoleType.Contributor },
+        new RoleRecord { PrincipalId = _friend1, MemberRole =RoleType.Contributor },
+        new RoleRecord { PrincipalId = _friend2, MemberRole = RoleType.Contributor },
         ];
 
     private readonly SeatRecord[] _seats = [
@@ -37,13 +41,12 @@ public class OwnerAssign
         var testHost = new TestHost();
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
         var context = testHost.GetScopeContext<OwnerAssign>();
-        const string principalId = "user1@domain.com";
 
-        var accountRecord = TestTool.Create(principalId);
+        var accountRecord = TestTool.Create(_principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, testHost, context);
         await TestTool.AddAccount(accountRecord, testHost, context);
         await CreateGroup(testHost, context);
-        await CreateProposal(testHost, context);
+        await AddProposal(testHost, context);
 
 
     }
@@ -67,38 +70,44 @@ public class OwnerAssign
         option.IsOk().Should().BeTrue();
 
         var result = await client.Add(ticketGroup, context);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().Should().BeTrue(result.ToString());
 
         return ticketGroup;
     }
 
-    private async Task<ProposalRecord> CreateProposal(TestHost testHost, ScopeContext context)
+    private async Task AddProposal(TestHost testHost, ScopeContext context)
     {
-        var client = testHost.ServiceProvider.GetRequiredService<ProposalClient>();
+        var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
 
-        var subject = new ProposalRecord
+        var proposal = new ProposalRecord
         {
-            ProposalId = _proposalId,
-            State = ProposalState.Open,
-            TicketGroupId = _ticketGroupId,
-            AuthorPrincipalId = _principalId,
-            Description = "Initial proposal",
-            ProposedDate = DateTime.UtcNow,
-            Seats = _seats
-                .Select(x => new ProposalSeatRecord
-                {
-                    TicketGroupId = _ticketGroupId,
-                    SeatId = x.SeatId,
-                    Date = x.Date
-                }).ToArray(),
+            SeatId = "sec1-row1-seat1",
+            Proposed = new StateDetail
+            {
+                Date = DateTime.UtcNow,
+                ByPrincipalId = _principalId,
+            }
         };
 
-        var option = subject.Validate();
-        option.IsOk().Should().BeTrue();
+        var ticketGroupOption = await client.Get(_ticketGroupId, context);
+        ticketGroupOption.IsOk().Should().BeTrue();
 
-        var result = await client.Add(subject, context);
-        result.IsOk().Should().BeTrue();
+        var ticketGroup = ticketGroupOption.Return();
 
-        return subject;
+        ticketGroup = ticketGroup with
+        {
+            Proposals = ticketGroup.Proposals.Values.Append(proposal).ToFrozenDictionary(x => x.ProposalId, x => x),
+        };
+
+        var write = await client.Set(ticketGroup, context);
+        write.IsOk().Should().BeTrue();
+    }
+
+    public async Task AcceptProposal(TestHost testHost, ScopeContext context)
+    {
+        var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
+
+        var ticketGroupOption = await client.Get(_ticketGroupId, context);
+        ticketGroupOption.IsOk().Should().BeTrue();
     }
 }

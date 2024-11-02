@@ -10,6 +10,7 @@ using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -114,7 +115,7 @@ public class SchedulerActor : Grain, ISchedulerActor
 
         string command = $"delete [fromKey={this.GetPrimaryKeyString()}];";
         var deleteNode = await _clusterClient.GetDirectoryActor().Execute(command, traceId);
-        deleteNode.LogStatus(context, "Deleting edge, command={command}", command);
+        deleteNode.LogStatus(context, "Deleting edge, command={command}", [command]);
 
         return StatusCode.OK;
     }

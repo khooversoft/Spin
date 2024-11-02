@@ -2,6 +2,7 @@
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Identity;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 

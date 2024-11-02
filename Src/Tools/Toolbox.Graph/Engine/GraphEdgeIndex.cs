@@ -13,25 +13,30 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     private readonly Dictionary<GraphEdgePrimaryKey, GraphEdge> _index;
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesFrom;
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesTo;
-    private readonly Dictionary<string, GraphEdgePrimaryKey> _graphEdges;
+    private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesEdges;
     private readonly TagIndex<GraphEdgePrimaryKey> _tagIndex;
     private readonly object _lock;
     private readonly GraphRI _graphRI;
+    private readonly GraphMeter _graphMeter;
 
-    internal GraphEdgeIndex(object syncLock, GraphRI graphRI, IEqualityComparer<string>? keyComparer = null)
+    internal GraphEdgeIndex(object syncLock, GraphRI graphRI, GraphMeter graphMeter, IEqualityComparer<string>? keyComparer = null)
     {
         _lock = syncLock.NotNull();
         _graphRI = graphRI.NotNull();
+        _graphMeter = graphMeter.NotNull();
 
         _index = new Dictionary<GraphEdgePrimaryKey, GraphEdge>(GraphEdgePrimaryKeyComparer.Default);
         _edgesFrom = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
         _edgesTo = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
-        _graphEdges = new Dictionary<string, GraphEdgePrimaryKey>(StringComparer.OrdinalIgnoreCase);
+        _edgesEdges = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
         _tagIndex = new TagIndex<GraphEdgePrimaryKey>(GraphEdgePrimaryKeyComparer.Default);
     }
 
     public int Count => _index.Count;
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupTag(string tag) => _tagIndex.Lookup(tag);
+
+    public IReadOnlyList<GraphEdge> LookupTag(string tag) => _tagIndex.Lookup(tag)
+        .Func(Expand)
+        .Action(x => _graphMeter.Edge.Index(x.Count > 0));
 
     public GraphEdge this[GraphEdgePrimaryKey key]
     {
@@ -52,29 +57,31 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             _edgesFrom.Set(edge.FromKey, pk);
             _edgesTo.Set(edge.ToKey, pk);
-            _graphEdges[edge.EdgeType] = pk;
+            _edgesEdges.Set(edge.EdgeType, pk);
             _tagIndex.Set(pk, edge.Tags);
 
             graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
+            _graphMeter.Edge.Added();
             return StatusCode.OK;
         }
     }
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(IEnumerable<string> nodeKeys) => nodeKeys
+    public IReadOnlyList<GraphEdge> LookupByNodeKey(IEnumerable<string> nodeKeys) => nodeKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
         .Concat(nodeKeys.SelectMany(x => _edgesTo.Lookup(x)))
-        .Distinct(GraphEdgePrimaryKeyComparer.Default)
-        .ToImmutableArray();
+        .Func(Expand);
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(IEnumerable<string> fromNodesKeys) => fromNodesKeys
+    public IReadOnlyList<GraphEdge> LookupByFromKey(IEnumerable<string> fromNodesKeys) => fromNodesKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
-        .Distinct(GraphEdgePrimaryKeyComparer.Default)
-        .ToImmutableArray();
+        .Func(Expand);
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(IEnumerable<string> toNodesKeys) => toNodesKeys
+    public IReadOnlyList<GraphEdge> LookupByToKey(IEnumerable<string> toNodesKeys) => toNodesKeys
         .SelectMany(x => _edgesTo.Lookup(x))
-        .Distinct(GraphEdgePrimaryKeyComparer.Default)
-        .ToImmutableArray();
+        .Func(Expand);
+
+    public IReadOnlyList<GraphEdge> LookupByEdgeType(IEnumerable<string> edgeTypes) => edgeTypes
+        .SelectMany(x => _edgesEdges.Lookup(x))
+        .Func(Expand);
 
     public Option Remove(GraphEdgePrimaryKey edgeKey, IGraphTrxContext? graphContext = null)
     {
@@ -84,10 +91,11 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             _edgesFrom.Remove(edgeValue.FromKey, edgeKey);
             _edgesTo.Remove(edgeValue.ToKey, edgeKey);
-            _graphEdges.Remove(edgeKey.EdgeType);
+            _edgesEdges.Remove(edgeKey.EdgeType, edgeKey);
             _tagIndex.Remove(edgeKey);
 
             graphContext?.ChangeLog.Push(new CmEdgeDelete(edgeValue));
+            _graphMeter.Edge.Deleted();
             return StatusCode.OK;
         }
     }
@@ -99,7 +107,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             var edgePrimaryKeys = LookupByNodeKey(nodeKeys.ToArray());
 
             edgePrimaryKeys
-                .ForEach(x => Remove(x, graphContext)
+                .ForEach(x => Remove(x.GetPrimaryKey(), graphContext)
                 .Assert(x => x.IsError(), $"{x} failed to remove"));
 
             return StatusCode.OK;
@@ -126,10 +134,11 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             _edgesFrom.Set(edge.FromKey, pk);
             _edgesTo.Set(edge.ToKey, pk);
+            _edgesEdges.Set(edge.EdgeType, pk);
             _tagIndex.Set(pk, edge.Tags);
 
             graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
-
+            _graphMeter.Edge.Added();
             return StatusCode.OK;
         }
 
@@ -161,21 +170,21 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
                 if (edge.EdgeType != readEdge.EdgeType)
                 {
-                    _graphEdges.Remove(readEdge.EdgeType);
-                    _graphEdges[edge.EdgeType] = pk;
+                    _edgesTo.Remove(readEdge.EdgeType, pk);
+                    _edgesTo.Set(edge.EdgeType, pk);
                 }
 
                 graphContext?.ChangeLog.Push(new CmEdgeChange(readEdge, edge));
+                _graphMeter.Edge.Updated();
                 return StatusCode.OK;
             }
         }
     }
 
-    public bool TryGetValue(GraphEdgePrimaryKey key, out GraphEdge? edge) => _index.TryGetValue(key, out edge);
+    public bool TryGetValue(GraphEdgePrimaryKey key, out GraphEdge? edge) => _index.TryGetValue(key, out edge).Action(x => _graphMeter.Edge.Index(x));
 
     public IEnumerator<GraphEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
 
     private bool ValidateNodes(GraphEdge edge, out Option result)
     {
@@ -194,12 +203,10 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         result = StatusCode.OK;
         return true;
     }
-}
 
-public static class GraphEdgeIndexExtensions
-{
-    public static IReadOnlyList<GraphEdge> Lookup(this GraphEdgeIndex subject, IEnumerable<GraphEdgePrimaryKey> keys) => keys.NotNull()
-        .Select(x => subject.TryGetValue(x, out var data) ? data : null)
+    private IReadOnlyList<GraphEdge> Expand(IEnumerable<GraphEdgePrimaryKey> keys) => keys
+        .Distinct(GraphEdgePrimaryKeyComparer.Default)
+        .Select(x => TryGetValue(x, out var data) ? data : null)
         .OfType<GraphEdge>()
         .ToImmutableArray();
 }

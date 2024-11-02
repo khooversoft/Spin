@@ -6,7 +6,7 @@ namespace TicketShare.sdk;
 public sealed record SeatRecord : IEquatable<SeatRecord>
 {
     public string SeatId { get; init; } = null!;
-    public DateTime Date { get; init; } = DateTime.Now;
+    public DateTime Date { get; init; }
     public string? AssignedToPrincipalId { get; init; }
 
     public bool Equals(SeatRecord? obj) =>

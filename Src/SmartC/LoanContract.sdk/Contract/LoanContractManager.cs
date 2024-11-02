@@ -8,6 +8,7 @@ using SpinCluster.abstraction;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 

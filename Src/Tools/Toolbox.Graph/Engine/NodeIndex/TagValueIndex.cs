@@ -25,6 +25,12 @@ internal class TagValueIndex
         return Add(uniqueIndex);
     }
 
+    public void Clear()
+    {
+        _index.Clear();
+        _nodeKeyLookup.Clear();
+    }
+
     public Option<UniqueIndex> Lookup(string indexName, string value)
     {
         string pk = UniqueIndexComparer.CreatePrimaryKey(indexName, value);

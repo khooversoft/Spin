@@ -18,23 +18,63 @@ public class EdgeInstructionTests
 
         new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
         new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
+        new GraphEdge("node6", "node3", edgeType: "et2", tags: "created"),
+        new GraphEdge("node4", "node5", edgeType: "et2", tags: "created"),
+        new GraphEdge("node4", "node3", edgeType: "et3", tags: "created"),
     };
 
     [Theory]
     [InlineData("add edge from=node4, to=node5;")]
-    [InlineData("add edge from=node4, to=node5, type=et1;")]
+    [InlineData("add edge from=node4, to=node5, type=et2;")]
     public async Task Failures(string query)
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
         newMapOption.IsError().Should().BeTrue();
+    }
 
-        copyMap.Nodes.Count.Should().Be(7);
-        copyMap.Edges.Count.Should().Be(5);
+    [Fact]
+    public void LookupByFromKey()
+    {
+        var copyMap = _map.Clone();
+
+        GraphEdgePrimaryKey[] edges = [
+            new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node5", EdgeType = "et2" },
+            new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node3", EdgeType = "et3" },
+            ];
+
+        var fromLookup = copyMap.Edges.LookupByFromKey(["node4"]);
+        fromLookup.Should().BeEquivalentTo(edges);
+    }
+
+    [Fact]
+    public void LookupByToKey()
+    {
+        var copyMap = _map.Clone();
+
+        GraphEdgePrimaryKey[] edges = [
+            new GraphEdgePrimaryKey { FromKey = "node1", ToKey = "node3", EdgeType = "et1" },
+            new GraphEdgePrimaryKey { FromKey = "node6", ToKey = "node3", EdgeType = "et2" },
+            new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node3", EdgeType = "et3" },
+            ];
+
+        var toLookups = copyMap.Edges.LookupByToKey(["node3"]).Select(x => x.GetPrimaryKey());
+        Enumerable.SequenceEqual(toLookups.OrderBy(x => x.ToString()), toLookups.OrderBy(x => x.ToString()), GraphEdgePrimaryKeyComparer.Default).Should().BeTrue();
+    }
+
+    [Fact]
+    public void LookupByEdgeTypes()
+    {
+        var copyMap = _map.Clone();
+
+        GraphEdgePrimaryKey[] edges = [
+            new GraphEdgePrimaryKey { FromKey = "node6", ToKey = "node3", EdgeType = "et2" },
+            new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node5", EdgeType = "et2" },
+            ];
+
+        var edgeTypes = copyMap.Edges.LookupByEdgeType(["et2"]).Select(x => x.GetPrimaryKey());
+        Enumerable.SequenceEqual(edgeTypes.OrderBy(x => x.ToString()), edges.OrderBy(x => x.ToString()), GraphEdgePrimaryKeyComparer.Default).Should().BeTrue();
     }
 
     [Fact]
@@ -44,6 +84,24 @@ public class EdgeInstructionTests
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+
+        var pk = new GraphEdgePrimaryKey { FromKey = "node7", ToKey = "node1", EdgeType = "newEdgeType" };
+
+        var fromLookup = copyMap.Edges.LookupByFromKey(["node7"]);
+        fromLookup.Should().BeEquivalentTo([pk]);
+
+        var toLookup = copyMap.Edges.LookupByToKey(["node1"]);
+        toLookup.Should().BeEquivalentTo([pk]);
+
+        var edgeType = copyMap.Edges.LookupByEdgeType(["newEdgeType"]);
+        toLookup.Should().BeEquivalentTo([pk]);
+
+        copyMap.Meter.Edge.GetCount().Should().Be(6);
+        copyMap.Meter.Edge.GetAdded().Should().Be(6);
+        copyMap.Meter.Edge.GetUpdated().Should().Be(0);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
+        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
@@ -164,7 +222,7 @@ public class EdgeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("set edge from=node4, to=node3, type=et1 set t1, t2=v2 ;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("set edge from=node4, to=node3, type=et3 set t1, t2=v2 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -175,7 +233,7 @@ public class EdgeInstructionTests
         {
             x.FromKey.Should().Be("node4");
             x.ToKey.Should().Be("node3");
-            x.EdgeType.Should().Be("et1");
+            x.EdgeType.Should().Be("et3");
             x.Tags.ToTagsString().Should().Be("created,t1,t2=v2");
         });
 

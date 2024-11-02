@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Toolbox.Extensions;
@@ -13,31 +14,33 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 {
     private readonly Dictionary<string, GraphNode> _index;
     private readonly TagIndex<string> _tagIndex;
+    private readonly GraphUniqueIndex _uniqueIndex;
     private readonly object _lock;
     private readonly GraphRI _graphRI;
-    private readonly GraphUniqueIndex _uniqueIndex;
+    private readonly GraphMeter _graphMeter;
 
-    internal GraphNodeIndex(object syncLock, GraphRI graphRI)
+    internal GraphNodeIndex(object syncLock, GraphRI graphRI, GraphMeter graphMeter)
     {
         _lock = syncLock.NotNull();
         _graphRI = graphRI.NotNull();
         _index = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
         _uniqueIndex = new GraphUniqueIndex(_lock);
+        _graphMeter = graphMeter.NotNull();
     }
 
     public GraphNode this[string key]
     {
-        get => _index[key];
+        get => _index[key].Action(_ => _graphMeter.Node.IndexHit());
         internal set => Set(value).ThrowOnError();
     }
 
     public int Count => _index.Count;
     public bool ContainsKey(string key) => _index.ContainsKey(key);
-    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
-    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag);
-    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue);
-    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey);
+    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value).Action(x => _graphMeter.Node.Index(x));
+    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag).Action(x => _graphMeter.Node.Index(x.Count > 0));
+    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue).Action(x => _graphMeter.Node.Index(x));
+    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey).Action(x => _graphMeter.Node.Index(x.Count > 0));
 
     internal Option Add(GraphNode node, IGraphTrxContext? trxContext = null)
     {
@@ -54,6 +57,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _tagIndex.Set(node.Key, node.Tags);
             _uniqueIndex.Set(node, null, trxContext).ThrowOnError();
 
+            _graphMeter.Node.Added();
             trxContext?.ChangeLog.Push(new CmNodeAdd(node));
             return StatusCode.OK;
         }
@@ -65,6 +69,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         {
             _index.Clear();
             _tagIndex.Clear();
+            _uniqueIndex.Clear();
         }
     }
 
@@ -73,7 +78,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         lock (_lock)
         {
             var nodes = _tagIndex.Lookup(tag);
-            var list = nodes.Select(x => _index[x]).ToArray();
+            var list = nodes.Select(x => _index[x]).ToImmutableArray();
+            _graphMeter.Node.Index(list.Length > 0);
             return list;
         }
     }
@@ -89,6 +95,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _graphRI.RemovedNodeFromEdges(oldValue!, trxContext);
 
             trxContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
+            _graphMeter.Node.Deleted();
             return StatusCode.OK;
         }
     }
@@ -118,6 +125,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 true => new CmNodeChange(current!, updatedNode),
             });
 
+            if (exist) _graphMeter.Node.Updated(); else _graphMeter.Node.Added();
             return StatusCode.OK;
         }
     }

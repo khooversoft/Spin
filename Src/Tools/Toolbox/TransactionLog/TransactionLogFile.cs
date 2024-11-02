@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -104,10 +105,8 @@ public class TransactionLogFile : ITransactionLogWriter, IAsyncDisposable
             var result = await _fileStore.Append(_path, Encoding.UTF8.GetBytes(jsonData), context);
             if (result.IsOk()) Interlocked.Increment(ref _count);
 
-            result.LogStatus(context, "Completed writting journal entry to name={name}, path={path}", _name, _path);
+            result.LogStatus(context, "Completed writting journal entry to name={name}, path={path}", [_name, _path]);
             return result;
         }
     }
 }
-
-
