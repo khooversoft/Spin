@@ -47,6 +47,7 @@ public class AccountClient
         seq += new NodeCommandBuilder()
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
+            .AddForeignKeyTag("owns", IdentityClient.ToUserKey(accountRecord.PrincipalId))
             .AddData("entity", accountRecord)
             .Build();
 

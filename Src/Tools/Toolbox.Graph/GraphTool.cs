@@ -62,49 +62,4 @@ public static class GraphTool
 
         return list;
     }
-
-    public static string DeleteNodeCommand(string indexKey) => $"delete node ifexist key={indexKey.NotEmpty()};";
-
-    public static IReadOnlyList<string> SetEdgeCommands(string fromKey, string toKey, string edgeType, string? tags = null)
-    {
-        fromKey.NotEmpty();
-        toKey.NotEmpty();
-        edgeType.NotEmpty();
-        var set = tags.IsNotEmpty() ? "set " + tags : null;
-
-        string cmd = $"set edge from={fromKey}, to={toKey}, type={edgeType} {set};";
-        return [cmd];
-    }
-
-    public static IReadOnlyList<string> DeleteEdgeCommands(string fromKey, string toKey, string edgeType) => [
-        $"delete edge ifexist from={fromKey.NotEmpty()}, to={toKey.NotEmpty()}, type={edgeType.NotEmpty()};"
-        ];
-
-    public static IReadOnlyList<string> CreateIndexCommands(string nodeKey, string indexKey)
-    {
-        nodeKey.NotEmpty();
-        indexKey.NotEmpty();
-
-        return [
-            $"set node key={indexKey} set {GraphConstants.UniqueIndexEdgeType};",
-            $"set edge from={indexKey}, to={nodeKey}, type={GraphConstants.UniqueIndexEdgeType};",
-        ];
-    }
-
-    public static IReadOnlyList<string> DeleteIndexCommands(string nodeKey, string indexKey, string edgeType) => [
-        $"delete edge ifexist from={indexKey.NotEmpty()}, to={nodeKey.NotEmpty()}, type={edgeType.NotEmpty()};"
-    ];
-
-    public static string SelectNodeCommand(string nodeKey, string? dataName = null)
-    {
-        nodeKey.NotEmpty();
-
-        var cmd = dataName switch
-        {
-            string v => $"select (key={nodeKey}) return {v};",
-            null => $"select (key={nodeKey});",
-        };
-
-        return cmd;
-    }
 }

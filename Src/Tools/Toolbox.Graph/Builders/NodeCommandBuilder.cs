@@ -19,6 +19,11 @@ public class NodeCommandBuilder
     public NodeCommandBuilder UseSet(bool useSet = true) => this.Action(x => x.Set = useSet);
     public NodeCommandBuilder AddTag(string tag) => this.Action(_ => _tagCollection.AddTag(tag));
     public NodeCommandBuilder AddTag(string tag, string? value) => this.Action(_ => _tagCollection.AddTag(tag, value));
+    public NodeCommandBuilder AddForeignKeyTag(string tag, string value) => this.Action(_ =>
+    {
+        _tagCollection.AddTag(tag, value);
+        ForeignKeys.Add(tag);
+    });
     public NodeCommandBuilder SetNodeKey(string nodeKey) => this.Action(x => x.NodeKey = nodeKey.NotEmpty());
     public NodeCommandBuilder AddData(string name, string value) => this.Action(x => x.Data[name.NotEmpty()] = value.NotEmpty());
     public NodeCommandBuilder AddIndex(string name) => this.Action(x => x.Indexes.Add(name.NotEmpty()));

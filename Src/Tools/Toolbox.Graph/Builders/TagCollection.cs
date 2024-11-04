@@ -20,11 +20,5 @@ internal class TagCollection
         Tags[key] = value;
     }
 
-    public void AddTag(string tag, string? value)
-    {
-        tag.NotEmpty();
-        value.NotEmpty();
-
-        Tags[tag] = value;
-    }
+    public void AddTag(string tag, string? value) => Tags[tag.NotEmpty()] = value;
 }

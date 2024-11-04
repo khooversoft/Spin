@@ -11,18 +11,14 @@ public class GraphMap : IEnumerable<IGraphCommon>
     private readonly GraphEdgeIndex _edges;
     private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
     private readonly object _lock = new object();
-    private readonly GraphRI _graphRI;
     private readonly GraphMeter _graphMeter;
 
     public GraphMap()
     {
-        _graphRI = new GraphRI();
         _graphMeter = new GraphMeter(this);
 
-        _nodes = new GraphNodeIndex(_lock, _graphRI, _graphMeter);
-        _edges = new GraphEdgeIndex(_lock, _graphRI, _graphMeter);
-        _graphRI.GraphNodeIndex = _nodes;
-        _graphRI.GraphEdgeIndex = _edges;
+        _nodes = new GraphNodeIndex(this, _lock);
+        _edges = new GraphEdgeIndex(this, _lock);
     }
 
     public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges)

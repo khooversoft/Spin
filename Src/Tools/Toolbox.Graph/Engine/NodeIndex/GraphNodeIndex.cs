@@ -16,31 +16,29 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     private readonly TagIndex<string> _tagIndex;
     private readonly GraphUniqueIndex _uniqueIndex;
     private readonly object _lock;
-    private readonly GraphRI _graphRI;
-    private readonly GraphMeter _graphMeter;
+    private readonly GraphMap _map;
 
-    internal GraphNodeIndex(object syncLock, GraphRI graphRI, GraphMeter graphMeter)
+    internal GraphNodeIndex(GraphMap map, object syncLock)
     {
+        _map = map.NotNull();
         _lock = syncLock.NotNull();
-        _graphRI = graphRI.NotNull();
         _index = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
         _uniqueIndex = new GraphUniqueIndex(_lock);
-        _graphMeter = graphMeter.NotNull();
     }
 
     public GraphNode this[string key]
     {
-        get => _index[key].Action(_ => _graphMeter.Node.IndexHit());
+        get => _index[key].Action(_ => _map.Meter.Node.IndexHit());
         internal set => Set(value).ThrowOnError();
     }
 
     public int Count => _index.Count;
     public bool ContainsKey(string key) => _index.ContainsKey(key);
-    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value).Action(x => _graphMeter.Node.Index(x));
-    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag).Action(x => _graphMeter.Node.Index(x.Count > 0));
-    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue).Action(x => _graphMeter.Node.Index(x));
-    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey).Action(x => _graphMeter.Node.Index(x.Count > 0));
+    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value).Action(x => _map.Meter.Node.Index(x));
+    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag).Action(x => _map.Meter.Node.Index(x.Count > 0));
+    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue).Action(x => _map.Meter.Node.Index(x));
+    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey).Action(x => _map.Meter.Node.Index(x.Count > 0));
 
     internal Option Add(GraphNode node, IGraphTrxContext? trxContext = null)
     {
@@ -65,7 +63,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _tagIndex.Set(node.Key, node.Tags);
             _uniqueIndex.Set(node, null, trxContext).ThrowOnError();
 
-            _graphMeter.Node.Added();
+            _map.Meter.Node.Added();
             trxContext?.ChangeLog.Push(new CmNodeAdd(node));
             return StatusCode.OK;
         }
@@ -87,7 +85,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         {
             var nodes = _tagIndex.Lookup(tag);
             var list = nodes.Select(x => _index[x]).ToImmutableArray();
-            _graphMeter.Node.Index(list.Length > 0);
+            _map.Meter.Node.Index(list.Length > 0);
             return list;
         }
     }
@@ -100,11 +98,17 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
             _tagIndex.Remove(key);
             _uniqueIndex.RemoveNodeKey(key, trxContext);
-            _graphRI.RemovedNodeFromEdges(oldValue!, trxContext);
+            removedNodeFromEdges(oldValue!, trxContext);
 
             trxContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
-            _graphMeter.Node.Deleted();
+            _map.Meter.Node.Deleted();
             return StatusCode.OK;
+        }
+
+        void removedNodeFromEdges(GraphNode graphNode, IGraphTrxContext? graphContext)
+        {
+            var edges = _map.Edges.LookupByNodeKey([graphNode.Key]);
+            edges.ForEach(x => _map.Edges.Remove(x, graphContext));
         }
     }
 
@@ -133,7 +137,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 true => new CmNodeChange(current!, updatedNode),
             });
 
-            if (exist) _graphMeter.Node.Updated(); else _graphMeter.Node.Added();
+            if (exist) _map.Meter.Node.Updated(); else _map.Meter.Node.Added();
             return StatusCode.OK;
         }
 
