@@ -10,12 +10,12 @@ public class GraphMeter
     public GraphMeter(GraphMap graphMap)
     {
         _graphMap = graphMap;
-        Node = new Counter(() => _graphMap.Nodes.Count);
-        Edge = new Counter(() => _graphMap.Edges.Count);
+        Node = new NodeCounter(() => _graphMap.Nodes.Count);
+        Edge = new EdgeCounter(() => _graphMap.Edges.Count);
     }
 
-    public Counter Node { get; }
-    public Counter Edge { get; }
+    public NodeCounter Node { get; }
+    public EdgeCounter Edge { get; }
 
     private void IfTest(bool condition, ref long trueValue, ref long falseValue)
     {
@@ -25,7 +25,29 @@ public class GraphMeter
             Interlocked.Add(ref falseValue, 1);
     }
 
-    public sealed class Counter
+    public sealed class NodeCounter : CounterBase
+    {
+        private long _foreignKeyAdded;
+        private long _foreignKeyRemoved;
+
+        public NodeCounter(Func<long> getCount) : base(getCount) { }
+
+        public long GetForeignKeyAdded() => _foreignKeyAdded;
+        public long GetForeignKeyRemoved() => _foreignKeyRemoved;
+
+        internal void ForeignKeyAdd(long value = 1) => Interlocked.Add(ref _foreignKeyAdded, value);
+        internal void ForeignKeyAdd(bool value) { if (value) ForeignKeyAdd(); }
+        internal void ForeignKeyRemove(long value = 1) => Interlocked.Add(ref _foreignKeyRemoved, value);
+        internal void ForeignKeyRemove(bool value) { if (value) ForeignKeyRemove(); }
+    }
+
+    public sealed class EdgeCounter : CounterBase
+    {
+        public EdgeCounter(Func<long> getCount) : base(getCount) { }
+    }
+
+
+    public abstract class CounterBase
     {
         private long _added;
         private long _deleted;
@@ -35,7 +57,7 @@ public class GraphMeter
         private long _indexScan;
         private readonly Func<long> _getCount = null!;
 
-        internal Counter(Func<long> getCount) => _getCount = getCount.NotNull();
+        internal CounterBase(Func<long> getCount) => _getCount = getCount.NotNull();
 
         public long GetAdded() => _added;
         public long GetDeleted() => _deleted;
@@ -55,7 +77,7 @@ public class GraphMeter
         internal void Index(Option value) => IfTest(value.IsOk(), ref _indexHit, ref _indexMissed);
         internal void Index<T>(Option<T> value) => IfTest(value.IsOk(), ref _indexHit, ref _indexMissed);
 
-        private void IfTest(bool condition, ref long trueValue, ref long falseValue)
+        protected void IfTest(bool condition, ref long trueValue, ref long falseValue)
         {
             if (condition)
                 Interlocked.Add(ref trueValue, 1);

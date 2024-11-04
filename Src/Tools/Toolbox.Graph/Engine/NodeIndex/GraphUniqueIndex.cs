@@ -117,7 +117,7 @@ public class GraphUniqueIndex
         newNode.NotNull();
 
         var deleteTabCommands = TagsTool.GetTagDeleteCommands(newNode.Tags);
-        var deleteIndexCommands = UniqueIndexTool.GetDeleteCommands(newNode.Indexes);
+        var deleteIndexCommands = GraphTool.GetDeleteCommands(newNode.Indexes);
 
         var list = GetTagPairs(newNode.NotNull().Tags)
             .Concat(currentNode != null ? GetTagPairs(currentNode.Tags) : Array.Empty<KeyValuePair<string, string>>())

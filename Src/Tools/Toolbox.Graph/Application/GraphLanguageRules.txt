@@ -1,5 +1,5 @@
 delimiters              = , ';' = '->' '<->' ( ) [ ] { } ;
-reserve-words           = select, set, delete, return, ifexist, index ;
+reserve-words           = select, set, delete, return, ifexist, index, foreignkey ;
 
 symbol                  = regex '^[a-zA-Z\*][a-zA-Z0-9\/\-\*]*$' ;
 name                    = regex '^[a-zA-Z][a-zA-Z0-9\/\-\:\@\.]*$' ;
@@ -43,6 +43,9 @@ edgeType-value          = name ;
 index-sym               = 'index' ;
 indexKey                = regex '^[a-zA-Z\-][a-zA-Z0-9\-\.]*$' ;
 indexes                 = [ index-sym, indexKey, { comma, indexKey } ];
+foreignkey-sym          = 'foreignkey' ;
+fkKey                   = regex '^[a-zA-Z\-][a-zA-Z0-9\-\.]*$' ;
+fk                      = [ foreignkey-sym, fkKey, { comma, fkKey } ];
 
 entity-data             = dataName, open-brace, base64, close-brace ;
 tag                     = tagKey, [ '=', tagValue ] ;
@@ -57,7 +60,7 @@ command                 = ( add-sym | set-sym ) ;
 select-node             = open-param, tag, { comma, tag }, close-param, [ alias ] ;
 select-edge             = open-bracket, tag, { comma, tag }, close-bracket, [ alias ] ;
 
-node-add-command        = command, node-sym, key-sym, equal, key-value, set-data, indexes, term ;
+node-add-command        = command, node-sym, key-sym, equal, key-value, set-data, indexes, fk, term ;
 node-delete-command     = delete-sym, node-sym, [ ifexist ], key-sym, equal, key-value, term ;
 edge-add-command        = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
 edge-delete-command     = delete-sym, edge-sym, [ ifexist ], fromkey-data, comma, tokey-data, comma, edgetype-data, term ;

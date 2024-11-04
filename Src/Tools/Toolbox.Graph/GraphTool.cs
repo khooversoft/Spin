@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -34,6 +35,32 @@ public static class GraphTool
             .Join('/');
 
         return storePath.ToLower();
+    }
+
+    public static IReadOnlyList<string> RemoveDeleteCommands(this IEnumerable<string> values) => values.NotNull()
+        .Where(x => !TagsTool.HasRemoveFlag(x))
+        .ToImmutableArray();
+
+    public static IReadOnlyList<string> GetDeleteCommands(this IEnumerable<string> values) => values.NotNull()
+        .Where(x => TagsTool.HasRemoveFlag(x))
+        .Select(x => x[1..])
+        .ToImmutableArray();
+
+    public static IReadOnlyList<string> MergeCommands(this IEnumerable<string> newCommands, IEnumerable<string> currentCommands)
+    {
+        newCommands.NotNull();
+        currentCommands.NotNull();
+
+        var deleteCommands = newCommands.GetDeleteCommands();
+
+        var list = newCommands
+            .Concat(currentCommands)
+            .Where(x => !TagsTool.HasRemoveFlag(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(x => !deleteCommands.Contains(x))
+            .ToImmutableArray();
+
+        return list;
     }
 
     public static string DeleteNodeCommand(string indexKey) => $"delete node ifexist key={indexKey.NotEmpty()};";

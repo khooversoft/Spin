@@ -5,15 +5,32 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public sealed record GraphEdgePrimaryKey
+public readonly struct GraphEdgePrimaryKey
 {
+    public GraphEdgePrimaryKey() { }
+
+    public GraphEdgePrimaryKey(string fromKey, string toKey, string edgeType)
+    {
+        FromKey = fromKey.NotEmpty();
+        ToKey = toKey.NotEmpty();
+        EdgeType = edgeType.NotEmpty();
+    }
+
     public string FromKey { get; init; } = null!;
     public string ToKey { get; init; } = null!;
     public string EdgeType { get; init; } = null!;
 
     public override string ToString() => $"{{ FromKey={FromKey} -> ToKey={ToKey} ({EdgeType}) }}";
 
-    public bool Equals(GraphEdge? obj) => obj is GraphEdge subject &&
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return obj is GraphEdgePrimaryKey subject &&
+            FromKey.EqualsIgnoreCase(subject.FromKey) &&
+            ToKey.EqualsIgnoreCase(subject.ToKey) &&
+            EdgeType.EqualsIgnoreCase(subject.EdgeType);
+    }
+
+    public bool Equals(GraphEdgePrimaryKey obj) => obj is GraphEdgePrimaryKey subject &&
         FromKey.EqualsIgnoreCase(subject.FromKey) &&
         ToKey.EqualsIgnoreCase(subject.ToKey) &&
         EdgeType.EqualsIgnoreCase(subject.EdgeType);
@@ -26,6 +43,9 @@ public sealed record GraphEdgePrimaryKey
         ToKey = subject.toKey,
         EdgeType = subject.edgeType,
     };
+
+    public static bool operator ==(GraphEdgePrimaryKey left, GraphEdgePrimaryKey right) => left.Equals(right);
+    public static bool operator !=(GraphEdgePrimaryKey left, GraphEdgePrimaryKey right) => !left.Equals(right);
 
     public static IValidator<GraphEdgePrimaryKey> Validator { get; } = new Validator<GraphEdgePrimaryKey>()
         .RuleFor(x => x.FromKey).NotNull()
@@ -59,12 +79,8 @@ public sealed class GraphEdgePrimaryKeyComparer : IEqualityComparer<GraphEdgePri
 {
     public static GraphEdgePrimaryKeyComparer Default { get; } = new GraphEdgePrimaryKeyComparer();
 
-    public bool Equals(GraphEdgePrimaryKey? x, GraphEdgePrimaryKey? y)
+    public bool Equals(GraphEdgePrimaryKey x, GraphEdgePrimaryKey y)
     {
-        if (ReferenceEquals(x, y)) return true;
-
-        if (x is null || y is null) return false;
-
         return x.FromKey.EqualsIgnoreCase(y.FromKey) &&
             x.ToKey.EqualsIgnoreCase(y.ToKey) &&
             x.EdgeType.EqualsIgnoreCase(y.EdgeType);

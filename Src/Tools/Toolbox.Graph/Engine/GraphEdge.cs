@@ -14,14 +14,14 @@ public enum EdgeDirection
 }
 
 
-[DebuggerDisplay("FromKey={FromKey}, ToKey={ToKey}, EdgeType={EdgeType}, Tags={Tags.ToString()}")]
+[DebuggerDisplay("FromKey={FromKey}, ToKey={ToKey}, EdgeType={EdgeType}, Tags={TagsString}")]
 public sealed record GraphEdge : IGraphCommon
 {
-    public GraphEdge(string fromKey, string toKey, string? edgeType = null, string? tags = null, DateTime? createdDate = null)
+    public GraphEdge(string fromKey, string toKey, string edgeType, string? tags = null, DateTime? createdDate = null)
     {
-        FromKey = fromKey.NotNull();
-        ToKey = toKey.NotNull();
-        EdgeType = edgeType ?? "default";
+        FromKey = fromKey.NotEmpty();
+        ToKey = toKey.NotEmpty();
+        EdgeType = edgeType.NotEmpty();
         Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
         CreatedDate = createdDate ?? DateTime.UtcNow;
 
@@ -56,6 +56,7 @@ public sealed record GraphEdge : IGraphCommon
     public string EdgeType { get; private init; }
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public DateTime CreatedDate { get; } = DateTime.UtcNow;
+    [JsonIgnore] public string TagsString => Tags.ToTagsString();
 
     public bool Equals(GraphEdge? obj) => obj is GraphEdge subject &&
         FromKey.EqualsIgnoreCase(subject.FromKey) &&

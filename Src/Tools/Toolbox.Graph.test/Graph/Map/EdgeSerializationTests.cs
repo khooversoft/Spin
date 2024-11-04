@@ -21,7 +21,7 @@ public class EdgeSerializationTests
     [Fact]
     public void EdgeSerialization()
     {
-        var edge = new GraphEdge("node1", "node2");
+        var edge = new GraphEdge("node1", "node2", "et");
 
         string json = edge.ToJson();
 
@@ -35,7 +35,7 @@ public class EdgeSerializationTests
     [Fact]
     public void EdgeSerializationWithTag()
     {
-        var edge = new GraphEdge("node1", "node2", tags: "t1,t2=v2");
+        var edge = new GraphEdge("node1", "node2", "et", tags: "t1,t2=v2");
 
         string json = edge.ToJson();
 

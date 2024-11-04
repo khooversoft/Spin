@@ -1,4 +1,5 @@
-﻿using Toolbox.Logging;
+﻿using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -35,10 +36,23 @@ internal static class NodeInstruction
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
-        var graphNode = new GraphNode(giNode.Key, giNode.Tags.RemoveDeleteCommands(), DateTime.UtcNow, dataMap, giNode.Indexes.RemoveDeleteCommands());
+        IReadOnlyDictionary<string, string?> tags = giNode.Tags.RemoveDeleteCommands();
+        IReadOnlyList<string> foreignKeys = giNode.ForeignKeys.RemoveDeleteCommands();
+
+        var graphNode = new GraphNode(
+            giNode.Key,
+            tags,
+            DateTime.UtcNow,
+            dataMap,
+            giNode.Indexes.RemoveDeleteCommands(),
+            foreignKeys
+            );
 
         var graphResult = pContext.TrxContext.Map.Nodes.Add(graphNode, pContext.TrxContext);
         if (graphResult.IsError()) return graphResult;
+
+        var fk = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
+        if (fk.IsError()) return fk;
 
         pContext.TrxContext.Context.LogInformation("Added giNode={giNode}", giNode);
         return StatusCode.OK;
@@ -79,11 +93,99 @@ internal static class NodeInstruction
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
         var tags = TagsTool.Merge(giNode.Tags, currentGraphNode.Tags);
-        var graphNode = new GraphNode(giNode.Key, tags, currentGraphNode.CreatedDate, dataMap, [.. giNode.Indexes, .. currentGraphNode.Indexes]);
+        var foreignKeys = giNode.ForeignKeys.MergeCommands(currentGraphNode.ForeignKeys);
+
+        var graphNode = new GraphNode(
+            giNode.Key,
+            tags,
+            currentGraphNode.CreatedDate,
+            dataMap,
+            giNode.Indexes.MergeCommands(currentGraphNode.Indexes),
+            foreignKeys
+            );
 
         var updateOption = pContext.TrxContext.Map.Nodes.Set(graphNode, pContext.TrxContext);
         if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, "Failed to upsert node nodeKey={nodeKey}", [giNode.Key]);
 
+        var fkAdd = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
+        if (fkAdd.IsError()) return fkAdd;
+
+        var fkRemove = RemoveForeignKeys(giNode.Key, foreignKeys, giNode.ForeignKeys.RemoveDeleteCommands(), tags, pContext);
+        if (fkRemove.IsError()) return fkRemove;
+
         return StatusCode.OK;
     }
+
+    private static Option AddForeignKeys(string fromKey, IReadOnlyList<string> foreignKeys, IReadOnlyDictionary<string, string?> tags, QueryExecutionContext pContext)
+    {
+        fromKey.NotEmpty();
+        tags.NotNull();
+        foreignKeys.NotNull();
+        pContext.NotNull();
+
+        if (foreignKeys.Count == 0) return StatusCode.OK;
+
+        // Valid tags based on foreignKey as edgeType
+        var fkTags = foreignKeys
+            .Join(tags, x => x, y => y.Key, (fk, t) => t, StringComparer.OrdinalIgnoreCase)
+            .Where(x => x.Value.IsNotEmpty())
+            .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
+            .ToArray();
+
+        var missingEdges = fkTags
+            .Where(x => x.Value.IsNotEmpty())
+            .Select(x => new GraphEdgePrimaryKey(fromKey, x.Value.NotEmpty(), x.Key))
+            .Where(x => !pContext.TrxContext.Map.Edges.ContainsKey(x))
+            .Select(x => new GraphEdge(x.FromKey, x.ToKey, x.EdgeType))
+            .ToArray();
+
+        var allStatus = missingEdges
+            .Select(x => pContext.TrxContext.Map.Edges.Add(x, pContext.TrxContext))
+            .ToArray();
+
+        var status = ScanOptions(allStatus);
+        pContext.TrxContext.Map.Meter.Node.ForeignKeyAdd(missingEdges.Length > 0 && status.IsOk());
+        return status;
+    }
+
+    private static Option RemoveForeignKeys(
+        string fromKey,
+        IReadOnlyList<string> foreignKeys,
+        IReadOnlyList<string> removedForeignKeys,
+        IReadOnlyDictionary<string, string?> tags,
+        QueryExecutionContext pContext
+        )
+    {
+        fromKey.NotEmpty();
+        foreignKeys.NotNull();
+        removedForeignKeys.NotNull();
+        pContext.NotNull();
+
+        if (foreignKeys.Count == 0 && removedForeignKeys.Count == 0) return StatusCode.OK;
+
+        var currentEdgesNotValid = pContext.TrxContext.Map.Edges
+            .LookupByFromKey([fromKey])
+            .Where(x => removedForeignKeys.Contains(x.EdgeType) || (isEdgeTypeValid(x.EdgeType) && isTagList(x.ToKey, x.EdgeType)))
+            .ToArray();
+
+        var allStatus = currentEdgesNotValid
+            .Select(x => pContext.TrxContext.Map.Edges.Remove(x, pContext.TrxContext))
+            .ToArray();
+
+        var status = ScanOptions(allStatus);
+        pContext.TrxContext.Map.Meter.Node.ForeignKeyRemove(currentEdgesNotValid.Length > 0 && status.IsOk());
+        return status;
+
+        bool isEdgeTypeValid(string edgeType) => foreignKeys.Contains(edgeType, StringComparer.OrdinalIgnoreCase);
+        bool isTagList(string toKey, string edgeType) => tags.TryGetValue(edgeType, out var value) && !value.EqualsIgnoreCase(toKey);
+    }
+
+    private static Option ScanOptions(IEnumerable<Option> options) => options.Aggregate(
+        new Option(StatusCode.OK),
+        (a, x) => (a.IsOk(), x.IsOk()) switch
+        {
+            (true, true) => StatusCode.OK,
+            (false, _) => a,
+            (true, _) => x,
+        });
 }

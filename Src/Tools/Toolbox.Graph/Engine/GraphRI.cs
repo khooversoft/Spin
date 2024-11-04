@@ -21,7 +21,7 @@ internal class GraphRI
     public bool RemovedNodeFromEdges(GraphNode graphNode, IGraphTrxContext? graphContext)
     {
         var edges = GraphEdgeIndex.LookupByNodeKey([graphNode.Key]);
-        edges.ForEach(x => GraphEdgeIndex.Remove(x.GetPrimaryKey(), graphContext));
+        edges.ForEach(x => GraphEdgeIndex.Remove(x, graphContext));
 
         string[] nodesToRemove = [.. edges.Select(x => x.FromKey), .. edges.Select(x => x.ToKey)];
         RemoveUniqueIndexNodes(nodesToRemove, graphContext);

@@ -122,9 +122,9 @@ public class GraphMapSerializationTests
             new GraphNode("node3"),
             new GraphNode("node4"),
 
-            new GraphEdge("node1", "node2"),
-            new GraphEdge("node1", "node3"),
-            new GraphEdge("node1", "node4"),
+            new GraphEdge("node1", "node2", "et"),
+            new GraphEdge("node1", "node3", "et"),
+            new GraphEdge("node1", "node4", "et"),
         };
 
         string json = map.ToJson();

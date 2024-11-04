@@ -56,8 +56,8 @@ internal static class SelectInstruction
             GiLeftJoin left => pContext.GetLastQueryResult().NotNull().Edges.Select(x => pContext.TrxContext.Map.Nodes[x.ToKey]),
             GiFullJoin full => pContext.GetLastQueryResult().NotNull().Edges.SelectMany(x => (IEnumerable<GraphNode>)[
                 pContext.TrxContext.Map.Nodes[x.FromKey],
-                pContext.TrxContext.Map.Nodes[x.ToKey] ]
-                ),
+                pContext.TrxContext.Map.Nodes[x.ToKey]
+                ]),
 
             _ => throw new UnreachableException()
         };
@@ -80,7 +80,7 @@ internal static class SelectInstruction
             var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Nodes.Action(x => pContext.TrxContext.Map.Meter.Node.IndexScan()),
             { Key: string v } when !HasWildCard(v) => pContext.TrxContext.Map.Nodes.TryGetValue(v, out var gn) ? [gn] : [],
             { Tags: { Count: > 0 } v } => v.SelectMany(x => pContext.TrxContext.Map.Nodes.LookupTaggedNodes(x.Key)),
-            _ => pContext.TrxContext.Map.Nodes,
+            _ => pContext.TrxContext.Map.Nodes.Action(x => pContext.TrxContext.Map.Meter.Node.IndexScan()),
         };
     }
 
@@ -114,10 +114,10 @@ internal static class SelectInstruction
         {
             var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Edges.Action(x => pContext.TrxContext.Map.Meter.Edge.IndexScan()),
             { From: string v1, To: string v2, Type: string v3 } when !HasWildCard(v1) && !HasWildCard(v2) && !HasWildCard(v3) => lookupEdge(v1, v2, v3),
-            { From: string v1, To: null, Type: null } when !HasWildCard(v1) => pContext.TrxContext.Map.Edges.LookupByFromKey([v1]),
-            { From: null, To: string v2, Type: null } when !HasWildCard(v2) => pContext.TrxContext.Map.Edges.LookupByToKey([v2]),
-            { From: null, To: null, Type: string v3 } when !HasWildCard(v3) => pContext.TrxContext.Map.Edges.LookupByEdgeType([v3]),
-            { Tags: { Count: > 0 } v } => v.SelectMany(x => pContext.TrxContext.Map.Edges.LookupTag(x.Key)),
+            { From: string v1 } when !HasWildCard(v1) => pContext.TrxContext.Map.Edges.LookupByFromKeyExpand([v1]),
+            { To: string v2 } when !HasWildCard(v2) => pContext.TrxContext.Map.Edges.LookupByToKeyExpand([v2]),
+            { Type: string v3 } when !HasWildCard(v3) => pContext.TrxContext.Map.Edges.LookupByEdgeTypeExpand([v3]),
+            { Tags: { Count: > 0 } v } => v.SelectMany(x => pContext.TrxContext.Map.Edges.LookupTagExpand(x.Key)),
             _ => pContext.TrxContext.Map.Edges,
         };
 
@@ -125,8 +125,8 @@ internal static class SelectInstruction
             pContext.TrxContext.Map.Edges.TryGetValue((from, to, edgeType), out GraphEdge? ge) ? [ge.NotNull()] : [];
 
         IEnumerable<string> getLastNodeResultKeys() => pContext.GetLastQueryResult().NotNull().Nodes.Select(x => x.Key);
-        IEnumerable<GraphEdge> lookupNodeKeys() => pContext.TrxContext.Map.Edges.LookupByNodeKey(getLastNodeResultKeys());
-        IEnumerable<GraphEdge> lookupFromKeys() => pContext.TrxContext.Map.Edges.LookupByFromKey(getLastNodeResultKeys());
+        IEnumerable<GraphEdge> lookupNodeKeys() => pContext.TrxContext.Map.Edges.LookupByNodeKeyExpand(getLastNodeResultKeys());
+        IEnumerable<GraphEdge> lookupFromKeys() => pContext.TrxContext.Map.Edges.LookupByFromKeyExpand(getLastNodeResultKeys());
     }
 
     private static async Task<Option> ReturnNames(GiReturnNames giReturnNames, QueryExecutionContext pContext)

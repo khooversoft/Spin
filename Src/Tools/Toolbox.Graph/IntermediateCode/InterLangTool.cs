@@ -176,13 +176,13 @@ public static class InterLangTool
         return (tags, data);
     }
 
-    internal static Option<HashSet<string>> GetIndexes(InterContext interContext)
+    internal static Option<HashSet<string>> GetCommands(InterContext interContext, string commandToken)
     {
         HashSet<string> indexes = new(StringComparer.OrdinalIgnoreCase);
 
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
-        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != "index") return (StatusCode.NotFound, "No 'index' or ';'");
+        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != commandToken) return (StatusCode.NotFound, "No 'index' or ';'");
 
         while (interContext.Cursor.TryPeekValue(out var nextValue))
         {

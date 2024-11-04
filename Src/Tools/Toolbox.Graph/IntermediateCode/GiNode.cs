@@ -15,6 +15,7 @@ public sealed record GiNode : IGraphInstruction
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public IReadOnlyDictionary<string, string> Data { get; init; } = FrozenDictionary<string, string>.Empty;
     public IReadOnlySet<string> Indexes { get; init; } = FrozenSet<string>.Empty;
+    public IReadOnlySet<string> ForeignKeys { get; init; } = FrozenSet<string>.Empty;
     public bool IfExist { get; init; }
 
     public IReadOnlyList<JournalEntry> CreateJournals()
@@ -37,6 +38,7 @@ public sealed record GiNode : IGraphInstruction
             Tags.DeepEquals(subject.Tags) &&
             Enumerable.SequenceEqual(Data.OrderBy(x => x.Key), subject.Data.OrderBy(x => x.Key)) &&
             Enumerable.SequenceEqual(Indexes.OrderBy(x => x), subject.Indexes.OrderBy(x => x)) &&
+            Enumerable.SequenceEqual(ForeignKeys.OrderBy(x => x), subject.ForeignKeys.OrderBy(x => x)) &&
             IfExist == subject.IfExist;
 
         return result;
@@ -82,7 +84,14 @@ internal static class GiNodeTool
         }
 
         // index {tagKey}[, {tagKey}..]
-        HashSet<string>? indexes = InterLangTool.GetIndexes(interContext) switch
+        HashSet<string>? indexes = InterLangTool.GetCommands(interContext, "index") switch
+        {
+            { StatusCode: StatusCode.OK } v => v.Return(),
+            _ => null,
+        };
+
+        // index {tagKey}[, {tagKey}..]
+        HashSet<string>? foreignKeys = InterLangTool.GetCommands(interContext, "foreignkey") switch
         {
             { StatusCode: StatusCode.OK } v => v.Return(),
             _ => null,
@@ -98,6 +107,7 @@ internal static class GiNodeTool
             Tags = tags?.ToFrozenDictionary() ?? FrozenDictionary<string, string?>.Empty,
             Data = data?.ToFrozenDictionary() ?? FrozenDictionary<string, string>.Empty,
             Indexes = indexes?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty,
+            ForeignKeys = foreignKeys?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty,
             IfExist = ifExist,
         };
     }

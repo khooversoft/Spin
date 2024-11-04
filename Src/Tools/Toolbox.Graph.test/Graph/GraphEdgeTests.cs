@@ -13,13 +13,13 @@ public class GraphEdgeTests
         string fromKey = "key1";
         string toKey = "key2";
 
-        var n1 = new GraphEdge(fromKey, toKey);
+        var n1 = new GraphEdge(fromKey, toKey, "et");
         n1.FromKey.Should().Be(fromKey);
         n1.ToKey.Should().Be(toKey);
         n1.Tags.Count.Should().Be(0);
-        n1.EdgeType.Should().Be("default");
+        n1.EdgeType.Should().Be("et");
 
-        var n2 = new GraphEdge(fromKey, toKey);
+        var n2 = new GraphEdge(fromKey, toKey, "et");
         n2 = Set(n2, n1.CreatedDate);
 
         (n1 == n2).Should().BeTrue();
@@ -34,14 +34,14 @@ public class GraphEdgeTests
         string toKey = "key2";
         string tags = "t1";
 
-        var n1 = new GraphEdge(fromKey, toKey, tags: tags);
+        var n1 = new GraphEdge(fromKey, toKey, "et", tags: tags);
         n1.FromKey.Should().Be(fromKey);
         n1.ToKey.Should().Be(toKey);
         n1.Tags.Count.Should().Be(1);
         n1.Tags.ToTagsString().Should().Be("t1");
-        n1.EdgeType.Should().Be("default");
+        n1.EdgeType.Should().Be("et");
 
-        var n2 = new GraphEdge(fromKey, toKey, tags: tags);
+        var n2 = new GraphEdge(fromKey, toKey, "et", tags: tags);
         n2 = Set(n2, n1.CreatedDate);
 
         (n1 == n2).Should().BeTrue();
@@ -54,14 +54,14 @@ public class GraphEdgeTests
         string toKey = "key2";
         string tags = "t1, t2=v1";
 
-        var n1 = new GraphEdge(fromKey, toKey, tags: tags);
+        var n1 = new GraphEdge(fromKey, toKey, "et", tags: tags);
         n1.FromKey.Should().Be(fromKey);
         n1.ToKey.Should().Be(toKey);
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v1");
-        n1.EdgeType.Should().Be("default");
+        n1.EdgeType.Should().Be("et");
 
-        var n2 = new GraphEdge(fromKey, toKey, tags: tags);
+        var n2 = new GraphEdge(fromKey, toKey, "et", tags: tags);
         n2 = Set(n2, n1.CreatedDate);
 
         (n1 == n2).Should().BeTrue();

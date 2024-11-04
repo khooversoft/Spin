@@ -34,10 +34,6 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public int Count => _index.Count;
 
-    public IReadOnlyList<GraphEdge> LookupTag(string tag) => _tagIndex.Lookup(tag)
-        .Func(Expand)
-        .Action(x => _graphMeter.Edge.Index(x.Count > 0));
-
     public GraphEdge this[GraphEdgePrimaryKey key]
     {
         get => _index[key];
@@ -66,22 +62,37 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    public IReadOnlyList<GraphEdge> LookupByNodeKey(IEnumerable<string> nodeKeys) => nodeKeys
+    public bool ContainsKey(GraphEdgePrimaryKey key) => _index.ContainsKey(key);
+
+    public IReadOnlyList<GraphEdge> Get(IEnumerable<GraphEdgePrimaryKey> keys) => keys
+        .Distinct(GraphEdgePrimaryKeyComparer.Default)
+        .Select(x => TryGetValue(x, out var data) ? data : null)
+        .OfType<GraphEdge>()
+        .ToImmutableArray();
+
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupTag(string tag) => _tagIndex.Lookup(tag)
+        .Action(x => _graphMeter.Edge.Index(x.Count > 0));
+
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(IEnumerable<string> nodeKeys) => nodeKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
         .Concat(nodeKeys.SelectMany(x => _edgesTo.Lookup(x)))
-        .Func(Expand);
+        .ToImmutableArray()
+        .Action(x => _graphMeter.Edge.Index(x.Length > 0));
 
-    public IReadOnlyList<GraphEdge> LookupByFromKey(IEnumerable<string> fromNodesKeys) => fromNodesKeys
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(IEnumerable<string> fromNodesKeys) => fromNodesKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
-        .Func(Expand);
+        .ToImmutableArray()
+        .Action(x => _graphMeter.Edge.Index(x.Length > 0));
 
-    public IReadOnlyList<GraphEdge> LookupByToKey(IEnumerable<string> toNodesKeys) => toNodesKeys
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(IEnumerable<string> toNodesKeys) => toNodesKeys
         .SelectMany(x => _edgesTo.Lookup(x))
-        .Func(Expand);
+        .ToImmutableArray()
+        .Action(x => _graphMeter.Edge.Index(x.Length > 0));
 
-    public IReadOnlyList<GraphEdge> LookupByEdgeType(IEnumerable<string> edgeTypes) => edgeTypes
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByEdgeType(IEnumerable<string> edgeTypes) => edgeTypes
         .SelectMany(x => _edgesEdges.Lookup(x))
-        .Func(Expand);
+        .ToImmutableArray()
+        .Action(x => _graphMeter.Edge.Index(x.Length > 0));
 
     public Option Remove(GraphEdgePrimaryKey edgeKey, IGraphTrxContext? graphContext = null)
     {
@@ -107,7 +118,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             var edgePrimaryKeys = LookupByNodeKey(nodeKeys.ToArray());
 
             edgePrimaryKeys
-                .ForEach(x => Remove(x.GetPrimaryKey(), graphContext)
+                .ForEach(x => Remove(x, graphContext)
                 .Assert(x => x.IsError(), $"{x} failed to remove"));
 
             return StatusCode.OK;
@@ -203,10 +214,27 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         result = StatusCode.OK;
         return true;
     }
+}
 
-    private IReadOnlyList<GraphEdge> Expand(IEnumerable<GraphEdgePrimaryKey> keys) => keys
-        .Distinct(GraphEdgePrimaryKeyComparer.Default)
-        .Select(x => TryGetValue(x, out var data) ? data : null)
-        .OfType<GraphEdge>()
-        .ToImmutableArray();
+public static class GraphEdgeIndexExtensions
+{
+    public static IReadOnlyList<GraphEdge> LookupTagExpand(this GraphEdgeIndex index, string tag) => index.NotNull()
+        .LookupTag(tag)
+        .Func(x => index.Get(x));
+
+    public static IReadOnlyList<GraphEdge> LookupByNodeKeyExpand(this GraphEdgeIndex index, IEnumerable<string> nodeKeys) => index.NotNull()
+        .LookupByNodeKey(nodeKeys)
+        .Func(x => index.Get(x));
+
+    public static IReadOnlyList<GraphEdge> LookupByFromKeyExpand(this GraphEdgeIndex index, IEnumerable<string> fromNodesKeys) => index.NotNull()
+        .LookupByFromKey(fromNodesKeys)
+        .Func(x => index.Get(x));
+
+    public static IReadOnlyList<GraphEdge> LookupByToKeyExpand(this GraphEdgeIndex index, IEnumerable<string> fromNodesKeys) => index.NotNull()
+        .LookupByToKey(fromNodesKeys)
+        .Func(x => index.Get(x));
+
+    public static IReadOnlyList<GraphEdge> LookupByEdgeTypeExpand(this GraphEdgeIndex index, IEnumerable<string> fromNodesKeys) => index.NotNull()
+        .LookupByEdgeType(fromNodesKeys)
+        .Func(x => index.Get(x));
 }

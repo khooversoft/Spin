@@ -41,21 +41,12 @@ public class UniqueIndexComparer : IEqualityComparer<UniqueIndex>
 
 public static class UniqueIndexTool
 {
-    public static IReadOnlyList<string> RemoveDeleteCommands(this IEnumerable<string> values) => values.NotNull()
-        .Where(x => !TagsTool.HasRemoveFlag(x))
-        .ToImmutableArray();
-
-    public static IReadOnlyList<string> GetDeleteCommands(this IEnumerable<string> values) => values.NotNull()
-        .Where(x => TagsTool.HasRemoveFlag(x))
-        .Select(x => x[1..])
-        .ToImmutableArray();
-
     public static IReadOnlyList<string> MergeIndexes(this IEnumerable<string> newIndexes, IEnumerable<string> currentIndexes)
     {
         newIndexes.NotNull();
         currentIndexes.NotNull();
 
-        var deleteCommands = GetDeleteCommands(newIndexes);
+        var deleteCommands = newIndexes.GetDeleteCommands();
 
         var list = newIndexes
             .Concat(currentIndexes)

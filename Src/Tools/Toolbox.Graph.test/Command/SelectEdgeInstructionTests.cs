@@ -134,7 +134,7 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
 
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(2);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
     }
@@ -163,7 +163,7 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
 
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(4);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
     }
@@ -192,7 +192,7 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
 
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(4);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
     }

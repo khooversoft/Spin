@@ -323,4 +323,57 @@ public class NodeTests : TestBase<NodeTests>
 
         Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
     }
+
+    [Fact]
+    public void AddNodeFK()
+    {
+        var parse = _parser.Parse("add node key=k1 set t1=v1 foreignkey t1 ;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructionsOption = InterLangTool.Build(syntaxPairs);
+        instructionsOption.IsOk().Should().BeTrue();
+
+        IGraphInstruction[] expected = [
+            new GiNode
+            {
+                ChangeType = GiChangeType.Add,
+                Key="k1",
+                Tags = new Dictionary<string, string?>
+                {
+                    ["t1"] = "v1",
+                },
+                ForeignKeys = new HashSet<string>(["t1"]) },
+            ];
+
+        var instructions = instructionsOption.Return();
+        Enumerable.SequenceEqual(instructions, expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void AddNodeFKTwo()
+    {
+        var parse = _parser.Parse("add node key=k1 set t1=v1, t2=v2 foreignkey t1, t2 ;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructionsOption = InterLangTool.Build(syntaxPairs);
+        instructionsOption.IsOk().Should().BeTrue();
+
+        IGraphInstruction[] expected = [
+            new GiNode
+            {
+                ChangeType = GiChangeType.Add,
+                Key="k1",
+                Tags = new Dictionary<string, string?>
+                {
+                    ["t1"] = "v1",
+                    ["t2"] = "v2",
+                },
+                ForeignKeys = new HashSet<string>(["t1", "t2"]) },
+            ];
+
+        var instructions = instructionsOption.Return();
+        Enumerable.SequenceEqual(instructions, expected).Should().BeTrue();
+    }
 }

@@ -111,9 +111,9 @@ public static class TagsTool
 
         var list = source1
             .Concat(source2)
-            .GroupBy(x => x.Key)
+            .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
             .Select(x => x.First())
-            .ToFrozenDictionary();
+            .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
         return list;
     }
@@ -132,9 +132,9 @@ public static class TagsTool
             .Concat(currentTags)
             .Where(x => !HasRemoveFlag(x.Key))
             .Where(x => !removeTags.Contains(x.Key))
-            .GroupBy(x => x.Key)
+            .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
             .Select(x => x.First())
-            .ToFrozenDictionary();
+            .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
         return list;
     }

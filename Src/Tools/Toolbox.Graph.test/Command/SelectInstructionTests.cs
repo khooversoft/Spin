@@ -55,7 +55,7 @@ public class SelectInstructionTests
         copyMap.Meter.Node.GetIndexHit().Should().Be(0);
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Node.GetIndexScan().Should().Be(1);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(6);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(7);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
     }
@@ -169,7 +169,7 @@ public class SelectInstructionTests
         copyMap.Meter.Node.GetIndexHit().Should().Be(1);
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Node.GetIndexScan().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(4);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
     }

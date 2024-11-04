@@ -59,7 +59,7 @@ public class EdgeInstructionTests
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node3", EdgeType = "et3" },
             ];
 
-        var toLookups = copyMap.Edges.LookupByToKey(["node3"]).Select(x => x.GetPrimaryKey());
+        var toLookups = copyMap.Edges.LookupByToKey(["node3"]).Select(x => x);
         Enumerable.SequenceEqual(toLookups.OrderBy(x => x.ToString()), toLookups.OrderBy(x => x.ToString()), GraphEdgePrimaryKeyComparer.Default).Should().BeTrue();
     }
 
@@ -73,7 +73,7 @@ public class EdgeInstructionTests
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node5", EdgeType = "et2" },
             ];
 
-        var edgeTypes = copyMap.Edges.LookupByEdgeType(["et2"]).Select(x => x.GetPrimaryKey());
+        var edgeTypes = copyMap.Edges.LookupByEdgeType(["et2"]).Select(x => x);
         Enumerable.SequenceEqual(edgeTypes.OrderBy(x => x.ToString()), edges.OrderBy(x => x.ToString()), GraphEdgePrimaryKeyComparer.Default).Should().BeTrue();
     }
 

@@ -14,6 +14,7 @@ public struct GraphNode_Surrogate
     [Id(2)] public DateTime CreatedDate;
     [Id(3)] public KeyValuePair<string, GraphLink>[] DataMap;
     [Id(4)] public string[] Indexes;
+    [Id(5)] public string[] ForeignKeys;
 }
 
 
@@ -25,7 +26,8 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         surrogate.Tags.ToTags(),
         surrogate.CreatedDate,
         surrogate.DataMap.ToDictionary(x => x.Key, x => x.Value),
-        surrogate.Indexes.ToFrozenSet()
+        surrogate.Indexes.ToFrozenSet(),
+        surrogate.ForeignKeys
         );
 
     public GraphNode_Surrogate ConvertToSurrogate(in GraphNode value) => new GraphNode_Surrogate
@@ -35,6 +37,7 @@ public sealed class GraphNode_SurrogateConverter : IConverter<GraphNode, GraphNo
         CreatedDate = value.CreatedDate,
         DataMap = [.. value.DataMap],
         Indexes = [.. value.Indexes],
+        ForeignKeys = [.. value.ForeignKeys],
     };
 }
 
