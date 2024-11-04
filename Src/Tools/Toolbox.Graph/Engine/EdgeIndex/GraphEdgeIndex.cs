@@ -230,8 +230,8 @@ public static class GraphEdgeIndexExtensions
         .LookupByFromKey(fromNodesKeys)
         .Func(x => index.Get(x));
 
-    public static IReadOnlyList<GraphEdge> LookupByToKeyExpand(this GraphEdgeIndex index, IEnumerable<string> fromNodesKeys) => index.NotNull()
-        .LookupByToKey(fromNodesKeys)
+    public static IReadOnlyList<GraphEdge> LookupByToKeyExpand(this GraphEdgeIndex index, IEnumerable<string> toNodesKeys) => index.NotNull()
+        .LookupByToKey(toNodesKeys)
         .Func(x => index.Get(x));
 
     public static IReadOnlyList<GraphEdge> LookupByEdgeTypeExpand(this GraphEdgeIndex index, IEnumerable<string> fromNodesKeys) => index.NotNull()

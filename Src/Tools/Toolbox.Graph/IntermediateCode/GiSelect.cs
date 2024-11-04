@@ -40,6 +40,7 @@ internal static class GiSelectTool
         GiEdgeSelectTool.Build,
         GiFullJoinTool.Build,
         GiLeftJoinTool.Build,
+        GiRightJoinTool.Build,
         GiReturnNamesTool.Build,
     ];
 

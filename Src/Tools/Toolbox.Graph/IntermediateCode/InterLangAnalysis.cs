@@ -57,6 +57,7 @@ internal static class InterLangAnalysis
 
                 case GiFullJoin:
                 case GiLeftJoin:
+                case GiRightJoin:
                 case GiReturnNames:
                     break;
 

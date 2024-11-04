@@ -89,6 +89,7 @@ public static class GraphTestTool
                 GiNodeSelect v => BuildNodeSelect(v),
                 GiEdgeSelect v => BuildEdgeSelect(v),
                 GiLeftJoin v => BuildLeftJoin(v),
+                GiRightJoin v => BuildRightJoin(v),
                 GiFullJoin v => BuildGiFullJoin(v),
                 GiReturnNames v => BuildReturnNames(v),
                 _ => throw new InvalidOperationException(),
@@ -185,6 +186,7 @@ public static class GraphTestTool
     }
 
     private static IReadOnlyList<string> BuildLeftJoin(GiLeftJoin leftJoin) => ["new GiLeftJoin(),"];
+    private static IReadOnlyList<string> BuildRightJoin(GiRightJoin leftJoin) => ["new GiRightJoin(),"];
 
     private static IReadOnlyList<string> BuildGiFullJoin(GiFullJoin leftJoin) => ["new GiFullJoin(),"];
 

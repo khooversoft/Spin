@@ -1,4 +1,4 @@
-delimiters              = , ';' = '->' '<->' ( ) [ ] { } ;
+delimiters              = , ';' = '->' '<-' '<->' ( ) [ ] { } ;
 reserve-words           = select, set, delete, return, ifexist, index, foreignkey ;
 
 symbol                  = regex '^[a-zA-Z\*][a-zA-Z0-9\/\-\*]*$' ;
@@ -20,6 +20,7 @@ comma                   = ',' ;
 term                    = ';' ;
 equal                   = '=' ;
 left-join               = '->' ;
+right-join              = '<-' ;
 full-join               = '<->' ;
 
 set-sym                 = 'set' ;
@@ -65,5 +66,5 @@ node-delete-command     = delete-sym, node-sym, [ ifexist ], key-sym, equal, key
 edge-add-command        = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
 edge-delete-command     = delete-sym, edge-sym, [ ifexist ], fromkey-data, comma, tokey-data, comma, edgetype-data, term ;
 
-select-command          = select-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, [ return-data ], term ;
-delete-command          = delete-sym, ( select-node | select-edge ), { ( left-join | full-join ), ( select-node | select-edge ) }, term ;
+select-command          = select-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, [ return-data ], term ;
+delete-command          = delete-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, term ;

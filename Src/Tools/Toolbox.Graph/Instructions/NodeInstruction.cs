@@ -110,7 +110,7 @@ internal static class NodeInstruction
         var fkAdd = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fkAdd.IsError()) return fkAdd;
 
-        var fkRemove = RemoveForeignKeys(giNode.Key, foreignKeys, giNode.ForeignKeys.RemoveDeleteCommands(), tags, pContext);
+        var fkRemove = RemoveForeignKeys(giNode.Key, foreignKeys, giNode.ForeignKeys.GetDeleteCommands(), tags, giNode.Tags.GetTagDeleteCommands(), pContext);
         if (fkRemove.IsError()) return fkRemove;
 
         return StatusCode.OK;
@@ -153,6 +153,7 @@ internal static class NodeInstruction
         IReadOnlyList<string> foreignKeys,
         IReadOnlyList<string> removedForeignKeys,
         IReadOnlyDictionary<string, string?> tags,
+        IReadOnlyList<string> removedTags,
         QueryExecutionContext pContext
         )
     {
@@ -161,11 +162,13 @@ internal static class NodeInstruction
         removedForeignKeys.NotNull();
         pContext.NotNull();
 
-        if (foreignKeys.Count == 0 && removedForeignKeys.Count == 0) return StatusCode.OK;
+        var removedEdgeTypes = removedForeignKeys.Concat(removedTags).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (removedEdgeTypes.Count == 0 && removedForeignKeys.Count == 0) return StatusCode.OK;
 
         var currentEdgesNotValid = pContext.TrxContext.Map.Edges
             .LookupByFromKey([fromKey])
-            .Where(x => removedForeignKeys.Contains(x.EdgeType) || (isEdgeTypeValid(x.EdgeType) && isTagList(x.ToKey, x.EdgeType)))
+            .Where(x => removedEdgeTypes.Contains(x.EdgeType) || (isEdgeTypeValid(x.EdgeType) && isTagList(x.ToKey, x.EdgeType)))
             .ToArray();
 
         var allStatus = currentEdgesNotValid

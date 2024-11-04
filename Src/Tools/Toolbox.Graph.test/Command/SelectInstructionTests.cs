@@ -61,6 +61,41 @@ public class SelectInstructionTests
     }
 
     [Fact]
+    public async Task SelectReverseNodeToEdge()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.Execute("select (*) <- [*] ;", NullScopeContext.Default);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        QueryResult result = newMapOption.Return();
+        result.Option.IsOk().Should().BeTrue();
+        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Nodes.Count.Should().Be(0);
+        result.Edges.Count.Should().Be(6);
+        result.DataLinks.Count.Should().Be(0);
+
+        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        {
+            ("node1", "node2", "et1"),
+            ("node1", "node3", "et1"),
+            ("node6", "node3", "et1"),
+            ("node4", "node5", "et1"),
+            ("node4", "node3", "et1"),
+            ("node5", "node4", "et1"),
+        };
+
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+
+        copyMap.Meter.Node.GetIndexHit().Should().Be(0);
+        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
+        copyMap.Meter.Node.GetIndexScan().Should().Be(1);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(7);
+        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
+        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+    }
+
+    [Fact]
     public async Task SelectDirectedJoinEdge()
     {
         var copyMap = _map.Clone();
@@ -139,6 +174,40 @@ public class SelectInstructionTests
     }
 
     [Fact]
+    public async Task SelectRightNodeToEdge()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch("select (key=node4) <- [*] ;", NullScopeContext.Default);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        QueryBatchResult result = newMapOption.Return();
+        result.Option.IsOk().Should().BeTrue();
+        result.Items.Count.Should().Be(1);
+
+        result.Items[0].Action(x =>
+        {
+            x.Nodes.Count.Should().Be(0);
+            x.Edges.Count.Should().Be(1);
+            x.DataLinks.Count.Should().Be(0);
+
+            var expected = new List<(string FromKey, string ToKey)>
+            {
+                ("node5", "node4"),
+            };
+
+            x.Edges.Select(x => (x.FromKey, x.ToKey)).Should().BeEquivalentTo(expected);
+        });
+
+        copyMap.Meter.Node.GetIndexHit().Should().Be(1);
+        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
+        copyMap.Meter.Node.GetIndexScan().Should().Be(0);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(2);
+        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
+        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+    }
+
+    [Fact]
     public async Task SelectFullNodeToEdge()
     {
         var copyMap = _map.Clone();
@@ -170,6 +239,34 @@ public class SelectInstructionTests
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Node.GetIndexScan().Should().Be(0);
         copyMap.Meter.Edge.GetIndexHit().Should().Be(4);
+        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
+        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SelectRightJoinEdgeToNode()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var newMapOption = await testClient.ExecuteBatch("select [knows] <- (*) ;", NullScopeContext.Default);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        QueryBatchResult result = newMapOption.Return();
+        result.Option.IsOk().Should().BeTrue();
+        result.Items.Count.Should().Be(1);
+
+        result.Items[0].Action(x =>
+        {
+            x.Nodes.Count.Should().Be(1);
+            x.Edges.Count.Should().Be(0);
+            x.DataLinks.Count.Should().Be(0);
+            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1");
+        });
+
+        copyMap.Meter.Node.GetIndexHit().Should().Be(2);
+        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
+        copyMap.Meter.Node.GetIndexScan().Should().Be(0);
+        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
         copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
     }

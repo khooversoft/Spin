@@ -29,7 +29,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
 
 
     [Fact]
-    public void SelectAllNodesToEdges()
+    public void SelectAllNodesToEdgesLeftJoin()
     {
         var parse = _parser.Parse("select (*) -> [*] ;", _context);
         parse.Status.IsOk().Should().BeTrue();
@@ -67,7 +67,45 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     }
 
     [Fact]
-    public void SelectAllNodesToEdgesToNodes()
+    public void SelectAllNodesToEdgesRightJoin()
+    {
+        var parse = _parser.Parse("select (*) <- [*] ;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiSelect
+            {
+                Instructions = [
+                    new GiNodeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                    new GiRightJoin(),
+                    new GiEdgeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SelectAllNodesToEdgesToNodesLeftJoin()
     {
         var parse = _parser.Parse("select (*) -> [*] -> (*) ;", _context);
         parse.Status.IsOk().Should().BeTrue();
@@ -98,6 +136,52 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
                         },
                     },
                     new GiLeftJoin(),
+                    new GiNodeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SelectAllNodesToEdgesToNodesRightJoin()
+    {
+        var parse = _parser.Parse("select (*) <- [*] <- (*) ;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiSelect
+            {
+                Instructions = [
+                    new GiNodeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                    new GiRightJoin(),
+                    new GiEdgeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                    new GiRightJoin(),
                     new GiNodeSelect
                     {
                         Tags = new Dictionary<string, string?>
@@ -144,6 +228,52 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
                         },
                     },
                     new GiFullJoin(),
+                    new GiNodeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                ],
+            }
+        ];
+
+        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SelectFullAndRightNodesToEdgesToNodes()
+    {
+        var parse = _parser.Parse("select (*) <-> [*] <- (*) ;", _context);
+        parse.Status.IsOk().Should().BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var instructions = InterLangTool.Build(syntaxPairs);
+        instructions.IsOk().Should().BeTrue(instructions.Error);
+
+        string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
+
+        IGraphInstruction[] expected = [
+            new GiSelect
+            {
+                Instructions = [
+                    new GiNodeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                    new GiFullJoin(),
+                    new GiEdgeSelect
+                    {
+                        Tags = new Dictionary<string, string?>
+                        {
+                            ["*"] = null,
+                        },
+                    },
+                    new GiRightJoin(),
                     new GiNodeSelect
                     {
                         Tags = new Dictionary<string, string?>

@@ -32,6 +32,7 @@ internal static class SelectInstruction
                 GiEdgeSelect edgeSelect => SelectEdge(edgeSelect, pContext),
                 GiLeftJoin leftJoin => StatusCode.OK.Action(_ => pContext.LastJoin.Set(leftJoin)),
                 GiFullJoin fullJoin => StatusCode.OK.Action(_ => pContext.LastJoin.Set(fullJoin)),
+                GiRightJoin rightJoin => StatusCode.OK.Action(_ => pContext.LastJoin.Set(rightJoin)),
                 GiReturnNames returnNames => await ReturnNames(returnNames, pContext),
 
                 _ => (StatusCode.BadRequest, $"Unknown instuction type={selectInstruction.GetType()}"),
@@ -54,6 +55,7 @@ internal static class SelectInstruction
         {
             null => findRootNodes(),
             GiLeftJoin left => pContext.GetLastQueryResult().NotNull().Edges.Select(x => pContext.TrxContext.Map.Nodes[x.ToKey]),
+            GiRightJoin right => pContext.GetLastQueryResult().NotNull().Edges.Select(x => pContext.TrxContext.Map.Nodes[x.FromKey]),
             GiFullJoin full => pContext.GetLastQueryResult().NotNull().Edges.SelectMany(x => (IEnumerable<GraphNode>)[
                 pContext.TrxContext.Map.Nodes[x.FromKey],
                 pContext.TrxContext.Map.Nodes[x.ToKey]
@@ -90,6 +92,7 @@ internal static class SelectInstruction
         {
             null => findRootEdges(),
             GiLeftJoin left => lookupFromKeys(),
+            GiRightJoin right => lookupToKeys(),
             GiFullJoin full => lookupNodeKeys(),
 
             _ => throw new UnreachableException()
@@ -127,6 +130,7 @@ internal static class SelectInstruction
         IEnumerable<string> getLastNodeResultKeys() => pContext.GetLastQueryResult().NotNull().Nodes.Select(x => x.Key);
         IEnumerable<GraphEdge> lookupNodeKeys() => pContext.TrxContext.Map.Edges.LookupByNodeKeyExpand(getLastNodeResultKeys());
         IEnumerable<GraphEdge> lookupFromKeys() => pContext.TrxContext.Map.Edges.LookupByFromKeyExpand(getLastNodeResultKeys());
+        IEnumerable<GraphEdge> lookupToKeys() => pContext.TrxContext.Map.Edges.LookupByToKeyExpand(getLastNodeResultKeys());
     }
 
     private static async Task<Option> ReturnNames(GiReturnNames giReturnNames, QueryExecutionContext pContext)
