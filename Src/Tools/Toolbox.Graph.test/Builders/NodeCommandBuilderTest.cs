@@ -120,6 +120,37 @@ public class NodeCommandBuilderTest
     }
 
     [Fact]
+    public void ForeignKeyNotTag()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddForeignKey("t1")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 foreignkey t1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void ForeignKey()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("t1", "value1")
+            .AddTag("t2", "value2")
+            .AddForeignKey("t1")
+            .AddForeignKey("t2")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set t1=value1,t2=value2 foreignkey t1, t2 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
     public void Data()
     {
         var graphQuery = new NodeCommandBuilder()

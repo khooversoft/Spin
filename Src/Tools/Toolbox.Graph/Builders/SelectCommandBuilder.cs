@@ -10,6 +10,7 @@ public class SelectCommandBuilder
 
     public SelectCommandBuilder AddSearch(ISelectSearch search) => this.Action(_ => Searches.Add(search.NotNull()));
     public SelectCommandBuilder AddLeftJoin() => this.Action(_ => Searches.Add(new LeftJoinSearch()));
+    public SelectCommandBuilder AddRightJoin() => this.Action(_ => Searches.Add(new RightJoinSearch()));
     public SelectCommandBuilder AddFullJoin() => this.Action(_ => Searches.Add(new FullJoinSearch()));
 
     // Add wildcard (*) or [*}

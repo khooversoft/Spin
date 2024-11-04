@@ -282,5 +282,34 @@ public class NodeForeignKeyTests
                 x.Edges.Count.Should().Be(0);
             });
         });
+
+        (await testClient.ExecuteBatch("set node key=node8 set email=email:name@domain.com;", NullScopeContext.Default)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+        });
+
+        copyMap.Meter.Node.GetCount().Should().Be(9);
+        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(2);
+        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        copyMap.Meter.Edge.GetCount().Should().Be(6);
+        copyMap.Meter.Edge.GetAdded().Should().Be(7);
+        copyMap.Meter.Edge.GetDeleted().Should().Be(1);
+
+        (await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Count.Should().Be(0);
+                x.Edges.Action(y =>
+                {
+                    y.Count.Should().Be(1);
+                    y[0].FromKey.Should().Be("node8");
+                    y[0].ToKey.Should().Be("email:name@domain.com");
+                    y[0].EdgeType.Should().Be("email");
+                });
+            });
+        });
     }
 }

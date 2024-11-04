@@ -18,7 +18,21 @@ public class SelectNodeAndEdgeTests
     }
 
     [Fact]
-    public void SelectNodeToEdgeFromKey()
+    public void SelectNodeToEdgeToNode()
+    {
+        var graphQuery = new SelectCommandBuilder()
+            .AddNodeSearch(x => x.SetNodeKey("nodeKey1"))
+            .AddLeftJoin()
+            .AddEdgeSearch()
+            .AddRightJoin()
+            .AddNodeSearch()
+            .Build();
+
+        Verify(graphQuery, "select (key=nodeKey1) -> [*] <- (*) ;");
+    }
+
+    [Fact]
+    public void SelectNodeToEdgeFromKeyLeftJoin()
     {
         var graphQuery = new SelectCommandBuilder()
             .AddNodeSearch(x => x.SetNodeKey("nodeKey1"))
@@ -27,6 +41,18 @@ public class SelectNodeAndEdgeTests
             .Build();
 
         Verify(graphQuery, "select (key=nodeKey1) -> [from=fromKey1] ;");
+    }
+
+    [Fact]
+    public void SelectNodeToEdgeFromKeyRightJoin()
+    {
+        var graphQuery = new SelectCommandBuilder()
+            .AddNodeSearch(x => x.SetNodeKey("nodeKey1"))
+            .AddRightJoin()
+            .AddEdgeSearch(x => x.SetFromKey("fromKey1"))
+            .Build();
+
+        Verify(graphQuery, "select (key=nodeKey1) <- [from=fromKey1] ;");
     }
 
     [Fact]
