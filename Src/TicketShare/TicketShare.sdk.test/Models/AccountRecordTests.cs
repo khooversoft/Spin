@@ -11,12 +11,12 @@ public class AccountRecordTests
     [Fact]
     public async Task FullLifeCycle()
     {
-        var testHost = new TestHost();
+        var testHost = new TicketShareTestHost();
         var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
         var context = testHost.GetScopeContext<AccountRecordTests>();
 
         var accountRecord = TestTool.Create("user1@domain.com");
-        await TestTool.AddIdentityUser(accountRecord.PrincipalId, testHost, context);
+        await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);
 
         var result = await client.Add(accountRecord, context);
         result.IsOk().Should().BeTrue(result.ToString());

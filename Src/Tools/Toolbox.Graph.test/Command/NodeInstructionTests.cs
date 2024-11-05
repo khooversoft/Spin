@@ -30,7 +30,7 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
+        var newMapOption = await testClient.Execute(query, NullScopeContext.Default);
         newMapOption.IsError().Should().BeTrue();
 
         copyMap.Nodes.Count.Should().Be(7);
@@ -55,10 +55,9 @@ public class NodeInstructionTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8;", NullScopeContext.Default);
+        var newMapOption = await testClient.Execute("add node key=node8;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
-        QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
         compareMap.Count.Should().Be(1);
@@ -67,8 +66,6 @@ public class NodeInstructionTests
             x.Key.Should().Be("node8");
             x.Tags.Count.Should().Be(0);
         });
-
-        commandResults.Items.Count.Should().Be(1);
     }
 
     [Fact]

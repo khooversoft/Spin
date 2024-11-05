@@ -11,7 +11,7 @@ namespace TicketShare.sdk;
 public class TicketGroupClient
 {
     private const string _nodeTag = "ticketGroup";
-    private const string _edgeType = "ticketGroup";
+    private const string _edgeType = "ticketGroup-own";
     private readonly IGraphClient _graphClient;
     private readonly ILogger<AccountClient> _logger;
 
@@ -35,26 +35,41 @@ public class TicketGroupClient
         return await _graphClient.GetNode<TicketGroupRecord>(ToTicketGroupKey(ticketGroupId), context);
     }
 
-    //public async Task<Option<IReadOnlyList<TicketGroupRecord>>> GetByMember(string principalId, ScopeContext context)
-    //{
-    //    principalId.NotEmpty();
+    public async Task<Option<IReadOnlyList<TicketGroupRecord>>> GetByOwner(string principalId, ScopeContext context)
+    {
+        principalId.NotEmpty();
 
-    //    var cmd = new SelectCommandBuilder()
-    //        .AddEdgeSearch(x => x.SetFromKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_edgeType))
-    //        .AddLeftJoin()
-    //        .AddNodeSearch(x => x.AddTag(_nodeTag))
-    //        .AddDataName("entity")
-    //        .Build();
+        var cmd = new SelectCommandBuilder()
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType("owns"))
+            .AddRightJoin()
+            .AddNodeSearch(x => x.AddTag(_nodeTag))
+            .AddDataName("entity")
+            .Build();
 
-    //    var resultOption = await _graphClient.Execute(cmd, context);
-    //    if (resultOption.IsError())
-    //    {
-    //        return resultOption.LogStatus(context, "principalId={principalId}", [principalId]).ToOptionStatus<IReadOnlyList<TicketGroupRecord>>();
+        var resultOption = await _graphClient.Execute(cmd, context);
+        if (resultOption.IsError()) resultOption.LogStatus(context, cmd).ToOptionStatus<IReadOnlyList<TicketGroupRecord>>();
 
-    //        var list = resultOption.Return().DataLinkToObjects<TicketGroupRecord>("entity");
-    //        return list.ToOption();
-    //    }
-    //}
+        var list = resultOption.Return().DataLinkToObjects<TicketGroupRecord>("entity");
+        return list.ToOption();
+    }
+
+    public async Task<Option<IReadOnlyList<TicketGroupRecord>>> GetByMember(string principalId, ScopeContext context)
+    {
+        principalId.NotEmpty();
+
+        var cmd = new SelectCommandBuilder()
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_edgeType))
+            .AddRightJoin()
+            .AddNodeSearch(x => x.AddTag(_nodeTag))
+            .AddDataName("entity")
+            .Build();
+
+        var resultOption = await _graphClient.Execute(cmd, context);
+        if (resultOption.IsError()) resultOption.LogStatus(context, cmd).ToOptionStatus<IReadOnlyList<TicketGroupRecord>>();
+
+        var list = resultOption.Return().DataLinkToObjects<TicketGroupRecord>("entity");
+        return list.ToOption();
+    }
 
     public Task<Option> Set(TicketGroupRecord ticketGroupRecord, ScopeContext context) => AddOrSet(true, ticketGroupRecord, context);
 
@@ -65,31 +80,20 @@ public class TicketGroupClient
 
         string nodeKey = ToTicketGroupKey(ticketGroupRecord.TicketGroupId);
 
-        var seq = new Sequence<string>();
+        var roles = ticketGroupRecord.Roles
+            .Select(x => x.PrincipalId)
+            .Append(ticketGroupRecord.OwnerPrincipalId)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
-        seq += new NodeCommandBuilder()
+        var cmd = new NodeCommandBuilder()
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
+            .AddForeignKeyTag("owns", IdentityClient.ToUserKey(ticketGroupRecord.OwnerPrincipalId))
+            .Action(x => roles.ForEach(y => x.AddForeignKeyTag(_edgeType, IdentityClient.ToUserKey(y))))
             .AddTag(_nodeTag)
             .AddData("entity", ticketGroupRecord)
             .Build();
-
-        seq += new EdgeCommandBuilder()
-            .UseSet()
-            .SetFromKey(IdentityClient.ToUserKey(ticketGroupRecord.OwnerPrincipalId))
-            .SetToKey(nodeKey)
-            .SetEdgeType(_edgeType)
-            .Build();
-
-        seq += ticketGroupRecord.Roles.Select(x => new EdgeCommandBuilder()
-            .UseSet()
-            .SetFromKey(IdentityClient.ToUserKey(x.PrincipalId))
-            .SetToKey(nodeKey)
-            .SetEdgeType(_edgeType)
-            .Build()
-            );
-
-        string cmd = seq.Join(Environment.NewLine);
 
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())
@@ -100,5 +104,6 @@ public class TicketGroupClient
 
         return result.ToOptionStatus();
     }
+
     private static string ToTicketGroupKey(string ticketGroupId) => $"ticketGroup:{ticketGroupId.NotEmpty().ToLowerInvariant()}";
 }

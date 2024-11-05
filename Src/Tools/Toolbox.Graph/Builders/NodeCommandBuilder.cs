@@ -8,6 +8,10 @@ public class NodeCommandBuilder
 {
     private TagCollection _tagCollection = new TagCollection();
 
+    public NodeCommandBuilder() { }
+    public NodeCommandBuilder(string nodeKey) => NodeKey = nodeKey.NotEmpty();
+    public NodeCommandBuilder(string nodeKey, bool set) => (Set, NodeKey) = (set, nodeKey.NotEmpty());
+
     public bool Set { get; set; }
     public string NodeKey { get; private set; } = null!;
     public IDictionary<string, string?> Tags => _tagCollection.Tags;

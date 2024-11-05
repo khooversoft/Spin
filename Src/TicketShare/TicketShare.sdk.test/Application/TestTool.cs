@@ -7,23 +7,23 @@ namespace TicketShare.sdk.Applications;
 
 internal static class TestTool
 {
-    public static async Task AddIdentityUser(string principalId, TestHost testHost, ScopeContext context)
+    public static async Task AddIdentityUser(string principalId, string userName, TicketShareTestHost testHost, ScopeContext context)
     {
         var client = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
 
         PrincipalIdentity user = new PrincipalIdentity
         {
             PrincipalId = principalId,
-            Email = "email@domain.com",
-            UserName = "user1",
-            NormalizedUserName = "user1",
+            Email = "em-" + principalId,
+            UserName = userName,
+            NormalizedUserName = userName.ToLowerInvariant(),
         };
 
         var result = await client.Set(user, context);
         result.IsOk().Should().BeTrue(result.ToString());
     }
 
-    public static async Task AddAccount(AccountRecord accountRecord, TestHost testHost, ScopeContext context)
+    public static async Task AddAccount(AccountRecord accountRecord, TicketShareTestHost testHost, ScopeContext context)
     {
         var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
 

@@ -8,13 +8,13 @@ namespace Toolbox.Graph;
 
 public static class QueryExecution
 {
-    public static async Task<Option<QueryBatchResult>> Execute(IGraphHost graphContext, string graphQuery, ScopeContext context)
+    public static async Task<Option<QueryBatchResult>> Execute(IGraphHost graphHost, string graphQuery, ScopeContext context)
     {
-        var trxContextOption = await graphContext.TransactionLog.StartTransaction(context);
+        var trxContextOption = await graphHost.TransactionLog.StartTransaction(context);
         if (trxContextOption.IsError()) return trxContextOption.ToOptionStatus<QueryBatchResult>();
         var trxContext = trxContextOption.Return();
 
-        var graphTrxContext = new GraphTrxContext(graphContext, trxContext, context);
+        var graphTrxContext = new GraphTrxContext(graphHost, trxContext, context);
 
         var pContextOption = ParseQuery(graphQuery, graphTrxContext);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
@@ -70,6 +70,8 @@ public static class QueryExecution
                     return pContext.BuildQueryResult();
                 }
             }
+
+            if (write) await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
 
             await pContext.TrxContext.LogicalTrx.CommitTransaction();
             return pContext.BuildQueryResult();

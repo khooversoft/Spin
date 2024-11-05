@@ -41,6 +41,7 @@ public sealed record TicketGroupRecord
         .RuleForEach(x => x.Roles).Validate(RoleRecord.Validator)
         .RuleForEach(x => x.Seats).Validate(SeatRecord.Validator)
         .RuleForEach(x => x.ChangeLogs).Validate(ChangeLog.Validator)
+        .RuleForEach(x => x.Proposals.Values).Validate(ProposalRecord.Validator)
         .Build();
 }
 

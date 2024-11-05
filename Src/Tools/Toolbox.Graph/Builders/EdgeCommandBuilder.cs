@@ -8,6 +8,14 @@ public class EdgeCommandBuilder
 {
     private TagCollection _tagCollection = new TagCollection();
 
+    public EdgeCommandBuilder() { }
+    public EdgeCommandBuilder(string fromKey, string toKey, string edgeType)
+    {
+        FromKey = fromKey.NotEmpty();
+        ToKey = toKey.NotEmpty();
+        EdgeType = edgeType.NotEmpty();
+    }
+
     public bool Set { get; set; }
     public string FromKey { get; private set; } = null!;
     public string ToKey { get; private set; } = null!;

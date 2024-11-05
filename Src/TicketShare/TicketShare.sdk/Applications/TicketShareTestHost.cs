@@ -1,21 +1,17 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Graph;
-using Toolbox.Identity;
+﻿using Toolbox.Graph;
 using Toolbox.Types;
 
-namespace TicketShare.sdk.Applications;
+namespace TicketShare.sdk;
 
-public class TestHost
+public class TicketShareTestHost
 {
     private GraphTestClient _testClient;
 
-    public TestHost()
+    public TicketShareTestHost()
     {
         _testClient = GraphTestStartup.CreateGraphTestHost(null, service =>
         {
-            service.AddSingleton<IdentityClient>();
-            service.AddSingleton<AccountClient>();
-            service.AddSingleton<TicketGroupClient>();
+            service.AddTicketShare();
         });
     }
 

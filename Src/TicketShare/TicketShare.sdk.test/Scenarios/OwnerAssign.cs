@@ -38,20 +38,21 @@ public class OwnerAssign
     [Fact]
     public async Task OwnerAssignUserConfirm()
     {
-        var testHost = new TestHost();
+        var testHost = new TicketShareTestHost();
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
         var context = testHost.GetScopeContext<OwnerAssign>();
 
         var accountRecord = TestTool.Create(_principalId);
-        await TestTool.AddIdentityUser(accountRecord.PrincipalId, testHost, context);
+        await TestTool.AddIdentityUser(accountRecord.PrincipalId, "samUser", testHost, context);
+        await TestTool.AddIdentityUser(_friend1, "friend-user1", testHost, context);
+        await TestTool.AddIdentityUser(_friend2, "friend-user2", testHost, context);
         await TestTool.AddAccount(accountRecord, testHost, context);
         await CreateGroup(testHost, context);
         await AddProposal(testHost, context);
 
-
     }
 
-    private async Task<TicketGroupRecord> CreateGroup(TestHost testHost, ScopeContext context)
+    private async Task<TicketGroupRecord> CreateGroup(TicketShareTestHost testHost, ScopeContext context)
     {
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
 
@@ -75,7 +76,7 @@ public class OwnerAssign
         return ticketGroup;
     }
 
-    private async Task AddProposal(TestHost testHost, ScopeContext context)
+    private async Task AddProposal(TicketShareTestHost testHost, ScopeContext context)
     {
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
 
@@ -103,7 +104,7 @@ public class OwnerAssign
         write.IsOk().Should().BeTrue();
     }
 
-    public async Task AcceptProposal(TestHost testHost, ScopeContext context)
+    public async Task AcceptProposal(TicketShareTestHost testHost, ScopeContext context)
     {
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
 

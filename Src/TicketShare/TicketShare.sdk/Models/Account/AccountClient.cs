@@ -51,13 +51,6 @@ public class AccountClient
             .AddData("entity", accountRecord)
             .Build();
 
-        seq += new EdgeCommandBuilder()
-            .UseSet()
-            .SetFromKey(IdentityClient.ToUserKey(accountRecord.PrincipalId))
-            .SetToKey(nodeKey)
-            .SetEdgeType("owns")
-            .Build();
-
         string cmd = seq.Join(Environment.NewLine);
 
         var result = await _graphClient.Execute(cmd, context);

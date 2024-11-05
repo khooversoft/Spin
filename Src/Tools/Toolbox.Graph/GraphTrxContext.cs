@@ -7,29 +7,33 @@ namespace Toolbox.Graph;
 
 public interface IGraphTrxContext
 {
-    GraphMap Map { get; }
-    IFileStore FileStore { get; }
-    ChangeLog ChangeLog { get; }
+    Task<Option> CheckpointMap(ScopeContext context);
     ScopeContext Context { get; }
+    ChangeLog ChangeLog { get; }
+    IFileStore FileStore { get; }
     ILogicalTrx LogicalTrx { get; }
+    Task<Option> LoadMap(ScopeContext context);
+    GraphMap Map { get; }
 }
 
 
 public class GraphTrxContext : IGraphTrxContext
 {
-    private readonly IGraphHost _graphContext;
+    private readonly IGraphHost _graphHost;
 
-    public GraphTrxContext(IGraphHost graphContext, ILogicalTrx logicalTrx, ScopeContext context)
+    public GraphTrxContext(IGraphHost grapHost, ILogicalTrx logicalTrx, ScopeContext context)
     {
-        _graphContext = graphContext.NotNull();
-        LogicalTrx = logicalTrx;
+        _graphHost = grapHost.NotNull();
+        LogicalTrx = logicalTrx.NotNull();
         Context = context;
         ChangeLog = new ChangeLog(this);
     }
 
-    public GraphMap Map => _graphContext.Map;
-    public IFileStore FileStore => _graphContext.FileStore;
-    public ChangeLog ChangeLog { get; }
+    public Task<Option> CheckpointMap(ScopeContext context) => _graphHost.CheckpointMap(context);
     public ScopeContext Context { get; }
+    public ChangeLog ChangeLog { get; }
+    public IFileStore FileStore => _graphHost.FileStore;
     public ILogicalTrx LogicalTrx { get; }
+    public Task<Option> LoadMap(ScopeContext context) => _graphHost.LoadMap(context);
+    public GraphMap Map => _graphHost.Map;
 }
