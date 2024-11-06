@@ -17,7 +17,7 @@ public class ChangeLogTests
         var p1 = new ChangeLog
         {
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
             OldValue = "oldValue1",
             NewValue = "newValue",
@@ -38,7 +38,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
             OldValue = "oldValue1",
             NewValue = "newValue",
@@ -48,7 +48,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
             OldValue = "oldValue1",
             NewValue = "newValue",
@@ -66,14 +66,14 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
         };
 
         var p2 = new ChangeLog
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
         };
 
         (p1 == p2).Should().BeTrue();
@@ -89,7 +89,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
         };
 
@@ -97,7 +97,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
         };
 
@@ -113,7 +113,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
             OldValue = "oldValue1",
             NewValue = "newValue",
@@ -123,7 +123,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc2",
+            SeatId = "desc2",
             PropertyName = "propertyName1",
             OldValue = "oldValue1",
             NewValue = "newValue",
@@ -141,7 +141,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
             OldValue = "oldValue1",
             NewValue = "newValue",
@@ -151,7 +151,7 @@ public class ChangeLogTests
         {
             Date = dt,
             ChangedByPrincipalId = "key1",
-            Description = "desc1",
+            SeatId = "desc1",
             PropertyName = "propertyName1",
             NewValue = "newValue",
         };

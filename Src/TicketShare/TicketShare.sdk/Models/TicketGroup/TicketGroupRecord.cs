@@ -57,4 +57,28 @@ public static class TicketCollectionRecordTool
     }
 
     public static string ToTicketGroupKey(string id) => $"ticketGroup:{id.NotEmpty().ToLowerInvariant()}";
+
+    public static bool CanAcceptProposal(this TicketGroupRecord subject, string principalId, ScopeContext context)
+    {
+        subject.NotNull();
+        principalId.NotEmpty();
+
+        bool access = subject switch
+        {
+            var v when v.OwnerPrincipalId == principalId => true,
+            var v when v.Roles.Any(x => x.PrincipalId == principalId && (x.MemberRole == RoleType.Owner || x.MemberRole == RoleType.Contributor)) => true,
+            _ => false,
+        };
+
+        if (!access)
+        {
+            context.LogError(
+                "PrincipalId={principalId} does not have access to accept proposals in ticketGroupId={ticketGroupId}",
+                principalId,
+                subject.TicketGroupId
+                );
+        }
+
+        return access;
+    }
 }

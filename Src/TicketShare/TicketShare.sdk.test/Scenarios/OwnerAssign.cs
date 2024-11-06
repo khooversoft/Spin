@@ -1,8 +1,8 @@
-﻿using System.Collections.Frozen;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Scenarios;
@@ -29,10 +29,10 @@ public class OwnerAssign
         ];
 
     private readonly SeatRecord[] _seats = [
-        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateTime(2024, 1, 1) },
-        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateTime(2024, 1, 1) },
-        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateTime(2024, 1, 10) },
-        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateTime(2024, 1, 10) },
+        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateOnly(2024, 1, 1) },
+        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateOnly(2024, 1, 1) },
+        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateOnly(2024, 1, 10) },
+        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateOnly(2024, 1, 10) },
     ];
 
     [Fact]
@@ -47,9 +47,28 @@ public class OwnerAssign
         await TestTool.AddIdentityUser(_friend1, "friend-user1", testHost, context);
         await TestTool.AddIdentityUser(_friend2, "friend-user2", testHost, context);
         await TestTool.AddAccount(accountRecord, testHost, context);
-        await CreateGroup(testHost, context);
-        await AddProposal(testHost, context);
+        var ticketGroup = await CreateGroup(testHost, context);
+        var proposalRecord = await AddProposal(testHost, context);
 
+        await AcceptProposal(ticketGroup.TicketGroupId, proposalRecord.ProposalId, _friend1, testHost, context);
+    }
+
+    [Fact]
+    public async Task OwnerAssignUserRejects()
+    {
+        var testHost = new TicketShareTestHost();
+        var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
+        var context = testHost.GetScopeContext<OwnerAssign>();
+
+        var accountRecord = TestTool.Create(_principalId);
+        await TestTool.AddIdentityUser(accountRecord.PrincipalId, "samUser", testHost, context);
+        await TestTool.AddIdentityUser(_friend1, "friend-user1", testHost, context);
+        await TestTool.AddIdentityUser(_friend2, "friend-user2", testHost, context);
+        await TestTool.AddAccount(accountRecord, testHost, context);
+        var ticketGroup = await CreateGroup(testHost, context);
+        var proposalRecord = await AddProposal(testHost, context);
+
+        await RejectProposal(ticketGroup.TicketGroupId, proposalRecord.ProposalId, _principalId, testHost, context);
     }
 
     private async Task<TicketGroupRecord> CreateGroup(TicketShareTestHost testHost, ScopeContext context)
@@ -76,13 +95,14 @@ public class OwnerAssign
         return ticketGroup;
     }
 
-    private async Task AddProposal(TicketShareTestHost testHost, ScopeContext context)
+    private async Task<ProposalRecord> AddProposal(TicketShareTestHost testHost, ScopeContext context)
     {
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
 
         var proposal = new ProposalRecord
         {
             SeatId = "sec1-row1-seat1",
+            SeatDate = new DateOnly(2024, 1, 1),
             Proposed = new StateDetail
             {
                 Date = DateTime.UtcNow,
@@ -90,25 +110,42 @@ public class OwnerAssign
             }
         };
 
-        var ticketGroupOption = await client.Get(_ticketGroupId, context);
-        ticketGroupOption.IsOk().Should().BeTrue();
-
-        var ticketGroup = ticketGroupOption.Return();
-
-        ticketGroup = ticketGroup with
-        {
-            Proposals = ticketGroup.Proposals.Values.Append(proposal).ToFrozenDictionary(x => x.ProposalId, x => x),
-        };
-
-        var write = await client.Set(ticketGroup, context);
-        write.IsOk().Should().BeTrue();
+        var writeOption = await client.Proposal.Add(_ticketGroupId, proposal, context);
+        writeOption.IsOk().Should().BeTrue(writeOption.ToString());
+        return proposal;
     }
 
-    public async Task AcceptProposal(TicketShareTestHost testHost, ScopeContext context)
+    private async Task AcceptProposal(string ticketGroupId, string proposalId, string principalId, TicketShareTestHost testHost, ScopeContext context)
     {
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
 
-        var ticketGroupOption = await client.Get(_ticketGroupId, context);
-        ticketGroupOption.IsOk().Should().BeTrue();
+        var acceptOption = await client.Proposal.Accept(ticketGroupId, proposalId, principalId, context);
+        acceptOption.IsOk().Should().BeTrue(acceptOption.ToString());
+
+        var ticketGroupOption = await client.Get(ticketGroupId, context);
+        ticketGroupOption.IsOk().Should().BeTrue(ticketGroupOption.ToString());
+
+        var ticketGroup = ticketGroupOption.Return();
+        ticketGroup.ChangeLogs.Count.Should().Be(1);
+        ticketGroup.Proposals.TryGetValue(proposalId, out var proposalRecord).Should().BeTrue();
+        proposalRecord.NotNull().Accepted.Should().NotBeNull();
+        proposalRecord.Rejected.Should().BeNull();
+    }
+
+    private async Task RejectProposal(string ticketGroupId, string proposalId, string principalId, TicketShareTestHost testHost, ScopeContext context)
+    {
+        var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
+
+        var acceptOption = await client.Proposal.Reject(ticketGroupId, proposalId, principalId, context);
+        acceptOption.IsOk().Should().BeTrue(acceptOption.ToString());
+
+        var ticketGroupOption = await client.Get(ticketGroupId, context);
+        ticketGroupOption.IsOk().Should().BeTrue(ticketGroupOption.ToString());
+
+        var ticketGroup = ticketGroupOption.Return();
+        ticketGroup.ChangeLogs.Count.Should().Be(1);
+        ticketGroup.Proposals.TryGetValue(proposalId, out var proposalRecord).Should().BeTrue();
+        proposalRecord.NotNull().Accepted.Should().BeNull();
+        proposalRecord.Rejected.Should().NotBeNull();
     }
 }

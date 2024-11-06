@@ -8,8 +8,7 @@ public sealed record ChangeLog : IEquatable<ChangeLog>
 {
     public DateTime Date { get; init; } = DateTime.UtcNow;
     public string ChangedByPrincipalId { get; init; } = null!;
-    public string? ApprovedByPrincipalId { get; init; }
-    public string Description { get; init; } = null!;
+    public string SeatId { get; init; } = null!;
     public string? PropertyName { get; init; }
     public string? OldValue { get; init; }
     public string? NewValue { get; init; }
@@ -18,17 +17,16 @@ public sealed record ChangeLog : IEquatable<ChangeLog>
         other != null &&
         Date == other.Date &&
         ChangedByPrincipalId == other.ChangedByPrincipalId &&
-        ApprovedByPrincipalId == other.ApprovedByPrincipalId &&
-        Description.Equals(other.Description) &&
+        SeatId == other.SeatId &&
         PropertyName.EqualsIgnoreCase(other.PropertyName) &&
         OldValue.EqualsIgnoreCase(other.OldValue) &&
         NewValue.EqualsIgnoreCase(other.NewValue);
 
-    public override int GetHashCode() => HashCode.Combine(Date, ChangedByPrincipalId, Description);
+    public override int GetHashCode() => HashCode.Combine(Date, ChangedByPrincipalId, SeatId);
 
     public static IValidator<ChangeLog> Validator { get; } = new Validator<ChangeLog>()
         .RuleFor(x => x.Date).ValidDateTime()
-        .RuleFor(x => x.Description).NotEmpty()
+        .RuleFor(x => x.SeatId).NotEmpty()
         .RuleFor(x => x.ChangedByPrincipalId).NotEmpty()
         .Build();
 }

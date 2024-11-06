@@ -14,30 +14,32 @@ public sealed record ProposalRecord
 {
     public string ProposalId { get; init; } = Guid.NewGuid().ToString();
     public string SeatId { get; init; } = null!;
+    public DateOnly SeatDate { get; init; }
     public StateDetail Proposed { get; init; } = null!;
-    public StateDetail? Applied { get; init; }
+    public StateDetail? Accepted { get; init; }
     public StateDetail? Rejected { get; init; }
-    public StateDetail? Closed { get; init; }
-    public ProposalResponse? Resolution { get; init; }
 
     public bool Equals(ProposalRecord? obj)
     {
         var state = obj is ProposalRecord subject &&
             ProposalId == subject.ProposalId &&
+            SeatId == subject.SeatId &&
+            SeatDate == subject.SeatDate &&
             Proposed == subject.Proposed &&
-            Applied == subject.Applied &&
-            Rejected == subject.Rejected &&
-            Closed == subject.Closed &&
-            Resolution == subject.Resolution;
+            Accepted == subject.Accepted &&
+            Rejected == subject.Rejected;
 
         return true;
     }
 
-    public override int GetHashCode() => HashCode.Combine(ProposalId, SeatId, Proposed, Applied, Rejected, Closed, Resolution);
+    public override int GetHashCode() => HashCode.Combine(ProposalId, SeatId, SeatDate, Proposed, Accepted, Rejected);
+
+    public bool IsOpen() => Accepted == null && Rejected == null;
 
     public static IValidator<ProposalRecord> Validator { get; } = new Validator<ProposalRecord>()
         .RuleFor(x => x.ProposalId).NotEmpty()
         .RuleFor(x => x.SeatId).NotEmpty()
+        .RuleFor(x => x.SeatDate).ValidDateOnly()
         .RuleFor(x => x.Proposed).NotNull()
         .Build();
 }
