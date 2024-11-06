@@ -50,7 +50,7 @@ public static class DataETagExtensions
         return result.IsOk();
     }
 
-    public static DataETag ToDataETag<T>(this T value) where T : class
+    public static DataETag ToDataETag<T>(this T value, string? currentETag = null) where T : class
     {
         var bytes = value switch
         {
@@ -60,7 +60,7 @@ public static class DataETagExtensions
             var v => v.ToJson().ToBytes(),
         };
 
-        var hash = bytes.ToHexHash();
+        var hash = currentETag ?? bytes.ToHexHash();
         return new DataETag(bytes, hash);
     }
 

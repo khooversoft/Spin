@@ -75,6 +75,10 @@ public class GraphFileStoreCache : IGraphStore
         {
             _memoryCache.Set(path, data, _memoryOptions);
         }
+        else
+        {
+            _memoryCache.Remove(path);
+        }
 
         return result;
     }

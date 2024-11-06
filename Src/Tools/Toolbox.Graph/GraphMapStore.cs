@@ -11,6 +11,7 @@ internal class GraphMapStore
     private readonly IGraphHost _graphContext;
     private readonly string _mapDatabasePath;
     private readonly ILogger _logger;
+    private string? _currentETag;
 
     public GraphMapStore(IGraphHost graphContext, ILogger logger)
     {
@@ -30,10 +31,11 @@ internal class GraphMapStore
             context.LogInformation("Reading graph data file={mapDatabasePath}", _mapDatabasePath);
 
             var readMapSerializer = await _graphContext.FileStore.Get(_mapDatabasePath, context);
-            if (readMapSerializer.IsNotFound()) return await Set(context);
+            if (readMapSerializer.IsNotFound()) return await InternalSet(context);
 
             if (readMapSerializer.IsError()) return readMapSerializer.ToOptionStatus();
 
+            _currentETag = readMapSerializer.Return().ETag;
             GraphSerialization graphSerialization = readMapSerializer.Return().ToObject<GraphSerialization>();
             GraphMap newMap = graphSerialization.FromSerialization();
 
@@ -55,18 +57,29 @@ internal class GraphMapStore
         await _resetEvent.WaitAsync(context.CancellationToken);
         try
         {
-            context.LogInformation("Writing graph data file={mapDatabasePath}", _mapDatabasePath);
-
-            GraphSerialization graphSerialization = _graphContext.Map.ToSerialization();
-            var writeMapSerializer = await _graphContext.FileStore.Set(_mapDatabasePath, graphSerialization.ToDataETag(), context);
-            if (writeMapSerializer.IsError()) return writeMapSerializer.ToOptionStatus();
-
-            context.LogInformation("Write graph data file={mapDatabasePath}", _mapDatabasePath);
-            return StatusCode.OK;
+            var result = await InternalSet(context);
+            return result;
         }
         finally
         {
             _resetEvent.Release();
         }
+    }
+
+    private async Task<Option> InternalSet(ScopeContext context)
+    {
+        context = context.With(_logger);
+
+        context.LogInformation("Writing graph data file={mapDatabasePath}", _mapDatabasePath);
+
+        GraphSerialization graphSerialization = _graphContext.Map.ToSerialization();
+        var writeMapSerializer = await _graphContext.FileStore.Set(_mapDatabasePath, graphSerialization.ToDataETag(_currentETag), context);
+        if (writeMapSerializer.IsError()) return writeMapSerializer.ToOptionStatus();
+
+        string newETag = writeMapSerializer.Return();
+        Interlocked.Exchange(ref _currentETag, newETag);
+
+        context.LogInformation("Write graph data file={mapDatabasePath}, eTag={etag}", _mapDatabasePath, _currentETag);
+        return StatusCode.OK;
     }
 }

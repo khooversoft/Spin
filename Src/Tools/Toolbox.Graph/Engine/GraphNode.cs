@@ -58,7 +58,7 @@ public sealed record GraphNode : IGraphCommon
 
     public string Key { get; }
     public IReadOnlyDictionary<string, string?> Tags { get; }
-    public DateTime CreatedDate { get; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     public IReadOnlyDictionary<string, GraphLink> DataMap { get; } = FrozenDictionary<string, GraphLink>.Empty;
     public IReadOnlyCollection<string> Indexes { get; } = FrozenSet<string>.Empty;
     public IReadOnlyCollection<string> ForeignKeys { get; } = FrozenSet<string>.Empty;

@@ -47,7 +47,7 @@ public class GraphEngineLoadAndCheckpointTests
 
         var cmd = seq.Join(Environment.NewLine);
         var eResult = await engine.ExecuteBatch(cmd, context);
-        eResult.IsOk().Should().BeTrue();
+        eResult.IsOk().Should().BeTrue(eResult.ToString());
 
         (await fileStore.Get(GraphConstants.MapDatabasePath, context)).Action(x =>
         {
@@ -63,14 +63,31 @@ public class GraphEngineLoadAndCheckpointTests
             Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
 
             GraphMap readMap = readRec.FromSerialization();
-            var compareMap = GraphCommandTools.CompareMap(expectedMap, readMap);
+            var compareMap = GraphCommandTools.CompareMap(expectedMap, readMap, true);
 
-            compareMap.Count.Should().Be(9);
-            compareMap[0].Cast<GraphNode>().Action(x =>
-            {
-                x.Key.Should().Be("node-0");
-                x.Tags.Count.Should().Be(0);
-            });
+            compareMap.Count.Should().Be(0);
         });
+    }
+
+    [Fact]
+    public async Task LoadInitialDatabase()
+    {
+        const int count = 5;
+        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
+        IGraphHost host = engine.ServiceProvider.GetRequiredService<IGraphHost>();
+        IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
+        var context = engine.GetScopeContext<GraphEngineLoadAndCheckpointTests>();
+
+        var expectedMap = new GraphMap();
+        Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
+        Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
+
+        var dbJson = expectedMap.ToSerialization();
+        (await fileStore.Set(GraphConstants.MapDatabasePath, dbJson, context)).IsOk().Should().BeTrue();
+
+        (await host.LoadMap(context)).IsOk().Should().BeTrue();
+
+        var compareMap = GraphCommandTools.CompareMap(expectedMap, host.Map, true);
+        compareMap.Count.Should().Be(0);
     }
 }

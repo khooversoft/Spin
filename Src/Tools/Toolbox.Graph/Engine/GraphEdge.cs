@@ -55,7 +55,7 @@ public sealed record GraphEdge : IGraphCommon
     public string ToKey { get; }
     public string EdgeType { get; private init; }
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
-    public DateTime CreatedDate { get; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     [JsonIgnore] public string TagsString => Tags.ToTagsString();
 
     public bool Equals(GraphEdge? obj) => obj is GraphEdge subject &&

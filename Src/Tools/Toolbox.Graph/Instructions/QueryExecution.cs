@@ -10,6 +10,9 @@ public static class QueryExecution
 {
     public static async Task<Option<QueryBatchResult>> Execute(IGraphHost graphHost, string graphQuery, ScopeContext context)
     {
+        var runningState = (await graphHost.Run(context)).LogStatus(context, "Running graph host");
+        if (runningState.IsError()) return runningState.LogStatus(context, "Failed to start Graph Host").ToOptionStatus<QueryBatchResult>();
+
         var trxContextOption = await graphHost.TransactionLog.StartTransaction(context);
         if (trxContextOption.IsError()) return trxContextOption.ToOptionStatus<QueryBatchResult>();
         var trxContext = trxContextOption.Return();
@@ -71,7 +74,15 @@ public static class QueryExecution
                 }
             }
 
-            if (write) await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
+            if (write)
+            {
+                var writeOption = await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
+                if (writeOption.IsError())
+                {
+                    writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed");
+                    return (StatusCode.InternalServerError, "Checkpoint failed");
+                }
+            }
 
             await pContext.TrxContext.LogicalTrx.CommitTransaction();
             return pContext.BuildQueryResult();
