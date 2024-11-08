@@ -14,7 +14,7 @@ public class GraphLifecycleTest
         GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         Option<QueryBatchResult> addResult = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
-        addResult.IsOk().Should().BeTrue();
+        addResult.IsOk().Should().BeTrue(addResult.ToString());
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 

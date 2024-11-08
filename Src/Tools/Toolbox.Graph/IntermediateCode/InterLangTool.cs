@@ -113,7 +113,6 @@ public static class InterLangTool
         while (interContext.Cursor.TryPeekValue(out var nextValue))
         {
             if (IsGroupBreak(nextValue)) break;
-            //if (nextValue.Token.Value == ";") break;
 
             if (nextValue.MetaSyntaxName == "comma")
             {
@@ -142,12 +141,11 @@ public static class InterLangTool
 
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
-        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != "set") return (StatusCode.NotFound, "No 'set' or ';'");
+        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != "set") return (StatusCode.NotFound, "No 'set'");
 
         while (interContext.Cursor.TryPeekValue(out var nextValue))
         {
             if (IsGroupBreak(nextValue)) break;
-            //if (nextValue.Token.Value == ";") break;
 
             if (nextValue.MetaSyntaxName == "comma")
             {
@@ -176,18 +174,49 @@ public static class InterLangTool
         return (tags, data);
     }
 
+    internal static Option<Dictionary<string, string?>> GetForeignKeys(InterContext interContext)
+    {
+        Dictionary<string, string?> foreignKeys = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+
+        using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
+
+        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != "foreignkey") return (StatusCode.NotFound, "No 'foreignkey'");
+
+        while (interContext.Cursor.TryPeekValue(out var nextValue))
+        {
+            if (IsGroupBreak(nextValue)) break;
+
+            if (nextValue.MetaSyntaxName == "comma")
+            {
+                interContext.Cursor.MoveNext();
+                continue;
+            }
+
+            var kv = GetKeyValue(interContext, false);
+            if (kv.IsOk())
+            {
+                foreignKeys.Add(kv.Value.Key, kv.Value.Value);
+                continue;
+            }
+
+            return (StatusCode.BadRequest, $"Invalid set command");
+        }
+
+        scope.Cancel();
+        return foreignKeys;
+    }
+
     internal static Option<HashSet<string>> GetCommands(InterContext interContext, string commandToken)
     {
         HashSet<string> indexes = new(StringComparer.OrdinalIgnoreCase);
 
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
-        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != commandToken) return (StatusCode.NotFound, "No 'index' or ';'");
+        if (!interContext.Cursor.TryGetValue(out var setValue) || setValue.Token.Value != commandToken) return (StatusCode.NotFound, $"No 'index' or {commandToken}");
 
         while (interContext.Cursor.TryPeekValue(out var nextValue))
         {
             if (IsGroupBreak(nextValue)) break;
-            //if (nextValue.Token.Value == ";" || nextValue.Token.Value == "set") break;thanks
 
             if (nextValue.MetaSyntaxName == "comma")
             {

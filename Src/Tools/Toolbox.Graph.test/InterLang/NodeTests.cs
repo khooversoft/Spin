@@ -73,7 +73,7 @@ public class NodeTests : TestBase<NodeTests>
     }
 
     [Fact]
-    public void SetNode()
+    public void SetNodeWithTags()
     {
         var parse = _parser.Parse("set node key=k1 set t1, t2=v2;", _context);
         parse.Status.IsOk().Should().BeTrue();
@@ -343,8 +343,8 @@ public class NodeTests : TestBase<NodeTests>
                 {
                     ["t1"] = "v1",
                 },
-                ForeignKeys = new HashSet<string>(["t1"]) },
-            ];
+                ForeignKeys = "t1".ToTags()
+            }];
 
         var instructions = instructionsOption.Return();
         Enumerable.SequenceEqual(instructions, expected).Should().BeTrue();
@@ -370,8 +370,8 @@ public class NodeTests : TestBase<NodeTests>
                     ["t1"] = "v1",
                     ["t2"] = "v2",
                 },
-                ForeignKeys = new HashSet<string>(["t1", "t2"]) },
-            ];
+                ForeignKeys = "t1,t2".ToTags()
+            }];
 
         var instructions = instructionsOption.Return();
         Enumerable.SequenceEqual(instructions, expected).Should().BeTrue();

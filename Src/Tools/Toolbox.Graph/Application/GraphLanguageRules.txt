@@ -45,11 +45,10 @@ index-sym               = 'index' ;
 indexKey                = regex '^[a-zA-Z\-][a-zA-Z0-9\-\.]*$' ;
 indexes                 = [ index-sym, indexKey, { comma, indexKey } ];
 foreignkey-sym          = 'foreignkey' ;
-fkKey                   = regex '^[a-zA-Z\-][a-zA-Z0-9\-\.]*$' ;
-fk                      = [ foreignkey-sym, fkKey, { comma, fkKey } ];
 
 entity-data             = dataName, open-brace, base64, close-brace ;
 tag                     = tagKey, [ '=', tagValue ] ;
+fk                      = [ foreignkey-sym, tag, { comma, tag } ];
 set-data                = [ set-sym, ( entity-data | tag ), { comma, ( entity-data | tag ) } ] ;
 set-tags                = [ set-sym, tag, { comma, tag } ] ;
 return-data             = return-sym, dataName, { comma, dataName } ;

@@ -21,7 +21,7 @@ public class GraphNodeTests
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(0);
 
-        var n2 = new GraphNode(key, _emptyTags, n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, FrozenSet<string>.Empty);
+        var n2 = new GraphNode(key, _emptyTags, n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, _emptyTags);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -38,7 +38,7 @@ public class GraphNodeTests
         n1.Tags.Count.Should().Be(1);
         n1.Tags.ToTagsString().Should().Be("t1");
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, FrozenSet<string>.Empty);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, _emptyTags);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -55,7 +55,7 @@ public class GraphNodeTests
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
 
-        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, FrozenSet<string>.Empty);
+        var n2 = new GraphNode(key, tagsDict, n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, _emptyTags);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -66,12 +66,12 @@ public class GraphNodeTests
         string key = "key2";
         string tags = "t1, t2=v2";
 
-        var n1 = new GraphNode(key, tags.ToTags(), DateTime.UtcNow, _emptyData, FrozenSet<string>.Empty, FrozenSet<string>.Empty);
+        var n1 = new GraphNode(key, tags.ToTags(), DateTime.UtcNow, _emptyData, FrozenSet<string>.Empty, _emptyTags);
         n1.Key.Should().Be(key);
         n1.Tags.Count.Should().Be(2);
         n1.Tags.ToTagsString().Should().Be("t1,t2=v2");
 
-        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, FrozenSet<string>.Empty);
+        var n2 = new GraphNode(key, tags.ToTags(), n1.CreatedDate, _emptyData, FrozenSet<string>.Empty, _emptyTags);
 
         (n1 == n2).Should().BeTrue();
     }
@@ -123,7 +123,7 @@ public class GraphNodeTests
             createdDate: DateTime.UtcNow,
             dataMap: _emptyData,
             indexes: FrozenSet<string>.Empty,
-            foreignKeys: FrozenSet<string>.Empty
+            foreignKeys: _emptyTags
             );
 
         string json = node.ToJson();
@@ -141,7 +141,7 @@ public class GraphNodeTests
             createdDate: DateTime.UtcNow,
             dataMap: _emptyData,
             indexes: ["t1"],
-            foreignKeys: FrozenSet<string>.Empty
+            foreignKeys: _emptyTags
             );
 
         string json = node.ToJson();
@@ -159,7 +159,7 @@ public class GraphNodeTests
             createdDate: DateTime.UtcNow,
             dataMap: _emptyData,
             indexes: FrozenSet<string>.Empty,
-            foreignKeys: ["t1"]
+            foreignKeys: "t1".ToTags()
             );
 
         string json = node.ToJson();

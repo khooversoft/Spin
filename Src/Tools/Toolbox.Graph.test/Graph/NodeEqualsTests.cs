@@ -20,7 +20,7 @@ public class NodeEqualsTests
             createdDate: now,
             dataMap: _emptyData,
             indexes: ["t1"],
-            foreignKeys: ["t1"]
+            foreignKeys: "t1".ToTags()
             );
 
         var node2 = new GraphNode(
@@ -29,7 +29,7 @@ public class NodeEqualsTests
             createdDate: now,
             dataMap: _emptyData,
             indexes: ["t1"],
-            foreignKeys: ["t1"]
+            foreignKeys: "t1".ToTags()
             );
 
         (node1 == node2).Should().BeTrue();
@@ -47,7 +47,7 @@ public class NodeEqualsTests
             createdDate: now,
             dataMap: _emptyData,
             indexes: ["t1"],
-            foreignKeys: ["t1"]
+            foreignKeys: "t1".ToTags()
             );
 
         var node2 = new GraphNode(
@@ -56,7 +56,7 @@ public class NodeEqualsTests
             createdDate: now,
             dataMap: _emptyData,
             indexes: ["t2"],
-            foreignKeys: ["t1"]
+            foreignKeys: "t1".ToTags()
             );
 
         (node1 == node2).Should().BeFalse();
@@ -67,7 +67,7 @@ public class NodeEqualsTests
             createdDate: now,
             dataMap: _emptyData,
             indexes: ["t1"],
-            foreignKeys: ["t2"]
+            foreignKeys: "t2".ToTags()
             );
 
         (node1 == node3).Should().BeFalse();

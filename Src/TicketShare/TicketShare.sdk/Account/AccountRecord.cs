@@ -18,7 +18,7 @@ public sealed record AccountRecord
     public IReadOnlyList<ContactRecord> ContactItems { get; init; } = Array.Empty<ContactRecord>();
     public IReadOnlyList<AddressRecord> Address { get; init; } = Array.Empty<AddressRecord>();
     public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = Array.Empty<CalendarRecord>();
-    public IReadOnlyList<MessageRecord> Messages { get; init; } = Array.Empty<MessageRecord>();
+    public IReadOnlyList<MessageItemRecord> Messages { get; init; } = Array.Empty<MessageItemRecord>();
 
     public bool Equals(AccountRecord? obj) => obj is AccountRecord subject &&
         PrincipalId == subject.PrincipalId &&
@@ -36,7 +36,7 @@ public sealed record AccountRecord
         .RuleForEach(x => x.ContactItems).Validate(ContactRecord.Validator)
         .RuleForEach(x => x.Address).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
-        .RuleForEach(x => x.Messages).Validate(MessageRecord.Validator)
+        .RuleForEach(x => x.Messages).Validate(MessageItemRecord.Validator)
         .Build();
 }
 

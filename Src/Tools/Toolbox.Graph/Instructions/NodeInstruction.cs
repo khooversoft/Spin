@@ -37,7 +37,7 @@ internal static class NodeInstruction
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
         IReadOnlyDictionary<string, string?> tags = giNode.Tags.RemoveDeleteCommands();
-        IReadOnlyList<string> foreignKeys = giNode.ForeignKeys.RemoveDeleteCommands();
+        IReadOnlyDictionary<string, string?> foreignKeys = giNode.ForeignKeys.RemoveDeleteCommands();
 
         var graphNode = new GraphNode(
             giNode.Key,
@@ -93,7 +93,7 @@ internal static class NodeInstruction
         var dataMap = dataMapOption.Return().ToDictionary(x => x.Name, x => x);
 
         var tags = TagsTool.Merge(giNode.Tags, currentGraphNode.Tags);
-        var foreignKeys = giNode.ForeignKeys.MergeCommands(currentGraphNode.ForeignKeys);
+        var foreignKeys = TagsTool.Merge(giNode.ForeignKeys, currentGraphNode.ForeignKeys);
 
         var graphNode = new GraphNode(
             giNode.Key,
@@ -110,13 +110,18 @@ internal static class NodeInstruction
         var fkAdd = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fkAdd.IsError()) return fkAdd;
 
-        var fkRemove = RemoveForeignKeys(giNode.Key, foreignKeys, giNode.ForeignKeys.GetDeleteCommands(), tags, giNode.Tags.GetTagDeleteCommands(), pContext);
+        var fkRemove = RemoveForeignKeys(giNode.Key, foreignKeys, giNode.ForeignKeys.GetTagDeleteCommands(), tags, giNode.Tags.GetTagDeleteCommands(), pContext);
         if (fkRemove.IsError()) return fkRemove;
 
         return StatusCode.OK;
     }
 
-    private static Option AddForeignKeys(string fromKey, IReadOnlyList<string> foreignKeys, IReadOnlyDictionary<string, string?> tags, QueryExecutionContext pContext)
+    private static Option AddForeignKeys(
+        string fromKey,
+        IReadOnlyDictionary<string, string?> foreignKeys,
+        IReadOnlyDictionary<string, string?> tags,
+        QueryExecutionContext pContext
+        )
     {
         fromKey.NotEmpty();
         tags.NotNull();
@@ -126,11 +131,23 @@ internal static class NodeInstruction
         if (foreignKeys.Count == 0) return StatusCode.OK;
 
         // Valid tags based on foreignKey as edgeType
-        var fkTags = foreignKeys
-            .Join(tags, x => x, y => y.Key, (fk, t) => t, StringComparer.OrdinalIgnoreCase)
+        var fkTags = tags
             .Where(x => x.Value.IsNotEmpty())
+            .SelectMany(x => foreignKeys.Select(y => (y.Key, y.Value) switch
+            {
+                (string edgeType, null) when edgeType.EqualsIgnoreCase(x.Key) => (Key: edgeType, Value: x.Value),
+                (string edgeType, string matchTo) when x.Key.Like(matchTo) => (Key: edgeType, Value: x.Value.NotEmpty()),
+                _ => (Key: null!, Value: null!),
+            }))
+            .Where(x => x.Key.IsNotEmpty())
             .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
             .ToArray();
+
+        //var fkTags = foreignKeys
+        //    .Join(tags, x => x.Key, y => y.Key, (fk, t) => t, StringComparer.OrdinalIgnoreCase)
+        //    .Where(x => x.Value.IsNotEmpty())
+        //    .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
+        //    .ToArray();
 
         var missingEdges = fkTags
             .Where(x => x.Value.IsNotEmpty())
@@ -150,7 +167,7 @@ internal static class NodeInstruction
 
     private static Option RemoveForeignKeys(
         string fromKey,
-        IReadOnlyList<string> foreignKeys,
+        IReadOnlyDictionary<string, string?> foreignKeys,
         IReadOnlyList<string> removedForeignKeys,
         IReadOnlyDictionary<string, string?> tags,
         IReadOnlyList<string> removedTags,
@@ -162,13 +179,30 @@ internal static class NodeInstruction
         removedForeignKeys.NotNull();
         pContext.NotNull();
 
-        var removedEdgeTypes = removedForeignKeys.Concat(removedTags).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var fkTags = tags
+            .Where(x => x.Value.IsNotEmpty())
+            .SelectMany(x => foreignKeys.Select(y => (y.Key, y.Value) switch
+            {
+                (string edgeType, null) when edgeType.EqualsIgnoreCase(x.Key) => (Key: x.Key, ToKey: x.Value, EdgeType: edgeType),
+                (string edgeType, string matchTo) when x.Key.Like(matchTo) => (Key: x.Key, ToKey: x.Value.NotEmpty(), EdgeType: edgeType),
+                _ => (Key: null!, ToKey: null!, EdgeType: null!),
+            }))
+            .Where(x => x.Key.IsNotEmpty())
+            .ToArray();
+
+        var removedEdgeTypes = removedForeignKeys
+            .Concat(removedTags)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        removedEdgeTypes = removedEdgeTypes
+            .Concat(fkTags.Where(x => removedEdgeTypes.Contains(x.Key)).Select(x => x.EdgeType))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (removedEdgeTypes.Count == 0 && removedForeignKeys.Count == 0) return StatusCode.OK;
 
         var currentEdgesNotValid = pContext.TrxContext.Map.Edges
             .LookupByFromKey([fromKey])
-            .Where(x => removedEdgeTypes.Contains(x.EdgeType) || (isEdgeTypeValid(x.EdgeType) && isTagList(x.ToKey, x.EdgeType)))
+            .Where(x => removedEdgeTypes.Contains(x.EdgeType) || (isEdgeTypeValid(x.EdgeType) && isInTagList(x.ToKey, x.EdgeType)))
             .ToArray();
 
         var allStatus = currentEdgesNotValid
@@ -179,8 +213,8 @@ internal static class NodeInstruction
         pContext.TrxContext.Map.Meter.Node.ForeignKeyRemove(currentEdgesNotValid.Length > 0 && status.IsOk());
         return status;
 
-        bool isEdgeTypeValid(string edgeType) => foreignKeys.Contains(edgeType, StringComparer.OrdinalIgnoreCase);
-        bool isTagList(string toKey, string edgeType) => tags.TryGetValue(edgeType, out var value) && !value.EqualsIgnoreCase(toKey);
+        bool isEdgeTypeValid(string edgeType) => foreignKeys.ContainsKey(edgeType);
+        bool isInTagList(string toKey, string edgeType) => tags.TryGetValue(edgeType, out var value) && !value.EqualsIgnoreCase(toKey);
     }
 
     private static Option ScanOptions(IEnumerable<Option> options) => options.Aggregate(

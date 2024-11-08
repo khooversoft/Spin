@@ -17,7 +17,7 @@ public sealed record GraphNode : IGraphCommon
         Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
         Indexes = SplitValues(indexes);
-        ForeignKeys = SplitValues(foreignKeys);
+        ForeignKeys = TagsTool.Parse(foreignKeys).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
         IReadOnlyCollection<string> SplitValues(string? value) => value switch
         {
@@ -37,7 +37,7 @@ public sealed record GraphNode : IGraphCommon
         DateTime createdDate,
         IReadOnlyDictionary<string, GraphLink> dataMap,
         IReadOnlyCollection<string> indexes,
-        IReadOnlyCollection<string> foreignKeys
+        IReadOnlyDictionary<string, string?> foreignKeys
         )
     {
         Key = key.NotNull();
@@ -47,7 +47,7 @@ public sealed record GraphNode : IGraphCommon
         DataMap = dataMap?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, GraphLink>.Empty;
 
         Indexes = setCollection(indexes);
-        ForeignKeys = setCollection(foreignKeys);
+        ForeignKeys = foreignKeys?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
 
         IReadOnlyCollection<string> setCollection(IReadOnlyCollection<string> value) => value switch
         {
@@ -61,11 +61,11 @@ public sealed record GraphNode : IGraphCommon
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     public IReadOnlyDictionary<string, GraphLink> DataMap { get; } = FrozenDictionary<string, GraphLink>.Empty;
     public IReadOnlyCollection<string> Indexes { get; } = FrozenSet<string>.Empty;
-    public IReadOnlyCollection<string> ForeignKeys { get; } = FrozenSet<string>.Empty;
+    public IReadOnlyDictionary<string, string?> ForeignKeys { get; } = FrozenDictionary<string, string?>.Empty;
     [JsonIgnore] public string TagsString => Tags.ToTagsString();
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
     [JsonIgnore] public string IndexesString => Indexes.Join(',');
-    [JsonIgnore] public string ForeignKeysString => ForeignKeys.Join(',');
+    [JsonIgnore] public string ForeignKeysString => ForeignKeys.ToTagsString();
 
     public bool Equals(GraphNode? obj)
     {
@@ -88,7 +88,7 @@ public sealed record GraphNode : IGraphCommon
         .RuleFor(x => x.CreatedDate).ValidDateTime()
         .RuleFor(x => x.DataMap).NotNull().Must(x => x.All(y => y.Key.IsNotEmpty() && y.Value.Validate().IsOk()), _ => "Graph link does not validate")
         .RuleFor(x => x.Indexes).NotNull().Must(x => x.All(x => x.IsNotEmpty()), _ => "Indexed data key must not be empty")
-        .RuleFor(x => x.ForeignKeys).NotNull().Must(x => x.All(x => x.IsNotEmpty()), _ => "Foreign Keys must not be empty")
+        .RuleFor(x => x.ForeignKeys).NotNull()
         .Build();
 }
 

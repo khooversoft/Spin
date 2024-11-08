@@ -20,10 +20,13 @@ public static class GraphClientExtensions
             .AddDataName("entity")
             .Build();
 
-        var result = await graphClient.Execute(cmd, context);
-        if (result.IsError()) return result.LogStatus(context, "Failed to find nodeKey={nodeKey}", [nodeKey]).ToOptionStatus<T>();
+        var resultOption = await graphClient.Execute(cmd, context);
+        if (resultOption.IsError()) return resultOption.LogStatus(context, "Failed to find nodeKey={nodeKey}", [nodeKey]).ToOptionStatus<T>();
 
-        return result.Return().DataLinkToObject<T>("entity");
+        var result = resultOption.Return();
+        if (result.Nodes.Count == 0) return (StatusCode.NotFound, "Node not found");
+
+        return result.DataLinkToObject<T>("entity");
     }
 
     public static async Task<Option<T>> GetByTag<T>(this IGraphClient graphClient, string tag, ScopeContext context)
@@ -33,10 +36,13 @@ public static class GraphClientExtensions
             .AddDataName("entity")
             .Build();
 
-        var result = await graphClient.Execute(cmd, context);
-        if (result.IsError()) return result.LogStatus(context, "Failed to find by tag={tag}", [tag]).ToOptionStatus<T>();
+        var resultOption = await graphClient.Execute(cmd, context);
+        if (resultOption.IsError()) return resultOption.LogStatus(context, "Failed to find by tag={tag}", [tag]).ToOptionStatus<T>();
 
-        return result.Return().DataLinkToObject<T>("entity");
+        var result = resultOption.Return();
+        if (result.Nodes.Count == 0) return (StatusCode.NotFound, "Node not found");
+
+        return result.DataLinkToObject<T>("entity");
     }
 
     public static async Task<Option> DeleteNode(this IGraphClient graphClient, string nodeKey, ScopeContext context)

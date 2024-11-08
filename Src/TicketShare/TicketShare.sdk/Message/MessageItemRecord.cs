@@ -3,14 +3,17 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public record MessageRecord
+public record MessageItemRecord
 {
+    public string MessageId { get; init; } = Guid.NewGuid().ToString();
     public string FromPrincipalId { get; init; } = null!;
     public string ToPrincipalId { get; init; } = null!;
     public string Message { get; init; } = null!;
     public string? ProposalId { get; init; }
+    public DateTime? ReadDate { get; init; }
 
-    public static IValidator<MessageRecord> Validator { get; } = new Validator<MessageRecord>()
+    public static IValidator<MessageItemRecord> Validator { get; } = new Validator<MessageItemRecord>()
+        .RuleFor(x => x.MessageId).NotEmpty()
         .RuleFor(x => x.FromPrincipalId).NotEmpty()
         .RuleFor(x => x.ToPrincipalId).NotEmpty()
         .RuleFor(x => x.Message).NotEmpty()
@@ -19,9 +22,9 @@ public record MessageRecord
 
 public static class MessageRecordTool
 {
-    public static Option Validate(this MessageRecord subject) => MessageRecord.Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this MessageItemRecord subject) => MessageItemRecord.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this MessageRecord subject, out Option result)
+    public static bool Validate(this MessageItemRecord subject, out Option result)
     {
         result = subject.Validate();
         return result.IsOk();

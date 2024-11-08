@@ -15,7 +15,7 @@ public sealed record GiNode : IGraphInstruction
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public IReadOnlyDictionary<string, string> Data { get; init; } = FrozenDictionary<string, string>.Empty;
     public IReadOnlySet<string> Indexes { get; init; } = FrozenSet<string>.Empty;
-    public IReadOnlySet<string> ForeignKeys { get; init; } = FrozenSet<string>.Empty;
+    public IReadOnlyDictionary<string, string?> ForeignKeys { get; init; } = FrozenDictionary<string, string?>.Empty;
     public bool IfExist { get; init; }
 
     public IReadOnlyList<JournalEntry> CreateJournals()
@@ -38,14 +38,15 @@ public sealed record GiNode : IGraphInstruction
             Tags.DeepEquals(subject.Tags) &&
             Enumerable.SequenceEqual(Data.OrderBy(x => x.Key), subject.Data.OrderBy(x => x.Key)) &&
             Enumerable.SequenceEqual(Indexes.OrderBy(x => x), subject.Indexes.OrderBy(x => x)) &&
-            Enumerable.SequenceEqual(ForeignKeys.OrderBy(x => x), subject.ForeignKeys.OrderBy(x => x)) &&
+            ForeignKeys.DeepEquals(subject.ForeignKeys) &&
             IfExist == subject.IfExist;
 
         return result;
     }
 
     public override int GetHashCode() => HashCode.Combine(ChangeType, Key, Tags, Data);
-    public override string ToString() => $"ChangeType={ChangeType}, Key={Key}, Tags={Tags.ToTagsString()}, Data={Data.Select(x => x.Key).Join(";")}";
+    public override string ToString() =>
+        $"ChangeType={ChangeType}, Key={Key}, Tags={Tags.ToTagsString()}, Data={Data.Select(x => x.Key).Join(";")}, ForeignKeys={ForeignKeys.ToTagsString()}";
 }
 
 internal static class GiNodeTool
@@ -83,15 +84,16 @@ internal static class GiNodeTool
             data = tagsAndData.Value.Data;
         }
 
-        // index {tagKey}[, {tagKey}..]
+        // index {tagkey}[, {tagkey}..]
         HashSet<string>? indexes = InterLangTool.GetCommands(interContext, "index") switch
         {
             { StatusCode: StatusCode.OK } v => v.Return(),
             _ => null,
         };
 
-        // index {tagKey}[, {tagKey}..]
-        HashSet<string>? foreignKeys = InterLangTool.GetCommands(interContext, "foreignkey") switch
+        // foreign keys {tag}[, {tag}..]
+        Dictionary<string, string?>? foreignKeys = null;
+        foreignKeys = InterLangTool.GetForeignKeys(interContext) switch
         {
             { StatusCode: StatusCode.OK } v => v.Return(),
             _ => null,
@@ -107,7 +109,7 @@ internal static class GiNodeTool
             Tags = tags?.ToFrozenDictionary() ?? FrozenDictionary<string, string?>.Empty,
             Data = data?.ToFrozenDictionary() ?? FrozenDictionary<string, string>.Empty,
             Indexes = indexes?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty,
-            ForeignKeys = foreignKeys?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty,
+            ForeignKeys = foreignKeys?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty,
             IfExist = ifExist,
         };
     }

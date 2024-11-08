@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Identity;
@@ -13,11 +14,15 @@ public class AccountClient
     private readonly IGraphClient _graphClient;
     private readonly ILogger<AccountClient> _logger;
 
-    public AccountClient(IGraphClient graphClient, ILogger<AccountClient> logger)
+    public AccountClient(IGraphClient graphClient, IServiceProvider service, ILogger<AccountClient> logger)
     {
         _graphClient = graphClient.NotNull();
         _logger = logger.NotNull();
+
+        Messages = ActivatorUtilities.CreateInstance<IdentityMessagesClient>(service, this);
     }
+
+    public IdentityMessagesClient Messages { get; }
 
     public Task<Option> Add(AccountRecord accountRecord, ScopeContext context) => AddOrSet(false, accountRecord, context);
 
@@ -42,16 +47,12 @@ public class AccountClient
 
         string nodeKey = ToAccountKey(accountRecord.PrincipalId);
 
-        var seq = new Sequence<string>();
-
-        seq += new NodeCommandBuilder()
+        var cmd = new NodeCommandBuilder()
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
             .AddForeignKeyTag("owns", IdentityClient.ToUserKey(accountRecord.PrincipalId))
             .AddData("entity", accountRecord)
             .Build();
-
-        string cmd = seq.Join(Environment.NewLine);
 
         var result = await _graphClient.Execute(cmd, context);
         if (result.IsError())

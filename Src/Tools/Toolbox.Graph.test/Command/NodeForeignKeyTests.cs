@@ -28,14 +28,15 @@ public class NodeForeignKeyTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set t1=v1;", NullScopeContext.Default);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set t1=v1;", context);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         copyMap.Meter.Node.GetCount().Should().Be(8);
         copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(0);
         copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var result = await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default);
+        var result = await testClient.Execute("select (key=node8) -> [*] ;", context);
         result.IsOk().Should().BeTrue(result.ToString());
 
         var queryResult = result.Return();
@@ -52,14 +53,15 @@ public class NodeForeignKeyTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey t1;", NullScopeContext.Default);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey t1;", context);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         copyMap.Meter.Node.GetCount().Should().Be(8);
         copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(0);
         copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var result = await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default);
+        var result = await testClient.Execute("select (key=node8) -> [*] ;", context);
         result.IsOk().Should().BeTrue(result.ToString());
 
         var queryResult = result.Return();
@@ -77,14 +79,15 @@ public class NodeForeignKeyTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", NullScopeContext.Default);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeFalse(newMapOption.ToString());
 
         copyMap.Meter.Node.GetCount().Should().Be(7);
         copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(0);
         copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var result = await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default);
+        var result = await testClient.Execute("select (key=node8) -> [*] ;", context);
         result.IsOk().Should().BeTrue(result.ToString());
 
         var queryResult = result.Return();
@@ -97,18 +100,39 @@ public class NodeForeignKeyTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
 
-        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", NullScopeContext.Default);
+        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
         addOption.IsOk().Should().BeTrue();
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         copyMap.Meter.Node.GetCount().Should().Be(9);
         copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
         copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default)).Action(result =>
+        var readOption = await testClient.Execute("select (key=node8) ;", context);
+        readOption.IsOk().Should().BeTrue();
+        readOption.Return().Action(x =>
+        {
+            x.Nodes.Count.Should().Be(1);
+            x.Nodes[0].Action(y =>
+            {
+                y.Key.Should().Be("node8");
+                y.Tags.Count.Should().Be(1);
+                y.Tags["email"].Should().Be("email:name@domain.com");
+                y.ForeignKeys.Count.Should().Be(1);
+                y.ForeignKeys.First().Action(z =>
+                {
+                    z.Key.Should().Be("email");
+                    z.Value.Should().BeNull();
+                });
+            });
+        });
+
+
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -125,7 +149,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=node8) -> [*] -> (*) ;", NullScopeContext.Default)).Action(result =>
+        (await testClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -140,7 +164,176 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", NullScopeContext.Default)).Action(result =>
+        (await testClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Action(y =>
+                {
+                    y.Count.Should().Be(1);
+                    y[0].Key.Should().Be("node8");
+                });
+                x.Edges.Count.Should().Be(0);
+            });
+        });
+    }
+
+
+    [Fact]
+    public async Task ForeignKeyInTagWithNodeReferenceWithWildcard()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+
+        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        addOption.IsOk().Should().BeTrue();
+
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email=*;", context);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        copyMap.Meter.Node.GetCount().Should().Be(9);
+        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Count.Should().Be(0);
+                x.Edges.Action(y =>
+                {
+                    y.Count.Should().Be(1);
+                    y[0].FromKey.Should().Be("node8");
+                    y[0].ToKey.Should().Be("email:name@domain.com");
+                    y[0].EdgeType.Should().Be("email");
+                });
+            });
+        });
+
+        (await testClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Action(y =>
+                {
+                    y.Count.Should().Be(1);
+                    y[0].Key.Should().Be("email:name@domain.com");
+                });
+                x.Edges.Count.Should().Be(0);
+            });
+        });
+
+        (await testClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Action(y =>
+                {
+                    y.Count.Should().Be(1);
+                    y[0].Key.Should().Be("node8");
+                });
+                x.Edges.Count.Should().Be(0);
+            });
+        });
+    }
+
+
+    [Fact]
+    public async Task ForeignKeyInTagWithTwoNodeReferenceUsingMatching()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+
+        (await testClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().Should().BeTrue();
+
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email*;", context);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        copyMap.Meter.Node.GetCount().Should().Be(10);
+        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+
+        var readOption = await testClient.Execute("select (key=node8) ;", context);
+        readOption.IsOk().Should().BeTrue();
+        readOption.Return().Action(x =>
+        {
+            x.Nodes.Count.Should().Be(1);
+            x.Nodes[0].Action(y =>
+            {
+                y.Key.Should().Be("node8");
+                y.Tags.Count.Should().Be(2);
+                y.Tags["email1"].Should().Be("email:name1@domain.com");
+                y.Tags["email2"].Should().Be("email:name2@domain.com");
+                y.ForeignKeys.Count.Should().Be(1);
+                y.ForeignKeys["email"].Should().Be("email*");
+            });
+        });
+
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Count.Should().Be(0);
+                x.Edges.Action(y =>
+                {
+                    y.Count.Should().Be(2);
+                    y.OrderBy(x => x.ToKey).ToArray().Action(z =>
+                    {
+                        y[0].FromKey.Should().Be("node8");
+                        y[0].ToKey.Should().Be("email:name1@domain.com");
+                        y[0].EdgeType.Should().Be("email");
+                        y[1].FromKey.Should().Be("node8");
+                        y[1].ToKey.Should().Be("email:name2@domain.com");
+                        y[1].EdgeType.Should().Be("email");
+                    });
+                });
+            });
+        });
+
+        (await testClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Action(y =>
+                {
+                    y.Count.Should().Be(2);
+                    Enumerable.SequenceEqual(y.Select(x => x.Key).OrderBy(x => x), ["email:name1@domain.com", "email:name2@domain.com"]).Should().BeTrue();
+                });
+                x.Edges.Count.Should().Be(0);
+            });
+        });
+
+        (await testClient.Execute("select (key=email:name1@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Action(y =>
+                {
+                    y.Count.Should().Be(1);
+                    y[0].Key.Should().Be("node8");
+                });
+                x.Edges.Count.Should().Be(0);
+            });
+        });
+
+        (await testClient.Execute("select (key=email:name2@domain.com) <- [*] <- (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -161,15 +354,16 @@ public class NodeForeignKeyTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
         copyMap.Meter.Node.GetCount().Should().Be(7);
         copyMap.Meter.Edge.GetCount().Should().Be(5);
 
-        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", NullScopeContext.Default);
+        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
         addOption.IsOk().Should().BeTrue();
         copyMap.Meter.Node.GetCount().Should().Be(8);
         copyMap.Meter.Edge.GetCount().Should().Be(5);
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         copyMap.Meter.Node.GetCount().Should().Be(9);
@@ -179,7 +373,7 @@ public class NodeForeignKeyTests
         copyMap.Meter.Edge.GetAdded().Should().Be(6);
         copyMap.Meter.Edge.GetDeleted().Should().Be(0);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default)).Action(result =>
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -196,7 +390,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 foreignkey -email;", NullScopeContext.Default)).Action(result =>
+        (await testClient.ExecuteBatch("set node key=node8 foreignkey -email;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
         });
@@ -208,7 +402,7 @@ public class NodeForeignKeyTests
         copyMap.Meter.Edge.GetAdded().Should().Be(6);
         copyMap.Meter.Edge.GetDeleted().Should().Be(1);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default)).Action(result =>
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -225,15 +419,16 @@ public class NodeForeignKeyTests
     {
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
         copyMap.Meter.Node.GetCount().Should().Be(7);
         copyMap.Meter.Edge.GetCount().Should().Be(5);
 
-        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", NullScopeContext.Default);
+        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
         addOption.IsOk().Should().BeTrue();
         copyMap.Meter.Node.GetCount().Should().Be(8);
         copyMap.Meter.Edge.GetCount().Should().Be(5);
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         copyMap.Meter.Node.GetCount().Should().Be(9);
@@ -243,7 +438,7 @@ public class NodeForeignKeyTests
         copyMap.Meter.Edge.GetAdded().Should().Be(6);
         copyMap.Meter.Edge.GetDeleted().Should().Be(0);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default)).Action(result =>
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -260,7 +455,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 set -email;", NullScopeContext.Default)).Action(result =>
+        (await testClient.ExecuteBatch("set node key=node8 set -email;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
         });
@@ -272,7 +467,7 @@ public class NodeForeignKeyTests
         copyMap.Meter.Edge.GetAdded().Should().Be(6);
         copyMap.Meter.Edge.GetDeleted().Should().Be(1);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default)).Action(result =>
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -283,7 +478,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 set email=email:name@domain.com;", NullScopeContext.Default)).Action(result =>
+        (await testClient.ExecuteBatch("set node key=node8 set email=email:name@domain.com;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
         });
@@ -295,7 +490,7 @@ public class NodeForeignKeyTests
         copyMap.Meter.Edge.GetAdded().Should().Be(7);
         copyMap.Meter.Edge.GetDeleted().Should().Be(1);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", NullScopeContext.Default)).Action(result =>
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue(result.ToString());
 
@@ -308,6 +503,112 @@ public class NodeForeignKeyTests
                     y[0].FromKey.Should().Be("node8");
                     y[0].ToKey.Should().Be("email:name@domain.com");
                     y[0].EdgeType.Should().Be("email");
+                });
+            });
+        });
+    }
+
+    [Fact]
+    public async Task TwoForeignKeyTagRemoved()
+    {
+        var copyMap = _map.Clone();
+        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+
+        (await testClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch("add node key=email:name3@domain.com ;", context)).IsOk().Should().BeTrue();
+
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email*;", context);
+        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+
+        copyMap.Meter.Node.GetCount().Should().Be(11);
+        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        copyMap.Meter.Edge.GetCount().Should().Be(7);
+        copyMap.Meter.Edge.GetAdded().Should().Be(7);
+        copyMap.Meter.Edge.GetDeleted().Should().Be(0);
+
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Count.Should().Be(0);
+                x.Edges.Action(y =>
+                {
+                    y.Count.Should().Be(2);
+                    y.OrderBy(x => x.ToKey).ToArray().Action(z =>
+                    {
+                        y[0].FromKey.Should().Be("node8");
+                        y[0].ToKey.Should().Be("email:name1@domain.com");
+                        y[0].EdgeType.Should().Be("email");
+                        y[1].FromKey.Should().Be("node8");
+                        y[1].ToKey.Should().Be("email:name2@domain.com");
+                        y[1].EdgeType.Should().Be("email");
+                    });
+                });
+            });
+        });
+
+        (await testClient.ExecuteBatch("set node key=node8 set -email1;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+        });
+
+        copyMap.Meter.Node.GetCount().Should().Be(11);
+        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        copyMap.Meter.Edge.GetCount().Should().Be(5);
+        copyMap.Meter.Edge.GetAdded().Should().Be(7);
+        copyMap.Meter.Edge.GetDeleted().Should().Be(2);
+
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Count.Should().Be(0);
+                x.Edges.Action(y =>
+                {
+                    y.Count.Should().Be(0);
+                });
+            });
+        });
+
+        (await testClient.ExecuteBatch("set node key=node8 set email1=email:name3@domain.com ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+        });
+
+        copyMap.Meter.Node.GetCount().Should().Be(11);
+        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(2);
+        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        copyMap.Meter.Edge.GetCount().Should().Be(7);
+        copyMap.Meter.Edge.GetAdded().Should().Be(9);
+        copyMap.Meter.Edge.GetDeleted().Should().Be(2);
+
+        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        {
+            result.IsOk().Should().BeTrue(result.ToString());
+
+            result.Return().Action(x =>
+            {
+                x.Nodes.Count.Should().Be(0);
+                x.Edges.Action(y =>
+                {
+                    y.Count.Should().Be(2);
+                    y.OrderBy(x => x.ToKey).ToArray().Action(z =>
+                    {
+                        z[0].FromKey.Should().Be("node8");
+                        z[0].ToKey.Should().Be("email:name2@domain.com");
+                        z[0].EdgeType.Should().Be("email");
+                        z[1].FromKey.Should().Be("node8");
+                        z[1].ToKey.Should().Be("email:name3@domain.com");
+                        z[1].EdgeType.Should().Be("email");
+                    });
                 });
             });
         });
