@@ -35,7 +35,7 @@ public static class ByteExtensions
     /// <returns></returns>
     public static string BytesToString(this ReadOnlySpan<byte> span)
     {
-        if (span == null || span.Length == 0) return string.Empty;
+        if (span == Span<byte>.Empty || span.Length == 0) return string.Empty;
         return Encoding.UTF8.GetString(span);
     }
 
@@ -116,7 +116,19 @@ public static class ByteExtensions
     /// </summary>
     /// <param name="bytes"></param>
     /// <returns></returns>
-    public static byte[] ToHash(this IEnumerable<byte> bytes) => SHA256.Create().ComputeHash(bytes.NotNull().ToArray());
+    public static byte[] ToHash(this IEnumerable<byte> bytes)
+    {
+        using var scope = SHA256.Create();
+        var data = scope.ComputeHash(bytes.NotNull().ToArray());
+        return data;
+    }
+
+    public static byte[] ToMD5Hash(this IEnumerable<byte> bytes)
+    {
+        using var scope = MD5.Create();
+        var data = scope.ComputeHash(bytes.NotNull().ToArray());
+        return data;
+    }
 
     /// <summary>
     /// Calculate hash of bytes and return string of hex values
@@ -124,6 +136,6 @@ public static class ByteExtensions
     /// <param name="subject"></param>
     /// <returns></returns>
     public static string ToHexHash(this IEnumerable<byte> subject) => subject
-        .ToHash()
-        .ToHex();
+            .ToHash()
+            .ToHex();
 }

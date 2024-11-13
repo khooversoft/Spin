@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Identity;
@@ -11,6 +10,8 @@ namespace TicketShare.sdk;
 
 public class AccountClient
 {
+    private const string _nodeTag = "account";
+    private const string _edgeType = "account-owns";
     private readonly IGraphClient _graphClient;
     private readonly ILogger<AccountClient> _logger;
 
@@ -18,11 +19,7 @@ public class AccountClient
     {
         _graphClient = graphClient.NotNull();
         _logger = logger.NotNull();
-
-        Messages = ActivatorUtilities.CreateInstance<IdentityMessagesClient>(service, this);
     }
-
-    public IdentityMessagesClient Messages { get; }
 
     public Task<Option> Add(AccountRecord accountRecord, ScopeContext context) => AddOrSet(false, accountRecord, context);
 
@@ -50,7 +47,8 @@ public class AccountClient
         var cmd = new NodeCommandBuilder()
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
-            .AddForeignKeyTag("owns", IdentityClient.ToUserKey(accountRecord.PrincipalId))
+            .AddTag(_nodeTag)
+            .AddReference(_edgeType, IdentityClient.ToUserKey(accountRecord.PrincipalId))
             .AddData("entity", accountRecord)
             .Build();
 
@@ -64,5 +62,5 @@ public class AccountClient
         return result.ToOptionStatus();
     }
 
-    private static string ToAccountKey(string principalId) => $"account:{principalId.NotEmpty().ToLowerInvariant()}";
+    public static string ToAccountKey(string principalId) => $"account:{principalId.NotEmpty().ToLowerInvariant()}";
 }

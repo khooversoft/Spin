@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpinClient.sdk;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 

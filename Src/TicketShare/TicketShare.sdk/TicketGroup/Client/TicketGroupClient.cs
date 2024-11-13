@@ -13,10 +13,11 @@ public class TicketGroupClient
 {
     internal const string _nodeTag = "ticketGroup";
     internal const string _edgeType = "ticketGroup-own";
+    internal const string _edgeTypeMember = "ticketGroup-member";
     private readonly IGraphClient _graphClient;
-    private readonly ILogger<AccountClient> _logger;
+    private readonly ILogger<TicketGroupClient> _logger;
 
-    public TicketGroupClient(IGraphClient graphClient, IServiceProvider service, ILogger<AccountClient> logger)
+    public TicketGroupClient(IGraphClient graphClient, IServiceProvider service, ILogger<TicketGroupClient> logger)
     {
         _graphClient = graphClient.NotNull();
         _logger = logger.NotNull();
@@ -74,10 +75,10 @@ public class TicketGroupClient
         var cmd = new NodeCommandBuilder()
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
-            .AddForeignKeyTag("owns", IdentityClient.ToUserKey(ticketGroupRecord.OwnerPrincipalId))
-            .Action(x => roles.ForEach(y => x.AddForeignKeyTag(_edgeType, IdentityClient.ToUserKey(y))))
-            .Action(x => removeTagList.ForEach(y => x.AddTag("-" + x)))
             .AddTag(_nodeTag)
+            .AddReference(_edgeType, IdentityClient.ToUserKey(ticketGroupRecord.OwnerPrincipalId))
+            .AddReferences(_edgeTypeMember, roles.Select(x => IdentityClient.ToUserKey(x)))
+            .Action(x => removeTagList.ForEach(y => x.AddTag("-" + x)))
             .AddData("entity", ticketGroupRecord)
             .Build();
 

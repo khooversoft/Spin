@@ -10,12 +10,11 @@ namespace TicketShare.sdk;
 
 public class TicketGroupSearchClient
 {
-    private const string _nodeTag = "ticketGroup";
     private readonly TicketGroupClient _parent;
     private readonly IGraphClient _graphClient;
-    private readonly ILogger _logger;
+    private readonly ILogger<TicketGroupSearchClient> _logger;
 
-    internal TicketGroupSearchClient(TicketGroupClient parent, IGraphClient graphClient, ILogger logger)
+    public TicketGroupSearchClient(TicketGroupClient parent, IGraphClient graphClient, ILogger<TicketGroupSearchClient> logger)
     {
         _parent = parent.NotNull();
         _graphClient = graphClient.NotNull();
@@ -27,7 +26,7 @@ public class TicketGroupSearchClient
         principalId.NotEmpty();
 
         var cmd = new SelectCommandBuilder()
-            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType("owns"))
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(TicketGroupClient._edgeType))
             .AddRightJoin()
             .AddNodeSearch(x => x.AddTag(TicketGroupClient._nodeTag))
             .AddDataName("entity")
@@ -45,9 +44,9 @@ public class TicketGroupSearchClient
         principalId.NotEmpty();
 
         var cmd = new SelectCommandBuilder()
-            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(TicketGroupClient._edgeType))
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(TicketGroupClient._edgeTypeMember))
             .AddRightJoin()
-            .AddNodeSearch(x => x.AddTag(_nodeTag))
+            .AddNodeSearch(x => x.AddTag(TicketGroupClient._nodeTag))
             .AddDataName("entity")
             .Build();
 

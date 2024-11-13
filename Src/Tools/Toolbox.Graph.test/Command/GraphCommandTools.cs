@@ -29,7 +29,7 @@ public static class GraphCommandTools
         var edgeDelta2 = newMap.Edges.Where(x =>
         {
             if (!currentMap.Edges.TryGetValue(x.GetPrimaryKey(), out var edge)) return true;
-            if (ignoreDate) x = x with { CreatedDate = edge.CreatedDate };
+            if (ignoreDate) x = x with { CreatedDate = edge.NotNull().CreatedDate };
             return x != edge;
         }).ToArray();
 
@@ -38,7 +38,7 @@ public static class GraphCommandTools
             if (edgeDelta2.Any(y => y.GetPrimaryKey() == x.GetPrimaryKey())) return false;
 
             if (!newMap.Edges.TryGetValue(x.GetPrimaryKey(), out var edge)) return true;
-            if (ignoreDate) x = x with { CreatedDate = edge.CreatedDate };
+            if (ignoreDate) x = x with { CreatedDate = edge.NotNull().CreatedDate };
             return x != edge;
         }).ToArray();
 

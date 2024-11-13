@@ -24,7 +24,7 @@ public static class AssemblyResource
         stream.NotNull($"Cannot find resourceId={resourceId}");
 
         byte[] byteArray = new byte[stream.Length];
-        stream.Read(byteArray, 0, byteArray.Length);
+        _ = stream.Read(byteArray, 0, byteArray.Length);
 
         return byteArray;
     }

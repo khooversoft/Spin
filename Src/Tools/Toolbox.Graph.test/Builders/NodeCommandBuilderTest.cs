@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Builders;
@@ -134,23 +135,6 @@ public class NodeCommandBuilderTest
     }
 
     [Fact]
-    public void ForeignKey()
-    {
-        var graphQuery = new NodeCommandBuilder()
-            .SetNodeKey("nodeKey1")
-            .AddTag("t1", "value1")
-            .AddTag("t2", "value2")
-            .AddForeignKey("t1")
-            .AddForeignKey("t2")
-            .Build();
-
-        graphQuery.Should().Be("add node key=nodeKey1 set t1=value1,t2=value2 foreignkey t1, t2 ;");
-
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
-        parse.Status.IsOk().Should().BeTrue();
-    }
-
-    [Fact]
     public void Data()
     {
         var graphQuery = new NodeCommandBuilder()
@@ -209,7 +193,7 @@ public class NodeCommandBuilderTest
     }
 
     [Fact]
-    public void Full()
+    public void FullParameters()
     {
         var graphQuery = new NodeCommandBuilder()
             .SetNodeKey("nodeKey1")
@@ -219,6 +203,57 @@ public class NodeCommandBuilderTest
             .Build();
 
         graphQuery.Should().Be("add node key=nodeKey1 set tag=value, data { 'value' } index t1 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void ForeignKey()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("t1", "value1")
+            .AddTag("t2", "value2")
+            .AddForeignKey("t1")
+            .AddForeignKey("t2")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set t1=value1,t2=value2 foreignkey t1,t2 ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+    [Fact]
+    public void ForignKeyWithPattern()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddTag("t1", "value1")
+            .AddTag("t2", "value2")
+            .AddForeignKey("t1")
+            .AddForeignKey("t2=pattern*")
+            .Build();
+
+        graphQuery.Should().Be("add node key=nodeKey1 set t1=value1,t2=value2 foreignkey t1,t2=pattern* ;");
+
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        parse.Status.IsOk().Should().BeTrue();
+    }
+
+
+    [Fact]
+    public void Reference()
+    {
+        var graphQuery = new NodeCommandBuilder()
+            .SetNodeKey("nodeKey1")
+            .AddIndex("t1")
+            .AddReferences("edgeType", ["path1", "path2"])
+            .Build();
+
+        var expected = "add node key=nodeKey1 set edgeType-*=path1,edgeType-*=path2 index t1 foreignkey edgeType=edgeType-* ;";
+        graphQuery.Match(expected);
 
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
         parse.Status.IsOk().Should().BeTrue();

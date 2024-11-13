@@ -65,6 +65,10 @@ public static class TagsTool
         }
     };
 
+    public static string FormatTagKey(string edgeType, params string[] suffixes) => edgeType.NotEmpty().ToEnumerable()
+        .Concat(suffixes)
+        .Join('-');
+
     public static string ToTagsString(this IEnumerable<KeyValuePair<string, string?>> tags) => tags
         .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
         .Select(x => TagsTool.FormatTag(x.Key, x.Value))

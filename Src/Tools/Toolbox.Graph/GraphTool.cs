@@ -62,4 +62,6 @@ public static class GraphTool
 
         return list;
     }
+
+    public static string ToHashTag(string tag, string value) => $"{tag.NotEmpty()}-{RandomTag.Generate(6)}";
 }

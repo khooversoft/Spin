@@ -519,7 +519,7 @@ public class NodeForeignKeyTests
         (await testClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().Should().BeTrue();
         (await testClient.ExecuteBatch("add node key=email:name3@domain.com ;", context)).IsOk().Should().BeTrue();
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email*;", context);
+        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email* ;", context);
         newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
 
         copyMap.Meter.Node.GetCount().Should().Be(11);

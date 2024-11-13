@@ -16,8 +16,7 @@ public static class TicketShareStartup
         service.AddSingleton<TicketGroupProposalClient>();
         service.AddSingleton<TicketGroupSearchClient>();
 
-        service.AddSingleton<MessageItemClient>();
-        service.AddSingleton<IdentityMessagesClient>();
+        service.AddSingleton<HubChannelClient>();
         return service;
     }
 }

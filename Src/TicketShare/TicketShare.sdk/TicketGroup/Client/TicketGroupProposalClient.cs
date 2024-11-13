@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Graph;
 using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -12,13 +11,11 @@ namespace TicketShare.sdk;
 public class TicketGroupProposalClient
 {
     private readonly TicketGroupClient _ticketGroupClient;
-    private readonly ILogger _logger;
-    private readonly IdentityMessagesClient _identityMessagesClient;
+    private readonly ILogger<TicketGroupProposalClient> _logger;
 
-    internal TicketGroupProposalClient(TicketGroupClient ticketGroupClient, IdentityMessagesClient identityMessagesClient, IGraphClient graphClient, ILogger logger)
+    public TicketGroupProposalClient(TicketGroupClient ticketGroupClient, ILogger<TicketGroupProposalClient> logger)
     {
         _ticketGroupClient = ticketGroupClient.NotNull();
-        _identityMessagesClient = identityMessagesClient.NotNull();
         _logger = logger.NotNull();
     }
 

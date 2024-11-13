@@ -67,10 +67,10 @@ public static class StringExtensions
     /// </summary>
     /// <param name="subject"></param>
     /// <returns>hex values for hash</returns>
-    public static string ToHashHex(this string subject) => subject
+    public static string ToHashHex(this string subject, bool useMD5 = false) => subject
         .NotEmpty()
         .ToBytes()
-        .ToHash()
+        .Func(x => useMD5 ? x.ToMD5Hash() : x.ToHash())
         .ToHex();
 
     /// <summary>

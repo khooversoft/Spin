@@ -18,15 +18,13 @@ public sealed record AccountRecord
     public IReadOnlyList<ContactRecord> ContactItems { get; init; } = Array.Empty<ContactRecord>();
     public IReadOnlyList<AddressRecord> Address { get; init; } = Array.Empty<AddressRecord>();
     public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = Array.Empty<CalendarRecord>();
-    public IReadOnlyList<MessageItemRecord> Messages { get; init; } = Array.Empty<MessageItemRecord>();
 
     public bool Equals(AccountRecord? obj) => obj is AccountRecord subject &&
         PrincipalId == subject.PrincipalId &&
         Name == subject.Name &&
         Enumerable.SequenceEqual(ContactItems, subject.ContactItems) &&
         Enumerable.SequenceEqual(Address, subject.Address) &&
-        Enumerable.SequenceEqual(CalendarItems, subject.CalendarItems) &&
-        Enumerable.SequenceEqual(Messages, subject.Messages);
+        Enumerable.SequenceEqual(CalendarItems, subject.CalendarItems);
 
     public override int GetHashCode() => HashCode.Combine(PrincipalId, Name, ContactItems, Address, CalendarItems);
 
@@ -36,7 +34,6 @@ public sealed record AccountRecord
         .RuleForEach(x => x.ContactItems).Validate(ContactRecord.Validator)
         .RuleForEach(x => x.Address).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
-        .RuleForEach(x => x.Messages).Validate(MessageItemRecord.Validator)
         .Build();
 }
 

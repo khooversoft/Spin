@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Models;
@@ -13,6 +14,7 @@ public class AccountRecordTests
     {
         var testHost = new TicketShareTestHost();
         var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
+        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
         var context = testHost.GetScopeContext<AccountRecordTests>();
 
         var accountRecord = TestTool.Create("user1@domain.com");
@@ -25,6 +27,21 @@ public class AccountRecordTests
         readAccount.IsOk().Should().BeTrue();
 
         (accountRecord == readAccount.Return()).Should().BeTrue();
+
+        string accountKey = AccountClient.ToAccountKey(accountRecord.PrincipalId);
+        var queryResult = await graphClient.Execute($"select (key={accountKey}) -> [*] ;", context);
+        queryResult.IsOk().Should().BeTrue();
+        queryResult.Return().Action(x =>
+        {
+            x.Nodes.Count.Should().Be(0);
+            x.Edges.Count.Should().Be(1);
+            x.Edges[0].Action(y =>
+            {
+                y.FromKey.Should().Be(accountKey);
+                y.ToKey.Should().Be("user:user1@domain.com");
+                y.EdgeType.Should().Be("account-owns");
+            });
+        });
 
         accountRecord = accountRecord with
         {

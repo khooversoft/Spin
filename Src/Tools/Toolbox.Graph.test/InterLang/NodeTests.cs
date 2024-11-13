@@ -353,7 +353,7 @@ public class NodeTests : TestBase<NodeTests>
     [Fact]
     public void AddNodeFKTwo()
     {
-        var parse = _parser.Parse("add node key=k1 set t1=v1, t2=v2 foreignkey t1, t2 ;", _context);
+        var parse = _parser.Parse("add node key=k1 set t1=v1, t2=v2 foreignkey t1, t2=p1* ;", _context);
         parse.Status.IsOk().Should().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -370,7 +370,7 @@ public class NodeTests : TestBase<NodeTests>
                     ["t1"] = "v1",
                     ["t2"] = "v2",
                 },
-                ForeignKeys = "t1,t2".ToTags()
+                ForeignKeys = "t1,t2=p1*".ToTags()
             }];
 
         var instructions = instructionsOption.Return();

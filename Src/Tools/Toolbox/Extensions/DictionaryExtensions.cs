@@ -38,7 +38,7 @@ public static class DictionaryExtensions
         };
     }
 
-    public static IReadOnlyList<KeyValuePair<string, string>> ToDictionary<T>(this T subject) where T : class
+    public static IReadOnlyList<KeyValuePair<string, string>> ToKeyValuePairs<T>(this T subject) where T : class
     {
         subject.NotNull();
 
