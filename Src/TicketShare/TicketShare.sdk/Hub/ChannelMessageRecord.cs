@@ -5,16 +5,16 @@ namespace TicketShare.sdk;
 
 public sealed record ChannelMessageRecord
 {
+    public string ChannelId { get; init; } = null!;
     public string MessageId { get; init; } = Guid.NewGuid().ToString();
     public string FromPrincipalId { get; init; } = null!;
-    public string ToChannelId { get; init; } = null!;
     public string Message { get; init; } = null!;
     public string? ProposalId { get; init; }
 
     public static IValidator<ChannelMessageRecord> Validator { get; } = new Validator<ChannelMessageRecord>()
+        .RuleFor(x => x.ChannelId).NotEmpty()
         .RuleFor(x => x.MessageId).NotEmpty()
         .RuleFor(x => x.FromPrincipalId).NotEmpty()
-        .RuleFor(x => x.ToChannelId).NotEmpty()
         .RuleFor(x => x.Message).NotEmpty()
         .Build();
 }

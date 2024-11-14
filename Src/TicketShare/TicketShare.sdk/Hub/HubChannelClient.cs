@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Identity;
@@ -10,8 +11,7 @@ namespace TicketShare.sdk;
 
 public class HubChannelClient
 {
-    private const string _edgeType_owner = "hubChannel-owner";
-    private const string _edgeType_user = "hubChannel-user";
+    private const string _edgeType = "hubChannel-user";
     private readonly ILogger<HubChannelClient> _logger;
     private readonly IGraphClient _graphClient;
 
@@ -19,20 +19,27 @@ public class HubChannelClient
     {
         _graphClient = graphClient.NotNull();
         _logger = logger.NotNull();
+
+        Message = ActivatorUtilities.CreateInstance<HubChannelMessageClient>(service, this);
     }
+
+    public HubChannelMessageClient Message { get; }
 
     public Task<Option> Add(HubChannelRecord identityMessage, ScopeContext context) => AddOrSet(false, identityMessage, context);
 
-    public async Task<Option> Delete(string principalId, ScopeContext context)
+    public async Task<Option> Delete(string channelId, ScopeContext context)
     {
-        principalId.NotEmpty();
-        return await _graphClient.DeleteNode(ToHubChannelId(principalId), context);
+        channelId.NotEmpty();
+        return await _graphClient.DeleteNode(ToHubChannelId(channelId), context);
     }
 
     public async Task<Option<HubChannelRecord>> Get(string channelId, ScopeContext context)
     {
         channelId.NotEmpty();
-        return await _graphClient.GetNode<HubChannelRecord>(ToHubChannelId(channelId), context);
+        Option<HubChannelRecord> result = await _graphClient.GetNode<HubChannelRecord>(ToHubChannelId(channelId), context);
+        result.LogStatus(context, "Get channelId={channelId}", [channelId]);
+
+        return result;
     }
 
     public async Task<Option<IReadOnlyList<HubChannelRecord>>> GetByPrincipalId(string principalId, ScopeContext context)
@@ -40,8 +47,9 @@ public class HubChannelClient
         principalId.NotEmpty();
 
         var cmd = new SelectCommandBuilder()
-            .AddEdgeSearch(x => x.SetFromKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_edgeType_owner))
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_edgeType))
             .AddRightJoin()
+            .AddNodeSearch()
             .AddDataName("entity")
             .Build();
 
@@ -66,21 +74,14 @@ public class HubChannelClient
         var cmd = new NodeCommandBuilder()
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
-            //.AddForeignKeyTag("owns", IdentityClient.ToUserKey(ownerPrincipalId))
-            .Action(x => userReferences.ForEach(y =>
-            {
-                string userKey = IdentityClient.ToUserKey(y.PrincipalId);
-                //x.AddForeignKeyTag(ToTagHashKey(userKey), userKey);
-            }))
+            .AddReferences(_edgeType, hubChannelRecord.Users.Values.Select(x => IdentityClient.ToUserKey(x.PrincipalId)))
             .AddData("entity", hubChannelRecord)
             .Build();
 
         var result = await _graphClient.Execute(cmd, context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
-            return result.LogStatus(context, $"nodeKey={nodeKey}").ToOptionStatus();
-        }
+        result.LogStatus(context, "nodeKey={nodeKey}", [nodeKey]);
+
+        if (result.IsError()) return result.LogStatus(context, "nodeKey={nodeKey}", [nodeKey]).ToOptionStatus();
 
         return result.ToOptionStatus();
     }

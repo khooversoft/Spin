@@ -18,7 +18,6 @@ public static class LoggingExtensions
         [CallerArgumentExpression("option")] string name = ""
         )
     {
-        message.NotEmpty();
         var location = context.Location(function: function, path: path, lineNumber: lineNumber);
 
         InternalLogStatus(location, option, context, message, args, name);
@@ -36,7 +35,6 @@ public static class LoggingExtensions
         [CallerArgumentExpression("option")] string name = ""
         )
     {
-        message.NotEmpty();
         var location = context.Location(function: function, path: path, lineNumber: lineNumber);
 
         InternalLogStatus(location, option.ToOptionStatus(), context, message, args, name);

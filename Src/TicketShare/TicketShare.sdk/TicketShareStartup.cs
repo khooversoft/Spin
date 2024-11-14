@@ -17,6 +17,7 @@ public static class TicketShareStartup
         service.AddSingleton<TicketGroupSearchClient>();
 
         service.AddSingleton<HubChannelClient>();
+        service.AddSingleton<HubChannelMessageClient>();
         return service;
     }
 }

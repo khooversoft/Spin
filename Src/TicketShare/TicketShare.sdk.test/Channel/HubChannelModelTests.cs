@@ -22,7 +22,7 @@ public class HubChannelModelTests
         {
             MessageId = "message1",
             FromPrincipalId = "user1@domain.com",
-            ToChannelId = "hub-channel",
+            ChannelId = "hub-channel",
             Message = "message1",
             ProposalId = "proposal1",
         };
@@ -31,7 +31,7 @@ public class HubChannelModelTests
         {
             MessageId = "message1",
             FromPrincipalId = "user1@domain.com",
-            ToChannelId = "hub-channel",
+            ChannelId = "hub-channel",
             Message = "message1",
             ProposalId = "proposal1",
         };
@@ -42,7 +42,7 @@ public class HubChannelModelTests
         {
             MessageId = "message2",
             FromPrincipalId = "user1@domain.com",
-            ToChannelId = "hub-channel",
+            ChannelId = "hub-channel",
             Message = "message1",
             ProposalId = "proposal1",
         };
@@ -60,9 +60,13 @@ public class HubChannelModelTests
         var m1 = new HubChannelRecord
         {
             ChannelId = "company.com/team1",
-            OwnerPrincipalId = principalId,
             Users = new Dictionary<string, PrincipalChannelRecord>(StringComparer.OrdinalIgnoreCase)
             {
+                [principalId] = new PrincipalChannelRecord
+                {
+                    PrincipalId = principalId,
+                    Role = ChannelRole.Owner,
+                },
                 [user2PrincipalId] = new PrincipalChannelRecord
                 {
                     PrincipalId = user2PrincipalId,
@@ -77,9 +81,13 @@ public class HubChannelModelTests
         var m2 = new HubChannelRecord
         {
             ChannelId = "company.com/team1",
-            OwnerPrincipalId = principalId,
             Users = new Dictionary<string, PrincipalChannelRecord>(StringComparer.OrdinalIgnoreCase)
             {
+                [principalId] = new PrincipalChannelRecord
+                {
+                    PrincipalId = principalId,
+                    Role = ChannelRole.Owner,
+                },
                 [user2PrincipalId] = new PrincipalChannelRecord
                 {
                     PrincipalId = user2PrincipalId,
@@ -103,9 +111,16 @@ public class HubChannelModelTests
         var model = new HubChannelRecord
         {
             ChannelId = "company.com/team1",
-            OwnerPrincipalId = principalId,
             Users = new Dictionary<string, PrincipalChannelRecord>(StringComparer.OrdinalIgnoreCase)
             {
+                [principalId] = new PrincipalChannelRecord
+                {
+                    PrincipalId = principalId,
+                    Role = ChannelRole.Owner,
+                    ReadMessageIds = [
+                        new ReadMessageRecord { MessageId = "message1", ReadDate = DateTime.UtcNow },
+                    ]
+                },
                 [user2PrincipalId] = new PrincipalChannelRecord
                 {
                     PrincipalId = user2PrincipalId,
@@ -120,7 +135,7 @@ public class HubChannelModelTests
                 {
                     MessageId = "message1",
                     FromPrincipalId = user2PrincipalId,
-                    ToChannelId = "company.com/team1",
+                    ChannelId = "company.com/team1",
                     Message = "hello",
                     ProposalId = "proposal1",
                 },
@@ -128,14 +143,14 @@ public class HubChannelModelTests
                 {
                     MessageId = "message2",
                     FromPrincipalId = user2PrincipalId,
-                    ToChannelId = "company.com/team1",
+                    ChannelId = "company.com/team1",
                     Message = "hello2",
                 },
                 new ChannelMessageRecord
                 {
                     MessageId = "message3",
                     FromPrincipalId = "user1@company.com",
-                    ToChannelId = "company.com/team1",
+                    ChannelId = "company.com/team1",
                     Message = "hello from owner",
                 }
             ],
@@ -154,7 +169,7 @@ public class HubChannelModelTests
         });
 
         // Mark message read
-        var updateModel = model.WithMessageRead(user2PrincipalId, ["message2"], DateTime.UtcNow.AddDays(1));
+        var updateModel = model.ToBuilder().MarkRead(user2PrincipalId, "message2", DateTime.UtcNow.AddDays(1)).Build();
         updateModel.GetMessages(user2PrincipalId).Action(x =>
         {
             x.Count.Should().Be(3);
@@ -163,7 +178,7 @@ public class HubChannelModelTests
         });
 
         // Mark same message read, should not change anything
-        updateModel = model.WithMessageRead(user2PrincipalId, ["message2"], DateTime.UtcNow.AddDays(1));
+        updateModel = updateModel.ToBuilder().MarkRead(user2PrincipalId, "message2", DateTime.UtcNow.AddDays(1)).Build();
         updateModel.GetMessages(user2PrincipalId).Action(x =>
         {
             x.Count.Should().Be(3);
@@ -171,13 +186,13 @@ public class HubChannelModelTests
             x.Where(x => x.ReadDate != null).Select(y => y.Message.MessageId).OrderBy(x => x).Should().Equal(["message1", "message2"]);
         });
 
-        updateModel = updateModel.WithMessageAdd(new ChannelMessageRecord
+        updateModel = updateModel.ToBuilder().AddMessage(new ChannelMessageRecord
         {
             MessageId = "message4",
             FromPrincipalId = user2PrincipalId,
-            ToChannelId = "company.com/team1",
+            ChannelId = "company.com/team1",
             Message = "hello4",
-        });
+        }).Build();
 
         updateModel.GetMessages(user2PrincipalId).Action(x =>
         {
@@ -186,7 +201,7 @@ public class HubChannelModelTests
             x.Where(x => x.ReadDate != null).Select(y => y.Message.MessageId).OrderBy(x => x).Should().Equal(["message1", "message2"]);
         });
 
-        updateModel = updateModel.WithMessageRead(user2PrincipalId, ["message4"], DateTime.UtcNow.AddDays(1));
+        updateModel = updateModel.ToBuilder().MarkRead(user2PrincipalId, "message4", DateTime.UtcNow.AddDays(1)).Build();
         updateModel.GetMessages(user2PrincipalId).Action(x =>
         {
             x.Count.Should().Be(4);
