@@ -85,7 +85,8 @@ public class DataBlockBuilder
 
     public static DataBlock CreateAclBlock(AclBlock acl, string principalId, ScopeContext context)
     {
-        acl.Validate().ThrowOnError();
+        var o = acl.Validate();
+        o.ThrowOnError();
 
         return new DataBlockBuilder()
             .SetBlockType(AclBlock.BlockType)

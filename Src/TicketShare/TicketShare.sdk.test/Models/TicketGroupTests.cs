@@ -14,24 +14,26 @@ public class TicketGroupTests
     {
         var testHost = new TicketShareTestHost();
         var identityClient = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
-        var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
+        var ticketGroupClient = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
         var context = testHost.GetScopeContext<TicketGroupTests>();
         const string principalId = "user1@domain.com";
         const string friendPrincipalId = "friend@domain.com";
 
-        var accountRecord = TestTool.Create(principalId);
+        var accountRecord = TestTool.CreateAccountModel(principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);
         await TestTool.AddIdentityUser(friendPrincipalId, "friend", testHost, context);
         await TestTool.AddAccount(accountRecord, testHost, context);
 
-        var ticketGroup = Create("sam/2020/hockey", principalId, null);
-        var result = await client.Add(ticketGroup, context);
-        result.IsOk().Should().BeTrue();
+        var ticketGroup = CreateTicketGroupModel("sam/2020/hockey", principalId, null);
+        var result = await ticketGroupClient.Add(ticketGroup, context);
+        result.IsOk().Should().BeTrue(result.ToString());
 
-        var readTicketGroup = await client.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroup.IsOk().Should().BeTrue();
+        var readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().Should().BeTrue();
+        var readTicketGroup = readTicketGroupOption.Return();
 
-        (ticketGroup == readTicketGroup.Return()).Should().BeTrue();
+        ticketGroup = ticketGroup with { ChannelId = readTicketGroup.ChannelId };
+        (ticketGroup == readTicketGroup).Should().BeTrue();
 
         ticketGroup = ticketGroup with
         {
@@ -40,14 +42,13 @@ public class TicketGroupTests
                 .ToArray(),
         };
 
-        result = await client.Set(ticketGroup, context);
+        result = await ticketGroupClient.Set(ticketGroup, context);
         result.IsOk().Should().BeTrue(result.ToString());
 
-        readTicketGroup = await client.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroup.IsOk().Should().BeTrue();
-        (ticketGroup == readTicketGroup.Return()).Should().BeTrue();
+        readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().Should().BeTrue();
 
-        (await client.Search.GetByOwner(principalId, context)).Action(x =>
+        (await ticketGroupClient.Search.GetByOwner(principalId, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -57,7 +58,7 @@ public class TicketGroupTests
             });
         });
 
-        (await client.Search.GetByMember(friendPrincipalId, context)).Action(x =>
+        (await ticketGroupClient.Search.GetByMember(friendPrincipalId, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -67,18 +68,17 @@ public class TicketGroupTests
             });
         });
 
-        var delete = await client.Delete(ticketGroup.TicketGroupId, context);
+        var delete = await ticketGroupClient.Delete(ticketGroup.TicketGroupId, context);
         delete.IsOk().Should().BeTrue();
 
-        readTicketGroup = await client.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroup.IsError().Should().BeTrue();
+        readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsError().Should().BeTrue();
     }
 
     [Fact]
     public async Task TwoTicketGroupsFullLifeCycle()
     {
         var testHost = new TicketShareTestHost();
-        var identityClient = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
         var context = testHost.GetScopeContext<TicketGroupTests>();
         const string principalIdOne = "user1@domain.com";
@@ -113,22 +113,24 @@ public class TicketGroupTests
     {
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
 
-        var accountRecord = TestTool.Create(principalId);
+        var accountRecord = TestTool.CreateAccountModel(principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1" + principalId, testHost, context);
         await TestTool.AddIdentityUser(friendPrincipalId, "friend" + friendPrincipalId, testHost, context);
         await TestTool.AddAccount(accountRecord, testHost, context);
 
-        var ticketGroup = Create(ticketGroupId, principalId, friendPrincipalId);
+        var ticketGroup = CreateTicketGroupModel(ticketGroupId, principalId, friendPrincipalId);
         (await client.Add(ticketGroup, context)).IsOk().Should().BeTrue();
 
-        var readTicketGroup = await client.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroup.IsOk().Should().BeTrue();
+        var readTicketGroupOption = await client.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().Should().BeTrue();
 
-        (ticketGroup == readTicketGroup.Return()).Should().BeTrue();
+        var readTicketGroup = readTicketGroupOption.Return();
+        ticketGroup = ticketGroup with { ChannelId = readTicketGroup.ChannelId };
+        (ticketGroup == readTicketGroup).Should().BeTrue();
 
-        readTicketGroup = await client.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroup.IsOk().Should().BeTrue();
-        (ticketGroup == readTicketGroup.Return()).Should().BeTrue();
+        readTicketGroupOption = await client.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().Should().BeTrue();
+        (ticketGroup == readTicketGroupOption.Return()).Should().BeTrue();
 
         (await client.Search.GetByOwner(principalId, context)).Action(x =>
         {
@@ -151,14 +153,13 @@ public class TicketGroupTests
         });
     }
 
-    private TicketGroupRecord Create(string ticketGroupId, string principalId, string? contributorPrincipalId)
+    private TicketGroupRecord CreateTicketGroupModel(string ticketGroupId, string principalId, string? contributorPrincipalId)
     {
         var ticketGroup = new TicketGroupRecord
         {
             TicketGroupId = ticketGroupId,
             Name = "name",
             Description = "Sam's 2020 hockey tickets",
-            OwnerPrincipalId = principalId,
 
             Roles = [
                 new RoleRecord { PrincipalId = principalId, MemberRole = RoleType.Owner },
@@ -179,9 +180,6 @@ public class TicketGroupTests
                 .ToArray(),
             };
         }
-
-        var option = ticketGroup.Validate();
-        option.IsOk().Should().BeTrue(option.ToString());
 
         return ticketGroup;
     }

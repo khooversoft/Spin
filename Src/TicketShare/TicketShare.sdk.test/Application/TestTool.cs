@@ -31,7 +31,7 @@ internal static class TestTool
         result.IsOk().Should().BeTrue(result.ToString());
     }
 
-    public static AccountRecord Create(string principalId)
+    public static AccountRecord CreateAccountModel(string principalId)
     {
         var rec = new AccountRecord
         {

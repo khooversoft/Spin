@@ -42,7 +42,7 @@ public class OwnerAssign
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
         var context = testHost.GetScopeContext<OwnerAssign>();
 
-        var accountRecord = TestTool.Create(_principalId);
+        var accountRecord = TestTool.CreateAccountModel(_principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "samUser", testHost, context);
         await TestTool.AddIdentityUser(_friend1, "friend-user1", testHost, context);
         await TestTool.AddIdentityUser(_friend2, "friend-user2", testHost, context);
@@ -60,7 +60,7 @@ public class OwnerAssign
         var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
         var context = testHost.GetScopeContext<OwnerAssign>();
 
-        var accountRecord = TestTool.Create(_principalId);
+        var accountRecord = TestTool.CreateAccountModel(_principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "samUser", testHost, context);
         await TestTool.AddIdentityUser(_friend1, "friend-user1", testHost, context);
         await TestTool.AddIdentityUser(_friend2, "friend-user2", testHost, context);
@@ -80,14 +80,10 @@ public class OwnerAssign
             TicketGroupId = _ticketGroupId,
             Name = "Ticket Group Name",
             Description = "Sam's 2020 hockey tickets",
-            OwnerPrincipalId = _principalId,
 
             Roles = _users,
             Seats = _seats,
         };
-
-        var option = ticketGroup.Validate();
-        option.IsOk().Should().BeTrue();
 
         var result = await client.Add(ticketGroup, context);
         result.IsOk().Should().BeTrue(result.ToString());

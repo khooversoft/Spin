@@ -33,7 +33,7 @@ public static class QueryExecution
     {
         graphTrxContext.Context.LogInformation("Parsing query: {graphQuery}", graphQuery);
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphTrxContext.Context);
-        if (parse.Status.IsError()) return parse.Status.ToOptionStatus<QueryExecutionContext>();
+        if (parse.Status.IsError()) return parse.Status.LogStatus(graphTrxContext.Context, graphQuery).ToOptionStatus<QueryExecutionContext>();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();
         var instructions = InterLangTool.Build(syntaxPairs);

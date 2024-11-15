@@ -44,7 +44,7 @@ public class TicketGroupSearchClient
         principalId.NotEmpty();
 
         var cmd = new SelectCommandBuilder()
-            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(TicketGroupClient._edgeTypeMember))
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(TicketGroupClient._edgeType))
             .AddRightJoin()
             .AddNodeSearch(x => x.AddTag(TicketGroupClient._nodeTag))
             .AddDataName("entity")

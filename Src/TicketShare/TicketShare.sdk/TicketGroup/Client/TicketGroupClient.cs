@@ -12,14 +12,15 @@ namespace TicketShare.sdk;
 public class TicketGroupClient
 {
     internal const string _nodeTag = "ticketGroup";
-    internal const string _edgeType = "ticketGroup-own";
-    internal const string _edgeTypeMember = "ticketGroup-member";
+    internal const string _edgeType = "ticketGroup-user";
     private readonly IGraphClient _graphClient;
     private readonly ILogger<TicketGroupClient> _logger;
+    private readonly HubChannelClient _hubChannelClient;
 
-    public TicketGroupClient(IGraphClient graphClient, IServiceProvider service, ILogger<TicketGroupClient> logger)
+    public TicketGroupClient(IGraphClient graphClient, HubChannelClient hubChannelClient, IServiceProvider service, ILogger<TicketGroupClient> logger)
     {
         _graphClient = graphClient.NotNull();
+        _hubChannelClient = hubChannelClient;
         _logger = logger.NotNull();
 
         Proposal = ActivatorUtilities.CreateInstance<TicketGroupProposalClient>(service, this);
@@ -48,14 +49,13 @@ public class TicketGroupClient
     private async Task<Option> AddOrSet(bool useSet, TicketGroupRecord ticketGroupRecord, ScopeContext context)
     {
         context = context.With(_logger);
-        if (!ticketGroupRecord.Validate(out var r)) return r.LogStatus(context, nameof(TicketGroupRecord));
 
         string[] removeTagList = [];
-
         var readOption = await Get(ticketGroupRecord.TicketGroupId, context);
         if (readOption.IsOk())
         {
             var read = readOption.Return();
+            if (read.ChannelId.IsNotEmpty()) ticketGroupRecord = ticketGroupRecord with { ChannelId = read.ChannelId };
 
             removeTagList = read.Roles
                 .Select(x => x.PrincipalId)
@@ -64,11 +64,17 @@ public class TicketGroupClient
                 .ToArray();
         }
 
+        if (ticketGroupRecord.ChannelId.IsEmpty())
+        {
+            ticketGroupRecord = ticketGroupRecord with { ChannelId = ToTicketGroupHubChannelId(ticketGroupRecord.TicketGroupId) };
+        }
+
         string nodeKey = ToTicketGroupKey(ticketGroupRecord.TicketGroupId);
+
+        if (!ticketGroupRecord.Validate(out var r)) return r.LogStatus(context, nameof(TicketGroupRecord));
 
         var roles = ticketGroupRecord.Roles
             .Select(x => x.PrincipalId)
-            .Append(ticketGroupRecord.OwnerPrincipalId)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
@@ -76,8 +82,7 @@ public class TicketGroupClient
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
             .AddTag(_nodeTag)
-            .AddReference(_edgeType, IdentityClient.ToUserKey(ticketGroupRecord.OwnerPrincipalId))
-            .AddReferences(_edgeTypeMember, roles.Select(x => IdentityClient.ToUserKey(x)))
+            .AddReferences(_edgeType, roles.Select(x => IdentityClient.ToUserKey(x)))
             .Action(x => removeTagList.ForEach(y => x.AddTag("-" + x)))
             .AddData("entity", ticketGroupRecord)
             .Build();
@@ -86,11 +91,15 @@ public class TicketGroupClient
         if (result.IsError())
         {
             context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
-            return result.LogStatus(context, $"nodeKey={nodeKey}").ToOptionStatus();
+            return result.ToOptionStatus();
         }
+
+        var hubChannelOption = await _hubChannelClient.CreateIfNotExist(ticketGroupRecord.ChannelId, nodeKey, context);
+        if (hubChannelOption.IsError()) return hubChannelOption;
 
         return result.ToOptionStatus();
     }
 
-    private static string ToTicketGroupKey(string ticketGroupId) => $"ticketGroup:{ticketGroupId.NotEmpty().ToLowerInvariant()}";
+    public static string ToTicketGroupKey(string ticketGroupId) => $"ticketGroup:{ticketGroupId.NotEmpty().ToLowerInvariant()}";
+    public static string ToTicketGroupHubChannelId(string ticketGroupId) => $"ticketGroup-channel/{ticketGroupId.NotEmpty().ToLowerInvariant()}";
 }

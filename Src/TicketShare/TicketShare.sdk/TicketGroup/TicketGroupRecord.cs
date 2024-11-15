@@ -10,34 +10,38 @@ namespace TicketShare.sdk;
 /// </summary>
 public sealed record TicketGroupRecord
 {
-    // Id = "ticketCollection:samTicket/2024/hockey
+    // Id = "ticketGroup:samTicket/2024/hockey
+    // Channel = "hub-channel:ticketGroup/samTicket/2024/hockey
     public string TicketGroupId { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string? Description { get; init; }
-    public string OwnerPrincipalId { get; init; } = null!;
-    public string? Tags { get; init; }
+    public string ChannelId { get; init; } = null!;
     public IReadOnlyList<RoleRecord> Roles { get; init; } = Array.Empty<RoleRecord>();
     public IReadOnlyList<SeatRecord> Seats { get; init; } = Array.Empty<SeatRecord>();
     public IReadOnlyList<ChangeLog> ChangeLogs { get; init; } = Array.Empty<ChangeLog>();
     public IReadOnlyDictionary<string, ProposalRecord> Proposals { get; init; } = FrozenDictionary<string, ProposalRecord>.Empty;
 
-    public bool Equals(TicketGroupRecord? obj) => obj is TicketGroupRecord subject &&
-        TicketGroupId == subject.TicketGroupId &&
-        Name == subject.Name &&
-        Description == obj.Description &&
-        OwnerPrincipalId == obj.OwnerPrincipalId &&
-        Tags == obj.Tags &&
-        Enumerable.SequenceEqual(Roles, obj.Roles) &&
-        Enumerable.SequenceEqual(Seats, obj.Seats) &&
-        Enumerable.SequenceEqual(ChangeLogs, obj.ChangeLogs) &&
-        Enumerable.SequenceEqual(Proposals.Values.OrderBy(x => x.ProposalId), subject.Proposals.Values.OrderBy(x => x.ProposalId));
+    public bool Equals(TicketGroupRecord? obj)
+    {
+        var result = obj is TicketGroupRecord subject &&
+            TicketGroupId == subject.TicketGroupId &&
+            Name == subject.Name &&
+            Description == obj.Description &&
+            ChannelId == obj.ChannelId &&
+            Enumerable.SequenceEqual(Roles, obj.Roles) &&
+            Enumerable.SequenceEqual(Seats, obj.Seats) &&
+            Enumerable.SequenceEqual(ChangeLogs, obj.ChangeLogs) &&
+            Enumerable.SequenceEqual(Proposals.Values.OrderBy(x => x.ProposalId), subject.Proposals.Values.OrderBy(x => x.ProposalId));
 
-    public override int GetHashCode() => HashCode.Combine(TicketGroupId, Name, Description, OwnerPrincipalId, Tags);
+        return result;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(TicketGroupId, Name, Description, ChannelId, Roles, Seats, ChangeLogs, Proposals);
 
     public static IValidator<TicketGroupRecord> Validator { get; } = new Validator<TicketGroupRecord>()
         .RuleFor(x => x.TicketGroupId).NotEmpty()
         .RuleFor(x => x.Name).NotEmpty()
-        .RuleFor(x => x.OwnerPrincipalId).NotEmpty()
+        .RuleFor(x => x.ChannelId).NotEmpty()
         .RuleForEach(x => x.Roles).Validate(RoleRecord.Validator)
         .RuleForEach(x => x.Seats).Validate(SeatRecord.Validator)
         .RuleForEach(x => x.ChangeLogs).Validate(ChangeLog.Validator)
@@ -56,8 +60,6 @@ public static class TicketCollectionRecordTool
         return result.IsOk();
     }
 
-    public static string ToTicketGroupKey(string id) => $"ticketGroup:{id.NotEmpty().ToLowerInvariant()}";
-
     public static bool CanAcceptProposal(this TicketGroupRecord subject, string principalId, ScopeContext context)
     {
         subject.NotNull();
@@ -65,7 +67,10 @@ public static class TicketCollectionRecordTool
 
         bool access = subject switch
         {
-            var v when v.OwnerPrincipalId == principalId => true,
+            var v when v.Roles
+                .Where(x => x.PrincipalId == principalId)
+                .Any(x => x.MemberRole == RoleType.Owner || x.MemberRole == RoleType.Contributor) => true,
+
             var v when v.Roles.Any(x => x.PrincipalId == principalId && (x.MemberRole == RoleType.Owner || x.MemberRole == RoleType.Contributor)) => true,
             _ => false,
         };

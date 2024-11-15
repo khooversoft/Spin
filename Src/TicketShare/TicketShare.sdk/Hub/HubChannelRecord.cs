@@ -33,7 +33,7 @@ public sealed record HubChannelRecord
 
     public static IValidator<HubChannelRecord> Validator { get; } = new Validator<HubChannelRecord>()
         .RuleFor(x => x.ChannelId).NotEmpty()
-        .RuleFor(x => x.Users).NotNull().Must(x => x.Values.Count(x => x.Role == ChannelRole.Owner) > 0, _ => "Must have a least 1 owner")
+        .RuleFor(x => x.Users).NotNull()
         .RuleForEach(x => x.Users.Values).Validate(PrincipalChannelRecord.Validator)
         .RuleForEach(x => x.Messages).Validate(ChannelMessageRecord.Validator)
         .Build();

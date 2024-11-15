@@ -11,6 +11,7 @@ namespace TicketShare.sdk;
 
 public class HubChannelClient
 {
+    private const string _nodeTag = "hubChannel";
     private const string _edgeType = "hubChannel-user";
     private readonly ILogger<HubChannelClient> _logger;
     private readonly IGraphClient _graphClient;
@@ -74,7 +75,8 @@ public class HubChannelClient
         var cmd = new NodeCommandBuilder()
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
-            .AddReferences(_edgeType, hubChannelRecord.Users.Values.Select(x => IdentityClient.ToUserKey(x.PrincipalId)))
+            .AddTag(_nodeTag)
+            .AddReferences(_edgeType, hubChannelRecord.Users.Values.Select(x => GraphTool.ApplyIfRequired(x.PrincipalId, IdentityClient.ToUserKey)))
             .AddData("entity", hubChannelRecord)
             .Build();
 
@@ -88,4 +90,36 @@ public class HubChannelClient
 
     private static string ToUserPrivateHubChannelId(string principalId) => $"hub-channel:{principalId.NotEmpty().ToLowerInvariant()}/private";
     private static string ToHubChannelId(string channelId) => $"hub-channel:{channelId.NotEmpty().ToLowerInvariant()}";
+}
+
+
+public static class HubChannelClientExtensions
+{
+    public static Task<Option> Add(this HubChannelClient client, string channelId, string ownerPrincipalId, ScopeContext context)
+    {
+        var model = CreateModel(channelId, ownerPrincipalId);
+        return client.Add(model, context);
+    }
+
+    public static async Task<Option> CreateIfNotExist(this HubChannelClient client, string channelId, string ownerPrincipalId, ScopeContext context)
+    {
+        var model = CreateModel(channelId, ownerPrincipalId);
+        var result = await client.Add(model, context);
+
+        if (result.IsConflict()) return StatusCode.OK;
+        return result;
+    }
+
+    private static HubChannelRecord CreateModel(string channelId, string ownerPrincipalId) => new HubChannelRecord
+    {
+        ChannelId = channelId,
+        Users = new Dictionary<string, PrincipalChannelRecord>
+        {
+            [ownerPrincipalId] = new PrincipalChannelRecord
+            {
+                PrincipalId = ownerPrincipalId,
+                Role = ChannelRole.Owner,
+            },
+        },
+    };
 }

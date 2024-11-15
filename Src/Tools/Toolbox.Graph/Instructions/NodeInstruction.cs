@@ -143,12 +143,6 @@ internal static class NodeInstruction
             .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
             .ToArray();
 
-        //var fkTags = foreignKeys
-        //    .Join(tags, x => x.Key, y => y.Key, (fk, t) => t, StringComparer.OrdinalIgnoreCase)
-        //    .Where(x => x.Value.IsNotEmpty())
-        //    .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
-        //    .ToArray();
-
         var missingEdges = fkTags
             .Where(x => x.Value.IsNotEmpty())
             .Select(x => new GraphEdgePrimaryKey(fromKey, x.Value.NotEmpty(), x.Key))

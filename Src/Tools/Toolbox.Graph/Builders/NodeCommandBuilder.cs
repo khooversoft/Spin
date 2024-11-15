@@ -47,8 +47,9 @@ public class NodeCommandBuilder
     {
         edgeType.NotEmpty();
         reference.NotEmpty();
+        ForeignKeys.ContainsKey(edgeType).Assert(x => x == false, $"{edgeType} already exist");
 
-        if (!ForeignKeys.ContainsKey(edgeType)) ForeignKeys.Add(edgeType, null);
+        ForeignKeys.Add(edgeType, null);
         Tags.Add(edgeType, reference);
 
         return this;
@@ -59,8 +60,9 @@ public class NodeCommandBuilder
         edgeType.NotEmpty();
         references.NotNull();
         if (!references.Any()) return this;
+        ForeignKeys.ContainsKey(edgeType).Assert(x => x == false, $"{edgeType} already exist");
 
-        if (!ForeignKeys.ContainsKey(edgeType)) ForeignKeys.Add(edgeType, $"{edgeType}-*");
+        ForeignKeys.Add(edgeType, $"{edgeType}-*");
 
         foreach (var value in references)
         {

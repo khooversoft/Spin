@@ -17,7 +17,7 @@ public class AccountRecordTests
         IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
         var context = testHost.GetScopeContext<AccountRecordTests>();
 
-        var accountRecord = TestTool.Create("user1@domain.com");
+        var accountRecord = TestTool.CreateAccountModel("user1@domain.com");
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);
 
         var result = await client.Add(accountRecord, context);

@@ -26,7 +26,6 @@ public class TicketGroupRecordSerializationTests
             TicketGroupId = ticketGroupId,
             Name = "name",
             Description = "Sam's 2020 hockey tickets",
-            OwnerPrincipalId = principalId,
 
             Roles = [
                     new RoleRecord { PrincipalId = principalId, MemberRole = RoleType.Owner },

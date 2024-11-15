@@ -20,7 +20,7 @@ public class HubChannelTests
         var client = testHost.ServiceProvider.GetRequiredService<HubChannelClient>();
         var context = testHost.GetScopeContext<HubChannelTests>();
 
-        var accountRecord = TestTool.Create(_principalId);
+        var accountRecord = TestTool.CreateAccountModel(_principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "samUser", testHost, context);
         await TestTool.AddIdentityUser(_friend1, "friend-user1", testHost, context);
         await TestTool.AddIdentityUser(_friend2, "friend-user2", testHost, context);

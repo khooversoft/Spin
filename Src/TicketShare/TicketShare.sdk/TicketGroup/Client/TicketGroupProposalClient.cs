@@ -12,10 +12,12 @@ public class TicketGroupProposalClient
 {
     private readonly TicketGroupClient _ticketGroupClient;
     private readonly ILogger<TicketGroupProposalClient> _logger;
+    private readonly HubChannelClient _hubClient;
 
-    public TicketGroupProposalClient(TicketGroupClient ticketGroupClient, ILogger<TicketGroupProposalClient> logger)
+    public TicketGroupProposalClient(TicketGroupClient ticketGroupClient, HubChannelClient hubClient, ILogger<TicketGroupProposalClient> logger)
     {
         _ticketGroupClient = ticketGroupClient.NotNull();
+        _hubClient = hubClient.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -167,15 +169,19 @@ public class TicketGroupProposalClient
 
     private async Task<Option> SendMessage(TicketGroupRecord ticketGroup, ProposalRecord proposal, string message, ScopeContext context)
     {
-        var currentOwner = ticketGroup.Seats
+        var newOwner = ticketGroup.Seats
             .Where(x => x.SeatId == proposal.SeatId && x.Date == proposal.SeatDate)
             .Select(x => x.AssignedToPrincipalId)
             .FirstOrDefault();
 
-        if (currentOwner == null) return StatusCode.OK;
+        var hubMessage = new ChannelMessageRecord
+        {
+            ChannelId = ticketGroup.ChannelId,
+            Message = message,
+            FromPrincipalId = newOwner ?? TicketGroupClient.ToTicketGroupKey(ticketGroup.TicketGroupId),
+        };
 
-        //var messageOption = await _accountClient.Messages.Send(proposal.Proposed.ByPrincipalId, currentOwner, message, proposal.ProposalId, context);
-        //return messageOption;
-        return default;
+        var result = await _hubClient.Message.Send(hubMessage, context);
+        return result;
     }
 }

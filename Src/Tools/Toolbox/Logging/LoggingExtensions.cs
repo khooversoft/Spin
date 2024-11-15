@@ -47,8 +47,15 @@ public static class LoggingExtensions
 
         object?[] argList = args?.ToArray() ?? Array.Empty<object>();
 
-        string msg = ScopeContextTools.AppendMessage(message, "Argument={argumentName}, StatusCode={statusCode}, Error={error}");
-        argList = ScopeContextTools.AppendArgs(argList, name, option.StatusCode, option.Error ?? "<no error>");
+        string msg = ScopeContextTools.AppendMessage(message, "Argument={argumentName}, StatusCode={statusCode}");
+        argList = ScopeContextTools.AppendArgs(argList, name, option.StatusCode);
+
+        if (option.Error != null)
+        {
+            msg = ScopeContextTools.AppendMessage(msg, "Error={error}");
+            argList = ScopeContextTools.AppendArgs(argList, option.Error);
+        }
+
         (msg, argList) = context.AppendContext(msg, argList);
 
         location.Log(option.StatusCode.IsOk() ? LogLevel.Information : LogLevel.Error, msg, argList);

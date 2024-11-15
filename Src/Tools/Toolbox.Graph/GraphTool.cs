@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Security.Cryptography;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -16,7 +17,6 @@ public static class GraphTool
     }.ToFrozenSet();
 
     private static string ToEncoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.chr, y.replace));
-    private static string ToDecoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.replace, y.chr));
 
 
     public static string CreateFileId(string nodeKey, string name, string extension = ".json")
@@ -63,5 +63,18 @@ public static class GraphTool
         return list;
     }
 
-    public static string ToHashTag(string tag, string value) => $"{tag.NotEmpty()}-{RandomTag.Generate(6)}";
+    public static string ToHashTag(string tag, string value) => $"{tag.NotEmpty()}-{RandomNumberGenerator.GetHexString(6)}";
+
+    public static string ApplyIfRequired(string value, Func<string, string> apply)
+    {
+        if (value.IsEmpty()) return value;
+
+        var result = value.Split(':') switch
+        {
+            { Length: 1 } => apply(value),
+            _ => value,
+        };
+
+        return result;
+    }
 }
