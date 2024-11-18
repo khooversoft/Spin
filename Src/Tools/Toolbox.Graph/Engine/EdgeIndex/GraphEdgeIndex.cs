@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -10,7 +11,7 @@ namespace Toolbox.Graph;
 
 public class GraphEdgeIndex : IEnumerable<GraphEdge>
 {
-    private readonly Dictionary<GraphEdgePrimaryKey, GraphEdge> _index;
+    private readonly ConcurrentDictionary<GraphEdgePrimaryKey, GraphEdge> _index;
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesFrom;
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesTo;
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesEdges;
@@ -23,7 +24,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         _map = map.NotNull();
         _lock = syncLock.NotNull();
 
-        _index = new Dictionary<GraphEdgePrimaryKey, GraphEdge>(GraphEdgePrimaryKeyComparer.Default);
+        _index = new ConcurrentDictionary<GraphEdgePrimaryKey, GraphEdge>(GraphEdgePrimaryKeyComparer.Default);
         _edgesFrom = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
         _edgesTo = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
         _edgesEdges = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);

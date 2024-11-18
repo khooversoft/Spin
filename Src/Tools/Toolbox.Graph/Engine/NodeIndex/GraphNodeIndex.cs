@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -12,7 +13,7 @@ namespace Toolbox.Graph;
 
 public class GraphNodeIndex : IEnumerable<GraphNode>
 {
-    private readonly Dictionary<string, GraphNode> _index;
+    private readonly ConcurrentDictionary<string, GraphNode> _index;
     private readonly TagIndex<string> _tagIndex;
     private readonly GraphUniqueIndex _uniqueIndex;
     private readonly object _lock;
@@ -22,7 +23,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     {
         _map = map.NotNull();
         _lock = syncLock.NotNull();
-        _index = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
+        _index = new ConcurrentDictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
         _uniqueIndex = new GraphUniqueIndex(_lock);
     }
