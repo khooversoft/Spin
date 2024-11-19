@@ -51,6 +51,7 @@ public class CommandTwoNodesAndEdges : IWorker
                             {
                                 z1.Should().NotBeNull();
                                 z1.NotNull().Nodes.Count.Should().Be(1);
+                                z1.Nodes[0].Key.Should().Be(n1);
                                 z1.Edges.Count.Should().Be(0);
                             });
                             y.Items.Where(z => z.Alias == "a2").FirstOrDefault().Action(z1 =>
@@ -58,6 +59,7 @@ public class CommandTwoNodesAndEdges : IWorker
                                 z1.Should().NotBeNull();
                                 z1.NotNull().Nodes.Count.Should().Be(0);
                                 z1.Edges.Count.Should().Be(1);
+                                (z1.Edges[0].GetPrimaryKey() == edge1).Should().BeTrue(edge1.ToString());
                             });
                         });
                     });
@@ -74,11 +76,13 @@ public class CommandTwoNodesAndEdges : IWorker
                                 z1.Should().NotBeNull();
                                 z1.NotNull().Nodes.Count.Should().Be(0);
                                 z1.Edges.Count.Should().Be(1);
+                                (z1.Edges[0].GetPrimaryKey() == edge1).Should().BeTrue(edge1.ToString());
                             });
                             y.Items.Where(z => z.Alias == "a2").FirstOrDefault().Action(z1 =>
                             {
                                 z1.Should().NotBeNull();
                                 z1.NotNull().Nodes.Count.Should().Be(1);
+                                z1.Nodes[0].Key.Should().Be(n1);
                                 z1.Edges.Count.Should().Be(0);
                             });
                         });
