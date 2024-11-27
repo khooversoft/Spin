@@ -24,8 +24,7 @@ internal static class TestTool
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost(config: x =>
         {
-            x.AddSingleton<IdentityClient, IdentityClient>();
-            //x.AddSingleton<IUserStore<PrincipalIdentity>, UserStore>();
+            x.AddToolboxIdentity();
             x.AddLogging(y => y.AddLambda(outputHelper.WriteLine));
         });
 
@@ -77,18 +76,14 @@ internal static class TestTool
     public static string LoginProvider = "loginProvider";
     public static string ProviderKey = "loginProvider.key1";
 
-    public static PrincipalIdentity CreateUser(TestContext engineContext)
+    public static PrincipalIdentity CreateUser()
     {
         var user = new PrincipalIdentity
         {
             PrincipalId = UserId,
             UserName = UserName,
             Email = UserEmail,
-            EmailConfirmed = true,
-            PasswordHash = "passwordHash",
             NormalizedUserName = UserName.ToLower(),
-            AuthenticationType = "auth",
-            IsAuthenticated = true,
             Name = "user name",
             LoginProvider = LoginProvider,
             ProviderKey = ProviderKey,

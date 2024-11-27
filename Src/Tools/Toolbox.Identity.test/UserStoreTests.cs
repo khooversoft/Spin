@@ -1,56 +1,72 @@
-//using FluentAssertions;
-//using Microsoft.AspNetCore.Identity;
-//using Microsoft.Extensions.DependencyInjection;
-//using Toolbox.Tools;
-//using Xunit.Abstractions;
+using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Tools;
+using Xunit.Abstractions;
 
-//namespace Toolbox.Identity.test;
+namespace Toolbox.Identity.test;
 
-//public class UserStoreTests
-//{
-//    private ITestOutputHelper _outputHelper;
-//    public UserStoreTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper.NotNull();
+public class UserStoreTests
+{
+    private ITestOutputHelper _outputHelper;
+    public UserStoreTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper.NotNull();
 
-//    [Fact]
-//    public async Task UserStoreWithGraphInfo()
-//    {
-//        var engineContext = TestTool.CreateGraphEngineHost(_outputHelper);
-//        var userStore = engineContext.Engine.ServiceProvider.GetRequiredService<IUserStore<PrincipalIdentity>>();
+    [Fact]
+    public async Task UserStoreWithGraphInfo()
+    {
+        var engineContext = TestTool.CreateGraphEngineHost(_outputHelper);
+        var userStore = engineContext.Engine.ServiceProvider.GetRequiredService<IUserStore<PrincipalIdentity>>();
 
-//        PrincipalIdentity user = TestTool.CreateUser(engineContext);
+        PrincipalIdentity user = TestTool.CreateUser();
 
-//        var createResult = await userStore.CreateAsync(user, default);
-//        createResult.Succeeded.Should().BeTrue();
-//        engineContext.Map.Nodes.Count.Should().Be(4);
-//        engineContext.Map.Edges.Count.Should().Be(3);
+        var createResult = await userStore.CreateAsync(user, default);
+        createResult.Succeeded.Should().BeTrue();
+        engineContext.Map.Nodes.Count.Should().Be(1);
+        engineContext.Map.Edges.Count.Should().Be(0);
 
-//        var userId = await userStore.GetUserIdAsync(user, default);
-//        userId.Should().Be(user.PrincipalId);
+        PrincipalIdentity findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
+        (user == findUser).Should().BeTrue();
 
-//        var userName = await userStore.GetUserNameAsync(user, default);
-//        userName.Should().Be(user.UserName);
+        var userId = await userStore.GetUserIdAsync(user, default);
+        userId.Should().Be(user.PrincipalId);
 
-//        var normalizeUserName = await userStore.GetNormalizedUserNameAsync(user, default);
-//        normalizeUserName.Should().Be(user.NormalizedUserName);
+        var userName = await userStore.GetUserNameAsync(user, default);
+        userName.Should().Be(user.UserName);
 
-//        string newNormalizeUserName = (TestTool.UserName + ".new").ToLower();
-//        await userStore.SetNormalizedUserNameAsync(user, newNormalizeUserName, default);
-//        var getNormalizeUserName = await userStore.GetNormalizedUserNameAsync(user, default);
-//        getNormalizeUserName.Should().Be(newNormalizeUserName);
+        var normalizeUserName = await userStore.GetNormalizedUserNameAsync(user, default);
+        normalizeUserName.Should().Be(user.NormalizedUserName);
 
-//        var updateResult = await userStore.UpdateAsync(user, default);
-//        updateResult.Succeeded.Should().BeTrue();
+        string newNormalizeUserName = (TestTool.UserName + ".new").ToLower();
+        await userStore.SetNormalizedUserNameAsync(user, newNormalizeUserName, default);
 
-//        PrincipalIdentity? findUser = await userStore.FindByIdAsync(user.PrincipalId, default);
-//        findUser.Should().NotBeNull();
-//        (user == findUser).Should().BeTrue();
+        findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
+        user = user with { NormalizedUserName = newNormalizeUserName };
+        (user == findUser).Should().BeTrue();
 
-//        var findByName = await userStore.FindByNameAsync(newNormalizeUserName.NotEmpty(), default);
-//        (user == findByName).Should().BeTrue();
+        var getNormalizeUserName = await userStore.GetNormalizedUserNameAsync(user, default);
+        getNormalizeUserName.Should().Be(newNormalizeUserName);
 
-//        var deleteResult = await userStore.DeleteAsync(user, default);
-//        deleteResult.Succeeded.Should().BeTrue();
-//        engineContext.Map.Nodes.Count.Should().Be(0);
-//        engineContext.Map.Edges.Count.Should().Be(0);
-//    }
-//}
+        const string newUserName = "newUserName";
+        await userStore.SetUserNameAsync(user, newUserName, default);
+        findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
+        user = user with { UserName = newUserName };
+        (user == findUser).Should().BeTrue($"user={user}, findUser={findUser}");
+
+        const string providerDisplayName = "dkdk";
+        user = user with { ProviderDisplayName = providerDisplayName };
+
+        var updateResult = await userStore.UpdateAsync(user, default);
+        updateResult.Succeeded.Should().BeTrue();
+
+        findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
+        (user == findUser).Should().BeTrue();
+
+        var findByName = await userStore.FindByNameAsync(newNormalizeUserName.NotEmpty(), default);
+        (user == findByName).Should().BeTrue();
+
+        var deleteResult = await userStore.DeleteAsync(user, default);
+        deleteResult.Succeeded.Should().BeTrue();
+        engineContext.Map.Nodes.Count.Should().Be(0);
+        engineContext.Map.Edges.Count.Should().Be(0);
+    }
+}

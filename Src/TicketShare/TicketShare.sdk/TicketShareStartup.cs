@@ -7,9 +7,31 @@ namespace TicketShare.sdk;
 
 public static class TicketShareStartup
 {
+    //public static void AddAzureApplicationConfiguration(this IHostApplicationBuilder builder)
+    //{
+    //    string connectionString = builder.Configuration.GetConnectionString("AppConfig").NotNull();
+    //    ClientSecretCredential credential = ClientCredential.ToClientSecretCredential(connectionString);
+
+    //    var appConfigEndpoint = "https://biz-bricks-prod-configuration.azconfig.io";
+
+    //    // Build configuration
+    //    builder.Configuration.AddAzureAppConfiguration(options =>
+    //    {
+    //        options.Connect(new Uri(appConfigEndpoint), credential)
+    //            .ConfigureKeyVault(kv =>
+    //            {
+    //                kv.SetCredential(credential);
+    //            })
+    //            .Select(TsConstants.ConfigurationFilter, LabelFilter.Null)
+    //            .Select(TsConstants.ConfigurationFilter, builder.Environment.EnvironmentName);
+    //    });
+
+    //    builder.Configuration.AddPropertyResolver();
+    //}
+
     public static IServiceCollection AddTicketShare(this IServiceCollection service)
     {
-        service.AddIdentity();
+        service.AddToolboxIdentity();
         service.AddSingleton<AccountClient>();
 
         service.AddSingleton<TicketGroupClient>();

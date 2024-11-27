@@ -41,7 +41,6 @@ public static class SiloStartup
     public static ISiloBuilder AddTickShareCluster(this ISiloBuilder builder, HostBuilderContext hostContext)
     {
         builder.NotNull();
-
         string accountConnection = hostContext.Configuration[TsConstants.StorageAccountConnection].NotEmpty();
         string storageCredential = hostContext.Configuration[TsConstants.StorageCredential].NotEmpty();
         DatalakeOption datalakeOption = DatalakeOptionTool.Create(accountConnection, storageCredential);

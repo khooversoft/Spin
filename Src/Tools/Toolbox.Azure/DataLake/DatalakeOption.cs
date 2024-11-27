@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Azure.Storage.Files.DataLake;
+using Microsoft.Extensions.Configuration;
 using Toolbox.Azure.Identity;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -42,6 +43,25 @@ public static class DatalakeOptionTool
         TokenCredential credential = subject.Credentials.ToTokenCredential();
 
         return new DataLakeServiceClient(serviceUri, credential);
+    }
+
+    public static DatalakeOption Get(IConfiguration configuration)
+    {
+        configuration.NotNull();
+
+        ClientSecretOption secretOption = configuration.GetConnectionString("AppConfig").NotNull()
+            .ToDictionaryFromString()
+            .ToObject<ClientSecretOption>();
+
+        DatalakeOption datalakeOption = configuration.GetSection("Storage").Get<DatalakeOption>().NotNull();
+
+        datalakeOption = datalakeOption with
+        {
+            Credentials = secretOption,
+        };
+
+        datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
+        return datalakeOption;
     }
 
     public static DatalakeOption Create(string datalakeConnectionString, string clientSecretConnectionString)

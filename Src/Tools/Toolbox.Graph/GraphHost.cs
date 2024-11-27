@@ -47,12 +47,7 @@ public class GraphHost : IGraphHost
     {
         context = context.With(_logger);
         int current = Interlocked.CompareExchange(ref _runningState, Running, Stopped);
-
-        if (current != Stopped)
-        {
-            context.LogWarning("Host already running");
-            return StatusCode.OK;
-        }
+        if (current == Running) return StatusCode.OK;
 
         var result = await LoadMap(context);
         Interlocked.Exchange(ref _runningState, Running);

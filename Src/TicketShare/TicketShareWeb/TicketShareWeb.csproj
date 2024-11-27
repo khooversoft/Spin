@@ -15,4 +15,8 @@
         <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.3.1" />
         <PackageReference Include="System.Text.Json" Version="9.0.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TicketShare.sdk\TicketShare.sdk.csproj" />
+    </ItemGroup>
 </Project>

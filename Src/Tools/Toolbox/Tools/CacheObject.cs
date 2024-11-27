@@ -10,6 +10,7 @@
 public class CacheObject<T>
 {
     private ValueStore? _valueStore;
+    private readonly object _lock = new object();
 
     public CacheObject(TimeSpan lifeTime) => LifeTime = lifeTime;
 
@@ -17,8 +18,11 @@ public class CacheObject<T>
 
     public CacheObject<T> Clear()
     {
-        _valueStore = null;
-        return this;
+        lock (_lock)
+        {
+            _valueStore = null;
+            return this;
+        }
     }
 
     public T Value => TryGetValue(out var value) ? value : throw new InvalidOperationException("Cache is not valid");
@@ -31,25 +35,31 @@ public class CacheObject<T>
 
     public bool TryGetValue(out T value)
     {
-        value = default!;
-
-        ValueStore? current = _valueStore;
-        if (current == null) return false;
-
-        if (DateTimeOffset.Now < current.Value.ValidTo)
+        lock (_lock)
         {
-            value = current.Value.Value;
-            return true;
-        }
+            value = default!;
 
-        _valueStore = default;
-        return false;
+            ValueStore? current = _valueStore;
+            if (current == null) return false;
+
+            if (DateTimeOffset.Now < current.Value.ValidTo)
+            {
+                value = current.Value.Value;
+                return true;
+            }
+
+            _valueStore = default;
+            return false;
+        }
     }
 
     public CacheObject<T> Set(T? value)
     {
-        _valueStore = value != null ? new ValueStore(value, DateTime.Now + LifeTime) : null;
-        return this;
+        lock (_lock)
+        {
+            _valueStore = value != null ? new ValueStore(value, DateTime.Now + LifeTime) : null;
+            return this;
+        }
     }
 
     private readonly struct ValueStore(T value, DateTime validTo)

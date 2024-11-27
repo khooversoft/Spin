@@ -50,8 +50,10 @@ public static class DataETagExtensions
         return result.IsOk();
     }
 
-    public static DataETag ToDataETag<T>(this T value, string? currentETag = null) where T : class
+    public static DataETag ToDataETag<T>(this T value)
     {
+        value.NotNull();
+
         var bytes = value switch
         {
             null => throw new ArgumentNullException("value"),
@@ -60,8 +62,22 @@ public static class DataETagExtensions
             var v => v.ToJson().ToBytes(),
         };
 
-        var hash = currentETag ?? bytes.ToHexHash();
-        return new DataETag(bytes, hash);
+        return new DataETag(bytes, bytes.ToHexHash());
+    }
+
+    public static DataETag ToDataETag<T>(this T value, string? currentETag)
+    {
+        value.NotNull();
+
+        var bytes = value switch
+        {
+            null => throw new ArgumentNullException("value"),
+            byte[] v => v,
+            string v => v.ToBytes(),
+            var v => v.ToJson().ToBytes(),
+        };
+
+        return currentETag.IsEmpty() ? new DataETag(bytes) : new DataETag(bytes, currentETag);
     }
 
     public static DataETag StripETag(this DataETag data) => new DataETag([.. data.Data]);
