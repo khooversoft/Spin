@@ -1,11 +1,20 @@
 ﻿@page "/weather"
 @attribute [StreamRendering]
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
 
 <PageTitle>Weather</PageTitle>
 
 <h1>Weather</h1>
 
 <p>This component demonstrates showing data.</p>
+
+@if (_user?.Identity != null)
+{
+    <p>Welcome, @_user.Identity.Name!</p>
+}
 
 @if (forecasts == null)
 {
@@ -23,10 +32,17 @@ else
 }
 
 @code {
+    [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+
+    private ClaimsPrincipal _user = null!;
+
     private IQueryable<WeatherForecast>? forecasts;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _user = authState.User;
+
         // Simulate asynchronous loading to demonstrate streaming rendering
         await Task.Delay(500);
 

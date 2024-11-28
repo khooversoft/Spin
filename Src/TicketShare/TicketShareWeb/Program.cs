@@ -1,76 +1,84 @@
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
 using TicketShare.sdk;
+using TicketShareWeb.Application;
 using TicketShareWeb.Components;
+using TicketShareWeb.Components.Account;
+using TicketShareWeb.Data;
 using Toolbox.Azure;
 using Toolbox.Graph;
 using Toolbox.Identity;
-//using Toolbox.Types;
-
+using Toolbox.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration
-    .AddEnvironmentVariables()
-    .AddUserSecrets("aspnet-TicketShareWeb-e9076773-e3de-4c20-8260-df0e9c390006");
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+builder.Services.AddFluentUIComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+//builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    })
+    .AddMicrosoftAccount(opt =>
+    {
+        opt.ClientId = builder.Configuration[TsConstants.AzureAd_ClientId].NotEmpty();
+        opt.ClientSecret = builder.Configuration[TsConstants.AzureAd_ClientSecret].NotEmpty();
+
+        // Adding the prompt parameter
+        opt.Events = new OAuthEvents
+        {
+            OnRedirectToAuthorizationEndpoint = context =>
+            {
+                context.Response.Redirect(context.RedirectUri + "&prompt=select_account");
+                return Task.CompletedTask;
+            }
+        };
+    })
+    .AddIdentityCookies();
+
+//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseSqlServer(connectionString));
+//builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+//builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+//    .AddEntityFrameworkStores<ApplicationDbContext>()
+//    .AddSignInManager()
+//    .AddDefaultTokenProviders();
+
+builder.Services.AddTransient<IUserStore<ApplicationUser>, CustomUserStore>();
 
 builder.Services
-    .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    //.AddCookie(options =>
-    //{
-    //    options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
-    //    options.SlidingExpiration = true;
-    //    options.AccessDeniedPath = "/Forbidden/";
-    //})
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
-
-builder.Services
-    .AddIdentityCore<PrincipalIdentity>()
+    .AddIdentityCore<ApplicationUser>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services
-    .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
-    .AddGraphEngine()
-    .AddTicketShare();
+//builder.Services
+//    .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
+//    .AddGraphEngine()
+//    .AddTicketShare();
 
-//builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-//{
-//    options.Events = new OpenIdConnectEvents
-//    {
-//        OnTokenValidated = async context =>
-//        {
-//            var identityPrincipalManager = context.HttpContext.RequestServices.GetRequiredService<IdentityPrincipalManager>();
-//            string principalId = context?.Principal?.Identity?.Name ?? throw new Exception("PrincipalId is missing");
-
-//            var findResult = await identityPrincipalManager.GetPrincipalId(principalId);
-//            if (findResult.IsNotFound())
-//            {
-//                context.Response.Redirect("/Account/CreateLogon");
-//                context.HandleResponse(); // This prevents the request from proceeding further                                          
-//            }
-//        }
-//    };
-//});
-
-// Add services to the container.
-builder.Services
-    .AddRazorComponents()
-    .AddInteractiveServerComponents();
-
-builder.Services.AddFluentUIComponents();
-
-builder.Services
-    .AddControllersWithViews()
-    .AddMicrosoftIdentityUI();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseMigrationsEndPoint();
+}
+else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
@@ -85,7 +93,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// Add additional endpoints required by the Identity /Account Razor components.
+app.MapAdditionalIdentityEndpoints();
 
 app.Run();

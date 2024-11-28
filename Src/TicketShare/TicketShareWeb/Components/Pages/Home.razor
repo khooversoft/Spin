@@ -1,49 +1,7 @@
 ﻿@page "/"
-@rendermode InteractiveServer
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.OpenIdConnect
-@using Toolbox.Identity;
-@using Microsoft.AspNetCore.Identity;
-@using System.Security.Claims
-@using Microsoft.AspNetCore.Components.Authorization
 
-<PageTitle>Ticket Share</PageTitle>
+<PageTitle>Home</PageTitle>
 
-<h1>Welcome to Ticket Share!</h1>
+<h1>Hello, world!</h1>
 
-@if (_user?.Identity != null)
-{
-    <p>Welcome currently logged in, @_user.Identity.Name!</p>
-}
-
-Select the provider to log in.
-
-<button @onclick="BeginLogin">Login</button>
-
-<form action="Account/Logout" method="post">
-    <AntiforgeryToken />
-    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-    <FluentButton Type="ButtonType.Submit" Style="width: 100%">Logout</FluentButton>
-</form>
-
-@code{
-    [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
-    [Inject] public NavigationManager Navigation { get; set; } = null!;
-    [Inject] private SignInManager<PrincipalIdentity> _signInManager { get; set; } = null!;
-
-    private string? currentUrl;
-    private ClaimsPrincipal _user = null!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        _user = authState.User;
-        currentUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
-    }
-
-    private async Task BeginLogin()
-    {
-        await _signInManager.SignOutAsync();
-        // Navigation.NavigateTo("/Account/Login");
-    }
-}
+Welcome to your new Fluent Blazor app.
