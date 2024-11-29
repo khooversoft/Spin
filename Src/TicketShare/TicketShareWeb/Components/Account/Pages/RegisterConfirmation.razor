@@ -3,10 +3,10 @@
 @using System.Text
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using TicketShareWeb.Data
+@using Toolbox.Identity
 
-@inject UserManager<ApplicationUser> UserManager
-@inject IEmailSender<ApplicationUser> EmailSender
+@inject UserManager<PrincipalIdentity> UserManager
+@inject IEmailSender<PrincipalIdentity> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 

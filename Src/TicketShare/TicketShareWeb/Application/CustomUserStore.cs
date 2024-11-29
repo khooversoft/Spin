@@ -1,62 +1,62 @@
-﻿using Microsoft.AspNetCore.Identity;
-using TicketShareWeb.Data;
+﻿//using Microsoft.AspNetCore.Identity;
+//using TicketShareWeb.Data;
 
-namespace TicketShareWeb.Application;
+//namespace TicketShareWeb.Application;
 
-public class CustomUserStore : IUserStore<ApplicationUser>
-{
-    public Task<IdentityResult> CreateAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//public class CustomUserStore : IUserStore<PrincipalIdentity>
+//{
+//    public Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task<IdentityResult> DeleteAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
+//    public void Dispose()
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task<ApplicationUser?> FindByIdAsync(string userId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task<PrincipalIdentity?> FindByIdAsync(string userId, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task<ApplicationUser?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task<PrincipalIdentity?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task<string?> GetNormalizedUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task<string?> GetNormalizedUserNameAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task<string> GetUserIdAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task<string?> GetUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task<string?> GetUserNameAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task SetNormalizedUserNameAsync(ApplicationUser user, string? normalizedName, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task SetNormalizedUserNameAsync(PrincipalIdentity user, string? normalizedName, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task SetUserNameAsync(ApplicationUser user, string? userName, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+//    public Task SetUserNameAsync(PrincipalIdentity user, string? userName, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
 
-    public Task<IdentityResult> UpdateAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-}
+//    public Task<IdentityResult> UpdateAsync(PrincipalIdentity user, CancellationToken cancellationToken)
+//    {
+//        throw new NotImplementedException();
+//    }
+//}

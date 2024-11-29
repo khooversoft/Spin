@@ -1,8 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using TicketShareWeb.Data
+@using Toolbox.Identity
 
-@inject SignInManager<ApplicationUser> SignInManager
+@inject SignInManager<PrincipalIdentity> SignInManager
 @inject IdentityRedirectManager RedirectManager
 
 @if (externalLogins.Length == 0)

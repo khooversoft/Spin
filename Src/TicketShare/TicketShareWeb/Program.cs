@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
-using TicketShareWeb.Application;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
-using TicketShareWeb.Data;
 using Toolbox.Azure;
 using Toolbox.Graph;
 using Toolbox.Identity;
@@ -16,8 +13,7 @@ using Toolbox.Tools;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
 
 builder.Services.AddCascadingAuthenticationState();
@@ -52,24 +48,24 @@ builder.Services.AddAuthentication(options =>
 //    options.UseSqlServer(connectionString));
 //builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-//builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+//builder.Services.AddIdentityCore<PrincipalIdentity>(options => options.SignIn.RequireConfirmedAccount = true)
 //    .AddEntityFrameworkStores<ApplicationDbContext>()
 //    .AddSignInManager()
 //    .AddDefaultTokenProviders();
 
-builder.Services.AddTransient<IUserStore<ApplicationUser>, CustomUserStore>();
+builder.Services.AddTransient<IUserStore<PrincipalIdentity>, IdentityUserStore>();
 
 builder.Services
-    .AddIdentityCore<ApplicationUser>()
+    .AddIdentityCore<PrincipalIdentity>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-//builder.Services
-//    .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
-//    .AddGraphEngine()
-//    .AddTicketShare();
+builder.Services
+    .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
+    .AddGraphEngine()
+    .AddTicketShare();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IEmailSender<PrincipalIdentity>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
 
