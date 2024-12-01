@@ -26,7 +26,7 @@ public class TicketGroupProposalClient
         ticketGroupId.NotEmpty();
         if (!proposalRecord.Validate(out var r)) return r.LogStatus(context, nameof(ProposalRecord));
 
-        var ticketGroupOption = await _ticketGroupClient.Get(ticketGroupId, context);
+        var ticketGroupOption = await _ticketGroupClient.Get(ticketGroupId, context).ConfigureAwait(false);
         if (ticketGroupOption.IsError()) return ticketGroupOption.ToOptionStatus();
 
         var ticketGroup = ticketGroupOption.Return();
@@ -35,10 +35,10 @@ public class TicketGroupProposalClient
             Proposals = ticketGroup.Proposals.Values.Append(proposalRecord).ToFrozenDictionary(x => x.ProposalId, x => x),
         };
 
-        var write = await _ticketGroupClient.Set(ticketGroup, context);
+        var write = await _ticketGroupClient.Set(ticketGroup, context).ConfigureAwait(false);
         if (write.IsError()) return write;
 
-        var message = await SendMessage(ticketGroup, proposalRecord, "Propose seat change", context);
+        var message = await SendMessage(ticketGroup, proposalRecord, "Propose seat change", context).ConfigureAwait(false);
         return message;
     }
 
@@ -48,7 +48,7 @@ public class TicketGroupProposalClient
         proposalId.NotEmpty();
         principalId.NotEmpty();
 
-        var response = await GetTicketGroup(ticketGroupId, proposalId, principalId, context);
+        var response = await GetTicketGroup(ticketGroupId, proposalId, principalId, context).ConfigureAwait(false);
         if (response.IsError()) return response.ToOptionStatus();
 
         (TicketGroupRecord ticketGroup, ProposalRecord proposalRecord, string? oldPrincipalId) = response.Return();
@@ -82,10 +82,10 @@ public class TicketGroupProposalClient
             }).ToImmutableArray(),
         };
 
-        var write = await _ticketGroupClient.Set(ticketGroup, context);
+        var write = await _ticketGroupClient.Set(ticketGroup, context).ConfigureAwait(false);
         if (write.IsError()) return write;
 
-        var message = await SendMessage(ticketGroup, proposalRecord, "Propose seat change accepted", context);
+        var message = await SendMessage(ticketGroup, proposalRecord, "Propose seat change accepted", context).ConfigureAwait(false);
         return message;
     }
 
@@ -95,7 +95,7 @@ public class TicketGroupProposalClient
         proposalId.NotEmpty();
         principalId.NotEmpty();
 
-        var response = await GetTicketGroup(ticketGroupId, proposalId, principalId, context);
+        var response = await GetTicketGroup(ticketGroupId, proposalId, principalId, context).ConfigureAwait(false);
         if (response.IsError()) return response.ToOptionStatus();
 
         (TicketGroupRecord ticketGroup, ProposalRecord proposalRecord, string? oldPrincipalId) = response.Return();
@@ -121,10 +121,10 @@ public class TicketGroupProposalClient
             }).ToImmutableArray(),
         };
 
-        var write = await _ticketGroupClient.Set(ticketGroup, context);
+        var write = await _ticketGroupClient.Set(ticketGroup, context).ConfigureAwait(false);
         if (write.IsError()) return write;
 
-        var message = await SendMessage(ticketGroup, proposalRecord, "Propose seat change rejected", context);
+        var message = await SendMessage(ticketGroup, proposalRecord, "Propose seat change rejected", context).ConfigureAwait(false);
         return message;
     }
 
@@ -139,7 +139,7 @@ public class TicketGroupProposalClient
         proposalId.NotEmpty();
         principalId.NotEmpty();
 
-        var ticketGroupOption = await _ticketGroupClient.Get(ticketGroupId, context);
+        var ticketGroupOption = await _ticketGroupClient.Get(ticketGroupId, context).ConfigureAwait(false);
         if (ticketGroupOption.IsError()) return ticketGroupOption.ToOptionStatus<(TicketGroupRecord, ProposalRecord, string?)>();
 
         var ticketGroup = ticketGroupOption.Return();
@@ -181,7 +181,7 @@ public class TicketGroupProposalClient
             FromPrincipalId = newOwner ?? TicketGroupClient.ToTicketGroupKey(ticketGroup.TicketGroupId),
         };
 
-        var result = await _hubClient.Message.Send(hubMessage, context);
+        var result = await _hubClient.Message.Send(hubMessage, context).ConfigureAwait(false);
         return result;
     }
 }

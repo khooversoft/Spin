@@ -11,13 +11,13 @@ public class GraphClientInMemory : IGraphClient
 
     public async Task<Option<QueryBatchResult>> ExecuteBatch(string command, ScopeContext context)
     {
-        var result = await QueryExecution.Execute(_graphHost, command, context);
+        var result = await QueryExecution.Execute(_graphHost, command, context).ConfigureAwait(false);
         return result;
     }
 
     public async Task<Option<QueryResult>> Execute(string command, ScopeContext context)
     {
-        var result = await QueryExecution.Execute(_graphHost, command, context);
+        var result = await QueryExecution.Execute(_graphHost, command, context).ConfigureAwait(false);
         if (result.IsError()) return result.ToOptionStatus<QueryResult>();
 
         return result.Return().Items.Last();

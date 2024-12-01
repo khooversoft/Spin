@@ -139,6 +139,11 @@ code {
     color: #c02d76;
 }
 
+.left-justified-button::part(control) {
+    text-align: left; /* Align text to the left */
+    justify-content: left;
+}
+
 @media (max-width: 600px) {
     .main {
         flex-direction: column !important;

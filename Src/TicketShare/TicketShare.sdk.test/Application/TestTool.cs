@@ -41,7 +41,7 @@ internal static class TestTool
             {
                 new ContactRecord { Type = ContactType.Email, Value = "email" },
             },
-            Address = new[]
+            AddressItems = new[]
             {
                 new AddressRecord
                 {

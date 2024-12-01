@@ -18,14 +18,14 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         _logger = logger.NotNull();
     }
 
-    #region IUserStore
+    // User Store
 
     public async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var identityResult = (await _identityClient.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _identityClient.Set(user, context).ConfigureAwait(false)).ToIdentityResult();
         return identityResult;
     }
 
@@ -35,7 +35,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var identityResult = (await _identityClient.Delete(user.PrincipalId, context)).ToIdentityResult();
+        var identityResult = (await _identityClient.Delete(user.PrincipalId, context).ConfigureAwait(false)).ToIdentityResult();
         return identityResult;
     }
 
@@ -46,7 +46,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var result = await _identityClient.GetByPrincipalId(userId, context);
+        var result = await _identityClient.GetByPrincipalId(userId, context).ConfigureAwait(false);
         return result.IsOk() ? result.Return() : null;
     }
 
@@ -55,7 +55,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var result = await _identityClient.GetByName(normalizedUserName, context);
+        var result = await _identityClient.GetByName(normalizedUserName, context).ConfigureAwait(false);
         return result.IsOk() ? result.Return() : null;
     }
 
@@ -107,13 +107,11 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var identityResult = (await _identityClient.Set(user, context)).ToIdentityResult();
+        var identityResult = (await _identityClient.Set(user, context).ConfigureAwait(false)).ToIdentityResult();
         return identityResult;
     }
 
-    #endregion
-
-    #region IUserLoginStore
+    // IUserLoginStore
 
     public Task AddLoginAsync(PrincipalIdentity user, UserLoginInfo login, CancellationToken cancellationToken)
     {
@@ -131,7 +129,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var result = await _identityClient.GetByLogin(loginProvider, providerKey, context);
+        var result = await _identityClient.GetByLogin(loginProvider, providerKey, context).ConfigureAwait(false);
         return result.IsOk() ? result.Return() : null;
     }
 
@@ -140,7 +138,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var resultOption = await _identityClient.GetByPrincipalId(user.PrincipalId, context);
+        var resultOption = await _identityClient.GetByPrincipalId(user.PrincipalId, context).ConfigureAwait(false);
         if (resultOption.IsError()) return Array.Empty<UserLoginInfo>();
 
         var result = resultOption.Return();
@@ -155,9 +153,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
 
-        var result = await _identityClient.Delete(user.PrincipalId, context);
+        var result = await _identityClient.Delete(user.PrincipalId, context).ConfigureAwait(false);
         result.LogStatus(context, nameof(RemoveLoginAsync)).ThrowOnError();
     }
-
-    #endregion
 }

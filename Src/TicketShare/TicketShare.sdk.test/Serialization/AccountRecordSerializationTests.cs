@@ -36,7 +36,7 @@ public class AccountRecordSerializationTests
             {
                 new ContactRecord { Type = ContactType.Email, Value = "email" },
             }.ToImmutableArray(),
-            Address = new[]
+            AddressItems = new[]
             {
                 new AddressRecord
                 {
