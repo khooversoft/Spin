@@ -1,12 +1,13 @@
 ﻿@implements IDialogContentComponent<ContactModel>
 
 <FluentDialogBody>
+
     <FluentSelect Items=@_validTypes
-                  Label="Contact Type:"
-                  OptionText="@(i => i.Text)"
-                  OptionValue="@(i => i.Value)"
-                  OptionSelected="@(i => i.Selected)"
-                  @bind-Value="@Content.Type" />
+    Label="Contact Type:"
+    OptionText="@(i => i.Text)"
+    OptionValue="@(i => i.Value)"
+    OptionSelected="@(i => i.Selected)"
+    @bind-Value="@Content.Type" />
 
     <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value">Value:</FluentTextField>
 
@@ -14,21 +15,31 @@
 
     <FluentStack Orientation="Orientation.Horizontal">
         <FluentButton Appearance="Appearance.Outline"
-                      IconStart="@(new Icons.Regular.Size20.Save())"
-                      OnClick="Set">
+        IconStart="@(new Icons.Regular.Size20.Save())"
+        OnClick="Set">
             Save
         </FluentButton>
 
         <FluentButton Appearance="Appearance.Outline"
-                      IconStart="@(new Icons.Regular.Size20.Delete())"
-                      OnClick="Delete">
+        IconStart="@(new Icons.Regular.Size20.Delete())"
+        OnClick="Delete">
             Delete
+        </FluentButton>
+
+        <FluentButton Appearance="Appearance.Outline"
+        IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
+        OnClick="Close">
+            Close
         </FluentButton>
     </FluentStack>
 </FluentDialogBody>
 
 @code {
     [Parameter] public ContactModel Content { get; set; } = default!;
+    [Parameter] public EventCallback<ContactModel> Set { get; set; }
+    [Parameter] public EventCallback Cancel { get; set; }
+    [Parameter] public EventCallback<ContactModel> Delete { get; set; }
+    [CascadingParameter] public FluentDialog _dialog { get; set; } = null!;
 
     static List<Fluent.Option<string>> _validTypes = new()
     {
@@ -36,7 +47,18 @@
         new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
     };
 
-    private Task Undo() => Task.CompletedTask;
-    private Task Set() => Task.CompletedTask;
-    private Task Delete() => Task.CompletedTask;
+    private async Task Close()
+    {
+        await _dialog.CloseAsync();
+    }
+
+    private async Task Set()
+    {
+        await _dialog.CloseAsync();
+    }
+
+    private async Task Delete()
+    {
+        await _dialog.CloseAsync();
+    }
 }
