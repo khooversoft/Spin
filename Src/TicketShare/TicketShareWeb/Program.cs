@@ -65,7 +65,7 @@ builder.Services
     .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
     .AddGraphEngine()
     .AddTicketShare()
-    .AddSingleton<UserAccountManager>();
+    .AddScoped<UserAccountManager>();
 
 builder.Services.AddSingleton<IEmailSender<PrincipalIdentity>, IdentityNoOpEmailSender>();
 

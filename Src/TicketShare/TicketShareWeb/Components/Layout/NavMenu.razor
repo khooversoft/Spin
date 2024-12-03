@@ -22,16 +22,17 @@
                 <Authorized>
                     <FluentNavLink Href="Tickets" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent">Tickets</FluentNavLink>
                     <FluentNavLink Href="Messages" Icon="@(new Icons.Regular.Size20.Comment())" IconColor="Color.Accent">Messages</FluentNavLink>
-                    <FluentNavLink Href="Account" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Account</FluentNavLink>
+                    <FluentNavLink Href="UserAccount" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Account</FluentNavLink>
 
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+
                         <FluentButton Class="left-justified-button"
-                        Type="ButtonType.Submit"
-                        IconStart="@(new Icons.Regular.Size20.SignOut())"
-                        Appearance="Appearance.Neutral"
-                        style="margin: 10px 0 10px 0; width: 100%">
+                                      Type="ButtonType.Submit"
+                                      IconStart="@(new Icons.Regular.Size20.SignOut())"
+                                      Appearance="Appearance.Neutral"
+                                      style="margin: 10px 0 10px 0; width: 100%">
                             Logout
                         </FluentButton>
                     </form>
