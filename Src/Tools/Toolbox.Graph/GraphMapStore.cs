@@ -25,13 +25,13 @@ internal class GraphMapStore
     {
         context = context.With(_logger);
 
-        await _resetEvent.WaitAsync(context.CancellationToken);
+        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
         try
         {
             context.LogInformation("Reading graph data file={mapDatabasePath}", _mapDatabasePath);
 
-            var readMapSerializer = await _graphContext.FileStore.Get(_mapDatabasePath, context);
-            if (readMapSerializer.IsNotFound()) return await InternalSet(context);
+            var readMapSerializer = await _graphContext.FileStore.Get(_mapDatabasePath, context).ConfigureAwait(false);
+            if (readMapSerializer.IsNotFound()) return await InternalSet(context).ConfigureAwait(false);
 
             if (readMapSerializer.IsError()) return readMapSerializer.ToOptionStatus();
 
@@ -54,10 +54,10 @@ internal class GraphMapStore
     {
         context = context.With(_logger);
 
-        await _resetEvent.WaitAsync(context.CancellationToken);
+        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
         try
         {
-            var result = await InternalSet(context);
+            var result = await InternalSet(context).ConfigureAwait(false);
             return result;
         }
         finally
@@ -73,7 +73,7 @@ internal class GraphMapStore
         context.LogInformation("Writing graph data file={mapDatabasePath}", _mapDatabasePath);
 
         GraphSerialization graphSerialization = _graphContext.Map.ToSerialization();
-        var writeMapSerializer = await _graphContext.FileStore.Set(_mapDatabasePath, graphSerialization.ToDataETag(_currentETag), context);
+        var writeMapSerializer = await _graphContext.FileStore.Set(_mapDatabasePath, graphSerialization.ToDataETag(_currentETag), context).ConfigureAwait(false);
         if (writeMapSerializer.IsError()) return writeMapSerializer.ToOptionStatus();
 
         string newETag = writeMapSerializer.Return();

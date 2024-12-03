@@ -41,21 +41,21 @@ public class DatalakeStore : IDatalakeStore
 
         try
         {
-            Option<DatalakePathProperties> propertiesOption = await InternalGetPathPropertiesOrCreate(path, context);
+            Option<DatalakePathProperties> propertiesOption = await InternalGetPathPropertiesOrCreate(path, context).ConfigureAwait(false);
             if (propertiesOption.IsError()) return propertiesOption.ToOptionStatus();
             var properties = propertiesOption.Return();
 
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
 
-            await file.AppendAsync(memoryBuffer, properties.ContentLength, cancellationToken: context);
-            await file.FlushAsync(properties.ContentLength + data.Data.Length);
+            await file.AppendAsync(memoryBuffer, properties.ContentLength, cancellationToken: context).ConfigureAwait(false);
+            await file.FlushAsync(properties.ContentLength + data.Data.Length).ConfigureAwait(false);
 
             context.Location().LogInformation("Appended to path={path}", path);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound" || ex.ErrorCode == "BlobNotFound")
         {
             context.Location().LogInformation("Creating path={path}", path);
-            await Write(path, data, true, context);
+            await Write(path, data, true, context).ConfigureAwait(false);
 
             return StatusCode.OK;
         }
@@ -79,7 +79,7 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            Response<bool> response = await file.DeleteIfExistsAsync(cancellationToken: context);
+            Response<bool> response = await file.DeleteIfExistsAsync(cancellationToken: context).ConfigureAwait(false);
 
             if (!response.Value) context.Location().LogInformation("File path={path} does not exist", path);
 
@@ -102,7 +102,7 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
-            var response = await directoryClient.DeleteAsync(cancellationToken: context);
+            var response = await directoryClient.DeleteAsync(cancellationToken: context).ConfigureAwait(false);
             if (response.Status != 200) return (StatusCode.Conflict, response.ReasonPhrase);
 
             return StatusCode.OK;
@@ -124,7 +124,7 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            Response<bool> response = await file.ExistsAsync(context);
+            Response<bool> response = await file.ExistsAsync(context).ConfigureAwait(false);
             return response.Value ? StatusCode.OK : StatusCode.NotFound;
         }
         catch (Exception ex)
@@ -153,10 +153,10 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            Response<FileDownloadInfo> response = await file.ReadAsync(context);
+            Response<FileDownloadInfo> response = await file.ReadAsync(context).ConfigureAwait(false);
 
             using MemoryStream memory = new MemoryStream();
-            await response.Value.Content.CopyToAsync(memory);
+            await response.Value.Content.CopyToAsync(memory).ConfigureAwait(false);
 
             byte[] data = memory.ToArray();
             string etag = response.Value.Properties.ETag.ToString();
@@ -243,7 +243,7 @@ public class DatalakeStore : IDatalakeStore
         context.Location().LogTrace("Writing path={path}", path);
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());
 
-        return await Upload(path, memoryBuffer, overwrite, data, context);
+        return await Upload(path, memoryBuffer, overwrite, data, context).ConfigureAwait(false);
     }
 
     public async Task<Option> TestConnection(ScopeContext context)
@@ -253,7 +253,7 @@ public class DatalakeStore : IDatalakeStore
 
         try
         {
-            Response<bool> response = await _fileSystem.ExistsAsync(cancellationToken: context);
+            Response<bool> response = await _fileSystem.ExistsAsync(cancellationToken: context).ConfigureAwait(false);
             context.Location().LogInformation("Testing exist of file system, exists={fileSystemExist}", response.Value);
             return response.Value ? StatusCode.OK : StatusCode.ServiceUnavailable;
         }
@@ -297,11 +297,11 @@ public class DatalakeStore : IDatalakeStore
                     Conditions = new DataLakeRequestConditions { IfMatch = dataETag.ETag.IsNotEmpty() ? new ETag(dataETag.ETag) : null }
                 };
 
-                result = await file.UploadAsync(fromStream, option, context);
+                result = await file.UploadAsync(fromStream, option, context).ConfigureAwait(false);
                 return result.Value.ETag;
             }
 
-            result = await file.UploadAsync(fromStream, overwrite, context);
+            result = await file.UploadAsync(fromStream, overwrite, context).ConfigureAwait(false);
             return result.Value.ETag;
         }
         catch (Exception ex)
@@ -314,11 +314,11 @@ public class DatalakeStore : IDatalakeStore
 
     private async Task<Option<DatalakePathProperties>> InternalGetPathPropertiesOrCreate(string path, ScopeContext context)
     {
-        var properties = await InternalGetPathProperties(path, context);
+        var properties = await InternalGetPathProperties(path, context).ConfigureAwait(false);
         if (properties.IsOk()) return properties;
 
         await _fileSystem.GetFileClient(path).CreateIfNotExistsAsync(PathResourceType.File);
-        return await InternalGetPathProperties(path, context);
+        return await InternalGetPathProperties(path, context).ConfigureAwait(false);
     }
 
     private async Task<Option<DatalakePathProperties>> InternalGetPathProperties(string path, ScopeContext context)
@@ -328,7 +328,7 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            var result = await file.GetPropertiesAsync(cancellationToken: context);
+            var result = await file.GetPropertiesAsync(cancellationToken: context).ConfigureAwait(false);
 
             return result.Value.ConvertTo(path);
         }

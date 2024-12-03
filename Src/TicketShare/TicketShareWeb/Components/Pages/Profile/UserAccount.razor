@@ -1,0 +1,101 @@
+﻿@page "/UserAccount"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using TicketShare.sdk
+@using TicketShareWeb.Application
+@using Toolbox.Identity
+
+<PageTitle>Account</PageTitle>
+
+@if (Input != null)
+{
+    <div style="margin-top: 20px">
+
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentButton Appearance="Appearance.Outline"
+                          IconStart="@(new Icons.Regular.Size20.Save())"
+                          Style="margin-top:20px;"
+                          OnClick="UpdateUser">
+                Save
+            </FluentButton> 
+            
+            <FluentButton Appearance="Appearance.Outline"
+                          IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
+                          Style="margin-top:20px;"
+                          OnClick="UpdateUser">
+                Undo
+            </FluentButton>
+        </FluentStack>
+
+        <hr />
+
+        <h4>User's Details</h4>
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentTextField Name="Input.Name"
+                             @bind-Value="Input.Name"
+                             Required="true"
+                             Placeholder="Your name"
+                             Label="Name"
+                             Class="form-editbox"
+                             @oninput="OnNameChange" />
+
+            <div style="margin: 20px 0px 20px 0px">
+                <UserContact InputModel="Input" />
+            </div>
+        </FluentStack>
+    </div>
+
+}
+
+@code {
+    [Inject] public ILogger<UserAccount> _logger { get; set; } = null!;
+    [Inject] public NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
+
+    private InputModel Input { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ReadAccountData();
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void OnNameChange(ChangeEventArgs e)
+    {
+        Input.Name = e.Value?.ToString() ?? Input.Name;
+    }
+
+    private async Task UpdateUser()
+    {
+        string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
+
+        _logger.LogInformation("Updating account, Input={input}", Input.ToJson());
+        var account = Input.NotNull().ConvertTo(principalId);
+
+        // var result = await _userAccountManager.SetAccount(account).ConfigureAwait(false);
+        NavigationManager.NavigateTo("/", true);
+    }
+
+    private async Task ReadAccountData()
+    {
+        if (Input != null) return;
+
+        var accountOption = await _userAccountManager.GetAccount().ConfigureAwait(false);
+        accountOption.ThrowOnError(nameof(OnInitializedAsync));
+
+        Input = accountOption.Return().ConvertTo();
+        _logger.LogInformation("Account read, Input={input}", Input.ToJson());
+    }
+}

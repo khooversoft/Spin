@@ -38,9 +38,12 @@ public class UserStoreTests
 
         string newNormalizeUserName = (TestTool.UserName + ".new").ToLower();
         await userStore.SetNormalizedUserNameAsync(user, newNormalizeUserName, default);
+        user.NormalizedUserName.Should().Be(newNormalizeUserName);
+
+        var updateResult = await userStore.UpdateAsync(user, default);
+        updateResult.Succeeded.Should().BeTrue();
 
         findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
-        user = user with { NormalizedUserName = newNormalizeUserName };
         (user == findUser).Should().BeTrue();
 
         var getNormalizeUserName = await userStore.GetNormalizedUserNameAsync(user, default);
@@ -48,14 +51,17 @@ public class UserStoreTests
 
         const string newUserName = "newUserName";
         await userStore.SetUserNameAsync(user, newUserName, default);
+
+        updateResult = await userStore.UpdateAsync(user, default);
+        updateResult.Succeeded.Should().BeTrue();
+
         findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
-        user = user with { UserName = newUserName };
         (user == findUser).Should().BeTrue($"user={user}, findUser={findUser}");
 
         const string providerDisplayName = "dkdk";
         user = user with { ProviderDisplayName = providerDisplayName };
 
-        var updateResult = await userStore.UpdateAsync(user, default);
+        updateResult = await userStore.UpdateAsync(user, default);
         updateResult.Succeeded.Should().BeTrue();
 
         findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();

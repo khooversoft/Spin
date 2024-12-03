@@ -32,7 +32,7 @@ public class TicketGroupSearchClient
             .AddDataName("entity")
             .Build();
 
-        var resultOption = await _graphClient.Execute(cmd, context);
+        var resultOption = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
         if (resultOption.IsError()) resultOption.LogStatus(context, cmd).ToOptionStatus<IReadOnlyList<TicketGroupRecord>>();
 
         var list = resultOption.Return().DataLinkToObjects<TicketGroupRecord>("entity");
@@ -50,7 +50,7 @@ public class TicketGroupSearchClient
             .AddDataName("entity")
             .Build();
 
-        var resultOption = await _graphClient.Execute(cmd, context);
+        var resultOption = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
         if (resultOption.IsError()) resultOption.LogStatus(context, cmd).ToOptionStatus<IReadOnlyList<TicketGroupRecord>>();
 
         var list = resultOption.Return().DataLinkToObjects<TicketGroupRecord>("entity");

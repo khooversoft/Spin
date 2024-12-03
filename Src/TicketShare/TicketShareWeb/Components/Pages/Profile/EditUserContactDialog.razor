@@ -1,0 +1,42 @@
+﻿@implements IDialogContentComponent<ContactModel>
+
+<FluentDialogBody>
+    <FluentSelect Items=@_validTypes
+                  Label="Contact Type:"
+                  OptionText="@(i => i.Text)"
+                  OptionValue="@(i => i.Value)"
+                  OptionSelected="@(i => i.Selected)"
+                  @bind-Value="@Content.Type" />
+
+    <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value">Value:</FluentTextField>
+
+    <hr />
+
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.Save())"
+                      OnClick="Set">
+            Save
+        </FluentButton>
+
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.Delete())"
+                      OnClick="Delete">
+            Delete
+        </FluentButton>
+    </FluentStack>
+</FluentDialogBody>
+
+@code {
+    [Parameter] public ContactModel Content { get; set; } = default!;
+
+    static List<Fluent.Option<string>> _validTypes = new()
+    {
+        new Fluent.Option<string> { Value = "Email", Text = "Email" },
+        new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
+    };
+
+    private Task Undo() => Task.CompletedTask;
+    private Task Set() => Task.CompletedTask;
+    private Task Delete() => Task.CompletedTask;
+}

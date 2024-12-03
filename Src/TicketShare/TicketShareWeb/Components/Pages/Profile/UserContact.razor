@@ -1,0 +1,76 @@
+﻿@rendermode InteractiveServer
+
+@using Microsoft.FluentUI.AspNetCore.Components
+
+<h4>User Contacts</h4>
+
+@if (_contacts is not null)
+{
+    <FluentDataGrid Items="@_contacts" GridTemplateColumns="70px 210px 80px">
+        <PropertyColumn Property="@(p => p.Type)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Value)" Sortable="true" />
+        <TemplateColumn>
+            <FluentButton onclick="() => Edit(context)">Edit</FluentButton>
+        </TemplateColumn>
+    </FluentDataGrid>
+}
+
+
+@code {
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Parameter] public InputModel InputModel { get; set; } = null!;
+
+    IDialogReference _dialog = null!;
+
+    static List<Fluent.Option<string>> _validTypes = new()
+    {
+        new Fluent.Option<string> { Value = "Email", Text = "Email" },
+        new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
+    };
+
+    private IQueryable<ContactModel> _contacts = null!;
+
+    protected override void OnParametersSet()
+    {
+        _contacts = InputModel.ContactItems.AsQueryable();
+        base.OnParametersSet();
+    }
+
+    private async Task Edit(ContactModel selectedModel)
+    {
+        selectedModel.NotNull();
+        await OpenPanelRightAsync(selectedModel);
+    }
+
+    private async Task OpenPanelRightAsync(ContactModel model)
+    {
+        _dialog = await _dialogService.ShowPanelAsync<EditUserContactDialog>(model, new DialogParameters<ContactModel>()
+            {
+                Content = model,
+                Alignment = HorizontalAlignment.Right,
+                ShowDismiss = true,
+                Title = "Edit Contact",
+                PrimaryActionEnabled = false,
+                SecondaryActionEnabled = false,
+                PrimaryAction = null,
+                SecondaryAction = null,
+            });
+
+        DialogResult result = await _dialog.Result;
+        HandlePanel(result);
+
+    }
+
+    private static void HandlePanel(DialogResult result)
+    {
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        if (result.Data is not null)
+        {
+            return;
+        }
+    }
+}

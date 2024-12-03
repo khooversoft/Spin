@@ -13,26 +13,25 @@ namespace TicketShare.sdk;
 public sealed record AccountRecord
 {
     public string PrincipalId { get; init; } = null!;   // Owner
-    public string Name { get; init; } = null!;          // Principal Id name, not index
+    public string? Name { get; init; }
 
     public IReadOnlyList<ContactRecord> ContactItems { get; init; } = Array.Empty<ContactRecord>();
-    public IReadOnlyList<AddressRecord> Address { get; init; } = Array.Empty<AddressRecord>();
+    public IReadOnlyList<AddressRecord> AddressItems { get; init; } = Array.Empty<AddressRecord>();
     public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = Array.Empty<CalendarRecord>();
 
     public bool Equals(AccountRecord? obj) => obj is AccountRecord subject &&
         PrincipalId == subject.PrincipalId &&
         Name == subject.Name &&
         Enumerable.SequenceEqual(ContactItems, subject.ContactItems) &&
-        Enumerable.SequenceEqual(Address, subject.Address) &&
+        Enumerable.SequenceEqual(AddressItems, subject.AddressItems) &&
         Enumerable.SequenceEqual(CalendarItems, subject.CalendarItems);
 
-    public override int GetHashCode() => HashCode.Combine(PrincipalId, Name, ContactItems, Address, CalendarItems);
+    public override int GetHashCode() => HashCode.Combine(PrincipalId, Name, ContactItems, AddressItems, CalendarItems);
 
     public static IValidator<AccountRecord> Validator { get; } = new Validator<AccountRecord>()
         .RuleFor(x => x.PrincipalId).NotEmpty()
-        .RuleFor(x => x.Name).NotEmpty()
         .RuleForEach(x => x.ContactItems).Validate(ContactRecord.Validator)
-        .RuleForEach(x => x.Address).Validate(AddressRecord.Validator)
+        .RuleForEach(x => x.AddressItems).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
         .Build();
 }
@@ -74,7 +73,7 @@ public static class AccountRecordTool
 
         currentRecord = currentRecord with
         {
-            Address = currentRecord.Address
+            AddressItems = currentRecord.AddressItems
                 .Where(x => !newRecords.Any(y => x.Label.EqualsIgnoreCase(y.Label)))
                 .Concat(newAddressRecords)
                 .ToImmutableArray(),

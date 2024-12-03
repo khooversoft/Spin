@@ -1,4 +1,6 @@
-﻿@if (!string.IsNullOrEmpty(DisplayMessage))
+﻿@using TicketShareWeb.Components.Account;
+
+@if (!string.IsNullOrEmpty(DisplayMessage))
 {
     var statusMessageClass = DisplayMessage.StartsWith("Error") ? "danger" : "success";
     <div class="alert alert-@statusMessageClass" role="alert">

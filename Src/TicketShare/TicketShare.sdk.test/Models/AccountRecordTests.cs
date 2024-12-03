@@ -46,7 +46,7 @@ public class AccountRecordTests
         accountRecord = accountRecord with
         {
             ContactItems = accountRecord.ContactItems
-                .Append(new ContactRecord { Type = ContactType.Cell, Value = "202-555-1212" })
+                .Append(new ContactRecord { Type = ContactType.Phone, Value = "202-555-1212" })
                 .ToArray(),
         };
 

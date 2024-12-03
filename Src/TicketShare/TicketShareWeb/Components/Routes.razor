@@ -1,4 +1,7 @@
 ﻿@using TicketShareWeb.Components.Account.Shared
+
+<FluentDesignTheme Mode="DesignThemeModes.Light" OfficeColor="OfficeColor.Publisher" StorageName="theme" />
+
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">

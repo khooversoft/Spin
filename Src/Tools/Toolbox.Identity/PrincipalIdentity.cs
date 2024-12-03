@@ -19,7 +19,7 @@ public sealed record PrincipalIdentity
     // Email is normalized
     public string Email { get; set; } = null!;
     public string NormalizedUserName { get; set; } = null!;
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
     public string? LoginProvider { get; set; } = null!;
     public string? ProviderKey { get; set; } = null!;
     public string? ProviderDisplayName { get; set; }

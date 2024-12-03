@@ -17,7 +17,7 @@ internal static class NodeDataTool
 
         foreach (var item in dataMap)
         {
-            var writeResult = await SetNodeData(pContext, item.FileId, item.Data);
+            var writeResult = await SetNodeData(pContext, item.FileId, item.Data).ConfigureAwait(false);
             if (writeResult.IsError()) return writeResult.ToOptionStatus<IReadOnlyList<GraphLink>>();
         }
 
@@ -29,7 +29,7 @@ internal static class NodeDataTool
         var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
         foreach (var fileId in linksToDelete)
         {
-            var result = await NodeDataTool.DeleteNodeData(fileId, graphContext);
+            var result = await NodeDataTool.DeleteNodeData(fileId, graphContext).ConfigureAwait(false);
             if (result.IsError()) return result;
         }
 
@@ -47,7 +47,7 @@ internal static class NodeDataTool
 
     public static async Task<Option<DataETag>> GetData(string fileId, QueryExecutionContext pContext)
     {
-        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context);
+        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context).ConfigureAwait(false);
         readOption.LogStatus(pContext.TrxContext.Context, $" Get node data fileId={fileId}");
         return readOption;
     }
@@ -58,7 +58,7 @@ internal static class NodeDataTool
         graphNode.NotNull();
         pContext.NotNull();
 
-        var dataMapOption = await AddData(giNode, pContext);
+        var dataMapOption = await AddData(giNode, pContext).ConfigureAwait(false);
         if (dataMapOption.IsError()) return dataMapOption;
 
         var removeDataNames = giNode.Tags.GetTagDeleteCommands();
@@ -88,14 +88,14 @@ internal static class NodeDataTool
 
     public static async Task<Option> DeleteNodeData(string fileId, IGraphTrxContext graphContext)
     {
-        var readOption = await graphContext.FileStore.Get(fileId, graphContext.Context);
+        var readOption = await graphContext.FileStore.Get(fileId, graphContext.Context).ConfigureAwait(false);
         if (readOption.IsNotFound()) return StatusCode.OK;
         if (readOption.IsError()) return readOption.ToOptionStatus();
 
         graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
 
         graphContext.Context.LogInformation("Deleting data map={fileId}", fileId);
-        var deleteOption = await graphContext.FileStore.Delete(fileId, graphContext.Context);
+        var deleteOption = await graphContext.FileStore.Delete(fileId, graphContext.Context).ConfigureAwait(false);
         deleteOption.LogStatus(graphContext.Context, "Deleted data map");
 
         return deleteOption;
@@ -104,9 +104,9 @@ internal static class NodeDataTool
     private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
     {
         pContext.TrxContext.Context.LogInformation("Writing node data fileId={fileId}", fileId);
-        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context);
+        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context).ConfigureAwait(false);
 
-        var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.TrxContext.Context);
+        var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.TrxContext.Context).ConfigureAwait(false);
 
         if (writeOption.IsError()) return writeOption
                 .LogStatus(pContext.TrxContext.Context, "Write node data fileId={fileId} failed", [fileId])

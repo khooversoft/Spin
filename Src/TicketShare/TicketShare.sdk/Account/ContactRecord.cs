@@ -5,17 +5,18 @@ namespace TicketShare.sdk;
 
 public enum ContactType
 {
-    Cell,
+    Phone,
     Email,
-    Text
 }
 
 public record ContactRecord
 {
-    public ContactType Type { get; init; } = ContactType.Cell;
+    public string Id { get; init; } = Guid.NewGuid().ToString();
+    public ContactType Type { get; init; } = ContactType.Phone;
     public string Value { get; init; } = null!;
 
     public static IValidator<ContactRecord> Validator { get; } = new Validator<ContactRecord>()
+        .RuleFor(x => x.Id).NotEmpty()
         .RuleFor(x => x.Type).ValidEnum()
         .RuleFor(x => x.Value).NotEmpty()
         .Build();

@@ -139,6 +139,31 @@ code {
     color: #c02d76;
 }
 
+.left-justified-button::part(control) {
+    text-align: left; /* Align text to the left */
+    justify-content: left;
+}
+
+.form-editbox {
+    min-width: 350px;
+    width: 100%
+}
+
+.dialog-editbox {
+    min-width: 250px;
+    width: 100%
+}
+
+.alert-button::part(control) {
+    background-color: #FF4500; /* Red-Orange color */
+}
+
+    .alert-button::part(control):hover {
+        background-color: #FF6347; /* Slightly lighter red-orange for hover effect */
+    }
+
+
+
 @media (max-width: 600px) {
     .main {
         flex-direction: column !important;

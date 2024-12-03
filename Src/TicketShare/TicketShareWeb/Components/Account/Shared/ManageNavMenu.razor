@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@using TicketShareWeb.Data
+@using Toolbox.Identity
 
-@inject SignInManager<ApplicationUser> SignInManager
+@inject SignInManager<PrincipalIdentity> SignInManager
 
 <FluentNavMenu Collapse="false">
     <FluentNavLink Href="Account/Manage" Match="NavLinkMatch.All">Profile</FluentNavLink>

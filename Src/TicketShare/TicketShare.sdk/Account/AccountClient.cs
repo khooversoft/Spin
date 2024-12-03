@@ -26,13 +26,13 @@ public class AccountClient
     public async Task<Option> Delete(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
-        return await _graphClient.DeleteNode(ToAccountKey(principalId), context);
+        return await _graphClient.DeleteNode(ToAccountKey(principalId), context).ConfigureAwait(false);
     }
 
     public async Task<Option<AccountRecord>> Get(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
-        return await _graphClient.GetNode<AccountRecord>(ToAccountKey(principalId), context);
+        return await _graphClient.GetNode<AccountRecord>(ToAccountKey(principalId), context).ConfigureAwait(false);
     }
 
     public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => AddOrSet(true, accountRecord, context);
@@ -52,7 +52,7 @@ public class AccountClient
             .AddData("entity", accountRecord)
             .Build();
 
-        var result = await _graphClient.Execute(cmd, context);
+        var result = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
         if (result.IsError())
         {
             context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);

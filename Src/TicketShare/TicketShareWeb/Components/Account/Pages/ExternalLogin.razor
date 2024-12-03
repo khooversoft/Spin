@@ -6,12 +6,13 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using TicketShareWeb.Data
+@using Toolbox.Identity
+@using Toolbox.Tools
 
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
-@inject IUserStore<ApplicationUser> UserStore
-@inject IEmailSender<ApplicationUser> EmailSender
+@inject SignInManager<PrincipalIdentity> SignInManager
+@inject UserManager<PrincipalIdentity> UserManager
+@inject IUserStore<PrincipalIdentity> UserStore
+@inject IEmailSender<PrincipalIdentity> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ExternalLogin> Logger
@@ -23,7 +24,7 @@
 <h2>Associate your @ProviderDisplayName account.</h2>
 <hr />
 
-<div  class="alert alert-info">
+<div class="alert alert-info">
     You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
     Please enter an email address for this site below and click the Register button to finish
     logging in.
@@ -34,7 +35,7 @@
         <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
             <DataAnnotationsValidator />
             <FluentValidationSummary class="text-danger" role="alert" />
-            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;"/>
+            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
             <FluentValidationMessage For="() => Input.Email" />
             <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">Register</FluentButton>
         </EditForm>
@@ -124,11 +125,20 @@
 
     private async Task OnValidSubmitAsync()
     {
-        var emailStore = GetEmailStore();
-        var user = CreateUser();
+        Input.NotNull().Email.NotEmpty();
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        var user = new PrincipalIdentity
+            {
+                PrincipalId = Input.Email,
+                UserName = Input.Email,
+                Email = Input.Email,
+            };
+
+        // var emailStore = GetEmailStore();
+        // var user = CreateUser();
+
+        // await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        // await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
@@ -161,27 +171,27 @@
         message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
     }
 
-    private ApplicationUser CreateUser()
-    {
-        try
-        {
-            return Activator.CreateInstance<ApplicationUser>();
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor");
-        }
-    }
+    // private PrincipalIdentity CreateUser()
+    // {
+    //     try
+    //     {
+    //         return Activator.CreateInstance<PrincipalIdentity>();
+    //     }
+    //     catch
+    //     {
+    //         throw new InvalidOperationException($"Can't create an instance of '{nameof(PrincipalIdentity)}'. " +
+    //             $"Ensure that '{nameof(PrincipalIdentity)}' is not an abstract class and has a parameterless constructor");
+    //     }
+    // }
 
-    private IUserEmailStore<ApplicationUser> GetEmailStore()
-    {
-        if (!UserManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException("The default UI requires a user store with email support.");
-        }
-        return (IUserEmailStore<ApplicationUser>)UserStore;
-    }
+    // private IUserEmailStore<PrincipalIdentity> GetEmailStore()
+    // {
+    //     if (!UserManager.SupportsUserEmail)
+    //     {
+    //         throw new NotSupportedException("The default UI requires a user store with email support.");
+    //     }
+    //     return (IUserEmailStore<PrincipalIdentity>)UserStore;
+    // }
 
     private sealed class InputModel
     {

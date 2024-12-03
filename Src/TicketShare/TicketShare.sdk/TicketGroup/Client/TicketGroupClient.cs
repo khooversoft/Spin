@@ -35,13 +35,13 @@ public class TicketGroupClient
     public async Task<Option> Delete(string ticketGroupId, ScopeContext context)
     {
         ticketGroupId.NotEmpty();
-        return await _graphClient.DeleteNode(ToTicketGroupKey(ticketGroupId), context);
+        return await _graphClient.DeleteNode(ToTicketGroupKey(ticketGroupId), context).ConfigureAwait(false);
     }
 
     public async Task<Option<TicketGroupRecord>> Get(string ticketGroupId, ScopeContext context)
     {
         ticketGroupId.NotEmpty();
-        return await _graphClient.GetNode<TicketGroupRecord>(ToTicketGroupKey(ticketGroupId), context);
+        return await _graphClient.GetNode<TicketGroupRecord>(ToTicketGroupKey(ticketGroupId), context).ConfigureAwait(false);
     }
 
     public Task<Option> Set(TicketGroupRecord ticketGroupRecord, ScopeContext context) => AddOrSet(true, ticketGroupRecord, context);
@@ -51,7 +51,7 @@ public class TicketGroupClient
         context = context.With(_logger);
 
         string[] removeTagList = [];
-        var readOption = await Get(ticketGroupRecord.TicketGroupId, context);
+        var readOption = await Get(ticketGroupRecord.TicketGroupId, context).ConfigureAwait(false);
         if (readOption.IsOk())
         {
             var read = readOption.Return();
@@ -87,14 +87,14 @@ public class TicketGroupClient
             .AddData("entity", ticketGroupRecord)
             .Build();
 
-        var result = await _graphClient.Execute(cmd, context);
+        var result = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
         if (result.IsError())
         {
             context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
             return result.ToOptionStatus();
         }
 
-        var hubChannelOption = await _hubChannelClient.CreateIfNotExist(ticketGroupRecord.ChannelId, nodeKey, context);
+        var hubChannelOption = await _hubChannelClient.CreateIfNotExist(ticketGroupRecord.ChannelId, nodeKey, context).ConfigureAwait(false);
         if (hubChannelOption.IsError()) return hubChannelOption;
 
         return result.ToOptionStatus();
