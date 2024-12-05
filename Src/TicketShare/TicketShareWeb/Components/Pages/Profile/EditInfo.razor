@@ -1,0 +1,33 @@
+﻿<FluentTextField Name="Input.Name"
+                 @bind-Value="Input.Name"
+                 Required="true"
+                 Placeholder="Your name"
+                 Label="Name"
+                 Class="form-editbox"
+                 ReadOnly="@ReadOnly"
+                 @oninput="OnNameChange" />
+
+<DialogControls OnSet="OnSet" OnClose="OnClose" />
+<DialogControls OnSet="OnSet" OnClose="OnClose" OnDelete="OnDelete" ShowDelete="true"/>
+
+@code {
+    [Parameter] public InputModel Input { get; set; } = null!;
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private void OnNameChange(ChangeEventArgs e)
+    {
+        Input.Name = e.Value?.ToString() ?? Input.Name;
+    }
+
+    private async Task OnSet()
+    {
+    }
+
+    private async Task OnDelete()
+    {
+    }
+
+    private async Task OnClose()
+    {
+    }
+}

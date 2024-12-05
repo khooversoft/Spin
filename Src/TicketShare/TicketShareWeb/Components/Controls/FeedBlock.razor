@@ -1,0 +1,43 @@
+﻿<div class="feed-block-container feed-block-border">
+    @if (_isMenuBar)
+    {
+        <FluentToolbar Class="feed-block-toolbar">
+            @if (Title.IsNotEmpty())
+            {
+                <FluentLabel Typo="Typography.Subject">@Title</FluentLabel>
+            }
+
+            <FluentSpacer />
+
+            @if (EditUrl.IsNotEmpty())
+            {
+                <FluentButton IconStart="@(new Icons.Regular.Size20.Edit())"
+                Appearance="Appearance.Outline"
+                OnClick="GotoEdit" />
+            }
+        </FluentToolbar>
+    }
+
+    <div class=@_contentClass>
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Inject] NavigationManager NavigationManager { get; set; } = null!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+    [Parameter] public string? EditUrl { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private bool _isMenuBar;
+    private string _contentClass = null!;
+
+    protected override void OnParametersSet()
+    {
+        _isMenuBar = Title.IsNotEmpty() || EditUrl.IsNotEmpty();
+        _contentClass = Class.IsNotEmpty() ? Class : "feed-block-content";
+    }
+
+    private void GotoEdit() => NavigationManager.NavigateTo(EditUrl.NotEmpty());
+}

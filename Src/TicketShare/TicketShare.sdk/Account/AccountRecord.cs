@@ -54,7 +54,7 @@ public static class AccountRecordTool
         subject = subject with
         {
             ContactItems = subject.ContactItems
-                .Where(x => !contactRecords.Any(y => y.Type != x.Type))
+                .Where(x => !contactRecords.Any(y => y.Id != x.Id))
                 .Concat(contactRecords)
                 .ToImmutableArray(),
         };
@@ -74,7 +74,7 @@ public static class AccountRecordTool
         currentRecord = currentRecord with
         {
             AddressItems = currentRecord.AddressItems
-                .Where(x => !newRecords.Any(y => x.Label.EqualsIgnoreCase(y.Label)))
+                .Where(x => !newRecords.Any(y => x.Id.EqualsIgnoreCase(y.Id)))
                 .Concat(newAddressRecords)
                 .ToImmutableArray(),
         };

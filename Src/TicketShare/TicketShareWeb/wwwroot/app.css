@@ -144,16 +144,6 @@ code {
     justify-content: left;
 }
 
-.form-editbox {
-    min-width: 350px;
-    width: 100%
-}
-
-.dialog-editbox {
-    min-width: 250px;
-    width: 100%
-}
-
 .alert-button::part(control) {
     background-color: #FF4500; /* Red-Orange color */
 }
@@ -163,11 +153,60 @@ code {
     }
 
 
+.form-editbox {
+    min-width: 360px;
+    width: 100%
+}
+
+.dialog-editbox {
+    min-width: 250px;
+    width: 100%
+}
+
+.feed-block-border {
+    border: 1px solid #c0c0c0;
+    border-radius: 3px;
+}
+
+.feed-block-container {
+    min-width: 380px;
+    max-width: 380px;
+    width: 380px;
+}
+
+.feed-block-content {
+    max-width: 380px;
+    padding: 10px;
+    border: 1px solid blue;
+}
+
+.feed-block-datagrid {
+    max-width: 380px;
+    padding: 10px 0px;
+    border: 1px solid green;
+}
+
+.feed-block-toolbar {
+    min-width: 375px;
+    max-width: 375px;
+    width: 375px;
+}
+
+.hr-divider {
+    /*border-top: 1px solid #c0c0c0;*/
+    margin: 5px 0px;
+}
+
 
 @media (max-width: 600px) {
     .main {
         flex-direction: column !important;
         row-gap: 0 !important;
+    }
+
+    .content {
+        padding: 0.5rem 0.3rem;
+        align-self: stretch !important;
     }
 
     nav.sitenav {

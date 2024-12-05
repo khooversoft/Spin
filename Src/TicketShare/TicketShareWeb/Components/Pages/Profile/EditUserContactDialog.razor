@@ -3,11 +3,11 @@
 <FluentDialogBody>
 
     <FluentSelect Items=@_validTypes
-    Label="Contact Type:"
-    OptionText="@(i => i.Text)"
-    OptionValue="@(i => i.Value)"
-    OptionSelected="@(i => i.Selected)"
-    @bind-Value="@Content.Type" />
+                  Label="Contact Type:"
+                  OptionText="@(i => i.Text)"
+                  OptionValue="@(i => i.Value)"
+                  OptionSelected="@(i => i.Selected)"
+                  @bind-Value="@Content.Type" />
 
     <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value">Value:</FluentTextField>
 
@@ -15,20 +15,20 @@
 
     <FluentStack Orientation="Orientation.Horizontal">
         <FluentButton Appearance="Appearance.Outline"
-        IconStart="@(new Icons.Regular.Size20.Save())"
-        OnClick="Set">
+                      IconStart="@(new Icons.Regular.Size20.Save())"
+                      OnClick="SetClick">
             Save
         </FluentButton>
 
         <FluentButton Appearance="Appearance.Outline"
-        IconStart="@(new Icons.Regular.Size20.Delete())"
-        OnClick="Delete">
+                      IconStart="@(new Icons.Regular.Size20.Delete())"
+                      OnClick="DeleteClick">
             Delete
         </FluentButton>
 
         <FluentButton Appearance="Appearance.Outline"
-        IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
-        OnClick="Close">
+                      IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
+                      OnClick="CloseClick">
             Close
         </FluentButton>
     </FluentStack>
@@ -36,9 +36,6 @@
 
 @code {
     [Parameter] public ContactModel Content { get; set; } = default!;
-    [Parameter] public EventCallback<ContactModel> Set { get; set; }
-    [Parameter] public EventCallback Cancel { get; set; }
-    [Parameter] public EventCallback<ContactModel> Delete { get; set; }
     [CascadingParameter] public FluentDialog _dialog { get; set; } = null!;
 
     static List<Fluent.Option<string>> _validTypes = new()
@@ -47,18 +44,22 @@
         new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
     };
 
-    private async Task Close()
+    private async Task CloseClick()
     {
-        await _dialog.CloseAsync();
+        await _dialog.CancelAsync();
     }
 
-    private async Task Set()
+    private async Task SetClick()
     {
-        await _dialog.CloseAsync();
+        var resultContent = new DialogResultState<ContactModel>(Content);
+        var result = DialogResult.Ok<DialogResultState<ContactModel>>(resultContent);
+        await _dialog.CloseAsync(result);
     }
 
-    private async Task Delete()
+    private async Task DeleteClick()
     {
-        await _dialog.CloseAsync();
+        var resultContent = new DialogResultState<ContactModel>(Content, true);
+        var result = DialogResult.Ok<DialogResultState<ContactModel>>(resultContent);
+        await _dialog.CloseAsync(result);
     }
 }

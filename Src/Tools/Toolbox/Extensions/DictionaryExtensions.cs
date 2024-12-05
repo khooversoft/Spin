@@ -110,8 +110,10 @@ public static class DictionaryExtensions
     //}
 
     public static bool DeepEquals<TKey, TValue>(
-        this IEnumerable<KeyValuePair<TKey, TValue>>? source, IEnumerable<KeyValuePair<TKey, TValue>>? target,
-        IComparer<TKey>? keyComparer = null, IComparer<TValue>? valueComparer = null
+        this IEnumerable<KeyValuePair<TKey, TValue>>? source,
+        IEnumerable<KeyValuePair<TKey, TValue>>? target,
+        IComparer<TKey>? keyComparer = null,
+        IComparer<TValue>? valueComparer = null
         )
     {
         if (source == null && target == null) return true;

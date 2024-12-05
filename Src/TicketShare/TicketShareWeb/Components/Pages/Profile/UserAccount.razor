@@ -16,42 +16,43 @@
 
 @if (Input != null)
 {
-    <div style="margin-top: 20px">
+    <div style="border: 1px solid black; ">
 
-        <FluentStack Orientation="Orientation.Horizontal">
+        <FluentStack Orientation="Orientation.Horizontal" Style="margin: 5px;padding-right:10px">
             <FluentButton Appearance="Appearance.Outline"
                           IconStart="@(new Icons.Regular.Size20.Save())"
-                          Style="margin-top:20px;"
                           OnClick="UpdateUser">
                 Save
-            </FluentButton> 
-            
+            </FluentButton>
+            <FluentSpacer />
+
             <FluentButton Appearance="Appearance.Outline"
                           IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
-                          Style="margin-top:20px;"
                           OnClick="UpdateUser">
                 Undo
             </FluentButton>
         </FluentStack>
 
-        <hr />
+        <hr class="hr-divider" />
 
-        <h4>User's Details</h4>
         <FluentStack Orientation="Orientation.Vertical">
-            <FluentTextField Name="Input.Name"
-                             @bind-Value="Input.Name"
-                             Required="true"
-                             Placeholder="Your name"
-                             Label="Name"
-                             Class="form-editbox"
-                             @oninput="OnNameChange" />
+            <FeedBlock Title="User" EditUrl="/UserAccount/AccountInfo">
+                <EditInfo Input="@Input" ReadOnly="true" />
 
-            <div style="margin: 20px 0px 20px 0px">
-                <UserContact InputModel="Input" />
-            </div>
+                @*                 <FluentTextField Name="Input.Name"
+                                 @bind-Value="Input.Name"
+                                 Required="true"
+                                 Placeholder="Your name"
+                                 Label="Name"
+                                 Class="form-editbox"
+                                 @oninput="OnNameChange" /> *@
+
+
+            </FeedBlock>
+
+            <UserContact InputModel="Input" />
         </FluentStack>
     </div>
-
 }
 
 @code {
@@ -60,6 +61,7 @@
     [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
 
     private InputModel Input { get; set; } = null!;
+    private InputModel CurrentStored { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -72,10 +74,10 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private void OnNameChange(ChangeEventArgs e)
-    {
-        Input.Name = e.Value?.ToString() ?? Input.Name;
-    }
+    // private void OnNameChange(ChangeEventArgs e)
+    // {
+    //     Input.Name = e.Value?.ToString() ?? Input.Name;
+    // }
 
     private async Task UpdateUser()
     {
@@ -96,6 +98,9 @@
         accountOption.ThrowOnError(nameof(OnInitializedAsync));
 
         Input = accountOption.Return().ConvertTo();
+        CurrentStored = Input.Clone();
         _logger.LogInformation("Account read, Input={input}", Input.ToJson());
     }
+
+    private bool IsChanged() => Input != null && (Input != CurrentStored);
 }
