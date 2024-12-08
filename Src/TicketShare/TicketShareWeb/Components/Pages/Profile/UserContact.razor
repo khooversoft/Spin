@@ -1,17 +1,16 @@
 ﻿@rendermode InteractiveServer
 
-@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using TicketShareWeb.Components.Pages.Profile.Models
 
 @if (_contacts is not null)
 {
-    <FeedBlock Title="Contact" Class="feed-block-datagrid">
+    <FeedBlock Title="Contacts" Class="feed-block-datagrid">
         <FluentDataGrid Class="feed-block-datagrid" Items="@_contacts" GridTemplateColumns="70px 240px 80px" GenerateHeader=GenerateHeaderOption.None>
             <PropertyColumn Property="@(p => p.Type)" />
             <PropertyColumn Property="@(p => p.Value)" />
             <TemplateColumn>
-                <FluentButton
-                    IconStart="@(new Icons.Regular.Size20.Edit())"
-                    onclick="() => Edit(context)" />
+                <FluentButton IconStart="@(new Icons.Regular.Size20.Edit())" onclick="() => EditContact(context)" />
             </TemplateColumn>
         </FluentDataGrid>
     </FeedBlock>
@@ -21,6 +20,7 @@
 @code {
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Parameter] public InputModel InputModel { get; set; } = null!;
+    [Parameter] public EventCallback OnUpdate { get; set; }
 
     IDialogReference _dialog = null!;
 
@@ -34,46 +34,30 @@
 
     protected override void OnParametersSet()
     {
+        OnUpdate.HasDelegate.Assert(x => x, "OnUpdate is required");
         _contacts = InputModel.ContactItems.Values.AsQueryable();
         base.OnParametersSet();
     }
 
-    private async Task Edit(ContactModel selectedModel)
+    private async Task EditContact(ContactModel model)
     {
-        selectedModel.NotNull();
-        await OpenPanelRightAsync(selectedModel);
-    }
-
-    private async Task OpenPanelRightAsync(ContactModel model)
-    {
-        var parameters = new DialogParameters<DialogResultState<ContactModel>>()
+        var parameters = new DialogParameters<ContactModel>()
             {
-                Content = new DialogResultState<ContactModel>(model),
+                Content = model,
                 Alignment = HorizontalAlignment.Right,
                 ShowDismiss = true,
                 Title = "Edit Contact",
-                PrimaryActionEnabled = false,
-                SecondaryActionEnabled = false,
-                PrimaryAction = null,
-                SecondaryAction = null,
             };
 
         _dialog = await _dialogService.ShowPanelAsync<EditUserContactDialog>(model, parameters);
 
         var result = await _dialog.Result;
-        HandlePanel(result);
-    }
-
-    private void HandlePanel(DialogResult result)
-    {
         if (result.Cancelled || result.Data is null) return;
 
-        var data = result.Data as DialogResultState<ContactModel>;
+        var data = result.Data as ContactModel;
         if (data is null) return;
 
-        if (data.IsDelete)
-        {
-
-        }
+        InputModel.ContactItems[data.Id] = data;
+        await OnUpdate.InvokeAsync();
     }
 }

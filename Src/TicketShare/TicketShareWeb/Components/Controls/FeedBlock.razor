@@ -9,11 +9,18 @@
 
             <FluentSpacer />
 
-            @if (EditUrl.IsNotEmpty())
+            @if (OnAdd.HasDelegate)
+            {
+                <FluentButton IconStart="@(new Icons.Regular.Size20.Add())"
+                              Appearance="Appearance.Outline"
+                              OnClick="GotoAdd" />
+            }
+
+            @if (OnEdit.HasDelegate)
             {
                 <FluentButton IconStart="@(new Icons.Regular.Size20.Edit())"
-                Appearance="Appearance.Outline"
-                OnClick="GotoEdit" />
+                              Appearance="Appearance.Outline"
+                              OnClick="GotoEdit" />
             }
         </FluentToolbar>
     }
@@ -24,9 +31,9 @@
 </div>
 
 @code {
-    [Inject] NavigationManager NavigationManager { get; set; } = null!;
     [Parameter] public RenderFragment ChildContent { get; set; } = null!;
-    [Parameter] public string? EditUrl { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnAdd { get; set; }
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Class { get; set; }
 
@@ -35,9 +42,10 @@
 
     protected override void OnParametersSet()
     {
-        _isMenuBar = Title.IsNotEmpty() || EditUrl.IsNotEmpty();
+        _isMenuBar = Title.IsNotEmpty() || OnAdd.HasDelegate || OnEdit.HasDelegate;
         _contentClass = Class.IsNotEmpty() ? Class : "feed-block-content";
     }
 
-    private void GotoEdit() => NavigationManager.NavigateTo(EditUrl.NotEmpty());
+    private Task GotoAdd() => OnAdd.InvokeAsync();
+    private Task GotoEdit() => OnEdit.InvokeAsync();
 }

@@ -1,0 +1,16 @@
+﻿@using TicketShareWeb.Components.Pages.Profile.Models;
+
+@implements IDialogContentComponent<UserProfileModel>
+
+@if (Content != null)
+{
+    <FluentDialogBody>
+
+        <EditInfo Content="@Content" />
+
+    </FluentDialogBody>
+}
+
+@code {
+    [Parameter] public UserProfileModel Content { get; set; } = default!;
+}

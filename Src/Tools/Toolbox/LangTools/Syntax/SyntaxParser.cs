@@ -73,7 +73,7 @@ public class SyntaxParser
 
         foreach (var rule in _rootRules)
         {
-            context.LogInformation("[Rule] processing: pContext{pContext}", rule.GetDebuggerDisplay());
+            context.LogTrace("[Rule] processing: pContext{pContext}", rule.GetDebuggerDisplay());
 
             var treeBuilder = new SyntaxTreeBuilder { MetaSyntax = rule };
             Option status = ProcessRule(pContext, rule, treeBuilder, context);
@@ -81,7 +81,7 @@ public class SyntaxParser
 
             if (status.IsNotFound())
             {
-                context.LogWarning("[Rule] - no match - processing: pContext{pContext}", rule.GetDebuggerDisplay());
+                context.LogTrace("[Rule] - no match - processing: pContext{pContext}", rule.GetDebuggerDisplay());
                 continue;
             }
 
@@ -94,7 +94,7 @@ public class SyntaxParser
     private Option ProcessRule(SyntaxParserContext pContext, IMetaSyntax parentMetaSyntax, SyntaxTreeBuilder tree, ScopeContext context)
     {
         using var scope = pContext.PushWithScope();
-        context.LogInformation(
+        context.LogTrace(
             "ProcessRule: pContext{pContext}, metaSyntax=[{metaSyntax}]",
             pContext.GetDebuggerDisplay(), parentMetaSyntax.GetDebuggerDisplay()
             );
@@ -161,13 +161,12 @@ public class SyntaxParser
 
         if (returnStatus.IsError())
         {
-            returnStatus.LogStatus(context, "ProcessRule: Error");
-            context.LogError("ProcessRule: Failed to match rule, pContext{pContext}", pContext.GetDebuggerDisplay());
+            context.LogTrace("ProcessRule: Failed to match rule, pContext{pContext}", pContext.GetDebuggerDisplay());
             return StatusCode.NotFound;
         }
 
         scope.Cancel();
-        context.LogInformation("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay());
+        context.LogTrace("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay());
         return returnStatus;
 
         static IReadOnlyList<IMetaSyntax> GetMetaSyntaxList(IMetaSyntax metaSyntax) => metaSyntax switch
@@ -207,7 +206,7 @@ public class SyntaxParser
 
         if (!pContext.TokensCursor.TryGetValue(out var current))
         {
-            context.LogWarning("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay());
+            context.LogTrace("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay());
             return (StatusCode.NotFound, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay()}");
         }
 
@@ -215,12 +214,12 @@ public class SyntaxParser
         {
             case var v when isTokenMatch(v.Value):
                 tree.Children.Add(new SyntaxPair { Token = v, MetaSyntaxName = terminal.Name });
-                context.LogInformation("ProcessTerminal: Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
+                context.LogTrace("ProcessTerminal: Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
                 scope.Cancel();
                 return StatusCode.OK;
 
             default:
-                context.LogWarning("ProcessTerminal: Terminal does not match, currentToken={tokenValue}, terminal={terminal} pContext={pContext}",
+                context.LogTrace("ProcessTerminal: Terminal does not match, currentToken={tokenValue}, terminal={terminal} pContext={pContext}",
                     current.Value, terminal.GetDebuggerDisplay(), pContext.GetDebuggerDisplay()
                     );
 

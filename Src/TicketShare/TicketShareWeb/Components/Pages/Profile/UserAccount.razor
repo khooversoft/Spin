@@ -1,7 +1,8 @@
 ﻿@page "/UserAccount"
 @attribute [Authorize]
-@rendermode InteractiveServer
 
+@using TicketShareWeb.Application
+@using TicketShareWeb.Components.Pages.Profile.Models
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
@@ -9,48 +10,21 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using TicketShare.sdk
-@using TicketShareWeb.Application
 @using Toolbox.Identity
+
+@rendermode InteractiveServer
 
 <PageTitle>Account</PageTitle>
 
-@if (Input != null)
+@if (_input != null)
 {
     <div style="border: 1px solid black; ">
-
-        <FluentStack Orientation="Orientation.Horizontal" Style="margin: 5px;padding-right:10px">
-            <FluentButton Appearance="Appearance.Outline"
-                          IconStart="@(new Icons.Regular.Size20.Save())"
-                          OnClick="UpdateUser">
-                Save
-            </FluentButton>
-            <FluentSpacer />
-
-            <FluentButton Appearance="Appearance.Outline"
-                          IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
-                          OnClick="UpdateUser">
-                Undo
-            </FluentButton>
-        </FluentStack>
-
-        <hr class="hr-divider" />
-
         <FluentStack Orientation="Orientation.Vertical">
-            <FeedBlock Title="User" EditUrl="/UserAccount/AccountInfo">
-                <EditInfo Input="@Input" ReadOnly="true" />
-
-                @*                 <FluentTextField Name="Input.Name"
-                                 @bind-Value="Input.Name"
-                                 Required="true"
-                                 Placeholder="Your name"
-                                 Label="Name"
-                                 Class="form-editbox"
-                                 @oninput="OnNameChange" /> *@
-
-
+            <FeedBlock Title="User" OnEdit="OnEditInfo">
+                <EditInfo Content="@_userProfileModel" ReadOnly="true" />
             </FeedBlock>
 
-            <UserContact InputModel="Input" />
+            <UserContact InputModel="_input" OnUpdate="UpdateAccountData" />
         </FluentStack>
     </div>
 }
@@ -59,9 +33,13 @@
     [Inject] public ILogger<UserAccount> _logger { get; set; } = null!;
     [Inject] public NavigationManager NavigationManager { get; set; } = null!;
     [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
 
-    private InputModel Input { get; set; } = null!;
-    private InputModel CurrentStored { get; set; } = null!;
+    private InputModel _input { get; set; } = null!;
+    private InputModel _currentStored = null!;
+    private UserProfileModel _userProfileModel = null!;
+
+    private bool IsChanged() => _input != null && _currentStored != null && (_input != _currentStored);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -74,33 +52,56 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    // private void OnNameChange(ChangeEventArgs e)
-    // {
-    //     Input.Name = e.Value?.ToString() ?? Input.Name;
-    // }
-
-    private async Task UpdateUser()
+    private async Task UpdateAccountData()
     {
+        if (!IsChanged()) return;
+
         string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
 
-        _logger.LogInformation("Updating account, Input={input}", Input.ToJson());
-        var account = Input.NotNull().ConvertTo(principalId);
+        _logger.LogInformation("Updating account, Input={input}", _input.ToJson());
+        var account = _input.NotNull().ConvertTo(principalId);
 
-        // var result = await _userAccountManager.SetAccount(account).ConfigureAwait(false);
-        NavigationManager.NavigateTo("/", true);
+        var result = await _userAccountManager.SetAccount(account).ConfigureAwait(false);
+        if (result.IsError()) return;
+
+        _input = null!;
+        StateHasChanged();
     }
 
     private async Task ReadAccountData()
     {
-        if (Input != null) return;
+        if (_input != null) return;
 
         var accountOption = await _userAccountManager.GetAccount().ConfigureAwait(false);
         accountOption.ThrowOnError(nameof(OnInitializedAsync));
 
-        Input = accountOption.Return().ConvertTo();
-        CurrentStored = Input.Clone();
-        _logger.LogInformation("Account read, Input={input}", Input.ToJson());
+        _input = accountOption.Return().ConvertTo();
+        _currentStored = _input.Clone();
+        _userProfileModel = new UserProfileModel { Name = _input.Name };
+
+        string json = _input.ToJson();
+        _logger.LogInformation("Account read, Input={input}", json);
     }
 
-    private bool IsChanged() => Input != null && (Input != CurrentStored);
+    private async Task OnEditInfo()
+    {
+        var userProfile = new UserProfileModel { Name = _input.Name };
+
+        var parameters = new DialogParameters<UserProfileModel>()
+            {
+                Content = _userProfileModel,
+                Alignment = HorizontalAlignment.Right,
+                ShowDismiss = true,
+                Title = "User",
+            };
+
+        var dialog = await _dialogService.ShowPanelAsync<EditInfoDialog>(_userProfileModel, parameters);
+        var result = await dialog.Result;
+        if (result.Cancelled || result.Data is null) return;
+
+        if (result.Data is not UserProfileModel userProfileModel) return;
+        _input = _input with { Name = userProfileModel.Name };
+
+        await UpdateAccountData();
+    }
 }

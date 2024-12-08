@@ -154,7 +154,7 @@ code {
 
 
 .form-editbox {
-    min-width: 360px;
+    /*min-width: 360px;*/
     width: 100%
 }
 

@@ -43,6 +43,20 @@ public class UserAccountManager
 
         if (accountRecordOption.IsOk()) return accountRecordOption;
 
+        return await CreateAccount(principalId, context).ConfigureAwait(false);
+    }
+
+    public async Task<Option> SetAccount(AccountRecord accountRecord)
+    {
+        accountRecord.NotNull();
+        var context = new ScopeContext(_logger);
+
+        var result = await _accountClient.Set(accountRecord, context).ConfigureAwait(false);
+        return result;
+    }
+
+    private async Task<Option<AccountRecord>> CreateAccount(string principalId, ScopeContext context)
+    {
         Option<PrincipalIdentity> principalIdentityOption = await _identityClient.GetByPrincipalId(principalId, new ScopeContext(_logger)).ConfigureAwait(false);
         if (principalIdentityOption.IsError())
         {
@@ -70,14 +84,5 @@ public class UserAccountManager
         }
 
         return accountRecord;
-    }
-
-    public async Task<Option> SetAccount(AccountRecord accountRecord)
-    {
-        accountRecord.NotNull();
-        var context = new ScopeContext(_logger);
-
-        var result = await _accountClient.Set(accountRecord, context).ConfigureAwait(false);
-        return result;
     }
 }
