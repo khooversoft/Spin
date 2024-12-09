@@ -39,8 +39,8 @@ public static class QueryExecution
         var instructions = InterLangTool.Build(syntaxPairs);
 
         if (instructions.IsError()) return instructions
-                .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
-                .ToOptionStatus<QueryExecutionContext>();
+            .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
+            .ToOptionStatus<QueryExecutionContext>();
 
         return new QueryExecutionContext(instructions.Return(), graphTrxContext);
     }
@@ -54,7 +54,7 @@ public static class QueryExecution
         {
             while (pContext.Cursor.TryGetValue(out var graphInstruction))
             {
-                await graphInstruction.CreateJournals().ForEachAsync(async x => await pContext.TrxContext.LogicalTrx.Write(x));
+                //await graphInstruction.CreateJournals().ForEachAsync(async x => await pContext.TrxContext.LogicalTrx.Write(x));
 
                 var queryResult = graphInstruction switch
                 {
@@ -68,7 +68,7 @@ public static class QueryExecution
                 if (queryResult.IsError())
                 {
                     pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
-                    await pContext.TrxContext.LogicalTrx.RollbackTransaction();
+                    //await pContext.TrxContext.LogicalTrx.RollbackTransaction();
                     await pContext.TrxContext.ChangeLog.Rollback();
                     return pContext.BuildQueryResult();
                 }
@@ -76,6 +76,8 @@ public static class QueryExecution
 
             if (write)
             {
+                await pContext.TrxContext.ChangeLog.CommitLogs();
+
                 var writeOption = await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
                 if (writeOption.IsError())
                 {
@@ -84,7 +86,7 @@ public static class QueryExecution
                 }
             }
 
-            await pContext.TrxContext.LogicalTrx.CommitTransaction();
+            //await pContext.TrxContext.LogicalTrx.CommitTransaction();
             return pContext.BuildQueryResult();
         }
     }

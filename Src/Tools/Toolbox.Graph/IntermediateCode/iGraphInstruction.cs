@@ -1,8 +1,6 @@
-﻿using Toolbox.TransactionLog;
-
-namespace Toolbox.Graph;
+﻿namespace Toolbox.Graph;
 
 public interface IGraphInstruction
 {
-    IReadOnlyList<JournalEntry> CreateJournals();
+    //IReadOnlyList<JournalEntry> CreateJournals();
 }

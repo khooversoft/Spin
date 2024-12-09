@@ -1,7 +1,6 @@
 ﻿using System.Collections.Frozen;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -14,17 +13,7 @@ internal sealed record GiEdgeSelect : ISelectInstruction
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public string? Alias { get; init; }
 
-    public JournalEntry CreateJournal()
-    {
-        var dataMap = new Dictionary<string, string?>
-        {
-            { GraphConstants.Trx.GiType, this.GetType().Name },
-            { GraphConstants.Trx.GiData, this.ToJson() },
-        };
-
-        var journal = JournalEntry.Create(JournalType.Command, dataMap);
-        return journal;
-    }
+    //public JournalEntry CreateJournal() => [];
 
     public bool Equals(GiEdgeSelect? obj)
     {

@@ -33,19 +33,13 @@ public class TransactionLogProvider : ITransactionLog
         result.Assert(x => x == true, $"Attempting to add duplicate journal name={transactionLogWriter.Name}");
     }
 
-    public async Task<Option<ILogicalTrx>> StartTransaction(ScopeContext context)
+    public Task<Option<ILogicalTrx>> StartTransaction(ScopeContext context)
     {
         var trxId = Guid.NewGuid().ToString();
+        var reader = new VirtualLogReceiver(trxId, Write, context);
 
-        var writeStatus = await Write(new JournalEntry
-        {
-            TransactionId = trxId,
-            Type = JournalType.StartTran,
-        }, context);
-
-        if (writeStatus.IsError()) return writeStatus.ToOptionStatus<ILogicalTrx>();
-
-        return new VirtualLogReceiver(trxId, Write, context);
+        var option = reader.ToOption<ILogicalTrx>();
+        return option.ToTaskResult();
     }
 
     public async Task<IReadOnlyList<JournalEntry>> ReadJournals(string name, ScopeContext context)
@@ -59,21 +53,27 @@ public class TransactionLogProvider : ITransactionLog
         return await journal.ReadJournals(context);
     }
 
-    private async Task<Option> Write(JournalEntry journalEntry, ScopeContext context)
+    private async Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
     {
         _journals.Assert(x => x.Count > 0, "No journals to write to");
 
         var queue = new ConcurrentQueue<Option>();
-        var journalEntryWithLsn = journalEntry with { LogSequenceNumber = _logSequenceNumber.Next() };
-        context.LogInformation("Writing journalEntry to all journals, journalEntry={journalEntry}", journalEntryWithLsn);
 
-        await Parallel.ForEachAsync(
-            _journals.Values,
-            context.CancellationToken,
-            async (x, c) => queue.Append(await x.Write(journalEntryWithLsn, context))
-            );
+        var journalEntriesWithLsn = journalEntries
+            .Select(x => x with { LogSequenceNumber = _logSequenceNumber.Next() })
+            .ToList();
 
-        var status = queue.FirstOrDefault(x => x.IsError(), StatusCode.OK);
+        string journalEntriesWithLsnString = journalEntriesWithLsn.Select(x => x.ToString()).Join(';');
+        context.LogInformation("Writing journalEntry to all journals, journalEntriesWithLsn={journalEntriesWithLsn}", journalEntriesWithLsnString);
+
+        Option status = StatusCode.OK;
+        foreach (var item in _journals.Values)
+        {
+            context.LogTrace("Writing journalEntry to journal, journalName={journalName}", item.Name);
+            var result = await item.Write(journalEntriesWithLsn, context);
+            if (result.IsError()) status = result;
+        }
+
         return status;
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -18,17 +17,7 @@ public sealed record GiNode : IGraphInstruction
     public IReadOnlyDictionary<string, string?> ForeignKeys { get; init; } = FrozenDictionary<string, string?>.Empty;
     public bool IfExist { get; init; }
 
-    public IReadOnlyList<JournalEntry> CreateJournals()
-    {
-        var dataMap = new Dictionary<string, string?>
-        {
-            { GraphConstants.Trx.GiChangeType, this.GetType().Name },
-            { GraphConstants.Trx.GiData, this.ToJson() },
-        };
-
-        ImmutableArray<JournalEntry> journal = [JournalEntry.Create(JournalType.Command, dataMap)];
-        return journal;
-    }
+    //public IReadOnlyList<JournalEntry> CreateJournals() => [];
 
     public bool Equals(GiNode? obj)
     {

@@ -9,10 +9,15 @@ namespace Toolbox.TransactionLog;
 
 public static class TransactionLogTool
 {
-    public static IReadOnlyList<JournalEntry> ParseJournals(string data) => data.NotEmpty()
-        .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-        .Select(x => x.ToObject<JournalEntry>() ?? throw new ArgumentException($"Failed to parse line: {x}"))
-        .ToImmutableList();
+    public static IReadOnlyList<JournalEntry> ParseJournals(string data)
+    {
+        var lines = data.NotEmpty()
+            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.ToObject<JournalEntry>())
+            .ToImmutableArray();
+
+        return lines;
+    }
 
     public static async Task<IReadOnlyList<JournalEntry>> ReadAndParseJournals(IFileStore fileStore, string journalPath, ScopeContext context)
     {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Security.Cryptography;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,7 +37,7 @@ public class TransactionLogTests
         var search = await fileStore.Search("*", _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        using ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
+        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
 
         var journalEntry = new JournalEntry
         {
@@ -49,21 +50,18 @@ public class TransactionLogTests
             }.ToFrozenDictionary(),
         };
 
-        await trx.Write(journalEntry);
-
-        await trx.CommitTransaction();
+        await trx.Write([journalEntry]);
 
         var journals = await transactionLog.ReadJournals("journal1", _context);
 
         journals.Action(x =>
         {
-            x.Count.Should().Be(3);
-            x[0].Type.Should().Be(JournalType.StartTran);
+            x.Count.Should().Be(2);
 
-            var read = x[1];
+            var read = x[0];
             var source = journalEntry with { LogSequenceNumber = read.LogSequenceNumber };
             (read == source).Should().BeTrue();
-            x[2].Type.Should().Be(JournalType.CommitTran);
+            x[1].Type.Should().Be(JournalType.CommitTran);
         });
     }
 
@@ -76,27 +74,28 @@ public class TransactionLogTests
         var search = await fileStore.Search("**/*", _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        using ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
+        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
         var createdJournals = new Sequence<JournalEntry>();
 
         foreach (var item in Enumerable.Range(0, 100))
         {
+            string v1 = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
+            string v2 = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
+
             var journalEntry = new JournalEntry
             {
                 TransactionId = trx.TransactionId,
                 Type = JournalType.Action,
                 Data = new Dictionary<string, string?>()
                 {
-                    ["key1"] = "value1",
-                    ["key2"] = "value2",
+                    ["key1"] = v1,
+                    ["key2"] = v2,
                 }.ToFrozenDictionary(),
             };
 
             createdJournals += journalEntry;
-            await trx.Write(journalEntry);
+            await trx.Write([journalEntry]);
         }
-
-        await trx.CommitTransaction();
 
         search = await fileStore.Search("**/*", _context);
         search.Count.Should().Be(1);
@@ -110,11 +109,10 @@ public class TransactionLogTests
         string data = read.Data.BytesToString();
 
         IReadOnlyList<JournalEntry> journals = TransactionLogTool.ParseJournals(data);
-        journals.Count.Should().Be(createdJournals.Count + 2);
-        journals[0].Type.Should().Be(JournalType.StartTran);
+        journals.Count.Should().Be(createdJournals.Count * 2);
 
         createdJournals
-            .Select((source, i) => (source, jCreated: source, jRead: journals[i + 1]))
+            .Select((source, i) => (source, jCreated: source, jRead: journals[i]))
             .Select(x => (x.source, jCreated: x.jCreated with { LogSequenceNumber = x.jRead.LogSequenceNumber }, x.jRead))
             .Where(x => x.source != x.jRead)
             .Any().Should().BeTrue();

@@ -1,8 +1,6 @@
 ﻿using System.Collections.Frozen;
-using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -16,17 +14,17 @@ public sealed record GiEdge : IGraphInstruction
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public bool IfExist { get; init; }
 
-    public IReadOnlyList<JournalEntry> CreateJournals()
-    {
-        var dataMap = new Dictionary<string, string?>
-        {
-            { GraphConstants.Trx.GiChangeType, this.GetType().Name },
-            { GraphConstants.Trx.GiData, this.ToJson() },
-        };
+    //public IReadOnlyList<JournalEntry> CreateJournals()
+    //{
+    //    var dataMap = new Dictionary<string, string?>
+    //    {
+    //        { GraphConstants.Trx.GiChangeType, this.GetType().Name },
+    //        { GraphConstants.Trx.GiData, this.ToJson() },
+    //    };
 
-        ImmutableArray<JournalEntry> journal = [JournalEntry.Create(JournalType.Command, dataMap)];
-        return journal;
-    }
+    //    ImmutableArray<JournalEntry> journal = [JournalEntry.Create(JournalType.Select, dataMap)];
+    //    return journal;
+    //}
 
     public bool Equals(GiEdge? obj)
     {

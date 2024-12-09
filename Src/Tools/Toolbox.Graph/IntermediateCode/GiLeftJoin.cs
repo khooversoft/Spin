@@ -1,18 +1,16 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Tools;
-using Toolbox.TransactionLog;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
 internal record GiLeftJoin : ISelectInstruction
 {
-    public JournalEntry CreateJournal()
-    {
-        var data = new KeyValuePair<string, string?>(GraphConstants.Trx.GiType, this.GetType().Name).ToEnumerable();
-        var journal = JournalEntry.Create(JournalType.Command, data);
-        return journal;
-    }
+    //public JournalEntry CreateJournal()
+    //{
+    //    var data = new KeyValuePair<string, string?>(GraphConstants.Trx.GiType, this.GetType().Name).ToEnumerable();
+    //    var journal = JournalEntry.Create(JournalType.Select, data);
+    //    return journal;
+    //}
 }
 
 internal static class GiLeftJoinTool

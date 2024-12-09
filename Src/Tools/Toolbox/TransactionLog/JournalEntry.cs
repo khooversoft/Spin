@@ -5,12 +5,8 @@ namespace Toolbox.TransactionLog;
 
 public enum JournalType
 {
-    Command,
     Action,
-    Revert,
-    StartTran,
     CommitTran,
-    RollbackTran,
 }
 
 

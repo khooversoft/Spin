@@ -115,8 +115,8 @@ public static class DictionaryExtensions
         IComparer<TKey>? keyComparer = null,
         IComparer<TValue>? valueComparer = null
         )
-        //where TKey : IComparable<TKey>
-        //where TValue : IComparable<TValue>
+    //where TKey : IComparable<TKey>
+    //where TValue : IComparable<TValue>
     {
         if (source == null && target == null) return true;
         if (source == null || target == null) return false;

@@ -1,8 +1,6 @@
-﻿using Toolbox.TransactionLog;
-
-namespace Toolbox.Graph;
+﻿namespace Toolbox.Graph;
 
 public interface ISelectInstruction
 {
-    JournalEntry CreateJournal();
+    //JournalEntry CreateJournal();
 }

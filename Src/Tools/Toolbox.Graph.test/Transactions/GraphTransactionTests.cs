@@ -38,7 +38,7 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        expectedJournalCount += 6;
+        expectedJournalCount += 3;
         IReadOnlyList<JournalEntry> journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
         journals.Count.Should().Be(expectedJournalCount);
 
@@ -52,7 +52,6 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        expectedJournalCount += 3;
         journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
         journals.Count.Should().Be(expectedJournalCount);
 
@@ -76,7 +75,7 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(4);
         map.Edges.Count.Should().Be(2);
 
-        expectedJournalCount += 10;
+        expectedJournalCount += 5;
         journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
         journals.Count.Should().Be(expectedJournalCount);
 
@@ -97,7 +96,6 @@ public class GraphTransactionTests
             x.Value.Items[2].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        expectedJournalCount += 9;
         journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
         journals.Count.Should().Be(expectedJournalCount);
 

@@ -30,8 +30,6 @@ public class ChangeLog
         changeLog.NotNull();
         _commands.Push(changeLog);
         _graphTrxContext.Context.LogInformation("Push changeLog={changeLog}", changeLog.LogKey);
-
-        _graphTrxContext.LogicalTrx.Write(changeLog.CreateJournal()).Wait();
     }
 
     public async Task Rollback()
@@ -40,13 +38,24 @@ public class ChangeLog
 
         while (_commands.TryPop(out var changeLog))
         {
-            await _graphTrxContext.LogicalTrx.Write(changeLog.CreateJournal() with { Type = JournalType.Revert });
-
             var result = await changeLog.Undo(_graphTrxContext);
             result.LogStatus(_graphTrxContext.Context, "Undo changeLog={changeLog}", [changeLog]);
 
             _graphTrxContext.Context.LogWarning("Rolling back changeLog={changeLog}", changeLog.LogKey);
         }
+    }
+
+    public async Task CommitLogs()
+    {
+        var journalEntries = _commands
+            .Select(x => x.CreateJournal())
+            .ToArray();
+
+        if (journalEntries.Length == 0) return;
+
+        var result = await _graphTrxContext.LogicalTrx.Write(journalEntries);
+        result.LogStatus(_graphTrxContext.Context, "CommitLogs: length={journalEntries.Length}", [journalEntries.Length]);
+        _commands.Clear();
     }
 
     public IReadOnlyList<IChangeLog> GetCommands() => _commands.ToArray();

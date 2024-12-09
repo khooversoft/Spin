@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Security.Cryptography;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -49,7 +50,7 @@ public class TransactionLogTests
         var search = await fileStore.Search(_searchPath, _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        using ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
+        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
 
         var journalEntry = new JournalEntry
         {
@@ -62,9 +63,7 @@ public class TransactionLogTests
             }.ToFrozenDictionary(),
         };
 
-        await trx.Write(journalEntry);
-
-        await trx.CommitTransaction();
+        await trx.Write([journalEntry]);
 
         search = await fileStore.Search(_searchPath, _context);
         search.Count.Should().Be(1);
@@ -80,14 +79,13 @@ public class TransactionLogTests
         IReadOnlyList<JournalEntry> journals = TransactionLogTool.ParseJournals(data);
         journals.Action(x =>
         {
-            x.Count.Should().Be(3);
-            x[0].Type.Should().Be(JournalType.StartTran);
+            x.Count.Should().Be(2);
 
-            var readData = x[1];
+            var readData = x[0];
             var sourceData = journalEntry with { LogSequenceNumber = readData.LogSequenceNumber };
             (sourceData == readData).Should().Be(true);
 
-            x[2].Type.Should().Be(JournalType.CommitTran);
+            x[1].Type.Should().Be(JournalType.CommitTran);
         });
     }
 
@@ -100,7 +98,7 @@ public class TransactionLogTests
         var search = await fileStore.Search(_searchPath, _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        using ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
+        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
         var createdJournals = new Sequence<JournalEntry>();
 
         foreach (var item in Enumerable.Range(0, 100))
@@ -117,13 +115,11 @@ public class TransactionLogTests
             };
 
             createdJournals += journalEntry;
-            await trx.Write(journalEntry);
+            await trx.Write([journalEntry]);
         }
 
-        await trx.CommitTransaction();
-
         search = await fileStore.Search(_searchPath, _context);
-        search.Count.Should().Be(10);
+        search.Count.Should().Be(1);
         search.ForEach(x =>
         {
             x.Should().StartWith("journal1/data");
@@ -138,12 +134,80 @@ public class TransactionLogTests
             .OrderBy(x => x.LogSequenceNumber)
             .ToArray();
 
-        journals.Length.Should().Be(createdJournals.Count + 2);
-
-        journals[0].Type.Should().Be(JournalType.StartTran);
+        journals.Length.Should().Be(createdJournals.Count * 2);
 
         createdJournals
-            .Select((source, i) => (source, jCreated: source, jRead: journals[i + 1]))
+            .Select((source, i) => (source, jCreated: source, jRead: journals[i]))
+            .Select(x => (x.source, jCreated: x.jCreated with { LogSequenceNumber = x.jRead.LogSequenceNumber }, x.jRead))
+            .Where(x => x.source != x.jRead)
+            .Any().Should().BeTrue();
+
+        journals[^1].Type.Should().Be(JournalType.CommitTran);
+    }
+
+    [Fact]
+    public async Task AddMulitpleBatchJournal()
+    {
+        ITransactionLog transactionLog = _services.GetRequiredService<ITransactionLog>();
+        IFileStore fileStore = _services.GetRequiredService<IFileStore>();
+
+        var search = await fileStore.Search(_searchPath, _context);
+        await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
+
+        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
+
+        var createdJournals = new Sequence<JournalEntry>();
+
+        int batchSize = 100;
+        int batchCount = 100;
+
+        foreach (var batch in Enumerable.Range(0, batchCount))
+        {
+            var batchJournals = new Sequence<JournalEntry>();
+
+            foreach (var item in Enumerable.Range(0, batchSize))
+            {
+                string v1 = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
+                string v2 = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
+
+                var journalEntry = new JournalEntry
+                {
+                    TransactionId = trx.TransactionId,
+                    Type = JournalType.Action,
+                    Data = new Dictionary<string, string?>()
+                    {
+                        ["key1"] = v1,
+                        ["key2"] = v2,
+                    }.ToFrozenDictionary(),
+                };
+
+                batchJournals += journalEntry;
+            }
+
+            await trx.Write(batchJournals);
+            createdJournals += batchJournals;
+        }
+
+        search = await fileStore.Search(_searchPath, _context);
+        search.Count.Should().Be(1);
+        search.ForEach(x =>
+        {
+            x.Should().StartWith("journal1/data");
+            x.Should().EndWith(".tranLog.json");
+        });
+
+        var journalEntryListData = await search.SelectAsync(async x => (await fileStore.Get(x, _context)).ThrowOnError().Return());
+
+        var journals = journalEntryListData
+            .Select(x => x.Data.BytesToString())
+            .SelectMany(x => TransactionLogTool.ParseJournals(x))
+            .OrderBy(x => x.LogSequenceNumber)
+            .ToArray();
+
+        journals.Length.Should().Be(createdJournals.Count + batchCount);
+
+        createdJournals
+            .Select((source, i) => (source, jCreated: source, jRead: journals[i]))
             .Select(x => (x.source, jCreated: x.jCreated with { LogSequenceNumber = x.jRead.LogSequenceNumber }, x.jRead))
             .Where(x => x.source != x.jRead)
             .Any().Should().BeTrue();
