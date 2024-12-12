@@ -71,7 +71,7 @@ public sealed record GraphNode : IGraphCommon
     {
         bool result = obj is GraphNode subject &&
             Key == subject.Key &&
-            Tags.DeepEquals(subject.Tags) &&
+            Tags.DeepEqualsComparer(subject.Tags) &&
             CreatedDate == subject.CreatedDate &&
             DataMap.DeepEquals(subject.DataMap) &&
             Enumerable.SequenceEqual(Indexes.OrderBy(x => x), subject.Indexes.OrderBy(x => x)) &&

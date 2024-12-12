@@ -24,10 +24,10 @@ public sealed record GiNode : IGraphInstruction
         bool result = obj is GiNode subject &&
             ChangeType == subject.ChangeType &&
             Key == subject.Key &&
-            Tags.DeepEquals(subject.Tags) &&
+            Tags.DeepEqualsComparer(subject.Tags) &&
             Enumerable.SequenceEqual(Data.OrderBy(x => x.Key), subject.Data.OrderBy(x => x.Key)) &&
             Enumerable.SequenceEqual(Indexes.OrderBy(x => x), subject.Indexes.OrderBy(x => x)) &&
-            ForeignKeys.DeepEquals(subject.ForeignKeys) &&
+            ForeignKeys.DeepEqualsComparer(subject.ForeignKeys) &&
             IfExist == subject.IfExist;
 
         return result;

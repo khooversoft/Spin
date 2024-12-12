@@ -13,7 +13,7 @@
 }
 
 @code {
-    [Parameter] public UserProfileModel Content { get; set; } = null!;
+    [Parameter] public UserProfileEditModel Content { get; set; } = null!;
     [Parameter] public bool ReadOnly { get; set; }
 
     private void OnNameChange(ChangeEventArgs e)

@@ -1,35 +1,44 @@
-﻿<hr class="hr-divider" />
+﻿<FluentStack Orientation="Orientation.Horizontal">
 
-<FluentStack Orientation="Orientation.Horizontal">
-    <FluentButton Appearance="Appearance.Outline"
-                  IconStart="@(new Icons.Regular.Size20.Save())"
-                  OnClick="SetClick">
-        Save
-    </FluentButton>
+    @if (OnSet.HasDelegate)
+    {
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.Save())"
+                      OnClick="SetClick">
+            Save
+        </FluentButton>
+    }
 
-
-    <FluentButton Appearance="Appearance.Outline"
-                  IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
-                  OnClick="CloseClick">
-        Close
-    </FluentButton>
+    @if (OnClose.HasDelegate)
+    {
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
+                      OnClick="CloseClick">
+            Close
+        </FluentButton>
+    }
 
     @if (OnDelete.HasDelegate)
     {
-        <FluentSpacer />
-
         <FluentButton Appearance="Appearance.Outline"
                       IconStart="@(new Icons.Regular.Size20.Delete())"
                       OnClick="DeleteClick">
             Delete
         </FluentButton>
     }
+
 </FluentStack>
+
+@if (OnSet.HasDelegate || OnClose.HasDelegate || OnDelete.HasDelegate)
+{
+    <hr />
+}
+
 
 @code {
     [Parameter] public EventCallback OnSet { get; set; }
-    [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
 
     private async Task CloseClick() => await OnClose.InvokeAsync();
     private async Task SetClick() => await OnSet.InvokeAsync();

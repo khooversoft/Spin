@@ -197,6 +197,14 @@ code {
     margin: 5px 0px;
 }
 
+/*.min-width-clear {
+    min-width: 0px;
+}
+*/
+.padding-clear {
+    padding: 0px !important;
+}
+
 
 @media (max-width: 600px) {
     .main {

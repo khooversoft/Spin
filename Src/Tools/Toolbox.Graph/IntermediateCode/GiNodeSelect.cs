@@ -27,7 +27,7 @@ internal sealed record GiNodeSelect : ISelectInstruction
     {
         bool result = obj is GiNodeSelect subject &&
             Key == subject.Key &&
-            Tags.DeepEquals(subject.Tags) &&
+            Tags.DeepEqualsComparer(subject.Tags) &&
             Alias == subject.Alias;
 
         return result;

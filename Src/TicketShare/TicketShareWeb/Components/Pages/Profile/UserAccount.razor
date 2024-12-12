@@ -16,15 +16,17 @@
 
 <PageTitle>Account</PageTitle>
 
-@if (_input != null)
+@if (_userAccountContext?.IsLoaded() == true)
 {
     <div style="border: 1px solid black; ">
         <FluentStack Orientation="Orientation.Vertical">
             <FeedBlock Title="User" OnEdit="OnEditInfo">
-                <EditInfo Content="@_userProfileModel" ReadOnly="true" />
+                <EditInfo Content="@_userAccountContext.UserProfile" ReadOnly="true" />
             </FeedBlock>
 
-            <UserContact InputModel="_input" OnUpdate="UpdateAccountData" />
+            <CascadingValue Value="_userAccountContext">
+                <UserContact />
+            </CascadingValue>
         </FluentStack>
     </div>
 }
@@ -35,73 +37,46 @@
     [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
 
-    private InputModel _input { get; set; } = null!;
-    private InputModel _currentStored = null!;
-    private UserProfileModel _userProfileModel = null!;
+    private UserAccountContext _userAccountContext = null!;
 
-    private bool IsChanged() => _input != null && _currentStored != null && (_input != _currentStored);
+    protected override void OnInitialized()
+    {
+        _userAccountContext = new UserAccountContext(_userAccountManager, _logger);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await ReadAccountData();
+            await _userAccountContext.Get();
             StateHasChanged();
         }
 
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task UpdateAccountData()
-    {
-        if (!IsChanged()) return;
-
-        string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
-
-        _logger.LogInformation("Updating account, Input={input}", _input.ToJson());
-        var account = _input.NotNull().ConvertTo(principalId);
-
-        var result = await _userAccountManager.SetAccount(account).ConfigureAwait(false);
-        if (result.IsError()) return;
-
-        _input = null!;
-        StateHasChanged();
-    }
-
-    private async Task ReadAccountData()
-    {
-        if (_input != null) return;
-
-        var accountOption = await _userAccountManager.GetAccount().ConfigureAwait(false);
-        accountOption.ThrowOnError(nameof(OnInitializedAsync));
-
-        _input = accountOption.Return().ConvertTo();
-        _currentStored = _input.Clone();
-        _userProfileModel = new UserProfileModel { Name = _input.Name };
-
-        string json = _input.ToJson();
-        _logger.LogInformation("Account read, Input={input}", json);
-    }
-
     private async Task OnEditInfo()
     {
-        var userProfile = new UserProfileModel { Name = _input.Name };
+        var userProfile = new UserProfileEditModel { Name = _userAccountContext.Input.Name };
 
-        var parameters = new DialogParameters<UserProfileModel>()
+        var parameters = new DialogParameters()
             {
-                Content = _userProfileModel,
                 Alignment = HorizontalAlignment.Right,
                 ShowDismiss = true,
                 Title = "User",
+                PrimaryAction = null,
+                PrimaryActionEnabled = false,
+                SecondaryActionEnabled = false,
+                SecondaryAction = null,
             };
 
-        var dialog = await _dialogService.ShowPanelAsync<EditInfoDialog>(_userProfileModel, parameters);
+        var dialog = await _dialogService.ShowPanelAsync<EditInfoDialog>(userProfile, parameters);
         var result = await dialog.Result;
         if (result.Cancelled || result.Data is null) return;
 
-        if (result.Data is not UserProfileModel userProfileModel) return;
-        _input = _input with { Name = userProfileModel.Name };
+        if (result.Data is not UserProfileEditModel userProfileModel) return;
 
-        await UpdateAccountData();
+        await _userAccountContext.SetName(userProfileModel.Name);
+        StateHasChanged();
     }
 }

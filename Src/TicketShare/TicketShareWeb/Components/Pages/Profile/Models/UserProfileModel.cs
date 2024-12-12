@@ -1,6 +1,6 @@
 ﻿namespace TicketShareWeb.Components.Pages.Profile.Models;
 
-public record UserProfileModel
+public record UserProfileEditModel
 {
     public string Name { get; set; } = "";
 }

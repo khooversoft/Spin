@@ -1,9 +1,11 @@
 ﻿@using TicketShareWeb.Components.Pages.Profile.Models;
 
-@implements IDialogContentComponent<UserProfileModel>
+@implements IDialogContentComponent<UserProfileEditModel>
 
 @if (Content != null)
 {
+    <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" />
+
     <FluentDialogBody>
 
         <EditInfo Content="@Content" />
@@ -12,5 +14,9 @@
 }
 
 @code {
-    [Parameter] public UserProfileModel Content { get; set; } = default!;
+    [Parameter] public UserProfileEditModel Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(Content);
+    public async Task OnCloseButton() => await Dialog.CancelAsync();
 }

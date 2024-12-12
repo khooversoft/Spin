@@ -1,0 +1,48 @@
+﻿@using TicketShareWeb.Components.Pages.Profile.Models
+
+@implements IDialogContentComponent<PanelParameters<ContactModel>>
+
+<FluentDialogBody>
+
+    @if (Content.ShowDelete)
+    {
+        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" OnDelete="OnDeleteButton" />
+    }
+    else
+    {
+        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" />
+    }
+
+    <FluentSelect Items=@_validTypes
+                  Label="Contact Type:"
+                  OptionText="@(i => i.Text)"
+                  OptionValue="@(i => i.Value)"
+                  OptionSelected="@(i => i.Selected)"
+                  @bind-Value="@Content.Value.Type" />
+
+    <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value.Value">Value:</FluentTextField>
+
+</FluentDialogBody>
+
+@code {
+    [Parameter] public PanelParameters<ContactModel> Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    static List<Fluent.Option<string>> _validTypes = new()
+    {
+        new Fluent.Option<string> { Value = "Email", Text = "Email" },
+        new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
+    };
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<ContactModel>.Set(Content.Value));
+    private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<ContactModel>.Delete());
+    public async Task OnCloseButton() => await Dialog.CancelAsync();
+
+    // {
+    //     if (Content.OnDelete.HasDelegate)
+    //     {
+    //         await Content.OnDelete.InvokeAsync();
+    //         await OnCloseButton();
+    //     }
+    // }
+}

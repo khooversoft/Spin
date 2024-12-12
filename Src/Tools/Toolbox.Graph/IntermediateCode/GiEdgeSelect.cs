@@ -21,7 +21,7 @@ internal sealed record GiEdgeSelect : ISelectInstruction
             From == subject.From &&
             To == subject.To &&
             Type == subject.Type &&
-            Tags.DeepEquals(subject.Tags) &&
+            Tags.DeepEqualsComparer(subject.Tags) &&
             Alias == subject.Alias;
 
         return result;

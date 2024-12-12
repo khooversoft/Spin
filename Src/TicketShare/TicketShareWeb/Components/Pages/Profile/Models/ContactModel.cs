@@ -3,21 +3,11 @@ using TicketShare.sdk;
 
 namespace TicketShareWeb.Components.Pages.Profile.Models;
 
-public sealed record ContactModel : IEqualityComparer<ContactModel>
+public sealed record ContactModel
 {
-    public string Id { get; init; } = null!;
+    public string Id { get; init; } = Guid.NewGuid().ToString();
     public string Type { get; set; } = null!;
     public string Value { get; set; } = null!;
-
-    public bool Equals(ContactModel? x, ContactModel? y)
-    {
-        throw new NotImplementedException();
-    }
-
-    public int GetHashCode([DisallowNull] ContactModel obj)
-    {
-        throw new NotImplementedException();
-    }
 }
 
 

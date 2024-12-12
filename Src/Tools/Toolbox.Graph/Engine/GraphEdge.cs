@@ -62,7 +62,7 @@ public sealed record GraphEdge : IGraphCommon
         FromKey.EqualsIgnoreCase(subject.FromKey) &&
         ToKey.EqualsIgnoreCase(subject.ToKey) &&
         EdgeType.EqualsIgnoreCase(subject.EdgeType) &&
-        Tags.DeepEquals(subject.Tags) &&
+        Tags.DeepEqualsComparer(subject.Tags) &&
         CreatedDate == subject.CreatedDate;
 
     public override int GetHashCode() => HashCode.Combine(FromKey, ToKey, EdgeType, CreatedDate);

@@ -26,7 +26,7 @@ public sealed record HubChannelRecord
 
     public bool Equals(HubChannelRecord? obj) => obj is HubChannelRecord subject &&
         ChannelId == subject.ChannelId &&
-        Users.DeepEquals(subject.Users) &&
+        Users.DeepEqualsComparer(subject.Users) &&
         Messages.OrderBy(x => x.MessageId).SequenceEqual(subject.Messages.OrderBy(x => x.MessageId));
 
     public override int GetHashCode() => HashCode.Combine(ChannelId, Users, Messages);

@@ -23,7 +23,7 @@ public sealed record JournalEntry
         TransactionId == subject.TransactionId &&
         TimeStamp == subject.TimeStamp &&
         Type == subject.Type &&
-        Data.DeepEquals(subject.Data);
+        Data.DeepEqualsComparer(subject.Data);
 
     public override int GetHashCode() => HashCode.Combine(LogSequenceNumber, TransactionId, TimeStamp, Type, Data);
 

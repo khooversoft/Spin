@@ -21,10 +21,10 @@ public sealed record InputModel : IEquatable<InputModel?>
     public bool Equals(InputModel? other)
     {
         return other is not null &&
-               Name == other.Name &&
-               ContactItems.DeepEquals(other.ContactItems);
-               //AddressItems.DeepEquals(other.AddressItems) &&
-               //CalendarItems.DeepEquals(other.CalendarItems);
+            Name == other.Name &&
+            ContactItems.DeepEquals(other.ContactItems) &&
+            AddressItems.DeepEquals(other.AddressItems) &&
+            CalendarItems.DeepEquals(other.CalendarItems);
     }
 
     public override int GetHashCode() => HashCode.Combine(Name, ContactItems, AddressItems, CalendarItems);
@@ -74,5 +74,4 @@ public static class InputModelExtensions
                 .ToConcurrentDictionary(StringComparer.OrdinalIgnoreCase),
         };
     }
-
 }

@@ -34,6 +34,8 @@ public class UserAccountManager
         return principalId;
     }
 
+    public UserAccountContext GetContext() => new UserAccountContext(this, _logger);
+
     public async Task<Option<AccountRecord>> GetAccount()
     {
         var context = new ScopeContext(_logger);

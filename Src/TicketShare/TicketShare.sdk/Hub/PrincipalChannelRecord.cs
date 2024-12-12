@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public sealed record PrincipalChannelRecord : IComparable<PrincipalChannelRecord>
+public sealed record PrincipalChannelRecord
 {
     public string PrincipalId { get; init; } = null!;
     public ChannelRole Role { get; init; } = ChannelRole.Reader;
@@ -20,11 +20,6 @@ public sealed record PrincipalChannelRecord : IComparable<PrincipalChannelRecord
         ReadMessageIds.OrderBy(x => x.MessageId).SequenceEqual(subject.ReadMessageIds.OrderBy(x => x.MessageId));
 
     public override int GetHashCode() => HashCode.Combine(PrincipalId, Role, ReadMessageIds);
-
-    public int CompareTo(PrincipalChannelRecord? other)
-    {
-        return Equals(other) ? 0 : -1;
-    }
 
     public static IValidator<PrincipalChannelRecord> Validator { get; } = new Validator<PrincipalChannelRecord>()
         .RuleFor(x => x.PrincipalId).NotEmpty()

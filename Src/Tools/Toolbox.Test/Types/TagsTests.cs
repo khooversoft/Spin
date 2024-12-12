@@ -45,7 +45,7 @@ public class TagsTests
         var t1 = line.ToTags();
         var t2 = line.ToTags();
 
-        t1.DeepEquals(t2).Should().BeTrue();
+        t1.DeepEqualsComparer(t2).Should().BeTrue();
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class TagsTests
             x.Has("key1", "fake1").Should().BeFalse();
         });
 
-        tags.DeepEquals(tags2).Should().BeFalse();
+        tags.DeepEqualsComparer(tags2).Should().BeFalse();
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class TagsTests
 
         var tags2 = "key2=value2,key1=value1".ToTags();
 
-        tags.DeepEquals(tags2).Should().BeTrue();
+        tags.DeepEqualsComparer(tags2).Should().BeTrue();
     }
 
     [Fact]
