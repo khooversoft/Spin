@@ -14,6 +14,22 @@
     }
 
     <FluentTextField Name="Label" Label="Label" @bind-Value="Content.Value.Label" Required="true"
+                     Placeholder="label like 'home', 'office'"
+                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
+
+    <FluentTextField Name="Address1" Label="Address" @bind-Value="Content.Value.Address1" Required="true"
+                     Placeholder="Address"
+                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
+
+    <FluentTextField Name="Address2" Label="Address" @bind-Value="Content.Value.Address2" Required="true"
+                     Placeholder="Address label like 'home', 'office'"
+                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
+
+    <FluentTextField Name="City" Label="City" @bind-Value="Content.Value.City" Required="true"
+                     Placeholder="city"
+                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
+
+    <FluentTextField Name="State" Label="State" @bind-Value="Content.Value.State" Required="true"
                      Placeholder="Address label like 'home', 'office'"
                      Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
 
@@ -21,38 +37,7 @@
                      Placeholder="Address label like 'home', 'office'"
                      Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
 
-    <FluentTextField Name="Label"
-                     @bind-Value="Content.Value.Label"
-                     Required="true"
-                     Placeholder="Address label like 'home', 'office'"
-                     Label="Label"
-                     Class="form-editbox"
-                     ReadOnly="@ReadOnly"
-                     @oninput="OnNameChange" />
-    <FluentTextField Name="Label"
-                     @bind-Value="Content.Value.Label"
-                     Required="true"
-                     Placeholder="Address label like 'home', 'office'"
-                     Label="Label"
-                     Class="form-editbox"
-                     ReadOnly="@ReadOnly"
-                     @oninput="OnNameChange" />
-    <FluentTextField Name="Label"
-                     @bind-Value="Content.Value.Label"
-                     Required="true"
-                     Placeholder="Address label like 'home', 'office'"
-                     Label="Label"
-                     Class="form-editbox"
-                     ReadOnly="@ReadOnly"
-                     @oninput="OnNameChange" />
-    <FluentTextField Name="Label"
-                     @bind-Value="Content.Value.Label"
-                     Required="true"
-                     Placeholder="Address label like 'home', 'office'"
-                     Label="Label"
-                     Class="form-editbox"
-                     ReadOnly="@ReadOnly"
-                     @oninput="OnNameChange" />
+
 
 
 
