@@ -21,4 +21,9 @@
       <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
       <ProjectReference Include="..\TicketShare.sdk\TicketShare.sdk.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Content Update="Components\Pages\Profile\UserAddress.razor">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </Content>
+    </ItemGroup>
 </Project>

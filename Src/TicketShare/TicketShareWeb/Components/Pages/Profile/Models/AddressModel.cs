@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TicketShare.sdk;
+using Toolbox.Extensions;
 
 namespace TicketShareWeb.Components.Pages.Profile.Models;
 
@@ -20,6 +21,23 @@ public sealed record AddressModel
 
     [Display(Name = "Zip Code")]
     public string? ZipCode { get; set; }
+
+    public override string ToString()
+    {
+        string v = new string?[]
+        {
+            Label,
+            Address1,
+            Address2,
+            City,
+            State,
+            ZipCode,
+        }
+        .OfType<string>()
+        .Join(", ");
+
+        return v;
+    }
 }
 
 

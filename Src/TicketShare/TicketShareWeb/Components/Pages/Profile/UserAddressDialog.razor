@@ -1,0 +1,99 @@
+﻿@using TicketShareWeb.Components.Pages.Profile.Models
+
+@implements IDialogContentComponent<PanelParameters<AddressModel>>
+
+<FluentDialogBody>
+
+    @if (Content.ShowDelete)
+    {
+        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" OnDelete="OnDeleteButton" />
+    }
+    else
+    {
+        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" />
+    }
+
+    <FluentTextField Name="Label" Label="Label" @bind-Value="Content.Value.Label" Required="true"
+                     Placeholder="Address label like 'home', 'office'"
+                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
+
+    <FluentTextField Name="Address1" Label="Address" @bind-Value="Content.Value.Address1" Required="true"
+                     Placeholder="Address label like 'home', 'office'"
+                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
+
+    <FluentTextField Name="Label"
+                     @bind-Value="Content.Value.Label"
+                     Required="true"
+                     Placeholder="Address label like 'home', 'office'"
+                     Label="Label"
+                     Class="form-editbox"
+                     ReadOnly="@ReadOnly"
+                     @oninput="OnNameChange" />
+    <FluentTextField Name="Label"
+                     @bind-Value="Content.Value.Label"
+                     Required="true"
+                     Placeholder="Address label like 'home', 'office'"
+                     Label="Label"
+                     Class="form-editbox"
+                     ReadOnly="@ReadOnly"
+                     @oninput="OnNameChange" />
+    <FluentTextField Name="Label"
+                     @bind-Value="Content.Value.Label"
+                     Required="true"
+                     Placeholder="Address label like 'home', 'office'"
+                     Label="Label"
+                     Class="form-editbox"
+                     ReadOnly="@ReadOnly"
+                     @oninput="OnNameChange" />
+    <FluentTextField Name="Label"
+                     @bind-Value="Content.Value.Label"
+                     Required="true"
+                     Placeholder="Address label like 'home', 'office'"
+                     Label="Label"
+                     Class="form-editbox"
+                     ReadOnly="@ReadOnly"
+                     @oninput="OnNameChange" />
+
+
+
+
+    @* 
+    <FluentSelect Items=@_validTypes
+                  Label="Contact Type:"
+                  OptionText="@(i => i.Text)"
+                  OptionValue="@(i => i.Value)"
+                  OptionSelected="@(i => i.Selected)"
+                  @bind-Value="@Content.Value.Type" />
+
+    <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value.Value">Value:</FluentTextField>
+ *@
+</FluentDialogBody>
+
+@code {
+    [Parameter] public PanelParameters<AddressModel> Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+    [Parameter] public bool ReadOnly { get; set; }
+
+    // static List<Fluent.Option<string>> _validTypes = new()
+    // {
+    //     new Fluent.Option<string> { Value = "Email", Text = "Email" },
+    //     new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
+    // };
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<AddressModel>.Set(Content.Value));
+    private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<AddressModel>.Delete());
+    public async Task OnCloseButton() => await Dialog.CancelAsync();
+
+    private void OnNameChange(ChangeEventArgs e)
+    {
+        Content.Value.Label = e.Value?.ToString() ?? Content.Value.Label;
+    }
+
+    // {
+    //     if (Content.OnDelete.HasDelegate)
+    //     {
+    //         await Content.OnDelete.InvokeAsync();
+    //         await OnCloseButton();
+    //     }
+    // }
+}

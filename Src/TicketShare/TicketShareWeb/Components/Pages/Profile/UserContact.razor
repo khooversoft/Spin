@@ -6,7 +6,7 @@
 
 @if (_contacts is not null)
 {
-    <FeedBlock Title="Contacts" Class="feed-block-datagrid" OnAdd="AddContact">
+    <FeedBlock Title="Contacts" Class="feed-block-datagrid" OnAdd="Add">
         <FluentDataGrid Class="feed-block-datagrid" Items="@_contacts" GridTemplateColumns="70px 260px 40px" ShowHover="true" GenerateHeader=GenerateHeaderOption.None>
             <PropertyColumn Property="@(p => p.Type)" Sortable="true" />
             <PropertyColumn Property="@(p => p.Value)" Sortable="true" />
@@ -24,19 +24,15 @@
 
     IDialogReference _dialog = null!;
 
-    static List<Fluent.Option<string>> _validTypes = new()
-    {
-        new Fluent.Option<string> { Value = "Email", Text = "Email" },
-        new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
-    };
+    // static List<Fluent.Option<string>> _validTypes = new()
+    // {
+    //     new Fluent.Option<string> { Value = "Email", Text = "Email" },
+    //     new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
+    // };
 
     private IQueryable<ContactModel> _contacts = null!;
 
-    protected override void OnParametersSet()
-    {
-        _contacts = UserAccountContext.Input.ContactItems.Values.OrderBy(x => x.Value).AsQueryable();
-        base.OnParametersSet();
-    }
+    protected override void OnParametersSet() => Refresh();
 
     private async Task EditContact(ContactModel model)
     {
@@ -70,7 +66,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task AddContact()
+    private async Task Add()
     {
         var model = new ContactModel { Type = "Email", Value = "" };
         var parameters = new DialogParameters<ContactModel>()
@@ -92,7 +88,12 @@
 
         await UserAccountContext.Contact.Set(data.Value.NotNull());
 
-        _contacts = UserAccountContext.Input.ContactItems.Values.OrderBy(x => x.Value).AsQueryable();
+        Refresh();
         await InvokeAsync(StateHasChanged);
+    }
+
+    public void Refresh()
+    {
+        _contacts = UserAccountContext.Input.ContactItems.Values.OrderBy(x => x.Value).AsQueryable();
     }
 }
