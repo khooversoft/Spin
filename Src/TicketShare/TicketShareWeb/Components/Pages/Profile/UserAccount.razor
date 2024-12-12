@@ -18,7 +18,7 @@
 
 @if (_userAccountContext?.IsLoaded() == true)
 {
-    <div style="border: 1px solid black; ">
+    <div class="content-border">
         <FluentStack Orientation="Orientation.Vertical">
             <FeedBlock Title="User" OnEdit="OnEditInfo">
                 <EditInfo Content="@_userAccountContext.UserProfile" ReadOnly="true" />
