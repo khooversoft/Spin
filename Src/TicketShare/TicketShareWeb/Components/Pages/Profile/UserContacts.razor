@@ -7,12 +7,15 @@
 @if (_contacts is not null)
 {
     <FeedBlock Title="Contacts" Class="feed-block-datagrid" OnAdd="Add">
-        <FluentDataGrid Class="feed-block-datagrid" Items="@_contacts" GridTemplateColumns="70px 260px 40px" ShowHover="true" GenerateHeader=GenerateHeaderOption.None>
+        <FluentDataGrid Class="feed-block-datagrid"
+                        Items="@_contacts"
+                        GridTemplateColumns="70px 300px"
+                        ShowHover="true"
+                        GenerateHeader=GenerateHeaderOption.None
+                        TGridItem="ContactModel"
+                        OnRowClick="HandleRowFocus">
             <PropertyColumn Property="@(p => p.Type)" Sortable="true" />
             <PropertyColumn Property="@(p => p.Value)" Sortable="true" />
-            <TemplateColumn Class="padding-clear" Align="Align.End">
-                <FluentButton IconStart="@(new Icons.Regular.Size20.Edit())" onclick="() => EditContact(context)" />
-            </TemplateColumn>
         </FluentDataGrid>
     </FeedBlock>
 }
@@ -23,27 +26,19 @@
     [CascadingParameter] public UserAccountContext UserAccountContext { get; set; } = null!;
 
     IDialogReference _dialog = null!;
-
-    // static List<Fluent.Option<string>> _validTypes = new()
-    // {
-    //     new Fluent.Option<string> { Value = "Email", Text = "Email" },
-    //     new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
-    // };
-
     private IQueryable<ContactModel> _contacts = null!;
 
     protected override void OnParametersSet() => Refresh();
+    private Task HandleRowFocus(FluentDataGridRow<ContactModel> row) => Edit(row.Item.NotNull());
 
-    private async Task EditContact(ContactModel model)
+    private async Task Edit(ContactModel model)
     {
         var parameters = new DialogParameters()
             {
                 Alignment = HorizontalAlignment.Right,
                 ShowDismiss = true,
                 Title = "Edit Contact",
-                PrimaryActionEnabled = false,
                 PrimaryAction = null,
-                SecondaryActionEnabled = false,
                 SecondaryAction = null,
             };
 
@@ -76,8 +71,6 @@
                 ShowDismiss = true,
                 Title = "Add Contact",
                 PrimaryAction = null,
-                PrimaryActionEnabled = false,
-                SecondaryActionEnabled = false,
                 SecondaryAction = null,
             };
 

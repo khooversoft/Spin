@@ -1,4 +1,11 @@
 ﻿<FluentStack Orientation="Orientation.Horizontal">
+    @if (OnClose.HasDelegate)
+    {
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.ArrowLeft())"
+                      OnClick="CloseClick">
+        </FluentButton>
+    }
 
     @if (OnSet.HasDelegate)
     {
@@ -9,19 +16,13 @@
         </FluentButton>
     }
 
-    @if (OnClose.HasDelegate)
+    @if (ShowDelete && OnDelete.HasDelegate)
     {
-        <FluentButton Appearance="Appearance.Outline"
-                      IconStart="@(new Icons.Regular.Size20.ArrowUndo())"
-                      OnClick="CloseClick">
-            Close
-        </FluentButton>
-    }
+        <FluentSpacer />
 
-    @if (OnDelete.HasDelegate)
-    {
         <FluentButton Appearance="Appearance.Outline"
                       IconStart="@(new Icons.Regular.Size20.Delete())"
+                      Disabled="DisableDelete"
                       OnClick="DeleteClick">
             Delete
         </FluentButton>
@@ -39,6 +40,13 @@
     [Parameter] public EventCallback OnSet { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public bool DisableDelete { get; set; }
+    [Parameter] public bool ShowDelete { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
 
     private async Task CloseClick() => await OnClose.InvokeAsync();
     private async Task SetClick() => await OnSet.InvokeAsync();

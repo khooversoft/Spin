@@ -4,81 +4,65 @@
 
 <FluentDialogBody>
 
-    @if (Content.ShowDelete)
+    <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" OnDelete="EnableDelete" ShowDelete="@Content.ShowDelete" />
+
+    <FluentTextField Name="Label" Label="Label" @bind-Value="Content.Value.Label" Class="form-editbox"
+                     Placeholder="label like 'home', 'office'" @oninput="OnLabelChange" />
+
+    <FluentTextField Name="Address1" Label="Address" @bind-Value="Content.Value.Address1" Class="form-editbox"
+                     Placeholder="address" @oninput="OnAddress1Change" />
+
+    <FluentTextField Name="Address2" Label="Address" @bind-Value="Content.Value.Address2" Class="form-editbox"
+                     Placeholder="address" @oninput="OnAddress2Change" />
+
+    <FluentTextField Name="City" Label="City" @bind-Value="Content.Value.City" Class="form-editbox"
+                     Placeholder="city" @oninput="CityChange" />
+
+    <FluentTextField Name="State" Label="State" @bind-Value="Content.Value.State" Class="form-editbox"
+                     Placeholder="state" @oninput="StateChange" />
+
+    <FluentTextField Name="ZipCode" Label="Zip Code" @bind-Value="Content.Value.ZipCode" Class="form-editbox"
+                     Placeholder="zip code" @oninput="ZipCodeChange" />
+
+    @if (_disableDelete)
     {
-        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" OnDelete="OnDeleteButton" />
-    }
-    else
-    {
-        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" />
+        <Ask IsAlert="true" OnYes="OnDeleteButton" OnNo="ClearDelete" Message="Do you want to delete this contact?"></Ask>
     }
 
-    <FluentTextField Name="Label" Label="Label" @bind-Value="Content.Value.Label" Required="true"
-                     Placeholder="label like 'home', 'office'"
-                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
-
-    <FluentTextField Name="Address1" Label="Address" @bind-Value="Content.Value.Address1" Required="true"
-                     Placeholder="Address"
-                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
-
-    <FluentTextField Name="Address2" Label="Address" @bind-Value="Content.Value.Address2" Required="true"
-                     Placeholder="Address label like 'home', 'office'"
-                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
-
-    <FluentTextField Name="City" Label="City" @bind-Value="Content.Value.City" Required="true"
-                     Placeholder="city"
-                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
-
-    <FluentTextField Name="State" Label="State" @bind-Value="Content.Value.State" Required="true"
-                     Placeholder="Address label like 'home', 'office'"
-                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
-
-    <FluentTextField Name="Address1" Label="Address" @bind-Value="Content.Value.Address1" Required="true"
-                     Placeholder="Address label like 'home', 'office'"
-                     Class="form-editbox" ReadOnly="@ReadOnly" @oninput="OnNameChange" />
-
-
-
-
-
-
-    @* 
-    <FluentSelect Items=@_validTypes
-                  Label="Contact Type:"
-                  OptionText="@(i => i.Text)"
-                  OptionValue="@(i => i.Value)"
-                  OptionSelected="@(i => i.Selected)"
-                  @bind-Value="@Content.Value.Type" />
-
-    <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value.Value">Value:</FluentTextField>
- *@
 </FluentDialogBody>
 
 @code {
     [Parameter] public PanelParameters<AddressModel> Content { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
-    [Parameter] public bool ReadOnly { get; set; }
 
-    // static List<Fluent.Option<string>> _validTypes = new()
-    // {
-    //     new Fluent.Option<string> { Value = "Email", Text = "Email" },
-    //     new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
-    // };
+    private bool _disableDelete = false;
 
-    private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<AddressModel>.Set(Content.Value));
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    private async Task OnSetButton()
+    {
+        if (!Content.Value.HasAddress)
+        {
+            await Dialog.CancelAsync();
+            return;
+        }
+
+        await Dialog.CloseAsync(PanelResult<AddressModel>.Set(Content.Value));
+    }
+
     private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<AddressModel>.Delete());
     public async Task OnCloseButton() => await Dialog.CancelAsync();
 
-    private void OnNameChange(ChangeEventArgs e)
-    {
-        Content.Value.Label = e.Value?.ToString() ?? Content.Value.Label;
-    }
+    private void OnLabelChange(ChangeEventArgs e) => Content.Value.Label = e.Value?.ToString() ?? Content.Value.Label;
+    private void OnAddress1Change(ChangeEventArgs e) => Content.Value.Address1 = e.Value?.ToString() ?? Content.Value.Address1;
+    private void OnAddress2Change(ChangeEventArgs e) => Content.Value.Address2 = e.Value?.ToString() ?? Content.Value.Address2;
+    private void CityChange(ChangeEventArgs e) => Content.Value.City = e.Value?.ToString() ?? Content.Value.City;
+    private void StateChange(ChangeEventArgs e) => Content.Value.State = e.Value?.ToString() ?? Content.Value.State;
+    private void ZipCodeChange(ChangeEventArgs e) => Content.Value.ZipCode = e.Value?.ToString() ?? Content.Value.ZipCode;
 
-    // {
-    //     if (Content.OnDelete.HasDelegate)
-    //     {
-    //         await Content.OnDelete.InvokeAsync();
-    //         await OnCloseButton();
-    //     }
-    // }
+    public void EnableDelete() => _disableDelete = true;
+    public void ClearDelete() => _disableDelete = false;
 }

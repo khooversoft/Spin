@@ -4,14 +4,7 @@
 
 <FluentDialogBody>
 
-    @if (Content.ShowDelete)
-    {
-        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" OnDelete="OnDeleteButton" />
-    }
-    else
-    {
-        <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" />
-    }
+    <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" OnDelete="EnableDelete" DisableDelete="_disableDelete" ShowDelete="@Content.ShowDelete" />
 
     <FluentSelect Items=@_validTypes
                   Label="Contact Type:"
@@ -22,11 +15,18 @@
 
     <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value.Value">Value:</FluentTextField>
 
+    @if (_disableDelete)
+    {
+        <Ask IsAlert="true" OnYes="OnDeleteButton" OnNo="ClearDelete" Message="Do you want to delete this contact?"></Ask>
+    }
+
 </FluentDialogBody>
 
 @code {
     [Parameter] public PanelParameters<ContactModel> Content { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private bool _disableDelete = false;
 
     static List<Fluent.Option<string>> _validTypes = new()
     {
@@ -38,11 +38,6 @@
     private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<ContactModel>.Delete());
     public async Task OnCloseButton() => await Dialog.CancelAsync();
 
-    // {
-    //     if (Content.OnDelete.HasDelegate)
-    //     {
-    //         await Content.OnDelete.InvokeAsync();
-    //         await OnCloseButton();
-    //     }
-    // }
+    public void EnableDelete() => _disableDelete = true;
+    public void ClearDelete() => _disableDelete = false;
 }

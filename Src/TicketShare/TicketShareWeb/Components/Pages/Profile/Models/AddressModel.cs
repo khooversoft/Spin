@@ -6,7 +6,7 @@ namespace TicketShareWeb.Components.Pages.Profile.Models;
 
 public sealed record AddressModel
 {
-    public string Id { get; init; } = null!;
+    public string Id { get; init; } = Guid.NewGuid().ToString();
 
     [Required]
     public string Label { get; set; } = null!;
@@ -21,6 +21,12 @@ public sealed record AddressModel
 
     [Display(Name = "Zip Code")]
     public string? ZipCode { get; set; }
+
+    public bool HasAddress => Address1.IsNotEmpty() ||
+        Address2.IsNotEmpty() ||
+        City.IsNotEmpty() ||
+        State.IsNotEmpty() ||
+        ZipCode.IsNotEmpty();
 
     public override string ToString()
     {

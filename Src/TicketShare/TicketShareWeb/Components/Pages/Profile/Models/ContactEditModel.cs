@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using TicketShare.sdk;
 using Toolbox.Tools;
 
 namespace TicketShareWeb.Components.Pages.Profile.Models;

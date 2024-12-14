@@ -15,9 +15,9 @@ public class UserAccountManager
     private readonly AuthenticationStateProvider _authenticationStateProvider;
 
     public UserAccountManager(
-        IdentityClient identityClient, 
-        AccountClient accountClient, 
-        AuthenticationStateProvider authenticationStateProvider, 
+        IdentityClient identityClient,
+        AccountClient accountClient,
+        AuthenticationStateProvider authenticationStateProvider,
         ILogger<UserAccountManager> logger
         )
     {

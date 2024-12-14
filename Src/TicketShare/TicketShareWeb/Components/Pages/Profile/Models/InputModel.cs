@@ -2,9 +2,9 @@
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using TicketShare.sdk;
-using Toolbox.Tools;
-using Toolbox.Extensions;
 using TicketShareWeb.Components.Pages.Profile.Models;
+using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace TicketShareWeb.Components.Pages.Profile.Models;
 

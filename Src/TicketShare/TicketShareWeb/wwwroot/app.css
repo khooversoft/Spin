@@ -213,6 +213,10 @@ code {
     padding: 0px !important;
 }
 
+.alert-button {
+    background-color: red;
+}
+
 
 @media (max-width: 600px) {
     .main {

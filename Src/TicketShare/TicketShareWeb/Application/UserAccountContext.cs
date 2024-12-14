@@ -58,7 +58,7 @@ public class UserAccountContext
         var account = Input.NotNull().ConvertTo(principalId);
 
         var result = await _userAccountManager.SetAccount(account).ConfigureAwait(false);
-        if( result.IsError()) result.ThrowOnError("Cannot update");
+        if (result.IsError()) result.ThrowOnError("Cannot update");
     }
 
     public async Task SetName(string name)
@@ -91,7 +91,7 @@ public class UserAccountContext
         public async Task Delete(T model)
         {
             bool removed = _remove(model);
-            if( removed) await _context.Set();
+            if (removed) await _context.Set();
         }
     }
 }
