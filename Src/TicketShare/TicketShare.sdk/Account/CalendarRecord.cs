@@ -5,8 +5,8 @@ namespace TicketShare.sdk;
 
 public enum CalendarRecordType
 {
-    Free,
-    Busy
+    Busy,
+    Tenative
 }
 
 public record CalendarRecord

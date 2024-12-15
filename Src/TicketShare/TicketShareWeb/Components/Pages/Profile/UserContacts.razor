@@ -27,59 +27,34 @@
 
     IDialogReference _dialog = null!;
     private IQueryable<ContactModel> _contacts = null!;
+    private RightPanelDialog<ContactModel, UserContactDialog> _rightPanelDialog = null!;
 
-    protected override void OnParametersSet() => Refresh();
-    private Task HandleRowFocus(FluentDataGridRow<ContactModel> row) => Edit(row.Item.NotNull());
-
-    private async Task Edit(ContactModel model)
+    protected override void OnParametersSet()
     {
-        var parameters = new DialogParameters()
-            {
-                Alignment = HorizontalAlignment.Right,
-                ShowDismiss = true,
-                Title = "Edit Contact",
-                PrimaryAction = null,
-                SecondaryAction = null,
-            };
+        _rightPanelDialog = new RightPanelDialog<ContactModel, UserContactDialog>(
+            _dialogService,
+            x => UserAccountContext.Contact.Set(x),
+            x => UserAccountContext.Contact.Delete(x)
+        );
 
-        var panelParameters = new PanelParameters<ContactModel>(model, true);
-        _dialog = await _dialogService.ShowPanelAsync<UserContactDialog>(panelParameters, parameters);
+        Refresh();
+    }
 
-        var result = await _dialog.Result;
-        if (result.Cancelled || result.Data is null || result.Data is not PanelResult<ContactModel> data) return;
+    private async Task HandleRowFocus(FluentDataGridRow<ContactModel> row)
+    {
+        var result = await _rightPanelDialog.Edit(row.Item.NotNull(), "Edit Contact");
+        if (result == RightPanelDialog.Canceled) return;
 
-        if (data.DoDelete)
-        {
-            await UserAccountContext.Contact.Delete(model);
-        }
-        else
-        {
-            await UserAccountContext.Contact.Set(data.Value.NotNull());
-        }
-
-        _contacts = UserAccountContext.Input.ContactItems.Values.OrderBy(x => x.Value).AsQueryable();
+        Refresh();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task Add()
     {
         var model = new ContactModel { Type = "Email", Value = "" };
-        var parameters = new DialogParameters<ContactModel>()
-            {
-                Content = model,
-                Alignment = HorizontalAlignment.Right,
-                ShowDismiss = true,
-                Title = "Add Contact",
-                PrimaryAction = null,
-                SecondaryAction = null,
-            };
 
-        var panelParameters = new PanelParameters<ContactModel>(model);
-        _dialog = await _dialogService.ShowPanelAsync<UserContactDialog>(panelParameters, parameters);
-        var result = await _dialog.Result;
-        if (result.Cancelled || result.Data is null || result.Data is not PanelResult<ContactModel> data) return;
-
-        await UserAccountContext.Contact.Set(data.Value.NotNull());
+        var result = await _rightPanelDialog.Add(model, "Add Contact");
+        if (result == RightPanelDialog.Canceled) return;
 
         Refresh();
         await InvokeAsync(StateHasChanged);

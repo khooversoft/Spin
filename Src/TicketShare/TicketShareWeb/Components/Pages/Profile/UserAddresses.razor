@@ -42,7 +42,7 @@
     private async Task HandleRowFocus(FluentDataGridRow<AddressModel> row)
     {
         var result = await _rightPanelDialog.Edit(row.Item.NotNull(), "Edit Address");
-        if (result == RightPanelDialog.Cancled) return;
+        if (result == RightPanelDialog.Canceled) return;
 
         Refresh();
         await InvokeAsync(StateHasChanged);
@@ -53,7 +53,7 @@
         var model = new AddressModel { Label = "default" };
 
         var result = await _rightPanelDialog.Add(model, "Add Address");
-        if (result == RightPanelDialog.Cancled) return;
+        if (result == RightPanelDialog.Canceled) return;
 
         Refresh();
         await InvokeAsync(StateHasChanged);

@@ -5,7 +5,7 @@ namespace TicketShareWeb.Application;
 
 public class RightPanelDialog
 {
-    public const int Cancled = 0;
+    public const int Canceled = 0;
     public const int Set = 1;
     public const int Delete = 2;
 }
@@ -38,7 +38,7 @@ public class RightPanelDialog<TModel, TDialog> where TDialog : IDialogContentCom
         var dialog = await _dialogService.ShowPanelAsync<TDialog>(panelParameters, parameters);
 
         var result = await dialog.Result;
-        if (result.Cancelled || result.Data is null || result.Data is not PanelResult<TModel> data) return RightPanelDialog.Cancled;
+        if (result.Cancelled || result.Data is null || result.Data is not PanelResult<TModel> data) return RightPanelDialog.Canceled;
 
         if (data.DoDelete && _delete != null)
         {
@@ -69,7 +69,7 @@ public class RightPanelDialog<TModel, TDialog> where TDialog : IDialogContentCom
         var panelParameters = new PanelParameters<TModel>(model);
         var dialog = await _dialogService.ShowPanelAsync<TDialog>(panelParameters, parameters);
         var result = await dialog.Result;
-        if (result.Cancelled || result.Data is null || result.Data is not PanelResult<TModel> data) return RightPanelDialog.Cancled;
+        if (result.Cancelled || result.Data is null || result.Data is not PanelResult<TModel> data) return RightPanelDialog.Canceled;
 
         await _set(model);
         return RightPanelDialog.Set;
