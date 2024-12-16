@@ -43,14 +43,14 @@
     private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<AddressModel>.Delete());
     public async Task OnCloseButton() => await Dialog.CancelAsync();
 
-    private void OnLabelChange(ChangeEventArgs e) => UpdateState(() => Content.Value.Label = e.Value?.ToString() ?? Content.Value.Label);
-    private void OnAddress1Change(ChangeEventArgs e) => UpdateState(() => Content.Value.Address1 = e.Value?.ToString() ?? Content.Value.Address1);
-    private void OnAddress2Change(ChangeEventArgs e) => UpdateState(() => Content.Value.Address2 = e.Value?.ToString() ?? Content.Value.Address2);
-    private void CityChange(ChangeEventArgs e) => UpdateState(() => Content.Value.City = e.Value?.ToString() ?? Content.Value.City);
-    private void StateChange(ChangeEventArgs e) => UpdateState(() => Content.Value.State = e.Value?.ToString() ?? Content.Value.State);
-    private void ZipCodeChange(ChangeEventArgs e) => UpdateState(() => Content.Value.ZipCode = e.Value?.ToString() ?? Content.Value.ZipCode);
+    private void OnLabelChange(ChangeEventArgs e) => Update(() => Content.Value.Label = e.Value?.ToString() ?? Content.Value.Label);
+    private void OnAddress1Change(ChangeEventArgs e) => Update(() => Content.Value.Address1 = e.Value?.ToString() ?? Content.Value.Address1);
+    private void OnAddress2Change(ChangeEventArgs e) => Update(() => Content.Value.Address2 = e.Value?.ToString() ?? Content.Value.Address2);
+    private void CityChange(ChangeEventArgs e) => Update(() => Content.Value.City = e.Value?.ToString() ?? Content.Value.City);
+    private void StateChange(ChangeEventArgs e) => Update(() => Content.Value.State = e.Value?.ToString() ?? Content.Value.State);
+    private void ZipCodeChange(ChangeEventArgs e) => Update(() => Content.Value.ZipCode = e.Value?.ToString() ?? Content.Value.ZipCode);
 
-    private void UpdateState(Action update)
+    private void Update(Action update)
     {
         update();
 

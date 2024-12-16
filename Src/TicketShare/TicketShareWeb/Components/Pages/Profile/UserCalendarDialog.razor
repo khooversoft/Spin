@@ -11,8 +11,7 @@
                       OptionText="@(i => i.Text)"
                       OptionValue="@(i => i.Value.ToString())"
                       OptionSelected="@(i => i.Selected)"
-                      @bind-Value="@Content.Value.Type"
-                      @oninput="OnTypeChange" />
+                      @bind-Value="@ContactType" />
 
         <FluentDatePicker Label="From Date" @bind-Value="@FromDateValue" />
         <FluentDatePicker Label="To Date" @bind-Value="@ToDateValue" />
@@ -24,8 +23,6 @@
     [Parameter] public PanelParameters<CalendarModel> Content { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
 
-    private DateTime? _fromDate;
-    private DateTime? _toDate;
     private bool _disableSave = true;
     private CalendarModel _current = default!;
 
@@ -38,38 +35,18 @@
     protected override void OnParametersSet()
     {
         _current = Content.Value.Clone();
-        _fromDate = Content.Value.FromDate;
-        _toDate = Content.Value.ToDate;
         RefreshSaveState();
     }
 
-    private DateTime? FromDateValue
-    {
-        get => Content.Value.FromDate;
-        set
-        {
-            Content.Value.FromDate = value ?? DateTime.Now;
-            RefreshSaveState();
-        }
-    }
-
-    private DateTime? ToDateValue
-    {
-        get => Content.Value.ToDate;
-        set
-        {
-            Content.Value.ToDate = value ?? DateTime.Now;
-            RefreshSaveState();
-        }
-    }
+    private string ContactType { get => Content.Value.Type; set => Update(() => Content.Value.Type = value); }
+    private DateTime? FromDateValue { get => Content.Value.FromDate; set => Update(() => Content.Value.FromDate = value ?? DateTime.Now); }
+    private DateTime? ToDateValue { get => Content.Value.ToDate; set => Update(() => Content.Value.ToDate = value ?? DateTime.Now); }
 
     private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<CalendarModel>.Set(Content.Value));
     private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<CalendarModel>.Delete());
     public async Task OnCloseButton() => await Dialog.CancelAsync();
 
-    private void OnTypeChange(ChangeEventArgs e) => UpdateState(() => Content.Value.Type = e.Value?.ToString() ?? Content.Value.Type);
-
-    private void UpdateState(Action update)
+    private void Update(Action update)
     {
         update();
         RefreshSaveState();
