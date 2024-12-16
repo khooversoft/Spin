@@ -1,0 +1,36 @@
+﻿<div>
+    <DialogControls OnSet="OnSetButton"
+                    OnClose="OnCloseButton"
+                    OnDelete="EnableDelete"
+                    ShowDelete="ShowDelete"
+                    DisableDelete="_disableDelete"
+                    DisableSave="DisableSave" />
+
+    <div>
+        @ChildContent
+    </div>
+
+    @if (_disableDelete)
+    {
+        <Ask IsAlert="true" OnYes="OnDeleteButton" OnNo="ClearDelete" Message="Do you want to delete this contact?"></Ask>
+    }
+
+</div>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+    [Parameter] public EventCallback OnSet { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool ShowDelete { get; set; }
+    [Parameter] public bool DisableSave { get; set; }
+
+    private bool _disableDelete = false;
+
+    private async Task OnSetButton() => await OnSet.InvokeAsync();
+    public async Task OnCloseButton() => await OnClose.InvokeAsync();
+    private async Task OnDeleteButton() => await OnDelete.InvokeAsync();
+
+    private void EnableDelete() => _disableDelete = true;
+    private void ClearDelete() => _disableDelete = false;
+}

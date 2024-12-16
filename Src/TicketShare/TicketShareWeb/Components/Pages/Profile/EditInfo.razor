@@ -15,9 +15,11 @@
 @code {
     [Parameter] public UserProfileEditModel Content { get; set; } = null!;
     [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback OnChange { get; set; }
 
-    private void OnNameChange(ChangeEventArgs e)
+    private async Task OnNameChange(ChangeEventArgs e)
     {
         Content.Name = e.Value?.ToString() ?? Content.Name;
+        await OnChange.InvokeAsync();
     }
 }

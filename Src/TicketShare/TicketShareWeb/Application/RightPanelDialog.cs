@@ -34,7 +34,7 @@ public class RightPanelDialog<TModel, TDialog> where TDialog : IDialogContentCom
             SecondaryAction = null,
         };
 
-        var panelParameters = new PanelParameters<TModel>(model, true);
+        var panelParameters = PanelParameters<TModel>.Edit(model);
         var dialog = await _dialogService.ShowPanelAsync<TDialog>(panelParameters, parameters);
 
         var result = await dialog.Result;
@@ -66,7 +66,7 @@ public class RightPanelDialog<TModel, TDialog> where TDialog : IDialogContentCom
             SecondaryAction = null,
         };
 
-        var panelParameters = new PanelParameters<TModel>(model);
+        var panelParameters = PanelParameters<TModel>.Add(model);
         var dialog = await _dialogService.ShowPanelAsync<TDialog>(panelParameters, parameters);
         var result = await dialog.Result;
         if (result.Cancelled || result.Data is null || result.Data is not PanelResult<TModel> data) return RightPanelDialog.Canceled;

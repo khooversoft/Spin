@@ -39,6 +39,7 @@ public sealed record AddressModel
             State,
             ZipCode,
         }
+        .Select(x => x.ToNullIfEmpty())
         .OfType<string>()
         .Join(", ");
 

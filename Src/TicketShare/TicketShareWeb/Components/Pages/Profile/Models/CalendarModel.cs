@@ -5,14 +5,14 @@ namespace TicketShareWeb.Components.Pages.Profile.Models;
 
 public sealed record CalendarModel
 {
-    public string Id { get; init; } = null!;
+    public string Id { get; init; } = Guid.NewGuid().ToString();
+    public string Type { get; set; } = null!;
 
-    public CalendarRecordType Type { get; set; }
     [Display(Name = "From Date")]
-    public DateTime FromDate { get; set; }
+    public DateTime FromDate { get; set; } = DateTime.Now.Date;
 
     [Display(Name = "To Date")]
-    public DateTime ToDate { get; set; }
+    public DateTime ToDate { get; set; } = DateTime.Now.Date;
 }
 
 
@@ -29,7 +29,7 @@ public static class CalendarModelExtensions
     public static CalendarModel ConvertTo(this CalendarRecord subject) => new CalendarModel
     {
         Id = subject.Id,
-        Type = subject.Type,
+        Type = subject.Type.ToString(),
         FromDate = subject.FromDate,
         ToDate = subject.ToDate,
     };
@@ -37,7 +37,7 @@ public static class CalendarModelExtensions
     public static CalendarRecord ConvertTo(this CalendarModel subject) => new CalendarRecord
     {
         Id = subject.Id,
-        Type = subject.Type,
+        Type = Enum.Parse<CalendarRecordType>(subject.Type),
         FromDate = subject.FromDate,
         ToDate = subject.ToDate,
     };

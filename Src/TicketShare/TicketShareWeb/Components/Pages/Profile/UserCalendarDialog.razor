@@ -1,0 +1,89 @@
+﻿@using TicketShare.sdk
+@using TicketShareWeb.Components.Pages.Profile.Models
+
+@implements IDialogContentComponent<PanelParameters<CalendarModel>>
+
+<FluentDialogBody>
+    <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
+
+        <FluentSelect Items=@_validTypes
+                      Label="Contact Type:"
+                      OptionText="@(i => i.Text)"
+                      OptionValue="@(i => i.Value.ToString())"
+                      OptionSelected="@(i => i.Selected)"
+                      @bind-Value="@Content.Value.Type"
+                      @oninput="OnTypeChange" />
+
+        <FluentDatePicker Label="From Date" @bind-Value="@FromDateValue" />
+        <FluentDatePicker Label="To Date" @bind-Value="@ToDateValue" />
+
+    </DialogFrame>
+</FluentDialogBody>
+
+@code {
+    [Parameter] public PanelParameters<CalendarModel> Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private DateTime? _fromDate;
+    private DateTime? _toDate;
+    private bool _disableSave = true;
+    private CalendarModel _current = default!;
+
+    static List<Fluent.Option<CalendarRecordType>> _validTypes = new()
+    {
+        new Fluent.Option<CalendarRecordType> { Value = CalendarRecordType.Busy, Text = "Busy" },
+        new Fluent.Option<CalendarRecordType> { Value = CalendarRecordType.Tenative, Text = "Tenative" },
+    };
+
+    protected override void OnParametersSet()
+    {
+        _current = Content.Value.Clone();
+        _fromDate = Content.Value.FromDate;
+        _toDate = Content.Value.ToDate;
+        RefreshSaveState();
+    }
+
+    private DateTime? FromDateValue
+    {
+        get => Content.Value.FromDate;
+        set
+        {
+            Content.Value.FromDate = value ?? DateTime.Now;
+            RefreshSaveState();
+        }
+    }
+
+    private DateTime? ToDateValue
+    {
+        get => Content.Value.ToDate;
+        set
+        {
+            Content.Value.ToDate = value ?? DateTime.Now;
+            RefreshSaveState();
+        }
+    }
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<CalendarModel>.Set(Content.Value));
+    private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<CalendarModel>.Delete());
+    public async Task OnCloseButton() => await Dialog.CancelAsync();
+
+    private void OnTypeChange(ChangeEventArgs e) => UpdateState(() => Content.Value.Type = e.Value?.ToString() ?? Content.Value.Type);
+
+    private void UpdateState(Action update)
+    {
+        update();
+        RefreshSaveState();
+    }
+
+    private void RefreshSaveState() => _disableSave = Content.IsEdit switch
+    {
+        true => !HasDataRequired() || Content.Value == _current,
+        false => !HasDataRequired()
+    };
+
+    private bool HasDataRequired() =>
+            Content.Value.Type.IsNotEmpty() &&
+            Content.Value.FromDate.IsDateTimeValid() &&
+            Content.Value.ToDate.IsDateTimeValid() &&
+            Content.Value.FromDate <= Content.Value.ToDate;
+}

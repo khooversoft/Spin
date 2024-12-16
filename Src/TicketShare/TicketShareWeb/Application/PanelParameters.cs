@@ -4,9 +4,11 @@ namespace TicketShareWeb.Application;
 
 public record PanelParameters<T>
 {
-    public PanelParameters(T value) => Value = value.NotNull();
-    public PanelParameters(T value, bool showDelete) => (Value, ShowDelete) = (value.NotNull(), showDelete);
+    private PanelParameters(T value, bool isEdit) => (Value, IsEdit) = (value.NotNull(), isEdit);
 
     public T Value { get; }
-    public bool ShowDelete { get; }
+    public bool IsEdit { get; }
+
+    public static PanelParameters<T> Add(T value) => new PanelParameters<T>(value, false);
+    public static PanelParameters<T> Edit(T value) => new PanelParameters<T>(value, true);
 }

@@ -25,7 +25,6 @@
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [CascadingParameter] public UserAccountContext UserAccountContext { get; set; } = null!;
 
-    IDialogReference _dialog = null!;
     private IQueryable<ContactModel> _contacts = null!;
     private RightPanelDialog<ContactModel, UserContactDialog> _rightPanelDialog = null!;
 

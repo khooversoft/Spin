@@ -75,7 +75,7 @@ public class UserAccountContext
         private readonly Action<T> _set;
         private readonly Func<T, bool> _remove;
 
-        public CollectionAccessActor(UserAccountContext context, Action<T> set, Func<T, bool> remove)
+        internal CollectionAccessActor(UserAccountContext context, Action<T> set, Func<T, bool> remove)
         {
             _context = context.NotNull();
             _set = set;

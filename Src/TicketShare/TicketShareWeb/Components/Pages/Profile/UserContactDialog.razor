@@ -3,22 +3,19 @@
 @implements IDialogContentComponent<PanelParameters<ContactModel>>
 
 <FluentDialogBody>
+    <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
 
-    <DialogControls OnSet="OnSetButton" OnClose="OnCloseButton" OnDelete="EnableDelete" DisableDelete="_disableDelete" ShowDelete="@Content.ShowDelete" />
+        <FluentSelect Items=@_validTypes
+                      Label="Contact Type:"
+                      OptionText="@(i => i.Text)"
+                      OptionValue="@(i => i.Value)"
+                      OptionSelected="@(i => i.Selected)"
+                      @bind-Value="@Content.Value.Type"
+                      @oninput="OnTypeChange" />
 
-    <FluentSelect Items=@_validTypes
-                  Label="Contact Type:"
-                  OptionText="@(i => i.Text)"
-                  OptionValue="@(i => i.Value)"
-                  OptionSelected="@(i => i.Selected)"
-                  @bind-Value="@Content.Value.Type" />
+        <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value.Value" @oninput="OnValueChange">Value:</FluentTextField>
 
-    <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value.Value">Value:</FluentTextField>
-
-    @if (_disableDelete)
-    {
-        <Ask IsAlert="true" OnYes="OnDeleteButton" OnNo="ClearDelete" Message="Do you want to delete this contact?"></Ask>
-    }
+    </DialogFrame>
 
 </FluentDialogBody>
 
@@ -26,7 +23,8 @@
     [Parameter] public PanelParameters<ContactModel> Content { get; set; } = default!;
     [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
 
-    private bool _disableDelete = false;
+    private ContactModel _current = default!;
+    private bool _disableSave = true;
 
     static List<Fluent.Option<string>> _validTypes = new()
     {
@@ -34,10 +32,18 @@
         new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
     };
 
+    protected override void OnParametersSet() => _current = Content.Value.Clone();
+
     private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<ContactModel>.Set(Content.Value));
     private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<ContactModel>.Delete());
-    public async Task OnCloseButton() => await Dialog.CancelAsync();
+    private async Task OnCloseButton() => await Dialog.CancelAsync();
 
-    public void EnableDelete() => _disableDelete = true;
-    public void ClearDelete() => _disableDelete = false;
+    private void OnTypeChange(ChangeEventArgs e) => UpdateState(() => Content.Value.Type = e.Value?.ToString() ?? Content.Value.Type);
+    private void OnValueChange(ChangeEventArgs e) => UpdateState(() => Content.Value.Value = e.Value?.ToString() ?? Content.Value.Value);
+
+    private void UpdateState(Action update)
+    {
+        update();
+        _disableSave = Content.Value == _current;
+    }
 }
