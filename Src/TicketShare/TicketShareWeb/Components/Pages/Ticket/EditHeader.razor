@@ -1,0 +1,63 @@
+﻿@using TicketShare.sdk
+@using TicketShareWeb.Components.Pages.Profile.Models
+@using TicketShareWeb.Components.Pages.Ticket.Model
+@using System.Collections.Concurrent
+
+@if (Content != null)
+{
+    <FluentTextField Name="Content.Name"
+                     @bind-Value="Content.Name"
+                     Required="true"
+                     Placeholder="name of ticket group"
+                     Label="Name"
+                     Class="form-editbox"
+                     ReadOnly="@ReadOnly"
+                     @oninput="OnNameChange" />
+
+    <ValidationError Errors="@_errors" FieldName="@_nameField" />
+
+
+    <FluentTextField Name="Content.Description"
+                     @bind-Value="Content.Description"
+                     Placeholder="description of ticket group"
+                     Label="Description"
+                     Class="form-editbox"
+                     ReadOnly="@ReadOnly"
+                     @oninput="OnDescriptionChange" />
+
+    <ValidationError Errors="@_errors" FieldName="@_descriptionField" />
+}
+
+@code {
+    [Parameter] public TicketGroupHeaderModel Content { get; set; } = null!;
+    [Parameter] public EventCallback OnChange { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private FormValidation _errors = new();
+    private const string _nameField = "Content.Name";
+    private const string _descriptionField = "Content.Description";
+
+    private async Task OnNameChange(ChangeEventArgs e)
+    {
+        Content.Name = e.Value?.ToString() ?? Content.Name;
+
+        if (Content.Name.IsEmpty() || TicketGroupRecordTool.ValidateName(Content.Name).TryOk(out var result))
+            _errors.Remove(_nameField);
+        else
+            _errors[_nameField] = result.Error;
+
+        await OnChange.InvokeAsync();
+    }
+
+    private async Task OnDescriptionChange(ChangeEventArgs e)
+    {
+        Content.Description = e.Value?.ToString() ?? Content.Description;
+
+        if (Content.Description.IsEmpty() || TicketGroupRecordTool.ValidateDescription(Content.Description).TryOk(out var result))
+            _errors.Remove(_descriptionField);
+        else
+            _errors[_descriptionField] = result.Error;
+
+        await OnChange.InvokeAsync();
+    }
+}

@@ -7,6 +7,7 @@ public sealed record ChannelMessageRecord
 {
     public string ChannelId { get; init; } = null!;
     public string MessageId { get; init; } = Guid.NewGuid().ToString();
+    public DateTime TimeStamp { get; init; } = DateTime.UtcNow;
     public string FromPrincipalId { get; init; } = null!;
     public string Message { get; init; } = null!;
     public string? ProposalId { get; init; }

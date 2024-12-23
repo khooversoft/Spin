@@ -5,24 +5,32 @@
 @using Microsoft.AspNetCore.Identity;
 @using Microsoft.AspNetCore.Mvc;
 @using Microsoft.Extensions.Primitives;
+@using TicketShareWeb.Components.Settings
 @using Toolbox.Identity;
 
 @implements IDisposable
 
 @inject NavigationManager NavigationManager
 
+<FluentDesignTheme @bind-Mode="@ThemeMode" @bind-OfficeColor="@_officeColor" StorageName="theme" />
+
 <div class="navmenu">
     <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label>
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
         <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
+            <LoginUserControl />
+
             <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavLink>
 
             <AuthorizeView>
                 <Authorized>
-                    <FluentNavLink Href="Tickets" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent">Tickets</FluentNavLink>
+
+                    <FluentNavLink Href="TicketGroups" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent">Tickets</FluentNavLink>
                     <FluentNavLink Href="Messages" Icon="@(new Icons.Regular.Size20.Comment())" IconColor="Color.Accent">Messages</FluentNavLink>
                     <FluentNavLink Href="UserAccount" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Account</FluentNavLink>
+
+                    <SiteSettings />
 
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
@@ -31,8 +39,8 @@
                         <FluentButton Class="left-justified-button"
                                       Type="ButtonType.Submit"
                                       IconStart="@(new Icons.Regular.Size20.SignOut())"
-                                      Appearance="Appearance.Neutral"
-                                      style="margin: 10px 0 10px 0; width: 100%">
+                                      Appearance="Appearance.Outline"
+                                      style="margin: 2px 0 0px 0; width: 100%">
                             Logout
                         </FluentButton>
                     </form>
@@ -46,6 +54,8 @@
 @code {
     private bool expanded = true;
     private string? currentUrl;
+    public OfficeColor? _officeColor { get; set; }
+    public DesignThemeModes ThemeMode { get; set; } = DesignThemeModes.Light;
     [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()

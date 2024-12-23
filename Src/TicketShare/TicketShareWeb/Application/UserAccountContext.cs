@@ -10,7 +10,7 @@ public class UserAccountContext
 {
     private readonly UserAccountManager _userAccountManager;
     private readonly ILogger _logger;
-    private InputModel? _currentStored;
+    private AccountModel? _currentStored;
 
     public UserAccountContext(UserAccountManager userAccountManager, ILogger logger)
     {
@@ -22,7 +22,7 @@ public class UserAccountContext
         Calendar = new CollectionAccessActor<CalendarModel>(this, x => Input.CalendarItems[x.Id] = x, x => Input.CalendarItems.TryRemove(x.Id, out var _));
     }
 
-    public InputModel Input { get; private set; } = null!;
+    public AccountModel Input { get; private set; } = null!;
     public UserProfileEditModel UserProfile { get; private set; } = null!;
 
     public CollectionAccessActor<ContactModel> Contact { get; }

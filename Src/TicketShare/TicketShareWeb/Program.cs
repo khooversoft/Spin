@@ -14,7 +14,14 @@ using Toolbox.Tools;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services
+    .AddRazorComponents()
+    .AddInteractiveServerComponents()
+    .AddCircuitOptions(options =>
+    {
+        options.DetailedErrors = builder.Environment.IsDevelopment();
+    });
+
 builder.Services.AddFluentUIComponents();
 
 builder.Services.AddCascadingAuthenticationState();
@@ -65,11 +72,13 @@ builder.Services
     .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
     .AddGraphEngine()
     .AddTicketShare()
-    .AddScoped<UserAccountManager>();
+    .AddScoped<UserAccountManager>()
+    .AddScoped<TicketGroupManager>();
 
 builder.Services.AddSingleton<IEmailSender<PrincipalIdentity>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

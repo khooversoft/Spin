@@ -7,11 +7,7 @@ public sealed record CalendarModel
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
     public string Type { get; set; } = null!;
-
-    [Display(Name = "From Date")]
     public DateTime FromDate { get; set; } = DateTime.Now.Date;
-
-    [Display(Name = "To Date")]
     public DateTime ToDate { get; set; } = DateTime.Now.Date;
 }
 

@@ -1,0 +1,93 @@
+﻿@using System.Collections.Frozen
+@using System.Collections.Immutable
+
+@implements IDialogContentComponent
+
+<FluentDesignTheme @bind-Mode="@Mode"
+                   @bind-OfficeColor="@_officeColor"
+                   OnLoaded="@OnLoaded"
+                   StorageName="theme" />
+
+<div style="margin: 20px 0px 0px 0px">
+    <FluentStack Orientation="Orientation.Vertical">
+        <FluentSelect Label="Theme"
+                      Width="250px"
+                      Items="@(Enum.GetValues<DesignThemeModes>())"
+                      @bind-SelectedOption="@Mode" />
+
+        <FluentSelect Label="Color"
+                      Items="_colorOptions"
+                      TOption="ColorOption"
+                      Height="200px"
+                      Width="250px"
+                      OptionText="@(i => i.Text)"
+                      OptionValue="@(i => i.ColorText)"
+                      OptionSelected="@(i => _selected[(int)i.Color])"
+                      ValueChanged="@OnSelect" />
+
+
+        <FluentButton Class="left-justified-button" Style="margin-top:20px" Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.ArrowReset())"
+                      OnClick="ResetSettings">
+            Reset settings
+        </FluentButton>
+    </FluentStack>
+</div>
+
+@code {
+    public DesignThemeModes Mode { get; set; }
+    public OfficeColor? _officeColor { get; set; }
+
+    private bool[] _selected = new bool[Enum.GetValues<OfficeColor>().Max(x => (int)x) + 1];
+
+    protected void OnLoaded()
+    {
+        Array.Clear(_selected, 0, _selected.Length);
+
+        if (_officeColor.HasValue)
+        {
+            _selected[(int)_officeColor] = true;
+        }
+
+        base.OnInitialized();
+    }
+
+    private void OnSelect(string selectOption)
+    {
+        _officeColor = Enum.Parse<OfficeColor>(selectOption);
+    }
+
+    private void ResetSettings()
+    {
+        _officeColor = OfficeColor.Booking;
+        Mode = DesignThemeModes.Dark;
+    }
+
+    private record ColorOption(string Text, OfficeColor Color, string ColorText);
+
+    private static ImmutableArray<ColorOption> _colorOptions = new[]
+        {
+            new ColorOption("Default", OfficeColor.Booking, OfficeColor.Booking.ToString()),
+            new ColorOption("Crimson Clay", OfficeColor.Access, OfficeColor.Access.ToString()),
+            new ColorOption("Tropical Teal", OfficeColor.Booking, OfficeColor.Booking.ToString()),
+            new ColorOption("Forest Green", OfficeColor.Excel, OfficeColor.Excel.ToString()),
+            new ColorOption("Sky Blue", OfficeColor.GroupMe, OfficeColor.GroupMe.ToString()),
+            new ColorOption("Fiery Orange", OfficeColor.Office, OfficeColor.Office.ToString()),
+            new ColorOption("Royal Purple", OfficeColor.OneNote, OfficeColor.OneNote.ToString()),
+            new ColorOption("Deep Ocean Blue", OfficeColor.Outlook, OfficeColor.Outlook.ToString()),
+            new ColorOption("Moss Green", OfficeColor.Planner, OfficeColor.Planner.ToString()),
+            new ColorOption("Plum Purple", OfficeColor.PowerApps, OfficeColor.PowerApps.ToString()),
+            new ColorOption("Golden Sun", OfficeColor.PowerBI, OfficeColor.PowerBI.ToString()),
+            new ColorOption("Brick Red", OfficeColor.PowerPoint, OfficeColor.PowerPoint.ToString()),
+            new ColorOption("Teal Green", OfficeColor.Project, OfficeColor.Project.ToString()),
+            new ColorOption("Crimson Rose", OfficeColor.Publisher, OfficeColor.Publisher.ToString()),
+            new ColorOption("Emerald Green", OfficeColor.SharePoint, OfficeColor.SharePoint.ToString()),
+            new ColorOption("Lavender Blue", OfficeColor.Teams, OfficeColor.Teams.ToString()),
+            new ColorOption("Sapphire Blue", OfficeColor.Visio, OfficeColor.Visio.ToString()),
+            new ColorOption("Azure Blue", OfficeColor.Windows, OfficeColor.Windows.ToString()),
+            new ColorOption("Navy Blue", OfficeColor.Word, OfficeColor.Word.ToString()),
+            new ColorOption("Cerulean Blue", OfficeColor.Yammer, OfficeColor.Yammer.ToString()),
+        }
+        .OrderBy(x => x.Text)
+        .ToImmutableArray();
+}

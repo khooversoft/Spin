@@ -1,4 +1,7 @@
-﻿<div class="feed-block-container feed-block-border">
+﻿@using Microsoft.FluentUI.AspNetCore.Components.DesignTokens
+<FluentDesignTheme @bind-Mode="@Mode" OnLoaded="@OnLoaded" StorageName="theme" />
+
+<div class="feed-block-container">
     @if (_isMenuBar)
     {
         <FluentToolbar Class="feed-block-toolbar">
@@ -36,9 +39,29 @@
     [Parameter] public EventCallback OnAdd { get; set; }
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Class { get; set; }
+    [Inject]
+    private BaseLayerLuminance BaseLayerLuminance { get; set; } = default!;
+
+    [Inject]
+    private AccentBaseColor AccentBaseColor { get; set; } = default!;
+
+    [Inject]
+    private BodyFont BodyFont { get; set; } = default!;
+
+    [Inject]
+    private StrokeWidth StrokeWidth { get; set; } = default!;
+
+    [Inject]
+    private ControlCornerRadius ControlCornerRadius { get; set; } = default!;
+
+    public DesignThemeModes Mode { get; set; }
 
     private bool _isMenuBar;
     private string _contentClass = null!;
+    private string _frameClass = _frameClassLight;
+
+    private const string _frameClassLight = "feed-block-container feed-block-background-light";
+    private const string _frameClassDark = "feed-block-container feed-block-background-dark";
 
     protected override void OnParametersSet()
     {
@@ -48,4 +71,9 @@
 
     private Task GotoAdd() => OnAdd.InvokeAsync();
     private Task GotoEdit() => OnEdit.InvokeAsync();
+
+    protected void OnLoaded()
+    {
+        _frameClass = Mode == DesignThemeModes.Dark ? _frameClassDark : _frameClassLight;
+    }
 }

@@ -8,18 +8,11 @@ public sealed record AddressModel
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
-    [Required]
     public string Label { get; set; } = null!;
-
-    [Display(Name = "Address")]
     public string? Address1 { get; set; }
-
-    [Display(Name = "Address 2")]
     public string? Address2 { get; set; }
     public string? City { get; set; }
     public string? State { get; set; }
-
-    [Display(Name = "Zip Code")]
     public string? ZipCode { get; set; }
 
     public bool HasAddress => Address1.IsNotEmpty() ||

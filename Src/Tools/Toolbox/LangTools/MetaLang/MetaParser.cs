@@ -47,8 +47,6 @@ public static class MetaParser
         return pContext.ConvertTo(status);
     }
 
-    private static Option CreateError(string message, IToken token) => (StatusCode.BadRequest, message);
-
     private static Option ParseDelimitersCommands(MetaParserContext pContext)
     {
         using var scope = pContext.PushWithScope();

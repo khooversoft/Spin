@@ -1,0 +1,29 @@
+﻿@using System.Security.Claims
+
+<AuthorizeView>
+    <Authorized>
+
+        <div style="margin: 5px 0px 5px 0px">
+            <FluentPersona Name="@_userName" Image="@(new Icons.Regular.Size48.Person().ToDataUri(size: "25px", color: "white"))"
+                           ImageSize="30px">
+            </FluentPersona>
+        </div>
+
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+
+    private ClaimsPrincipal _user = null!;
+    private string? _userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _user = authState.User;
+
+        _userName = _user.Identity?.IsAuthenticated == true ? _user.Identity.Name : null;
+    }
+}

@@ -166,15 +166,21 @@ code {
     width: 100%
 }
 
-.feed-block-border {
-    /*border: 1px solid #c0c0c0;*/
-    border-radius: 3px;
-}
-
 .feed-block-container {
     min-width: 380px;
     max-width: 380px;
     width: 380px;
+    padding: 2px 2px 2px 2px;
+    border-radius: 5px;
+    background-color: var(--neutralLight);
+}
+
+.feed-block-background-light {
+    /*background-color: var(--neutralLight);*/
+}
+
+.feed-block-background-dark {
+    /*background-color: black;*/
 }
 
 .feed-block-content {
@@ -215,6 +221,22 @@ code {
 
 .alert-button {
     background-color: red;
+}
+
+.paragraph-format {
+    margin: 0px 0px 2px 0px;
+}
+
+.message-box-container {
+    font-size: 12px;
+    margin: 5px 0px 10px 0px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.validation-error {
+    background-color: #FFE4E1;
+    color: black;
 }
 
 

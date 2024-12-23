@@ -6,6 +6,7 @@ namespace TicketShare.sdk;
 
 public sealed record ChangeLog : IEquatable<ChangeLog>
 {
+    public string Id { get; init; } = Guid.NewGuid().ToString();
     public DateTime Date { get; init; } = DateTime.UtcNow;
     public string ChangedByPrincipalId { get; init; } = null!;
     public string SeatId { get; init; } = null!;
@@ -15,6 +16,7 @@ public sealed record ChangeLog : IEquatable<ChangeLog>
 
     public bool Equals(ChangeLog? other) =>
         other != null &&
+        Id == other.Id &&
         Date == other.Date &&
         ChangedByPrincipalId == other.ChangedByPrincipalId &&
         SeatId == other.SeatId &&

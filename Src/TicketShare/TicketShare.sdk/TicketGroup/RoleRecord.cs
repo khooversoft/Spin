@@ -13,6 +13,7 @@ public enum RoleType
 
 public sealed record RoleRecord : IEquatable<RoleRecord>
 {
+    public string Id { get; init; } = Guid.NewGuid().ToString();
     public string PrincipalId { get; init; } = null!;
     public RoleType MemberRole { get; init; } = RoleType.None;
 
@@ -32,10 +33,4 @@ public sealed record RoleRecord : IEquatable<RoleRecord>
 public static class MembershipRecordExtensions
 {
     public static Option Validate(this RoleRecord subject) => RoleRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this RoleRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

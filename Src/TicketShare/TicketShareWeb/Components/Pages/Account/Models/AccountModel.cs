@@ -8,17 +8,15 @@ using Toolbox.Tools;
 
 namespace TicketShareWeb.Components.Pages.Profile.Models;
 
-public sealed record InputModel : IEquatable<InputModel?>
+public sealed record AccountModel : IEquatable<AccountModel?>
 {
-    [Required]
-    [Display(Name = "Name")]
     public string Name { get; set; } = "";
 
     public ConcurrentDictionary<string, ContactModel> ContactItems { get; init; } = new(StringComparer.OrdinalIgnoreCase);
     public ConcurrentDictionary<string, AddressModel> AddressItems { get; init; } = new(StringComparer.OrdinalIgnoreCase);
     public ConcurrentDictionary<string, CalendarModel> CalendarItems { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
-    public bool Equals(InputModel? other)
+    public bool Equals(AccountModel? other)
     {
         return other is not null &&
             Name == other.Name &&
@@ -32,7 +30,7 @@ public sealed record InputModel : IEquatable<InputModel?>
 
 public static class InputModelExtensions
 {
-    public static InputModel Clone(this InputModel subject) => new InputModel
+    public static AccountModel Clone(this AccountModel subject) => new AccountModel
     {
         Name = subject.Name,
         ContactItems = subject.ContactItems.Clone(x => x.Clone().ToKeyValuePair(x.Id)),
@@ -40,7 +38,7 @@ public static class InputModelExtensions
         CalendarItems = subject.CalendarItems.Clone(x => x.Clone().ToKeyValuePair(x.Id)),
     };
 
-    public static AccountRecord ConvertTo(this InputModel subject, string principalId)
+    public static AccountRecord ConvertTo(this AccountModel subject, string principalId)
     {
         subject.NotNull();
 
@@ -54,11 +52,11 @@ public static class InputModelExtensions
         };
     }
 
-    public static InputModel ConvertTo(this AccountRecord subject)
+    public static AccountModel ConvertTo(this AccountRecord subject)
     {
         subject.NotNull();
 
-        return new InputModel
+        return new AccountModel
         {
             Name = subject.Name.NotEmpty(),
             ContactItems = subject.ContactItems

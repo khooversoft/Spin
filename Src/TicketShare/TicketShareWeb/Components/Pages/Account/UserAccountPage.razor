@@ -34,8 +34,7 @@
 }
 
 @code {
-    [Inject] public ILogger<UserAccount> _logger { get; set; } = null!;
-    [Inject] public NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] public ILogger<UserAccountPage> _logger { get; set; } = null!;
     [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
 
@@ -67,8 +66,6 @@
                 ShowDismiss = true,
                 Title = "User",
                 PrimaryAction = null,
-                PrimaryActionEnabled = false,
-                SecondaryActionEnabled = false,
                 SecondaryAction = null,
             };
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -39,9 +40,10 @@ public sealed record TicketGroupRecord
     public override int GetHashCode() => HashCode.Combine(TicketGroupId, Name, Description, ChannelId, Roles, Seats, ChangeLogs, Proposals);
 
     public static IValidator<TicketGroupRecord> Validator { get; } = new Validator<TicketGroupRecord>()
-        .RuleFor(x => x.TicketGroupId).NotEmpty()
-        .RuleFor(x => x.Name).NotEmpty()
-        .RuleFor(x => x.ChannelId).NotEmpty()
+        .RuleFor(x => x.TicketGroupId).Must(TicketGroupRecordTool.ValidateTicketGroupId)
+        .RuleFor(x => x.Name).Must(TicketGroupRecordTool.ValidateName)
+        .RuleFor(x => x.Description).Must(TicketGroupRecordTool.ValidateDescription)
+        .RuleFor(x => x.ChannelId).Must(StandardValidation.IsName, _ => StandardValidation.NameError)
         .RuleForEach(x => x.Roles).Validate(RoleRecord.Validator)
         .RuleForEach(x => x.Seats).Validate(SeatRecord.Validator)
         .RuleForEach(x => x.ChangeLogs).Validate(ChangeLog.Validator)
@@ -50,15 +52,27 @@ public sealed record TicketGroupRecord
 }
 
 
-public static class TicketCollectionRecordTool
+public static class TicketGroupRecordTool
 {
-    public static Option Validate(this TicketGroupRecord subject) => TicketGroupRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this TicketGroupRecord subject, out Option result)
+    public static Option ValidateTicketGroupId(string value) => StandardValidation.IsName(value) switch
     {
-        result = subject.Validate();
-        return result.IsOk();
-    }
+        true => StatusCode.OK,
+        false => (StatusCode.BadRequest, StandardValidation.NameError),
+    };
+
+    public static Option ValidateName(string value) => StandardValidation.IsName(value) switch
+    {
+        true => StatusCode.OK,
+        false => (StatusCode.BadRequest, StandardValidation.NameError),
+    };
+
+    public static Option ValidateDescription(string? value) => (value.IsEmpty() || StandardValidation.IsDescrption(value)) switch
+    {
+        true => StatusCode.OK,
+        false => (StatusCode.BadRequest, StandardValidation.DescriptionError),
+    };
+
+    public static Option Validate(this TicketGroupRecord subject) => TicketGroupRecord.Validator.Validate(subject).ToOptionStatus();
 
     public static bool CanAcceptProposal(this TicketGroupRecord subject, string principalId, ScopeContext context)
     {
@@ -85,5 +99,27 @@ public static class TicketCollectionRecordTool
         }
 
         return access;
+    }
+
+    public static bool IsOwner(this TicketGroupRecord ticketGroupRecord, string principalId)
+    {
+        ticketGroupRecord.Validate().ThrowOnError();
+        principalId.NotEmpty();
+
+        var state = ticketGroupRecord.Roles.Any(x => x.PrincipalId == principalId && x.MemberRole == RoleType.Owner);
+        return state;
+    }
+
+    public static TicketGroupRecord SetOwner(this TicketGroupRecord ticketGroupRecord, string principalId)
+    {
+        ticketGroupRecord.Validate().ThrowOnError();
+        principalId.NotEmpty();
+
+        var roles = ticketGroupRecord.Roles
+            .Where(x => x.PrincipalId != principalId)
+            .Append(new RoleRecord { PrincipalId = principalId, MemberRole = RoleType.Owner })
+            .ToArray();
+
+        return ticketGroupRecord with { Roles = roles };
     }
 }

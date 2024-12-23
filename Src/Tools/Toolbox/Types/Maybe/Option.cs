@@ -42,6 +42,12 @@ public static class OptionExtensions
     public static bool IsConflict(this Option subject) => subject.StatusCode.IsConflict();
     public static bool IsNoContent(this Option subject) => subject.StatusCode.IsNoContent();
 
+    public static bool TryOk(this Option subject, out Option result)
+    {
+        result = subject;
+        return subject.IsOk();
+    }
+
     [DebuggerStepThrough]
     public static bool IsError(this Option subject, out Option result)
     {

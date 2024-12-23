@@ -1,0 +1,115 @@
+﻿@page "/TicketGroups"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using TicketShareWeb.Components.Pages.Ticket.Model
+
+<div class="content-border">
+    <FluentStack Orientation="Orientation.Vertical">
+        <FeedBlock Title="Ticket Groups" Class="feed-block-datagrid" OnAdd="Add">
+
+            <FluentDataGrid Class="feed-block-datagrid"
+                            Items="@_entries"
+                            ShowHover="true"
+                            TGridItem="TicketGroupDetail"
+                            OnRowClick="HandleRowFocus"
+                            GenerateHeader=GenerateHeaderOption.None>
+
+                <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
+                <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
+
+            </FluentDataGrid>
+
+        </FeedBlock>
+
+        @if (_ticketGroupContext != null)
+        {
+            <CascadingValue Value="_ticketGroupContext">
+                <FeedBlock Title="Ticket Group" Class="feed-block-datagrid">
+                    <EditHeader Content="_header" ReadOnly="true" />
+                </FeedBlock>
+            </CascadingValue>
+        }
+
+    </FluentStack>
+</div>
+
+@code {
+    [Inject] public ILogger<TicketGroupsPage> _logger { get; set; } = null!;
+    [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Inject] public IMessageService _messageService { get; set; } = null!;
+
+    private IReadOnlyList<TicketGroupModel> _inputs = null!;
+    private IQueryable<TicketGroupDetail> _entries = null!;
+    private RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog> _rightPanelDialog = null!;
+
+    private TicketGroupContext? _ticketGroupContext;
+    private TicketGroupHeaderModel? _header;
+
+    private record TicketGroupDetail(string TicketGroupId, string Name, string? Description);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _rightPanelDialog = new RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog>(
+            _dialogService,
+            x => CreateTicketGroup(x),
+            null
+        );
+
+        var result = await _ticketGroupManager.GetTicketGroups();
+        result.ThrowOnError();
+
+        _inputs = result.Return();
+        Refresh();
+
+    }
+
+    private async Task HandleRowFocus(FluentDataGridRow<TicketGroupDetail> row)
+    {
+        row.Item.NotNull();
+
+        var context = _ticketGroupManager.GetContext(row.Item.TicketGroupId);
+        var option = await context.Get();
+        if (option.IsError())
+        {
+            await _messageService.ShowMessageBarAsync(option.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);
+            return;
+        }
+
+        _ticketGroupContext = context;
+        _header = context.GetHeader();
+        StateHasChanged();
+    }
+
+    private async Task Add()
+    {
+        var model = new TicketGroupHeaderModel();
+
+        var result = await _rightPanelDialog.Add(model, "Add Ticket Group");
+        if (result == RightPanelDialog.Canceled) return;
+
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Refresh() => _entries = _inputs
+        .Select(x => new TicketGroupDetail(x.TicketGroupId, x.Name, x.Description))
+        .OrderBy(x => x.Name)
+        .AsQueryable();
+
+    private async Task CreateTicketGroup(TicketGroupHeaderModel header)
+    {
+        var result = await _ticketGroupManager.Create(header);
+        if (result.IsError())
+        {
+            await _messageService.ShowMessageBarAsync(result.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);
+        }
+    }
+
+    private async Task UpdateTicketGroup(TicketGroupHeaderModel header)
+    {
+        var context = _ticketGroupManager.GetContext(header.TicketGroupId.NotEmpty());
+        var updateOption = await context.SetDescription(header.Description);
+    }
+}

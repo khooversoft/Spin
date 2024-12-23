@@ -11,10 +11,10 @@
     @if (OnSet.HasDelegate)
     {
         <FluentButton Appearance="Appearance.Outline"
-                      IconStart="@(new Icons.Regular.Size20.Save())"
+                      IconStart="@setIcon"
                       Disabled="DisableSave"
                       OnClick="SetClick">
-            Save
+            @setText
         </FluentButton>
     }
 
@@ -45,6 +45,18 @@
     [Parameter] public bool DisableSave { get; set; }
     [Parameter] public bool DisableDelete { get; set; }
     [Parameter] public bool ShowDelete { get; set; }
+
+    private Icon setIcon = null!;
+    private string setText = null!;
+
+    protected override void OnParametersSet()
+    {
+        (setIcon, setText) = ShowDelete switch
+        {
+            true => ((Icon)new Icons.Regular.Size20.Save(), "Save"),
+            false => ((Icon)new Icons.Regular.Size20.Add(), "Add"),
+        };
+    }
 
     private async Task CloseClick() => await OnClose.InvokeAsync();
     private async Task SetClick() => await OnSet.InvokeAsync();

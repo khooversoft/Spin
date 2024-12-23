@@ -5,6 +5,7 @@ namespace TicketShare.sdk;
 
 public sealed record SeatRecord : IEquatable<SeatRecord>
 {
+    public string Id { get; init; } = Guid.NewGuid().ToString();
     public string SeatId { get; init; } = null!;
     public DateOnly Date { get; init; }
     public string? AssignedToPrincipalId { get; init; }
