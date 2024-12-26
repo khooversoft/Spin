@@ -3,30 +3,27 @@
 @using TicketShareWeb.Components.Pages.Ticket.Model
 @using System.Collections.Concurrent
 
-@if (Content != null)
-{
-    <FluentTextField Name="Content.Name"
-                     @bind-Value="Content.Name"
-                     Required="true"
-                     Placeholder="name of ticket group"
-                     Label="Name"
-                     Class="form-editbox"
-                     ReadOnly="@ReadOnly"
-                     @oninput="OnNameChange" />
+<FluentTextField Name="Content.Name"
+                 @bind-Value="Content.Name"
+                 Required="true"
+                 Placeholder="name of ticket group"
+                 Label="Name"
+                 Class="form-editbox"
+                 ReadOnly="@ReadOnly"
+                 @oninput="OnNameChange" />
 
-    <ValidationError Errors="@_errors" FieldName="@_nameField" />
+<ValidationError Errors="@_errors" FieldName="@_nameField" />
 
 
-    <FluentTextField Name="Content.Description"
-                     @bind-Value="Content.Description"
-                     Placeholder="description of ticket group"
-                     Label="Description"
-                     Class="form-editbox"
-                     ReadOnly="@ReadOnly"
-                     @oninput="OnDescriptionChange" />
+<FluentTextField Name="Content.Description"
+                 @bind-Value="Content.Description"
+                 Placeholder="description of ticket group"
+                 Label="Description"
+                 Class="form-editbox"
+                 ReadOnly="@ReadOnly"
+                 @oninput="OnDescriptionChange" />
 
-    <ValidationError Errors="@_errors" FieldName="@_descriptionField" />
-}
+<ValidationError Errors="@_errors" FieldName="@_descriptionField" />
 
 @code {
     [Parameter] public TicketGroupHeaderModel Content { get; set; } = null!;

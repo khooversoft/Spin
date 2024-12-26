@@ -240,6 +240,14 @@ code {
     color: black;
 }
 
+.divider {
+    height: 4px;
+    min-height: 4px;
+    width: 100%;
+    border-radius: 1px;
+    background-color: #c0c0c0;
+    margin: 5px 0px 3px 0px;
+}
 
 @media (max-width: 600px) {
     .main {

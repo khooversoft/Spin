@@ -1,0 +1,26 @@
+﻿@using TicketShareWeb.Components.Pages.Ticket.Model
+
+<FeedBlock Title="Ticket Group" OnEdit="Edit">
+    <EditHeader Content="_header" ReadOnly="true" />
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketGroupContext TicketGroupContext { get; set; } = null!;
+
+    private TicketGroupHeaderModel? _header;
+
+    protected override void OnParametersSet()
+    {
+        _header = TicketGroupContext.GetHeader();
+    }
+
+    private async Task Edit()
+    {
+    }
+
+    private async Task UpdateTicketGroup(TicketGroupHeaderModel header)
+    {
+        var updateOption = await TicketGroupContext.SetDescription(header.Description);
+    }
+
+}

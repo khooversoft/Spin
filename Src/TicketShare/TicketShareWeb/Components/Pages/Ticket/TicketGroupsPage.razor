@@ -25,10 +25,10 @@
 
         @if (_ticketGroupContext != null)
         {
+            <DividerBlock />
+
             <CascadingValue Value="_ticketGroupContext">
-                <FeedBlock Title="Ticket Group">
-                    <EditHeader Content="_header" ReadOnly="true" />
-                </FeedBlock>
+                <TicketGroupColumn />
             </CascadingValue>
         }
 
@@ -50,7 +50,7 @@ else
     private RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog> _rightPanelDialog = null!;
 
     private TicketGroupContext? _ticketGroupContext;
-    private TicketGroupHeaderModel? _header;
+    // private TicketGroupHeaderModel? _header;
 
     private record TicketGroupDetail(string TicketGroupId, string Name, string? Description);
 
@@ -83,7 +83,7 @@ else
         }
 
         _ticketGroupContext = context;
-        _header = context.GetHeader();
+        // _header = context.GetHeader();
         StateHasChanged();
     }
 
@@ -110,11 +110,5 @@ else
         {
             await _messageService.ShowMessageBarAsync(result.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);
         }
-    }
-
-    private async Task UpdateTicketGroup(TicketGroupHeaderModel header)
-    {
-        var context = _ticketGroupManager.GetContext(header.TicketGroupId.NotEmpty());
-        var updateOption = await context.SetDescription(header.Description);
     }
 }
