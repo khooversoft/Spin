@@ -24,6 +24,10 @@ body {
     display: flex;
 }
 
+.body-content-light {
+    background-color: var(--neutral-layer-1);
+}
+
 .content {
     padding: 0.5rem 1.5rem;
     align-self: stretch !important;
@@ -152,10 +156,6 @@ code {
         background-color: #FF6347; /* Slightly lighter red-orange for hover effect */
     }
 
-.content-border {
-    /*border: 1px solid black;*/
-}
-
 .form-editbox {
     /*min-width: 360px;*/
     width: 100%
@@ -167,25 +167,25 @@ code {
 }
 
 .feed-block-container {
-    min-width: 380px;
+/*    min-width: 380px;
     max-width: 380px;
-    width: 380px;
-    padding: 2px 2px 2px 2px;
-    border-radius: 5px;
-    background-color: var(--neutralLight);
+*/    width: 380px;
+    padding: 0px;
+    border-radius: 4px;
+    /*border: 1px solid black;*/
 }
 
 .feed-block-background-light {
-    /*background-color: var(--neutralLight);*/
+    background-color: white;
 }
 
 .feed-block-background-dark {
-    /*background-color: black;*/
+    background-color: black;
 }
 
 .feed-block-content {
-    max-width: 380px;
-    padding: 10px;
+    /*max-width: 380px;*/
+    padding: 3px;
     /*border: 1px solid blue;*/
 }
 
@@ -196,10 +196,11 @@ code {
 }
 
 .feed-block-toolbar {
-    min-width: 375px;
+    width: 100%;
+/*    min-width: 375px;
     max-width: 375px;
     width: 375px;
-    /*background-color: #f0dee1;*/
+*/    /*background-color: #f0dee1;*/
     /*border-radius: 3px;*/
     /*padding: 1px 2px 2px 2px;*/
     padding: 0px;

@@ -1,9 +1,9 @@
-﻿using TicketShare.sdk;
+﻿using System.Collections.Immutable;
+using TicketShare.sdk;
 using TicketShareWeb.Components.Pages.Ticket.Model;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
-using System.Collections.Immutable;
 
 namespace TicketShareWeb.Application;
 
@@ -15,7 +15,7 @@ public class TicketGroupManager
     private readonly TicketGroupSearchClient _ticketGroupSearchClient;
 
     public TicketGroupManager(
-        UserAccountManager userAccountManager, 
+        UserAccountManager userAccountManager,
         TicketGroupClient ticketGroupClient,
         TicketGroupSearchClient ticketGroupSearchClient,
         ILogger<TicketGroupManager> logger

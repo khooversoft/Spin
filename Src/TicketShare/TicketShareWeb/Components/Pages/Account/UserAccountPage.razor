@@ -10,6 +10,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using TicketShare.sdk
+@using TicketShareWeb.Components.Settings
 @using Toolbox.Identity
 
 @rendermode InteractiveServer
@@ -18,19 +19,23 @@
 
 @if (_userAccountContext?.IsLoaded() == true)
 {
-    <div class="content-border">
-        <FluentStack Orientation="Orientation.Vertical">
-            <FeedBlock Title="User" OnEdit="OnEditInfo">
-                <EditInfo Content="@_userAccountContext.UserProfile" ReadOnly="true" />
-            </FeedBlock>
+    <FeedColumn>
+        <LoginUserControl />
 
-            <CascadingValue Value="_userAccountContext">
-                <UserContacts />
-                <UserAddresses />
-                <UserCalendars />
-            </CascadingValue>
-        </FluentStack>
-    </div>
+        <FeedBlock Title="User" OnEdit="OnEditInfo">
+            <EditInfo Content="@_userAccountContext.UserProfile" ReadOnly="true" />
+        </FeedBlock>
+
+        <CascadingValue Value="_userAccountContext">
+            <UserContacts />
+            <UserAddresses />
+            <UserCalendars />
+        </CascadingValue>
+    </FeedColumn>
+}
+else
+{
+    <LoadingBlock />
 }
 
 @code {

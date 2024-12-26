@@ -4,9 +4,10 @@
 @using Microsoft.AspNetCore.Authorization
 @using TicketShareWeb.Components.Pages.Ticket.Model
 
-<div class="content-border">
-    <FluentStack Orientation="Orientation.Vertical">
-        <FeedBlock Title="Ticket Groups" Class="feed-block-datagrid" OnAdd="Add">
+@if (_inputs != null)
+{
+    <FeedColumn>
+        <FeedBlock Title="Ticket Groups" OnAdd="Add">
 
             <FluentDataGrid Class="feed-block-datagrid"
                             Items="@_entries"
@@ -25,14 +26,18 @@
         @if (_ticketGroupContext != null)
         {
             <CascadingValue Value="_ticketGroupContext">
-                <FeedBlock Title="Ticket Group" Class="feed-block-datagrid">
+                <FeedBlock Title="Ticket Group">
                     <EditHeader Content="_header" ReadOnly="true" />
                 </FeedBlock>
             </CascadingValue>
         }
 
-    </FluentStack>
-</div>
+    </FeedColumn>
+}
+else
+{
+    <LoadingBlock />
+}
 
 @code {
     [Inject] public ILogger<TicketGroupsPage> _logger { get; set; } = null!;

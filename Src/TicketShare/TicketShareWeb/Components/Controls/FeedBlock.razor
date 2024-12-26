@@ -1,13 +1,17 @@
 ﻿@using Microsoft.FluentUI.AspNetCore.Components.DesignTokens
-<FluentDesignTheme @bind-Mode="@Mode" OnLoaded="@OnLoaded" StorageName="theme" />
 
-<div class="feed-block-container">
+<FluentDesignTheme @bind-Mode="@Mode"
+                   OnLoaded="@OnLoaded"
+                   StorageName="theme"
+                   OnLuminanceChanged="@OnLoaded" />
+
+<div class="@_frameClass">
     @if (_isMenuBar)
     {
         <FluentToolbar Class="feed-block-toolbar">
             @if (Title.IsNotEmpty())
             {
-                <FluentLabel Typo="Typography.H6">@Title</FluentLabel>
+                <FluentLabel style="min-height:31px" Typo="Typography.H6">@Title</FluentLabel>
             }
 
             <FluentSpacer />
@@ -39,22 +43,8 @@
     [Parameter] public EventCallback OnAdd { get; set; }
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Class { get; set; }
-    [Inject]
-    private BaseLayerLuminance BaseLayerLuminance { get; set; } = default!;
 
-    [Inject]
-    private AccentBaseColor AccentBaseColor { get; set; } = default!;
-
-    [Inject]
-    private BodyFont BodyFont { get; set; } = default!;
-
-    [Inject]
-    private StrokeWidth StrokeWidth { get; set; } = default!;
-
-    [Inject]
-    private ControlCornerRadius ControlCornerRadius { get; set; } = default!;
-
-    public DesignThemeModes Mode { get; set; }
+    private DesignThemeModes Mode { get; set; }
 
     private bool _isMenuBar;
     private string _contentClass = null!;
@@ -75,5 +65,6 @@
     protected void OnLoaded()
     {
         _frameClass = Mode == DesignThemeModes.Dark ? _frameClassDark : _frameClassLight;
+        StateHasChanged();
     }
 }

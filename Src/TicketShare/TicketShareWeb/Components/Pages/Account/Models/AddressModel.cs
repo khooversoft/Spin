@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using TicketShare.sdk;
+﻿using TicketShare.sdk;
 using Toolbox.Extensions;
 
 namespace TicketShareWeb.Components.Pages.Profile.Models;

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
 using TicketShare.sdk;
 using TicketShareWeb.Components.Pages.Profile.Models;
 using Toolbox.Extensions;

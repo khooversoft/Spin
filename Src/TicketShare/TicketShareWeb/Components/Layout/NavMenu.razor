@@ -12,14 +12,16 @@
 
 @inject NavigationManager NavigationManager
 
-<FluentDesignTheme @bind-Mode="@ThemeMode" @bind-OfficeColor="@_officeColor" StorageName="theme" />
-
 <div class="navmenu">
     <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label>
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
-        <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
-            <LoginUserControl />
+        <FluentNavMenu Id="main-menu"
+                       Collapsible="true"
+                       Width="250"
+                       Title="Navigation menu"
+                       Expanded="@_expanded"
+                       ExpandedChanged="ExpandedChanged">
 
             <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavLink>
 
@@ -36,13 +38,25 @@
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
 
-                        <FluentButton Class="left-justified-button"
-                                      Type="ButtonType.Submit"
-                                      IconStart="@(new Icons.Regular.Size20.SignOut())"
-                                      Appearance="Appearance.Outline"
-                                      style="margin: 2px 0 0px 0; width: 100%">
-                            Logout
-                        </FluentButton>
+                        @if (_expanded)
+                        {
+                            <FluentButton Class="left-justified-button"
+                                          Type="ButtonType.Submit"
+                                          IconStart="@(new Icons.Regular.Size20.SignOut())"
+                                          Appearance="Appearance.Outline"
+                                          style="margin: 2px 0 0px 0; width: 100%">
+                                Logout
+                            </FluentButton>
+                        }
+                        else
+                        {
+                            <FluentButton Class="left-justified-button"
+                                          Type="ButtonType.Submit"
+                                          IconStart="@(new Icons.Regular.Size20.SignOut())"
+                                          Appearance="Appearance.Outline"
+                                          style="margin: 0px;">
+                            </FluentButton>
+                        }
                     </form>
                 </Authorized>
 
@@ -52,10 +66,8 @@
 </div>
 
 @code {
-    private bool expanded = true;
+    private bool _expanded = true;
     private string? currentUrl;
-    public OfficeColor? _officeColor { get; set; }
-    public DesignThemeModes ThemeMode { get; set; } = DesignThemeModes.Light;
     [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -64,7 +76,7 @@
         NavigationManager.LocationChanged += OnLocationChanged;
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        expanded = authState.User.Identity?.IsAuthenticated == true;
+        _expanded = authState.User.Identity?.IsAuthenticated == true;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -77,5 +89,9 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
-}
 
+    private void ExpandedChanged(bool value)
+    {
+        _expanded = value;
+    }
+}
