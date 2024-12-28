@@ -1,41 +1,44 @@
 ﻿@rendermode InteractiveServer
 
 @using Microsoft.FluentUI.AspNetCore.Components;
+@using TicketShare.sdk
 @using TicketShareWeb.Application
 @using TicketShareWeb.Components.Pages.Profile.Models
+@using TicketShareWeb.Components.Pages.Ticket.Model
 
 <FeedBlock Title="Contacts" Class="feed-block-datagrid" OnAdd="Add">
     <FluentDataGrid Class="feed-block-datagrid"
-                    Items="@_contacts"
+                    Items="@_roles"
                     GridTemplateColumns="70px 300px"
                     ShowHover="true"
                     GenerateHeader=GenerateHeaderOption.None
-                    TGridItem="ContactModel"
+                    TGridItem="RoleModel"
                     OnRowClick="HandleRowFocus">
-        <PropertyColumn Property="@(p => p.Type)" Sortable="true" />
-        <PropertyColumn Property="@(p => p.Value)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.MemberRole)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.PrincipalId)" Sortable="true" />
     </FluentDataGrid>
 </FeedBlock>
 
+
 @code {
     [Inject] public IDialogService _dialogService { get; set; } = null!;
-    [CascadingParameter] public UserAccountContext UserAccountContext { get; set; } = null!;
+    [CascadingParameter] public TicketGroupContext _ticketGroupContext { get; set; } = null!;
 
-    private IQueryable<ContactModel> _contacts = null!;
-    private RightPanelDialog<ContactModel, UserContactDialog> _rightPanelDialog = null!;
+    private IQueryable<RoleModel> _roles = null!;
+    private RightPanelDialog<RoleModel, TicketRoleDialog> _rightPanelDialog = null!;
 
     protected override void OnParametersSet()
     {
-        _rightPanelDialog = new RightPanelDialog<ContactModel, UserContactDialog>(
+        _rightPanelDialog = new RightPanelDialog<RoleModel, TicketRoleDialog>(
             _dialogService,
-            x => UserAccountContext.Contact.Set(x),
-            x => UserAccountContext.Contact.Delete(x)
+            x => _ticketGroupContext.Roles.Set(x),
+            x => _ticketGroupContext.Roles.Delete(x)
         );
 
         Refresh();
     }
 
-    private async Task HandleRowFocus(FluentDataGridRow<ContactModel> row)
+    private async Task HandleRowFocus(FluentDataGridRow<RoleModel> row)
     {
         var result = await _rightPanelDialog.Edit(row.Item.NotNull(), "Edit Contact");
         if (result == RightPanelDialog.Canceled) return;
@@ -46,9 +49,9 @@
 
     private async Task Add()
     {
-        var model = new ContactModel { Type = "Email", Value = "" };
+        var model = new RoleModel { MemberRole = RoleType.Contributor.ToString() };
 
-        var result = await _rightPanelDialog.Add(model, "Add Contact");
+        var result = await _rightPanelDialog.Add(model, "Add User Role");
         if (result == RightPanelDialog.Canceled) return;
 
         Refresh();
@@ -57,6 +60,6 @@
 
     public void Refresh()
     {
-        _contacts = UserAccountContext.Input.ContactItems.Values.OrderBy(x => x.Value).AsQueryable();
+        _roles = _ticketGroupContext.Input.Roles.Values.OrderBy(x => x.PrincipalId).AsQueryable();
     }
 }

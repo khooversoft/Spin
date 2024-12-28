@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using TicketShare.sdk;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
 namespace TicketShareWeb.Components.Pages.Ticket.Model;
 
@@ -37,8 +36,8 @@ public static class TicketGroupModelExtensions
         Name = subject.Name,
         Description = subject.Description,
         ChannelId = subject.ChannelId,
-        Roles = subject.Roles.Values.Select(x => x.Clone().ToKeyValuePair(x.PrincipalId)).ToConcurrentDictionary(),
-        Seats = subject.Seats.Values.Select(x => x.Clone().ToKeyValuePair(x.GetKey())).ToConcurrentDictionary(),
+        Roles = subject.Roles.Values.Select(x => x.Clone().ToKeyValuePair(x.Id)).ToConcurrentDictionary(),
+        Seats = subject.Seats.Values.Select(x => x.Clone().ToKeyValuePair(x.Id)).ToConcurrentDictionary(),
     };
 
     public static TicketGroupModel ConvertTo(this TicketGroupRecord subject) => new TicketGroupModel
@@ -47,8 +46,8 @@ public static class TicketGroupModelExtensions
         Name = subject.Name,
         Description = subject.Description,
         ChannelId = subject.ChannelId,
-        Roles = subject.Roles.Select(x => x.ConvertTo().ToKeyValuePair(x.PrincipalId)).ToConcurrentDictionary(),
-        Seats = subject.Seats.Select(x => x.ConvertTo().ToKeyValuePair(x.GetKey())).ToConcurrentDictionary(),
+        Roles = subject.Roles.Select(x => x.ConvertTo().ToKeyValuePair(x.Id)).ToConcurrentDictionary(),
+        Seats = subject.Seats.Select(x => x.ConvertTo().ToKeyValuePair(x.Id)).ToConcurrentDictionary(),
     };
 
     public static TicketGroupRecord ConvertTo(this TicketGroupModel subject) => new TicketGroupRecord
@@ -59,15 +58,5 @@ public static class TicketGroupModelExtensions
         ChannelId = subject.ChannelId,
         Roles = subject.Roles.Values.Select(x => x.ConvertTo()).ToImmutableArray(),
         Seats = subject.Seats.Values.Select(x => x.ConvertTo()).ToImmutableArray(),
-    };
-
-    public static TicketGroupRecord SetTicketGroupId(this TicketGroupRecord subject, string principalId) => subject with
-    {
-        TicketGroupId = $"{principalId.NotEmpty()}/{subject.Name.NotEmpty()}",
-    };
-
-    public static TicketGroupRecord SetChannelId(this TicketGroupRecord subject) => subject with
-    {
-        ChannelId = subject.ChannelId.ToNullIfEmpty() ?? $"{subject.TicketGroupId.NotEmpty()}/channelHub",
     };
 }

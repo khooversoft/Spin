@@ -4,7 +4,8 @@
                     OnDelete="EnableDelete"
                     ShowDelete="ShowDelete"
                     DisableDelete="_disableDelete"
-                    DisableSave="DisableSave" />
+                    DisableSave="DisableSave"
+                    ShowSave="ShowSave"/>
 
     <div>
         @ChildContent
@@ -12,7 +13,9 @@
 
     @if (_disableDelete)
     {
-        <Ask IsAlert="true" OnYes="OnDeleteButton" OnNo="ClearDelete" Message="Do you want to delete this contact?"></Ask>
+        <Ask IsAlert="true" OnYes="OnDeleteButton" OnNo="ClearDelete">
+            <FluentLabel>Do you want to delete this contact?</FluentLabel>
+        </Ask>
     }
 
 </div>
@@ -24,6 +27,7 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public bool ShowDelete { get; set; }
     [Parameter] public bool DisableSave { get; set; }
+    [Parameter] public bool ShowSave { get; set; }
 
     private bool _disableDelete = false;
 

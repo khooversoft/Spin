@@ -166,8 +166,8 @@ public class TicketGroupTests
                 ],
 
             Seats = [
-                new SeatRecord { SeatId = "Sec-5-Row-7-Seat-8", AssignedToPrincipalId = principalId, Date = new DateOnly(2024,1,10) },
-                new SeatRecord { SeatId = "Sec-5-Row-7-Seat-9", AssignedToPrincipalId = principalId, Date = new DateOnly(2024,1,10) },
+                new SeatRecord { SeatId = "Sec-5-Row-7-Seat-8", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
+                new SeatRecord { SeatId = "Sec-5-Row-7-Seat-9", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
                 ],
         };
 
@@ -176,8 +176,8 @@ public class TicketGroupTests
             ticketGroup = ticketGroup with
             {
                 Roles = ticketGroup.Roles
-                .Append(new RoleRecord { PrincipalId = contributorPrincipalId, MemberRole = RoleType.Contributor })
-                .ToArray(),
+                    .Append(new RoleRecord { PrincipalId = contributorPrincipalId, MemberRole = RoleType.Contributor })
+                    .ToArray(),
             };
         }
 

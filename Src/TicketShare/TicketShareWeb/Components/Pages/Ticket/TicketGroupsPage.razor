@@ -22,16 +22,6 @@
             </FluentDataGrid>
 
         </FeedBlock>
-
-        @if (_ticketGroupContext != null)
-        {
-            <DividerBlock />
-
-            <CascadingValue Value="_ticketGroupContext">
-                <TicketGroupColumn />
-            </CascadingValue>
-        }
-
     </FeedColumn>
 }
 else
@@ -40,7 +30,7 @@ else
 }
 
 @code {
-    [Inject] public ILogger<TicketGroupsPage> _logger { get; set; } = null!;
+    [Inject] public NavigationManager _navigationManager { get; set; } = null!;
     [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Inject] public IMessageService _messageService { get; set; } = null!;
@@ -48,9 +38,6 @@ else
     private IReadOnlyList<TicketGroupModel> _inputs = null!;
     private IQueryable<TicketGroupDetail> _entries = null!;
     private RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog> _rightPanelDialog = null!;
-
-    private TicketGroupContext? _ticketGroupContext;
-    // private TicketGroupHeaderModel? _header;
 
     private record TicketGroupDetail(string TicketGroupId, string Name, string? Description);
 
@@ -67,24 +54,13 @@ else
 
         _inputs = result.Return();
         Refresh();
-
     }
 
-    private async Task HandleRowFocus(FluentDataGridRow<TicketGroupDetail> row)
+    private void HandleRowFocus(FluentDataGridRow<TicketGroupDetail> row)
     {
         row.Item.NotNull();
-
-        var context = _ticketGroupManager.GetContext(row.Item.TicketGroupId);
-        var option = await context.Get();
-        if (option.IsError())
-        {
-            await _messageService.ShowMessageBarAsync(option.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);
-            return;
-        }
-
-        _ticketGroupContext = context;
-        // _header = context.GetHeader();
-        StateHasChanged();
+        string ticketEncoded = Uri.EscapeDataString(row.Item.TicketGroupId);
+        _navigationManager.NavigateTo($"TicketGroups/{ticketEncoded}");
     }
 
     private async Task Add()

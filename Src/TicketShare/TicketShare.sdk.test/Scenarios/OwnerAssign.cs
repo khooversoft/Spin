@@ -18,7 +18,6 @@ public class OwnerAssign
 {
     private const string _principalId = "sam@domain.com";
     private const string _ticketGroupId = "sam/2020/hockey";
-    private const string _proposalId = "sam/initial-proposal";
     private const string _friend1 = "friend1@otherDomain.com";
     private const string _friend2 = "friend2@otherDomain.com";
 
@@ -29,10 +28,10 @@ public class OwnerAssign
         ];
 
     private readonly SeatRecord[] _seats = [
-        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateOnly(2024, 1, 1) },
-        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateOnly(2024, 1, 1) },
-        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateOnly(2024, 1, 10) },
-        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateOnly(2024, 1, 10) },
+        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateTime(2024, 1, 1) },
+        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateTime(2024, 1, 1) },
+        new SeatRecord { SeatId = "sec1-row1-seat1", Date = new DateTime(2024, 1, 10) },
+        new SeatRecord { SeatId = "sec1-row1-seat2", Date = new DateTime(2024, 1, 10) },
     ];
 
     [Fact]
@@ -78,7 +77,7 @@ public class OwnerAssign
         var ticketGroup = new TicketGroupRecord
         {
             TicketGroupId = _ticketGroupId,
-            Name = "Ticket Group Name",
+            Name = "Ticket-Group-Name",
             Description = "Sam's 2020 hockey tickets",
 
             Roles = _users,
@@ -98,7 +97,7 @@ public class OwnerAssign
         var proposal = new ProposalRecord
         {
             SeatId = "sec1-row1-seat1",
-            SeatDate = new DateOnly(2024, 1, 1),
+            SeatDate = new DateTime(2024, 1, 1),
             Proposed = new StateDetail
             {
                 Date = DateTime.UtcNow,

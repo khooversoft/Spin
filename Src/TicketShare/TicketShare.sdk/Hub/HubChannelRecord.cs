@@ -24,10 +24,15 @@ public sealed record HubChannelRecord
     public IReadOnlyDictionary<string, PrincipalChannelRecord> Users { get; init; } = FrozenDictionary<string, PrincipalChannelRecord>.Empty;
     public IReadOnlyList<ChannelMessageRecord> Messages { get; init; } = Array.Empty<ChannelMessageRecord>();
 
-    public bool Equals(HubChannelRecord? obj) => obj is HubChannelRecord subject &&
-        ChannelId == subject.ChannelId &&
-        Users.DeepEqualsComparer(subject.Users) &&
-        Messages.OrderBy(x => x.MessageId).SequenceEqual(subject.Messages.OrderBy(x => x.MessageId));
+    public bool Equals(HubChannelRecord? obj)
+    {
+        var result = obj is HubChannelRecord subject &&
+            ChannelId == subject.ChannelId &&
+            Users.DeepEquals(subject.Users) &&
+            Messages.OrderBy(x => x.MessageId).SequenceEqual(subject.Messages.OrderBy(x => x.MessageId));
+
+        return result;
+    }
 
     public override int GetHashCode() => HashCode.Combine(ChannelId, Users, Messages);
 

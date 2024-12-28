@@ -5,7 +5,7 @@
 <FluentDialogBody>
     <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
 
-        <FluentSelect Items=@_validTypes
+        <FluentSelect Items=@ContactModelTool.ValidContactTypes
                       Label="Contact Type:"
                       OptionText="@(i => i.Text)"
                       OptionValue="@(i => i.Value)"
@@ -25,12 +25,6 @@
 
     private ContactModel _current = default!;
     private bool _disableSave = true;
-
-    static List<Fluent.Option<string>> _validTypes = new()
-    {
-        new Fluent.Option<string> { Value = "Email", Text = "Email" },
-        new Fluent.Option<string> { Value = "Phone", Text = "Phone" },
-    };
 
     protected override void OnParametersSet() => _current = Content.Value.Clone();
 

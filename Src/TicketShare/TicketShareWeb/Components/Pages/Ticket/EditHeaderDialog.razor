@@ -5,9 +5,9 @@
 @if (Content != null)
 {
     <FluentDialogBody>
-        <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
+        <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" DisableSave="_disableSave" ShowSave="true">
 
-            <EditHeader Content="@Content.Value" OnChange="RefreshSaveState" ShowHelp="true" />
+            <EditHeader Content="@Content.Value" OnChange="RefreshSaveState" />
 
         </DialogFrame>
     </FluentDialogBody>

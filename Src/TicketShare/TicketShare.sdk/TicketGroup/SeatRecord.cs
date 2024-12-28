@@ -7,7 +7,7 @@ public sealed record SeatRecord : IEquatable<SeatRecord>
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
     public string SeatId { get; init; } = null!;
-    public DateOnly Date { get; init; }
+    public DateTime Date { get; init; }
     public string? AssignedToPrincipalId { get; init; }
 
     public bool Equals(SeatRecord? obj) =>
@@ -20,7 +20,7 @@ public sealed record SeatRecord : IEquatable<SeatRecord>
 
     public static IValidator<SeatRecord> Validator { get; } = new Validator<SeatRecord>()
         .RuleFor(x => x.SeatId).NotEmpty()
-        .RuleFor(x => x.Date).ValidDateOnly()
+        .RuleFor(x => x.Date).ValidDateTime()
         .Build();
 }
 

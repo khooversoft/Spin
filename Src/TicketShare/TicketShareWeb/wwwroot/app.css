@@ -25,7 +25,7 @@ body {
 }
 
 .body-content-light {
-    background-color: var(--neutral-layer-1);
+    background-color: var(--neutral-layer-2);
 }
 
 .content {
@@ -43,7 +43,7 @@ footer {
     background: var(--neutral-layer-4);
     color: var(--neutral-foreground-rest);
     align-items: center;
-    padding: 10px 10px;
+    padding: 2px 10px;
 }
 
     footer .link1 {
@@ -171,7 +171,7 @@ code {
     max-width: 380px;
 */    width: 380px;
     padding: 0px;
-    border-radius: 4px;
+    /*border-radius: 4px;*/
     /*border: 1px solid black;*/
 }
 

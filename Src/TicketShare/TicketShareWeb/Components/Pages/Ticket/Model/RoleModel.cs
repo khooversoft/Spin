@@ -1,4 +1,6 @@
-﻿using TicketShare.sdk;
+﻿using System.Collections.Immutable;
+using TicketShare.sdk;
+using Fluent = Microsoft.FluentUI.AspNetCore.Components;
 
 namespace TicketShareWeb.Components.Pages.Ticket.Model;
 
@@ -10,7 +12,7 @@ public record RoleModel
 }
 
 
-public static class RoleModelExtensions
+public static class RoleModelTool
 {
     public static RoleModel Clone(this RoleModel subject) => new RoleModel
     {
@@ -32,4 +34,9 @@ public static class RoleModelExtensions
         PrincipalId = subject.PrincipalId,
         MemberRole = Enum.Parse<RoleType>(subject.MemberRole),
     };
+
+    public static IReadOnlyList<Fluent.Option<string>> ValidRoleTypes = Enum.GetNames<RoleType>()
+        .OrderBy(x => x)
+        .Select(x => new Fluent.Option<string> { Value = x, Text = x })
+        .ToImmutableArray();
 }

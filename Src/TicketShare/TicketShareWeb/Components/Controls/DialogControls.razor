@@ -34,7 +34,8 @@
 
 @if (OnSet.HasDelegate || OnClose.HasDelegate || OnDelete.HasDelegate)
 {
-    <hr />
+    <DividerBlock />
+    @* <hr style="margin: 5px 0px 20px 0px" /> *@
 }
 
 
@@ -45,13 +46,14 @@
     [Parameter] public bool DisableSave { get; set; }
     [Parameter] public bool DisableDelete { get; set; }
     [Parameter] public bool ShowDelete { get; set; }
+    [Parameter] public bool ShowSave { get; set; }
 
     private Icon setIcon = null!;
     private string setText = null!;
 
     protected override void OnParametersSet()
     {
-        (setIcon, setText) = ShowDelete switch
+        (setIcon, setText) = (ShowSave || ShowDelete) switch
         {
             true => ((Icon)new Icons.Regular.Size20.Save(), "Save"),
             false => ((Icon)new Icons.Regular.Size20.Add(), "Add"),

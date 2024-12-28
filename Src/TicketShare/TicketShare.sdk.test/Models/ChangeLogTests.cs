@@ -28,9 +28,11 @@ public class ChangeLogTests
     public void Compare1()
     {
         DateTime dt = DateTime.Now;
+        string id = Guid.NewGuid().ToString();
 
         var p1 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -41,6 +43,7 @@ public class ChangeLogTests
 
         var p2 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -56,9 +59,11 @@ public class ChangeLogTests
     public void Compare2()
     {
         DateTime dt = DateTime.Now;
+        string id = Guid.NewGuid().ToString();
 
         var p1 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -66,6 +71,7 @@ public class ChangeLogTests
 
         var p2 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -79,9 +85,11 @@ public class ChangeLogTests
     public void Compare3()
     {
         DateTime dt = DateTime.Now;
+        string id = Guid.NewGuid().ToString();
 
         var p1 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -90,6 +98,7 @@ public class ChangeLogTests
 
         var p2 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -103,9 +112,11 @@ public class ChangeLogTests
     public void NegCompare()
     {
         DateTime dt = DateTime.Now;
+        string id = Guid.NewGuid().ToString();
 
         var p1 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -116,6 +127,7 @@ public class ChangeLogTests
 
         var p2 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc2",
@@ -131,9 +143,11 @@ public class ChangeLogTests
     public void NegCompare2()
     {
         DateTime dt = DateTime.Now;
+        string id = Guid.NewGuid().ToString();
 
         var p1 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",
@@ -144,6 +158,7 @@ public class ChangeLogTests
 
         var p2 = new ChangeLog
         {
+            Id = id,
             Date = dt,
             ChangedByPrincipalId = "key1",
             SeatId = "desc1",

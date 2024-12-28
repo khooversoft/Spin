@@ -18,9 +18,12 @@ public class HubChannelModelTests
     [Fact]
     public void ChannelMessageRecordEquals()
     {
+        DateTime dt = DateTime.UtcNow;
+
         var m1 = new ChannelMessageRecord
         {
             MessageId = "message1",
+            TimeStamp = dt,
             FromPrincipalId = "user1@domain.com",
             ChannelId = "hub-channel",
             Message = "message1",
@@ -30,6 +33,7 @@ public class HubChannelModelTests
         var m2 = new ChannelMessageRecord
         {
             MessageId = "message1",
+            TimeStamp = dt,
             FromPrincipalId = "user1@domain.com",
             ChannelId = "hub-channel",
             Message = "message1",
@@ -41,6 +45,7 @@ public class HubChannelModelTests
         var m3 = new ChannelMessageRecord
         {
             MessageId = "message2",
+            TimeStamp = dt,
             FromPrincipalId = "user1@domain.com",
             ChannelId = "hub-channel",
             Message = "message1",
@@ -107,6 +112,7 @@ public class HubChannelModelTests
     {
         const string principalId = "user1@company.com";
         const string user2PrincipalId = "user2@company.com";
+        var date = DateTime.UtcNow;
 
         var model = new HubChannelRecord
         {
@@ -134,6 +140,7 @@ public class HubChannelModelTests
                 new ChannelMessageRecord
                 {
                     MessageId = "message1",
+                    TimeStamp = date,
                     FromPrincipalId = user2PrincipalId,
                     ChannelId = "company.com/team1",
                     Message = "hello",
@@ -142,6 +149,7 @@ public class HubChannelModelTests
                 new ChannelMessageRecord
                 {
                     MessageId = "message2",
+                    TimeStamp = date,
                     FromPrincipalId = user2PrincipalId,
                     ChannelId = "company.com/team1",
                     Message = "hello2",
@@ -149,6 +157,7 @@ public class HubChannelModelTests
                 new ChannelMessageRecord
                 {
                     MessageId = "message3",
+                    TimeStamp = date,
                     FromPrincipalId = "user1@company.com",
                     ChannelId = "company.com/team1",
                     Message = "hello from owner",

@@ -14,7 +14,7 @@ public sealed record ProposalRecord
 {
     public string ProposalId { get; init; } = Guid.NewGuid().ToString();
     public string SeatId { get; init; } = null!;
-    public DateOnly SeatDate { get; init; }
+    public DateTime SeatDate { get; init; }
     public StateDetail Proposed { get; init; } = null!;
     public StateDetail? Accepted { get; init; }
     public StateDetail? Rejected { get; init; }
@@ -39,7 +39,7 @@ public sealed record ProposalRecord
     public static IValidator<ProposalRecord> Validator { get; } = new Validator<ProposalRecord>()
         .RuleFor(x => x.ProposalId).NotEmpty()
         .RuleFor(x => x.SeatId).NotEmpty()
-        .RuleFor(x => x.SeatDate).ValidDateOnly()
+        .RuleFor(x => x.SeatDate).ValidDateTime()
         .RuleFor(x => x.Proposed).NotNull()
         .Build();
 }

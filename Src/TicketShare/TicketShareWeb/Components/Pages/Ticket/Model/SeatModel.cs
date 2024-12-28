@@ -6,10 +6,8 @@ public record SeatModel
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string SeatId { get; set; } = null!;
-    public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+    public DateTime? Date { get; set; } = DateTime.Now.Date;
     public string? AssignedToPrincipalId { get; set; }
-
-    public string GetKey() => $"{SeatId}-{Date.ToString("yyyyMMdd")}";
 }
 
 
@@ -37,7 +35,7 @@ public static class SeatModelExtensions
     {
         Id = subject.Id,
         SeatId = subject.SeatId,
-        Date = subject.Date,
+        Date = (DateTime)subject.Date!,
         AssignedToPrincipalId = subject.AssignedToPrincipalId,
     };
 }

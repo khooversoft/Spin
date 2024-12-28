@@ -1,6 +1,7 @@
 ﻿<div style="@_style">
     <FluentStack Orientation="Orientation.Vertical">
-        <FluentLabel>@Message</FluentLabel>
+        
+        @ChildContent
 
         <FluentStack Orientation="Orientation.Horizontal">
             <FluentButton Appearance="Appearance.Stealth" OnClick="OnYes">Yes</FluentButton>
@@ -10,13 +11,13 @@
 </div>
 
 @code {
-    [Parameter] public string Message { get; set; } = null!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
     [Parameter] public bool IsAlert { get; set; }
     [Parameter] public EventCallback OnYes { get; set; }
     [Parameter] public EventCallback OnNo { get; set; }
 
     private const string _alertStyle = "margin: 10px;padding: 10px;border: 1px groove red";
-    private const string _normalStyle = "margin: 10px;padding: 10px;border: 1px groove gray";
+    private const string _normalStyle = "";
     private string _style = _normalStyle;
 
     private Appearance _yesApperance = Appearance.Stealth;

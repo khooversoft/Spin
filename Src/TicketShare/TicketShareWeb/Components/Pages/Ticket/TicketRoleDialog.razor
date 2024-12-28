@@ -1,0 +1,43 @@
+﻿@using TicketShareWeb.Components.Pages.Ticket.Model
+
+@implements IDialogContentComponent<PanelParameters<RoleModel>>
+
+<FluentDialogBody>
+    <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
+
+        <FluentSelect Items=@RoleModelTool.ValidRoleTypes
+                      Label="Member Role:"
+                      OptionText="@(i => i.Text)"
+                      OptionValue="@(i => i.Value)"
+                      OptionSelected="@(i => i.Selected)"
+                      @bind-Value="@Content.Value.MemberRole"
+                      @oninput="OnTypeChange" />
+
+        <FluentTextField Class="dialog-editbox" @bind-Value="@Content.Value.PrincipalId" @oninput="OnValueChange">User's Email:</FluentTextField>
+
+    </DialogFrame>
+
+</FluentDialogBody>
+
+@code {
+    [Parameter] public PanelParameters<RoleModel> Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private RoleModel _current = default!;
+    private bool _disableSave = true;
+
+    protected override void OnParametersSet() => _current = Content.Value.Clone();
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<RoleModel>.Set(Content.Value));
+    private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<RoleModel>.Delete());
+    private async Task OnCloseButton() => await Dialog.CancelAsync();
+
+    private void OnTypeChange(ChangeEventArgs e) => UpdateState(() => Content.Value.MemberRole = e.Value?.ToString() ?? Content.Value.MemberRole);
+    private void OnValueChange(ChangeEventArgs e) => UpdateState(() => Content.Value.PrincipalId = e.Value?.ToString() ?? Content.Value.PrincipalId);
+
+    private void UpdateState(Action update)
+    {
+        update();
+        _disableSave = Content.Value == _current;
+    }
+}

@@ -122,4 +122,14 @@ public static class TicketGroupRecordTool
 
         return ticketGroupRecord with { Roles = roles };
     }
+
+    public static TicketGroupRecord SetTicketGroupId(this TicketGroupRecord subject, string principalId) => subject with
+    {
+        TicketGroupId = $"{principalId.NotEmpty()}/{subject.Name.NotEmpty()}",
+    };
+
+    public static TicketGroupRecord SetChannelId(this TicketGroupRecord subject) => subject with
+    {
+        ChannelId = subject.ChannelId.ToNullIfEmpty() ?? $"{subject.TicketGroupId.NotEmpty()}/channelHub",
+    };
 }

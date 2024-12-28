@@ -1,0 +1,63 @@
+﻿@page "/TicketGroups/{TicketGroupId}"
+
+@using TicketShareWeb.Components.Pages.Ticket.Model
+
+@if (_ticketGroupContext != null)
+{
+    <FeedColumn>
+
+        <DialogControls OnClose="OnClose" OnDelete="OnDelete" ShowDelete="true" />
+
+        <CascadingValue Value="_ticketGroupContext">
+            <TicketHeader />
+            <TicketRoles />
+            <TicketSeats />
+        </CascadingValue>
+    </FeedColumn>
+}
+else
+{
+    <LoadingBlock />
+}
+
+@code {
+    [Parameter] public string TicketGroupId { get; set; } = null!;
+    [Inject] public NavigationManager _navigationManager { get; set; } = null!;
+    [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
+    [Inject] public AskPanel AskPanel { get; set; } = default!;
+    [Inject] public IMessageService _messageService { get; set; } = null!;
+
+    private TicketGroupContext _ticketGroupContext = null!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var context = _ticketGroupManager.GetContext(TicketGroupId);
+        var option = await context.Get();
+        if (option.IsError())
+        {
+            await _messageService.ShowMessageBarAsync(option.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);
+            OnClose();
+            return;
+        }
+
+        _ticketGroupContext = context;
+    }
+
+    private void OnClose() => _navigationManager.NavigateTo("/TicketGroups");
+
+    private async Task OnDelete()
+    {
+        bool confirmDelete = await AskPanel.Show("Confirm delete", $"Do you want to delete this ticket group {_ticketGroupContext.Input.Name}?");
+        if (!confirmDelete) return;
+
+        var result = await _ticketGroupContext.Delete();
+        if (result.IsError())
+        {
+            string msg = $"Failed to delete {_ticketGroupContext.Input.Name}";
+            await _messageService.ShowMessageBarAsync(msg, MessageIntent.Error, Constants.TopMessageSection);
+            return;
+        }
+
+        OnClose();
+    }
+}

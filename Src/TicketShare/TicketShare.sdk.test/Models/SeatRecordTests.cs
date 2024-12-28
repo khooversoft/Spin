@@ -12,7 +12,7 @@ public class SeatRecordTests
         var p1 = new SeatRecord
         {
             SeatId = "seatid1",
-            Date = DateOnly.FromDateTime(DateTime.Now),
+            Date = DateTime.Now.Date,
             AssignedToPrincipalId = "user1@domain.com",
         };
 
@@ -28,7 +28,7 @@ public class SeatRecordTests
         var p1 = new SeatRecord
         {
             SeatId = "seatid1",
-            Date = DateOnly.FromDateTime(DateTime.Now),
+            Date = DateTime.Now.Date,
         };
 
         p1.Validate().IsOk().Should().BeTrue();
@@ -40,7 +40,7 @@ public class SeatRecordTests
     [Fact]
     public void Compare1()
     {
-        DateOnly dt = DateOnly.FromDateTime(DateTime.Now);
+        DateTime dt = DateTime.Now.Date;
 
         var p1 = new SeatRecord
         {
@@ -62,7 +62,7 @@ public class SeatRecordTests
     [Fact]
     public void Compare2()
     {
-        DateOnly dt = DateOnly.FromDateTime(DateTime.Now);
+        DateTime dt = DateTime.Now.Date;
 
         var p1 = new SeatRecord
         {
@@ -82,7 +82,7 @@ public class SeatRecordTests
     [Fact]
     public void NegCompare1()
     {
-        DateOnly dt = DateOnly.FromDateTime(DateTime.Now);
+        DateTime dt = DateTime.Now.Date;
 
         var p1 = new SeatRecord
         {
@@ -104,7 +104,7 @@ public class SeatRecordTests
     [Fact]
     public void NegCompare2()
     {
-        DateOnly dt = DateOnly.FromDateTime(DateTime.Now);
+        DateTime dt = DateTime.Now.Date;
 
         var p1 = new SeatRecord
         {

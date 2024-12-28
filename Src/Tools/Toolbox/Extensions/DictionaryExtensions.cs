@@ -61,7 +61,7 @@ public static class DictionaryExtensions
     }
 
     /// <summary>
-    /// 
+    /// To object based on type
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="values"></param>
@@ -79,6 +79,14 @@ public static class DictionaryExtensions
         return result;
     }
 
+    /// <summary>
+    /// Dictionary equals
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
     public static bool DeepEquals<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>>? source, IEnumerable<KeyValuePair<TKey, TValue>>? target)
     {
         if (source == null && target == null) return true;
@@ -89,10 +97,10 @@ public static class DictionaryExtensions
         if (sourceList.Length != targetList.Length) return false;
 
         var zip = sourceList.Zip(targetList, (x, y) => (source: x, target: y));
-        var isEqual = zip.All(x => x.source.Key?.Equals(x.target.Key) == false switch
+        var isEqual = zip.All(x => x.source.Key?.Equals(x.target.Key) == true switch
         {
             false => false,
-            true => x.source.Value?.Equals(x.target.Value) == false,
+            true => x.source.Value?.Equals(x.target.Value) == true,
         });
 
         return isEqual;

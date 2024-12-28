@@ -5,23 +5,20 @@
 @using TicketShareWeb.Application
 @using TicketShareWeb.Components.Pages.Profile.Models
 
-@if (_calendars is not null)
-{
-    <FeedBlock Title="Calendar" Class="feed-block-datagrid" OnAdd="Add">
-        <FluentDataGrid Class="feed-block-datagrid"
-                        Items="@_calendars"
-                        GridTemplateColumns="110px 130px 130px"
-                        ShowHover="true"
-                        GenerateHeader=GenerateHeaderOption.None
-                        TGridItem="CalendarModel"
-                        OnRowClick="HandleRowFocus">
+<FeedBlock Title="Calendar" Class="feed-block-datagrid" OnAdd="Add">
+    <FluentDataGrid Class="feed-block-datagrid"
+                    Items="@_calendars"
+                    GridTemplateColumns="110px 130px 130px"
+                    ShowHover="true"
+                    GenerateHeader=GenerateHeaderOption.None
+                    TGridItem="CalendarModel"
+                    OnRowClick="HandleRowFocus">
 
-            <PropertyColumn Property="@(p => p.Type)" Sortable="true" />
-            <PropertyColumn Property="@(p => p.FromDate.ToString("yyyy-MM-dd"))" Sortable="true" />
-            <PropertyColumn Property="@(p => p.ToDate.ToString("yyyy-MM-dd"))" Sortable="true" />
-        </FluentDataGrid>
-    </FeedBlock>
-}
+        <PropertyColumn Property="@(p => p.Type)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.FromDate.ToString("yyyy-MM-dd"))" Sortable="true" />
+        <PropertyColumn Property="@(p => p.ToDate.ToString("yyyy-MM-dd"))" Sortable="true" />
+    </FluentDataGrid>
+</FeedBlock>
 
 
 @code {

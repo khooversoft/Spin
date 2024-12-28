@@ -3,9 +3,9 @@
 @inherits LayoutComponentBase
 
 <FluentDesignTheme @bind-Mode="@Mode"
-                   OnLoaded="@OnLoaded"
-                   StorageName="theme"
-                   OnLuminanceChanged="@OnLoaded" />
+OnLoaded="@OnLoaded"
+StorageName="theme"
+OnLuminanceChanged="@OnLoaded" />
 
 <FluentLayout>
     <FluentHeader>
@@ -22,8 +22,10 @@
         <FluentDialogProvider />
     </FluentStack>
     <FluentFooter>
-        Copyright (c) 2024 - Kelvin Hoover
-        @*         <div class="link1">
+        <Footer SwitchMode="SwitchModes" />
+
+@*         Copyright (c) 2024 - Kelvin Hoover
+ *@        @*         <div class="link1">
             <a href="https://www.fluentui-blazor.net" target="_blank">Documentation and demos</a>
         </div>
         <div class="link2">
@@ -51,4 +53,6 @@
         _bodyContentClass = Mode == DesignThemeModes.Dark ? _bodyContentDarkClass : _bodyContentLightClass;
         StateHasChanged();
     }
+
+    protected void SwitchModes() => Mode = Mode == DesignThemeModes.Dark ? DesignThemeModes.Light : DesignThemeModes.Dark;
 }
