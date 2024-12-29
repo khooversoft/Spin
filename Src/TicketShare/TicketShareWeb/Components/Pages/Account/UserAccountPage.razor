@@ -17,6 +17,8 @@
 
 <PageTitle>Account</PageTitle>
 
+<LoadingBlock Visible=@Visible />
+
 @if (_userAccountContext?.IsLoaded() == true)
 {
     <FeedColumn>
@@ -33,10 +35,6 @@
         </CascadingValue>
     </FeedColumn>
 }
-else
-{
-    <LoadingBlock />
-}
 
 @code {
     [Inject] public ILogger<UserAccountPage> _logger { get; set; } = null!;
@@ -44,6 +42,7 @@ else
     [Inject] public IDialogService _dialogService { get; set; } = null!;
 
     private UserAccountContext _userAccountContext = null!;
+    private bool Visible { get; set; } = true;
 
     protected override void OnInitialized()
     {
@@ -55,6 +54,7 @@ else
         if (firstRender)
         {
             await _userAccountContext.Get();
+            Visible = false;
             StateHasChanged();
         }
 

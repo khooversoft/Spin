@@ -4,17 +4,20 @@
 @using Microsoft.AspNetCore.Authorization
 @using TicketShareWeb.Components.Pages.Ticket.Model
 
+<LoadingBlock Visible=@Visible />
+
 @if (_inputs != null)
 {
     <FeedColumn>
         <FeedBlock Title="Ticket Groups" OnAdd="Add">
 
             <FluentDataGrid Class="feed-block-datagrid"
-                            Items="@_entries"
-                            ShowHover="true"
-                            TGridItem="TicketGroupDetail"
-                            OnRowClick="HandleRowFocus"
-                            GenerateHeader=GenerateHeaderOption.None>
+            Items="@_entries"
+            ShowHover="true"
+            TGridItem="TicketGroupDetail"
+            OnRowClick="HandleRowFocus"
+            AutoFit="true"
+            GenerateHeader=GenerateHeaderOption.None>
 
                 <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
                 <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
@@ -24,16 +27,14 @@
         </FeedBlock>
     </FeedColumn>
 }
-else
-{
-    <LoadingBlock />
-}
 
 @code {
-    [Inject] public NavigationManager _navigationManager { get; set; } = null!;
+    [Inject] public AppNavigation _appNavigation { get; set; } = null!;
     [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Inject] public IMessageService _messageService { get; set; } = null!;
+
+    private bool Visible { get; set; } = true;
 
     private IReadOnlyList<TicketGroupModel> _inputs = null!;
     private IQueryable<TicketGroupDetail> _entries = null!;
@@ -49,18 +50,14 @@ else
             null
         );
 
-        var result = await _ticketGroupManager.GetTicketGroups();
-        result.ThrowOnError();
-
-        _inputs = result.Return();
-        Refresh();
+        await Refresh();
     }
 
     private void HandleRowFocus(FluentDataGridRow<TicketGroupDetail> row)
     {
         row.Item.NotNull();
         string ticketEncoded = Uri.EscapeDataString(row.Item.TicketGroupId);
-        _navigationManager.NavigateTo($"TicketGroups/{ticketEncoded}");
+        _appNavigation.GotoTicketGroup(ticketEncoded);
     }
 
     private async Task Add()
@@ -70,21 +67,41 @@ else
         var result = await _rightPanelDialog.Add(model, "Add Ticket Group");
         if (result == RightPanelDialog.Canceled) return;
 
-        Refresh();
-        await InvokeAsync(StateHasChanged);
+        await Refresh();
     }
 
-    private void Refresh() => _entries = _inputs
-        .Select(x => new TicketGroupDetail(x.TicketGroupId, x.Name, x.Description))
-        .OrderBy(x => x.Name)
-        .AsQueryable();
+    private async Task Refresh()
+    {
+        await SetLoading(true);
+
+        var result = await _ticketGroupManager.GetTicketGroups();
+        result.ThrowOnError();
+
+        _inputs = result.Return();
+        _entries = _inputs
+            .Select(x => new TicketGroupDetail(x.TicketGroupId, x.Name, x.Description))
+            .OrderBy(x => x.Name)
+            .AsQueryable();
+
+        await SetLoading(false);
+    }
 
     private async Task CreateTicketGroup(TicketGroupHeaderModel header)
     {
+        await SetLoading(true);
+
         var result = await _ticketGroupManager.Create(header);
         if (result.IsError())
         {
             await _messageService.ShowMessageBarAsync(result.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);
         }
+
+        await SetLoading(false);
+    }
+
+    private async Task SetLoading(bool visible)
+    {
+        Visible = visible;
+        await InvokeAsync(StateHasChanged);
     }
 }

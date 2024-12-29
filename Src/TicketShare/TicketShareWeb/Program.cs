@@ -74,7 +74,8 @@ builder.Services
     .AddTicketShare()
     .AddScoped<UserAccountManager>()
     .AddScoped<TicketGroupManager>()
-    .AddScoped<AskPanel>();
+    .AddScoped<AskPanel>()
+    .AddScoped<AppNavigation>();
 
 builder.Services.AddSingleton<IEmailSender<PrincipalIdentity>, IdentityNoOpEmailSender>();
 

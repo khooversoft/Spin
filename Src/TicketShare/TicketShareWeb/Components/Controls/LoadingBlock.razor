@@ -1,4 +1,10 @@
-﻿<div style="min-width:300px; width: 100%">
-    <p>Please wait loading...</p>
-    <FluentProgress></FluentProgress>
+﻿<div style="@(Visible ? "display:block;" : "display:none;")">
+    <div style="min-width:300px; width: 100%">
+        <p>Please wait...</p>
+        <FluentProgress />
+    </div>
 </div>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+}
