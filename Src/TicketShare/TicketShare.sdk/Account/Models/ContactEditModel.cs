@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Toolbox.Tools;
 
-namespace TicketShareWeb.Components.Pages.Profile.Models;
+namespace TicketShare.sdk;
 
 public sealed record ContactEditModel
 {

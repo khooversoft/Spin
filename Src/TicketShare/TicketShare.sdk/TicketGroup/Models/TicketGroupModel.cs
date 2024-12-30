@@ -1,9 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using TicketShare.sdk;
 using Toolbox.Extensions;
 
-namespace TicketShareWeb.Components.Pages.Ticket.Model;
+namespace TicketShare.sdk;
 
 public sealed record TicketGroupModel
 {

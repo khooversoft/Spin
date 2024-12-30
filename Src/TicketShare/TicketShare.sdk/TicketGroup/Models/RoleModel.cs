@@ -1,8 +1,4 @@
-﻿using System.Collections.Immutable;
-using TicketShare.sdk;
-using Fluent = Microsoft.FluentUI.AspNetCore.Components;
-
-namespace TicketShareWeb.Components.Pages.Ticket.Model;
+﻿namespace TicketShare.sdk;
 
 public record RoleModel
 {
@@ -34,9 +30,4 @@ public static class RoleModelTool
         PrincipalId = subject.PrincipalId,
         MemberRole = Enum.Parse<RoleType>(subject.MemberRole),
     };
-
-    public static IReadOnlyList<Fluent.Option<string>> ValidRoleTypes = Enum.GetNames<RoleType>()
-        .OrderBy(x => x)
-        .Select(x => new Fluent.Option<string> { Value = x, Text = x })
-        .ToImmutableArray();
 }

@@ -1,11 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using TicketShare.sdk;
-using TicketShareWeb.Components.Pages.Profile.Models;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace TicketShareWeb.Components.Pages.Profile.Models;
+namespace TicketShare.sdk;
 
 public sealed record AccountModel : IEquatable<AccountModel?>
 {

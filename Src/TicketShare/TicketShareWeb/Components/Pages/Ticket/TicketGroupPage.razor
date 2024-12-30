@@ -1,6 +1,5 @@
 ﻿@page "/TicketGroup/{TicketGroupId}"
-
-@using TicketShareWeb.Components.Pages.Ticket.Model
+@using TicketShare.sdk
 
 <LoadingBlock Visible=@Visible />
 
@@ -47,7 +46,7 @@
 
     private async Task OnDelete()
     {
-        bool confirmDelete = await AskPanel.Show("Confirm delete", $"Do you want to delete this ticket group {_ticketGroupContext.Input.Name}?");
+        bool confirmDelete = await AskPanel.Show("Confirm delete", $"Do you want to delete this ticket group {_ticketGroupContext.NotNull().Input.Name}?");
         if (!confirmDelete) return;
 
         await SetLoading(true);

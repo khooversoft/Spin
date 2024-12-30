@@ -1,10 +1,9 @@
-﻿using TicketShare.sdk;
-using TicketShareWeb.Components.Pages.Profile.Models;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace TicketShareWeb.Application;
+namespace TicketShare.sdk;
 
 public class UserAccountContext
 {

@@ -72,8 +72,6 @@ builder.Services
     .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
     .AddGraphEngine()
     .AddTicketShare()
-    .AddScoped<UserAccountManager>()
-    .AddScoped<TicketGroupManager>()
     .AddScoped<AskPanel>()
     .AddScoped<AppNavigation>();
 

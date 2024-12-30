@@ -48,6 +48,12 @@ public static class OptionExtensions
         return subject.IsOk();
     }
 
+    public static bool TryError(this Option subject, out Option result)
+    {
+        result = subject;
+        return subject.IsError();
+    }
+
     [DebuggerStepThrough]
     public static bool IsError(this Option subject, out Option result)
     {

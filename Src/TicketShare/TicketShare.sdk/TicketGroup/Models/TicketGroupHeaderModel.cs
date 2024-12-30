@@ -1,10 +1,8 @@
-﻿using TicketShare.sdk;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace TicketShareWeb.Components.Pages.Ticket.Model;
-
+namespace TicketShare.sdk;
 public record TicketGroupHeaderModel
 {
     public string? TicketGroupId { get; set; }

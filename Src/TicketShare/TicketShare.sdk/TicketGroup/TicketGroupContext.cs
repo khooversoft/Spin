@@ -1,9 +1,8 @@
-﻿using TicketShare.sdk;
-using TicketShareWeb.Components.Pages.Ticket.Model;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace TicketShareWeb.Application;
+namespace TicketShare.sdk;
 
 public class TicketGroupContext
 {

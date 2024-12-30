@@ -33,10 +33,12 @@ public static class TicketShareStartup
     {
         service.AddToolboxIdentity();
         service.AddSingleton<AccountClient>();
+        service.AddScoped<UserAccountManager>();
 
         service.AddSingleton<TicketGroupClient>();
         service.AddSingleton<TicketGroupProposalClient>();
         service.AddSingleton<TicketGroupSearchClient>();
+        service.AddScoped<TicketGroupManager>();
 
         service.AddSingleton<HubChannelClient>();
         service.AddSingleton<HubChannelMessageClient>();

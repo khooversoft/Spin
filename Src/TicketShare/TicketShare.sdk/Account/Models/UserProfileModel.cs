@@ -1,4 +1,4 @@
-﻿namespace TicketShareWeb.Components.Pages.Profile.Models;
+﻿namespace TicketShare.sdk;
 
 public record UserProfileEditModel
 {

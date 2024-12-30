@@ -1,7 +1,6 @@
-﻿using TicketShare.sdk;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 
-namespace TicketShareWeb.Components.Pages.Profile.Models;
+namespace TicketShare.sdk;
 
 public sealed record AddressModel
 {

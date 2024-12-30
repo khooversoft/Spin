@@ -1,11 +1,11 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Components.Authorization;
-using TicketShare.sdk;
+using Microsoft.Extensions.Logging;
 using Toolbox.Identity;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace TicketShareWeb.Application;
+namespace TicketShare.sdk;
 
 public class UserAccountManager
 {

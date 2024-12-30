@@ -1,6 +1,4 @@
-﻿using TicketShare.sdk;
-
-namespace TicketShareWeb.Components.Pages.Ticket.Model;
+﻿namespace TicketShare.sdk;
 
 public record SeatModel
 {

@@ -27,7 +27,9 @@ public class HubChannelModelTests
             FromPrincipalId = "user1@domain.com",
             ChannelId = "hub-channel",
             Message = "message1",
-            ProposalId = "proposal1",
+            Actions = [
+                MessageAction.CreateProposal("proposal1"),
+            ],
         };
 
         var m2 = new ChannelMessageRecord
@@ -37,7 +39,9 @@ public class HubChannelModelTests
             FromPrincipalId = "user1@domain.com",
             ChannelId = "hub-channel",
             Message = "message1",
-            ProposalId = "proposal1",
+            Actions = [
+                MessageAction.CreateProposal("proposal1"),
+            ],
         };
 
         (m1 == m2).Should().BeTrue();
@@ -49,7 +53,9 @@ public class HubChannelModelTests
             FromPrincipalId = "user1@domain.com",
             ChannelId = "hub-channel",
             Message = "message1",
-            ProposalId = "proposal1",
+            Actions = [
+                MessageAction.CreateProposal("proposal1"),
+            ],
         };
 
         (m1 == m3).Should().BeFalse();
@@ -144,7 +150,9 @@ public class HubChannelModelTests
                     FromPrincipalId = user2PrincipalId,
                     ChannelId = "company.com/team1",
                     Message = "hello",
-                    ProposalId = "proposal1",
+                    Actions =[
+                        MessageAction.CreateProposal("proposal1")
+                        ],
                 },
                 new ChannelMessageRecord
                 {

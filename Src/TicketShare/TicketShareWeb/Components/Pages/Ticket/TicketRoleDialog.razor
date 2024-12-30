@@ -1,11 +1,11 @@
-﻿@using TicketShareWeb.Components.Pages.Ticket.Model
+﻿@using TicketShare.sdk
 
 @implements IDialogContentComponent<PanelParameters<RoleModel>>
 
 <FluentDialogBody>
     <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
 
-        <FluentSelect Items=@RoleModelTool.ValidRoleTypes
+        <FluentSelect Items=@UITool.ValidRoleTypes
                       Label="Member Role:"
                       OptionText="@(i => i.Text)"
                       OptionValue="@(i => i.Value)"

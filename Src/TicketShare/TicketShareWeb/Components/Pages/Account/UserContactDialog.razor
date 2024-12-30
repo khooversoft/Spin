@@ -1,11 +1,11 @@
-﻿@using TicketShareWeb.Components.Pages.Profile.Models
+﻿@using TicketShare.sdk
 
 @implements IDialogContentComponent<PanelParameters<ContactModel>>
 
 <FluentDialogBody>
     <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
 
-        <FluentSelect Items=@ContactModelTool.ValidContactTypes
+        <FluentSelect Items=@UITool.ValidContactTypes
                       Label="Contact Type:"
                       OptionText="@(i => i.Text)"
                       OptionValue="@(i => i.Value)"

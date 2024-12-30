@@ -6,7 +6,6 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-
 public enum ChannelRole
 {
     Reader,

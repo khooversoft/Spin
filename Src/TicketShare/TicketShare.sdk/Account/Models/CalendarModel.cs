@@ -1,6 +1,4 @@
-﻿using TicketShare.sdk;
-
-namespace TicketShareWeb.Components.Pages.Profile.Models;
+﻿namespace TicketShare.sdk;
 
 public sealed record CalendarModel
 {

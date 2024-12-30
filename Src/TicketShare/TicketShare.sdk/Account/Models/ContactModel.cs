@@ -1,8 +1,4 @@
-﻿using System.Collections.Immutable;
-using TicketShare.sdk;
-using Fluent = Microsoft.FluentUI.AspNetCore.Components;
-
-namespace TicketShareWeb.Components.Pages.Profile.Models;
+﻿namespace TicketShare.sdk;
 
 public sealed record ContactModel
 {
@@ -34,9 +30,4 @@ public static class ContactModelTool
         Type = Enum.Parse<ContactType>(subject.Type),
         Value = subject.Value,
     };
-
-    public static IReadOnlyList<Fluent.Option<string>> ValidContactTypes = Enum.GetNames<ContactType>()
-        .OrderBy(x => x)
-        .Select(x => new Fluent.Option<string> { Value = x, Text = x })
-        .ToImmutableArray();
 }

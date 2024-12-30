@@ -29,6 +29,30 @@ public class DictionaryDeepEqualCompareTests
         list1.DeepEqualsComparer(list2).Should().BeTrue();
     }
 
+    public record RecA(string name, int age) : IComparable
+    {
+        public int CompareTo(object? obj)
+        {
+            if (obj is not RecA subject) return 1;
+            if (this.Equals(subject)) return 0;
+            return 1;
+        }
+    }
+
+    [Fact]
+    public void RecordCompare()
+    {
+        Dictionary<int, RecA> list1 = new()
+        {
+            [10] = new RecA("n1", 10),
+        };
+        Dictionary<int, RecA> list2 = new()
+        {
+            [10] = new RecA("n1", 10),
+        };
+
+        list1.DeepEqualsComparer(list2).Should().BeTrue();
+    }
 
     [Fact]
     public void TwoSingleListWithWithNotEqualValueAsValueType()

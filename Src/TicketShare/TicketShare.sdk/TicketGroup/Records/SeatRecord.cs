@@ -28,10 +28,4 @@ public sealed record SeatRecord : IEquatable<SeatRecord>
 public static class SeatRecordExtensions
 {
     public static Option Validate(this SeatRecord subject) => SeatRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this SeatRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }
