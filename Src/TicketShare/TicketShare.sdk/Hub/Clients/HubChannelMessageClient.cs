@@ -20,7 +20,7 @@ public class HubChannelMessageClient
     public async Task<Option> Send(ChannelMessageRecord messageRecord, ScopeContext context)
     {
         context = context.With(_logger);
-        if (messageRecord.Validate().TryError(out var r)) return r.LogStatus(context, nameof(ChannelMessageRecord));
+        if (messageRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(ChannelMessageRecord));
 
         var readOption = await _hubChannelClient.Get(messageRecord.ChannelId, context);
         if (readOption.IsError()) return readOption.ToOptionStatus();

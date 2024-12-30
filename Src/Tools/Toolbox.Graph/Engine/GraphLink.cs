@@ -21,12 +21,6 @@ public static class GraphDataLinkTool
 {
     public static Option Validate(this GraphLink subject) => GraphLink.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this GraphLink subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static bool DeepEquals(this IEnumerable<KeyValuePair<string, GraphLink>> source, IEnumerable<KeyValuePair<string, GraphLink>> target)
     {
         if (source == null && target == null) return true;

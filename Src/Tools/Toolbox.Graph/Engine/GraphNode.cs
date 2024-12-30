@@ -95,10 +95,4 @@ public sealed record GraphNode : IGraphCommon
 public static class GraphNodeTool
 {
     public static Option Validate(this GraphNode subject) => GraphNode.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this GraphNode subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

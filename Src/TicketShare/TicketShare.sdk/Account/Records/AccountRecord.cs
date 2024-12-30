@@ -40,12 +40,6 @@ public static class AccountRecordTool
 {
     public static Option Validate(this AccountRecord subject) => AccountRecord.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this AccountRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static AccountRecord Merge(this AccountRecord subject, IEnumerable<ContactRecord> contactRecords)
     {
         subject.NotNull();

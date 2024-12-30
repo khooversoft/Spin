@@ -25,10 +25,4 @@ public record ContactRecord
 public static class ContactRecordExtensions
 {
     public static Option Validate(this ContactRecord subject) => ContactRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this ContactRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

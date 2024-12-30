@@ -43,7 +43,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     internal Option Add(GraphNode node, IGraphTrxContext? trxContext = null)
     {
-        if (!node.Validate(out var v)) return v;
+        if (node.Validate().IsError(out var v)) return v;
 
         lock (_lock)
         {
@@ -115,7 +115,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     internal Option Set(GraphNode node, IGraphTrxContext? trxContext = null)
     {
-        if (!node.Validate(out var v)) return v;
+        if (node.Validate().IsError(out var v)) return v;
 
         lock (_lock)
         {

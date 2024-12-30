@@ -41,7 +41,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
     public Option Add(GraphEdge edge, IGraphTrxContext? graphContext = null)
     {
-        if (!edge.Validate(out var v1)) return v1;
+        if (edge.Validate().IsError(out var v1)) return v1;
 
         lock (_lock)
         {

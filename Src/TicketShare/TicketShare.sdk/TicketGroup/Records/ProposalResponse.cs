@@ -26,10 +26,4 @@ public record ProposalResponse
 public static class ProposalResponseTool
 {
     public static Option Validate(this ProposalResponse subject) => ProposalResponse.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this ProposalResponse subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

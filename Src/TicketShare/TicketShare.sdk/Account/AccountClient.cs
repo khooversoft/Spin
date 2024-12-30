@@ -40,7 +40,7 @@ public class AccountClient
     private async Task<Option> AddOrSet(bool useSet, AccountRecord accountRecord, ScopeContext context)
     {
         context = context.With(_logger);
-        if (!accountRecord.Validate(out var r)) return r.LogStatus(context, nameof(AccountRecord));
+        if (accountRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(AccountRecord));
 
         string nodeKey = ToAccountKey(accountRecord.PrincipalId);
 

@@ -82,10 +82,4 @@ public sealed record GraphEdge : IGraphCommon
 public static class GraphEdgeTool
 {
     public static Option Validate(this GraphEdge subject) => GraphEdge.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this GraphEdge subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

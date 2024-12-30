@@ -44,12 +44,6 @@ public static class DataETagExtensions
 {
     public static Option Validate(this DataETag subject) => DataETag.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this DataETag subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static DataETag ToDataETag<T>(this T value)
     {
         value.NotNull();

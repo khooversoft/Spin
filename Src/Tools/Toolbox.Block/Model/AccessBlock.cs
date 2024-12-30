@@ -48,12 +48,6 @@ public static class BlockAccessValidator
 {
     public static Option Validate(this AccessBlock subject) => AccessBlock.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this AccessBlock subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static bool HasAccess(this AccessBlock subject, string principalId, BlockGrant grant, string blockType) =>
         subject.Grant.HasFlag(grant) &&
         subject.PrincipalId == principalId.Assert(x => IdPatterns.IsPrincipalId(x), "Invalid principalId") &&

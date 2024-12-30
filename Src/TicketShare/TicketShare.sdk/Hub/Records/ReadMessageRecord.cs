@@ -23,10 +23,4 @@ public sealed record ReadMessageRecord
 public static class ReadMessageRecordTool
 {
     public static Option Validate(this ReadMessageRecord subject) => ReadMessageRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this ReadMessageRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

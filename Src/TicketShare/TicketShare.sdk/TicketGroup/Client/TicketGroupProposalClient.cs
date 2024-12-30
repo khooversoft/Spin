@@ -24,7 +24,7 @@ public class TicketGroupProposalClient
     public async Task<Option> Add(string ticketGroupId, ProposalRecord proposalRecord, ScopeContext context)
     {
         ticketGroupId.NotEmpty();
-        if (!proposalRecord.Validate(out var r)) return r.LogStatus(context, nameof(ProposalRecord));
+        if (proposalRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(ProposalRecord));
 
         var ticketGroupOption = await _ticketGroupClient.Get(ticketGroupId, context).ConfigureAwait(false);
         if (ticketGroupOption.IsError()) return ticketGroupOption.ToOptionStatus();

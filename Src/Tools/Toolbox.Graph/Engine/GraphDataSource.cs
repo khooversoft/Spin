@@ -20,12 +20,6 @@ public static class GraphDataSourceTool
 {
     public static Option Validate(this GraphDataSource subject) => GraphDataSource.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this GraphDataSource subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static bool DeepEquals(this IEnumerable<KeyValuePair<string, GraphDataSource>> source, IEnumerable<KeyValuePair<string, GraphDataSource>> target)
     {
         if (source == null && target == null) return true;

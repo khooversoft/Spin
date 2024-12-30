@@ -27,10 +27,4 @@ public record CalendarRecord
 public static class CalendarRecordExtensions
 {
     public static Option Validate(this CalendarRecord subject) => CalendarRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this CalendarRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

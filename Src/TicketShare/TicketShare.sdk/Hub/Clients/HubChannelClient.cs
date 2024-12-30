@@ -66,7 +66,7 @@ public class HubChannelClient
     private async Task<Option> AddOrSet(bool useSet, HubChannelRecord hubChannelRecord, ScopeContext context)
     {
         context = context.With(_logger);
-        if (!hubChannelRecord.Validate(out var r)) return r.LogStatus(context, nameof(HubChannelRecord));
+        if (hubChannelRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(HubChannelRecord));
 
         string ownerPrincipalId = hubChannelRecord.Users.Values.Where(x => x.Role == ChannelRole.Owner).Single().PrincipalId;
         var userReferences = hubChannelRecord.Users.Values.Where(x => x.Role != ChannelRole.Owner).ToArray();

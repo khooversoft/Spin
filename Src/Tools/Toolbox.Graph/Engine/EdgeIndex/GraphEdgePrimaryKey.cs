@@ -60,12 +60,6 @@ public static class GraphEdgePrimaryKeyTool
 {
     public static Option Validate(this GraphEdgePrimaryKey subject) => GraphEdgePrimaryKey.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this GraphEdgePrimaryKey subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static GraphEdgePrimaryKey GetPrimaryKey(this GraphEdge subject) => new GraphEdgePrimaryKey
     {
         FromKey = subject.FromKey,

@@ -23,10 +23,4 @@ public record AddressRecord
 public static class AddressRecordExtensions
 {
     public static Option Validate(this AddressRecord subject) => AddressRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this AddressRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

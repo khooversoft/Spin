@@ -71,7 +71,7 @@ public class TicketGroupClient
 
         string nodeKey = ToTicketGroupKey(ticketGroupRecord.TicketGroupId);
 
-        if (!ticketGroupRecord.Validate().TryOk(out var r)) return r.LogStatus(context, nameof(TicketGroupRecord));
+        if (!ticketGroupRecord.Validate().IsOk(out var r)) return r.LogStatus(context, nameof(TicketGroupRecord));
 
         var roles = ticketGroupRecord.Roles
             .Select(x => x.PrincipalId)

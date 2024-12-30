@@ -22,12 +22,6 @@ public static class GraphLinkDataTool
 {
     public static Option Validate(this GraphLinkData subject) => GraphLinkData.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this GraphLinkData subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static GraphLinkData ConvertTo(this GraphLink subject, DataETag data)
     {
         subject.NotNull();

@@ -37,23 +37,13 @@ public static class OptionExtensions
     public static Option<T> ToOptionStatus<T>(this Option subject) => new Option<T>(subject.StatusCode, subject.Error);
 
     public static bool IsOk(this Option subject) => subject.StatusCode.IsOk();
-    public static bool IsNotFound(this Option subject) => subject.StatusCode.IsNotFound();
-    public static bool IsError(this Option subject) => subject.StatusCode.IsError();
-    public static bool IsConflict(this Option subject) => subject.StatusCode.IsConflict();
-    public static bool IsNoContent(this Option subject) => subject.StatusCode.IsNoContent();
-
-    public static bool TryOk(this Option subject, out Option result)
+    public static bool IsOk(this Option subject, out Option result)
     {
         result = subject;
         return subject.IsOk();
     }
 
-    public static bool TryError(this Option subject, out Option result)
-    {
-        result = subject;
-        return subject.IsError();
-    }
-
+    public static bool IsError(this Option subject) => subject.StatusCode.IsError();
     [DebuggerStepThrough]
     public static bool IsError(this Option subject, out Option result)
     {
@@ -61,4 +51,7 @@ public static class OptionExtensions
         return subject.IsError();
     }
 
+    public static bool IsNotFound(this Option subject) => subject.StatusCode.IsNotFound();
+    public static bool IsConflict(this Option subject) => subject.StatusCode.IsConflict();
+    public static bool IsNoContent(this Option subject) => subject.StatusCode.IsNoContent();
 }

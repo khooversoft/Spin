@@ -37,11 +37,5 @@ public static class PrincipalIdentityTool
 {
     public static Option Validate(this PrincipalIdentity subject) => PrincipalIdentity.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this PrincipalIdentity subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static bool HasLoginProvider(this PrincipalIdentity subject) => subject.NotNull().LoginProvider.IsNotEmpty() && subject.ProviderKey.IsNotEmpty();
 }

@@ -31,10 +31,4 @@ public sealed record PrincipalChannelRecord
 public static class PrincipalChannelTool
 {
     public static Option Validate(this PrincipalChannelRecord subject) => PrincipalChannelRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this PrincipalChannelRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

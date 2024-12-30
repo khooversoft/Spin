@@ -22,12 +22,6 @@ public record WordToken
 public static class WordTokenExtensions
 {
     public static Option Validate(this WordToken subject) => WordToken.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this WordToken subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }
 
 

@@ -36,7 +36,7 @@
     {
         Content.Name = e.Value?.ToString() ?? Content.Name;
 
-        if (Content.Name.IsEmpty() || TicketGroupRecordTool.ValidateName(Content.Name).TryOk(out var result))
+        if (Content.Name.IsEmpty() || TicketGroupRecordTool.ValidateName(Content.Name).IsOk(out var result))
             _errors.Remove(_nameField);
         else
             _errors[_nameField] = result.Error;
@@ -48,7 +48,7 @@
     {
         Content.Description = e.Value?.ToString() ?? Content.Description;
 
-        if (Content.Description.IsEmpty() || TicketGroupRecordTool.ValidateDescription(Content.Description).TryOk(out var result))
+        if (Content.Description.IsEmpty() || TicketGroupRecordTool.ValidateDescription(Content.Description).IsOk(out var result))
             _errors.Remove(_descriptionField);
         else
             _errors[_descriptionField] = result.Error;

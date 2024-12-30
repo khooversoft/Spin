@@ -19,10 +19,4 @@ public record SignValidateRequest
 public static class SignValidateRequestValidator
 {
     public static Option Validate(this SignValidateRequest subject) => SignValidateRequest.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this SignValidateRequest subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }

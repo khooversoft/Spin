@@ -47,12 +47,6 @@ public static class HubChannelTool
 {
     public static Option Validate(this HubChannelRecord subject) => HubChannelRecord.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this HubChannelRecord subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static IReadOnlyList<MessageState> GetMessages(this HubChannelRecord subject, string? principalId = null)
     {
         PrincipalChannelRecord? record = null;

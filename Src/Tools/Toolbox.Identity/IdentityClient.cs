@@ -54,7 +54,7 @@ public class IdentityClient
     public async Task<Option> Set(PrincipalIdentity user, ScopeContext context)
     {
         context = context.With(_logger);
-        if (!user.Validate(out var r)) return r.LogStatus(context, nameof(PrincipalIdentity));
+        if (user.Validate().IsError(out var r)) return r.LogStatus(context, nameof(PrincipalIdentity));
 
         string nodeKey = ToUserKey(user.PrincipalId);
 

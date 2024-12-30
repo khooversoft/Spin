@@ -33,6 +33,6 @@
       </Content>
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Components\Pages\Account\Models\" />
+      <Folder Include="Components\Pages\Channel\" />
     </ItemGroup>
 </Project>
