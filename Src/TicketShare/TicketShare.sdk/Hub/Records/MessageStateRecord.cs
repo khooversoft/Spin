@@ -3,18 +3,18 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public sealed record ReadMessageRecord
+public sealed record MessageStateRecord
 {
     public string MessageId { get; init; } = null!;
     public DateTime ReadDate { get; init; }
 
-    public bool Equals(ReadMessageRecord? obj) => obj is ReadMessageRecord subject &&
+    public bool Equals(MessageStateRecord? obj) => obj is MessageStateRecord subject &&
         MessageId == subject.MessageId &&
         ReadDate == subject.ReadDate;
 
     public override int GetHashCode() => HashCode.Combine(MessageId, ReadDate);
 
-    public static IValidator<ReadMessageRecord> Validator { get; } = new Validator<ReadMessageRecord>()
+    public static IValidator<MessageStateRecord> Validator { get; } = new Validator<MessageStateRecord>()
         .RuleFor(x => x.MessageId).NotEmpty()
         .RuleFor(x => x.ReadDate).ValidDateTime()
         .Build();
@@ -22,5 +22,5 @@ public sealed record ReadMessageRecord
 
 public static class ReadMessageRecordTool
 {
-    public static Option Validate(this ReadMessageRecord subject) => ReadMessageRecord.Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this MessageStateRecord subject) => MessageStateRecord.Validator.Validate(subject).ToOptionStatus();
 }

@@ -22,8 +22,29 @@ public class AppNavigation
 
     public void GotoTicketGroup(string ticketGroupId)
     {
+        ticketGroupId.NotEmpty();
+
         string uri = $"/TicketGroup/{ticketGroupId}";
         _logger.LogInformation("GotoTicketGroup, uri={uri}", uri);
-        _navigationManager.NavigateTo(uri);
+
+        string encoded = Uri.EscapeDataString(uri);
+        _navigationManager.NavigateTo(encoded);
+    }
+
+    public void GotoChannels()
+    {
+        _logger.LogInformation("GotoChannels");
+        _navigationManager.NavigateTo("/Channels");
+    }
+
+    public void GotoChannel(string channelId)
+    {
+        channelId.NotEmpty();
+
+        string uri = $"/TicketGroup/{channelId}";
+        _logger.LogInformation("GotoChannel, uri={uri}", uri);
+
+        string encoded = Uri.EscapeDataString(uri);
+        _navigationManager.NavigateTo(encoded);
     }
 }

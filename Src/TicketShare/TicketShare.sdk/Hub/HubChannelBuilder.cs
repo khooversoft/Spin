@@ -7,9 +7,16 @@ namespace TicketShare.sdk;
 
 public class HubChannelBuilder
 {
-    public string ChannelId { get; init; } = null!;
-    public IDictionary<string, PrincipalChannelRecord> Users { get; init; } = null!;
-    public IList<ChannelMessageRecord> Messages { get; init; } = null!;
+    public HubChannelBuilder(string channelId, IReadOnlyDictionary<string, PrincipalChannelRecord> users, IReadOnlyList<ChannelMessageRecord> messages)
+    {
+        ChannelId = channelId;
+        Users = users.ToDictionary();
+        Messages = messages.ToList();
+    }
+
+    public string ChannelId { get; } = null!;
+    public IDictionary<string, PrincipalChannelRecord> Users { get; } = null!;
+    public IList<ChannelMessageRecord> Messages { get; } = null!;
 
     public HubChannelBuilder AddMessage(ChannelMessageRecord message) => this.Action(x => x.Messages.Add(message));
     public HubChannelBuilder AddUser(PrincipalChannelRecord user) => this.Action(x => x.Users.Add(user.PrincipalId, user));
@@ -29,36 +36,29 @@ public class HubChannelBuilder
 
         if (!Users.TryGetValue(principalId, out PrincipalChannelRecord? channel)) return this;
         if (!Messages.Any(x => x.MessageId == messageId)) return this;
-        if (channel.ReadMessageIds.Any(x => x.MessageId == messageId)) return this;
 
         var newChannel = channel with
         {
-            ReadMessageIds = channel.ReadMessageIds
-                .Append(new ReadMessageRecord { MessageId = messageId, ReadDate = readDate })
-                .ToImmutableArray(),
+            MessageStates = channel.MessageStates
+                .ToDictionary()
+                .Action(x => x.TryAdd(messageId, new MessageStateRecord { MessageId = messageId, ReadDate = readDate }))
+                .ToFrozenDictionary()
         };
 
         Users[principalId] = newChannel;
         return this;
     }
 
-    public HubChannelRecord Build() => this.ConvertTo();
+    public HubChannelRecord Build() => new HubChannelRecord
+    {
+        ChannelId = ChannelId,
+        Users = Users.ToFrozenDictionary(),
+        Messages = Messages.ToImmutableArray(),
+    };
 }
 
 
 public static class HubChannelBuilderTool
 {
-    public static HubChannelBuilder ToBuilder(this HubChannelRecord subject) => new HubChannelBuilder
-    {
-        ChannelId = subject.ChannelId,
-        Users = subject.Users.ToDictionary(),
-        Messages = subject.Messages.ToList(),
-    };
-
-    public static HubChannelRecord ConvertTo(this HubChannelBuilder subject) => new HubChannelRecord
-    {
-        ChannelId = subject.ChannelId,
-        Users = subject.Users.ToFrozenDictionary(),
-        Messages = subject.Messages.ToImmutableArray(),
-    };
+    public static HubChannelBuilder ToBuilder(this HubChannelRecord subject) => new HubChannelBuilder(subject.ChannelId, subject.Users, subject.Messages);
 }

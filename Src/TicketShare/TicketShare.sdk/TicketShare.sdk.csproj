@@ -37,8 +37,4 @@
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Hub\Models\" />
-  </ItemGroup>
-
 </Project>

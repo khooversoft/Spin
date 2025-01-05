@@ -7,7 +7,7 @@ public sealed record ChannelMessageRecord
 {
     public string ChannelId { get; init; } = null!;
     public string MessageId { get; init; } = Guid.NewGuid().ToString();
-    public DateTime TimeStamp { get; init; } = DateTime.UtcNow;
+    public DateTime Date { get; init; } = DateTime.UtcNow;
     public string FromPrincipalId { get; init; } = null!;
     public string Message { get; init; } = null!;
     public IReadOnlyList<MessageAction> Actions { get; init; } = Array.Empty<MessageAction>();
@@ -17,7 +17,7 @@ public sealed record ChannelMessageRecord
         var result = obj is ChannelMessageRecord subject &&
             ChannelId == subject.ChannelId &&
             MessageId == subject.MessageId &&
-            TimeStamp == subject.TimeStamp &&
+            Date == subject.Date &&
             FromPrincipalId == subject.FromPrincipalId &&
             Message == subject.Message &&
             Actions.OrderBy(x => x.ToString()).SequenceEqual(subject.Actions.OrderBy(x => x.ToString()));
@@ -25,7 +25,7 @@ public sealed record ChannelMessageRecord
         return result;
     }
 
-    public override int GetHashCode() => HashCode.Combine(ChannelId, MessageId, TimeStamp, FromPrincipalId, Message, Actions);
+    public override int GetHashCode() => HashCode.Combine(ChannelId, MessageId, Date, FromPrincipalId, Message, Actions);
 
     public static IValidator<ChannelMessageRecord> Validator { get; } = new Validator<ChannelMessageRecord>()
         .RuleFor(x => x.ChannelId).NotEmpty()

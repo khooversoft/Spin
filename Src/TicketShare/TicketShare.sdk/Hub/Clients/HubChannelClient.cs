@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Collections.Frozen;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
@@ -12,7 +13,8 @@ namespace TicketShare.sdk;
 public class HubChannelClient
 {
     private const string _nodeTag = "hubChannel";
-    private const string _edgeType = "hubChannel-user";
+    private const string _hubChannelUserTag = "hubChannel-user";
+    private const string _hubTicketGroupUserTag = "ticketGroup-user";
     private readonly ILogger<HubChannelClient> _logger;
     private readonly IGraphClient _graphClient;
 
@@ -48,7 +50,7 @@ public class HubChannelClient
         principalId.NotEmpty();
 
         var cmd = new SelectCommandBuilder()
-            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_edgeType))
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_hubTicketGroupUserTag))
             .AddRightJoin()
             .AddNodeSearch()
             .AddDataName("entity")
@@ -76,7 +78,7 @@ public class HubChannelClient
             .UseSet(useSet)
             .SetNodeKey(nodeKey)
             .AddTag(_nodeTag)
-            .AddReferences(_edgeType, hubChannelRecord.Users.Values.Select(x => GraphTool.ApplyIfRequired(x.PrincipalId, IdentityClient.ToUserKey)))
+            .AddReferences(_hubChannelUserTag, hubChannelRecord.Users.Values.Select(x => GraphTool.ApplyIfRequired(x.PrincipalId, IdentityClient.ToUserKey)))
             .AddData("entity", hubChannelRecord)
             .Build();
 
@@ -120,6 +122,6 @@ public static class HubChannelClientExtensions
                 PrincipalId = ownerPrincipalId,
                 Role = ChannelRole.Owner,
             },
-        },
+        }.ToFrozenDictionary(),
     };
 }

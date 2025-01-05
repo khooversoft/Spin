@@ -29,10 +29,10 @@
                 <Authorized>
 
                     <FluentNavLink Href="TicketGroups" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent">Tickets</FluentNavLink>
-                    <FluentNavLink Href="Messages" Icon="@(new Icons.Regular.Size20.Comment())" IconColor="Color.Accent">Messages</FluentNavLink>
+                    <FluentNavLink Href="Channels" Icon="@(new Icons.Regular.Size20.Comment())" IconColor="Color.Accent">Channels</FluentNavLink>
                     <FluentNavLink Href="UserAccount" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Account</FluentNavLink>
 
-                    <SiteSettings />
+                    @* <SiteSettings /> *@
 
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />

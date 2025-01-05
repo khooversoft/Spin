@@ -1,4 +1,7 @@
 ﻿@page "/TicketGroup/{TicketGroupId}"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
 @using TicketShare.sdk
 
 <LoadingBlock Visible=@Visible />

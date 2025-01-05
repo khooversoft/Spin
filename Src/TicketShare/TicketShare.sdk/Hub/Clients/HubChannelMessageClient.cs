@@ -32,24 +32,6 @@ public class HubChannelMessageClient
         return writeOption;
     }
 
-    public async Task<Option<IReadOnlyList<ChannelState>>> GetChannelStatesForPrincipalId(string principalId, ScopeContext context)
-    {
-        principalId.NotEmpty();
-
-        var readOption = await _hubChannelClient.GetByPrincipalId(principalId, context);
-        if (readOption.IsError()) return readOption.ToOptionStatus<IReadOnlyList<ChannelState>>();
-
-        var read = readOption.Return();
-
-        var list = read
-            .SelectMany(x => x.GetMessages(principalId).Where(x => x.ReadDate == null))
-            .GroupBy(x => x.Message.ChannelId)
-            .Select(x => new ChannelState(x.Key, x.Count()))
-            .ToArray();
-
-        return list;
-    }
-
     public async Task<Option> MarkRead(string channelId, string principalId, IEnumerable<string> messageIds, DateTime readDate, ScopeContext context)
     {
         channelId.NotEmpty();

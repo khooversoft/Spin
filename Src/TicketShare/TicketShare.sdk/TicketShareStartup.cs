@@ -34,6 +34,7 @@ public static class TicketShareStartup
         service.AddToolboxIdentity();
         service.AddSingleton<AccountClient>();
         service.AddScoped<UserAccountManager>();
+        service.AddScoped<AuthenticationAccess>();
 
         service.AddSingleton<TicketGroupClient>();
         service.AddSingleton<TicketGroupProposalClient>();
@@ -42,6 +43,7 @@ public static class TicketShareStartup
 
         service.AddSingleton<HubChannelClient>();
         service.AddSingleton<HubChannelMessageClient>();
+        service.AddSingleton<HubChannelManager>();
         return service;
     }
 }

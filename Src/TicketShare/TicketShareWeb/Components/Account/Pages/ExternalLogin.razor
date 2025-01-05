@@ -6,16 +6,18 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using System.Diagnostics
 @using Toolbox.Identity
 @using Toolbox.Tools
 
 @inject SignInManager<PrincipalIdentity> SignInManager
 @inject UserManager<PrincipalIdentity> UserManager
 @inject IUserStore<PrincipalIdentity> UserStore
-@inject IEmailSender<PrincipalIdentity> EmailSender
+@* @inject IEmailSender<PrincipalIdentity> EmailSender *@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ExternalLogin> Logger
+@inject IdentityClient IdentityClient
 
 <PageTitle>Register</PageTitle>
 
@@ -37,6 +39,8 @@
             <FluentValidationSummary class="text-danger" role="alert" />
             <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
             <FluentValidationMessage For="() => Input.Email" />
+            <FluentTextField Name="Input.Name" @bind-Value="Input.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
+            <FluentValidationMessage For="() => Input.Name" />
             <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">Register</FluentButton>
         </EditForm>
     </FluentGridItem>
@@ -67,10 +71,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (RemoteError is not null)
-        {
+        // if (RemoteError is not null)
+        // {
             RedirectManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
-        }
+        // }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null)
@@ -109,17 +113,20 @@
                 "{Name} logged in with {LoginProvider} provider.",
                 externalLoginInfo.Principal.Identity?.Name,
                 externalLoginInfo.LoginProvider);
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
-        else if (result.IsLockedOut)
-        {
-            RedirectManager.RedirectTo("Account/Lockout");
-        }
+
+        // else if (result.IsLockedOut)
+        // {
+        //     RedirectManager.RedirectTo("Account/Lockout");
+        // }
 
         // If the user does not have an account, then ask the user to create an account.
         if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
         {
             Input.Email = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
+            Input.Name = Input.Email;
         }
     }
 
@@ -148,20 +155,20 @@
             {
                 Logger.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
 
-                var userId = await UserManager.GetUserIdAsync(user);
-                var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                // var userId = await UserManager.GetUserIdAsync(user);
+                // var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+                // code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-                    NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                    new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-                await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+                // var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                //     NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                //     new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
+                // await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-                // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                {
-                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
-                }
+                // // If account confirmation is required, we need to show the link if we don't have a real email sender
+                // if (UserManager.Options.SignIn.RequireConfirmedAccount)
+                // {
+                //     RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+                // }
 
                 await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
                 RedirectManager.RedirectTo(ReturnUrl);
@@ -197,6 +204,9 @@
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; } = "";
+        public string Email { get; set; } = String.Empty;
+
+        [Required]
+        public string Name { get; set; } = String.Empty;
     }
 }
