@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Identity;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace TicketShare.sdk.Principals;
 

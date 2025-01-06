@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -40,7 +35,7 @@ public class HubChannelManager
     {
         principalId.NotEmpty();
         var result = await _hubChannelClient.GetByPrincipalId(principalId, context);
-        if( result.IsError()) return result.ToOptionStatus<IReadOnlyList<ChannelInfo>>();
+        if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<ChannelInfo>>();
 
         var channelInfos = result.Return().Select(x => new ChannelInfo
         {
