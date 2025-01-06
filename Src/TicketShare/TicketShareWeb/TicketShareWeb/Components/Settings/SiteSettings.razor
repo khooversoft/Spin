@@ -1,0 +1,21 @@
+﻿
+<FluentNavLink OnClick="Show" Icon="@(new Icons.Regular.Size20.Settings())">Settings</FluentNavLink>
+
+@code {
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+
+    private async Task Show()
+    {
+        var parameters = new DialogParameters()
+            {
+                Alignment = HorizontalAlignment.Right,
+                ShowDismiss = true,
+                Title = "Site Settings",
+                PrimaryAction = null,
+                SecondaryAction = null,
+            };
+
+        var dialog = await _dialogService.ShowPanelAsync<SiteSettingsPanel>(parameters);
+        var result = await dialog.Result;
+    }
+}

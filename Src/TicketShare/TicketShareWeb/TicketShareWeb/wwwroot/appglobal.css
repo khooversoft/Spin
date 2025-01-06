@@ -1,0 +1,138 @@
+﻿
+/*Associated with .body-content*/
+
+.body-content-light {
+    background-color: var(--neutral-layer-2);
+}
+
+.left-justified-button::part(control) {
+    text-align: left; /* Align text to the left */
+    justify-content: left;
+}
+
+.alert-button::part(control) {
+    background-color: #FF4500; /* Red-Orange color */
+}
+
+    .alert-button::part(control):hover {
+        background-color: #FF6347; /* Slightly lighter red-orange for hover effect */
+    }
+
+.form-editbox {
+    /*min-width: 360px;*/
+    width: 100%
+}
+
+.dialog-editbox {
+    min-width: 250px;
+    width: 100%
+}
+
+.feed-block-container {
+    /*    min-width: 380px;
+    max-width: 380px;
+*/ width: 380px;
+    padding: 0px;
+    /*border-radius: 4px;*/
+    /*border: 1px solid black;*/
+}
+
+.feed-block-background-light {
+    background-color: white;
+}
+
+.feed-block-background-dark {
+    background-color: black;
+}
+
+.feed-block-content {
+    /*max-width: 380px;*/
+    padding: 3px;
+    /*border: 1px solid blue;*/
+}
+
+.feed-block-datagrid {
+    max-width: 380px;
+    padding: 0px;
+    /*border: 1px solid green;*/
+}
+
+.feed-block-toolbar {
+    width: 100%;
+    /*    min-width: 375px;
+    max-width: 375px;
+    width: 375px;
+*/ /*background-color: #f0dee1;*/
+    /*border-radius: 3px;*/
+    /*padding: 1px 2px 2px 2px;*/
+    padding: 0px;
+    border-bottom: 1px solid #c0c0c0;
+}
+
+.hr-divider {
+    /*border-top: 1px solid #c0c0c0;*/
+    margin: 5px 0px;
+}
+
+/*.min-width-clear {
+    min-width: 0px;
+}
+*/
+.padding-clear {
+    padding: 0px !important;
+}
+
+.alert-button {
+    background-color: red;
+}
+
+.paragraph-format {
+    margin: 0px 0px 2px 0px;
+}
+
+.message-box-container {
+    font-size: 12px;
+    margin: 5px 0px 10px 0px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.validation-error {
+    background-color: #FFE4E1;
+    color: black;
+}
+
+.divider {
+    height: 4px;
+    min-height: 4px;
+    width: 100%;
+    border-radius: 1px;
+    background-color: #c0c0c0;
+    margin: 5px 0px 3px 0px;
+}
+
+@media (max-width: 600px) {
+    .content {
+        padding: 0.5rem 0.3rem;
+        align-self: stretch !important;
+    }
+}
+
+.card-image {
+    width: calc(100% - 10px);
+    min-width: 200px;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    box-sizing: border-box;
+    margin: 5px;
+}
+
+.intro-text {
+    font-size: var(--type-ramp-minus-1-font-size );
+    margin: 0px;
+}
+
+.card-container {
+    padding: 10px !important;
+}

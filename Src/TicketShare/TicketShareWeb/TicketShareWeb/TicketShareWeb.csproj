@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>aspnet-TicketShareWeb-e9076773-e3de-4c20-8260-df0e9c390006</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.*-*" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.*-*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.*-*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.*-*" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.*-* " />
+        <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.*-* " />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Tools\Toolbox.Identity\Toolbox.Identity.csproj" />
+        <ProjectReference Include="..\..\..\Tools\Toolbox\Toolbox.csproj" />
+        <ProjectReference Include="..\..\TicketShare.sdk\TicketShare.sdk.csproj" />
+    </ItemGroup>
+</Project>
