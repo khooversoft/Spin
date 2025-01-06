@@ -58,6 +58,6 @@ public static class LoggingExtensions
 
         (msg, argList) = context.AppendContext(msg, argList);
 
-        location.Log(option.StatusCode.IsOk() ? LogLevel.Information : LogLevel.Error, msg, argList);
+        location.Log(option.StatusCode.IsOk() ? LogLevel.Trace : LogLevel.Error, msg, argList);
     }
 }

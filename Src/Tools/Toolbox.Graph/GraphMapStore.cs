@@ -28,7 +28,7 @@ internal class GraphMapStore
         await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
         try
         {
-            context.LogInformation("Reading graph data file={mapDatabasePath}", _mapDatabasePath);
+            context.LogTrace("Reading graph data file={mapDatabasePath}", _mapDatabasePath);
 
             var readMapSerializer = await _graphContext.FileStore.Get(_mapDatabasePath, context).ConfigureAwait(false);
             if (readMapSerializer.IsNotFound()) return await InternalSet(context).ConfigureAwait(false);
@@ -39,7 +39,7 @@ internal class GraphMapStore
             GraphSerialization graphSerialization = readMapSerializer.Return().ToObject<GraphSerialization>();
             GraphMap newMap = graphSerialization.FromSerialization();
 
-            context.LogInformation("Read graph data file={mapDatabasePath}", _mapDatabasePath);
+            context.LogTrace("Read graph data file={mapDatabasePath}", _mapDatabasePath);
             _graphContext.SetMap(newMap);
 
             return StatusCode.OK;
