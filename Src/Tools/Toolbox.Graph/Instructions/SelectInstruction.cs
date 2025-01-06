@@ -11,11 +11,11 @@ internal static class SelectInstruction
 {
     public static async Task<Option> Process(GiSelect giSelect, QueryExecutionContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogInformation("Process giSelect={giSelect}", giSelect);
+        pContext.TrxContext.Context.Location().LogTrace("Process giSelect={giSelect}", giSelect);
         var result = await Select(giSelect.Instructions, pContext);
         result.LogStatus(pContext.TrxContext.Context, "Select return status");
 
-        pContext.TrxContext.Context.LogInformation("Completed processing of giSelect={giSelect}", giSelect);
+        pContext.TrxContext.Context.LogTrace("Completed processing of giSelect={giSelect}", giSelect);
         return result;
     }
 
@@ -45,7 +45,7 @@ internal static class SelectInstruction
             }
         }
 
-        pContext.TrxContext.Context.LogInformation("Completed processing select, count={count}", instructions.Count);
+        pContext.TrxContext.Context.LogTrace("Completed processing select, count={count}", instructions.Count);
         return result;
     }
 

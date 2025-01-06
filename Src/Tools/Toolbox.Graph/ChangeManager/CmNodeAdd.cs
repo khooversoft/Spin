@@ -34,7 +34,7 @@ public class CmNodeAdd : IChangeLog
             return ((Option)(StatusCode.Conflict, $"Failed to remove node key={NewValue.Key}")).ToTaskResult();
         }
 
-        graphContext.Context.LogInformation("Rollback: removed node logKey={logKey}, Node key={key}", LogKey, NewValue.Key);
+        graphContext.Context.LogTrace("Rollback: removed node logKey={logKey}, Node key={key}", LogKey, NewValue.Key);
         return ((Option)StatusCode.OK).ToTaskResult();
     }
 }

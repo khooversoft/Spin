@@ -94,7 +94,7 @@ internal static class NodeDataTool
 
         graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
 
-        graphContext.Context.LogInformation("Deleting data map={fileId}", fileId);
+        graphContext.Context.LogTrace("Deleting data map={fileId}", fileId);
         var deleteOption = await graphContext.FileStore.Delete(fileId, graphContext.Context).ConfigureAwait(false);
         deleteOption.LogStatus(graphContext.Context, "Deleted data map");
 
@@ -103,7 +103,7 @@ internal static class NodeDataTool
 
     private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
     {
-        pContext.TrxContext.Context.LogInformation("Writing node data fileId={fileId}", fileId);
+        pContext.TrxContext.Context.LogTrace("Writing node data fileId={fileId}", fileId);
         var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context).ConfigureAwait(false);
 
         var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.TrxContext.Context).ConfigureAwait(false);

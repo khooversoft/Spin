@@ -37,7 +37,7 @@ public class CmEdgeAdd : IChangeLog
             return ((Option)(StatusCode.Conflict, $"Failed to remove edge edgeKey={pk}")).ToTaskResult();
         }
 
-        graphContext.Context.LogInformation("Rollback Edge: removed edge logKey={logKey}, Edge edgeKey={key} ", LogKey, pk);
+        graphContext.Context.LogTrace("Rollback Edge: removed edge logKey={logKey}, Edge edgeKey={key} ", LogKey, pk);
         return ((Option)StatusCode.OK).ToTaskResult();
     }
 }

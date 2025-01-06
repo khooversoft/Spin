@@ -29,7 +29,7 @@ public class ChangeLog
     {
         changeLog.NotNull();
         _commands.Push(changeLog);
-        _graphTrxContext.Context.LogInformation("Push changeLog={changeLog}", changeLog.LogKey);
+        _graphTrxContext.Context.LogTrace("Push changeLog={changeLog}", changeLog.LogKey);
     }
 
     public async Task Rollback()

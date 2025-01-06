@@ -6,7 +6,7 @@ internal static class DeleteInstruction
 {
     public static async Task<Option> Process(GiDelete giDelete, QueryExecutionContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogInformation("Process giDelete={giDelete}", giDelete);
+        pContext.TrxContext.Context.Location().LogTrace("Process giDelete={giDelete}", giDelete);
 
         var selectResultOption = await SelectInstruction.Select(giDelete.Instructions, pContext);
         if (selectResultOption.IsError()) return selectResultOption;
@@ -27,7 +27,7 @@ internal static class DeleteInstruction
         var removeNodes = RemoveNodes(lastQueryResult.Nodes, pContext);
         if (removeNodes.IsError()) return removeNodes;
 
-        pContext.TrxContext.Context.LogInformation("Completed processing of giSelect={giSelect}", giDelete);
+        pContext.TrxContext.Context.LogTrace("Completed processing of giSelect={giSelect}", giDelete);
         return StatusCode.OK;
     }
 
@@ -42,7 +42,7 @@ internal static class DeleteInstruction
                 continue;
             }
 
-            pContext.TrxContext.Context.LogInformation("Removed edge key={edge.Key}", edge);
+            pContext.TrxContext.Context.LogTrace("Removed edge key={edge.Key}", edge);
         }
 
         return StatusCode.OK;
@@ -59,7 +59,7 @@ internal static class DeleteInstruction
                 continue;
             }
 
-            pContext.TrxContext.Context.LogInformation("Removed node key={node.Key}", node.Key);
+            pContext.TrxContext.Context.LogTrace("Removed node key={node.Key}", node.Key);
         }
 
         return StatusCode.OK;

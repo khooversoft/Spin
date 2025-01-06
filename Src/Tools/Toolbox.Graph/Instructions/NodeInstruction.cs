@@ -9,7 +9,7 @@ internal static class NodeInstruction
 {
     public static async Task<Option> Process(GiNode giNode, QueryExecutionContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogInformation("Process giNode={giNode}", giNode);
+        pContext.TrxContext.Context.Location().LogTrace("Process giNode={giNode}", giNode);
 
         var result = giNode.ChangeType switch
         {
@@ -30,7 +30,7 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogInformation("Adding giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogTrace("Adding giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.AddData(giNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -54,7 +54,7 @@ internal static class NodeInstruction
         var fk = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fk.IsError()) return fk;
 
-        pContext.TrxContext.Context.LogInformation("Added giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogTrace("Added giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
@@ -63,7 +63,7 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogTrace("Deleting giNode={giNode}", giNode);
 
         if (pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var readGraphNode))
         {
@@ -74,7 +74,7 @@ internal static class NodeInstruction
         var graphResult = pContext.TrxContext.Map.Nodes.Remove(giNode.Key, pContext.TrxContext);
         if (!giNode.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.TrxContext.Context.LogInformation("Deleting giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogTrace("Deleting giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
@@ -82,11 +82,11 @@ internal static class NodeInstruction
     {
         if (!pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
         {
-            pContext.TrxContext.Context.LogInformation("Node key={key} not found, adding node for upsert", giNode.Key);
+            pContext.TrxContext.Context.LogTrace("Node key={key} not found, adding node for upsert", giNode.Key);
             return await Add(giNode, pContext);
         }
 
-        pContext.TrxContext.Context.LogInformation("Updating giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogTrace("Updating giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.MergeData(giNode, currentGraphNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
