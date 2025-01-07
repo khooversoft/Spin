@@ -1,0 +1,70 @@
+﻿<FluentStack Orientation="Orientation.Horizontal">
+
+    @if (OnClose.HasDelegate)
+    {
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.ArrowLeft())"
+                      OnClick="CloseClick">
+        </FluentButton>
+    }
+
+    @if (OnSet.HasDelegate)
+    {
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@setIcon"
+                      Disabled="DisableSave"
+                      OnClick="SetClick">
+            @setText
+        </FluentButton>
+    }
+
+    @if (ShowDelete && OnDelete.HasDelegate)
+    {
+        <FluentSpacer />
+
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.Delete())"
+                      Disabled="DisableDelete"
+                      OnClick="DeleteClick">
+            Delete
+        </FluentButton>
+    }
+
+</FluentStack>
+
+@if (OnSet.HasDelegate || OnClose.HasDelegate || OnDelete.HasDelegate)
+{
+    <DividerBlock />
+    @* <hr style="margin: 5px 0px 20px 0px" /> *@
+}
+
+
+@code {
+    [Parameter] public EventCallback OnSet { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public bool DisableSave { get; set; }
+    [Parameter] public bool DisableDelete { get; set; }
+    [Parameter] public bool ShowDelete { get; set; }
+    [Parameter] public bool ShowSave { get; set; }
+
+    private Icon setIcon = null!;
+    private string setText = null!;
+
+    protected override void OnParametersSet()
+    {
+        (setIcon, setText) = (ShowSave || ShowDelete) switch
+        {
+            true => ((Icon)new Icons.Regular.Size20.Save(), "Save"),
+            false => ((Icon)new Icons.Regular.Size20.Add(), "Add"),
+        };
+    }
+
+    private async Task CloseClick() => await OnClose.InvokeAsync();
+    private async Task SetClick() => await OnSet.InvokeAsync();
+
+    private async Task DeleteClick()
+    {
+        if (OnDelete.HasDelegate) await OnDelete.InvokeAsync();
+    }
+}

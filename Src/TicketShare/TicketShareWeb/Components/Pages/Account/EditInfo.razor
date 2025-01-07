@@ -1,0 +1,25 @@
+﻿@using TicketShare.sdk
+
+@if (Content != null)
+{
+    <FluentTextField Name="Content.Name"
+                     @bind-Value="Content.Name"
+                     Required="true"
+                     Placeholder="Your name"
+                     Label="Name"
+                     Class="form-editbox"
+                     ReadOnly="@ReadOnly"
+                     @oninput="OnNameChange" />
+}
+
+@code {
+    [Parameter] public UserProfileEditModel Content { get; set; } = null!;
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    private async Task OnNameChange(ChangeEventArgs e)
+    {
+        Content.Name = e.Value?.ToString() ?? Content.Name;
+        await OnChange.InvokeAsync();
+    }
+}

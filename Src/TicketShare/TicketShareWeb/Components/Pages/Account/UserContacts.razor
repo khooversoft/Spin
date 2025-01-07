@@ -1,0 +1,58 @@
+﻿@rendermode InteractiveServer
+
+<FeedBlock Title="Contacts" Class="feed-block-datagrid" OnAdd="Add">
+    <FluentDataGrid Class="feed-block-datagrid"
+                    Items="@_contacts"
+                    GridTemplateColumns="70px 300px"
+                    ShowHover="true"
+                    GenerateHeader=GenerateHeaderOption.None
+                    TGridItem="ContactModel"
+                    OnRowClick="HandleRowFocus">
+        <PropertyColumn Property="@(p => p.Type)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Value)" Sortable="true" />
+    </FluentDataGrid>
+</FeedBlock>
+
+@code {
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [CascadingParameter] public UserAccountContext UserAccountContext { get; set; } = null!;
+
+    private IQueryable<ContactModel> _contacts = null!;
+    private RightPanelDialog<ContactModel, UserContactDialog> _rightPanelDialog = null!;
+
+    protected override void OnParametersSet()
+    {
+        _rightPanelDialog = new RightPanelDialog<ContactModel, UserContactDialog>(
+            _dialogService,
+            x => UserAccountContext.Contact.Set(x),
+            x => UserAccountContext.Contact.Delete(x)
+        );
+
+        Refresh();
+    }
+
+    private async Task HandleRowFocus(FluentDataGridRow<ContactModel> row)
+    {
+        var result = await _rightPanelDialog.Edit(row.Item.NotNull(), "Edit Contact");
+        if (result == RightPanelDialog.Canceled) return;
+
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Add()
+    {
+        var model = new ContactModel { Type = "Email", Value = "" };
+
+        var result = await _rightPanelDialog.Add(model, "Add Contact");
+        if (result == RightPanelDialog.Canceled) return;
+
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Refresh()
+    {
+        _contacts = UserAccountContext.Input.ContactItems.Values.OrderBy(x => x.Value).AsQueryable();
+    }
+}

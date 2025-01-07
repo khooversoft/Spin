@@ -1,0 +1,7 @@
+﻿<FluentStack Orientation="Orientation.Vertical" VerticalGap="4">
+    @ChildContent
+</FluentStack>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+}

@@ -1,0 +1,28 @@
+﻿@implements IDialogContentComponent<UserProfileEditModel>
+
+@if (Content != null)
+{
+    <FluentDialogBody>
+        <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" ShowDelete="false" DisableSave="_disableSave">
+
+            <EditInfo Content="@Content" OnChange="UpdateState" />
+
+        </DialogFrame>
+    </FluentDialogBody>
+}
+
+@code {
+    [Parameter] public UserProfileEditModel Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private bool _disableSave = true;
+    private UserProfileEditModel _current = default!;
+
+    protected override void OnParametersSet() => _current = Content.Clone();
+
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(Content);
+    public async Task OnCloseButton() => await Dialog.CancelAsync();
+
+    private void UpdateState() => _disableSave = Content == _current;
+}
