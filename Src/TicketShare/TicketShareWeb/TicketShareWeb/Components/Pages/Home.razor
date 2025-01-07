@@ -4,18 +4,31 @@
 <PageTitle>Ticket Share</PageTitle>
 
 <FluentStack Orientation="Orientation.Vertical">
-    <FluentCard Class="card-container" Width="380px">
-        <img class="card-image" src="images/Fans.webp">
-        <p class="intro-text">
-            Introducing <b>Ticket Share</b>, your go-to platform for connecting with fellow event
-            enthusiasts
-            to share the joy of live events! At Ticket Share, we believe in the power of community and
-            the unforgettable experiences that come from attending live events, whether it's a concert,
-            sports game, theater production, or any other gathering that brings people together.
-            Our platform is designed to make ticket sharing seamless, secure, and social.
-        </p>
-    </FluentCard>
+    <AuthorizeView>
+        <Authorized>
+            <FluentCard Class="card-container" Width="380px">
+                <img class="card-image" src="images/SharringTickets.webp">
+                <p class="intro-text">
+                    This feed offers a timeline of all your activities. In the account section,
+                    you can update your personal information. Ticket groups allow you to manage
+                    and share collections of tickets. The messages section is for your
+                    conversations.
+                </p>
+            </FluentCard>
+        </Authorized>
+        <NotAuthorized>
+            <FluentCard Class="card-container" Width="380px">
+                <img class="card-image" src="images/Fans.webp">
+                <p class="intro-text">
+                    Introducing <b>Ticket Share</b>, your go-to platform for connecting with fellow event enthusiasts
+                    to share the joy of live events! At Ticket Share, we believe in the power of community and
+                    the unforgettable experiences that come from attending live events, whether it's a concert,
+                    sports game, theater production, or any other gathering that brings people together.
+                    Our platform is designed to make ticket sharing seamless, secure, and social.
+                </p>
+            </FluentCard>
 
-    <ExternalLoginPicker />
-
+            <ExternalLoginPicker />
+        </NotAuthorized>
+    </AuthorizeView>
 </FluentStack>

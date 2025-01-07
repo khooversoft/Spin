@@ -1,14 +1,11 @@
 ﻿
-<FluentStack Orientation="Orientation.Horizontal">
-    <FluentButton Appearance="Appearance.Outline"
-                  IconStart="@(new Icons.Regular.Size20.DarkTheme())"
-                  OnClick="SwitchMode"
-                  Style="margin: 0px;padding: 0px">
-    </FluentButton>
+<FluentButton Appearance="Appearance.Outline"
+              IconStart="@(new Icons.Regular.Size20.DarkTheme())"
+              OnClick="SwitchMode"
+              Style="margin: 0px;padding: 0px">
+</FluentButton>
 
-    <FluentLabel Style="font-size: 0.7rem">Copyright (c) 2024 - Kelvin Hoover</FluentLabel>
-
-</FluentStack>
+<FluentLabel Style="font-size: 0.7rem">Copyright (c) 2024 - Kelvin Hoover</FluentLabel>
 
 @code {
     [Parameter] public EventCallback SwitchMode { get; set; }
