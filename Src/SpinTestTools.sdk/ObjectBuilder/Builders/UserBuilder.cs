@@ -17,7 +17,7 @@ public class UserBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Create(user, context);
 
-            setOption.LogStatus(context, "Creating User userId={userId}", user.UserId);
+            setOption.LogStatus(context, "Creating User userId={userId}", [user.UserId]);
             test.Test(() => setOption);
         }
 

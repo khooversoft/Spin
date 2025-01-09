@@ -11,38 +11,37 @@ using Toolbox.Types;
 
 namespace Toolbox.Test.TransactionLog;
 
-public class TransactionLogTests
+public class JournalLogTests
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<TransactionLogTests> _logger;
+    private readonly ILogger<JournalLogTests> _logger;
     private readonly ScopeContext _context;
 
-    public TransactionLogTests()
+    public JournalLogTests()
     {
         _services = new ServiceCollection()
             .AddInMemoryFileStore()
             .AddLogging(config => config.AddDebug())
-            .AddTransactionLogProvider("journal1=/journal1/data")
+            .AddJournalLog("test", "journal2=/journal2/data")
             .BuildServiceProvider();
 
-        _logger = _services.GetRequiredService<ILogger<TransactionLogTests>>();
+        _logger = _services.GetRequiredService<ILogger<JournalLogTests>>();
         _context = new ScopeContext(_logger);
     }
 
     [Fact]
     public async Task AddSingleJournal()
     {
-        ITransactionLog transactionLog = _services.GetRequiredService<ITransactionLog>();
+        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search("*", _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
-
         var journalEntry = new JournalEntry
         {
-            TransactionId = trx.TransactionId,
+            LogSequenceNumber = "lsn1",
+            TransactionId = Guid.NewGuid().ToString(),
             Type = JournalType.Action,
             Data = new Dictionary<string, string?>()
             {
@@ -51,32 +50,32 @@ public class TransactionLogTests
             }.ToFrozenDictionary(),
         };
 
-        await trx.Write([journalEntry]);
+        await journal.Write([journalEntry], _context);
 
-        var journals = await transactionLog.ReadJournals("journal1", _context);
+        var journals = await journal.ReadJournals(_context);
 
         journals.Action(x =>
         {
-            x.Count.Should().Be(2);
+            x.Count.Should().Be(1);
 
             var read = x[0];
-            var source = journalEntry with { LogSequenceNumber = read.LogSequenceNumber };
-            (read == source).Should().BeTrue();
-            x[1].Type.Should().Be(JournalType.Commit);
+            (read == journalEntry).Should().BeTrue();
         });
     }
 
     [Fact]
     public async Task AddMulitpleJournal()
     {
-        ITransactionLog transactionLog = _services.GetRequiredService<ITransactionLog>();
+        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search("**/*", _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
         var createdJournals = new Sequence<JournalEntry>();
+        var queue = new Sequence<JournalEntry>();
+        int writeCount = 1;
+        int currentCount = 0;
 
         foreach (var item in Enumerable.Range(0, 100))
         {
@@ -85,7 +84,6 @@ public class TransactionLogTests
 
             var journalEntry = new JournalEntry
             {
-                TransactionId = trx.TransactionId,
                 Type = JournalType.Action,
                 Data = new Dictionary<string, string?>()
                 {
@@ -94,30 +92,35 @@ public class TransactionLogTests
                 }.ToFrozenDictionary(),
             };
 
+            queue += journalEntry;
             createdJournals += journalEntry;
-            await trx.Write([journalEntry]);
+
+            currentCount++;
+            if (currentCount >= writeCount)
+            {
+                writeCount = Math.Min(writeCount + 5, 100);
+                await journal.Write(queue, _context);
+                queue.Clear();
+            }
+        }
+
+        if (queue.Count > 0)
+        {
+            await journal.Write(queue, _context);
         }
 
         search = await fileStore.Search("**/*", _context);
         search.Count.Should().Be(1);
-        search[0].Should().StartWith("/journal1/data");
-        search[0].Should().EndWith(".tranLog.json");
+        search[0].Should().StartWith("/journal2/data");
+        search[0].Should().EndWith(".journal2.json");
 
-        var readOption = await fileStore.Get(search[0], _context);
-        readOption.IsOk().Should().BeTrue();
+        var journals = await journal.ReadJournals(_context);
+        journals.Count.Should().Be(createdJournals.Count);
 
-        DataETag read = readOption.Return();
-        string data = read.Data.BytesToString();
-
-        IReadOnlyList<JournalEntry> journals = TransactionLogTool.ParseJournals(data);
-        journals.Count.Should().Be(createdJournals.Count * 2);
-
-        createdJournals
-            .Select((source, i) => (source, jCreated: source, jRead: journals[i]))
-            .Select(x => (x.source, jCreated: x.jCreated with { LogSequenceNumber = x.jRead.LogSequenceNumber }, x.jRead))
-            .Where(x => x.source != x.jRead)
-            .Any().Should().BeTrue();
-
-        journals[^1].Type.Should().Be(JournalType.Commit);
+        for (int i = 0; i < createdJournals.Count; i++)
+        {
+            var createdJournalUpdated = createdJournals[i] with { LogSequenceNumber = journals[i].LogSequenceNumber };
+            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+        }
     }
 }

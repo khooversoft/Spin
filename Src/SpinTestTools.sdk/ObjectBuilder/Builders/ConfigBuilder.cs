@@ -17,7 +17,7 @@ public class ConfigBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set(model, context);
 
-            setOption.LogStatus(context, "Creating config configId={configId}", model.ConfigId);
+            setOption.LogStatus(context, "Creating config configId={configId}", [model.ConfigId]);
             test.Test(() => setOption);
         }
 

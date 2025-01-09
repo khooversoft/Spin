@@ -111,7 +111,7 @@ public class StorageActor : Grain, IStorageActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Exist storage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!blob.Validate(out var v)) return v;
+        if (blob.Validate().IsError(out var v)) return v;
 
         bool matchActorKey = blob.StorageId.EqualsIgnoreCase(this.GetPrimaryKeyString());
         if (!matchActorKey) return (StatusCode.BadRequest, $"Storage Id={blob.StorageId} does not match actorKey={this.GetPrimaryKeyString()}");

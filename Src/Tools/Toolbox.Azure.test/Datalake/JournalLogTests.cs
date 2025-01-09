@@ -12,50 +12,42 @@ using Toolbox.Types;
 
 namespace Toolbox.Azure.test.Datalake;
 
-public class TransactionLogTests
+public class JournalLogTests
 {
     public readonly IDatalakeStore _dataLakeStore;
     private readonly IServiceProvider _services;
-    private readonly ILogger<TransactionLogTests> _logger;
+    private readonly ILogger<JournalLogTests> _logger;
     private readonly ScopeContext _context;
-    private const string _searchPath = "journal1/data/**/*";
+    private const string _searchPath = "journal2/data/**/*";
 
-    public TransactionLogTests()
+    public JournalLogTests()
     {
         _dataLakeStore = TestApplication.GetDatalake("datastore-tests");
-
-        var option = new TransactionLogFileOption
-        {
-            ConnectionString = "journal1=journal1/data",
-            MaxCount = 10,
-        };
 
         _services = new ServiceCollection()
             .AddSingleton<IDatalakeStore>(_dataLakeStore)
             .AddSingleton<IFileStore, DatalakeFileStoreConnector>()
             .AddLogging(config => config.AddDebug())
-            .AddSingleton(option)
-            .AddTransactionLogProvider()
+            .AddJournalLog("test", "journal2Key=/journal2/data")
             .BuildServiceProvider();
 
-        _logger = _services.GetRequiredService<ILogger<TransactionLogTests>>();
+        _logger = _services.GetRequiredService<ILogger<JournalLogTests>>();
         _context = new ScopeContext(_logger);
     }
 
     [Fact]
     public async Task AddSingleJournal()
     {
-        ITransactionLog transactionLog = _services.GetRequiredService<ITransactionLog>();
+        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search(_searchPath, _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
-
         var journalEntry = new JournalEntry
         {
-            TransactionId = trx.TransactionId,
+            LogSequenceNumber = "lsn1",
+            TransactionId = Guid.NewGuid().ToString(),
             Type = JournalType.Action,
             Data = new Dictionary<string, string?>()
             {
@@ -64,49 +56,42 @@ public class TransactionLogTests
             }.ToFrozenDictionary(),
         };
 
-        await trx.Write([journalEntry]);
+        await journal.Write([journalEntry], _context);
 
         search = await fileStore.Search(_searchPath, _context);
         search.Count.Should().Be(1);
-        search[0].Should().Contain("journal1/data");
-        search[0].Should().EndWith(".tranLog.json");
+        search[0].Should().Contain("journal2/data");
+        search[0].Should().EndWith(".journal2Key.json");
 
-        var readOption = await fileStore.Get(search[0], _context);
-        readOption.IsOk().Should().BeTrue();
+        var journals = await journal.ReadJournals(_context);
 
-        DataETag read = readOption.Return();
-        read.Data.Length.Should().BeGreaterThan(10);
-        string data = read.Data.BytesToString();
-        IReadOnlyList<JournalEntry> journals = TransactionLogTool.ParseJournals(data);
         journals.Action(x =>
         {
-            x.Count.Should().Be(2);
+            x.Count.Should().Be(1);
 
             var readData = x[0];
-            var sourceData = journalEntry with { LogSequenceNumber = readData.LogSequenceNumber };
-            (sourceData == readData).Should().Be(true);
-
-            x[1].Type.Should().Be(JournalType.Commit);
+            (journalEntry == readData).Should().Be(true);
         });
     }
 
     [Fact]
     public async Task AddMulitpleJournal()
     {
-        ITransactionLog transactionLog = _services.GetRequiredService<ITransactionLog>();
+        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search(_searchPath, _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
 
-        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
         var createdJournals = new Sequence<JournalEntry>();
+        var queue = new Sequence<JournalEntry>();
+        int writeCount = 1;
+        int currentCount = 0;
 
         foreach (var item in Enumerable.Range(0, 100))
         {
             var journalEntry = new JournalEntry
             {
-                TransactionId = trx.TransactionId,
                 Type = JournalType.Action,
                 Data = new Dictionary<string, string?>()
                 {
@@ -115,47 +100,49 @@ public class TransactionLogTests
                 }.ToFrozenDictionary(),
             };
 
+            queue += journalEntry;
             createdJournals += journalEntry;
-            await trx.Write([journalEntry]);
+
+            currentCount++;
+            if (currentCount >= writeCount)
+            {
+                writeCount = Math.Min(writeCount + 5, 100);
+                await journal.Write(queue, _context);
+                queue.Clear();
+            }
+        }
+
+        if (queue.Count > 0)
+        {
+            await journal.Write(queue, _context);
         }
 
         search = await fileStore.Search(_searchPath, _context);
         search.Count.Should().Be(1);
         search.ForEach(x =>
         {
-            x.Should().StartWith("journal1/data");
-            x.Should().EndWith(".tranLog.json");
+            x.Should().StartWith("journal2/data");
+            x.Should().EndWith(".journal2Key.json");
         });
 
-        var journalEntryListData = await search.SelectAsync(async x => (await fileStore.Get(x, _context)).ThrowOnError().Return());
+        var journals = await journal.ReadJournals(_context);
+        journals.Count.Should().Be(createdJournals.Count);
 
-        var journals = journalEntryListData
-            .Select(x => x.Data.BytesToString())
-            .SelectMany(x => TransactionLogTool.ParseJournals(x))
-            .OrderBy(x => x.LogSequenceNumber)
-            .ToArray();
-
-        journals.Length.Should().Be(createdJournals.Count * 2);
-
-        createdJournals
-            .Select((source, i) => (source, jCreated: source, jRead: journals[i]))
-            .Select(x => (x.source, jCreated: x.jCreated with { LogSequenceNumber = x.jRead.LogSequenceNumber }, x.jRead))
-            .Where(x => x.source != x.jRead)
-            .Any().Should().BeTrue();
-
-        journals[^1].Type.Should().Be(JournalType.Commit);
+        for (int i = 0; i < createdJournals.Count; i++)
+        {
+            var createdJournalUpdated = createdJournals[i] with { LogSequenceNumber = journals[i].LogSequenceNumber };
+            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+        }
     }
 
     [Fact]
     public async Task AddMulitpleBatchJournal()
     {
-        ITransactionLog transactionLog = _services.GetRequiredService<ITransactionLog>();
+        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search(_searchPath, _context);
         await search.ForEachAsync(async x => await fileStore.Delete(x, _context));
-
-        ILogicalTrx trx = (await transactionLog.StartTransaction(_context)).ThrowOnError().Return();
 
         var createdJournals = new Sequence<JournalEntry>();
 
@@ -166,6 +153,8 @@ public class TransactionLogTests
         {
             var batchJournals = new Sequence<JournalEntry>();
 
+            var trxContext = journal.CreateTransactionContext();
+
             foreach (var item in Enumerable.Range(0, batchSize))
             {
                 string v1 = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
@@ -173,7 +162,6 @@ public class TransactionLogTests
 
                 var journalEntry = new JournalEntry
                 {
-                    TransactionId = trx.TransactionId,
                     Type = JournalType.Action,
                     Data = new Dictionary<string, string?>()
                     {
@@ -185,7 +173,7 @@ public class TransactionLogTests
                 batchJournals += journalEntry;
             }
 
-            await trx.Write(batchJournals);
+            await trxContext.Write(batchJournals, _context);
             createdJournals += batchJournals;
         }
 
@@ -193,26 +181,22 @@ public class TransactionLogTests
         search.Count.Should().Be(1);
         search.ForEach(x =>
         {
-            x.Should().StartWith("journal1/data");
-            x.Should().EndWith(".tranLog.json");
+            x.Should().StartWith("journal2/data");
+            x.Should().EndWith(".journal2Key.json");
         });
 
-        var journalEntryListData = await search.SelectAsync(async x => (await fileStore.Get(x, _context)).ThrowOnError().Return());
+        var journals = await journal.ReadJournals(_context);
+        journals.Count.Should().Be(createdJournals.Count);
 
-        var journals = journalEntryListData
-            .Select(x => x.Data.BytesToString())
-            .SelectMany(x => TransactionLogTool.ParseJournals(x))
-            .OrderBy(x => x.LogSequenceNumber)
-            .ToArray();
+        for (int i = 0; i < createdJournals.Count; i++)
+        {
+            var createdJournalUpdated = createdJournals[i] with 
+            {
+                LogSequenceNumber = journals[i].LogSequenceNumber,
+                TransactionId = journals[i].TransactionId,
+            };
 
-        journals.Length.Should().Be(createdJournals.Count + batchCount);
-
-        createdJournals
-            .Select((source, i) => (source, jCreated: source, jRead: journals[i]))
-            .Select(x => (x.source, jCreated: x.jCreated with { LogSequenceNumber = x.jRead.LogSequenceNumber }, x.jRead))
-            .Where(x => x.source != x.jRead)
-            .Any().Should().BeTrue();
-
-        journals[^1].Type.Should().Be(JournalType.Commit);
+            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+        }
     }
 }

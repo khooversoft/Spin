@@ -30,7 +30,7 @@ internal class VirtualLogReceiver : ILogicalTrx
     {
         journalEntries = journalEntries
             .Select(x => x with { TransactionId = _transactionId })
-            .Append(new JournalEntry { Type = JournalType.CommitTran })
+            .Append(new JournalEntry { Type = JournalType.Commit })
             .ToArray();
 
         _context.LogInformation("Write, transactionId={transactionId}", _transactionId);

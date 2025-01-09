@@ -18,7 +18,7 @@ public class TenantBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set((TenantModel)tenant, context);
 
-            setOption.LogStatus(context, "Creating Tenant domain={domain}", tenant.Domain);
+            setOption.LogStatus(context, "Creating Tenant domain={domain}", [tenant.Domain]);
             test.Test(() => setOption);
         }
 

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
-using Toolbox.TransactionLog;
+using Toolbox.Journal;
 
-namespace Toolbox.Test.TransactionLog;
+namespace Toolbox.Test.Journal;
 
 public class LogSequenceNumberTests
 {

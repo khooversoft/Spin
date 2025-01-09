@@ -11,18 +11,21 @@ namespace Toolbox.Journal;
 
 public interface IJournalWriter
 {
-    Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context);
+    public JournalTrx CreateTransactionContext(string? transactionId = null);
     Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context);
+    Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context);
+
 }
 
-public class JournalFile
+public class JournalFile : IJournalWriter
 {
     private readonly JournalFileOption _fileOption;
     private readonly ILogger<JournalFile> _logger;
     private readonly IFileStore _fileStore;
     private readonly string _name;
     private readonly string _basePath;
-    private readonly SemaphoreSlim _resetEvent = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
+    private readonly LogSequenceNumber _logSequenceNumber = new LogSequenceNumber();
 
     public JournalFile(JournalFileOption fileOption, IFileStore fileStore, ILogger<JournalFile> logger)
     {
@@ -37,6 +40,12 @@ public class JournalFile
 
         _logger.LogInformation("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
     }
+
+    public JournalTrx CreateTransactionContext(string? transactionId = null) => transactionId switch
+    {
+        not null => new JournalTrx(this, transactionId, _logger),
+        null => new JournalTrx(this, Guid.NewGuid().ToString(), _logger)
+    };
 
     public async Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context)
     {
@@ -75,28 +84,30 @@ public class JournalFile
         journalEntries.NotNull();
         context = context.With(_logger);
 
-        await _resetEvent.WaitAsync(context.CancellationToken);
+        var writeString = journalEntries
+            .Select(x => x.LogSequenceNumber.IsNotEmpty() ? x : x with { LogSequenceNumber = _logSequenceNumber.Next() })
+            .Select(x => x.ToJson() + Environment.NewLine)
+            .Aggregate(new StringBuilder(), (a, b) => a.Append(b))
+            .ToString();
 
+        string path = $"{_basePath}/{DateTime.UtcNow:yyyyMM}/{DateTime.UtcNow:yyyyMMdd}.{_name}.json";
+
+        string logSequenceNumbers = journalEntries.Select(x => x.LogSequenceNumber).Join(",");
+        context.LogInformation("Writting journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
+
+        await _writeLock.WaitAsync(context.CancellationToken);
+
+        Option result;
         try
         {
-            string path = $"{_basePath}/{DateTime.UtcNow:yyyyMM}/{DateTime.UtcNow:yyyyMMdd}.{_name}.json";
-
-            string logSequenceNumbers = journalEntries.Select(x => x.LogSequenceNumber).Join(",");
-            context.LogInformation("Writting journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
-
-            var json = journalEntries
-                .Select(x => x.ToJson() + Environment.NewLine)
-                .Aggregate(new StringBuilder(), (a, b) => a.Append(b))
-                .ToString();
-
-            var result = await _fileStore.Append(path, Encoding.UTF8.GetBytes(json), context);
-
-            result.LogStatus(context, "Completed writting journal entry to name={name}, path={path}", [_name, path]);
-            return result;
+            result = await _fileStore.Append(path, Encoding.UTF8.GetBytes(writeString), context);
         }
         finally
         {
-            _resetEvent.Release();
+            _writeLock.Release();
         }
+
+        result.LogStatus(context, "Completed writting journal entry to name={name}, path={path}", [_name, path]);
+        return result;
     }
 }

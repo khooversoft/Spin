@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using Toolbox.Extensions;
 
-namespace Toolbox.TransactionLog;
+namespace Toolbox.Journal;
 
 public class LogSequenceNumber
 {

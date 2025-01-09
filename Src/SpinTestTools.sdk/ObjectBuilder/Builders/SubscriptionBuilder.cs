@@ -17,7 +17,7 @@ public class SubscriptionBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set(subscription, context);
 
-            setOption.LogStatus(context, "Creating Subscription name={name}", subscription.Name);
+            setOption.LogStatus(context, "Creating Subscription name={name}", [subscription.Name]);
             test.Test(() => setOption);
         }
 
