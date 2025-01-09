@@ -5,12 +5,6 @@ namespace Toolbox.Graph;
 
 internal record GiFullJoin : ISelectInstruction
 {
-    //public JournalEntry CreateJournal()
-    //{
-    //    var data = new KeyValuePair<string, string?>(GraphConstants.Trx.GiType, this.GetType().Name);
-    //    var journal = JournalEntry.Create(JournalType.Select, [data]);
-    //    return journal;
-    //}
 }
 
 internal static class GiFullJoinTool
@@ -23,5 +17,11 @@ internal static class GiFullJoinTool
 
         scope.Cancel();
         return new GiFullJoin();
+    }
+
+    public static string GetCommandDesc(this GiFullJoin subject)
+    {
+        var command = nameof(GiFullJoin);
+        return command;
     }
 }

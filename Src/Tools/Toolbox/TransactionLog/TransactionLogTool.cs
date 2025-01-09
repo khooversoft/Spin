@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
+using Toolbox.Journal;
 using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;

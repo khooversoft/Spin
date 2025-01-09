@@ -11,18 +11,6 @@ internal sealed record GiNodeSelect : ISelectInstruction
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public string? Alias { get; init; }
 
-    //public JournalEntry CreateJournal()
-    //{
-    //    var dataMap = new Dictionary<string, string?>
-    //    {
-    //        { GraphConstants.Trx.GiType, this.GetType().Name },
-    //        { GraphConstants.Trx.GiData, this.ToJson() },
-    //    };
-
-    //    var journal = JournalEntry.Create(JournalType.Select, dataMap);
-    //    return journal;
-    //}
-
     public bool Equals(GiNodeSelect? obj)
     {
         bool result = obj is GiNodeSelect subject &&
@@ -80,5 +68,16 @@ internal static class GiNodeSelectTool
             Tags = tags.ToFrozenDictionary(),
             Alias = alias,
         };
+    }
+
+    public static string GetCommandDesc(this GiNodeSelect subject)
+    {
+        var command = nameof(GiNodeSelect).ToEnumerable()
+            .Append($"Key={subject.Key}")
+            .Append($"Alias={subject.Alias}")
+            .Append($"Tags={subject.Tags.ToTagsString()}")
+            .Join(", ");
+
+        return command;
     }
 }

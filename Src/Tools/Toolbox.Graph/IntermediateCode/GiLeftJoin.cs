@@ -5,12 +5,6 @@ namespace Toolbox.Graph;
 
 internal record GiLeftJoin : ISelectInstruction
 {
-    //public JournalEntry CreateJournal()
-    //{
-    //    var data = new KeyValuePair<string, string?>(GraphConstants.Trx.GiType, this.GetType().Name).ToEnumerable();
-    //    var journal = JournalEntry.Create(JournalType.Select, data);
-    //    return journal;
-    //}
 }
 
 internal static class GiLeftJoinTool
@@ -23,5 +17,11 @@ internal static class GiLeftJoinTool
 
         scope.Cancel();
         return new GiLeftJoin();
+    }
+
+    public static string GetCommandDesc(this GiLeftJoin subject)
+    {
+        var command = nameof(GiLeftJoin);
+        return command;
     }
 }

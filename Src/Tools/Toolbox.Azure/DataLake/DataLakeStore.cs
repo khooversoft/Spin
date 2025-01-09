@@ -41,7 +41,7 @@ public class DatalakeStore : IDatalakeStore
 
         try
         {
-            Option<DatalakePathProperties> propertiesOption = await InternalGetPathPropertiesOrCreate(path, context).ConfigureAwait(false);
+            Option<DatalakePathProperties> propertiesOption = await GetPathPropertiesOrCreate(path, context).ConfigureAwait(false);
             if (propertiesOption.IsError()) return propertiesOption.ToOptionStatus();
             var properties = propertiesOption.Return();
 
@@ -312,7 +312,7 @@ public class DatalakeStore : IDatalakeStore
     }
 
 
-    private async Task<Option<DatalakePathProperties>> InternalGetPathPropertiesOrCreate(string path, ScopeContext context)
+    private async Task<Option<DatalakePathProperties>> GetPathPropertiesOrCreate(string path, ScopeContext context)
     {
         var properties = await InternalGetPathProperties(path, context).ConfigureAwait(false);
         if (properties.IsOk()) return properties;
@@ -328,8 +328,14 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            var result = await file.GetPropertiesAsync(cancellationToken: context).ConfigureAwait(false);
+            var exist = await _fileSystem.ExistsAsync();
+            if (!exist)
+            {
+                context.Location().LogInformation("File does not exist, path={path}", path);
+                return new Option<DatalakePathProperties>(StatusCode.NotFound);
+            }
 
+            var result = await file.GetPropertiesAsync(cancellationToken: context).ConfigureAwait(false);
             return result.Value.ConvertTo(path);
         }
         catch (Exception ex)

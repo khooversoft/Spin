@@ -1,10 +1,13 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 
-namespace Toolbox.TransactionLog;
+namespace Toolbox.Journal;
 
 public enum JournalType
 {
+    Journal,
     Action,
     CommitTran,
 }
@@ -32,7 +35,7 @@ public sealed record JournalEntry
     public static JournalEntry Create(JournalType type, IEnumerable<KeyValuePair<string, string?>> data) => new JournalEntry
     {
         Type = type,
-        Data = data.ToFrozenDictionary(),
+        Data = data.NotNull().ToFrozenDictionary(),
     };
 }
 

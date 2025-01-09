@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -8,18 +9,6 @@ namespace Toolbox.Graph;
 public sealed record GiDelete : IGraphInstruction
 {
     public IReadOnlyList<ISelectInstruction> Instructions { get; init; } = Array.Empty<ISelectInstruction>();
-
-    //public IReadOnlyList<JournalEntry> CreateJournals()
-    //{
-    //    var journals = new JournalEntry[][]
-    //    {
-    //        [ JournalEntry.Create(JournalType.Action, [new KeyValuePair<string, string?>(GraphConstants.Trx.CmType, this.GetType().Name)]) ],
-    //        [.. Instructions.Select(x => x.CreateJournal())],
-    //    }.SelectMany(x => x)
-    //    .ToImmutableArray();
-
-    //    return journals;
-    //}
 
     public bool Equals(GiDelete? obj)
     {
@@ -68,6 +57,32 @@ internal static class GiDeleteTool
         {
             Instructions = instructions.ToImmutableArray(),
         };
+    }
+
+
+    public static string GetCommandDesc(this GiDelete subject)
+    {
+        var command = nameof(GiDelete).ToEnumerable()
+            .Concat(subject.Instructions.Select(x => "{ " + getInstructionCommand(x) + " }"))
+            .Join(", ");
+
+        return command;
+
+        string getInstructionCommand(ISelectInstruction instruction)
+        {
+            string command = instruction switch
+            {
+                GiNodeSelect node => node.GetCommandDesc(),
+                GiEdgeSelect edge => edge.GetCommandDesc(),
+                GiFullJoin full => full.GetCommandDesc(),
+                GiLeftJoin left => left.GetCommandDesc(),
+                GiRightJoin right => right.GetCommandDesc(),
+
+                _ => throw new UnreachableException(),
+            };
+
+            return command;
+        }
     }
 }
 

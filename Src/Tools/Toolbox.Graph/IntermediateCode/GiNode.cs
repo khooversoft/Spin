@@ -17,8 +17,6 @@ public sealed record GiNode : IGraphInstruction
     public IReadOnlyDictionary<string, string?> ForeignKeys { get; init; } = FrozenDictionary<string, string?>.Empty;
     public bool IfExist { get; init; }
 
-    //public IReadOnlyList<JournalEntry> CreateJournals() => [];
-
     public bool Equals(GiNode? obj)
     {
         bool result = obj is GiNode subject &&
@@ -34,8 +32,8 @@ public sealed record GiNode : IGraphInstruction
     }
 
     public override int GetHashCode() => HashCode.Combine(ChangeType, Key, Tags, Data);
-    public override string ToString() =>
-        $"ChangeType={ChangeType}, Key={Key}, Tags={Tags.ToTagsString()}, Data={Data.Select(x => x.Key).Join(";")}, ForeignKeys={ForeignKeys.ToTagsString()}";
+    public override string ToString() => this.GetCommandDesc();
+
 }
 
 internal static class GiNodeTool
@@ -111,4 +109,17 @@ internal static class GiNodeTool
             FileId = GraphTool.CreateFileId(subject.Key, x.Key),
             Data = Convert.FromBase64String(x.Value).ToDataETag(),
         }).ToImmutableArray();
+
+    public static string GetCommandDesc(this GiNode subject)
+    {
+        var command = nameof(GiNode).ToEnumerable()
+            .Append($"ChangeType={subject.ChangeType}")
+            .Append($"Key={subject.Key}")
+            .Append($"Tags={subject.Tags.ToTagsString()}")
+            .Append($"Data={subject.Data.Select(x => $"{x.Key}={x.Value}").Join(";")}")
+            .Append($"ForeignKeys={subject.ForeignKeys.ToTagsString()}")
+            .Join(", ");
+
+        return command;
+    }
 }

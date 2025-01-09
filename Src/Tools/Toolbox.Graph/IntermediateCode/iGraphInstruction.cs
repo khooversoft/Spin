@@ -2,5 +2,4 @@
 
 public interface IGraphInstruction
 {
-    //IReadOnlyList<JournalEntry> CreateJournals();
 }

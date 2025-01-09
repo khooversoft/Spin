@@ -14,18 +14,6 @@ public sealed record GiEdge : IGraphInstruction
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public bool IfExist { get; init; }
 
-    //public IReadOnlyList<JournalEntry> CreateJournals()
-    //{
-    //    var dataMap = new Dictionary<string, string?>
-    //    {
-    //        { GraphConstants.Trx.GiChangeType, this.GetType().Name },
-    //        { GraphConstants.Trx.GiData, this.ToJson() },
-    //    };
-
-    //    ImmutableArray<JournalEntry> journal = [JournalEntry.Create(JournalType.Select, dataMap)];
-    //    return journal;
-    //}
-
     public bool Equals(GiEdge? obj)
     {
         bool result = obj is GiEdge subject &&
@@ -103,5 +91,19 @@ internal static class GiEdgeTool
             Tags = tags?.ToFrozenDictionary() ?? FrozenDictionary<string, string?>.Empty,
             IfExist = ifExist,
         };
+    }
+
+    public static string GetCommandDesc(this GiEdge subject)
+    {
+        var command = nameof(GiEdge).ToEnumerable()
+            .Append($"ChangeType={subject.ChangeType}")
+            .Append($"From={subject.From}")
+            .Append($"To={subject.To}")
+            .Append($"Type={subject.Type}")
+            .Append($"IfExist={subject.IfExist}")
+            .Append($"Tags={subject.Tags.ToTagsString()}")
+            .Join(", ");
+
+        return command;
     }
 }

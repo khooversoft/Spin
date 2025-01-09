@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Toolbox.Extensions;
+using Toolbox.Journal;
 using Toolbox.Tools;
 using Toolbox.Types;
 

@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Journal;
 using Toolbox.Tools;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;

@@ -5,12 +5,6 @@ namespace Toolbox.Graph;
 
 internal record GiRightJoin : ISelectInstruction
 {
-    //public JournalEntry CreateJournal()
-    //{
-    //    var data = new KeyValuePair<string, string?>(GraphConstants.Trx.GiType, this.GetType().Name).ToEnumerable();
-    //    var journal = JournalEntry.Create(JournalType.Select, data);
-    //    return journal;
-    //}
 }
 
 internal static class GiRightJoinTool
@@ -23,5 +17,11 @@ internal static class GiRightJoinTool
 
         scope.Cancel();
         return new GiRightJoin();
+    }
+
+    public static string GetCommandDesc(this GiRightJoin subject)
+    {
+        var command = nameof(GiRightJoin);
+        return command;
     }
 }

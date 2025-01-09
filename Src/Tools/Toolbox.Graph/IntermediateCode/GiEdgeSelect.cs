@@ -89,4 +89,17 @@ internal static class GiEdgeSelectTool
             Alias = alias,
         };
     }
+
+    public static string GetCommandDesc(this GiEdgeSelect subject)
+    {
+        var command = nameof(GiEdgeSelect).ToEnumerable()
+            .Append($"From={subject.From}")
+            .Append($"To={subject.To}")
+            .Append($"Type={subject.Type}")
+            .Append($"Alias={subject.Alias}")
+            .Append($"Tags={subject.Tags.ToTagsString()}")
+            .Join(", ");
+
+        return command;
+    }
 }

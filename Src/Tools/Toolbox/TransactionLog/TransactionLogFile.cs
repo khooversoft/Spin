@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Journal;
 using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;

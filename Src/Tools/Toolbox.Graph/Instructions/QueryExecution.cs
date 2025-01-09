@@ -50,11 +50,13 @@ public static class QueryExecution
         bool write = pContext.IsMutating;
 
         GraphMap map = pContext.TrxContext.Map;
+        var traceList = new Sequence<GraphTrace>();
+
         using (var release = write ? (await map.ReadWriterLock.WriterLockAsync()) : (await map.ReadWriterLock.ReaderLockAsync()))
         {
             while (pContext.Cursor.TryGetValue(out var graphInstruction))
             {
-                //await graphInstruction.CreateJournals().ForEachAsync(async x => await pContext.TrxContext.LogicalTrx.Write(x));
+                long startingTimestamp = Stopwatch.GetTimestamp();
 
                 var queryResult = graphInstruction switch
                 {
@@ -65,12 +67,15 @@ public static class QueryExecution
                     _ => throw new UnreachableException(),
                 };
 
+                TimeSpan duration = Stopwatch.GetElapsedTime(startingTimestamp);
+                traceList += GraphTraceTool.Create(graphInstruction, queryResult, duration);
+
                 if (queryResult.IsError())
                 {
                     pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
-                    //await pContext.TrxContext.LogicalTrx.RollbackTransaction();
                     await pContext.TrxContext.ChangeLog.Rollback();
-                    return pContext.BuildQueryResult();
+                    var batchResult = pContext.BuildQueryResult();
+                    return batchResult;
                 }
             }
 
@@ -86,7 +91,6 @@ public static class QueryExecution
                 }
             }
 
-            //await pContext.TrxContext.LogicalTrx.CommitTransaction();
             return pContext.BuildQueryResult();
         }
     }
