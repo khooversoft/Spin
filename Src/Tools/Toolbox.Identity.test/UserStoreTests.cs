@@ -67,7 +67,7 @@ public class UserStoreTests
         findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
         (user == findUser).Should().BeTrue();
 
-        var findByName = await userStore.FindByNameAsync(newNormalizeUserName.NotEmpty(), default);
+        var findByName = await userStore.FindByNameAsync(newUserName.NotEmpty(), default);
         (user == findByName).Should().BeTrue();
 
         var deleteResult = await userStore.DeleteAsync(user, default);

@@ -59,7 +59,7 @@ internal static class TestTool
         (user == readPrincipalIdentityOption.Return()).Should().BeTrue();
 
         var userNameOption = await testContext.IdentityClient.GetByName(user.UserName, testContext.Context);
-        readPrincipalIdentityOption.IsOk().Should().BeTrue();
+        userNameOption.IsOk().Should().BeTrue();
         (user == userNameOption.Return()).Should().BeTrue();
 
         if (user.LoginProvider.IsNotEmpty() && user.ProviderKey.IsNotEmpty())

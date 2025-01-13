@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Transactions;
@@ -17,7 +16,7 @@ public class GraphTransactionTests
         var testClient = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
         IFileStore fileStore = testClient.ServiceProvider.GetRequiredService<IFileStore>();
-        ITransactionLog transactionLog = testClient.ServiceProvider.GetRequiredService<ITransactionLog>();
+        IJournalFile transactionLog = testClient.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed);
         ILogger<GraphTransactionTests> logger = testClient.ServiceProvider.GetRequiredService<ILogger<GraphTransactionTests>>();
         int expectedJournalCount = 0;
 
@@ -40,7 +39,7 @@ public class GraphTransactionTests
         map.Edges.Count.Should().Be(0);
 
         expectedJournalCount += 3;
-        IReadOnlyList<JournalEntry> journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
+        IReadOnlyList<JournalEntry> journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
 
         (await testClient.ExecuteBatch("add node key=node1 set t1, t2;", NullScopeContext.Default)).Action(x =>
@@ -53,7 +52,7 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
+        journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
 
         string q2 = """
@@ -77,7 +76,7 @@ public class GraphTransactionTests
         map.Edges.Count.Should().Be(2);
 
         expectedJournalCount += 5;
-        journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
+        journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
 
         string q3 = """
@@ -97,7 +96,7 @@ public class GraphTransactionTests
             x.Value.Items[2].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        journals = await transactionLog.ReadJournals(GraphConstants.JournalName, context);
+        journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
 
         map.Nodes.Count.Should().Be(4);

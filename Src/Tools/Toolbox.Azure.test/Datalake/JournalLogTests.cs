@@ -7,7 +7,6 @@ using Toolbox.Azure.test.Application;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Azure.test.Datalake;
@@ -38,7 +37,7 @@ public class JournalLogTests
     [Fact]
     public async Task AddSingleJournal()
     {
-        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
+        IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search(_searchPath, _context);
@@ -77,7 +76,7 @@ public class JournalLogTests
     [Fact]
     public async Task AddMulitpleJournal()
     {
-        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
+        IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search(_searchPath, _context);
@@ -138,7 +137,7 @@ public class JournalLogTests
     [Fact]
     public async Task AddMulitpleBatchJournal()
     {
-        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
+        IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search(_searchPath, _context);
@@ -173,8 +172,10 @@ public class JournalLogTests
                 batchJournals += journalEntry;
             }
 
-            await trxContext.Write(batchJournals, _context);
             createdJournals += batchJournals;
+
+            await trxContext.Write(batchJournals);
+            await trxContext.Commit();
         }
 
         search = await fileStore.Search(_searchPath, _context);
@@ -186,14 +187,34 @@ public class JournalLogTests
         });
 
         var journals = await journal.ReadJournals(_context);
-        journals.Count.Should().Be(createdJournals.Count);
+        journals.Count.Should().Be(createdJournals.Count + (batchCount * 2));
 
-        for (int i = 0; i < createdJournals.Count; i++)
+        int count = 0;
+        int createdJournalIndex = 0;
+        bool lookForStart = true;
+
+        for (int i = 0; i < journals.Count; i++)
         {
-            var createdJournalUpdated = createdJournals[i] with 
+            if (lookForStart)
             {
-                LogSequenceNumber = journals[i].LogSequenceNumber,
+                lookForStart = false;
+                journals[i].Type.Should().Be(JournalType.Start);
+                continue;
+            }
+
+            if (count == batchSize)
+            {
+                journals[i].Type.Should().Be(JournalType.Commit);
+                count = 0;
+                lookForStart = true;
+                continue;
+            }
+
+            count++;
+            var createdJournalUpdated = createdJournals[createdJournalIndex++] with
+            {
                 TransactionId = journals[i].TransactionId,
+                LogSequenceNumber = journals[i].LogSequenceNumber,
             };
 
             (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");

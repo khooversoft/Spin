@@ -13,11 +13,7 @@ public static class QueryExecution
         var runningState = (await graphHost.Run(context)).LogStatus(context, "Running graph host");
         if (runningState.IsError()) return runningState.LogStatus(context, "Failed to start Graph Host").ToOptionStatus<QueryBatchResult>();
 
-        var trxContextOption = await graphHost.TransactionLog.StartTransaction(context);
-        if (trxContextOption.IsError()) return trxContextOption.ToOptionStatus<QueryBatchResult>();
-        var trxContext = trxContextOption.Return();
-
-        var graphTrxContext = new GraphTrxContext(graphHost, trxContext, context);
+        var graphTrxContext = new GraphTrxContext(graphHost, graphHost.TransactionLog, graphHost.TraceLog, context);
 
         var pContextOption = ParseQuery(graphQuery, graphTrxContext);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();

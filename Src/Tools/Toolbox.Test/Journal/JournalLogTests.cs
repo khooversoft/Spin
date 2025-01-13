@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Test.TransactionLog;
@@ -32,7 +31,7 @@ public class JournalLogTests
     [Fact]
     public async Task AddSingleJournal()
     {
-        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
+        IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search("*", _context);
@@ -66,7 +65,7 @@ public class JournalLogTests
     [Fact]
     public async Task AddMulitpleJournal()
     {
-        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
+        IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search("**/*", _context);

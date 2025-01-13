@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -7,8 +6,8 @@ namespace Toolbox.Journal;
 
 public enum JournalType
 {
-    Journal,
     Action,
+    Start,
     Commit,
 }
 

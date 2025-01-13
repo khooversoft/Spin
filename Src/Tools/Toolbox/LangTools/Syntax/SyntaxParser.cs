@@ -23,7 +23,7 @@ public class SyntaxParser
 
     public SyntaxResponse Parse(string rawData, ScopeContext context)
     {
-        context.LogInformation("Parsing rawData={rawData}", rawData);
+        context.LogTrace("Parsing rawData={rawData}", rawData);
 
         var tokens = new StringTokenizer()
             .UseSingleQuote()
@@ -33,7 +33,7 @@ public class SyntaxParser
             .SetFilter(x => x.Value.IsNotEmpty())
             .Parse(rawData);
 
-        context.LogInformation("Parsed data, tokens.Count={tokensCount}", tokens.Count);
+        context.LogTrace("Parsed data, tokens.Count={tokensCount}", tokens.Count);
 
         var pContext = new SyntaxParserContext(tokens, context);
 
@@ -69,7 +69,7 @@ public class SyntaxParser
 
     private Option ProcessRules(SyntaxParserContext pContext, ScopeContext context)
     {
-        context.LogInformation("ProcessingRules: pContext{pContext}", pContext.GetDebuggerDisplay());
+        context.LogTrace("ProcessingRules: pContext={pContext}", pContext.GetDebuggerDisplay());
 
         foreach (var rule in _rootRules)
         {

@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.TransactionLog;
 
 namespace Toolbox;
 
@@ -15,28 +13,29 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddTransactionLogProvider(this IServiceCollection services, string? connectionString = null, int? maxCount = 1000)
-    {
-        services.NotNull();
+    //public static IServiceCollection AddTransactionLogProvider(this IServiceCollection services, string? connectionString = null, int? maxCount = 1000)
+    //{
+    //    services.NotNull();
 
-        services.TryAddSingleton(new TransactionLogFileOption
-        {
-            ConnectionString = connectionString ?? "journal=/journal/data",
-            MaxCount = maxCount ?? 1000
-        });
+    //    services.TryAddSingleton(new TransactionLogFileOption
+    //    {
+    //        ConnectionString = connectionString ?? "journal=/journal/data",
+    //        MaxCount = maxCount ?? 1000
+    //    });
 
-        services.AddSingleton<ITransactionLogWriter, TransactionLogFile>();
-        services.AddSingleton<ITransactionLog, TransactionLogProvider>();
+    //    services.AddSingleton<ITransactionLogWriter, TransactionLogFile>();
+    //    services.AddSingleton<ITransactionLog, TransactionLogProvider>();
 
-        return services;
-    }
+    //    return services;
+    //}
 
     public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, string connectionString)
     {
         services.NotNull();
+        key.NotEmpty();
         connectionString.NotEmpty();
 
-        services.AddKeyedSingleton<IJournalWriter>(key, (iServices, _) =>
+        services.AddKeyedSingleton<IJournalFile>(key, (iServices, _) =>
         {
             var option = new JournalFileOption
             {

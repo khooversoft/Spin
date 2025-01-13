@@ -8,8 +8,19 @@ public static class GraphConstants
 
     public const string NodesDataBasePath = "nodes";
     public const string MapDatabasePath = "graphMap/graphMap.gdb.json";
-    public const string JournalName = "journal";
-    public const string JournalConnectionString = "journal=/journal/data";
+
+    public static class TrxJournal
+    {
+        public const string ConnectionString = "journal=/journal/data";
+        public const string DiKeyed = "graph-journal";
+        //public const string Name = "journal";
+    }
+
+    public static class Trace
+    {
+        public const string ConnectionString = "trace=/journal/trace";
+        public const string DiKeyed = "graph-trace";
+    }
 
     public static class Trx
     {

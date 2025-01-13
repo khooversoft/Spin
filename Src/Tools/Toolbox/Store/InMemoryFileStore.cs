@@ -40,7 +40,7 @@ public sealed class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<str
                 }
             }
 
-            context.LogInformation("Add Path={path} with eTag={eTag}", path, data.ETag);
+            context.LogTrace("Add Path={path} with eTag={eTag}", path, data.ETag);
 
             Option<string> option = _store.TryAdd(path, data) switch
             {
@@ -64,7 +64,7 @@ public sealed class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<str
             };
 
             _store[path] = value;
-            context.LogInformation("Append Path={path} with {length} bytes", path, data.Data.Length);
+            context.LogTrace("Append Path={path} with {length} bytes", path, data.Data.Length);
             return new Option(StatusCode.OK).ToTaskResult();
         }
     }

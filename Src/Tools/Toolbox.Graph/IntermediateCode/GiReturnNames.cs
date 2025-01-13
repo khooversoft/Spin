@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -7,18 +8,6 @@ namespace Toolbox.Graph;
 internal sealed record GiReturnNames : ISelectInstruction
 {
     public IReadOnlyList<string> ReturnNames { get; init; } = Array.Empty<string>();
-
-    //public JournalEntry CreateJournal()
-    //{
-    //    var dataMap = new Dictionary<string, string?>
-    //    {
-    //        { GraphConstants.Trx.GiType, this.GetType().Name },
-    //        { GraphConstants.Trx.GiData, this.ToJson() },
-    //    };
-
-    //    var journal = JournalEntry.Create(JournalType.Select, dataMap);
-    //    return journal;
-    //}
 
     public bool Equals(GiReturnNames? obj)
     {
@@ -61,4 +50,14 @@ internal static class GiReturnNamesTool
             ReturnNames = dataNames.ToImmutableArray()
         };
     }
+
+    public static string GetCommandDesc(this GiReturnNames subject)
+    {
+        var command = nameof(GiReturnNames).ToEnumerable()
+            .Append($"ReturnNames={subject.ReturnNames.Join(',')}")
+            .Join(", ");
+
+        return command;
+    }
+
 }

@@ -94,10 +94,10 @@ public class GraphUniqueIndex
         {
             var option = _tagIndex.Add(x.Key, x.Value, newNode.Key);
 
-            trxContext?.Context.Log(
-                option.IsOk() ? LogLevel.Information : LogLevel.Warning,
-                option.IsOk() ? "Added" : "Failed to add" + " key={key}={value} for nodeKey={nodeKey}", x.Key, x.Value, newNode.Key
-                );
+            if (option.IsOk())
+                trxContext?.Context.LogTrace("Added, key={key}={value} for nodeKey={nodeKey}", x.Key, x.Value, newNode.Key);
+            else
+                trxContext?.Context.LogWarning("Failed to added, key={key}={value} for nodeKey={nodeKey}", x.Key, x.Value, newNode.Key);
         });
     }
 

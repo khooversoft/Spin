@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Frozen;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,7 +31,7 @@ public class JournalLogTransactionTests
     [Fact]
     public async Task AddSingleJournalTrx()
     {
-        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
+        IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
 
         var search = await fileStore.Search("*", _context);
@@ -57,28 +52,29 @@ public class JournalLogTransactionTests
 
         await using (var trx = journal.CreateTransactionContext(trxId))
         {
-            await trx.Write([journalEntry], _context);
+            await trx.Write([journalEntry]);
         }
 
         var journals = await journal.ReadJournals(_context);
 
         journals.Action(x =>
         {
-            x.Count.Should().Be(2);
+            x.Count.Should().Be(3);
+            x[0].Type.Should().Be(JournalType.Start);
 
             var journalEntryUpdate = journalEntry with { TransactionId = trxId };
-            var read = x[0];
+            var read = x[1];
             (read == journalEntryUpdate).Should().BeTrue();
             journalEntry.TransactionId.Should().NotBe(trxId);
 
-            x[1].Type.Should().Be(JournalType.Commit);
+            x[2].Type.Should().Be(JournalType.Commit);
         });
     }
 
     [Fact]
     public async Task AddMulitpleJournal()
     {
-        IJournalWriter journal = _services.GetRequiredKeyedService<IJournalWriter>("test");
+        IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
         const int batchSize = 100;
 
@@ -111,8 +107,8 @@ public class JournalLogTransactionTests
                 createdJournals += journalEntry;
             }
 
-            await trx.Write(batch, _context);
-            await trx.Commit(_context);
+            await trx.Write(batch);
+            await trx.Commit();
         }
 
         search = await fileStore.Search("**/*", _context);
@@ -121,17 +117,26 @@ public class JournalLogTransactionTests
         search[0].Should().EndWith(".journal2.json");
 
         var journals = await journal.ReadJournals(_context);
-        journals.Count.Should().Be(createdJournals.Count + batchSize);
+        journals.Count.Should().Be(createdJournals.Count + (batchSize * 2));
 
         int count = 0;
         int createdJournalIndex = 0;
+        bool lookForStart = true;
 
         for (int i = 0; i < journals.Count; i++)
         {
+            if (lookForStart)
+            {
+                lookForStart = false;
+                journals[i].Type.Should().Be(JournalType.Start);
+                continue;
+            }
+
             if (count == batchSize)
             {
                 journals[i].Type.Should().Be(JournalType.Commit);
                 count = 0;
+                lookForStart = true;
                 continue;
             }
 

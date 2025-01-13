@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Toolbox.Journal;
 using Toolbox.Logging;
 using Toolbox.Tools;
-using Toolbox.TransactionLog;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -10,7 +11,8 @@ public interface IGraphHost
 {
     GraphMap Map { get; }
     IGraphStore FileStore { get; }
-    ITransactionLog TransactionLog { get; }
+    IJournalFile TransactionLog { get; }
+    IJournalFile TraceLog { get; }
     Task<Option> CheckpointMap(ScopeContext context);
     Task<Option> LoadMap(ScopeContext context);
     Task<Option> Run(ScopeContext context);
@@ -27,10 +29,16 @@ public class GraphHost : IGraphHost
     private const int Stopped = 0;
     private const int Running = 1;
 
-    public GraphHost(IGraphStore fileStore, ITransactionLog transactionLog, ILogger<GraphHost> logger)
+    public GraphHost(
+        IGraphStore fileStore,
+        [FromKeyedServices(GraphConstants.TrxJournal.DiKeyed)] IJournalFile transactionLog,
+        [FromKeyedServices(GraphConstants.Trace.DiKeyed)] IJournalFile traceLog,
+        ILogger<GraphHost> logger
+        )
     {
         FileStore = fileStore.NotNull();
         TransactionLog = transactionLog.NotNull();
+        TraceLog = traceLog.NotNull();
         _logger = logger.NotNull();
 
         _mapStore = new GraphMapStore(this, _logger);
@@ -38,7 +46,8 @@ public class GraphHost : IGraphHost
 
     public GraphMap Map => _map;
     public IGraphStore FileStore { get; }
-    public ITransactionLog TransactionLog { get; }
+    public IJournalFile TransactionLog { get; }
+    public IJournalFile TraceLog { get; }
 
     public Task<Option> CheckpointMap(ScopeContext context) => _mapStore.Set(context);
     public Task<Option> LoadMap(ScopeContext context) => _mapStore.Get(context);

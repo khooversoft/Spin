@@ -53,7 +53,7 @@ public class ChangeLog
 
         if (journalEntries.Length == 0) return;
 
-        var result = await _graphTrxContext.LogicalTrx.Write(journalEntries);
+        var result = await _graphTrxContext.TransactionWriter.Write(journalEntries);
         result.LogStatus(_graphTrxContext.Context, "CommitLogs: length={journalEntries.Length}", [journalEntries.Length]);
         _commands.Clear();
     }

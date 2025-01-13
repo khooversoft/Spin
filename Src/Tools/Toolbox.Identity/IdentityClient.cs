@@ -59,7 +59,7 @@ public class IdentityClient
         string nodeKey = ToUserKey(user.PrincipalId);
 
         string emailTag = ConstructEmailTag(user.Email);
-        string userNameNameTag = ConstructUserNameTag(user.Name.ToNullIfEmpty() ?? user.NormalizedUserName);
+        string userNameNameTag = ConstructUserNameTag(user.UserName.ToNullIfEmpty() ?? user.NormalizedUserName);
         string loginProviderTag = ConstructLoginProviderTag(user.LoginProvider, user.ProviderKey) ?? "-loginProvider";
 
         var cmd = new NodeCommandBuilder()

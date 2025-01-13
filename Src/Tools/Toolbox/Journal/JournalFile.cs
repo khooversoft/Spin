@@ -9,15 +9,15 @@ using Toolbox.Types;
 
 namespace Toolbox.Journal;
 
-public interface IJournalWriter
+public interface IJournalFile
 {
-    public JournalTrx CreateTransactionContext(string? transactionId = null);
+    public IJournalTrx CreateTransactionContext(string? transactionId = null);
     Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context);
     Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context);
 
 }
 
-public class JournalFile : IJournalWriter
+public class JournalFile : IJournalFile
 {
     private readonly JournalFileOption _fileOption;
     private readonly ILogger<JournalFile> _logger;
@@ -41,7 +41,7 @@ public class JournalFile : IJournalWriter
         _logger.LogInformation("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
     }
 
-    public JournalTrx CreateTransactionContext(string? transactionId = null) => transactionId switch
+    public IJournalTrx CreateTransactionContext(string? transactionId = null) => transactionId switch
     {
         not null => new JournalTrx(this, transactionId, _logger),
         null => new JournalTrx(this, Guid.NewGuid().ToString(), _logger)
@@ -54,7 +54,7 @@ public class JournalFile : IJournalWriter
         var journalEntries = new Sequence<JournalEntry>();
         foreach (var file in files)
         {
-            context.LogInformation("Reading journal file={file}", file);
+            context.LogTrace("Reading journal file={file}", file);
 
             var readOption = await _fileStore.Get(file, context);
             if (readOption.IsError())
@@ -93,7 +93,7 @@ public class JournalFile : IJournalWriter
         string path = $"{_basePath}/{DateTime.UtcNow:yyyyMM}/{DateTime.UtcNow:yyyyMMdd}.{_name}.json";
 
         string logSequenceNumbers = journalEntries.Select(x => x.LogSequenceNumber).Join(",");
-        context.LogInformation("Writting journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
+        context.LogTrace("Writting journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
 
         await _writeLock.WaitAsync(context.CancellationToken);
 

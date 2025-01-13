@@ -78,8 +78,9 @@ internal static class GiSelectTool
                 GiFullJoin full => full.GetCommandDesc(),
                 GiLeftJoin left => left.GetCommandDesc(),
                 GiRightJoin right => right.GetCommandDesc(),
+                GiReturnNames names => names.GetCommandDesc(),
 
-                _ => throw new UnreachableException(),
+                _ => throw new UnreachableException(instruction.GetType().ToString()),
             };
 
             return command;
