@@ -29,7 +29,7 @@ public static class ToolboxStartup
     //    return services;
     //}
 
-    public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, string connectionString)
+    public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, string connectionString, bool useBackgroundWriter = false)
     {
         services.NotNull();
         key.NotEmpty();
@@ -40,6 +40,7 @@ public static class ToolboxStartup
             var option = new JournalFileOption
             {
                 ConnectionString = connectionString,
+                UseBackgroundWriter = useBackgroundWriter,
             };
 
             return ActivatorUtilities.CreateInstance<JournalFile>(iServices, option);

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Logging;
@@ -9,15 +10,16 @@ using Toolbox.Types;
 
 namespace Toolbox.Journal;
 
-public interface IJournalFile
+public interface IJournalFile : IAsyncDisposable
 {
+    Task Close();
     public IJournalTrx CreateTransactionContext(string? transactionId = null);
     Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context);
     Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context);
 
 }
 
-public class JournalFile : IJournalFile
+public class JournalFile : IJournalFile, IAsyncDisposable
 {
     private readonly JournalFileOption _fileOption;
     private readonly ILogger<JournalFile> _logger;
@@ -26,6 +28,8 @@ public class JournalFile : IJournalFile
     private readonly string _basePath;
     private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
     private readonly LogSequenceNumber _logSequenceNumber = new LogSequenceNumber();
+    private readonly Func<IReadOnlyList<JournalEntry>, ScopeContext, Task<Option>> _writer;
+    private ActionBlock<IReadOnlyList<JournalEntry>>? _writeBlock;
 
     public JournalFile(JournalFileOption fileOption, IFileStore fileStore, ILogger<JournalFile> logger)
     {
@@ -33,12 +37,30 @@ public class JournalFile : IJournalFile
         _fileStore = fileStore.NotNull();
         _logger = logger.NotNull();
 
-
         var values = PropertyStringSchema.ConnectionString.Parse(_fileOption.ConnectionString).ThrowOnError().Return();
         _name = values.Single().Key.NotEmpty();
         _basePath = values.Single().Value.NotEmpty();
 
+        if (_fileOption.UseBackgroundWriter)
+        {
+            _writeBlock = new ActionBlock<IReadOnlyList<JournalEntry>>(async x => await InternalWrite(x, NullScopeContext.Default));
+            _writer = QueueWrite;
+        }
+        else
+        {
+            _writer = InternalWrite;
+        }
+
         _logger.LogInformation("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
+    }
+
+    public async Task Close()
+    {
+        var writeBlock = Interlocked.Exchange(ref _writeBlock, null);
+        if (writeBlock == null) return;
+
+        writeBlock.Complete();
+        await writeBlock.Completion;
     }
 
     public IJournalTrx CreateTransactionContext(string? transactionId = null) => transactionId switch
@@ -46,6 +68,8 @@ public class JournalFile : IJournalFile
         not null => new JournalTrx(this, transactionId, _logger),
         null => new JournalTrx(this, Guid.NewGuid().ToString(), _logger)
     };
+
+    public async ValueTask DisposeAsync() => await Close();
 
     public async Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context)
     {
@@ -79,7 +103,10 @@ public class JournalFile : IJournalFile
         return journalEntries.ToImmutableArray();
     }
 
-    public async Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
+    public Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context) => _writer(journalEntries, context);
+
+
+    private async Task<Option> InternalWrite(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
     {
         journalEntries.NotNull();
         context = context.With(_logger);
@@ -109,5 +136,13 @@ public class JournalFile : IJournalFile
 
         result.LogStatus(context, "Completed writting journal entry to name={name}, path={path}", [_name, path]);
         return result;
+    }
+
+    private async Task<Option> QueueWrite(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
+    {
+        context.LogTrace("Queueing write journal entries, count={count}", journalEntries.Count);
+        await _writeBlock.NotNull().SendAsync(journalEntries.ToImmutableArray(), context.CancellationToken);
+
+        return StatusCode.OK;
     }
 }

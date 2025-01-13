@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Toolbox.Test.Journal;
+namespace Toolbox.Test.Framework;
 
 public class DI_MatchTests
 {
@@ -82,7 +82,7 @@ public class DI_MatchTests
             _test2 = test2;
         }
     }
-    
+
     public class TestKeyed
     {
         public readonly ITest1 _test1;
