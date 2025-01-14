@@ -13,7 +13,7 @@ public class GraphTransactionTests
     [Fact]
     public async Task SimpleSetOfCommandsWithFailuresKey()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
+        await using var testClient = GraphTestStartup.CreateGraphTestHost();
         GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
         IFileStore fileStore = testClient.ServiceProvider.GetRequiredService<IFileStore>();
         IJournalFile transactionLog = testClient.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed);
@@ -38,7 +38,7 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(2);
         map.Edges.Count.Should().Be(0);
 
-        expectedJournalCount += 3;
+        expectedJournalCount += 4;
         IReadOnlyList<JournalEntry> journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
 
@@ -75,7 +75,7 @@ public class GraphTransactionTests
         map.Nodes.Count.Should().Be(4);
         map.Edges.Count.Should().Be(2);
 
-        expectedJournalCount += 5;
+        expectedJournalCount += 6;
         journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
 

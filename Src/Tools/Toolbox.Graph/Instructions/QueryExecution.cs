@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Toolbox.Extensions;
+using Toolbox.Journal;
 using Toolbox.LangTools;
 using Toolbox.Logging;
 using Toolbox.Types;
@@ -13,9 +14,9 @@ public static class QueryExecution
         var runningState = (await graphHost.Run(context)).LogStatus(context, "Running graph host");
         if (runningState.IsError()) return runningState.LogStatus(context, "Failed to start Graph Host").ToOptionStatus<QueryBatchResult>();
 
-        var graphTrxContext = new GraphTrxContext(graphHost, graphHost.TransactionLog, graphHost.TraceLog, context);
+        await using var graphTrxContext = new GraphTrxContext(graphHost, context);
 
-        var pContextOption = ParseQuery(graphQuery, graphTrxContext);
+        var pContextOption = await ParseQuery(graphQuery, graphTrxContext);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
 
         var graphQueryResultOption = await ExecuteInstruction(pContextOption.Return());
@@ -25,7 +26,7 @@ public static class QueryExecution
         return new Option<QueryBatchResult>(graphQueryResult, graphQueryResult.Option.StatusCode, graphQueryResult.Option.Error);
     }
 
-    private static Option<QueryExecutionContext> ParseQuery(string graphQuery, IGraphTrxContext graphTrxContext)
+    private static async Task<Option<QueryExecutionContext>> ParseQuery(string graphQuery, IGraphTrxContext graphTrxContext)
     {
         graphTrxContext.Context.LogInformation("Parsing query: {graphQuery}", graphQuery);
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphTrxContext.Context);
@@ -38,6 +39,9 @@ public static class QueryExecution
             .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
             .ToOptionStatus<QueryExecutionContext>();
 
+        var journalEntry = JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphQuery).GetProperties());
+        await graphTrxContext.TraceWriter.Write([journalEntry]);
+
         return new QueryExecutionContext(instructions.Return(), graphTrxContext);
     }
 
@@ -46,7 +50,7 @@ public static class QueryExecution
         bool write = pContext.IsMutating;
 
         GraphMap map = pContext.TrxContext.Map;
-        var traceList = new Sequence<GraphTrace>();
+        var traceList = new Sequence<JournalEntry>();
 
         using (var release = write ? (await map.ReadWriterLock.WriterLockAsync()) : (await map.ReadWriterLock.ReaderLockAsync()))
         {
@@ -64,7 +68,7 @@ public static class QueryExecution
                 };
 
                 TimeSpan duration = Stopwatch.GetElapsedTime(startingTimestamp);
-                traceList += GraphTraceTool.Create(graphInstruction, queryResult, duration);
+                traceList += JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphInstruction, queryResult, duration).GetProperties());
 
                 if (queryResult.IsError())
                 {
@@ -78,6 +82,7 @@ public static class QueryExecution
             if (write)
             {
                 await pContext.TrxContext.ChangeLog.CommitLogs();
+                await pContext.TrxContext.TraceWriter.Write(traceList);
 
                 var writeOption = await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
                 if (writeOption.IsError())

@@ -15,7 +15,7 @@ public static class GraphStartup
 
         services.AddSingleton<IGraphHost, GraphHost>();
         services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, GraphConstants.TrxJournal.ConnectionString);
-        services.AddJournalLog(GraphConstants.Trace.DiKeyed, GraphConstants.Trace.ConnectionString);
+        services.AddJournalLog(GraphConstants.Trace.DiKeyed, GraphConstants.Trace.ConnectionString, true);
         services.TryAddSingleton<IGraphClient, GraphClientInMemory>();
         services.TryAddSingleton<IGraphStore, GraphFileStoreCache>();
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
@@ -44,15 +44,20 @@ public static class GraphTestStartup
     }
 }
 
-public class GraphTestClient : GraphClientInMemory, IGraphClient
+public class GraphTestClient : GraphClientInMemory, IGraphClient, IAsyncDisposable
 {
-    public GraphTestClient(IGraphHost graphContext, IServiceProvider serviceProvider)
+    public GraphTestClient(IGraphHost graphContext, ServiceProvider serviceProvider)
         : base(graphContext)
     {
         ServiceProvider = serviceProvider.NotNull();
     }
 
-    public IServiceProvider ServiceProvider { get; }
+    public ServiceProvider ServiceProvider { get; }
+
+    public async ValueTask DisposeAsync()
+    {
+        await ServiceProvider.DisposeAsync();
+    }
 
     public ScopeContext GetScopeContext<T>()
     {

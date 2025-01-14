@@ -32,6 +32,21 @@ public static class GraphTraceTool
         return result;
     }
 
+    public static GraphTrace Create(string graphQuery)
+    {
+        graphQuery.NotEmpty();
+
+        var result = new GraphTrace
+        {
+            Command = graphQuery,
+            StatusCode = StatusCode.OK,
+            Error = null,
+            DurationMs = 0,
+        };
+
+        return result;
+    }
+
     public static IReadOnlyDictionary<string, string?> GetProperties(this GraphTrace subject) => new Dictionary<string, string?>
     {
         { "$type", subject.GetType().Name },
@@ -68,7 +83,7 @@ public static class GraphTraceTool
         }
     }
 
-    public static string GetCommandDesc(IGraphInstruction graphInstruction)
+    private static string GetCommandDesc(IGraphInstruction graphInstruction)
     {
         string command = graphInstruction switch
         {

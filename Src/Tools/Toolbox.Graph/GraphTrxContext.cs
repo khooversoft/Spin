@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public interface IGraphTrxContext
+public interface IGraphTrxContext : IAsyncDisposable
 {
     Task<Option> CheckpointMap(ScopeContext context);
     ScopeContext Context { get; }
@@ -18,15 +18,15 @@ public interface IGraphTrxContext
 }
 
 
-public class GraphTrxContext : IGraphTrxContext
+public class GraphTrxContext : IGraphTrxContext, IAsyncDisposable
 {
     private readonly IGraphHost _graphHost;
 
-    public GraphTrxContext(IGraphHost grapHost, IJournalFile transactionWriter, IJournalFile traceWriter, ScopeContext context)
+    public GraphTrxContext(IGraphHost graphHost, ScopeContext context)
     {
-        _graphHost = grapHost.NotNull();
-        TransactionWriter = transactionWriter.NotNull().CreateTransactionContext();
-        TraceWriter = traceWriter.NotNull().CreateTransactionContext();
+        _graphHost = graphHost.NotNull();
+        TransactionWriter = graphHost.TransactionLog.NotNull().CreateTransactionContext();
+        TraceWriter = graphHost.TraceLog.NotNull().CreateTransactionContext();
         Context = context;
         ChangeLog = new ChangeLog(this);
     }
@@ -38,5 +38,12 @@ public class GraphTrxContext : IGraphTrxContext
     public IJournalTrx TransactionWriter { get; }
     public IJournalTrx TraceWriter { get; }
     public Task<Option> LoadMap(ScopeContext context) => _graphHost.LoadMap(context);
+
+    public async ValueTask DisposeAsync()
+    {
+        await TransactionWriter.DisposeAsync();
+        await TraceWriter.DisposeAsync();
+    }
+
     public GraphMap Map => _graphHost.Map;
 }

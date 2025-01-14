@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -11,7 +12,7 @@ public enum JournalType
     Commit,
 }
 
-
+[DebuggerDisplay("{ToString()}")]
 public sealed record JournalEntry
 {
     public string LogSequenceNumber { get; init; } = null!;
