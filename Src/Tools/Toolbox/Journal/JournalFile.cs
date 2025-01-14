@@ -141,7 +141,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
     private async Task<Option> QueueWrite(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
     {
         context.LogTrace("Queueing write journal entries, count={count}", journalEntries.Count);
-        await _writeBlock.NotNull().SendAsync(journalEntries.ToImmutableArray(), context.CancellationToken);
+        await _writeBlock.NotNull().SendAsync(journalEntries.ToArray(), context.CancellationToken);
 
         return StatusCode.OK;
     }

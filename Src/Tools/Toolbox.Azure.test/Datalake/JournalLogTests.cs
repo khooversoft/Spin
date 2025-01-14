@@ -17,7 +17,7 @@ public class JournalLogTests
     private readonly IServiceProvider _services;
     private readonly ILogger<JournalLogTests> _logger;
     private readonly ScopeContext _context;
-    private const string _searchPath = "journal2/data/**/*";
+    private const string _searchPath = "journal3/data/**/*";
 
     public JournalLogTests()
     {
@@ -27,7 +27,7 @@ public class JournalLogTests
             .AddSingleton<IDatalakeStore>(_dataLakeStore)
             .AddSingleton<IFileStore, DatalakeFileStoreConnector>()
             .AddLogging(config => config.AddDebug())
-            .AddJournalLog("test", "journal2Key=/journal2/data")
+            .AddJournalLog("test", "journal3Key=/journal3/data")
             .BuildServiceProvider();
 
         _logger = _services.GetRequiredService<ILogger<JournalLogTests>>();
@@ -59,8 +59,8 @@ public class JournalLogTests
 
         search = await fileStore.Search(_searchPath, _context);
         search.Count.Should().Be(1);
-        search[0].Should().Contain("journal2/data");
-        search[0].Should().EndWith(".journal2Key.json");
+        search[0].Should().Contain("journal3/data");
+        search[0].Should().EndWith(".journal3Key.json");
 
         var journals = await journal.ReadJournals(_context);
 
@@ -106,7 +106,7 @@ public class JournalLogTests
             if (currentCount >= writeCount)
             {
                 writeCount = Math.Min(writeCount + 5, 100);
-                await journal.Write(queue, _context);
+                await journal.Write(queue.ToArray(), _context);
                 queue.Clear();
             }
         }
@@ -120,8 +120,8 @@ public class JournalLogTests
         search.Count.Should().Be(1);
         search.ForEach(x =>
         {
-            x.Should().StartWith("journal2/data");
-            x.Should().EndWith(".journal2Key.json");
+            x.Should().StartWith("journal3/data");
+            x.Should().EndWith(".journal3Key.json");
         });
 
         var journals = await journal.ReadJournals(_context);
@@ -174,7 +174,7 @@ public class JournalLogTests
 
             createdJournals += batchJournals;
 
-            await trxContext.Write(batchJournals);
+            await trxContext.Write(batchJournals.ToArray());
             await trxContext.Commit();
         }
 
@@ -182,8 +182,8 @@ public class JournalLogTests
         search.Count.Should().Be(1);
         search.ForEach(x =>
         {
-            x.Should().StartWith("journal2/data");
-            x.Should().EndWith(".journal2Key.json");
+            x.Should().StartWith("journal3/data");
+            x.Should().EndWith(".journal3Key.json");
         });
 
         var journals = await journal.ReadJournals(_context);

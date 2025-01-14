@@ -17,8 +17,8 @@ public class TransactionLogTests
     private readonly IServiceProvider _services;
     private readonly ILogger<TransactionLogTests> _logger;
     private readonly ScopeContext _context;
-    private const string _searchPath = "journal1/data/**/*";
-    private const string _connectionString = "trxJournal=journal1/data";
+    private const string _searchPath = "journal4/data/**/*";
+    private const string _connectionString = "trxJournal=journal4/data";
     private const string _keyedName = "j1";
 
     public TransactionLogTests()
@@ -63,7 +63,7 @@ public class TransactionLogTests
 
         search = await fileStore.Search(_searchPath, _context);
         search.Count.Should().Be(1);
-        search[0].Should().Contain("journal1/data");
+        search[0].Should().Contain("journal4/data");
         search[0].Should().EndWith(".trxJournal.json");
 
         var journals = await journalFile.ReadJournals(_context);
