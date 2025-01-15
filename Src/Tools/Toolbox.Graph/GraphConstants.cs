@@ -8,7 +8,7 @@ public static class GraphConstants
 
     public const string NodesDataBasePath = "nodes";
     public const string MapDatabasePath = "graphMap/graphMap.gdb.json";
-    public const string DbDatabaseSearchPath = "**/*.json";
+    public const string DbDatabaseSearchPath = "**/*;includeFolder=true";
 
     public static class TrxJournal
     {

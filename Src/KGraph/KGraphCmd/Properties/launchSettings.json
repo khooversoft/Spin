@@ -2,7 +2,7 @@
   "profiles": {
     "KGraphCmd": {
       "commandName": "Project",
-      "commandLineArgs": "db clear E:\\Sources\\Spin\\Src\\KGraph\\KGraphCmd\\TicketShareConfig.json"
+      "commandLineArgs": "trace list E:\\Sources\\Spin\\Src\\KGraph\\KGraphCmd\\TicketShareConfig.json"
     }
   }
 }

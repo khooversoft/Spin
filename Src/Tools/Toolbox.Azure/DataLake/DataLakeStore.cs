@@ -160,12 +160,12 @@ public class DatalakeStore : IDatalakeStore
 
             byte[] data = memory.ToArray();
             string etag = response.Value.Properties.ETag.ToString();
-            context.Location().LogInformation("Read file {path}, size={size}, eTag={etag}", path, data.Length, etag);
+            context.Location().LogTrace("Read file {path}, size={size}, eTag={etag}", path, data.Length, etag);
             return new DataETag(data, etag);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
-            context.Location().LogInformation("File not found {path}", path);
+            context.Location().LogTrace("File not found {path}", path);
             return (StatusCode.NotFound, $"File not found, path={path}");
         }
         catch (Exception ex)
@@ -328,8 +328,8 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            var exist = await _fileSystem.ExistsAsync();
-            if (!exist)
+            Response<bool> exist = await _fileSystem.ExistsAsync();
+            if (!exist.HasValue || !exist.Value)
             {
                 context.Location().LogInformation("File does not exist, path={path}", path);
                 return new Option<DatalakePathProperties>(StatusCode.NotFound);

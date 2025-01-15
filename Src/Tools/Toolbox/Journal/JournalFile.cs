@@ -93,8 +93,9 @@ public class JournalFile : IJournalFile, IAsyncDisposable
 
             DataETag read = readOption.Return();
             string data = read.Data.BytesToString();
+            if (data.IsEmpty()) continue;
 
-            var lines = data.NotEmpty()
+            var lines = data
                 .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.ToObject<JournalEntry>())
                 .OfType<JournalEntry>()

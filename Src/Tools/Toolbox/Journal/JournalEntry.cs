@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Journal;
 
@@ -30,12 +31,20 @@ public sealed record JournalEntry
 
     public override int GetHashCode() => HashCode.Combine(LogSequenceNumber, TransactionId, Date, Type, Data);
 
-    public override string ToString() => $"Lsn={LogSequenceNumber}, TranId={TransactionId}, Date={Date}, Type={Type}, Data={Data.ToJson()}";
+    public override string ToString() => $"Lsn={LogSequenceNumber}, TranId={TransactionId}, Date={Date:o}, Type={Type}, Data=[{Data.ToTagsString()}]";
 
     public static JournalEntry Create(JournalType type, IEnumerable<KeyValuePair<string, string?>> data) => new JournalEntry
     {
         Type = type,
         Data = data.NotNull().ToFrozenDictionary(),
     };
+}
+
+public static class JournalEntryTool
+{
+    public static string ToLoggingFormat(this JournalEntry subject) =>
+            $"Lsn={subject.LogSequenceNumber}, TranId={subject.TransactionId}, Date={subject.Date:o}, Type={subject.Type}".ToEnumerable()
+            .Concat(subject.Data.Select(x => TagsTool.FormatTag(x.Key, x.Value)))
+            .Join(Environment.NewLine);
 }
 

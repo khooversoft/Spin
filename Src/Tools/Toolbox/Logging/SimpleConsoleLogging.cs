@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Logging;
@@ -52,7 +53,11 @@ public class SimpleConsoleLogging : ILogger
                 }
             }
 
-            Console.WriteLine(formatString);
+            var lines = formatString.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+                .Select((x, i) => i == 0 ? x : $"{"",16} > {x}")
+                .Join(Environment.NewLine);
+
+            Console.WriteLine(lines);
         }
     }
 }

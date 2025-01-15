@@ -75,7 +75,7 @@ internal class TransactionLog : ICommandRoute
         context.LogTrace("Reading transactions...");
         IReadOnlyList<JournalEntry> entries = await journalFile.ReadJournals(context);
 
-        context.LogInformation("Read transaction log, count={count}", entries.Count);
+        context.LogTrace("Read transaction log, count={count}", entries.Count);
 
         var newEntries = entries.Select(x => x.LogSequenceNumber).Except(hashLsn).ToArray();
         newEntries.ForEach(X => hashLsn.Add(X));
@@ -84,6 +84,6 @@ internal class TransactionLog : ICommandRoute
             .Join(entries, x => x, x => x.LogSequenceNumber, (lsn, entry) => entry)
             .ToArray();
 
-        details.ForEach(x => context.LogInformation(x.ToString()));
+        details.ForEach(x => context.LogInformation(x.ToLoggingFormat()));
     }
 }

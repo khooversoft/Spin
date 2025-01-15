@@ -39,6 +39,7 @@ internal class GraphDb : ICommandRoute
 
         var fileStore = services.GetRequiredService<IFileStore>().NotNull();
         var files = await fileStore.Search(GraphConstants.DbDatabaseSearchPath, _context);
+        files = files.OrderByDescending(x => x).ToArray();
 
         foreach (var file in files)
         {

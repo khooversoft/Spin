@@ -70,13 +70,10 @@ internal class TraceLog : ICommandRoute
         }
     }
 
-
     private async Task ReadJournal(IJournalFile journalFile, HashSet<string> hashLsn, ScopeContext context)
     {
-        context.LogTrace("Reading journals...");
         IReadOnlyList<JournalEntry> entries = await journalFile.ReadJournals(context);
-
-        context.LogInformation("Read journals, count={count}", entries.Count);
+        context.LogTrace("Readed journals, count={count}", entries.Count);
 
         var newEntries = entries.Select(x => x.LogSequenceNumber).Except(hashLsn).ToArray();
         newEntries.ForEach(X => hashLsn.Add(X));
@@ -85,6 +82,6 @@ internal class TraceLog : ICommandRoute
             .Join(entries, x => x, x => x.LogSequenceNumber, (lsn, entry) => entry)
             .ToArray();
 
-        details.ForEach(x => context.LogInformation(x.ToString()));
+        details.ForEach(x => context.LogInformation(x.ToLoggingFormat()));
     }
 }
