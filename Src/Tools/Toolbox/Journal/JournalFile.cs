@@ -13,7 +13,8 @@ namespace Toolbox.Journal;
 public interface IJournalFile : IAsyncDisposable
 {
     Task Close();
-    public IJournalTrx CreateTransactionContext(string? transactionId = null);
+    IJournalTrx CreateTransactionContext(string? transactionId = null);
+    Task<IReadOnlyList<string>> GetFiles(ScopeContext context);
     Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context);
     Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context);
 
@@ -71,9 +72,11 @@ public class JournalFile : IJournalFile, IAsyncDisposable
 
     public async ValueTask DisposeAsync() => await Close();
 
+    public Task<IReadOnlyList<string>> GetFiles(ScopeContext context) => _fileStore.Search($"{_basePath}/**/*.{_name}.json", context);
+
     public async Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context)
     {
-        var files = await _fileStore.Search($"{_basePath}/**/*.{_name}.json", context);
+        var files = await GetFiles(context);
 
         var journalEntries = new Sequence<JournalEntry>();
         foreach (var file in files)

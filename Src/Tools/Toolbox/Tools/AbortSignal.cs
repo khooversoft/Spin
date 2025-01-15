@@ -36,7 +36,7 @@ public class AbortSignal
     private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
     {
         e.Cancel = true;
-        const string msg = "Contract is shutting down...";
+        const string msg = "Shutting down...";
 
         _logger.LogInformation(msg);
         (_tokenSource ?? throw new UnreachableException(msg)).Cancel();

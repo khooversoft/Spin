@@ -18,11 +18,18 @@ public static class ObjectExtensions
 
     public static T? ToObject<T>(this string json)
     {
-        return json switch
+        try
         {
-            string v when v.IsEmpty() => default,
-            _ => Json.Default.Deserialize<T>(json),
-        };
+            return json switch
+            {
+                string v when v.IsEmpty() => default,
+                _ => Json.Default.Deserialize<T>(json),
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new AggregateException($"json='{json}' failed", ex);
+        }
     }
 
     public static T SafeCast<T>(this object subject)

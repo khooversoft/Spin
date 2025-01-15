@@ -88,6 +88,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox.Identity", "Tools\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Identity.test", "Tools\Toolbox.Identity.test\Toolbox.Identity.test.csproj", "{FA1F4581-2DE1-475C-8E52-D1A86C8CC57E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "KGraph", "KGraph", "{5C32B1FF-C216-4F8C-8689-21A48E00A2BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KGraphCmd", "KGraph\KGraphCmd\KGraphCmd.csproj", "{81870897-F8FD-4BAA-A848-E7CE9307C47F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -226,6 +230,10 @@ Global
 		{FA1F4581-2DE1-475C-8E52-D1A86C8CC57E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA1F4581-2DE1-475C-8E52-D1A86C8CC57E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA1F4581-2DE1-475C-8E52-D1A86C8CC57E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81870897-F8FD-4BAA-A848-E7CE9307C47F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81870897-F8FD-4BAA-A848-E7CE9307C47F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81870897-F8FD-4BAA-A848-E7CE9307C47F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81870897-F8FD-4BAA-A848-E7CE9307C47F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -262,6 +270,7 @@ Global
 		{CA0A4F7C-1868-4BD5-8D2A-073068BDDD8B} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{600B5832-7F89-41D2-AEDE-F3E29F51A8E4} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
 		{FA1F4581-2DE1-475C-8E52-D1A86C8CC57E} = {6B4B2268-24A0-49B8-A0D5-CBEB52232898}
+		{81870897-F8FD-4BAA-A848-E7CE9307C47F} = {5C32B1FF-C216-4F8C-8689-21A48E00A2BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C148F5D7-56ED-4D3F-8AAB-8363CB110674}

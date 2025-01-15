@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Toolbox.Extensions;
 using Toolbox.Journal;
 
 namespace Toolbox.Test.Journal;
@@ -13,5 +14,19 @@ public class LogSequenceNumberTests
         var collection = Enumerable.Range(0, 100).Select(x => sn.Next()).ToArray();
         collection.Should().NotBeNullOrEmpty();
         collection.Length.Should().Be(100);
+    }
+
+    [Fact]
+    public void NumberSequenceOrder()
+    {
+        var sn = new LogSequenceNumber();
+
+        var collection = Enumerable.Range(0, 100).Select(x => sn.Next()).ToArray();
+
+        var shuffle = collection.Shuffle();
+        Enumerable.SequenceEqual(collection, shuffle).Should().BeFalse();
+
+        var sorted = shuffle.OrderBy(x => x).ToArray();
+        Enumerable.SequenceEqual(collection, sorted).Should().BeTrue();
     }
 }
