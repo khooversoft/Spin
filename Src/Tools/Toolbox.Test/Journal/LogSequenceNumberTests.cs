@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Journal;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Journal;
 
@@ -12,7 +12,7 @@ public class LogSequenceNumberTests
         var sn = new LogSequenceNumber();
 
         var collection = Enumerable.Range(0, 100).Select(x => sn.Next()).ToArray();
-        collection.Should().NotBeNullOrEmpty();
+        collection.Should().NotBeNull();
         collection.Length.Should().Be(100);
     }
 

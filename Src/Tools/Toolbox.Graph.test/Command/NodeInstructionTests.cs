@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -56,7 +56,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("add node key=node8;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
 
@@ -74,7 +74,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("add node key=node9 set newTags;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Should().Be(1);
@@ -137,7 +137,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("delete node key=node1 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
@@ -176,11 +176,11 @@ public class NodeInstructionTests
 
         // Verify delete will fail
         var newMapOption = await testClient.ExecuteBatch("delete node key=node11 ;", NullScopeContext.Default);
-        newMapOption.IsError().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsError().Should().BeTrue();
 
         // Delet should not fail because of 'ifexist'
         newMapOption = await testClient.ExecuteBatch("delete node ifexist key=node111 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Should().Be(1);
@@ -195,7 +195,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("set node key=node8 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
@@ -216,7 +216,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("set node key=role:owner@domain.com;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
@@ -237,7 +237,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("set node key=node11 set t1, t2=v2 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
@@ -258,7 +258,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("set node key=node4 set t1, t2=v2 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
@@ -279,7 +279,7 @@ public class NodeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("set node key=node4 set -age ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);

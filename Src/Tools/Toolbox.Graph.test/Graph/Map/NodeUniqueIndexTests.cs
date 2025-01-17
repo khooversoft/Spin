@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Map;
@@ -74,7 +74,7 @@ public class NodeUniqueIndexTests
         map.Nodes.TryGetValue("node1", out var readNode).Should().BeTrue();
         readNode!.Key.Should().Be("node1");
         readNode.TagsString.Should().Be("age=29,name=marko");
-        readNode.IndexesString.Should().BeNullOrEmpty();
+        readNode.IndexesString.Should().BeEmpty();
     }
 
     [Fact]

@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using LoanContract.sdk.Contract;
+﻿using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +10,7 @@ using SpinClient.sdk;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace LoanContract.sdk.test;

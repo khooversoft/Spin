@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks.Dataflow;
-using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Store;
@@ -104,7 +104,7 @@ public class InMemoryFileStoreTests
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
             x.Count.Should().Be(2);
-            x.Should().BeEquivalentTo(pathText1, pathText2);
+            x.SequenceEqual([pathText1, pathText2]).Should().BeTrue();
         });
 
         await DeleteFile(store, pathText1, 1);
@@ -172,7 +172,7 @@ public class InMemoryFileStoreTests
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
             x.Count.Should().Be(size);
-            x.Should().BeEquivalentTo(queue.Select(x => x.fileId));
+            x.OrderBy(x => x).SequenceEqual(queue.Select(x => x.fileId).OrderBy(x => x)).Should().BeTrue();
         });
 
         KeyValuePair<string, DataETag>[] storeList = ((InMemoryFileStore)store).OrderBy(x => x.Key).ToArray();

@@ -1,12 +1,12 @@
 ﻿using System.Collections.Frozen;
 using System.Security.Cryptography;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.test.Application;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Azure.test.Datalake;
@@ -59,8 +59,8 @@ public class JournalLogTests
 
         search = await fileStore.Search(_searchPath, _context);
         search.Count.Should().Be(1);
-        search[0].Should().Contain("journal3/data");
-        search[0].Should().EndWith(".journal3Key.json");
+        search[0].Contains("journal3/data").Should().BeTrue();
+        search[0].EndsWith(".journal3Key.json").Should().BeTrue();
 
         var journals = await journal.ReadJournals(_context);
 
@@ -120,8 +120,8 @@ public class JournalLogTests
         search.Count.Should().Be(1);
         search.ForEach(x =>
         {
-            x.Should().StartWith("journal3/data");
-            x.Should().EndWith(".journal3Key.json");
+            x.StartsWith("journal3/data").Should().BeTrue();
+            x.EndsWith(".journal3Key.json").Should().BeTrue();
         });
 
         var journals = await journal.ReadJournals(_context);
@@ -182,8 +182,8 @@ public class JournalLogTests
         search.Count.Should().Be(1);
         search.ForEach(x =>
         {
-            x.Should().StartWith("journal3/data");
-            x.Should().EndWith(".journal3Key.json");
+            x.StartsWith("journal3/data").Should().BeTrue();
+            x.EndsWith(".journal3Key.json").Should().BeTrue();
         });
 
         var journals = await journal.ReadJournals(_context);

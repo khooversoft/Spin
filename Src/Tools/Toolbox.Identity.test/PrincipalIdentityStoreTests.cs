@@ -1,7 +1,7 @@
-using FluentAssertions;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -49,7 +49,7 @@ public class PrincipalIdentityStoreTests
         engineContext.Map.Edges.Count.Should().Be(0);
 
         var deleteResult = await engineContext.IdentityClient.Delete(userId, engineContext.Context);
-        deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());
+        deleteResult.IsOk().Should().BeTrue();
         engineContext.Map.Nodes.Count.Should().Be(0);
         engineContext.Map.Edges.Count.Should().Be(0);
 
@@ -89,7 +89,7 @@ public class PrincipalIdentityStoreTests
         engineContext.Map.Edges.Count.Should().Be(0);
 
         var deleteResult = await engineContext.IdentityClient.Delete(userId, engineContext.Context);
-        deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());
+        deleteResult.IsOk().Should().BeTrue();
         engineContext.Map.Nodes.Count.Should().Be(0);
         engineContext.Map.Edges.Count.Should().Be(0);
 

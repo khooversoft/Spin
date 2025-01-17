@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using Toolbox.Security;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Security;
 
@@ -22,7 +22,7 @@ public class JwtKeyTests
             .SetPrincipleSignature(principle)
             .Build();
 
-        token.Should().NotBeNullOrEmpty();
+        token.Should().NotBeEmpty();
 
         JwtTokenDetails tokenDetails = new JwtTokenParserBuilder()
             .SetPrincipleSignature(principle)
@@ -51,7 +51,7 @@ public class JwtKeyTests
             .SetPrincipleSignature(principle)
             .Build();
 
-        token.Should().NotBeNullOrEmpty();
+        token.Should().NotBeEmpty();
 
         Action test = () => new JwtTokenParserBuilder()
             .SetPrincipleSignature(principle2)

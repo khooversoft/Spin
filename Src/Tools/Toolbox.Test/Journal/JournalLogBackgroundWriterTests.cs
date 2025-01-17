@@ -1,11 +1,11 @@
 ﻿using System.Collections.Frozen;
 using System.Security.Cryptography;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Journal;
@@ -121,8 +121,8 @@ public class JournalLogBackgroundWriterTests
 
         var search2 = await fileStore.Search("**/*", _context);
         search2.Count.Should().Be(1);
-        search2[0].Should().StartWith("/journal2/data");
-        search2[0].Should().EndWith(".journal2.json");
+        search2[0].StartsWith("/journal2/data").Should().BeTrue();
+        search2[0].EndsWith(".journal2.json").Should().BeTrue();
 
         var journals = await journal2.ReadJournals(_context);
         journals.Count.Should().Be(createdJournals.Count);

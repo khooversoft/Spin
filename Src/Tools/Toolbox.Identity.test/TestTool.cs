@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Logging;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -55,7 +55,7 @@ internal static class TestTool
         result.IsOk().Should().BeTrue();
 
         var readPrincipalIdentityOption = await testContext.IdentityClient.GetByPrincipalId(user.PrincipalId, testContext.Context);
-        readPrincipalIdentityOption.IsOk().Should().BeTrue(readPrincipalIdentityOption.ToString());
+        readPrincipalIdentityOption.IsOk().Should().BeTrue();
         (user == readPrincipalIdentityOption.Return()).Should().BeTrue();
 
         var userNameOption = await testContext.IdentityClient.GetByName(user.UserName, testContext.Context);

@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Transactions;
@@ -100,10 +100,10 @@ public class GraphTransactionTests
         journals.Count.Should().Be(expectedJournalCount);
 
         map.Nodes.Count.Should().Be(4);
-        map.Nodes.OrderBy(x => x.Key).Select(x => x.Key).Should().BeEquivalentTo(["node1", "node2", "node3", "node4"]);
+        map.Nodes.OrderBy(x => x.Key).Select(x => x.Key).SequenceEqual(["node1", "node2", "node3", "node4"]).Should().BeTrue();
 
         map.Edges.Count.Should().Be(2);
-        map.Edges.Select(x => (x.FromKey, x.ToKey)).Should().BeEquivalentTo([("node1", "node2"), ("node3", "node4")]);
+        map.Edges.Select(x => (x.FromKey, x.ToKey)).OrderBy(x => x).SequenceEqual([("node1", "node2"), ("node3", "node4")]).Should().BeTrue();
     }
 
     private void TestReturn(QueryResult graphResult, StatusCode statusCode)

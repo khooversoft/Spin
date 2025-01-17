@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -56,7 +56,7 @@ public class SelectNodeInstructionTests
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(1);
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
@@ -79,12 +79,12 @@ public class SelectNodeInstructionTests
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(7);
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
 
-        result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3", "node4", "node5", "node6", "node7");
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6", "node7"]).Should().BeTrue();
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(0);
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
@@ -101,12 +101,12 @@ public class SelectNodeInstructionTests
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(4);
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
 
-        result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node4", "node6");
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node4", "node6"]).Should().BeTrue();
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(1);
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);

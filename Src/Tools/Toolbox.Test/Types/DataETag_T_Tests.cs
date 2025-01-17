@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -24,9 +24,8 @@ public class DataETag_T_Tests
         var e = new DataETag<TestData>(td);
         e.Should().NotBeNull();
         e.Value.Should().Be(td);
-        e.ETag.Should().BeNullOrEmpty();
+        e.ETag.Should().BeEmpty();
     }
-
 
     [Fact]
     public void DataETagWithDataAndETag()

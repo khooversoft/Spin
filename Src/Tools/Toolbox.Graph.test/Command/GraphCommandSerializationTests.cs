@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
-using FluentAssertions;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -60,7 +60,7 @@ public class GraphCommandSerializationTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult r1 = newMapOption.Return();
 
@@ -71,11 +71,11 @@ public class GraphCommandSerializationTests
 
         result.Option.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(3);
-        result.Items.Select(x => x.Alias).Should().BeEquivalentTo("a1", "a2", "a3");
+        result.Items.Select(x => x.Alias).SequenceEqual(["a1", "a2", "a3"]).Should().BeTrue();
 
         result.Items[0].Action(x =>
         {
-            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3", "node4", "node5", "node6", "node7");
+            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6", "node7"]).Should().BeTrue();
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
         });
@@ -89,7 +89,7 @@ public class GraphCommandSerializationTests
 
         result.Items[2].Action(x =>
         {
-            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
+            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).Should().BeTrue();
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
         });

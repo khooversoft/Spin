@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Tools;
 
@@ -12,7 +12,7 @@ public class CacheObjectTests
 
         cache.IsValid().Should().BeFalse();
         cache.TryGetValue(out string value).Should().BeFalse();
-        value.Should().BeNullOrEmpty();
+        value.Should().BeEmpty();
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class CacheObjectTests
         var cache = new CacheObject<string>(TimeSpan.FromMilliseconds(100)).Set(item);
 
         cache.TryGetValue(out string value).Should().BeTrue();
-        value.Should().NotBeNullOrEmpty();
+        value.Should().NotBeEmpty();
         value.Should().Be(item);
         cache.IsValid().Should().BeTrue();
 
@@ -69,7 +69,7 @@ public class CacheObjectTests
 
         cache.IsValid().Should().BeTrue();
         cache.TryGetValue(out string value).Should().BeTrue();
-        value.Should().NotBeNullOrEmpty();
+        value.Should().NotBeEmpty();
         value.Should().Be(item);
     }
 
@@ -81,7 +81,7 @@ public class CacheObjectTests
 
         cache.IsValid().Should().BeTrue();
         cache.TryGetValue(out string value).Should().BeTrue();
-        value.Should().NotBeNullOrEmpty();
+        value.Should().NotBeEmpty();
         value.Should().Be(item);
     }
 
@@ -92,12 +92,12 @@ public class CacheObjectTests
         var cache = new CacheObject<string>(TimeSpan.FromMilliseconds(100)).Set(item);
 
         cache.TryGetValue(out string value).Should().BeTrue();
-        value.Should().NotBeNullOrEmpty();
+        value.Should().NotBeEmpty();
         value.Should().Be(item);
 
         Thread.Sleep(TimeSpan.FromMilliseconds(200));
         cache.TryGetValue(out value).Should().BeFalse();
-        value.Should().BeNullOrEmpty();
+        value.Should().BeEmpty();
     }
 
     [Fact]
@@ -107,12 +107,12 @@ public class CacheObjectTests
         var cache = new CacheObject<string>(TimeSpan.FromMilliseconds(100)).Set(item);
 
         cache.TryGetValue(out string value).Should().Be(true);
-        value.Should().NotBeNullOrEmpty();
+        value.Should().NotBeEmpty();
         value.Should().Be(item);
 
         Thread.Sleep(TimeSpan.FromMilliseconds(200));
         cache.TryGetValue(out value).Should().BeFalse();
-        value.Should().BeNullOrEmpty();
+        value.Should().BeEmpty();
     }
 
     [Fact]

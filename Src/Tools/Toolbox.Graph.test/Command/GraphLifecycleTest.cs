@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -14,7 +14,7 @@ public class GraphLifecycleTest
         GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
 
         Option<QueryBatchResult> addResult = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
-        addResult.IsOk().Should().BeTrue(addResult.ToString());
+        addResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(1);
         map.Edges.Count.Should().Be(0);
 
@@ -33,7 +33,7 @@ public class GraphLifecycleTest
         });
 
         Option<QueryBatchResult> removeResult = await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Default);
-        removeResult.IsOk().Should().BeTrue(removeResult.ToString());
+        removeResult.IsOk().Should().BeTrue();
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
 
@@ -64,7 +64,7 @@ public class GraphLifecycleTest
 
         (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
-            x.Option.IsOk().Should().BeTrue(x.ToString());
+            x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
@@ -78,7 +78,7 @@ public class GraphLifecycleTest
 
         (await testClient.Execute("select (key=node2);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
-            x.Option.IsOk().Should().BeTrue(x.ToString());
+            x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
@@ -92,14 +92,14 @@ public class GraphLifecycleTest
 
         (await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Default)).Action(x =>
         {
-            x.IsOk().Should().BeTrue(x.ToString());
+            x.IsOk().Should().BeTrue();
             map.Nodes.Count.Should().Be(1);
             map.Edges.Count.Should().Be(0);
         });
 
         (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
-            x.Option.IsOk().Should().BeTrue(x.ToString());
+            x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(0);
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
@@ -107,7 +107,7 @@ public class GraphLifecycleTest
 
         (await testClient.Execute("select (key=node2);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
-            x.Option.IsOk().Should().BeTrue(x.ToString());
+            x.Option.IsOk().Should().BeTrue();
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
@@ -121,7 +121,7 @@ public class GraphLifecycleTest
 
         (await testClient.ExecuteBatch("delete node key=node2;", NullScopeContext.Default)).Action(x =>
         {
-            x.IsOk().Should().BeTrue(x.ToString());
+            x.IsOk().Should().BeTrue();
             x.Return().Items.Count.Should().Be(1);
         });
 
@@ -142,7 +142,7 @@ public class GraphLifecycleTest
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
-            x.IsOk().Should().BeTrue(x.ToString());
+            x.IsOk().Should().BeTrue();
             x.Value.Items.Count.Should().Be(2);
             x.Value.Items[0].Action(y =>
             {
@@ -177,7 +177,7 @@ public class GraphLifecycleTest
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
-            x.IsOk().Should().BeTrue(x.ToString());
+            x.IsOk().Should().BeTrue();
             x.Return().Items.Count.Should().Be(3);
         });
 
@@ -235,7 +235,7 @@ public class GraphLifecycleTest
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
         {
-            x.IsOk().Should().BeTrue(x.ToString());
+            x.IsOk().Should().BeTrue();
             x.Return().Items.Count.Should().Be(3);
         });
 

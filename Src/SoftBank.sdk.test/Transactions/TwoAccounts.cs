@@ -1,11 +1,11 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.test.Application;
 using SoftBank.sdk.Trx;
 using SpinTestTools.sdk.ObjectBuilder;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.test.Transactions;
@@ -148,8 +148,8 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         trxResponse.Status.Should().Be(TrxStatusCode.Completed);
         trxResponse.Amount.Should().Be(amount);
         trxResponse.Error.Should().BeNull();
-        trxResponse.SourceLedgerItemId.Should().NotBeNullOrEmpty();
-        trxResponse.DestinationLedgerItemId.Should().NotBeNullOrEmpty();
+        trxResponse.SourceLedgerItemId.Should().NotBeEmpty();
+        trxResponse.DestinationLedgerItemId.Should().NotBeEmpty();
     }
 
     private async Task<decimal> GetBalance(SbAccountDetail config)

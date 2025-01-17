@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Validation;
@@ -56,7 +56,7 @@ public class ValidationTests
         var result = validations.Validate(option);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
+        result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(0);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class ValidationTests
         var result = validations.Validate(option);
         result.Should().NotBeNull();
         result.IsOk().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
+        result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(0);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class ValidationTests
         var result = validations.Validate(option);
         result.Should().NotBeNull();
         result.IsError().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
+        result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(2);
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class ValidationTests
         var result = validations.Validate(option);
         result.Should().NotBeNull();
         result.IsError().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
+        result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(2);
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public class ValidationTests
             var result = validations.Validate(x);
             result.Should().NotBeNull();
             result.IsOk().Should().BeTrue(result.ToString());
-            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
+            result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(0);
         });
 
         new TestOption
@@ -174,8 +174,8 @@ public class ValidationTests
             var result = validations.Validate(x);
             result.Should().NotBeNull();
             result.IsError().Should().BeTrue();
-            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
-            result.Return().As<ValidatorResult>().Errors[0].As<ValidatorError>().Message.Should().Be("domain is required");
+            result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(1);
+            result.Return().Cast<ValidatorResult>().Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");
         });
 
         new TestOption
@@ -187,8 +187,8 @@ public class ValidationTests
             var result = validations.Validate(x);
             result.Should().NotBeNull();
             result.IsError().Should().BeTrue();
-            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
-            result.Return().As<ValidatorResult>().Errors[0].As<ValidatorError>().Message.Should().Be("accountName is required");
+            result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(1);
+            result.Return().Cast<ValidatorResult>().Errors[0].Cast<ValidatorError>().Message.Should().Be("accountName is required");
         });
 
         new TestOption
@@ -200,9 +200,9 @@ public class ValidationTests
             var result = validations.Validate(x);
             result.Should().NotBeNull();
             result.IsError().Should().BeTrue();
-            result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
-            result.Return().As<ValidatorResult>().Errors[0].As<ValidatorError>().Message.Should().Be("domain is required");
-            result.Return().As<ValidatorResult>().Errors[1].As<ValidatorError>().Message.Should().Be("accountName is required");
+            result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(2);
+            result.Return().Cast<ValidatorResult>().Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");
+            result.Return().Cast<ValidatorResult>().Errors[1].Cast<ValidatorError>().Message.Should().Be("accountName is required");
         });
     }
 }

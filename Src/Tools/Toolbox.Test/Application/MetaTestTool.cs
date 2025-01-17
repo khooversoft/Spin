@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Application;
@@ -110,7 +110,7 @@ internal static class MetaTestTool
         foreach (var (to, from) in matchTo.Zip(matchFrom))
         {
             bool match = to.Equals(from);
-            match.Should().BeTrue($"to: {to}, from: {from}");
+            match.Should().BeTrue();
         }
     }
 

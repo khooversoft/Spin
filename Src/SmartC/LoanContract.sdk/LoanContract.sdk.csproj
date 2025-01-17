@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Client" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.0.1" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>

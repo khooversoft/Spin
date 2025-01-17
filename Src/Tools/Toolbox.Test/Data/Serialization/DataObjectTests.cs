@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Data.Serialization;
@@ -30,7 +30,7 @@ public class DataObjectTests
         d.Should().NotBeNull();
         d.Key.Should().Be("TestClass");
         d.TypeName.Should().Be("TestClass");
-        d.JsonData.Should().NotBeNullOrEmpty();
+        d.JsonData.Should().NotBeEmpty();
 
         TestClass rt = d.ToObject<TestClass>();
         rt.Should().NotBeNull();

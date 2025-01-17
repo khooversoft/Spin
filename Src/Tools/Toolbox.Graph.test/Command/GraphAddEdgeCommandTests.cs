@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -42,7 +42,7 @@ public class GraphAddEdgeCommandTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, copyMap);

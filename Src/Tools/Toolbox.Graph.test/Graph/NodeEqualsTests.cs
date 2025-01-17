@@ -1,5 +1,5 @@
 ﻿using System.Collections.Frozen;
-using FluentAssertions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph;

@@ -1,12 +1,12 @@
 ﻿using System.Collections.Frozen;
 using System.Security.Cryptography;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.test.Application;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Azure.test.Datalake;
@@ -63,8 +63,8 @@ public class TransactionLogTests
 
         search = await fileStore.Search(_searchPath, _context);
         search.Count.Should().Be(1);
-        search[0].Should().Contain("journal4/data");
-        search[0].Should().EndWith(".trxJournal.json");
+        search[0].Contains("journal4/data").Should().BeTrue();
+        search[0].EndsWith(".trxJournal.json").Should().BeTrue();
 
         var journals = await journalFile.ReadJournals(_context);
 

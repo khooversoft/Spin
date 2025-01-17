@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.DocumentSearch.test;
 
@@ -109,7 +109,7 @@ public class DocumentIndexTests
         index.InvertedIndex.Index.Count.Should().Be(6);
 
         string json = index.ToJson();
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         DocumentIndex newIndex = json.ToObject<DocumentIndexSerialization>().NotNull().FromSerialization();
         newIndex.Should().NotBeNull();

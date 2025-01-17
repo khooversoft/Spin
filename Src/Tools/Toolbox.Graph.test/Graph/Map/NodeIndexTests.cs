@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Map;
@@ -27,11 +27,11 @@ public class NodeIndexTests
     {
         var subject = _map.Nodes.LookupTag("name");
         subject.Count.Should().Be(6);
-        subject.Should().BeEquivalentTo(["node1", "node2", "node3", "node4", "node5", "node6"]);
+        subject.SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).Should().BeTrue();
 
         var subjects = _map.Nodes.LookupTaggedNodes("name");
         subjects.Count.Should().Be(6);
-        subjects.Select(x => x.Key).Should().BeEquivalentTo(["node1", "node2", "node3", "node4", "node5", "node6"]);
+        subjects.Select(x => x.Key).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).Should().BeTrue();
     }
 
     [Fact]
@@ -39,11 +39,11 @@ public class NodeIndexTests
     {
         var subject = _map.Nodes.LookupTag("lang");
         subject.Count.Should().Be(3);
-        subject.Should().BeEquivalentTo(["node3", "node5", "node7"]);
+        subject.SequenceEqual(["node3", "node5", "node7"]).Should().BeTrue();
 
         var subjects = _map.Nodes.LookupTaggedNodes("lang");
         subjects.Count.Should().Be(3);
-        subjects.Select(x => x.Key).Should().BeEquivalentTo(["node3", "node5", "node7"]);
+        subjects.Select(x => x.Key).SequenceEqual(["node3", "node5", "node7"]).Should().BeTrue();
     }
 
     [Fact]
@@ -51,11 +51,11 @@ public class NodeIndexTests
     {
         var subject = _map.Edges.LookupTag("knows");
         subject.Count.Should().Be(2);
-        subject.Should().BeEquivalentTo([
+        subject.SequenceEqual([
             new GraphEdgePrimaryKey { FromKey = "node1", ToKey = "node2", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node1", ToKey = "node3", EdgeType = "et1" },
             ]
-        );
+        ).Should().BeTrue();
     }
 
     [Fact]
@@ -63,12 +63,12 @@ public class NodeIndexTests
     {
         var subject = _map.Edges.LookupTag("created");
         subject.Count.Should().Be(3);
-        subject.Should().BeEquivalentTo([
+        subject.SequenceEqual([
             new GraphEdgePrimaryKey { FromKey = "node6", ToKey = "node3", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node5", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node3", EdgeType = "et1" },
             ]
-        );
+        ).Should().BeTrue();
     }
 
     [Fact]

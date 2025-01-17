@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -40,7 +40,7 @@ public class GraphParallelStressTests
 
         string cmd = $"set edge from={fromKey}, to={toKey}, type=et set {tags};";
         var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
-        option.IsOk().Should().BeTrue(option.ToString());
+        option.IsOk().Should().BeTrue();
         return option.ToOptionStatus();
     }
 

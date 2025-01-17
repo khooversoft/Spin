@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -21,8 +21,8 @@ public class DataETagTests
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
         (e1 == e3).Should().BeTrue();
-        e3.Data.Should().BeEquivalentTo(e1.Data);
-        e3.ETag.Should().BeEquivalentTo(e1.ETag);
+        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
+        e3.ETag.Should().Be(e1.ETag);
     }
 
     [Fact]
@@ -39,8 +39,8 @@ public class DataETagTests
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
         (e1 == e3).Should().BeTrue();
-        e3.Data.Should().BeEquivalentTo(e1.Data);
-        e3.ETag.Should().BeEquivalentTo(e1.ETag);
+        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
+        e3.ETag.Should().Be(e1.ETag);
     }
 
     [Fact]
@@ -57,8 +57,8 @@ public class DataETagTests
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
         (e1 == e3).Should().BeTrue();
-        e3.Data.Should().BeEquivalentTo(e1.Data);
-        e3.ETag.Should().BeEquivalentTo(e1.ETag);
+        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
+        e3.ETag.Should().Be(e1.ETag);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class DataETagTests
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
         (e1 == e3).Should().BeTrue();
-        e3.Data.Should().BeEquivalentTo(e1.Data);
-        e3.ETag.Should().BeEquivalentTo(e1.ETag);
+        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
+        e3.ETag.Should().Be(e1.ETag);
     }
 }

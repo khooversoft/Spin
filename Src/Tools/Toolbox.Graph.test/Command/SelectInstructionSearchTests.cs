@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -30,12 +30,12 @@ public class SelectInstructionSearchTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var resultOption = await testClient.Execute("select (key=account:*) ;", NullScopeContext.Default);
-        resultOption.IsOk().Should().BeTrue(resultOption.ToString());
+        resultOption.IsOk().Should().BeTrue();
 
         QueryResult result = resultOption.Return();
         result.Nodes.Count.Should().Be(2);
         result.Edges.Count.Should().Be(0);
-        result.Nodes.Select(x => x.Key).Should().BeEquivalentTo(["account:sam", "account:eve"]);
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["account:eve", "account:sam"]).Should().BeTrue();
     }
 
     [Fact]
@@ -44,12 +44,12 @@ public class SelectInstructionSearchTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var resultOption = await testClient.Execute("select [from=user:f*] ;", NullScopeContext.Default);
-        resultOption.IsOk().Should().BeTrue(resultOption.ToString());
+        resultOption.IsOk().Should().BeTrue();
 
         QueryResult result = resultOption.Return();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(2);
-        result.Edges.Select(x => x.FromKey).Should().BeEquivalentTo(["user:fred", "user:fred"]);
+        result.Edges.Select(x => x.FromKey).SequenceEqual(["user:fred", "user:fred"]).Should().BeTrue();
     }
 
     [Fact]
@@ -58,11 +58,11 @@ public class SelectInstructionSearchTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var resultOption = await testClient.Execute("select [from=user:f*] -> (*) ;", NullScopeContext.Default);
-        resultOption.IsOk().Should().BeTrue(resultOption.ToString());
+        resultOption.IsOk().Should().BeTrue();
 
         QueryResult result = resultOption.Return();
         result.Nodes.Count.Should().Be(2);
         result.Edges.Count.Should().Be(0);
-        result.Nodes.Select(x => x.Key).Should().BeEquivalentTo(["user:alice", "user:diana"]);
+        result.Nodes.Select(x => x.Key).SequenceEqual(["user:alice", "user:diana"]).Should().BeTrue();
     }
 }

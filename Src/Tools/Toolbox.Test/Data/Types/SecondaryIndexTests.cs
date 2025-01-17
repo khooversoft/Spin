@@ -1,6 +1,7 @@
-﻿using FluentAssertions;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Data.Types;
 
@@ -74,8 +75,8 @@ public class SecondaryIndexTests
 
         do
         {
-            shuffel.Count.Should().BeGreaterThan(0);
-            pkeyInput.Length.Should().BeGreaterThan(0);
+            shuffel.Count.Assert(x => x > 0, x => $"{x} must be > 0");
+            pkeyInput.Length.Assert(x => x > 0, x => $"{x} must be > 0");
             index.Count().Should().Be(pkeyInput.Length);
 
             var shouldMatch = pkeyInput.Select(x => new KeyValuePair<int, Guid>(key, x)).OrderBy(x => x.Key).ToArray();
@@ -114,8 +115,8 @@ public class SecondaryIndexTests
 
         do
         {
-            shuffle.Count.Should().BeGreaterThan(0);
-            keyInput.Length.Should().BeGreaterThan(0);
+            shuffle.Count.Assert(x => x > 0, x => $"{x} must be > 0");
+            keyInput.Length.Assert(x => x > 0, x => $"{x} must be > 0");
 
             index.Count.Should().Be(shuffle.Count);
             index.Count().Should().Be(shuffle.Count);
@@ -160,8 +161,8 @@ public class SecondaryIndexTests
 
         do
         {
-            shuffle.Count.Should().BeGreaterThan(0);
-            keyInput.Length.Should().BeGreaterThan(0);
+            shuffle.Count.Assert(x => x > 0, x => $"{x} must be > 0");
+            keyInput.Length.Assert(x => x > 0, x => $"{x} must be > 0");
 
             index.Count.Should().Be(shuffle.Select(x => x.Key).Distinct().Count());
             index.Count().Should().Be(shuffle.Count);
@@ -224,8 +225,8 @@ public class SecondaryIndexTests
 
         do
         {
-            shuffle.Count.Should().BeGreaterThan(0);
-            keyInput.Length.Should().BeGreaterThan(0);
+            shuffle.Count.Assert(x => x > 0, x => $"{x} must be > 0");
+            keyInput.Length.Assert(x => x > 0, x => $"{x} must be > 0");
 
             index.Count.Should().Be(shuffle.Select(x => x.Key).Distinct().Count());
             index.Count().Should().Be(shuffle.Count);

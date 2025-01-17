@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Logging;
+using Toolbox.Tools.Should;
 using Xunit.Abstractions;
 
 namespace Toolbox.CommandRouter.test;

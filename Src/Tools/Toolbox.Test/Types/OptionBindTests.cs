@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -64,7 +64,7 @@ public class OptionBindTests
         Option<string> option2 = new Option<string>(StatusCode.BadRequest).Bind(x => "that works");
         option2.IsError().Should().BeTrue();
         option2.StatusCode.Should().Be(StatusCode.BadRequest);
-        option2.Value.Should().BeNullOrEmpty();
+        option2.Value.Should().BeEmpty();
 
         Option<string> option3 = "hello".ToOption()
             .Bind(x => x + ":suffix")
@@ -73,12 +73,12 @@ public class OptionBindTests
 
         option3.IsOk().Should().BeFalse();
         option3.StatusCode.Should().Be(StatusCode.Forbidden);
-        option3.Value.Should().BeNullOrEmpty();
+        option3.Value.Should().BeEmpty();
 
         Option<string> option4 = new Option<string>(StatusCode.OK).Bind(x => "that works");
         option4.IsError().Should().BeFalse();
         option4.StatusCode.Should().Be(StatusCode.OK);
-        option4.Value.Should().BeNullOrEmpty();
+        option4.Value.Should().BeEmpty();
     }
 
     [Fact]

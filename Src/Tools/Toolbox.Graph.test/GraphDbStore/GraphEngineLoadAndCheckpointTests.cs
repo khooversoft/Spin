@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph.test.Command;
 using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.GraphDbStore;

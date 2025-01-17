@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -47,7 +47,7 @@ public class NodeInstructionsIndexTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         copyMap.Nodes.LookupTag("uniqueIndex").Action(x =>
         {
@@ -81,7 +81,7 @@ public class NodeInstructionsIndexTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         var uniqueIndex = new UniqueIndex("loginProvider", "userEmail", "userEmail:username1@domain1.com");
         copyMap.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
@@ -116,7 +116,7 @@ public class NodeInstructionsIndexTests
         {
             x.Key.Should().Be("user:username1@company.com");
             x.Tags.ToTagsString().Should().Be("email=userEmail:username1@domain1.com,loginProvider=userEmail:username1@domain1.com");
-            x.Indexes.Should().Contain("loginProvider");
+            x.Indexes.Any(x => x == "loginProvider").Should().BeTrue();
         });
 
         commandResults.Items.Count.Should().Be(1);
@@ -129,23 +129,26 @@ public class NodeInstructionsIndexTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         UniqueIndex[] indexes = [
-            new UniqueIndex("loginProvider", "provider", "provider:provider1/provider1-key"),
-            new UniqueIndex("email", "userEmail", "userEmail:username1@domain1.com"),
+            new UniqueIndex("email", "userEmail:username1@domain1.com", "user:username1@company.com"),
+            new UniqueIndex("loginProvider", "provider:provider1/provider1-key", "user:username1@company.com"),
             ];
 
         copyMap.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
         {
             x.Count.Should().Be(indexes.Length);
-            Enumerable.SequenceEqual(x, indexes);
+            var source = x.OrderBy(x => x.PrimaryKey).ToArray();
+            var target = indexes.OrderBy(x => x.PrimaryKey).ToArray();
+
+            source.SequenceEqual(target).Should().BeTrue();
         });
 
         copyMap.Nodes.LookupTag("email").Action(x =>
         {
             x.Count.Should().Be(1);
-            Enumerable.SequenceEqual(x, ["userEmail:username1@domain1.com"]);
+            x.SequenceEqual(["user:username1@company.com"]).Should().BeTrue();
         });
 
         copyMap.Nodes.LookupIndex("loginProvider", "provider:provider1/provider1-key").Action(x =>
@@ -168,8 +171,8 @@ public class NodeInstructionsIndexTests
         {
             x.Key.Should().Be("user:username1@company.com");
             x.Tags.ToTagsString().Should().Be("email=userEmail:username1@domain1.com,loginProvider=provider:provider1/provider1-key");
-            x.Indexes.Should().Contain("loginProvider");
-            x.Indexes.Should().Contain("email");
+            x.Indexes.Any(x => x == "loginProvider").Should().BeTrue();
+            x.Indexes.Any(x => x == "email").Should().BeTrue();
         });
 
         commandResults.Items.Count.Should().Be(1);

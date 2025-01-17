@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
@@ -93,7 +93,7 @@ public class GraphMapNodeTests
             new GraphNode("Node1"),
         };
 
-        test1.Should().Throw<ArgumentException>();
+        test1.Should().Throw<GraphMap, ArgumentException>();
 
         var test2 = () => map = new GraphMap()
         {
@@ -101,6 +101,6 @@ public class GraphMapNodeTests
             new GraphNode("node1"),
         };
 
-        test1.Should().Throw<ArgumentException>();
+        test1.Should().Throw<GraphMap, ArgumentException>();
     }
 }

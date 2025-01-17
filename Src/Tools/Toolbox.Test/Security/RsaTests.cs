@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
-using FluentAssertions;
 using Toolbox.Security;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Security;
 

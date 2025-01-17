@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Query;
@@ -59,6 +59,7 @@ public class GraphDirectoryTests
         var map = GetMap();
         var testClient = GraphTestStartup.CreateGraphTestHost(map);
         var search = (await testClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", NullScopeContext.Default)).ThrowOnError().Return();
+        Assert.NotNull(search);
         search.Should().NotBeNull();
         search.Items.Count.Should().Be(1);
         search.Items[0].Edges.Count.Should().Be(2);

@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.DocumentSearch.test;
 

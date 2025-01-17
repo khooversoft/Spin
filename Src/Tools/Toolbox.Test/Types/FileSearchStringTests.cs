@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -111,7 +111,7 @@ public class FileSearchStringTests
     public void KeysAndValues()
     {
         var resultOption = PropertyStringSchema.FileSearch.Parse("key=node1; t1; t2=v2; unique:logonProvider={LoginProvider}/{ProviderKey}");
-        resultOption.IsOk().Should().BeTrue(resultOption.ToString());
+        resultOption.IsOk().Should().BeTrue();
 
         var result = resultOption.Return();
         result.Count.Should().Be(4);

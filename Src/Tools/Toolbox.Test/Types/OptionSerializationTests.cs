@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -12,7 +12,7 @@ public class OptionSerializationTests
         var option = new Option(StatusCode.OK);
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         Option readOption = Json.Default.Deserialize<Option>(json);
         readOption.StatusCode.Should().Be(option.StatusCode);
@@ -25,7 +25,7 @@ public class OptionSerializationTests
         var option = new Option(StatusCode.NotFound, "Error message");
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         Option readOption = Json.Default.Deserialize<Option>(json);
         readOption.StatusCode.Should().Be(option.StatusCode);
@@ -38,7 +38,7 @@ public class OptionSerializationTests
         var option = new Option<string>(StatusCode.OK);
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
         readOption.StatusCode.Should().Be(option.StatusCode);
@@ -52,7 +52,7 @@ public class OptionSerializationTests
         var option = new Option<string>(StatusCode.NotFound, "Error message");
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
         readOption.StatusCode.Should().Be(option.StatusCode);
@@ -66,7 +66,7 @@ public class OptionSerializationTests
         var option = new Option<string>("value");
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
         readOption.StatusCode.Should().Be(option.StatusCode);
@@ -80,7 +80,7 @@ public class OptionSerializationTests
         var option = new Option<string>("value", StatusCode.NotFound);
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
         readOption.StatusCode.Should().Be(option.StatusCode);

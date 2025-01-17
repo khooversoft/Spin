@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Query;

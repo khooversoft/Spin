@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Journal;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Journal;
 

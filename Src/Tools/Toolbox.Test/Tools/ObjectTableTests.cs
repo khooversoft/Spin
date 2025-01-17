@@ -1,6 +1,7 @@
-﻿using FluentAssertions;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Tools;
 
@@ -147,11 +148,11 @@ public class ObjectTableTests
 
             tableRow.Get<DateTime>(0).Should().Be((DateTime?)row.Item.Cells[0]);
             tableRow.Get<string>(1).Should().Be((string?)row.Item.Cells[1]);
-            tableRow.Get<int>(2).Should().Be((int?)row.Item.Cells[2]);
+            tableRow.Get<int>(2).Should().Be((int)row.Item.Cells[2].NotNull());
 
             tableRow.Get<DateTime>(columns[0]).Should().Be((DateTime?)row.Item.Cells[0]);
             tableRow.Get<string>(columns[1]).Should().Be((string?)row.Item.Cells[1]);
-            tableRow.Get<int>(columns[2]).Should().Be((int?)row.Item.Cells[2]);
+            tableRow.Get<int>(columns[2]).Should().Be((int)row.Item.Cells[2].NotNull());
         }
     }
 }

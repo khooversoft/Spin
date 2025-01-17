@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -66,7 +66,7 @@ public class UpdateIdentityTests
         VerifyIndex(engineContext, list);
 
         var deleteResult = await engineContext.IdentityClient.Delete(userId, engineContext.Context);
-        deleteResult.IsOk().Should().BeTrue(deleteResult.ToString());
+        deleteResult.IsOk().Should().BeTrue();
         engineContext.Map.Nodes.Count.Should().Be(0);
         engineContext.Map.Edges.Count.Should().Be(0);
 
@@ -86,7 +86,7 @@ public class UpdateIdentityTests
         foreach (var item in list)
         {
             var r = engineContext.Map.Nodes.LookupIndex(item.indexName, item.key);
-            r.IsOk().Should().BeTrue(item.ToString());
+            r.IsOk().Should().BeTrue();
             var rv = r.Return();
             rv.NodeKey.Should().Be("user:username1@company.com");
         }

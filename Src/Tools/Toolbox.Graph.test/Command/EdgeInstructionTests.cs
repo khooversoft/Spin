@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -45,7 +45,7 @@ public class EdgeInstructionTests
             ];
 
         var fromLookup = copyMap.Edges.LookupByFromKey(["node4"]);
-        fromLookup.Should().BeEquivalentTo(edges);
+        fromLookup.OrderBy(x => x.ToString()).SequenceEqual(edges.OrderBy(x => x.ToString())).Should().BeTrue();
     }
 
     [Fact]
@@ -83,19 +83,19 @@ public class EdgeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
 
         var pk = new GraphEdgePrimaryKey { FromKey = "node7", ToKey = "node1", EdgeType = "newEdgeType" };
 
         var fromLookup = copyMap.Edges.LookupByFromKey(["node7"]);
-        fromLookup.Should().BeEquivalentTo([pk]);
+        Enumerable.SequenceEqual(fromLookup, [pk]).Should().BeTrue();
 
         var toLookup = copyMap.Edges.LookupByToKey(["node1"]);
-        toLookup.Should().BeEquivalentTo([pk]);
+        Enumerable.SequenceEqual(toLookup, [pk]).Should().BeTrue();
 
         var edgeType = copyMap.Edges.LookupByEdgeType(["newEdgeType"]);
-        toLookup.Should().BeEquivalentTo([pk]);
+        Enumerable.SequenceEqual(edgeType, [pk]).Should().BeTrue();
 
         copyMap.Meter.Edge.GetCount().Should().Be(6);
         copyMap.Meter.Edge.GetAdded().Should().Be(6);
@@ -204,11 +204,11 @@ public class EdgeInstructionTests
 
         // Verify delete will fail
         var newMapOption = await testClient.ExecuteBatch("delete edge from=node7, to=node2, type=et1 ;", NullScopeContext.Default);
-        newMapOption.IsError().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsError().Should().BeTrue();
 
         // Delet should not fail because of 'ifexist'
         newMapOption = await testClient.ExecuteBatch("delete edge ifexist from=node7, to=node2, type=et1 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Should().Be(1);

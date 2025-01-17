@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -31,16 +31,16 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select (*) -> [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(6);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node1", "node2", "et1"),
             ("node1", "node3", "et1"),
@@ -48,9 +48,9 @@ public class SelectInstructionTests
             ("node4", "node5", "et1"),
             ("node4", "node3", "et1"),
             ("node5", "node4", "et1"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(0);
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
@@ -66,16 +66,16 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select (*) <- [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(6);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node1", "node2", "et1"),
             ("node1", "node3", "et1"),
@@ -83,9 +83,9 @@ public class SelectInstructionTests
             ("node4", "node5", "et1"),
             ("node4", "node3", "et1"),
             ("node5", "node4", "et1"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(0);
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
@@ -101,16 +101,16 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select [*] -> (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(4);
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
 
-        result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).Should().BeTrue();
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(6);
         copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
@@ -126,16 +126,16 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select (*) -> [*] -> (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(4);
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
 
-        result.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).Should().BeTrue();
     }
 
     [Fact]
@@ -144,16 +144,16 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(3);
-        result.Items.Select(x => x.Alias).Should().BeEquivalentTo("a1", "a2", "a3");
+        result.Items.Select(x => x.Alias).SequenceEqual(["a1", "a2", "a3"]).Should().BeTrue();
 
         result.Items[0].Action(x =>
         {
-            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3", "node4", "node5", "node6", "node7");
+            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6", "node7"]).Should().BeTrue();
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
         });
@@ -167,7 +167,7 @@ public class SelectInstructionTests
 
         result.Items[2].Action(x =>
         {
-            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node2", "node3", "node4", "node5");
+            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).Should().BeTrue();
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
         });
@@ -179,7 +179,7 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("select (key=node4) <- [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -196,7 +196,7 @@ public class SelectInstructionTests
                 ("node5", "node4"),
             };
 
-            x.Edges.Select(x => (x.FromKey, x.ToKey)).Should().BeEquivalentTo(expected);
+            x.Edges.Select(x => (x.FromKey, x.ToKey)).SequenceEqual(expected).Should().BeTrue();
         });
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(1);
@@ -213,7 +213,7 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("select (key=node4) <-> [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -225,14 +225,14 @@ public class SelectInstructionTests
             x.Edges.Count.Should().Be(3);
             x.DataLinks.Count.Should().Be(0);
 
-            var expected = new List<(string FromKey, string ToKey)>
+            var expected = new (string FromKey, string ToKey)[]
             {
                 ("node4", "node5"),
                 ("node4", "node3"),
                 ("node5", "node4"),
-            };
+            }.OrderBy(x => x).ToArray();
 
-            x.Edges.Select(x => (x.FromKey, x.ToKey)).Should().BeEquivalentTo(expected);
+            x.Edges.Select(x => (x.FromKey, x.ToKey)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
         });
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(1);
@@ -249,7 +249,7 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("select [knows] <- (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -260,7 +260,7 @@ public class SelectInstructionTests
             x.Nodes.Count.Should().Be(1);
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
-            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1");
+            x.Nodes.Select(x => x.Key).SequenceEqual(["node1"]).Should().BeTrue();
         });
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(2);
@@ -277,7 +277,7 @@ public class SelectInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch("select [knows] <-> (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -288,7 +288,7 @@ public class SelectInstructionTests
             x.Nodes.Count.Should().Be(3);
             x.Edges.Count.Should().Be(0);
             x.DataLinks.Count.Should().Be(0);
-            x.Nodes.Select(x => x.Key).Should().BeEquivalentTo("node1", "node2", "node3");
+            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).Should().BeTrue();
         });
 
         copyMap.Meter.Node.GetIndexHit().Should().Be(4);

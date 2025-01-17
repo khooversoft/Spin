@@ -1,10 +1,10 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Block;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Test
@@ -29,7 +29,7 @@ namespace Toolbox.Block.Test
             Option result = await blockChain.ValidateBlockChain(principleSignature, _context);
             result.StatusCode.IsOk().Should().BeTrue();
 
-            blockChain.GetDigest().Should().NotBeNullOrEmpty();
+            blockChain.GetDigest().Should().NotBeEmpty();
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace Toolbox.Block.Test
             DataBlock receiveBlock = blocks[1];
             receiveBlock.BlockType.Should().Be("blockType");
             receiveBlock.ClassType.Should().Be("blockClass");
-            receiveBlock.Data.Should().NotBeNullOrEmpty();
+            receiveBlock.Data.Should().NotBeEmpty();
             receiveBlock.BlockId.Should().Be("blockId");
 
             Dictionary<string, string> receivedPayload = receiveBlock.Data.ToObject<Dictionary<string, string>>().NotNull(name: "payload failed");

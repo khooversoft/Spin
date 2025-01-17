@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -29,7 +29,7 @@ public class DeleteInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("delete (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -47,7 +47,7 @@ public class DeleteInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("delete [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -65,7 +65,7 @@ public class DeleteInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("delete (key=node2) a1 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -94,7 +94,7 @@ public class DeleteInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -118,7 +118,7 @@ public class DeleteInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] -> (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
@@ -141,6 +141,10 @@ public class DeleteInstructionTests
             ("node6", "node3"),
         };
 
-        compareMap.OfType<GraphEdge>().Select(x => (x.FromKey, x.ToKey)).Should().BeEquivalentTo(expect);
+        var resultList = compareMap.OfType<GraphEdge>()
+            .Select(x => (x.FromKey, x.ToKey))
+            .OrderBy(x => x);
+
+        Enumerable.SequenceEqual(expect, resultList).Should().BeTrue();
     }
 }

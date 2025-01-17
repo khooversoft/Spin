@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Framework;
 
@@ -23,10 +23,10 @@ public class DI_MatchTests
     public void TestBothInterface()
     {
         var di = new ServiceCollection()
-    .AddSingleton<ITest1, Test1>()
-    .AddSingleton<ITest2, Test2>()
-    .AddSingleton<Test>()
-    .BuildServiceProvider();
+            .AddSingleton<ITest1, Test1>()
+            .AddSingleton<ITest2, Test2>()
+            .AddSingleton<Test>()
+            .BuildServiceProvider();
 
         Test t1 = di.GetRequiredService<Test>();
         t1.Should().NotBeNull();

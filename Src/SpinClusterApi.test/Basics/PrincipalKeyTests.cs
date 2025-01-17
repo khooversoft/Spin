@@ -1,9 +1,10 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
 using SpinClusterApi.test.Application;
+using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Basics;
@@ -51,9 +52,9 @@ public class PrincipalKeyTests : IClassFixture<ClusterApiFixture>
         create.KeyId.Should().Be(readModel.KeyId);
         create.PrincipalId.Should().Be(readModel.PrincipalId);
         create.Name.Should().Be(readModel.Name);
-        readModel.Audience.Should().NotBeNullOrEmpty();
+        readModel.Audience.Should().NotBeEmpty();
         readModel.PublicKey.Should().NotBeNull();
-        readModel.PublicKey.Length.Should().BeGreaterThan(0);
+        readModel.PublicKey.Length.Assert(x => x > 0, x => $"{x} > 0");
 
         Option setOption = await client.Update(readModel, _context);
         setOption.IsOk().Should().BeTrue(setOption.Error);

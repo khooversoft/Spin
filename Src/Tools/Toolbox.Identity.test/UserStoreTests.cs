@@ -1,7 +1,7 @@
-using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Xunit.Abstractions;
 
 namespace Toolbox.Identity.test;
@@ -56,7 +56,7 @@ public class UserStoreTests
         updateResult.Succeeded.Should().BeTrue();
 
         findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
-        (user == findUser).Should().BeTrue($"user={user}, findUser={findUser}");
+        (user == findUser).Should().BeTrue();
 
         const string providerDisplayName = "dkdk";
         user = user with { ProviderDisplayName = providerDisplayName };

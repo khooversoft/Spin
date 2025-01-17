@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
@@ -11,7 +11,7 @@ public class NodeSerializationTests
         var v = new GraphNode("Node1", "t1=v");
 
         string json = v.ToJson();
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         var v2 = json.ToObject<GraphNode>();
         (v == v2).Should().BeTrue();

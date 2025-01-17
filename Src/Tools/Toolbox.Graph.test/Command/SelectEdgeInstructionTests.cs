@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -29,16 +29,16 @@ public class SelectEdgeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(6);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node1", "node2", "et1"),
             ("node1", "node3", "et1"),
@@ -46,9 +46,9 @@ public class SelectEdgeInstructionTests
             ("node4", "node5", "et3"),
             ("node4", "node3", "et3"),
             ("node5", "node4", "et2"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Edge.GetIndexHit().Should().Be(0);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
@@ -61,22 +61,22 @@ public class SelectEdgeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select [*, level=1] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(2);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node1", "node2", "et1"),
             ("node1", "node3", "et1"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Edge.GetIndexHit().Should().Be(0);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
@@ -89,22 +89,22 @@ public class SelectEdgeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select [level=1] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(2);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node1", "node2", "et1"),
             ("node1", "node3", "et1"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
@@ -117,22 +117,22 @@ public class SelectEdgeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select [from=node1] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(2);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node1", "node2", "et1"),
             ("node1", "node3", "et1"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
@@ -145,23 +145,23 @@ public class SelectEdgeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select [to=node3] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(3);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node1", "node3", "et1"),
             ("node6", "node3", "et3"),
             ("node4", "node3", "et3"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Edge.GetIndexHit().Should().Be(4);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
@@ -174,23 +174,23 @@ public class SelectEdgeInstructionTests
         var copyMap = _map.Clone();
         var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.Execute("select [type=et3] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
         result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeNullOrWhiteSpace();
+        result.Alias.Should().NotBeEmpty();
         result.Nodes.Count.Should().Be(0);
         result.Edges.Count.Should().Be(3);
         result.DataLinks.Count.Should().Be(0);
 
-        var expected = new List<(string FromKey, string ToKey, string EdgeType)>
+        var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
             ("node6", "node3", "et3"),
             ("node4", "node5", "et3"),
             ("node4", "node3", "et3"),
-        };
+        }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).Should().BeEquivalentTo(expected);
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
         copyMap.Meter.Edge.GetIndexHit().Should().Be(4);
         copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);

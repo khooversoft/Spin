@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
@@ -12,7 +12,7 @@ public class EdgeSerializationTests
         var v = new GraphEdge("Node1", "Node2", "edgeType", "t1=v");
 
         string json = v.ToJson();
-        json.Should().NotBeNullOrEmpty();
+        json.Should().NotBeEmpty();
 
         var v2 = json.ToObject<GraphEdge>();
         (v == v2).Should().BeTrue();
