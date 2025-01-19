@@ -39,7 +39,7 @@ public class JournalTrx : IJournalTrx, IAsyncDisposable
 
         if (_started == 0)
         {
-            _context.LogInformation("Trx abandonded, not started={trxId}", _trxId);
+            _context.LogTrace("Trx not started, normally for query type instructions, trxId={trxId}", _trxId);
             return;
         }
 

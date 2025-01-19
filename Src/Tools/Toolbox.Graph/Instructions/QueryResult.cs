@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -86,5 +87,27 @@ public static class QueryResultTool
         if (item == null) return StatusCode.NotFound;
 
         return item.Data;
+    }
+
+    public static string DumpToString(this QueryResult subject)
+    {
+        subject.NotNull();
+
+        (string key, string value)[] list = new []
+        {
+            ("Status", subject.Option.ToString()),
+            ("QueryNumber", subject.QueryNumber.ToString()),
+            ("Alias", subject.Alias ?? "< null >"),
+        }
+        .Concat(subject.Nodes.Select(x => ("Node", x.ToString())))
+        .Concat(subject.Edges.Select(x => ("Edges", x.ToString())))
+        .Concat(subject.DataLinks.Select(x => ("DataLink", x.ToString())))
+        .ToArray();
+
+        string result = list
+            .Select(x => $"{x.key}={x.value}")
+            .Join(Environment.NewLine);
+
+        return result;
     }
 }

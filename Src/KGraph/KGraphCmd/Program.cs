@@ -15,6 +15,7 @@ var state = await new CommandRouterBuilder()
         config.AddJsonFile("appsettings.json");
     })
     .AddCommand<Command>()
+    .AddCommand<SystemSettings>()
     .AddCommand<GraphDb>()
     .AddCommand<TraceLog>()
     .AddCommand<TransactionLog>()

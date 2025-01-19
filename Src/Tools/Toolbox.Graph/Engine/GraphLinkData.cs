@@ -10,6 +10,8 @@ public sealed record GraphLinkData : IGraphCommon
     public string FileId { get; init; } = null!;
     public DataETag Data { get; init; }
 
+    public override string ToString() => $"NodeKey={NodeKey}, Name={Name}, FileId={FileId}";
+
     public static IValidator<GraphLinkData> Validator { get; } = new Validator<GraphLinkData>()
         .RuleFor(x => x.NodeKey).NotEmpty()
         .RuleFor(x => x.Name).ValidName()

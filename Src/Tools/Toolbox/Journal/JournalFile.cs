@@ -42,17 +42,25 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         _name = values.Single().Key.NotEmpty();
         _basePath = values.Single().Value.NotEmpty();
 
-        if (_fileOption.UseBackgroundWriter)
+        _logger.LogInformation("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
+
+        if (_fileOption.ReadOnly)
         {
-            _writeBlock = new ActionBlock<IReadOnlyList<JournalEntry>>(async x => await InternalWrite(x, NullScopeContext.Default));
-            _writer = QueueWrite;
-        }
-        else
-        {
-            _writer = InternalWrite;
+            _logger.LogInformation("JournalFile is readonly, name={name}", _name);
+            _writer = (_, _) => { return Task.FromResult(new Option(StatusCode.OK)); };
+            return;
         }
 
-        _logger.LogInformation("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
+        if (_fileOption.UseBackgroundWriter)
+        {
+            _logger.LogInformation("JournalFile using background writer, name={name}", _name);
+            _writeBlock = new ActionBlock<IReadOnlyList<JournalEntry>>(async x => await InternalWrite(x, NullScopeContext.Default));
+            _writer = QueueWrite;
+            return;
+        }
+
+        _logger.LogInformation("JournalFile is setup, name={name}", _name);
+        _writer = InternalWrite;
     }
 
     public async Task Close()
@@ -114,7 +122,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
     {
         journalEntries.NotNull();
         context = context.With(_logger);
-        _fileOption.ReadOnly.Assert(x => x == false, "Cannot set map when read-only");
+        _fileOption.ReadOnly.Assert(x => x == false, "Cannot write map when read-only");
 
         var writeString = journalEntries
             .Select(x => x.LogSequenceNumber.IsNotEmpty() ? x : x with { LogSequenceNumber = _logSequenceNumber.Next() })

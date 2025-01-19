@@ -17,8 +17,19 @@ public static class GraphStartup
 
         services.AddSingleton<GraphHostOption>(hostOption);
         services.AddSingleton<IGraphHost, GraphHost>();
-        services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption { ConnectionString = GraphConstants.TrxJournal.ConnectionString });
-        services.AddJournalLog(GraphConstants.Trace.DiKeyed, new JournalFileOption { ConnectionString = GraphConstants.Trace.ConnectionString, UseBackgroundWriter = true });
+
+        services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
+        { 
+            ConnectionString = GraphConstants.TrxJournal.ConnectionString,
+            ReadOnly = hostOption.ReadOnly,
+        });
+        services.AddJournalLog(GraphConstants.Trace.DiKeyed, new JournalFileOption
+        { 
+            ConnectionString = GraphConstants.Trace.ConnectionString,
+            UseBackgroundWriter = true,
+            ReadOnly = hostOption.ReadOnly,
+        });
+
         services.TryAddSingleton<IGraphClient, GraphClientInMemory>();
         services.TryAddSingleton<IGraphStore, GraphFileStoreCache>();
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
