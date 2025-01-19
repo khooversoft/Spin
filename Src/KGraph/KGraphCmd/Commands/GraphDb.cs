@@ -16,36 +16,58 @@ internal class GraphDb : ICommandRoute
     private readonly AbortSignal _abortSignal;
     private readonly ILogger<TraceLog> _logger;
     private readonly ScopeContext _context;
+    private readonly GraphHostManager _graphHostManager;
 
-    public GraphDb(AbortSignal abortSignal, ILogger<TraceLog> logger)
+    public GraphDb(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<TraceLog> logger)
     {
         _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
         _context = new ScopeContext(_logger);
+        _graphHostManager = graphHostManager;
     }
 
     public CommandSymbol CommandSymbol() => new CommandSymbol("db", "Query or reset KGraph's database files")
     {
-        new CommandSymbol("clear", "Clear transactions").Action(x =>
+        new CommandSymbol("nodes", "Dump all the nodes").Action(x =>
         {
-            var jsonFile = x.AddArgument<string>("jsonFile", "Json file with data lake connection details");
-            x.SetHandler(Clear, jsonFile);
+            var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
+            x.SetHandler(DumpNodes, jsonFile);
+        }),
+        new CommandSymbol("edges", "Dump all the edges").Action(x =>
+        {
+            var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
+            x.SetHandler(DumpEdges, jsonFile);
         }),
     };
 
-    private async Task Clear(string jsonFile)
+    private Task DumpNodes(string? jsonFile)
     {
-        await using var services = HostTool.StartHost(jsonFile);
+        if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
 
-        var fileStore = services.GetRequiredService<IFileStore>().NotNull();
-        var files = await fileStore.Search(GraphConstants.DbDatabaseSearchPath, _context);
-        files = files.OrderByDescending(x => x).ToArray();
+        IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
+        _context.LogInformation("Dumping nodes, count={count}", graphHost.Map.Nodes.Count);
 
-        foreach (var file in files)
+        foreach (var node in graphHost.Map.Nodes.OrderBy(x => x.Key))
         {
-            _context.LogInformation("Deleting file {file}", file);
-            var option = await fileStore.Delete(file, _context);
-            if (option.IsError()) option.LogStatus(_context, "Failed to delete file {file}", [file]);
+            _context.LogInformation(node.ToString());
         }
+
+        return Task.CompletedTask;
+    }
+
+
+    private Task DumpEdges(string? jsonFile)
+    {
+        if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
+
+        IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
+        _context.LogInformation("Dumping edges, count={count}", graphHost.Map.Edges.Count);
+
+        foreach (var node in graphHost.Map.Edges.OrderBy(x => x.ToString()))
+        {
+            _context.LogInformation(node.ToString());
+        }
+
+        return Task.CompletedTask;
     }
 }

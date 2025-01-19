@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Toolbox.Journal;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -9,13 +10,15 @@ namespace Toolbox.Graph;
 
 public static class GraphStartup
 {
-    public static IServiceCollection AddGraphEngine(this IServiceCollection services)
+    public static IServiceCollection AddGraphEngine(this IServiceCollection services, GraphHostOption? hostOption = null)
     {
         services.NotNull();
+        hostOption ??= new GraphHostOption();
 
+        services.AddSingleton<GraphHostOption>(hostOption);
         services.AddSingleton<IGraphHost, GraphHost>();
-        services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, GraphConstants.TrxJournal.ConnectionString);
-        services.AddJournalLog(GraphConstants.Trace.DiKeyed, GraphConstants.Trace.ConnectionString, true);
+        services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption { ConnectionString = GraphConstants.TrxJournal.ConnectionString });
+        services.AddJournalLog(GraphConstants.Trace.DiKeyed, new JournalFileOption { ConnectionString = GraphConstants.Trace.ConnectionString, UseBackgroundWriter = true });
         services.TryAddSingleton<IGraphClient, GraphClientInMemory>();
         services.TryAddSingleton<IGraphStore, GraphFileStoreCache>();
         services.TryAddSingleton<IMemoryCache, MemoryCache>();

@@ -82,6 +82,8 @@ public sealed record GraphNode : IGraphCommon
 
     public override int GetHashCode() => HashCode.Combine(Key, Tags, CreatedDate);
 
+    public override string ToString() => $"Key={Key}, Tags={TagsString}, DataMap={DataMapString}, Indexes={IndexesString}, ForeignKeys={ForeignKeysString}";
+
     public static IValidator<GraphNode> Validator { get; } = new Validator<GraphNode>()
         .RuleFor(x => x.Key).NotEmpty()
         .RuleFor(x => x.Tags).NotNull()

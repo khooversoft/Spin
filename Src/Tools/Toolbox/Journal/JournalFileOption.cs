@@ -1,4 +1,7 @@
-﻿namespace Toolbox.Journal;
+﻿using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace Toolbox.Journal;
 
 public class JournalFileOption
 {
@@ -7,4 +10,14 @@ public class JournalFileOption
 
     // Writes are performed in the background
     public bool UseBackgroundWriter { get; init; }
+    public bool ReadOnly { get; init; }
+
+    public static IValidator<JournalFileOption> Validator { get; } = new Validator<JournalFileOption>()
+        .RuleFor(x => x.ConnectionString).NotEmpty()
+        .Build();
+}
+
+public static class JournalFileOptionExtensions
+{
+    public static Option Validate(this JournalFileOption option) => JournalFileOption.Validator.Validate(option).ToOptionStatus();
 }

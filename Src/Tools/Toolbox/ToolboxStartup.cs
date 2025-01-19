@@ -2,6 +2,7 @@
 using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox;
 
@@ -29,20 +30,14 @@ public static class ToolboxStartup
     //    return services;
     //}
 
-    public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, string connectionString, bool useBackgroundWriter = false)
+    public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, JournalFileOption option)
     {
         services.NotNull();
         key.NotEmpty();
-        connectionString.NotEmpty();
+        option.NotNull().Validate().ThrowOnError();
 
         services.AddKeyedSingleton<IJournalFile>(key, (iServices, _) =>
         {
-            var option = new JournalFileOption
-            {
-                ConnectionString = connectionString,
-                UseBackgroundWriter = useBackgroundWriter,
-            };
-
             return ActivatorUtilities.CreateInstance<JournalFile>(iServices, option);
         });
 

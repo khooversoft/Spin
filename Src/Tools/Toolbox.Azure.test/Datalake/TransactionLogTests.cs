@@ -29,7 +29,7 @@ public class TransactionLogTests
             .AddSingleton<IDatalakeStore>(_dataLakeStore)
             .AddSingleton<IFileStore, DatalakeFileStoreConnector>()
             .AddLogging(config => config.AddDebug())
-            .AddJournalLog(_keyedName, _connectionString)
+            .AddJournalLog(_keyedName, new JournalFileOption { ConnectionString = _connectionString })
             .BuildServiceProvider();
 
         _logger = _services.GetRequiredService<ILogger<TransactionLogTests>>();

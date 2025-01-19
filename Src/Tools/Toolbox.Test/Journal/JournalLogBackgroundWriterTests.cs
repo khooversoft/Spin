@@ -25,7 +25,7 @@ public class JournalLogBackgroundWriterTests
                 config.AddDebug();
                 config.AddFilter(x => true);
             })
-            .AddJournalLog("test", "journal2=/journal2/data", true)
+            .AddJournalLog("test", new JournalFileOption { ConnectionString = "journal2=/journal2/data", UseBackgroundWriter = true })
             .BuildServiceProvider();
 
         _logger = _services.GetRequiredService<ILogger<JournalLogBackgroundWriterTests>>();

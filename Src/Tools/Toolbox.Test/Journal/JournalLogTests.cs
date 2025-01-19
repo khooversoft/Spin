@@ -21,7 +21,7 @@ public class JournalLogTests
         _services = new ServiceCollection()
             .AddInMemoryFileStore()
             .AddLogging(config => config.AddDebug())
-            .AddJournalLog("test", "journal2=/journal2/data")
+            .AddJournalLog("test", new JournalFileOption { ConnectionString = "journal2=/journal2/data" })
             .BuildServiceProvider();
 
         _logger = _services.GetRequiredService<ILogger<JournalLogTests>>();

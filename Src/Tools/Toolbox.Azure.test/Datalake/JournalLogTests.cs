@@ -27,7 +27,7 @@ public class JournalLogTests
             .AddSingleton<IDatalakeStore>(_dataLakeStore)
             .AddSingleton<IFileStore, DatalakeFileStoreConnector>()
             .AddLogging(config => config.AddDebug())
-            .AddJournalLog("test", "journal3Key=/journal3/data")
+            .AddJournalLog("test", new JournalFileOption { ConnectionString = "journal3Key=/journal3/data" })
             .BuildServiceProvider();
 
         _logger = _services.GetRequiredService<ILogger<JournalLogTests>>();

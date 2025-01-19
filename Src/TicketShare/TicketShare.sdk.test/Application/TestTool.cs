@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Identity;
 using Toolbox.Types;
+using Toolbox.Tools.Should;
 
 namespace TicketShare.sdk.Applications;
 

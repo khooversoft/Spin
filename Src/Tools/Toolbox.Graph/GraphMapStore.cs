@@ -53,6 +53,7 @@ internal class GraphMapStore
     public async Task<Option> Set(ScopeContext context)
     {
         context = context.With(_logger);
+        _graphContext.ReadOnly.Assert(x => x == false, "Cannot set map when read-only");
 
         await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
         try

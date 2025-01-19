@@ -13,6 +13,7 @@ public interface IGraphHost
     IGraphStore FileStore { get; }
     IJournalFile TransactionLog { get; }
     IJournalFile TraceLog { get; }
+    bool ReadOnly { get; }
     Task<Option> CheckpointMap(ScopeContext context);
     Task<Option> LoadMap(ScopeContext context);
     Task<Option> Run(ScopeContext context);
@@ -21,10 +22,10 @@ public interface IGraphHost
 
 public class GraphHost : IGraphHost
 {
-    private readonly Guid _instance = Guid.NewGuid();
     private readonly GraphMapStore _mapStore;
     private readonly ILogger<GraphHost> _logger;
     private GraphMap _map = new GraphMap();
+    private readonly GraphHostOption _hostOption;
     private int _runningState = Stopped;
     private const int Stopped = 0;
     private const int Running = 1;
@@ -42,12 +43,31 @@ public class GraphHost : IGraphHost
         _logger = logger.NotNull();
 
         _mapStore = new GraphMapStore(this, _logger);
+        _hostOption = new GraphHostOption();
+    }
+
+    public GraphHost(
+        IGraphStore fileStore,
+        GraphHostOption hostOption,
+        [FromKeyedServices(GraphConstants.TrxJournal.DiKeyed)] IJournalFile transactionLog,
+        [FromKeyedServices(GraphConstants.Trace.DiKeyed)] IJournalFile traceLog,
+        ILogger<GraphHost> logger
+        )
+    {
+        FileStore = fileStore.NotNull();
+        TransactionLog = transactionLog.NotNull();
+        TraceLog = traceLog.NotNull();
+        _logger = logger.NotNull();
+
+        _mapStore = new GraphMapStore(this, _logger);
+        _hostOption = hostOption;
     }
 
     public GraphMap Map => _map;
     public IGraphStore FileStore { get; }
     public IJournalFile TransactionLog { get; }
     public IJournalFile TraceLog { get; }
+    public bool ReadOnly => _hostOption.ReadOnly;
 
     public Task<Option> CheckpointMap(ScopeContext context) => _mapStore.Set(context);
     public Task<Option> LoadMap(ScopeContext context) => _mapStore.Get(context);

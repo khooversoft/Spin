@@ -23,7 +23,7 @@ public class CommandRouterBuilder
                 config.SimpleConsole();
                 config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
             })
-            .AddSingleton<AbortSignal>();
+            .AddScoped<AbortSignal>();
     }
 
     public CommandRouterBuilder SetCaptureOutput(bool captureOutput)
@@ -34,7 +34,7 @@ public class CommandRouterBuilder
 
     public CommandRouterBuilder AddCommand<T>() where T : class, ICommandRoute
     {
-        _serviceCollection.AddSingleton<ICommandRoute, T>();
+        _serviceCollection.AddScoped<ICommandRoute, T>();
         return this;
     }
 

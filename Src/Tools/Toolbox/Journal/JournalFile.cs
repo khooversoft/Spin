@@ -114,6 +114,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
     {
         journalEntries.NotNull();
         context = context.With(_logger);
+        _fileOption.ReadOnly.Assert(x => x == false, "Cannot set map when read-only");
 
         var writeString = journalEntries
             .Select(x => x.LogSequenceNumber.IsNotEmpty() ? x : x with { LogSequenceNumber = _logSequenceNumber.Next() })

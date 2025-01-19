@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Types;
+using Toolbox.Tools.Should;
 
 namespace TicketShare.sdk.test.Models;
 

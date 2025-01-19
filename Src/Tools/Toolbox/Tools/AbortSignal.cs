@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
-public class AbortSignal
+public class AbortSignal : IDisposable
 {
     private readonly ILogger<AbortSignal> _logger;
     private CancellationTokenSource? _tokenSource;
@@ -13,6 +13,8 @@ public class AbortSignal
     {
         _logger = logger.NotNull();
     }
+
+    public void Dispose() => StopTracking();
 
     public CancellationToken GetToken() => _tokenSource?.Token ?? throw new InvalidOperationException("Not started");
 

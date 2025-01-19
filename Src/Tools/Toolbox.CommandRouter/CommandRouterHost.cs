@@ -48,30 +48,33 @@ public class CommandRouterHost : ICommandRouterHost
 
         try
         {
-            AbortSignal? abortSignal = Service.GetService<AbortSignal>();
-            abortSignal?.StartTracking();
-
-            int rcResult = 0;
-            IConsole? capture = _captureOutput ? new ConsoleCapature(context.Location()) : null;
-
-            while (_argsQueue.TryDequeue(out var args))
+            using (var scope = Service.NotNull().CreateScope())
             {
-                var rc = new RootCommand();
-                commandRoutes.ForEach(x => rc.AddCommand(x.Command));
+                AbortSignal? abortSignal = Service.GetService<AbortSignal>();
+                abortSignal?.StartTracking();
 
-                rcResult = await rc.InvokeAsync(args, capture);
-                if (rcResult != 0)
+                int rcResult = 0;
+                IConsole? capture = _captureOutput ? new ConsoleCapature(context.Location()) : null;
+
+                while (_argsQueue.TryDequeue(out var args))
                 {
-                    if (_captureOutput) context.LogError("Args='{args}' failed", args.Join(" "));
-                    break;
+                    var rc = new RootCommand();
+                    commandRoutes.ForEach(x => rc.AddCommand(x.Command));
+
+                    rcResult = await rc.InvokeAsync(args, capture);
+                    if (rcResult != 0)
+                    {
+                        if (_captureOutput) context.LogError("Args='{args}' failed", args.Join(" "));
+                        break;
+                    }
                 }
+
+                if (capture != null) ((ConsoleCapature)capture).Dump();
+                abortSignal?.StopTracking();
+                int state = abortSignal?.GetToken().IsCancellationRequested == true ? 1 : 0;
+
+                return (state != 0 || rcResult != 0) ? 1 : 0;
             }
-
-            if (capture != null) ((ConsoleCapature)capture).Dump();
-            abortSignal?.StopTracking();
-            int state = abortSignal?.GetToken().IsCancellationRequested == true ? 1 : 0;
-
-            return (state != 0 || rcResult != 0) ? 1 : 0;
         }
         catch (Exception ex)
         {

@@ -17,9 +17,11 @@ internal class TransactionLog : ICommandRoute
     private readonly AbortSignal _abortSignal;
     private readonly ILogger<TraceLog> _logger;
     private readonly ScopeContext _context;
+    private readonly GraphHostManager _graphHostManager;
 
-    public TransactionLog(AbortSignal abortSignal, ILogger<TraceLog> logger)
+    public TransactionLog(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<TraceLog> logger)
     {
+        _graphHostManager = graphHostManager.NotNull();
         _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
         _context = new ScopeContext(_logger);
@@ -29,44 +31,38 @@ internal class TransactionLog : ICommandRoute
     {
         new CommandSymbol("list", "List transactions").Action(x =>
         {
-            var jsonFile = x.AddArgument<string>("jsonFile", "Json file with data lake connection details");
-            x.SetHandler(List, jsonFile);
-        }),
-        new CommandSymbol("clear", "Clear transactions").Action(x =>
-        {
-            var jsonFile = x.AddArgument<string>("jsonFile", "Json file with data lake connection details");
-            x.SetHandler(Clear, jsonFile);
+            var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
+            var monitor = x.AddOption<bool>("--monitor", "Monitor traces");
+            x.SetHandler(List, jsonFile, monitor);
         }),
     };
 
-    private async Task List(string jsonFile)
+    private async Task List(string? jsonFile, bool monitor)
     {
-        await using var services = HostTool.StartHost(jsonFile);
+        if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
 
-        var traceLog = services.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed).NotNull();
+        _context.LogInformation("Starting to list transactions...");
+
+        var traceLog = _graphHostManager.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed).NotNull();
         var hashLsn = new HashSet<string>();
 
         while (!_abortSignal.GetToken().IsCancellationRequested)
         {
             await ReadJournal(traceLog, hashLsn, _context);
-            await Task.Delay(TimeSpan.FromSeconds(1));
-        }
-    }
+            if (!monitor) return;
 
-    private async Task Clear(string jsonFile)
-    {
-        await using var services = HostTool.StartHost(jsonFile);
+            await InputTool.WaitForInput(_abortSignal.GetToken());
 
-        var fileStore = services.GetRequiredService<IFileStore>().NotNull();
+            var match = InputTool.GetUserCommand(_abortSignal.GetToken(), "continue", "quit", "reset");
+            switch (match)
+            {
+                case "continue": continue;
+                case "quit": return;
 
-        var traceLog = services.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed).NotNull();
-        var files = await traceLog.GetFiles(_context);
-
-        foreach (var file in files)
-        {
-            _context.LogInformation("Deleting file {file}", file);
-            var option = await fileStore.Delete(file, _context);
-            if (option.IsError()) option.LogStatus(_context, "Failed to delete file {file}", [file]);
+                case "reset":
+                    hashLsn.Clear();
+                    continue;
+            }
         }
     }
 
