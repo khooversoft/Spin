@@ -64,7 +64,7 @@ internal static class GiSelectTool
     public static string GetCommandDesc(this GiSelect subject)
     {
         var command = nameof(GiSelect).ToEnumerable()
-            .Concat(subject.Instructions.Select(x => "{ " + getInstructionCommand(x) + " }"))
+            .Concat(subject.Instructions.Select(x => "[ " + getInstructionCommand(x) + " ]"))
             .Join(", ");
 
         return command;

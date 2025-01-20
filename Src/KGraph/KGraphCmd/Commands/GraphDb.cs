@@ -39,14 +39,15 @@ internal class GraphDb : ICommandRoute
         {
             var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
             var command = x.AddArgument<string>("graph command", "kgraph command to execute");
-            x.SetHandler(Execute, jsonFile, command);
+            x.SetHandler(Query, jsonFile, command);
         }),
     };
 
-    private async Task Execute(string? jsonFile, string command)
+    private async Task Query(string? jsonFile, string command)
     {
         if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
+        await _graphHostManager.LoadMap(context);
 
         var client = _graphHostManager.ServiceProvider.GetRequiredService<IGraphClient>();
         context.LogInformation("Executing '{cmd}", command);
@@ -59,38 +60,39 @@ internal class GraphDb : ICommandRoute
         }
 
         QueryResult queryResult = result.Return();
+        string details = queryResult.DumpToString();
+        context.LogInformation("Results: {details}", details);
     }
 
-    private Task DumpNodes(string? jsonFile)
+    private async Task DumpNodes(string? jsonFile)
     {
         if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
+        await _graphHostManager.LoadMap(context);
 
         IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
         context.LogInformation("Dumping nodes, count={count}", graphHost.Map.Nodes.Count);
 
         foreach (var node in graphHost.Map.Nodes.OrderBy(x => x.Key))
         {
-            context.LogInformation(node.ToString());
+            var line = node.GetProperties().ToLoggingFormat();
+            context.LogInformation(line);
         }
-
-        return Task.CompletedTask;
     }
 
-
-    private Task DumpEdges(string? jsonFile)
+    private async Task DumpEdges(string? jsonFile)
     {
         if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
+        await _graphHostManager.LoadMap(context);
 
         IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
         context.LogInformation("Dumping edges, count={count}", graphHost.Map.Edges.Count);
 
-        foreach (var node in graphHost.Map.Edges.OrderBy(x => x.ToString()))
+        foreach (var edge in graphHost.Map.Edges.OrderBy(x => x.ToString()))
         {
-            context.LogInformation(node.ToString());
+            var line = edge.GetProperties().ToLoggingFormat();
+            context.LogInformation(line);
         }
-
-        return Task.CompletedTask;
     }
-}   
+}

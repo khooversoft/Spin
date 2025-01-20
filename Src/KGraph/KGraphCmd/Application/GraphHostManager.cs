@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Toolbox.Graph;
 using Toolbox.Tools;
+using Toolbox.Logging;
+using Toolbox.Types;
 
 namespace KGraphCmd.Application;
 
@@ -31,5 +34,13 @@ public class GraphHostManager : IAsyncDisposable
             _serviceProvider = HostTool.StartHost(jsonFile);
             return _serviceProvider;
         }
+    }
+
+    public async Task LoadMap(ScopeContext context)
+    {
+        var client = _serviceProvider.NotNull().GetRequiredService<IGraphHost>();
+        context.LogInformation("Loading map...");
+        var result = await client.LoadMap(context);
+        result.LogStatus(context, "Load map result");
     }
 }

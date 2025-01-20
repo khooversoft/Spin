@@ -11,6 +11,7 @@ public enum JournalType
     Action,
     Start,
     Commit,
+    Data,
 }
 
 [DebuggerDisplay("{ToString()}")]
@@ -44,7 +45,7 @@ public static class JournalEntryTool
 {
     public static string ToLoggingFormat(this JournalEntry subject) =>
             $"Lsn={subject.LogSequenceNumber}, TranId={subject.TransactionId}, Date={subject.Date:o}, Type={subject.Type}".ToEnumerable()
-            .Concat(subject.Data.Select(x => TagsTool.FormatTag(x.Key, x.Value)))
+            .Concat(subject.Data.Select(x => TagsTool.FormatTag(x.Key, x.Value?.Replace("{", "{{").Replace("}", "}}"))))
             .Join(Environment.NewLine);
 }
 

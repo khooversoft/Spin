@@ -82,4 +82,13 @@ public sealed record GraphEdge : IGraphCommon
 public static class GraphEdgeTool
 {
     public static Option Validate(this GraphEdge subject) => GraphEdge.Validator.Validate(subject).ToOptionStatus();
+
+    public static IReadOnlyDictionary<string, string?> GetProperties(this GraphEdge subject) => new Dictionary<string, string?>
+    {
+        { "$type", subject.GetType().Name },
+        { nameof(subject.FromKey), subject.FromKey },
+        { nameof(subject.ToKey), subject.ToKey },
+        { nameof(subject.EdgeType), subject.EdgeType },
+        { nameof(subject.TagsString), subject.TagsString },
+    };
 }

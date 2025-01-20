@@ -10,13 +10,15 @@ internal class QueryExecutionContext
     private int _queryNumber = -1;
     private readonly Sequence<QueryResult> _queryResult = new Sequence<QueryResult>();
 
-    public QueryExecutionContext(IEnumerable<IGraphInstruction> graphInstructions, IGraphTrxContext graphContext)
+    public QueryExecutionContext(string graphQuery, IEnumerable<IGraphInstruction> graphInstructions, IGraphTrxContext graphContext)
     {
+        GraphQuery = graphQuery.NotEmpty();
         Instructions = graphInstructions.NotNull().ToList();
         Cursor = new Cursor<IGraphInstruction>(Instructions);
         TrxContext = graphContext.NotNull();
     }
 
+    public string GraphQuery { get; }
     public List<IGraphInstruction> Instructions { get; }
     public Cursor<IGraphInstruction> Cursor { get; }
     public IGraphTrxContext TrxContext { get; }
@@ -60,6 +62,7 @@ internal static class QueryExecutionContextTool
     {
         var result = new QueryBatchResult
         {
+            GraphQuery = subject.GraphQuery,
             Option = subject.QueryResult.LastOrDefault(x => x.Option.IsError()).Func(x => x != null ? x.Option : new Option(StatusCode.OK)),
             Items = subject.QueryResult switch
             {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace KGraphCmd.Application;
 
@@ -21,9 +22,7 @@ public static class InputTool
             if (input.IsEmpty()) continue;
 
             var matches = args
-                .Select((x, i) => (arg: x, index: i, match: x.StartsWith(input, StringComparison.OrdinalIgnoreCase)))
-                .Where(x => x.match)
-                .Select(x => x.arg)
+                .Where(x => x.StartsWith(input, StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
             if (matches.Length != 1)
@@ -38,13 +37,20 @@ public static class InputTool
         return string.Empty;
     }
 
-    public static async Task WaitForInput(CancellationToken token)
+    public static async Task WaitForInput(Func<Task> doWork, CancellationToken token)
     {
-        DateTime mark = getMark();
+        MarkTime mark = new MarkTime(TimeSpan.FromSeconds(5));
+        MarkTime work = new MarkTime(TimeSpan.FromMicroseconds(500));
+
         bool marked = false;
 
         while (!token.IsCancellationRequested)
         {
+            if (work.IsPass())
+            {
+                await doWork();
+            }
+
             if (Console.KeyAvailable)
             {
                 Console.ReadKey(true);
@@ -54,16 +60,24 @@ public static class InputTool
 
             await Task.Delay(TimeSpan.FromMilliseconds(200));
 
-            if (isPass())
+            if (mark.IsPass())
             {
                 Console.Write('.');
-                mark = getMark();
                 marked = true;
             }
         }
+    }
 
-        static DateTime getMark() => DateTime.Now.AddSeconds(5);
-        bool isPass() => DateTime.Now > mark;
+    public static string ToLoggingFormat(this IEnumerable<KeyValuePair<string, string?>> data)
+    {
+        var result = data.NotNull()
+            .OrderBy(x => x.Key)
+            .Select(x => $"{x.Key}={fmt(x.Value)}")
+            .Join(Environment.NewLine);
+
+        return result;
+
+        static string fmt(string? value) => value?.Replace("{", "{{").Replace("}", "}}") ?? string.Empty;
     }
 
     private static string ForDisplay(string[] args) => args.Select(x => ForDisplay(x)).Join(", ");

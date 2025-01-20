@@ -10,6 +10,8 @@ public sealed record GraphLink
     public string Name { get; init; } = null!;
     public string FileId { get; init; } = null!;
 
+    public override string ToString() => $"NodeKey={NodeKey}, Name={Name}, FileId={FileId}";
+
     public static IValidator<GraphLink> Validator { get; } = new Validator<GraphLink>()
         .RuleFor(x => x.NodeKey).NotEmpty()
         .RuleFor(x => x.Name).ValidName()
@@ -45,12 +47,16 @@ public static class GraphDataLinkTool
         return isEqual;
     }
 
-    public static string ToDataMapString(this IEnumerable<KeyValuePair<string, GraphLink>> subject)
+    public static string ToDataMapString(this IEnumerable<KeyValuePair<string, GraphLink>> subject) => subject.NotNull()
+        .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
+        .Select(x => $"{x.Key}={x.Value}")
+        .Join(',');
+
+    public static IReadOnlyDictionary<string, string?> GetProperties(this GraphLink subject) => new Dictionary<string, string?>
     {
-        subject.NotNull();
-        return subject
-            .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
-            .Select(x => $"{x.Key}={x.Value}")
-            .Join(',');
-    }
+        { "$type", subject.GetType().Name },
+        { nameof(subject.NodeKey), subject.NodeKey },
+        { nameof(subject.Name), subject.Name },
+        { nameof(subject.FileId), subject.FileId },
+    };
 }

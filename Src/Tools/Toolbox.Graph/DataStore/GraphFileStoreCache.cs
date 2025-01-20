@@ -9,6 +9,9 @@ public class GraphFileStoreCache : IGraphStore
 {
     private readonly IFileStore _fileStore;
     private readonly IMemoryCache _memoryCache;
+    private readonly GraphHostOption? _graphHostOption;
+
+
     private readonly MemoryCacheEntryOptions _memoryOptions = new MemoryCacheEntryOptions
     {
         SlidingExpiration = TimeSpan.FromMinutes(30)
@@ -19,9 +22,18 @@ public class GraphFileStoreCache : IGraphStore
         _fileStore = fileStore.NotNull();
         _memoryCache = memoryCache.NotNull();
     }
+    
+    public GraphFileStoreCache(IFileStore fileStore, GraphHostOption graphHostOption, IMemoryCache memoryCache)
+    {
+        _fileStore = fileStore.NotNull();
+        _memoryCache = memoryCache.NotNull();
+        _graphHostOption = graphHostOption;
+    }
 
     public async Task<Option<string>> Add(string path, DataETag data, ScopeContext context)
     {
+        _graphHostOption?.ReadOnly.Assert(x => x == false, "Add not supported - Readonly file store");
+
         var result = await _fileStore.Add(path, data, context);
         if (result.IsError()) return result;
 
@@ -35,11 +47,15 @@ public class GraphFileStoreCache : IGraphStore
 
     public Task<Option> Append(string path, DataETag data, ScopeContext context)
     {
+        _graphHostOption?.ReadOnly.Assert(x => x == false, "Append not supported, Readonly file store");
+
         throw new NotImplementedException();
     }
 
     public async Task<Option> Delete(string path, ScopeContext context)
     {
+        _graphHostOption?.ReadOnly.Assert(x => x == false, "Delete not supported, Readonly file store");
+
         var result = await _fileStore.Delete(path, context);
         if (result.IsError()) return result;
 
@@ -68,6 +84,8 @@ public class GraphFileStoreCache : IGraphStore
 
     public async Task<Option<string>> Set(string path, DataETag data, ScopeContext context)
     {
+        _graphHostOption?.ReadOnly.Assert(x => x == false, "Set not supported, Readonly file store");
+
         var result = await _fileStore.Set(path, data, context);
         if (result.IsError()) return result;
 

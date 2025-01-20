@@ -42,7 +42,7 @@ public static class QueryExecution
         var journalEntry = JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphQuery).GetProperties());
         await graphTrxContext.TraceWriter.Write([journalEntry]);
 
-        return new QueryExecutionContext(instructions.Return(), graphTrxContext);
+        return new QueryExecutionContext(graphQuery, instructions.Return(), graphTrxContext);
     }
 
     private static async Task<Option<QueryBatchResult>> ExecuteInstruction(QueryExecutionContext pContext)
@@ -70,19 +70,24 @@ public static class QueryExecution
                 TimeSpan duration = Stopwatch.GetElapsedTime(startingTimestamp);
                 traceList += JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphInstruction, queryResult, duration).GetProperties());
 
+                var itemResult = pContext.BuildQueryResult();
+                traceList += JournalEntry.Create(JournalType.Data, itemResult.GetProperties());
+
                 if (queryResult.IsError())
                 {
                     pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
                     await pContext.TrxContext.ChangeLog.Rollback();
-                    var batchResult = pContext.BuildQueryResult();
-                    return batchResult;
+                    await pContext.TrxContext.TraceWriter.Write(traceList);
+                    return itemResult;
                 }
             }
+
+            var batchResult = pContext.BuildQueryResult();
+            await pContext.TrxContext.TraceWriter.Write(traceList);
 
             if (write)
             {
                 await pContext.TrxContext.ChangeLog.CommitLogs();
-                await pContext.TrxContext.TraceWriter.Write(traceList);
 
                 var writeOption = await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
                 if (writeOption.IsError())
@@ -92,7 +97,7 @@ public static class QueryExecution
                 }
             }
 
-            return pContext.BuildQueryResult();
+            return batchResult;
         }
     }
 }

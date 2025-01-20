@@ -51,7 +51,7 @@ internal class TransactionLog : ICommandRoute
             await ReadJournal(traceLog, hashLsn, _context);
             if (!monitor) return;
 
-            await InputTool.WaitForInput(_abortSignal.GetToken());
+            await InputTool.WaitForInput(async () => await ReadJournal(traceLog, hashLsn, _context), _abortSignal.GetToken());
 
             var match = InputTool.GetUserCommand(_abortSignal.GetToken(), "continue", "quit", "reset");
             switch (match)
@@ -62,6 +62,8 @@ internal class TransactionLog : ICommandRoute
                 case "reset":
                     hashLsn.Clear();
                     continue;
+
+                default: return;
             }
         }
     }

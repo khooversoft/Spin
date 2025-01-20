@@ -50,7 +50,7 @@ internal class TraceLog : ICommandRoute
             await ReadJournal(traceLog, hashLsn, _context);
             if (!monitor) return;
 
-            await InputTool.WaitForInput(_abortSignal.GetToken());
+            await InputTool.WaitForInput(async () => await ReadJournal(traceLog, hashLsn, _context), _abortSignal.GetToken());
 
             var match = InputTool.GetUserCommand(_abortSignal.GetToken(), "continue", "quit", "reset");
             switch (match)
@@ -61,6 +61,8 @@ internal class TraceLog : ICommandRoute
                 case "reset":
                     hashLsn.Clear();
                     continue;
+
+                default: return;
             }
         }
     }
@@ -68,15 +70,16 @@ internal class TraceLog : ICommandRoute
     private async Task ReadJournal(IJournalFile journalFile, HashSet<string> hashLsn, ScopeContext context)
     {
         IReadOnlyList<JournalEntry> entries = await journalFile.ReadJournals(context);
-        context.LogTrace("Readed journals, count={count}", entries.Count);
+        context.LogInformation("Readed journals, count={count}", entries.Count);
 
         var newEntries = entries.Select(x => x.LogSequenceNumber).Except(hashLsn).ToArray();
         newEntries.ForEach(X => hashLsn.Add(X));
 
         var details = newEntries
             .Join(entries, x => x, x => x.LogSequenceNumber, (lsn, entry) => entry)
+            .Select(x => x.ToLoggingFormat())
             .ToArray();
 
-        details.ForEach(x => context.LogInformation(x.ToLoggingFormat()));
+        details.ForEach(x => context.LogInformation($"{x}"));
     }
 }

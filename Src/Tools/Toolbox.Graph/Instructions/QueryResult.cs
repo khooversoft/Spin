@@ -10,6 +10,7 @@ public record QueryBatchResult
 {
     public string TransactionId { get; init; } = Guid.NewGuid().ToString();
     public Option Option { get; init; }
+    public string GraphQuery { get; init; } = null!;
     public IReadOnlyList<QueryResult> Items { get; init; } = Array.Empty<QueryResult>();
 }
 
@@ -89,23 +90,40 @@ public static class QueryResultTool
         return item.Data;
     }
 
+    public static IReadOnlyDictionary<string, string?> GetProperties(this QueryBatchResult subject)
+    {
+        var dict = new Dictionary<string, string?>()
+        {
+            { "$type", subject.GetType().Name },
+            { nameof(subject.TransactionId), subject.TransactionId },
+            { nameof(subject.Option), subject.Option.ToString() },
+            { nameof(subject.GraphQuery), subject.GraphQuery },
+        };
+
+        subject.Items.ForEach((x, i) => x.GetProperties().ForEach(y => dict.Add($"{y.Key}:[{i}]", y.Value)));
+
+        return dict;
+    }
+
+    public static IReadOnlyDictionary<string, string?> GetProperties(this QueryResult subject) => new Dictionary<string, string?>
+    {
+        { "$type", subject.GetType().Name },
+        { nameof(subject.Option), subject.Option.ToString() },
+        { nameof(subject.QueryNumber), subject.QueryNumber.ToString() },
+        { nameof(subject.Alias), subject.Alias },
+        { nameof(subject.Nodes), subject.Nodes.Select(x => x.ToString()).Join(';') },
+        { nameof(subject.Edges), subject.Edges.Select(x => x.ToString()).Join(';') },
+        { nameof(subject.DataLinks), subject.DataLinks.Select(x => x.ToString()).Join(';') },
+    };
+
     public static string DumpToString(this QueryResult subject)
     {
         subject.NotNull();
 
-        (string key, string value)[] list = new []
-        {
-            ("Status", subject.Option.ToString()),
-            ("QueryNumber", subject.QueryNumber.ToString()),
-            ("Alias", subject.Alias ?? "< null >"),
-        }
-        .Concat(subject.Nodes.Select(x => ("Node", x.ToString())))
-        .Concat(subject.Edges.Select(x => ("Edges", x.ToString())))
-        .Concat(subject.DataLinks.Select(x => ("DataLink", x.ToString())))
-        .ToArray();
+        var properties = subject.GetProperties();
 
-        string result = list
-            .Select(x => $"{x.key}={x.value}")
+        string result = properties.OrderBy(x => x.Key)
+            .Select(x => $"{x.Key}={x.Value?.Replace("{", "{{").Replace("}", "}}")}")
             .Join(Environment.NewLine);
 
         return result;
