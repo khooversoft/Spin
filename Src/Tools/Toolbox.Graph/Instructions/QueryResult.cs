@@ -105,16 +105,31 @@ public static class QueryResultTool
         return dict;
     }
 
-    public static IReadOnlyDictionary<string, string?> GetProperties(this QueryResult subject) => new Dictionary<string, string?>
+    public static IReadOnlyDictionary<string, string?> GetProperties(this QueryResult subject)
     {
-        { "$type", subject.GetType().Name },
-        { nameof(subject.Option), subject.Option.ToString() },
-        { nameof(subject.QueryNumber), subject.QueryNumber.ToString() },
-        { nameof(subject.Alias), subject.Alias },
-        { nameof(subject.Nodes), subject.Nodes.Select(x => x.ToString()).Join(';') },
-        { nameof(subject.Edges), subject.Edges.Select(x => x.ToString()).Join(';') },
-        { nameof(subject.DataLinks), subject.DataLinks.Select(x => x.ToString()).Join(';') },
-    };
+        var dict = new Dictionary<string, string?>
+        {
+            { "$type", subject.GetType().Name },
+            { nameof(subject.Option), subject.Option.ToString() },
+            { nameof(subject.QueryNumber), subject.QueryNumber.ToString() },
+            { nameof(subject.Alias), subject.Alias },
+            { $"{nameof(subject.Nodes)}.Count", subject.Nodes.Count.ToString() },
+            { $"{nameof(subject.Edges)}.Count", subject.Edges.Count.ToString() },
+            { nameof(subject.DataLinks), subject.DataLinks.Select(x => x.ToString()).Join(';') },
+        };
+
+        subject.Nodes
+            .Select((x, i) => (prop: x.GetProperties(), index: i))
+            .SelectMany(x => x.prop, (o, i) => (index: o.index, i))
+            .ForEach(x => dict.Add($"{nameof(subject.Nodes)}:[{x.index}]:{x.i.Key}", x.i.Value));
+
+        subject.Edges
+            .Select((x, i) => (prop: x.GetProperties(), index: i))
+            .SelectMany(x => x.prop, (o, i) => (index: o.index, i))
+            .ForEach(x => dict.Add($"{nameof(subject.Edges)}:[{x.index}]:{x.i.Key}", x.i.Value));
+
+        return dict;
+    }
 
     public static string DumpToString(this QueryResult subject)
     {

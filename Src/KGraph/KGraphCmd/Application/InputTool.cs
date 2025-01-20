@@ -68,6 +68,11 @@ public static class InputTool
         }
     }
 
+    public static void AppendProperties(this Dictionary<string, string?> data, string label, IReadOnlyDictionary<string, string?> data2)
+    {
+        data2.ForEach(x => data[$"{label}:{x.Key}"] = x.Value);
+    }
+
     public static string ToLoggingFormat(this IEnumerable<KeyValuePair<string, string?>> data)
     {
         var result = data.NotNull()

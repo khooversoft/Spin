@@ -95,7 +95,10 @@ internal class Command : ICommandRoute
 
                 return args;
             }
-            catch { }
+            catch
+            {
+                Console.WriteLine("Syntax error");
+            }
 
             return Array.Empty<string>();
         }
