@@ -58,7 +58,7 @@ public static class InputTool
                 return;
             }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(200));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
 
             if (mark.IsPass())
             {
@@ -76,7 +76,6 @@ public static class InputTool
     public static string ToLoggingFormat(this IEnumerable<KeyValuePair<string, string?>> data)
     {
         var result = data.NotNull()
-            .OrderBy(x => x.Key)
             .Select(x => $"{x.Key}={fmt(x.Value)}")
             .Join(Environment.NewLine);
 

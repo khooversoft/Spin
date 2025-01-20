@@ -38,7 +38,7 @@ public static class DictionaryExtensions
         };
     }
 
-    public static IReadOnlyList<KeyValuePair<string, string>> ToKeyValuePairs<T>(this T subject) where T : class
+    public static IReadOnlyList<KeyValuePair<string, string?>> ToKeyValuePairs<T>(this T subject) where T : class
     {
         subject.NotNull();
 
@@ -55,7 +55,6 @@ public static class DictionaryExtensions
         return config
             .AsEnumerable()
             .Where(x => x.Value != null)
-            .OfType<KeyValuePair<string, string>>()
             .OrderBy(x => x.Key)
             .ToArray();
     }

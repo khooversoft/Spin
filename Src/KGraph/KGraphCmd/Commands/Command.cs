@@ -56,7 +56,7 @@ internal class Command : ICommandRoute
     private async Task Run(string jsonFile)
     {
         var services = _graphHostManager.Start(jsonFile);
-        _context.LogInformation("Starting to list traces...");
+        _context.LogInformation("Starting command shell...");
 
         var traceLog = services.GetRequiredKeyedService<IJournalFile>(GraphConstants.Trace.DiKeyed).NotNull();
         var hashLsn = new HashSet<string>();
@@ -81,7 +81,7 @@ internal class Command : ICommandRoute
             if (args.Length == 1 && _exitCommands.Contains(args[0])) break;
 
             var result = await _commandHost.Run(args);
-            Console.WriteLine();
+            Console.WriteLine("...");
         }
 
         string[] parse(string command)

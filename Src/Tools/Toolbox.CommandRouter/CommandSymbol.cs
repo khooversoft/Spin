@@ -33,6 +33,13 @@ public class CommandSymbol : IEnumerable<CommandSymbol>
         return arg;
     }
 
+    public CommandOption<T> AddOption<T>(string name, string? description, T defaultValue)
+    {
+        var arg = new CommandOption<T>(name, description, defaultValue);
+        Command.AddOption(arg.Option);
+        return arg;
+    }
+
     public IEnumerator<CommandSymbol> GetEnumerator() => _symbols.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_symbols).GetEnumerator();
 }

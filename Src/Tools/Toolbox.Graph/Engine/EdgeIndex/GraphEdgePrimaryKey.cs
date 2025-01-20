@@ -20,7 +20,7 @@ public readonly struct GraphEdgePrimaryKey
     public string ToKey { get; init; } = null!;
     public string EdgeType { get; init; } = null!;
 
-    public override string ToString() => $"{{ FromKey={FromKey} -> ToKey={ToKey} ({EdgeType}) }}";
+    public override string ToString() => $"[ FromKey={FromKey} -> ToKey={ToKey} ({EdgeType}) ]";
 
     public override bool Equals([NotNullWhen(true)] object? obj)
     {

@@ -9,11 +9,11 @@ public static class ObjectExtensions
 {
     public static string GetMethodName(this object obj, [CallerMemberName] string function = "") => $"{obj.GetType().Name}.{function}";
 
-    public static IReadOnlyList<KeyValuePair<string, object?>> ToKeyValuePairs(this object obj) =>
-        TypeDescriptor.GetProperties(obj)
-        .OfType<PropertyDescriptor>()
-        .Select(x => new KeyValuePair<string, object?>(x.Name, x.GetValue(obj)))
-        .ToArray();
+    //public static IReadOnlyList<KeyValuePair<string, object?>> ToKeyValuePairs(this object obj) =>
+    //    TypeDescriptor.GetProperties(obj)
+    //    .OfType<PropertyDescriptor>()
+    //    .Select(x => new KeyValuePair<string, object?>(x.Name, x.GetValue(obj)))
+    //    .ToArray();
 
 
     public static T? ToObject<T>(this string json)

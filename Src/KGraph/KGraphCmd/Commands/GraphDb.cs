@@ -28,43 +28,53 @@ internal class GraphDb : ICommandRoute
         new CommandSymbol("nodes", "Dump all the nodes").Action(x =>
         {
             var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
-            x.SetHandler(DumpNodes, jsonFile);
+            var fullDump = x.AddOption<bool>("--full", "Json file with data lake connection details");
+            var nodeKey = x.AddOption<string?>("--nodeKey", "Enter node key to search for");
+
+            x.SetHandler(DumpNodes, jsonFile, fullDump, nodeKey);
         }),
         new CommandSymbol("edges", "Dump all the edges").Action(x =>
         {
             var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
-            x.SetHandler(DumpEdges, jsonFile);
+            var fullDump = x.AddOption<bool>("--full", "Json file with data lake connection details");
+            var fromKey = x.AddOption<string?>("--fromKey", "Enter node key to search for");
+            var toKey = x.AddOption<string?>("--toKey", "Enter node key to search for");
+            var edgeType = x.AddOption<string?>("--edgeType", "Enter node key to search for");
+
+            x.SetHandler(DumpEdges, jsonFile, fullDump, fromKey, toKey, edgeType);
         }),
         new CommandSymbol("query", "Execute kgraph command").Action(x =>
         {
             var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
+            var fullDump = x.AddOption<bool>("--full", "Json file with data lake connection details");
             var command = x.AddArgument<string>("graph command", "kgraph command to execute");
-            x.SetHandler(Query, jsonFile, command);
+
+            x.SetHandler(Query, jsonFile, command, fullDump);
         }),
     };
 
-    private async Task Query(string? jsonFile, string command)
+    private async Task Query(string? jsonFile, string command, bool fullDump)
     {
         if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
         await _graphHostManager.LoadMap(context);
 
         var client = _graphHostManager.ServiceProvider.GetRequiredService<IGraphClient>();
-        context.LogInformation("Executing '{cmd}", command);
-
-        var result = await client.Execute(command, context);
+        var result = await client.ExecuteBatch(command, context);
         if (result.IsError())
         {
             result.LogStatus(context, "Failed to execute command '{cmd}'", [command]);
             return;
         }
 
-        QueryResult queryResult = result.Return();
-        string details = queryResult.DumpToString();
-        context.LogInformation("Results: {details}", details);
+        QueryBatchResult queryResult = result.Return();
+
+        DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
+        var line = DataFormatTool.Formats.Format(queryResult, dataFormatType).ToLoggingFormat();
+        context.LogInformation(line);
     }
 
-    private async Task DumpNodes(string? jsonFile)
+    private async Task DumpNodes(string? jsonFile, bool fullDump, string? nodeKey)
     {
         if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
@@ -73,14 +83,20 @@ internal class GraphDb : ICommandRoute
         IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
         context.LogInformation("Dumping nodes, count={count}", graphHost.Map.Nodes.Count);
 
-        foreach (var node in graphHost.Map.Nodes.OrderBy(x => x.Key))
+        DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
+
+        var list = graphHost.Map.Nodes
+            .Where(x => nodeKey == null || x.Key.Equals(nodeKey, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.Key);
+
+        foreach (var node in list)
         {
-            var line = node.GetProperties().ToLoggingFormat();
+            var line = DataFormatTool.Formats.Format(node, dataFormatType).ToLoggingFormat();
             context.LogInformation(line);
         }
     }
 
-    private async Task DumpEdges(string? jsonFile)
+    private async Task DumpEdges(string? jsonFile, bool fullDump, string? fromKey, string? toKey, string? edgeType)
     {
         if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
@@ -89,9 +105,17 @@ internal class GraphDb : ICommandRoute
         IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
         context.LogInformation("Dumping edges, count={count}", graphHost.Map.Edges.Count);
 
-        foreach (var edge in graphHost.Map.Edges.OrderBy(x => x.ToString()))
+        DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
+
+        var list = graphHost.Map.Edges
+            .Where(x => fromKey == null || x.FromKey.Equals(fromKey, StringComparison.OrdinalIgnoreCase))
+            .Where(x => toKey == null || x.FromKey.Equals(toKey, StringComparison.OrdinalIgnoreCase))
+            .Where(x => edgeType == null || x.FromKey.Equals(edgeType, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.ToString());
+
+        foreach (var node in list)
         {
-            var line = edge.GetProperties().ToLoggingFormat();
+            var line = DataFormatTool.Formats.Format(node, dataFormatType).ToLoggingFormat();
             context.LogInformation(line);
         }
     }
