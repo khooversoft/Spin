@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Toolbox.Azure;
 using Toolbox.Graph;
 using Toolbox.Logging;
 using Toolbox.Tools;
@@ -32,6 +33,17 @@ public class GraphHostManager : IAsyncDisposable
         {
             _serviceProvider?.Dispose();
             _serviceProvider = HostTool.StartHost(jsonFile);
+
+            try
+            {
+                IDatalakeStore store = _serviceProvider.GetRequiredService<IDatalakeStore>();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to connect to datalake");
+                throw;
+            }
+
             return _serviceProvider;
         }
     }

@@ -31,7 +31,9 @@ public class RightPanelDialog<TModel, TDialog> where TDialog : IDialogContentCom
             ShowDismiss = true,
             Title = title,
             PrimaryAction = null,
+            PrimaryActionEnabled = false,
             SecondaryAction = null,
+            SecondaryActionEnabled = false,
         };
 
         var panelParameters = PanelParameters<TModel>.Edit(model);

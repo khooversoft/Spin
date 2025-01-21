@@ -119,7 +119,7 @@ internal static class DataFormatTool
 
     public static IReadOnlyList<KeyValuePair<string, string?>> FormatSingle(this GraphLinkData subject) =>
     [
-        new KeyValuePair<string, string?>("GraphLinkData", $"NodeKey={subject.NodeKey}, Name={subject.Name}, FileId={subject.Name}"),
+        new KeyValuePair<string, string?>("GraphLinkData", $"NodeKey={subject.NodeKey}, Name={subject.Name}, FileId={subject.FileId}"),
         new KeyValuePair<string, string?>("GraphLinkData", $"Data={subject.Data.ToJsonFromData()}"),
     ];
 

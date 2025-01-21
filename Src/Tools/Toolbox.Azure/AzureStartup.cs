@@ -19,15 +19,6 @@ public static class AzureStartup
         services.AddSingleton<IDatalakeStore, DatalakeStore>();
         services.AddSingleton<IFileStore, DatalakeFileStoreConnector>();
 
-        //services.AddStoreCollection((services, config) =>
-        //{
-        //    config.Add(new StoreConfig("system", getFileStoreService));
-        //    config.Add(new StoreConfig("contract", getFileStoreService));
-        //    config.Add(new StoreConfig("nodes", getFileStoreService));
-        //});
-
         return services;
-
-        //static IFileStore getFileStoreService(IServiceProvider services, StoreConfig config) => services.GetRequiredService<IFileStore>();
     }
 }

@@ -1,0 +1,39 @@
+﻿@using TicketShare.sdk
+
+<FeedBlock Title="Ticket Group" OnEdit="Edit">
+    <EditHeader Content="_header" ReadOnly="true" />
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketGroupContext TicketGroupContext { get; set; } = null!;
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+
+    private TicketGroupHeaderModel _header = null!;
+    private RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog> _rightPanelDialog = null!;
+
+    protected override void OnParametersSet()
+    {
+        _rightPanelDialog = new RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog>(
+            _dialogService,
+            x => Set(x),
+            null
+            );
+
+        _header = TicketGroupContext.GetHeader();
+    }
+
+    private async Task Edit()
+    {
+        var result = await _rightPanelDialog.Edit(_header, "Edit");
+        if (result == RightPanelDialog.Canceled) return;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Set(TicketGroupHeaderModel header)
+    {
+        var updateOption = await TicketGroupContext.SetHeader(header);
+        _header = TicketGroupContext.GetHeader();
+        await InvokeAsync(StateHasChanged);
+    }
+}
