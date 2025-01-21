@@ -68,10 +68,24 @@ internal class GraphDb : ICommandRoute
         }
 
         QueryBatchResult queryResult = result.Return();
+        GraphLinkData[] saveLinkData = queryResult.Items.SelectMany(x => x.DataLinks).ToArray();
+        QueryBatchResult trimmed = queryResult with
+        {
+            Items = queryResult.Items.Select(x => x with
+            {
+                DataLinks = x.DataLinks.Select(y => y with { Data = new DataETag([]) }).ToArray(),
+            }).ToArray(),
+        };
 
         DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
-        var line = DataFormatTool.Formats.Format(queryResult, dataFormatType).ToLoggingFormat();
+        var line = DataFormatTool.Formats.Format(trimmed, dataFormatType).ToLoggingFormat();
         context.LogInformation(line);
+
+        foreach (var item in saveLinkData)
+        {
+            string l2 = DataFormatTool.Formats.Format(item, DataFormatType.Single).ToLoggingFormat();
+            context.LogInformation(l2);
+        }
     }
 
     private async Task DumpNodes(string? jsonFile, bool fullDump, string? nodeKey)

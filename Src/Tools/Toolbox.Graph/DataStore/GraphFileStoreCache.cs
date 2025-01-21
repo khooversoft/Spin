@@ -22,7 +22,7 @@ public class GraphFileStoreCache : IGraphStore
         _fileStore = fileStore.NotNull();
         _memoryCache = memoryCache.NotNull();
     }
-    
+
     public GraphFileStoreCache(IFileStore fileStore, GraphHostOption graphHostOption, IMemoryCache memoryCache)
     {
         _fileStore = fileStore.NotNull();

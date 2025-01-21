@@ -82,7 +82,7 @@ internal class SystemSettings : ICommandRoute
     private async Task ClearLogs(string jsonFile, string keyedType, bool confirm)
     {
         if (!CheckConfirm(confirm)) return;
-        
+
         var services = _graphHostManager.Start(jsonFile);
 
         var fileStore = services.GetRequiredService<IFileStore>().NotNull();

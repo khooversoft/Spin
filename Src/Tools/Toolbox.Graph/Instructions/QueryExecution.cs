@@ -39,7 +39,7 @@ public static class QueryExecution
             .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
             .ToOptionStatus<QueryExecutionContext>();
 
-        var journalEntry = JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphQuery).GetProperties());
+        var journalEntry = JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphQuery).ToKeyValuePairs());
         await graphTrxContext.TraceWriter.Write([journalEntry]);
 
         return new QueryExecutionContext(graphQuery, instructions.Return(), graphTrxContext);
@@ -68,10 +68,10 @@ public static class QueryExecution
                 };
 
                 TimeSpan duration = Stopwatch.GetElapsedTime(startingTimestamp);
-                traceList += JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphInstruction, queryResult, duration).GetProperties());
+                traceList += JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphInstruction, queryResult, duration).ToKeyValuePairs());
 
                 var itemResult = pContext.BuildQueryResult();
-                traceList += JournalEntry.Create(JournalType.Data, itemResult.GetProperties());
+                traceList += JournalEntry.Create(JournalType.Data, itemResult.ToKeyValuePairs());
 
                 if (queryResult.IsError())
                 {

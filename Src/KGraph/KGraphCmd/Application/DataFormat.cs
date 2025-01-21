@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Journal;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace KGraphCmd.Application;
 
@@ -57,14 +53,20 @@ internal static class DataFormatTool
     {
         new DataFormat(typeof(GraphNode), DataFormatType.Single, x => Format(x, DataFormatType.Single)),
         new DataFormat(typeof(GraphNode), DataFormatType.Full, x => Format(x, DataFormatType.Full)),
+
         new DataFormat(typeof(GraphEdge), DataFormatType.Single, x => Format(x, DataFormatType.Single)),
         new DataFormat(typeof(GraphEdge), DataFormatType.Full, x => Format(x, DataFormatType.Full)),
+
         new DataFormat(typeof(QueryBatchResult), DataFormatType.Single, x => Format(x, DataFormatType.Single)),
         new DataFormat(typeof(QueryBatchResult), DataFormatType.Full, x => Format(x, DataFormatType.Full)),
+
         new DataFormat(typeof(QueryResult), DataFormatType.Single, x => Format(x, DataFormatType.Single)),
         new DataFormat(typeof(QueryResult), DataFormatType.Full, x => Format(x, DataFormatType.Full)),
+
         new DataFormat(typeof(JournalEntry), DataFormatType.Single, x => Format(x, DataFormatType.Single)),
         new DataFormat(typeof(JournalEntry), DataFormatType.Full, x => Format(x, DataFormatType.Full)),
+
+        new DataFormat(typeof(GraphLinkData), DataFormatType.Single, x => Format(x, DataFormatType.Single)),
     };
 
     public static IReadOnlyList<KeyValuePair<string, string?>> Format<T>(this T subject, DataFormatType formatType) where T : class
@@ -78,6 +80,7 @@ internal static class DataFormatTool
             QueryBatchResult v => FormatSingle(v),
             QueryResult v => FormatSingle(v),
             JournalEntry v => FormatSingle(v),
+            GraphLinkData v => FormatSingle(v),
 
             _ => throw new ArgumentException($"Unknown subject type={subject.GetType().Name}"),
         };
@@ -112,6 +115,12 @@ internal static class DataFormatTool
     [
         new KeyValuePair<string, string?>("QueryBatchResult", $"Option={subject.Option}, Items={subject.Items.Count}"),
         .. subject.Items.SelectMany(x => x.FormatSingle()),
+    ];
+
+    public static IReadOnlyList<KeyValuePair<string, string?>> FormatSingle(this GraphLinkData subject) =>
+    [
+        new KeyValuePair<string, string?>("GraphLinkData", $"NodeKey={subject.NodeKey}, Name={subject.Name}, FileId={subject.Name}"),
+        new KeyValuePair<string, string?>("GraphLinkData", $"Data={subject.Data.ToJsonFromData()}"),
     ];
 
     private static string GetEntryKey(this JournalEntry subject) => subject.Data.TryGetValue("$type", out var typeValue) switch

@@ -51,12 +51,4 @@ public static class GraphDataLinkTool
         .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
         .Select(x => $"{x.Key}={x.Value}")
         .Join(',');
-
-    public static IReadOnlyDictionary<string, string?> GetProperties(this GraphLink subject) => new Dictionary<string, string?>
-    {
-        { "$type", subject.GetType().Name },
-        { nameof(subject.NodeKey), subject.NodeKey },
-        { nameof(subject.Name), subject.Name },
-        { nameof(subject.FileId), subject.FileId },
-    };
 }

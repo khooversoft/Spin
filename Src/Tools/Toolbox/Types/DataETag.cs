@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -80,4 +81,15 @@ public static class DataETagExtensions
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
     public static DataETag WithETag(this DataETag data, string eTag) => new DataETag(data.Data, eTag.NotEmpty());
     public static T ToObject<T>(this DataETag data) => data.Data.AsSpan().ToObject<T>().NotNull("Serialization failed");
+
+    public static string ToJsonFromData(this DataETag subject)
+    {
+        if (subject.Data.Length == 0) return string.Empty;
+
+        string jsonString = subject.Data.BytesToString();
+        using JsonDocument jsonDocument = JsonDocument.Parse(jsonString);
+        var result = JsonSerializer.Serialize(jsonDocument.RootElement, Json.JsonSerializerFormatOption);
+
+        return result;
+    }
 }

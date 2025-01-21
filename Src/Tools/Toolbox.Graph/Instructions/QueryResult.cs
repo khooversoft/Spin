@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Text;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -88,59 +87,5 @@ public static class QueryResultTool
         if (item == null) return StatusCode.NotFound;
 
         return item.Data;
-    }
-
-    public static IReadOnlyDictionary<string, string?> GetProperties(this QueryBatchResult subject)
-    {
-        var dict = new Dictionary<string, string?>()
-        {
-            { "$type", subject.GetType().Name },
-            { nameof(subject.TransactionId), subject.TransactionId },
-            { nameof(subject.Option), subject.Option.ToString() },
-            { nameof(subject.GraphQuery), subject.GraphQuery },
-        };
-
-        subject.Items.ForEach((x, i) => x.GetProperties().ForEach(y => dict.Add($"{y.Key}:[{i}]", y.Value)));
-
-        return dict;
-    }
-
-    public static IReadOnlyDictionary<string, string?> GetProperties(this QueryResult subject)
-    {
-        var dict = new Dictionary<string, string?>
-        {
-            { "$type", subject.GetType().Name },
-            { nameof(subject.Option), subject.Option.ToString() },
-            { nameof(subject.QueryNumber), subject.QueryNumber.ToString() },
-            { nameof(subject.Alias), subject.Alias },
-            { $"{nameof(subject.Nodes)}.Count", subject.Nodes.Count.ToString() },
-            { $"{nameof(subject.Edges)}.Count", subject.Edges.Count.ToString() },
-            { nameof(subject.DataLinks), subject.DataLinks.Select(x => x.ToString()).Join(';') },
-        };
-
-        subject.Nodes
-            .Select((x, i) => (prop: x.GetProperties(), index: i))
-            .SelectMany(x => x.prop, (o, i) => (index: o.index, i))
-            .ForEach(x => dict.Add($"{nameof(subject.Nodes)}:[{x.index}]:{x.i.Key}", x.i.Value));
-
-        subject.Edges
-            .Select((x, i) => (prop: x.GetProperties(), index: i))
-            .SelectMany(x => x.prop, (o, i) => (index: o.index, i))
-            .ForEach(x => dict.Add($"{nameof(subject.Edges)}:[{x.index}]:{x.i.Key}", x.i.Value));
-
-        return dict;
-    }
-
-    public static string DumpToString(this QueryResult subject)
-    {
-        subject.NotNull();
-
-        var properties = subject.GetProperties();
-
-        string result = properties.OrderBy(x => x.Key)
-            .Select(x => $"{x.Key}={x.Value?.Replace("{", "{{").Replace("}", "}}")}")
-            .Join(Environment.NewLine);
-
-        return result;
     }
 }

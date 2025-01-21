@@ -19,12 +19,12 @@ public static class GraphStartup
         services.AddSingleton<IGraphHost, GraphHost>();
 
         services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
-        { 
+        {
             ConnectionString = GraphConstants.TrxJournal.ConnectionString,
             ReadOnly = hostOption.ReadOnly,
         });
         services.AddJournalLog(GraphConstants.Trace.DiKeyed, new JournalFileOption
-        { 
+        {
             ConnectionString = GraphConstants.Trace.ConnectionString,
             UseBackgroundWriter = true,
             ReadOnly = hostOption.ReadOnly,

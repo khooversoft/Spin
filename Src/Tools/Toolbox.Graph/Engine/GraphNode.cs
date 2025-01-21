@@ -97,14 +97,4 @@ public sealed record GraphNode : IGraphCommon
 public static class GraphNodeTool
 {
     public static Option Validate(this GraphNode subject) => GraphNode.Validator.Validate(subject).ToOptionStatus();
-
-    public static IReadOnlyDictionary<string, string?> GetProperties(this GraphNode subject) => new Dictionary<string, string?>
-    {
-        { "$type", subject.GetType().Name },
-        { nameof(subject.Key), subject.Key },
-        { nameof(subject.TagsString), subject.TagsString },
-        { nameof(subject.DataMapString), subject.DataMapString },
-        { nameof(subject.IndexesString), subject.IndexesString },
-        { nameof(subject.ForeignKeysString), subject.ForeignKeysString },
-    };
 }
