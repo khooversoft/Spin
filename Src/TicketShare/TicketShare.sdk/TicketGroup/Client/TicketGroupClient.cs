@@ -23,11 +23,11 @@ public class TicketGroupClient
         _hubChannelClient = hubChannelClient;
         _logger = logger.NotNull();
 
-        Proposal = ActivatorUtilities.CreateInstance<TicketGroupProposalClient>(service, this);
+        //Proposal = ActivatorUtilities.CreateInstance<TicketGroupProposalClient>(service, this);
         Search = ActivatorUtilities.CreateInstance<TicketGroupSearchClient>(service, this);
     }
 
-    public TicketGroupProposalClient Proposal { get; }
+    //public TicketGroupProposalClient Proposal { get; }
     public TicketGroupSearchClient Search { get; }
 
     public Task<Option> Add(TicketGroupRecord ticketGroupRecord, ScopeContext context) => AddOrSet(false, ticketGroupRecord, context);

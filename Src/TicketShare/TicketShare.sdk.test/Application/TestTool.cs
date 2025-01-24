@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Identity;
-using Toolbox.Types;
 using Toolbox.Tools.Should;
+using Toolbox.Types;
 
 namespace TicketShare.sdk.Applications;
 

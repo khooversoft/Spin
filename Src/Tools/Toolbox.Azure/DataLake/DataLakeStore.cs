@@ -153,7 +153,11 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
+            var ifExists = await file.ExistsAsync(context).ConfigureAwait(false);
+            if (ifExists.Value == false) return StatusCode.NotFound;
+
             Response<FileDownloadInfo> response = await file.ReadAsync(context).ConfigureAwait(false);
+            if (response.Value == null) return StatusCode.NotFound;
 
             using MemoryStream memory = new MemoryStream();
             await response.Value.Content.CopyToAsync(memory).ConfigureAwait(false);

@@ -54,6 +54,7 @@ public static class DictionaryExtensions
 
         return config
             .AsEnumerable()
+            .Append(new KeyValuePair<string, string?>("$type", subject.GetType().Name))
             .Where(x => x.Value != null)
             .OrderBy(x => x.Key)
             .ToArray();

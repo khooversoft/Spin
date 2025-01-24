@@ -32,7 +32,7 @@ public static class InputTool
         return string.Empty;
     }
 
-    public static async Task WaitForInput(Func<Task> doWork, CancellationToken token)
+    public static async Task<char> WaitForInput(Func<Task> doWork, CancellationToken token)
     {
         MarkTime mark = new MarkTime(TimeSpan.FromSeconds(5));
         MarkTime work = new MarkTime(TimeSpan.FromMicroseconds(500));
@@ -48,9 +48,9 @@ public static class InputTool
 
             if (Console.KeyAvailable)
             {
-                Console.ReadKey(true);
+                ConsoleKeyInfo currentKey = Console.ReadKey(true);
                 if (marked) Console.WriteLine();
-                return;
+                return currentKey.KeyChar;
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -61,6 +61,8 @@ public static class InputTool
                 marked = true;
             }
         }
+
+        return char.MinValue;
     }
 
     public static void AppendProperties(this Dictionary<string, string?> data, string label, IReadOnlyDictionary<string, string?> data2)

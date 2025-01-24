@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Toolbox.Extensions;
-using Toolbox.Types;
 using Toolbox.Tools.Should;
+using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Schema;
 

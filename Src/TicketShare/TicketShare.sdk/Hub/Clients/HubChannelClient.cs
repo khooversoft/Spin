@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
@@ -22,11 +21,7 @@ public class HubChannelClient
     {
         _graphClient = graphClient.NotNull();
         _logger = logger.NotNull();
-
-        Message = ActivatorUtilities.CreateInstance<HubChannelMessageClient>(service, this);
     }
-
-    public HubChannelMessageClient Message { get; }
 
     public Task<Option> Add(HubChannelRecord identityMessage, ScopeContext context) => AddOrSet(false, identityMessage, context);
 
@@ -50,7 +45,7 @@ public class HubChannelClient
         principalId.NotEmpty();
 
         var cmd = new SelectCommandBuilder()
-            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_hubTicketGroupUserTag))
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_hubChannelUserTag))
             .AddRightJoin()
             .AddNodeSearch()
             .AddDataName("entity")
@@ -68,7 +63,7 @@ public class HubChannelClient
     private async Task<Option> AddOrSet(bool useSet, HubChannelRecord hubChannelRecord, ScopeContext context)
     {
         context = context.With(_logger);
-        if (hubChannelRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(HubChannelRecord));
+        if (hubChannelRecord.Validate().LogStatus(context, "Record valid").IsError(out var r)) return r.LogStatus(context, nameof(HubChannelRecord));
 
         string ownerPrincipalId = hubChannelRecord.Users.Values.Where(x => x.Role == ChannelRole.Owner).Single().PrincipalId;
         var userReferences = hubChannelRecord.Users.Values.Where(x => x.Role != ChannelRole.Owner).ToArray();

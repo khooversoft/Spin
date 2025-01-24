@@ -37,12 +37,10 @@ public static class TicketShareStartup
         service.AddScoped<AuthenticationAccess>();
 
         service.AddSingleton<TicketGroupClient>();
-        service.AddSingleton<TicketGroupProposalClient>();
         service.AddSingleton<TicketGroupSearchClient>();
         service.AddScoped<TicketGroupManager>();
 
         service.AddSingleton<HubChannelClient>();
-        service.AddSingleton<HubChannelMessageClient>();
         service.AddSingleton<HubChannelManager>();
         return service;
     }

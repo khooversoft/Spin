@@ -37,7 +37,7 @@ public sealed record JournalEntry
     public static JournalEntry Create(JournalType type, IEnumerable<KeyValuePair<string, string?>> data) => new JournalEntry
     {
         Type = type,
-        Data = data.NotNull().ToFrozenDictionary(),
+        Data = data.NotNull().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase),
     };
 }
 

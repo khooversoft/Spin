@@ -24,10 +24,10 @@ public class AppNavigation
     {
         ticketGroupId.NotEmpty();
 
-        string uri = $"/TicketGroup/{ticketGroupId}";
-        _logger.LogInformation("GotoTicketGroup, uri={uri}", uri);
+        string uriText = $"/TicketGroup/{ticketGroupId}";
+        _logger.LogInformation("GotoTicketGroup, uri={uri}", uriText);
 
-        string encoded = Uri.EscapeDataString(uri);
+        string encoded = $"/TicketGroup/{Uri.EscapeDataString(ticketGroupId)}";
         _navigationManager.NavigateTo(encoded);
     }
 
@@ -44,7 +44,7 @@ public class AppNavigation
         string uri = $"/TicketGroup/{channelId}";
         _logger.LogInformation("GotoChannel, uri={uri}", uri);
 
-        string encoded = Uri.EscapeDataString(uri);
+        string encoded = $"/TicketGroup/{Uri.EscapeDataString(channelId)}";
         _navigationManager.NavigateTo(encoded);
     }
 }

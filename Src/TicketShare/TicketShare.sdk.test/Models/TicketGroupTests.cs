@@ -2,8 +2,8 @@
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
 using Toolbox.Identity;
-using Toolbox.Types;
 using Toolbox.Tools.Should;
+using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Account;
 

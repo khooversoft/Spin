@@ -2,8 +2,8 @@
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Types;
 using Toolbox.Tools.Should;
+using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Models;
 

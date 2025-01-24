@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
+using TicketShareWeb.Application;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
 using Toolbox.Azure;
@@ -65,7 +66,9 @@ builder.Services
 builder.Services
     .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
     .AddGraphEngine()
-    .AddTicketShare();
+    .AddTicketShare()
+    .AddScoped<AskPanel>()
+    .AddScoped<AppNavigation>();
 
 var app = builder.Build();
 

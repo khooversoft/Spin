@@ -16,7 +16,8 @@ internal static class JournalTool
             await ReadJournal(journalFile, hashLsn, lastNumber, fullDump, lsn, context);
             if (!monitor) return;
 
-            await InputTool.WaitForInput(async () => await ReadJournal(journalFile, hashLsn, lastNumber, fullDump, lsn, context), context.CancellationToken);
+            char triggerChr = await InputTool.WaitForInput(async () => await ReadJournal(journalFile, hashLsn, lastNumber, fullDump, lsn, context), context.CancellationToken);
+            if(triggerChr == 'q') return;
 
             var match = InputTool.GetUserCommand(context.CancellationToken, "continue", "quit", "reset");
             switch (match)

@@ -49,13 +49,24 @@ public static class HubChannelTool
 {
     public static Option Validate(this HubChannelRecord subject) => HubChannelRecord.Validator.Validate(subject).ToOptionStatus();
 
-    public static int GetUnreadMessageCount(this HubChannelRecord subject, string principalId)
+    public static bool HasUnreadMessages(this HubChannelRecord subject, string principalId)
     {
-        subject.NotNull(nameof(subject));
-        principalId.NotEmpty(nameof(principalId));
+        if (!subject.Users.TryGetValue(principalId, out PrincipalChannelRecord? principalChannelRecord)) return false;
+        return subject.Messages.Any(x => !principalChannelRecord.IsRead(x.MessageId));
+    }
 
-        int result = subject.Messages.Count - (subject.Users.TryGetValue(principalId, out var record) ? record.MessageStates.Count : 0);
-        return result;
+    public static bool HasAccess(this HubChannelRecord subject, string principalId, ChannelRole requiredAccess)
+    {
+        if (!subject.Users.TryGetValue(principalId, out PrincipalChannelRecord? principalChannelRecord)) return false;
+        return principalChannelRecord.HasAccess(requiredAccess);
+    }
+
+    public static Option HasAccess(this HubChannelRecord subject, string principalId, ChannelRole requiredAccess, ScopeContext context)
+    {
+        if (subject.HasAccess(principalId, requiredAccess)) return StatusCode.OK;
+
+        context.LogError("Principal does not have access to channelId={channelId}, principalId={principalId}", subject.ChannelId, principalId);
+        return StatusCode.Forbidden;
     }
 }
 

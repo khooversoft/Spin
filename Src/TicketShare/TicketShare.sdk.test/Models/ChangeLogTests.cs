@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Types;
 using Toolbox.Tools.Should;
+using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Models;
 
