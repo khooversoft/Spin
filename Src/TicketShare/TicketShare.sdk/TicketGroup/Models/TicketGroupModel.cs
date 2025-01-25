@@ -15,12 +15,14 @@ public sealed record TicketGroupModel
 
     public bool Equals(TicketGroupModel? other)
     {
-        return other is not null &&
+        var test = other is not null &&
             Name == other.Name &&
             Description == other.Description &&
             ChannelId == other.ChannelId &&
             Roles.DeepEquals(other.Roles) &&
             Seats.DeepEquals(other.Seats);
+
+        return test;
     }
 
     public override int GetHashCode() => HashCode.Combine(Name, Description, ChannelId, Roles, Seats);

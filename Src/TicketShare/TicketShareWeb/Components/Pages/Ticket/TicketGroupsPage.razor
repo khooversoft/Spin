@@ -33,6 +33,7 @@
     [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Inject] public IMessageService _messageService { get; set; } = null!;
+    [Inject] public ILogger<TicketGroupsPage> _logger { get; set; } = null!;
 
     private bool Visible { get; set; } = true;
 
@@ -73,7 +74,7 @@
     {
         await SetLoading(true);
 
-        var result = await _ticketGroupManager.GetTicketGroups();
+        var result = await _ticketGroupManager.GetTicketGroups(new ScopeContext(_logger));
         result.ThrowOnError();
 
         _inputs = result.Return();
@@ -89,7 +90,7 @@
     {
         await SetLoading(true);
 
-        var result = await _ticketGroupManager.Create(header);
+        var result = await _ticketGroupManager.Create(header, new ScopeContext(_logger));
         if (result.IsError())
         {
             await _messageService.ShowMessageBarAsync(result.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);

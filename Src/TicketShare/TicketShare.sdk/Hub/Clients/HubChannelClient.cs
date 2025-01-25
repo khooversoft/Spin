@@ -98,21 +98,12 @@ public static class HubChannelClientExtensions
         return client.Add(model, context);
     }
 
-    public static async Task<Option> CreateIfNotExist(this HubChannelClient client, string channelId, string ownerPrincipalId, ScopeContext context)
-    {
-        var model = CreateModel(channelId, ownerPrincipalId);
-        var result = await client.Add(model, context);
-
-        if (result.IsConflict()) return StatusCode.OK;
-        return result;
-    }
-
     private static HubChannelRecord CreateModel(string channelId, string ownerPrincipalId) => new HubChannelRecord
     {
         ChannelId = channelId,
-        Users = new Dictionary<string, PrincipalChannelRecord>
+        Users = new Dictionary<string, PrincipalRoleRecord>
         {
-            [ownerPrincipalId] = new PrincipalChannelRecord
+            [ownerPrincipalId] = new PrincipalRoleRecord
             {
                 PrincipalId = ownerPrincipalId,
                 Role = ChannelRole.Owner,

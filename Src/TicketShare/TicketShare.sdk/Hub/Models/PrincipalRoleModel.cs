@@ -2,7 +2,7 @@
 
 namespace TicketShare.sdk;
 
-public record PrincipalChannelModel
+public record PrincipalRoleModel
 {
     public string PrincipalId { get; set; } = null!;
     public ChannelRole Role { get; set; } = ChannelRole.Reader;
@@ -10,11 +10,11 @@ public record PrincipalChannelModel
 
 public static class PrincipalChannelModelExtensios
 {
-    public static PrincipalChannelModel ConvertTo(this PrincipalChannelRecord record)
+    public static PrincipalRoleModel ConvertTo(this PrincipalRoleRecord record)
     {
         record.NotNull();
 
-        var model = new PrincipalChannelModel
+        var model = new PrincipalRoleModel
         {
             PrincipalId = record.PrincipalId,
             Role = record.Role,
@@ -23,11 +23,11 @@ public static class PrincipalChannelModelExtensios
         return model;
     }
 
-    public static PrincipalChannelRecord ConvertTo(this PrincipalChannelModel model)
+    public static PrincipalRoleRecord ConvertTo(this PrincipalRoleModel model)
     {
         model.NotNull();
 
-        var record = new PrincipalChannelRecord
+        var record = new PrincipalRoleRecord
         {
             PrincipalId = model.PrincipalId,
             Role = model.Role,

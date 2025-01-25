@@ -7,6 +7,7 @@
 @code {
     [CascadingParameter] public TicketGroupContext TicketGroupContext { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Inject] public ILogger<TicketHeader> _logger { get; set; } = null!;
 
     private TicketGroupHeaderModel _header = null!;
     private RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog> _rightPanelDialog = null!;
@@ -32,7 +33,7 @@
 
     private async Task Set(TicketGroupHeaderModel header)
     {
-        var updateOption = await TicketGroupContext.SetHeader(header);
+        var updateOption = await TicketGroupContext.SetHeader(header, new ScopeContext(_logger));
         _header = TicketGroupContext.GetHeader();
         await InvokeAsync(StateHasChanged);
     }

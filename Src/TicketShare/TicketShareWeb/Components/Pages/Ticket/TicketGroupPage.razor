@@ -33,7 +33,7 @@
     protected override async Task OnParametersSetAsync()
     {
         var context = _ticketGroupManager.GetContext(TicketGroupId);
-        var option = await context.Get();
+        var option = await context.Get(new ScopeContext(_logger));
         if (option.IsError())
         {
             _logger.LogError("Failed to get ticketGroupId={ticketGroupId}", TicketGroupId);
@@ -54,7 +54,7 @@
 
         await SetLoading(true);
 
-        var result = await _ticketGroupContext.Delete();
+        var result = await _ticketGroupContext.Delete(new ScopeContext(_logger));
         if (result.IsError())
         {
             _logger.LogError("Failed to delete ticketGroupId={ticketGroupId}", TicketGroupId);

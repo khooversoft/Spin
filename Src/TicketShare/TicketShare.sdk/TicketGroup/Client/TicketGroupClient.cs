@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Identity;
@@ -24,11 +23,11 @@ public class TicketGroupClient
         _logger = logger.NotNull();
 
         //Proposal = ActivatorUtilities.CreateInstance<TicketGroupProposalClient>(service, this);
-        Search = ActivatorUtilities.CreateInstance<TicketGroupSearchClient>(service, this);
+        //Search = ActivatorUtilities.CreateInstance<TicketGroupSearchClient>(service, this);
     }
 
     //public TicketGroupProposalClient Proposal { get; }
-    public TicketGroupSearchClient Search { get; }
+    //public TicketGroupSearchClient Search { get; }
 
     public Task<Option> Add(TicketGroupRecord ticketGroupRecord, ScopeContext context) => AddOrSet(false, ticketGroupRecord, context);
 
@@ -70,8 +69,7 @@ public class TicketGroupClient
         }
 
         string nodeKey = ToTicketGroupKey(ticketGroupRecord.TicketGroupId);
-
-        if (!ticketGroupRecord.Validate().IsOk(out var r)) return r.LogStatus(context, nameof(TicketGroupRecord));
+        if (ticketGroupRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(TicketGroupRecord));
 
         var roles = ticketGroupRecord.Roles
             .Select(x => x.PrincipalId)
@@ -94,10 +92,25 @@ public class TicketGroupClient
             return result.ToOptionStatus();
         }
 
-        var hubChannelOption = await _hubChannelClient.CreateIfNotExist(ticketGroupRecord.ChannelId, nodeKey, context).ConfigureAwait(false);
-        if (hubChannelOption.IsError()) return hubChannelOption;
-
         return result.ToOptionStatus();
+    }
+
+    public async Task<Option<IReadOnlyList<TicketGroupRecord>>> Search(string principalId, ScopeContext context)
+    {
+        principalId.NotEmpty();
+
+        var cmd = new SelectCommandBuilder()
+            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_edgeType))
+            .AddRightJoin()
+            .AddNodeSearch(x => x.AddTag(_nodeTag))
+            .AddDataName("entity")
+            .Build();
+
+        var resultOption = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
+        if (resultOption.IsError()) resultOption.LogStatus(context, cmd).ToOptionStatus<IReadOnlyList<TicketGroupRecord>>();
+
+        var list = resultOption.Return().DataLinkToObjects<TicketGroupRecord>("entity");
+        return list.ToOption();
     }
 
     public static string ToTicketGroupKey(string ticketGroupId) => $"ticketGroup:{ticketGroupId.NotEmpty().ToLowerInvariant()}";

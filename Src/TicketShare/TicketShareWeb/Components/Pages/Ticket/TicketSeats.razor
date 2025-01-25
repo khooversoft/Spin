@@ -6,12 +6,12 @@
 
 <FeedBlock Title="Seats" Class="feed-block-datagrid" OnAdd="Add">
     <FluentDataGrid Class="feed-block-datagrid"
-                    Items="@_roles"
-                    ShowHover="true"
-                    GenerateHeader=GenerateHeaderOption.None
-                    TGridItem="SeatModel"
-                    AutoFit="true"
-                    OnRowClick="HandleRowFocus">
+    Items="@_roles"
+    ShowHover="true"
+    GenerateHeader=GenerateHeaderOption.None
+    TGridItem="SeatModel"
+    AutoFit="true"
+    OnRowClick="HandleRowFocus">
 
         <PropertyColumn Property="@(p => p.Date)" Sortable="true" Format="d" />
         <PropertyColumn Property="@(p => p.SeatId)" Sortable="true" />
@@ -22,6 +22,7 @@
 
 @code {
     [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Inject] public ILogger<TicketSeats> _logger { get; set; } = null!;
     [CascadingParameter] public TicketGroupContext _ticketGroupContext { get; set; } = null!;
 
     private IQueryable<SeatModel> _roles = null!;
@@ -29,10 +30,12 @@
 
     protected override void OnParametersSet()
     {
+        var context = new ScopeContext(_logger);
+
         _rightPanelDialog = new RightPanelDialog<SeatModel, TicketSeatDialog>(
             _dialogService,
-            x => _ticketGroupContext.Seats.Set(x),
-            x => _ticketGroupContext.Seats.Delete(x)
+            x => _ticketGroupContext.Seats.Set(x, context),
+            x => _ticketGroupContext.Seats.Delete(x, context)
         );
 
         Refresh();

@@ -9,47 +9,43 @@ namespace TicketShare.sdk;
 public class TicketGroupManager
 {
     private readonly UserAccountManager _userAccountManager;
-    private readonly ILogger<TicketGroupManager> _logger;
     private readonly TicketGroupClient _ticketGroupClient;
-    private readonly TicketGroupSearchClient _ticketGroupSearchClient;
+    private readonly HubChannelManager _hubChannelManager;
 
     public TicketGroupManager(
         UserAccountManager userAccountManager,
         TicketGroupClient ticketGroupClient,
-        TicketGroupSearchClient ticketGroupSearchClient,
-        ILogger<TicketGroupManager> logger
+        HubChannelManager hubChannelManager
         )
     {
         _userAccountManager = userAccountManager.NotNull();
         _ticketGroupClient = ticketGroupClient.NotNull();
-        _ticketGroupSearchClient = ticketGroupSearchClient.NotNull();
-        _logger = logger.NotNull();
+        _hubChannelManager = hubChannelManager.NotNull();
     }
 
-    public TicketGroupContext GetContext(string ticketGroupId) => new TicketGroupContext(ticketGroupId, _ticketGroupClient, _logger);
+    public TicketGroupContext GetContext(string ticketGroupId) => new TicketGroupContext(ticketGroupId, _ticketGroupClient);
 
-    public async Task<Option<IReadOnlyList<TicketGroupModel>>> GetTicketGroups()
+    public async Task<Option<IReadOnlyList<TicketGroupModel>>> GetTicketGroups(ScopeContext context)
     {
-        var context = new ScopeContext(_logger);
-
         string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
 
-        var result = await _ticketGroupSearchClient.GetByOwner(principalId, context).ConfigureAwait(false);
+        var result = await Search(principalId, context).ConfigureAwait(false);
         if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<TicketGroupModel>>();
 
         var list = result.Return().Select(x => x.ConvertTo()).ToImmutableArray();
         return list;
     }
 
-    public async Task<Option> Create(TicketGroupHeaderModel ticketGroupHeader)
+    public async Task<Option<string>> Create(TicketGroupHeaderModel ticketGroupHeader, ScopeContext context)
     {
-        var context = new ScopeContext(_logger);
         string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
 
         var ticketGroupRecord = ticketGroupHeader.ConvertTo().ConvertTo()
             .SetTicketGroupId(principalId)
             .SetChannelId()
             .SetOwner(principalId);
+
+        context.LogInformation("Creating TicketGroup ticket group ticketGroupId= name={name}", ticketGroupHeader.Name);
 
         var option = await _ticketGroupClient.Add(ticketGroupRecord, context).ConfigureAwait(false);
         option.LogStatus(context, "Create TicketGroup, name={name}", [ticketGroupHeader.Name]);
@@ -58,6 +54,13 @@ public class TicketGroupManager
             return (StatusCode.Conflict, $"Ticket group with name {ticketGroupHeader.Name} already exists");
         }
 
-        return option;
+        context.LogInformation("Creating HubChannel channelId={channelId} for ticket group name={name}", ticketGroupRecord.ChannelId, ticketGroupHeader.Name);
+
+        var hubChannel = await _hubChannelManager.CreateChannel(ticketGroupRecord.ChannelId, ticketGroupRecord.Name, principalId, context).ConfigureAwait(false);
+        hubChannel.LogStatus(context, "Create HubChannel, channelId={channelId}", [ticketGroupRecord.ChannelId]);
+
+        return ticketGroupRecord.TicketGroupId;
     }
+
+    public Task<Option<IReadOnlyList<TicketGroupRecord>>> Search(string principalId, ScopeContext context) => _ticketGroupClient.Search(principalId, context);
 }

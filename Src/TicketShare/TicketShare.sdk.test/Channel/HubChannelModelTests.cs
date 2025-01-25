@@ -62,14 +62,14 @@ public class HubChannelModelTests
         var m1 = new HubChannelRecord
         {
             ChannelId = "company.com/team1",
-            Users = new Dictionary<string, PrincipalChannelRecord>(StringComparer.OrdinalIgnoreCase)
+            Users = new Dictionary<string, PrincipalRoleRecord>(StringComparer.OrdinalIgnoreCase)
             {
-                [principalId] = new PrincipalChannelRecord
+                [principalId] = new PrincipalRoleRecord
                 {
                     PrincipalId = principalId,
                     Role = ChannelRole.Owner,
                 },
-                [user2PrincipalId] = new PrincipalChannelRecord
+                [user2PrincipalId] = new PrincipalRoleRecord
                 {
                     PrincipalId = user2PrincipalId,
                     Role = ChannelRole.Contributor,
@@ -81,14 +81,14 @@ public class HubChannelModelTests
         var m2 = new HubChannelRecord
         {
             ChannelId = "company.com/team1",
-            Users = new Dictionary<string, PrincipalChannelRecord>(StringComparer.OrdinalIgnoreCase)
+            Users = new Dictionary<string, PrincipalRoleRecord>(StringComparer.OrdinalIgnoreCase)
             {
-                [principalId] = new PrincipalChannelRecord
+                [principalId] = new PrincipalRoleRecord
                 {
                     PrincipalId = principalId,
                     Role = ChannelRole.Owner,
                 },
-                [user2PrincipalId] = new PrincipalChannelRecord
+                [user2PrincipalId] = new PrincipalRoleRecord
                 {
                     PrincipalId = user2PrincipalId,
                     Role = ChannelRole.Contributor,
@@ -110,15 +110,15 @@ public class HubChannelModelTests
         var model = new HubChannelRecord
         {
             ChannelId = "company.com/team1",
-            Users = new Dictionary<string, PrincipalChannelRecord>(StringComparer.OrdinalIgnoreCase)
+            Users = new Dictionary<string, PrincipalRoleRecord>(StringComparer.OrdinalIgnoreCase)
             {
-                [principalId] = new PrincipalChannelRecord
+                [principalId] = new PrincipalRoleRecord
                 {
                     PrincipalId = principalId,
                     Role = ChannelRole.Owner,
                     LastMessageIdRead = "dd"
                 },
-                [user2PrincipalId] = new PrincipalChannelRecord
+                [user2PrincipalId] = new PrincipalRoleRecord
                 {
                     PrincipalId = user2PrincipalId,
                     Role = ChannelRole.Contributor,

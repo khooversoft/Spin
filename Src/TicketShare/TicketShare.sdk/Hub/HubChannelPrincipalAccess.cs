@@ -7,25 +7,29 @@ using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
-public class HubChannelPrincipalActor
+public class HubChannelPrincipalAccess
 {
+    private readonly HubChannelContext _hubContext;
     private readonly HubChannelClient _client;
-    internal HubChannelPrincipalActor(HubChannelClient hubChannelClient) => _client = hubChannelClient;
-
-    public async Task<Option> Delete(string channelId, string principalId, ScopeContext context)
+    internal HubChannelPrincipalAccess(HubChannelContext hubChannelContext, HubChannelClient hubChannelClient)
     {
-        channelId.NotEmpty();
+        _hubContext = hubChannelContext.NotNull();
+        _client = hubChannelClient.NotNull();
+    }
+
+    public async Task<Option> Delete(string principalId, ScopeContext context)
+    {
         principalId.NotEmpty();
 
-        var hubChannelRecordOption = await _client.Get(channelId, context);
+        var hubChannelRecordOption = await _hubContext.Get(context);
         if (hubChannelRecordOption.IsError()) return hubChannelRecordOption.ToOptionStatus();
 
         var hubChannelRecord = hubChannelRecordOption.Return();
-        if (hubChannelRecord.HasAccess(principalId, ChannelRole.Owner, context).IsError(out var r)) return r;
+        if (hubChannelRecord.HasAccess(_hubContext.PrincipalId, ChannelRole.Owner, context).IsError(out var r)) return r;
 
         if (!hubChannelRecord.Users.ContainsKey(principalId))
         {
-            context.LogError("User does not exist in channelId={channelId}, principalId={principalId}", channelId, principalId);
+            context.LogError("User does not exist in channelId={channelId}, principalId={principalId}", _hubContext.ChannelId, principalId);
             return StatusCode.NotFound;
         }
 
@@ -47,48 +51,45 @@ public class HubChannelPrincipalActor
         return StatusCode.OK;
     }
 
-    public async Task<Option<ChannelRole>> GetRole(string channelId, string principalId, ScopeContext context)
+    public async Task<Option<ChannelRole>> GetRole(string principalId, ScopeContext context)
     {
-        channelId.NotEmpty();
         principalId.NotEmpty();
 
-        var resultOption = await _client.Get(channelId, context);
+        var resultOption = await _hubContext.Get(context);
         if (resultOption.IsError()) return resultOption.ToOptionStatus<ChannelRole>();
 
         var hubChannelRecord = resultOption.Return();
-        if (hubChannelRecord.HasAccess(principalId, ChannelRole.Contributor, context).IsError(out var r)) return r.ToOptionStatus<ChannelRole>();
+        if (hubChannelRecord.HasAccess(_hubContext.PrincipalId, ChannelRole.Reader, context).IsError(out var r)) return r.ToOptionStatus<ChannelRole>();
 
         if (!hubChannelRecord.Users.TryGetValue(principalId, out var record)) return StatusCode.NotFound;
 
         return record.Role;
     }
 
-    public async Task<Option<IReadOnlyList<PrincipalChannelModel>>> ListPrincipals(string principalId, string channelId, ScopeContext context)
+    public async Task<Option<IReadOnlyList<PrincipalRoleModel>>> ListPrincipals(ScopeContext context)
     {
-        channelId.NotEmpty();
-        var result = await _client.Get(channelId, context);
-        if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<PrincipalChannelModel>>();
+        var result = await _hubContext.Get(context);
+        if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<PrincipalRoleModel>>();
 
         var hubChannelRecord = result.Return();
-        if (hubChannelRecord.HasAccess(principalId, ChannelRole.Contributor, context).IsError(out var r)) return r.ToOptionStatus<IReadOnlyList<PrincipalChannelModel>>();
+        if (hubChannelRecord.HasAccess(_hubContext.PrincipalId, ChannelRole.Reader, context).IsError(out var r)) return r.ToOptionStatus<IReadOnlyList<PrincipalRoleModel>>();
 
         return hubChannelRecord.Users.Values
             .Select(x => x.ConvertTo())
             .ToImmutableArray();
     }
 
-    public async Task<Option> Set(string ownerPrincipalId, string channelId, string principalId, ChannelRole role, ScopeContext context)
+    public async Task<Option> Set(string principalId, ChannelRole role, ScopeContext context)
     {
-        channelId.NotEmpty();
-        ownerPrincipalId.NotEmpty();
+        principalId.NotEmpty();
 
-        var resultOption = await _client.Get(channelId, context);
+        var resultOption = await _hubContext.Get(context);
         if (resultOption.IsError()) return resultOption.ToOptionStatus();
 
         HubChannelRecord hubChannelRecord = resultOption.Return();
-        if (hubChannelRecord.HasAccess(ownerPrincipalId, ChannelRole.Owner, context).IsError(out var r)) return r;
+        if (hubChannelRecord.HasAccess(_hubContext.PrincipalId, ChannelRole.Owner, context).IsError(out var r)) return r;
 
-        if (!hubChannelRecord.Users.TryGetValue(principalId, out var principalChannelRecord)) principalChannelRecord = new PrincipalChannelRecord
+        if (!hubChannelRecord.Users.TryGetValue(principalId, out var principalChannelRecord)) principalChannelRecord = new PrincipalRoleRecord
         {
             PrincipalId = principalId,
             Role = role

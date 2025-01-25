@@ -5,7 +5,7 @@ using Toolbox.Graph;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
-namespace TicketShare.sdk.test.Models;
+namespace TicketShare.sdk.test.Account;
 
 public class AccountRecordTests
 {

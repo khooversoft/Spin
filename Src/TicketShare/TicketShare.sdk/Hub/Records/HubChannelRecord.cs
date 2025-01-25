@@ -7,9 +7,9 @@ namespace TicketShare.sdk;
 
 public enum ChannelRole
 {
-    Reader,
-    Contributor,
-    Owner,
+    Reader = 0,
+    Contributor = 1,
+    Owner = 2,
 }
 
 public sealed record HubChannelRecord
@@ -20,7 +20,7 @@ public sealed record HubChannelRecord
     public string Name { get; init; } = null!;
 
     // PrincipalId
-    public IReadOnlyDictionary<string, PrincipalChannelRecord> Users { get; init; } = FrozenDictionary<string, PrincipalChannelRecord>.Empty;
+    public IReadOnlyDictionary<string, PrincipalRoleRecord> Users { get; init; } = FrozenDictionary<string, PrincipalRoleRecord>.Empty;
     public IReadOnlyList<ChannelMessageRecord> Messages { get; init; } = Array.Empty<ChannelMessageRecord>();
 
     public bool Equals(HubChannelRecord? obj)
@@ -40,7 +40,7 @@ public sealed record HubChannelRecord
         .RuleFor(x => x.ChannelId).NotEmpty()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.Users).NotNull()
-        .RuleForEach(x => x.Users.Values).Validate(PrincipalChannelRecord.Validator)
+        .RuleForEach(x => x.Users.Values).Validate(PrincipalRoleRecord.Validator)
         .RuleForEach(x => x.Messages).Validate(ChannelMessageRecord.Validator)
         .Build();
 }
@@ -51,13 +51,13 @@ public static class HubChannelTool
 
     public static bool HasUnreadMessages(this HubChannelRecord subject, string principalId)
     {
-        if (!subject.Users.TryGetValue(principalId, out PrincipalChannelRecord? principalChannelRecord)) return false;
+        if (!subject.Users.TryGetValue(principalId, out PrincipalRoleRecord? principalChannelRecord)) return false;
         return subject.Messages.Any(x => !principalChannelRecord.IsRead(x.MessageId));
     }
 
     public static bool HasAccess(this HubChannelRecord subject, string principalId, ChannelRole requiredAccess)
     {
-        if (!subject.Users.TryGetValue(principalId, out PrincipalChannelRecord? principalChannelRecord)) return false;
+        if (!subject.Users.TryGetValue(principalId, out PrincipalRoleRecord? principalChannelRecord)) return false;
         return principalChannelRecord.HasAccess(requiredAccess);
     }
 

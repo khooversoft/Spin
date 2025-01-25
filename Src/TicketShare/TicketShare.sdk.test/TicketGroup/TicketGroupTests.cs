@@ -5,7 +5,7 @@ using Toolbox.Identity;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
-namespace TicketShare.sdk.test.Account;
+namespace TicketShare.sdk.test.TicketGroup;
 
 public class TicketGroupTests
 {
@@ -48,7 +48,7 @@ public class TicketGroupTests
         readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
         readTicketGroupOption.IsOk().Should().BeTrue();
 
-        (await ticketGroupClient.Search.GetByOwner(principalId, context)).Action(x =>
+        (await ticketGroupClient.Search(principalId, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -58,7 +58,7 @@ public class TicketGroupTests
             });
         });
 
-        (await ticketGroupClient.Search.GetByMember(friendPrincipalId, context)).Action(x =>
+        (await ticketGroupClient.Search(friendPrincipalId, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -91,11 +91,11 @@ public class TicketGroupTests
         await CreateAccountAndTicketGroup(ticketGroupIdOne, principalIdOne, friend1, testHost, context);
         await CreateAccountAndTicketGroup(ticketGroupIdTwo, principalIdTwo, friend2, testHost, context);
 
-        await getAndTest(ticketGroupIdOne, async () => await client.Search.GetByOwner(principalIdOne, context));
-        await getAndTest(ticketGroupIdOne, async () => await client.Search.GetByMember(friend1, context));
+        await getAndTest(ticketGroupIdOne, async () => await client.Search(principalIdOne, context));
+        await getAndTest(ticketGroupIdOne, async () => await client.Search(friend1, context));
 
-        await getAndTest(ticketGroupIdTwo, async () => await client.Search.GetByOwner(principalIdTwo, context));
-        await getAndTest(ticketGroupIdTwo, async () => await client.Search.GetByMember(friend2, context));
+        await getAndTest(ticketGroupIdTwo, async () => await client.Search(principalIdTwo, context));
+        await getAndTest(ticketGroupIdTwo, async () => await client.Search(friend2, context));
 
         async Task<IReadOnlyList<TicketGroupRecord>> getAndTest(string ticketGroupId, Func<Task<Option<IReadOnlyList<TicketGroupRecord>>>> getFunc)
         {
@@ -132,7 +132,7 @@ public class TicketGroupTests
         readTicketGroupOption.IsOk().Should().BeTrue();
         (ticketGroup == readTicketGroupOption.Return()).Should().BeTrue();
 
-        (await client.Search.GetByOwner(principalId, context)).Action(x =>
+        (await client.Search(principalId, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -142,7 +142,7 @@ public class TicketGroupTests
             });
         });
 
-        (await client.Search.GetByMember(friendPrincipalId, context)).Action(x =>
+        (await client.Search(friendPrincipalId, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>

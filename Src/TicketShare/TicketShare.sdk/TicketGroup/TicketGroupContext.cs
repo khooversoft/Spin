@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk;
@@ -7,15 +6,13 @@ namespace TicketShare.sdk;
 public class TicketGroupContext
 {
     private readonly TicketGroupClient _ticketGroupClient;
-    private readonly ILogger _logger;
     private readonly string _ticketGroupId;
     private TicketGroupModel _current = null!;
 
-    public TicketGroupContext(string ticketGroupId, TicketGroupClient ticketGroupClient, ILogger logger)
+    public TicketGroupContext(string ticketGroupId, TicketGroupClient ticketGroupClient)
     {
         _ticketGroupId = ticketGroupId.NotEmpty();
         _ticketGroupClient = ticketGroupClient.NotNull();
-        _logger = logger.NotNull();
 
         Roles = new CollectionAccessActor<RoleModel>(this, x => Input.Roles[x.Id] = x, x => Input.Roles.TryRemove(x.Id, out var _));
         Seats = new CollectionAccessActor<SeatModel>(this, x => Input.Seats[x.Id] = x, x => Input.Seats.TryRemove(x.Id, out var _));
@@ -30,9 +27,9 @@ public class TicketGroupContext
     public bool IsChanged() => Input != null && _current != null && (Input != _current);
     public bool IsLoaded() => Input != null;
 
-    public async Task<Option> SetHeader(TicketGroupHeaderModel ticketGroupHeaderModel)
+    public async Task<Option> SetHeader(TicketGroupHeaderModel ticketGroupHeaderModel, ScopeContext context)
     {
-        if (!IsLoaded()) await Get().ConfigureAwait(false);
+        if (!IsLoaded()) await Get(context).ConfigureAwait(false);
 
         Input = Input with
         {
@@ -40,13 +37,11 @@ public class TicketGroupContext
             Description = ticketGroupHeaderModel.Description
         };
 
-        return await Set().ConfigureAwait(false);
+        return await Set(context).ConfigureAwait(false);
     }
 
-    public async Task<Option> Get()
+    public async Task<Option> Get(ScopeContext context)
     {
-        var context = new ScopeContext(_logger);
-
         var readOption = await _ticketGroupClient.Get(_ticketGroupId, context).ConfigureAwait(false);
         if (readOption.IsError()) return readOption.ToOptionStatus();
 
@@ -59,11 +54,9 @@ public class TicketGroupContext
 
     public TicketGroupHeaderModel GetHeader() => Input.NotNull().ConvertToModel();
 
-    private async Task<Option> Set()
+    private async Task<Option> Set(ScopeContext context)
     {
         Input.NotNull("Input is not set");
-
-        var context = new ScopeContext(_logger);
         TicketGroupRecord ticketGroupRecord = Input.ConvertTo();
 
         var result = await _ticketGroupClient.Set(ticketGroupRecord, context).ConfigureAwait(false);
@@ -75,11 +68,10 @@ public class TicketGroupContext
         return result;
     }
 
-    public async Task<Option> Delete()
+    public async Task<Option> Delete(ScopeContext context)
     {
         Input = null!;
         _current = null!;
-        var context = new ScopeContext(_logger);
 
         var result = await _ticketGroupClient.Delete(_ticketGroupId, context).ConfigureAwait(false);
         if (result.IsError()) return result;
@@ -100,16 +92,18 @@ public class TicketGroupContext
             _remove = remove;
         }
 
-        public async Task Set(T model)
+        public async Task<Option> Set(T model, ScopeContext context)
         {
             model.NotNull();
             _set(model);
-            await _context.Set();
+            return await _context.Set(context).ConfigureAwait(false);
         }
-        public async Task Delete(T model)
+
+        public async Task<Option> Delete(T model, ScopeContext context)
         {
             bool removed = _remove(model);
-            if (removed) await _context.Set();
+            if (removed) return await _context.Set(context).ConfigureAwait(false);
+            return StatusCode.OK;
         }
     }
 }
