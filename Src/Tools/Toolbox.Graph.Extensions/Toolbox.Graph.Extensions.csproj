@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Toolbox.Graph\Toolbox.Graph.csproj" />
+    <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Doc\" />
+  </ItemGroup>
+
+</Project>

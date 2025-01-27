@@ -332,7 +332,7 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
-            Response<bool> exist = await _fileSystem.ExistsAsync();
+            Response<bool> exist = await file.ExistsAsync();
             if (!exist.HasValue || !exist.Value)
             {
                 context.Location().LogInformation("File does not exist, path={path}", path);

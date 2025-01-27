@@ -17,7 +17,7 @@ internal static class JournalTool
             if (!monitor) return;
 
             char triggerChr = await InputTool.WaitForInput(async () => await ReadJournal(journalFile, hashLsn, lastNumber, fullDump, lsn, context), context.CancellationToken);
-            if(triggerChr == 'q') return;
+            if (triggerChr == 'q') return;
 
             var match = InputTool.GetUserCommand(context.CancellationToken, "continue", "quit", "reset");
             switch (match)

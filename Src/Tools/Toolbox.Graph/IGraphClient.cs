@@ -11,7 +11,7 @@ public interface IGraphClient
 }
 
 
-public static class GraphClientExtensions
+public static class GraphClientTool
 {
     public static async Task<Option<T>> GetNode<T>(this IGraphClient graphClient, string nodeKey, ScopeContext context)
     {
