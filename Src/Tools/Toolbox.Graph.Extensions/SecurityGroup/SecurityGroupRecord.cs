@@ -10,7 +10,7 @@ public sealed record SecurityGroupRecord
 {
     public string SecurityGroupId { get; init; } = null!;
     public string Name { get; init; } = null!;
-    public IReadOnlyDictionary<string, MemberAccessRecord> Members { get; init; } = FrozenDictionary<string, MemberAccessRecord>.Empty;
+    public IReadOnlyDictionary<string, PrincipalAccess> Members { get; init; } = FrozenDictionary<string, PrincipalAccess>.Empty;
 
     public bool Equals(SecurityGroupRecord? other) =>
         other is SecurityGroupRecord subject &&
@@ -23,7 +23,9 @@ public sealed record SecurityGroupRecord
     public static IValidator<SecurityGroupRecord> Validator => new Validator<SecurityGroupRecord>()
         .RuleFor(x => x.SecurityGroupId).NotEmpty()
         .RuleFor(x => x.Name).NotEmpty()
-        .RuleForEach(x => x.Members.Values).Validate(MemberAccessRecord.Validator)
+        .RuleFor(x => x.Members).Must(x => x.Count > 0, _ => "Must have access")
+        .RuleForEach(x => x.Members.Values).Validate(PrincipalAccess.Validator)
+        .RuleFor(x => x.Members.Values).Must(x => x.Any(y => y.Access == SecurityAccess.Owner), _ => "Must have owner")
         .Build();
 
     public static SecurityGroupRecord Create(string securityGroupId, string name) => new SecurityGroupRecord
@@ -31,17 +33,6 @@ public sealed record SecurityGroupRecord
         SecurityGroupId = securityGroupId.NotEmpty(),
         Name = name.NotEmpty(),
     };
-}
-
-public record MemberAccessRecord
-{
-    public string PrincipalId { get; init; } = null!;
-    public PrincipalAccess Access { get; init; } = PrincipalAccess.None;
-
-    public static IValidator<MemberAccessRecord> Validator => new Validator<MemberAccessRecord>()
-        .RuleFor(x => x.PrincipalId).NotEmpty()
-        .RuleFor(x => x.Access).ValidEnum().Must(x => x != PrincipalAccess.None, _ => "None is not allowed")
-        .Build();
 }
 
 public static class SecurityGroupRecordTool
@@ -66,5 +57,16 @@ public static class SecurityGroupRecordTool
             .Build();
 
         return cmd;
+    }
+
+    public static Option HasAccess(this SecurityGroupRecord subject, string principalId, SecurityAccess access)
+    {
+        var result = subject.Members.TryGetValue(principalId, out var accessRecord) switch
+        {
+            true => accessRecord.HasAccess(access),
+            false => StatusCode.Unauthorized,
+        };
+
+        return result;
     }
 }

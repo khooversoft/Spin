@@ -1,10 +1,22 @@
-﻿namespace Toolbox.Graph.Extensions;
+﻿using Toolbox.Tools;
+using Toolbox.Types;
 
-[Flags]
-public enum PrincipalAccess
+namespace Toolbox.Graph.Extensions;
+
+public record PrincipalAccess
 {
-    None = 0,
-    Read = 0x1,
-    Contributor = 0x2,
-    Owner = 0x4,
+    public string PrincipalId { get; init; } = null!;
+    public SecurityAccess Access { get; init; } = SecurityAccess.None;
+
+    public static IValidator<PrincipalAccess> Validator => new Validator<PrincipalAccess>()
+        .RuleFor(x => x.PrincipalId).NotEmpty()
+        .RuleFor(x => x.Access).ValidEnum().Must(x => x != SecurityAccess.None, _ => "None is not allowed")
+        .Build();
+}
+
+public static class PrincipalAccessTool
+{
+    public static Option Validate(this PrincipalAccess subject) => PrincipalAccess.Validator.Validate(subject).ToOptionStatus();
+
+    public static Option HasAccess(this PrincipalAccess subject, SecurityAccess requireAccess) => subject.Access.HasAccess(requireAccess);
 }

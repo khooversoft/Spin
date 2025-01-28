@@ -31,9 +31,9 @@ public readonly struct Option : IEquatable<Option>
 }
 
 
+[DebuggerStepThrough]
 public static class OptionExtensions
 {
-    [DebuggerStepThrough]
     public static Option<T> ToOptionStatus<T>(this Option subject) => new Option<T>(subject.StatusCode, subject.Error);
 
     public static bool IsOk(this Option subject) => subject.StatusCode.IsOk();
@@ -44,7 +44,6 @@ public static class OptionExtensions
     }
 
     public static bool IsError(this Option subject) => subject.StatusCode.IsError();
-    [DebuggerStepThrough]
     public static bool IsError(this Option subject, out Option result)
     {
         result = subject;
@@ -54,4 +53,6 @@ public static class OptionExtensions
     public static bool IsNotFound(this Option subject) => subject.StatusCode.IsNotFound();
     public static bool IsConflict(this Option subject) => subject.StatusCode.IsConflict();
     public static bool IsNoContent(this Option subject) => subject.StatusCode.IsNoContent();
+    public static bool IsUnauthorized(this Option subject) => subject.StatusCode.IsUnauthorized();
+    public static bool IsForbidden(this Option subject) => subject.StatusCode.IsForbidden();
 }

@@ -1,6 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Collections.Immutable;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Logging;
 using Toolbox.Tools;
@@ -8,77 +6,98 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions;
 
-public class SecurityGroupContext
+public readonly struct SecurityGroupContext
 {
+    private readonly IGraphClient _graphClient;
     private readonly string _securityGroupId;
-    private readonly SecurityGroupClient _principalGroupClient;
+    private readonly string _principalId;
+    private readonly ILogger _logger;
 
-    public SecurityGroupContext(string securityGroupId, SecurityGroupClient principalGroupClient)
+    public SecurityGroupContext(IGraphClient graphClient, string securityGroupId, string principalId, ILogger logger)
     {
+        _graphClient = graphClient.NotNull();
         _securityGroupId = securityGroupId.NotEmpty();
-        _principalGroupClient = principalGroupClient.NotNull();
+        _principalId = principalId.NotNull();
+        _logger = logger.NotNull();
     }
 
-    public async Task SetName(string name, ScopeContext context)
+    public async Task<Option> Delete(ScopeContext context)
     {
-        name.NotEmpty();
-        var read = await _principalGroupClient.Get(_securityGroupId, context).ConfigureAwait(false);
-        if (read.IsError()) read.LogStatus(context, "Get security group");
+        if ((await GetInternal(SecurityAccess.Contributor, context)).IsError(out var status)) return status.LogStatus(context, "Delete");
 
-        var record = read.Value with
-        {
-            Name = name,
-        };
-
-        await _principalGroupClient.Set(record, context).ConfigureAwait(false);
-        context.LogInformation("Updated name for group, securityGroupId={securityGroupId}, name={name}", _securityGroupId, name);
+        return await _graphClient.DeleteNode(SecurityGroupTool.ToNodeKey(_securityGroupId), context).ConfigureAwait(false);
     }
 
-    public async Task<Option<IReadOnlyList<MemberAccessRecord>>> GetAccess(ScopeContext context)
-    {
-        var read = await _principalGroupClient.Get(_securityGroupId, context).ConfigureAwait(false);
-        if (read.IsError()) return read.LogStatus(context, "Get security group").ToOptionStatus<IReadOnlyList<MemberAccessRecord>>();
+    public Task<Option<SecurityGroupRecord>> Get(ScopeContext context) => GetInternal(SecurityAccess.Read, context);
 
-        return read.Return().Members.Values.ToImmutableArray();
-    }
-
-    public async Task<Option> SetAccess(string principalId, PrincipalAccess access, ScopeContext context)
+    public async Task<Option> DeleteAccess(string principalId, ScopeContext context)
     {
         principalId.NotEmpty();
 
-        var read = await _principalGroupClient.Get(_securityGroupId, context).ConfigureAwait(false);
-        if (read.IsError()) return read.LogStatus(context, "Get security group").ToOptionStatus();
+        var read = await GetInternal(SecurityAccess.Owner, context).ConfigureAwait(false);
+        if (read.IsError()) return read.ToOptionStatus();
+        var record = read.Return();
 
-        var accessRecord = new MemberAccessRecord { PrincipalId = principalId, Access = access };
-
-        var record = read.Value with
+        var newRecord = record with
         {
-            Members = read.Value.Members.ToDictionary(StringComparer.OrdinalIgnoreCase)
-                .Action(x => x[principalId] = accessRecord)
-                .ToFrozenDictionary(),
+            Members = record.Members
+                .ToDictionary(StringComparer.OrdinalIgnoreCase)
+                .Action(x => x.Remove(principalId)),
         };
 
-        await _principalGroupClient.Set(record, context).ConfigureAwait(false);
-        context.LogInformation("Set member principalId={principalId} to group securityGroupId={securityGroupId}, access={access}", principalId, _securityGroupId, access);
-        return StatusCode.OK;
+        return await Set(record, context).ConfigureAwait(false);
     }
 
-    public async Task<Option> RemoveAccess(string principalId, ScopeContext context)
+    public async Task<Option> Set(SecurityGroupRecord securityGroupRecord, ScopeContext context)
+    {
+        context = context.With(_logger);
+        if (securityGroupRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(SecurityGroupRecord));
+        if (securityGroupRecord.SecurityGroupId != _securityGroupId) return (StatusCode.Conflict, "SecurityGroupId does not match context");
+
+        var hasAccess = await GetInternal(SecurityAccess.Contributor, context);
+        if (!hasAccess.IsNotFound() && hasAccess.IsError(out var r2)) return r2.LogStatus(context, "Set");
+
+        var cmdOption = securityGroupRecord.CreateQuery(true, context);
+        if (cmdOption.IsError()) return cmdOption.ToOptionStatus();
+
+        var cmd = cmdOption.Return();
+        var result = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
+        result.LogStatus(context, "Set security group, nodeKey={nodeKey}", [securityGroupRecord.SecurityGroupId]);
+
+        return result.ToOptionStatus();
+    }
+
+    public async Task<Option> SetAccess(string principalId, SecurityAccess access, ScopeContext context)
     {
         principalId.NotEmpty();
 
-        var read = await _principalGroupClient.Get(_securityGroupId, context).ConfigureAwait(false);
-        if (read.IsError()) return read.LogStatus(context, "Get security group").ToOptionStatus();
+        var read = await GetInternal(SecurityAccess.Owner, context).ConfigureAwait(false);
+        if (read.IsError()) return read.ToOptionStatus();
+        var record = read.Return();
 
-        var record = read.Value with
+        var memberAccess = new PrincipalAccess { PrincipalId = principalId, Access = access };
+        var newRecord = record with
         {
-            Members = read.Value.Members.ToDictionary(StringComparer.OrdinalIgnoreCase)
-                .Action(x => x.Remove(principalId))
-                .ToFrozenDictionary(),
+            Members = record.Members
+                .ToDictionary(StringComparer.OrdinalIgnoreCase)
+                .Action(x => x[principalId] = memberAccess),
         };
 
-        await _principalGroupClient.Set(record, context).ConfigureAwait(false);
-        context.LogInformation("Remove member principalId={principalId} to group securityGroupId={securityGroupId}", principalId, _securityGroupId);
-        return StatusCode.OK;
+        return await Set(newRecord, context).ConfigureAwait(false);
+    }
+
+    private async Task<Option<SecurityGroupRecord>> GetInternal(SecurityAccess accessRequired, ScopeContext context)
+    {
+        var subject = await _graphClient.GetNode<SecurityGroupRecord>(SecurityGroupTool.ToNodeKey(_securityGroupId), context).ConfigureAwait(false);
+        if (subject.IsError()) return subject;
+
+        var read = subject.Return();
+        if (read.HasAccess(_principalId, accessRequired).IsError(out var status))
+        {
+            context.LogTrace("Access denied, securityGroupId={securityGroupId}, principalId={principalId}", _securityGroupId, _principalId);
+            return status.ToOptionStatus<SecurityGroupRecord>();
+        }
+
+        return read;
     }
 }

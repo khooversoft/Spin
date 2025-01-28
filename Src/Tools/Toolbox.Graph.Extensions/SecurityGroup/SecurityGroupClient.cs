@@ -18,65 +18,12 @@ public class SecurityGroupClient
         _logger = logger.NotNull();
     }
 
-    public Task<Option> Add(SecurityGroupRecord securityGroupRecord, ScopeContext context) => AddOrSet(false, securityGroupRecord, context);
-
-    public async Task<Option> Delete(string securityGroupId, ScopeContext context)
-    {
-        securityGroupId.NotEmpty();
-        return await _graphClient.DeleteNode(SecurityGroupTool.ToNodeKey(securityGroupId), context).ConfigureAwait(false);
-    }
-
-    public async Task<Option<SecurityGroupRecord>> Get(string securityGroupId, ScopeContext context)
-    {
-        securityGroupId.NotEmpty();
-        return await _graphClient.GetNode<SecurityGroupRecord>(SecurityGroupTool.ToNodeKey(securityGroupId), context).ConfigureAwait(false);
-    }
-
-    public async Task<Option> SetAccess(string securityGroupId, string principalId, PrincipalAccess access, ScopeContext context)
-    {
-        securityGroupId.NotEmpty();
-        principalId.NotEmpty();
-
-        var read = await Get(securityGroupId, context).ConfigureAwait(false);
-        if (read.IsError()) return read.ToOptionStatus();
-        var record = read.Return();
-
-        var memberAccess = new MemberAccessRecord { PrincipalId = principalId, Access = access };
-        var newRecord = record with
-        {
-            Members = record.Members.ToDictionary().Action(x => x[principalId] = memberAccess),
-        };
-
-        return await Set(newRecord, context).ConfigureAwait(false);
-    }
-
-    public async Task<Option> DeleteAccess(string securityGroupId, string principalId, ScopeContext context)
-    {
-        securityGroupId.NotEmpty();
-        principalId.NotEmpty();
-
-        var read = await Get(securityGroupId, context).ConfigureAwait(false);
-        if (read.IsError()) return read.ToOptionStatus();
-        var record = read.Return();
-
-        if (!record.Members.ContainsKey(principalId)) return (StatusCode.NotFound, "PrincipalId not found");
-
-        var newRecord = record with
-        {
-            Members = record.Members.ToDictionary().Action(x => x.Remove(principalId)),
-        };
-
-        return await Set(record, context).ConfigureAwait(false);
-    }
-
-    public Task<Option> Set(SecurityGroupRecord securityGroupRecord, ScopeContext context) => AddOrSet(true, securityGroupRecord, context);
-
-    private async Task<Option> AddOrSet(bool useSet, SecurityGroupRecord securityGroupRecord, ScopeContext context)
+    public async Task<Option> Create(SecurityGroupRecord securityGroupRecord, ScopeContext context)
     {
         context = context.With(_logger);
         if (securityGroupRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(SecurityGroupRecord));
 
-        var cmdOption = securityGroupRecord.CreateQuery(useSet, context);
+        var cmdOption = securityGroupRecord.CreateQuery(false, context);
         if (cmdOption.IsError()) return cmdOption.ToOptionStatus();
 
         var cmd = cmdOption.Return();
@@ -85,6 +32,8 @@ public class SecurityGroupClient
 
         return result.ToOptionStatus();
     }
+
+    public SecurityGroupContext GetContext(string securityGroupId, string principalId) => new(_graphClient, securityGroupId, principalId, _logger);
 
     public async Task<Option<IReadOnlyList<string>>> GroupsForPrincipalId(string principalId, ScopeContext context)
     {
@@ -99,7 +48,7 @@ public class SecurityGroupClient
             .Build();
 
         var resultOption = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
-        resultOption.LogStatus(context, "Lookup security grup by principalId={principalId}", [principalId]);
+        resultOption.LogStatus(context, "Lookup security group by principalId={principalId}", [principalId]);
         if (resultOption.IsError()) return resultOption.ToOptionStatus<IReadOnlyList<string>>();
 
         var result = resultOption.Return();
@@ -107,5 +56,19 @@ public class SecurityGroupClient
 
         var list = result.Nodes.Select(x => SecurityGroupTool.RemoveNodeKeyPrefix(x.Key)).ToImmutableArray();
         return list;
+    }
+
+    public async Task<Option> HasAccess(string securityGroupId, string principalId, SecurityAccess accessRequired, ScopeContext context)
+    {
+        var subject = await _graphClient.GetNode<SecurityGroupRecord>(SecurityGroupTool.ToNodeKey(securityGroupId), context).ConfigureAwait(false);
+        if (subject.IsError()) return subject.ToOptionStatus();
+
+        var read = subject.Return();
+        if (read.HasAccess(principalId, accessRequired).IsError(out var status))
+        {
+            return status.LogStatus(context, "HasAccess");
+        }
+
+        return StatusCode.OK;
     }
 }

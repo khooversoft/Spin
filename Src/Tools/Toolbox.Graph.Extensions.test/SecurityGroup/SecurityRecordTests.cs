@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions.test.PrincipalGroup;
 
-public class PrincipalRecordTests
+public class SecurityRecordTests
 {
     [Fact]
     public void RoundTrip()
@@ -14,10 +14,10 @@ public class PrincipalRecordTests
         {
             SecurityGroupId = "group1",
             Name = "group1",
-            Members = new Dictionary<string, MemberAccessRecord>
+            Members = new Dictionary<string, PrincipalAccess>
             {
-                ["user1"] = new MemberAccessRecord { PrincipalId = "user1", Access = PrincipalAccess.Read },
-                ["user2"] = new MemberAccessRecord { PrincipalId = "user2", Access = PrincipalAccess.Contributor },
+                ["user1"] = new PrincipalAccess { PrincipalId = "user1", Access = SecurityAccess.Read },
+                ["user2"] = new PrincipalAccess { PrincipalId = "user2", Access = SecurityAccess.Owner },
             }
         };
 

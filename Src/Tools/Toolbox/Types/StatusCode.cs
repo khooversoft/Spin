@@ -27,6 +27,8 @@ public static class OptionStatusCodeExtensions
     public static bool IsNoContent(this StatusCode subject) => subject == StatusCode.NoContent;
     public static bool IsConflict(this StatusCode subject) => subject == StatusCode.Conflict;
     public static bool IsBadRequest(this StatusCode subject) => subject == StatusCode.BadRequest;
+    public static bool IsUnauthorized(this StatusCode subject) => subject == StatusCode.Unauthorized;
+    public static bool IsForbidden(this StatusCode subject) => subject == StatusCode.Forbidden;
 
     public static bool IsSuccess(this StatusCode subject) => subject switch
     {

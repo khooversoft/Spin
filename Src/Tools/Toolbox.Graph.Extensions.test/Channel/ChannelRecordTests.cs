@@ -8,14 +8,14 @@ namespace Toolbox.Graph.Extensions.test.Channel;
 public class ChannelRecordTests
 {
     [Fact]
-    public void RoundTrip()
+    public void MessageRoundTrip()
     {
         var dt = DateTime.UtcNow;
 
         var r1 = new ChannelRecord
         {
             ChannelId = "channel1",
-            PrincipalGroupId = "channel1/principalGroup",
+            SecurityGroupId = "channel1/principalGroup",
             Name = "Channel one",
 
             Messages = new List<ChannelMessage>

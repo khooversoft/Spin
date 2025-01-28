@@ -1,11 +1,11 @@
 Graph relationships...
 
-| Schema      | Query                                     |
-| ----------- | ----------------------------------------- |
-| Channel     | Channel -> SecurityGroup -> Principal     |
-| Channel     | Channel -> SecurityGroup -> Principal     |
-| Account     | Account -> Principal                      |
-| TicketGroup | TicketGroup -> SecurityGroup -> Principal |
+| Schema         | Query                                     |
+| -----------    | ----------------------------------------- |
+| SecurityGroup  | SecurityGroup -> Principal                |
+| Channel        | Channel -> SecurityGroup -> Principal     |
+| Account        | Account -> Principal                      |
+| TicketGroup    | TicketGroup -> SecurityGroup -> Principal |
 
 
 #### Schema: SecurityGroup -> Users
@@ -38,6 +38,6 @@ select (key=user:user1) <- [SeceurityGroup] <- [ticketGroup];]
 2) List of Principals with rights (None, Read, Contributor, Owner)
 
 
-(PrincipalGroup) -> []
+(SecurityGroup) -> []
 
 

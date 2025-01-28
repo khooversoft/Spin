@@ -18,47 +18,22 @@ public class ChannelClient
         _logger = logger.NotNull();
     }
 
-    public Task<Option> Add(ChannelRecord principalGroupRecord, ScopeContext context) => AddOrSet(false, principalGroupRecord, context);
-
-    public async Task<Option> Delete(string channelId, ScopeContext context)
-    {
-        return await _graphClient.DeleteNode(ChannelTool.ToNodeKey(channelId), context).ConfigureAwait(false);
-    }
-
-    public async Task<Option<ChannelRecord>> Get(string channelId, ScopeContext context)
-    {
-        return await _graphClient.GetNode<ChannelRecord>(ChannelTool.ToNodeKey(channelId), context).ConfigureAwait(false);
-    }
-
-    public Task<Option> Set(ChannelRecord channelRecord, ScopeContext context) => AddOrSet(true, channelRecord, context);
-
-    private async Task<Option> AddOrSet(bool useSet, ChannelRecord channelRecord, ScopeContext context)
+    public async Task<Option> Create(ChannelRecord channelRecord, ScopeContext context)
     {
         context = context.With(_logger);
-        if (channelRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(SecurityGroupRecord));
+        if (channelRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(channelRecord));
 
-        string nodeKey = ChannelTool.ToNodeKey(channelRecord.ChannelId);
+        var cmdOption = channelRecord.CreateQuery(false, context);
+        if (cmdOption.IsError()) return cmdOption.ToOptionStatus();
 
-        var cmd = new NodeCommandBuilder()
-            .UseSet(useSet)
-            .SetNodeKey(nodeKey)
-            .AddTag(ChannelTool.NodeTag)
-            .AddData("entity", channelRecord)
-            .AddReference(ChannelTool.EdgeType, SecurityGroupTool.ToNodeKey(channelRecord.PrincipalGroupId))
-            .Build();
+        var cmd = cmdOption.Return();
+        var result = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
+        result.LogStatus(context, "Set channel, channelId={channelId}", [channelRecord.ChannelId]);
 
-        string cmds = new string[]
-        {
-            SecurityGroupRecord.Create(channelRecord.PrincipalGroupId, $"Auto principalGroup-{channelRecord.Name}").CreateQuery(true, context).Return(),
-            cmd,
-        }.Join(Environment.NewLine);
-
-        var result = await _graphClient.Execute(cmds, context).ConfigureAwait(false);
-        result.LogStatus(context, "Set channel, nodeKey={nodeKey}", [nodeKey]);
-        if (result.IsError()) return result.ToOptionStatus();
-
-        return StatusCode.OK;
+        return result.ToOptionStatus();
     }
+
+    public ChannelContext GetContext(string channelId, string principalId) => new(_graphClient, channelId, principalId, _logger);
 
     public async Task<Option<IReadOnlyList<string>>> ChannelsForPrincipalId(string principalId, ScopeContext context)
     {
