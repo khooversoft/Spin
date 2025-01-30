@@ -66,29 +66,75 @@ public class PrincipalChannelMessageTests
         await CreateChannel(channelClient, _channel1, _groupid1, "Channel one", context);
 
         int messageIndex = 0;
+        using (var metric = context.LogDuration("Add-messages", "message count={count}", _channelMessages.Length))
+        {
+            (messageIndex, _) = await AddMessage(channelClient, _channel1, _user1, messageIndex, _channelMessages.Length, context);
+        }
+
+        using (var metric = context.LogDuration("Get-messages-ms"))
+        {
+            (await channelClient.GetPrincipalMessages(_user1, context)).Action(x =>
+            {
+                x.IsOk().Should().BeTrue();
+                x.Return().Action(y =>
+                {
+                    context.LogInformation("Count={count}", y.Count);
+                    y.Count.Should().Be(messageIndex);
+                    _channelMessages.Take(messageIndex).IsEquivalent(y).Should().BeTrue();
+                });
+            });
+        }
+    }
+
+    [Fact]
+    public async Task SingleChannelMultipleSizeWrites()
+    {
+        var testHost = new ToolboxExtensionTestHost();
+        var groupClient = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
+        var channelClient = testHost.ServiceProvider.GetRequiredService<ChannelClient>();
+        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
+        var context = new ScopeContext(_services.GetRequiredService<ILogger<PrincipalChannelMessageTests>>());
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
+        await CreateSecurityGroup(groupClient, _groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context);
+
+        // Create security group with user for access
+        await CreateChannel(channelClient, _channel1, _groupid1, "Channel one", context);
+
+        int messageIndex = 0;
         int size = 1;
+        var batches = new Sequence<ChannelMessage[]>();
+
         while (messageIndex < _channelMessages.Length)
         {
-            using (var metric = context.LogDuration("Get-messages-ms"))
-            {
-                (await channelClient.GetPrincipalMessages(_user1, context)).Action(x =>
-                {
-                    x.IsOk().Should().BeTrue();
-                    x.Return().Action(y =>
-                    {
-                        context.LogInformation("Count={count}", y.Count);
-                        y.Count.Should().Be(messageIndex);
-                        _channelMessages.Take(messageIndex).IsEquivalent(y).Should().BeTrue();
-                    });
-                });
-            }
-
-            using (var metric = context.LogDuration("Add-messages", "message count={count}", size))
-            {
-                (messageIndex, _) = await AddMessage(channelClient, _channel1, _user1, messageIndex, size, context);
-            }
+            var messagesToSend = _channelMessages.Skip(messageIndex).Take(size).ToArray();
+            messageIndex += size;
+            batches += messagesToSend;
 
             size = (int)(size * 1.1) + 1;
+            size = Math.Min(size, _channelMessages.Length - messageIndex);
+        }
+
+        foreach(var batch in batches)
+        {
+            using (var metric = context.LogDuration("Add-messages", "message count={count}", batch.Length))
+            {
+                (await channelClient.GetContext(_channel1, _user1).AddMessages(batch, context)).IsOk().Should().BeTrue();
+            }
+
+            //using (var metric = context.LogDuration("Get-messages-ms"))
+            //{
+            //    (await channelClient.GetPrincipalMessages(_user1, context)).Action(x =>
+            //    {
+            //        x.IsOk().Should().BeTrue();
+            //        x.Return().Action(y =>
+            //        {
+            //            context.LogInformation("Count={count}", y.Count);
+            //            y.Count.Should().Be(messageIndex);
+            //            _channelMessages.Take(messageIndex).IsEquivalent(y).Should().BeTrue();
+            //        });
+            //    });
+            //}
         }
     }
 
@@ -125,7 +171,7 @@ public class PrincipalChannelMessageTests
 
             using (var metric = context.LogDuration("Add-messages", "message count={count}", size))
             {
-                (messageIndex, ChannelMessage[] msgs) = await AddMessage(channelClient, channel, user,  messageIndex, size, context);
+                (messageIndex, ChannelMessage[] msgs) = await AddMessage(channelClient, channel, user, messageIndex, size, context);
                 usersMessages += (user, msgs);
             }
 

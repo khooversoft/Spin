@@ -95,8 +95,7 @@ public readonly struct ChannelContext
         var hasAccess = await SecurityGroupTool.HasAccess(_graphClient, read.SecurityGroupId, _principalId, accessRequired, context);
         if (hasAccess.IsError()) return hasAccess.ToOptionStatus<ChannelRecord>();
 
-        var result = await _graphClient.GetNode<ChannelRecord>(ChannelTool.ToNodeKey(_channelId), context).ConfigureAwait(false);
-        return result;
+        return subject;
     }
 
     private async Task<Option> SetInternal(ChannelRecord channelRecord, ScopeContext context)
