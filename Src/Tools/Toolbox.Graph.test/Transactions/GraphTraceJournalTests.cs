@@ -47,10 +47,10 @@ public class GraphTraceJournalTests
             int index = 0;
             journals[index++].Type.Should().Be(JournalType.Start);
             journals[index++].Type.Should().Be(JournalType.Action);
-            journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Data);
+            journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Commit);
         }
     }
@@ -110,15 +110,14 @@ public class GraphTraceJournalTests
             int index = 0;
             journals[index++].Type.Should().Be(JournalType.Start);
             journals[index++].Type.Should().Be(JournalType.Action);
-            journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Data);
+            journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Commit);
 
             journals[index++].Type.Should().Be(JournalType.Start);
             journals[index++].Type.Should().Be(JournalType.Action);
-            journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Data);
@@ -126,6 +125,7 @@ public class GraphTraceJournalTests
             journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Data);
+            journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Commit);
         }
     }

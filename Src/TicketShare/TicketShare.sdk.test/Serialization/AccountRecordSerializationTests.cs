@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -21,7 +22,7 @@ public class AccountRecordSerializationTests
 
         var json = rec.ToJson();
         var rec2 = json.ToObject<AccountRecord>();
-        rec2.Should().NotBeNull();
+        rec2.NotNull();
         (rec == rec2).Should().BeTrue();
     }
 
@@ -63,7 +64,7 @@ public class AccountRecordSerializationTests
 
         var json = rec.ToJson();
         var rec2 = json.ToObject<AccountRecord>();
-        rec2.Should().NotBeNull();
+        rec2.NotNull();
         (rec == rec2).Should().BeTrue();
     }
 }
