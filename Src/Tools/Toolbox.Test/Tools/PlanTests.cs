@@ -179,7 +179,7 @@ public class PlanTests
         });
 
         var stepState = service.GetRequiredService<StepState>();
-        stepState.Should().NotBeNull();
+        stepState.NotNull();
         stepState.Value.Should().Be(1);
     }
 
@@ -206,7 +206,7 @@ public class PlanTests
         });
 
         var stepState = service.GetRequiredService<StepState>();
-        stepState.Should().NotBeNull();
+        stepState.NotNull();
         stepState.Value.Should().Be(1);
     }
 

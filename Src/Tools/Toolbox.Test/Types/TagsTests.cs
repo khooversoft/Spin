@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -55,7 +56,7 @@ public class TagsTests
         {
             x.Count.Should().Be(1);
             x.ContainsKey("key1").Should().BeTrue();
-            x["key1"].Should().BeNull();
+            x["key1"].BeNull();
             x.Has("key1").Should().BeTrue();
             x.Has("key1", "value").Should().BeFalse();
             x.Has("fake").Should().BeFalse();

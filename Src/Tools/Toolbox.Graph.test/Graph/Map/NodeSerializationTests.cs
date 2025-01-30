@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
@@ -25,9 +26,9 @@ public class NodeSerializationTests
         string json = node.ToJson();
 
         var graphNode = json.ToObject<GraphNode>();
-        graphNode.Should().NotBeNull();
+        graphNode.NotNull();
         graphNode!.Key.Should().Be("node1");
-        graphNode.Tags.Should().NotBeNull();
+        graphNode.Tags.NotNull();
     }
 
     [Fact]
@@ -38,11 +39,11 @@ public class NodeSerializationTests
         string json = node.ToJson();
 
         var graphNode = json.ToObject<GraphNode>();
-        graphNode.Should().NotBeNull();
+        graphNode.NotNull();
         graphNode!.Key.Should().Be("node1");
-        graphNode.Tags.Should().NotBeNull();
+        graphNode.Tags.NotNull();
         graphNode.Tags.Count.Should().Be(2);
-        graphNode.Tags["t1"].Should().BeNull();
+        graphNode.Tags["t1"].BeNull();
         graphNode.Tags["t2"].Should().Be("v2");
     }
 
@@ -54,9 +55,9 @@ public class NodeSerializationTests
         string json = node.ToJson();
 
         var graphNode = json.ToObject<GraphNode>();
-        graphNode.Should().NotBeNull();
+        graphNode.NotNull();
         graphNode!.Key.Should().Be("node1");
-        graphNode.Tags.Should().NotBeNull();
+        graphNode.Tags.NotNull();
         graphNode.Tags.Count.Should().Be(0);
         graphNode.Indexes.Count.Should().Be(2);
         graphNode.Indexes.Contains("i1").Should().BeTrue();
@@ -71,15 +72,15 @@ public class NodeSerializationTests
         string json = node.ToJson();
 
         var graphNode = json.ToObject<GraphNode>();
-        graphNode.Should().NotBeNull();
+        graphNode.NotNull();
         graphNode!.Key.Should().Be("node1");
 
-        graphNode.Tags.Should().NotBeNull();
+        graphNode.Tags.NotNull();
         graphNode.Tags.Count.Should().Be(2);
         graphNode.Tags["t1"].Should().Be(null);
         graphNode.Tags["t2"].Should().Be("v2");
 
-        graphNode.Indexes.Should().NotBeNull();
+        graphNode.Indexes.NotNull();
         graphNode.Indexes.Count.Should().Be(2);
         graphNode.Indexes.Contains("i1").Should().BeTrue();
         graphNode.Indexes.Contains("i2").Should().BeTrue();

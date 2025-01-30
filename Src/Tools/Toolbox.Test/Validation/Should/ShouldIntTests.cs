@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Validation.Should;
 
@@ -46,12 +47,12 @@ public class ShouldIntTests
     public void BeNull()
     {
         int? v1 = null;
-        v1.Should().BeNull();
+        v1.BeNull();
 
         try
         {
             int? v2 = null;
-            v2.Should().NotBeNull();
+            v2.NotNull();
         }
         catch (ArgumentException)
         {

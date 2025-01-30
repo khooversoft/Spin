@@ -17,7 +17,7 @@ public class ScopeContextTests
         testLogger.Should().NotThrow();
 
         ScopeContextLocation location = context.Location();
-        location.Should().NotBeNull();
+        location.NotNull();
         location.Context.TraceId.Should().Be(context.TraceId);
     }
 }

@@ -46,7 +46,7 @@ public class GraphCommandSerializationTests
         string json = Json.Default.SerializePascal(g);
 
         QueryBatchResult r = json.ToObject<QueryBatchResult>().NotNull();
-        r.Should().NotBeNull();
+        r.NotNull();
         r.Items.Count.Should().Be(1);
         r.Items[0].Option.StatusCode.Should().Be(StatusCode.OK);
         r.Items[0].QueryNumber.Should().Be(1);
@@ -67,7 +67,7 @@ public class GraphCommandSerializationTests
         string json = Json.Default.SerializePascal(r1);
 
         QueryBatchResult result = json.ToObject<QueryBatchResult>().NotNull();
-        result.Should().NotBeNull();
+        result.NotNull();
 
         result.Option.IsOk().Should().BeTrue();
         result.Items.Count.Should().Be(3);

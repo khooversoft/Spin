@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using Toolbox.Security;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Security;
@@ -32,7 +33,7 @@ public class RsaTests
             .SetPrincipleSignature(signature)
             .Build();
 
-        token.Should().NotBeNull();
+        token.NotNull();
 
         // Verify
         var validateRsa = RSA.Create();
@@ -71,7 +72,7 @@ public class RsaTests
             .SetPrincipleSignature(signature)
             .Build();
 
-        token.Should().NotBeNull();
+        token.NotNull();
 
         // Verify
         var validate = PrincipalSignature.CreateFromPublicKeyOnly(pubk, "kid", "issuer", "audience");

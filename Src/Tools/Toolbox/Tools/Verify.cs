@@ -113,6 +113,33 @@ public static class Verify
     }
 
     /// <summary>
+    /// Verify subject is not null or default
+    /// </summary>
+    /// <typeparam name="T">subject type</typeparam>
+    /// <param name="subject">subject</param>
+    /// <param name="name">name of subject or message</param>
+    /// <returns>subject</returns>
+    [DebuggerStepThrough]
+    public static T BeNull<T>(
+            [NotNull] this T subject,
+            string? message = null,
+            [CallerMemberName] string function = "",
+            [CallerFilePath] string path = "",
+            [CallerLineNumber] int lineNumber = 0,
+            [CallerArgumentExpression("subject")] string name = ""
+        )
+    {
+        if (subject != null || !EqualityComparer<T>.Default.Equals(subject, default!))
+        {
+            string msg = message ?? "Not null object";
+            msg += $", {name}, {FormatCaller(function, path, lineNumber)}";
+            throw new ArgumentNullException(msg);
+        }
+
+        return subject;
+    }
+
+    /// <summary>
     /// Verify subject is not null or empty
     /// </summary>
     /// <param name="subject">subject</param>

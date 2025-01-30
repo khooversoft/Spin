@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -49,7 +50,7 @@ public class FileSearchStringTests
         var result = resultOption.Return();
         result.Count.Should().Be(1);
         result[0].Key.Should().Be("key1");
-        result[0].Value.Should().BeNull();
+        result[0].Value.BeNull();
     }
 
     [Fact]
@@ -123,7 +124,7 @@ public class FileSearchStringTests
 
         cursor.MoveNext().Should().BeTrue();
         cursor.Current.Key.Should().Be("t1");
-        cursor.Current.Value.Should().BeNull();
+        cursor.Current.Value.BeNull();
 
         cursor.MoveNext().Should().BeTrue();
         cursor.Current.Key.Should().Be("t2");

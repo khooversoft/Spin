@@ -92,7 +92,7 @@ public class ProductionRuleTests
                 {
                     y.NotNull();
                     y.Name.Should().Be("_tag-1-symbol");
-                    y.ReferenceSyntax.Should().NotBeNull();
+                    y.ReferenceSyntax.NotNull();
                     y.ReferenceSyntax.Should().Be("symbol");
                 });
                 (x.Children[1] as ProductionRule).Action(y =>
@@ -110,7 +110,7 @@ public class ProductionRuleTests
                     {
                         z.NotNull();
                         z.Name.Should().Be("_tag-3-OptionGroup-3-symbol");
-                        z.ReferenceSyntax.Should().NotBeNull();
+                        z.ReferenceSyntax.NotNull();
                         z.ReferenceSyntax.Should().Be("symbol");
                     });
                 });
@@ -164,7 +164,7 @@ public class ProductionRuleTests
                 {
                     y.NotNull();
                     y.Name.Should().Be("_tag-1-symbol");
-                    y.ReferenceSyntax.Should().NotBeNull();
+                    y.ReferenceSyntax.NotNull();
                     y.ReferenceSyntax.Should().Be("symbol");
                 });
                 (x.Children[1] as ProductionRule).Action(y =>
@@ -183,7 +183,7 @@ public class ProductionRuleTests
                     {
                         z.NotNull();
                         z.Name.Should().Be("_tag-3-OptionGroup-3-symbol");
-                        z.ReferenceSyntax.Should().NotBeNull();
+                        z.ReferenceSyntax.NotNull();
                         z.ReferenceSyntax.Should().Be("symbol");
                     });
                 });
@@ -206,7 +206,7 @@ public class ProductionRuleTests
                     {
                         z.NotNull();
                         z.Name.Should().Be("_tags-1-RepeatGroup-1-comma");
-                        z.ReferenceSyntax.Should().NotBeNull();
+                        z.ReferenceSyntax.NotNull();
                         z.ReferenceSyntax.Should().Be("comma");
                     });
 
@@ -214,7 +214,7 @@ public class ProductionRuleTests
                     {
                         z.NotNull();
                         z.Name.Should().Be("_tags-1-RepeatGroup-3-tag");
-                        z.ReferenceSyntax.Should().NotBeNull();
+                        z.ReferenceSyntax.NotNull();
                         z.ReferenceSyntax.Should().Be("tag");
                     });
                 });
@@ -284,7 +284,7 @@ public class ProductionRuleTests
                     {
                         y.NotNull();
                         y.Name.Should().Be("_join-1-OptionGroup-1-join-left");
-                        y.ReferenceSyntax.Should().NotBeNull();
+                        y.ReferenceSyntax.NotNull();
                         y.ReferenceSyntax.Should().Be("join-left");
                     });
 
@@ -292,7 +292,7 @@ public class ProductionRuleTests
                     {
                         y.NotNull();
                         y.Name.Should().Be("_join-1-OptionGroup-3-join-inner");
-                        y.ReferenceSyntax.Should().NotBeNull();
+                        y.ReferenceSyntax.NotNull();
                         y.ReferenceSyntax.Should().Be("join-inner");
                     });
 
@@ -300,7 +300,7 @@ public class ProductionRuleTests
                     {
                         y.NotNull();
                         y.Name.Should().Be("_join-1-OptionGroup-5-symbol");
-                        y.ReferenceSyntax.Should().NotBeNull();
+                        y.ReferenceSyntax.NotNull();
                         y.ReferenceSyntax.Should().Be("symbol");
                     });
                 });
@@ -370,7 +370,7 @@ public class ProductionRuleTests
                     {
                         y.NotNull();
                         y.Name.Should().Be("_group-1-OrGroup-1-join-left");
-                        y.ReferenceSyntax.Should().NotBeNull();
+                        y.ReferenceSyntax.NotNull();
                         y.ReferenceSyntax.Should().Be("join-left");
                     });
 
@@ -378,7 +378,7 @@ public class ProductionRuleTests
                     {
                         y.NotNull();
                         y.Name.Should().Be("_group-1-OrGroup-3-join-inner");
-                        y.ReferenceSyntax.Should().NotBeNull();
+                        y.ReferenceSyntax.NotNull();
                         y.ReferenceSyntax.Should().Be("join-inner");
                     });
 
@@ -386,7 +386,7 @@ public class ProductionRuleTests
                     {
                         y.NotNull();
                         y.Name.Should().Be("_group-1-OrGroup-5-symbol");
-                        y.ReferenceSyntax.Should().NotBeNull();
+                        y.ReferenceSyntax.NotNull();
                         y.ReferenceSyntax.Should().Be("symbol");
                     });
                 });

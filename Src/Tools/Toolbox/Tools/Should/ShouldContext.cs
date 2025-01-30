@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using Toolbox.Extensions;
 
 namespace Toolbox.Tools.Should;
@@ -34,6 +35,7 @@ public readonly struct ShouldContext<T>
 }
 
 
+[DebuggerStepThrough]
 public static class ShouldContextExtensions
 {
     public static void ThrowException<T>(this ShouldContext<T> subject, string message, string? because = null, Exception? ex = null)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Framework;
@@ -14,9 +15,9 @@ public class DI_MatchTests
             .BuildServiceProvider();
 
         Test t1 = di.GetRequiredService<Test>();
-        t1.Should().NotBeNull();
-        t1._test1.Should().NotBeNull();
-        t1._test2.Should().BeNull();
+        t1.NotNull();
+        t1._test1.NotNull();
+        t1._test2.BeNull();
     }
 
     [Fact]
@@ -29,9 +30,9 @@ public class DI_MatchTests
             .BuildServiceProvider();
 
         Test t1 = di.GetRequiredService<Test>();
-        t1.Should().NotBeNull();
-        t1._test1.Should().NotBeNull();
-        t1._test2.Should().NotBeNull();
+        t1.NotNull();
+        t1._test1.NotNull();
+        t1._test2.NotNull();
     }
 
     [Fact]
@@ -43,9 +44,9 @@ public class DI_MatchTests
             .BuildServiceProvider();
 
         TestKeyed t1 = di.GetRequiredService<TestKeyed>();
-        t1.Should().NotBeNull();
-        t1._test1.Should().NotBeNull();
-        t1._test2.Should().BeNull();
+        t1.NotNull();
+        t1._test1.NotNull();
+        t1._test2.BeNull();
     }
 
     [Fact]
@@ -58,9 +59,9 @@ public class DI_MatchTests
             .BuildServiceProvider();
 
         TestKeyed t1 = di.GetRequiredService<TestKeyed>();
-        t1.Should().NotBeNull();
-        t1._test1.Should().NotBeNull();
-        t1._test2.Should().NotBeNull();
+        t1.NotNull();
+        t1._test1.NotNull();
+        t1._test2.NotNull();
     }
 
     public interface ITest1 { }

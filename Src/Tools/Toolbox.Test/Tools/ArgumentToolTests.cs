@@ -17,7 +17,7 @@ public class ArgumentToolTests
         };
 
         (string[] ConfigArgs, string[] CommandLineArgs) result = ArgumentTool.Split(args);
-        result.Should().NotBeNull();
+        result.NotNull();
         result.ConfigArgs.Length.Should().Be(0);
         result.CommandLineArgs.Length.Should().Be(4);
 
@@ -34,7 +34,7 @@ public class ArgumentToolTests
         };
 
         (string[] ConfigArgs, string[] CommandLineArgs) result = ArgumentTool.Split(args);
-        result.Should().NotBeNull();
+        result.NotNull();
         result.ConfigArgs.Length.Should().Be(2);
         result.CommandLineArgs.Length.Should().Be(0);
 
@@ -55,7 +55,7 @@ public class ArgumentToolTests
         };
 
         (string[] ConfigArgs, string[] CommandLineArgs) result = ArgumentTool.Split(args);
-        result.Should().NotBeNull();
+        result.NotNull();
         result.ConfigArgs.Length.Should().Be(2);
         result.CommandLineArgs.Length.Should().Be(4);
 

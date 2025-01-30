@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Security;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -33,7 +34,7 @@ public class BlockChainSerializationTests
         string json = blockChain.ToJson();
 
         BlockChain? blockChain2 = json.ToObject<BlockChain>();
-        blockChain2.Should().NotBeNull();
+        blockChain2.NotNull();
         blockChain2!.Count.Should().Be(blockChain.Count);
 
         Option result2 = await blockChain2!.ValidateBlockChain(_signCollection, _context);

@@ -1,6 +1,6 @@
-﻿using Toolbox.Logging;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Logging;
 
 namespace Toolbox.Graph.Extensions;
 

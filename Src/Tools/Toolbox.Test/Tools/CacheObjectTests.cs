@@ -43,7 +43,7 @@ public class CacheObjectTests
 
         cache.Clear();
         cache.TryGetValue(out string value2).Should().BeFalse();
-        value2.Should().BeNull();
+        value2.BeNull();
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -28,7 +29,7 @@ public class OptionTests
 
         int? v1 = null;
         Option<int?> o1 = v1.ToOption();
-        o1.Return(false).Should().BeNull();
+        o1.Return(false).BeNull();
         o1.HasValue.Should().BeFalse();
         o1.StatusCode.Should().Be(StatusCode.NoContent);
         (o1 == Option<int?>.None).Should().BeTrue();
@@ -138,7 +139,7 @@ public class OptionTests
     {
         var v1 = Array.Empty<string>();
         Option<string> v2 = v1.FirstOrDefault().ToOption();
-        v2.Return(false).Should().BeNull();
+        v2.Return(false).BeNull();
         v2.StatusCode.Should().Be(StatusCode.NoContent);
         (v2 == default).Should().BeTrue();
         (v2 != default).Should().BeFalse();
@@ -204,7 +205,7 @@ public class OptionTests
             var j1 = x.ToJson();
             Option o2 = j1.ToObject<Option>();
             x.StatusCode.Should().Be(StatusCode.OK);
-            x.Error.Should().BeNull();
+            x.Error.BeNull();
         });
 
         new Option(StatusCode.NotFound, "Record not found").Action(x =>
@@ -230,7 +231,7 @@ public class OptionTests
             var j1 = x.ToJson();
             Option<Record1> o2 = j1.ToObject<Option<Record1>>();
             x.StatusCode.Should().Be(StatusCode.OK);
-            x.Error.Should().BeNull();
+            x.Error.BeNull();
             (x.Value == r).Should().BeTrue();
         });
 
@@ -240,7 +241,7 @@ public class OptionTests
             Option<Record1> o2 = j1.ToObject<Option<Record1>>();
             x.StatusCode.Should().Be(StatusCode.NotFound);
             x.Error.Should().Be("Record not found");
-            x.Value.Should().BeNull();
+            x.Value.BeNull();
         });
     }
 

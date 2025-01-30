@@ -1,9 +1,14 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Extensions;
+using Toolbox.Logging;
+using System.Collections.Immutable;
 
 namespace Toolbox.Graph.Extensions;
 
@@ -79,7 +84,7 @@ public readonly struct ChannelContext
         return list.ToOption();
     }
 
-    private async Task<Option<ChannelRecord>> GetInternal(SecurityAccess accessRequired, ScopeContext context)
+    private async Task<Option<ChannelRecord>> GetInternal(SecurityAccess accessRequired, ScopeContext context  )
     {
         var subject = await _graphClient.GetNode<ChannelRecord>(ChannelTool.ToNodeKey(_channelId), context).ConfigureAwait(false);
         if (subject.IsError()) return subject;

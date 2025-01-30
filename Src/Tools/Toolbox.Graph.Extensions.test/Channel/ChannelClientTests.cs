@@ -64,12 +64,12 @@ public class ChannelClientTests
         (newchannelRecord == readOption.Return()).Should().BeTrue();
 
         // Because user has access to the secuity group, the user access access
-        var listOption = await channelClient.ChannelsForPrincipalId(_user1, context);
+        var listOption = await channelClient.GetPrincipalChannels(_user1, context);
         listOption.IsOk().Should().BeTrue();
         listOption.Return().Action(x =>
         {
             x.Count.Should().Be(1);
-            x[0].Should().Be(_channel1);
+            x[0].ChannelId.Should().Be(_channel1);
         });
 
         var deleteOption = await channelClient.GetContext(_channel1, _user1).Delete(context);
@@ -98,39 +98,40 @@ public class ChannelClientTests
         await CreateChannel(channelClient, _channel1, _principalGroup1, "channel 1", context);
         await CreateChannel(channelClient, _channel2, _principalGroup2, "channel 2", context);
 
-        (await channelClient.ChannelsForPrincipalId(_user1, context)).Action(x =>
+        (await channelClient.GetPrincipalChannels(_user1, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
             {
                 y.Count.Should().Be(2);
-                y.OrderBy(x => x).SequenceEqual([_channel1, _channel2]).Should().BeTrue();
+                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel1, _channel2]).Should().BeTrue();
             });
         });
 
-        (await channelClient.ChannelsForPrincipalId(_user2, context)).Action(x =>
+        (await channelClient.GetPrincipalChannels(_user2, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
             {
                 y.Count.Should().Be(1);
-                y.OrderBy(x => x).SequenceEqual([_channel1]).Should().BeTrue();
+                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel1]).Should().BeTrue();
             });
         });
 
-        (await channelClient.ChannelsForPrincipalId(_user3, context)).Action(x =>
+        (await channelClient.GetPrincipalChannels(_user3, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
             {
                 y.Count.Should().Be(1);
-                y.OrderBy(x => x).SequenceEqual([_channel2]).Should().BeTrue();
+                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel2]).Should().BeTrue();
             });
         });
 
-        (await channelClient.ChannelsForPrincipalId(_user4, context)).Action(x =>
+        (await channelClient.GetPrincipalChannels(_user4, context)).Action(x =>
         {
-            x.IsNotFound().Should().BeTrue();
+            x.IsOk().Should().BeTrue();
+            x.Return().Count.Should().Be(0);
         });
     }
 

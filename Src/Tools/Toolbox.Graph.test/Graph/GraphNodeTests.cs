@@ -84,9 +84,9 @@ public class GraphNodeTests
             string json = x.ToJson();
 
             var graphNode = json.ToObject<GraphNode>();
-            graphNode.Should().NotBeNull();
+            graphNode.NotNull();
             graphNode!.Key.Should().Be("node1");
-            graphNode.Tags.Should().NotBeNull();
+            graphNode.Tags.NotNull();
         });
 
         new GraphNode("node1", tags: "t1,t2=v2").Action(x =>
@@ -94,11 +94,11 @@ public class GraphNodeTests
             string json = x.ToJson();
 
             var graphNode = json.ToObject<GraphNode>();
-            graphNode.Should().NotBeNull();
+            graphNode.NotNull();
             graphNode!.Key.Should().Be("node1");
-            graphNode.Tags.Should().NotBeNull();
+            graphNode.Tags.NotNull();
             graphNode.Tags.Count.Should().Be(2);
-            graphNode.Tags["t1"].Should().BeNull();
+            graphNode.Tags["t1"].BeNull();
             graphNode.Tags["t2"].Should().Be("v2");
         });
     }

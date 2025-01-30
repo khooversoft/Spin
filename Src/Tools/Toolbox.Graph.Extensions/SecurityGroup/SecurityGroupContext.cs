@@ -1,8 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
-using Toolbox.Logging;
-using Toolbox.Tools;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Toolbox.Types;
+using Toolbox.Tools;
+using Toolbox.Logging;
+using Toolbox.Extensions;
 
 namespace Toolbox.Graph.Extensions;
 
@@ -52,7 +57,7 @@ public readonly struct SecurityGroupContext
     {
         context = context.With(_logger);
         if (securityGroupRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(SecurityGroupRecord));
-        if (securityGroupRecord.SecurityGroupId != _securityGroupId) return (StatusCode.Conflict, "SecurityGroupId does not match context");
+        if(securityGroupRecord.SecurityGroupId != _securityGroupId) return (StatusCode.Conflict, "SecurityGroupId does not match context");
 
         var hasAccess = await GetInternal(SecurityAccess.Contributor, context);
         if (!hasAccess.IsNotFound() && hasAccess.IsError(out var r2)) return r2.LogStatus(context, "Set");

@@ -1,7 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Toolbox.Tools.Should;
 
+[DebuggerStepThrough]
 public static class ShouldBoolExtensions
 {
     public static ShouldContext<bool> Should(

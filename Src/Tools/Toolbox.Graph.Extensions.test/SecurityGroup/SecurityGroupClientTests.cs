@@ -63,7 +63,7 @@ public class SecurityGroupClientTests
         readOption = await client.GetContext(_groupid1, _user2).Get(context);
         readOption.IsNotFound().Should().BeTrue();
     }
-
+    
     [Fact]
     public async Task LifecycleWithContext()
     {
@@ -127,7 +127,7 @@ public class SecurityGroupClientTests
         await IdentityTestTool.AddIdentityUser(_user3, "user 3", testHost, context);
         await IdentityTestTool.AddIdentityUser(_user4, "user 4", testHost, context);
 
-        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Read), (_user3, SecurityAccess.Owner), (_user4, SecurityAccess.Contributor)]);
+        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Read),(_user3, SecurityAccess.Owner),(_user4, SecurityAccess.Contributor)]);
 
         var addResult = await client.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();

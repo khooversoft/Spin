@@ -42,13 +42,16 @@ public class GraphTraceJournalTests
             var context = new ScopeContext(logger);
 
             var journals = await traceLog.ReadJournals(context);
-            journals.Count.Should().Be(5);
+            journals.Count.Should().Be(7);
 
-            journals[0].Type.Should().Be(JournalType.Start);
-            journals[1].Type.Should().Be(JournalType.Action);
-            journals[2].Type.Should().Be(JournalType.Action);
-            journals[3].Type.Should().Be(JournalType.Action);
-            journals[4].Type.Should().Be(JournalType.Commit);
+            int index = 0;
+            journals[index++].Type.Should().Be(JournalType.Start);
+            journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
+            journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
+            journals[index++].Type.Should().Be(JournalType.Commit);
         }
     }
 
@@ -102,21 +105,27 @@ public class GraphTraceJournalTests
             var context = new ScopeContext(logger);
 
             var journals = await traceLog.ReadJournals(context);
-            journals.Count.Should().Be(12);
+            journals.Count.Should().Be(18);
 
             int index = 0;
             journals[index++].Type.Should().Be(JournalType.Start);
             journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Commit);
 
             journals[index++].Type.Should().Be(JournalType.Start);
             journals[index++].Type.Should().Be(JournalType.Action);
             journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Action);
+            journals[index++].Type.Should().Be(JournalType.Data);
             journals[index++].Type.Should().Be(JournalType.Commit);
         }
     }

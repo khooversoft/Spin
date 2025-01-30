@@ -36,4 +36,16 @@ public sealed record ChannelMessage
 public static class ChannelMessageTool
 {
     public static Option Validate(this ChannelMessage subject) => ChannelMessage.Validator.Validate(subject).ToOptionStatus();
+
+    public static ChannelIdComparer Comparer { get; } = new ChannelIdComparer();
+}
+
+
+public class ChannelIdComparer : IEqualityComparer<ChannelMessage>
+{
+    public bool Equals(ChannelMessage? x, ChannelMessage? y) =>
+        x != null && y != null &&
+        x.MessageId == y.MessageId;
+
+    public int GetHashCode(ChannelMessage obj) => HashCode.Combine(obj.MessageId);
 }

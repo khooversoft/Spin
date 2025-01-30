@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Toolbox.Tools.Should;
 
+[DebuggerStepThrough]
 public static class ShouldActionExtensions
 {
     public static ShouldContext<Action> Should(

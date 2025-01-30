@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -43,7 +44,7 @@ public class NodeUniqueIndexTests
         map.Nodes.Set(duplicateNode).IsOk().Should().BeTrue();
 
         map.Nodes.TryGetValue("node1", out var readNode).Should().BeTrue();
-        readNode.Should().NotBeNull();
+        readNode.NotNull();
         readNode!.Key.Should().Be("node1");
         readNode.TagsString.Should().Be("age=29,name=marko");
 
@@ -308,7 +309,7 @@ public class NodeUniqueIndexTests
         });
 
         map.Nodes.TryGetValue("node5", out var readNode).Should().BeTrue();
-        readNode.Should().NotBeNull();
+        readNode.NotNull();
         readNode!.Key.Should().Be("node5");
         readNode.TagsString.Should().Be("name=ripple");
     }
@@ -371,7 +372,7 @@ public class NodeUniqueIndexTests
         });
 
         map.Nodes.TryGetValue("node5", out var readNode).Should().BeTrue();
-        readNode.Should().NotBeNull();
+        readNode.NotNull();
         readNode!.Key.Should().Be("node5");
         readNode.Tags.Count.Should().Be(0);
     }

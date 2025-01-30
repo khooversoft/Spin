@@ -32,7 +32,7 @@ public class GraphCommandResultSerialization
         cursor.Current.Action(x =>
         {
             x.Option.StatusCode.Should().Be(StatusCode.OK);
-            x.Option.Error.Should().BeNull();
+            x.Option.Error.BeNull();
             x.QueryNumber.Should().Be(1);
             x.Alias.Should().Be("a1");
         });

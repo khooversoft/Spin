@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -126,7 +127,7 @@ public class NodeForeignKeyTests
                 y.ForeignKeys.First().Action(z =>
                 {
                     z.Key.Should().Be("email");
-                    z.Value.Should().BeNull();
+                    z.Value.BeNull();
                 });
             });
         });

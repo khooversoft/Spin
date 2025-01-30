@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -47,7 +48,7 @@ public class GraphDirectoryTests
             """;
 
         var map = GraphMap.FromJson(mapJson);
-        map.Should().NotBeNull();
+        map.NotNull();
 
         return map;
     }
@@ -60,7 +61,7 @@ public class GraphDirectoryTests
         var testClient = GraphTestStartup.CreateGraphTestHost(map);
         var search = (await testClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", NullScopeContext.Default)).ThrowOnError().Return();
         Assert.NotNull(search);
-        search.Should().NotBeNull();
+        search.NotNull();
         search.Items.Count.Should().Be(1);
         search.Items[0].Edges.Count.Should().Be(2);
 

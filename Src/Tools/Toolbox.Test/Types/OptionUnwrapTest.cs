@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -14,7 +15,7 @@ public class OptionUnwrapTest
         option.StatusCode.Should().Be(StatusCode.OK);
         option.Error.Should().Be("no error");
         wrapped.StatusCode.Should().Be(StatusCode.OK);
-        wrapped.Error.Should().BeNull();
+        wrapped.Error.BeNull();
         wrapped.Value.StatusCode.Should().Be(StatusCode.OK);
         wrapped.Value.Error.Should().Be("no error");
 
@@ -34,7 +35,7 @@ public class OptionUnwrapTest
         option.StatusCode.Should().Be(StatusCode.OK);
         option.Error.Should().Be("no error");
         wrapped.StatusCode.Should().Be(StatusCode.OK);
-        wrapped.Error.Should().BeNull();
+        wrapped.Error.BeNull();
         wrapped.Value.StatusCode.Should().Be(StatusCode.OK);
         wrapped.Value.Error.Should().Be("no error");
 

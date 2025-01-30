@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Logging;
 
 namespace Toolbox.Azure;
 
@@ -31,11 +32,11 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option> Append(string path, DataETag data, ScopeContext context)
     {
         context = context.With(_logger);
+        data.NotNull().Assert(x => x.Data.Length > 0, $"{nameof(data)} length must be greater then 0, path={path}");
+        using var metric = context.LogDuration("dataLakeStore-append", "path={path}, dataSize={dataSize}", path, data.Data.Length);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Data.Length);
-
-        data.NotNull().Assert(x => x.Data.Length > 0, $"{nameof(data)} length must be greater then 0, path={path}");
 
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());
 
@@ -72,6 +73,7 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option> Delete(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var metric = context.LogDuration("dataLakeStore-delete", "path={path}", path);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Deleting to {path}", path);
@@ -95,6 +97,7 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option> DeleteDirectory(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var metric = context.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Deleting directory {path}", path);
@@ -117,6 +120,7 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option> Exist(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var metric = context.LogDuration("dataLakeStore-exist", "path={path}", path);
 
         path = WithBasePath(path);
         context.Location().LogTrace("Is path {path} exist", path);
@@ -147,6 +151,7 @@ public class DatalakeStore : IDatalakeStore
     public async Task<Option<DataETag>> Read(string path, ScopeContext context)
     {
         context = context.With(_logger);
+        using var metric = context.LogDuration("dataLakeStore-read", "path={path}", path);
 
         path = WithBasePath(path);
 
@@ -155,9 +160,11 @@ public class DatalakeStore : IDatalakeStore
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
             var ifExists = await file.ExistsAsync(context).ConfigureAwait(false);
             if (ifExists.Value == false) return StatusCode.NotFound;
+            metric.Log("existsAsync");
 
             Response<FileDownloadInfo> response = await file.ReadAsync(context).ConfigureAwait(false);
             if (response.Value == null) return StatusCode.NotFound;
+            metric.Log("readAsync");
 
             using MemoryStream memory = new MemoryStream();
             await response.Value.Content.CopyToAsync(memory).ConfigureAwait(false);
@@ -183,6 +190,8 @@ public class DatalakeStore : IDatalakeStore
     {
         context = context.With(_logger);
         queryParameter.NotNull();
+        using var metric = context.LogDuration("dataLakeStore-search", "queryParameter={queryParameter}", queryParameter);
+
         queryParameter = queryParameter with
         {
             Filter = WithBasePath(queryParameter.Filter),
@@ -289,6 +298,7 @@ public class DatalakeStore : IDatalakeStore
     private async Task<Option<ETag>> Upload(string path, Stream fromStream, bool overwrite, DataETag dataETag, ScopeContext context)
     {
         Response<PathInfo> result;
+        using var metric = context.LogDuration("dataLakeStore-upload", "path={path}", path);
 
         try
         {
@@ -318,6 +328,8 @@ public class DatalakeStore : IDatalakeStore
 
     private async Task<Option<DatalakePathProperties>> GetPathPropertiesOrCreate(string path, ScopeContext context)
     {
+        using var metric = context.LogDuration("dataLakeStore-getPathPropertiesOrCreate");
+
         var properties = await InternalGetPathProperties(path, context).ConfigureAwait(false);
         if (properties.IsOk()) return properties;
 
@@ -328,6 +340,7 @@ public class DatalakeStore : IDatalakeStore
     private async Task<Option<DatalakePathProperties>> InternalGetPathProperties(string path, ScopeContext context)
     {
         context.Location().LogTrace("Getting path {path} properties", path);
+        using var metric = context.LogDuration("dataLakeStore-getPathProperties");
 
         try
         {

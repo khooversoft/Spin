@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
@@ -26,10 +27,10 @@ public class EdgeSerializationTests
         string json = edge.ToJson();
 
         var graphEdge = json.ToObject<GraphEdge>();
-        graphEdge.Should().NotBeNull();
+        graphEdge.NotNull();
         graphEdge!.FromKey.Should().Be("node1");
         graphEdge!.ToKey.Should().Be("node2");
-        graphEdge.Tags.Should().NotBeNull();
+        graphEdge.Tags.NotNull();
     }
 
     [Fact]
@@ -40,12 +41,12 @@ public class EdgeSerializationTests
         string json = edge.ToJson();
 
         var graphEdge = json.ToObject<GraphEdge>();
-        graphEdge.Should().NotBeNull();
+        graphEdge.NotNull();
         graphEdge!.FromKey.Should().Be("node1");
         graphEdge!.ToKey.Should().Be("node2");
-        graphEdge.Tags.Should().NotBeNull();
+        graphEdge.Tags.NotNull();
         graphEdge.Tags.Count.Should().Be(2);
-        graphEdge.Tags["t1"].Should().BeNull();
+        graphEdge.Tags["t1"].BeNull();
         graphEdge.Tags["t2"].Should().Be("v2");
     }
 }

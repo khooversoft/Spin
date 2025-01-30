@@ -1,7 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Toolbox.Tools.Should;
 
+[DebuggerStepThrough]
 public static class ShouldObjectExtensions
 {
     public static ShouldContext<object?> Should(
@@ -24,18 +26,6 @@ public static class ShouldObjectExtensions
     public static ShouldContext<object?> NotBe(this ShouldContext<object?> subject, object? value, string? because = null)
     {
         if (subject.Value?.Equals(value) == true) subject.ThrowException($"Value is '{subject.Value}' but should not be '{value}'", because);
-        return subject;
-    }
-
-    public static ShouldContext<object?> BeNull(this ShouldContext<object?> subject, string? because = null)
-    {
-        if (subject.Value != null) subject.ThrowException("Value is not null", because);
-        return subject;
-    }
-
-    public static ShouldContext<object?> NotBeNull(this ShouldContext<object?> subject, string? because = null)
-    {
-        if (subject.Value == null) subject.ThrowException("Value is null", because);
         return subject;
     }
 }

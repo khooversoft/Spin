@@ -1,4 +1,5 @@
 ﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -18,12 +19,12 @@ public class ResourceIdIdTests
         resourceId.ToString().Should().Be(id);
         resourceId.Type.Should().Be(ResourceType.System);
         resourceId.Schema.Should().Be(schema);
-        resourceId.User.Should().BeNull();
+        resourceId.User.BeNull();
         resourceId.SystemName.Should().Be(systemName);
-        resourceId.Domain.Should().BeNull();
-        resourceId.Path.Should().BeNull();
-        resourceId.PrincipalId.Should().BeNull();
-        resourceId.AccountId.Should().BeNull();
+        resourceId.Domain.BeNull();
+        resourceId.Path.BeNull();
+        resourceId.PrincipalId.BeNull();
+        resourceId.AccountId.BeNull();
     }
 
     [Theory]
@@ -37,12 +38,12 @@ public class ResourceIdIdTests
         resourceId.ToString().Should().Be(id);
         resourceId.Type.Should().Be(ResourceType.Tenant);
         resourceId.Schema.Should().Be("tenant");
-        resourceId.User.Should().BeNull();
-        resourceId.SystemName.Should().BeNull();
+        resourceId.User.BeNull();
+        resourceId.SystemName.BeNull();
         resourceId.Domain.Should().Be("domain.com");
-        resourceId.Path.Should().BeNull();
-        resourceId.PrincipalId.Should().BeNull();
-        resourceId.AccountId.Should().BeNull();
+        resourceId.Path.BeNull();
+        resourceId.PrincipalId.BeNull();
+        resourceId.AccountId.BeNull();
     }
 
     [Theory]
@@ -56,13 +57,13 @@ public class ResourceIdIdTests
         ResourceId resourceId = result.Return();
         resourceId.ToString().Should().Be(id);
         resourceId.Type.Should().Be(ResourceType.Principal);
-        resourceId.Schema.Should().BeNull();
+        resourceId.Schema.BeNull();
         resourceId.User.Should().Be(user);
-        resourceId.SystemName.Should().BeNull();
+        resourceId.SystemName.BeNull();
         resourceId.Domain.Should().Be(domain);
-        resourceId.Path.Should().BeNull();
+        resourceId.Path.BeNull();
         resourceId.PrincipalId.Should().Be(principalId);
-        resourceId.AccountId.Should().BeNull();
+        resourceId.AccountId.BeNull();
     }
 
     [Theory]
@@ -81,7 +82,7 @@ public class ResourceIdIdTests
         resourceId.Type.Should().Be(ResourceType.Owned);
         resourceId.Schema.Should().Be(schema);
         resourceId.User.Should().Be(user);
-        resourceId.SystemName.Should().BeNull();
+        resourceId.SystemName.BeNull();
         resourceId.Domain.Should().Be(domain);
         resourceId.Path.Should().Be(path);
         resourceId.PrincipalId.Should().Be($"{user}@{domain}");
@@ -101,11 +102,11 @@ public class ResourceIdIdTests
         resourceId.ToString().Should().Be(id);
         resourceId.Type.Should().Be(ResourceType.DomainOwned);
         resourceId.Schema.Should().Be(schema);
-        resourceId.User.Should().BeNull();
-        resourceId.SystemName.Should().BeNull();
+        resourceId.User.BeNull();
+        resourceId.SystemName.BeNull();
         resourceId.Domain.Should().Be(domain);
         resourceId.Path.Should().Be(path);
-        resourceId.PrincipalId.Should().BeNull();
+        resourceId.PrincipalId.BeNull();
         resourceId.AccountId.Should().Be($"{domain}/{path}");
     }
 
@@ -170,7 +171,7 @@ public class ResourceIdIdTests
         result.Domain.Should().Be(result2.Domain);
         result.Path.Should().Be(result2.Path);
         result.AccountId.Should().Be("company3.com/path1/path2");
-        result.PrincipalId.Should().BeNull();
+        result.PrincipalId.BeNull();
     }
 
     [Fact]
@@ -189,10 +190,10 @@ public class ResourceIdIdTests
         resourceId.Id.Should().Be(id);
         resourceId.Schema.Should().Be(schema);
         resourceId.SystemName.Should().Be(systemName);
-        resourceId.User.Should().BeNull();
-        resourceId.Domain.Should().BeNull();
-        resourceId.Path.Should().BeNull();
-        resourceId.PrincipalId.Should().BeNull();
-        resourceId.AccountId.Should().BeNull();
+        resourceId.User.BeNull();
+        resourceId.Domain.BeNull();
+        resourceId.Path.BeNull();
+        resourceId.PrincipalId.BeNull();
+        resourceId.AccountId.BeNull();
     }
 }

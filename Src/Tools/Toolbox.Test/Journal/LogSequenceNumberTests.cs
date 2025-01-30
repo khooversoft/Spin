@@ -1,5 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Journal;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Journal;
@@ -12,7 +13,7 @@ public class LogSequenceNumberTests
         var sn = new LogSequenceNumber();
 
         var collection = Enumerable.Range(0, 100).Select(x => sn.Next()).ToArray();
-        collection.Should().NotBeNull();
+        collection.NotNull();
         collection.Length.Should().Be(100);
     }
 

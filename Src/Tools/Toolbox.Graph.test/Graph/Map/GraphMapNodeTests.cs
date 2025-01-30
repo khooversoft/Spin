@@ -1,6 +1,7 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
@@ -17,7 +18,7 @@ public class GraphMapNodeTests
     public void Node()
     {
         var e1 = new GraphNode("n1");
-        e1.Should().NotBeNull();
+        e1.NotNull();
         e1.Key.Should().Be("n1");
 
         string json = e1.ToJson();
@@ -65,7 +66,7 @@ public class GraphMapNodeTests
         map.Edges.Count.Should().Be(0);
 
         GraphNode node = map.Nodes[sampleKey];
-        node.Should().NotBeNull();
+        node.NotNull();
         node.Key.Should().Be(sampleKey);
         map.Nodes.TryGetValue(sampleKey, out var _).Should().BeTrue();
 

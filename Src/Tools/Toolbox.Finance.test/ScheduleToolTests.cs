@@ -1,4 +1,5 @@
 ﻿using Toolbox.Finance.Finance;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Finance.test;
@@ -13,7 +14,7 @@ public class ScheduleToolTests
         int numberOfPayments = 36;
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
+        dates.NotNull();
         dates.Count.Should().Be(numberOfPayments);
 
         var shouldMatch = new[]
@@ -41,7 +42,7 @@ public class ScheduleToolTests
         int numberOfPayments = 5;
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
+        dates.NotNull();
         dates.Count.Should().Be(numberOfPayments);
 
         var shouldMatch = new[]
@@ -62,7 +63,7 @@ public class ScheduleToolTests
         int numberOfPayments = (2 * paymentsPerYear);
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
+        dates.NotNull();
         dates.Count.Should().Be(numberOfPayments);
 
         var shouldMatch = new[]
@@ -83,7 +84,7 @@ public class ScheduleToolTests
         int numberOfPayments = (2 * paymentsPerYear);
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
+        dates.NotNull();
         dates.Count.Should().Be(numberOfPayments);
 
         var shouldMatch = new[]
@@ -115,7 +116,7 @@ public class ScheduleToolTests
         int numberOfPayments = (2 * paymentsPerYear);
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
+        dates.NotNull();
         dates.Count.Should().Be(numberOfPayments);
 
         var shouldMatch = new[]

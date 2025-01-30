@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Validation.Should;
 
@@ -46,12 +47,12 @@ public class ShouldObjectTests
     public void ObjectBeNull()
     {
         object v1 = null!;
-        v1.Should().BeNull();
+        v1.BeNull();
 
         try
         {
             object v2 = "hello";
-            v2.Should().BeNull();
+            v2.BeNull();
         }
         catch (ArgumentException)
         {
@@ -65,12 +66,12 @@ public class ShouldObjectTests
     public void ObjectNotBeNull()
     {
         object v1 = "dkd";
-        v1.Should().NotBeNull();
+        v1.NotNull();
 
         try
         {
             object v2 = null!;
-            v2.Should().NotBeNull();
+            v2.NotNull();
         }
         catch (ArgumentException)
         {
@@ -84,12 +85,12 @@ public class ShouldObjectTests
     public void ObjectBeNullNullable()
     {
         object? v1 = null!;
-        v1.Should().BeNull();
+        v1.BeNull();
 
         try
         {
             object? v2 = "hello";
-            v2.Should().BeNull();
+            v2.BeNull();
         }
         catch (ArgumentException)
         {
@@ -103,12 +104,12 @@ public class ShouldObjectTests
     public void ObjectNotBeNullNullable()
     {
         object? v1 = "dkd";
-        v1.Should().NotBeNull();
+        v1.NotNull();
 
         try
         {
             object? v2 = null!;
-            v2.Should().NotBeNull();
+            v2.NotNull();
         }
         catch (ArgumentException)
         {

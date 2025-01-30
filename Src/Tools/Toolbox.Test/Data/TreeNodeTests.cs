@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Data;
@@ -20,7 +21,7 @@ public class TreeNodeTests
             }
         };
 
-        tree.Value.Should().BeNull();
+        tree.Value.BeNull();
         tree.Children.Count.Should().Be(4);
         tree.Children[0].Value.Should().Be("1");
         tree.Children[1].Value.Should().Be("2");

@@ -35,7 +35,7 @@ public class ChannelClient
 
     public ChannelContext GetContext(string channelId, string principalId) => new(_graphClient, channelId, principalId, _logger);
 
-    public async Task<Option<IReadOnlyList<string>>> ChannelsForPrincipalId(string principalId, ScopeContext context)
+    public async Task<Option<IReadOnlyList<ChannelRecord>>> GetPrincipalChannels(string principalId, ScopeContext context)
     {
         // Channel -> PrincipalGroup -> PrincipalId
 
@@ -49,16 +49,29 @@ public class ChannelClient
             .AddEdgeSearch(x => x.SetEdgeType(ChannelTool.EdgeType))
             .AddRightJoin()
             .AddNodeSearch(x => x.AddTag(ChannelTool.NodeTag))
+            .AddDataName("entity")
             .Build();
 
         var resultOption = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
         resultOption.LogStatus(context, "Lookup security grup by principalId={principalId}", [principalId]);
-        if (resultOption.IsError()) return resultOption.ToOptionStatus<IReadOnlyList<string>>();
+        if (resultOption.IsError()) return resultOption.ToOptionStatus<IReadOnlyList<ChannelRecord>>();
 
         var result = resultOption.Return();
-        if (result.Nodes.Count == 0) return (StatusCode.NotFound, "Node not found");
+        IReadOnlyList<ChannelRecord> list = result.DataLinkToObjects<ChannelRecord>("entity");
 
-        var list = result.Nodes.Select(x => ChannelTool.RemoveNodeKeyPrefix(x.Key)).ToImmutableArray();
+        return list.ToOption();
+    }
+
+    public async Task<Option<IReadOnlyList<ChannelMessage>>> GetPrincipalMessages(string principalId, ScopeContext context)
+    {
+        var listOption = await GetPrincipalChannels(principalId, context);
+        if (listOption.IsError()) return listOption.ToOptionStatus<IReadOnlyList<ChannelMessage>>();
+
+        var list = listOption.Return()
+            .SelectMany(x => x.Messages)
+            .OrderBy(x => x.MessageId)
+            .ToImmutableArray();
+
         return list;
     }
 }

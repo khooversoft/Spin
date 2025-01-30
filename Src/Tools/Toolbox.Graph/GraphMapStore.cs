@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -26,6 +27,8 @@ internal class GraphMapStore
         context = context.With(_logger);
 
         await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        using var metric = context.LogDuration("graphMapStore-get");
+
         try
         {
             context.LogTrace("Reading graph data file={mapDatabasePath}", _mapDatabasePath);
@@ -70,6 +73,7 @@ internal class GraphMapStore
     private async Task<Option> InternalSet(ScopeContext context)
     {
         context = context.With(_logger);
+        using var metric = context.LogDuration("graphMapStore-set");
 
         context.LogTrace("Writing graph data file={mapDatabasePath}", _mapDatabasePath);
 

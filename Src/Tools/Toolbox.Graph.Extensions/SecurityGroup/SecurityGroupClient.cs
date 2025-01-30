@@ -33,7 +33,7 @@ public class SecurityGroupClient
         return result.ToOptionStatus();
     }
 
-    public SecurityGroupContext GetContext(string securityGroupId, string principalId) => new(_graphClient, securityGroupId, principalId, _logger);
+    public SecurityGroupContext GetContext(string securityGroupId, string principalId) => new (_graphClient, securityGroupId, principalId, _logger);
 
     public async Task<Option<IReadOnlyList<string>>> GroupsForPrincipalId(string principalId, ScopeContext context)
     {

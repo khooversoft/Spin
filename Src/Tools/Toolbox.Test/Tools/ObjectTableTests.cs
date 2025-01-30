@@ -32,7 +32,7 @@ public class ObjectTableTests
         table.Header.Columns[0].Name.Should().Be(column1Text);
 
         table.Rows.Count.Should().Be(1);
-        table.Rows[0].Header.Should().NotBeNull();
+        table.Rows[0].Header.NotNull();
         table.Rows[0].Items.Count.Should().Be(1);
         table.Rows[0].Items[0].Value.Should().Be(data1Test);
         table.Rows[0].Items[0].Get<string>().Should().Be(data1Test);

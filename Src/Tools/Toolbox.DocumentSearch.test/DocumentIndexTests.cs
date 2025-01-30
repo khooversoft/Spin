@@ -27,7 +27,7 @@ public class DocumentIndexTests
             .Build();
 
         IReadOnlyList<DocumentReference> result = index.Search("Process");
-        result.Should().NotBeNull();
+        result.NotNull();
         result.Count.Should().Be(1);
         result[0].DocumentId.Should().Be("doc1");
     }
@@ -42,7 +42,7 @@ public class DocumentIndexTests
             .Build();
 
         IReadOnlyList<DocumentReference> result = index.Search("hoover");
-        result.Should().NotBeNull();
+        result.NotNull();
         result.Count.Should().Be(0);
     }
 
@@ -60,7 +60,7 @@ public class DocumentIndexTests
         index.InvertedIndex.Index.Count.Should().Be(6);
 
         IReadOnlyList<DocumentReference> result = index.Search("this");
-        result.Should().NotBeNull();
+        result.NotNull();
         result.Count.Should().Be(0);
 
         result = index.Search("Document");
@@ -112,7 +112,7 @@ public class DocumentIndexTests
         json.Should().NotBeEmpty();
 
         DocumentIndex newIndex = json.ToObject<DocumentIndexSerialization>().NotNull().FromSerialization();
-        newIndex.Should().NotBeNull();
+        newIndex.NotNull();
         newIndex.Index.Count.Should().Be(3);
         newIndex.InvertedIndex.Index.Count.Should().Be(6);
     }

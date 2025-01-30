@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -46,10 +47,10 @@ public class StatusCodeTests
     {
         Option option = StatusCode.BadRequest;
         option.StatusCode.Should().Be(StatusCode.BadRequest);
-        option.Error.Should().BeNull();
+        option.Error.BeNull();
 
         Option<int> option2 = StatusCode.NotFound;
         option2.StatusCode.Should().Be(StatusCode.NotFound);
-        option2.Error.Should().BeNull();
+        option2.Error.BeNull();
     }
 }

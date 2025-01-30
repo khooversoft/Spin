@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -25,7 +26,7 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
 
         response.StatusCode.Should().Be(StatusCode.OK);
         response.IsOk().Should().BeTrue();
-        response.Error.Should().BeNull();
+        response.Error.BeNull();
         response.HasValue.Should().BeTrue();
         (response.Return() == ModelDefaults.TestModel).Should().BeTrue();
     }
@@ -57,7 +58,7 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
 
         response.StatusCode.Should().Be(StatusCode.BadRequest);
         response.IsOk().Should().BeFalse();
-        response.Error.Should().BeNull();
+        response.Error.BeNull();
     }
 
     [Fact]
@@ -72,7 +73,7 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
 
         response.StatusCode.Should().Be(StatusCode.OK);
         response.IsOk().Should().BeTrue();
-        response.Error.Should().BeNull();
+        response.Error.BeNull();
         response.HasValue.Should().BeTrue();
 
         Option<TestModel> result = response.Return();

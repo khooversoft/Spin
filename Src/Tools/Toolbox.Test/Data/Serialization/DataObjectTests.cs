@@ -1,5 +1,6 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -27,13 +28,13 @@ public class DataObjectTests
         };
 
         DataObject d = DataObject.Create(t);
-        d.Should().NotBeNull();
+        d.NotNull();
         d.Key.Should().Be("TestClass");
         d.TypeName.Should().Be("TestClass");
         d.JsonData.Should().NotBeEmpty();
 
         TestClass rt = d.ToObject<TestClass>();
-        rt.Should().NotBeNull();
+        rt.NotNull();
         rt.Name.Should().Be("test");
         rt.Value.Should().Be("value");
 
@@ -72,7 +73,7 @@ public class DataObjectTests
         string json = set.ToJson();
 
         DataObjectSet? read = json.ToObject<DataObjectSet>();
-        read.Should().NotBeNull();
+        read.NotNull();
         read!.Count.Should().Be(2);
 
         Option<TestClass> r_rt1 = read.GetObject<TestClass>();

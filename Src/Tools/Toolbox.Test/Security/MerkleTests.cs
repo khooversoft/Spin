@@ -1,5 +1,6 @@
 using System.Text;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -19,9 +20,9 @@ namespace Toolbox.Test.Security
         public void CreateNodeTest()
         {
             MerkleNode node = new MerkleNode();
-            node.Parent.Should().BeNull();
-            node.LeftNode.Should().BeNull();
-            node.RightNode.Should().BeNull();
+            node.Parent.BeNull();
+            node.LeftNode.BeNull();
+            node.RightNode.BeNull();
         }
 
         /// <summary>
@@ -83,7 +84,7 @@ namespace Toolbox.Test.Security
             tree.Append(new MerkleHash("123"));
             tree.Append(new MerkleHash("456"));
             tree.BuildTree();
-            tree.RootNode.Should().NotBeNull();
+            tree.RootNode.NotNull();
         }
 
         [Fact]
@@ -94,7 +95,7 @@ namespace Toolbox.Test.Security
             tree.Append(new MerkleHash("def"));
             tree.Append(new MerkleHash("123"));
             tree.BuildTree();
-            tree.RootNode.Should().NotBeNull();
+            tree.RootNode.NotNull();
         }
 
         // A Merkle audit path for a leaf in a Merkle Hash Tree is the shortest

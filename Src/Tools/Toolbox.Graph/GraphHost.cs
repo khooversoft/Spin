@@ -78,7 +78,12 @@ public class GraphHost : IGraphHost
         int current = Interlocked.CompareExchange(ref _runningState, Running, Stopped);
         if (current == Running) return StatusCode.OK;
 
-        var result = await LoadMap(context).ConfigureAwait(false);
+        Option result;
+        using (var metric = context.LogDuration("graphHost-loadMap"))
+        {
+            result = await LoadMap(context).ConfigureAwait(false);
+        }
+
         Interlocked.Exchange(ref _runningState, Running);
         result.LogStatus(context, "Host started and map loaded");
         return result;

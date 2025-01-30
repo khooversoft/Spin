@@ -14,7 +14,7 @@ public class GraphMapSerializationTests
         var json = map.ToJson();
 
         var mapResult = GraphMap.FromJson(json).NotNull();
-        mapResult.Should().NotBeNull();
+        mapResult.NotNull();
         mapResult.Count().Should().Be(0);
         mapResult.Nodes.Count.Should().Be(0);
         mapResult.Edges.Count.Should().Be(0);
@@ -31,7 +31,7 @@ public class GraphMapSerializationTests
             var json = x.ToJson();
 
             var mapResult = GraphMap.FromJson(json).NotNull();
-            mapResult.Should().NotBeNull();
+            mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
 
@@ -39,7 +39,7 @@ public class GraphMapSerializationTests
             mapResult.Nodes.First().Action(y =>
             {
                 y.Key.Should().Be("Node1");
-                y.Tags.Should().NotBeNull();
+                y.Tags.NotNull();
                 y.Tags.Count.Should().Be(0);
             });
         });
@@ -52,7 +52,7 @@ public class GraphMapSerializationTests
             var json = x.ToJson();
 
             var mapResult = GraphMap.FromJson(json).NotNull();
-            mapResult.Should().NotBeNull();
+            mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
 
@@ -60,7 +60,7 @@ public class GraphMapSerializationTests
             mapResult.Nodes.First().Action(y =>
             {
                 y.Key.Should().Be("Node1");
-                y.Tags.Should().NotBeNull();
+                y.Tags.NotNull();
                 y.Tags.Count.Should().Be(0);
             });
         });
@@ -73,7 +73,7 @@ public class GraphMapSerializationTests
             var json = x.ToJson();
 
             var mapResult = GraphMap.FromJson(json).NotNull();
-            mapResult.Should().NotBeNull();
+            mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
 
@@ -81,9 +81,9 @@ public class GraphMapSerializationTests
             mapResult.Nodes.First().Action(y =>
             {
                 y.Key.Should().Be("Node1");
-                y.Tags.Should().NotBeNull();
+                y.Tags.NotNull();
                 y.Tags.Count.Should().Be(2);
-                y.Tags["t1"].Should().BeNull();
+                y.Tags["t1"].BeNull();
                 y.Tags["t2"].Should().Be("v2");
             });
         });
@@ -96,7 +96,7 @@ public class GraphMapSerializationTests
             var json = x.ToJson();
 
             var mapResult = GraphMap.FromJson(json).NotNull();
-            mapResult.Should().NotBeNull();
+            mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
 
@@ -104,9 +104,9 @@ public class GraphMapSerializationTests
             mapResult.Nodes.First().Action(y =>
             {
                 y.Key.Should().Be("Node1");
-                y.Tags.Should().NotBeNull();
+                y.Tags.NotNull();
                 y.Tags.Count.Should().Be(2);
-                y.Tags["t1"].Should().BeNull();
+                y.Tags["t1"].BeNull();
                 y.Tags["t2"].Should().Be("v2");
             });
         });

@@ -54,7 +54,7 @@ public class ValidationTests
         };
 
         var result = validations.Validate(option);
-        result.Should().NotBeNull();
+        result.NotNull();
         result.IsOk().Should().BeTrue();
         result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(0);
     }
@@ -89,7 +89,7 @@ public class ValidationTests
         };
 
         var result = validations.Validate(option);
-        result.Should().NotBeNull();
+        result.NotNull();
         result.IsOk().Should().BeTrue();
         result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(0);
     }
@@ -120,7 +120,7 @@ public class ValidationTests
         };
 
         var result = validations.Validate(option);
-        result.Should().NotBeNull();
+        result.NotNull();
         result.IsError().Should().BeTrue();
         result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(2);
     }
@@ -140,7 +140,7 @@ public class ValidationTests
         };
 
         var result = validations.Validate(option);
-        result.Should().NotBeNull();
+        result.NotNull();
         result.IsError().Should().BeTrue();
         result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(2);
     }
@@ -160,7 +160,7 @@ public class ValidationTests
         }.Action(x =>
         {
             var result = validations.Validate(x);
-            result.Should().NotBeNull();
+            result.NotNull();
             result.IsOk().Should().BeTrue(result.ToString());
             result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(0);
         });
@@ -172,7 +172,7 @@ public class ValidationTests
         }.Action(x =>
         {
             var result = validations.Validate(x);
-            result.Should().NotBeNull();
+            result.NotNull();
             result.IsError().Should().BeTrue();
             result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(1);
             result.Return().Cast<ValidatorResult>().Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");
@@ -185,7 +185,7 @@ public class ValidationTests
         }.Action(x =>
         {
             var result = validations.Validate(x);
-            result.Should().NotBeNull();
+            result.NotNull();
             result.IsError().Should().BeTrue();
             result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(1);
             result.Return().Cast<ValidatorResult>().Errors[0].Cast<ValidatorError>().Message.Should().Be("accountName is required");
@@ -198,7 +198,7 @@ public class ValidationTests
         }.Action(x =>
         {
             var result = validations.Validate(x);
-            result.Should().NotBeNull();
+            result.NotNull();
             result.IsError().Should().BeTrue();
             result.Return().Cast<ValidatorResult>().Errors.Count().Should().Be(2);
             result.Return().Cast<ValidatorResult>().Errors[0].Cast<ValidatorError>().Message.Should().Be("domain is required");

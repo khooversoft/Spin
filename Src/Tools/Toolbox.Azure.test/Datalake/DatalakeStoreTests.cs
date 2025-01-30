@@ -36,16 +36,16 @@ public class DatalakeStoreTests
 
         Option<DatalakePathProperties> pathProperties = await _dataLakeStore.GetPathProperties(path, _context);
         pathProperties.IsOk().Should().BeTrue();
-        pathProperties.Return().ETag.Should().NotBeNull();
+        pathProperties.Return().ETag.NotNull();
 
         (await _dataLakeStore.Exist(path, _context)).IsOk().Should().BeTrue();
-        (await _dataLakeStore.GetPathProperties(path, _context)).Should().NotBeNull();
+        (await _dataLakeStore.GetPathProperties(path, _context)).NotNull();
 
         (await _dataLakeStore.Delete(path, _context)).IsOk().Should().BeTrue();
         (await _dataLakeStore.Exist(path, _context)).IsNotFound().Should().BeTrue();
 
         Option<QueryResponse<DatalakePathItem>> list = await _dataLakeStore.Search(QueryParameter.Parse("**/*"), _context);
-        list.Should().NotBeNull();
+        list.NotNull();
     }
 
     [Fact]

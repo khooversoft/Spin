@@ -16,7 +16,7 @@ public static class QueryExecution
 
         await using var graphTrxContext = new GraphTrxContext(graphHost, context);
 
-        var pContextOption = await ParseQuery(graphQuery, graphTrxContext);
+        var pContextOption = await ParseQuery(graphQuery, graphTrxContext, context);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
 
         var graphQueryResultOption = await ExecuteInstruction(pContextOption.Return());
@@ -26,23 +26,29 @@ public static class QueryExecution
         return new Option<QueryBatchResult>(graphQueryResult, graphQueryResult.Option.StatusCode, graphQueryResult.Option.Error);
     }
 
-    private static async Task<Option<QueryExecutionContext>> ParseQuery(string graphQuery, IGraphTrxContext graphTrxContext)
+    private static async Task<Option<QueryExecutionContext>> ParseQuery(string graphQuery, IGraphTrxContext graphTrxContext, ScopeContext context)
     {
-        graphTrxContext.Context.LogInformation("Parsing query: {graphQuery}", graphQuery);
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphTrxContext.Context);
-        if (parse.Status.IsError()) return parse.Status.LogStatus(graphTrxContext.Context, graphQuery).ToOptionStatus<QueryExecutionContext>();
+        using (var metric = context.LogDuration("queryExecution-parseQuery"))
+        {
+            graphTrxContext.Context.LogInformation("Parsing query: {graphQuery}", graphQuery);
+            var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphTrxContext.Context);
+            if (parse.Status.IsError()) return parse.Status.LogStatus(graphTrxContext.Context, graphQuery).ToOptionStatus<QueryExecutionContext>();
 
-        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();
-        var instructions = InterLangTool.Build(syntaxPairs);
+            var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();
+            var instructions = InterLangTool.Build(syntaxPairs);
 
-        if (instructions.IsError()) return instructions
-            .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
-            .ToOptionStatus<QueryExecutionContext>();
+            if (instructions.IsError()) return instructions
+                .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
+                .ToOptionStatus<QueryExecutionContext>();
 
-        var journalEntry = JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphQuery).ToKeyValuePairs());
-        await graphTrxContext.TraceWriter.Write([journalEntry]);
+            using (var metric2 = context.LogDuration("queryExecution-parseQuery-writeTrace"))
+            {
+                var journalEntry = JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphQuery).ToKeyValuePairs());
+                await graphTrxContext.TraceWriter.Write([journalEntry]);
+            }
 
-        return new QueryExecutionContext(graphQuery, instructions.Return(), graphTrxContext);
+            return new QueryExecutionContext(graphQuery, instructions.Return(), graphTrxContext);
+        }
     }
 
     private static async Task<Option<QueryBatchResult>> ExecuteInstruction(QueryExecutionContext pContext)
@@ -52,52 +58,56 @@ public static class QueryExecution
         GraphMap map = pContext.TrxContext.Map;
         var traceList = new Sequence<JournalEntry>();
 
-        using (var release = write ? (await map.ReadWriterLock.WriterLockAsync()) : (await map.ReadWriterLock.ReaderLockAsync()))
+        using (var metric = pContext.TrxContext.Context.LogDuration("queryExecution-executionInstruction"))
         {
-            while (pContext.Cursor.TryGetValue(out var graphInstruction))
+            using (var release = write ? (await map.ReadWriterLock.WriterLockAsync()) : (await map.ReadWriterLock.ReaderLockAsync()))
             {
-                long startingTimestamp = Stopwatch.GetTimestamp();
-
-                var queryResult = graphInstruction switch
+                while (pContext.Cursor.TryGetValue(out var graphInstruction))
                 {
-                    GiNode giNode => await NodeInstruction.Process(giNode, pContext),
-                    GiEdge giEdge => EdgeInstruction.Process(giEdge, pContext),
-                    GiSelect giSelect => await SelectInstruction.Process(giSelect, pContext),
-                    GiDelete giDelete => await DeleteInstruction.Process(giDelete, pContext),
-                    _ => throw new UnreachableException(),
-                };
+                    var metric2 = pContext.TrxContext.Context.LogDuration("queryExecution-executionInstruction-instruction");
 
-                TimeSpan duration = Stopwatch.GetElapsedTime(startingTimestamp);
-                traceList += JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphInstruction, queryResult, duration).ToKeyValuePairs());
+                    var queryResult = graphInstruction switch
+                    {
+                        GiNode giNode => await NodeInstruction.Process(giNode, pContext),
+                        GiEdge giEdge => EdgeInstruction.Process(giEdge, pContext),
+                        GiSelect giSelect => await SelectInstruction.Process(giSelect, pContext),
+                        GiDelete giDelete => await DeleteInstruction.Process(giDelete, pContext),
+                        _ => throw new UnreachableException(),
+                    };
 
-                var itemResult = pContext.BuildQueryResult();
-                traceList += JournalEntry.Create(JournalType.Data, itemResult.ToKeyValuePairs());
+                    TimeSpan duration = metric2.Log();
 
-                if (queryResult.IsError())
-                {
-                    pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
-                    await pContext.TrxContext.ChangeLog.Rollback();
-                    await pContext.TrxContext.TraceWriter.Write(traceList);
-                    return itemResult;
+                    var itemResult = pContext.BuildQueryResult();
+                    traceList += JournalEntry.Create(JournalType.Data, itemResult.ToKeyValuePairs());
+
+                    if (queryResult.IsError())
+                    {
+                        pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
+                        await pContext.TrxContext.ChangeLog.Rollback();
+                        await pContext.TrxContext.TraceWriter.Write(traceList);
+                        return itemResult;
+                    }
+
+                    traceList += JournalEntry.Create(JournalType.Action, GraphTraceTool.Create(graphInstruction, queryResult, duration).ToKeyValuePairs());
                 }
-            }
 
-            var batchResult = pContext.BuildQueryResult();
-            await pContext.TrxContext.TraceWriter.Write(traceList);
+                var batchResult = pContext.BuildQueryResult();
+                await pContext.TrxContext.TraceWriter.Write(traceList);
 
-            if (write)
-            {
-                await pContext.TrxContext.ChangeLog.CommitLogs();
-
-                var writeOption = await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
-                if (writeOption.IsError())
+                if (write)
                 {
-                    writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed");
-                    return (StatusCode.InternalServerError, "Checkpoint failed");
-                }
-            }
+                    await pContext.TrxContext.ChangeLog.CommitLogs();
 
-            return batchResult;
+                    var writeOption = await pContext.TrxContext.CheckpointMap(pContext.TrxContext.Context);
+                    if (writeOption.IsError())
+                    {
+                        writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed");
+                        return (StatusCode.InternalServerError, "Checkpoint failed");
+                    }
+                }
+
+                return batchResult;
+            }
         }
     }
 }

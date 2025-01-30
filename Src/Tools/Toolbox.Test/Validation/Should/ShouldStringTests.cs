@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
+using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Validation.Should;
 
@@ -66,12 +67,12 @@ public class ShouldStringTests
     public void StringBeNull()
     {
         string v1 = null!;
-        v1.Should().BeNull();
+        v1.BeNull();
 
         try
         {
             string v2 = "hello";
-            v2.Should().BeNull();
+            v2.BeNull();
         }
         catch (ArgumentException)
         {
@@ -85,12 +86,12 @@ public class ShouldStringTests
     public void StringNotBeNull()
     {
         string v1 = "hello"!;
-        v1.Should().NotBeNull();
+        v1.NotNull();
 
         try
         {
             string v2 = null!;
-            v2.Should().NotBeNull();
+            v2.NotNull();
         }
         catch (ArgumentException)
         {
@@ -123,12 +124,12 @@ public class ShouldStringTests
     public void StringBeNullNullable()
     {
         string? v1 = null!;
-        v1.Should().BeNull();
+        v1.BeNull();
 
         try
         {
             string? v2 = "hello";
-            v2.Should().BeNull();
+            v2.BeNull();
         }
         catch (ArgumentException)
         {
@@ -142,12 +143,12 @@ public class ShouldStringTests
     public void StringNotBeNullNullable()
     {
         string? v1 = "dkd";
-        v1.Should().NotBeNull();
+        v1.NotNull();
 
         try
         {
             string? v2 = null!;
-            v2.Should().NotBeNull();
+            v2.NotNull();
         }
         catch (ArgumentException)
         {

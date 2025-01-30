@@ -56,7 +56,7 @@ public class GraphEngineNodeDataTests
         {
             x.NodeKey.Should().Be("node1");
             x.Name.Should().Be("contract");
-            x.Data.Should().NotBeNull();
+            x.Data.NotNull();
 
             TestContractRecord readRec = x.Data.ToObject<TestContractRecord>();
             readRec.NotNull();

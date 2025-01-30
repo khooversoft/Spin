@@ -1,5 +1,30 @@
 ﻿namespace Toolbox.Tools;
 
+public record struct FinalizeScope : IDisposable
+{
+    private Action? _finalizeAction;
+    private Action? _cancelAction;
+
+    public FinalizeScope(Action finalizeAction)
+    {
+        _finalizeAction = finalizeAction.NotNull();
+    }
+
+    public FinalizeScope(Action finalizeAction, Action cancelAction)
+    {
+        _finalizeAction = finalizeAction.NotNull();
+        _cancelAction = cancelAction.NotNull();
+    }
+
+    public void Cancel()
+    {
+        _finalizeAction = null;
+        Interlocked.Exchange(ref _cancelAction, null)?.Invoke();
+    }
+
+    public void Dispose() => Interlocked.Exchange(ref _finalizeAction, null)?.Invoke();
+}
+
 public record struct FinalizeScope<T> : IDisposable
 {
     private readonly T _value;

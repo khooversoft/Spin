@@ -168,13 +168,13 @@ public class CommandThreeNodesAndEdges : IWorker
         read.Items.Count.Should().Be(2);
         read.Items.Where(z => z.Alias == "a1").FirstOrDefault().Action(z1 =>
         {
-            z1.Should().NotBeNull();
+            z1.NotNull();
             z1.NotNull().Nodes.Count.Should().Be(1);
             z1.Edges.Count.Should().Be(0);
         });
         read.Items.Where(z => z.Alias == "a2").FirstOrDefault().Action(z1 =>
         {
-            z1.Should().NotBeNull();
+            z1.NotNull();
             z1.NotNull().Nodes.Count.Should().Be(0);
             z1.Edges.Count.Should().Be(1);
         });
@@ -190,19 +190,19 @@ public class CommandThreeNodesAndEdges : IWorker
         read.Items.Count.Should().Be(3);
         read.Items.Where(z => z.Alias == "a1").FirstOrDefault().Action(z1 =>
         {
-            z1.Should().NotBeNull();
+            z1.NotNull();
             z1.NotNull().Nodes.Count.Should().Be(1);
             z1.Edges.Count.Should().Be(0);
         });
         read.Items.Where(z => z.Alias == "a2").FirstOrDefault().Action(z1 =>
         {
-            z1.Should().NotBeNull();
+            z1.NotNull();
             z1.NotNull().Nodes.Count.Should().Be(0);
             z1.Edges.Count.Should().Be(1);
         });
         read.Items.Where(z => z.Alias == "a3").FirstOrDefault().Action(z1 =>
         {
-            z1.Should().NotBeNull();
+            z1.NotNull();
             z1.NotNull().Nodes.Count.Should().Be(1);
             z1.Edges.Count.Should().Be(0);
         });
@@ -228,13 +228,13 @@ public class CommandThreeNodesAndEdges : IWorker
         read.Items.Count.Should().Be(2);
         read.Items.Where(z => z.Alias == "a1").FirstOrDefault().Action(z1 =>
         {
-            z1.Should().NotBeNull();
+            z1.NotNull();
             z1.NotNull().Nodes.Count.Should().Be(0);
             z1.Edges.Count.Should().Be(1);
         });
         read.Items.Where(z => z.Alias == "a2").FirstOrDefault().Action(z1 =>
         {
-            z1.Should().NotBeNull();
+            z1.NotNull();
             z1.NotNull().Nodes.Count.Should().Be(1);
             z1.Edges.Count.Should().Be(0);
         });

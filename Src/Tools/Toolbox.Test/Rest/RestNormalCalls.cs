@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -65,7 +66,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         response.StatusCode.IsError().Should().BeTrue();
         response.StatusCode.Should().Be(StatusCode.Conflict);
-        response.Error.Should().BeNull();
+        response.Error.BeNull();
     }
 
     [Fact]
@@ -80,9 +81,9 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         response.IsError().Should().BeTrue();
         response.StatusCode.Should().Be(StatusCode.Conflict);
-        response.Error.Should().BeNull();
+        response.Error.BeNull();
         response.HasValue.Should().BeFalse();
-        response.Value.Should().BeNull();
+        response.Value.BeNull();
     }
 
     [Fact]
@@ -97,7 +98,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         response.StatusCode.Should().Be(StatusCode.OK);
         response.StatusCode.IsError().Should().BeFalse();
-        response.Error.Should().BeNull();
+        response.Error.BeNull();
     }
 
     [Fact]
@@ -112,7 +113,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         response.StatusCode.Should().Be(StatusCode.OK);
         response.StatusCode.IsError().Should().BeFalse();
-        response.Error.Should().BeNull();
+        response.Error.BeNull();
         (response.Return() == ModelDefaults.TestModel).Should().BeTrue();
     }
 
