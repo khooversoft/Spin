@@ -1,0 +1,40 @@
+﻿@using TicketShare.sdk
+
+@implements IDialogContentComponent<PanelParameters<ChannelHeaderModel>>
+
+@if (Content != null)
+{
+    <FluentDialogBody>
+        <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" DisableSave="_disableSave" ShowSave="true">
+
+            <EditChannelHeader Content="@Content.Value" OnChange="RefreshSaveState" />
+
+        </DialogFrame>
+    </FluentDialogBody>
+}
+
+@code {
+    [Parameter] public PanelParameters<ChannelHeaderModel> Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private bool _disableSave = true;
+    private ChannelHeaderModel _current = default!;
+
+    protected override void OnParametersSet()
+    {
+        _current = Content.Value.Clone();
+        RefreshSaveState();
+    }
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<ChannelHeaderModel>.Set(Content.Value));
+    private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<ChannelHeaderModel>.Delete());
+    public async Task OnCloseButton() => await Dialog.CancelAsync();
+
+    private void RefreshSaveState() => _disableSave = Content.IsEdit switch
+    {
+        true => !HasDataRequired() || Content.Value == _current,
+        false => !HasDataRequired()
+    };
+
+    private bool HasDataRequired() => Content.Value.Validate().IsOk();
+}

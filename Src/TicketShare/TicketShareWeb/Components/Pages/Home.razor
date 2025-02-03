@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using TicketShareWeb.Components.Account.Shared
+@using TicketShareWeb.Components.Pages.Channels
 
 <PageTitle>Ticket Share</PageTitle>
 
@@ -15,6 +16,9 @@
                     conversations.
                 </p>
             </FluentCard>
+
+            <AllChannelMessages />
+
         </Authorized>
         <NotAuthorized>
             <FluentCard Class="card-container" Width="380px">

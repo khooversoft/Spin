@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 
 namespace TicketShareWeb.Components.Account
 {

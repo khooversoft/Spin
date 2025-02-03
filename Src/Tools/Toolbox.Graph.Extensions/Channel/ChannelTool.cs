@@ -1,4 +1,6 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Logging;
+using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions;
 
@@ -6,7 +8,7 @@ public static class ChannelTool
 {
     public const string NodeTag = "channel";
     public const string NodeKeyPrefix = "channel:";
-    public const string EdgeType = "channel-principalGroup";
+    public const string EdgeType = "channel-securityGroup";
     public const string ViewNodeTag = "/channel-view";
 
     public static string ToNodeKey(string channelId) => $"{NodeKeyPrefix}{channelId.NotEmpty().ToLower()}";
@@ -32,5 +34,35 @@ public static class ChannelTool
         };
 
         return c2;
+    }
+
+    public static Option<string> CreateQuery(this ChannelRecord channelRecord, bool useSet, ScopeContext context)
+    {
+        if (channelRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(ChannelRecord)).ToOptionStatus<string>();
+
+        string nodeKey = ChannelTool.ToNodeKey(channelRecord.ChannelId);
+
+        var cmd = new NodeCommandBuilder()
+            .UseSet(useSet)
+            .SetNodeKey(nodeKey)
+            .AddTag(ChannelTool.NodeTag)
+            .AddData("entity", channelRecord)
+            .AddReference(ChannelTool.EdgeType, SecurityGroupTool.ToNodeKey(channelRecord.SecurityGroupId))
+            .Build();
+
+        return cmd;
+    }
+
+    public static ChannelRecord CreateRecord(string channelId, string securityGroupId, string name) => new ChannelRecord
+    {
+        ChannelId = channelId.NotEmpty(),
+        SecurityGroupId = securityGroupId.NotEmpty(),
+        Name = name.NotEmpty(),
+    };
+
+    public static CommandBatchBuilder AddChannel(this CommandBatchBuilder builder, ChannelRecord subject, bool useSet)
+    {
+        builder.Add((context) => CreateQuery(subject, useSet, context));
+        return builder;
     }
 }

@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Logging;
 
-public static class LoggingExtensions
+public static class LoggingTool
 {
     public static Option LogStatus(
         this Option option,
@@ -40,6 +40,8 @@ public static class LoggingExtensions
         InternalLogStatus(location, option.ToOptionStatus(), context, message, args, name);
         return option;
     }
+
+    public static string ToSafeLoggingFormat(this string subject) => (subject ?? string.Empty).Replace("{", "{{").Replace("}", "}}");
 
     private static void InternalLogStatus(ScopeContextLocation location, Option option, ScopeContext context, string message, IEnumerable<object>? args, string name)
     {

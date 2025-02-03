@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
+using TicketShare.sdk.Identity;
 using TicketShareWeb.Application;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
 using Toolbox.Azure;
 using Toolbox.Graph;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,7 +55,7 @@ builder.Services.AddAuthentication(options =>
 //    .AddSignInManager()
 //    .AddDefaultTokenProviders();
 
-builder.Services.AddTransient<IUserStore<PrincipalIdentity>, IdentityUserStore>();
+builder.Services.AddTransient<IUserStore<PrincipalIdentity>, IdentityUserStoreHandler>();
 
 builder.Services
     .AddIdentityCore<PrincipalIdentity>()

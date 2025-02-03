@@ -9,7 +9,7 @@ internal static class NodeInstruction
 {
     public static async Task<Option> Process(GiNode giNode, QueryExecutionContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogTrace("Process giNode={giNode}", giNode);
+        pContext.TrxContext.Context.Location().LogTrace("Process giNode={giNode}, changeType={changeType}", giNode, giNode.ChangeType);
 
         var result = giNode.ChangeType switch
         {
@@ -130,6 +130,13 @@ internal static class NodeInstruction
 
         if (foreignKeys.Count == 0) return StatusCode.OK;
 
+        pContext.TrxContext.Context.LogTrace(
+            "Add foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}, tags={tags}",
+            fromKey,
+            foreignKeys.ToTagsString(),
+            tags.ToTagsString()
+            );
+
         // Valid tags based on foreignKey as edgeType
         var fkTags = tags
             .Where(x => x.Value.IsNotEmpty())
@@ -143,12 +150,20 @@ internal static class NodeInstruction
             .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
             .ToArray();
 
+        pContext.TrxContext.Context.LogTrace("Foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}", fromKey, fkTags);
+
         var missingEdges = fkTags
             .Where(x => x.Value.IsNotEmpty())
             .Select(x => new GraphEdgePrimaryKey(fromKey, x.Value.NotEmpty(), x.Key))
             .Where(x => !pContext.TrxContext.Map.Edges.ContainsKey(x))
             .Select(x => new GraphEdge(x.FromKey, x.ToKey, x.EdgeType))
             .ToArray();
+
+        pContext.TrxContext.Context.LogTrace(
+            "Missing edges fromKey={fromKey}, missingEdges={missingEdges}",
+            fromKey,
+            missingEdges.Select(x => x.ToString()).Join(',')
+            );
 
         var allStatus = missingEdges
             .Select(x => pContext.TrxContext.Map.Edges.Add(x, pContext.TrxContext))

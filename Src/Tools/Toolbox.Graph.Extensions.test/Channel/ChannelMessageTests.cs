@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph.Extensions.test.Tools;
 using Toolbox.Graph.Extensions.Testing;
@@ -39,7 +34,7 @@ public class ChannelMessageTests
         await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
 
         // Create security group with user for access
-        await CreateSecurityGroup(groupClient, _groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context);
+        (await groupClient.Create(_groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
 
         // Because security group has already created, this should just attach the channel to it.
         var channel = new ChannelRecord

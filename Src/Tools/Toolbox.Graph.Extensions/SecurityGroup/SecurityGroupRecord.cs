@@ -1,6 +1,5 @@
 ﻿using System.Collections.Frozen;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -39,25 +38,6 @@ public static class SecurityGroupRecordTool
 {
     public static Option Validate(this SecurityGroupRecord subject) => SecurityGroupRecord.Validator.Validate(subject).ToOptionStatus();
 
-    public static Option<string> CreateQuery(this SecurityGroupRecord subject, bool useSet, ScopeContext context)
-    {
-        if (subject.Validate().IsError(out var r)) return r.LogStatus(context, nameof(SecurityGroupClient)).ToOptionStatus<string>();
-
-        string nodeKey = SecurityGroupTool.ToNodeKey(subject.SecurityGroupId);
-
-        var cmd = new NodeCommandBuilder()
-            .UseSet(useSet)
-            .SetNodeKey(nodeKey)
-            .AddTag(SecurityGroupTool.NodeTag)
-            .AddData("entity", subject)
-            .AddReferences(
-                SecurityGroupTool.EdgeType,
-                subject.Members.Values.Select(x => GraphTool.ApplyIfRequired(x.PrincipalId, IdentityTool.ToNodeKey))
-                )
-            .Build();
-
-        return cmd;
-    }
 
     public static Option HasAccess(this SecurityGroupRecord subject, string principalId, SecurityAccess access)
     {

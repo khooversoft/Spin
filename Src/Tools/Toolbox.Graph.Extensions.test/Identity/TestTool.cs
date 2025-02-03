@@ -23,7 +23,7 @@ internal static class TestTool
     {
         GraphTestClient engine = GraphTestStartup.CreateGraphTestHost(config: x =>
         {
-            x.AddToolboxIdentity();
+            x.AddGraphExtensions();
             x.AddLogging(y => y.AddLambda(outputHelper.WriteLine));
         });
 

@@ -2,7 +2,7 @@
 
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using Toolbox.Identity
+@using Toolbox.Graph.Extensions
 
 @inject UserManager<PrincipalIdentity> UserManager
 @inject SignInManager<PrincipalIdentity> SignInManager
@@ -87,6 +87,7 @@
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         currentLogins = await UserManager.GetLoginsAsync(user);
+
         otherLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync())
             .Where(auth => currentLogins.All(ul => auth.Name != ul.LoginProvider))
             .ToList();

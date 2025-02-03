@@ -1,6 +1,5 @@
 ﻿using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
 
 namespace Toolbox.Graph.Extensions;
 
@@ -42,21 +41,4 @@ public sealed record ChannelRecord
 public static class ChannelRecordTool
 {
     public static Option Validate(this ChannelRecord subject) => ChannelRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static Option<string> CreateQuery(this ChannelRecord channelRecord, bool useSet, ScopeContext context)
-    {
-        if (channelRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(ChannelRecord)).ToOptionStatus<string>();
-
-        string nodeKey = ChannelTool.ToNodeKey(channelRecord.ChannelId);
-
-        var cmd = new NodeCommandBuilder()
-            .UseSet(useSet)
-            .SetNodeKey(nodeKey)
-            .AddTag(ChannelTool.NodeTag)
-            .AddData("entity", channelRecord)
-            .AddReference(ChannelTool.EdgeType, SecurityGroupTool.ToNodeKey(channelRecord.SecurityGroupId))
-            .Build();
-
-        return cmd;
-    }
 }

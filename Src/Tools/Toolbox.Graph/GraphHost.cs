@@ -13,6 +13,7 @@ public interface IGraphHost
     IGraphStore FileStore { get; }
     IJournalFile TransactionLog { get; }
     IJournalFile TraceLog { get; }
+    ILogger Logger { get; }
     bool ReadOnly { get; }
     Task<Option> CheckpointMap(ScopeContext context);
     Task<Option> LoadMap(ScopeContext context);
@@ -23,7 +24,6 @@ public interface IGraphHost
 public class GraphHost : IGraphHost
 {
     private readonly GraphMapStore _mapStore;
-    private readonly ILogger<GraphHost> _logger;
     private GraphMap _map = new GraphMap();
     private readonly GraphHostOption _hostOption;
     private int _runningState = Stopped;
@@ -40,9 +40,9 @@ public class GraphHost : IGraphHost
         FileStore = fileStore.NotNull();
         TransactionLog = transactionLog.NotNull();
         TraceLog = traceLog.NotNull();
-        _logger = logger.NotNull();
+        Logger = logger.NotNull();
 
-        _mapStore = new GraphMapStore(this, _logger);
+        _mapStore = new GraphMapStore(this, Logger);
         _hostOption = new GraphHostOption();
     }
 
@@ -57,9 +57,9 @@ public class GraphHost : IGraphHost
         FileStore = fileStore.NotNull();
         TransactionLog = transactionLog.NotNull();
         TraceLog = traceLog.NotNull();
-        _logger = logger.NotNull();
+        Logger = logger.NotNull();
 
-        _mapStore = new GraphMapStore(this, _logger);
+        _mapStore = new GraphMapStore(this, Logger);
         _hostOption = hostOption;
     }
 
@@ -68,13 +68,14 @@ public class GraphHost : IGraphHost
     public IJournalFile TransactionLog { get; }
     public IJournalFile TraceLog { get; }
     public bool ReadOnly => _hostOption.ReadOnly;
+    public ILogger Logger { get; }
 
     public Task<Option> CheckpointMap(ScopeContext context) => _mapStore.Set(context);
     public Task<Option> LoadMap(ScopeContext context) => _mapStore.Get(context);
 
     public async Task<Option> Run(ScopeContext context)
     {
-        context = context.With(_logger);
+        context = context.With(Logger);
         int current = Interlocked.CompareExchange(ref _runningState, Running, Stopped);
         if (current == Running) return StatusCode.OK;
 

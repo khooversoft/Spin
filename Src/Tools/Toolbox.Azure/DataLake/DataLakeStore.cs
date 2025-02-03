@@ -4,9 +4,9 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
 
 namespace Toolbox.Azure;
 
@@ -141,7 +141,6 @@ public class DatalakeStore : IDatalakeStore
     public Task<Option<DatalakePathProperties>> GetPathProperties(string path, ScopeContext context)
     {
         context = context.With(_logger);
-
         path = WithBasePath(path);
 
         context.Location().LogInformation("Getting path {path} properties", path);

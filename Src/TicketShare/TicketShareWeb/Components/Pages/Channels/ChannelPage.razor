@@ -1,95 +1,72 @@
-﻿@page "/Channels"
+﻿@page "/Channel/{ChannelId}"
 @attribute [Authorize]
 
 @using Microsoft.AspNetCore.Authorization
 @using TicketShare.sdk
+@using Toolbox.Graph.Extensions
 
 <LoadingBlock Visible=@Visible />
 
-@if (_inputs != null)
-{
-    <FeedColumn>
-        <FeedBlock Title="Channels" OnAdd="Add">
+<FeedColumn>
+    <DialogControls OnClose="OnClose" />
 
-            <FluentDataGrid Class="feed-block-datagrid"
-            Items="@_entries"
-            ShowHover="true"
-            TGridItem="ChannelInfo"
-            OnRowClick="HandleRowFocus"
-            AutoFit="true"
-            GenerateHeader=GenerateHeaderOption.None>
+    @foreach (var item in _messageList)
+    {
+        <ChannelMessageBlock Content=item />
+    }
 
-                <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
-            </FluentDataGrid>
+    <TextEditorBlock YesText="Send" OnYes="SendMessage" />
 
-        </FeedBlock>
-    </FeedColumn>
-}
+</FeedColumn>
 
 @code {
-    [Inject] public AppNavigation _appNavigation { get; set; } = null!;
+    [Parameter] public string ChannelId { get; set; } = null!;
     [Inject] public AuthenticationAccess _authenticationAccess { get; set; } = null!;
-    [Inject] public HubChannelManager _hubChannelManager { get; set; } = null!;
-    [Inject] public IDialogService _dialogService { get; set; } = null!;
-    [Inject] public IMessageService _messageService { get; set; } = null!;
+    [Inject] public AppNavigation _appNavigation { get; set; } = null!;
+    [Inject] public ChannelClient _channelClient { get; set; } = null!;
     [Inject] public ILogger<ChannelPage> _logger { get; set; } = null!;
 
+    private ChannelContext _channelContext = null!;
     private bool Visible { get; set; } = true;
-
-    private IReadOnlyList<ChannelInfo> _inputs = null!;
-    private IQueryable<ChannelInfo> _entries = null!;
-    // private RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog> _rightPanelDialog = null!;
-
-    private record TicketGroupDetail(string TicketGroupId, string Name, string? Description);
+    private IReadOnlyList<ChannelMessage> _messageList = [];
+    private string _principalId = null!;
 
     protected override async Task OnParametersSetAsync()
     {
-        // _rightPanelDialog = new RightPanelDialog<TicketGroupHeaderModel, EditHeaderDialog>(
-        //     _dialogService,
-        //     x => CreateTicketGroup(x),
-        //     null
-        //     );
+        _principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
+        _channelContext = _channelClient.GetContext(ChannelId, _principalId);
 
         await Refresh();
+        Visible = false;
     }
 
-    private void HandleRowFocus(FluentDataGridRow<ChannelInfo> row)
+    private void OnClose() => _appNavigation.GotoChannels();
+
+    private async Task SendMessage(string message)
     {
-        row.Item.NotNull();
-        _appNavigation.GotoChannel(row.Item.ChannelId);
-    }
+        var channelMessage = new ChannelMessage
+        { 
+            ChannelId = ChannelId, 
+            FromPrincipalId = _principalId, 
+            Message = message 
+        };
 
-    private async Task Add()
-    {
-        // var model = new TicketGroupHeaderModel();
-
-        // var result = await _rightPanelDialog.Add(model, "Add Ticket Group");
-        // if (result == RightPanelDialog.Canceled) return;
-
-        // await Refresh();
+        var result = await _channelContext.AddMessage(channelMessage, new ScopeContext(_logger));
+        if (result.IsError())
+        {
+            _logger.LogError("Failed to send message to channelId={channelId}", ChannelId);
+            return;
+        }
+        await Refresh();
     }
 
     private async Task Refresh()
     {
-        await SetLoading(true);
-
-        var principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
-
-        var context = new ScopeContext(_logger);
-        var result = await _hubChannelManager.GetChannelsInfo(principalId, context);
-        result.ThrowOnError();
-
-        _inputs = result.Return();
-        _entries = _inputs
-            .OrderBy(x => x.Name)
-            .AsQueryable();
-
-        await SetLoading(false);
-    }
-
-    private async Task SetLoading(bool visible)
-    {
-        Visible = visible;
-        await InvokeAsync(StateHasChanged);
+        var listOption = await _channelContext.GetMessages(new ScopeContext(_logger));
+        _messageList = listOption.IsOk() switch
+        {
+            true => listOption.Return(),
+            false => [],
+        };
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -35,7 +35,7 @@ public static class TicketShareStartup
 
     public static IServiceCollection AddTicketShare(this IServiceCollection service)
     {
-        service.AddToolboxIdentity();
+        service.AddGraphExtensions();
         service.AddSingleton<AccountClient>();
         service.AddScoped<UserAccountManager>();
         service.AddScoped<AuthenticationAccess>();
@@ -43,8 +43,6 @@ public static class TicketShareStartup
         service.AddSingleton<TicketGroupClient>();
         service.AddScoped<TicketGroupManager>();
 
-        service.AddSingleton<HubChannelClient>();
-        service.AddSingleton<HubChannelManager>();
         return service;
     }
 }

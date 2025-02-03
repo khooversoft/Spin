@@ -33,7 +33,7 @@ public class ChannelClientTests
         await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
 
         // Create security group with user for access
-        await CreateSecurityGroup(groupClient, _groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context);
+        (await groupClient.Create(_groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
 
         // Because security group has already created, this should just attach the channel to it.
         var channel = new ChannelRecord
@@ -43,8 +43,7 @@ public class ChannelClientTests
             Name = "Channel one",
         };
 
-        var addResult = await channelClient.Create(channel, context);
-        addResult.IsOk().Should().BeTrue(addResult.ToString());
+        (await channelClient.Create(channel.ChannelId, channel.SecurityGroupId, channel.Name, context)).IsOk().Should().BeTrue();
 
         var readOption = await channelClient.GetContext(_channel1, _user1).Get(context);
         readOption.IsOk().Should().BeTrue(readOption.ToString());
@@ -53,7 +52,9 @@ public class ChannelClientTests
         var newchannelRecord = channel with
         {
             Name = "new name",
-            Messages = [new ChannelMessage { ChannelId = _channel1, MessageId = "message1", FromPrincipalId = _user1, Message = "message 1" }]
+            Messages = [
+                new ChannelMessage { ChannelId = _channel1, MessageId = "message1", FromPrincipalId = _user1, Message = "message 1" }
+                ]
         };
 
         var setResult = await channelClient.GetContext(_channel1, _user1).Set(newchannelRecord, context);
@@ -93,10 +94,10 @@ public class ChannelClientTests
         await IdentityTestTool.AddIdentityUser(_user3, "user 3", testHost, context);
         await IdentityTestTool.AddIdentityUser(_user4, "user 4", testHost, context);
 
-        await CreateSecurityGroup(securityClient, _principalGroup1, "group 1", [(_user1, SecurityAccess.Read), (_user2, SecurityAccess.Owner)], context);
-        await CreateSecurityGroup(securityClient, _principalGroup2, "group 2", [(_user1, SecurityAccess.Read), (_user3, SecurityAccess.Owner)], context);
-        await CreateChannel(channelClient, _channel1, _principalGroup1, "channel 1", context);
-        await CreateChannel(channelClient, _channel2, _principalGroup2, "channel 2", context);
+        (await securityClient.Create(_principalGroup1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
+        (await securityClient.Create(_principalGroup2, "group 2", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
+        (await channelClient.Create(_channel1, _principalGroup1, "channel 1", context)).IsOk().Should().BeTrue();
+        (await channelClient.Create(_channel2, _principalGroup2, "channel 2", context)).IsOk().Should().BeTrue();
 
         (await channelClient.GetPrincipalChannels(_user1, context)).Action(x =>
         {
@@ -154,18 +155,5 @@ public class ChannelClientTests
 
         var addResult = await client.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();
-    }
-
-    private async Task CreateChannel(ChannelClient client, string channelId, string principalGroupId, string name, ScopeContext context)
-    {
-        var channel = new ChannelRecord
-        {
-            ChannelId = channelId,
-            SecurityGroupId = principalGroupId,
-            Name = name,
-        };
-
-        var addResult = await client.Create(channel, context);
-        addResult.IsOk().Should().BeTrue(addResult.ToString()); ;
     }
 }

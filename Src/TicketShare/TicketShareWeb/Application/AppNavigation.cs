@@ -41,10 +41,10 @@ public class AppNavigation
     {
         channelId.NotEmpty();
 
-        string uri = $"/TicketGroup/{channelId}";
+        string uri = $"/Channel/{channelId}";
         _logger.LogInformation("GotoChannel, uri={uri}", uri);
 
-        string encoded = $"/TicketGroup/{Uri.EscapeDataString(channelId)}";
+        string encoded = $"/Channel/{Uri.EscapeDataString(channelId)}";
         _navigationManager.NavigateTo(encoded);
     }
 }

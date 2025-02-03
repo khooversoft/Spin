@@ -20,7 +20,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
 
     // User Store
 
-    public async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
+    public virtual async Task<IdentityResult> CreateAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var context = new ScopeContext(_logger);
@@ -29,7 +29,7 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
         return identityResult;
     }
 
-    public async Task<IdentityResult> DeleteAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
+    public virtual async Task<IdentityResult> DeleteAsync(PrincipalIdentity user, CancellationToken cancellationToken = default)
     {
         user.NotNull();
         cancellationToken.ThrowIfCancellationRequested();

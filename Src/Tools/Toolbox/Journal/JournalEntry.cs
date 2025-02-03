@@ -1,6 +1,7 @@
 ﻿using System.Collections.Frozen;
 using System.Diagnostics;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -44,8 +45,8 @@ public sealed record JournalEntry
 public static class JournalEntryTool
 {
     public static string ToLoggingFormat(this JournalEntry subject) =>
-            $"Lsn={subject.LogSequenceNumber}, TranId={subject.TransactionId}, Date={subject.Date:o}, Type={subject.Type}".ToEnumerable()
-            .Concat(subject.Data.Select(x => TagsTool.FormatTag(x.Key, x.Value?.Replace("{", "{{").Replace("}", "}}"))))
-            .Join(Environment.NewLine);
+        $"Lsn={subject.LogSequenceNumber}, TranId={subject.TransactionId}, Date={subject.Date:o}, Type={subject.Type}".ToEnumerable()
+        .Concat(subject.Data.Select(x => TagsTool.FormatTag(x.Key, x.Value?.ToSafeLoggingFormat())))
+        .Join(Environment.NewLine);
 }
 

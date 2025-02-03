@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Security.Cryptography;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Extensions;
 

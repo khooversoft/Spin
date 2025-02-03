@@ -64,6 +64,6 @@ public static class LoggerContextExtensions
         var metricArgs = new object?[] { metricName, value, unit }.Concat(args).ToArray();
 
         (string? newMessage, object?[] newObjects) = context.AppendContext(metricMessage, metricArgs);
-        context.Context.Logger.LogInformation(newMessage, newObjects);
+        context.Context.Logger.LogTrace(newMessage, newObjects);
     }
 }

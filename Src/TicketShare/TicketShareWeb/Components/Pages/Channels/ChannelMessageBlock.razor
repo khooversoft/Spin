@@ -1,0 +1,23 @@
+﻿@using Toolbox.Graph.Extensions;
+
+<FeedBlock>
+    <FluentCard Class="card-container">
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel style="min-height:31px" Typo="Typography.Body">@_dateString</FluentLabel>
+            <FluentLabel style="min-height:31px" Typo="Typography.Body">@Content.FromPrincipalId</FluentLabel>
+        </FluentStack>
+        <FluentLabel Typo="Typography.Subject">@Content.Message</FluentLabel>
+    </FluentCard>
+</FeedBlock>
+
+
+@code {
+    [Parameter] public ChannelMessage Content { get; set; } = null!;
+
+    private string _dateString = null!;
+
+    protected override void OnParametersSet()
+    {
+        _dateString = Content.Date.ToString("dd/MM/yyyy HH:mm");
+    }
+}

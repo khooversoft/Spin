@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 

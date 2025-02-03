@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using TicketShareWeb.Components.Account.Pages;
 using TicketShareWeb.Components.Account.Pages.Manage;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 
 namespace Microsoft.AspNetCore.Routing
 {

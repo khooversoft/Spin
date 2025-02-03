@@ -19,7 +19,7 @@ public sealed record TicketGroupRecord
     public string ChannelId { get; init; } = null!;
     public IReadOnlyList<RoleRecord> Roles { get; init; } = Array.Empty<RoleRecord>();
     public IReadOnlyList<SeatRecord> Seats { get; init; } = Array.Empty<SeatRecord>();
-    public IReadOnlyList<ChangeLog> ChangeLogs { get; init; } = Array.Empty<ChangeLog>();
+    //public IReadOnlyList<ChangeLog> ChangeLogs { get; init; } = Array.Empty<ChangeLog>();
     public IReadOnlyDictionary<string, ProposalRecord> Proposals { get; init; } = FrozenDictionary<string, ProposalRecord>.Empty;
 
     public bool Equals(TicketGroupRecord? obj)
@@ -31,13 +31,13 @@ public sealed record TicketGroupRecord
             ChannelId == obj.ChannelId &&
             Enumerable.SequenceEqual(Roles, obj.Roles) &&
             Enumerable.SequenceEqual(Seats, obj.Seats) &&
-            Enumerable.SequenceEqual(ChangeLogs, obj.ChangeLogs) &&
+            //Enumerable.SequenceEqual(ChangeLogs, obj.ChangeLogs) &&
             Enumerable.SequenceEqual(Proposals.Values.OrderBy(x => x.ProposalId), subject.Proposals.Values.OrderBy(x => x.ProposalId));
 
         return result;
     }
 
-    public override int GetHashCode() => HashCode.Combine(TicketGroupId, Name, Description, ChannelId, Roles, Seats, ChangeLogs, Proposals);
+    public override int GetHashCode() => HashCode.Combine(TicketGroupId, Name, Description, ChannelId, Roles, Seats, Proposals);
 
     public static IValidator<TicketGroupRecord> Validator { get; } = new Validator<TicketGroupRecord>()
         .RuleFor(x => x.TicketGroupId).Must(TicketGroupRecordTool.ValidateTicketGroupId)
@@ -46,7 +46,7 @@ public sealed record TicketGroupRecord
         .RuleFor(x => x.ChannelId).Must(StandardValidation.IsName, _ => StandardValidation.NameError)
         .RuleForEach(x => x.Roles).Validate(RoleRecord.Validator)
         .RuleForEach(x => x.Seats).Validate(SeatRecord.Validator)
-        .RuleForEach(x => x.ChangeLogs).Validate(ChangeLog.Validator)
+        //.RuleForEach(x => x.ChangeLogs).Validate(ChangeLog.Validator)
         .RuleForEach(x => x.Proposals.Values).Validate(ProposalRecord.Validator)
         .Build();
 }

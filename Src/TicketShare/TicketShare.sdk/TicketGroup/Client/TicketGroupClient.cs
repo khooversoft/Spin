@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -14,20 +14,12 @@ public class TicketGroupClient
     internal const string _edgeType = "ticketGroup-user";
     private readonly IGraphClient _graphClient;
     private readonly ILogger<TicketGroupClient> _logger;
-    private readonly HubChannelClient _hubChannelClient;
 
-    public TicketGroupClient(IGraphClient graphClient, HubChannelClient hubChannelClient, IServiceProvider service, ILogger<TicketGroupClient> logger)
+    public TicketGroupClient(IGraphClient graphClient, IServiceProvider service, ILogger<TicketGroupClient> logger)
     {
         _graphClient = graphClient.NotNull();
-        _hubChannelClient = hubChannelClient;
         _logger = logger.NotNull();
-
-        //Proposal = ActivatorUtilities.CreateInstance<TicketGroupProposalClient>(service, this);
-        //Search = ActivatorUtilities.CreateInstance<TicketGroupSearchClient>(service, this);
     }
-
-    //public TicketGroupProposalClient Proposal { get; }
-    //public TicketGroupSearchClient Search { get; }
 
     public Task<Option> Add(TicketGroupRecord ticketGroupRecord, ScopeContext context) => AddOrSet(false, ticketGroupRecord, context);
 
@@ -48,6 +40,7 @@ public class TicketGroupClient
     private async Task<Option> AddOrSet(bool useSet, TicketGroupRecord ticketGroupRecord, ScopeContext context)
     {
         context = context.With(_logger);
+        context.LogTrace("AddOrSet TicketGroup, useSet={useSet}, ticketGroupId={ticketGroupId}", useSet, ticketGroupRecord.TicketGroupId);
 
         string[] removeTagList = [];
         var readOption = await Get(ticketGroupRecord.TicketGroupId, context).ConfigureAwait(false);
@@ -61,34 +54,34 @@ public class TicketGroupClient
                 .Except(ticketGroupRecord.Roles.Select(x => x.PrincipalId), StringComparer.OrdinalIgnoreCase)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
+
+            context.LogTrace("AddOrSet remove tags, ticketGroupId={ticketGroupId}, tags={tags}", ticketGroupRecord.TicketGroupId, removeTagList.Join(','));
         }
 
-        if (ticketGroupRecord.ChannelId.IsEmpty())
-        {
-            ticketGroupRecord = ticketGroupRecord with { ChannelId = ToTicketGroupHubChannelId(ticketGroupRecord.TicketGroupId) };
-        }
+        string securityGroupId = ticketGroupRecord.TicketGroupId;
+        string channelId = ticketGroupRecord.TicketGroupId;
 
-        string nodeKey = ToTicketGroupKey(ticketGroupRecord.TicketGroupId);
-        if (ticketGroupRecord.Validate().IsError(out var r)) return r.LogStatus(context, nameof(TicketGroupRecord));
+        SecurityGroupRecord securityGroup = SecurityGroupTool.CreateRecord(
+            securityGroupId,
+            $"Security group for ticket group {ticketGroupRecord.TicketGroupId}",
+            ticketGroupRecord.Roles.Select(x => (user: x.PrincipalId, access: x.MemberRole.ToSecurityAccess()))
+            );
 
-        var roles = ticketGroupRecord.Roles
-            .Select(x => x.PrincipalId)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        ChannelRecord channelRecord = ChannelTool.CreateRecord(channelId, securityGroupId, $"Channel for ticket group {ticketGroupRecord.TicketGroupId}");
 
-        var cmd = new NodeCommandBuilder()
-            .UseSet(useSet)
-            .SetNodeKey(nodeKey)
-            .AddTag(_nodeTag)
-            .AddReferences(_edgeType, roles.Select(x => IdentityClient.ToUserKey(x)))
-            .Action(x => removeTagList.ForEach(y => x.AddTag("-" + x)))
-            .AddData("entity", ticketGroupRecord)
-            .Build();
+        var cmdsOptions = new CommandBatchBuilder()
+            .AddTicketGroup(ticketGroupRecord, useSet)
+            .AddSecurityGroup(securityGroup, useSet)
+            .AddChannel(channelRecord, useSet)
+            .Build(context);
+        if (cmdsOptions.IsError()) return cmdsOptions.ToOptionStatus();
 
-        var result = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
+        string cmds = cmdsOptions.Return();
+
+        var result = await _graphClient.Execute(cmds, context).ConfigureAwait(false);
         if (result.IsError())
         {
-            context.LogError("Failed to set nodeKey={nodeKey}", nodeKey);
+            context.LogError("Failed to set ticketGroupId={ticketGroupId}", ticketGroupRecord.TicketGroupId);
             return result.ToOptionStatus();
         }
 
@@ -100,7 +93,7 @@ public class TicketGroupClient
         principalId.NotEmpty();
 
         var cmd = new SelectCommandBuilder()
-            .AddEdgeSearch(x => x.SetToKey(IdentityClient.ToUserKey(principalId)).SetEdgeType(_edgeType))
+            .AddEdgeSearch(x => x.SetToKey(IdentityTool.ToNodeKey(principalId)).SetEdgeType(_edgeType))
             .AddRightJoin()
             .AddNodeSearch(x => x.AddTag(_nodeTag))
             .AddDataName("entity")

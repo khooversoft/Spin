@@ -27,7 +27,7 @@ public class GraphTrxContext : IGraphTrxContext, IAsyncDisposable
         _graphHost = graphHost.NotNull();
         TransactionWriter = graphHost.TransactionLog.NotNull().CreateTransactionContext();
         TraceWriter = graphHost.TraceLog.NotNull().CreateTransactionContext();
-        Context = context;
+        Context = context.With(_graphHost.Logger);
         ChangeLog = new ChangeLog(this);
     }
 

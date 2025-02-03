@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Graph.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk;
@@ -8,7 +9,7 @@ public enum RoleType
     None,                   // Invalid    
     Owner,                  // Can add user and set roles, permissions
     Contributor,            // Can propose agreement modifications, and accept from other    
-    ReadOnly,               // Can only view
+    Reader,                 // Can only view
 }
 
 public sealed record RoleRecord : IEquatable<RoleRecord>
@@ -33,4 +34,12 @@ public sealed record RoleRecord : IEquatable<RoleRecord>
 public static class MembershipRecordExtensions
 {
     public static Option Validate(this RoleRecord subject) => RoleRecord.Validator.Validate(subject).ToOptionStatus();
+
+    public static SecurityAccess ToSecurityAccess(this RoleType subject) => subject switch
+    {
+        RoleType.Owner => SecurityAccess.Owner,
+        RoleType.Contributor => SecurityAccess.Contributor,
+        RoleType.Reader => SecurityAccess.Reader,
+        _ => throw new InvalidOperationException("Invalid role type"),
+    };
 }

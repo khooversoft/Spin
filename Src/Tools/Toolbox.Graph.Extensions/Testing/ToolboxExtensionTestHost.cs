@@ -13,7 +13,7 @@ public class ToolboxExtensionTestHost
     {
         _testClient = GraphTestStartup.CreateGraphTestHost(null, service =>
         {
-            service.AddToolboxIdentity();
+            service.AddGraphExtensions();
             service.AddSingleton<AuthenticationStateProvider>(s =>
             {
                 return principalId.IsEmpty() ? new TestAuthStateProvider() : new TestAuthStateProvider(principalId);

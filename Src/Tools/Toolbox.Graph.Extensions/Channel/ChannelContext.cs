@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
-using Toolbox.Types;
 using Toolbox.Extensions;
 using Toolbox.Logging;
-using System.Collections.Immutable;
+using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions;
 
-public readonly struct ChannelContext
+public record ChannelContext
 {
     private readonly IGraphClient _graphClient;
     private readonly string _channelId;
@@ -44,7 +39,7 @@ public readonly struct ChannelContext
 
         var subject = readOption.Return();
 
-        var channelRecord = subject with
+        ChannelRecord channelRecord = subject with
         {
             Messages = subject.Messages.Concat(messages).ToImmutableArray(),
         };
@@ -60,7 +55,30 @@ public readonly struct ChannelContext
         return await _graphClient.DeleteNode(ChannelTool.ToNodeKey(_channelId), context).ConfigureAwait(false);
     }
 
-    public Task<Option<ChannelRecord>> Get(ScopeContext context) => GetInternal(SecurityAccess.Read, context);
+    public Task<Option<ChannelRecord>> Get(ScopeContext context) => GetInternal(SecurityAccess.Reader, context);
+
+    public async Task<Option<IReadOnlyList<ChannelMessage>>> GetMessages(ScopeContext context)
+    {
+        var readOption = await GetInternal(SecurityAccess.Reader, context);
+        if (readOption.IsError()) return readOption.ToOptionStatus<IReadOnlyList<ChannelMessage>>();
+
+        var list = readOption.Return().Messages;
+        return list.ToOption();
+    }
+
+    private async Task<Option<ChannelRecord>> GetInternal(SecurityAccess accessRequired, ScopeContext context)
+    {
+        var subject = await _graphClient.GetNode<ChannelRecord>(ChannelTool.ToNodeKey(_channelId), context).ConfigureAwait(false);
+        if (subject.IsError()) return subject;
+
+        var read = subject.Return();
+        var securityGroupId = read.SecurityGroupId;
+
+        var hasAccess = await SecurityGroupTool.HasAccess(_graphClient, read.SecurityGroupId, _principalId, accessRequired, context);
+        if (hasAccess.IsError()) return hasAccess.ToOptionStatus<ChannelRecord>();
+
+        return subject;
+    }
 
     public async Task<Option> Set(ChannelRecord channelRecord, ScopeContext context)
     {
@@ -75,27 +93,18 @@ public readonly struct ChannelContext
         return result;
     }
 
-    public async Task<Option<IReadOnlyList<ChannelMessage>>> GetMessages(ScopeContext context)
+    public async Task<Option> SetName(string name, ScopeContext context)
     {
-        var readOption = await GetInternal(SecurityAccess.Read, context);
-        if (readOption.IsError()) return readOption.ToOptionStatus<IReadOnlyList<ChannelMessage>>();
+        name.NotEmpty();
 
-        var list = readOption.Return().Messages;
-        return list.ToOption();
-    }
+        var readOption = await GetInternal(SecurityAccess.Contributor, context);
+        if (readOption.IsError()) return readOption.ToOptionStatus();
 
-    private async Task<Option<ChannelRecord>> GetInternal(SecurityAccess accessRequired, ScopeContext context  )
-    {
-        var subject = await _graphClient.GetNode<ChannelRecord>(ChannelTool.ToNodeKey(_channelId), context).ConfigureAwait(false);
-        if (subject.IsError()) return subject;
+        var subject = readOption.Return();
+        var channelRecord = subject with { Name = name };
 
-        var read = subject.Return();
-        var securityGroupId = read.SecurityGroupId;
-
-        var hasAccess = await SecurityGroupTool.HasAccess(_graphClient, read.SecurityGroupId, _principalId, accessRequired, context);
-        if (hasAccess.IsError()) return hasAccess.ToOptionStatus<ChannelRecord>();
-
-        return subject;
+        var result = await SetInternal(channelRecord, context);
+        return result;
     }
 
     private async Task<Option> SetInternal(ChannelRecord channelRecord, ScopeContext context)

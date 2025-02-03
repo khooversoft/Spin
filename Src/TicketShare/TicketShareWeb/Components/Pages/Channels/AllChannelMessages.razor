@@ -1,0 +1,43 @@
+﻿@using Toolbox.Graph.Extensions
+
+<LoadingBlock Visible=@Visible />
+
+<FeedColumn>
+    @foreach (var item in _messageList)
+    {
+        <ChannelMessageBlock Content=item />
+    }
+</FeedColumn>
+
+
+@code {
+    [Inject] public AuthenticationAccess _authenticationAccess { get; set; } = null!;
+    [Inject] public AppNavigation _appNavigation { get; set; } = null!;
+    [Inject] public ChannelClient _channelClient { get; set; } = null!;
+    [Inject] public ILogger<ChannelPage> _logger { get; set; } = null!;
+
+    private bool Visible { get; set; } = true;
+    private IReadOnlyList<ChannelMessage> _messageList = [];
+    private string _principalId = null!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
+
+        await Refresh();
+        Visible = false;
+    }
+
+    private void OnClose() => _appNavigation.GotoChannels();
+
+    private async Task Refresh()
+    {
+        var listOption = await _channelClient.GetPrincipalMessages(_principalId, new ScopeContext(_logger));
+
+        _messageList = listOption.IsOk() switch
+        {
+            true => listOption.Return(),
+            false => [],
+        };
+    }
+}

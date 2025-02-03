@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -63,6 +64,8 @@ public class SelectInstructionSearchTests
         QueryResult result = resultOption.Return();
         result.Nodes.Count.Should().Be(2);
         result.Edges.Count.Should().Be(0);
-        result.Nodes.Select(x => x.Key).SequenceEqual(["user:alice", "user:diana"]).Should().BeTrue();
+
+        var nodes = result.Nodes.Select(x => x.Key).ToArray();
+        nodes.SequenceEqual(["user:alice", "user:diana"]).Should().BeTrue(nodes.ToString());
     }
 }

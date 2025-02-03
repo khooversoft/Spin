@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 

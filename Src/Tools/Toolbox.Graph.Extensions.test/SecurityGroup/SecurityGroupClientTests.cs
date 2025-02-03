@@ -28,7 +28,7 @@ public class SecurityGroupClientTests
         await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
         await IdentityTestTool.AddIdentityUser(_user2, "user 2", testHost, context);
 
-        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Read), (_user2, SecurityAccess.Owner)]);
+        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]);
 
         var addResult = await client.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();
@@ -63,7 +63,7 @@ public class SecurityGroupClientTests
         readOption = await client.GetContext(_groupid1, _user2).Get(context);
         readOption.IsNotFound().Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task LifecycleWithContext()
     {
@@ -75,7 +75,7 @@ public class SecurityGroupClientTests
         await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
         await IdentityTestTool.AddIdentityUser(_user2, "user 2", testHost, context);
 
-        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Read), (_user2, SecurityAccess.Owner)]);
+        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]);
 
         var addResult = await client.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();
@@ -127,7 +127,7 @@ public class SecurityGroupClientTests
         await IdentityTestTool.AddIdentityUser(_user3, "user 3", testHost, context);
         await IdentityTestTool.AddIdentityUser(_user4, "user 4", testHost, context);
 
-        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Read),(_user3, SecurityAccess.Owner),(_user4, SecurityAccess.Contributor)]);
+        var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner), (_user4, SecurityAccess.Contributor)]);
 
         var addResult = await client.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();
@@ -171,13 +171,13 @@ public class SecurityGroupClientTests
         await IdentityTestTool.AddIdentityUser(_user3, "user 3", testHost, context);
         await IdentityTestTool.AddIdentityUser(_user4, "user 4", testHost, context);
 
-        await CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Read), (_user2, SecurityAccess.Owner)]).Func(async x =>
+        await CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]).Func(async x =>
         {
             var result = await client.Create(x, context);
             result.IsOk().Should().BeTrue();
         });
 
-        await CreateGroup(_groupid2, "group 2", [(_user1, SecurityAccess.Read), (_user3, SecurityAccess.Owner)]).Func(async x =>
+        await CreateGroup(_groupid2, "group 2", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner)]).Func(async x =>
         {
             var addResult1 = await client.Create(x, context);
             addResult1.IsOk().Should().BeTrue();

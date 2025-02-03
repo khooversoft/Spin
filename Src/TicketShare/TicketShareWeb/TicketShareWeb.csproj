@@ -15,7 +15,7 @@
         <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.*-* " />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\Tools\Toolbox.Identity\Toolbox.Identity.csproj" />
+      <ProjectReference Include="..\..\Tools\Toolbox.Graph.Extensions\Toolbox.Graph.Extensions.csproj" />
       <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
       <ProjectReference Include="..\TicketShare.sdk\TicketShare.sdk.csproj" />
     </ItemGroup>

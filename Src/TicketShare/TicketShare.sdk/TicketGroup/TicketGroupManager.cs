@@ -10,17 +10,11 @@ public class TicketGroupManager
 {
     private readonly UserAccountManager _userAccountManager;
     private readonly TicketGroupClient _ticketGroupClient;
-    private readonly HubChannelManager _hubChannelManager;
 
-    public TicketGroupManager(
-        UserAccountManager userAccountManager,
-        TicketGroupClient ticketGroupClient,
-        HubChannelManager hubChannelManager
-        )
+    public TicketGroupManager(UserAccountManager userAccountManager, TicketGroupClient ticketGroupClient)
     {
         _userAccountManager = userAccountManager.NotNull();
         _ticketGroupClient = ticketGroupClient.NotNull();
-        _hubChannelManager = hubChannelManager.NotNull();
     }
 
     public TicketGroupContext GetContext(string ticketGroupId) => new TicketGroupContext(ticketGroupId, _ticketGroupClient);
@@ -55,10 +49,6 @@ public class TicketGroupManager
         }
 
         context.LogInformation("Creating HubChannel channelId={channelId} for ticket group name={name}", ticketGroupRecord.ChannelId, ticketGroupHeader.Name);
-
-        var hubChannel = await _hubChannelManager.CreateChannel(ticketGroupRecord.ChannelId, ticketGroupRecord.Name, principalId, context).ConfigureAwait(false);
-        hubChannel.LogStatus(context, "Create HubChannel, channelId={channelId}", [ticketGroupRecord.ChannelId]);
-
         return ticketGroupRecord.TicketGroupId;
     }
 

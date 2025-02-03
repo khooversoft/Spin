@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions;
@@ -33,5 +34,48 @@ public static class SecurityGroupTool
             return status;
         }
         return StatusCode.OK;
+    }
+
+    public static Option<string> CreateQuery(this SecurityGroupRecord subject, bool useSet, ScopeContext context)
+    {
+        if (subject.Validate().IsError(out var r)) return r.LogStatus(context, nameof(SecurityGroupClient)).ToOptionStatus<string>();
+
+        string nodeKey = SecurityGroupTool.ToNodeKey(subject.SecurityGroupId);
+
+        var cmd = new NodeCommandBuilder()
+            .UseSet(useSet)
+            .SetNodeKey(nodeKey)
+            .AddTag(SecurityGroupTool.NodeTag)
+            .AddData("entity", subject)
+            .AddReferences(
+                SecurityGroupTool.EdgeType,
+                subject.Members.Values.Select(x => GraphTool.ApplyIfRequired(x.PrincipalId, IdentityTool.ToNodeKey))
+                )
+            .Build();
+
+        return cmd;
+    }
+
+    public static SecurityGroupRecord CreateRecord(string securityGroupId, string name, IEnumerable<(string user, SecurityAccess access)> access)
+    {
+        IEnumerable<PrincipalAccess> accessList = access.Select(x => new PrincipalAccess { PrincipalId = x.user, Access = x.access });
+        return CreateRecord(securityGroupId, name, accessList);
+    }
+
+    public static SecurityGroupRecord CreateRecord(string securityGroupId, string name, IEnumerable<PrincipalAccess> access)
+    {
+        var subject = new SecurityGroupRecord
+        {
+            SecurityGroupId = securityGroupId.NotEmpty(),
+            Name = name.NotEmpty(),
+            Members = access.ToDictionary(x => x.PrincipalId, x => x, StringComparer.OrdinalIgnoreCase),
+        };
+
+        return subject;
+    }
+    public static CommandBatchBuilder AddSecurityGroup(this CommandBatchBuilder builder, SecurityGroupRecord subject, bool useSet)
+    {
+        builder.Add((context) => CreateQuery(subject, useSet, context));
+        return builder;
     }
 }

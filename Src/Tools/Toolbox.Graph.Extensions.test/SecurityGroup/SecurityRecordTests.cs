@@ -16,7 +16,7 @@ public class SecurityRecordTests
             Name = "group1",
             Members = new Dictionary<string, PrincipalAccess>
             {
-                ["user1"] = new PrincipalAccess { PrincipalId = "user1", Access = SecurityAccess.Read },
+                ["user1"] = new PrincipalAccess { PrincipalId = "user1", Access = SecurityAccess.Reader },
                 ["user2"] = new PrincipalAccess { PrincipalId = "user2", Access = SecurityAccess.Owner },
             }
         };

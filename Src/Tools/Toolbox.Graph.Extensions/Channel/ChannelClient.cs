@@ -18,6 +18,18 @@ public class ChannelClient
         _logger = logger.NotNull();
     }
 
+    public Task<Option> Create(string channelId, string securityGroupId, string name, ScopeContext context)
+    {
+        var channelRecord = new ChannelRecord
+        {
+            ChannelId = channelId.NotEmpty(),
+            SecurityGroupId = securityGroupId.NotEmpty(),
+            Name = name.NotEmpty(),
+        };
+
+        return Create(channelRecord, context);
+    }
+
     public async Task<Option> Create(ChannelRecord channelRecord, ScopeContext context)
     {
         context = context.With(_logger);

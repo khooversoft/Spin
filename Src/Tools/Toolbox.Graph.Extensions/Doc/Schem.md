@@ -38,6 +38,12 @@ select (key=user:user1) <- [SeceurityGroup] <- [ticketGroup];]
 2) List of Principals with rights (None, Read, Contributor, Owner)
 
 
-(SecurityGroup) -> []
+## Id(s)
 
+Id schema for creating releated Node keys.
+
+#### PrincipalId
+
+"user:{principalId}"
+NodeTag = "principalIdentity"
 

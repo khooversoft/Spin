@@ -18,6 +18,16 @@ public class SecurityGroupClient
         _logger = logger.NotNull();
     }
 
+    public Task<Option> Create(string securityGroupId, string name, IEnumerable<(string user, SecurityAccess access)> access, ScopeContext context)
+    {
+        return Create(SecurityGroupTool.CreateRecord(securityGroupId, name, access), context);
+    }
+
+    public Task<Option> Create(string securityGroupId, string name, IEnumerable<PrincipalAccess> access, ScopeContext context)
+    {
+        return Create(SecurityGroupTool.CreateRecord(securityGroupId, name, access), context);
+    }
+
     public async Task<Option> Create(SecurityGroupRecord securityGroupRecord, ScopeContext context)
     {
         context = context.With(_logger);
@@ -33,7 +43,7 @@ public class SecurityGroupClient
         return result.ToOptionStatus();
     }
 
-    public SecurityGroupContext GetContext(string securityGroupId, string principalId) => new (_graphClient, securityGroupId, principalId, _logger);
+    public SecurityGroupContext GetContext(string securityGroupId, string principalId) => new(_graphClient, securityGroupId, principalId, _logger);
 
     public async Task<Option<IReadOnlyList<string>>> GroupsForPrincipalId(string principalId, ScopeContext context)
     {

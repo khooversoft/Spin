@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph.Extensions.test.Tools;
 using Toolbox.Graph.Extensions.Testing;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
-using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
-using System.Diagnostics;
-using Toolbox.Logging;
 
 namespace Toolbox.Graph.Extensions.test.Channel;
 
@@ -115,7 +109,7 @@ public class PrincipalChannelMessageTests
             size = Math.Min(size, _channelMessages.Length - messageIndex);
         }
 
-        foreach(var batch in batches)
+        foreach (var batch in batches)
         {
             using (var metric = context.LogDuration("Add-messages", "message count={count}", batch.Length))
             {

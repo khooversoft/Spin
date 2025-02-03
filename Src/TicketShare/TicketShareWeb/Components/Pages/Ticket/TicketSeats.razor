@@ -6,12 +6,12 @@
 
 <FeedBlock Title="Seats" Class="feed-block-datagrid" OnAdd="Add">
     <FluentDataGrid Class="feed-block-datagrid"
-    Items="@_roles"
-    ShowHover="true"
-    GenerateHeader=GenerateHeaderOption.None
-    TGridItem="SeatModel"
-    AutoFit="true"
-    OnRowClick="HandleRowFocus">
+                    Items="@_roles"
+                    ShowHover="true"
+                    GenerateHeader=GenerateHeaderOption.None
+                    TGridItem="SeatModel"
+                    AutoFit="true"
+                    OnRowClick="HandleRowFocus">
 
         <PropertyColumn Property="@(p => p.Date)" Sortable="true" Format="d" />
         <PropertyColumn Property="@(p => p.SeatId)" Sortable="true" />

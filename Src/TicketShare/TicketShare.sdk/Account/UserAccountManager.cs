@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
-using Toolbox.Identity;
+using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 

@@ -5,7 +5,7 @@ namespace Toolbox.Graph.Extensions;
 public enum SecurityAccess
 {
     None = 0,
-    Read = 1,
+    Reader = 1,
     Contributor = 2,
     Owner = 3,
 }
