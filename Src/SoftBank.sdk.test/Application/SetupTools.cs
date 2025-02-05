@@ -4,6 +4,7 @@ using SoftBank.sdk.SoftBank;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
 using Toolbox.Block;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -138,7 +139,7 @@ public class SetupTools
         readAccountDetailOption.IsOk().Should().BeTrue();
 
         var readAccountDetail = readAccountDetailOption.Return();
-        (createRequest = readAccountDetail).Should().NotBeNull();
+        (createRequest = readAccountDetail).NotNull();
     }
 
     private async Task DeleteBankAccount(string accountId)
