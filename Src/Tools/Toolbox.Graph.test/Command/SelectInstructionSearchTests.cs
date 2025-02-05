@@ -65,7 +65,7 @@ public class SelectInstructionSearchTests
         result.Nodes.Count.Should().Be(2);
         result.Edges.Count.Should().Be(0);
 
-        var nodes = result.Nodes.Select(x => x.Key).ToArray();
+        var nodes = result.Nodes.Select(x => x.Key).OrderBy(x => x).ToArray();
         nodes.SequenceEqual(["user:alice", "user:diana"]).Should().BeTrue(nodes.ToString());
     }
 }
