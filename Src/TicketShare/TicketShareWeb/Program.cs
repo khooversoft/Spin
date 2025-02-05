@@ -1,5 +1,9 @@
+using System.Collections;
+using System.Reflection;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
@@ -8,16 +12,40 @@ using TicketShareWeb.Application;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
 using Toolbox.Azure;
+using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
+using Toolbox.Tools.Dump;
+
+Console.WriteLine($"TicketShareWeb - Version: 1.0.1");
 
 var builder = WebApplication.CreateBuilder(args);
+DumpEnvironment.Dump(args, builder.Configuration, false).ForEach(x => Console.WriteLine(x));
+
+
+builder.Logging.AddApplicationInsights(
+        configureTelemetryConfiguration: (config) =>
+            {
+                string instrumentKey = builder.Configuration["InstrumentationKey"].NotEmpty();
+                config.ConnectionString = instrumentKey;
+            },
+        configureApplicationInsightsLoggerOptions: (options) => { }
+    );
+
+builder.Logging.AddConsole();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddCascadingAuthenticationState();
 //builder.Services.AddScoped<IdentityUserAccessor>();
@@ -31,14 +59,36 @@ builder.Services.AddAuthentication(options =>
     })
     .AddMicrosoftAccount(opt =>
     {
-        opt.ClientId = builder.Configuration[TsConstants.AzureAd_ClientId].NotEmpty();
-        opt.ClientSecret = builder.Configuration[TsConstants.AzureAd_ClientSecret].NotEmpty();
+        opt.ClientId = builder.Configuration[TsConstants.AzureAd_ClientId].NotEmpty($"{TsConstants.AzureAd_ClientId} is required");
+        opt.ClientSecret = builder.Configuration[TsConstants.AzureAd_ClientSecret].NotEmpty($"{TsConstants.AzureAd_ClientSecret} is required");
+        opt.CallbackPath = builder.Configuration[TsConstants.AzureAd_CallbackPath].NotEmpty($"{TsConstants.AzureAd_CallbackPath} is required");
+        opt.SaveTokens = true;
 
         // Adding the prompt parameter
         opt.Events = new OAuthEvents
         {
             OnRedirectToAuthorizationEndpoint = context =>
             {
+                //const string httpRedirect = "redirect_uri=http%3A%2F%2Fticket-share.com%2Fsignin-microsoft";
+                //const string httpsRedirect = "redirect_uri=https%3A%2F%2Fticket-share.com%2Fsignin-microsoft";
+
+                //string oldUri = context.RedirectUri;
+                //string newUri = (oldUri.IndexOf(httpRedirect, StringComparison.OrdinalIgnoreCase) >= 0) switch
+                //{
+                //    false => oldUri,
+                //    true => oldUri.Replace(httpRedirect, httpsRedirect),
+                //};
+
+                //string redirect = context.RedirectUri
+                //    .Replace("http://", "https://")
+                //    .Replace("http%3A%2F%2F", "https%3A%2F%2F");
+
+                //var uri = new Uri(context.RedirectUri);
+                //var httpsUri = $"https://{uri.Host}{uri.PathAndQuery}";
+
+                var str = $"RedirectUri='{context.RedirectUri}'";
+                Console.WriteLine(str);
+
                 context.Response.Redirect(context.RedirectUri + "&prompt=select_account");
                 return Task.CompletedTask;
             }
@@ -73,6 +123,8 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -95,5 +147,12 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+DumpEnvironment.Dump(args, builder.Configuration, false).ForEach(x => Console.WriteLine(x));
+
+Console.WriteLine("Staring...");
+string title = $"TicketShareWeb - Version: 1.0.4, Environment: {app.Environment.EnvironmentName}, AssemblyVersion={Assembly.GetExecutingAssembly().GetName().Version}";
+Console.WriteLine(title);
+app.Services.GetService<ILoggerFactory>()?.CreateLogger("Startup")?.LogInformation(title);
 
 app.Run();

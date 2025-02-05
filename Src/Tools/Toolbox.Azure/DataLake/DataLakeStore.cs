@@ -51,11 +51,11 @@ public class DatalakeStore : IDatalakeStore
             await file.AppendAsync(memoryBuffer, properties.ContentLength, cancellationToken: context).ConfigureAwait(false);
             await file.FlushAsync(properties.ContentLength + data.Data.Length).ConfigureAwait(false);
 
-            context.Location().LogInformation("Appended to path={path}", path);
+            context.Location().LogTrace("Appended to path={path}", path);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound" || ex.ErrorCode == "BlobNotFound")
         {
-            context.Location().LogInformation("Creating path={path}", path);
+            context.Location().LogTrace("Creating path={path}", path);
             await Write(path, data, true, context).ConfigureAwait(false);
 
             return StatusCode.OK;
@@ -83,7 +83,7 @@ public class DatalakeStore : IDatalakeStore
             DataLakeFileClient file = _fileSystem.GetFileClient(path);
             Response<bool> response = await file.DeleteIfExistsAsync(cancellationToken: context).ConfigureAwait(false);
 
-            if (!response.Value) context.Location().LogInformation("File path={path} does not exist", path);
+            if (!response.Value) context.Location().LogTrace("File path={path} does not exist", path);
 
             return response.Value ? StatusCode.OK : StatusCode.NotFound;
         }
@@ -143,7 +143,7 @@ public class DatalakeStore : IDatalakeStore
         context = context.With(_logger);
         path = WithBasePath(path);
 
-        context.Location().LogInformation("Getting path {path} properties", path);
+        context.Location().LogTrace("Getting path {path} properties", path);
         return InternalGetPathProperties(path, context);
     }
 
@@ -266,7 +266,7 @@ public class DatalakeStore : IDatalakeStore
         try
         {
             Response<bool> response = await _fileSystem.ExistsAsync(cancellationToken: context).ConfigureAwait(false);
-            context.Location().LogInformation("Testing exist of file system, exists={fileSystemExist}", response.Value);
+            context.Location().LogTrace("Testing exist of file system, exists={fileSystemExist}", response.Value);
             return response.Value ? StatusCode.OK : StatusCode.ServiceUnavailable;
         }
         catch (Exception ex)
@@ -347,7 +347,7 @@ public class DatalakeStore : IDatalakeStore
             Response<bool> exist = await file.ExistsAsync();
             if (!exist.HasValue || !exist.Value)
             {
-                context.Location().LogInformation("File does not exist, path={path}", path);
+                context.Location().LogTrace("File does not exist, path={path}", path);
                 return new Option<DatalakePathProperties>(StatusCode.NotFound);
             }
 

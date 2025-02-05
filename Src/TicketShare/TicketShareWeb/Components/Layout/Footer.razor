@@ -5,8 +5,19 @@
               Style="margin: 0px;padding: 0px">
 </FluentButton>
 
-<FluentLabel Style="font-size: 0.7rem">Copyright (c) 2024 - Kelvin Hoover</FluentLabel>
+<FluentStack Orientation="Orientation.Horizontal">
+
+    <FluentLabel Style="font-size: 0.7rem">Copyright (c) 2024 - Kelvin Hoover</FluentLabel>
+
+    @if (_env.EnvironmentName == "Development")
+    {
+        <FluentLabel Style="font-size: 0.7rem">Development Environment</FluentLabel>
+    }
+
+</FluentStack>
+
 
 @code {
     [Parameter] public EventCallback SwitchMode { get; set; }
-}
+    [Inject] Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env { get; set; } = null!;
+    }

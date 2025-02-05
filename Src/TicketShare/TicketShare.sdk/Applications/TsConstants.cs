@@ -9,4 +9,5 @@ public class TsConstants
 
     public const string AzureAd_ClientSecret = "AzureAd:ClientSecret";
     public const string AzureAd_ClientId = "AzureAd:ClientId";
+    public const string AzureAd_CallbackPath = "AzureAd:CallbackPath";
 }
