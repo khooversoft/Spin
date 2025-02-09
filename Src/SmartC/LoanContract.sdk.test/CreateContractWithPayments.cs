@@ -10,6 +10,7 @@ using SpinClient.sdk;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -167,7 +168,7 @@ public class CreateContractWithPayments : IClassFixture<ClusterApiFixture>
             reportOption.IsOk().Should().BeTrue();
 
             LoanReportModel loanReportModel = reportOption.Return();
-            loanReportModel.LedgerItems.Should().NotBeNull();
+            loanReportModel.LedgerItems.NotNull();
             loanReportModel.LedgerItems.Count.Should().Be((i + 1) * 2);
             loanReportModel.BalanceItems.Count.Should().Be(i + 1);
         }
@@ -250,8 +251,8 @@ public class CreateContractWithPayments : IClassFixture<ClusterApiFixture>
         reportOption.IsOk().Should().BeTrue();
 
         LoanReportModel loanReportModel = reportOption.Return();
-        loanReportModel.Should().NotBeNull();
-        loanReportModel.LoanDetail.Should().NotBeNull();
+        loanReportModel.NotNull();
+        loanReportModel.LoanDetail.NotNull();
         (loanDetail == loanReportModel.LoanDetail).Should().BeTrue();
     }
 

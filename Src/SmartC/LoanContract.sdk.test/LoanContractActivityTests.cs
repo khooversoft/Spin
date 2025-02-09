@@ -140,7 +140,7 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
             reportOption.IsOk().Should().BeTrue();
 
             LoanReportModel loanReportModel = reportOption.Return();
-            loanReportModel.LedgerItems.Should().NotBeNull();
+            loanReportModel.LedgerItems.NotNull();
             loanReportModel.LedgerItems.Count.Should().Be((i + 1) * 2);
         }
 

@@ -5,6 +5,7 @@ using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.test.Application;
 using SoftBank.sdk.Trx;
 using SpinTestTools.sdk.ObjectBuilder;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -147,7 +148,7 @@ public class TwoAccounts : IClassFixture<ClusterApiFixture>
         trxResponse.Request.Should().Be(request);
         trxResponse.Status.Should().Be(TrxStatusCode.Completed);
         trxResponse.Amount.Should().Be(amount);
-        trxResponse.Error.Should().BeNull();
+        trxResponse.Error.BeNull();
         trxResponse.SourceLedgerItemId.Should().NotBeEmpty();
         trxResponse.DestinationLedgerItemId.Should().NotBeEmpty();
     }
