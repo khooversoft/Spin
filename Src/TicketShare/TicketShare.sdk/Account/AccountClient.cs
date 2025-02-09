@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Graph.Extensions;
 using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -9,47 +11,40 @@ namespace TicketShare.sdk;
 
 public class AccountClient
 {
-    private const string _nodeTag = "account";
-    private const string _edgeType = "account-owns";
     private readonly IGraphClient _graphClient;
+    public AccountClient(IGraphClient graphClient) => _graphClient = graphClient.NotNull();
 
-    public AccountClient(IGraphClient graphClient)
+    public AccountContext GetContext(string principalId) => new AccountContext(_graphClient, principalId);
+
+    public Task<Option> Add(AccountRecord accountRecord, ScopeContext context) => GetContext(accountRecord.PrincipalId).Add(accountRecord, context);
+    public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => GetContext(accountRecord.PrincipalId).Set(accountRecord, context);
+
+    public async Task<Option<AccountRecord>> Create(string principalId, ScopeContext context)
     {
-        _graphClient = graphClient.NotNull();
-    }
+        principalId.NotNull();
 
-    public Task<Option> Add(AccountRecord accountRecord, ScopeContext context) => AddOrSet(false, accountRecord, context);
-
-    public async Task<Option> Delete(string principalId, ScopeContext context)
-    {
-        principalId.NotEmpty();
-        return await _graphClient.DeleteNode(ToAccountKey(principalId), context).ConfigureAwait(false);
-    }
-
-    public async Task<Option<AccountRecord>> Get(string principalId, ScopeContext context)
-    {
-        principalId.NotEmpty();
-        return await _graphClient.GetNode<AccountRecord>(ToAccountKey(principalId), context).ConfigureAwait(false);
-    }
-
-    public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => AddOrSet(true, accountRecord, context);
-
-    private async Task<Option> AddOrSet(bool useSet, AccountRecord accountRecord, ScopeContext context)
-    {
-        var queryOption = AccountTool.CreateQuery(accountRecord, useSet, context);
-        if (queryOption.IsError()) return queryOption.ToOptionStatus();
-
-        string cmd = queryOption.Return();
-
-        var result = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
-        if (result.IsError())
+        var identityLookup = await new IdentityClient(_graphClient).GetByPrincipalId(principalId, context).ConfigureAwait(false);
+        if (identityLookup.IsError())
         {
-            context.LogError("Failed to set account for principalId={principalId}", accountRecord.PrincipalId);
-            return result.LogStatus(context, $"principalId={accountRecord.PrincipalId}").ToOptionStatus();
+            context.LogError("Cannot create user's account because principalId={principalId} not found", principalId);
+            return identityLookup.ToOptionStatus<AccountRecord>();
         }
 
-        return result.ToOptionStatus();
-    }
+        var identityRecord = identityLookup.Return();
 
-    public static string ToAccountKey(string principalId) => $"account:{principalId.NotEmpty().ToLowerInvariant()}";
+        AccountRecord accountRecord = new AccountRecord
+        {
+            PrincipalId = principalId,
+            Name = identityRecord.Name,
+            ContactItems = new[]
+            {
+                new ContactRecord { Type = ContactType.Email, Value = identityRecord.Email.NotEmpty() },
+            }.ToImmutableArray(),
+        };
+
+        var setOption = await Set(accountRecord, context).ConfigureAwait(false);
+        if( setOption.IsError()) return setOption.ToOptionStatus<AccountRecord>();
+
+        return accountRecord;
+    }
 }

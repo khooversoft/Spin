@@ -16,6 +16,7 @@ internal static class TestTool
             PrincipalId = principalId,
             Email = "em-" + principalId,
             UserName = userName,
+            Name = $"name:{userName}",
             NormalizedUserName = userName.ToLowerInvariant(),
         };
 

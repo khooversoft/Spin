@@ -41,50 +41,19 @@ public class UserAccountManager
         var context = new ScopeContext(_logger);
 
         string principalId = await GetPrincipalId().ConfigureAwait(false);
-        Option<AccountRecord> accountRecordOption = await _accountClient.Get(principalId, context).ConfigureAwait(false);
-
-        if (accountRecordOption.IsOk()) return accountRecordOption;
-
-        return await CreateAccount(principalId, context).ConfigureAwait(false);
+        return await _accountClient.GetContext(principalId).Get(context).ConfigureAwait(false);
     }
 
     public async Task<Option> SetAccount(AccountRecord accountRecord)
     {
         accountRecord.NotNull();
         var context = new ScopeContext(_logger);
+        var l = new List<string>();
 
-        var result = await _accountClient.Set(accountRecord, context).ConfigureAwait(false);
+        var result = await _accountClient.GetContext(accountRecord.PrincipalId)
+            .Set(accountRecord, context)
+            .ConfigureAwait(false);
+
         return result;
-    }
-
-    private async Task<Option<AccountRecord>> CreateAccount(string principalId, ScopeContext context)
-    {
-        Option<PrincipalIdentity> principalIdentityOption = await _identityClient.GetByPrincipalId(principalId, new ScopeContext(_logger)).ConfigureAwait(false);
-        if (principalIdentityOption.IsError())
-        {
-            context.LogError("PrincipalId={principalId} not found", principalId);
-            return StatusCode.NotFound;
-        }
-
-        var principalIdentity = principalIdentityOption.Return();
-
-        AccountRecord accountRecord = new AccountRecord
-        {
-            PrincipalId = principalIdentity.PrincipalId.NotEmpty(),
-            Name = principalIdentity.Name.NotEmpty(),
-            ContactItems = new[]
-            {
-                new ContactRecord { Type = ContactType.Email, Value = principalIdentity.Email.NotEmpty() },
-            }.ToImmutableArray(),
-        };
-
-        var writeOption = await _accountClient.Add(accountRecord, context).ConfigureAwait(false);
-        if (writeOption.IsError())
-        {
-            context.LogError("PrincipalId={principalId} not found", principalId);
-            return writeOption.ToOptionStatus<AccountRecord>();
-        }
-
-        return accountRecord;
     }
 }

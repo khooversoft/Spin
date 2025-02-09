@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Reflection;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
 using TicketShare.sdk.Identity;
@@ -18,11 +20,7 @@ using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Dump;
 
-Console.WriteLine($"TicketShareWeb - Version: 1.0.1");
-
 var builder = WebApplication.CreateBuilder(args);
-DumpEnvironment.Dump(args, builder.Configuration, false).ForEach(x => Console.WriteLine(x));
-
 
 builder.Logging.AddApplicationInsights(
         configureTelemetryConfiguration: (config) =>
@@ -34,6 +32,21 @@ builder.Logging.AddApplicationInsights(
     );
 
 builder.Logging.AddConsole();
+
+builder.Services.AddHttpLogging(config =>
+{
+    var proto = config.RequestHeaders.Add("X-Forwarded-Proto");
+    Console.WriteLine($"proto={proto}");
+
+    var forward = config.RequestHeaders.Add("X-Forwarded-For");
+    Console.WriteLine($"forward={forward}");
+
+    var host = config.RequestHeaders.Add("X-Forwarded-Host");
+    Console.WriteLine($"host={host}");
+
+    var cert = config.RequestHeaders.Add("X-Forwarded-Client-Cert");
+    Console.WriteLine($"cert={cert}");
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -69,24 +82,7 @@ builder.Services.AddAuthentication(options =>
         {
             OnRedirectToAuthorizationEndpoint = context =>
             {
-                //const string httpRedirect = "redirect_uri=http%3A%2F%2Fticket-share.com%2Fsignin-microsoft";
-                //const string httpsRedirect = "redirect_uri=https%3A%2F%2Fticket-share.com%2Fsignin-microsoft";
-
-                //string oldUri = context.RedirectUri;
-                //string newUri = (oldUri.IndexOf(httpRedirect, StringComparison.OrdinalIgnoreCase) >= 0) switch
-                //{
-                //    false => oldUri,
-                //    true => oldUri.Replace(httpRedirect, httpsRedirect),
-                //};
-
-                //string redirect = context.RedirectUri
-                //    .Replace("http://", "https://")
-                //    .Replace("http%3A%2F%2F", "https%3A%2F%2F");
-
-                //var uri = new Uri(context.RedirectUri);
-                //var httpsUri = $"https://{uri.Host}{uri.PathAndQuery}";
-
-                var str = $"RedirectUri='{context.RedirectUri}'";
+                var str = $"Console: RedirectUri='{context.RedirectUri}'";
                 Console.WriteLine(str);
 
                 context.Response.Redirect(context.RedirectUri + "&prompt=select_account");
@@ -121,8 +117,15 @@ builder.Services
     .AddScoped<AskPanel>()
     .AddScoped<AppNavigation>();
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+
 var app = builder.Build();
 
+///////////////////////////////////////////////////////////////////////////////
+
+app.UseHttpLogging();
 app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
@@ -148,11 +151,28 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-DumpEnvironment.Dump(args, builder.Configuration, false).ForEach(x => Console.WriteLine(x));
+app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup").Action(logger =>
+{
+    DumpEnvironment.Dump(args, builder.Configuration, false)
+        .Join(Environment.NewLine)
+        .Action(x => logger.LogInformation(x));
 
-Console.WriteLine("Staring...");
-string title = $"TicketShareWeb - Version: 1.0.4, Environment: {app.Environment.EnvironmentName}, AssemblyVersion={Assembly.GetExecutingAssembly().GetName().Version}";
-Console.WriteLine(title);
-app.Services.GetService<ILoggerFactory>()?.CreateLogger("Startup")?.LogInformation(title);
+    logger.LogInformation(
+        "TicketShareWeb - Version: 1.0.10, Environment={environmentName}: AssemblyVersion={assemblyVersion}",
+        app.Environment.EnvironmentName,
+        Assembly.GetExecutingAssembly().GetName().Version
+        );
+
+    var httpLoggerOption = app.Services.GetService<IOptions<HttpLoggingOptions>>();
+    logger.LogInformation("Found IOptions<httpLoggerOption>={found}", httpLoggerOption != null);
+
+    if (httpLoggerOption != null)
+    {
+        httpLoggerOption.Value.RequestHeaders
+            .Select(x => $"RequestHeaders={x}")
+            .Join(Environment.NewLine)
+            .Action(x => logger.LogInformation(x));
+    }
+});
 
 app.Run();

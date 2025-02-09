@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Graph;
+using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -18,13 +19,15 @@ public sealed record AccountRecord
     public IReadOnlyList<ContactRecord> ContactItems { get; init; } = Array.Empty<ContactRecord>();
     public IReadOnlyList<AddressRecord> AddressItems { get; init; } = Array.Empty<AddressRecord>();
     public IReadOnlyList<CalendarRecord> CalendarItems { get; init; } = Array.Empty<CalendarRecord>();
+    public IReadOnlyList<ChannelMessage> Messages { get; init; } = Array.Empty<ChannelMessage>();
 
     public bool Equals(AccountRecord? obj) => obj is AccountRecord subject &&
         PrincipalId == subject.PrincipalId &&
         Name == subject.Name &&
         Enumerable.SequenceEqual(ContactItems, subject.ContactItems) &&
         Enumerable.SequenceEqual(AddressItems, subject.AddressItems) &&
-        Enumerable.SequenceEqual(CalendarItems, subject.CalendarItems);
+        Enumerable.SequenceEqual(CalendarItems, subject.CalendarItems) &&
+        Messages.OrderBy(x => x.MessageId).SequenceEqual(subject.Messages.OrderBy(x => x.MessageId));
 
     public override int GetHashCode() => HashCode.Combine(PrincipalId, Name, ContactItems, AddressItems, CalendarItems);
 
@@ -33,6 +36,7 @@ public sealed record AccountRecord
         .RuleForEach(x => x.ContactItems).Validate(ContactRecord.Validator)
         .RuleForEach(x => x.AddressItems).Validate(AddressRecord.Validator)
         .RuleForEach(x => x.CalendarItems).Validate(CalendarRecord.Validator)
+        .RuleForEach(x => x.Messages).Validate(ChannelMessage.Validator)
         .Build();
 }
 

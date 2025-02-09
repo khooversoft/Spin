@@ -26,7 +26,7 @@
     [Inject] public ChannelClient _channelClient { get; set; } = null!;
     [Inject] public ILogger<ChannelPage> _logger { get; set; } = null!;
 
-    private ChannelContext _channelContext = null!;
+    private ChannelContext _channelContext;
     private bool Visible { get; set; } = true;
     private IReadOnlyList<ChannelMessage> _messageList = [];
     private string _principalId = null!;

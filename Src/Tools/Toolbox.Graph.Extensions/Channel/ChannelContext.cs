@@ -7,7 +7,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions;
 
-public record ChannelContext
+public readonly struct ChannelContext
 {
     private readonly IGraphClient _graphClient;
     private readonly string _channelId;
