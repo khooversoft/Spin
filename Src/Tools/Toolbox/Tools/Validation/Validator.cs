@@ -74,20 +74,20 @@ public class Validator<T> : IValidator<T>
         var result = new ValidatorResult
         {
             Errors = _rules
-            .SelectMany(x => x.Validate(subject) switch
-            {
-                var o when o.HasValue => o.Return() switch
+                .SelectMany(x => x.Validate(subject) switch
                 {
-                    ValidatorError v => new[] { v },
-                    ValidatorResult v => v.GetErrors(),
+                    var o when o.HasValue => o.Return() switch
+                    {
+                        ValidatorError v => new[] { v },
+                        ValidatorResult v => v.GetErrors(),
 
-                    var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
-                },
+                        var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
+                    },
 
-                _ => Array.Empty<ValidatorError>(),
+                    _ => Array.Empty<ValidatorError>(),
 
-            })
-            .ToArray()
+                })
+                .ToArray()
         };
 
         return result.Errors switch

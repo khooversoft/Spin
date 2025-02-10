@@ -20,6 +20,10 @@ using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Dump;
 
+const string _appVersion = "TicketShareWeb - Version: 1.0.11";
+
+Console.WriteLine(_appVersion);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddApplicationInsights(
@@ -35,17 +39,10 @@ builder.Logging.AddConsole();
 
 builder.Services.AddHttpLogging(config =>
 {
-    var proto = config.RequestHeaders.Add("X-Forwarded-Proto");
-    Console.WriteLine($"proto={proto}");
-
-    var forward = config.RequestHeaders.Add("X-Forwarded-For");
-    Console.WriteLine($"forward={forward}");
-
-    var host = config.RequestHeaders.Add("X-Forwarded-Host");
-    Console.WriteLine($"host={host}");
-
-    var cert = config.RequestHeaders.Add("X-Forwarded-Client-Cert");
-    Console.WriteLine($"cert={cert}");
+    config.RequestHeaders.Add("X-Forwarded-Proto");
+    config.RequestHeaders.Add("X-Forwarded-For");
+    config.RequestHeaders.Add("X-Forwarded-Host");
+    config.RequestHeaders.Add("X-Forwarded-Client-Cert");
 });
 
 // Add services to the container.
@@ -158,7 +155,8 @@ app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup").Action
         .Action(x => logger.LogInformation(x));
 
     logger.LogInformation(
-        "TicketShareWeb - Version: 1.0.10, Environment={environmentName}: AssemblyVersion={assemblyVersion}",
+        "{appVersion}, Environment={environmentName}: AssemblyVersion={assemblyVersion}",
+        _appVersion,
         app.Environment.EnvironmentName,
         Assembly.GetExecutingAssembly().GetName().Version
         );
@@ -169,10 +167,12 @@ app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup").Action
     if (httpLoggerOption != null)
     {
         httpLoggerOption.Value.RequestHeaders
-            .Select(x => $"RequestHeaders={x}")
-            .Join(Environment.NewLine)
+            .Prepend("RequestHeaders=")
+            .Join(",")
             .Action(x => logger.LogInformation(x));
     }
 });
+
+await Task.Delay(TimeSpan.FromSeconds(5));
 
 app.Run();
