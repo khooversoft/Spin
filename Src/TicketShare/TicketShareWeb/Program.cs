@@ -19,9 +19,11 @@ using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Dump;
+using Toolbox.Email;
 
 const string _appVersion = "TicketShareWeb - Version: 1.0.11";
 
+//await Task.Delay(TimeSpan.FromSeconds(5));
 Console.WriteLine(_appVersion);
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,8 +55,6 @@ builder.Services.AddFluentUIComponents();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
 });
 
 builder.Services.AddCascadingAuthenticationState();
@@ -105,15 +105,15 @@ builder.Services
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-//builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+// builder.Services.AddSingleton<IEmailSender<PrincipalIdentity>, IdentityNoOpEmailSender>();
 
 builder.Services
     .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
     .AddGraphEngine()
     .AddTicketShare()
+    .AddEmail(builder.Configuration.GetSection("email"))
     .AddScoped<AskPanel>()
     .AddScoped<AppNavigation>();
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -172,7 +172,5 @@ app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup").Action
             .Action(x => logger.LogInformation(x));
     }
 });
-
-await Task.Delay(TimeSpan.FromSeconds(5));
 
 app.Run();

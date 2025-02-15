@@ -11,14 +11,14 @@ public class SendEmailTest
     private readonly TestApplicationContext _appService;
     public SendEmailTest(ITestOutputHelper outputHelper) => _appService = TestApplication.Create<SendEmailTest>(outputHelper);
 
-    [Fact]
+    [Fact(Skip = "ManualTest")]
     public async Task TestSendEmail()
     {
-        IEmailSender emailSender = _appService.ServiceProvider.GetRequiredService<IEmailSender>();
+        IEmailWriter emailSender = _appService.ServiceProvider.GetRequiredService<IEmailWriter>();
         ScopeContext context = _appService.CreateContext<SendEmailTest>();
 
         var toEmail = ("khoover", "kelvin.hoover@hotmail.com");
-        var result = await emailSender.SendHtml(toEmail, "Please join", "goto <a href=\"https://ticket-share.com\">Ticket Share</a>", context);
+        var result = await emailSender.WriteHtml([toEmail], "Please join", "goto <a href=\"https://ticket-share.com\">Ticket Share</a>", context);
         result.IsOk().Should().BeTrue();
     }
 }

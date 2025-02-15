@@ -1,23 +1,43 @@
 ﻿@using Toolbox.Graph.Extensions;
 
 <FeedBlock>
-    <FluentCard Class="card-container">
+    <FluentCard Class="card-container" @onclick="CardSelected">
         <FluentStack Orientation="Orientation.Horizontal">
-            <FluentLabel style="min-height:31px" Typo="Typography.Body">@_dateString</FluentLabel>
-            <FluentLabel style="min-height:31px" Typo="Typography.Body">@Content.FromPrincipalId</FluentLabel>
+            <FluentLabel style="min-height:31px" Typo="Typography.Body">@_expand.DateAsString</FluentLabel>
+            <FluentLabel style="min-height:31px" Typo="Typography.Body">@_expand.UserName</FluentLabel>
         </FluentStack>
-        <FluentLabel Typo="Typography.Subject">@Content.Message</FluentLabel>
+        <FluentLabel Typo="Typography.Subject">@((MarkupString)_expand.Topic)</FluentLabel>
     </FluentCard>
 </FeedBlock>
 
 
 @code {
     [Parameter] public ChannelMessage Content { get; set; } = null!;
+    [Inject] public IdentityClient _identityClient { get; set; } = null!;
+    [Inject] public ILogger<ChannelMessageBlock> _logger { get; set; } = null!;
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
 
-    private string _dateString = null!;
+    private ScopeContext _context;
+    private ChannelMessageExpanded _expand = null!;
+    private RightPanelDialog<ChannelMessageExpanded, ChannelMessageDialog> _rightPanelDialog = null!;
 
-    protected override void OnParametersSet()
+
+    protected override async Task OnParametersSetAsync()
     {
-        _dateString = Content.Date.ToString("dd/MM/yyyy HH:mm");
+        _context = new ScopeContext(_logger);
+        _expand = await Content.Expand(_identityClient, _context);
+
+        _rightPanelDialog = new RightPanelDialog<ChannelMessageExpanded, ChannelMessageDialog>(
+            _dialogService,
+            x => NoOpSetChannel(x),
+            null
+        );
+    }
+
+    private Task NoOpSetChannel(ChannelMessageExpanded _) => Task.CompletedTask;
+
+    private async Task CardSelected()
+    {
+        await _rightPanelDialog.Edit(_expand, "Message");
     }
 }

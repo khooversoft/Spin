@@ -131,16 +131,6 @@ public class IdentityUserStore : IUserStore<PrincipalIdentity>, IUserLoginStore<
 
         var result = await _identityClient.GetByLogin(loginProvider, providerKey, context).ConfigureAwait(false);
         return result.IsOk() ? result.Return() : null;
-
-        //return result.IsOk() ? result.Return() : new PrincipalIdentity
-        //{
-        //    PrincipalId = "khoover@biz-bricks.com",
-        //    UserName = "khoover",
-        //    Email = "khoover@biz-bricks.com",
-        //    Name = "Kelvin Hoover",
-        //    LoginProvider = loginProvider,
-        //    ProviderKey = providerKey,
-        //};
     }
 
     public async Task<IList<UserLoginInfo>> GetLoginsAsync(PrincipalIdentity user, CancellationToken cancellationToken)

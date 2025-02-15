@@ -2,7 +2,8 @@
 
     @if (OnClose.HasDelegate)
     {
-        <FluentButton Appearance="Appearance.Outline"
+        <FluentButton @ref="_closeButton"
+                      Appearance=" Appearance.Outline"
                       IconStart="@(new Icons.Regular.Size20.ArrowLeft())"
                       OnClick="CloseClick">
         </FluentButton>
@@ -50,6 +51,7 @@
 
     private Icon setIcon = null!;
     private string setText = null!;
+    private FluentButton _closeButton = null!;
 
     protected override void OnParametersSet()
     {
@@ -58,6 +60,11 @@
             true => ((Icon)new Icons.Regular.Size20.Save(), "Save"),
             false => ((Icon)new Icons.Regular.Size20.Add(), "Add"),
         };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _closeButton != null) await _closeButton.Element.FocusAsync();
     }
 
     private async Task CloseClick() => await OnClose.InvokeAsync();

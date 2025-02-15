@@ -15,16 +15,16 @@ public static class Option_T_Extensions
     public static bool IsUnauthorized<T>(this Option<T> subject) => subject.StatusCode.IsUnauthorized();
     public static bool IsForbidden<T>(this Option<T> subject) => subject.StatusCode.IsForbidden();
 
-    public static bool IsOk<T>(this Option<T> subject, out Option result)
-    {
-        result = subject.ToOptionStatus();
-        return subject.IsOk();
-    }
-
     public static bool IsError<T>(this Option<T> subject, out Option result)
     {
         result = subject.ToOptionStatus();
         return subject.IsError();
+    }
+
+    public static Option<T> OutValue<T>(this Option<T> subject, out T value)
+    {
+        value = subject.HasValue ? subject.Value : default!;
+        return subject;
     }
 
     public static T Return<T>(this Option<T> subject, bool throwOnNoValue = true, string? error = null) => subject.HasValue switch

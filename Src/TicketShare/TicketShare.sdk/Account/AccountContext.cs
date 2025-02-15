@@ -23,10 +23,10 @@ public readonly struct AccountContext
         _graphClient = graphClient.NotNull();
         _principalId = principalId.NotEmpty();
 
-        Message = new Messages(Get, Set);
+        Messages = new MessagesAccess(Get, Set);
     }
 
-    public Messages Message { get; }
+    public MessagesAccess Messages { get; }
 
     public Task<Option> Add(AccountRecord accountRecord, ScopeContext context) => AddOrSet(false, accountRecord, context);
     public Task<Option> Delete(ScopeContext context) => _graphClient.DeleteNode(AccountTool.ToNodeKey(_principalId), context);
@@ -52,11 +52,11 @@ public readonly struct AccountContext
         return result.ToOptionStatus();
     }
 
-    public readonly struct Messages
+    public readonly struct MessagesAccess
     {
         private readonly Func<ScopeContext, Task<Option<AccountRecord>>> _get;
         private readonly Func<AccountRecord, ScopeContext, Task<Option>> _set;
-        internal Messages(Func<ScopeContext, Task<Option<AccountRecord>>> get, Func<AccountRecord, ScopeContext, Task<Option>> set) => (_get, _set) = (get, set);
+        internal MessagesAccess(Func<ScopeContext, Task<Option<AccountRecord>>> get, Func<AccountRecord, ScopeContext, Task<Option>> set) => (_get, _set) = (get, set);
 
         public async Task<IReadOnlyList<ChannelMessage>> Get(ScopeContext context)
         {

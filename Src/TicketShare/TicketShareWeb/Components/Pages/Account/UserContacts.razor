@@ -16,6 +16,7 @@
 
 @code {
     [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Inject] public ILogger<UserContacts> _logger { get; set; } = null!;
     [CascadingParameter] public UserAccountContext UserAccountContext { get; set; } = null!;
 
     private IQueryable<ContactModel> _contacts = null!;
@@ -23,10 +24,12 @@
 
     protected override void OnParametersSet()
     {
+        var context = new ScopeContext(_logger);
+
         _rightPanelDialog = new RightPanelDialog<ContactModel, UserContactDialog>(
             _dialogService,
-            x => UserAccountContext.Contact.Set(x),
-            x => UserAccountContext.Contact.Delete(x)
+            x => UserAccountContext.Contact.Set(x, context),
+            x => UserAccountContext.Contact.Delete(x, context)
         );
 
         Refresh();

@@ -27,28 +27,36 @@ public class UserAccountManager
         _logger = logger.NotNull();
     }
 
-    public async Task<string> GetPrincipalId()
+    public UserAccountContext GetContext() => new UserAccountContext(this, _logger);
+
+    public async Task<string> GetPrincipalId(ScopeContext _)
     {
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
         string principalId = authState.User.Identity.NotNull().Name.NotEmpty();
         return principalId;
     }
 
-    public UserAccountContext GetContext() => new UserAccountContext(this, _logger);
-
-    public async Task<Option<AccountRecord>> GetAccount()
+    public async Task<Option<PrincipalIdentity>> GetPrincipalIdentity(ScopeContext context)
     {
-        var context = new ScopeContext(_logger);
+        context = context.With(_logger);
 
-        string principalId = await GetPrincipalId().ConfigureAwait(false);
+        string principalId = await GetPrincipalId(context).ConfigureAwait(false);
+        var result = await _identityClient.GetByPrincipalId(principalId, context).ConfigureAwait(false);
+        return result;
+    }
+
+    public async Task<Option<AccountRecord>> GetAccount(ScopeContext context)
+    {
+        context = context.With(_logger);
+
+        string principalId = await GetPrincipalId(context).ConfigureAwait(false);
         return await _accountClient.GetContext(principalId).Get(context).ConfigureAwait(false);
     }
 
-    public async Task<Option> SetAccount(AccountRecord accountRecord)
+    public async Task<Option> SetAccount(AccountRecord accountRecord, ScopeContext context)
     {
         accountRecord.NotNull();
-        var context = new ScopeContext(_logger);
-        var l = new List<string>();
+        context = context.With(_logger);
 
         var result = await _accountClient.GetContext(accountRecord.PrincipalId)
             .Set(accountRecord, context)

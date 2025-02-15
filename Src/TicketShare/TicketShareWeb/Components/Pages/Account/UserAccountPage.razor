@@ -10,6 +10,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using TicketShare.sdk
 @using TicketShareWeb.Components.Settings
+@using Toolbox.Graph.Extensions
 
 @rendermode InteractiveServer
 
@@ -38,6 +39,7 @@
     [Inject] public ILogger<UserAccountPage> _logger { get; set; } = null!;
     [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Inject] public UserManager<PrincipalIdentity> UserManager { get; set; } = null!;
 
     private UserAccountContext _userAccountContext = null!;
     private bool Visible { get; set; } = true;
@@ -49,9 +51,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        var context = new ScopeContext(_logger);
+
         if (firstRender)
         {
-            await _userAccountContext.Get();
+            await _userAccountContext.Get(context);
             Visible = false;
             StateHasChanged();
         }
@@ -61,6 +65,8 @@
 
     private async Task OnEditInfo()
     {
+        var context = new ScopeContext(_logger);
+
         var userProfile = new UserProfileEditModel { Name = _userAccountContext.Input.Name };
 
         var parameters = new DialogParameters()
@@ -78,7 +84,7 @@
 
         if (result.Data is not UserProfileEditModel userProfileModel) return;
 
-        await _userAccountContext.SetName(userProfileModel.Name);
+        await _userAccountContext.SetName(userProfileModel.Name, context);
         StateHasChanged();
     }
 }

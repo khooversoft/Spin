@@ -23,6 +23,8 @@ public sealed record PrincipalIdentity
     public string? LoginProvider { get; set; } = null!;
     public string? ProviderKey { get; set; } = null!;
     public string? ProviderDisplayName { get; set; }
+    public bool EmailConfirmed { get; set; }
+
 
     public static IValidator<PrincipalIdentity> Validator { get; } = new Validator<PrincipalIdentity>()
         .RuleFor(x => x.PrincipalId).NotEmpty()

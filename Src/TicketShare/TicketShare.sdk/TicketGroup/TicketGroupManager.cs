@@ -21,7 +21,7 @@ public class TicketGroupManager
 
     public async Task<Option<IReadOnlyList<TicketGroupModel>>> GetTicketGroups(ScopeContext context)
     {
-        string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
+        string principalId = await _userAccountManager.GetPrincipalId(context).ConfigureAwait(false);
 
         var result = await Search(principalId, context).ConfigureAwait(false);
         if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<TicketGroupModel>>();
@@ -32,7 +32,7 @@ public class TicketGroupManager
 
     public async Task<Option<string>> Create(TicketGroupHeaderModel ticketGroupHeader, ScopeContext context)
     {
-        string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
+        string principalId = await _userAccountManager.GetPrincipalId(context).ConfigureAwait(false);
 
         var ticketGroupRecord = ticketGroupHeader.ConvertTo().ConvertTo()
             .SetTicketGroupId(principalId)

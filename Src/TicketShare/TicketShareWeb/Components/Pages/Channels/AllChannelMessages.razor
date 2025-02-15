@@ -13,15 +13,19 @@
 @code {
     [Inject] public AuthenticationAccess _authenticationAccess { get; set; } = null!;
     [Inject] public AppNavigation _appNavigation { get; set; } = null!;
-    [Inject] public ChannelClient _channelClient { get; set; } = null!;
+    [Inject] public ChannelManager _channelManager { get; set; } = null!;
+    // [Inject] public AccountClient _accountClient { get; set; } = null!;
+    // [Inject] public ChannelClient _channelClient { get; set; } = null!;
     [Inject] public ILogger<ChannelPage> _logger { get; set; } = null!;
 
     private bool Visible { get; set; } = true;
+    private ScopeContext _scopeContext;
     private IReadOnlyList<ChannelMessage> _messageList = [];
     private string _principalId = null!;
 
     protected override async Task OnParametersSetAsync()
     {
+        _scopeContext = new ScopeContext(_logger);
         _principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
 
         await Refresh();
@@ -32,12 +36,22 @@
 
     private async Task Refresh()
     {
-        var listOption = await _channelClient.GetPrincipalMessages(_principalId, new ScopeContext(_logger));
-
-        _messageList = listOption.IsOk() switch
+        var channelsOption = await _channelManager.GetMessages(_principalId, _scopeContext);
+        _messageList = channelsOption.IsOk() switch
         {
-            true => listOption.Return(),
+            true => channelsOption.Return(),
             false => [],
         };
+
+        // var channelsOption = await _channelClient.GetPrincipalMessages(_principalId, _scopeContext);
+        // IReadOnlyList<ChannelMessage> accountMessages = await _accountClient.GetContext(_principalId).Messages.Get(_scopeContext);
+
+        // _messageList = channelsOption.IsOk() switch
+        // {
+        //     true => channelsOption.Return(),
+        //     false => [],
+        // };
+
+        // _messageList = _messageList.Concat(accountMessages).ToArray();
     }
 }

@@ -4,13 +4,16 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Toolbox.Graph.Extensions
+@using Toolbox.Logging;
 
 @inject UserManager<PrincipalIdentity> UserManager
 @inject IdentityRedirectManager RedirectManager
+@inject VerifyEmail _verifyEmail
+@inject MessageSender _messageSender;
+@inject ILogger<ConfirmEmail> _logger
 
 <PageTitle>Confirm email</PageTitle>
 
-<h1>Confirm email</h1>
 <StatusMessage Message="@statusMessage" />
 
 @code {
@@ -27,6 +30,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var context = new ScopeContext(_logger);
+
         if (UserId is null || Code is null)
         {
             RedirectManager.RedirectTo("");
@@ -36,13 +41,32 @@
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = $"Error loading user with ID {UserId}";
+            statusMessage = $"Cannot find user ID {UserId}";
+            return;
         }
-        else
+
+        var result = await _verifyEmail.ConfirmEmail(UserId, Code, context);
+        if (result.IsError())
         {
-            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
-            var result = await UserManager.ConfirmEmailAsync(user, code);
-            statusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+            result.LogStatus(context, "Error confirming email for user with ID {UserId}", [UserId]);
+            statusMessage = $"Error confirming user with ID {UserId}";
+            return;
         }
+
+        var channelMessage = new ChannelMessage
+            {
+                ChannelId = IdentityTool.ToNodeKey(UserId),
+                FromPrincipalId = TsConstants.MessageEmailConfirm,
+                Topic = "Email",
+                Message = "Email Confirmed",
+            };
+
+        var send = await _messageSender.Send(channelMessage, context);
+        if (send.IsError())
+        {
+            send.LogStatus(context, "Error sending email confirmation message: {Message}", [channelMessage]);
+        }
+
+        RedirectManager.RedirectTo("");
     }
 }

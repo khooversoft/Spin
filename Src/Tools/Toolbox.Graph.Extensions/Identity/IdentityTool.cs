@@ -10,6 +10,7 @@ public static class IdentityTool
     public const string NodeTag = "principalIdentity";
     public const string NodeKeyPrefix = "user:";
     public static string ToNodeKey(string principalId) => $"{NodeKeyPrefix}{principalId.NotEmpty().ToLower()}";
+    public static bool IsIdentity(string subject) => subject.NotEmpty().StartsWith(NodeKeyPrefix);
     public static string RemoveNodeKeyPrefix(string subject) => subject.NotEmpty().StartsWith(NodeKeyPrefix) switch
     {
         false => subject,
@@ -62,5 +63,25 @@ public static class IdentityTool
     {
         builder.Add((context) => CreateQuery(subject, context));
         return builder;
+    }
+
+    public static async Task<Option<bool>> GetEmailConfirmed(this IdentityClient client, string principalId, ScopeContext context)
+    {
+        var principalIdentity = await client.GetByPrincipalId(principalId, context);
+        if(principalIdentity.IsError()) return principalIdentity.ToOptionStatus<bool>();
+
+        return principalIdentity.Return().EmailConfirmed;
+    }
+
+    public static async Task<Option> SetEmailConfirmed(this IdentityClient client, string principalId, bool confirmed, ScopeContext context)
+    {
+        var principalIdentity = await client.GetByPrincipalId(principalId, context);
+        if (principalIdentity.IsError()) return principalIdentity.ToOptionStatus();
+
+        var identity = principalIdentity.Return() with { EmailConfirmed = confirmed };
+        var write = await client.Set(identity, context);
+        if (write.IsError()) return write.LogStatus(context, "Cannot set email confirmed for principalId={principalId}", [principalId]);
+
+        return write;
     }
 }

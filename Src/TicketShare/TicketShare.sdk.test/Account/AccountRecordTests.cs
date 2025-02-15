@@ -20,7 +20,7 @@ public class AccountRecordTests
         var accountRecord = TestTool.CreateAccountModel("user1@domain.com");
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);
 
-        var result = await client.Add(accountRecord, context);
+        var result = await client.GetContext(accountRecord.PrincipalId).Add(accountRecord, context);
         result.IsOk().Should().BeTrue(result.ToString());
 
         var readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
@@ -50,7 +50,7 @@ public class AccountRecordTests
                 .ToArray(),
         };
 
-        result = await client.Set(accountRecord, context);
+        result = await client.GetContext(accountRecord.PrincipalId).Set(accountRecord, context);
         result.IsOk().Should().BeTrue();
 
         readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
@@ -106,7 +106,7 @@ public class AccountRecordTests
                 .ToArray(),
         };
 
-        var setOption = await client.Set(accountRecord, context);
+        var setOption = await client.GetContext(accountRecord.PrincipalId).Set(accountRecord, context);
         setOption.IsOk().Should().BeTrue();
 
         readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);

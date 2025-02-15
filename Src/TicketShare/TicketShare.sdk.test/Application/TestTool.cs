@@ -28,7 +28,7 @@ internal static class TestTool
     {
         var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
 
-        var result = await client.Add(accountRecord, context);
+        var result = await client.GetContext(accountRecord.PrincipalId).Add(accountRecord, context);
         result.IsOk().Should().BeTrue(result.ToString());
     }
 

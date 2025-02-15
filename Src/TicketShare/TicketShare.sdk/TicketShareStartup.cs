@@ -1,90 +1,61 @@
 ﻿using System.Security.Claims;
+using System.Threading.Channels;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Extensions;
-using Toolbox.Graph;
+using Microsoft.Extensions.Logging;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace TicketShare.sdk;
 
 public static class TicketShareStartup
 {
-    //public static void AddAzureApplicationConfiguration(this IHostApplicationBuilder builder)
-    //{
-    //    string connectionString = builder.Configuration.GetConnectionString("AppConfig").NotNull();
-    //    ClientSecretCredential credential = ClientCredential.ToClientSecretCredential(connectionString);
-
-    //    var appConfigEndpoint = "https://biz-bricks-prod-configuration.azconfig.io";
-
-    //    // Build configuration
-    //    builder.Configuration.AddAzureAppConfiguration(options =>
-    //    {
-    //        options.Connect(new Uri(appConfigEndpoint), credential)
-    //            .ConfigureKeyVault(kv =>
-    //            {
-    //                kv.SetCredential(credential);
-    //            })
-    //            .Select(TsConstants.ConfigurationFilter, LabelFilter.Null)
-    //            .Select(TsConstants.ConfigurationFilter, builder.Environment.EnvironmentName);
-    //    });
-
-    //    builder.Configuration.AddPropertyResolver();
-    //}
-
-    public static IServiceCollection AddTicketShare(this IServiceCollection service)
+    public static IServiceCollection AddTicketShare(this IServiceCollection services)
     {
-        service.AddGraphExtensions();
-        service.AddSingleton<AccountClient>();
-        service.AddScoped<UserAccountManager>();
-        service.AddScoped<AuthenticationAccess>();
+        services.AddGraphExtensions();
+        services.AddSingleton<AccountClient>();
+        services.AddScoped<UserAccountManager>();
+        services.AddScoped<AuthenticationAccess>();
+        services.AddSingleton<ChannelManager>();
 
-        service.AddSingleton<TicketGroupClient>();
-        service.AddScoped<TicketGroupManager>();
+        services.AddSingleton<TicketGroupClient>();
+        services.AddScoped<TicketGroupManager>();
 
-        return service;
+        services.AddChannel<EmailMessage>();
+        services.AddScoped<VerifyEmail>();
+        services.AddHostedService<EmailSenderHost>();
+
+        services.AddChannel<ChannelMessage>();
+        services.AddScoped<MessageSender>();
+        services.AddHostedService<MessageSenderHost>();
+        services.AddSingleton<ChannelManager>();
+
+        return services;
     }
-}
 
-public class TicketShareTestHost
-{
-    private GraphTestClient _testClient;
-
-    public TicketShareTestHost(string? principalId = null)
+    public static IServiceCollection AddChannel<T>(this IServiceCollection services)
     {
-        _testClient = GraphTestStartup.CreateGraphTestHost(null, service =>
+        services.AddSingleton<Channel<T>>(service =>
         {
-            service.AddTicketShare();
-            service.AddSingleton<AuthenticationStateProvider>(s =>
+            var logger = service.GetRequiredService<ILogger<EmailSenderHost>>();
+
+            var bounded = new BoundedChannelOptions(1000)
             {
-                return principalId.IsEmpty() ? new TestAuthStateProvider() : new TestAuthStateProvider(principalId);
-            });
+                SingleReader = true,
+                SingleWriter = false,
+                AllowSynchronousContinuations = false,
+            };
+
+            Channel<T> channel = Channel.CreateBounded<T>(
+                bounded,
+                x => logger.LogError("Channel dropped, message={message}", x)
+            );
+
+            return channel;
         });
+
+        return services;
     }
 
-    public IGraphClient TestClient => _testClient;
-
-    public IServiceProvider ServiceProvider => _testClient.ServiceProvider;
-    public ScopeContext GetScopeContext<T>() => _testClient.GetScopeContext<T>();
 }
 
-public class TestAuthStateProvider : AuthenticationStateProvider
-{
-    private readonly string _principalId = "user1@domain.com";
-
-    public TestAuthStateProvider() { }
-    public TestAuthStateProvider(string principalId) => _principalId = principalId.NotEmpty();
-
-    public async override Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, _principalId),
-            new Claim(ClaimTypes.Role, "Administrator")
-        };
-        var anonymous = new ClaimsIdentity(claims, "testAuthType");
-
-        return await Task.FromResult(new AuthenticationState(new ClaimsPrincipal(anonymous)));
-    }
-}

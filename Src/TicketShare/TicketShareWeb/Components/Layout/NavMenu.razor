@@ -5,14 +5,14 @@
 @inject NavigationManager NavigationManager
 
 <div class="navmenu">
-    <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
+    <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" @bind="isMenuMinimized" />
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label>
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
 
         <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
             <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavLink>
 
-@*             <FluentNavLink Href="counter" Icon="@(new Icons.Regular.Size20.NumberSymbolSquare())" IconColor="Color.Accent">Counter</FluentNavLink>
+            @*             <FluentNavLink Href="counter" Icon="@(new Icons.Regular.Size20.NumberSymbolSquare())" IconColor="Color.Accent">Counter</FluentNavLink>
             <FluentNavLink Href="weather" Icon="@(new Icons.Regular.Size20.WeatherPartlyCloudyDay())" IconColor="Color.Accent">Weather</FluentNavLink>
             <FluentNavLink Href="auth" Icon="@(new Icons.Regular.Size20.LockClosedKey())" IconColor="Color.Accent">Auth Required</FluentNavLink>
  *@
@@ -29,7 +29,9 @@
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <FluentButton Class="left-justified-button" IconStart="@(new Icons.Regular.Size20.ArrowExit())" Type="ButtonType.Submit" Style="width: 100%;">Logout</FluentButton>
+                        <FluentButton Class="left-justified-button" IconStart="@(new Icons.Regular.Size20.ArrowExit())" Type="ButtonType.Submit" Style="width: 100%;">
+                            <div class="@menuClass">Logout</div>
+                        </FluentButton>
                     </form>
                 </Authorized>
             </AuthorizeView>
@@ -39,7 +41,8 @@
 
 @code {
     private bool expanded = true;
-
+    private bool isMenuMinimized = false;
+    private string menuClass => isMenuMinimized ? "menu-hidden" : "menu-normal";
     private string? currentUrl;
 
     protected override void OnInitialized()
@@ -57,6 +60,10 @@
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    public async Task onChange()
+    {
     }
 }
 

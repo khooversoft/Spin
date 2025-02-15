@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Email;
-
-public interface IEmailSender
-{
-    Task<Option> SendText(EmailAddress toEmail, string subject, string textMessage, ScopeContext context);
-    Task<Option> SendHtml(EmailAddress toEmail, string subject, string htmlText, ScopeContext context);
-}
 
 public readonly struct EmailAddress
 {
@@ -22,4 +11,15 @@ public readonly struct EmailAddress
     public string Email { get; }
 
     public static implicit operator EmailAddress((string name, string email) value) => new EmailAddress(value.name, value.email);
+
+    public static IValidator<EmailAddress> Validator { get; } = new Validator<EmailAddress>()
+        .RuleFor(x => x.Name).NotEmpty()
+        .RuleFor(x => x.Email).NotEmpty()
+        .Build();
+}
+
+
+public static class EmailAddressExtensions
+{
+    public static Option Validate(this EmailAddress subject) => EmailAddress.Validator.Validate(subject).ToOptionStatus();
 }

@@ -31,11 +31,12 @@ public class UserAccountContext
     public bool IsChanged() => Input != null && _currentStored != null && (Input != _currentStored);
     public bool IsLoaded() => Input != null;
 
-    public async Task Get()
+    public async Task Get(ScopeContext context)
     {
         if (Input != null) return;
+        context = context.With(_logger);
 
-        var accountOption = await _userAccountManager.GetAccount().ConfigureAwait(false);
+        var accountOption = await _userAccountManager.GetAccount(context).ConfigureAwait(false);
         accountOption.ThrowOnError(nameof(UserAccountContext) + ":" + nameof(Get));
 
         Input = accountOption.Return().ConvertTo();
@@ -46,51 +47,51 @@ public class UserAccountContext
         _logger.LogInformation("Account read, Input={input}", json);
     }
 
-    public async Task Set()
+    public async Task Set(ScopeContext context)
     {
         Input.NotNull("Input is not set");
         if (!IsChanged()) return;
 
-        string principalId = await _userAccountManager.GetPrincipalId().ConfigureAwait(false);
+        string principalId = await _userAccountManager.GetPrincipalId(context).ConfigureAwait(false);
 
         _logger.LogInformation("Updating account, Input={input}", Input.ToJson());
         var account = Input.NotNull().ConvertTo(principalId);
 
-        var result = await _userAccountManager.SetAccount(account).ConfigureAwait(false);
+        var result = await _userAccountManager.SetAccount(account, context).ConfigureAwait(false);
         if (result.IsError()) result.ThrowOnError("Cannot update");
     }
 
-    public async Task SetName(string name)
+    public async Task SetName(string name, ScopeContext context)
     {
         Input.NotNull("Input is not set");
         Input = Input with { Name = name };
         UserProfile = UserProfile with { Name = name };
-        await Set();
+        await Set(context);
     }
 
     public class CollectionAccessActor<T>
     {
-        private readonly UserAccountContext _context;
+        private readonly UserAccountContext _accountContext;
         private readonly Action<T> _set;
         private readonly Func<T, bool> _remove;
 
-        internal CollectionAccessActor(UserAccountContext context, Action<T> set, Func<T, bool> remove)
+        internal CollectionAccessActor(UserAccountContext accountContext, Action<T> set, Func<T, bool> remove)
         {
-            _context = context.NotNull();
+            _accountContext = accountContext.NotNull();
             _set = set;
             _remove = remove;
         }
 
-        public async Task Set(T model)
+        public async Task Set(T model, ScopeContext context)
         {
             model.NotNull();
             _set(model);
-            await _context.Set();
+            await _accountContext.Set(context);
         }
-        public async Task Delete(T model)
+        public async Task Delete(T model, ScopeContext context)
         {
             bool removed = _remove(model);
-            if (removed) await _context.Set();
+            if (removed) await _accountContext.Set(context);
         }
     }
 }

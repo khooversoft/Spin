@@ -16,8 +16,6 @@ public class AccountClient
 
     public AccountContext GetContext(string principalId) => new AccountContext(_graphClient, principalId);
 
-    public Task<Option> Add(AccountRecord accountRecord, ScopeContext context) => GetContext(accountRecord.PrincipalId).Add(accountRecord, context);
-    public Task<Option> Set(AccountRecord accountRecord, ScopeContext context) => GetContext(accountRecord.PrincipalId).Set(accountRecord, context);
 
     public async Task<Option<AccountRecord>> Create(string principalId, ScopeContext context)
     {
@@ -42,7 +40,7 @@ public class AccountClient
             }.ToImmutableArray(),
         };
 
-        var setOption = await Set(accountRecord, context).ConfigureAwait(false);
+        var setOption = await GetContext(accountRecord.PrincipalId).Set(accountRecord, context).ConfigureAwait(false);
         if( setOption.IsError()) return setOption.ToOptionStatus<AccountRecord>();
 
         return accountRecord;

@@ -8,6 +8,7 @@
 .left-justified-button::part(control) {
     text-align: left; /* Align text to the left */
     justify-content: left;
+    padding: 0px 0px 0px 8px;
 }
 
 .alert-button::part(control) {
@@ -26,6 +27,16 @@
 .dialog-editbox {
     min-width: 250px;
     width: 100%
+}
+
+.menu-normal {
+    display: block;
+}
+
+@media (min-width: 600px) {
+    .menu-hidden {
+        display: none;
+    }
 }
 
 .feed-block-container {

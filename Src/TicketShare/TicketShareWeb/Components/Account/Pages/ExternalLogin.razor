@@ -14,7 +14,8 @@
 @* @inject IEmailSender<PrincipalIdentity> EmailSender *@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
-@inject ILogger<ExternalLogin> Logger
+@inject VerifyEmail _verifyEmail;
+@inject ILogger<ExternalLogin> _logger
 
 <PageTitle>Register</PageTitle>
 
@@ -93,6 +94,8 @@
 
     private async Task OnLoginCallbackAsync()
     {
+        var context = new ScopeContext(_logger);
+
         // Sign in the user with this external login provider if the user already has a login.
         var result = await SignInManager.ExternalLoginSignInAsync(
             externalLoginInfo.LoginProvider,
@@ -102,7 +105,7 @@
 
         if (result.Succeeded)
         {
-            Logger.LogInformation(
+            context.LogInformation(
                 "{Name} logged in with {LoginProvider} provider.",
                 externalLoginInfo.Principal.Identity?.Name,
                 externalLoginInfo.LoginProvider);
@@ -110,6 +113,7 @@
         }
         else if (result.IsLockedOut)
         {
+            context.LogInformation("User account locked out.");
             RedirectManager.RedirectTo("Account/Lockout");
         }
 
@@ -122,14 +126,17 @@
 
     private async Task OnValidSubmitAsync()
     {
+        var context = new ScopeContext(_logger);
+
         // var emailStore = GetEmailStore();
         // var user = CreateUser();
         var user = new PrincipalIdentity
-        {
-            PrincipalId = Input.Email.ToLower(),
-            Name = Input.Name,
-            Email = Input.Email,
-        };
+            {
+                PrincipalId = Input.Email.ToLower(),
+                Name = Input.Name,
+                Email = Input.Email,
+                EmailConfirmed = false,
+            };
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         // await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -140,7 +147,7 @@
             result = await UserManager.AddLoginAsync(user, externalLoginInfo);
             if (result.Succeeded)
             {
-                Logger.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
+                context.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
 
                 // var userId = await UserManager.GetUserIdAsync(user);
                 // var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
@@ -157,7 +164,10 @@
                 //     RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
                 // }
 
+
                 await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
+                await _verifyEmail.Send(user, "Account/ConfirmEmail", context);
+
                 RedirectManager.RedirectTo(ReturnUrl);
             }
         }
