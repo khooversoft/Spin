@@ -63,7 +63,8 @@ internal static class InterLangAnalysis
 
                 default:
                     return (StatusCode.BadRequest, $"Unknown instruction {value}");
-            };
+            }
+            ;
         }
 
         return StatusCode.OK;

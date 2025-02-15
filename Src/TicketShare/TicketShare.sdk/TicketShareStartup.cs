@@ -1,10 +1,7 @@
-﻿using System.Security.Claims;
-using System.Threading.Channels;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Graph.Extensions;
-using Toolbox.Tools;
 
 namespace TicketShare.sdk;
 

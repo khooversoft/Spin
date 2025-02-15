@@ -61,7 +61,8 @@ public sealed class InMemoryFileStore : IFileStore, IEnumerable<KeyValuePair<str
             if (_store.TryGetValue(path, out DataETag readValue))
             {
                 value = readValue.Data.Concat(data.Data).ToArray();
-            };
+            }
+            ;
 
             _store[path] = value;
             context.LogTrace("Append Path={path} with {length} bytes", path, data.Data.Length);

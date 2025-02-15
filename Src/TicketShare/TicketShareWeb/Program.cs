@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Reflection;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
@@ -14,12 +12,12 @@ using TicketShareWeb.Application;
 using TicketShareWeb.Components;
 using TicketShareWeb.Components.Account;
 using Toolbox.Azure;
+using Toolbox.Email;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Dump;
-using Toolbox.Email;
 
 const string _appVersion = "TicketShareWeb - Version: 1.0.11";
 

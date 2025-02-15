@@ -1,10 +1,9 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Toolbox.Email;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
-using Toolbox.Graph.Extensions;
 
 namespace TicketShare.sdk;
 
@@ -25,7 +24,7 @@ public class EmailSenderHost : ChannelReceiverHost<EmailMessage>
         context = context.With(_logger);
 
         var result = await _emailSender.WriteHtml([message.ToEmail], message.Subject, message.HtmlBody, context).ConfigureAwait(false);
-        if(result.IsError(out var r)) return r.LogStatus(context, nameof(EmailSenderHost));
+        if (result.IsError(out var r)) return r.LogStatus(context, nameof(EmailSenderHost));
 
         context.LogTrace("Sent email message to process, message={message}", message);
         return result;

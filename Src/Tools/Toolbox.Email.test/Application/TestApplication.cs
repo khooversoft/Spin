@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Email;
-using Toolbox.Extensions;
 using Toolbox.Logging;
 using Toolbox.Types;
 using Xunit.Abstractions;

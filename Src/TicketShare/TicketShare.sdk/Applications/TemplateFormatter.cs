@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using Toolbox.Email;
 using Toolbox.Tools;
 
 namespace TicketShare.sdk;

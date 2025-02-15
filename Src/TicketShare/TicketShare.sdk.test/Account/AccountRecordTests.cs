@@ -63,7 +63,7 @@ public class AccountRecordTests
         readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
         readAccount.IsError().Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task FullLifeCycleWithCreate()
     {

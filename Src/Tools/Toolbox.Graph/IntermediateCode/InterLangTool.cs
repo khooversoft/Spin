@@ -27,7 +27,8 @@ public static class InterLangTool
             {
                 interContext.Cursor.MoveNext();
                 continue;
-            };
+            }
+            ;
 
             var result = _call
                 .Select(x => x(interContext))

@@ -224,6 +224,7 @@ public class SyntaxParser
                     );
 
                 return StatusCode.NotFound;
-        };
+        }
+        ;
     }
 }

@@ -68,7 +68,7 @@ public static class IdentityTool
     public static async Task<Option<bool>> GetEmailConfirmed(this IdentityClient client, string principalId, ScopeContext context)
     {
         var principalIdentity = await client.GetByPrincipalId(principalId, context);
-        if(principalIdentity.IsError()) return principalIdentity.ToOptionStatus<bool>();
+        if (principalIdentity.IsError()) return principalIdentity.ToOptionStatus<bool>();
 
         return principalIdentity.Return().EmailConfirmed;
     }

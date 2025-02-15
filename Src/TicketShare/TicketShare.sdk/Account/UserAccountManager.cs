@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
@@ -40,8 +39,12 @@ public class UserAccountManager
     {
         context = context.With(_logger);
 
-        string principalId = await GetPrincipalId(context).ConfigureAwait(false);
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == false) return (StatusCode.NotFound, "User is not authenticated");
+
+        string principalId = authState.User.Identity.NotNull().Name.NotEmpty();
         var result = await _identityClient.GetByPrincipalId(principalId, context).ConfigureAwait(false);
+
         return result;
     }
 
@@ -63,5 +66,15 @@ public class UserAccountManager
             .ConfigureAwait(false);
 
         return result;
+    }
+
+    public async Task<bool> IsAccountEnabled(ScopeContext context)
+    {
+        context = context.With(_logger);
+
+        var principalIdentity = await GetPrincipalIdentity(context).ConfigureAwait(false);
+        if (principalIdentity.IsError()) return false;
+
+        return principalIdentity.Return().EmailConfirmed;
     }
 }

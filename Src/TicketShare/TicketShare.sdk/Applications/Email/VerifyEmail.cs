@@ -92,7 +92,7 @@ public class VerifyEmail
 
         code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
         var result = await _userManager.VerifyUserTokenAsync(principalIdentity, "Default", "EmailConfirmation", code).ConfigureAwait(false);
-        if(!result)
+        if (!result)
         {
             context.LogError("Failed to verify email token, userId={userId}, code={code}");
             return StatusCode.BadRequest;

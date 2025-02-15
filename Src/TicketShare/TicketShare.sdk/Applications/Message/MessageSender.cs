@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+﻿using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Toolbox.Graph.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
 
 namespace TicketShare.sdk;
 
@@ -26,7 +21,7 @@ public class MessageSender
     public async Task<Option> Send(ChannelMessage channelMessage, ScopeContext context)
     {
         context = context.With(_logger);
-        if( channelMessage.Validate().IsError(out var r)) return r.LogStatus(context, nameof(ChannelMessage));
+        if (channelMessage.Validate().IsError(out var r)) return r.LogStatus(context, nameof(ChannelMessage));
 
         await _channel.Writer.WriteAsync(channelMessage).ConfigureAwait(false);
         return StatusCode.OK;

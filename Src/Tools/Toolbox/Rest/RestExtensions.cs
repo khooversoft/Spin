@@ -48,7 +48,8 @@ public static class RestExtensions
                 response.Context.Location().LogCritical(ex, "Failed deserialization into type={type}, value={value}", typeof(T).Name, value);
                 return (StatusCode.BadRequest, $"Failed deserialization into type={typeof(T).Name}, value={value}");
             }
-        };
+        }
+        ;
     }
 
     public static async Task<Option<string>> GetContent(this HttpRequestMessage subject)

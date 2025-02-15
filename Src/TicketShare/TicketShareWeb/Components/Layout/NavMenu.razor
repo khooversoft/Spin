@@ -1,31 +1,26 @@
 ﻿@using TicketShareWeb.Components.Settings
 
 @implements IDisposable
-
-@inject NavigationManager NavigationManager
+@inject NavigationManager _navigationManager
+@inject UserAccountManager _userAccountManager
+@inject ILogger<NavMenu> _logger
 
 <div class="navmenu">
-    <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" @bind="isMenuMinimized" />
+    <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label>
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
 
         <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
             <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavLink>
 
-            @*             <FluentNavLink Href="counter" Icon="@(new Icons.Regular.Size20.NumberSymbolSquare())" IconColor="Color.Accent">Counter</FluentNavLink>
-            <FluentNavLink Href="weather" Icon="@(new Icons.Regular.Size20.WeatherPartlyCloudyDay())" IconColor="Color.Accent">Weather</FluentNavLink>
-            <FluentNavLink Href="auth" Icon="@(new Icons.Regular.Size20.LockClosedKey())" IconColor="Color.Accent">Auth Required</FluentNavLink>
- *@
-
-            <FluentNavLink Href="TicketGroups" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent">Tickets</FluentNavLink>
-            <FluentNavLink Href="Channels" Icon="@(new Icons.Regular.Size20.Comment())" IconColor="Color.Accent">Channels</FluentNavLink>
-            <FluentNavLink Href="UserAccount" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Account</FluentNavLink>
-
-            <SiteSettings />
-
             <AuthorizeView>
                 <Authorized>
-                    @* <FluentNavLink Href="Account/Manage">@context.User.Identity?.Name</FluentNavLink> *@
+                    <FluentNavLink Href="TicketGroups" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent" Disabled=_disableMenus>Tickets</FluentNavLink>
+                    <FluentNavLink Href="Channels" Icon="@(new Icons.Regular.Size20.Comment())" IconColor="Color.Accent" Disabled=_disableMenus>Channels</FluentNavLink>
+                    <FluentNavLink Href="UserAccount" Icon="@(new Icons.Regular.Size20.PersonAccounts())" Disabled=_disableMenus>Account</FluentNavLink>
+
+                    <SiteSettings />
+
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
@@ -41,29 +36,28 @@
 
 @code {
     private bool expanded = true;
-    private bool isMenuMinimized = false;
-    private string menuClass => isMenuMinimized ? "menu-hidden" : "menu-normal";
+    private string menuClass => !expanded ? "menu-hidden" : "menu-normal";
     private string? currentUrl;
+    private bool _disableMenus;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
+        currentUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        _navigationManager.LocationChanged += OnLocationChanged;
+
+        var context = new ScopeContext(_logger);
+        _disableMenus = (await _userAccountManager.IsAccountEnabled(context).ConfigureAwait(false)) == false;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        currentUrl = _navigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
     }
 
     public void Dispose()
     {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-    }
-
-    public async Task onChange()
-    {
+        _navigationManager.LocationChanged -= OnLocationChanged;
     }
 }
 

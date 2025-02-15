@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -41,7 +40,7 @@ public class AccountClient
         };
 
         var setOption = await GetContext(accountRecord.PrincipalId).Set(accountRecord, context).ConfigureAwait(false);
-        if( setOption.IsError()) return setOption.ToOptionStatus<AccountRecord>();
+        if (setOption.IsError()) return setOption.ToOptionStatus<AccountRecord>();
 
         return accountRecord;
     }
