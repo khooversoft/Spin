@@ -56,9 +56,10 @@
         var channelMessage = new ChannelMessage
             {
                 ChannelId = IdentityTool.ToNodeKey(UserId),
-                FromPrincipalId = TsConstants.MessageEmailConfirm,
+                FromPrincipalId = TsConstants.SystemIdentityEmail,
                 Topic = "Email Confirmed",
                 Message = "Email was confirmed by user.",
+                FilterType = TsConstants.EmailConfirm,
             };
 
         var send = await _messageSender.Send(channelMessage, context);

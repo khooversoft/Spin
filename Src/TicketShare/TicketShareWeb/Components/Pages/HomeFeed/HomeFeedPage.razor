@@ -1,0 +1,70 @@
+﻿@using System.Collections.Immutable
+@using TicketShareWeb.Components.Pages.Channels
+
+<LoadingBlock Visible=@_loading />
+
+@if (!_loading)
+{
+    <FeedColumn>
+        @foreach (var item in _componentList)
+        {
+            switch (item.Type)
+            {
+                case HomeComponentType.Wellcome:
+                    <WellcomeCard />
+                    break;
+
+                case HomeComponentType.Message:
+                    <ChannelMessageBlock Content=item.ChannelMessage />
+                    break;
+            }
+        }
+    </FeedColumn>
+}
+
+@code {
+    [Inject] public AuthenticationAccess _authenticationAccess { get; set; } = null!;
+    [Inject] public ChannelManager _channelManager { get; set; } = null!;
+    [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
+    [Inject] public ILogger<HomeFeedPage> _logger { get; set; } = null!;
+
+    private bool _loading = true;
+    private ScopeContext _scopeContext;
+    private string _principalId = null!;
+    private IReadOnlyList<HomeComponent> _componentList = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _scopeContext = new ScopeContext(_logger);
+        _principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _loading = false;
+            await Refresh();
+        }
+    }
+
+    private async Task Refresh()
+    {
+        var channelsOption = await _channelManager.GetMessages(_principalId, _scopeContext);
+        var accountActive = await _userAccountManager.IsAccountEnabled(_scopeContext);
+
+        var messageList = channelsOption.IsOk() switch
+        {
+            true => channelsOption.Return().Select(x => new HomeComponent(HomeComponentType.Message, x)).ToArray(),
+            false => [],
+        };
+
+        _componentList = messageList
+            .Where(x => x.Cleared == null)
+            .OrderByDescending(x => x.Date)
+            .Func(x => accountActive && messageList.Length > 0 ? x : x.Prepend(new HomeComponent(HomeComponentType.Wellcome)))
+            .ToImmutableArray();
+
+        StateHasChanged();
+    }
+}

@@ -23,7 +23,7 @@ public static class ChannelMessageExpandedTool
     {
         string userName = subject.FromPrincipalId switch
         {
-            TsConstants.MessageEmailConfirm => "Email Notifications",
+            TsConstants.SystemIdentityEmail => "Email Notifications",
             var v => await lookupUser(),
         };
 

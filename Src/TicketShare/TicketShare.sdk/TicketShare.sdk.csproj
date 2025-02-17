@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Applications\Email\Templates\VerifyEmail.Txt" />
     <None Remove="Data\FanHappy.webp" />
     <None Remove="Data\Fans.webp" />
     <None Remove="Data\FansTrading.webp" />
@@ -18,6 +19,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Applications\Email\Templates\VerifyEmail.html" />
+    <EmbeddedResource Include="Applications\Email\Templates\VerifyEmail.Txt" />
     <EmbeddedResource Include="Applications\Email\Templates\Welcome.html" />
     <EmbeddedResource Include="Data\Intro.md" />
   </ItemGroup>

@@ -7,6 +7,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Toolbox.Graph.Extensions
+@using Toolbox.Logging;
 
 @inject SignInManager<PrincipalIdentity> SignInManager
 @inject UserManager<PrincipalIdentity> UserManager
@@ -128,8 +129,6 @@
     {
         var context = new ScopeContext(_logger);
 
-        // var emailStore = GetEmailStore();
-        // var user = CreateUser();
         var user = new PrincipalIdentity
             {
                 PrincipalId = Input.Email.ToLower(),
@@ -139,7 +138,6 @@
             };
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        // await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
@@ -149,24 +147,8 @@
             {
                 context.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
 
-                // var userId = await UserManager.GetUserIdAsync(user);
-                // var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-                // code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-                // var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-                //     NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                //     new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-                // await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
-                // // If account confirmation is required, we need to show the link if we don't have a real email sender
-                // if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                // {
-                //     RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
-                // }
-
-
                 await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
-                await _verifyEmail.Send(user, "Account/ConfirmEmail", context);
+                (await _verifyEmail.Send(user, "Account/ConfirmEmail", context)).LogStatus(context, "Failed to send conformation email").ThrowOnError();
 
                 RedirectManager.RedirectTo(ReturnUrl);
             }
@@ -187,15 +169,6 @@
                 $"Ensure that '{nameof(PrincipalIdentity)}' is not an abstract class and has a parameterless constructor");
         }
     }
-
-    // private IUserEmailStore<PrincipalIdentity> GetEmailStore()
-    // {
-    //     if (!UserManager.SupportsUserEmail)
-    //     {
-    //         throw new NotSupportedException("The default UI requires a user store with email support.");
-    //     }
-    //     return (IUserEmailStore<PrincipalIdentity>)UserStore;
-    // }
 
     private sealed class InputModel
     {

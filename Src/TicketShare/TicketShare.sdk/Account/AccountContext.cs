@@ -70,15 +70,28 @@ public readonly struct AccountContext
         {
             channelMessages.NotNull();
 
-            var current = await _get(context).ConfigureAwait(false);
-            if (current.IsError()) return current.ToOptionStatus();
+            var accountRecordOption = await _get(context).ConfigureAwait(false);
+            if (accountRecordOption.IsError()) return accountRecordOption.ToOptionStatus();
+            var accountRecord = accountRecordOption.Return();
 
-            var accountRecord = current.Return() with
+            var messages = accountRecord.Messages.Concat(channelMessages);
+            bool emailConfirmed = messages.Any(x => x.FilterType == TsConstants.EmailConfirm);
+
+            if (emailConfirmed) messages = messages.Select(x => clearEmailRequest(x));
+
+            var updatedAccountRecord = accountRecord with
             {
-                Messages = current.Return().Messages.Concat(channelMessages).ToImmutableArray(),
+                Messages = messages.ToImmutableArray(),
             };
 
-            return await _set(accountRecord, context).ConfigureAwait(false);
+            return await _set(updatedAccountRecord, context).ConfigureAwait(false);
+
+            ChannelMessage clearEmailRequest(ChannelMessage message) => message switch
+            {
+                { Cleared: not null } => message,
+                { FilterType: TsConstants.EmailRequest } => message with { Cleared = DateTime.UtcNow },
+                _ => message,
+            };
         }
     }
 }

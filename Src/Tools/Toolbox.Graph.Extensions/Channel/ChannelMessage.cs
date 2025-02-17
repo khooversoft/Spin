@@ -12,6 +12,8 @@ public sealed record ChannelMessage
     public string FromPrincipalId { get; init; } = null!;
     public string Topic { get; init; } = null!;
     public string Message { get; init; } = null!;
+    public string? FilterType { get; init; }
+    public DateTime? Cleared { get; init; }
 
     public bool Equals(ChannelMessage? obj)
     {
@@ -21,7 +23,9 @@ public sealed record ChannelMessage
             Date == subject.Date &&
             FromPrincipalId == subject.FromPrincipalId &&
             Topic == subject.Topic &&
-            Message == subject.Message;
+            Message == subject.Message &&
+            FilterType == subject.FilterType &&
+            Cleared == subject.Cleared;
 
         return result;
     }
@@ -34,6 +38,7 @@ public sealed record ChannelMessage
         .RuleFor(x => x.FromPrincipalId).NotEmpty()
         .RuleFor(x => x.Topic).NotEmpty()
         .RuleFor(x => x.Message).NotEmpty()
+        .RuleFor(x => x.Cleared).ValidDateTimeOption()
         .Build();
 }
 

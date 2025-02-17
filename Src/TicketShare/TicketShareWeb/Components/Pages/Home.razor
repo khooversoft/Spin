@@ -1,15 +1,14 @@
 ﻿@page "/"
 @using TicketShareWeb.Components.Account.Shared
 @using TicketShareWeb.Components.Pages.Channels
+@using TicketShareWeb.Components.Pages.HomeFeed
 
 <PageTitle>Ticket Share</PageTitle>
 
 <FluentStack Orientation="Orientation.Vertical">
     <AuthorizeView>
         <Authorized>
-            <WellcomeCard />
-            <AllChannelMessages />
-
+            <HomeFeedPage />
         </Authorized>
         <NotAuthorized>
             <FluentCard Class="card-container" Width="380px">

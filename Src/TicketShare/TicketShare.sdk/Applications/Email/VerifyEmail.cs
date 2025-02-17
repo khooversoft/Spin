@@ -107,22 +107,21 @@ public class VerifyEmail
 
     private async Task<Option> SendMessage(string principalId, EmailMessage emailMessage, ScopeContext context)
     {
-        var message = new[]
-        {
-            "Email sent to confirm email address",
-            "To Email: " + emailMessage.ToEmail.Email,
-            "Name: " + emailMessage.ToEmail.Name,
-            "",
-            "Sent email to confirm email address.  Please response by clicking on the link provided in the email.",
-            "Click this link if you want to resend the email verification email.",
-        }.Join(Environment.NewLine);
+        var properties = new[]
+{
+            new KeyValuePair<string, string>("ResendEmailLink", "/Account/ResendEmailConfirmation"),
+        };
+
+        var template = new TemplateFormatter("VerifyEmail.Txt", properties);
+        var message = template.Build();
 
         var channelMessage = new ChannelMessage
         {
             ChannelId = IdentityTool.ToNodeKey(principalId),
-            FromPrincipalId = TsConstants.MessageEmailConfirm,
+            FromPrincipalId = TsConstants.SystemIdentityEmail,
             Topic = "Request for email conformation",
             Message = message,
+            FilterType = TsConstants.EmailRequest
         };
 
         return await _messageSender.Send(channelMessage, context).ConfigureAwait(false);

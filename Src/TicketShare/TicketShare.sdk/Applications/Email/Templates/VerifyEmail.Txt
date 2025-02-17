@@ -1,0 +1,5 @@
+<div style="font-size: 12px;">
+    <p>Email was sent to confirm address.  Please response by clicking on the link provided in the email.</p>
+
+    <p>To resend the email, please click <a href="{ResendEmailLink}">here</a>.</p>
+</div>

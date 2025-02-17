@@ -16,7 +16,7 @@
 
         @if (Content.Value.Message.IsNotEmpty())
         {
-            <FluentLabel Typo="Typography.Body">@Content.Value.Message</FluentLabel>
+            <FluentLabel Typo="Typography.Body">@((MarkupString)Content.Value.Message)</FluentLabel>
         }
     </FluentStack>
 
