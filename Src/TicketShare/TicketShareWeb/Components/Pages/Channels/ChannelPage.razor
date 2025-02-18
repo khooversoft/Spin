@@ -24,36 +24,29 @@
 
 @code {
     [Parameter] public string ChannelId { get; set; } = null!;
-    [Inject] public UserAccountContext _userAccountContext { get; set; } = null!;
-    [Inject] public ApplicationNavigation _appNavigation { get; set; } = null!;
-    [Inject] public ChannelClient _channelClient { get; set; } = null!;
-    [Inject] public ILogger<ChannelPage> _logger { get; set; } = null!;
+    @inject UserAccountContext _userAccountContext;
+    @inject ApplicationNavigation _appNavigation;
+    @inject ChannelClient _channelClient;
+    @inject ILogger<ChannelPage> _logger;
 
     private ChannelContext _channelContext;
     private bool _loading { get; set; } = true;
     private IReadOnlyList<ChannelMessage> _messageList = [];
-    private string? _principalId;
+    private string _principalId = null!;
     private ScopeContext _context;
 
-    protected override async Task OnParametersSetAsync()
-    {
-        _context = new ScopeContext(_logger);
-        var identityOption = await _userAccountContext.GetPrincipalIdentity(_context).ConfigureAwait(false);
-        if (identityOption.IsError())
-        {
-            _logger.LogError("Failed to get principal identity");
-            _appNavigation.GotoHome();
-            return;
-        }
-
-        _principalId = identityOption.Return().PrincipalId;
-        _channelContext = _channelClient.GetContext(ChannelId, _principalId);
-    }
+    protected override void OnParametersSet() => _context = new ScopeContext(_logger);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            _principalId = (await _userAccountContext.GetPrincipalIdentity(_context).ConfigureAwait(false))
+                .ThrowOnError()
+                .Return().PrincipalId.NotEmpty();
+
+            _channelContext = _channelClient.GetContext(ChannelId, _principalId);
+
             await Refresh();
             _loading = false;
             StateHasChanged();
@@ -67,7 +60,7 @@
         var channelMessage = new ChannelMessage
             {
                 ChannelId = ChannelId,
-                FromPrincipalId = _principalId.NotEmpty(),
+                FromPrincipalId = _principalId,
                 Message = message
             };
 

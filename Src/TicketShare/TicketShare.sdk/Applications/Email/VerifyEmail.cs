@@ -112,8 +112,7 @@ public class VerifyEmail
             new KeyValuePair<string, string>("ResendEmailLink", "/Account/ResendEmailConfirmation"),
         };
 
-        var template = new TemplateFormatter("VerifyEmail.Txt", properties);
-        var message = template.Build();
+        var message = new TemplateFormatter("VerifyEmail.txt", properties).Build();
 
         var channelMessage = new ChannelMessage
         {

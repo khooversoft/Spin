@@ -1,10 +1,8 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketShare.sdk;
 using TicketShare.sdk.Identity;
@@ -17,7 +15,6 @@ using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Dump;
 using Toolbox.Types;
 
 const string _appVersion = "TicketShareWeb - Version: 1.0.11";

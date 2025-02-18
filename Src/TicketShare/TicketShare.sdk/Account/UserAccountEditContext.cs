@@ -2,7 +2,6 @@
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
 
 namespace TicketShare.sdk;
 

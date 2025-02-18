@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using TicketShare.sdk
 
-<LoadingBlock Visible=@Visible />
+<LoadingBlock Loading=@_loading />
 
 @if (_inputs != null)
 {
@@ -12,12 +12,12 @@
         <FeedBlock Title="Ticket Groups" OnAdd="Add">
 
             <FluentDataGrid Class="feed-block-datagrid"
-                            Items="@_entries"
-                            ShowHover="true"
-                            TGridItem="TicketGroupDetail"
-                            OnRowClick="HandleRowFocus"
-                            AutoFit="true"
-                            GenerateHeader=GenerateHeaderOption.None>
+            Items="@_entries"
+            ShowHover="true"
+            TGridItem="TicketGroupDetail"
+            OnRowClick="HandleRowFocus"
+            AutoFit="true"
+            GenerateHeader=GenerateHeaderOption.None>
 
                 <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
                 <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
@@ -29,13 +29,13 @@
 }
 
 @code {
-    [Inject] public ApplicationNavigation _appNavigation { get; set; } = null!;
-    [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
-    [Inject] public IDialogService _dialogService { get; set; } = null!;
-    [Inject] public IMessageService _messageService { get; set; } = null!;
-    [Inject] public ILogger<TicketGroupsPage> _logger { get; set; } = null!;
+    @inject ApplicationNavigation _appNavigation;
+    @inject TicketGroupManager _ticketGroupManager;
+    @inject IDialogService _dialogService;
+    @inject IMessageService _messageService;
+    @inject ILogger<TicketGroupsPage> _logger;
 
-    private bool Visible { get; set; } = true;
+    private bool _loading { get; set; } = true;
 
     private IReadOnlyList<TicketGroupModel> _inputs = null!;
     private IQueryable<TicketGroupDetail> _entries = null!;
@@ -101,7 +101,7 @@
 
     private async Task SetLoading(bool visible)
     {
-        Visible = visible;
+        _loading = visible;
         await InvokeAsync(StateHasChanged);
     }
 }

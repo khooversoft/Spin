@@ -18,8 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Applications\Email\Templates\CreatedTicketGroup.txt" />
     <EmbeddedResource Include="Applications\Email\Templates\VerifyEmail.html" />
-    <EmbeddedResource Include="Applications\Email\Templates\VerifyEmail.Txt" />
+    <EmbeddedResource Include="Applications\Email\Templates\VerifyEmail.txt" />
     <EmbeddedResource Include="Applications\Email\Templates\Welcome.html" />
     <EmbeddedResource Include="Data\Intro.md" />
   </ItemGroup>

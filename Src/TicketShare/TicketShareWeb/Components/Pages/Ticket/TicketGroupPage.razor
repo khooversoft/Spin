@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using TicketShare.sdk
 
-<LoadingBlock Visible=@Visible />
+<LoadingBlock Loading=@_loading />
 
 @if (_ticketGroupContext != null && _ticketGroupContext.IsLoaded())
 {
@@ -22,13 +22,13 @@
 
 @code {
     [Parameter] public string TicketGroupId { get; set; } = null!;
-    [Inject] public ApplicationNavigation _appNavigation { get; set; } = null!;
-    [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
-    [Inject] public AskPanel AskPanel { get; set; } = default!;
-    [Inject] public ILogger<TicketGroupPage> _logger { get; set; } = null!;
+    @inject ApplicationNavigation _appNavigation;
+    @inject TicketGroupManager _ticketGroupManager;
+    @inject AskPanel AskPanel;
+    @inject ILogger<TicketGroupPage> _logger;
 
     private TicketGroupContext? _ticketGroupContext = null!;
-    private bool Visible { get; set; } = true;
+    private bool _loading = true;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -42,7 +42,7 @@
         }
 
         _ticketGroupContext = context;
-        Visible = false;
+        _loading = false;
     }
 
     private void OnClose() => _appNavigation.GotoTicketGroups();
@@ -66,7 +66,7 @@
 
     private async Task SetLoading(bool visible)
     {
-        Visible = visible;
+        _loading = visible;
         await InvokeAsync(StateHasChanged);
     }
 }

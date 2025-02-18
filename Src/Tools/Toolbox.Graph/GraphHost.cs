@@ -29,6 +29,7 @@ public class GraphHost : IGraphHost
     private int _runningState = Stopped;
     private const int Stopped = 0;
     private const int Running = 1;
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
     public GraphHost(
         IGraphStore fileStore,
@@ -76,18 +77,28 @@ public class GraphHost : IGraphHost
     public async Task<Option> Run(ScopeContext context)
     {
         context = context.With(Logger);
-        int current = Interlocked.CompareExchange(ref _runningState, Running, Stopped);
-        if (current == Running) return StatusCode.OK;
 
-        Option result;
-        using (var metric = context.LogDuration("graphHost-loadMap"))
+        await _semaphore.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+
+        try
         {
-            result = await LoadMap(context).ConfigureAwait(false);
-        }
+            int current = Interlocked.CompareExchange(ref _runningState, Running, Stopped);
+            if (current == Running) return StatusCode.OK;
 
-        Interlocked.Exchange(ref _runningState, Running);
-        result.LogStatus(context, "Host started and map loaded");
-        return result;
+            Option result;
+            using (var metric = context.LogDuration("graphHost-loadMap"))
+            {
+                result = await LoadMap(context).ConfigureAwait(false);
+            }
+
+            Interlocked.Exchange(ref _runningState, Running);
+            result.LogStatus(context, "Host started and map loaded");
+            return result;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     public void SetMap(GraphMap map)

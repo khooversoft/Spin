@@ -12,6 +12,7 @@ public class TsConstants
     public const string AzureAd_CallbackPath = "AzureAd:CallbackPath";
 
     public const string SystemIdentityEmail = "system:email";
+    public const string SystemTicketGroup = "system:ticketGroup";
     public const string EmailRequest = "system:emailRequest";
     public const string EmailConfirm = "system:emailConfirm";
 }

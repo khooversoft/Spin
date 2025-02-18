@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 
-namespace TicketShareWeb.Application;
+namespace TicketShare.sdk;
 
 public class ApplicationNavigation
 {
@@ -33,5 +34,24 @@ public class ApplicationNavigation
 
         string encoded = $"/Channel/{Uri.EscapeDataString(channelId)}";
         _navigationManager.NavigateTo(encoded);
+    }
+}
+
+
+public static class ApplicationUri
+{
+    public static string Home => "/";
+    public static string TicketGroups => "/TicketGroups";
+    public static string Channels => "/Channels";
+
+    public static string GetTicketGroup(string ticketGroupId)
+    {
+        ticketGroupId.NotEmpty();
+        return $"/TicketGroup/{Uri.EscapeDataString(ticketGroupId)}";
+    }
+    public static string GetChannel(string channelId)
+    {
+        channelId.NotEmpty();
+        return $"/Channel/{Uri.EscapeDataString(channelId)}";
     }
 }

@@ -1,7 +1,7 @@
 ﻿@using System.Collections.Immutable
 @using TicketShareWeb.Components.Pages.Channels
 
-<LoadingBlock Visible=@_loading />
+<LoadingBlock Loading=@_loading />
 
 @if (!_loading)
 {
@@ -23,10 +23,10 @@
 }
 
 @code {
-    [Inject] public UserAccountContext _userAccountContext { get; set; } = null!;
-    [Inject] public ChannelManager _channelManager { get; set; } = null!;
-    [Inject] public UserAccountContext _userAccountManager { get; set; } = null!;
-    [Inject] public ILogger<HomeFeedPage> _logger { get; set; } = null!;
+    @inject UserAccountContext _userAccountContext;
+    @inject ChannelManager _channelManager;
+    @inject UserAccountContext _userAccountManager;
+    @inject ILogger<HomeFeedPage> _logger;
 
     private bool _loading = true;
     private ScopeContext _scopeContext;
