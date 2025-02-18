@@ -23,7 +23,7 @@
 @code {
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Inject] public ILogger<UserCalendars> _logger { get; set; } = null!;
-    [CascadingParameter] public UserAccountContext UserAccountContext { get; set; } = null!;
+    [CascadingParameter] public UserAccountEditContext UserAccountContext { get; set; } = null!;
 
     private IQueryable<CalendarModel> _calendars = null!;
     private RightPanelDialog<CalendarModel, UserCalendarDialog> _rightPanelDialog = null!;

@@ -3,46 +3,33 @@ using Toolbox.Tools;
 
 namespace TicketShareWeb.Application;
 
-public class AppNavigation
+public class ApplicationNavigation
 {
     private readonly NavigationManager _navigationManager;
-    private readonly ILogger<AppNavigation> _logger;
+    private readonly ILogger<ApplicationNavigation> _logger;
 
-    public AppNavigation(NavigationManager navigationManager, ILogger<AppNavigation> logger)
+    public ApplicationNavigation(NavigationManager navigationManager, ILogger<ApplicationNavigation> logger)
     {
         _navigationManager = navigationManager.NotNull();
         _logger = logger.NotNull();
     }
 
-    public void GotoTicketGroups()
-    {
-        _logger.LogInformation("GotoTicketGroups");
-        _navigationManager.NavigateTo("/TicketGroups");
-    }
+    public void GotoHome() => _navigationManager.NavigateTo("/");
+
+    public void GotoTicketGroups() => _navigationManager.NavigateTo("/TicketGroups");
 
     public void GotoTicketGroup(string ticketGroupId)
     {
         ticketGroupId.NotEmpty();
-
-        string uriText = $"/TicketGroup/{ticketGroupId}";
-        _logger.LogInformation("GotoTicketGroup, uri={uri}", uriText);
-
         string encoded = $"/TicketGroup/{Uri.EscapeDataString(ticketGroupId)}";
         _navigationManager.NavigateTo(encoded);
     }
 
-    public void GotoChannels()
-    {
-        _logger.LogInformation("GotoChannels");
-        _navigationManager.NavigateTo("/Channels");
-    }
+    public void GotoChannels() => _navigationManager.NavigateTo("/Channels");
 
     public void GotoChannel(string channelId)
     {
         channelId.NotEmpty();
-
-        string uri = $"/Channel/{channelId}";
-        _logger.LogInformation("GotoChannel, uri={uri}", uri);
 
         string encoded = $"/Channel/{Uri.EscapeDataString(channelId)}";
         _navigationManager.NavigateTo(encoded);

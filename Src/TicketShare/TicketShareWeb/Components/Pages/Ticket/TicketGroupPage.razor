@@ -22,7 +22,7 @@
 
 @code {
     [Parameter] public string TicketGroupId { get; set; } = null!;
-    [Inject] public AppNavigation _appNavigation { get; set; } = null!;
+    [Inject] public ApplicationNavigation _appNavigation { get; set; } = null!;
     [Inject] public TicketGroupManager _ticketGroupManager { get; set; } = null!;
     [Inject] public AskPanel AskPanel { get; set; } = default!;
     [Inject] public ILogger<TicketGroupPage> _logger { get; set; } = null!;

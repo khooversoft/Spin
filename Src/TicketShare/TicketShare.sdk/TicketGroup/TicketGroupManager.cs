@@ -8,12 +8,12 @@ namespace TicketShare.sdk;
 
 public class TicketGroupManager
 {
-    private readonly UserAccountManager _userAccountManager;
+    private readonly UserAccountContext _userAccountContext;
     private readonly TicketGroupClient _ticketGroupClient;
 
-    public TicketGroupManager(UserAccountManager userAccountManager, TicketGroupClient ticketGroupClient)
+    public TicketGroupManager(UserAccountContext userAccountManager, TicketGroupClient ticketGroupClient)
     {
-        _userAccountManager = userAccountManager.NotNull();
+        _userAccountContext = userAccountManager.NotNull();
         _ticketGroupClient = ticketGroupClient.NotNull();
     }
 
@@ -21,7 +21,9 @@ public class TicketGroupManager
 
     public async Task<Option<IReadOnlyList<TicketGroupModel>>> GetTicketGroups(ScopeContext context)
     {
-        string principalId = await _userAccountManager.GetPrincipalId(context).ConfigureAwait(false);
+        var principalOption = await _userAccountContext.GetPrincipalIdentity(context).ConfigureAwait(false);
+        if (principalOption.IsError()) return principalOption.ToOptionStatus<IReadOnlyList<TicketGroupModel>>();
+        string principalId = principalOption.Return().PrincipalId;
 
         var result = await Search(principalId, context).ConfigureAwait(false);
         if (result.IsError()) return result.ToOptionStatus<IReadOnlyList<TicketGroupModel>>();
@@ -32,7 +34,9 @@ public class TicketGroupManager
 
     public async Task<Option<string>> Create(TicketGroupHeaderModel ticketGroupHeader, ScopeContext context)
     {
-        string principalId = await _userAccountManager.GetPrincipalId(context).ConfigureAwait(false);
+        var principalOption = await _userAccountContext.GetPrincipalIdentity(context).ConfigureAwait(false);
+        if (principalOption.IsError()) return principalOption.ToOptionStatus<string>();
+        string principalId = principalOption.Return().PrincipalId;
 
         var ticketGroupRecord = ticketGroupHeader.ConvertTo().ConvertTo()
             .SetTicketGroupId(principalId)

@@ -18,16 +18,16 @@
 
 <LoadingBlock Visible=@Visible />
 
-@if (_userAccountContext?.IsLoaded() == true)
+@if (_userAccountEditContext?.IsLoaded() == true)
 {
     <FeedColumn>
         <LoginUserControl />
 
         <FeedBlock Title="User" OnEdit="OnEditInfo">
-            <EditInfo Content="@_userAccountContext.UserProfile" ReadOnly="true" />
+            <EditInfo Content="@_userAccountEditContext.UserProfile" ReadOnly="true" />
         </FeedBlock>
 
-        <CascadingValue Value="_userAccountContext">
+        <CascadingValue Value="_userAccountEditContext">
             <UserContacts />
             <UserAddresses />
             <UserCalendars />
@@ -37,16 +37,16 @@
 
 @code {
     [Inject] public ILogger<UserAccountPage> _logger { get; set; } = null!;
-    [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountContext { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Inject] public UserManager<PrincipalIdentity> UserManager { get; set; } = null!;
 
-    private UserAccountContext _userAccountContext = null!;
+    private UserAccountEditContext _userAccountEditContext = null!;
     private bool Visible { get; set; } = true;
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
-        _userAccountContext = new UserAccountContext(_userAccountManager, _logger);
+        _userAccountEditContext = new UserAccountEditContext(_userAccountContext, _logger);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -55,19 +55,17 @@
 
         if (firstRender)
         {
-            await _userAccountContext.Get(context);
+            await _userAccountEditContext.Get(context);
             Visible = false;
             StateHasChanged();
         }
-
-        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task OnEditInfo()
     {
         var context = new ScopeContext(_logger);
 
-        var userProfile = new UserProfileEditModel { Name = _userAccountContext.Input.Name };
+        var userProfile = new UserProfileEditModel { Name = _userAccountEditContext.Input.Name };
 
         var parameters = new DialogParameters()
             {
@@ -84,7 +82,7 @@
 
         if (result.Data is not UserProfileEditModel userProfileModel) return;
 
-        await _userAccountContext.SetName(userProfileModel.Name, context);
+        await _userAccountEditContext.SetName(userProfileModel.Name, context);
         StateHasChanged();
     }
-}
+}}

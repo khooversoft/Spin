@@ -5,7 +5,7 @@
 @using TicketShare.sdk
 @using Toolbox.Graph.Extensions
 
-<LoadingBlock Visible=@Visible />
+<LoadingBlock Visible=@_loading />
 
 <FeedColumn>
     <DialogControls OnClose="OnClose" />
@@ -15,29 +15,49 @@
         <ChannelMessageBlock Content=item />
     }
 
-    <TextEditorBlock YesText="Send" OnYes="SendMessage" />
+    @if (_principalId is not null)
+    {
+        <TextEditorBlock YesText="Send" OnYes="SendMessage" />
+    }
 
 </FeedColumn>
 
 @code {
     [Parameter] public string ChannelId { get; set; } = null!;
-    [Inject] public AuthenticationAccess _authenticationAccess { get; set; } = null!;
-    [Inject] public AppNavigation _appNavigation { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountContext { get; set; } = null!;
+    [Inject] public ApplicationNavigation _appNavigation { get; set; } = null!;
     [Inject] public ChannelClient _channelClient { get; set; } = null!;
     [Inject] public ILogger<ChannelPage> _logger { get; set; } = null!;
 
     private ChannelContext _channelContext;
-    private bool Visible { get; set; } = true;
+    private bool _loading { get; set; } = true;
     private IReadOnlyList<ChannelMessage> _messageList = [];
-    private string _principalId = null!;
+    private string? _principalId;
+    private ScopeContext _context;
 
     protected override async Task OnParametersSetAsync()
     {
-        _principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
-        _channelContext = _channelClient.GetContext(ChannelId, _principalId);
+        _context = new ScopeContext(_logger);
+        var identityOption = await _userAccountContext.GetPrincipalIdentity(_context).ConfigureAwait(false);
+        if (identityOption.IsError())
+        {
+            _logger.LogError("Failed to get principal identity");
+            _appNavigation.GotoHome();
+            return;
+        }
 
-        await Refresh();
-        Visible = false;
+        _principalId = identityOption.Return().PrincipalId;
+        _channelContext = _channelClient.GetContext(ChannelId, _principalId);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Refresh();
+            _loading = false;
+            StateHasChanged();
+        }
     }
 
     private void OnClose() => _appNavigation.GotoChannels();
@@ -45,11 +65,11 @@
     private async Task SendMessage(string message)
     {
         var channelMessage = new ChannelMessage
-        { 
-            ChannelId = ChannelId, 
-            FromPrincipalId = _principalId, 
-            Message = message 
-        };
+            {
+                ChannelId = ChannelId,
+                FromPrincipalId = _principalId.NotEmpty(),
+                Message = message
+            };
 
         var result = await _channelContext.AddMessage(channelMessage, new ScopeContext(_logger));
         if (result.IsError())
@@ -57,6 +77,7 @@
             _logger.LogError("Failed to send message to channelId={channelId}", ChannelId);
             return;
         }
+
         await Refresh();
     }
 

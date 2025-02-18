@@ -11,9 +11,8 @@ public static class TicketShareStartup
     {
         services.AddGraphExtensions();
         services.AddSingleton<AccountClient>();
-        services.AddScoped<UserAccountManager>();
-        services.AddScoped<AuthenticationAccess>();
         services.AddSingleton<ChannelManager>();
+        services.AddScoped<UserAccountContext>();
 
         services.AddSingleton<TicketGroupClient>();
         services.AddScoped<TicketGroupManager>();
@@ -23,9 +22,10 @@ public static class TicketShareStartup
         services.AddHostedService<EmailSenderHost>();
 
         services.AddChannel<ChannelMessage>();
+        services.AddSingleton<ChannelManager>();
+
         services.AddScoped<MessageSender>();
         services.AddHostedService<MessageSenderHost>();
-        services.AddSingleton<ChannelManager>();
 
         return services;
     }
@@ -34,7 +34,7 @@ public static class TicketShareStartup
     {
         services.AddSingleton<Channel<T>>(service =>
         {
-            var logger = service.GetRequiredService<ILogger<EmailSenderHost>>();
+            var logger = service.GetRequiredService<ILoggerFactory>().CreateLogger("TicketShareStartup");
 
             var bounded = new BoundedChannelOptions(1000)
             {

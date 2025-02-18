@@ -32,8 +32,8 @@
 }
 
 @code {
-    [Inject] public AppNavigation _appNavigation { get; set; } = null!;
-    [Inject] public AuthenticationAccess _authenticationAccess { get; set; } = null!;
+    [Inject] public ApplicationNavigation _appNavigation { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountContext { get; set; } = null!;
     [Inject] public ChannelClient _channelClient { get; set; } = null!;
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Inject] public IMessageService _messageService { get; set; } = null!;
@@ -41,7 +41,7 @@
 
     private bool Visible { get; set; } = true;
 
-    private IReadOnlyList<ChannelInfo> _inputs = null!;
+    private IReadOnlyList<ChannelInfo>? _inputs;
     private IQueryable<ChannelInfo> _entries = null!;
     private RightPanelDialog<ChannelHeaderModel, EditChannelHeaderDialog> _rightPanelDialog = null!;
     private ScopeContext _context;
@@ -87,7 +87,14 @@
     {
         await SetLoading(true);
 
-        var principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
+        var principalOption = await _userAccountContext.GetPrincipalIdentity(_context).ConfigureAwait(false);
+        if (principalOption.IsError())
+        {
+            _inputs = null;
+            return;
+        }
+
+        var principalId = principalOption.Return().PrincipalId;
 
         var result = await _channelClient.GetChannelsInfo(principalId, _context);
         result.ThrowOnError();
@@ -110,7 +117,9 @@
     {
         await SetLoading(true);
 
-        var principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
+        var principalOption = await _userAccountContext.GetPrincipalIdentity(_context).ConfigureAwait(false);
+        if (principalOption.IsError()) return;
+        var principalId = principalOption.Return().PrincipalId;
 
         var result = await _channelClient.GetContext(header.ChannelId, principalId).SetName(header.Name, _context);
         if (result.IsError())

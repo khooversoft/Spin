@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Journal;
 using Toolbox.Tools;
@@ -35,6 +36,23 @@ public static class GraphStartup
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
         return services;
+    }
+
+    public static async Task<Option> StartGraphEngine(this IServiceProvider service)
+    {
+        var logger = service.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(StartGraphEngine));
+        var context = new ScopeContext(logger);
+
+        var graphHost = service.GetRequiredService<IGraphHost>();
+        var result = await graphHost.Run(context);
+        if (result.IsError())
+        {
+            context.LogError("Failed to start graph host, result={result}", result);
+            return result;
+        }
+
+        context.LogInformation("Graph host started");
+        return StatusCode.OK;
     }
 }
 

@@ -18,13 +18,13 @@ using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Dump;
+using Toolbox.Types;
 
 const string _appVersion = "TicketShareWeb - Version: 1.0.11";
-
-//await Task.Delay(TimeSpan.FromSeconds(5));
 Console.WriteLine(_appVersion);
 
 var builder = WebApplication.CreateBuilder(args);
+bool enableHttpLogging = builder.Configuration.GetValue<bool>("EnableHttpLogging", false);
 
 builder.Logging.AddApplicationInsights(
         configureTelemetryConfiguration: (config) =>
@@ -37,17 +37,19 @@ builder.Logging.AddApplicationInsights(
 
 builder.Logging.AddConsole();
 
-builder.Services.AddHttpLogging(config =>
+if (enableHttpLogging)
 {
-    config.RequestHeaders.Add("X-Forwarded-Proto");
-    config.RequestHeaders.Add("X-Forwarded-For");
-    config.RequestHeaders.Add("X-Forwarded-Host");
-    config.RequestHeaders.Add("X-Forwarded-Client-Cert");
-});
+    builder.Services.AddHttpLogging(config =>
+    {
+        config.RequestHeaders.Add("X-Forwarded-Proto");
+        config.RequestHeaders.Add("X-Forwarded-For");
+        config.RequestHeaders.Add("X-Forwarded-Host");
+        config.RequestHeaders.Add("X-Forwarded-Client-Cert");
+    });
+}
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -56,7 +58,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 builder.Services.AddCascadingAuthenticationState();
-//builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
@@ -86,16 +87,6 @@ builder.Services.AddAuthentication(options =>
         };
     }).AddIdentityCookies();
 
-//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//    options.UseSqlServer(connectionString));
-////builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-//builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-//    .AddEntityFrameworkStores<ApplicationDbContext>()
-//    .AddSignInManager()
-//    .AddDefaultTokenProviders();
-
 builder.Services.AddTransient<IUserStore<PrincipalIdentity>, IdentityUserStoreHandler>();
 
 builder.Services
@@ -103,24 +94,22 @@ builder.Services
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-// builder.Services.AddSingleton<IEmailSender<PrincipalIdentity>, IdentityNoOpEmailSender>();
-
 builder.Services
     .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
     .AddGraphEngine()
     .AddTicketShare()
     .AddEmail(builder.Configuration.GetSection("email"))
     .AddScoped<AskPanel>()
-    .AddScoped<AppNavigation>();
+    .AddScoped<ApplicationNavigation>();
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 ///////////////////////////////////////////////////////////////////////////////
 
-app.UseHttpLogging();
+if (enableHttpLogging) app.UseHttpLogging();
 app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
@@ -146,29 +135,18 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup").Action(logger =>
+var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+
+logger.LogInformation(
+    "{appVersion}, Environment={environmentName}: AssemblyVersion={assemblyVersion}",
+    _appVersion,
+    app.Environment.EnvironmentName,
+    Assembly.GetExecutingAssembly().GetName().Version
+    );
+
+var runOption = await app.Services.StartGraphEngine();
+if (runOption.IsOk())
 {
-    DumpEnvironment.Dump(args, builder.Configuration, false)
-        .Join(Environment.NewLine)
-        .Action(x => logger.LogInformation(x));
-
-    logger.LogInformation(
-        "{appVersion}, Environment={environmentName}: AssemblyVersion={assemblyVersion}",
-        _appVersion,
-        app.Environment.EnvironmentName,
-        Assembly.GetExecutingAssembly().GetName().Version
-        );
-
-    var httpLoggerOption = app.Services.GetService<IOptions<HttpLoggingOptions>>();
-    logger.LogInformation("Found IOptions<httpLoggerOption>={found}", httpLoggerOption != null);
-
-    if (httpLoggerOption != null)
-    {
-        httpLoggerOption.Value.RequestHeaders
-            .Prepend("RequestHeaders=")
-            .Join(",")
-            .Action(x => logger.LogInformation(x));
-    }
-});
-
-app.Run();
+    logger.LogInformation("Starting app");
+    app.Run();
+}

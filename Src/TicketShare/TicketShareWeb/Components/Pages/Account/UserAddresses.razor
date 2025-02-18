@@ -24,7 +24,7 @@
 @code {
     [Inject] public IDialogService _dialogService { get; set; } = null!;
     [Inject] public ILogger<UserAddresses> _logger { get; set; } = null!;
-    [CascadingParameter] public UserAccountContext UserAccountContext { get; set; } = null!;
+    [CascadingParameter] public UserAccountEditContext UserAccountContext { get; set; } = null!;
 
     private IQueryable<AddressModel> _addresses = null!;
     private RightPanelDialog<AddressModel, UserAddressDialog> _rightPanelDialog = null!;

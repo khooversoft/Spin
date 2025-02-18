@@ -8,11 +8,6 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Toolbox.Graph.Extensions
 
-@inject NavigationManager _navigationManager
-@inject VerifyEmail _verifyEmail;
-@inject ILogger<ResendEmailConfirmation> _logger
-@inject UserAccountManager _userAccountManager;
-
 @if (_initialized)
 {
     <PageTitle>Resend Email Confirmation</PageTitle>
@@ -47,6 +42,11 @@
 }
 
 @code {
+    [Inject] public ApplicationNavigation _applicationNavigation { get; set; } = null!;
+    [Inject] public VerifyEmail _verifyEmail { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountManager { get; set; } = null!;
+    [Inject] public ILogger<ResendEmailConfirmation> _logger { get; set; } = null!;
+
     private ScopeContext _context;
     private PrincipalIdentity _user = null!;
     private string? _message;
@@ -77,6 +77,6 @@
     private async Task SendEmail()
     {
         await _verifyEmail.Send(_user, "Account/ConfirmEmail", _context);
-        _navigationManager.NavigateTo("/");
+        _applicationNavigation.GotoHome();
     }
 }

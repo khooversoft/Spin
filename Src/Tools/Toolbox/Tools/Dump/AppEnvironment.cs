@@ -5,7 +5,7 @@ using Toolbox.Extensions;
 
 namespace Toolbox.Tools.Dump;
 
-public static class DumpEnvironment
+public static class AppEnvironment
 {
     public static IReadOnlyList<string> Dump(string[] args, IConfiguration configuration, bool includeEnvironmentVariables = false)
     {

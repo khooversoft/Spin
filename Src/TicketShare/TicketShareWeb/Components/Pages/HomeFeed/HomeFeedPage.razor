@@ -23,33 +23,44 @@
 }
 
 @code {
-    [Inject] public AuthenticationAccess _authenticationAccess { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountContext { get; set; } = null!;
     [Inject] public ChannelManager _channelManager { get; set; } = null!;
-    [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountManager { get; set; } = null!;
     [Inject] public ILogger<HomeFeedPage> _logger { get; set; } = null!;
 
     private bool _loading = true;
     private ScopeContext _scopeContext;
-    private string _principalId = null!;
+    private string? _principalId = null!;
     private IReadOnlyList<HomeComponent> _componentList = [];
 
-    protected override async Task OnParametersSetAsync()
-    {
-        _scopeContext = new ScopeContext(_logger);
-        _principalId = (await _authenticationAccess.GetPrincipalId()).NotEmpty();
-    }
+    protected override void OnParametersSet() => _scopeContext = new ScopeContext(_logger);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             _loading = false;
+
+            var principalOption = await _userAccountContext.GetPrincipalIdentity(_scopeContext).ConfigureAwait(false);
+            _principalId = principalOption switch
+            {
+                { StatusCode: StatusCode.OK } => principalOption.Return().PrincipalId,
+                _ => null,
+            };
+
             await Refresh();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
     private async Task Refresh()
     {
+        if (_principalId == null)
+        {
+            _componentList = [];
+            return;
+        }
+
         var channelsOption = await _channelManager.GetMessages(_principalId, _scopeContext);
         var accountActive = await _userAccountManager.IsAccountEnabled(_scopeContext);
 
@@ -64,7 +75,5 @@
             .OrderByDescending(x => x.Date)
             .Func(x => accountActive && messageList.Length > 0 ? x : x.Prepend(new HomeComponent(HomeComponentType.Wellcome)))
             .ToImmutableArray();
-
-        StateHasChanged();
     }
 }

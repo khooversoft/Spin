@@ -1,97 +1,88 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Logging;
+using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Logging;
 
 namespace TicketShare.sdk;
 
+// Must be scoped
 public class UserAccountContext
 {
-    private readonly UserAccountManager _userAccountManager;
-    private readonly ILogger _logger;
-    private AccountModel? _currentStored;
+    private readonly IdentityClient _identityClient;
+    private readonly AccountClient _accountClient;
+    private readonly ILogger<UserAccountContext> _logger;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-    public UserAccountContext(UserAccountManager userAccountManager, ILogger logger)
+    private PrincipalIdentity? _principalIdentity;
+
+    public UserAccountContext(
+        IdentityClient identityClient,
+        AccountClient accountClient,
+        AuthenticationStateProvider authenticationStateProvider,
+        ILogger<UserAccountContext> logger
+        )
     {
-        _userAccountManager = userAccountManager.NotNull();
+        _identityClient = identityClient.NotNull();
+        _accountClient = accountClient.NotNull();
+        _authenticationStateProvider = authenticationStateProvider.NotNull();
         _logger = logger.NotNull();
-
-        Contact = new CollectionAccessActor<ContactModel>(this, x => Input.ContactItems[x.Id] = x, x => Input.ContactItems.TryRemove(x.Id, out var _));
-        Address = new CollectionAccessActor<AddressModel>(this, x => Input.AddressItems[x.Id] = x, x => Input.AddressItems.TryRemove(x.Id, out var _));
-        Calendar = new CollectionAccessActor<CalendarModel>(this, x => Input.CalendarItems[x.Id] = x, x => Input.CalendarItems.TryRemove(x.Id, out var _));
     }
 
-    public AccountModel Input { get; private set; } = null!;
-    public UserProfileEditModel UserProfile { get; private set; } = null!;
+    public UserAccountEditContext GetEditContext() => new UserAccountEditContext(this, _logger);
 
-    public CollectionAccessActor<ContactModel> Contact { get; }
-    public CollectionAccessActor<AddressModel> Address { get; }
-    public CollectionAccessActor<CalendarModel> Calendar { get; }
+    public void ClearCache() => _principalIdentity = null;
 
-    public bool IsChanged() => Input != null && _currentStored != null && (Input != _currentStored);
-    public bool IsLoaded() => Input != null;
-
-    public async Task Get(ScopeContext context)
+    public async Task<Option<PrincipalIdentity>> GetPrincipalIdentity(ScopeContext context, bool forceRefresh = false)
     {
-        if (Input != null) return;
+        context = context.With(_logger);
+        if (forceRefresh) _principalIdentity = null;
+
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == false) return (StatusCode.NotFound, "User is not authenticated");
+
+        string principalId = authState.User.Identity.NotNull().Name.NotEmpty();
+        if (_principalIdentity?.PrincipalId == principalId) return _principalIdentity;
+
+        var result = await _identityClient.GetByPrincipalId(principalId, context).ConfigureAwait(false);
+        return result;
+    }
+
+    public async Task<Option<AccountRecord>> GetAccount(ScopeContext context)
+    {
         context = context.With(_logger);
 
-        var accountOption = await _userAccountManager.GetAccount(context).ConfigureAwait(false);
-        accountOption.ThrowOnError(nameof(UserAccountContext) + ":" + nameof(Get));
+        var identityOption = await GetPrincipalIdentity(context).ConfigureAwait(false);
+        if (identityOption.IsError()) return identityOption.LogStatus(context, nameof(GetAccount)).ToOptionStatus<AccountRecord>();
+        string principalId = identityOption.Return().PrincipalId;
 
-        Input = accountOption.Return().ConvertTo();
-        _currentStored = Input.Clone();
-        UserProfile = new UserProfileEditModel { Name = Input.Name };
-
-        string json = Input.ToJson();
-        _logger.LogInformation("Account read, Input={input}", json);
+        return await _accountClient
+            .GetContext(principalId)
+            .Get(context)
+            .ConfigureAwait(false);
     }
 
-    public async Task Set(ScopeContext context)
+    public async Task<Option> SetAccount(AccountRecord accountRecord, ScopeContext context)
     {
-        Input.NotNull("Input is not set");
-        if (!IsChanged()) return;
+        accountRecord.NotNull();
+        context = context.With(_logger);
 
-        string principalId = await _userAccountManager.GetPrincipalId(context).ConfigureAwait(false);
+        var result = await _accountClient
+            .GetContext(accountRecord.PrincipalId)
+            .Set(accountRecord, context)
+            .ConfigureAwait(false);
 
-        _logger.LogInformation("Updating account, Input={input}", Input.ToJson());
-        var account = Input.NotNull().ConvertTo(principalId);
-
-        var result = await _userAccountManager.SetAccount(account, context).ConfigureAwait(false);
-        if (result.IsError()) result.ThrowOnError("Cannot update");
+        return result;
     }
 
-    public async Task SetName(string name, ScopeContext context)
+    public async Task<bool> IsAccountEnabled(ScopeContext context)
     {
-        Input.NotNull("Input is not set");
-        Input = Input with { Name = name };
-        UserProfile = UserProfile with { Name = name };
-        await Set(context);
-    }
+        context = context.With(_logger);
 
-    public class CollectionAccessActor<T>
-    {
-        private readonly UserAccountContext _accountContext;
-        private readonly Action<T> _set;
-        private readonly Func<T, bool> _remove;
+        var principalIdentity = await GetPrincipalIdentity(context).ConfigureAwait(false);
+        if (principalIdentity.IsError()) return false;
 
-        internal CollectionAccessActor(UserAccountContext accountContext, Action<T> set, Func<T, bool> remove)
-        {
-            _accountContext = accountContext.NotNull();
-            _set = set;
-            _remove = remove;
-        }
-
-        public async Task Set(T model, ScopeContext context)
-        {
-            model.NotNull();
-            _set(model);
-            await _accountContext.Set(context);
-        }
-        public async Task Delete(T model, ScopeContext context)
-        {
-            bool removed = _remove(model);
-            if (removed) await _accountContext.Set(context);
-        }
+        return principalIdentity.Return().EmailConfirmed;
     }
 }
