@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using System.Collections.Frozen;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions;
@@ -10,10 +11,10 @@ public sealed record ChannelMessage
     public string MessageId { get; init; } = SequenceTool.GenerateId();
     public DateTime Date { get; init; } = DateTime.UtcNow;
     public string FromPrincipalId { get; init; } = null!;
-    public string Topic { get; init; } = null!;
     public string Message { get; init; } = null!;
     public string? FilterType { get; init; }
     public DateTime? Cleared { get; init; }
+    public IReadOnlyDictionary<string, string> Links { get; init; } = FrozenDictionary<string, string>.Empty;
 
     public bool Equals(ChannelMessage? obj)
     {
@@ -22,7 +23,6 @@ public sealed record ChannelMessage
             MessageId == subject.MessageId &&
             Date == subject.Date &&
             FromPrincipalId == subject.FromPrincipalId &&
-            Topic == subject.Topic &&
             Message == subject.Message &&
             FilterType == subject.FilterType &&
             Cleared == subject.Cleared;
@@ -36,7 +36,6 @@ public sealed record ChannelMessage
         .RuleFor(x => x.ChannelId).NotEmpty()
         .RuleFor(x => x.MessageId).NotEmpty()
         .RuleFor(x => x.FromPrincipalId).NotEmpty()
-        .RuleFor(x => x.Topic).NotEmpty()
         .RuleFor(x => x.Message).NotEmpty()
         .RuleFor(x => x.Cleared).ValidDateTimeOption()
         .Build();

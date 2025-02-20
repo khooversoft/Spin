@@ -84,7 +84,7 @@ builder.Services.AddAuthentication(options =>
         };
     }).AddIdentityCookies();
 
-builder.Services.AddTransient<IUserStore<PrincipalIdentity>, IdentityUserStoreHandler>();
+builder.Services.AddScoped<IUserStore<PrincipalIdentity>, IdentityUserStoreHandler>();
 
 builder.Services
     .AddIdentityCore<PrincipalIdentity>()

@@ -1,22 +1,26 @@
 ﻿@using Toolbox.Graph.Extensions;
 @rendermode InteractiveServer
 
-<FeedBlock>
-    <FluentCard Class="card-container" @onclick="CardSelected">
-        <FluentStack Orientation="Orientation.Horizontal">
-            <FluentLabel style="min-height:31px" Typo="Typography.Body">@_expand.DateAsString</FluentLabel>
-            <FluentLabel style="min-height:31px" Typo="Typography.Body">@_expand.UserName</FluentLabel>
-        </FluentStack>
-        <FluentLabel Typo="Typography.Subject">@((MarkupString)_expand.Topic)</FluentLabel>
-    </FluentCard>
-</FeedBlock>
-
+@if (_expand != null)
+{
+    <FeedBlock>
+        <FluentCard Class="card-container" @onclick="CardSelected">
+            <FluentStack Orientation="Orientation.Horizontal">
+                <FluentLabel Style="min-height:31px" Typo="Typography.Body">@_expand.DateAsString</FluentLabel>
+                <FluentLabel Style="min-height:31px" Typo="Typography.Body">@_expand.UserName</FluentLabel>
+            </FluentStack>
+            <FluentLabel Style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" Typo="Typography.Body">@((MarkupString)_expand.Message)</FluentLabel>
+        </FluentCard>
+    </FeedBlock>
+}
 
 @code {
     [Parameter] public ChannelMessage Content { get; set; } = null!;
-    [Inject] public IdentityClient _identityClient { get; set; } = null!;
-    [Inject] public ILogger<ChannelMessageBlock> _logger { get; set; } = null!;
-    [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Parameter] public bool Summary { get; set; } = false;
+
+    @inject IdentityClient _identityClient;
+    @inject ILogger<ChannelMessageBlock> _logger;
+    @inject IDialogService _dialogService;
 
     private ScopeContext _context;
     private ChannelMessageExpanded _expand = null!;
@@ -37,8 +41,5 @@
 
     private Task NoOpSetChannel(ChannelMessageExpanded _) => Task.CompletedTask;
 
-    private async Task CardSelected()
-    {
-        await _rightPanelDialog.Edit(_expand, "Message");
-    }
+    private async Task CardSelected() => await _rightPanelDialog.Edit(_expand, "Message");
 }

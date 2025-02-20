@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Frozen;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Channels;
 using Microsoft.AspNetCore.Components;
@@ -118,9 +119,12 @@ public class VerifyEmail
         {
             ChannelId = IdentityTool.ToNodeKey(principalId),
             FromPrincipalId = TsConstants.SystemIdentityEmail,
-            Topic = "Request for email conformation",
             Message = message,
-            FilterType = TsConstants.EmailRequest
+            FilterType = TsConstants.EmailRequest,
+            Links = new Dictionary<string, string>
+            {
+                ["Resend"] = "/Account/ResendEmailConfirmation",
+            }.ToFrozenDictionary(),
         };
 
         return await _messageSender.Send(channelMessage, context).ConfigureAwait(false);

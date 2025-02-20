@@ -1,4 +1,7 @@
-﻿
+﻿:root {
+    --feed-max-width: 380px;
+}
+
 /*Associated with .body-content*/
 
 .body-content-light {
@@ -40,10 +43,10 @@
 }
 
 .feed-block-container {
-    /*    min-width: 380px;
-    max-width: 380px;
-*/ width: 380px;
+    width: var(--feed-max-width);
     padding: 0px;
+    /*    min-width: 380px; */
+    /* max-width: 380px; */
     /*border-radius: 4px;*/
     /*border: 1px solid black;*/
 }
@@ -139,7 +142,7 @@
 }
 
 .card-image {
-    width: calc(100% - 10px);
+    width: var(--feed-max-width);
     min-width: 200px;
     height: 200px;
     object-fit: cover;

@@ -53,6 +53,7 @@
         {
             var context = new ScopeContext(_logger);
             _disableMenus = (await _userAccountContext.IsAccountEnabled(context).ConfigureAwait(false)) == false;
+            StateHasChanged();
         }
     }
 

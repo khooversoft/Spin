@@ -12,8 +12,6 @@
             <FluentLabel Typo="Typography.Body">@Content.Value.UserName</FluentLabel>
         </FluentStack>
 
-        <FluentLabel Typo="Typography.Subject">@Content.Value.Topic</FluentLabel>
-
         @if (Content.Value.Message.IsNotEmpty())
         {
             <FluentLabel Typo="Typography.Body">@((MarkupString)Content.Value.Message)</FluentLabel>

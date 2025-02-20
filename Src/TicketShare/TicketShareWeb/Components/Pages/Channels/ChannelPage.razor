@@ -2,13 +2,15 @@
 @attribute [Authorize]
 
 @using Microsoft.AspNetCore.Authorization
+@using System.Collections.Frozen
 @using TicketShare.sdk
 @using Toolbox.Graph.Extensions
 
-<LoadingBlock Visible=@_loading />
+<LoadingBlock Loading=@_loading />
 
 <FeedColumn>
     <DialogControls OnClose="OnClose" />
+    <FluentLabel Typo=Typography.Body>@_wellcome</FluentLabel>
 
     @foreach (var item in _messageList)
     {
@@ -29,13 +31,18 @@
     @inject ChannelClient _channelClient;
     @inject ILogger<ChannelPage> _logger;
 
+    private string _wellcome = "Wellcome";
     private ChannelContext _channelContext;
     private bool _loading { get; set; } = true;
     private IReadOnlyList<ChannelMessage> _messageList = [];
     private string _principalId = null!;
     private ScopeContext _context;
 
-    protected override void OnParametersSet() => _context = new ScopeContext(_logger);
+    protected override void OnParametersSet()
+    {
+        _context = new ScopeContext(_logger);
+        _wellcome = $"Wellcome to channel {ChannelId}";
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -48,8 +55,9 @@
             _channelContext = _channelClient.GetContext(ChannelId, _principalId);
 
             await Refresh();
+
             _loading = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -61,13 +69,18 @@
             {
                 ChannelId = ChannelId,
                 FromPrincipalId = _principalId,
-                Message = message
+                Message = message,
+                Links = new Dictionary<string, string>()
+                {
+                    ["Channel"] = ApplicationUri.GetChannel(ChannelId),
+                }.ToFrozenDictionary(),
             };
 
-        var result = await _channelContext.AddMessage(channelMessage, new ScopeContext(_logger));
+    var result = await _channelContext.AddMessage(channelMessage, new ScopeContext(_logger));
         if (result.IsError())
         {
             _logger.LogError("Failed to send message to channelId={channelId}", ChannelId);
+            _appNavigation.GotoHome();
             return;
         }
 

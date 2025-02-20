@@ -35,6 +35,8 @@ public class ApplicationNavigation
         string encoded = $"/Channel/{Uri.EscapeDataString(channelId)}";
         _navigationManager.NavigateTo(encoded);
     }
+
+    public void GotoRegisterExternalLogin(string id) => _navigationManager.NavigateTo($"/RegisterExternalLogin/{id.NotEmpty()}");
 }
 
 

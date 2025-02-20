@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Graph.Extensions;
 using Toolbox.Logging;
@@ -93,8 +94,11 @@ public class TicketGroupManager
         {
             ChannelId = IdentityTool.ToNodeKey(principalId),
             FromPrincipalId = TsConstants.SystemTicketGroup,
-            Topic = $"Ticket Group {name} created.",
             Message = message,
+            Links = new Dictionary<string, string>
+            {
+                ["Ticket Group"] = ApplicationUri.GetTicketGroup(ticketGroupId),
+            }.ToFrozenDictionary(),
         };
 
         (await _messageSender.Send(channelMessage, context).ConfigureAwait(false)).LogStatus(context, nameof(CreatedTicketMessage)).ThrowOnError();

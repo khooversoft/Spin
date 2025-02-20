@@ -5,7 +5,7 @@
 @using TicketShare.sdk
 @using Toolbox.Graph.Extensions
 
-<LoadingBlock Visible=@Visible />
+<LoadingBlock Loading=@_loading />
 
 @if (_inputs != null)
 {
@@ -39,7 +39,7 @@
     [Inject] public IMessageService _messageService { get; set; } = null!;
     [Inject] public ILogger<ChannelsPage> _logger { get; set; } = null!;
 
-    private bool Visible { get; set; } = true;
+    private bool _loading { get; set; } = true;
 
     private IReadOnlyList<ChannelInfo>? _inputs;
     private IQueryable<ChannelInfo> _entries = null!;
@@ -109,7 +109,7 @@
 
     private async Task SetLoading(bool visible)
     {
-        Visible = visible;
+        _loading = visible;
         await InvokeAsync(StateHasChanged);
     }
 

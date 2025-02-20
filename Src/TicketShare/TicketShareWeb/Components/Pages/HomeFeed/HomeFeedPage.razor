@@ -1,5 +1,7 @@
 ﻿@using System.Collections.Immutable
+@using Microsoft.AspNetCore.Identity
 @using TicketShareWeb.Components.Pages.Channels
+@using Toolbox.Graph.Extensions
 
 <LoadingBlock Loading=@_loading />
 
@@ -26,41 +28,74 @@
     @inject UserAccountContext _userAccountContext;
     @inject ChannelManager _channelManager;
     @inject UserAccountContext _userAccountManager;
+    @inject SignInManager<PrincipalIdentity> signInManager;
+    @inject ApplicationNavigation _applicationNavigation;
     @inject ILogger<HomeFeedPage> _logger;
 
     private bool _loading = true;
     private ScopeContext _scopeContext;
     private string? _principalId = null!;
     private IReadOnlyList<HomeComponent> _componentList = [];
+    private string _instanceId = Guid.NewGuid().ToString();
 
-    protected override void OnParametersSet() => _scopeContext = new ScopeContext(_logger);
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender)
-        {
-            _loading = false;
+        _loading = true;
+        _componentList = [];
+        base.OnInitialized();
+    }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        _scopeContext = new ScopeContext(_logger);
+        _scopeContext.LogInformation("HomeFeedPage: OnParametersSetAsync, instanceId={instanceId}", _instanceId);
+
+        if (_principalId.IsEmpty())
+        {
+            _scopeContext.LogInformation("HomeFeedPage: GetPrincipalIdentity, instanceId={instanceId}", _instanceId);
             var principalOption = await _userAccountContext.GetPrincipalIdentity(_scopeContext).ConfigureAwait(false);
+            if (principalOption.IsError())
+            {
+                await signInManager.SignOutAsync();
+                _applicationNavigation.GotoHome();
+                return;
+            }
+
             _principalId = principalOption switch
             {
                 { StatusCode: StatusCode.OK } => principalOption.Return().PrincipalId,
                 _ => null,
             };
-
-            await Refresh();
-            await InvokeAsync(StateHasChanged);
         }
+
+        _scopeContext.LogInformation("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
+        await Refresh();
+        await base.OnParametersSetAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _scopeContext.LogInformation("HomeFeedPage: OnAfterRender, instanceId={instanceId}", _instanceId);
+            _loading = false;
+        }
+
+        base.OnAfterRender(firstRender);
     }
 
     private async Task Refresh()
     {
+
         if (_principalId == null)
         {
+            _scopeContext.LogInformation("HomeFeedPage: Refresh, NoPrincipalId, instanceId={instanceId}", _instanceId);
+            _loading = false;
             _componentList = [];
             return;
         }
 
+        _scopeContext.LogInformation("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
         var channelsOption = await _channelManager.GetMessages(_principalId, _scopeContext);
         var accountActive = await _userAccountManager.IsAccountEnabled(_scopeContext);
 
@@ -75,5 +110,7 @@
             .OrderByDescending(x => x.Date)
             .Func(x => accountActive && messageList.Length > 0 ? x : x.Prepend(new HomeComponent(HomeComponentType.Wellcome)))
             .ToImmutableArray();
+
+        _loading = false;
     }
 }

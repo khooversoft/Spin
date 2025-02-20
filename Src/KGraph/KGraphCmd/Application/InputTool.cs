@@ -70,6 +70,14 @@ public static class InputTool
         data2.ForEach(x => data[$"{label}:{x.Key}"] = x.Value);
     }
 
+    static Func<string, string>[] _converters = new Func<string, string>[]
+    {
+        str => str.Replace("\\u003C", "<<"),
+        str => str.Replace("\\u003E", ">>"),
+        str => str.Replace("\\u0022", "\\\""),
+    };
+
+
     public static string ToLoggingFormat(this IEnumerable<KeyValuePair<string, string?>> data)
     {
         var result = data.NotNull()
@@ -78,7 +86,10 @@ public static class InputTool
 
         return result;
 
-        static string fmt(string? value) => value?.Replace("{", "{{").Replace("}", "}}") ?? string.Empty;
+        static string fmt(string? value) => cleanUpForLogging(value).Func(x => convertToConsole(x));
+        static string cleanUpForLogging(string? value) => value?.Replace("{", "{{").Replace("}", "}}") ?? string.Empty;
+        static string convertToConsole(string value) => _converters.Aggregate(value, (x, f) => f(x));
+
     }
 
     private static string ForDisplay(string[] args) => args.Select(x => ForDisplay(x)).Join(", ");
