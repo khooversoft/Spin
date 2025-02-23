@@ -14,12 +14,12 @@ public class BasicDiscovertyTests
     public async Task TestSearch()
     {
         var testHost = TestClientHostTool.Create();
-        TicketMasterDiscoverClient client = testHost.GetClient();
+        TicketMasterClient client = testHost.GetClient();
         var context = testHost.GetContext<BasicDiscovertyTests>();
 
         var search = new TicketMasterSearch
         {
-            PromoterId = "695",
+            PromoterId = "695,690",
             Page = 0,
             Size = 100,
         };

@@ -14,20 +14,20 @@ using Toolbox.Types;
 
 namespace TicketMasterApi.sdk;
 
-public class TicketMasterDiscoverClient
+public class TicketMasterClient
 {
     protected readonly HttpClient _client;
-    private readonly ILogger<TicketMasterDiscoverClient> _logger;
+    private readonly ILogger<TicketMasterClient> _logger;
     private readonly TicketMasterOption _ticketMasterOption;
 
-    public TicketMasterDiscoverClient(HttpClient client, TicketMasterOption ticketMasterOption, ILogger<TicketMasterDiscoverClient> logger)
+    public TicketMasterClient(HttpClient client, TicketMasterOption ticketMasterOption, ILogger<TicketMasterClient> logger)
     {
         _client = client.NotNull();
         _ticketMasterOption = ticketMasterOption.NotNull();
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<IReadOnlyList<EventRecord>>> GetEvents(TicketMasterSearch search, ScopeContext context)
+    public async Task<Option<IReadOnlyList<PromoterEventRecord>>> GetEvents(TicketMasterSearch search, ScopeContext context)
     {
         var sequence = new Sequence<EventRecordModel>();
 
@@ -41,7 +41,7 @@ public class TicketMasterDiscoverClient
                 .GetAsync(context.With(_logger))
                 .GetContent<TicketMasterModel>();
 
-            if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<EventRecord>>();
+            if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<PromoterEventRecord>>();
             var ticketMasterModel = model.Return();
             if (ticketMasterModel._embedded == null) break;
 
@@ -51,7 +51,18 @@ public class TicketMasterDiscoverClient
         }
 
         var result = sequence.Select(x => ConvertToRecord(x)).ToImmutableArray();
-        return result;
+
+        var byPromoters = result
+            .Select(x => (x, promoter: x.Promoters.First()))
+            .GroupBy(x => x.promoter.Id)
+            .Select(x => new PromoterEventRecord
+            {
+                Promoter = x.First().promoter,
+                Events = x.Select(y => y.x).ToImmutableArray(),
+            })
+            .ToImmutableArray();
+
+        return byPromoters;
     }
 
     private EventRecord ConvertToRecord(EventRecordModel subject)

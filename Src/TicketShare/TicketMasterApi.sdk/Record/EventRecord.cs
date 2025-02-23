@@ -10,6 +10,13 @@ using Toolbox.Types;
 
 namespace TicketMasterApi.sdk;
 
+
+public record PromoterEventRecord
+{
+    public PromoterRecord Promoter { get; init; } = null!;
+    public IReadOnlyList<EventRecord> Events { get; init; } = Array.Empty<EventRecord>();
+}
+
 public record EventRecord
 {
     public string Id { get; init; } = null!;
@@ -28,3 +35,4 @@ public record ClassificationRecord
     public string? Genre { get; init; }
     public string? SubGenre { get; init; }
 }
+
