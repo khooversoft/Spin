@@ -1,0 +1,6 @@
+{
+  "TicketMaster": {
+    "ApiKey": null,
+    "DiscoveryUrl": "https://app.ticketmaster.com/discovery/v2/"
+  }
+}

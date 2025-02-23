@@ -35,6 +35,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Email", "Tools\Tool
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Email.test", "Tools\Toolbox.Email.test\Toolbox.Email.test.csproj", "{4DDF06A1-46CC-4AD2-9E85-E41757149F1A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketMasterApi.sdk", "TicketShare\TicketMasterApi.sdk\TicketMasterApi.sdk.csproj", "{48DAED39-D74A-44E6-9170-DF7FEE6C0CAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketMasterApi.sdk.test", "TicketShare\TicketMasterApi.sdk.test\TicketMasterApi.sdk.test.csproj", "{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +105,14 @@ Global
 		{4DDF06A1-46CC-4AD2-9E85-E41757149F1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DDF06A1-46CC-4AD2-9E85-E41757149F1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DDF06A1-46CC-4AD2-9E85-E41757149F1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48DAED39-D74A-44E6-9170-DF7FEE6C0CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48DAED39-D74A-44E6-9170-DF7FEE6C0CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48DAED39-D74A-44E6-9170-DF7FEE6C0CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48DAED39-D74A-44E6-9170-DF7FEE6C0CAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
