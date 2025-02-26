@@ -20,7 +20,7 @@ public record Class_Classification_Embedded
 
 public record ClassificationModel
 {
-    public Class_SegmentModel? segment { get; set; }
+    public Class_SegmentModel? Segment { get; set; }
 }
 
 public record Class_SegmentModel

@@ -92,6 +92,11 @@ public class TicketMasterEventClient
     {
         subject.NotNull();
 
+        var segement = subject.Classifications.FirstOrDefault()?.Segment?.ConvertTo();
+        var grene = subject.Classifications.FirstOrDefault()?.Genre?.ConvertTo();
+        var subGrene = subject.Classifications.FirstOrDefault()?.SubGenre?.ConvertTo();
+        bool createClassification = segement != null || grene != null || subGrene != null;
+
         var result = new EventRecord
         {
             Id = subject.Id,
@@ -104,12 +109,12 @@ public class TicketMasterEventClient
             Timezone = subject.Dates?.Timezone,
             Promoters = subject.Promoters.Select(x => x.ConvertTo()).ToImmutableArray(),
             SeatMapUrl = subject.Seatmap?.StaticUrl,
-            Classification = new ClassificationRecord
+            Classification = createClassification ? new ClassificationRecord
             {
-                Segment = subject.Classifications.FirstOrDefault()?.Segment?.Name,
-                Genre = subject.Classifications.FirstOrDefault()?.Genre?.Name,
-                SubGenre = subject.Classifications.FirstOrDefault()?.SubGenre?.Name,
-            },
+                Segement = segement.NotNull(),
+                Grene = grene.NotNull(),
+                SubGrene = subGrene.NotNull(),
+            } : null,
             Venues = (subject._embedded?.Venues ?? Array.Empty<Event_VenueModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
             Attractions = (subject._embedded?.Attractions ?? Array.Empty<Event_AttractionModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
         };

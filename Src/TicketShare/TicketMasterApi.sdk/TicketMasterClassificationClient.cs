@@ -72,7 +72,7 @@ public class TicketMasterClassificationClient
             {
                 $"apikey={_ticketMasterOption.ApiKey}",
                 $"page={page}",
-                "size=1",
+                "size=1000",
             }
             .Where(x => x.IsNotEmpty())
             .Join('&');
@@ -81,47 +81,47 @@ public class TicketMasterClassificationClient
 
             var model = await new RestClient(_client)
                 .SetPath(url)
-                .GetAsync(context.With(_logger));
+                .GetAsync(context.With(_logger))
+                .GetContent<ClassificationMasterModel>();
 
-            string json = model.Content;
-            var model2 = json?.ToObject<ClassificationMasterModel>();
-                //.GetContent<ClassificationMasterModel>();
+            if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<ClassificationRecord>>();
+            var masterModel = model.Return();
+            if (masterModel._embedded == null) break;
 
-            //if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<ClassificationRecord>>();
-            //var masterModel = model.Return();
-            //if (masterModel._embedded == null) break;
-
-            //sequence += masterModel._embedded.Classifications;
-            break;
+            sequence += masterModel._embedded.Classifications;
+            page++;
         }
 
-        //var result = sequence.Select(x => ConvertToRecord(x)).ToImmutableArray();
-        //return result;
-        return default;
+        var result = sequence
+            .SelectMany(ConvertToRecord)
+            .ToImmutableArray();
+
+        return result;
     }
 
-    //private ClassificationRecord ConvertToRecord(ClassificationModel subject)
-    //{
-    //    subject.NotNull();
+    private IReadOnlyList<ClassificationRecord> ConvertToRecord(ClassificationModel subject)
+    {
+        subject.NotNull();
+        if( subject.Segment == null) return Array.Empty<ClassificationRecord>();
 
-    //    var segment = subject.Segments.FirstOrDefault();
-    //    var grene = segment?._embedded?.genres.FirstOrDefault();
-    //    var subGrene = grene?._embedded?.subgenres.FirstOrDefault();
+        (Class_SegmentModel seg, Class_GenreModel grene, Class_SubGenreModel subgrene)[] list = subject.NotNull().Segment.NotNull().ToEnumerable()
+            .Select(x => (seg: x, grene: x?._embedded?.genres))
+            .SelectMany(x => x.grene ?? Array.Empty<Class_GenreModel>(), (o, i) => (o.seg, grene: i))
+            .SelectMany(x => x.grene._embedded?.subgenres ?? Array.Empty<Class_SubGenreModel>(), (o, i) => (o.seg, o.grene, subgrene: i))
+            .ToArray();
 
-    //    var segmentData = segment?.Func(x => (x.Id, x.Name));
-    //    var greneData = grene?.Func(x => (x.Id, x.Name));
-    //    var subGreneData = subGrene?.Func(x => (x.Id, x.Name));
+        var result = list
+            .Select(x =>
+            {
+                return new ClassificationRecord
+                {
+                    Segement = x.seg.ConvertTo(),
+                    Grene = x.grene.ConvertTo(),
+                    SubGrene = x.subgrene.ConvertTo(),
+                };
+            })
+            .ToArray();
 
-    //    var result = new ClassificationRecord
-    //    {
-    //        SegmentId = segmentData?.Id,
-    //        Segment = segmentData?.Name,
-    //        GenreId = greneData?.Id,
-    //        Genre = greneData?.Name,
-    //        SubGenreId = greneData?.Id,
-    //        SubGenre = greneData?.Name,
-    //    };
-
-    //    return result;
-    //}
+        return result;
+    }
 }
