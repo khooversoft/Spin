@@ -8,23 +8,16 @@ using System.Text.Json;
 
 namespace TicketMasterApi.sdk.test;
 
-public class BasicDiscovertyTests
+public class ClassificationTests
 {
     [Fact]
     public async Task TestSearch()
     {
         var testHost = TestClientHostTool.Create();
-        TicketMasterEventClient client = testHost.GetEventClient();
-        var context = testHost.GetContext<BasicDiscovertyTests>();
+        TicketMasterClassificationClient client = testHost.GetClassificationClient();
+        var context = testHost.GetContext<ClassificationTests>();
 
-        var search = new TicketMasterSearch
-        {
-            PromoterId = "695,690",
-            Page = 0,
-            Size = 100,
-        };
-
-        var result = await client.GetEvents(search, context);
+        var result = await client.GetClassifications(context);
         result.IsOk().Should().BeTrue();
         result.Return().NotNull();
         result.Return().Count.Assert(x => x > 10, _ => "Empty list");    }

@@ -23,6 +23,7 @@ public static class TicketMasterStartup
 
         services.AddSingleton(ticketMasterOption);
         services.AddHttpClient<TicketMasterEventClient>();
+        services.AddHttpClient<TicketMasterClassificationClient>();
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
         return services;

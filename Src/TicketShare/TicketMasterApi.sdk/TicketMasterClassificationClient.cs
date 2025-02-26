@@ -38,7 +38,7 @@ public class TicketMasterClassificationClient
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<IReadOnlyList<ClassificationRecord>>> GetClassifications(TicketMasterSearch search, ScopeContext context)
+    public async Task<Option<IReadOnlyList<ClassificationRecord>>> GetClassifications(ScopeContext context)
     {
         if (_ticketMasterOption.UseCache)
         {
@@ -48,7 +48,7 @@ public class TicketMasterClassificationClient
             }
         }
 
-        var result = await InternalGet(search, context);
+        var result = await InternalGet(context);
         if (result.IsError()) return result;
 
         if (_ticketMasterOption.UseCache)
@@ -61,54 +61,67 @@ public class TicketMasterClassificationClient
     }
 
 
-    public async Task<Option<IReadOnlyList<ClassificationRecord>>> InternalGet(TicketMasterSearch search, ScopeContext context)
+    public async Task<Option<IReadOnlyList<ClassificationRecord>>> InternalGet(ScopeContext context)
     {
         var sequence = new Sequence<ClassificationModel>();
+        int page = 0;
 
         while (true)
         {
-            string url = $"{_ticketMasterOption.ClassificationUrl}";
+            var query = new[]
+            {
+                $"apikey={_ticketMasterOption.ApiKey}",
+                $"page={page}",
+                "size=1",
+            }
+            .Where(x => x.IsNotEmpty())
+            .Join('&');
+
+            string url = $"{_ticketMasterOption.ClassificationUrl}?{query}";
 
             var model = await new RestClient(_client)
                 .SetPath(url)
-                .GetAsync(context.With(_logger))
-                .GetContent<ClassificationMasterModel>();
+                .GetAsync(context.With(_logger));
 
-            if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<ClassificationRecord>>();
-            var masterModel = model.Return();
-            if (masterModel._embedded == null) break;
+            string json = model.Content;
+            var model2 = json?.ToObject<ClassificationMasterModel>();
+                //.GetContent<ClassificationMasterModel>();
 
-            sequence += masterModel._embedded.Classifications;
+            //if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<ClassificationRecord>>();
+            //var masterModel = model.Return();
+            //if (masterModel._embedded == null) break;
 
-            search = search with { Page = search.Page + 1 };
+            //sequence += masterModel._embedded.Classifications;
+            break;
         }
 
-        var result = sequence.Select(x => ConvertToRecord(x)).ToImmutableArray();
-        return result;
+        //var result = sequence.Select(x => ConvertToRecord(x)).ToImmutableArray();
+        //return result;
+        return default;
     }
 
-    private ClassificationRecord ConvertToRecord(ClassificationModel subject)
-    {
-        subject.NotNull();
+    //private ClassificationRecord ConvertToRecord(ClassificationModel subject)
+    //{
+    //    subject.NotNull();
 
-        var segment = subject.Segments.FirstOrDefault();
-        var grene = segment?._embedded?.genres.FirstOrDefault();
-        var subGrene = grene?._embedded?.subgenres.FirstOrDefault();
+    //    var segment = subject.Segments.FirstOrDefault();
+    //    var grene = segment?._embedded?.genres.FirstOrDefault();
+    //    var subGrene = grene?._embedded?.subgenres.FirstOrDefault();
 
-        var segmentData = segment?.Func(x => (x.Id, x.Name));
-        var greneData = grene?.Func(x => (x.Id, x.Name));
-        var subGreneData = subGrene?.Func(x => (x.Id, x.Name));
+    //    var segmentData = segment?.Func(x => (x.Id, x.Name));
+    //    var greneData = grene?.Func(x => (x.Id, x.Name));
+    //    var subGreneData = subGrene?.Func(x => (x.Id, x.Name));
 
-        var result = new ClassificationRecord
-        {
-            SegmentId = segmentData?.Id,
-            Segment = segmentData?.Name,
-            GenreId = greneData?.Id,
-            Genre = greneData?.Name,
-            SubGenreId = greneData?.Id,
-            SubGenre = greneData?.Name,
-        };
+    //    var result = new ClassificationRecord
+    //    {
+    //        SegmentId = segmentData?.Id,
+    //        Segment = segmentData?.Name,
+    //        GenreId = greneData?.Id,
+    //        Genre = greneData?.Name,
+    //        SubGenreId = greneData?.Id,
+    //        SubGenre = greneData?.Name,
+    //    };
 
-        return result;
-    }
+    //    return result;
+    //}
 }

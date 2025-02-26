@@ -20,7 +20,7 @@ public record Class_Classification_Embedded
 
 public record ClassificationModel
 {
-    public IReadOnlyList<Class_SegmentModel> Segments { get; set; } = Array.Empty<Class_SegmentModel>();
+    public Class_SegmentModel? segment { get; set; }
 }
 
 public record Class_SegmentModel
