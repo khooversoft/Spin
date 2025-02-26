@@ -1,4 +1,6 @@
-﻿namespace TicketMasterApi.sdk;
+﻿using TicketMasterApi.sdk.Model.Event;
+
+namespace TicketMasterApi.sdk;
 
 public record PromoterRecord
 {
@@ -9,7 +11,7 @@ public record PromoterRecord
 
 public static class PromoterRecordExtensions
 {
-    public static PromoterRecord ConvertTo(this PromoterModel subject) => new PromoterRecord
+    public static PromoterRecord ConvertTo(this Event_PromoterModel subject) => new PromoterRecord
     {
         Id = subject.Id,
         Name = subject.Name,

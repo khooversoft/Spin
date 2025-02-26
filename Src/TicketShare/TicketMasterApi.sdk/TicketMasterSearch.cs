@@ -5,10 +5,10 @@ namespace TicketMasterApi.sdk;
 
 public record TicketMasterSearch
 {
-    public string Name { get; init; } = null!;
     public string? Keywords { get; init; }
     public DateTime? StartDateTime { get; init; }
     public DateTime? EndDateTime { get; init; }
+    public string? City { get; init; }
     public string? PromoterId { get; init; }
     public int? Page { get; init; }
     public int? Size { get; init; }
@@ -24,6 +24,7 @@ public record TicketMasterSearch
             "locale=*",
             StartDateTime?.Func(x => $"startDateTime={dateTimeFormat(x)}"),
             EndDateTime?.Func(x => $"endDateTime={dateTimeFormat(x)}"),
+            City?.Func(x => $"city={x}"),
             PromoterId?.Func(x => $"promoterId={x}"),
             Page?.Func(x => $"page={x}"),
             Size?.Func(x => $"size={x}"),
@@ -45,6 +46,6 @@ public record TicketMasterSearch
     public string GetQueryHash() => GetQuery("query").ToHashHex();
 
     public static IValidator<TicketMasterSearch> Validator => new Validator<TicketMasterSearch>()
-        .RuleFor(x => x.Name).NotEmpty()
+        .RuleFor(x => x.Keywords).Must(x => true, _ => "")
         .Build();
 }

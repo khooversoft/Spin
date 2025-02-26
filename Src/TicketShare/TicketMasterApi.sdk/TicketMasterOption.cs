@@ -6,14 +6,14 @@ namespace TicketMasterApi.sdk;
 public record TicketMasterOption
 {
     public string ApiKey { get; init; } = null!;
-    public string DiscoveryUrl { get; init; } = null!;
-    public IReadOnlyList<TicketMasterSearch> Searches { get; init; } = Array.Empty<TicketMasterSearch>();
+    public string EventUrl { get; init; } = null!;
+    public string ClassificationUrl { get; init; } = null!;
+    public bool UseCache { get; init; }
 
     public IValidator<TicketMasterOption> Validator => new Validator<TicketMasterOption>()
         .RuleFor(x => x.ApiKey).NotEmpty()
-        .RuleFor(x => x.DiscoveryUrl).NotEmpty()
-        .RuleFor(x => x.Searches).NotNull().Must(x => x.Count > 0, _ => "At least one search is required")
-        .RuleForEach(x => x.Searches).Validate(TicketMasterSearch.Validator)
+        .RuleFor(x => x.EventUrl).NotEmpty()
+        .RuleFor(x => x.ClassificationUrl).NotEmpty()
         .Build();
 }
 

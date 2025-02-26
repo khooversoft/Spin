@@ -1,4 +1,6 @@
-﻿namespace TicketMasterApi.sdk;
+﻿using TicketMasterApi.sdk.Model.Event;
+
+namespace TicketMasterApi.sdk;
 
 public record VenueRecord
 {
@@ -14,7 +16,7 @@ public record VenueRecord
 
 public static class VenueRecordExtensions
 {
-    public static VenueRecord ConvertTo(this VenueModel subject) => new VenueRecord
+    public static VenueRecord ConvertTo(this Event_VenueModel subject) => new VenueRecord
     {
         Id = subject.Id,
         Name = subject.Name,

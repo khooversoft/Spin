@@ -22,7 +22,7 @@ public static class TicketMasterStartup
         ticketMasterOption.Validate().Assert(x => x.IsOk(), option => $"StorageOption is invalid, errors={option.Error}");
 
         services.AddSingleton(ticketMasterOption);
-        services.AddHttpClient<TicketMasterClient>();
+        services.AddHttpClient<TicketMasterEventClient>();
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
         return services;

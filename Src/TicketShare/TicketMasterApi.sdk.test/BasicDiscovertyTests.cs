@@ -14,7 +14,7 @@ public class BasicDiscovertyTests
     public async Task TestSearch()
     {
         var testHost = TestClientHostTool.Create();
-        TicketMasterClient client = testHost.GetClient();
+        TicketMasterEventClient client = testHost.GetClient();
         var context = testHost.GetContext<BasicDiscovertyTests>();
 
         var search = new TicketMasterSearch

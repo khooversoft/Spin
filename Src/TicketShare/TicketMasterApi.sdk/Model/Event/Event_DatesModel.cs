@@ -1,12 +1,12 @@
-﻿namespace TicketMasterApi.sdk;
+﻿namespace TicketMasterApi.sdk.Model.Event;
 
-public record DatesModel
+public record Event_DatesModel
 {
-    public StartModel Start { get; init; } = null!;
+    public Event_StartModel Start { get; init; } = null!;
     public string? Timezone { get; init; }
 }
 
-public record StartModel
+public record Event_StartModel
 {
     public DateOnly? LocalDate { get; init; }
     public TimeOnly? LocalTime { get; init; }

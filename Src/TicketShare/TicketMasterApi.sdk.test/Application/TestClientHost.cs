@@ -34,6 +34,6 @@ internal readonly struct TestClientHost
 {
     public TestClientHost(IServiceProvider services) => Services = services;
     public IServiceProvider Services { get; init; }
-    public TicketMasterClient GetClient() => Services.GetRequiredService<TicketMasterClient>();
+    public TicketMasterEventClient GetClient() => Services.GetRequiredService<TicketMasterEventClient>();
     public ScopeContext GetContext<T>() => Services.GetRequiredService<ILoggerFactory>().CreateLogger<T>().Func(x => new ScopeContext(x));
 }

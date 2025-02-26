@@ -11,12 +11,6 @@ using Toolbox.Types;
 namespace TicketMasterApi.sdk;
 
 
-public record PromoterEventRecord
-{
-    public PromoterRecord Promoter { get; init; } = null!;
-    public IReadOnlyList<EventRecord> Events { get; init; } = Array.Empty<EventRecord>();
-}
-
 public record EventRecord
 {
     public string Id { get; init; } = null!;
@@ -27,12 +21,5 @@ public record EventRecord
     public ClassificationRecord? Classification { get; init; }
     public IReadOnlyList<VenueRecord> Venues { get; init; } = Array.Empty<VenueRecord>();
     public IReadOnlyList<AttractionRecord> Attractions { get; init; } = Array.Empty<AttractionRecord>();
-}
-
-public record ClassificationRecord
-{
-    public string? Segment { get; init; }
-    public string? Genre { get; init; }
-    public string? SubGenre { get; init; }
 }
 

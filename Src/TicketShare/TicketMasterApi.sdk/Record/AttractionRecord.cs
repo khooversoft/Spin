@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using TicketMasterApi.sdk.Model.Event;
 
 namespace TicketMasterApi.sdk;
 
@@ -13,7 +14,7 @@ public record AttractionRecord
 
 public static class AttractionRecordExtensions
 {
-    public static AttractionRecord ConvertTo(this AttractionModel subject) => new AttractionRecord
+    public static AttractionRecord ConvertTo(this Event_AttractionModel subject) => new AttractionRecord
     {
         Id = subject.Id,
         Name = subject.Name,

@@ -6,7 +6,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using TicketMasterApi.sdk.Model.Event;
 using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -14,34 +16,66 @@ using Toolbox.Types;
 
 namespace TicketMasterApi.sdk;
 
-public class TicketMasterClient
+public class TicketMasterEventClient
 {
     protected readonly HttpClient _client;
-    private readonly ILogger<TicketMasterClient> _logger;
+    private readonly ILogger<TicketMasterEventClient> _logger;
     private readonly TicketMasterOption _ticketMasterOption;
+    private readonly IMemoryCache _memoryCache;
 
-    public TicketMasterClient(HttpClient client, TicketMasterOption ticketMasterOption, ILogger<TicketMasterClient> logger)
+    private readonly MemoryCacheEntryOptions _memoryOptions = new MemoryCacheEntryOptions
+    {
+        SlidingExpiration = TimeSpan.FromMinutes(30)
+    };
+
+    public TicketMasterEventClient(HttpClient client, TicketMasterOption ticketMasterOption, IMemoryCache memoryCache, ILogger<TicketMasterEventClient> logger)
     {
         _client = client.NotNull();
         _ticketMasterOption = ticketMasterOption.NotNull();
+        _memoryCache = memoryCache.NotNull();
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<IReadOnlyList<PromoterEventRecord>>> GetEvents(TicketMasterSearch search, ScopeContext context)
+    public async Task<Option<IReadOnlyList<EventRecord>>> GetEvents(TicketMasterSearch search, ScopeContext context)
     {
-        var sequence = new Sequence<EventRecordModel>();
+        string? hash = null;
+
+        if (_ticketMasterOption.UseCache)
+        {
+            hash = search.GetQueryHash();
+            if (_memoryCache.TryGetValue<IReadOnlyList<EventRecord>>(hash, out var data))
+            {
+                return data.NotNull().ToOption();
+            }
+        }
+
+        var result = await InternalGetEvents(search, context);
+        if (result.IsError()) return result;
+
+        if (_ticketMasterOption.UseCache)
+        {
+            var resultData = result.Return();
+            _memoryCache.Set(hash.NotEmpty(), resultData, _memoryOptions);
+        }
+
+        return result;
+    }
+
+    public async Task<Option<IReadOnlyList<EventRecord>>> InternalGetEvents(TicketMasterSearch search, ScopeContext context)
+    {
+        var sequence = new Sequence<Event_EventRecordModel>();
 
         while (true)
         {
             string query = search.GetQuery(_ticketMasterOption.ApiKey);
-            string url = $"{_ticketMasterOption.DiscoveryUrl}/events?{query}";
+            string url = $"{_ticketMasterOption.EventUrl}?{query}";
 
             var model = await new RestClient(_client)
                 .SetPath(url)
                 .GetAsync(context.With(_logger))
-                .GetContent<TicketMasterModel>();
+                .GetContent<EventMasterModel>();
 
-            if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<PromoterEventRecord>>();
+            if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<EventRecord>>();
             var ticketMasterModel = model.Return();
             if (ticketMasterModel._embedded == null) break;
 
@@ -51,21 +85,10 @@ public class TicketMasterClient
         }
 
         var result = sequence.Select(x => ConvertToRecord(x)).ToImmutableArray();
-
-        var byPromoters = result
-            .Select(x => (x, promoter: x.Promoters.First()))
-            .GroupBy(x => x.promoter.Id)
-            .Select(x => new PromoterEventRecord
-            {
-                Promoter = x.First().promoter,
-                Events = x.Select(y => y.x).ToImmutableArray(),
-            })
-            .ToImmutableArray();
-
-        return byPromoters;
+        return result;
     }
 
-    private EventRecord ConvertToRecord(EventRecordModel subject)
+    private EventRecord ConvertToRecord(Event_EventRecordModel subject)
     {
         subject.NotNull();
 
@@ -87,8 +110,8 @@ public class TicketMasterClient
                 Genre = subject.Classifications.FirstOrDefault()?.Genre?.Name,
                 SubGenre = subject.Classifications.FirstOrDefault()?.SubGenre?.Name,
             },
-            Venues = (subject._embedded?.Venues ?? Array.Empty<VenueModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
-            Attractions = (subject._embedded?.Attractions ?? Array.Empty<AttractionModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
+            Venues = (subject._embedded?.Venues ?? Array.Empty<Event_VenueModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
+            Attractions = (subject._embedded?.Attractions ?? Array.Empty<Event_AttractionModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
         };
 
         return result;

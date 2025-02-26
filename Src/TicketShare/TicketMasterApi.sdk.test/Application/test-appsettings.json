@@ -1,6 +1,8 @@
 {
   "TicketMaster": {
     "ApiKey": null,
-    "DiscoveryUrl": "https://app.ticketmaster.com/discovery/v2/"
+    "EventUrl": "https://app.ticketmaster.com/discovery/v2/events",
+    "ClassificationUrl": "https://app.ticketmaster.com/discovery/v2/classifications",
+    "UseCache": false
   }
 }
