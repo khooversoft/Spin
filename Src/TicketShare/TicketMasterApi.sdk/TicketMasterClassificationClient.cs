@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Web;
+﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using TicketMasterApi.sdk.Model.Classification;
-using TicketMasterApi.sdk.Model.Event;
 using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -102,7 +94,7 @@ public class TicketMasterClassificationClient
     private IReadOnlyList<ClassificationRecord> ConvertToRecord(ClassificationModel subject)
     {
         subject.NotNull();
-        if( subject.Segment == null) return Array.Empty<ClassificationRecord>();
+        if (subject.Segment == null) return Array.Empty<ClassificationRecord>();
 
         (Class_SegmentModel seg, Class_GenreModel grene, Class_SubGenreModel subgrene)[] list = subject.NotNull().Segment.NotNull().ToEnumerable()
             .Select(x => (seg: x, grene: x?._embedded?.genres))

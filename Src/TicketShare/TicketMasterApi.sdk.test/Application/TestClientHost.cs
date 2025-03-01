@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
@@ -36,5 +31,6 @@ internal readonly struct TestClientHost
     public IServiceProvider Services { get; init; }
     public TicketMasterEventClient GetEventClient() => Services.GetRequiredService<TicketMasterEventClient>();
     public TicketMasterClassificationClient GetClassificationClient() => Services.GetRequiredService<TicketMasterClassificationClient>();
+    public TicketMasterAttractionClient GetAttractionClient() => Services.GetRequiredService<TicketMasterAttractionClient>();
     public ScopeContext GetContext<T>() => Services.GetRequiredService<ILoggerFactory>().CreateLogger<T>().Func(x => new ScopeContext(x));
 }

@@ -12,6 +12,7 @@ public record TicketMasterSearch
     public string? PromoterId { get; init; }
     public int? Page { get; init; }
     public int? Size { get; init; }
+    public string? SegmentId { get; init; }
     public string? GenreId { get; init; }
     public string? SubGenreId { get; init; }
 
@@ -28,6 +29,7 @@ public record TicketMasterSearch
             PromoterId?.Func(x => $"promoterId={x}"),
             Page?.Func(x => $"page={x}"),
             Size?.Func(x => $"size={x}"),
+            SegmentId?.Func(x => $"segmentId={x}"),
             GenreId?.Func(x => $"genreId={x}"),
             SubGenreId?.Func(x => $"subGenreId={x}"),
         }

@@ -1,6 +1,6 @@
-﻿namespace TicketMasterApi.sdk.Model.Event;
+﻿namespace TicketMasterApi.sdk;
 
-public record Event_ImageModel
+public record ImageModel
 {
     public string? Ratio { get; init; }
     public string? Url { get; init; }

@@ -4,7 +4,7 @@ public record Event_EventRecordModel
 {
     public string Id { get; init; } = null!;
     public string? Name { get; init; }
-    public IReadOnlyList<Event_ImageModel> Images { get; init; } = Array.Empty<Event_ImageModel>();
+    public IReadOnlyList<ImageModel> Images { get; init; } = Array.Empty<ImageModel>();
     public Event_DatesModel? Dates { get; init; }
     public IReadOnlyList<Event_ClassificationModel> Classifications { get; init; } = Array.Empty<Event_ClassificationModel>();
     public PromoterRecord? Promoter { get; init; }
@@ -29,6 +29,6 @@ public record Event_PromoterModel
 public record Event_EventEmbedded
 {
     public IReadOnlyList<Event_VenueModel> Venues { get; init; } = Array.Empty<Event_VenueModel>();
-    public IReadOnlyList<Event_AttractionModel> Attractions { get; init; } = Array.Empty<Event_AttractionModel>();
+    public IReadOnlyList<AttractionModel> Attractions { get; init; } = Array.Empty<AttractionModel>();
 }
 

@@ -8,12 +8,14 @@ public record TicketMasterOption
     public string ApiKey { get; init; } = null!;
     public string EventUrl { get; init; } = null!;
     public string ClassificationUrl { get; init; } = null!;
+    public string AttriactionUrl { get; init; } = null!;
     public bool UseCache { get; init; }
 
     public IValidator<TicketMasterOption> Validator => new Validator<TicketMasterOption>()
         .RuleFor(x => x.ApiKey).NotEmpty()
         .RuleFor(x => x.EventUrl).NotEmpty()
         .RuleFor(x => x.ClassificationUrl).NotEmpty()
+        .RuleFor(x => x.AttriactionUrl).NotEmpty()
         .Build();
 }
 

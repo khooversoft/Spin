@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TicketMasterApi.sdk.Model.Event;
+﻿namespace TicketMasterApi.sdk.Model.Event;
 
 public record EventMasterModel
 {

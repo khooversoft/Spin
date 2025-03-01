@@ -26,7 +26,7 @@ public static class ClassificationRecordExtensions
         Id = subject.Id.NotEmpty(),
         Name = subject.Name.NotEmpty(),
     };
-    
+
     public static ClassificationSegmentSubRecord ConvertTo(this Class_SegmentModel subject) => new ClassificationSegmentSubRecord
     {
         Id = subject.Id.NotEmpty(),

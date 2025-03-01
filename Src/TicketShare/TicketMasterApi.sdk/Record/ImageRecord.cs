@@ -1,6 +1,4 @@
-﻿using TicketMasterApi.sdk.Model.Event;
-
-namespace TicketMasterApi.sdk;
+﻿namespace TicketMasterApi.sdk;
 
 public record ImageRecord
 {
@@ -12,7 +10,7 @@ public record ImageRecord
 
 public static class ImageRecordExtensions
 {
-    public static ImageRecord ConvertTo(this Event_ImageModel subject) => new ImageRecord
+    public static ImageRecord ConvertTo(this ImageModel subject) => new ImageRecord
     {
         Ratio = subject.Ratio,
         Url = subject.Url,

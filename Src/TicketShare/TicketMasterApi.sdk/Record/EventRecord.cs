@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
-using Toolbox.Types;
-
-namespace TicketMasterApi.sdk;
+﻿namespace TicketMasterApi.sdk;
 
 
 public record EventRecord

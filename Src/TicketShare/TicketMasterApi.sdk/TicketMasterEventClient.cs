@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Web;
+﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using TicketMasterApi.sdk.Model.Event;
@@ -116,7 +109,7 @@ public class TicketMasterEventClient
                 SubGrene = subGrene.NotNull(),
             } : null,
             Venues = (subject._embedded?.Venues ?? Array.Empty<Event_VenueModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
-            Attractions = (subject._embedded?.Attractions ?? Array.Empty<Event_AttractionModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
+            Attractions = (subject._embedded?.Attractions ?? Array.Empty<AttractionModel>()).Select(x => x.ConvertTo()).ToImmutableArray(),
         };
 
         return result;

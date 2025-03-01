@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -24,6 +19,7 @@ public static class TicketMasterStartup
         services.AddSingleton(ticketMasterOption);
         services.AddHttpClient<TicketMasterEventClient>();
         services.AddHttpClient<TicketMasterClassificationClient>();
+        services.AddHttpClient<TicketMasterAttractionClient>();
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
         return services;
