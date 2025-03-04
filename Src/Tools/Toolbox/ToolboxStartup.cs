@@ -14,21 +14,15 @@ public static class ToolboxStartup
         return services;
     }
 
-    //public static IServiceCollection AddTransactionLogProvider(this IServiceCollection services, string? connectionString = null, int? maxCount = 1000)
-    //{
-    //    services.NotNull();
+    public static IServiceCollection AddLocalFileStore(this IServiceCollection services, LocalFileStoreOption option)
+    {
+        services.NotNull();
+        option.NotNull().Validate().ThrowOnError("Invalid LocalFileStoreOption");
 
-    //    services.TryAddSingleton(new TransactionLogFileOption
-    //    {
-    //        ConnectionString = connectionString ?? "journal=/journal/data",
-    //        MaxCount = maxCount ?? 1000
-    //    });
-
-    //    services.AddSingleton<ITransactionLogWriter, TransactionLogFile>();
-    //    services.AddSingleton<ITransactionLog, TransactionLogProvider>();
-
-    //    return services;
-    //}
+        services.AddSingleton(option);
+        services.AddSingleton<IFileStore, LocalFileStore>();
+        return services;
+    }
 
     public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, JournalFileOption option)
     {

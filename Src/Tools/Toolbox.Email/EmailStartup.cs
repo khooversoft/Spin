@@ -1,20 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Types;
 
 namespace Toolbox.Email;
 
 public static class EmailStartup
 {
-    public static IServiceCollection AddEmail(this IServiceCollection services, IConfigurationSection configure)
+    public static IServiceCollection AddEmail(this IServiceCollection services, EmailOption emailOption)
     {
-        services.Configure<EmailOption>(configure);
-        services.AddSingleton<IEmailWriter, MailKitProvider>();
-        return services;
-    }
+        emailOption.Validate().ThrowOnError("EmailOption is invalid");
 
-    public static IServiceCollection AddEmail(this IServiceCollection services, Action<EmailOption> configure)
-    {
-        services.Configure(configure);
+        services.AddSingleton<EmailOption>(emailOption);
         services.AddSingleton<IEmailWriter, MailKitProvider>();
         return services;
     }

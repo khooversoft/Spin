@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Email;
 using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -24,7 +25,7 @@ internal static class TestApplication
                 x.AddDebug();
                 x.AddConsole();
             })
-            .AddEmail(config.GetSection("email"))
+            .AddEmail(config.GetSection("email").Get<EmailOption>().NotNull())
             .BuildServiceProvider();
 
         return new TestApplicationContext(services);

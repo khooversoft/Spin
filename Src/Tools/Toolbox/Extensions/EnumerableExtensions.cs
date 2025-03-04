@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using Toolbox.Tools;
 
@@ -25,7 +26,7 @@ public static class EnumerableExtensions
     /// <param name="subjects">types to process</param>
     /// <param name="action">action to execute</param>
     [DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> subjects, Action<T> action)
+    public static IEnumerable<T> ForEach<T>(this IEnumerable<T> subjects, Action<T> action)
     {
         subjects.NotNull();
         action.NotNull();
@@ -34,6 +35,8 @@ public static class EnumerableExtensions
         {
             action(item);
         }
+
+        return subjects;
     }
 
     /// <summary>
@@ -139,5 +142,24 @@ public static class EnumerableExtensions
         .NotNull()
         .Select((item, index) => (item, index));
 
+    /// <summary>
+    /// Partition data into n number of partitions, last partition may not
+    /// be full.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="size"></param>
+    /// <returns></returns>
+    public static IReadOnlyList<IReadOnlyList<T>> Partition<T>(this IEnumerable<T> source, int size)
+    {
+        source.NotNull();
 
+        IReadOnlyList<IReadOnlyList<T>> result = source
+            .Select((x, i) => (index: i, value: x))
+            .GroupBy(x => x.index / size)
+            .Select(x => (IReadOnlyList<T>)x.Select(v => v.value).ToImmutableArray())
+            .ToImmutableArray();
+
+        return result;
+    }
 }

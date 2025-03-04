@@ -92,10 +92,10 @@ builder.Services
     .AddDefaultTokenProviders();
 
 builder.Services
-    .AddDatalakeFileStore(builder.Configuration.GetSection("Storage"))
+    .AddDatalakeFileStore(builder.Configuration.GetSection("Storage").Get<DatalakeOption>().NotNull())
     .AddGraphEngine()
     .AddTicketShare()
-    .AddEmail(builder.Configuration.GetSection("email"))
+    .AddEmail(builder.Configuration.GetSection("email").Bind<EmailOption>())
     .AddScoped<AskPanel>()
     .AddScoped<ApplicationNavigation>();
 

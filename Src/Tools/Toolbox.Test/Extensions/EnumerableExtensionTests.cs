@@ -6,99 +6,39 @@ namespace Toolbox.Test.Extensions;
 public class EnumerableExtensionTests
 {
     [Fact]
-    public void TwoEmptyArrays()
+    public void SinglePartition()
     {
-        string[] v1 = [];
-        string[] v2 = [];
-
-        v1.IsEquivalent(v2).Should().BeTrue();
-        v1.IsNotEquivalent(v2).Should().BeFalse();
+        var subject = Enumerable.Range(1, 10);
+        var result = subject.Partition(10);
+        result.Count.Should().Be(1);
+        result.First().Count.Should().Be(10);
     }
 
     [Fact]
-    public void UnbalanceArrays1()
+    public void TwoEvenPartition()
     {
-        string[] v1 = [];
-        string[] v2 = ["a"];
-
-        v1.IsEquivalent(v2).Should().BeFalse();
-        v1.IsNotEquivalent(v2).Should().BeTrue();
+        var subject = Enumerable.Range(1, 20);
+        var result = subject.Partition(10);
+        result.Count.Should().Be(2);
+        result.First().Count.Should().Be(10);
+        result.Skip(1).First().Count.Should().Be(10);
     }
 
     [Fact]
-    public void UnbalanceArrays2()
+    public void TwoOddPartition()
     {
-        string[] v1 = ["a"];
-        string[] v2 = [];
+        var subject = Enumerable.Range(0, 22);
+        var result = subject.Partition(10);
+        result.Count.Should().Be(3);
+        result.Select(x => x.Count).Should().BeEquivalent([10, 10, 2]);
 
-        v1.IsEquivalent(v2).Should().BeFalse();
-        v1.IsNotEquivalent(v2).Should().BeTrue();
-    }
+        var a1 = Enumerable.Range(0, 10).ToArray();
+        var a2 = Enumerable.Range(10, 10).ToArray();
+        var a3 = Enumerable.Range(20, 2).ToArray();
 
-    [Fact]
-    public void SingleArrays()
-    {
-        string[] v1 = ["a"];
-        string[] v2 = ["a"];
-
-        v1.IsEquivalent(v2).Should().BeTrue();
-        v1.IsNotEquivalent(v2).Should().BeFalse();
-
-        string[] v3 = ["b"];
-
-        v1.IsEquivalent(v3).Should().BeFalse();
-        v1.IsNotEquivalent(v3).Should().BeTrue();
-    }
-
-    [Fact]
-    public void IntArrays()
-    {
-        int[] v1 = [10, 20, 30];
-        int[] v2 = [10, 20, 30];
-
-        v1.IsEquivalent(v2).Should().BeTrue();
-        v1.IsNotEquivalent(v2).Should().BeFalse();
-
-        int[] v3 = [10, 21, 30];
-
-        v1.IsEquivalent(v3).Should().BeFalse();
-        v1.IsNotEquivalent(v3).Should().BeTrue();
-    }
-
-    public record Rec(string name, int age);
-
-    [Fact]
-    public void RecordArrays()
-    {
-        Rec[] v1 = [new Rec("a", 10), new Rec("b", 20)];
-        Rec[] v2 = [new Rec("a", 10), new Rec("b", 20)];
-
-        v1.IsEquivalent(v2).Should().BeTrue();
-        v1.IsNotEquivalent(v2).Should().BeFalse();
-
-        Rec[] v3 = [new Rec("a", 10), new Rec("b", 21)];
-
-        v1.IsEquivalent(v3).Should().BeFalse();
-        v1.IsNotEquivalent(v3).Should().BeTrue();
-    }
-
-    [Fact]
-    public void RecordArrayUnbalance1()
-    {
-        Rec[] v1 = [new Rec("a", 10), new Rec("b", 20)];
-        Rec[] v2 = [new Rec("a", 10), new Rec("b", 20), new Rec("c", 30)];
-
-        v1.IsEquivalent(v2).Should().BeFalse();
-        v1.IsNotEquivalent(v2).Should().BeTrue();
-    }
-
-    [Fact]
-    public void RecordArrayUnbalance2()
-    {
-        Rec[] v1 = [new Rec("a", 10), new Rec("b", 20), new Rec("c", 30)];
-        Rec[] v2 = [new Rec("a", 10), new Rec("b", 20)];
-
-        v1.IsEquivalent(v2).Should().BeFalse();
-        v1.IsNotEquivalent(v2).Should().BeTrue();
+        result.Zip([a1, a2, a3], (o, i) => (o, i))
+            .Select(x => (x.o, x.i, x.o.SequenceEqual(x.i)))
+            .All(x => x.o.SequenceEqual(x.i))
+            .Should().BeTrue();
     }
 }

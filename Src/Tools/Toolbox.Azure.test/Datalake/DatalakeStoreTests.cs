@@ -200,7 +200,8 @@ public class DatalakeStoreTests
             _context.LogInformation("Files/folder still exist, retrying in {seconds} seconds", sleepSeconds);
             await Task.Delay(TimeSpan.FromSeconds(sleepSeconds));
             sleepSeconds *= 2;
-        };
+        }
+        ;
 
         _context.LogError("Failed to delete all files");
         throw new ArgumentException("Failed to delete all files");

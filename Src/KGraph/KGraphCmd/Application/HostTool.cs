@@ -25,7 +25,7 @@ internal static class HostTool
 
         var services = new ServiceCollection()
             .AddLogging(x => x.AddConsole().AddDebug())
-            .AddDatalakeFileStore(configuration.GetSection("Storage"))
+            .AddDatalakeFileStore(configuration.GetSection("Storage").Get<DatalakeOption>().NotNull())
             .AddGraphEngine(new GraphHostOption { ReadOnly = true })
             .BuildServiceProvider();
 

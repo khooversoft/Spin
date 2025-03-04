@@ -92,9 +92,10 @@ public static class DictionaryExtensions
         if (source == null && target == null) return true;
         if (source == null || target == null) return false;
 
-        var result = source.OrderBy(x => x.Key).SequenceEqual(target.OrderBy(x => x.Key));
+        var keyResult = source.Select(x => x.Key).SequenceEqual(target.Select(x => x.Key));
+        var valueResult = source.OrderBy(x => x.Key).SequenceEqual(target.OrderBy(x => x.Key));
 
-        return result;
+        return keyResult && valueResult;
     }
 
     public static bool DeepEqualsComparer<TKey, TValue>(

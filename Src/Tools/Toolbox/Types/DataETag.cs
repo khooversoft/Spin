@@ -54,6 +54,7 @@ public static class DataETagExtensions
             null => throw new ArgumentNullException("value"),
             byte[] v => v,
             string v => v.ToBytes(),
+            Memory<byte> v => v.ToArray(),
             var v => v.ToJson().ToBytes(),
         };
 
@@ -66,9 +67,10 @@ public static class DataETagExtensions
 
         var bytes = value switch
         {
-            null => throw new ArgumentNullException("value"),
+            null => throw new ArgumentNullException(nameof(value)),
             byte[] v => v,
             string v => v.ToBytes(),
+            Memory<byte> v => v.ToArray(),
             var v => v.ToJson().ToBytes(),
         };
 
