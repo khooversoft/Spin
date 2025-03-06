@@ -14,9 +14,9 @@ public class MailKitProvider : IEmailWriter
     private readonly EmailOption _emailOption;
     private readonly ILogger<MailKitProvider> _logger;
 
-    public MailKitProvider(IOptions<EmailOption> emailOption, ILogger<MailKitProvider> logger)
+    public MailKitProvider(EmailOption emailOption, ILogger<MailKitProvider> logger)
     {
-        _emailOption = emailOption.NotNull().Value.Action(x => x.Validate().ThrowOnError());
+        _emailOption = emailOption.NotNull().Action(x => x.Validate().ThrowOnError());
         _logger = logger.NotNull();
     }
 

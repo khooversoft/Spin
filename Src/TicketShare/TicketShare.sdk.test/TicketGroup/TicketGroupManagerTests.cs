@@ -43,10 +43,10 @@ public class TicketGroupManagerTests
         (await ticketContext.Get(context)).IsOk().Should().BeTrue();
         var principalModelId = ticketContext.Input.Roles.Single().Value.Id;
 
-        SeatModel s1 = new SeatModel { Id = _modelSeat1Id, SeatId = _modelSeat1, AssignedToPrincipalId = principalId, Date = _seatDate };
+        SeatModel s1 = new SeatModel { Id = _modelSeat1Id, Section = "1", Row = "10", Seat = _modelSeat1, AssignedToPrincipalId = principalId, Date = _seatDate };
         (await ticketContext.Seats.Set(s1, context)).IsOk().Should().BeTrue();
 
-        SeatModel s2 = new SeatModel { Id = _modelSeat2Id, SeatId = _modelSeat2, AssignedToPrincipalId = principalId, Date = _seatDate };
+        SeatModel s2 = new SeatModel { Id = _modelSeat2Id, Section = "1", Row = "10", Seat = _modelSeat2, AssignedToPrincipalId = principalId, Date = _seatDate };
         (await ticketContext.Seats.Set(s2, context)).IsOk().Should().BeTrue();
 
         (await ticketContext.Get(context)).IsOk().Should().BeTrue();
@@ -103,8 +103,8 @@ public class TicketGroupManagerTests
                 ],
 
             Seats = [
-                new SeatRecord { Id = _modelSeat1Id, SeatId = _modelSeat1, AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
-                new SeatRecord { Id = _modelSeat2Id, SeatId = _modelSeat2, AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
+                new SeatRecord { Id = _modelSeat1Id, Section = "1", Row = "10", Seat = _modelSeat1, AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
+                new SeatRecord { Id = _modelSeat2Id, Section = "1", Row = "10", Seat = _modelSeat2, AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
                 ],
         };
 

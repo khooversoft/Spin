@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using TicketApi.sdk.MasterList;
 using Toolbox;
@@ -17,7 +19,8 @@ public class TicketDataTests
 {
     private readonly ScopeContext _context;
     private readonly IFileStore _filestore;
-    private readonly TicketDataManager _manager;
+    private readonly TicketDataBuilder _manager;
+    private readonly TicketDataClient _dataClient;
 
     public TicketDataTests(ITestOutputHelper output)
     {
@@ -33,34 +36,36 @@ public class TicketDataTests
         var services = new ServiceCollection()
             .AddLogging(logging => logging.AddDebug().AddConsole().AddLambda(output.WriteLine))
             .AddSingleton(config)
+            .Action(x => x.TryAddSingleton<IMemoryCache, NoMemoryCache>())
             .AddLocalFileStore(new LocalFileStoreOption { BasePath = "/work" })
-            .AddTicket(ticketOption)
+            .AddTicketApi(ticketOption)
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<TicketDataTests>>();
         _context = new ScopeContext(logger);
 
-        _manager = services.GetRequiredService<TicketDataManager>();
+        _manager = services.GetRequiredService<TicketDataBuilder>();
         _filestore = services.GetRequiredService<IFileStore>();
+        _dataClient = services.GetRequiredService<TicketDataClient>();
     }
 
-    [Fact/*(Skip = "destructed")*/]
-    public async Task BuildModel()
-    {
-        var deleteOption = await _manager.ClearData(_context);
-        deleteOption.IsOk().Should().BeTrue();
+    //[Fact]
+    //public async Task BuildModel()
+    //{
+    //    var deleteOption = await _manager.ClearData(_context);
+    //    deleteOption.IsOk().Should().BeTrue();
 
-        var readOption = await _manager.Build(_context);
-        readOption.IsOk().Should().BeTrue();
+    //    var readOption = await _manager.Build(_context);
+    //    readOption.IsOk().Should().BeTrue();
 
-        var exist = await _filestore.Exist(TicketDataClient.Path, _context);
-        exist.IsOk().Should().BeTrue();
-    }
+    //    var exist = await _filestore.Exist(TicketDataClient.Path, _context);
+    //    exist.IsOk().Should().BeTrue();
+    //}
 
     [Fact]
     public async Task LoadTicketData()
     {
-        var readOption = await _manager.Get(_context);
+        var readOption = await _dataClient.Get(_context);
         readOption.IsOk().Should().BeTrue();
         var read = readOption.Return();
 

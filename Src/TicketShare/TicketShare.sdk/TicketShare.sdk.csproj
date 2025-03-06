@@ -41,6 +41,7 @@
     <ProjectReference Include="..\..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+    <ProjectReference Include="..\TicketApi.sdk\TicketApi.sdk.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,12 +10,7 @@ public class GraphFileStoreCache : IGraphStore
     private readonly IFileStore _fileStore;
     private readonly IMemoryCache _memoryCache;
     private readonly GraphHostOption? _graphHostOption;
-
-
-    private readonly MemoryCacheEntryOptions _memoryOptions = new MemoryCacheEntryOptions
-    {
-        SlidingExpiration = TimeSpan.FromMinutes(30)
-    };
+    private readonly MemoryCacheEntryOptions _memoryOptions = new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromMinutes(30) };
 
     public GraphFileStoreCache(IFileStore fileStore, IMemoryCache memoryCache)
     {
@@ -37,10 +32,7 @@ public class GraphFileStoreCache : IGraphStore
         var result = await _fileStore.Add(path, data, context);
         if (result.IsError()) return result;
 
-        if (IsNodeData(path))
-        {
-            _memoryCache.Set(path, data, _memoryOptions);
-        }
+        if (IsNodeData(path)) _memoryCache.Set(path, data, _memoryOptions);
 
         return result;
     }
@@ -59,10 +51,7 @@ public class GraphFileStoreCache : IGraphStore
         var result = await _fileStore.Delete(path, context);
         if (result.IsError()) return result;
 
-        if (IsNodeData(path))
-        {
-            _memoryCache.Remove(path);
-        }
+        if (IsNodeData(path)) _memoryCache.Remove(path);
 
         return result;
     }
@@ -71,10 +60,7 @@ public class GraphFileStoreCache : IGraphStore
 
     public async Task<Option<DataETag>> Get(string path, ScopeContext context)
     {
-        if (IsNodeData(path) && _memoryCache.TryGetValue(path, out DataETag data))
-        {
-            return data;
-        }
+        if (IsNodeData(path) && _memoryCache.TryGetValue(path, out DataETag data)) return data;
 
         var result = await _fileStore.Get(path, context);
         return result;
@@ -90,13 +76,9 @@ public class GraphFileStoreCache : IGraphStore
         if (result.IsError()) return result;
 
         if (IsNodeData(path))
-        {
             _memoryCache.Set(path, data, _memoryOptions);
-        }
         else
-        {
             _memoryCache.Remove(path);
-        }
 
         return result;
     }

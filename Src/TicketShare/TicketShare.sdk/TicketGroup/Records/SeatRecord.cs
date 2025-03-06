@@ -6,20 +6,30 @@ namespace TicketShare.sdk;
 public sealed record SeatRecord : IEquatable<SeatRecord>
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string SeatId { get; init; } = null!;
+    public string Section { get; set; } = null!;
+    public string Row { get; set; } = null!;
+    public string Seat { get; set; } = null!;
+
     public DateTime Date { get; init; }
     public string? AssignedToPrincipalId { get; init; }
 
+    public override string ToString() => $"{Section}-{Row}-{Seat}";
+
     public bool Equals(SeatRecord? obj) =>
         obj is SeatRecord subject &&
-        SeatId == subject.SeatId &&
+        Section == subject.Section &&
+        Row == subject.Row &&
+        Seat == subject.Seat &&
         Date == subject.Date &&
         AssignedToPrincipalId == subject.AssignedToPrincipalId == true;
 
-    public override int GetHashCode() => HashCode.Combine(SeatId, Date, AssignedToPrincipalId);
+    public override int GetHashCode() => HashCode.Combine(Id, Section, Row, Seat, Date, AssignedToPrincipalId);
 
     public static IValidator<SeatRecord> Validator { get; } = new Validator<SeatRecord>()
-        .RuleFor(x => x.SeatId).NotEmpty()
+        .RuleFor(x => x.Id).NotEmpty()
+        .RuleFor(x => x.Section).NotEmpty()
+        .RuleFor(x => x.Row).NotEmpty()
+        .RuleFor(x => x.Seat).NotEmpty()
         .RuleFor(x => x.Date).ValidDateTime()
         .Build();
 }

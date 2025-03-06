@@ -74,7 +74,7 @@ public static class DictionaryExtensions
         T result = new ConfigurationBuilder()
             .AddInMemoryCollection(values!)
             .Build()
-            .Bind<T>();
+            .Get<T>().NotNull();
 
         return result;
     }

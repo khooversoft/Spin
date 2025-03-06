@@ -14,7 +14,7 @@
                     OnRowClick="HandleRowFocus">
 
         <PropertyColumn Property="@(p => p.Date)" Sortable="true" Format="d" />
-        <PropertyColumn Property="@(p => p.SeatId)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.ToString())" Sortable="true" />
         <PropertyColumn Property="@(p => p.AssignedToPrincipalId)" Sortable="true" />
     </FluentDataGrid>
 </FeedBlock>
@@ -65,7 +65,7 @@
     {
         _roles = _ticketGroupContext.Input.Seats.Values
             .OrderBy(x => x.Date)
-            .ThenBy(x => x.SeatId)
+            .ThenBy(x => x.ToString())
             .AsQueryable();
     }
 }

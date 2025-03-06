@@ -11,7 +11,9 @@ public class SeatRecordTests
     {
         var p1 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = DateTime.Now.Date,
             AssignedToPrincipalId = "user1@domain.com",
         };
@@ -27,7 +29,9 @@ public class SeatRecordTests
     {
         var p1 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = DateTime.Now.Date,
         };
 
@@ -44,14 +48,18 @@ public class SeatRecordTests
 
         var p1 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
             AssignedToPrincipalId = "user1@domain.com",
         };
 
         var p2 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
             AssignedToPrincipalId = "user1@domain.com",
         };
@@ -66,13 +74,17 @@ public class SeatRecordTests
 
         var p1 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
         };
 
         var p2 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
         };
 
@@ -86,14 +98,18 @@ public class SeatRecordTests
 
         var p1 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
             AssignedToPrincipalId = "user1@domain.com",
         };
 
         var p2 = new SeatRecord
         {
-            SeatId = "seatid1-mod",
+            Section = "section1-not",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
             AssignedToPrincipalId = "user1@domain.com",
         };
@@ -108,13 +124,17 @@ public class SeatRecordTests
 
         var p1 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
         };
 
         var p2 = new SeatRecord
         {
-            SeatId = "seatid1",
+            Section = "section1",
+            Row = "row1",
+            Seat = "seat1",
             Date = dt,
             AssignedToPrincipalId = "user1@domain.com",
         };

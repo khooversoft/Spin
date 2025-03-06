@@ -11,7 +11,6 @@ public static class TicketShareStartup
     {
         services.AddGraphExtensions();
         services.AddSingleton<AccountClient>();
-        services.AddSingleton<ChannelManager>();
         services.AddScoped<UserAccountContext>();
 
         services.AddSingleton<TicketGroupClient>();

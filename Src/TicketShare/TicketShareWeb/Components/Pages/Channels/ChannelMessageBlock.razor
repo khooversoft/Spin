@@ -9,7 +9,7 @@
                 <FluentLabel Style="min-height:31px" Typo="Typography.Body">@_expand.DateAsString</FluentLabel>
                 <FluentLabel Style="min-height:31px" Typo="Typography.Body">@_expand.UserName</FluentLabel>
             </FluentStack>
-            <FluentLabel Style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" Typo="Typography.Body">@((MarkupString)_expand.Message)</FluentLabel>
+            <FluentLabel Typo="Typography.Body">@((MarkupString)_expand.Message)</FluentLabel>
         </FluentCard>
     </FeedBlock>
 }

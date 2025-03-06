@@ -166,8 +166,8 @@ public class TicketGroupTests
                 ],
 
             Seats = [
-                new SeatRecord { SeatId = "Sec-5-Row-7-Seat-8", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
-                new SeatRecord { SeatId = "Sec-5-Row-7-Seat-9", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
+                new SeatRecord { Section = "1", Row = "10", Seat = "Sec-5-Row-7-Seat-8", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
+                new SeatRecord { Section = "1", Row = "10", Seat = "Sec-5-Row-7-Seat-9", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
                 ],
         };
 

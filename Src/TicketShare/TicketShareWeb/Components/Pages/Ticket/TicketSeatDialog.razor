@@ -5,8 +5,10 @@
 <FluentDialogBody>
     <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
 
-        <FluentTextField Label="Seat Id:" Class="dialog-editbox" @bind-Value="@Content.Value.SeatId" @oninput="OnSeat" />
-        <FluentDatePicker Label="Days view" AriaLabel="To" @bind-Value="@Content.Value.Date" oninput="OnDate" />
+        <FluentTextField Label="Section:" Class="dialog-editbox" @bind-Value="@Content.Value.Section" @oninput="OnSection" />
+        <FluentTextField Label="Row:" Class="dialog-editbox" @bind-Value="@Content.Value.Row" @oninput="OnRow" />
+        <FluentTextField Label="Seat:" Class="dialog-editbox" @bind-Value="@Content.Value.Seat" @oninput="OnSeat" />
+        <FluentDatePicker Label="Days view" AriaLabel="To" @bind-Value="@Content.Value.Date" @oninput="OnDate" />
         <FluentTextField Label="Assign To:" Class="dialog-editbox" @bind-Value="@Content.Value.AssignedToPrincipalId" @oninput="OnAssignedTo" />
 
     </DialogFrame>
@@ -26,13 +28,24 @@
     private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<SeatModel>.Delete());
     private async Task OnCloseButton() => await Dialog.CancelAsync();
 
-    private void OnSeat(ChangeEventArgs e) => UpdateState(() => Content.Value.SeatId = e.Value?.ToString() ?? Content.Value.SeatId);
+    private void OnSection(ChangeEventArgs e) => UpdateState(() => Content.Value.Section = e.Value?.ToString() ?? Content.Value.Section);
+    private void OnRow(ChangeEventArgs e) => UpdateState(() => Content.Value.Row = e.Value?.ToString() ?? Content.Value.Row);
+    private void OnSeat(ChangeEventArgs e) => UpdateState(() => Content.Value.Seat = e.Value?.ToString() ?? Content.Value.Seat);
     private void OnDate(ChangeEventArgs e) => UpdateState(() => Content.Value.Date = e.Value != null ? (DateTime)e.Value : Content.Value.Date);
     private void OnAssignedTo(ChangeEventArgs e) => UpdateState(() => Content.Value.AssignedToPrincipalId = e.Value?.ToString() ?? Content.Value.AssignedToPrincipalId);
 
     private void UpdateState(Action update)
     {
         update();
-        _disableSave = Content.Value == _current;
+
+        _disableSave = Content.IsEdit switch
+        {
+            true => Content.Value == _current,
+
+            false => !Content.Value.Section.IsNotEmpty() &&
+                Content.Value.Row.IsNotEmpty() &&
+                Content.Value.Seat.IsNotEmpty() &&
+                Content.Value.Date != default,
+        };
     }
 }

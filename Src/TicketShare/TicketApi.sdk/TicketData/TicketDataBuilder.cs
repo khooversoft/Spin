@@ -9,15 +9,15 @@ using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
-public class TicketDataManager
+public class TicketDataBuilder
 {
-    private readonly ILogger<TicketDataManager> _logger;
+    private readonly ILogger<TicketDataBuilder> _logger;
     private readonly TicketDataClient _dataClient;
     private readonly TicketAttractionClient _attractionClient;
     private readonly TicketEventClient _eventClient;
     private static readonly FrozenDictionary<string, TeamDetail> _teamDetails = TeamMasterList.GetDetails().ToFrozenDictionary(x => x.Name);
 
-    public TicketDataManager(TicketDataClient dataClient, TicketAttractionClient attractionClient, TicketEventClient eventClient, ILogger<TicketDataManager> logger)
+    public TicketDataBuilder(TicketDataClient dataClient, TicketAttractionClient attractionClient, TicketEventClient eventClient, ILogger<TicketDataBuilder> logger)
     {
         _dataClient = dataClient.NotNull();
         _attractionClient = attractionClient.NotNull();

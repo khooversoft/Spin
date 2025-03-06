@@ -32,8 +32,8 @@ public class TicketGroupRecordSerializationTests
                 ],
 
             Seats = [
-                    new SeatRecord { SeatId = "Sec-5-Row-7-Seat-8", AssignedToPrincipalId = _friend1 },
-                    new SeatRecord { SeatId = "Sec-5-Row-7-Seat-9", AssignedToPrincipalId = _friend2 },
+                    new SeatRecord { Section = "1", Row = "10", Seat = "Sec-5-Row-7-Seat-8", AssignedToPrincipalId = _friend1 },
+                    new SeatRecord { Section = "1", Row = "10", Seat = "Sec-5-Row-7-Seat-9", AssignedToPrincipalId = _friend2 },
                 ],
 
             Proposals = new Dictionary<string, ProposalRecord>()

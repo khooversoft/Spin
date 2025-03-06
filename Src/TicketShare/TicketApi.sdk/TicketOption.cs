@@ -13,7 +13,7 @@ public record TicketOption
     public string AttriactionUrl { get; init; } = null!;
     public IReadOnlyList<ImageSelect> ImageSelectors { get; init; } = Array.Empty<ImageSelect>();
 
-    public IValidator<TicketOption> Validator => new Validator<TicketOption>()
+    public static IValidator<TicketOption> Validator => new Validator<TicketOption>()
         .RuleFor(x => x.ApiKey).NotEmpty()
         .RuleFor(x => x.EventUrl).NotEmpty()
         .RuleFor(x => x.ClassificationUrl).NotEmpty()
@@ -25,7 +25,7 @@ public record TicketOption
 
 public static class TicketMasterOptionExtensions
 {
-    public static Option Validate(this TicketOption subject) => subject.Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate(this TicketOption subject) => TicketOption.Validator.Validate(subject).ToOptionStatus();
 
     public static bool IsImageSelected(this TicketOption subject, ImageModel imageModel) => subject.ImageSelectors.Any(x => x.IsImageSelected(imageModel));
     private static bool IsImageSelected(this ImageSelect imageSelect, ImageModel imageModel) =>

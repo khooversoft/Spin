@@ -6,13 +6,24 @@ namespace Toolbox.Extensions;
 
 public static class ConfigurationExtensions
 {
-    public static T Bind<T>(this IConfiguration configuration) where T : new()
+    public static T Get<T>(this IConfiguration configuration, string sectionName) where T : new()
     {
         configuration.NotNull();
+        sectionName.NotEmpty();
 
-        var option = new T();
-        configuration.Bind(option, x => x.BindNonPublicProperties = true);
+        var result = configuration.GetSection(sectionName).Get<T>();
+        result.NotNull($"Section {sectionName} not found");
 
-        return option;
+        return result;
+    }
+
+    public static T Get<T>(this IConfiguration configuration, string sectionName, IValidator<T> validator) where T : new()
+    {
+        validator.NotNull();
+
+        var result = configuration.Get<T>(sectionName);
+        validator.Validate(result).ThrowOnError($"sectionName={sectionName}, type={typeof(T).Name}");
+
+        return result;
     }
 }

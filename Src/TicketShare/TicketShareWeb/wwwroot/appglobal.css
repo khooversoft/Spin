@@ -45,6 +45,7 @@
 .feed-block-container {
     width: var(--feed-max-width);
     padding: 0px;
+
     /*    min-width: 380px; */
     /* max-width: 380px; */
     /*border-radius: 4px;*/
@@ -56,12 +57,13 @@
 }
 
 .feed-block-background-dark {
-    background-color: black;
+    background-color: gray;
 }
 
 .feed-block-content {
     /*max-width: 380px;*/
     padding: 3px;
+    word-break: keep-all;
     /*border: 1px solid blue;*/
 }
 

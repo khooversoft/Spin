@@ -20,6 +20,7 @@
       <ProjectReference Include="..\..\Tools\Toolbox.Email\Toolbox.Email.csproj" />
       <ProjectReference Include="..\..\Tools\Toolbox.Graph.Extensions\Toolbox.Graph.Extensions.csproj" />
       <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+      <ProjectReference Include="..\TicketApi.sdk\TicketApi.sdk.csproj" />
       <ProjectReference Include="..\TicketShare.sdk\TicketShare.sdk.csproj" />
     </ItemGroup>
 

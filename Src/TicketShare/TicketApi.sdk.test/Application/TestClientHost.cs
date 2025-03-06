@@ -19,7 +19,7 @@ internal static class TestClientHostTool
         var serviceProvider = new ServiceCollection()
             .AddLogging(config => config.AddDebug())
             .AddSingleton(config)
-            .AddTicket(config.GetSection("Ticket").Get<TicketOption>().NotNull())
+            .AddTicketApi(config.GetSection("Ticket").Get<TicketOption>().NotNull())
             .BuildServiceProvider();
 
         return new TestClientHost(serviceProvider);
