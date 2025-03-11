@@ -1,4 +1,5 @@
 ﻿using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
@@ -34,3 +35,7 @@ public sealed record EventRecord
         .Build();
 }
 
+public static class EventRecordExtensions
+{
+    public static Option Validate(this EventRecord record) => EventRecord.Validator.Validate(record).ToOptionStatus();
+}

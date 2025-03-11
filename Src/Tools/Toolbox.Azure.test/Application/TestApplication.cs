@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -17,7 +18,7 @@ internal static class TestApplication
         .AddJsonFile("TestSettings.json")
         .AddUserSecrets("Toolbox-Azure-test")
         .Build()
-        .Bind<DatalakeOption>()
+        .Get<DatalakeOption>().NotNull()
         .Func(x => x with { BasePath = basePath });
 
     public static ScopeContext CreateScopeContext<T>(ITestOutputHelper outputHelper)

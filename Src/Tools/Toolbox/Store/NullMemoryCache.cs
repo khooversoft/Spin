@@ -8,7 +8,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Toolbox.Store;
 
-public class NoMemoryCache : IMemoryCache
+public class NullMemoryCache : IMemoryCache
 {
     public ICacheEntry CreateEntry(object key) => new NullCacheEntry();
     public void Remove(object key) { }

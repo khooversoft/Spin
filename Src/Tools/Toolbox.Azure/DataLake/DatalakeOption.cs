@@ -39,24 +39,24 @@ public static class DatalakeOptionTool
         return new DataLakeServiceClient(serviceUri, credential);
     }
 
-    public static DatalakeOption Get(IConfiguration configuration)
-    {
-        configuration.NotNull();
+    //public static DatalakeOption Get(IConfiguration configuration)
+    //{
+    //    configuration.NotNull();
 
-        ClientSecretOption secretOption = configuration.GetConnectionString("AppConfig").NotNull()
-            .ToDictionaryFromString()
-            .ToObject<ClientSecretOption>();
+    //    ClientSecretOption secretOption = configuration.GetConnectionString("AppConfig").NotNull()
+    //        .ToDictionaryFromString()
+    //        .ToObject<ClientSecretOption>();
 
-        DatalakeOption datalakeOption = configuration.GetSection("Storage").Get<DatalakeOption>().NotNull();
+    //    DatalakeOption datalakeOption = configuration.GetSection("Storage").Get<DatalakeOption>().NotNull();
 
-        datalakeOption = datalakeOption with
-        {
-            Credentials = secretOption,
-        };
+    //    datalakeOption = datalakeOption with
+    //    {
+    //        Credentials = secretOption,
+    //    };
 
-        datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
-        return datalakeOption;
-    }
+    //    datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
+    //    return datalakeOption;
+    //}
 
     public static DatalakeOption Create(string datalakeConnectionString, string clientSecretConnectionString)
     {

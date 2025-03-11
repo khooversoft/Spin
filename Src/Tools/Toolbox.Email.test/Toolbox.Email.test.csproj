@@ -23,7 +23,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\KGraph\KGraphCmd\KGraphCmd.csproj" />
         <ProjectReference Include="..\Toolbox.Email\Toolbox.Email.csproj" />
     </ItemGroup>
 

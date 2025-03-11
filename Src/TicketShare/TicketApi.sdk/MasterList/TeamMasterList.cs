@@ -44,6 +44,16 @@ public static class TeamMasterList
     {
         var lines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
+        string leagueName = lines
+            .Where(x => x.IsNotEmpty())
+            .Select(x => (x.IndexOf('='), x.IndexOf(':')) switch
+            {
+                (> 0, -1) v => x[v.Item1..],
+                _ => null,
+            })
+            .OfType<string>()
+            .FirstOrDefault().NotNull("League name not found");
+
         var classifications = lines
             .Where(x => x.IsNotEmpty())
             .Select(x => parse(x))

@@ -7,6 +7,7 @@ public record TeamDetail
 {
     public string League { get; init; } = null!;
     public string Name { get; init; } = null!;
+    public string LeagueName { get; init; } = null!;
     public IReadOnlyList<TeamClassification> Segments { get; init; } = Array.Empty<TeamClassification>();
     public IReadOnlyList<TeamClassification> Genres { get; init; } = Array.Empty<TeamClassification>();
     public IReadOnlyList<TeamClassification> SubGenres { get; init; } = Array.Empty<TeamClassification>();
@@ -14,6 +15,7 @@ public record TeamDetail
     public static IValidator<TeamDetail> Validator => new Validator<TeamDetail>()
         .RuleFor(x => x.League).NotEmpty()
         .RuleFor(x => x.Name).NotEmpty()
+        .RuleFor(x => x.LeagueName).NotEmpty()
         .RuleForEach(x => x.Segments).Validate(TeamClassification.Validator)
         .RuleForEach(x => x.Genres).Validate(TeamClassification.Validator)
         .RuleForEach(x => x.SubGenres).Validate(TeamClassification.Validator)

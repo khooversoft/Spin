@@ -35,7 +35,7 @@ public class DatalakeStore : IDatalakeStore
         data.NotNull().Assert(x => x.Data.Length > 0, $"{nameof(data)} length must be greater then 0, path={path}");
         using var metric = context.LogDuration("dataLakeStore-append", "path={path}, dataSize={dataSize}", path, data.Data.Length);
 
-        path = WithBasePath(path);
+        path = _azureStoreOption.WithBasePath(path);
         context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", path, data.Data.Length);
 
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());
@@ -75,7 +75,7 @@ public class DatalakeStore : IDatalakeStore
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-delete", "path={path}", path);
 
-        path = WithBasePath(path);
+        path = _azureStoreOption.WithBasePath(path);
         context.Location().LogTrace("Deleting to {path}", path);
 
         try
@@ -99,7 +99,7 @@ public class DatalakeStore : IDatalakeStore
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
 
-        path = WithBasePath(path);
+        path = _azureStoreOption.WithBasePath(path);
         context.Location().LogTrace("Deleting directory {path}", path);
 
         try
@@ -122,7 +122,7 @@ public class DatalakeStore : IDatalakeStore
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-exist", "path={path}", path);
 
-        path = WithBasePath(path);
+        path = _azureStoreOption.WithBasePath(path);
         context.Location().LogTrace("Is path {path} exist", path);
 
         try
@@ -141,7 +141,7 @@ public class DatalakeStore : IDatalakeStore
     public Task<Option<DatalakePathProperties>> GetPathProperties(string path, ScopeContext context)
     {
         context = context.With(_logger);
-        path = WithBasePath(path);
+        path = _azureStoreOption.WithBasePath(path);
 
         context.Location().LogTrace("Getting path {path} properties", path);
         return InternalGetPathProperties(path, context);
@@ -152,7 +152,7 @@ public class DatalakeStore : IDatalakeStore
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-read", "path={path}", path);
 
-        path = WithBasePath(path);
+        path = _azureStoreOption.WithBasePath(path);
 
         try
         {
@@ -193,8 +193,8 @@ public class DatalakeStore : IDatalakeStore
 
         queryParameter = queryParameter with
         {
-            Filter = WithBasePath(queryParameter.Filter),
-            BasePath = WithBasePath(queryParameter.BasePath),
+            Filter = _azureStoreOption.WithBasePath(queryParameter.Filter),
+            BasePath = _azureStoreOption.WithBasePath(queryParameter.BasePath),
         };
         context.Location().LogTrace("Searching {queryParameter}", queryParameter);
 
@@ -218,7 +218,7 @@ public class DatalakeStore : IDatalakeStore
             }
 
             var list = collection
-                .Select(x => x with { Name = RemoveBaseRoot(x.Name) })
+                .Select(x => x with { Name = _azureStoreOption.RemoveBaseRoot(x.Name) })
                 .ToList();
 
             return new QueryResponse<DatalakePathItem>
@@ -247,7 +247,7 @@ public class DatalakeStore : IDatalakeStore
     {
         context = context.With(_logger);
 
-        path = WithBasePath(path);
+        path = _azureStoreOption.WithBasePath(path);
         context.Location().LogTrace($"Writing to {path}, data.Length={data.Data.Length}, eTag={data.ETag?.ToString() ?? "<null>"}");
 
         data.NotNull().Assert(x => x.Data.Length > 0, $"length must be greater then 0, path={path}");
@@ -274,24 +274,6 @@ public class DatalakeStore : IDatalakeStore
             context.Location().LogWarning(ex, "Failed exist for file systgem");
             return StatusCode.ServiceUnavailable;
         }
-    }
-
-    private string WithBasePath(string? path) => (_azureStoreOption.BasePath, path) switch
-    {
-        (string v, null) => v,
-        (string v1, string v2) => (v1 + "/" + v2)
-            .Split('/', StringSplitOptions.RemoveEmptyEntries)
-            .Join('/'),
-
-        _ => throw new ArgumentException("BasePath and Path is null"),
-    };
-
-    private string RemoveBaseRoot(string path)
-    {
-        string newPath = path[(_azureStoreOption.BasePath?.Length ?? 0)..];
-        if (newPath.StartsWith("/")) newPath = newPath[1..];
-
-        return newPath;
     }
 
     private async Task<Option<ETag>> Upload(string path, Stream fromStream, bool overwrite, DataETag dataETag, ScopeContext context)

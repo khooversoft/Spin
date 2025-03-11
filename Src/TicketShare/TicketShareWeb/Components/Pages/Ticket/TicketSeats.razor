@@ -5,6 +5,12 @@
 @using TicketShareWeb.Application
 
 <FeedBlock Title="Seats" Class="feed-block-datagrid" OnAdd="Add">
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())"
+                  Appearance="Appearance.Outline"
+                  OnClick="SearchByLeague">
+        Search by League
+    </FluentButton>
+
     <FluentDataGrid Class="feed-block-datagrid"
                     Items="@_roles"
                     ShowHover="true"
@@ -21,9 +27,10 @@
 
 
 @code {
-    [Inject] public IDialogService _dialogService { get; set; } = null!;
-    [Inject] public ILogger<TicketSeats> _logger { get; set; } = null!;
     [CascadingParameter] public TicketGroupContext _ticketGroupContext { get; set; } = null!;
+    @inject IDialogService _dialogService;
+    @inject ApplicationNavigation _appNavigation;
+    @inject ILogger<TicketSeats> _logger;
 
     private IQueryable<SeatModel> _roles = null!;
     private RightPanelDialog<SeatModel, TicketSeatDialog> _rightPanelDialog = null!;
@@ -61,11 +68,17 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    public void Refresh()
+    private void Refresh()
     {
         _roles = _ticketGroupContext.Input.Seats.Values
             .OrderBy(x => x.Date)
             .ThenBy(x => x.ToString())
             .AsQueryable();
     }
+
+    private void SearchByLeague()
+    {
+        // _appNavigation.GotoTicketGroup(row.Item.TicketGroupId);
+    }
 }
+

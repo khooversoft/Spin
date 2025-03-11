@@ -58,7 +58,7 @@ public static class DataETagExtensions
             var v => v.ToJson().ToBytes(),
         };
 
-        return new DataETag(bytes, bytes.ToHexHash());
+        return new DataETag(bytes);
     }
 
     public static DataETag ToDataETag<T>(this T value, string? currentETag)
@@ -78,7 +78,6 @@ public static class DataETagExtensions
     }
 
     public static DataETag StripETag(this DataETag data) => new DataETag([.. data.Data]);
-
     public static string ToHash(this DataETag data) => data.Data.ToHexHash();
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
     public static DataETag WithETag(this DataETag data, string eTag) => new DataETag(data.Data, eTag.NotEmpty());

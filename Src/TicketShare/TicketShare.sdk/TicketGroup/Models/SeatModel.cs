@@ -28,6 +28,7 @@ public static class SeatModelExtensions
     public static SeatModel ConvertTo(this SeatRecord subject) => new SeatModel
     {
         Id = subject.Id,
+        Section = subject.Section,
         Row = subject.Row,
         Seat = subject.Seat,
         Date = subject.Date,
@@ -37,6 +38,7 @@ public static class SeatModelExtensions
     public static SeatRecord ConvertTo(this SeatModel subject) => new SeatRecord
     {
         Id = subject.Id,
+        Section = subject.Section,
         Row = subject.Row,
         Seat = subject.Seat,
         Date = subject.Date ?? DateTime.UtcNow,

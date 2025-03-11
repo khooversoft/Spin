@@ -15,6 +15,16 @@ public class ApplicationNavigation
         _logger = logger.NotNull();
     }
 
+    public void GotoChannel(string channelId)
+    {
+        channelId.NotEmpty();
+
+        string encoded = $"/Channel/{Uri.EscapeDataString(channelId)}";
+        _navigationManager.NavigateTo(encoded);
+    }
+
+    public void GotoChannels() => _navigationManager.NavigateTo("/Channels");
+
     public void GotoHome() => _navigationManager.NavigateTo("/");
 
     public void GotoTicketGroups() => _navigationManager.NavigateTo("/TicketGroups");
@@ -26,13 +36,10 @@ public class ApplicationNavigation
         _navigationManager.NavigateTo(encoded);
     }
 
-    public void GotoChannels() => _navigationManager.NavigateTo("/Channels");
-
-    public void GotoChannel(string channelId)
+    public void GotoSearchByLeague(string ticketGroupId)
     {
-        channelId.NotEmpty();
-
-        string encoded = $"/Channel/{Uri.EscapeDataString(channelId)}";
+        ticketGroupId.NotEmpty();
+        string encoded = $"/TicketGroup/SearchByLeague/{Uri.EscapeDataString(ticketGroupId)}";
         _navigationManager.NavigateTo(encoded);
     }
 

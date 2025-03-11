@@ -36,7 +36,7 @@ public class TicketDataTests
         var services = new ServiceCollection()
             .AddLogging(logging => logging.AddDebug().AddConsole().AddLambda(output.WriteLine))
             .AddSingleton(config)
-            .Action(x => x.TryAddSingleton<IMemoryCache, NoMemoryCache>())
+            .Action(x => x.TryAddSingleton<IMemoryCache, NullMemoryCache>())
             .AddLocalFileStore(new LocalFileStoreOption { BasePath = "/work" })
             .AddTicketApi(ticketOption)
             .BuildServiceProvider();

@@ -106,7 +106,7 @@ internal static class NodeDataTool
         pContext.TrxContext.Context.LogTrace("Writing node data fileId={fileId}", fileId);
         var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context).ConfigureAwait(false);
 
-        var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag.StripETag(), pContext.TrxContext.Context).ConfigureAwait(false);
+        var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag, pContext.TrxContext.Context).ConfigureAwait(false);
 
         if (writeOption.IsError()) return writeOption
                 .LogStatus(pContext.TrxContext.Context, "Write node data fileId={fileId} failed", [fileId])

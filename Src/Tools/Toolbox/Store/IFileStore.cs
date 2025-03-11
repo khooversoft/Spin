@@ -11,4 +11,10 @@ public interface IFileStore
     Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context);
     Task<Option<DataETag>> Get(string path, ScopeContext context);
     Task<Option<string>> Set(string path, DataETag data, ScopeContext context);
+    Task<Option<IFileStoreLease>> Acquire(string path, TimeSpan leaseDuration, ScopeContext context);
+}
+
+public interface IFileStoreLease : IAsyncDisposable
+{
+    Task<Option> Release(ScopeContext context);
 }

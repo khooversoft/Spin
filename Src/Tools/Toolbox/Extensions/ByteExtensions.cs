@@ -136,6 +136,6 @@ public static class ByteExtensions
     /// <param name="subject"></param>
     /// <returns></returns>
     public static string ToHexHash(this IEnumerable<byte> subject) => subject
-            .ToHash()
-            .ToHex();
+        .ToHash()
+        .ToHex();
 }
