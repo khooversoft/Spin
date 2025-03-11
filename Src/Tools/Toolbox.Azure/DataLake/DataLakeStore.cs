@@ -70,9 +70,10 @@ public class DatalakeStore : IDatalakeStore
         return StatusCode.OK;
     }
 
-    public Task<Option<IDatalakeLease>> Acquire(string path, TimeSpan leaseDuration, ScopeContext context)
+    public async Task<Option<IDatalakeLease>> Acquire(string path, TimeSpan leaseDuration, ScopeContext context)
     {
-        throw new NotImplementedException();
+        path = _azureStoreOption.WithBasePath(path);
+        return await _fileSystem.AcquireLease(path, leaseDuration, context);
     }
 
     public async Task<Option> Delete(string path, ScopeContext context)

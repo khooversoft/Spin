@@ -17,8 +17,9 @@ public interface IDatalakeStore
     Task<Option> TestConnection(ScopeContext context);
 }
 
-public interface IDatalakeLease : IAsyncDisposable
+public interface IDatalakeLease
 {
+    Task<Option<IDatalakeLease>> Renew(ScopeContext context);
     Task<Option> Release(ScopeContext context);
 }
 

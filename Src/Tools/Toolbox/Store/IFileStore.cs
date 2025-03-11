@@ -14,7 +14,8 @@ public interface IFileStore
     Task<Option<string>> Set(string path, DataETag data, ScopeContext context);
 }
 
-public interface IFileStoreLease : IAsyncDisposable
+public interface IFileStoreLease
 {
+    Task<Option<IFileStoreLease>> Renew(ScopeContext context);
     Task<Option> Release(ScopeContext context);
 }
