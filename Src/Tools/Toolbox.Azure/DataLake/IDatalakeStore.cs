@@ -6,7 +6,7 @@ namespace Toolbox.Azure;
 public interface IDatalakeStore
 {
     Task<Option> Append(string path, DataETag data, ScopeContext context);
-    //Task<Option<IDatalakeLease>> Acquire(string path, TimeSpan leaseDuration, ScopeContext context);
+    Task<Option<IDatalakeLease>> Acquire(string path, TimeSpan leaseDuration, ScopeContext context);
     Task<Option> Delete(string path, ScopeContext context);
     Task<Option> DeleteDirectory(string path, ScopeContext context);
     Task<Option> Exist(string path, ScopeContext context);
@@ -21,3 +21,4 @@ public interface IDatalakeLease : IAsyncDisposable
 {
     Task<Option> Release(ScopeContext context);
 }
+

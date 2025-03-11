@@ -70,6 +70,11 @@ public class DatalakeStore : IDatalakeStore
         return StatusCode.OK;
     }
 
+    public Task<Option<IDatalakeLease>> Acquire(string path, TimeSpan leaseDuration, ScopeContext context)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<Option> Delete(string path, ScopeContext context)
     {
         context = context.With(_logger);
