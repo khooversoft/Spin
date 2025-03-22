@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Logging;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
@@ -12,7 +13,7 @@ namespace Toolbox.Azure.test.Application;
 
 internal static class TestApplication
 {
-    public static IDatalakeStore GetDatalake(string basePath) => new DatalakeStore(ReadOption(basePath), new NullLogger<DatalakeStore>());
+    public static IFileStore GetDatalake(string basePath) => new DatalakeStore(ReadOption(basePath), new NullLogger<DatalakeStore>());
 
     private static DatalakeOption ReadOption(string basePath) => new ConfigurationBuilder()
         .AddJsonFile("TestSettings.json")
@@ -29,6 +30,7 @@ internal static class TestApplication
                 x.AddLambda(outputHelper.WriteLine);
                 x.AddDebug();
                 x.AddConsole();
+                x.AddFilter(x => true);
             })
             .BuildServiceProvider();
 

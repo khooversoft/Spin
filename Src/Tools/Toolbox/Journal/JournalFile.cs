@@ -80,7 +80,11 @@ public class JournalFile : IJournalFile, IAsyncDisposable
 
     public async ValueTask DisposeAsync() => await Close();
 
-    public Task<IReadOnlyList<string>> GetFiles(ScopeContext context) => _fileStore.Search($"{_basePath}/**/*.{_name}.json", context);
+    public async Task<IReadOnlyList<string>> GetFiles(ScopeContext context) =>
+        (await _fileStore.Search($"{_basePath}/**/*.{_name}.json", context))
+        .Select(x => x.Path)
+        .ToImmutableArray();
+
 
     public async Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context)
     {
@@ -91,7 +95,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         {
             context.LogTrace("Reading journal file={file}", file);
 
-            var readOption = await _fileStore.Get(file, context);
+            Option<DataETag> readOption = await _fileStore.File(file).Get(context);
             if (readOption.IsError())
             {
                 readOption.LogStatus(context, $"Reading file={file}");
@@ -140,7 +144,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         Option result;
         try
         {
-            result = await _fileStore.Append(path, Encoding.UTF8.GetBytes(writeString), context);
+            result = await _fileStore.File(path).Append(Encoding.UTF8.GetBytes(writeString), context);
         }
         finally
         {

@@ -45,7 +45,8 @@ public readonly record struct ScopeContext : ILoggingContext
         return (ScopeContextTools.AppendMessage(message, "traceId={traceId}"), ScopeContextTools.AppendArgs(args, TraceId));
     }
 
-    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger.NotNull(), CancellationToken);
+    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger, CancellationToken);
+    public ScopeContext With(CancellationToken token) => new ScopeContext(TraceId, Logger, token);
 
     public static implicit operator CancellationToken(ScopeContext context) => context.CancellationToken;
 }

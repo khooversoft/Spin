@@ -4,18 +4,41 @@ namespace Toolbox.Store;
 
 public interface IFileStore
 {
-    Task<Option<string>> Add(string path, DataETag data, ScopeContext context);
-    //Task<Option<IFileStoreLease>> Acquire(string path, TimeSpan leaseDuration, ScopeContext context);
-    Task<Option> Append(string path, DataETag data, ScopeContext context);
-    Task<Option> Delete(string path, ScopeContext context);
-    Task<Option> Exist(string path, ScopeContext context);
-    Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context);
-    Task<Option<DataETag>> Get(string path, ScopeContext context);
-    Task<Option<string>> Set(string path, DataETag data, ScopeContext context);
+    IFileAccess File(string path);
+
+    Task<IReadOnlyList<IStorePathDetail>> Search(string pattern, ScopeContext context);
+    Task<Option> DeleteFolder(string path, ScopeContext context);
 }
 
-public interface IFileStoreLease
+public interface IFileAccess
 {
-    Task<Option<IFileStoreLease>> Renew(ScopeContext context);
+    public string Path { get; }
+    Task<Option<string>> Add(DataETag data, ScopeContext context);
+    Task<Option> Append(DataETag data, ScopeContext context);
+    Task<Option<DataETag>> Get(ScopeContext context);
+    Task<Option<string>> Set(DataETag data, ScopeContext context);
+
+    Task<Option<IStorePathDetail>> GetDetail(ScopeContext context);
+    Task<Option> Delete(ScopeContext context);
+    Task<Option> Exist(ScopeContext context);
+
+    Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context);
+    Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context);
+    Task<Option<IFileLeasedAccess>> BreakLease(TimeSpan leaseDuration, ScopeContext context);
+    Task<Option> ClearLease(ScopeContext context);
+}
+
+public interface IFileLeasedAccess : IAsyncDisposable
+{
+    public string Path { get; }
+    public string LeaseId { get; }
+    public DateTime DateAcquired { get; }
+    public TimeSpan Elapsed => DateTime.UtcNow - DateAcquired;
+    public bool ShouldRenew => Elapsed > TimeSpan.FromSeconds(30);
+
+    Task<Option> Append(DataETag data, ScopeContext context);
+    Task<Option<DataETag>> Get(ScopeContext context);
+    Task<Option<string>> Set(DataETag data, ScopeContext context);
+    Task<Option> Renew(ScopeContext context);
     Task<Option> Release(ScopeContext context);
 }

@@ -10,7 +10,7 @@ public static class ToolboxStartup
 {
     public static IServiceCollection AddInMemoryFileStore(this IServiceCollection services)
     {
-        services.NotNull().AddSingleton<IFileStore, InMemoryFileStore>();
+        //services.NotNull().AddSingleton<IFileStore, InMemoryFileStore>();
         return services;
     }
 
@@ -20,7 +20,7 @@ public static class ToolboxStartup
         option.NotNull().Validate().ThrowOnError("Invalid LocalFileStoreOption");
 
         services.AddSingleton(option);
-        services.AddSingleton<IFileStore, LocalFileStore>();
+        //services.AddSingleton<IFileStore, LocalFileStore>();
         return services;
     }
 
@@ -30,9 +30,9 @@ public static class ToolboxStartup
         key.NotEmpty();
         option.NotNull().Validate().ThrowOnError();
 
-        services.AddKeyedSingleton<IJournalFile>(key, (iServices, _) =>
+        services.AddKeyedSingleton<IJournalFile>(key, (serviceProvider, _) =>
         {
-            return ActivatorUtilities.CreateInstance<JournalFile>(iServices, option);
+            return ActivatorUtilities.CreateInstance<JournalFile>(serviceProvider, option);
         });
 
         return services;

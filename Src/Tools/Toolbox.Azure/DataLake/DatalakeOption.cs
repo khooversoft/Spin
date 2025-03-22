@@ -39,24 +39,23 @@ public static class DatalakeOptionTool
         return new DataLakeServiceClient(serviceUri, credential);
     }
 
-    //public static DatalakeOption Get(IConfiguration configuration)
-    //{
-    //    configuration.NotNull();
+    public static string WithBasePath(this DatalakeOption subject, string? path) => (subject.BasePath, path) switch
+    {
+        (string v, null) => v,
+        (string v1, string v2) => (v1 + "/" + v2)
+            .Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Join('/'),
 
-    //    ClientSecretOption secretOption = configuration.GetConnectionString("AppConfig").NotNull()
-    //        .ToDictionaryFromString()
-    //        .ToObject<ClientSecretOption>();
+        _ => throw new ArgumentException("BasePath and Path is null"),
+    };
 
-    //    DatalakeOption datalakeOption = configuration.GetSection("Storage").Get<DatalakeOption>().NotNull();
+    public static string RemoveBaseRoot(this DatalakeOption subject, string path)
+    {
+        string newPath = path[(subject.BasePath?.Length ?? 0)..];
+        if (newPath.StartsWith("/")) newPath = newPath[1..];
 
-    //    datalakeOption = datalakeOption with
-    //    {
-    //        Credentials = secretOption,
-    //    };
-
-    //    datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
-    //    return datalakeOption;
-    //}
+        return newPath;
+    }
 
     public static DatalakeOption Create(string datalakeConnectionString, string clientSecretConnectionString)
     {

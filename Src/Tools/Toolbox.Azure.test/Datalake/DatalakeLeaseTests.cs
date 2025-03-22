@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Storage.Files.DataLake;
 using Toolbox.Azure.test.Application;
+using Toolbox.Extensions;
+using Toolbox.Test.Store;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
@@ -12,38 +16,34 @@ namespace Toolbox.Azure.test.Datalake;
 
 public class DatalakeLeaseTests
 {
-    public readonly ScopeContext _context;
+    private DatalakeLeaseStandardTests _tests;
 
     public DatalakeLeaseTests(ITestOutputHelper outputHelper)
     {
-        _context = TestApplication.CreateScopeContext<DatalakeStoreTests>(outputHelper);
+        _tests = new DatalakeLeaseStandardTests(() => TestApplication.GetDatalake("datastore-tests"), outputHelper);
     }
 
     [Fact]
-    public async Task AcquireLeaseAndRelease()
+    public Task WhenWriteFile_AcquireLease_TestWriteAndRelease()
     {
-        var datalakeClient1 = TestApplication.GetDatalake("datastore-tests");
+        return _tests.WhenWriteFile_AcquireLease_TestWriteAndRelease();
+    }
 
-        const string data = "this is a test";
-        const string data2 = "updated this is a test";
-        const string path = "acquireLease1.txt";
+    [Fact]
+    public Task TwoClientTryGetLease_OneShouldFail()
+    {
+        return _tests.TwoClientTryGetLease_OneShouldFail();
+    }
 
-        byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-        var writeResult = await datalakeClient1.Write(path, dataBytes, true, _context);
-        writeResult.IsOk().Should().BeTrue();
+    [Fact]
+    public Task TwoClient_UsingScope_ShouldCoordinate()
+    {
+        return _tests.TwoClient_UsingScope_ShouldCoordinate();
+    }
 
-        var lease1 = await datalakeClient1.Acquire(path, TimeSpan.FromSeconds(30), _context);
-        lease1.IsOk().Should().BeTrue();
-
-        Option<DataETag> receive = await datalakeClient1.Read(path, _context);
-        receive.IsOk().Should().BeTrue();
-        Enumerable.SequenceEqual(dataBytes, receive.Return().Data).Should().BeTrue();
-
-        dataBytes = Encoding.UTF8.GetBytes(data2);
-        writeResult = await datalakeClient1.Write(path, dataBytes, true, _context);
-        writeResult.IsOk().Should().BeTrue();
-
-        var leaseResult = await lease1.Return().Release(_context);
-        leaseResult.IsOk().Should().BeTrue();
+    [Fact]
+    public Task TwoClients_ExclusiveLock_SecondCannotAccess()
+    {
+        return _tests.TwoClients_ExclusiveLock_SecondCannotAccess();
     }
 }
