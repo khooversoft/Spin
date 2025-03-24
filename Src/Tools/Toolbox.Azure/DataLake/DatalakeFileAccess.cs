@@ -83,17 +83,17 @@ public class DatalakeFileAccess : IFileAccess
 
     public Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context)
     {
-        return DatalakeLeaseTool.Acquire(_fileClient, leaseDuration, TimeSpan.FromMinutes(2), context);
+        return DatalakeLeaseTool.Acquire(_fileClient, leaseDuration, context);
     }
 
     public Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context)
     {
-        return DatalakeLeaseTool.Acquire(_fileClient, TimeSpan.FromSeconds(-1), TimeSpan.FromMinutes(2), context);
+        return DatalakeLeaseTool.Acquire(_fileClient, TimeSpan.FromSeconds(-1), context);
     }
 
-    public Task<Option<IFileLeasedAccess>> BreakLease(TimeSpan leaseDuration, ScopeContext context)
+    public Task<Option> BreakLease(ScopeContext context)
     {
-        return DatalakeLeaseTool.Break(leaseDuration, context);
+        return DatalakeLeaseTool.Break(_fileClient, context);
     }
 
     public Task<Option> ClearLease(ScopeContext context)

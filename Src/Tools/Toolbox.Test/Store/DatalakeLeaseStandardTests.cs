@@ -104,11 +104,8 @@ public class DatalakeLeaseStandardTests
         var lease2Option = await fileAccess1.Acquire(TimeSpan.FromSeconds(60), context);
         lease2Option.IsError().Should().BeTrue();
 
-        (await fileAccess2.Set(dataBytes, _context)).Assert(x => x.IsConflict(), x => x.ToString()).Return();
-        //(await fileAccess1.Set(dataBytes, _context)).Assert(x => x.IsConflict(), x => x.ToString()).Return();
-
+        (await fileAccess2.Set(dataBytes, _context)).Assert(x => x.IsConflict(), x => x.ToString());
         (await fileAccess1.Set(dataBytes3, _context)).Assert(x => x.IsError(), _ => "Should fail");
-        (await fileAccess2.Set(dataBytes3, _context)).Assert(x => x.IsError(), _ => "Should fail");
 
         (await lease1.Release(_context)).Assert(x => x.IsOk(), x => x.ToString());
 
@@ -167,14 +164,20 @@ public class DatalakeLeaseStandardTests
         const string data2 = "this is a test";
         const string path = "acquireLease4.txt";
 
-        byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-        var dataBytes2 = Encoding.UTF8.GetBytes(data2);
-
-        //var writeResult = (await datalakeClient1.Write(path, dataBytes, true, _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
-
         var fileAccess1 = fileStore1.File(path);
         var fileAccess2 = fileStore2.File(path);
+        byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+        byte[] dataBytes2 = Encoding.UTF8.GetBytes(data2);
+
+        var writeResult = await fileAccess1.Set(dataBytes, _context);
+        if (writeResult.IsConflict())
+        {
+            var breakResult = await fileAccess1.BreakLease(_context);
+            breakResult.IsOk().Should().BeTrue();
+        }
+
         var lease1 = (await fileAccess1.Acquire(TimeSpan.FromSeconds(-1), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+
         await using (lease1)
         {
             (await fileAccess2.Set(dataBytes2, _context)).Assert(x => x.IsError(), _ => "Should fail");

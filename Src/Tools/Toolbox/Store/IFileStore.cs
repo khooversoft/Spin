@@ -24,7 +24,7 @@ public interface IFileAccess
 
     Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context);
     Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context);
-    Task<Option<IFileLeasedAccess>> BreakLease(TimeSpan leaseDuration, ScopeContext context);
+    Task<Option> BreakLease(ScopeContext context);
     Task<Option> ClearLease(ScopeContext context);
 }
 
