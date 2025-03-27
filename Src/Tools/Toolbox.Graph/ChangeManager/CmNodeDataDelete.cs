@@ -35,7 +35,7 @@ public class CmNodeDataDelete : IChangeLog
 
     public async Task<Option> Undo(IGraphTrxContext graphContext)
     {
-        var writeOption = await graphContext.FileStore.Set(FileId, OldData, graphContext.Context);
+        var writeOption = await graphContext.FileStore.File(FileId).Set(OldData, graphContext.Context);
         writeOption.LogStatus(graphContext.Context, "Undo - Rollback to oldData for fileId={fileId}", [FileId]).ToOptionStatus();
         return StatusCode.OK;
     }

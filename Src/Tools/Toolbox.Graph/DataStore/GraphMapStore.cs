@@ -33,7 +33,7 @@ internal class GraphMapStore
         {
             context.LogTrace("Reading graph data file={mapDatabasePath}", _mapDatabasePath);
 
-            var readMapSerializer = await _graphHost.FileStore.Get(_mapDatabasePath, context).ConfigureAwait(false);
+            var readMapSerializer = await _graphHost.FileStore.File(_mapDatabasePath).Get(context).ConfigureAwait(false);
             if (readMapSerializer.IsNotFound()) return await InternalSet(context).ConfigureAwait(false);
 
             if (readMapSerializer.IsError()) return readMapSerializer.ToOptionStatus();
@@ -78,7 +78,7 @@ internal class GraphMapStore
         context.LogTrace("Writing graph data file={mapDatabasePath}", _mapDatabasePath);
 
         GraphSerialization graphSerialization = _graphHost.Map.ToSerialization();
-        var writeMapSerializer = await _graphHost.FileStore.Set(_mapDatabasePath, graphSerialization.ToDataETag(_currentETag), context).ConfigureAwait(false);
+        var writeMapSerializer = await _graphHost.FileStore.File(_mapDatabasePath).Set(graphSerialization.ToDataETag(_currentETag), context).ConfigureAwait(false);
         if (writeMapSerializer.IsError()) return writeMapSerializer.ToOptionStatus();
 
         string newETag = writeMapSerializer.Return();

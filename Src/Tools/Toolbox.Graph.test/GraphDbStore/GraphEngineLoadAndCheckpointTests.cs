@@ -20,7 +20,7 @@ public class GraphEngineLoadAndCheckpointTests
 
         await host.CheckpointMap(context);
 
-        (await fileStore.Get(GraphConstants.MapDatabasePath, context)).Action(x =>
+        (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
 
@@ -49,7 +49,7 @@ public class GraphEngineLoadAndCheckpointTests
         var eResult = await engine.ExecuteBatch(cmd, context);
         eResult.IsOk().Should().BeTrue(eResult.ToString());
 
-        (await fileStore.Get(GraphConstants.MapDatabasePath, context)).Action(x =>
+        (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {
             x.IsOk().Should().BeTrue(x.ToString());
 
@@ -82,8 +82,8 @@ public class GraphEngineLoadAndCheckpointTests
         Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
         Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
 
-        var dbJson = expectedMap.ToSerialization();
-        (await fileStore.Set(GraphConstants.MapDatabasePath, dbJson, context)).IsOk().Should().BeTrue();
+        GraphSerialization dbJson = expectedMap.ToSerialization();
+        (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().Should().BeTrue();
 
         (await host.LoadMap(context)).IsOk().Should().BeTrue();
 

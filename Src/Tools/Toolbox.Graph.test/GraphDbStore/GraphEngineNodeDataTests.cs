@@ -34,7 +34,7 @@ public class GraphEngineNodeDataTests
         await CheckFileStoreCount(fileStore, 1);
 
         // Verify data was writen correctly
-        var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", context);
+        var readDataOption = await fileStore.File("nodes/node1/node1___contract.json").Get(context);
         readDataOption.IsOk().Should().BeTrue();
         TestContractRecord readRec = readDataOption.Return().ToObject<TestContractRecord>();
         readRec.NotNull();
@@ -70,7 +70,7 @@ public class GraphEngineNodeDataTests
         await CheckFileStoreCount(fileStore, 0);
         map.Nodes.Count.Should().Be(0);
         map.Edges.Count.Should().Be(0);
-        readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", context);
+        readDataOption = await fileStore.File("nodes/node1/node1___contract.json").Get(context);
         readDataOption.IsNotFound().Should().BeTrue();
 
         selectResultOption = await engine.Execute("select (key=node1) return contract;", context);
@@ -102,7 +102,7 @@ public class GraphEngineNodeDataTests
         await CheckFileStoreCount(fileStore, 1);
 
         // Verify data was writen correctly
-        var readDataOption = await fileStore.Get("nodes/node1/node1___contract.json", context);
+        var readDataOption = await fileStore.File("nodes/node1/node1___contract.json").Get(context);
         readDataOption.IsOk().Should().BeTrue();
         TestContractRecord readRec = readDataOption.Return().ToObject<TestContractRecord>();
         readRec.NotNull();
@@ -117,7 +117,7 @@ public class GraphEngineNodeDataTests
         map.Edges.Count.Should().Be(0);
 
         // Verify data has been deleted
-        (await fileStore.Get("nodes/node1/node1___contract.json", context)).IsNotFound().Should().BeTrue();
+        (await fileStore.File("nodes/node1/node1___contract.json").Get(context)).IsNotFound().Should().BeTrue();
         (await engine.Execute("select (key=node1);", context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
@@ -161,7 +161,7 @@ public class GraphEngineNodeDataTests
         map.Edges.Count.Should().Be(0);
         await CheckFileStoreCount(fileStore, 2);
 
-        (await fileStore.Get("nodes/node1/node1___contract.json", context)).Action((Action<Option<DataETag>>)(x =>
+        (await fileStore.File("nodes/node1/node1___contract.json").Get(context)).Action((Action<Option<DataETag>>)(x =>
         {
             x.IsOk().Should().BeTrue();
             TestContractRecord readRec = x.Return().ToObject<TestContractRecord>();
@@ -170,7 +170,7 @@ public class GraphEngineNodeDataTests
             readRec.Age.Should().Be(contractRec.Age);
         }));
 
-        (await fileStore.Get("nodes/node1/node1___lease.json", context)).Action(x =>
+        (await fileStore.File("nodes/node1/node1___lease.json").Get(context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             TestLeaseRecord readRec = x.Return().ToObject<TestLeaseRecord>();
@@ -256,7 +256,7 @@ public class GraphEngineNodeDataTests
         map.Edges.Count.Should().Be(0);
         await CheckFileStoreCount(fileStore, 2);
 
-        (await fileStore.Get("nodes/node1/node1___contract.json", context)).Action(x =>
+        (await fileStore.File("nodes/node1/node1___contract.json").Get(context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             TestContractRecord readRec = x.Return().ToObject<TestContractRecord>();
@@ -265,7 +265,7 @@ public class GraphEngineNodeDataTests
             readRec.Age.Should().Be(contractRec.Age);
         });
 
-        (await fileStore.Get("nodes/node1/node1___lease.json", context)).Action(x =>
+        (await fileStore.File("nodes/node1/node1___lease.json").Get(context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             TestLeaseRecord readRec = x.Return().ToObject<TestLeaseRecord>();
@@ -289,10 +289,10 @@ public class GraphEngineNodeDataTests
         map.Edges.Count.Should().Be(0);
 
         // Verify data has been deleted
-        (await fileStore.Get("nodes/node1/node1___contract.json", context)).IsNotFound().Should().BeTrue();
+        (await fileStore.File("nodes/node1/node1___contract.json").Get(context)).IsNotFound().Should().BeTrue();
 
         // Verify data should still exist
-        (await fileStore.Get("nodes/node1/node1___lease.json", context)).Action(x =>
+        (await fileStore.File("nodes/node1/node1___lease.json").Get(context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             TestLeaseRecord readRec = x.Return().ToObject<TestLeaseRecord>();
@@ -332,6 +332,6 @@ public class GraphEngineNodeDataTests
 
     private async Task CheckFileStoreCount(IFileStore fileStore, int count)
     {
-        (await ((InMemoryFileStore)fileStore).Search("nodes/**/*", NullScopeContext.Default)).Count.Should().Be(count);
+        (await fileStore.Search("nodes/**/*", NullScopeContext.Default)).Count.Should().Be(count);
     }
 }

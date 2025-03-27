@@ -37,11 +37,11 @@ public class CmNodeDataSet : IChangeLog
     {
         if (OldData == null)
         {
-            var deleteOption = await graphContext.FileStore.Delete(FileId, graphContext.Context);
+            var deleteOption = await graphContext.FileStore.File(FileId).Delete(graphContext.Context);
             return deleteOption.LogStatus(graphContext.Context, "Undo - delete fileId={fileId}", [FileId]);
         }
 
-        var writeOption = await graphContext.FileStore.Set(FileId, OldData.Value, graphContext.Context);
+        var writeOption = await graphContext.FileStore.File(FileId).Set(OldData.Value, graphContext.Context);
 
         return writeOption
             .LogStatus(graphContext.Context, "Undo - Rollback to oldData for fileId={fileId}", [FileId])

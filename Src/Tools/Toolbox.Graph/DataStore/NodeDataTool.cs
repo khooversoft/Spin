@@ -47,7 +47,7 @@ internal static class NodeDataTool
 
     public static async Task<Option<DataETag>> GetData(string fileId, QueryExecutionContext pContext)
     {
-        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context).ConfigureAwait(false);
+        var readOption = await pContext.TrxContext.FileStore.File(fileId).Get(pContext.TrxContext.Context).ConfigureAwait(false);
         readOption.LogStatus(pContext.TrxContext.Context, $" Get node data fileId={fileId}");
         return readOption;
     }
@@ -88,14 +88,14 @@ internal static class NodeDataTool
 
     public static async Task<Option> DeleteNodeData(string fileId, IGraphTrxContext graphContext)
     {
-        var readOption = await graphContext.FileStore.Get(fileId, graphContext.Context).ConfigureAwait(false);
+        var readOption = await graphContext.FileStore.File(fileId).Get(graphContext.Context).ConfigureAwait(false);
         if (readOption.IsNotFound()) return StatusCode.OK;
         if (readOption.IsError()) return readOption.ToOptionStatus();
 
         graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
 
         graphContext.Context.LogTrace("Deleting data map={fileId}", fileId);
-        var deleteOption = await graphContext.FileStore.Delete(fileId, graphContext.Context).ConfigureAwait(false);
+        var deleteOption = await graphContext.FileStore.File(fileId).Delete(graphContext.Context).ConfigureAwait(false);
         deleteOption.LogStatus(graphContext.Context, "Deleted data map");
 
         return deleteOption;
@@ -104,9 +104,9 @@ internal static class NodeDataTool
     private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
     {
         pContext.TrxContext.Context.LogTrace("Writing node data fileId={fileId}", fileId);
-        var readOption = await pContext.TrxContext.FileStore.Get(fileId, pContext.TrxContext.Context).ConfigureAwait(false);
+        var readOption = await pContext.TrxContext.FileStore.File(fileId).Get(pContext.TrxContext.Context).ConfigureAwait(false);
 
-        var writeOption = await pContext.TrxContext.FileStore.Set(fileId, dataETag, pContext.TrxContext.Context).ConfigureAwait(false);
+        var writeOption = await pContext.TrxContext.FileStore.File(fileId).Set(dataETag, pContext.TrxContext.Context).ConfigureAwait(false);
 
         if (writeOption.IsError()) return writeOption
                 .LogStatus(pContext.TrxContext.Context, "Write node data fileId={fileId} failed", [fileId])

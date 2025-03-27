@@ -30,8 +30,8 @@ public static class GraphStartup
             ReadOnly = hostOption.ReadOnly,
         });
 
-        services.TryAddSingleton<IGraphClient, GraphClientInMemory>();
-        services.TryAddSingleton<IGraphStore, GraphFileStoreCache>();
+        services.AddSingleton<IGraphClient, GraphClientInMemory>();
+        services.AddSingleton<IGraphStore, GraphStore>();
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
         return services;
