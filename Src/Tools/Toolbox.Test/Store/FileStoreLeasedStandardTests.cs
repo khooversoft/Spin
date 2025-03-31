@@ -1,42 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using System.Text;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
-using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store;
 
-public class DatalakeLeaseStandardTests
+public class FileStoreLeasedStandardTests
 {
-    private readonly IServiceProvider _services;
     private readonly ScopeContext _context;
     private readonly Func<IFileStore> _getFileStore;
 
-    public DatalakeLeaseStandardTests(Func<IFileStore> getFileStore, ITestOutputHelper outputHelper)
+    public FileStoreLeasedStandardTests(Func<IFileStore> getFileStore, ScopeContext context)
     {
         _getFileStore = getFileStore.NotNull();
-
-        _services = new ServiceCollection()
-            .AddLogging(x =>
-            {
-                x.AddLambda(outputHelper.WriteLine);
-                x.AddDebug();
-                x.AddConsole();
-                x.AddFilter(x => true);
-            })
-            .BuildServiceProvider();
-
-        var logger = _services.GetRequiredService<ILogger<DatalakeLeaseStandardTests>>();
-        _context = new ScopeContext(logger);
+        _context = context;
     }
 
     public async Task WhenWriteFile_AcquireLease_TestWriteAndRelease()
@@ -137,7 +116,7 @@ public class DatalakeLeaseStandardTests
             dataBytes = Encoding.UTF8.GetBytes(data2);
             (await lease1.Set(dataBytes, _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
 
-            (await fileAccess1.Get(_context))
+            (await lease1.Get(_context))
                 .Assert(x => x.IsOk(), x => x.ToString())
                 .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).Should().BeTrue());
         }
@@ -149,7 +128,7 @@ public class DatalakeLeaseStandardTests
             dataBytes = Encoding.UTF8.GetBytes(data3);
             (await lease2.Set(dataBytes, _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
 
-            (await fileAccess1.Get(_context))
+            (await lease2.Get(_context))
                 .Assert(x => x.IsOk(), x => x.ToString())
                 .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).Should().BeTrue());
         }
@@ -182,11 +161,11 @@ public class DatalakeLeaseStandardTests
         {
             (await fileAccess2.Set(dataBytes2, _context)).Assert(x => x.IsError(), _ => "Should fail");
 
-            (await fileAccess1.Get(_context))
+            (await lease1.Get(_context))
                 .Assert(x => x.IsOk(), x => x.ToString())
                 .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).Should().BeTrue());
 
-            await Task.Delay(TimeSpan.FromSeconds(70));
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
             (await fileAccess2.Set(dataBytes2, _context)).Assert(x => x.IsError(), _ => "Should fail");
 

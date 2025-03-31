@@ -27,7 +27,7 @@ public class GraphStoreLeasedAccess : IFileLeasedAccess
     public string LeaseId { get; }
     public DateTime DateAcquired { get; } = DateTime.UtcNow;
 
-    public Task<Option> Append(DataETag data, ScopeContext context)
+    public Task<Option<string>> Append(DataETag data, ScopeContext context)
     {
         _memoryCache.Remove(Path);
         return _fileLeasedAccess.Append(data, context);
@@ -48,7 +48,6 @@ public class GraphStoreLeasedAccess : IFileLeasedAccess
     }
 
     public Task<Option> Release(ScopeContext context) => _fileLeasedAccess.Release(context);
-    public Task<Option> Renew(ScopeContext context) => _fileLeasedAccess.Renew(context);
 
     public async Task<Option<string>> Set(DataETag data, ScopeContext context)
     {

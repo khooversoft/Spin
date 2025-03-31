@@ -1,9 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -12,19 +8,17 @@ namespace Toolbox.Store;
 public sealed class InMemoryFileStore : IFileStore
 {
     private readonly ILogger<InMemoryFileStore> _logger;
-    private readonly InMemoryStoreControl _storeControl;
+    private readonly MemoryStore _memoryStore;
 
-    public InMemoryFileStore(ILogger<InMemoryFileStore> logger)
+    public InMemoryFileStore(MemoryStore memoryStore, ILogger<InMemoryFileStore> logger)
     {
         _logger = logger.NotNull();
-        _storeControl = new InMemoryStoreControl(_logger);
+        _memoryStore = memoryStore.NotNull();
     }
 
-    public int Count => _storeControl.Count;
-    public IFileAccess File(string path) => new InMemoryFileAccess(path, _storeControl, _logger);
-    public IFileLeasedAccess Lease(string path) => new InMemoryStoreLeaseControl(path, _storeControl, _logger);
+    public Task<Option> DeleteFolder(string path, ScopeContext context) => _memoryStore.DeleteFolder(path, context).ToTaskResult();
 
-    public Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context) => _storeControl.Search(pattern, context.With(_logger));
-    public Task<IReadOnlyList<IStorePathDetail>> DetailSearch(string pattern, ScopeContext context) => _storeControl.DetailSearch(pattern, context.With(_logger));
-    public Task<Option> DeleteFolder(string path, ScopeContext context) => _storeControl.DeleteFolder(path, context.With(_logger));
+    public IFileAccess File(string path) => new InMemoryFileAccess(path, _memoryStore, _logger);
+
+    public Task<IReadOnlyList<IStorePathDetail>> Search(string pattern, ScopeContext context) => _memoryStore.Search(pattern).ToTaskResult();
 }

@@ -26,9 +26,8 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
 
     public string Path => _fileClient.Path;
     public string LeaseId => _leaseClient.LeaseId.NotEmpty();
-    public DateTime DateAcquired { get; } = DateTime.UtcNow;
 
-    public Task<Option> Append(DataETag data, ScopeContext context) => _fileClient.Append(this, data, context);
+    public Task<Option<string>> Append(DataETag data, ScopeContext context) => _fileClient.Append(this, data, context);
     public Task<Option<DataETag>> Get(ScopeContext context) => _fileClient.Get(this, context);
     public Task<Option<string>> Set(DataETag data, ScopeContext context) => _fileClient.Set(this, data, context);
 
@@ -63,6 +62,6 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
     public async ValueTask DisposeAsync()
     {
         bool disposed = Interlocked.Exchange(ref _disposed, true);
-        if(!disposed) await Release(new ScopeContext(_logger)).ConfigureAwait(false);
+        if (!disposed) await Release(new ScopeContext(_logger)).ConfigureAwait(false);
     }
 }

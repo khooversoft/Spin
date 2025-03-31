@@ -52,7 +52,7 @@ public static class DataETagExtensions
         var bytes = value switch
         {
             null => throw new ArgumentNullException("value"),
-            byte[] v => v,
+            IEnumerable<byte> v => v.ToArray(),
             string v => v.ToBytes(),
             Memory<byte> v => v.ToArray(),
             var v => v.ToJson().ToBytes(),

@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Azure;
 using Azure.Storage.Files.DataLake;
 using Microsoft.Extensions.Logging;
+using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Logging;
-using Azure;
 
 namespace Toolbox.Azure;
 
@@ -34,7 +29,7 @@ public class DatalakeFileAccess : IFileAccess
         return result.Return().ToString();
     }
 
-    public Task<Option> Append(DataETag data, ScopeContext context) => _fileClient.Append(data, context);
+    public Task<Option<string>> Append(DataETag data, ScopeContext context) => _fileClient.Append(data, context);
 
     public async Task<Option> Delete(ScopeContext context)
     {
@@ -81,23 +76,7 @@ public class DatalakeFileAccess : IFileAccess
     public Task<Option<IStorePathDetail>> GetDetail(ScopeContext context) => _fileClient.GetPathDetail(context);
     public Task<Option<string>> Set(DataETag data, ScopeContext context) => _fileClient.Set(data, context);
 
-    public Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context)
-    {
-        return DatalakeLeaseTool.Acquire(_fileClient, leaseDuration, context);
-    }
-
-    public Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context)
-    {
-        return DatalakeLeaseTool.Acquire(_fileClient, TimeSpan.FromSeconds(-1), context);
-    }
-
-    public Task<Option> BreakLease(ScopeContext context)
-    {
-        return DatalakeLeaseTool.Break(_fileClient, context);
-    }
-
-    public Task<Option> ClearLease(ScopeContext context)
-    {
-        return DatalakeLeaseTool.Clear(context);
-    }
+    public Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context) => DatalakeLeaseTool.Acquire(_fileClient, leaseDuration, context);
+    public Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context) => DatalakeLeaseTool.Acquire(_fileClient, TimeSpan.FromSeconds(-1), context);
+    public Task<Option> BreakLease(ScopeContext context) => DatalakeLeaseTool.Break(_fileClient, context);
 }

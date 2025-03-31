@@ -41,15 +41,13 @@ public class GraphStoreFileAccess : IFileAccess
         return result;
     }
 
-    public Task<Option> Append(DataETag data, ScopeContext context)
+    public Task<Option<string>> Append(DataETag data, ScopeContext context)
     {
         _memoryCache.Remove(Path);
         return _fileAccess.Append(data, context);
     }
 
     public Task<Option> BreakLease(ScopeContext context) => _fileAccess.BreakLease(context);
-
-    public Task<Option> ClearLease(ScopeContext context) => _fileAccess.ClearLease(context);
 
     public Task<Option> Delete(ScopeContext context)
     {

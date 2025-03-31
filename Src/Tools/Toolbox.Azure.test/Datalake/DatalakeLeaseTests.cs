@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Azure.Storage.Files.DataLake;
-using Toolbox.Azure.test.Application;
-using Toolbox.Extensions;
+﻿using Toolbox.Azure.test.Application;
 using Toolbox.Test.Store;
-using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -16,11 +7,13 @@ namespace Toolbox.Azure.test.Datalake;
 
 public class DatalakeLeaseTests
 {
-    private DatalakeLeaseStandardTests _tests;
+    private readonly ScopeContext _context;
+    private FileStoreLeasedStandardTests _tests;
 
     public DatalakeLeaseTests(ITestOutputHelper outputHelper)
     {
-        _tests = new DatalakeLeaseStandardTests(() => TestApplication.GetDatalake("datastore-tests"), outputHelper);
+        _context = TestApplication.CreateScopeContext<DatalakeLeaseTests>(outputHelper);
+        _tests = new FileStoreLeasedStandardTests(() => TestApplication.GetDatalake("datastore-tests"), _context);
     }
 
     [Fact]

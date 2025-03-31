@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Azure;
+﻿using Azure;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
-using Toolbox.Types;
 using Toolbox.Logging;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Azure;
 

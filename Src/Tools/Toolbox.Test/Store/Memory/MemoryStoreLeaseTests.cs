@@ -1,84 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Store;
-using Toolbox.Tools.Should;
+using Toolbox.Test.Application;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store.Memory;
 
 public class MemoryStoreLeaseTests
 {
-    [Fact]
-    public void AddGetLeaseUpdateGetRemove()
+    private readonly IServiceProvider _serviceProvider;
+    public readonly IFileStore _fileStore;
+    public readonly ScopeContext _context;
+    public readonly FileStoreLeasedStandardTests _tests;
+
+    public MemoryStoreLeaseTests(ITestOutputHelper outputHelper)
     {
-        var store = new MemoryStore();
-        const string path = "path/data";
-        const string dataValue = "data";
-        const string dataValue2 = "data2";
-        DataETag data = dataValue.ToDataETag();
-        DataETag data2 = dataValue2.ToDataETag();
+        _serviceProvider = TestApplication.CreateServiceProvider(outputHelper);
+        _fileStore = _serviceProvider.GetRequiredService<IFileStore>();
+        _context = new ScopeContext(_serviceProvider.GetRequiredService<ILogger<MemoryStoreTests>>());
+        _tests = new FileStoreLeasedStandardTests(() => _fileStore, _context);
+    }
 
-        store.Exist(path).Should().BeFalse();
-        store.IsLeased(path).Should().BeFalse();
+    [Fact]
+    public Task WhenWriteFile_AcquireLease_TestWriteAndRelease()
+    {
+        return _tests.WhenWriteFile_AcquireLease_TestWriteAndRelease();
+    }
 
-        store.Add(path, data).IsOk().Should().BeTrue();
-        store.Exist(path).Should().BeTrue();
-        store.IsLeased(path).Should().BeFalse();
+    [Fact]
+    public Task TwoClientTryGetLease_OneShouldFail()
+    {
+        return _tests.TwoClientTryGetLease_OneShouldFail();
+    }
 
-        // Acquire lease
-        var leaseId = store.AcquireLease(path, TimeSpan.FromMinutes(2));
-        leaseId.IsOk().Should().BeTrue();
+    [Fact]
+    public Task TwoClient_UsingScope_ShouldCoordinate()
+    {
+        return _tests.TwoClient_UsingScope_ShouldCoordinate();
+    }
 
-        store.Add(path, data).IsConflict().Should().BeTrue();
-        store.Set(path, data2).IsConflict().Should().BeTrue();
-        store.Remove(path).IsConflict().Should().BeTrue();
-
-        store.Get(path).Action(x =>
-        {
-            x.IsOk().Should().BeTrue();
-            x.Return().Data.BytesToString().Should().Be(dataValue);
-        });
-
-        store.Search("*").Action(x =>
-        {
-            x.Count.Should().Be(1);
-            x.First().Path.Should().Be(path);
-        });
-
-        // The only write/append that should work
-        store.Set(path, data2, leaseId.Return()).IsOk().Should().BeTrue();
-
-        store.Get(path).Action(x =>
-        {
-            x.IsOk().Should().BeTrue();
-            x.Return().Data.BytesToString().Should().Be(dataValue2);
-        });
-
-        store.Append(path, data2, leaseId.Return()).IsOk().Should().BeTrue();
-
-        store.Set(path, data).Action(x => x.IsConflict().Should().BeTrue(x.ToString()));
-
-        // Release lease
-        store.ReleaseLease(leaseId.Return()).Action(x => x.IsOk().Should().BeTrue(x.ToString()));
-
-        store.Set(path, data2, leaseId.Return()).IsOk().Should().BeTrue();
-        store.Append(path, data2, leaseId.Return()).IsOk().Should().BeTrue();
-        store.Set(path, data).IsOk().Should().BeTrue();
-
-        store.Get(path).Action(x =>
-        {
-            x.IsOk().Should().BeTrue();
-            x.Return().Data.BytesToString().Should().Be(dataValue);
-        });
-
-        store.Remove(path).IsOk().Should().BeTrue();
-        store.Exist(path).Should().BeFalse();
-        store.Search("*").Count.Should().Be(0);
-
-        store.Get(path).IsNotFound().Should().BeTrue();
+    [Fact]
+    public Task TwoClients_ExclusiveLock_SecondCannotAccess()
+    {
+        return _tests.TwoClients_ExclusiveLock_SecondCannotAccess();
     }
 }

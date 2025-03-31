@@ -141,7 +141,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
 
         await _writeLock.WaitAsync(context.CancellationToken);
 
-        Option result;
+        Option<string> result;
         try
         {
             result = await _fileStore.File(path).Append(Encoding.UTF8.GetBytes(writeString), context);
@@ -152,7 +152,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         }
 
         result.LogStatus(context, "Completed writting journal entry to name={name}, path={path}", [_name, path]);
-        return result;
+        return result.ToOptionStatus();
     }
 
     private async Task<Option> QueueWrite(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)

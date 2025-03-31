@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System.Text;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -12,12 +7,12 @@ using Toolbox.Types;
 
 namespace Toolbox.Test.Store;
 
-public class FileStoreFileStandardTests
+public class FileStoreFileAccessStandardTests
 {
     private readonly IFileStore _fileStore;
     public readonly ScopeContext _context;
 
-    public FileStoreFileStandardTests(IFileStore fileStore, ScopeContext context) => (_fileStore, _context) = (fileStore.NotNull(), context);
+    public FileStoreFileAccessStandardTests(IFileStore fileStore, ScopeContext context) => (_fileStore, _context) = (fileStore.NotNull(), context);
 
     public async Task GivenData_WhenSaved_ShouldWork()
     {
@@ -128,11 +123,10 @@ public class FileStoreFileStandardTests
         Option<DataETag> receive = await fileClient.Get(_context);
         receive.IsOk().Should().BeTrue();
 
-        var full = initialData.Concat(appendDataBytes).Concat(append2DataBytes);
+        var full = initialData.Concat(appendDataBytes).Concat(append2DataBytes).ToArray();
 
-        Enumerable.SequenceEqual(full, receive.Return().Data).Should().BeTrue();
-
-        (await fileClient.Get(_context)).IsOk().Should().BeTrue();
+        var receiveBytes = receive.Return().Data;
+        Enumerable.SequenceEqual(full, receiveBytes).Should().BeTrue();
     }
 
     public async Task GivenFiles_WhenSearched_ReturnsCorrectly()

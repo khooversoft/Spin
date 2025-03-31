@@ -14,7 +14,7 @@ public interface IFileAccess
 {
     public string Path { get; }
     Task<Option<string>> Add(DataETag data, ScopeContext context);
-    Task<Option> Append(DataETag data, ScopeContext context);
+    Task<Option<string>> Append(DataETag data, ScopeContext context);
     Task<Option<DataETag>> Get(ScopeContext context);
     Task<Option<string>> Set(DataETag data, ScopeContext context);
 
@@ -25,20 +25,15 @@ public interface IFileAccess
     Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context);
     Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context);
     Task<Option> BreakLease(ScopeContext context);
-    Task<Option> ClearLease(ScopeContext context);
 }
 
 public interface IFileLeasedAccess : IAsyncDisposable
 {
     public string Path { get; }
     public string LeaseId { get; }
-    public DateTime DateAcquired { get; }
-    public TimeSpan Elapsed => DateTime.UtcNow - DateAcquired;
-    public bool ShouldRenew => Elapsed > TimeSpan.FromSeconds(30);
 
-    Task<Option> Append(DataETag data, ScopeContext context);
+    Task<Option<string>> Append(DataETag data, ScopeContext context);
     Task<Option<DataETag>> Get(ScopeContext context);
     Task<Option<string>> Set(DataETag data, ScopeContext context);
-    Task<Option> Renew(ScopeContext context);
     Task<Option> Release(ScopeContext context);
 }

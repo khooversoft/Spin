@@ -1,6 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
@@ -10,48 +13,69 @@ public sealed class MemoryStore
     private record DirectoryDetail(StorePathDetail PathDetail, DataETag Data, LeaseRecord? LeaseRecord = null);
 
     private readonly ConcurrentDictionary<string, DirectoryDetail> _store = new(StringComparer.OrdinalIgnoreCase);
-
     private readonly ConcurrentDictionary<string, LeaseRecord> _leaseStore = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();
+    private readonly ILogger<MemoryStore> _logger;
 
-    public MemoryStore() { }
+    public MemoryStore(ILogger<MemoryStore> logger) => _logger = logger.NotNull();
 
-    public Option Add(string path, DataETag data)
+    public Option<string> Add(string path, DataETag data, ScopeContext context)
     {
+        context = context.With(_logger);
+
         if (!FileStoreTool.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
 
         lock (_lock)
         {
             if (IsLeased(path)) return (StatusCode.Conflict, "Path is leased");
 
-            var result = _store.TryAdd(path, new DirectoryDetail(data.ConvertTo(path), data, null)) switch
+            DirectoryDetail detail = new(data.ConvertTo(path), data, null);
+            var result = _store.TryAdd(path, detail) switch
             {
                 true => StatusCode.OK,
                 false => StatusCode.Conflict,
             };
 
-            return result;
+            context.LogTrace("Add Path={path}, length={length}", path, data.Data.Length);
+            return detail.Data.ETag.NotEmpty();
         }
     }
 
-    public Option Append(string path, DataETag data, string? leaseId = null)
+    public Option<string> Append(string path, DataETag data, string? leaseId, ScopeContext context)
     {
+        context = context.With(_logger);
+
         lock (_lock)
         {
             if (IsLeased(path, leaseId)) return (StatusCode.Conflict, "Path is leased");
 
-            var pathDetail = data.ConvertTo(path);
+            StorePathDetail pathDetail = data.ConvertTo(path);
 
             if (_store.TryGetValue(path, out var readPayload))
             {
-                readPayload = readPayload with { Data = readPayload.Data.Data.Concat(data.Data).ToDataETag() };
-                _store[path] = readPayload;
-                return StatusCode.OK;
+                var newPayload = readPayload with { Data = readPayload.Data.Data.Concat(data.Data).ToDataETag().WithHash() };
+                _store[path] = newPayload;
+                context.LogTrace("Append Path={path}, length={length}", path, data.Data.Length);
+                return newPayload.Data.ETag.NotEmpty();
             }
 
-            _store[path] = new DirectoryDetail(pathDetail, data);
-            return StatusCode.OK;
+            DirectoryDetail detail = new(pathDetail, data.WithHash());
+            _store[path] = detail;
+            return detail.Data.ETag.NotEmpty();
         }
+    }
+
+    public Option DeleteFolder(string pattern, ScopeContext context)
+    {
+        var query = QueryParameter.Parse(pattern);
+        var matcher = query.GetMatcher();
+
+        var restul = _store.Keys
+            .Where(x => matcher.IsMatch(x, false))
+            .Select(x => Delete(x, null, context))
+            .ToList();
+
+        return StatusCode.OK;
     }
 
     public bool Exist(string path) => _store.ContainsKey(path);
@@ -62,8 +86,10 @@ public sealed class MemoryStore
         false => StatusCode.NotFound,
     };
 
-    public Option Remove(string path, string? leaseId = null)
+    public Option Delete(string path, string? leaseId, ScopeContext context)
     {
+        context = context.With(_logger);
+
         lock (_lock)
         {
             if (IsLeased(path, leaseId)) return (StatusCode.Conflict, "Path is leased");
@@ -75,19 +101,31 @@ public sealed class MemoryStore
                 _ => StatusCode.NotFound,
             };
 
+            result.LogStatus(context, "Remove Path={path}, leaseId={leaseId}", [path, leaseId ?? "<no leaseId>"]);
             return result;
         }
     }
 
-    public Option Set(string path, DataETag data, string? leaseId = null)
+    public Option<IStorePathDetail> GetDetail(string path)
     {
+        return _store.TryGetValue(path, out var payload) switch
+        {
+            true => payload.PathDetail,
+            false => StatusCode.NotFound,
+        };
+    }
+
+    public Option<string> Set(string path, DataETag data, string? leaseId, ScopeContext context)
+    {
+        context = context.With(_logger);
+
         if (!FileStoreTool.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
 
         lock (_lock)
         {
             if (IsLeased(path, leaseId)) return (StatusCode.Conflict, "Path is leased");
 
-            _store.AddOrUpdate(path, x => new DirectoryDetail(data.ConvertTo(x), data, null), (x, current) =>
+            var result = _store.AddOrUpdate(path, x => new DirectoryDetail(data.ConvertTo(x), data, null), (x, current) =>
             {
                 var payload = current with
                 {
@@ -102,11 +140,12 @@ public sealed class MemoryStore
                 return payload;
             });
 
-            return StatusCode.OK;
+            context.LogTrace("Set Path={path}, length={length}", path, data.Data.Length);
+            return result.PathDetail.ETag;
         }
     }
 
-    public IReadOnlyList<StorePathDetail> Search(string pattern)
+    public IReadOnlyList<IStorePathDetail> Search(string pattern)
     {
         var query = QueryParameter.Parse(pattern).GetMatcher();
 
@@ -121,8 +160,10 @@ public sealed class MemoryStore
     // ========================================================================
     // Lease
 
-    public Option<string> AcquireLease(string path, TimeSpan leaseDuration)
+    public Option<LeaseRecord> AcquireLease(string path, TimeSpan leaseDuration, ScopeContext context)
     {
+        context = context.With(_logger);
+
         lock (_lock)
         {
             if (!_store.TryGetValue(path, out var payload)) return StatusCode.NotFound;
@@ -134,7 +175,7 @@ public sealed class MemoryStore
                 _ => StatusCode.OK,
             };
 
-            if (result.IsError()) return result.ToOptionStatus<string>();
+            if (result.IsError()) return result.LogStatus(context, "Failed to acquire lease").ToOptionStatus<LeaseRecord>();
 
             LeaseRecord leaseRecord = new(path, leaseDuration);
             var newPayload = payload with { LeaseRecord = leaseRecord };
@@ -142,27 +183,15 @@ public sealed class MemoryStore
             _store[path] = newPayload;
             _leaseStore[newPayload.LeaseRecord.LeaseId] = leaseRecord;
 
-            return newPayload.LeaseRecord.LeaseId;
+            context.LogTrace("Acquire lease Path={path}, leaseId={leaseId}", path, newPayload.LeaseRecord.LeaseId);
+            return newPayload.LeaseRecord;
         }
     }
 
-    public Option<string> BreakLease(string path, TimeSpan leaseDuration)
+    public Option BreakLease(string path, ScopeContext context)
     {
-        lock (_lock)
-        {
-            if (!_store.TryGetValue(path, out var payload)) return StatusCode.NotFound;
+        context = context.With(_logger);
 
-            payload.LeaseRecord?.Action(x => _leaseStore.Remove(x.LeaseId, out var _));
-
-            LeaseRecord newLease = new(path, leaseDuration);
-            _store[path] = payload with { LeaseRecord = newLease };
-
-            return newLease.LeaseId;
-        }
-    }
-
-    public Option ClearLease(string path)
-    {
         lock (_lock)
         {
             if (!_store.TryGetValue(path, out var payload)) return StatusCode.NotFound;
@@ -173,17 +202,21 @@ public sealed class MemoryStore
                 _store[path] = payload with { LeaseRecord = null };
             }
 
+            context.LogTrace("Break lease Path={path}");
             return StatusCode.OK;
         }
     }
 
-    public Option ReleaseLease(string leaseId)
+    public Option ReleaseLease(string leaseId, ScopeContext context)
     {
+        context = context.With(_logger);
+
         lock (_lock)
         {
             if (!_leaseStore.TryRemove(leaseId, out var leaseRecord)) return StatusCode.NotFound;
 
             _store[leaseRecord.Path] = _store[leaseRecord.Path] with { LeaseRecord = null };
+            context.LogTrace("Release lease Path={path}, leaseId={leaseId}", leaseRecord.Path, leaseId);
             return StatusCode.OK;
         }
     }

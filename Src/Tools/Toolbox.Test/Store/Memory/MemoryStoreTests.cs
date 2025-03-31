@@ -1,164 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Store;
-using Toolbox.Tools.Should;
+using Toolbox.Test.Application;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store.Memory;
 
 public class MemoryStoreTests
 {
-    [Fact]
-    public void AddGetRemove()
+    private readonly IServiceProvider _serviceProvider;
+    public readonly IFileStore _fileStore;
+    public readonly ScopeContext _context;
+    public readonly FileStoreFileAccessStandardTests _tests;
+
+    public MemoryStoreTests(ITestOutputHelper outputHelper)
     {
-        var store = new MemoryStore();
-        const string path = "path/data";
-        const string dataValue = "data";
-        const string dataValue2 = "data2";
-        DataETag data = dataValue.ToDataETag();
-        DataETag data2 = dataValue2.ToDataETag();
-
-        store.Exist(path).Should().BeFalse();
-        store.IsLeased(path).Should().BeFalse();
-
-        store.Add(path, data).IsOk().Should().BeTrue();
-        store.Exist(path).Should().BeTrue();
-
-        store.Add(path, data2).IsConflict().Should().BeTrue();
-
-        var readDataTag = store.Get(path);
-        readDataTag.IsOk().Should().BeTrue();
-        readDataTag.Return().Data.BytesToString().Should().Be(dataValue);
-
-        store.Search("*").Action(x =>
-        {
-            x.Count.Should().Be(1);
-            x.First().Path.Should().Be(path);
-        });
-
-        var delete = store.Remove(path);
-        delete.IsOk().Should().BeTrue();
-        store.Exist(path).Should().BeFalse();
-        store.Search("*").Count.Should().Be(0);
-
-        readDataTag = store.Get(path);
-        readDataTag.IsNotFound().Should().BeTrue();
+        _serviceProvider = TestApplication.CreateServiceProvider(outputHelper);
+        _fileStore = _serviceProvider.GetRequiredService<IFileStore>();
+        _context = new ScopeContext(_serviceProvider.GetRequiredService<ILogger<MemoryStoreTests>>());
+        _tests = new FileStoreFileAccessStandardTests(_fileStore, _context);
     }
 
     [Fact]
-    public void AddGetSetRemove()
+    public async Task GivenData_WhenSaved_ShouldWork()
     {
-        var store = new MemoryStore();
-        const string path = "path/data";
-        const string dataValue = "data";
-        const string dataValue2 = "data2";
-        DataETag data = dataValue.ToDataETag();
-        DataETag data2 = dataValue2.ToDataETag();
-
-        store.Exist(path).Should().BeFalse();
-
-        store.Add(path, data).IsOk().Should().BeTrue();
-        store.Exist(path).Should().BeTrue();
-
-        store.Add(path, data2).IsConflict().Should().BeTrue();
-
-        var readDataTag = store.Get(path);
-        readDataTag.IsOk().Should().BeTrue();
-        readDataTag.Return().Data.BytesToString().Should().Be(dataValue);
-
-        store.Search("*").Action(x =>
-        {
-            x.Count.Should().Be(1);
-            x.First().Path.Should().Be(path);
-        });
-
-        store.Set(path, data2).IsOk().Should().BeTrue();
-        store.Exist(path).Should().BeTrue();
-
-        readDataTag = store.Get(path);
-        readDataTag.IsOk().Should().BeTrue();
-        readDataTag.Return().Data.BytesToString().Should().Be(dataValue2);
-
-        store.Search("*").Action(x =>
-        {
-            x.Count.Should().Be(1);
-            x.First().Path.Should().Be(path);
-        });
-
-        var delete = store.Remove(path);
-        delete.IsOk().Should().BeTrue();
-        store.Exist(path).Should().BeFalse();
-        store.Search("*").Count.Should().Be(0);
-
-        readDataTag = store.Get(path);
-        readDataTag.IsNotFound().Should().BeTrue();
+        await _tests.GivenData_WhenSaved_ShouldWork();
     }
 
     [Fact]
-    public async Task ManyAddThreads()
+    public async Task GivenNewFile_WhenAppended_ShouldCreateThenAppend()
     {
-        var store = new MemoryStore();
-        const int count = 100;
-        int rowCount = 0;
-
-        var tasks1 = Enumerable.Range(0, count).Select(x => add(x)).ToArray();
-        var tasks2 = Enumerable.Range(0, count).Reverse().Select(x => add(x)).ToArray();
-
-        var taskEnd = Task.WhenAll(tasks1.Concat(tasks2));
-        await taskEnd;
-
-        store.Search("*").Count.Should().Be(count);
-        rowCount.Should().Be(count);
-
-        Task add(int index) => Task.Run(() =>
-        {
-            var option = store.Add($"path/{index}", index.ToString().ToDataETag());
-            if (option.IsOk()) Interlocked.Increment(ref rowCount);
-        });
+        await _tests.GivenNewFile_WhenAppended_ShouldCreateThenAppend();
     }
 
+    [Fact]
+    public async Task GivenNewFileCreated_WhenAppended_ShouldWork()
+    {
+        await _tests.GivenNewFileCreated_WhenAppended_ShouldWork();
+    }
 
     [Fact]
-    public async Task AddTwoThreads()
+    public async Task GivenExistingFile_WhenAppended_ShouldWork()
     {
-        var store = new MemoryStore();
-        const int count = 100;
-        int rowCount = 0;
-        int attemptCount = 0;
-        int runnerCount = 0;
-        ManualResetEvent readyEvent = new ManualResetEvent(false);
+        await _tests.GivenExistingFile_WhenAppended_ShouldWork();
+    }
 
-        var tasks1 = Task.Run(() => runner(count));
-        var tasks2 = Task.Run(() => runner(count));
-
-        while (runnerCount != 2) await Task.Yield();
-        readyEvent.Set();
-
-        var taskEnd = Task.WhenAll(tasks1, tasks2);
-        await taskEnd;
-
-        store.Search("*").Count.Should().Be(count);
-        rowCount.Should().Be(count);
-        attemptCount.Should().Be(count * 2);
-
-        Task runner(int count)
-        {
-            Interlocked.Increment(ref runnerCount);
-            readyEvent.WaitOne();
-
-            Enumerable.Range(0, count).ForEach(x =>
-            {
-                Interlocked.Increment(ref attemptCount);
-
-                var result = store.Add($"path/{x}", x.ToString().ToDataETag());
-                if(result.IsOk()) Interlocked.Increment(ref rowCount);
-            });
-
-            return Task.CompletedTask;
-        }
+    [Fact]
+    public async Task GivenFiles_WhenSearched_ReturnsCorrectly()
+    {
+        await _tests.GivenFiles_WhenSearched_ReturnsCorrectly();
     }
 }

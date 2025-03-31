@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Frozen;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;

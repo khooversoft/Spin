@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Toolbox.Azure;
 using Toolbox.Graph;
 using Toolbox.Logging;
 using Toolbox.Tools;

@@ -10,7 +10,10 @@ public static class ToolboxStartup
 {
     public static IServiceCollection AddInMemoryFileStore(this IServiceCollection services)
     {
-        //services.NotNull().AddSingleton<IFileStore, InMemoryFileStore>();
+        services.NotNull();
+
+        services.AddSingleton<IFileStore, InMemoryFileStore>();
+        services.AddSingleton<MemoryStore>();
         return services;
     }
 
