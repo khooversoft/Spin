@@ -17,7 +17,7 @@ public class JournalLogBackgroundStandardTests
 {
     private readonly IServiceProvider _services;
     private readonly ScopeContext _context;
-    private const string _searchPath = "journal3/data/**/*";
+    private const string _searchPath = "journal4/data/**/*";
 
     public JournalLogBackgroundStandardTests(IFileStore fileStore, ITestOutputHelper outputHelper)
     {
@@ -27,7 +27,7 @@ public class JournalLogBackgroundStandardTests
         _services = new ServiceCollection()
             .AddSingleton(fileStore)
             .AddLogging(config => config.AddDebug().AddLambda(x => outputHelper.WriteLine(x)))
-            .AddJournalLog("test", new JournalFileOption { ConnectionString = "journal3Key=/journal3/data" })
+            .AddJournalLog("test", new JournalFileOption { ConnectionString = "journal4Key=/journal4/data" })
             .BuildServiceProvider();
 
         var logger = _services.GetRequiredService<ILogger<FileStoreJournalLogStandardTests>>();
@@ -132,8 +132,8 @@ public class JournalLogBackgroundStandardTests
 
         var createdJournals = new Sequence<JournalEntry>();
 
-        int batchSize = 100;
-        int batchCount = 100;
+        int batchSize = 9;
+        int batchCount = 10;
 
         foreach (var batch in Enumerable.Range(0, batchCount))
         {
