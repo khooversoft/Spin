@@ -36,7 +36,9 @@ public static class DatalakeLeaseTool
     }
 
     public static Task<Option<IFileLeasedAccess>> AcquireExclusive(this DataLakeFileClient fileClient, ScopeContext context)
-        => Acquire(fileClient, TimeSpan.FromSeconds(-1), context);
+    {
+        return Acquire(fileClient, TimeSpan.FromSeconds(-1), context);
+    }
 
     public static async Task<Option> Break(this DataLakeFileClient fileClient, ScopeContext context)
     {

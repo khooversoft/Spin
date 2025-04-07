@@ -17,9 +17,9 @@ internal class SystemSettings : ICommandRoute
     private readonly GraphHostManager _graphHostManager;
     private readonly AbortSignal _abortSignal;
     private readonly ScopeContext _context;
-    private readonly ILogger<TraceLog> _logger;
+    private readonly ILogger<SystemSettings> _logger;
 
-    public SystemSettings(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<TraceLog> logger)
+    public SystemSettings(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<SystemSettings> logger)
     {
         _graphHostManager = graphHostManager.NotNull();
         _abortSignal = abortSignal.NotNull();
@@ -42,16 +42,16 @@ internal class SystemSettings : ICommandRoute
             var confirm = x.AddOption<bool>("--confirm", "Confirm destructive operation");
             x.SetHandler(ClearTransactionLogs, jsonFile, confirm);
         }),
-        new CommandSymbol("clear-trace-log", "Clear trace log files").Action(x =>
-        {
-            var jsonFile = x.AddArgument<string>("jsonFile", "Json file with data lake connection details");
-            var confirm = x.AddOption<bool>("--confirm", "Confirm destructive operation");
-            x.SetHandler(ClearTraceLogs, jsonFile, confirm);
-        }),
+        //new CommandSymbol("clear-trace-log", "Clear trace log files").Action(x =>
+        //{
+        //    var jsonFile = x.AddArgument<string>("jsonFile", "Json file with data lake connection details");
+        //    var confirm = x.AddOption<bool>("--confirm", "Confirm destructive operation");
+        //    x.SetHandler(ClearTraceLogs, jsonFile, confirm);
+        //}),
     };
 
     private Task ClearTransactionLogs(string jsonFile, bool confirm) => ClearLogs(jsonFile, GraphConstants.TrxJournal.DiKeyed, confirm);
-    private Task ClearTraceLogs(string jsonFile, bool confirm) => ClearLogs(jsonFile, GraphConstants.Trace.DiKeyed, confirm);
+    //private Task ClearTraceLogs(string jsonFile, bool confirm) => ClearLogs(jsonFile, GraphConstants.Trace.DiKeyed, confirm);
 
     private bool CheckConfirm(bool confirm)
     {
@@ -74,7 +74,7 @@ internal class SystemSettings : ICommandRoute
         foreach (var file in files)
         {
             _context.LogInformation("Deleting file {file}", file);
-            var option = await fileStore.Delete(file, _context);
+            var option = await fileStore.File(file.Path).Delete(_context);
             if (option.IsError()) option.LogStatus(_context, "Failed to delete file {file}", [file]);
         }
     }
@@ -93,7 +93,7 @@ internal class SystemSettings : ICommandRoute
         foreach (var file in files)
         {
             _context.LogInformation($"Deleting file {keyedType} {file}", file);
-            var option = await fileStore.Delete(file, _context);
+            var option = await fileStore.File(file).Delete(_context);
             if (option.IsError()) option.LogStatus(_context, "Failed to delete file {file}", [file]);
         }
     }

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Toolbox.Graph;
 using Toolbox.Logging;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -35,7 +36,7 @@ public class GraphHostManager : IAsyncDisposable
 
             try
             {
-                IDatalakeStore store = _serviceProvider.GetRequiredService<IDatalakeStore>();
+                IFileStore store = _serviceProvider.GetRequiredService<IFileStore>();
             }
             catch (Exception e)
             {
@@ -49,9 +50,9 @@ public class GraphHostManager : IAsyncDisposable
 
     public async Task LoadMap(ScopeContext context)
     {
-        var client = _serviceProvider.NotNull().GetRequiredService<IGraphHost>();
+        var host = _serviceProvider.NotNull().GetRequiredService<IGraphEngine>();
         context.LogInformation("Loading map...");
-        var result = await client.LoadMap(context);
+        var result = await host.InitializeDatabase(context);
         result.LogStatus(context, "Load map result");
     }
 }

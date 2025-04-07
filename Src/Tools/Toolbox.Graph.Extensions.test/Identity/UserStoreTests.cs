@@ -14,15 +14,16 @@ public class UserStoreTests
     [Fact]
     public async Task UserStoreWithGraphInfo()
     {
-        var engineContext = TestTool.CreateGraphEngineHost(_outputHelper);
-        var userStore = engineContext.Engine.ServiceProvider.GetRequiredService<IUserStore<PrincipalIdentity>>();
+        await using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
+
+        var userStore = graphTestClient.Services.GetRequiredService<IUserStore<PrincipalIdentity>>();
 
         PrincipalIdentity user = TestTool.CreateUser();
 
         var createResult = await userStore.CreateAsync(user, default);
         createResult.Succeeded.Should().BeTrue();
-        engineContext.Map.Nodes.Count.Should().Be(1);
-        engineContext.Map.Edges.Count.Should().Be(0);
+        graphTestClient.Map.Nodes.Count.Should().Be(1);
+        graphTestClient.Map.Edges.Count.Should().Be(0);
 
         PrincipalIdentity findUser = (await userStore.FindByIdAsync(user.PrincipalId, default)).NotNull();
         (user == findUser).Should().BeTrue();
@@ -72,7 +73,7 @@ public class UserStoreTests
 
         var deleteResult = await userStore.DeleteAsync(user, default);
         deleteResult.Succeeded.Should().BeTrue();
-        engineContext.Map.Nodes.Count.Should().Be(0);
-        engineContext.Map.Edges.Count.Should().Be(0);
+        graphTestClient.Map.Nodes.Count.Should().Be(0);
+        graphTestClient.Map.Edges.Count.Should().Be(0);
     }
 }

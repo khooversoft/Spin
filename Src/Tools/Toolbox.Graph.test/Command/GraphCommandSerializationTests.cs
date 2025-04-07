@@ -57,8 +57,8 @@ public class GraphCommandSerializationTests
     [Fact]
     public async Task SelectDirectedNodeToEdgeToNodeWithAlias()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 

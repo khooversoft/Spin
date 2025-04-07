@@ -13,10 +13,10 @@ namespace KGraphCmd.Commands;
 internal class TransactionLog : ICommandRoute
 {
     private readonly AbortSignal _abortSignal;
-    private readonly ILogger<TraceLog> _logger;
+    private readonly ILogger<TransactionLog> _logger;
     private readonly GraphHostManager _graphHostManager;
 
-    public TransactionLog(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<TraceLog> logger)
+    public TransactionLog(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<TransactionLog> logger)
     {
         _graphHostManager = graphHostManager.NotNull();
         _abortSignal = abortSignal.NotNull();

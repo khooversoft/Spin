@@ -2,6 +2,7 @@
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Command;
 
@@ -24,20 +25,27 @@ public class NodeForeignKeyTests
         new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
     };
 
+    private readonly ITestOutputHelper _outputHelper;
+
+    public NodeForeignKeyTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
+
     [Fact]
     public async Task NoForeignKey()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set t1=v1;", context);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set t1=v1;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(8);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(0);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(8);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var result = await testClient.Execute("select (key=node8) -> [*] ;", context);
+        var result = await graphTestClient.Execute("select (key=node8) -> [*] ;", context);
         result.IsOk().Should().BeTrue();
 
         var queryResult = result.Return();
@@ -45,24 +53,24 @@ public class NodeForeignKeyTests
         queryResult.Edges.Count.Should().Be(0);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
         compareMap.Count.Should().Be(1);
     }
 
     [Fact]
     public async Task ForeignKeyButNotInTag()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey t1;", context);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey t1;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(8);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(0);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(8);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var result = await testClient.Execute("select (key=node8) -> [*] ;", context);
+        var result = await graphTestClient.Execute("select (key=node8) -> [*] ;", context);
         result.IsOk().Should().BeTrue();
 
         var queryResult = result.Return();
@@ -70,7 +78,7 @@ public class NodeForeignKeyTests
         queryResult.Edges.Count.Should().Be(0);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
         compareMap.Count.Should().Be(1);
         compareMap.OfType<GraphNode>().Select(x => x.Key).Contains("node8").Should().BeTrue();
     }
@@ -78,17 +86,17 @@ public class NodeForeignKeyTests
     [Fact]
     public async Task ForeignKeyInTagButNoReferenceNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeFalse();
 
-        copyMap.Meter.Node.GetCount().Should().Be(7);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(0);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(7);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var result = await testClient.Execute("select (key=node8) -> [*] ;", context);
+        var result = await graphTestClient.Execute("select (key=node8) -> [*] ;", context);
         result.IsOk().Should().BeTrue();
 
         var queryResult = result.Return();
@@ -99,21 +107,20 @@ public class NodeForeignKeyTests
     [Fact]
     public async Task ForeignKeyInTagWithNodeReference()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
 
-        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        var addOption = await graphTestClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
         addOption.IsOk().Should().BeTrue();
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(9);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(9);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var readOption = await testClient.Execute("select (key=node8) ;", context);
+        var readOption = await graphTestClient.Execute("select (key=node8) ;", context);
         readOption.IsOk().Should().BeTrue();
         readOption.Return().Action(x =>
         {
@@ -133,7 +140,7 @@ public class NodeForeignKeyTests
         });
 
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -150,7 +157,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -165,7 +172,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -185,21 +192,20 @@ public class NodeForeignKeyTests
     [Fact]
     public async Task ForeignKeyInTagWithNodeReferenceWithWildcard()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
 
-        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        var addOption = await graphTestClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
         addOption.IsOk().Should().BeTrue();
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email=*;", context);
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email=*;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(9);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(9);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -216,7 +222,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -231,7 +237,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -251,21 +257,20 @@ public class NodeForeignKeyTests
     [Fact]
     public async Task ForeignKeyInTagWithTwoNodeReferenceUsingMatching()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
 
-        (await testClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().Should().BeTrue();
-        (await testClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await graphTestClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await graphTestClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().Should().BeTrue();
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email*;", context);
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email*;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(10);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(10);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
 
-        var readOption = await testClient.Execute("select (key=node8) ;", context);
+        var readOption = await graphTestClient.Execute("select (key=node8) ;", context);
         readOption.IsOk().Should().BeTrue();
         readOption.Return().Action(x =>
         {
@@ -281,7 +286,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -304,7 +309,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -319,7 +324,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=email:name1@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=email:name1@domain.com) <- [*] <- (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -334,7 +339,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.Execute("select (key=email:name2@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=email:name2@domain.com) <- [*] <- (*) ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -353,28 +358,28 @@ public class NodeForeignKeyTests
     [Fact]
     public async Task ForeignKeyRemoved()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
-        copyMap.Meter.Node.GetCount().Should().Be(7);
-        copyMap.Meter.Edge.GetCount().Should().Be(5);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
 
-        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(5);
+
+        var addOption = await graphTestClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
         addOption.IsOk().Should().BeTrue();
-        copyMap.Meter.Node.GetCount().Should().Be(8);
-        copyMap.Meter.Edge.GetCount().Should().Be(5);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(8);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(5);
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(9);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
-        copyMap.Meter.Edge.GetCount().Should().Be(6);
-        copyMap.Meter.Edge.GetAdded().Should().Be(6);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(9);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(6);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(6);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(0);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -391,19 +396,19 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 foreignkey -email;", context)).Action(result =>
+        (await graphTestClient.ExecuteBatch("set node key=node8 foreignkey -email;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(9);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
-        copyMap.Meter.Edge.GetCount().Should().Be(5);
-        copyMap.Meter.Edge.GetAdded().Should().Be(6);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(9);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(5);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(6);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(1);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -418,28 +423,28 @@ public class NodeForeignKeyTests
     [Fact]
     public async Task ForeignKeyTagRemoved()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
-        copyMap.Meter.Node.GetCount().Should().Be(7);
-        copyMap.Meter.Edge.GetCount().Should().Be(5);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
 
-        var addOption = await testClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(5);
+
+        var addOption = await graphTestClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
         addOption.IsOk().Should().BeTrue();
-        copyMap.Meter.Node.GetCount().Should().Be(8);
-        copyMap.Meter.Edge.GetCount().Should().Be(5);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(8);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(5);
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(9);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
-        copyMap.Meter.Edge.GetCount().Should().Be(6);
-        copyMap.Meter.Edge.GetAdded().Should().Be(6);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(9);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(6);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(6);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(0);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -456,19 +461,19 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 set -email;", context)).Action(result =>
+        (await graphTestClient.ExecuteBatch("set node key=node8 set -email;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(9);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
-        copyMap.Meter.Edge.GetCount().Should().Be(5);
-        copyMap.Meter.Edge.GetAdded().Should().Be(6);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(9);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(5);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(6);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(1);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -479,19 +484,19 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 set email=email:name@domain.com;", context)).Action(result =>
+        (await graphTestClient.ExecuteBatch("set node key=node8 set email=email:name@domain.com;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(9);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(2);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
-        copyMap.Meter.Edge.GetCount().Should().Be(6);
-        copyMap.Meter.Edge.GetAdded().Should().Be(7);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(9);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(2);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(6);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(1);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -512,25 +517,24 @@ public class NodeForeignKeyTests
     [Fact]
     public async Task TwoForeignKeyTagRemoved()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var context = testClient.GetScopeContext<NodeForeignKeyTests>();
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeForeignKeyTests>();
 
-        (await testClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().Should().BeTrue();
-        (await testClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().Should().BeTrue();
-        (await testClient.ExecuteBatch("add node key=email:name3@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await graphTestClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await graphTestClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().Should().BeTrue();
+        (await graphTestClient.ExecuteBatch("add node key=email:name3@domain.com ;", context)).IsOk().Should().BeTrue();
 
-        var newMapOption = await testClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email* ;", context);
+        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email* ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Meter.Node.GetCount().Should().Be(11);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
-        copyMap.Meter.Edge.GetCount().Should().Be(7);
-        copyMap.Meter.Edge.GetAdded().Should().Be(7);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(11);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(0);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -553,19 +557,19 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 set -email1;", context)).Action(result =>
+        (await graphTestClient.ExecuteBatch("set node key=node8 set -email1;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(11);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(1);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
-        copyMap.Meter.Edge.GetCount().Should().Be(5);
-        copyMap.Meter.Edge.GetAdded().Should().Be(7);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(2);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(11);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(5);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(2);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 
@@ -579,19 +583,19 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await testClient.ExecuteBatch("set node key=node8 set email1=email:name3@domain.com ;", context)).Action(result =>
+        (await graphTestClient.ExecuteBatch("set node key=node8 set email1=email:name3@domain.com ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(11);
-        copyMap.Meter.Node.GetForeignKeyAdded().Should().Be(2);
-        copyMap.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
-        copyMap.Meter.Edge.GetCount().Should().Be(7);
-        copyMap.Meter.Edge.GetAdded().Should().Be(9);
-        copyMap.Meter.Edge.GetDeleted().Should().Be(2);
+        graphTestClient.Map.Meter.Node.GetCount().Should().Be(11);
+        graphTestClient.Map.Meter.Node.GetForeignKeyAdded().Should().Be(2);
+        graphTestClient.Map.Meter.Node.GetForeignKeyRemoved().Should().Be(1);
+        graphTestClient.Map.Meter.Edge.GetCount().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetAdded().Should().Be(9);
+        graphTestClient.Map.Meter.Edge.GetDeleted().Should().Be(2);
 
-        (await testClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphTestClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
         {
             result.IsOk().Should().BeTrue();
 

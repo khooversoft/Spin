@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
@@ -13,14 +12,12 @@ public class GraphTransactionTests
     [Fact]
     public async Task SimpleSetOfCommandsWithFailuresKey()
     {
-        await using var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
-        IFileStore fileStore = testClient.ServiceProvider.GetRequiredService<IFileStore>();
-        IJournalFile transactionLog = testClient.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed);
-        ILogger<GraphTransactionTests> logger = testClient.ServiceProvider.GetRequiredService<ILogger<GraphTransactionTests>>();
-        int expectedJournalCount = 0;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
-        var context = new ScopeContext(logger);
+        IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
+        IJournalFile transactionLog = testClient.Services.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed);
+        var context = testClient.CreateScopeContext<GraphTransactionTests>();
+        int expectedJournalCount = 0;
 
         string q = """
             add node key=node1 set t1;
@@ -35,8 +32,8 @@ public class GraphTransactionTests
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.OK));
         });
 
-        map.Nodes.Count.Should().Be(2);
-        map.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Should().Be(2);
+        testClient.Map.Edges.Count.Should().Be(0);
 
         expectedJournalCount += 4;
         IReadOnlyList<JournalEntry> journals = await transactionLog.ReadJournals(context);
@@ -49,8 +46,8 @@ public class GraphTransactionTests
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        map.Nodes.Count.Should().Be(2);
-        map.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Should().Be(2);
+        testClient.Map.Edges.Count.Should().Be(0);
 
         journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
@@ -72,8 +69,8 @@ public class GraphTransactionTests
             x.Value.Items[3].Action(y => TestReturn(y, StatusCode.OK));
         });
 
-        map.Nodes.Count.Should().Be(4);
-        map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Should().Be(4);
+        testClient.Map.Edges.Count.Should().Be(2);
 
         expectedJournalCount += 6;
         journals = await transactionLog.ReadJournals(context);
@@ -99,11 +96,11 @@ public class GraphTransactionTests
         journals = await transactionLog.ReadJournals(context);
         journals.Count.Should().Be(expectedJournalCount);
 
-        map.Nodes.Count.Should().Be(4);
-        map.Nodes.OrderBy(x => x.Key).Select(x => x.Key).SequenceEqual(["node1", "node2", "node3", "node4"]).Should().BeTrue();
+        testClient.Map.Nodes.Count.Should().Be(4);
+        testClient.Map.Nodes.OrderBy(x => x.Key).Select(x => x.Key).SequenceEqual(["node1", "node2", "node3", "node4"]).Should().BeTrue();
 
-        map.Edges.Count.Should().Be(2);
-        map.Edges.Select(x => (x.FromKey, x.ToKey)).OrderBy(x => x).SequenceEqual([("node1", "node2"), ("node3", "node4")]).Should().BeTrue();
+        testClient.Map.Edges.Count.Should().Be(2);
+        testClient.Map.Edges.Select(x => (x.FromKey, x.ToKey)).OrderBy(x => x).SequenceEqual([("node1", "node2"), ("node3", "node4")]).Should().BeTrue();
     }
 
     private void TestReturn(QueryResult graphResult, StatusCode statusCode)

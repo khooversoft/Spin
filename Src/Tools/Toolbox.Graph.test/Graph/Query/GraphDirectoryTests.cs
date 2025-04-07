@@ -2,11 +2,14 @@
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Graph.Query;
 
 public class GraphDirectoryTests
 {
+    private readonly ITestOutputHelper _outputHelper;
+
     private GraphMap GetMap()
     {
         string mapJson = """
@@ -53,13 +56,18 @@ public class GraphDirectoryTests
         return map;
     }
 
+    public GraphDirectoryTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
 
     [Fact]
     public async Task DirectorySearchQuery()
     {
-        var map = GetMap();
-        var testClient = GraphTestStartup.CreateGraphTestHost(map);
-        var search = (await testClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", NullScopeContext.Default)).ThrowOnError().Return();
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(GetMap().Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<GraphDirectoryTests>();
+
+        var search = (await graphTestClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", context)).ThrowOnError().Return();
         Assert.NotNull(search);
         search.NotNull();
         search.Items.Count.Should().Be(1);

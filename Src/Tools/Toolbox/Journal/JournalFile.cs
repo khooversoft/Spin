@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
-using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Logging;
@@ -30,7 +29,8 @@ public class JournalFile : IJournalFile, IAsyncDisposable
     private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
     private readonly LogSequenceNumber _logSequenceNumber = new LogSequenceNumber();
     private readonly Func<IReadOnlyList<JournalEntry>, ScopeContext, Task<Option>> _writer;
-    private ActionBlock<IReadOnlyList<JournalEntry>>? _writeBlock;
+    private AutoFlushQueue<JournalEntry>? _autoFlushQueue;
+    private readonly ScopeContext _context;
 
     public JournalFile(JournalFileOption fileOption, IFileStore fileStore, ILogger<JournalFile> logger)
     {
@@ -54,7 +54,8 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         if (_fileOption.UseBackgroundWriter)
         {
             _logger.LogInformation("JournalFile using background writer, name={name}", _name);
-            _writeBlock = new ActionBlock<IReadOnlyList<JournalEntry>>(async x => await InternalWrite(x, NullScopeContext.Default));
+            _context = new ScopeContext(_logger);
+            _autoFlushQueue = new AutoFlushQueue<JournalEntry>(1000, TimeSpan.FromMilliseconds(100), async x => await FlushQueue(x, _context));
             _writer = QueueWrite;
             return;
         }
@@ -65,11 +66,10 @@ public class JournalFile : IJournalFile, IAsyncDisposable
 
     public async Task Close()
     {
-        var writeBlock = Interlocked.Exchange(ref _writeBlock, null);
-        if (writeBlock == null) return;
+        var autoFlushQueue = Interlocked.Exchange(ref _autoFlushQueue, null);
+        if (autoFlushQueue == null) return;
 
-        writeBlock.Complete();
-        await writeBlock.Completion;
+        await autoFlushQueue.Complete();
     }
 
     public IJournalTrx CreateTransactionContext(string? transactionId = null) => transactionId switch
@@ -158,8 +158,14 @@ public class JournalFile : IJournalFile, IAsyncDisposable
     private async Task<Option> QueueWrite(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
     {
         context.LogTrace("Queueing write journal entries, count={count}", journalEntries.Count);
-        await _writeBlock.NotNull().SendAsync(journalEntries.ToArray(), context.CancellationToken);
+        await _autoFlushQueue.NotNull().Enqueue(journalEntries, context);
 
         return StatusCode.OK;
+    }
+
+    private async Task FlushQueue(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
+    {
+        context.LogTrace("Flushing queue journal entries, count={count}", journalEntries.Count);
+        await InternalWrite(journalEntries, context);
     }
 }

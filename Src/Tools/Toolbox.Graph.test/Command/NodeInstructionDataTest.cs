@@ -1,5 +1,6 @@
 ﻿using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Command;
 
@@ -22,22 +23,29 @@ public class NodeInstructionDataTest
         new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
     };
 
+    private readonly ITestOutputHelper _outputHelper;
+
+    public NodeInstructionDataTest(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
+
     [Fact]
     public async Task SingleNodeWithData()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeInstructionDataTest>();
 
         var nodeData = new NodeData { Name = "node8", Age = 40 };
 
-        await CreateNode("node10", nodeData, testClient);
+        await CreateNode("node10", nodeData, graphTestClient);
 
         var getNode = new SelectCommandBuilder()
             .AddNodeSearch(x => x.SetNodeKey("node10"))
             .AddDataName("entity")
             .Build();
 
-        var readOption = await testClient.Execute(getNode, NullScopeContext.Default);
+        var readOption = await graphTestClient.Execute(getNode, context);
         readOption.IsOk().Should().BeTrue();
         var read = readOption.Return();
         read.Nodes.Count.Should().Be(1);
@@ -50,21 +58,21 @@ public class NodeInstructionDataTest
     [Fact]
     public async Task TwoNodeWithData()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<NodeInstructionDataTest>();
 
         var nodeData1 = new NodeData { Name = "node10", Age = 40 };
-        await CreateNode("node10", nodeData1, testClient);
+        await CreateNode("node10", nodeData1, graphTestClient);
 
         var nodeData2 = new NodeData { Name = "node11", Age = 55 };
-        await CreateNode("node11", nodeData2, testClient);
+        await CreateNode("node11", nodeData2, graphTestClient);
 
         var getNode = new SelectCommandBuilder()
             .AddNodeSearch()
             .AddDataName("entity")
             .Build();
 
-        var readOption = await testClient.Execute(getNode, NullScopeContext.Default);
+        var readOption = await graphTestClient.Execute(getNode, NullScopeContext.Default);
         readOption.IsOk().Should().BeTrue();
         var read = readOption.Return();
         read.Nodes.Count.Should().Be(9);
@@ -82,7 +90,7 @@ public class NodeInstructionDataTest
         faileRead.IsError().Should().BeTrue();
     }
 
-    private static async Task CreateNode(string nodeKey, NodeData nodeData, GraphTestClient testClient)
+    private static async Task CreateNode(string nodeKey, NodeData nodeData, GraphHostService testClient)
     {
         var cmd = new NodeCommandBuilder()
             .SetNodeKey(nodeKey)

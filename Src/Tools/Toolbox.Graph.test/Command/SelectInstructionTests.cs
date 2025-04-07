@@ -1,6 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Command;
 
@@ -23,14 +24,20 @@ public class SelectInstructionTests
         new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
         new GraphEdge("node5", "node4", edgeType : "et1", tags: "created"),
     };
+    private readonly ITestOutputHelper _outputHelper;
 
+    public SelectInstructionTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
 
     [Fact]
     public async Task SelectDirectedNodeToEdge()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (*) -> [*] ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.Execute("select (*) -> [*] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -52,20 +59,21 @@ public class SelectInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        copyMap.Meter.Node.GetIndexHit().Should().Be(0);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Node.GetIndexScan().Should().Be(1);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(7);
-        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexHit().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexScan().Should().Be(1);
+        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
     }
 
     [Fact]
     public async Task SelectReverseNodeToEdge()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (*) <- [*] ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.Execute("select (*) <- [*] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -87,20 +95,21 @@ public class SelectInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        copyMap.Meter.Node.GetIndexHit().Should().Be(0);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Node.GetIndexScan().Should().Be(1);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(7);
-        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexHit().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexScan().Should().Be(1);
+        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(7);
+        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
     }
 
     [Fact]
     public async Task SelectDirectedJoinEdge()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select [*] -> (*) ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.Execute("select [*] -> (*) ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -112,20 +121,21 @@ public class SelectInstructionTests
 
         result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).Should().BeTrue();
 
-        copyMap.Meter.Node.GetIndexHit().Should().Be(6);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Node.GetIndexScan().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexScan().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetIndexHit().Should().Be(6);
+        graphTestClient.Map.Meter.Node.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(1);
     }
 
     [Fact]
     public async Task SelectDirectedNodeToEdgeToNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.Execute("select (*) -> [*] -> (*) ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.Execute("select (*) -> [*] -> (*) ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -141,9 +151,10 @@ public class SelectInstructionTests
     [Fact]
     public async Task SelectDirectedNodeToEdgeToNodeWithAlias()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -176,9 +187,10 @@ public class SelectInstructionTests
     [Fact]
     public async Task SelectRightNodeToEdge()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select (key=node4) <- [*] ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("select (key=node4) <- [*] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -199,20 +211,21 @@ public class SelectInstructionTests
             x.Edges.Select(x => (x.FromKey, x.ToKey)).SequenceEqual(expected).Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetIndexHit().Should().Be(1);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Node.GetIndexScan().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(2);
-        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexHit().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(2);
+        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
     }
 
     [Fact]
     public async Task SelectFullNodeToEdge()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select (key=node4) <-> [*] ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("select (key=node4) <-> [*] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -235,20 +248,21 @@ public class SelectInstructionTests
             x.Edges.Select(x => (x.FromKey, x.ToKey)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetIndexHit().Should().Be(1);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Node.GetIndexScan().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(4);
-        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexHit().Should().Be(1);
+        graphTestClient.Map.Meter.Node.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(4);
+        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
     }
 
     [Fact]
     public async Task SelectRightJoinEdgeToNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select [knows] <- (*) ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("select [knows] <- (*) ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -263,20 +277,21 @@ public class SelectInstructionTests
             x.Nodes.Select(x => x.Key).SequenceEqual(["node1"]).Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetIndexHit().Should().Be(2);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Node.GetIndexScan().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
-        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexHit().Should().Be(2);
+        graphTestClient.Map.Meter.Node.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(3);
+        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
     }
 
     [Fact]
     public async Task SelectFullEdgeToNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var newMapOption = await testClient.ExecuteBatch("select [knows] <-> (*) ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionTests>();
+
+        var newMapOption = await graphTestClient.ExecuteBatch("select [knows] <-> (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -291,11 +306,11 @@ public class SelectInstructionTests
             x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).Should().BeTrue();
         });
 
-        copyMap.Meter.Node.GetIndexHit().Should().Be(4);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Node.GetIndexScan().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexHit().Should().Be(3);
-        copyMap.Meter.Edge.GetIndexMissed().Should().Be(0);
-        copyMap.Meter.Edge.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexHit().Should().Be(4);
+        graphTestClient.Map.Meter.Node.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Node.GetIndexScan().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(3);
+        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
+        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
     }
 }

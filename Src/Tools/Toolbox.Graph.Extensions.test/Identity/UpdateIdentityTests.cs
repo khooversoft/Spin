@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
@@ -14,7 +15,9 @@ public class UpdateIdentityTests
     [Fact]
     public async Task UpdateUserEmailInfo()
     {
-        var engineContext = TestTool.CreateGraphEngineHost(_outputHelper);
+        await using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
+        var context = graphTestClient.CreateScopeContext<UpdateIdentityTests>();
+        var identityClient = graphTestClient.Services.GetRequiredService<IdentityClient>();
 
         var userId = "userName1@company.com";
         var userEmail = "userName1@domain1.com";
@@ -36,9 +39,9 @@ public class UpdateIdentityTests
 
         user.Validate().IsOk().Should().BeTrue();
 
-        await TestTool.CreateAndVerify(user, engineContext);
-        engineContext.Map.Nodes.Count.Should().Be(1);
-        engineContext.Map.Edges.Count.Should().Be(0);
+        await TestTool.CreateAndVerify(user, graphTestClient, context);
+        graphTestClient.Map.Nodes.Count.Should().Be(1);
+        graphTestClient.Map.Edges.Count.Should().Be(0);
 
         var list = new (string indexName, string key)[]
         {
@@ -47,13 +50,13 @@ public class UpdateIdentityTests
             ("userName", "userName1"),
         };
 
-        VerifyIndex(engineContext, list);
+        VerifyIndex(graphTestClient, list);
 
         var updatedUser = user with { Email = "newUserName@domainNew.com" };
 
-        await TestTool.CreateAndVerify(updatedUser, engineContext);
-        engineContext.Map.Nodes.Count.Should().Be(1);
-        engineContext.Map.Edges.Count.Should().Be(0);
+        await TestTool.CreateAndVerify(updatedUser, graphTestClient, context);
+        graphTestClient.Map.Nodes.Count.Should().Be(1);
+        graphTestClient.Map.Edges.Count.Should().Be(0);
 
         list = new (string indexName, string key)[]
         {
@@ -62,16 +65,16 @@ public class UpdateIdentityTests
             ("userName", "userName1"),
         };
 
-        VerifyIndex(engineContext, list);
+        VerifyIndex(graphTestClient, list);
 
-        var deleteResult = await engineContext.IdentityClient.Delete(userId, engineContext.Context);
+        var deleteResult = await identityClient.Delete(userId, context);
         deleteResult.IsOk().Should().BeTrue();
-        engineContext.Map.Nodes.Count.Should().Be(0);
-        engineContext.Map.Edges.Count.Should().Be(0);
+        graphTestClient.Map.Nodes.Count.Should().Be(0);
+        graphTestClient.Map.Edges.Count.Should().Be(0);
 
         var selectCmd = new SelectCommandBuilder().AddNodeSearch(x => x.SetNodeKey(userId)).Build();
 
-        var deleteOption = await engineContext.GraphClient.Execute(selectCmd, engineContext.Context);
+        var deleteOption = await graphTestClient.Execute(selectCmd, context);
         deleteOption.IsOk().Should().BeTrue();
         deleteOption.Return().Action(x =>
         {
@@ -80,11 +83,11 @@ public class UpdateIdentityTests
         });
     }
 
-    private static void VerifyIndex(TestContext engineContext, (string indexName, string key)[] list)
+    private static void VerifyIndex(GraphHostService graphHostService, (string indexName, string key)[] list)
     {
         foreach (var item in list)
         {
-            var r = engineContext.Map.Nodes.LookupIndex(item.indexName, item.key);
+            var r = graphHostService.Map.Nodes.LookupIndex(item.indexName, item.key);
             r.IsOk().Should().BeTrue();
             var rv = r.Return();
             rv.NodeKey.Should().Be("user:username1@company.com");

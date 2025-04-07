@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Graph.Extensions.test.Application;
 using Toolbox.Graph.Extensions.test.Tools;
-using Toolbox.Graph.Extensions.Testing;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.Extensions.test.PrincipalGroup;
 
@@ -16,24 +17,31 @@ public class SecurityGroupClientTests
     private const string _user4 = "user4@domain.com";
     private const string _groupid1 = "groupid1";
     private const string _groupid2 = "groupid2";
+    private readonly ITestOutputHelper _outputHelper;
+
+    public SecurityGroupClientTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
 
     [Fact]
     public async Task Lifecycle()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var client = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<SecurityGroupClientTests>();
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<SecurityGroupClientTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user2, "user 2", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user2, "user 2", graphHostService, context);
 
         var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]);
 
-        var addResult = await client.Create(groupRecord, context);
+        var addResult = await groupClient.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();
 
-        var readOption = await client.GetContext(_groupid1, _user1).Get(context);
+        var readOption = await groupClient.GetContext(_groupid1, _user1).Get(context);
         readOption.IsOk().Should().BeTrue();
         (groupRecord == readOption.Return()).Should().BeTrue();
 
@@ -42,14 +50,14 @@ public class SecurityGroupClientTests
             Name = "new name"
         };
 
-        var updateOption = await client.GetContext(_groupid1, _user2).Set(newGroupRecord, context);
+        var updateOption = await groupClient.GetContext(_groupid1, _user2).Set(newGroupRecord, context);
         updateOption.IsOk().Should().BeTrue();
 
-        readOption = await client.GetContext(_groupid1, _user2).Get(context);
+        readOption = await groupClient.GetContext(_groupid1, _user2).Get(context);
         readOption.IsOk().Should().BeTrue();
         (newGroupRecord == readOption.Return()).Should().BeTrue();
 
-        var listOption = await client.GroupsForPrincipalId(_user1, context);
+        var listOption = await groupClient.GroupsForPrincipalId(_user1, context);
         listOption.IsOk().Should().BeTrue();
         listOption.Return().Action(x =>
         {
@@ -57,30 +65,31 @@ public class SecurityGroupClientTests
             x[0].Should().Be(_groupid1);
         });
 
-        var deleteOption = await client.GetContext(_groupid1, _user2).Delete(context);
+        var deleteOption = await groupClient.GetContext(_groupid1, _user2).Delete(context);
         deleteOption.IsOk().Should().BeTrue();
 
-        readOption = await client.GetContext(_groupid1, _user2).Get(context);
+        readOption = await groupClient.GetContext(_groupid1, _user2).Get(context);
         readOption.IsNotFound().Should().BeTrue();
     }
 
     [Fact]
     public async Task LifecycleWithContext()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var client = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<SecurityGroupClientTests>();
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<SecurityGroupClientTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user2, "user 2", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user2, "user 2", graphHostService, context);
 
         var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]);
 
-        var addResult = await client.Create(groupRecord, context);
+        var addResult = await groupClient.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();
 
-        var readOption = await client.GetContext(_groupid1, _user1).Get(context);
+        var readOption = await groupClient.GetContext(_groupid1, _user1).Get(context);
         readOption.IsOk().Should().BeTrue();
         (groupRecord == readOption.Return()).Should().BeTrue();
 
@@ -90,7 +99,7 @@ public class SecurityGroupClientTests
         };
 
         // Use this context
-        var contributorContext = client.GetContext(_groupid1, _user2);
+        var contributorContext = groupClient.GetContext(_groupid1, _user2);
 
         var updateOption = await contributorContext.Set(newGroupRecord, context);
         updateOption.IsOk().Should().BeTrue();
@@ -99,7 +108,7 @@ public class SecurityGroupClientTests
         readOption.IsOk().Should().BeTrue();
         (newGroupRecord == readOption.Return()).Should().BeTrue();
 
-        var listOption = await client.GroupsForPrincipalId(_user1, context);
+        var listOption = await groupClient.GroupsForPrincipalId(_user1, context);
         listOption.IsOk().Should().BeTrue();
         listOption.Return().Action(x =>
         {
@@ -117,25 +126,26 @@ public class SecurityGroupClientTests
     [Fact]
     public async Task UsersWithDifferentAccess()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var client = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<SecurityGroupClientTests>();
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<SecurityGroupClientTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user2, "user 2", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user3, "user 3", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user4, "user 4", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user2, "user 2", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user3, "user 3", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user4, "user 4", graphHostService, context);
 
         var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner), (_user4, SecurityAccess.Contributor)]);
 
-        var addResult = await client.Create(groupRecord, context);
+        var addResult = await groupClient.Create(groupRecord, context);
         addResult.IsOk().Should().BeTrue();
 
-        (await client.GetContext(_groupid1, _user2).Get(context)).IsUnauthorized().Should().BeTrue();
-        (await client.GetContext(_groupid1, _user4).Get(context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user2).Get(context)).IsUnauthorized().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user4).Get(context)).IsOk().Should().BeTrue();
 
-        var readOption = await client.GetContext(_groupid1, _user1).Get(context);
+        var readOption = await groupClient.GetContext(_groupid1, _user1).Get(context);
         readOption.IsOk().Should().BeTrue();
         (groupRecord == readOption.Return()).Should().BeTrue();
 
@@ -144,46 +154,47 @@ public class SecurityGroupClientTests
             Name = "new name"
         };
 
-        (await client.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsForbidden().Should().BeTrue();
-        (await client.GetContext(_groupid1, _user2).Set(newGroupRecord, context)).IsUnauthorized().Should().BeTrue();
-        (await client.GetContext(_groupid1, _user3).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
-        (await client.GetContext(_groupid1, _user4).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsForbidden().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user2).Set(newGroupRecord, context)).IsUnauthorized().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user3).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user4).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
 
-        var x = await client.GetContext(_groupid1, _user4).SetAccess(_user1, SecurityAccess.Owner, context);
-        (await client.GetContext(_groupid1, _user4).SetAccess(_user1, SecurityAccess.Owner, context)).IsForbidden().Should().BeTrue();
-        (await client.GetContext(_groupid1, _user3).SetAccess(_user1, SecurityAccess.Owner, context)).IsOk().Should().BeTrue();
-        (await client.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
+        var x = await groupClient.GetContext(_groupid1, _user4).SetAccess(_user1, SecurityAccess.Owner, context);
+        (await groupClient.GetContext(_groupid1, _user4).SetAccess(_user1, SecurityAccess.Owner, context)).IsForbidden().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user3).SetAccess(_user1, SecurityAccess.Owner, context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
 
-        (await client.GetContext(_groupid1, _user4).DeleteAccess(_user1, context)).IsForbidden().Should().BeTrue();
-        (await client.GetContext(_groupid1, _user3).DeleteAccess(_user1, context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user4).DeleteAccess(_user1, context)).IsForbidden().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user3).DeleteAccess(_user1, context)).IsOk().Should().BeTrue();
     }
 
     [Fact]
     public async Task PrincipalGroupSearch()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var client = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<SecurityGroupClientTests>();
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<SecurityGroupClientTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user2, "user 2", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user3, "user 3", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user4, "user 4", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user2, "user 2", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user3, "user 3", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user4, "user 4", graphHostService, context);
 
         await CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]).Func(async x =>
         {
-            var result = await client.Create(x, context);
+            var result = await groupClient.Create(x, context);
             result.IsOk().Should().BeTrue();
         });
 
         await CreateGroup(_groupid2, "group 2", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner)]).Func(async x =>
         {
-            var addResult1 = await client.Create(x, context);
+            var addResult1 = await groupClient.Create(x, context);
             addResult1.IsOk().Should().BeTrue();
         });
 
-        (await client.GroupsForPrincipalId(_user1, context)).Action(x =>
+        (await groupClient.GroupsForPrincipalId(_user1, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -193,7 +204,7 @@ public class SecurityGroupClientTests
             });
         });
 
-        (await client.GroupsForPrincipalId(_user2, context)).Action(x =>
+        (await groupClient.GroupsForPrincipalId(_user2, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -203,7 +214,7 @@ public class SecurityGroupClientTests
             });
         });
 
-        (await client.GroupsForPrincipalId(_user3, context)).Action(x =>
+        (await groupClient.GroupsForPrincipalId(_user3, context)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().Action(y =>
@@ -213,7 +224,7 @@ public class SecurityGroupClientTests
             });
         });
 
-        (await client.GroupsForPrincipalId(_user4, context)).Action(x =>
+        (await groupClient.GroupsForPrincipalId(_user4, context)).Action(x =>
         {
             x.IsNotFound().Should().BeTrue();
         });

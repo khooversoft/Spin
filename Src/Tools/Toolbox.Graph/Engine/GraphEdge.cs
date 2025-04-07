@@ -53,7 +53,7 @@ public sealed record GraphEdge : IGraphCommon
 
     public string FromKey { get; }
     public string ToKey { get; }
-    public string EdgeType { get; private init; }
+    public string EdgeType { get; }
     public IReadOnlyDictionary<string, string?> Tags { get; init; } = FrozenDictionary<string, string?>.Empty;
     public DateTime CreatedDate { get; init; } = DateTime.UtcNow;
     [JsonIgnore] public string TagsString => Tags.ToTagsString();

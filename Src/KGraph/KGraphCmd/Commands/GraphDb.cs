@@ -13,10 +13,10 @@ namespace KGraphCmd.Commands;
 internal class GraphDb : ICommandRoute
 {
     private readonly AbortSignal _abortSignal;
-    private readonly ILogger<TraceLog> _logger;
+    private readonly ILogger<GraphDb> _logger;
     private readonly GraphHostManager _graphHostManager;
 
-    public GraphDb(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<TraceLog> logger)
+    public GraphDb(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<GraphDb> logger)
     {
         _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
@@ -94,7 +94,7 @@ internal class GraphDb : ICommandRoute
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
         await _graphHostManager.LoadMap(context);
 
-        IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
+        IGraphEngine graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphEngine>();
         context.LogInformation("Dumping nodes, count={count}", graphHost.Map.Nodes.Count);
 
         DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
@@ -116,7 +116,7 @@ internal class GraphDb : ICommandRoute
         var context = new ScopeContext(_logger, _abortSignal.GetToken());
         await _graphHostManager.LoadMap(context);
 
-        IGraphHost graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphHost>();
+        IGraphEngine graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphEngine>();
         context.LogInformation("Dumping edges, count={count}", graphHost.Map.Edges.Count);
 
         DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;

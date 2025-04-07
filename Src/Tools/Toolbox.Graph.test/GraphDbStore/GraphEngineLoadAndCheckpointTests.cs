@@ -5,20 +5,27 @@ using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.GraphDbStore;
 
 public class GraphEngineLoadAndCheckpointTests
 {
+    private readonly ITestOutputHelper _outputHelper;
+
+    public GraphEngineLoadAndCheckpointTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
+
     [Fact]
     public async Task EmptyDbSave()
     {
-        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        IGraphHost host = engine.ServiceProvider.GetRequiredService<IGraphHost>();
-        IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
-        var context = engine.GetScopeContext<GraphEngineLoadAndCheckpointTests>();
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
+        IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
 
-        await host.CheckpointMap(context);
+        await graphTestClient.GraphEngine.CheckpointMap(context);
 
         (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {
@@ -34,11 +41,10 @@ public class GraphEngineLoadAndCheckpointTests
     [Fact]
     public async Task SimpleMapDbRoundTrip()
     {
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
+        IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
         const int count = 5;
-        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        IGraphHost host = engine.ServiceProvider.GetRequiredService<IGraphHost>();
-        IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
-        var context = engine.GetScopeContext<GraphEngineLoadAndCheckpointTests>();
 
         var seq = new Sequence<string>();
 
@@ -46,7 +52,7 @@ public class GraphEngineLoadAndCheckpointTests
         seq += Enumerable.Range(0, count - 1).Select(x => new EdgeCommandBuilder($"node-{x}", $"node-{x + 1}", "et").Build());
 
         var cmd = seq.Join(Environment.NewLine);
-        var eResult = await engine.ExecuteBatch(cmd, context);
+        var eResult = await graphTestClient.ExecuteBatch(cmd, context);
         eResult.IsOk().Should().BeTrue(eResult.ToString());
 
         (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
@@ -72,11 +78,11 @@ public class GraphEngineLoadAndCheckpointTests
     [Fact]
     public async Task LoadInitialDatabase()
     {
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(sharedMode: true, logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
+        IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
+        IGraphEngine host = graphTestClient.Services.GetRequiredService<IGraphEngine>();
         const int count = 5;
-        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost();
-        IGraphHost host = engine.ServiceProvider.GetRequiredService<IGraphHost>();
-        IFileStore fileStore = engine.ServiceProvider.GetRequiredService<IFileStore>();
-        var context = engine.GetScopeContext<GraphEngineLoadAndCheckpointTests>();
 
         var expectedMap = new GraphMap();
         Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
@@ -85,9 +91,9 @@ public class GraphEngineLoadAndCheckpointTests
         GraphSerialization dbJson = expectedMap.ToSerialization();
         (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().Should().BeTrue();
 
-        (await host.LoadMap(context)).IsOk().Should().BeTrue();
+        (await host.InitializeDatabase(context)).IsOk().Should().BeTrue();
 
-        var compareMap = GraphCommandTools.CompareMap(expectedMap, host.Map, true);
+        var compareMap = GraphCommandTools.CompareMap(expectedMap, graphTestClient.Map, true);
         compareMap.Count.Should().Be(0);
     }
 }

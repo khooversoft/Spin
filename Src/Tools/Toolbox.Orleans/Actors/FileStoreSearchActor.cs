@@ -23,7 +23,7 @@ public class FileStoreSearchActor : Grain, IFileStoreSearchActor
         _logger = logger.NotNull();
     }
 
-    public async Task<IReadOnlyList<string>> Search(string pattern, ScopeContext context)
+    public async Task<IReadOnlyList<IStorePathDetail>> Search(string pattern, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogInformation("Searching file store pattern={pattern}", pattern);
@@ -31,7 +31,7 @@ public class FileStoreSearchActor : Grain, IFileStoreSearchActor
         (string alias, string filePath) = _storeCollection.GetAliasAndPath(pattern);
         IFileStore fileStore = _storeCollection.Get(alias);
 
-        IReadOnlyList<string> result = await fileStore.Search(filePath, context);
+        IReadOnlyList<IStorePathDetail> result = await fileStore.Search(filePath, context);
         context.LogInformation("Searched file store pattern={pattern}, count={count}", pattern, result.Count);
         return result;
     }

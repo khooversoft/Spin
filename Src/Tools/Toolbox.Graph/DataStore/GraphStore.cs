@@ -17,6 +17,16 @@ public class GraphStore : IGraphStore
     private readonly ILogger<GraphStore> _logger;
     private readonly IFileStore _fileStore;
 
+    public GraphStore(IFileStore fileStore, GraphHostOption hostOption, ILogger<GraphStore> logger)
+    {
+        hostOption.NotNull();
+
+        _fileStore = fileStore.NotNull();
+        _logger = logger.NotNull();
+
+        _memoryCache = new NullMemoryCache();
+    }
+
     public GraphStore(IFileStore fileStore, IMemoryCache memoryCache, GraphHostOption hostOption, ILogger<GraphStore> logger)
     {
         hostOption.NotNull();

@@ -16,12 +16,6 @@ public static class GraphConstants
         public const string DiKeyed = "graph-journal";
     }
 
-    public static class Trace
-    {
-        public const string ConnectionString = "trace=/journal/trace";
-        public const string DiKeyed = "graph-trace";
-    }
-
     public static class Trx
     {
         public const string LogKey = "logKey";

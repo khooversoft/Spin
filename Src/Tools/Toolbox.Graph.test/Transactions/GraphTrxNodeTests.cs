@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -11,8 +10,7 @@ public class GraphTrxNodeTests
     [Fact]
     public async Task AddNodeFailure()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -22,8 +20,8 @@ public class GraphTrxNodeTests
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
 
-        map.Nodes.Count.Should().Be(2);
-        map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Should().Be(2);
+        testClient.Map.Edges.Count.Should().Be(1);
 
         string q2 = """
             add node key=node3;
@@ -42,8 +40,7 @@ public class GraphTrxNodeTests
     [Fact]
     public async Task UpdateNodeFailure()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -54,8 +51,8 @@ public class GraphTrxNodeTests
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
 
-        map.Nodes.Count.Should().Be(2);
-        map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Should().Be(2);
+        testClient.Map.Edges.Count.Should().Be(1);
 
         string q2 = """
             set node key=node2 set t2;
@@ -73,8 +70,7 @@ public class GraphTrxNodeTests
     [Fact]
     public async Task DeleteNodeFailure()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -86,8 +82,8 @@ public class GraphTrxNodeTests
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
 
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Should().Be(3);
+        testClient.Map.Edges.Count.Should().Be(1);
 
         string q2 = """
             delete node key=node3;

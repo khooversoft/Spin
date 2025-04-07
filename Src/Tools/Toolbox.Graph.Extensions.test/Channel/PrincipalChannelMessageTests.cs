@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Graph.Extensions.test.Application;
 using Toolbox.Graph.Extensions.test.Tools;
-using Toolbox.Graph.Extensions.Testing;
 using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
@@ -25,35 +25,27 @@ public class PrincipalChannelMessageTests
     private const string _channel3 = "channel3";
     private const string _principalGroup1 = "securityGroup1";
     private const string _principalGroup2 = "securityGroup2";
-    //private readonly ITestOutputHelper _output;
-    private readonly ServiceProvider _services;
+    private readonly ITestOutputHelper _outputHelper;
 
     private ChannelMessage[] _channelMessages = Enumerable.Range(0, 100)
         .Select(x => new ChannelMessage { ChannelId = _channel1, FromPrincipalId = _user1, Message = $"Message #{x}" })
         .ToArray();
 
-    public PrincipalChannelMessageTests(ITestOutputHelper output)
+    public PrincipalChannelMessageTests(ITestOutputHelper outputHelper)
     {
-        _services = new ServiceCollection()
-            .AddLogging(x =>
-            {
-                x.AddLambda(output.WriteLine);
-                x.AddDebug();
-                x.AddConsole();
-            })
-            .BuildServiceProvider();
+        _outputHelper = outputHelper;
     }
 
     [Fact]
     public async Task SingleChannel()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var groupClient = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        var channelClient = testHost.ServiceProvider.GetRequiredService<ChannelClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = new ScopeContext(_services.GetRequiredService<ILogger<PrincipalChannelMessageTests>>());
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<PrincipalChannelMessageTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
         await CreateSecurityGroup(groupClient, _groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context);
 
         // Create security group with user for access
@@ -83,13 +75,13 @@ public class PrincipalChannelMessageTests
     [Fact]
     public async Task SingleChannelMultipleSizeWrites()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var groupClient = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        var channelClient = testHost.ServiceProvider.GetRequiredService<ChannelClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = new ScopeContext(_services.GetRequiredService<ILogger<PrincipalChannelMessageTests>>());
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<PrincipalChannelMessageTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
         await CreateSecurityGroup(groupClient, _groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context);
 
         // Create security group with user for access
@@ -116,34 +108,34 @@ public class PrincipalChannelMessageTests
                 (await channelClient.GetContext(_channel1, _user1).AddMessages(batch, context)).IsOk().Should().BeTrue();
             }
 
-            //using (var metric = context.LogDuration("Get-messages-ms"))
-            //{
-            //    (await channelClient.GetPrincipalMessages(_user1, context)).Action(x =>
-            //    {
-            //        x.IsOk().Should().BeTrue();
-            //        x.Return().Action(y =>
-            //        {
-            //            context.LogInformation("Count={count}", y.Count);
-            //            y.Count.Should().Be(messageIndex);
-            //            _channelMessages.Take(messageIndex).IsEquivalent(y).Should().BeTrue();
-            //        });
-            //    });
-            //}
+            using (var metric = context.LogDuration("Get-messages-ms"))
+            {
+                (await channelClient.GetPrincipalMessages(_user1, context)).Action(x =>
+                {
+                    x.IsOk().Should().BeTrue();
+                    x.Return().Action(y =>
+                    {
+                        context.LogInformation("Count={count}", y.Count);
+                        y.Count.Should().Be(messageIndex);
+                        _channelMessages.Take(messageIndex).IsEquivalent(y).Should().BeTrue();
+                    });
+                });
+            }
         }
     }
 
     [Fact]
     public async Task MultipleChannels()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var groupClient = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        var channelClient = testHost.ServiceProvider.GetRequiredService<ChannelClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = new ScopeContext(_services.GetRequiredService<ILogger<PrincipalChannelMessageTests>>());
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<PrincipalChannelMessageTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user2, "user 2", testHost, context);
-        await IdentityTestTool.AddIdentityUser(_user3, "user 3", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user2, "user 2", graphHostService, context);
+        await IdentityTestTool.AddIdentityUser(_user3, "user 3", graphHostService, context);
         await CreateSecurityGroup(groupClient, _groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context);
         await CreateSecurityGroup(groupClient, _groupid2, "group 2", [(_user2, SecurityAccess.Owner)], context);
         await CreateSecurityGroup(groupClient, _groupid3, "Allusers", [(_user3, SecurityAccess.Owner)], context);

@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -11,8 +10,7 @@ public class GraphTrxEdgeTests
     [Fact]
     public async Task AddEdgeFailure()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -23,8 +21,8 @@ public class GraphTrxEdgeTests
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
 
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Should().Be(3);
+        testClient.Map.Edges.Count.Should().Be(1);
 
         string q2 = """
             add edge from=node2, to=node3, type=default;
@@ -38,15 +36,14 @@ public class GraphTrxEdgeTests
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Should().Be(3);
+        testClient.Map.Edges.Count.Should().Be(1);
     }
 
     [Fact]
     public async Task UpdateEdgeFailure()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -58,8 +55,8 @@ public class GraphTrxEdgeTests
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
 
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Should().Be(3);
+        testClient.Map.Edges.Count.Should().Be(2);
 
         string q2 = """
             set edge from=node2, to=node3, type=default set t1;
@@ -73,15 +70,14 @@ public class GraphTrxEdgeTests
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Should().Be(3);
+        testClient.Map.Edges.Count.Should().Be(2);
     }
 
     [Fact]
     public async Task DeleteEdgeFailure()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -94,8 +90,8 @@ public class GraphTrxEdgeTests
 
         (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
 
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Should().Be(3);
+        testClient.Map.Edges.Count.Should().Be(2);
 
         string q2 = """
             delete edge from=node2, to=node3, type=default;
@@ -110,8 +106,8 @@ public class GraphTrxEdgeTests
         });
 
 
-        map.Nodes.Count.Should().Be(3);
-        map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Should().Be(3);
+        testClient.Map.Edges.Count.Should().Be(2);
     }
 
     private void TestReturn(QueryResult graphResult, StatusCode statusCode)

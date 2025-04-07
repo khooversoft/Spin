@@ -1,71 +1,81 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Command;
 
 public class SetUniqueIndexTests
 {
+    private readonly ITestOutputHelper _outputHelper;
+
+    public SetUniqueIndexTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
+
     [Fact]
     public async Task SetMultipleIndexes()
     {
-        var map = new GraphMap();
-        var testClient = GraphTestStartup.CreateGraphTestHost(map);
-        var e1 = await testClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
+
+        var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        map.Nodes.LookupIndex("t3", "v3").IsOk().Should().BeFalse();
+        graphTestClient.Map.Nodes.LookupIndex("t3", "v3").IsOk().Should().BeFalse();
 
-        var e2 = await testClient.Execute("set node key=node2 set t3=v3 index t3 ;", NullScopeContext.Default);
+        var e2 = await graphTestClient.Execute("set node key=node2 set t3=v3 index t3 ;", context);
         e2.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        map.Nodes.LookupIndex("t3", "v3").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t3", "v3").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node2");
         });
 
-        map.Nodes.LookupIndex("t3", "v1").IsOk().Should().BeFalse();
+        graphTestClient.Map.Nodes.LookupIndex("t3", "v1").IsOk().Should().BeFalse();
     }
 
     [Fact]
     public async Task SetMultipleIndexesDifferentValue()
     {
-        var map = new GraphMap();
-        var testClient = GraphTestStartup.CreateGraphTestHost(map);
-        var e1 = await testClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
+
+        var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        map.Nodes.LookupIndex("t3", "v3").IsOk().Should().BeFalse();
+        graphTestClient.Map.Nodes.LookupIndex("t3", "v3").IsOk().Should().BeFalse();
 
-        var e2 = await testClient.Execute("set node key=node2 set t1=v2 index t1 ;", NullScopeContext.Default);
+        var e2 = await graphTestClient.Execute("set node key=node2 set t1=v2 index t1 ;", context);
         e2.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        map.Nodes.LookupIndex("t1", "v2").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v2").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node2");
@@ -75,24 +85,25 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetUniqueIndexViolation()
     {
-        var map = new GraphMap();
-        var testClient = GraphTestStartup.CreateGraphTestHost(map);
-        var e1 = await testClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
+
+        var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        var e2 = await testClient.Execute("set node key=node2 set t1=v1 index t1 ;", NullScopeContext.Default);
+        var e2 = await graphTestClient.Execute("set node key=node2 set t1=v1 index t1 ;", context);
         e2.IsError().Should().BeTrue(e1.ToString());
 
-        map.Nodes.ContainsKey("node1").Should().BeTrue();
-        map.Nodes.ContainsKey("node2").Should().BeFalse();
+        graphTestClient.Map.Nodes.ContainsKey("node1").Should().BeTrue();
+        graphTestClient.Map.Nodes.ContainsKey("node2").Should().BeFalse();
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
@@ -102,28 +113,29 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetUniqueIndexViolation2()
     {
-        var map = new GraphMap();
-        var testClient = GraphTestStartup.CreateGraphTestHost(map);
-        var e1 = await testClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
+
+        var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        var e2 = await testClient.Execute("set node key=node3 set t1=v2 index t1 ;", NullScopeContext.Default);
+        var e2 = await graphTestClient.Execute("set node key=node3 set t1=v2 index t1 ;", context);
         e2.IsOk().Should().BeTrue(e1.ToString());
 
-        var e3 = await testClient.Execute("set node key=node2 set t1=v1 index t1 ;", NullScopeContext.Default);
+        var e3 = await graphTestClient.Execute("set node key=node2 set t1=v1 index t1 ;", context);
         e3.IsError().Should().BeTrue(e1.ToString());
 
-        map.Nodes.ContainsKey("node1").Should().BeTrue();
-        map.Nodes.ContainsKey("node3").Should().BeTrue();
-        map.Nodes.ContainsKey("node2").Should().BeFalse();
+        graphTestClient.Map.Nodes.ContainsKey("node1").Should().BeTrue();
+        graphTestClient.Map.Nodes.ContainsKey("node3").Should().BeTrue();
+        graphTestClient.Map.Nodes.ContainsKey("node2").Should().BeFalse();
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
@@ -133,25 +145,26 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetAndUpdateIndex()
     {
-        var map = new GraphMap();
-        var testClient = GraphTestStartup.CreateGraphTestHost(map);
-        var e1 = await testClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
+
+        var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        map.Nodes.LookupIndex("t1", "v2").IsError().Should().BeTrue();
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v2").IsError().Should().BeTrue();
 
-        var e2 = await testClient.Execute("set node key=node1 set t1=v2 ;", NullScopeContext.Default);
+        var e2 = await graphTestClient.Execute("set node key=node1 set t1=v2 ;", context);
         e2.IsOk().Should().BeTrue(e1.ToString());
 
-        map.Nodes.LookupIndex("t1", "v1").IsError().Should().BeTrue();
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v1").IsError().Should().BeTrue();
 
-        map.Nodes.LookupIndex("t1", "v2").Action(x =>
+        graphTestClient.Map.Nodes.LookupIndex("t1", "v2").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("node1");

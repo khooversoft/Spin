@@ -33,9 +33,12 @@ public class FileStoreLeasedStandardTests
         var writeResult = await fileAccess.Set(dataBytes, _context);
         writeResult.IsOk().Should().BeTrue();
 
-        var lease1Option = await fileAccess.Acquire(TimeSpan.FromSeconds(60), _context);
-        lease1Option.IsOk().Should().BeTrue();
-        var lease1 = lease1Option.Return();
+        var leaseOption1 = await fileAccess.Acquire(TimeSpan.FromSeconds(60), _context);
+        leaseOption1.IsOk().Should().BeTrue();
+        var lease1 = leaseOption1.Return();
+
+        var leaseOption2 = await fileAccess.Acquire(TimeSpan.FromSeconds(60), _context);
+        leaseOption2.IsError().Should().BeTrue();
 
         Option<DataETag> receive = await fileAccess.Get(_context);
         receive.IsOk().Should().BeTrue();

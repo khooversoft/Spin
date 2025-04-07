@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -10,13 +9,13 @@ public class GraphLifecycleTest
     [Fact]
     public async Task SingleNode()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         Option<QueryBatchResult> addResult = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
         addResult.IsOk().Should().BeTrue();
-        map.Nodes.Count.Should().Be(1);
-        map.Edges.Count.Should().Be(0);
+
+        testClient.Map.Nodes.Count.Should().Be(1);
+        testClient.Map.Edges.Count.Should().Be(0);
 
         (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
@@ -34,8 +33,8 @@ public class GraphLifecycleTest
 
         Option<QueryBatchResult> removeResult = await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Default);
         removeResult.IsOk().Should().BeTrue();
-        map.Nodes.Count.Should().Be(0);
-        map.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Should().Be(0);
+        testClient.Map.Edges.Count.Should().Be(0);
 
         (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
@@ -49,18 +48,18 @@ public class GraphLifecycleTest
     [Fact]
     public async Task TwoNodes()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         Option<QueryBatchResult> addResult1 = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
         addResult1.IsOk().Should().BeTrue();
-        map.Nodes.Count.Should().Be(1);
-        map.Edges.Count.Should().Be(0);
+
+        testClient.Map.Nodes.Count.Should().Be(1);
+        testClient.Map.Edges.Count.Should().Be(0);
 
         Option<QueryBatchResult> addResult2 = await testClient.ExecuteBatch("set node key=node2 set t10,t20=v10;", NullScopeContext.Default);
         addResult2.IsOk().Should().BeTrue();
-        map.Nodes.Count.Should().Be(2);
-        map.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Should().Be(2);
+        testClient.Map.Edges.Count.Should().Be(0);
 
         (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
         {
@@ -93,8 +92,8 @@ public class GraphLifecycleTest
         (await testClient.ExecuteBatch("delete node key=node1;", NullScopeContext.Default)).Action(x =>
         {
             x.IsOk().Should().BeTrue();
-            map.Nodes.Count.Should().Be(1);
-            map.Edges.Count.Should().Be(0);
+            testClient.Map.Nodes.Count.Should().Be(1);
+            testClient.Map.Edges.Count.Should().Be(0);
         });
 
         (await testClient.Execute("select (key=node1);", NullScopeContext.Default)).ThrowOnError().Return().Action(x =>
@@ -125,15 +124,14 @@ public class GraphLifecycleTest
             x.Return().Items.Count.Should().Be(1);
         });
 
-        map.Nodes.Count.Should().Be(0);
-        map.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Should().Be(0);
+        testClient.Map.Edges.Count.Should().Be(0);
     }
 
     [Fact]
     public async Task UpdateTags()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;
@@ -154,20 +152,19 @@ public class GraphLifecycleTest
             });
         });
 
-        map.Nodes.Count.Should().Be(1);
-        map.Nodes["node1"].Action(x =>
+        testClient.Map.Nodes.Count.Should().Be(1);
+        testClient.Map.Nodes["node1"].Action(x =>
         {
             x.Key.Should().Be("node1");
             x.Tags.ToTagsString().Should().Be("client,t1,t2");
         });
-        map.Edges.Count.Should().Be(0);
+        testClient.Map.Edges.Count.Should().Be(0);
     }
 
     [Fact]
     public async Task TwoNodesWithRelationship()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;
@@ -181,8 +178,8 @@ public class GraphLifecycleTest
             x.Return().Items.Count.Should().Be(3);
         });
 
-        map.Nodes.Count.Should().Be(2);
-        map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Should().Be(2);
+        testClient.Map.Edges.Count.Should().Be(1);
 
         QueryBatchResult batch = (await testClient.ExecuteBatch("select (key=node1) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Default)).ThrowOnError().Return();
         batch.Option.IsOk().Should().Be(true);
@@ -224,8 +221,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task TwoNodesWithFullRelationship()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;
@@ -239,8 +235,8 @@ public class GraphLifecycleTest
             x.Return().Items.Count.Should().Be(3);
         });
 
-        map.Nodes.Count.Should().Be(2);
-        map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Should().Be(2);
+        testClient.Map.Edges.Count.Should().Be(1);
 
         QueryBatchResult batch = (await testClient.ExecuteBatch("select (key=node2) a0 <-> [*] a1 <-> (*) a2;", NullScopeContext.Default)).ThrowOnError().Return();
         batch.Option.IsOk().Should().Be(true);
@@ -287,8 +283,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task TwoNodesWithRelationshipLargerSet()
     {
-        var testClient = GraphTestStartup.CreateGraphTestHost();
-        GraphMap map = testClient.ServiceProvider.GetRequiredService<IGraphHost>().Map;
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;
@@ -306,8 +301,8 @@ public class GraphLifecycleTest
             x.Return().Items.Count.Should().Be(7);
         });
 
-        map.Nodes.Count.Should().Be(5);
-        map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Should().Be(5);
+        testClient.Map.Edges.Count.Should().Be(2);
 
         (await testClient.ExecuteBatch("select (key=node3) a0 -> [*] a1 -> (*) a2;", NullScopeContext.Default)).ThrowOnError().Return().Action(batch =>
         {

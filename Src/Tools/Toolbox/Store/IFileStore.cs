@@ -10,13 +10,17 @@ public interface IFileStore
     Task<Option> DeleteFolder(string path, ScopeContext context);
 }
 
-public interface IFileAccess
+public interface IFileReadWriteAccess
 {
-    public string Path { get; }
-    Task<Option<string>> Add(DataETag data, ScopeContext context);
     Task<Option<string>> Append(DataETag data, ScopeContext context);
     Task<Option<DataETag>> Get(ScopeContext context);
     Task<Option<string>> Set(DataETag data, ScopeContext context);
+}
+
+public interface IFileAccess : IFileReadWriteAccess
+{
+    public string Path { get; }
+    Task<Option<string>> Add(DataETag data, ScopeContext context);
 
     Task<Option<IStorePathDetail>> GetDetail(ScopeContext context);
     Task<Option> Delete(ScopeContext context);
@@ -27,13 +31,10 @@ public interface IFileAccess
     Task<Option> BreakLease(ScopeContext context);
 }
 
-public interface IFileLeasedAccess : IAsyncDisposable
+public interface IFileLeasedAccess : IFileReadWriteAccess, IAsyncDisposable
 {
     public string Path { get; }
     public string LeaseId { get; }
 
-    Task<Option<string>> Append(DataETag data, ScopeContext context);
-    Task<Option<DataETag>> Get(ScopeContext context);
-    Task<Option<string>> Set(DataETag data, ScopeContext context);
     Task<Option> Release(ScopeContext context);
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Graph.Extensions.Testing;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 
@@ -7,9 +6,9 @@ namespace Toolbox.Graph.Extensions.test.Tools;
 
 internal class IdentityTestTool
 {
-    public static async Task AddIdentityUser(string principalId, string userName, ToolboxExtensionTestHost testHost, ScopeContext context)
+    public static async Task AddIdentityUser(string principalId, string userName, GraphHostService testHost, ScopeContext context)
     {
-        var client = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
+        var client = testHost.Services.GetRequiredService<IdentityClient>();
 
         PrincipalIdentity user = new PrincipalIdentity
         {

@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Graph.Extensions.test.Application;
 using Toolbox.Graph.Extensions.test.Tools;
-using Toolbox.Graph.Extensions.Testing;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.Extensions.test.Channel;
 
@@ -20,18 +21,23 @@ public class ChannelMessageTests
     private const string _channel2 = "channel2";
     private const string _principalGroup1 = "securityGroup1";
     private const string _principalGroup2 = "securityGroup2";
+    private readonly ITestOutputHelper _outputHelper;
 
+    public ChannelMessageTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
 
     [Fact]
     public async Task WriteAndReadMessages()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var groupClient = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        var channelClient = testHost.ServiceProvider.GetRequiredService<ChannelClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<ChannelClientTests>();
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<ChannelMessageTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
 
         // Create security group with user for access
         (await groupClient.Create(_groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
@@ -84,13 +90,13 @@ public class ChannelMessageTests
     [Fact]
     public async Task WriteAndReadMultipleMessages()
     {
-        var testHost = new ToolboxExtensionTestHost();
-        var groupClient = testHost.ServiceProvider.GetRequiredService<SecurityGroupClient>();
-        var channelClient = testHost.ServiceProvider.GetRequiredService<ChannelClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<ChannelClientTests>();
+        var graphHostService = await TestHost.Create(_outputHelper);
+        var context = graphHostService.CreateScopeContext<ChannelMessageTests>();
 
-        await IdentityTestTool.AddIdentityUser(_user1, "user 1", testHost, context);
+        var groupClient = graphHostService.Services.GetRequiredService<SecurityGroupClient>();
+        var channelClient = graphHostService.Services.GetRequiredService<ChannelClient>();
+
+        await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
 
         // Create security group with user for access
         await CreateSecurityGroup(groupClient, _groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context);

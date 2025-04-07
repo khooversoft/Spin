@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 using Toolbox.Journal;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
@@ -17,82 +15,44 @@ public static class GraphStartup
 
         services.AddSingleton<GraphHostOption>(hostOption);
         services.AddSingleton<IGraphHost, GraphHost>();
+        services.AddSingleton<IGraphEngine, GraphEngine>();
+        services.AddSingleton<GraphMapStore>();
+        services.AddSingleton<GraphLeaseControl>();
 
         services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
         {
             ConnectionString = GraphConstants.TrxJournal.ConnectionString,
             ReadOnly = hostOption.ReadOnly,
         });
-        services.AddJournalLog(GraphConstants.Trace.DiKeyed, new JournalFileOption
-        {
-            ConnectionString = GraphConstants.Trace.ConnectionString,
-            UseBackgroundWriter = true,
-            ReadOnly = hostOption.ReadOnly,
-        });
 
         services.AddSingleton<IGraphClient, GraphClientInMemory>();
         services.AddSingleton<IGraphStore, GraphStore>();
-        services.TryAddSingleton<IMemoryCache, MemoryCache>();
+
+        if (!hostOption.DisableCache) services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
         return services;
-    }
-
-    public static async Task<Option> StartGraphEngine(this IServiceProvider service)
-    {
-        var logger = service.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(StartGraphEngine));
-        var context = new ScopeContext(logger);
-
-        var graphHost = service.GetRequiredService<IGraphHost>();
-        var result = await graphHost.Run(context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to start graph host, result={result}", result);
-            return result;
-        }
-
-        context.LogInformation("Graph host started");
-        return StatusCode.OK;
     }
 }
 
 public static class GraphTestStartup
 {
-    public static GraphTestClient CreateGraphTestHost(GraphMap? graphMap = null, Action<IServiceCollection>? config = null)
+    public static async Task<GraphHostService> CreateGraphService(
+        GraphMap? graphMap = null,
+        Action<IServiceCollection>? config = null,
+        Action<string>? logOutput = null,
+        bool sharedMode = false
+        )
     {
-        var servicesCollection = new ServiceCollection()
-            .AddLogging(config => config.AddDebug())
-            .AddInMemoryFileStore()
-            .AddGraphEngine();
+        GraphHostService graphHostService = await new GraphHostBuilder()
+            .SetMap(graphMap)
+            .UseInMemoryStore()
+            .SetShareMode(sharedMode)
+            .UseLogging()
+            .SetLogOutput(logOutput)
+            .AddServiceConfiguration(config)
+            .Build();
 
-        config?.Invoke(servicesCollection);
-        var services = servicesCollection.BuildServiceProvider();
-
-        IGraphHost graphContext = services.GetRequiredService<IGraphHost>();
-        if (graphMap != null) graphContext.SetMap(graphMap);
-
-        var graphClient = new GraphTestClient(graphContext, services);
-        return graphClient;
+        return graphHostService;
     }
 }
 
-public class GraphTestClient : GraphClientInMemory, IGraphClient, IAsyncDisposable
-{
-    public GraphTestClient(IGraphHost graphContext, ServiceProvider serviceProvider)
-        : base(graphContext)
-    {
-        ServiceProvider = serviceProvider.NotNull();
-    }
-
-    public ServiceProvider ServiceProvider { get; }
-
-    public async ValueTask DisposeAsync()
-    {
-        await ServiceProvider.DisposeAsync();
-    }
-
-    public ScopeContext GetScopeContext<T>()
-    {
-        var logger = ServiceProvider.GetRequiredService<ILogger<T>>();
-        return new ScopeContext(logger);
-    }
-}

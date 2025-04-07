@@ -44,25 +44,25 @@ public class NodeInstructionsIndexTests
     [Fact]
     public async Task SetNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
-        copyMap.Nodes.LookupTag("uniqueIndex").Action(x =>
+        testClient.Map.Nodes.LookupTag("uniqueIndex").Action(x =>
         {
             x.Count.Should().Be(1);
             Enumerable.SequenceEqual(x, ["provider:provider1/provider1-key"]);
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(8);
-        copyMap.Meter.Node.GetAdded().Should().Be(8);
-        copyMap.Meter.Node.GetUpdated().Should().Be(0);
-        copyMap.Meter.Node.GetIndexHit().Should().Be(1);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(1);
+        testClient.Map.Meter.Node.GetCount().Should().Be(8);
+        testClient.Map.Meter.Node.GetAdded().Should().Be(8);
+        testClient.Map.Meter.Node.GetUpdated().Should().Be(0);
+        testClient.Map.Meter.Node.GetIndexHit().Should().Be(1);
+        testClient.Map.Meter.Node.GetIndexMissed().Should().Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -77,39 +77,39 @@ public class NodeInstructionsIndexTests
     [Fact]
     public async Task SetNodeWithIndex()
     {
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider ;";
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         var uniqueIndex = new UniqueIndex("loginProvider", "userEmail", "userEmail:username1@domain1.com");
-        copyMap.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
+        testClient.Map.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
         {
             x.Count.Should().Be(1);
             Enumerable.SequenceEqual(x, [uniqueIndex]);
         });
 
-        copyMap.Nodes.LookupTag("email").Action(x =>
+        testClient.Map.Nodes.LookupTag("email").Action(x =>
         {
             x.Count.Should().Be(1);
             Enumerable.SequenceEqual(x, ["user:username1@company.com"]);
         });
 
-        copyMap.Nodes.LookupIndex("loginProvider", "userEmail:username1@domain1.com").Action(x =>
+        testClient.Map.Nodes.LookupIndex("loginProvider", "userEmail:username1@domain1.com").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("user:username1@company.com");
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(8);
-        copyMap.Meter.Node.GetAdded().Should().Be(8);
-        copyMap.Meter.Node.GetUpdated().Should().Be(0);
-        copyMap.Meter.Node.GetIndexHit().Should().Be(3);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(1);
+        testClient.Map.Meter.Node.GetCount().Should().Be(8);
+        testClient.Map.Meter.Node.GetAdded().Should().Be(8);
+        testClient.Map.Meter.Node.GetUpdated().Should().Be(0);
+        testClient.Map.Meter.Node.GetIndexHit().Should().Be(3);
+        testClient.Map.Meter.Node.GetIndexMissed().Should().Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -125,9 +125,9 @@ public class NodeInstructionsIndexTests
     [Fact]
     public async Task SetNodeWithTwoIndex()
     {
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var cmd = "set node key=user:username1@company.com set loginProvider=provider:provider1/provider1-key, email=userEmail:username1@domain1.com index loginProvider, email ;";
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
         var newMapOption = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
@@ -136,7 +136,7 @@ public class NodeInstructionsIndexTests
             new UniqueIndex("loginProvider", "provider:provider1/provider1-key", "user:username1@company.com"),
             ];
 
-        copyMap.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
+        testClient.Map.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
         {
             x.Count.Should().Be(indexes.Length);
             var source = x.OrderBy(x => x.PrimaryKey).ToArray();
@@ -145,26 +145,26 @@ public class NodeInstructionsIndexTests
             source.SequenceEqual(target).Should().BeTrue();
         });
 
-        copyMap.Nodes.LookupTag("email").Action(x =>
+        testClient.Map.Nodes.LookupTag("email").Action(x =>
         {
             x.Count.Should().Be(1);
             x.SequenceEqual(["user:username1@company.com"]).Should().BeTrue();
         });
 
-        copyMap.Nodes.LookupIndex("loginProvider", "provider:provider1/provider1-key").Action(x =>
+        testClient.Map.Nodes.LookupIndex("loginProvider", "provider:provider1/provider1-key").Action(x =>
         {
             x.IsOk().Should().BeTrue();
             x.Return().NodeKey.Should().Be("user:username1@company.com");
         });
 
-        copyMap.Meter.Node.GetCount().Should().Be(8);
-        copyMap.Meter.Node.GetAdded().Should().Be(8);
-        copyMap.Meter.Node.GetUpdated().Should().Be(0);
-        copyMap.Meter.Node.GetIndexHit().Should().Be(3);
-        copyMap.Meter.Node.GetIndexMissed().Should().Be(1);
+        testClient.Map.Meter.Node.GetCount().Should().Be(8);
+        testClient.Map.Meter.Node.GetAdded().Should().Be(8);
+        testClient.Map.Meter.Node.GetUpdated().Should().Be(0);
+        testClient.Map.Meter.Node.GetIndexHit().Should().Be(3);
+        testClient.Map.Meter.Node.GetIndexMissed().Should().Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>

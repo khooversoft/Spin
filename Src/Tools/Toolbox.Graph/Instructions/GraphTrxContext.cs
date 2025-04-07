@@ -7,43 +7,39 @@ namespace Toolbox.Graph;
 
 public interface IGraphTrxContext : IAsyncDisposable
 {
-    Task<Option> CheckpointMap(ScopeContext context);
     ScopeContext Context { get; }
     ChangeLog ChangeLog { get; }
     IFileStore FileStore { get; }
     IJournalTrx TransactionWriter { get; }
-    IJournalTrx TraceWriter { get; }
-    Task<Option> LoadMap(ScopeContext context);
     GraphMap Map { get; }
+
+    Task<Option<IAsyncDisposable>> AcquireScope();
+    Task<Option> CheckpointMap();
 }
 
 
 public class GraphTrxContext : IGraphTrxContext, IAsyncDisposable
 {
-    private readonly IGraphHost _graphHost;
+    private readonly IGraphEngine _graphHost;
 
-    public GraphTrxContext(IGraphHost graphHost, ScopeContext context)
+    public GraphTrxContext(IGraphEngine graphHost, ScopeContext context)
     {
         _graphHost = graphHost.NotNull();
+        Context = context;
+
         TransactionWriter = graphHost.TransactionLog.NotNull().CreateTransactionContext();
-        TraceWriter = graphHost.TraceLog.NotNull().CreateTransactionContext();
-        Context = context.With(_graphHost.Logger);
         ChangeLog = new ChangeLog(this);
     }
 
-    public Task<Option> CheckpointMap(ScopeContext context) => _graphHost.CheckpointMap(context);
+    public GraphMap Map => _graphHost.Map;
+
     public ScopeContext Context { get; }
     public ChangeLog ChangeLog { get; }
     public IFileStore FileStore => _graphHost.FileStore;
     public IJournalTrx TransactionWriter { get; }
-    public IJournalTrx TraceWriter { get; }
-    public Task<Option> LoadMap(ScopeContext context) => _graphHost.LoadMap(context);
 
-    public async ValueTask DisposeAsync()
-    {
-        await TransactionWriter.DisposeAsync();
-        await TraceWriter.DisposeAsync();
-    }
+    public Task<Option<IAsyncDisposable>> AcquireScope() => _graphHost.AcquireScope(Context);
+    public Task<Option> CheckpointMap() => _graphHost.CheckpointMap(Context);
 
-    public GraphMap Map => _graphHost.Map;
+    public async ValueTask DisposeAsync() => await TransactionWriter.DisposeAsync();
 }

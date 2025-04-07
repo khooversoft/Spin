@@ -17,7 +17,7 @@ var state = await new CommandRouterBuilder()
     .AddCommand<Command>()
     .AddCommand<SystemSettings>()
     .AddCommand<GraphDb>()
-    .AddCommand<TraceLog>()
+    //.AddCommand<TraceLog>()
     .AddCommand<TransactionLog>()
     .ConfigureService(x =>
     {

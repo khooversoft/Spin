@@ -1,69 +1,33 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
-using Xunit.Abstractions;
 
 namespace Toolbox.Graph.Extensions.test.Identity;
 
-public record TestContext
-{
-    public GraphTestClient Engine { get; init; } = null!;
-    public IGraphClient GraphClient { get; init; } = null!;
-    public IdentityClient IdentityClient { get; init; } = null!;
-    public GraphMap Map { get; init; } = null!;
-    public ScopeContext Context { get; init; }
-}
-
 internal static class TestTool
 {
-    public static TestContext CreateGraphEngineHost(ITestOutputHelper outputHelper)
-    {
-        GraphTestClient engine = GraphTestStartup.CreateGraphTestHost(config: x =>
-        {
-            x.AddGraphExtensions();
-            x.AddLogging(y => y.AddLambda(outputHelper.WriteLine));
-        });
-
-        var context = engine.GetScopeContext<PrincipalIdentityStoreTests>();
-
-        IGraphClient graphClient = engine.ServiceProvider.GetRequiredService<IGraphClient>();
-        IdentityClient identityClient = engine.ServiceProvider.GetRequiredService<IdentityClient>();
-        GraphMap map = engine.ServiceProvider.GetRequiredService<IGraphHost>().Map;
-
-        var result = new TestContext
-        {
-            Engine = engine,
-            GraphClient = graphClient,
-            IdentityClient = identityClient,
-            Map = map,
-            Context = context,
-        };
-
-        return result;
-    }
-
-    public static async Task CreateAndVerify(PrincipalIdentity user, TestContext testContext)
+    public static async Task CreateAndVerify(PrincipalIdentity user, GraphHostService graphHostService, ScopeContext context)
     {
         user.Validate().IsOk().Should().BeTrue();
-        testContext.NotNull();
+        graphHostService.NotNull();
 
-        var result = await testContext.IdentityClient.Set(user, testContext.Context);
+        var identityClient = graphHostService.Services.GetRequiredService<IdentityClient>();
+        var result = await identityClient.Set(user, context);
         result.IsOk().Should().BeTrue();
 
-        var readPrincipalIdentityOption = await testContext.IdentityClient.GetByPrincipalId(user.PrincipalId, testContext.Context);
+        var readPrincipalIdentityOption = await identityClient.GetByPrincipalId(user.PrincipalId, context);
         readPrincipalIdentityOption.IsOk().Should().BeTrue();
         (user == readPrincipalIdentityOption.Return()).Should().BeTrue();
 
-        var userNameOption = await testContext.IdentityClient.GetByName(user.UserName, testContext.Context);
+        var userNameOption = await identityClient.GetByName(user.UserName, context);
         userNameOption.IsOk().Should().BeTrue();
         (user == userNameOption.Return()).Should().BeTrue();
 
         if (user.LoginProvider.IsNotEmpty() && user.ProviderKey.IsNotEmpty())
         {
-            var readLoginOption = await testContext.IdentityClient.GetByLogin(user.LoginProvider, user.ProviderKey, testContext.Context);
+            var readLoginOption = await identityClient.GetByLogin(user.LoginProvider, user.ProviderKey, context);
             readLoginOption.IsOk().Should().BeTrue();
             (user == readLoginOption.Return()).Should().BeTrue();
         }

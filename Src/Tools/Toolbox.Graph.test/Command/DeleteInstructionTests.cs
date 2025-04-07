@@ -26,8 +26,8 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteAllNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.Execute("delete (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
@@ -37,15 +37,15 @@ public class DeleteInstructionTests
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
 
-        copyMap.Nodes.Count.Should().Be(0);
-        copyMap.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Should().Be(0);
+        testClient.Map.Edges.Count.Should().Be(0);
     }
 
     [Fact]
     public async Task DeleteAllEdges()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.Execute("delete [*] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
@@ -55,15 +55,15 @@ public class DeleteInstructionTests
         result.Edges.Count.Should().Be(5);
         result.DataLinks.Count.Should().Be(0);
 
-        copyMap.Nodes.Count.Should().Be(7);
-        copyMap.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Should().Be(7);
+        testClient.Map.Edges.Count.Should().Be(0);
     }
 
     [Fact]
     public async Task DeleteNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.Execute("delete (key=node2) a1 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
@@ -74,7 +74,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(2);
         compareMap.OfType<GraphNode>().Single().Action(x =>
@@ -91,8 +91,8 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteEdgeFromNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
@@ -102,7 +102,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Should().Be(1);
         result.DataLinks.Count.Should().Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(1);
         compareMap.OfType<GraphEdge>().Single().Action(x =>
@@ -115,8 +115,8 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteNodeFromEdgeFromNode()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] -> (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
@@ -126,7 +126,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Should().Be(0);
         result.DataLinks.Count.Should().Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(4);
         compareMap.OfType<GraphNode>().Single().Action(x =>

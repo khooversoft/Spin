@@ -27,25 +27,25 @@ public class GraphAddEdgeCommandTests
     [InlineData("add edge fromKey=node4, toKey=node5;")]
     public async Task Failures(string query)
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
         newMapOption.IsError().Should().BeTrue();
 
-        copyMap.Nodes.Count.Should().Be(7);
-        copyMap.Edges.Count.Should().Be(5);
+        testClient.Map.Nodes.Count.Should().Be(7);
+        testClient.Map.Edges.Count.Should().Be(5);
     }
 
     [Fact]
     public async Task SingleAddForEdge()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -71,13 +71,13 @@ public class GraphAddEdgeCommandTests
     [Fact]
     public async Task SingleAddForEdgeTagsCommand()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -94,13 +94,13 @@ public class GraphAddEdgeCommandTests
     [Fact]
     public async Task SingleUniqueAddForEdge()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
+        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, copyMap);
+        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
         compareMap.Count.Should().Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>

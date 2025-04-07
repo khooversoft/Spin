@@ -1,6 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Command;
 
@@ -24,13 +25,20 @@ public class SelectInstructionSearchTests
         new GraphEdge("user:charlie", "user:fred", edgeType : "et1", tags: "created"),
         new GraphEdge("user:diana", "user:bob", edgeType : "et1", tags: "created"),
     };
+    private readonly ITestOutputHelper _outputHelper;
+
+    public SelectInstructionSearchTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
 
     [Fact]
     public async Task SelectAllUsers()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var resultOption = await testClient.Execute("select (key=account:*) ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
+
+        var resultOption = await graphTestClient.Execute("select (key=account:*) ;", context);
         resultOption.IsOk().Should().BeTrue();
 
         QueryResult result = resultOption.Return();
@@ -42,9 +50,10 @@ public class SelectInstructionSearchTests
     [Fact]
     public async Task SelectEdgeSubset()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var resultOption = await testClient.Execute("select [from=user:f*] ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
+
+        var resultOption = await graphTestClient.Execute("select [from=user:f*] ;", context);
         resultOption.IsOk().Should().BeTrue();
 
         QueryResult result = resultOption.Return();
@@ -56,9 +65,10 @@ public class SelectInstructionSearchTests
     [Fact]
     public async Task SelectNodesFromEdgeSubset()
     {
-        var copyMap = _map.Clone();
-        var testClient = GraphTestStartup.CreateGraphTestHost(copyMap);
-        var resultOption = await testClient.Execute("select [from=user:f*] -> (*) ;", NullScopeContext.Default);
+        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
+
+        var resultOption = await graphTestClient.Execute("select [from=user:f*] -> (*) ;", context);
         resultOption.IsOk().Should().BeTrue();
 
         QueryResult result = resultOption.Return();

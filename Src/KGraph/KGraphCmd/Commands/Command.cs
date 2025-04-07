@@ -1,11 +1,8 @@
 ﻿using System.Collections.Frozen;
 using KGraphCmd.Application;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
-using Toolbox.Graph;
-using Toolbox.Journal;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -53,7 +50,7 @@ internal class Command : ICommandRoute
         var services = _graphHostManager.Start(jsonFile);
         _context.LogInformation("Starting command shell...");
 
-        var traceLog = services.GetRequiredKeyedService<IJournalFile>(GraphConstants.Trace.DiKeyed).NotNull();
+        //var traceLog = services.GetRequiredKeyedService<IJournalFile>(GraphConstants.Trace.DiKeyed).NotNull();
         var hashLsn = new HashSet<string>();
 
         await Task.Delay(TimeSpan.FromMilliseconds(100));
