@@ -101,8 +101,10 @@ public class PrincipalChannelMessageTests
             size = Math.Min(size, _channelMessages.Length - messageIndex);
         }
 
+        int shouldCount = 0;
         foreach (var batch in batches)
         {
+            shouldCount += batch.Length;
             using (var metric = context.LogDuration("Add-messages", "message count={count}", batch.Length))
             {
                 (await channelClient.GetContext(_channel1, _user1).AddMessages(batch, context)).IsOk().Should().BeTrue();
@@ -116,8 +118,8 @@ public class PrincipalChannelMessageTests
                     x.Return().Action(y =>
                     {
                         context.LogInformation("Count={count}", y.Count);
-                        y.Count.Should().Be(messageIndex);
-                        _channelMessages.Take(messageIndex).IsEquivalent(y).Should().BeTrue();
+                        y.Count.Should().Be(shouldCount);
+                        _channelMessages.Take(shouldCount).IsEquivalent(y).Should().BeTrue();
                     });
                 });
             }

@@ -27,7 +27,12 @@ public class GraphHost : IGraphHost
         _logger = logger;
     }
 
-    public async Task<Option> Run(ScopeContext context)
+    public Task<Option> Run(ScopeContext context) => InternalRun(null, context);
+
+    public Task<Option> Run(GraphMap map, ScopeContext context) => InternalRun(map, context);
+
+
+    private async Task<Option> InternalRun(GraphMap? map, ScopeContext context)
     {
         context = context.With(_logger);
 
@@ -40,6 +45,7 @@ public class GraphHost : IGraphHost
 
             using var metric = context.LogDuration("graphHost-loadMap");
 
+            if (map != null) _graphHostEngine.SetMap(map.NotNull());
             var loadOption = await _graphHostEngine.InitializeDatabase(context);
             if (loadOption.IsError()) return loadOption;
 
@@ -58,28 +64,4 @@ public class GraphHost : IGraphHost
             _semaphore.Release();
         }
     }
-
-    public async Task<Option> Run(GraphMap map, ScopeContext context)
-    {
-        context = context.With(_logger);
-        await _semaphore.WaitAsync(context.CancellationToken).ConfigureAwait(false);
-
-        try
-        {
-            if (_runningState != Stopped) return (StatusCode.Conflict, "GraphHost is already running");
-
-            _graphHostEngine.SetMap(map.NotNull());
-            var loadOption = await _graphHostEngine.InitializeDatabase(context);
-            if (loadOption.IsError()) return loadOption;
-
-            Interlocked.Exchange(ref _runningState, Running);
-            context.LogInformation("GraphHost is running");
-            return StatusCode.OK;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-
 }
