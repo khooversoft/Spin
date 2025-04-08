@@ -12,10 +12,10 @@ public class AccountRecordTests
     [Fact]
     public async Task FullLifeCycle()
     {
-        var testHost = new TicketShareTestHost();
-        var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<AccountRecordTests>();
+        var testHost = await GraphTestStartup.CreateGraphService();
+        var client = testHost.Services.GetRequiredService<AccountClient>();
+        IGraphClient graphClient = testHost.Services.GetRequiredService<IGraphClient>();
+        var context = testHost.CreateScopeContext<AccountRecordTests>();
 
         var accountRecord = TestTool.CreateAccountModel("user1@domain.com");
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);
@@ -67,10 +67,10 @@ public class AccountRecordTests
     [Fact]
     public async Task FullLifeCycleWithCreate()
     {
-        var testHost = new TicketShareTestHost();
-        var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
-        IGraphClient graphClient = testHost.ServiceProvider.GetRequiredService<IGraphClient>();
-        var context = testHost.GetScopeContext<AccountRecordTests>();
+        var testHost = await GraphTestStartup.CreateGraphService();
+        var client = testHost.Services.GetRequiredService<AccountClient>();
+        IGraphClient graphClient = testHost.Services.GetRequiredService<IGraphClient>();
+        var context = testHost.CreateScopeContext<AccountRecordTests>();
 
         const string principalId = "user1@domain.com";
         await TestTool.AddIdentityUser(principalId, "user1", testHost, context);

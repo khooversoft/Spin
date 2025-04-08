@@ -7,7 +7,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphCommandSerializationTests
+public class CommandSerializationTests
 {
     private readonly GraphMap _map = new GraphMap()
     {

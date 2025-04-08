@@ -8,15 +8,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.2" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />
-        <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.22.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.3" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.23.0" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.*-* " />
         <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.*-* " />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
       <ProjectReference Include="..\..\Tools\Toolbox.Email\Toolbox.Email.csproj" />
       <ProjectReference Include="..\..\Tools\Toolbox.Graph.Extensions\Toolbox.Graph.Extensions.csproj" />
       <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />

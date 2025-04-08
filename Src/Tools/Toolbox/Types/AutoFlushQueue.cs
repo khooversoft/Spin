@@ -32,11 +32,7 @@ public class AutoFlushQueue<T>
         try
         {
             _queue.Enqueue(item);
-
-            if (_queue.Count >= _bufferSize)
-            {
-                await FlushBuffer();
-            }
+            if (_queue.Count >= _bufferSize) await FlushBuffer();
         }
         finally
         {

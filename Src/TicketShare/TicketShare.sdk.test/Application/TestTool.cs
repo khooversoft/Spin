@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
@@ -7,9 +8,9 @@ namespace TicketShare.sdk.Applications;
 
 internal static class TestTool
 {
-    public static async Task AddIdentityUser(string principalId, string userName, TicketShareTestHost testHost, ScopeContext context)
+    public static async Task AddIdentityUser(string principalId, string userName, GraphHostService testHost, ScopeContext context)
     {
-        var client = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
+        var client = testHost.Services.GetRequiredService<IdentityClient>();
 
         PrincipalIdentity user = new PrincipalIdentity
         {
@@ -24,9 +25,9 @@ internal static class TestTool
         result.IsOk().Should().BeTrue(result.ToString());
     }
 
-    public static async Task AddAccount(AccountRecord accountRecord, TicketShareTestHost testHost, ScopeContext context)
+    public static async Task AddAccount(AccountRecord accountRecord, GraphHostService testHost, ScopeContext context)
     {
-        var client = testHost.ServiceProvider.GetRequiredService<AccountClient>();
+        var client = testHost.Services.GetRequiredService<AccountClient>();
 
         var result = await client.GetContext(accountRecord.PrincipalId).Add(accountRecord, context);
         result.IsOk().Should().BeTrue(result.ToString());

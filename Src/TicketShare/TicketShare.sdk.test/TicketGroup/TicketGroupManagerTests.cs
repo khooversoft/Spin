@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
@@ -26,10 +27,10 @@ public class TicketGroupManagerTests
         const string principalId = "user1@domain.com";
         const string friendPrincipalId = "friend@domain.com";
 
-        var testHost = new TicketShareTestHost(principalId);
-        var identityClient = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
-        var manager = testHost.ServiceProvider.GetRequiredService<TicketGroupManager>();
-        var context = testHost.GetScopeContext<TicketGroupTests>();
+        var testHost = await GraphTestStartup.CreateGraphService();
+        var identityClient = testHost.Services.GetRequiredService<IdentityClient>();
+        var manager = testHost.Services.GetRequiredService<TicketGroupManager>();
+        var context = testHost.CreateScopeContext<TicketGroupTests>();
 
         var accountRecord = TestTool.CreateAccountModel(principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);

@@ -32,7 +32,7 @@ public class TicketDataClient
         var cacheOption = GetFromCache(context);
         if( cacheOption.IsOk()) return cacheOption;
 
-        Option<DataETag> dataETag = await _fileStore.Get(Path, context);
+        Option<DataETag> dataETag = await _fileStore.File(Path).Get(context);
         dataETag.LogStatus(context, "Get ticket data model, path={path}", [Path]);
         if (dataETag.IsError()) return dataETag.ToOptionStatus<TicketDataRecord>();
 
@@ -46,7 +46,7 @@ public class TicketDataClient
         context = context.With(_logger);
         _memoryCache.Remove(_cacheKey);
 
-        var result = await _fileStore.Delete(Path, context);
+        var result = await _fileStore.File(Path).Delete(context);
         result.LogStatus(context, "Clear ticket data model, path={path}", [Path]);
         if (result.IsError()) return result;
 
@@ -57,7 +57,7 @@ public class TicketDataClient
     {
         context = context.With(_logger);
 
-        var result = await _fileStore.Set(Path, ticketDataModel.ToJson().ToDataETag(), context);
+        var result = await _fileStore.File(Path).Set(ticketDataModel.ToJson().ToDataETag(), context);
         result.LogStatus(context, "Set ticket data model, path={path}", [Path]);
         if (result.IsError()) return result;
 

@@ -28,18 +28,17 @@
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.40.0" />
     <PackageReference Include="Markdown.ColorCode" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Orleans.Client" Version="9.1.1" />
-    <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.1.1" />
-    <PackageReference Include="Microsoft.Orleans.Server" Version="9.1.1" />
-    <PackageReference Include="System.Text.Json" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="8.1.1" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="9.1.2" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.1.2" />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="9.1.2" />
+    <PackageReference Include="System.Text.Json" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Tools\Toolbox.Email\Toolbox.Email.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Graph.Extensions\Toolbox.Graph.Extensions.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
-    <ProjectReference Include="..\..\Tools\Toolbox.Orleans\Toolbox.Orleans.csproj" />
     <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
     <ProjectReference Include="..\TicketApi.sdk\TicketApi.sdk.csproj" />
   </ItemGroup>

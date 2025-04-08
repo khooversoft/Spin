@@ -26,7 +26,7 @@ public class GraphHostBuilder
 
     public GraphHostBuilder SetMap(GraphMap? map) => this.Action(x => x.GraphMap = map);
     public GraphHostBuilder SetReadOnly(bool readOnly = true) => this.Action((Action<GraphHostBuilder>)(x => x.ReadOnly = readOnly));
-    public GraphHostBuilder SetShareMode(bool shareMode = true) => this.Action(x => x.ReadOnly = shareMode);
+    public GraphHostBuilder SetShareMode(bool shareMode = true) => this.Action(x => x.ShareMode = shareMode);
     public GraphHostBuilder SetDisableCache(bool disableCache = true) => this.Action(x => x.DisableCache = disableCache);
     public GraphHostBuilder UseInMemoryStore(bool use = true) => this.Action(x => x.InMemoryStore = use);
     public GraphHostBuilder UseLogging(bool useLogging = true) => this.Action(x => x.Logging = useLogging);

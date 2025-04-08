@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphParallelStressTests
+public class ParallelStressTests
 {
     [Fact]
     public async Task ParallelAddTasks()

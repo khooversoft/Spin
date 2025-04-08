@@ -34,7 +34,7 @@ public class TicketDataModelFileTests
     [Fact]
     public async Task ReadWriteEmpty()
     {
-        await _filestore.Delete(TicketDataClient.Path, _context);
+        await _filestore.File(TicketDataClient.Path).Delete(_context);
 
         var m1 = new TicketDataRecord();
         var setResult = await _dataClient.Set(m1, _context);
@@ -51,7 +51,7 @@ public class TicketDataModelFileTests
     [Fact]
     public async Task ReadWriteData()
     {
-        await _filestore.Delete(TicketDataClient.Path, _context);
+        await _filestore.File(TicketDataClient.Path).Delete(_context);
 
         var m1 = new TicketDataRecord
         {

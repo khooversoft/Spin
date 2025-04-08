@@ -10,8 +10,9 @@ public class AddUniqueIndexTests
     public async Task AddMultipleIndexes()
     {
         await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
-        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue();
 
         testClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -22,7 +23,7 @@ public class AddUniqueIndexTests
 
         testClient.Map.Nodes.LookupIndex("t3", "v3").IsOk().Should().BeFalse();
 
-        var e2 = await testClient.Execute("add node key=node2 set t3=v3 index t3 ;", NullScopeContext.Default);
+        var e2 = await testClient.Execute("add node key=node2 set t3=v3 index t3 ;", context);
         e2.IsOk().Should().BeTrue();
 
         testClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -44,8 +45,9 @@ public class AddUniqueIndexTests
     public async Task AddMultipleIndexesDifferentValue()
     {
         await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
-        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue();
 
         testClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -56,7 +58,7 @@ public class AddUniqueIndexTests
 
         testClient.Map.Nodes.LookupIndex("t3", "v3").IsOk().Should().BeFalse();
 
-        var e2 = await testClient.Execute("add node key=node2 set t1=v2 index t1 ;", NullScopeContext.Default);
+        var e2 = await testClient.Execute("add node key=node2 set t1=v2 index t1 ;", context);
         e2.IsOk().Should().BeTrue();
 
         testClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -76,8 +78,9 @@ public class AddUniqueIndexTests
     public async Task UniqueIndexViolation()
     {
         await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
-        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue();
 
         testClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -86,7 +89,7 @@ public class AddUniqueIndexTests
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        var e2 = await testClient.Execute("add node key=node2 set t1=v1 index t1 ;", NullScopeContext.Default);
+        var e2 = await testClient.Execute("add node key=node2 set t1=v1 index t1 ;", context);
         e2.IsError().Should().BeTrue();
 
         testClient.Map.Nodes.ContainsKey("node1").Should().BeTrue();
@@ -103,8 +106,9 @@ public class AddUniqueIndexTests
     public async Task UniqueIndexViolation2()
     {
         await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
-        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", NullScopeContext.Default);
+        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
         e1.IsOk().Should().BeTrue();
 
         testClient.Map.Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -113,10 +117,10 @@ public class AddUniqueIndexTests
             x.Return().NodeKey.Should().Be("node1");
         });
 
-        var e2 = await testClient.Execute("add node key=node3 set t1=v2 index t1 ;", NullScopeContext.Default);
+        var e2 = await testClient.Execute("add node key=node3 set t1=v2 index t1 ;", context);
         e2.IsOk().Should().BeTrue();
 
-        var e3 = await testClient.Execute("add node key=node2 set t1=v1 index t1 ;", NullScopeContext.Default);
+        var e3 = await testClient.Execute("add node key=node2 set t1=v1 index t1 ;", context);
         e3.IsError().Should().BeTrue();
 
         testClient.Map.Nodes.ContainsKey("node1").Should().BeTrue();

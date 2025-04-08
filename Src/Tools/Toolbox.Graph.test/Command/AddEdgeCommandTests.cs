@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
 
-public class GraphAddEdgeCommandTests
+public class AddEdgeCommandTests
 {
     private readonly GraphMap _map = new GraphMap()
     {

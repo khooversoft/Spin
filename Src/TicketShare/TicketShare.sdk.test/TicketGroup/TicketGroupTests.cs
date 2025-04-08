@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
@@ -12,10 +13,11 @@ public class TicketGroupTests
     [Fact]
     public async Task FullLifeCycle()
     {
-        var testHost = new TicketShareTestHost();
-        var identityClient = testHost.ServiceProvider.GetRequiredService<IdentityClient>();
-        var ticketGroupClient = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
-        var context = testHost.GetScopeContext<TicketGroupTests>();
+        var testHost = await GraphTestStartup.CreateGraphService();
+        var identityClient = testHost.Services.GetRequiredService<IdentityClient>();
+        var ticketGroupClient = testHost.Services.GetRequiredService<TicketGroupClient>();
+        var context = testHost.CreateScopeContext<TicketGroupTests>();
+
         const string principalId = "user1@domain.com";
         const string friendPrincipalId = "friend@domain.com";
 
@@ -78,9 +80,10 @@ public class TicketGroupTests
     [Fact]
     public async Task TwoTicketGroupsFullLifeCycle()
     {
-        var testHost = new TicketShareTestHost();
-        var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
-        var context = testHost.GetScopeContext<TicketGroupTests>();
+        var testHost = await GraphTestStartup.CreateGraphService();
+        var client = testHost.Services.GetRequiredService<TicketGroupClient>();
+        var context = testHost.CreateScopeContext<TicketGroupTests>();
+
         const string principalIdOne = "user1@domain.com";
         const string ticketGroupIdOne = "sam/2020/hockey1";
         const string friend1 = "friend1@domain.com";
@@ -109,9 +112,9 @@ public class TicketGroupTests
         }
     }
 
-    private async Task CreateAccountAndTicketGroup(string ticketGroupId, string principalId, string friendPrincipalId, TicketShareTestHost testHost, ScopeContext context)
+    private async Task CreateAccountAndTicketGroup(string ticketGroupId, string principalId, string friendPrincipalId, GraphHostService testHost, ScopeContext context)
     {
-        var client = testHost.ServiceProvider.GetRequiredService<TicketGroupClient>();
+        var client = testHost.Services.GetRequiredService<TicketGroupClient>();
 
         var accountRecord = TestTool.CreateAccountModel(principalId);
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1" + principalId, testHost, context);
