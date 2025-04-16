@@ -1,5 +1,4 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Extensions;
@@ -7,7 +6,7 @@ namespace Toolbox.Test.Extensions;
 public class FunctionLogicExtensionsTests
 {
     [Fact]
-    public void IfTrueWithTestAndActionT()
+    public void IfTrueWithValue()
     {
         bool test = false;
         string? state = null;
@@ -16,26 +15,13 @@ public class FunctionLogicExtensionsTests
         state.IsEmpty().Should().BeTrue();
 
         test = true;
+        state = null;
         test.IfTrue(x => x, x => state = x.ToString());
         state.Should().Be("True");
     }
 
     [Fact]
-    public void IfTrueWithTestAndAction()
-    {
-        bool test = false;
-        string? state = null;
-
-        test.IfTrue(x => x, () => state = test.ToString());
-        state.IsEmpty().Should().BeTrue();
-
-        test = true;
-        test.IfTrue(x => x, () => state = test.ToString());
-        state.Should().Be("True");
-    }
-
-    [Fact]
-    public void IfTrueTestAndAction()
+    public void IfTrueAction()
     {
         bool test = false;
         string? state = null;
@@ -44,82 +30,38 @@ public class FunctionLogicExtensionsTests
         state.IsEmpty().Should().BeTrue();
 
         test = true;
+        state = null;
         test.IfTrue(() => state = test.ToString());
         state.Should().Be("True");
     }
 
     [Fact]
-    public void IfFalseTestAndAction()
+    public void IfElseWithValue()
     {
-        bool test = true;
-        object? state = null;
+        string? state = null;
+        bool test = false;
 
-        test.IfFalse(() => state = test.ToString());
-        state.BeNull();
+        test.IfElse(x => x, x => state = x.ToString(), x => state = "*");
+        state.Should().Be("*");
 
+        test = true;
         state = null;
-        test = false;
-        test.IfFalse(() => state = test.ToString());
-        state.Should().Be("False");
+        test.IfElse(x => x, x => state = x.ToString(), x => state = "*");
+        state.Should().Be("True");
     }
 
     [Fact]
-    public void IfNullTestAndAction()
+    public void IfElseAction()
     {
-        string? test = null;
-        object? state = null;
+        string? state = null;
 
-        test.IfNull(() => state = "pass");
-        state.Should().Be("pass");
+        bool test = false;
+        test.IfElse(() => state = "true", () => state = "*");
+        state.Should().Be("*");
 
+        test = true;
         state = null;
-        test = "value";
-        test.IfNull(() => state = "pass");
-        state.BeNull();
-    }
-
-    [Fact]
-    public void IfNotNullTestAndAction()
-    {
-        string? test = null;
-        object? state = null;
-
-        test.IfNotNull(x => state = "set");
-        state.BeNull();
-
-        state = null;
-        test = "value";
-        test.IfNotNull(x => state = x + "set");
-        state.Should().Be("valueset");
-    }
-
-    [Fact]
-    public void IfEmptyTestAndAction()
-    {
-        string? test = null;
-        object? state = null;
-
-        test.IfEmpty(() => state = "pass");
-        state.Should().Be("pass");
-
-        state = null;
-        test = "value";
-        test.IfEmpty(() => state = "pass");
-        state.BeNull();
-    }
-
-    [Fact]
-    public void IfNotEmptyTestAndAction()
-    {
-        string? test = null;
-        object? state = null;
-
-        test.IfNotEmpty(x => state = "set");
-        state.BeNull();
-
-        state = null;
-        test = "value";
-        test.IfNotEmpty(x => state = x + "set");
-        state.Should().Be("valueset");
+        test.IfElse(() => state = "true", () => state = "*");
+        state.Should().Be("true");
     }
 }

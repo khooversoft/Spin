@@ -15,7 +15,7 @@ public class UpdateIdentityTests
     [Fact]
     public async Task UpdateUserEmailInfo()
     {
-        await using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
+        using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
         var context = graphTestClient.CreateScopeContext<UpdateIdentityTests>();
         var identityClient = graphTestClient.Services.GetRequiredService<IdentityClient>();
 

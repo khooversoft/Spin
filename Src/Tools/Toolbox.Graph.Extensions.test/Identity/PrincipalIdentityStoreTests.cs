@@ -16,7 +16,7 @@ public class PrincipalIdentityStoreTests
     [Fact]
     public async Task AddPrincipalId()
     {
-        await using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions(), logOutput: x => _outputHelper.WriteLine(x));
+        using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<PrincipalIdentityStoreTests>();
         var identityClient = graphTestClient.Services.GetRequiredService<IdentityClient>();
 
@@ -67,9 +67,9 @@ public class PrincipalIdentityStoreTests
     }
 
     [Fact]
-    public async Task AddMinimalPrincaipalId()
+    public async Task AddMinimalPrincipalId()
     {
-        await using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
+        using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
         var context = graphTestClient.CreateScopeContext<PrincipalIdentityStoreTests>();
         var identityClient = graphTestClient.Services.GetRequiredService<IdentityClient>();
 

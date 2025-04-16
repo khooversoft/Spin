@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Journal;
-using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -22,6 +21,8 @@ public static class GraphStartup
         services.AddSingleton<IGraphEngine, GraphEngine>();
         services.AddSingleton<GraphMapStore>();
         services.AddSingleton<GraphLeaseControl>();
+        services.AddSingleton<GraphMapCounter>();
+        services.AddSingleton<IGraphMapFactory, GraphMapFactory>();
 
         services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
         {
@@ -52,29 +53,6 @@ public static class GraphStartup
 
         context.LogInformation("Graph host started");
         return StatusCode.OK;
-    }
-}
-
-public static class GraphTestStartup
-{
-    public static async Task<GraphHostService> CreateGraphService(
-        GraphMap? graphMap = null,
-        Action<IServiceCollection>? config = null,
-        Action<string>? logOutput = null,
-        bool sharedMode = false,
-        bool useInMemoryStore = true
-        )
-    {
-        GraphHostService graphHostService = await new GraphHostBuilder()
-            .SetMap(graphMap)
-            .UseInMemoryStore(useInMemoryStore)
-            .SetShareMode(sharedMode)
-            .UseLogging()
-            .SetLogOutput(logOutput)
-            .AddServiceConfiguration(config)
-            .Build();
-
-        return graphHostService;
     }
 }
 

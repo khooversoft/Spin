@@ -42,7 +42,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         _name = values.Single().Key.NotEmpty();
         _basePath = values.Single().Value.NotEmpty();
 
-        _logger.LogInformation("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
+        _logger.LogTrace("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
 
         if (_fileOption.ReadOnly)
         {
@@ -60,7 +60,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
             return;
         }
 
-        _logger.LogInformation("JournalFile is setup, name={name}", _name);
+        _logger.LogTrace("JournalFile is setup, name={name}", _name);
         _writer = InternalWrite;
     }
 

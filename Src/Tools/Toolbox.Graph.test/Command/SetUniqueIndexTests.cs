@@ -17,7 +17,7 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetMultipleIndexes()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
 
         var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
@@ -52,7 +52,7 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetMultipleIndexesDifferentValue()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
 
         var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
@@ -85,7 +85,7 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetUniqueIndexViolation()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
 
         var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
@@ -113,7 +113,7 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetUniqueIndexViolation2()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
 
         var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
@@ -145,7 +145,7 @@ public class SetUniqueIndexTests
     [Fact]
     public async Task SetAndUpdateIndex()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SetUniqueIndexTests>();
 
         var e1 = await graphTestClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);

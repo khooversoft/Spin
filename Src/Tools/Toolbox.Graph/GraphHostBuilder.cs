@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Logging;
@@ -31,8 +32,13 @@ public class GraphHostBuilder
     public GraphHostBuilder UseInMemoryStore(bool use = true) => this.Action(x => x.InMemoryStore = use);
     public GraphHostBuilder UseLogging(bool useLogging = true) => this.Action(x => x.Logging = useLogging);
     public GraphHostBuilder SetConfigurationFile(string? configurationFile) => this.Action(x => x.ConfigurationFile = configurationFile);
-    public GraphHostBuilder AddServiceConfiguration(Action<IServiceCollection>? config) => this.Action(x => config.IfNotNull(config => x._services.Enqueue(config)));
     public GraphHostBuilder SetLogOutput(Action<string>? logOutput) => this.Action(x => x.LogOutput = logOutput);
+
+    public GraphHostBuilder AddServiceConfiguration(Action<IServiceCollection>? config)
+    {
+        if (config != null) _services.Enqueue(config);
+        return this;
+    }
 
 
     public async Task<GraphHostService> Build()
@@ -44,18 +50,21 @@ public class GraphHostBuilder
             DisableCache = DisableCache,
         };
 
-        ServiceProvider services = new ServiceCollection()
-            .AddGraphEngine(option)
-            .Action(x => ConfigurationFile?.Action(y => x.AddSingleton(ReadConfiguration())))
-            .IfTrue(x => InMemoryStore, x => x.AddInMemoryFileStore())
-            .IfTrue(x => Logging, x => x.AddLogging(config => config.AddDebug().AddConsole()))
-            .IfTrue(x => LogOutput != null, x => x.AddLogging(config => config.AddLambda(LogOutput.NotNull())))
-            .Action(x => _services.ForEach(y => y.Invoke(x)))
-            .BuildServiceProvider();
+        IHost host = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                services.AddGraphEngine(option)
+                    .Action(x => ConfigurationFile?.Action(y => x.AddSingleton(ReadConfiguration())))
+                    .IfTrue(x => InMemoryStore, x => x.AddInMemoryFileStore())
+                    .IfTrue(x => Logging, x => x.AddLogging(config => config.AddDebug().AddConsole()))
+                    .IfTrue(x => LogOutput != null, x => x.AddLogging(config => config.AddLambda(LogOutput.NotNull())))
+                    .Action(x => _services.ForEach(y => y.Invoke(x)));
+            })
+            .Build();
 
-        var graphEngine = new GraphHostService(services);
+        var graphEngine = new GraphHostService(host);
         ScopeContext context = graphEngine.CreateScopeContext<GraphHostService>();
-        IGraphHost graphHost = services.GetRequiredService<IGraphHost>();
+        IGraphHost graphHost = graphEngine.Services.GetRequiredService<IGraphHost>();
 
         var runOption = GraphMap switch
         {
@@ -83,25 +92,28 @@ public class GraphHostBuilder
     }
 }
 
-public class GraphHostService : IGraphClient, IAsyncDisposable
+public class GraphHostService : IGraphClient, IDisposable
 {
-    public GraphHostService(ServiceProvider services)
-    {
-        services.NotNull();
+    private readonly IHost _host;
 
-        GraphEngine = services.GetRequiredService<IGraphEngine>();
-        Services = services.NotNull();
+    public GraphHostService(IHost host)
+    {
+        _host = host.NotNull();
+
+        GraphEngine = _host.Services.GetRequiredService<IGraphEngine>();
+        _host = host;
     }
 
-    public ServiceProvider Services { get; }
+    public IServiceProvider Services => _host.Services;
     public IGraphEngine GraphEngine { get; }
     public GraphMap Map => GraphEngine.Map;
 
-    public ValueTask DisposeAsync() => Services.DisposeAsync();
 
     public Task<Option<QueryResult>> Execute(string command, ScopeContext context) => GraphEngine.Execute(command, context);
     public Task<Option<QueryBatchResult>> ExecuteBatch(string command, ScopeContext context) => GraphEngine.ExecuteBatch(command, context);
 
     public ScopeContext CreateScopeContext<T>() => new ScopeContext(Services.GetRequiredService<ILogger<T>>());
+
+    public void Dispose() => _host.Dispose();
 }
 

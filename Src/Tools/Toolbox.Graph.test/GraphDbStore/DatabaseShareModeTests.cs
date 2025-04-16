@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Graph.test.Application;
 using Toolbox.Store;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
@@ -24,22 +21,31 @@ public class DatabaseShareModeTests
     [Fact]
     public async Task OneWriteOtherRead()
     {
-        await using var firstEngineClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x), sharedMode: true);
-        var context = firstEngineClient.CreateScopeContext<DatabaseShareModeTests>();
-        var fileStore = firstEngineClient.Services.GetRequiredService<IFileStore>();
-        var graphFileStore = firstEngineClient.Services.GetRequiredService<IGraphStore>();
+        using var testClient = await TestApplication.CreateTestGraphService(logOutput: _outputHelper, shareMode: true);
+        var context1 = testClient.CreateScopeContext<DatabaseShareModeTests>();
+        var context2 = testClient.CreateScopeContext<DatabaseShareModeTests>();
+        var fileStore = testClient.Services.GetRequiredService<IFileStore>();
+        var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
+        var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var leaseCounter = mapCounter.Leases;
 
-        await using var SecondEngineClient = await GraphTestStartup.CreateGraphService(
+        using var SecondEngineClient = await GraphTestStartup.CreateGraphService(
             logOutput: x => _outputHelper.WriteLine(x),
-            config: x => x.AddSingleton<IFileStore>(fileStore).AddSingleton<IGraphStore>(graphFileStore),
+            config: x => x.AddSingleton<IFileStore>(fileStore)
+                .AddSingleton<IGraphStore>(graphFileStore)
+                .AddSingleton<GraphMapCounter>(mapCounter),
             sharedMode: true,
             useInMemoryStore: false
             );
 
-        var e1 = await firstEngineClient.Execute("add node key=node1 set t1=v1, t2=v ;", context);
+        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
         e1.IsOk().Should().BeTrue();
+        leaseCounter.Acquire.Value.Should().Be(1);
+        leaseCounter.Release.Value.Should().Be(1);
+        leaseCounter.ActiveAcquire.Value.Should().Be(0);
+        leaseCounter.ActiveExclusive.Value.Should().Be(0);
 
-        var q1 = await firstEngineClient.Execute("select (key=node1);", context);
+        var q1 = await testClient.Execute("select (key=node1);", context1);
         q1.Action(x =>
         {
             x.IsOk().Should().BeTrue();
@@ -50,7 +56,12 @@ public class DatabaseShareModeTests
             });
         });
 
-        var s1 = await SecondEngineClient.Execute("select (key=node1);", context);
+        leaseCounter.Acquire.Value.Should().Be(2);
+        leaseCounter.Release.Value.Should().Be(2);
+        leaseCounter.ActiveAcquire.Value.Should().Be(0);
+        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+
+        var s1 = await SecondEngineClient.Execute("select (key=node1);", context2);
         s1.Action(x =>
         {
             x.IsOk().Should().BeTrue();
@@ -60,5 +71,114 @@ public class DatabaseShareModeTests
                 var node = y.Nodes[0].Key.Should().Be("node1");
             });
         });
+
+        leaseCounter.Acquire.Value.Should().Be(3);
+        leaseCounter.Release.Value.Should().Be(3);
+        leaseCounter.ActiveAcquire.Value.Should().Be(0);
+        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ParallelReads()
+    {
+        using var testClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x), sharedMode: true);
+        var context1 = testClient.CreateScopeContext<DatabaseShareModeTests>();
+        var context2 = testClient.CreateScopeContext<DatabaseShareModeTests>();
+        var fileStore = testClient.Services.GetRequiredService<IFileStore>();
+        var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
+        var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var leaseCounter = mapCounter.Leases;
+
+        using var secondEngineClient = await GraphTestStartup.CreateGraphService(
+            logOutput: x => _outputHelper.WriteLine(x),
+            config: x => x.AddSingleton<IFileStore>(fileStore)
+                .AddSingleton<IGraphStore>(graphFileStore)
+                .AddSingleton<GraphMapCounter>(mapCounter),
+            sharedMode: true,
+            useInMemoryStore: false
+            );
+
+        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
+        e1.IsOk().Should().BeTrue();
+        leaseCounter.Acquire.Value.Should().Be(1);
+        leaseCounter.Release.Value.Should().Be(1);
+        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+        leaseCounter.ActiveAcquire.Value.Should().Be(0);
+
+        var q1 = await testClient.Execute("select (key=node1);", context1);
+        q1.Action(x =>
+        {
+            x.IsOk().Should().BeTrue();
+            x.Return().Action(y =>
+            {
+                y.Nodes.Count.Should().Be(1);
+                var node = y.Nodes[0].Key.Should().Be("node1");
+            });
+        });
+
+        CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        CancellationToken token = tokenSource.Token;
+        var list = new ConcurrentQueue<(int job, int index, DateTimeOffset date, int globalCount)>();
+        int globalCount = 0;
+
+        var t1 = Task.Run(async () =>
+        {
+            try
+            {
+                int count = 0;
+                while (!token.IsCancellationRequested)
+                {
+                    var v = Interlocked.Increment(ref globalCount);
+                    list.Enqueue((1, count++, DateTimeOffset.UtcNow, v));
+                    context1.LogInformation("T1 count={count} globalCount={v}", count, v);
+                    await query(testClient, context1);
+                }
+            }
+            catch (Exception ex)
+            {
+                context1.LogError(ex, "Error in T1 - canceling");
+                tokenSource.Cancel();
+                throw;
+            }
+        });
+
+        var t2 = Task.Run(async () =>
+        {
+            try
+            {
+                int count = 0;
+                while (!token.IsCancellationRequested)
+                {
+                    var v = Interlocked.Increment(ref globalCount);
+                    list.Enqueue((2, count++, DateTimeOffset.UtcNow, v));
+                    context1.LogInformation("T2 count={count} globalCount={v}", count, v);
+                    await query(secondEngineClient, context2);
+                }
+            }
+            catch (Exception ex)
+            {
+                context1.LogError(ex, "Error in T2 - canceling");
+                tokenSource.Cancel();
+                throw;
+            }
+        });
+
+        await Task.WhenAll(t1, t2);
+
+        static async Task<Option<QueryResult>> query(GraphHostService host, ScopeContext context)
+        {
+            var s1 = await host.Execute("select (key=node1);", context);
+            s1.Action(x =>
+            {
+                x.IsOk().Should().BeTrue(x.ToString());
+                x.Return().Action(y =>
+                {
+                    y.Nodes.Count.Should().Be(1);
+                    var node = y.Nodes[0].Key.Should().Be("node1");
+                });
+            });
+
+            return s1;
+        }
     }
 }

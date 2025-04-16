@@ -13,7 +13,7 @@ public class GraphMapSerializationTests
 
         var json = map.ToJson();
 
-        var mapResult = GraphMap.FromJson(json).NotNull();
+        var mapResult = GraphMapTool.FromJson(json).NotNull();
         mapResult.NotNull();
         mapResult.Count().Should().Be(0);
         mapResult.Nodes.Count.Should().Be(0);
@@ -30,7 +30,7 @@ public class GraphMapSerializationTests
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMap.FromJson(json).NotNull();
+            var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
@@ -51,7 +51,7 @@ public class GraphMapSerializationTests
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMap.FromJson(json).NotNull();
+            var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
@@ -72,7 +72,7 @@ public class GraphMapSerializationTests
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMap.FromJson(json).NotNull();
+            var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
@@ -95,7 +95,7 @@ public class GraphMapSerializationTests
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMap.FromJson(json).NotNull();
+            var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
             mapResult.Count().Should().Be(1);
             mapResult.Edges.Count.Should().Be(0);
@@ -129,7 +129,7 @@ public class GraphMapSerializationTests
 
         string json = map.ToJson();
 
-        var mapRead = GraphMap.FromJson(json).NotNull();
+        var mapRead = GraphMapTool.FromJson(json).NotNull();
         mapRead.Nodes.Count.Should().Be(4);
         mapRead.Edges.Count.Should().Be(3);
 

@@ -20,4 +20,5 @@ public static class GraphSerializationExtensions
     };
 
     public static GraphMap FromSerialization(this GraphSerialization subject) => new GraphMap(subject.Nodes, subject.Edges);
+    public static GraphMap FromSerialization(this GraphSerialization subject, GraphMapCounter mapCounters) => new GraphMap(subject.Nodes, subject.Edges, mapCounters);
 }

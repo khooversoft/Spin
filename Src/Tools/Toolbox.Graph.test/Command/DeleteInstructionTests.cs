@@ -26,7 +26,7 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteAllNode()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
@@ -44,7 +44,7 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteAllEdges()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete [*] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
@@ -62,7 +62,7 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteNode()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (key=node2) a1 ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
@@ -91,7 +91,7 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteEdgeFromNode()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
@@ -115,7 +115,7 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteNodeFromEdgeFromNode()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] -> (*) ;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();

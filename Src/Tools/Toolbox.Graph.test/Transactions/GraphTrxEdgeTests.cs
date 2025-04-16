@@ -10,7 +10,7 @@ public class GraphTrxEdgeTests
     [Fact]
     public async Task AddEdgeFailure()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -43,7 +43,7 @@ public class GraphTrxEdgeTests
     [Fact]
     public async Task UpdateEdgeFailure()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -77,7 +77,7 @@ public class GraphTrxEdgeTests
     [Fact]
     public async Task DeleteEdgeFailure()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;

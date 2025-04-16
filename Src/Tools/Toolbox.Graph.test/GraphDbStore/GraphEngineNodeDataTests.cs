@@ -18,7 +18,7 @@ public class GraphEngineNodeDataTests
     [Fact]
     public async Task AddNodeWithData()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
         var context = testClient.CreateScopeContext<GraphEngineNodeDataTests>();
@@ -86,7 +86,7 @@ public class GraphEngineNodeDataTests
     [Fact]
     public async Task AddNodeWithDataAndDeleteData()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
         var context = testClient.CreateScopeContext<GraphEngineNodeDataTests>();
@@ -145,7 +145,7 @@ public class GraphEngineNodeDataTests
     [Fact]
     public async Task AddNodeWithTwoData()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
         var context = testClient.CreateScopeContext<GraphEngineNodeDataTests>();
@@ -240,7 +240,7 @@ public class GraphEngineNodeDataTests
     [Fact]
     public async Task AddNodeWithTwoDataDeletingOne()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
         var context = testClient.CreateScopeContext<GraphEngineNodeDataTests>();

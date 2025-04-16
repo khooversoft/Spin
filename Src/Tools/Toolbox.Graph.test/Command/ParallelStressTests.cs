@@ -11,7 +11,7 @@ public class ParallelStressTests
     public async Task ParallelAddTasks()
     {
         const int count = 1000;
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         await ActionParallel.Run(x => AddNodes(testClient, x), Enumerable.Range(0, count), 5);
         await ActionParallel.Run(x => AddEdges(testClient, x), Enumerable.Range(0, count - 1), 5);

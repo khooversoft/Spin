@@ -25,13 +25,15 @@ public class GraphLeaseControl
     private readonly IGraphStore _graphStore;
     private readonly ILogger<GraphLeaseControl> _logger;
     private readonly GraphHostOption _graphHostOption;
+    private readonly LeaseCounter _leaseCounter;
     private IFileLeasedAccess? _exclusiveLock;
     private IFileLeasedAccess? _scopeLock;
 
-    public GraphLeaseControl(IGraphStore graphStore, GraphHostOption graphHostOption, ILogger<GraphLeaseControl> logger)
+    public GraphLeaseControl(IGraphStore graphStore, GraphMapCounter mapCounters, GraphHostOption graphHostOption, ILogger<GraphLeaseControl> logger)
     {
         _graphStore = graphStore.NotNull();
         _graphHostOption = graphHostOption.NotNull();
+        _leaseCounter = mapCounters.NotNull().Leases;
         _logger = logger.NotNull();
     }
 
@@ -71,6 +73,8 @@ public class GraphLeaseControl
             if (leaseOption.IsError()) return leaseOption.ToOptionStatus();
 
             _exclusiveLock = leaseOption.Return();
+            _leaseCounter.ActiveExclusive.Record(1);
+            context.LogTrace("Exclusive lock acquired");
             return StatusCode.OK;
         }
         finally
@@ -92,6 +96,8 @@ public class GraphLeaseControl
             var currentLock = Interlocked.Exchange(ref _exclusiveLock, null);
             if (currentLock != null) await currentLock.Release(context).ConfigureAwait(false);
 
+            _leaseCounter.ActiveExclusive.Record(0);
+            context.LogTrace("Exclusive lock released");
             return StatusCode.OK;
         }
         finally
@@ -120,6 +126,10 @@ public class GraphLeaseControl
             _scopeLock = leaseOption.Return();
             var scopedWriteAccess = new ScopedWriteAccess(_scopeLock, () => ReleaseScope(context));
 
+            _leaseCounter.ActiveAcquire.Record(1);
+            _leaseCounter.Acquire.Add();
+            context.LogTrace("Lock acquired");
+
             return scopedWriteAccess;
         }
         finally
@@ -140,6 +150,10 @@ public class GraphLeaseControl
             if (current == null) return StatusCode.OK;
 
             context.LogTrace("Lease released");
+            _leaseCounter.ActiveAcquire.Record(0);
+            _leaseCounter.Release.Add();
+            context.LogTrace("Lock released");
+
             return await current.NotNull().Release(context).ConfigureAwait(false);
         }
         finally

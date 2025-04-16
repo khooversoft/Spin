@@ -8,42 +8,55 @@ namespace Toolbox.Graph;
 public class GraphMap : IEnumerable<IGraphCommon>
 {
     private readonly Guid _instance = Guid.NewGuid();
-    private readonly GraphNodeIndex _nodes;
-    private readonly GraphEdgeIndex _edges;
     private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
     private readonly object _lock = new object();
-    private readonly GraphMeter _graphMeter;
 
     public GraphMap()
     {
-        _graphMeter = new GraphMeter(this);
+        Nodes = new GraphNodeIndex(this, _lock);
+        Edges = new GraphEdgeIndex(this, _lock);
+    }
 
-        _nodes = new GraphNodeIndex(this, _lock);
-        _edges = new GraphEdgeIndex(this, _lock);
+    public GraphMap(GraphMapCounter mapCounters)
+    {
+        mapCounters.NotNull();
+
+        Nodes = new GraphNodeIndex(this, _lock, mapCounters);
+        Edges = new GraphEdgeIndex(this, _lock, mapCounters: mapCounters);
     }
 
     public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges)
         : this()
     {
-        nodes.NotNull().ForEach(x => Nodes.Add(x).ThrowOnError("Node add failed"));
-        edges.NotNull().ForEach(x => Edges.Add(x).ThrowOnError("Edge add failed"));
+        LoadRowsAndEdges(nodes, edges);
+    }
+
+    public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges, GraphMapCounter mapCounters)
+        : this(mapCounters)
+    {
+        LoadRowsAndEdges(nodes, edges);
     }
 
     internal AsyncReaderWriterLock ReadWriterLock => _rwLock;
-    public GraphNodeIndex Nodes => _nodes;
-    public GraphEdgeIndex Edges => _edges;
-    public GraphMeter Meter => _graphMeter;
+    public GraphNodeIndex Nodes { get; }
+    public GraphEdgeIndex Edges { get; }
 
     public GraphMap Add(IGraphCommon element)
     {
         switch (element)
         {
-            case GraphNode node: _nodes.Add(node).ThrowOnError("Node add failed"); break;
-            case GraphEdge edge: _edges.Add(edge).ThrowOnError("Edge add failed"); break;
+            case GraphNode node: Nodes.Add(node).ThrowOnError("Node add failed"); break;
+            case GraphEdge edge: Edges.Add(edge).ThrowOnError("Edge add failed"); break;
             default: throw new ArgumentException("Unknown element");
         }
 
         return this;
+    }
+
+    public void UpdateCounters()
+    {
+        Nodes.UpdateCounters();
+        Edges.UpdateCounters();
     }
 
     public IEnumerator<IGraphCommon> GetEnumerator()
@@ -54,13 +67,15 @@ public class GraphMap : IEnumerable<IGraphCommon>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static GraphMap FromJson(string json) =>
-        json.ToObject<GraphSerialization>()
-        .NotNull()
-        .FromSerialization();
+    private void LoadRowsAndEdges(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges)
+    {
+        nodes.NotNull().ForEach(x => Nodes.Add(x).ThrowOnError("Node add failed"));
+        edges.NotNull().ForEach(x => Edges.Add(x).ThrowOnError("Edge add failed"));
+    }
 }
 
-public static class GraphMapExtensions
+public static class GraphMapTool
 {
     public static GraphMap Clone(this GraphMap subject) => new GraphMap(subject.Nodes, subject.Edges);
+    public static GraphMap FromJson(string json) => json.NotEmpty().ToObject<GraphSerialization>().NotNull().FromSerialization();
 }

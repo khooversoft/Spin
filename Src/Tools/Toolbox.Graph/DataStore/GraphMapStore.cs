@@ -11,18 +11,25 @@ public class GraphMapStore : IAsyncDisposable
     private readonly SemaphoreSlim _resetEvent = new SemaphoreSlim(1, 1);
     private readonly ILogger<GraphMapStore> _logger;
     private readonly GraphHostOption _graphHostOption;
+    private readonly IGraphMapFactory _graphMapFactory;
     private string? _currentETag;
     private GraphMap _map = new GraphMap();
     private GraphLeaseControl _leaseControl;
 
-    public GraphMapStore(GraphLeaseControl leaseControl, GraphHostOption graphHostOption, ILogger<GraphMapStore> logger)
+    public GraphMapStore(GraphLeaseControl leaseControl, IGraphMapFactory graphMapFactory, GraphHostOption graphHostOption, ILogger<GraphMapStore> logger)
     {
         _leaseControl = leaseControl.NotNull();
         _graphHostOption = graphHostOption.NotNull();
+        _graphMapFactory = graphMapFactory.NotNull();
         _logger = logger.NotNull();
     }
 
-    public void SetMap(GraphMap map) => _map = map.NotNull();
+    public void SetMap(GraphMap map)
+    {
+        _map = map.NotNull();
+        _map.UpdateCounters();
+    }
+
     public GraphMap GetMapReference() => _map;
 
     public async Task<Option> AcquireExclusive(ScopeContext context)
@@ -127,15 +134,16 @@ public class GraphMapStore : IAsyncDisposable
             DataETag dataETag = saveOption.Return();
             _currentETag = dataETag.ETag;
 
-            GraphSerialization graphSerialization = dataETag.ToObject<GraphSerialization>();
-            GraphMap newMap = graphSerialization.FromSerialization();
+            GraphMap newMap = _graphMapFactory.Create(dataETag);
             Interlocked.Exchange(ref _map, newMap);
+            _map.UpdateCounters();
 
             context.LogTrace("Read graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
             return StatusCode.OK;
         }
         finally
         {
+            _map.UpdateCounters();
             _resetEvent.Release();
         }
     }
@@ -157,10 +165,9 @@ public class GraphMapStore : IAsyncDisposable
         if (dataETagOption.IsError()) return dataETagOption.ToOptionStatus();
 
         _currentETag = dataETagOption.Return().ETag;
-
-        GraphSerialization graphSerialization = dataETagOption.Return().ToObject<GraphSerialization>();
-        GraphMap newMap = graphSerialization.FromSerialization();
+        GraphMap newMap = _graphMapFactory.Create(dataETagOption.Return());
         Interlocked.Exchange(ref _map, newMap);
+        _map.UpdateCounters();
 
         context.LogTrace("Read graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
         return StatusCode.OK;
@@ -186,6 +193,7 @@ public class GraphMapStore : IAsyncDisposable
 
         string newETag = writeMapSerializer.Return();
         Interlocked.Exchange(ref _currentETag, newETag);
+        _map.UpdateCounters();
 
         context.LogTrace("Write graph data file={mapDatabasePath}, eTag={etag}", GraphConstants.MapDatabasePath, _currentETag);
         return dataETag;

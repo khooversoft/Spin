@@ -79,10 +79,10 @@ internal static class SelectInstruction
 
         IEnumerable<GraphNode> findRootNodes() => giNodeSelect switch
         {
-            var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Nodes.Action(x => pContext.TrxContext.Map.Meter.Node.IndexScan()),
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Nodes.Action(x => pContext.TrxContext.Map.Nodes.NodeCounter?.IndexScan.Add()),
             { Key: string v } when !HasWildCard(v) => pContext.TrxContext.Map.Nodes.TryGetValue(v, out var gn) ? [gn] : [],
             { Tags: { Count: > 0 } v } => v.SelectMany(x => pContext.TrxContext.Map.Nodes.LookupTaggedNodes(x.Key)),
-            _ => pContext.TrxContext.Map.Nodes.Action(x => pContext.TrxContext.Map.Meter.Node.IndexScan()),
+            _ => pContext.TrxContext.Map.Nodes.Action(x => pContext.TrxContext.Map.Nodes.NodeCounter?.IndexScan.Add()),
         };
     }
 
@@ -115,7 +115,7 @@ internal static class SelectInstruction
 
         IEnumerable<GraphEdge> findRootEdges() => giEdgeSelect switch
         {
-            var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Edges.Action(x => pContext.TrxContext.Map.Meter.Edge.IndexScan()),
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.TrxContext.Map.Edges.Action(x => pContext.TrxContext.Map.Edges.EdgeCounter?.IndexScan.Add()),
             { From: string v1, To: string v2, Type: string v3 } when !HasWildCard(v1) && !HasWildCard(v2) && !HasWildCard(v3) => lookupEdge(v1, v2, v3),
             { From: string v1 } when !HasWildCard(v1) => pContext.TrxContext.Map.Edges.LookupByFromKeyExpand([v1]),
             { To: string v2 } when !HasWildCard(v2) => pContext.TrxContext.Map.Edges.LookupByToKeyExpand([v2]),

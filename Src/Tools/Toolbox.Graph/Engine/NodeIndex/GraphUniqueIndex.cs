@@ -6,7 +6,7 @@ using Toolbox.Types;
 namespace Toolbox.Graph;
 
 /// <summary>
-/// Index to lookup unique keys associagted with an index (tag key) + tagValue + nodekey
+/// Index to lookup unique keys associated with an index (tag key) + tagValue + nodeKey
 /// 
 /// Lookup -
 ///   tagKey + tagValue -> nodeKeys
@@ -44,7 +44,7 @@ public class GraphUniqueIndex
 
         if (currentNode != null && !newNode.Key.EqualsIgnoreCase(currentNode.Key)) return (StatusCode.BadRequest, "Node keys do not match");
 
-        // Verify that unique contraints are not violated
+        // Verify that unique constraints are not violated
         lock (_syncLock)
         {
             // Node cannot have an indexed value that another node has

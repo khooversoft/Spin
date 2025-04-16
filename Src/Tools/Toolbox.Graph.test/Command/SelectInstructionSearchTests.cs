@@ -35,7 +35,7 @@ public class SelectInstructionSearchTests
     [Fact]
     public async Task SelectAllUsers()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
 
         var resultOption = await graphTestClient.Execute("select (key=account:*) ;", context);
@@ -50,7 +50,7 @@ public class SelectInstructionSearchTests
     [Fact]
     public async Task SelectEdgeSubset()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
 
         var resultOption = await graphTestClient.Execute("select [from=user:f*] ;", context);
@@ -65,7 +65,7 @@ public class SelectInstructionSearchTests
     [Fact]
     public async Task SelectNodesFromEdgeSubset()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
 
         var resultOption = await graphTestClient.Execute("select [from=user:f*] -> (*) ;", context);

@@ -43,7 +43,7 @@ public class JournalTrx : IJournalTrx, IAsyncDisposable
             return;
         }
 
-        _context.LogInformation("Commit={trxId}", _trxId);
+        _context.LogTrace("Commit={trxId}", _trxId);
 
         var entry = new JournalEntry
         {

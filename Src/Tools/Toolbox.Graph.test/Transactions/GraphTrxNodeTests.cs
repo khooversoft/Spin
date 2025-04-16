@@ -10,7 +10,7 @@ public class GraphTrxNodeTests
     [Fact]
     public async Task AddNodeFailure()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -40,7 +40,7 @@ public class GraphTrxNodeTests
     [Fact]
     public async Task UpdateNodeFailure()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;
@@ -70,7 +70,7 @@ public class GraphTrxNodeTests
     [Fact]
     public async Task DeleteNodeFailure()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             add node key=node1;

@@ -43,7 +43,7 @@ public static class QueryExecution
     {
         using (var metric = context.LogDuration("queryExecution-parseQuery"))
         {
-            graphTrxContext.Context.LogInformation("Parsing query: {graphQuery}", graphQuery);
+            graphTrxContext.Context.LogTrace("Parsing query: {graphQuery}", graphQuery);
             var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphTrxContext.Context);
             if (parse.Status.IsError()) return parse.Status.LogStatus(graphTrxContext.Context, graphQuery).ToOptionStatus<QueryExecutionContext>();
 

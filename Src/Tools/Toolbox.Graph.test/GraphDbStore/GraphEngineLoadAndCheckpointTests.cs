@@ -21,7 +21,7 @@ public class GraphEngineLoadAndCheckpointTests
     [Fact]
     public async Task EmptyDbSave()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
         IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
 
@@ -41,7 +41,7 @@ public class GraphEngineLoadAndCheckpointTests
     [Fact]
     public async Task SimpleMapDbRoundTrip()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
         IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
         const int count = 5;
@@ -78,7 +78,7 @@ public class GraphEngineLoadAndCheckpointTests
     [Fact]
     public async Task LoadInitialDatabase()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(sharedMode: true, logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(sharedMode: true, logOutput: x => _outputHelper.WriteLine(x), disableCache: true);
         var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
         IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
         IGraphEngine host = graphTestClient.Services.GetRequiredService<IGraphEngine>();
@@ -88,7 +88,7 @@ public class GraphEngineLoadAndCheckpointTests
         Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
         Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
 
-        GraphSerialization dbJson = expectedMap.ToSerialization();
+        string dbJson = expectedMap.ToSerialization().ToJson();
         (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().Should().BeTrue();
 
         (await host.InitializeDatabase(context)).IsOk().Should().BeTrue();

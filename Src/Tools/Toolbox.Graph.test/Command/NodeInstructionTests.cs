@@ -35,7 +35,7 @@ public class NodeInstructionTests
     [InlineData("delete node from=node1, to=node2, type=et1 set newTags, t2=v2")]
     public async Task Failures(string query)
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.Execute(query, context);
@@ -61,7 +61,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNode()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.Execute("add node key=node8;", context);
@@ -80,7 +80,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNodeWithTag()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("add node key=node9 set newTags;", context);
@@ -102,7 +102,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNodeWithRemoveTagsThatDoesNotExist()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("add node key=node10 set -newTags;", context);
@@ -124,7 +124,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNodeWithTwoTags()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set newTags, t2=v2;", context);
@@ -146,7 +146,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task DeleteNode()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("delete node key=node1 ;", context);
@@ -184,7 +184,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task DeleteNodeIfExist()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         // Verify delete will fail
@@ -205,7 +205,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task SetNode()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node8 ;", context);
@@ -227,7 +227,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task SetNodeWithNamespace()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=role:owner@domain.com;", context);
@@ -249,7 +249,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task UpdateNodeTags()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node11 set t1, t2=v2 ;", context);
@@ -271,7 +271,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task SetNodeWithTags()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node4 set t1, t2=v2 ;", context);
@@ -293,7 +293,7 @@ public class NodeInstructionTests
     [Fact]
     public async Task SetNodeWithRemoveTag()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node4 set -age ;", context);

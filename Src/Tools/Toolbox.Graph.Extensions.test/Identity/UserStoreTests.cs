@@ -14,7 +14,7 @@ public class UserStoreTests
     [Fact]
     public async Task UserStoreWithGraphInfo()
     {
-        await using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
+        using var graphTestClient = await GraphTestStartup.CreateGraphService(config: x => x.AddGraphExtensions());
 
         var userStore = graphTestClient.Services.GetRequiredService<IUserStore<PrincipalIdentity>>();
 

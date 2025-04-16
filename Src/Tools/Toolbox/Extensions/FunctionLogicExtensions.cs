@@ -24,16 +24,6 @@ public static class FunctionLogicExtensions
     }
 
     [DebuggerStepThrough]
-    public static T IfTrue<T>(this T subject, Func<T, bool> test, Action action)
-    {
-        test.NotNull();
-        action.NotNull();
-
-        if (test(subject)) action();
-        return subject;
-    }
-
-    [DebuggerStepThrough]
     public static void IfTrue(this bool subject, Action action)
     {
         action.NotNull();
@@ -41,42 +31,23 @@ public static class FunctionLogicExtensions
     }
 
     [DebuggerStepThrough]
-    public static void IfFalse(this bool subject, Action action)
+    public static T IfElse<T>(this T subject, Func<T, bool> test, Action<T> trueAction, Action<T> falseAction)
     {
-        action.NotNull();
-        if (!subject) action();
-    }
+        test.NotNull();
+        trueAction.NotNull();
+        falseAction.NotNull();
 
-    [DebuggerStepThrough]
-    public static T? IfNull<T>(this T? subject, Action action) where T : class
-    {
-        action.NotNull();
-        if (subject == null) action();
+        if (test(subject)) trueAction(subject); else falseAction(subject);
         return subject;
     }
 
     [DebuggerStepThrough]
-    public static T? IfNotNull<T>(this T? subject, Action<T> action) where T : class
+    public static void IfElse(this bool subject, Action trueAction, Action falseAction)
     {
-        action.NotNull();
-        if (subject != null) action(subject);
-        return subject;
-    }
+        trueAction.NotNull();
+        falseAction.NotNull();
 
-    [DebuggerStepThrough]
-    public static string? IfEmpty(this string? subject, Action action)
-    {
-        action.NotNull();
-        if (subject.IsEmpty()) action();
-        return subject;
-    }
-
-    [DebuggerStepThrough]
-    public static string? IfNotEmpty(this string? subject, Action<string?> action)
-    {
-        action.NotNull();
-        if (subject.IsNotEmpty()) action(subject);
-        return subject;
+        if (subject) trueAction(); else falseAction();
     }
 
     /// <summary>

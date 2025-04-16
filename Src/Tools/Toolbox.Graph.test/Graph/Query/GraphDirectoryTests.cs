@@ -50,7 +50,7 @@ public class GraphDirectoryTests
             }
             """;
 
-        var map = GraphMap.FromJson(mapJson);
+        var map = GraphMapTool.FromJson(mapJson);
         map.NotNull();
 
         return map;
@@ -64,7 +64,7 @@ public class GraphDirectoryTests
     [Fact]
     public async Task DirectorySearchQuery()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(GetMap().Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(GetMap().Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<GraphDirectoryTests>();
 
         var search = (await graphTestClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", context)).ThrowOnError().Return();
@@ -73,7 +73,7 @@ public class GraphDirectoryTests
         search.Items.Count.Should().Be(1);
         search.Items[0].Edges.Count.Should().Be(2);
 
-        var index = search.Items[0].Edges.ToCursor();
+        var index = search.Items[0].Edges.OrderBy(x => x.ToKey).ToArray().ToCursor();
 
         index.NextValue().Return().Cast<GraphEdge>().Action(x =>
         {

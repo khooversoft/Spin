@@ -170,7 +170,7 @@ internal static class NodeInstruction
             .ToArray();
 
         var status = ScanOptions(allStatus);
-        pContext.TrxContext.Map.Meter.Node.ForeignKeyAdd(missingEdges.Length > 0 && status.IsOk());
+        pContext.TrxContext.Map.Nodes.NodeCounter?.ForeignKeyAdded.Add(missingEdges.Length > 0 && status.IsOk());
         return status;
     }
 
@@ -219,7 +219,7 @@ internal static class NodeInstruction
             .ToArray();
 
         var status = ScanOptions(allStatus);
-        pContext.TrxContext.Map.Meter.Node.ForeignKeyRemove(currentEdgesNotValid.Length > 0 && status.IsOk());
+        pContext.TrxContext.Map.Nodes.NodeCounter?.ForeignKeyRemoved.Add(currentEdgesNotValid.Length > 0 && status.IsOk());
         return status;
 
         bool isEdgeTypeValid(string edgeType) => foreignKeys.ContainsKey(edgeType);

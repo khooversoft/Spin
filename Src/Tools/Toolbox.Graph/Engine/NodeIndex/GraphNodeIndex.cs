@@ -19,27 +19,30 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     private readonly object _lock;
     private readonly GraphMap _map;
 
-    internal GraphNodeIndex(GraphMap map, object syncLock)
+    internal GraphNodeIndex(GraphMap map, object syncLock, GraphMapCounter? mapCounters = null)
     {
         _map = map.NotNull();
         _lock = syncLock.NotNull();
         _index = new ConcurrentDictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
         _uniqueIndex = new GraphUniqueIndex(_lock);
+
+        NodeCounter = mapCounters?.Nodes;
     }
 
     public GraphNode this[string key]
     {
-        get => _index[key].Action(_ => _map.Meter.Node.IndexHit());
+        get => _index[key].Action(_ => NodeCounter?.IndexHit.Add());
         internal set => Set(value).ThrowOnError();
     }
 
     public int Count => _index.Count;
     public bool ContainsKey(string key) => _index.ContainsKey(key);
-    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value).Action(x => _map.Meter.Node.Index(x));
-    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag).Action(x => _map.Meter.Node.Index(x.Count > 0));
-    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue).Action(x => _map.Meter.Node.Index(x));
-    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey).Action(x => _map.Meter.Node.Index(x.Count > 0));
+    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value).Action(x => NodeCounter?.Index(x));
+    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag).Action(x => NodeCounter?.Index(x.Count > 0));
+    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue).Action(x => NodeCounter?.Index(x));
+    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey).Action(x => NodeCounter?.Index(x.Count > 0));
+    internal NodeCounter? NodeCounter { get; }
 
     internal Option Add(GraphNode node, IGraphTrxContext? trxContext = null)
     {
@@ -60,23 +63,14 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 );
 
             if (!_index.TryAdd(newNode.Key, newNode)) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
+            NodeCounter?.Count.Record(_index.Count);
 
             _tagIndex.Set(node.Key, node.Tags);
             _uniqueIndex.Set(node, null, trxContext).ThrowOnError();
 
-            _map.Meter.Node.Added();
+            NodeCounter?.Added.Add();
             trxContext?.ChangeLog.Push(new CmNodeAdd(node));
             return StatusCode.OK;
-        }
-    }
-
-    internal void Clear()
-    {
-        lock (_lock)
-        {
-            _index.Clear();
-            _tagIndex.Clear();
-            _uniqueIndex.Clear();
         }
     }
 
@@ -86,7 +80,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         {
             var nodes = _tagIndex.Lookup(tag);
             var list = nodes.Select(x => _index[x]).ToImmutableArray();
-            _map.Meter.Node.Index(list.Length > 0);
+            NodeCounter?.Index(list.Length > 0);
             return list;
         }
     }
@@ -102,7 +96,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             removedNodeFromEdges(oldValue!, trxContext);
 
             trxContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
-            _map.Meter.Node.Deleted();
+            NodeCounter?.Deleted.Add();
+            NodeCounter?.Count.Record(_index.Count);
             return StatusCode.OK;
         }
 
@@ -138,7 +133,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 true => new CmNodeChange(current!, updatedNode),
             });
 
-            if (exist) _map.Meter.Node.Updated(); else _map.Meter.Node.Added();
+            if (exist) NodeCounter?.Updated.Add(); else NodeCounter?.Added.Add();
+            NodeCounter?.Count.Record(_index.Count);
             return StatusCode.OK;
         }
 
@@ -148,4 +144,6 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public IEnumerator<GraphNode> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    internal void UpdateCounters() => NodeCounter?.Count.Record(_index.Count);
 }

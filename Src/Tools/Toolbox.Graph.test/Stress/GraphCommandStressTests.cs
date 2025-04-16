@@ -14,7 +14,7 @@ public class GraphCommandStressTests
     [Fact]
     public async Task StressTest()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<GraphCommandStressTests>();
         const int taskCount = 10;
 

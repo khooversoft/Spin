@@ -9,7 +9,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task SingleNode()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         Option<QueryBatchResult> addResult = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
         addResult.IsOk().Should().BeTrue();
@@ -48,7 +48,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task TwoNodes()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         Option<QueryBatchResult> addResult1 = await testClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", NullScopeContext.Default);
         addResult1.IsOk().Should().BeTrue();
@@ -131,7 +131,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task UpdateTags()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;
@@ -164,7 +164,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task TwoNodesWithRelationship()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;
@@ -221,7 +221,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task TwoNodesWithFullRelationship()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;
@@ -283,7 +283,7 @@ public class GraphLifecycleTest
     [Fact]
     public async Task TwoNodesWithRelationshipLargerSet()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         string q = """
             set node key=node1 set t1;

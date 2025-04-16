@@ -9,7 +9,7 @@ public class AddUniqueIndexTests
     [Fact]
     public async Task AddMultipleIndexes()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
         var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
@@ -44,7 +44,7 @@ public class AddUniqueIndexTests
     [Fact]
     public async Task AddMultipleIndexesDifferentValue()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
         var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
@@ -77,7 +77,7 @@ public class AddUniqueIndexTests
     [Fact]
     public async Task UniqueIndexViolation()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
         var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
@@ -105,7 +105,7 @@ public class AddUniqueIndexTests
     [Fact]
     public async Task UniqueIndexViolation2()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
         var context = testClient.CreateScopeContext<AddUniqueIndexTests>();
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);

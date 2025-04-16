@@ -27,7 +27,7 @@ public class AddEdgeCommandTests
     [InlineData("add edge fromKey=node4, toKey=node5;")]
     public async Task Failures(string query)
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
         newMapOption.IsError().Should().BeTrue();
@@ -39,7 +39,7 @@ public class AddEdgeCommandTests
     [Fact]
     public async Task SingleAddForEdge()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
@@ -71,7 +71,7 @@ public class AddEdgeCommandTests
     [Fact]
     public async Task SingleAddForEdgeTagsCommand()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();
@@ -94,7 +94,7 @@ public class AddEdgeCommandTests
     [Fact]
     public async Task SingleUniqueAddForEdge()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
         newMapOption.IsOk().Should().BeTrue();

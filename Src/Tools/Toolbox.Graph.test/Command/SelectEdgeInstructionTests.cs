@@ -1,4 +1,6 @@
-﻿using Toolbox.Tools.Should;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Graph.test.Application;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -31,12 +33,13 @@ public class SelectEdgeInstructionTests
     }
 
     [Fact]
-    public async Task SelecteAllEdges()
+    public async Task SelectAllEdges()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
+        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
-        var newMapOption = await graphTestClient.Execute("select [*] ;", context);
+        var newMapOption = await testClient.Execute("select [*] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -58,18 +61,19 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(1);
+        collector.Edges.IndexHit.Value.Should().Be(0);
+        collector.Edges.IndexMissed.Value.Should().Be(0);
+        collector.Edges.IndexScan.Value.Should().Be(1);
     }
 
     [Fact]
-    public async Task SelecteAllEdgesWithTag()
+    public async Task SelectAllEdgesWithTag()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
+        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
-        var newMapOption = await graphTestClient.Execute("select [*, level=1] ;", context);
+        var newMapOption = await testClient.Execute("select [*, level=1] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -87,18 +91,19 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(1);
+        collector.Edges.IndexHit.Value.Should().Be(0);
+        collector.Edges.IndexMissed.Value.Should().Be(0);
+        collector.Edges.IndexScan.Value.Should().Be(1);
     }
 
     [Fact]
     public async Task SelectEdgesWithTag()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
+        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
-        var newMapOption = await graphTestClient.Execute("select [level=1] ;", context);
+        var newMapOption = await testClient.Execute("select [level=1] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -116,18 +121,19 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(3);
-        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
+        collector.Edges.IndexHit.Value.Should().Be(3);
+        collector.Edges.IndexMissed.Value.Should().Be(0);
+        collector.Edges.IndexScan.Value.Should().Be(0);
     }
 
     [Fact]
     public async Task SelectEdgesByFrom()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
+        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
-        var newMapOption = await graphTestClient.Execute("select [from=node1] ;", context);
+        var newMapOption = await testClient.Execute("select [from=node1] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -145,18 +151,19 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(3);
-        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
+        collector.Edges.IndexHit.Value.Should().Be(3);
+        collector.Edges.IndexMissed.Value.Should().Be(0);
+        collector.Edges.IndexScan.Value.Should().Be(0);
     }
 
     [Fact]
     public async Task SelectEdgesByTo()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
+        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
-        var newMapOption = await graphTestClient.Execute("select [to=node3] ;", context);
+        var newMapOption = await testClient.Execute("select [to=node3] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -175,18 +182,19 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(4);
-        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
+        collector.Edges.IndexHit.Value.Should().Be(4);
+        collector.Edges.IndexMissed.Value.Should().Be(0);
+        collector.Edges.IndexScan.Value.Should().Be(0);
     }
 
     [Fact]
     public async Task SelectEdgesByEdgeType()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
+        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
+        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
-        var newMapOption = await graphTestClient.Execute("select [type=et3] ;", context);
+        var newMapOption = await testClient.Execute("select [type=et3] ;", context);
         newMapOption.IsOk().Should().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -205,8 +213,8 @@ public class SelectEdgeInstructionTests
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
 
-        graphTestClient.Map.Meter.Edge.GetIndexHit().Should().Be(4);
-        graphTestClient.Map.Meter.Edge.GetIndexMissed().Should().Be(0);
-        graphTestClient.Map.Meter.Edge.GetIndexScan().Should().Be(0);
+        collector.Edges.IndexHit.Value.Should().Be(4);
+        collector.Edges.IndexMissed.Value.Should().Be(0);
+        collector.Edges.IndexScan.Value.Should().Be(0);
     }
 }

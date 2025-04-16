@@ -33,7 +33,7 @@ public class NodeInstructionDataTest
     [Fact]
     public async Task SingleNodeWithData()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionDataTest>();
 
         var nodeData = new NodeData { Name = "node8", Age = 40 };
@@ -58,7 +58,7 @@ public class NodeInstructionDataTest
     [Fact]
     public async Task TwoNodeWithData()
     {
-        await using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<NodeInstructionDataTest>();
 
         var nodeData1 = new NodeData { Name = "node10", Age = 40 };

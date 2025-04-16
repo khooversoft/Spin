@@ -12,7 +12,7 @@ public class GraphTransactionTests
     [Fact]
     public async Task SimpleSetOfCommandsWithFailuresKey()
     {
-        await using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
 
         IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
         IJournalFile transactionLog = testClient.Services.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed);

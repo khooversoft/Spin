@@ -16,6 +16,7 @@ public sealed class MemoryStore
     private readonly ConcurrentDictionary<string, LeaseRecord> _leaseStore = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();
     private readonly ILogger<MemoryStore> _logger;
+    private readonly QueueLock _queueLock = new();
 
     public MemoryStore(ILogger<MemoryStore> logger) => _logger = logger.NotNull();
 
@@ -164,14 +165,19 @@ public sealed class MemoryStore
     {
         context = context.With(_logger);
 
+        if (!_store.TryGetValue(path, out var _)) return StatusCode.NotFound;
+
+        Option acquiredScope = _queueLock.AcquireLock(TimeSpan.FromSeconds(1));
+        if (acquiredScope.IsError()) return acquiredScope.LogStatus(context, "Failed to acquire scope lock").ToOptionStatus<LeaseRecord>();
+
         lock (_lock)
         {
             if (!_store.TryGetValue(path, out var payload)) return StatusCode.NotFound;
 
             Option result = payload.LeaseRecord switch
             {
-                LeaseRecord v when v.IsLeaseValid() == true => StatusCode.Conflict,
-                LeaseRecord v => _leaseStore.TryRemove(v.LeaseId, out _) ? StatusCode.OK : StatusCode.Conflict,
+                LeaseRecord v when v.IsLeaseValid() == true => (StatusCode.Conflict, "Path is already leased"),
+                LeaseRecord v => _leaseStore.TryRemove(v.LeaseId, out _) ? StatusCode.OK : (StatusCode.Conflict, "Failed to remove old lease"),
                 _ => StatusCode.OK,
             };
 
@@ -194,7 +200,8 @@ public sealed class MemoryStore
 
         lock (_lock)
         {
-            if (!_store.TryGetValue(path, out var payload)) return StatusCode.NotFound;
+            if (!_store.TryGetValue(path, out var payload)) return (StatusCode.NotFound, "Lease not found");
+            _queueLock.ReleaseLock();
 
             if (payload.LeaseRecord != null)
             {
@@ -213,7 +220,8 @@ public sealed class MemoryStore
 
         lock (_lock)
         {
-            if (!_leaseStore.TryRemove(leaseId, out var leaseRecord)) return StatusCode.NotFound;
+            if (!_leaseStore.TryRemove(leaseId, out var leaseRecord)) return (StatusCode.NotFound, "Lease not found");
+            _queueLock.ReleaseLock();
 
             _store[leaseRecord.Path] = _store[leaseRecord.Path] with { LeaseRecord = null };
             context.LogTrace("Release lease Path={path}, leaseId={leaseId}", leaseRecord.Path, leaseId);
