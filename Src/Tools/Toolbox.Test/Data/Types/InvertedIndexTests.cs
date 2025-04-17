@@ -1,5 +1,6 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Data.Types;
@@ -27,7 +28,7 @@ public class InvertedIndexTests
         set.Count.Should().Be(1);
         set.Count().Should().Be(1);
         set.First().Key.Should().Be(key);
-        set.First().Value.Should().Be(refKey);
+        set.First().Value.Assert(x => x == refKey);
 
         set.Remove(key).Count().Should().Be(1);
     }
@@ -61,7 +62,7 @@ public class InvertedIndexTests
 
             var removeSet = set.Remove(key);
             removeSet.Count.Should().Be(1);
-            removeSet.First().Should().Be(refKey);
+            removeSet.First().Assert(x => x == refKey);
 
         }
         while (shuffle.Count > 0);

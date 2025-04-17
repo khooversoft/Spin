@@ -34,7 +34,7 @@ public class ObjectTableTests
         table.Rows.Count.Should().Be(1);
         table.Rows[0].Header.NotNull();
         table.Rows[0].Items.Count.Should().Be(1);
-        table.Rows[0].Items[0].Value.Should().Be(data1Test);
+        table.Rows[0].Items[0].Value.Assert(x => x?.Cast<string>() == data1Test);
         table.Rows[0].Items[0].Get<string>().Should().Be(data1Test);
         table.Rows[0].Get<string>(0).Should().Be(data1Test);
         table.Rows[0].Get<string>(column1Text).Should().Be(data1Test);
@@ -64,7 +64,7 @@ public class ObjectTableTests
             .ForEach(x =>
             {
                 x.row.Items.Count.Should().Be(1);
-                x.row.Items[0].Value.Should().Be(x.data);
+                x.row.Items[0].Value.Assert(z => z?.Cast<string>() == x.data);
                 x.row.Items[0].Get<string>().Should().Be(x.data);
                 x.row.Get<string>(0).Should().Be(x.data);
                 x.row.Get<string>(column1Text).Should().Be(x.data);
@@ -102,11 +102,11 @@ public class ObjectTableTests
             TableRow tableRow = table.Rows[row.Index];
             tableRow.Items.Count.Should().Be(columns.Length);
 
-            tableRow.Get<DateTime>(0).Should().Be((DateTime)row.Item[0]);
+            tableRow.Get<DateTime>(0).Assert(x => x == (DateTime)row.Item[0]);
             tableRow.Get<string>(1).Should().Be((string)row.Item[1]);
             tableRow.Get<int>(2).Should().Be((int)row.Item[2]);
 
-            tableRow.Get<DateTime>(columns[0]).Should().Be((DateTime)row.Item[0]);
+            tableRow.Get<DateTime>(columns[0]).Assert(x => x == (DateTime)row.Item[0]);
             tableRow.Get<string>(columns[1]).Should().Be((string)row.Item[1]);
             tableRow.Get<int>(columns[2]).Should().Be((int)row.Item[2]);
         }
@@ -146,11 +146,11 @@ public class ObjectTableTests
             tableRow.Tag.Should().Be(row.Item.Tag);
             tableRow.Key.Should().Be(row.Item.Key);
 
-            tableRow.Get<DateTime>(0).Should().Be((DateTime?)row.Item.Cells[0]);
+            tableRow.Get<DateTime>(0).Assert(x => x == (DateTime?)row.Item.Cells[0]);
             tableRow.Get<string>(1).Should().Be((string?)row.Item.Cells[1]);
             tableRow.Get<int>(2).Should().Be((int)row.Item.Cells[2].NotNull());
 
-            tableRow.Get<DateTime>(columns[0]).Should().Be((DateTime?)row.Item.Cells[0]);
+            tableRow.Get<DateTime>(columns[0]).Assert(x => x == (DateTime?)row.Item.Cells[0]);
             tableRow.Get<string>(columns[1]).Should().Be((string?)row.Item.Cells[1]);
             tableRow.Get<int>(columns[2]).Should().Be((int)row.Item.Cells[2].NotNull());
         }

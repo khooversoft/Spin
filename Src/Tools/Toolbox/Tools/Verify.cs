@@ -19,7 +19,7 @@ public static class Verify
     public static T Assert<T>(
             this T subject,
             Func<T, bool> test,
-            string message,
+            string? message = null,
             [CallerMemberName] string function = "",
             [CallerFilePath] string path = "",
             [CallerLineNumber] int lineNumber = 0,
@@ -30,7 +30,7 @@ public static class Verify
         message.NotEmpty();
 
         message += $", {name}, " + FormatCaller(function, path, lineNumber);
-        throw new ArgumentException(message);
+        throw new ArgumentException(message ?? name);
     }
 
     /// <summary>

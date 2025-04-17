@@ -8,7 +8,7 @@ namespace Toolbox.Test.Application;
 
 internal static class MetaTestTool
 {
-    public static string ReadGraphLanauge() => AssemblyResource.GetResourceString("Toolbox.Test.LangTools.MetaLang.GraphLanguage.txt", typeof(MetaTestTool)).NotNull();
+    public static string ReadGraphLanguage() => AssemblyResource.GetResourceString("Toolbox.Test.LangTools.MetaLang.GraphLanguage.txt", typeof(MetaTestTool)).NotNull();
 
     public static IReadOnlyList<string> GenerateTestCodeFromProductionRule(this ProductionRule subject)
     {

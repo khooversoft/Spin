@@ -23,7 +23,7 @@ public class DataETag_T_Tests
         var td = new TestData("name1", 10);
         var e = new DataETag<TestData>(td);
         e.NotNull();
-        e.Value.Should().Be(td);
+        e.Value.Assert(x => x == td);
         e.ETag.Should().BeEmpty();
     }
 
@@ -34,7 +34,7 @@ public class DataETag_T_Tests
         string eTag = td.ToJson().ToHashHex();
         var e = new DataETag<TestData>(td, eTag);
         e.NotNull();
-        e.Value.Should().Be(td);
+        e.Value.Assert(x => x == td);
         e.ETag.Should().Be(eTag);
     }
 
@@ -48,7 +48,7 @@ public class DataETag_T_Tests
         string json = e.ToJson();
         DataETag<TestData> result = json.ToObject<DataETag<TestData>>().NotNull();
         result.NotNull();
-        result.Value.Should().Be(e.Value);
+        result.Value.Assert(x => x == e.Value);
         result.ETag.Should().Be(e.ETag);
     }
 

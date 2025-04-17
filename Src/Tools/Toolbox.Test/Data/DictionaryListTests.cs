@@ -1,5 +1,6 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Data;
@@ -24,7 +25,7 @@ public class DictionaryListTests
         dictList.Count.Should().Be(1);
 
         dictList.TryGetValue("A", out var readRecord).Should().BeTrue();
-        readRecord.Should().Be(new TestRecord("A", 1));
+        readRecord.Assert(x => x == new TestRecord("A", 1));
 
         dictList.Clear();
         dictList.Count.Should().Be(0);
@@ -39,7 +40,7 @@ public class DictionaryListTests
         dictList.Count.Should().Be(1);
 
         dictList.TryGetValue("A", out var readRecord).Should().BeTrue();
-        readRecord.Should().Be(new TestRecord("A", 1));
+        readRecord.Assert(x => x == new TestRecord("A", 1));
 
         dictList.Remove("A");
         dictList.Count.Should().Be(0);
@@ -54,7 +55,7 @@ public class DictionaryListTests
         dictList.Count.Should().Be(1);
 
         dictList.TryGetValue("A", out var readRecord).Should().BeTrue();
-        readRecord.Should().Be(new TestRecord("A", 1));
+        readRecord.Assert(x => x == new TestRecord("A", 1));
 
         dictList.Remove(0).Should().BeTrue();
         dictList.Count.Should().Be(0);
@@ -83,12 +84,12 @@ public class DictionaryListTests
             TestRecord expectedRecord = new TestRecord(nameList[i], (i + 1) * 10);
 
             dictList.TryGetValue(nameList[i], out var readRecord).Should().BeTrue();
-            readRecord.Should().Be(expectedRecord);
+            readRecord.Assert(x => x == expectedRecord);
 
             dictList.TryGetValue(i, out var readRecordIndex).Should().BeTrue();
-            readRecordIndex.Should().Be(expectedRecord);
+            readRecordIndex.Assert(x => x == expectedRecord);
 
-            dictList[i].Action(x => x.Should().Be(expectedRecord));
+            dictList[i].Action(x => x.Assert(x => x == expectedRecord));
         }
 
         nameList.ForEach(x => dictList.Remove(x).Should().BeTrue());

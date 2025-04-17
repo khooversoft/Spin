@@ -31,14 +31,15 @@ public sealed class MemoryStore
             if (IsLeased(path)) return (StatusCode.Conflict, "Path is leased");
 
             DirectoryDetail detail = new(data.ConvertTo(path), data, null);
-            var result = _store.TryAdd(path, detail) switch
+
+            Option<string> result = _store.TryAdd(path, detail) switch
             {
-                true => StatusCode.OK,
+                true => (StatusCode.OK, detail.PathDetail.ETag.NotEmpty()),
                 false => StatusCode.Conflict,
             };
 
             context.LogTrace("Add Path={path}, length={length}", path, data.Data.Length);
-            return detail.Data.ETag.NotEmpty();
+            return result;
         }
     }
 
@@ -153,6 +154,18 @@ public sealed class MemoryStore
         var list = _store.Values
             .Select(x => x.PathDetail)
             .Where(x => pattern == "*" || query.IsMatch(x.Path, false))
+            .ToImmutableArray();
+
+        return list;
+    }
+
+    public IReadOnlyList<(IStorePathDetail Detail, DataETag Data)> SearchData(string pattern)
+    {
+        var query = QueryParameter.Parse(pattern).GetMatcher();
+
+        var list = _store.Values
+            .Select(x => (Detail: x.PathDetail.Cast<IStorePathDetail>(), Data: x.Data))
+            .Where(x => pattern == "*" || query.IsMatch(x.Detail.Path, false))
             .ToImmutableArray();
 
         return list;

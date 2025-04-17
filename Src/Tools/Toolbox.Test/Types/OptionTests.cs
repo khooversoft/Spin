@@ -71,7 +71,7 @@ public class OptionTests
         optionV2.StatusCode.Should().Be(StatusCode.OK);
         (optionV2 != default).Should().BeTrue();
         optionV2.HasValue.Should().BeTrue();
-        optionV2.Value.Should().Be(v2);
+        optionV2.Value.Assert(x => x == v2);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class OptionTests
         (optionV2 != default).Should().BeTrue();
         optionV2.StatusCode.Should().Be(StatusCode.OK);
         optionV2.HasValue.Should().BeTrue();
-        optionV2.Value.Should().Be(v2);
+        optionV2.Value.Assert(x => x == v2);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class OptionTests
         (optionV2 == default).Should().BeTrue();
         optionV2.StatusCode.Should().Be(StatusCode.NoContent);
         optionV2.HasValue.Should().BeFalse();
-        optionV2.Value.Should().Be(v2);
+        optionV2.Value.Assert(x => x == v2);
     }
 
     [Fact]

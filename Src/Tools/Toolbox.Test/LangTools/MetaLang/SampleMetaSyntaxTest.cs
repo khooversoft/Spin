@@ -11,7 +11,7 @@ public class SampleMetaSyntaxTest
     [Fact(Skip = "skip")]
     public void SampleMetaSyntax()
     {
-        string metaSyntax = MetaTestTool.ReadGraphLanauge();
+        string metaSyntax = MetaTestTool.ReadGraphLanguage();
 
         MetaSyntaxRoot root = MetaParser.ParseRules(metaSyntax);
         root.StatusCode.IsOk().Should().BeTrue(root.Error);

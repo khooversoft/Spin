@@ -24,7 +24,7 @@ public class GraphCommandResultSerialization
 
         QueryBatchResult result = json.ToObject<QueryBatchResult>().NotNull();
 
-        result.Option.Should().Be(source.Option);
+        result.Option.Assert(x => x == source.Option);
         result.Items.Count.Should().Be(2);
 
         var cursor = result.Items.ToCursor();
