@@ -94,10 +94,13 @@ public class GraphLeaseControl
             if (currentScope != null) await currentScope.Release(context).ConfigureAwait(false);
 
             var currentLock = Interlocked.Exchange(ref _exclusiveLock, null);
-            if (currentLock != null) await currentLock.Release(context).ConfigureAwait(false);
+            if (currentLock != null)
+            {
+                await currentLock.Release(context).ConfigureAwait(false);
+                _leaseCounter.ActiveExclusive.Record(0);
+                context.LogTrace("Exclusive lock released");
+            }
 
-            _leaseCounter.ActiveExclusive.Record(0);
-            context.LogTrace("Exclusive lock released");
             return StatusCode.OK;
         }
         finally

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -27,5 +28,14 @@ public static class AzureStartup
         }
 
         return services;
+    }
+
+    public static GraphHostBuilder AddDatalakeFileStore(this GraphHostBuilder graphHostService, DatalakeOption datalakeOption)
+    {
+        graphHostService.NotNull();
+        datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
+
+        graphHostService.AddServiceConfiguration(x => x.AddDatalakeFileStore(datalakeOption));
+        return graphHostService;
     }
 }

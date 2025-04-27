@@ -26,6 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Toolbox.Azure\Toolbox.Azure.csproj" />
         <ProjectReference Include="..\Toolbox.Graph\Toolbox.Graph.csproj" />
         <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
     </ItemGroup>

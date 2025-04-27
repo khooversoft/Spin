@@ -13,6 +13,7 @@ namespace Toolbox.Graph;
 public class GraphHostBuilder
 {
     private readonly ConcurrentQueue<Action<IServiceCollection>> _services = new();
+    private readonly ConcurrentDictionary<string, LogLevel> _logLevels = new(StringComparer.OrdinalIgnoreCase);
 
     public GraphHostBuilder() { }
 
@@ -22,6 +23,7 @@ public class GraphHostBuilder
     public bool DisableCache { get; set; }
     public bool InMemoryStore { get; set; }
     public bool Logging { get; set; }
+    public LogLevel LogLevel { get; set; } = LogLevel.None;
     public string? ConfigurationFile { get; set; }
     public Action<string>? LogOutput { get; set; }
 
@@ -30,7 +32,9 @@ public class GraphHostBuilder
     public GraphHostBuilder SetShareMode(bool shareMode = true) => this.Action(x => x.ShareMode = shareMode);
     public GraphHostBuilder SetDisableCache(bool disableCache = true) => this.Action(x => x.DisableCache = disableCache);
     public GraphHostBuilder UseInMemoryStore(bool use = true) => this.Action(x => x.InMemoryStore = use);
-    public GraphHostBuilder UseLogging(bool useLogging = true) => this.Action(x => x.Logging = useLogging);
+    public GraphHostBuilder UseLogging(bool useLogging = false) => this.Action(x => x.Logging = useLogging);
+    public GraphHostBuilder SetLogLevel(LogLevel useLogging = LogLevel.None) => this.Action(x => x.LogLevel = useLogging);
+    public GraphHostBuilder AddLogFilter(string name, LogLevel level) => this.Action(x => x._logLevels.AddOrUpdate(name, level, (key, oldValue) => level));
     public GraphHostBuilder SetConfigurationFile(string? configurationFile) => this.Action(x => x.ConfigurationFile = configurationFile);
     public GraphHostBuilder SetLogOutput(Action<string>? logOutput) => this.Action(x => x.LogOutput = logOutput);
 
@@ -39,7 +43,6 @@ public class GraphHostBuilder
         if (config != null) _services.Enqueue(config);
         return this;
     }
-
 
     public async Task<GraphHostService> Build()
     {
@@ -50,19 +53,30 @@ public class GraphHostBuilder
             DisableCache = DisableCache,
         };
 
+        LogLevel logLevel = LogLevel;
+        bool showLog(LogLevel level) => (int)level >= (int)logLevel;
+
         IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                services.AddGraphEngine(option)
+                services
+                    .AddGraphEngine(option)
+                    .AddSingleton<GraphHostService>()
                     .Action(x => ConfigurationFile?.Action(y => x.AddSingleton(ReadConfiguration())))
                     .IfTrue(x => InMemoryStore, x => x.AddInMemoryFileStore())
-                    .IfTrue(x => Logging, x => x.AddLogging(config => config.AddDebug().AddConsole()))
+                    .IfTrue(x => Logging, x => x.AddLogging(config =>
+                    {
+                        config.AddDebug();
+                        config.AddConsole();
+                        config.AddFilter(showLog);
+                        _logLevels.ForEach(y => config.AddFilter(y.Key, y.Value));
+                    }))
                     .IfTrue(x => LogOutput != null, x => x.AddLogging(config => config.AddLambda(LogOutput.NotNull())))
                     .Action(x => _services.ForEach(y => y.Invoke(x)));
             })
             .Build();
 
-        var graphEngine = new GraphHostService(host);
+        var graphEngine = host.Services.GetRequiredService<GraphHostService>();
         ScopeContext context = graphEngine.CreateScopeContext<GraphHostService>();
         IGraphHost graphHost = graphEngine.Services.GetRequiredService<IGraphHost>();
 
@@ -90,30 +104,5 @@ public class GraphHostBuilder
 
         return configuration;
     }
-}
-
-public class GraphHostService : IGraphClient, IDisposable
-{
-    private readonly IHost _host;
-
-    public GraphHostService(IHost host)
-    {
-        _host = host.NotNull();
-
-        GraphEngine = _host.Services.GetRequiredService<IGraphEngine>();
-        _host = host;
-    }
-
-    public IServiceProvider Services => _host.Services;
-    public IGraphEngine GraphEngine { get; }
-    public GraphMap Map => GraphEngine.Map;
-
-
-    public Task<Option<QueryResult>> Execute(string command, ScopeContext context) => GraphEngine.Execute(command, context);
-    public Task<Option<QueryBatchResult>> ExecuteBatch(string command, ScopeContext context) => GraphEngine.ExecuteBatch(command, context);
-
-    public ScopeContext CreateScopeContext<T>() => new ScopeContext(Services.GetRequiredService<ILogger<T>>());
-
-    public void Dispose() => _host.Dispose();
 }
 

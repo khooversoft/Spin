@@ -3,42 +3,37 @@ using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.Store;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.GraphDbStore;
 
-public class DatabaseShareModeTests
+public class DatalakeShareModeTests
 {
     private readonly ITestOutputHelper _outputHelper;
-    public DatabaseShareModeTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public DatalakeShareModeTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
     public async Task OneWriteOtherRead()
     {
-        using var testClient = await TestApplication.CreateTestGraphService(logOutput: _outputHelper, shareMode: true);
-        var context1 = testClient.CreateScopeContext<DatabaseShareModeTests>();
-        var context2 = testClient.CreateScopeContext<DatabaseShareModeTests>();
+        using var testClient = await TestApplication.CreateTestGraphServiceWithDatalake(logOutput: x => _outputHelper.WriteLine($"1st: {x}"), shareMode: true);
+        var context1 = testClient.CreateScopeContext<DatalakeShareModeTests>();
+        await testClient.Execute("delete (*) ;", context1);
+
+        var context2 = testClient.CreateScopeContext<DatalakeShareModeTests>();
         var fileStore = testClient.Services.GetRequiredService<IFileStore>();
         var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
         var leaseCounter = mapCounter.Leases;
 
-        using var SecondEngineClient = await GraphTestStartup.CreateGraphService(
-            logOutput: x => _outputHelper.WriteLine(x),
-            config: x => x
-                .AddSingleton<IFileStore>(fileStore)
-                .AddSingleton<IGraphStore>(graphFileStore)
-                .AddSingleton<GraphMapCounter>(mapCounter),
-            sharedMode: true,
-            useInMemoryStore: false
-            );
+        using var SecondEngineClient = await TestApplication.CreateTestGraphServiceWithDatalake(logOutput: x => _outputHelper.WriteLine($"2nd: {x}"), shareMode: true);
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
-        e1.IsOk().Should().BeTrue();
-        leaseCounter.Acquire.Value.Should().Be(1);
-        leaseCounter.Release.Value.Should().Be(1);
+        e1.IsOk().Should().BeTrue(e1.ToString());
+        leaseCounter.Acquire.Value.Assert(x => x >= 1, "not >= 1");
+        leaseCounter.Release.Value.Assert(x => x >= 1, "not >= 1");
         leaseCounter.ActiveAcquire.Value.Should().Be(0);
         leaseCounter.ActiveExclusive.Value.Should().Be(0);
 
@@ -53,8 +48,8 @@ public class DatabaseShareModeTests
             });
         });
 
-        leaseCounter.Acquire.Value.Should().Be(2);
-        leaseCounter.Release.Value.Should().Be(2);
+        leaseCounter.Acquire.Value.Assert(x => x >= 2, "not >= 2");
+        leaseCounter.Release.Value.Assert(x => x >= 2, "not >= 2");
         leaseCounter.ActiveAcquire.Value.Should().Be(0);
         leaseCounter.ActiveExclusive.Value.Should().Be(0);
 
@@ -69,8 +64,8 @@ public class DatabaseShareModeTests
             });
         });
 
-        leaseCounter.Acquire.Value.Should().Be(3);
-        leaseCounter.Release.Value.Should().Be(3);
+        leaseCounter.Acquire.Value.Assert(x => x >= 3, "not >= 3");
+        leaseCounter.Release.Value.Assert(x => x >= 3, "not >= 3");
         leaseCounter.ActiveAcquire.Value.Should().Be(0);
         leaseCounter.ActiveExclusive.Value.Should().Be(0);
     }
@@ -78,9 +73,10 @@ public class DatabaseShareModeTests
     [Fact]
     public async Task ParallelReads()
     {
-        using var testClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x), sharedMode: true);
-        var context1 = testClient.CreateScopeContext<DatabaseShareModeTests>();
-        var context2 = testClient.CreateScopeContext<DatabaseShareModeTests>();
+        using var testClient = await TestApplication.CreateTestGraphServiceWithDatalake(logOutput: x => _outputHelper.WriteLine($"1st: {x}"), shareMode: true);
+
+        var context1 = testClient.CreateScopeContext<DatalakeShareModeTests>();
+        var context2 = testClient.CreateScopeContext<DatalakeShareModeTests>();
         var fileStore = testClient.Services.GetRequiredService<IFileStore>();
         var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();

@@ -66,6 +66,7 @@ public class GraphMapStore : IAsyncDisposable
     public async Task<Option<IAsyncDisposable>> AcquireScope(ScopeContext context)
     {
         context = context.With(_logger);
+
         await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
         using var metric = context.LogDuration("graphMapStore-AcquireScope");
 
@@ -169,7 +170,7 @@ public class GraphMapStore : IAsyncDisposable
         Interlocked.Exchange(ref _map, newMap);
         _map.UpdateCounters();
 
-        context.LogTrace("Read graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
+        context.LogTrace("Loaded graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
         return StatusCode.OK;
     }
 

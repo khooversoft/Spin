@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -13,7 +12,7 @@ public interface IGraphStore : IFileStore
 
 public class GraphStore : IGraphStore
 {
-    private readonly IMemoryCache _memoryCache;
+    private readonly MemoryCacheAccess _memoryCache;
     private readonly ILogger<GraphStore> _logger;
     private readonly IFileStore _fileStore;
 
@@ -24,20 +23,20 @@ public class GraphStore : IGraphStore
         _fileStore = fileStore.NotNull();
         _logger = logger.NotNull();
 
-        _memoryCache = new NullMemoryCache();
+        _memoryCache = new MemoryCacheAccess(new NullMemoryCache());
     }
 
-    public GraphStore(IFileStore fileStore, IMemoryCache memoryCache, GraphHostOption hostOption, ILogger<GraphStore> logger)
+    public GraphStore(IFileStore fileStore, MemoryCacheAccess memoryAccess, GraphHostOption hostOption, ILogger<GraphStore> logger)
     {
         hostOption.NotNull();
 
         _fileStore = fileStore.NotNull();
         _logger = logger.NotNull();
 
-        _memoryCache = hostOption.DisableCache switch
+        _memoryCache = (hostOption.DisableCache || hostOption.ShareMode) switch
         {
-            false => memoryCache.NotNull(),
-            true => new NullMemoryCache(),
+            false => memoryAccess.NotNull(),
+            true => new MemoryCacheAccess(new NullMemoryCache()),
         };
     }
 

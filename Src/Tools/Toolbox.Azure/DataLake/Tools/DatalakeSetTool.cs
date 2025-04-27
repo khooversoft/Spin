@@ -42,7 +42,7 @@ public static class DatalakeSetTool
                 {
                     Conditions = new DataLakeRequestConditions
                     {
-                        IfMatch = dataETag.ETag.IsNotEmpty() ? new ETag(dataETag.ETag) : null,
+                        IfMatch = leaseId.IsEmpty() && dataETag.ETag.IsNotEmpty() ? new ETag(dataETag.ETag) : null,
                         LeaseId = leaseId
                     }
                 };
@@ -56,12 +56,12 @@ public static class DatalakeSetTool
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
         {
-            context.Location().LogError(ex, "Failed to upload {path}", fileClient.Path);
+            context.Location().LogError(ex, "Failed to upload because of LeaseIdMissing exception {path}, message={message}", fileClient.Path, ex.Message);
             return (StatusCode.Conflict, ex.Message);
         }
         catch (Exception ex)
         {
-            context.Location().LogError(ex, "Failed to upload {path}", fileClient.Path);
+            context.Location().LogError(ex, "Failed to upload {path}, exType={exType}, message={message}", fileClient.Path, ex.GetType(), ex.Message);
             return (StatusCode.InternalServerError, ex.Message);
         }
     }

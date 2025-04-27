@@ -60,7 +60,7 @@ public static class LoggerContextExtensions
 
     public static void LogMetric(this ILoggingContext context, string metricName, string unit, double value, string? message = null, params object?[] args)
     {
-        var metricMessage = "[metric:{metricName} value={value}, unit={unit}]" + (message == null ? string.Empty : " " + message);
+        var metricMessage = "metric:{metricName}, value={value}, unit={unit}" + (message == null ? string.Empty : " " + message);
         var metricArgs = new object?[] { metricName, value, unit }.Concat(args).ToArray();
 
         (string? newMessage, object?[] newObjects) = context.AppendContext(metricMessage, metricArgs);

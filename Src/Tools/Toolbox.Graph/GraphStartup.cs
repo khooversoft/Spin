@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Journal;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -30,10 +31,14 @@ public static class GraphStartup
             ReadOnly = hostOption.ReadOnly,
         });
 
-        services.AddSingleton<IGraphClient, GraphClientInMemory>();
+        services.AddSingleton<IGraphClient, GraphQueryRunner>();
         services.AddSingleton<IGraphStore, GraphStore>();
 
-        if (!hostOption.DisableCache) services.TryAddSingleton<IMemoryCache, MemoryCache>();
+        if (!hostOption.DisableCache)
+        {
+            services.TryAddSingleton<IMemoryCache, MemoryCache>();
+            services.TryAddSingleton<MemoryCacheAccess>();
+        }
 
         return services;
     }

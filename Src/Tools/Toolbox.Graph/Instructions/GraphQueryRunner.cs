@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Logging;
@@ -7,19 +8,30 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public static class QueryExecution
+public class GraphQueryRunner : IGraphClient
 {
-    public static async Task<Option<QueryBatchResult>> ExecuteBatch(this IGraphEngine graphEngine, string command, ScopeContext context)
+    private readonly IGraphEngine _graphEngine;
+    private readonly ILogger<GraphQueryRunner> _logger;
+
+    public GraphQueryRunner(IGraphEngine graphEngine, ILogger<GraphQueryRunner> logger)
     {
-        var result = await InternalExecute(graphEngine, command, context).ConfigureAwait(false);
+        _graphEngine = graphEngine.NotNull();
+        _logger = logger.NotNull();
+    }
+
+    public async Task<Option<QueryBatchResult>> ExecuteBatch(string command, ScopeContext context)
+    {
+        context = context.With(_logger);
+
+        var result = await InternalExecute(_graphEngine, command, context).ConfigureAwait(false);
         return result;
     }
 
-    public static async Task<Option<QueryResult>> Execute(this IGraphEngine graphEngine, string command, ScopeContext context)
+    public async Task<Option<QueryResult>> Execute(string command, ScopeContext context)
     {
-        graphEngine.NotNull();
+        context = context.With(_logger);
 
-        var result = await InternalExecute(graphEngine, command, context).ConfigureAwait(false);
+        var result = await InternalExecute(_graphEngine, command, context).ConfigureAwait(false);
         if (result.IsError()) return result.ToOptionStatus<QueryResult>();
 
         return result.Return().Items.Last();
@@ -106,8 +118,10 @@ public static class QueryExecution
             var writeOption = await pContext.TrxContext.CheckpointMap();
             if (writeOption.IsError())
             {
-                writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed");
-                return (StatusCode.InternalServerError, "Checkpoint failed");
+                writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed - attempting to roll back");
+                await pContext.TrxContext.ChangeLog.Rollback();
+
+                return writeOption.ToOptionStatus<QueryBatchResult>();
             }
         }
 
